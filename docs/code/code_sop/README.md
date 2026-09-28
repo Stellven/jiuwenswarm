@@ -7,7 +7,6 @@ Use this package with [Code_SOP.md](../Code_SOP.md). Read the main workflow firs
 | What you need to do | Entry point |
 | --- | --- |
 | Adopt the workflow for the first time | [ADOPTION_CHECKLIST](ADOPTION_CHECKLIST.md) |
-| Send the weekend kickoff and collect setup replies | [WEEKEND_KICKOFF](WEEKEND_KICKOFF.md) |
 | Read the complete workflow and gates | [Main SOP](../Code_SOP.md) |
 | Adopt Spec Kit and run a task through its artifacts | [SPEC_KIT_WORKFLOW](SPEC_KIT_WORKFLOW.md) |
 | Prepare branches, synchronize, open a PR, resolve conflicts, or revert | [GIT_WORKFLOW](GIT_WORKFLOW.md) |
