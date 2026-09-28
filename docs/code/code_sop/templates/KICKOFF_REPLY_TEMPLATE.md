@@ -6,7 +6,7 @@
 
 - Name: [Fill in].
 - Application repository access: [Confirmed / Blocked with error].
-- Documentation repository access: [Confirmed / Blocked with error].
+- SOP package access in application `docs/code/`: [Confirmed / Blocked with error].
 - Application origin: [Actual remote URL].
 - Local application working directory: [Your path].
 - Personal branch: [Actual `ai4r_xiaoyang`, `ai4r_saurav`, `ai4r_ramika`, or `ai4r_muk`].
@@ -21,6 +21,7 @@
 - Git / Git LFS / Python versions: [Actual command output, or Not installed/checked].
 - Environment route: [pip virtual environment / uv / Other explained / Not selected].
 - Dependency setup: [Completed with evidence / Attempted but blocked / Not attempted].
+- Spec Kit readiness: [uv/Specify CLI/integration versions and command-discovery evidence, or Not attempted/Blocked; shared repository bootstrap is coordinated by the Lead].
 - LFS/resource state: [Objects available / Pointers retained / Checkout failed / Not checked; identify missing resources].
 
 | Working directory | Command actually attempted | Result / relevant output | Blocker or next step |
@@ -56,6 +57,6 @@ Task status: **Proposed; design and implementation authority pending.** Existing
 - Available time this weekend: [Your estimate, not a promised team deadline].
 - Next setup or design step: [Concrete action].
 - Help needed and from whom: [Access, environment, design, or owner decision].
-- Minimum reading completed: [SOP / index / Git workflow / applicable AGENTS; identify remaining reading].
+- Minimum reading completed: [SOP / index / Spec Kit guide / Git workflow / applicable AGENTS; identify remaining reading].
 
 After the Lead confirms scope, use [TASK](TASK_TEMPLATE.md) and [WRITE_CODE](WRITE_CODE_TEMPLATE.md) for the first approved task, with the simplified workflow where appropriate.

@@ -45,7 +45,7 @@ After confirmation, record the actual mapping and parent AGENTS files, and remov
 
 - Overall workflow: [Code_SOP](../../Code_SOP.md); global draft: [AGENTS_global](../../AGENTS_global.md).
 - Current TASK, `write_code.md`, plan, status, and responsibility mapping: `TODO: enter actual relative paths`.
-- Use [DESIGN](../templates/DESIGN_TEMPLATE.md) for the approach and boundaries. Keep task progress in the plan.
+- Use [DESIGN](../templates/DESIGN_TEMPLATE.md) for the approach and boundaries. Follow TASK's artifact registry; keep progress in the Manual execution plan or native Spec Kit `tasks.md`.
 - Before implementation, confirm approved versions and permitted directories. Questions in this template do not substitute for design decisions.
 
 ## Verification Commands and Evidence

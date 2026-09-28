@@ -1,14 +1,16 @@
 ﻿# [TASK-ID] implementation plan
 
-> Suggested location: `docs/exec-plans/<TASK-ID>.md`.  
+> Manual location: `docs/exec-plans/<TASK-ID>.md`. In Spec Kit mode, use these prompts within registered `plan.md` and `tasks.md`; do not create a duplicate execution-plan file.\
 > Maintainer: task author; the next executor continues the record after handoff.  
 > After copying: fill placeholders. Update at milestones, approach changes, and handoff; do not reproduce every edit or conversation.
 
 ## Usage rules
 
-- Standard and high-risk tasks use a separate plan. Simplified tasks may keep this content in the plan section of `docs/tasks/<TASK-ID>/TASK.md`.
+- Follow the artifact mode registered in TASK and [SPEC_KIT_WORKFLOW](../SPEC_KIT_WORKFLOW.md). New Standard/High risk tasks use Spec Kit by default after setup and successful pilot validation; a blocked setup needs documented Lead approval for Manual fallback. Existing Manual tasks do not migrate automatically.
+- In Manual mode, Standard/High risk tasks use a separate plan. Simplified tasks may keep this content in the plan section of `docs/tasks/<TASK-ID>/TASK.md`.
+- In Spec Kit mode, `plan.md` alone holds technical design, file/dependency rationale, and verification strategy; `tasks.md` alone holds ordered work, dependencies between work items, progress, blockers, and remaining work. Incorporate the relevant prompts below into those files rather than maintaining duplicate tables. Link technical decisions from work items to their design or ADR record.
 - A plan explains how approved work will be carried out; it does not expand authority. Explain N/A for conditional items. Give unresolved items an owner and resolution condition.
-- Current task state belongs in `docs/governance/CURRENT_STATUS.md`. Maintain only step progress, discoveries, decisions, and remaining work here.
+- Current task state belongs in `docs/governance/CURRENT_STATUS.md`. Step progress belongs in the selected execution record, not in a second task-status register. Native checked tasks are not proof that SOP review, tests, or handoff are complete.
 
 ## 1. Baseline and objectives — required
 
@@ -16,7 +18,8 @@
 | --- | --- |
 | TASK / author / updated time | `docs/tasks/<TASK-ID>/TASK.md` / [Name] / [Time] |
 | Goal / non-goals | [Expected outcome] / [Excluded work] |
-| Requirements and AC source | TASK at [version and actual section] |
+| Artifact mode and registered feature | [Manual / Spec Kit; exact feature directory and personal/approved task branch for Spec Kit] |
+| Requirements and AC source | [Manual: TASK section; Spec Kit: registered spec.md; actual version and section] |
 | Design / contract versions | [Actual paths and versions; explain N/A] |
 | Implementation authority | `docs/tasks/<TASK-ID>/write_code.md` at [version and approval evidence] |
 | Working branch / team-main baseline | [Branch] / [Full SHA] |
@@ -34,6 +37,8 @@ For contracts, data migration, or cross-module ordering, list required predecess
 
 Make each step independently verifiable. Step states are Not started / In progress / Complete / Blocked; these do not replace the task's state. Completion requires evidence, not merely written code.
 
+For Spec Kit, apply this information to native work-item identifiers and preserve the tool's supported task syntax. Record AC references, dependencies, blockers, and evidence in `tasks.md` without creating a separate progress table here. Technical planning and task generation may precede implementation authorization; execution may not.
+
 | Step | Action | Prerequisite steps | Owner | Observable completion condition | Step state / evidence |
 | --- | --- | --- | --- | --- | --- |
 | 1 | [Action] | [Numbers or none] | [Name] | [Result or check] | Not started / evidence pending |
@@ -42,7 +47,7 @@ Make each step independently verifiable. Step states are Not started / In progre
 
 | When | AC / affected boundary | Command or inspection method | Working directory / environment prerequisites | Pass criterion source | Result location |
 | --- | --- | --- | --- | --- | --- |
-| [Baseline/after step/final/post-merge] | [AC-ID/boundary] | [Verified command or pending verification] | [Conditions] | [TASK version/AC or approved method] | [Actual TEST_REPORT or TASK/PR verification section] |
+| [Baseline/after step/final/post-merge] | [AC-ID/boundary] | [Verified command or pending verification] | [Conditions] | [Registered TASK/spec.md version and AC, or approved method] | [Actual TEST_REPORT or TASK/PR verification section] |
 
 - Pre-existing baseline failures: [Evidence and impact; state Not checked if unknown].
 - Inapplicable checks: [Item and reason].

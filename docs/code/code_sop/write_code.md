@@ -6,6 +6,8 @@ Maintainer: Code Team Lead. This is a reusable operating protocol. Store the cur
 
 The Lead provides the specific TASK-ID, design approval, permitted change scope, and acceptance criteria. The author provides the working branch, baseline, environment, and a description of uncommitted changes. Mark missing facts as pending confirmation; do not invent an approval to let AI start work.
 
+Resolve requirements and work items through TASK's artifact registry. In Spec Kit mode, provide the adopted constitution, `spec.md`, `plan.md`, and `tasks.md`, their approved versions, and the exact feature directory. Native implementation runs only after the same human authorization gate as direct coding. Require the agreed risk-proportionate tests explicitly when generating tasks; Spec Kit's default optional test generation does not change the SOP. See [SPEC_KIT_WORKFLOW](SPEC_KIT_WORKFLOW.md) for pinned command syntax and side effects.
+
 Provide the following text to AI together with actual task entry points, replacing every placeholder:
 
 ```text
@@ -14,13 +16,15 @@ You are responsible for implementing AI4Research task [TASK-ID].
 Working repository: [Path]
 Working branch: [Personal branch or approved task branch]
 Task and implementation authorization: [TASK.md path], [This task's write_code.md path and version]
+Artifact mode and requirements: [Manual or Spec Kit], [Registered AC source and version]
 Design and contracts: [Paths and approved versions]
-Plan: [Path or TASK section]
+Ordered work: [Manual execution plan/TASK section, or Spec Kit tasks.md and authorized item IDs]
+Spec Kit context, if applicable: [Exact feature directory, native plan.md, constitution, tooling baseline]
 
 1. Confirm the repository, branch, working-tree diff, and baseline. Read every AGENTS file from the repository root to the target directory.
 2. Read TASK, write_code, the design, contracts, related implementation, tests, and callers.
 3. Check whether current authorization covers the planned actions. Do not request an existing explicit approval again.
-4. Identify affected files and functions, callers, implementation order, and verification methods. Maintain a persistent plan.
+4. Identify affected files and functions, callers, implementation order, and verification methods. Maintain progress only in the registered work source. For Spec Kit, confirm feature selection and branch before invoking any command; inspect hooks and generated edits for scope changes.
 5. Implement in small steps within the authorized scope. Preserve other work, avoid unrelated refactoring, and do not weaken acceptance criteria.
 6. If a core contract is missing, the design must change, or the scope must expand, report the specific conflict and pause work that depends on that decision. Continue independent, authorized work.
 7. Run the required checks and record exact commands, working directories, environment, implementation SHA, baseline, and results.
@@ -28,6 +32,7 @@ Plan: [Path or TASK section]
 9. Deliver a change description, file-level responsibilities, verification evidence, known limitations, risks, rollback information, and next steps.
 
 AI does not replace the author's understanding of the code and must not invent test results or human approvals. Merging and releasing require actual task authorization and workflow gates; this task's write_code defines the specific boundaries.
+Do not follow automatic handoffs into implementation before authorization. Do not let native implementation or convergence commit, push, change branches, expand scope, or waive checks outside the issued directive. Native task completion is not test evidence or merge approval.
 ```
 
 ## When the Author Receives AI Output

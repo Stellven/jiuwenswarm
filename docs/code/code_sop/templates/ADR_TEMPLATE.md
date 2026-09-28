@@ -18,7 +18,7 @@
 | Status | Proposed / Accepted / Rejected / Superseded; start with Proposed |
 | Author / participants | [Names and roles] |
 | Proposal date | [Date] |
-| Related task / design | `docs/tasks/<TASK-ID>/TASK.md` / `docs/design/<TASK-ID>.md` |
+| Related task / design | `docs/tasks/<TASK-ID>/TASK.md` / [Registered Manual design or Spec Kit `plan.md`, approved version] |
 | Applicable code baseline | [Full SHA] |
 | Supersedes / superseded by | [Repository-relative ADR paths, or N/A] |
 

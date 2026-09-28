@@ -4,9 +4,11 @@
 
 ## 1. Verification target and acceptance basis (required)
 
-- Task / test executor / execution time and time zone: [Fill in].
+- Task registry / artifact mode / test executor / execution time and time zone: [Actual TASK path/version; Manual or Spec Kit; fill in].
 - Risk level and verification scope: [Fill in and explain why coverage is sufficient].
-- Approved design and `write_code.md`: [Paths, versions, and approval records].
+- Acceptance source: [Manual: registered TASK section/version; Spec Kit: registered `spec.md` path/version; stable AC identifiers].
+- Approved technical design and `write_code.md`: [Manual: registered design/TASK minimum design; Spec Kit: registered `plan.md`; exact paths, versions, and approval records].
+- Verification work items: [Manual: registered execution plan/TASK brief plan; Spec Kit: registered `tasks.md`; version and relevant work-item identifiers].
 - Merge target: `ai4r_main_branch`.
 - Target baseline B: [Full SHA, synchronization source, and time].
 - Tested implementation commit C: [Full SHA].
@@ -14,11 +16,13 @@
 - Actual execution target: [C itself / integration commit or tree combining C and B; record SHA or reproducible construction steps].
 - Relationship to final merge contents: [Identical / integration verification still required / differences and revalidation conclusion].
 
-| Acceptance ID | Approved requirement and threshold | Related case / check | Actual observation | Status |
+| Acceptance ID | Approved requirement/threshold source | Related case / check | Actual observation | Status |
 | --- | --- | --- | --- | --- |
-| AC-01 | [Behavior or numerical threshold agreed in advance] | [Command ID / case] | [Measured result] | [Passed / Failed / Not run / Blocked / N/A] |
+| AC-01 | [Registered source version/section; do not maintain a second threshold definition] | [Command ID / case] | [Measured result] | [Passed / Failed / Not run / Blocked / N/A] |
 
 Do not silently lower thresholds after seeing results. Threshold changes require renewed approval and a record of the reason and original value.
+
+For Spec Kit mode, verify that the registered `tasks.md` includes the required risk-proportionate checks despite upstream optional-test defaults. Reference these work items; keep actual results in this report or the registered compact verification section.
 
 ## 2. Reproducible environment (required)
 
@@ -43,6 +47,8 @@ Each command must be reproducible from its stated working directory. Redact toke
 
 Zero collected cases, all skipped cases, missing commands, or a successful build alone do not establish expected behavior. For pre-existing failures, attach a baseline B comparison in the same environment and analyze the task's impact. Do not hide them from the report.
 
+Spec Kit analyze reports, requirements checklist markers, and convergence outcomes do not establish runtime behavior. Reference them only as supporting artifact checks; they replace neither actual execution evidence, the task's `review.md`, nor human approval.
+
 ## 4. Coverage selected by risk (record status or explain N/A for each row)
 
 | Scope | Related commands / cases | Status and reasoning |
@@ -64,7 +70,7 @@ Zero collected cases, all skipped cases, missing commands, or a successful build
 
 | Metric | Approved threshold / maximum allowed regression | Baseline measurement | Current measurement | Unit / sample size | Meets requirement? | Original records |
 | --- | --- | --- | --- | --- | --- | --- |
-| [Relevant latency, throughput, memory, cost, quality, or other metric] | [Fill in] | [Actual value or Not measured] | [Actual value or Not measured] | [Fill in] | [Yes / No / Unable to determine] | [Fill in] |
+| [Relevant latency, throughput, memory, cost, quality, or other metric] | [Registered threshold source/section; any excerpt remains attributed] | [Actual value or Not measured] | [Actual value or Not measured] | [Fill in] | [Yes / No / Unable to determine] | [Fill in] |
 
 Without a baseline or sufficient samples, state which conclusions the evidence can and cannot support. Do not claim performance improvement based on estimates, AI speculation, or a single observation.
 
@@ -76,7 +82,7 @@ Without a baseline or sufficient samples, state which conclusions the evidence c
 
 ## 7. Version changes and conclusion (required)
 
-This report references C and does not need to contain the SHA of its own eventual commit. If subsequent commits only add explanatory documentation that does not affect execution, testing, or acceptance, retain C's evidence and list the follow-up scope and diff verification commands in the PR. Changes to code, tests, configuration, dependencies, generation inputs, or acceptance conditions require re-execution for the affected scope and an updated report. If baseline B advances, assess integration impact as well; Code Lead confirms whether approval remains valid.
+This report references C and does not need to contain the SHA of its own eventual commit. If subsequent commits only add explanatory documentation that does not affect execution, testing, or acceptance, retain C's evidence and list the follow-up scope and diff verification commands in the PR. Changes to code, tests, configuration, dependencies, generation inputs, or acceptance conditions require re-execution for the affected scope and an updated report. Changes to registered `spec.md`, `plan.md`, or `tasks.md` require an impact assessment: a progress-only update may preserve evidence, while new obligations or changed criteria require corresponding review and verification. If baseline B advances, assess integration impact as well; Code Lead confirms whether approval remains valid.
 
 - Changes after C and verification: [Commit range, files, working directory, actual diff commands, and results].
 - Baseline changes after B: [Evidence of no change / changes and impact].

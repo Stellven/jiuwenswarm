@@ -20,7 +20,7 @@
 | Provider / owner | [Actual module and owner] |
 | Consumers / owners | [Actual callers and owners] |
 | Code entry point | [File path and function/class/endpoint/message name] |
-| Design / ADR | `docs/design/<TASK-ID>.md` / [Applicable ADR or N/A] |
+| Design / ADR | [TASK-registered Manual design or Spec Kit `plan.md`, approved version] / [Applicable ADR or N/A] |
 | Verified code SHA | [Full SHA, or Not implemented] |
 | Compatibility classification | Compatible addition / Compatible extension / Breaking change / Unchanged |
 

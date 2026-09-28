@@ -7,6 +7,7 @@
 ## Usage rules
 
 - This is the single maintained source for current task state. TASK, AGENTS, plans, and handoffs reference the TASK-ID row here. Keep stage-specific evidence in its authoritative record rather than duplicating details.
+- Spec Kit `tasks.md` owns implementation work-item progress only. Its checked items and native analysis/convergence results do not move this task state automatically or establish human approval.
 - Allowed states: `Backlog / Design pending / Ready / In progress / Blocked / AI review / Human review / Ready to merge / Merged / Done`.
 - Update the row and timestamp when a stage or blocker changes. A state represents satisfied conditions; plans, AI self-assessment, or a successful push do not establish completion.
 - Explain N/A for conditional items. Missing evidence stays pending, never assumed passed. Return to the appropriate stage when needed; do not bypass invalidated checks or approvals.
@@ -76,4 +77,3 @@ Return to In progress for review fixes, or Design pending for a material design 
 - Priorities for the next person taking over: [Action, owner, and necessary context].
 
 Related templates: [TASK](TASK_TEMPLATE.md), [PLAN](PLAN_TEMPLATE.md), [CHANGE_REQUEST](CHANGE_REQUEST_TEMPLATE.md), [HANDOFF](HANDOFF_TEMPLATE.md).
-

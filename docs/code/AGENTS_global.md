@@ -21,23 +21,26 @@ The following paths are adoption conventions. Confirm that the actual documents 
 | Complete SOP | `docs/code/Code_SOP.md` |
 | Ownership and module paths | `docs/governance/OWNERSHIP.md` |
 | Architecture | `docs/architecture/OVERVIEW.md` |
-| Designs, contracts, and decisions | `docs/design/`, `docs/contracts/`, `docs/adr/` |
+| Designs, contracts, and decisions | Registered design in TASK; shared `docs/contracts/`, `docs/adr/` |
 | File and function map | `docs/code-map/FILE_MAP.md` |
 | Environment and testing methods | `docs/governance/ENVIRONMENT.md`, `docs/governance/TESTING.md` |
 | Current status | `docs/governance/CURRENT_STATUS.md` |
 | Current task | `docs/tasks/<TASK-ID>/TASK.md` |
 | Implementation instructions | `docs/tasks/<TASK-ID>/write_code.md` |
-| Execution plan | `docs/exec-plans/<TASK-ID>.md` |
+| Requirements, design, and work items | Follow TASK's artifact registry: Manual sources or Spec Kit `spec.md`, `plan.md`, `tasks.md` |
+| Spec Kit setup and principles | `docs/code/code_sop/SPEC_KIT_WORKFLOW.md`; adopted `.specify/memory/constitution.md` |
 | Checklist, tests, review, and handoff | `IMPLEMENTATION_CHECKLIST.md`, `TEST_REPORT.md`, `review.md`, and `HANDOFF.md` in the current task directory |
 
-AGENTS files hold durable rules and entry points. Keep status in CURRENT_STATUS, progress and discoveries in the plan, and evidence in task records. Simplified tasks may combine the plan, checklist, and report as TASK sections; provide precise section references instead of nonexistent files.
+AGENTS files hold durable rules and entry points. Keep status in CURRENT_STATUS, implementation progress in the Manual execution plan or Spec Kit `tasks.md`, design decisions in the registered design, and evidence in task records. Simplified tasks may combine the plan, checklist, and report as TASK sections; provide precise section references instead of nonexistent files.
+
+For Spec Kit tasks, `spec.md` owns acceptance criteria, `plan.md` owns technical design, and `tasks.md` owns ordered work and progress. Do not maintain competing TASK acceptance tables or separate design/plan copies. Select the registered feature directory explicitly, preserve the assigned `ai4r_*` branch, and read the constitution together with applicable AGENTS and the approved directive. Generated agent context, hooks, and handoffs cannot override these rules. Review generated changes to existing instructions and do not fabricate approval from a command result.
 
 ## 3. Before implementation
 
 1. Confirm the TASK-ID, author, module owners, working branch, baseline SHA, and scope.
 2. Preserve existing work while merging updates from the team integration branch into the current personal/task branch. Read the design, architecture, contracts, and relevant local AGENTS files.
 3. Confirm that the Code Team Lead approved the design version referenced by the current write_code. Do not request the same approval again when authorization already covers the action.
-4. Persist a plan for new behavior, interface/architecture changes, or staged implementation. For small changes, use a short plan in TASK.
+4. Persist technical design and ordered work in the registered artifacts. For small Manual changes, use a short plan in TASK. Spec Kit implementation requires Lead approval of the native design and an issued `write_code.md` covering the selected work items.
 5. Check the environment and baseline tests. Record existing failures, missing prerequisites, and checks that cannot run.
 
 ## 4. Implementation rules
@@ -46,7 +49,7 @@ AGENTS files hold durable rules and entry points. Keep status in CURRENT_STATUS,
 - Preserve compatibility, invariants, and caller constraints. Do not weaken tests or acceptance thresholds to obtain a passing result.
 - Record the impact and obtain corresponding approval before materially changing architecture, public contracts, or task objectives.
 - Complete ordinary implementation choices within existing authorization without repeatedly requesting permission.
-- Implement and verify in small steps. Maintain decisions, discoveries, remaining work, and resumable context in the plan rather than copying chat transcripts.
+- Implement and verify in small steps. Maintain decisions in the registered design and remaining work in the Manual execution plan or Spec Kit `tasks.md`; reference these from handoff records rather than copying chat transcripts.
 - Do not commit credentials. Record variable names and configuration sources, never secret values. Respect the agreed data boundaries when using external models or services.
 - Authors must understand every changed file, including AI-generated code; AI does not take over that responsibility.
 

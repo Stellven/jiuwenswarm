@@ -47,6 +47,19 @@ This package does not provide a CODEOWNERS file with assumed usernames and has n
 - [ ] Derive quality, performance, cost, and latency thresholds from the design; do not invent uniform values in the SOP.
 - [ ] Validate the complete process with at least one low-risk pilot task: design approval → write_code → implementation → tests → AI review → human review → merge verification → handoff.
 
+### Spec Kit setup and pilot
+
+Follow [SPEC_KIT_WORKFLOW](SPEC_KIT_WORKFLOW.md). Publishing this documentation does not complete the following items.
+
+- [ ] Record the pinned Spec Kit source commit, integration, Python/uv versions, script shell, extensions, and local validation in ENVIRONMENT.
+- [ ] Generate setup files in a fresh staging directory and inspect them; merge selected files into the application without overwriting existing AGENTS, configuration, or templates.
+- [ ] Ratify `.specify/memory/constitution.md` from the [constitution template](templates/SPEC_KIT_CONSTITUTION_TEMPLATE.md), preserving all seven SOP principles and recording actual human approval.
+- [ ] Verify integration command discovery and feature selection on the assigned personal branch. Keep automatic Git branching/commit hooks disabled; register any explicitly adopted extensions and their actions.
+- [ ] Validate the local feature-pointer handling and prevent two tasks from selecting or generating into the same checkout concurrently.
+- [ ] Run one Standard pilot through specification, clarification, plan, tasks, analysis, Lead design approval, write_code, implementation, actual tests, AI review, human review, integration, and handoff. The [worked example](WORKED_EXAMPLE.md) supplies an unexecuted candidate.
+- [ ] Confirm TASK has one artifact mode and exact artifact paths; ACs, design, and implementation progress each have one authority, with no duplicate Manual records.
+- [ ] Record pilot results and blockers below before claiming repository integration is operational. Keep Manual fallbacks explicit and preserve all existing gates.
+
 ## 6. Adoption Record
 
 | Item | Actual record |
@@ -55,6 +68,7 @@ This package does not provide a CODEOWNERS file with assumed usernames and has n
 | Approver, time, and evidence | Pending team approval |
 | PR adopting documentation and rules | [TODO] |
 | Pilot TASK-ID and outcome | Not performed |
+| Spec Kit setup / integration / source commit / pilot evidence | Not performed; complete during repository adoption |
 | Outstanding items and owner / date | [TODO] |
 | Next review trigger | [TODO: when the pilot ends or the workflow reveals a problem] |
 

@@ -7,7 +7,7 @@ Copy only the short message below into the team thread. The attachment list and 
 Hi everyone — for this weekend:
 
 1. Download the [SOP pack](https://github.com/Stellven/jiuwenswarm/raw/refs/heads/ai4r_main_branch/docs/code/AI4Research_Weekend_Kickoff_Pack.zip), clone the [code](https://github.com/Stellven/jiuwenswarm), and use your personal branch.
-2. Read `Code_SOP.md` and the applicable `AGENTS.md` files.
+2. Read `Code_SOP.md`, the Spec Kit guide, and the applicable `AGENTS.md` files.
 3. Send your [kickoff reply](https://github.com/Stellven/jiuwenswarm/blob/ai4r_main_branch/docs/code/code_sop/templates/KICKOFF_REPLY_TEMPLATE.md): setup/blockers, preferred module, proposed first task with an acceptance check, and weekend availability.
 
 We'll confirm responsibilities and approve designs before coding.
@@ -37,6 +37,8 @@ The canonical documentation lives in `docs/code/` on `ai4r_main_branch` in `Stel
 These branches exist on origin. Merge updates from `ai4r_main_branch` into your personal branch before starting; application PRs target that main branch. Personal branch names do not determine module ownership.
 
 Use Git, Git LFS, and Python satisfying the repository requirement `>=3.11,<3.14`. The [environment guide](templates/ENVIRONMENT_TEMPLATE.md) contains candidate setup commands; record their actual results. Report access or setup blockers without sharing credentials. Confirm task-specific models, datasets, GPUs, and services with the module owner.
+
+For Spec Kit tasks, follow the [Spec Kit guide](SPEC_KIT_WORKFLOW.md) for the pinned Specify CLI, uv, and agent integration. The Lead coordinates repository bootstrap once; teammates use the reviewed setup after synchronizing their branches. Report tooling readiness in the existing reply form. Do not each initialize over the shared repository's instructions or create a second set of requirements.
 
 Follow the [Git workflow](GIT_WORKFLOW.md) and read applicable existing AGENTS files before editing. Use the [coding protocol](write_code.md) before implementation and the [review protocol](review.md) before review. The kickoff reply is the only new form everyone needs at this stage.
 

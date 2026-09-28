@@ -23,9 +23,12 @@ Use the same state names as CURRENT_STATUS: `Backlog / Design pending / Ready / 
 | Target branch / verified baseline B | `ai4r_main_branch`, [full SHA and verification time] |
 | Verified implementation C / integration version | [Actual SHA or reproducible tree; disclose when unverified] |
 | Working-tree state | [Clean, or uncommitted/untracked files and ownership] |
-| Task and design authorization | [Actual TASK section, `write_code.md`, and human approval evidence] |
+| Task registry / artifact mode | [Actual TASK path/version; Manual or Spec Kit] |
+| Acceptance source | [Manual: registered TASK section; Spec Kit: registered `spec.md`; exact path/version and AC identifiers] |
+| Technical design and implementation authorization | [Manual: registered design/TASK minimum design; Spec Kit: registered `plan.md`; exact artifact and `write_code.md` versions, human approval evidence] |
 | Global and applicable local rules | [Root and module `AGENTS.md` paths] |
-| Implementation plan | [Actual `docs/exec-plans/<TASK-ID>.md` or TASK brief-plan section] |
+| Ordered work and progress | [Manual: registered execution plan/TASK brief plan; Spec Kit: registered `tasks.md`; exact path/version and next work-item identifiers] |
+| Spec Kit feature context | [Registered feature directory, initialized project root, pinned tool/setup reference, actual branch mapping, and session restoration method; Manual: N/A] |
 | Verification evidence | [Actual TEST_REPORT or TASK/PR verification section] |
 | AI and human review | [Actual task `review.md` and decision evidence] |
 | PR / other evidence | [Actual links; state none if absent] |
@@ -52,11 +55,13 @@ Reference the authoritative report or TASK/PR section. If the relevant evidence 
 | --- | --- | --- | --- | --- |
 | [Fill in] | [Runtime, dependencies, data/model identifiers; no secrets] | [Fill in command or precise evidence reference] | [Passed / Failed / Blocked / Not run] | [C/B and logs] |
 
-- Acceptance and performance: [TASK version/AC, measured baseline/current values or report section; explain N/A].
+- Acceptance and performance: [Registered TASK or `spec.md` version/AC, design measurement protocol, measured baseline/current values or report section; explain N/A].
 - Changes after C: [Range, files, verification command, and result].
 - Approval applicability: [Covered version and whether approval remains valid; mark pending when unverified].
 
 The handoff does not need its own commit SHA. Later explanatory documentation may reuse implementation evidence only after confirming it does not affect code, execution, tests, design, or acceptance. Other changes and baseline movement require impact assessment, relevant revalidation, and human confirmation.
+
+Native analyze, requirements checklist, and convergence results do not replace runtime evidence, the task's AI review, or human approval. Preserve their actual scope and any convergence-added work still awaiting authorization. Required risk-proportionate verification remains in the registered work-item list; upstream optional-test defaults do not remove it.
 
 ## 5. Remaining work, blockers, and risks — required
 
@@ -68,15 +73,16 @@ Preserve unresolved defects, skipped checks, environment differences, unapproved
 
 ## 6. Resumption steps and completion criteria — required
 
-1. Read the referenced task, design, `write_code.md`, and applicable `AGENTS.md`; verify the authorized scope.
+1. Read the TASK registry, registered requirements/design/work-item artifacts, `write_code.md`, and applicable `AGENTS.md`; verify exact versions and authorized scope.
 2. Check the working tree and branch, preserve existing changes, and assess target-baseline movement.
 3. Next actual action: [Specific file, function, issue, or command; avoid only saying "continue development"].
 4. Complete verification for the affected scope, update AI `review.md`, then obtain Code Lead review.
 5. Completion criteria: [Acceptance evidence, remaining-work closure, version-specific human decision, post-merge checks, and delivery/receipt evidence].
+
+For Spec Kit mode, restore the exact registered feature directory in the process that runs the agent and its scripts; a setting in an unrelated shell does not update an already-running agent. In PowerShell, set `$env:SPECIFY_FEATURE_DIRECTORY = '[registered repository-relative feature directory]'`, then use `& ./.specify/scripts/powershell/check-prerequisites.ps1 -PathsOnly -Json` from the initialized project root to confirm `REPO_ROOT` and `FEATURE_DIR`. This resolves paths without validating artifact existence; check the registered files and versions separately. Do not infer feature selection from the Git branch or a previous session's `.specify/feature.json`, and do not rerun specify/tasks merely to resume. For setup, pointer persistence, and concurrent-session constraints, follow [SPEC_KIT_WORKFLOW](../SPEC_KIT_WORKFLOW.md).
 
 - Details the recipient should not need to guess: [Fill in].
 - Human decisions still needed and reasons: [Fill in or none].
 - Merge/release facts at the snapshot time: [Actual SHAs, records, and action status; unexecuted actions remain incomplete].
 
 Related templates: [TEST_REPORT](TEST_REPORT_TEMPLATE.md), [REVIEW](REVIEW_TEMPLATE.md), [RELEASE_ROLLBACK](RELEASE_ROLLBACK_TEMPLATE.md).
-

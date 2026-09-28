@@ -41,7 +41,7 @@
 - Steps paused pending approval: [Implementation or merge actions dependent on the new decision].
 - Independent work that may continue under existing authority: [Scope and source; state none if applicable].
 - Risks and rollback/stop triggers: [Specific signals and recovery methods].
-- Documents to synchronize: [Actual TASK, design, directive, contract, plan, report, and other paths].
+- Documents to synchronize: [TASK registry, registered requirements/design/work items, directive, contract, report, and other actual paths; include affected native spec/plan/tasks in Spec Kit mode].
 
 ## 4. Check deferral and follow-up verification — required for a deferral
 

@@ -5,7 +5,8 @@ An English documentation package for coordinating human and AI-assisted developm
 ## Start here
 
 - [Code SOP](Code_SOP.md): the seven principles, responsibilities, development stages, review gates, and completion criteria.
-- [Documentation index](code_sop/README.md): the complete catalog of guides, 21 reusable templates, and four module instruction drafts.
+- [Documentation index](code_sop/README.md): the complete catalog of guides, 22 reusable templates, and four module instruction drafts.
+- [Spec Kit workflow](code_sop/SPEC_KIT_WORKFLOW.md): pinned tooling, artifact mapping, branch handling, and the unchanged human approval gates.
 - [Weekend kickoff](code_sop/WEEKEND_KICKOFF.md): a ready-to-send team message, download instructions, reply requirements, and attachment list.
 - [Adoption checklist](code_sop/ADOPTION_CHECKLIST.md): assign owners, confirm paths and commands, establish repository rules, and run a pilot task.
 - [Worked example](code_sop/WORKED_EXAMPLE.md): follow one task from definition through verification, review, and handoff.

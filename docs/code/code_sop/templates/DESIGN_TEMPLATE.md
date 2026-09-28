@@ -1,11 +1,12 @@
 # [TASK-ID] — [Design title]
 
-> Suggested location: `docs/design/<TASK-ID>.md`  
+> Manual location: `docs/design/<TASK-ID>.md`. In Spec Kit mode, incorporate these completeness prompts into the registered `specs/<feature-directory>/plan.md`; do not create a parallel DESIGN document.\
 > Maintainer: task author. Approver: Code Lead.  
 > After copying: fill in all placeholders and remove template guidance that no longer applies. Preserve actual approval, revision, and evidence records. This template is not approval.
 
 ## Usage rules
 
+- Follow the artifact mode registered in TASK and [SPEC_KIT_WORKFLOW](../SPEC_KIT_WORKFLOW.md). New Standard/High risk tasks use Spec Kit by default after setup and successful pilot validation; a blocked setup requires documented Lead approval for Manual fallback. Existing Manual tasks do not migrate automatically.
 - Use a full design for new behavior, changes across modules, public interfaces, algorithms or data flows, and significant performance objectives.
 - For a local, low-risk change that does not alter architecture or contracts, keep a minimum design in `docs/tasks/<TASK-ID>/TASK.md` and `write_code.md`: problem, proposed behavior, file scope, acceptance criteria, and Code Lead approval. A separate design file is optional; approval before implementation remains mandatory.
 - Complete required fields. For a conditional field, use `N/A — [specific reason]`. For unresolved questions, record the owner and resolution condition; do not disguise them as N/A.
@@ -20,12 +21,15 @@
 | Design version | [Fill in v1, v2, or the project version scheme] |
 | Design status | Draft / Pending approval / Approved / Superseded; initially Draft |
 | Code baseline | `ai4r_main_branch` at [full commit SHA] |
-| Task definition and requirements version | `docs/tasks/<TASK-ID>/TASK.md` at [version] |
+| Task register and artifact mode | `docs/tasks/<TASK-ID>/TASK.md`; [Manual / Spec Kit] |
+| Requirements source and version | [Manual: TASK acceptance section; Spec Kit: registered `spec.md`; actual path/version] |
 | Implementation directive | `docs/tasks/<TASK-ID>/write_code.md` |
-| Implementation plan | `docs/exec-plans/<TASK-ID>.md`; for a simplified task, identify the actual brief-plan section in TASK |
+| Ordered work and progress | [Spec Kit: registered `tasks.md`; Manual: `docs/exec-plans/<TASK-ID>.md` or the actual simplified TASK brief-plan section] |
 | Related architecture / contracts / ADRs | [Fill in repository-relative paths and versions, or explain why none apply] |
 
 ## 2. Problem and scope — required
+
+In Spec Kit mode, reference the registered specification for required behavior, scope, and non-goals. Add design rationale here without independently redefining those requirements. In Manual mode, describe the design context below and reference TASK acceptance criteria.
 
 - Current behavior and evidence: [Fill in a reproducible problem, requirement source, or evidence of the current state].
 - Target behavior: [Who observes what outcome, under which conditions].
@@ -35,13 +39,13 @@
 
 ## 3. Acceptance-to-design mapping — required
 
-Acceptance criteria and thresholds are maintained only in the acceptance section of `docs/tasks/<TASK-ID>/TASK.md`, requirements version [fill in]. Reference its stable AC identifiers here. This table explains design and verification coverage; it does not define separate thresholds. Revise TASK and obtain the appropriate approval before changing a criterion, then update this mapping.
+Acceptance criteria and thresholds are maintained only in the source registered in TASK: the TASK acceptance section for Manual mode, or `specs/<feature-directory>/spec.md` for Spec Kit mode, at requirements version [fill in]. Reference its stable AC identifiers here. This table explains design and verification coverage; it does not define separate thresholds. Revise that authoritative source and obtain appropriate approval before changing a criterion, then update this mapping.
 
-| TASK acceptance ID / section | Design mechanism / section | Verification method / test location | Relevant boundaries and failure paths |
+| Registered acceptance ID / section | Design mechanism / section | Verification method / test location | Relevant boundaries and failure paths |
 | --- | --- | --- | --- |
-| AC-01 / [actual TASK section] | [How the design satisfies the criterion] | [Test, inspection, or evaluation] | [Relevant edge cases] |
+| AC-01 / [actual TASK or spec.md section] | [How the design satisfies the criterion] | [Test, inspection, or evaluation] | [Relevant edge cases] |
 
-For performance or research evaluation, describe the measurement protocol: baseline version, dataset version or digest, seeds or repetition count, hardware, and environment. Reference the metrics and thresholds in the specified TASK version. Record measured results only in the test report or TASK verification section; unmeasured behavior is not verified.
+For performance or research evaluation, describe the measurement protocol: baseline version, dataset version or digest, seeds or repetition count, hardware, and environment. Reference the metrics and thresholds in the registered acceptance source and version. Record measured results only in the test report or permitted compact verification section; unmeasured behavior is not verified.
 
 ## 4. Proposed approach — required
 
@@ -97,6 +101,8 @@ A simple change may explain the choice in one sentence. Record decisions with la
 
 Approval requires a traceable, explicit Code Lead decision. AI drafts, author claims, blank signatures, and checkboxes do not constitute approval.
 
+For Spec Kit, the decision must identify the registered specification and technical design versions, reviewed work-item scope, and implementation directive. Keep the actual human decision in one record and reference it from TASK and native artifacts; a generated analysis result does not approve the design or implementation.
+
 | Design version | Code baseline SHA | Code Lead | Decision | Time and timezone | Evidence location / exact decision | Conditions |
 | --- | --- | --- | --- | --- | --- | --- |
 | [Version] | [SHA] | [Name] | Pending approval | [Actual time or pending] | [Explicit approval in a PR, issue, or project record; otherwise pending] | [Conditions or none] |
@@ -106,4 +112,3 @@ Approval requires a traceable, explicit Code Lead decision. AI drafts, author cl
 | Date | Version | Change and reason | Effect on existing approval | Follow-up |
 | --- | --- | --- | --- | --- |
 | [Date] | [Version] | [Change] | [Yes/no and reason] | [New approval or record update] |
-

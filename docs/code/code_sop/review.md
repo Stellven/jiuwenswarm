@@ -4,14 +4,16 @@ This document defines a reusable review method. Use the [REVIEW template](templa
 
 ## Inputs for AI Review
 
-Provide TASK/ACs, the basis for design approval, applicable AGENTS files, write_code, the final diff, implementation commit and base, and actual verification records. Plans, checklists, and reports may reference simplified sections within TASK. Reference existing architecture, contracts, and file maps according to their relevance to the change. For unrelated cases, such as explanatory documentation edits, explain N/A rather than creating unnecessary files. For code changes, also read affected callers and key tests. If required inputs are missing, state the uncovered scope and do not claim comprehensive verification.
+Provide TASK and its registered AC source, the basis for design approval, applicable AGENTS files, write_code, the final diff, implementation commit and base, and actual verification records. Plans, checklists, and reports may reference simplified sections within TASK. Reference existing architecture, contracts, and file maps according to their relevance to the change. For unrelated cases, such as explanatory documentation edits, explain N/A rather than creating unnecessary files. For code changes, also read affected callers and key tests. If required inputs are missing, state the uncovered scope and do not claim comprehensive verification.
+
+In Spec Kit mode, read the exact registered `spec.md`, `plan.md`, and `tasks.md` versions, the adopted constitution, and relevant generated supporting artifacts. Check AC-to-work-item-to-test coverage and any changes since design approval. Native analysis, requirements checklists, and convergence reports are supplementary inputs; they do not replace review of the actual diff/callers, verification evidence, author understanding, or the human decision. The task's `review.md` remains the review record. See [SPEC_KIT_WORKFLOW](SPEC_KIT_WORKFLOW.md).
 
 Provide the following protocol to AI with the actual paths:
 
 ```text
 Review task [TASK-ID]. At this stage, review only; do not modify code or substitute for human approval.
 Implementation commit: [HEAD or tested implementation SHA]; team main-branch baseline: [BASE SHA].
-Materials: [Actual paths for TASK, design, contracts, write_code, plan, test report, and file map, as applicable].
+Materials: [TASK registry; registered requirements, design, and work items; contracts; write_code; test report; file map; Spec Kit constitution if applicable].
 
 Check in this order:
 1. Whether requirements and acceptance criteria are fully implemented, and whether the current implementation matches the design.

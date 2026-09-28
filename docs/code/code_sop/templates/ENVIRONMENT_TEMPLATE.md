@@ -69,3 +69,21 @@ Record variable names and safe configuration identifiers only, never API keys, t
 - Conditions to unblock: [Action, owner, and deadline].
 
 Record execution results with [TEST_REPORT_TEMPLATE.md](TEST_REPORT_TEMPLATE.md) and verification methods with [TESTING_TEMPLATE.md](TESTING_TEMPLATE.md).
+
+## 6. Spec Kit tooling baseline and adoption evidence
+
+Use the pinned setup in [SPEC_KIT_WORKFLOW](../SPEC_KIT_WORKFLOW.md). The application Python/dependency setup above is separate from the Specify CLI and the coding agent's environment. Documentation of a command is not evidence of installation.
+
+| Item | Actual project record |
+| --- | --- |
+| Approved Spec Kit release / exact source commit | Baseline for validation: v1.0.12 / `e77daa9021d20db26b878f7dfa5640fe5a42d04e`; installed version and verification: [Not run] |
+| Python / uv / Git / script shell | [Actual versions, executable paths, OS, and date; do not infer CLI readiness from the application environment] |
+| Agent integration / actual agent version | [For example, `codex`; record discovered commands and tested invocation syntax] |
+| Bootstrap file review | [Staging location, reviewed diff, preserved AGENTS/configuration, and adoption commit; Not performed] |
+| Constitution | [Path, version, actual Lead ratification evidence; Pending] |
+| Extensions, presets, and hooks | [Exact versions and actions; core-only with no Git extension is the baseline] |
+| Feature selection and concurrency | [Registered directory, override behavior, ignored local pointer, branch unchanged, separate checkout policy] |
+| Setup smoke check and task pilot | [Exact commands, output, exit codes, task artifacts, limitations; Not performed] |
+| Upgrade / rollback owner | [Name, previous pinned version, review scope, retained team customizations] |
+
+Keep tool installation and setup records separate from feature-test evidence. Upgrades must revalidate generated instructions, feature selection, hooks, and the seven principles before adoption; do not silently replace this baseline with a newer release.

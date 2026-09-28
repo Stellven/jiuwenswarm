@@ -26,10 +26,12 @@ Enter repository-relative paths and effective versions. Task references may be r
 | Ownership and current module status | [TODO: Relevant sections of OWNERSHIP.md and CURRENT_STATUS.md.] |
 | Environment and testing methods | [TODO: Relevant ENVIRONMENT.md and TESTING.md sections.] |
 | Current TASK / write_code | [TODO: Entry points in `docs/tasks/<TASK-ID>/`.] |
-| Current plan and implementation checklist | [TODO: Plan and checklist locations, or simplified TASK sections.] |
+| Requirements, design, work items, and SOP checklist | [TODO: Follow TASK's Manual or Spec Kit registry; link native spec/plan/tasks or simplified TASK sections.] |
 | Verification, review, and handoff | [TODO: Actual task evidence locations or sections.] |
 
 Reference existing material where applicable. Explain N/A items; do not create redundant architecture or contract documents for unrelated documentation-only changes.
+
+When TASK selects Spec Kit, read the adopted constitution and registered `spec.md`, `plan.md`, and `tasks.md`. Keep acceptance criteria, technical design, and implementation progress in those respective files. Select the exact feature directory on the assigned personal branch. Generated context must preserve these module rules; analysis/checklist output cannot replace actual verification, `write_code.md` authorization, or human review.
 
 ## 3. Interfaces and invariants
 

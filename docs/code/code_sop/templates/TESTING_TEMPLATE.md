@@ -1,11 +1,11 @@
 ﻿# Testing and research evaluation standard
 
-> Suggested location: `docs/governance/TESTING.md`. Maintain long-lived verification methods and entry points here. TASK is the authoritative source for each task's approved acceptance criteria and thresholds; `write_code.md` references AC identifiers and sets the required checks. Actual results belong only in the task's TEST_REPORT or, for a simplified task, its TASK/PR verification section. This document is not evidence that tests passed. Select checks proportionate to impact rather than running every check for every task.
+> Suggested location: `docs/governance/TESTING.md`. Maintain long-lived verification methods and entry points here. TASK registers the artifact mode and authoritative sources: Manual uses TASK acceptance, the registered design, and execution plan; Spec Kit uses `spec.md` acceptance, `plan.md` technical design, and `tasks.md` ordered work/progress. `write_code.md` references the registered AC identifiers and sets required checks. Actual results belong only in the task's TEST_REPORT or, for a simplified task, its TASK/PR verification section. This document is not evidence that tests passed. Select checks proportionate to impact rather than running every check for every task.
 
 - Maintainer / effective version / human confirmation: [Fill in].
 - Environment baseline: `docs/governance/ENVIRONMENT.md`, version [fill in].
 - Module test entry points and owners: [Verified paths and owners; mark unknown items pending verification].
-- Long-lived requirement sources: [Architecture, contracts, and versions; task-specific acceptance remains in TASK].
+- Long-lived requirement sources: [Architecture, contracts, and versions; task-specific acceptance remains in the source registered by TASK].
 
 ## 1. Select methods by impact — maintain at project level
 
@@ -26,6 +26,8 @@ Maintain real entry points and module owners. Each task references applicable ro
 
 Tests should detect incorrect behavior, not mirror implementation logic or merely assert that no exception occurred. Affected owners confirm cross-module scope. Mock-only verification does not prove real-service integration. Do not resolve required-test failures by removing assertions, lowering thresholds, or widening ignores.
 
+For Spec Kit tasks, explicitly request the required risk-proportionate tests in `spec.md`, the applicable measurement protocol in `plan.md`, and the task-generation instruction. Verify that `tasks.md` retains those checks and their acceptance references even though the upstream generator treats tests as optional by default. Bug fixes should prefer a reproducing regression case where feasible; this does not justify mirrored tests or unnecessary tests for a reversible documentation edit.
+
 ## 2. Existing repository entry points — statically inspected, not run
 
 On 2026-09-25, static inspection of commit `52abe68db2dd167485f6bd79d6e36e193d608e64` covered `tests/README.md`, `pytest.ini`, and `Makefile`. Candidate commands from the repository root are `python -m pytest tests/unit_tests/` and `python -m pytest tests/`; select actual files by change scope. Interpreter, dependencies, and platform adaptation are described in [ENVIRONMENT_TEMPLATE.md](ENVIRONMENT_TEMPLATE.md).
@@ -41,7 +43,7 @@ The table defines what a report must contain. Fill actual values in the task's s
 
 | Item | Required report information |
 | --- | --- |
-| Code and environment | Implementation C, main-branch baseline B, actual integration version, dependencies/configuration, working directory |
+| Code, artifacts, and environment | Implementation C, main-branch baseline B, actual integration version, registered requirements/design/work-item versions, dependencies/configuration, working directory |
 | Data version and split | Identifier/digest, sample counts, train/dev/test split, deduplication and contamination checks, sampling method |
 | Evaluation-set boundaries | Frozen version, use in tuning, comparability with formal reports, reasons for changes |
 | Models and prompts | Model/service version, prompt version, tool permissions, context handling, sampling settings |
@@ -57,17 +59,21 @@ There is no universal quality, cost, or latency threshold for RSI, Router, Capsu
 
 | Information | Authoritative location | How other documents reference it |
 | --- | --- | --- |
-| AC, metrics, thresholds, allowed regression | Acceptance section in `docs/tasks/<TASK-ID>/TASK.md` | TASK version and AC identifier |
-| Design coverage and measurement protocol | Actual design and directive/plan sections | Link to the protocol without redefining thresholds |
+| Artifact mode and authoritative-source registry | `docs/tasks/<TASK-ID>/TASK.md` | Actual registry version and source paths; do not duplicate native artifacts |
+| AC, metrics, thresholds, allowed regression | Manual: registered TASK acceptance section; Spec Kit: registered `spec.md` acceptance section | Actual source version and stable AC identifier |
+| Design coverage and measurement protocol | Manual: registered design; Spec Kit: registered `plan.md`; `write_code.md` sets authorized checks | Link to the protocol without redefining thresholds |
+| Ordered verification work and progress | Manual: registered execution plan/TASK brief plan; Spec Kit: registered `tasks.md` | Actual source version and work-item identifiers; do not create a second task list |
 | Baseline/current measurements, commands, environment, results | Task TEST_REPORT; simplified tasks may use a TASK/PR verification section | Actual path/section and C/B; do not duplicate results |
 | Deferral reasons, permitted stage, follow-up responsibility | Relevant CHANGE_REQUEST | Keep the actual incomplete result in the report and reference the approval |
 | AI review, human review, merge decision | Task `review.md` and explicit human decision source | Covered version and decision evidence |
 
-Use real task paths or section links. Simplified tasks need not create empty reports to satisfy references. Threshold or evaluation-protocol changes require a TASK/design revision and approval before reevaluation; never change the basis after seeing results to make a check pass. Report important subsets and failures because averages may conceal regressions.
+Use real task paths or section links. Simplified tasks need not create empty reports to satisfy references. Threshold or evaluation-protocol changes require revision and approval of the registered requirements/design artifacts before reevaluation; never change the basis after seeing results to make a check pass. Report important subsets and failures because averages may conceal regressions.
 
 ## 5. Results and evidence validity — report rules
 
 Each execution records working directory, exact command, environment, C/B, time, exit code, pass/fail/skip counts, and raw evidence. Use Passed, Failed, Skipped, Not run, Blocked, or N/A with a reason. Zero tests, all skipped tests, missing services, and suppressed errors cannot be reported as verified behavior.
+
+Native Spec Kit analyze reports, requirements checklists, and convergence results are supporting artifact assessments. They are not runtime test evidence, the actual task AI review in `review.md`, or human approval. Convergence may append work to `tasks.md`; assess new work against the authorized scope before implementation, then verify resulting code normally.
 
 Compare baseline and changed code in the same environment to identify pre-existing failures. Explain unverified scope. Facts support test conclusions; humans decide merges. Code, contracts, configuration, dependencies, tests, or baseline changes require appropriate revalidation. Review conflict resolutions as new code. Later result-only documentation may reference the tested implementation after a diff check; reports need not contain their own commit SHA.
 

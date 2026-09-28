@@ -9,6 +9,7 @@ Use this package with [Code_SOP.md](../Code_SOP.md). Read the main workflow firs
 | Adopt the workflow for the first time | [ADOPTION_CHECKLIST](ADOPTION_CHECKLIST.md) |
 | Send the weekend kickoff and collect setup replies | [WEEKEND_KICKOFF](WEEKEND_KICKOFF.md) |
 | Read the complete workflow and gates | [Main SOP](../Code_SOP.md) |
+| Adopt Spec Kit and run a task through its artifacts | [SPEC_KIT_WORKFLOW](SPEC_KIT_WORKFLOW.md) |
 | Prepare branches, synchronize, open a PR, resolve conflicts, or revert | [GIT_WORKFLOW](GIT_WORKFLOW.md) |
 | Assign a coding task to AI | [write_code protocol](write_code.md) |
 | Ask AI to review changes | [review protocol](review.md) |
@@ -24,7 +25,8 @@ All adoption locations are relative to the target code repository's root. Angle 
 | --- | --- | --- |
 | [KICKOFF_REPLY](templates/KICKOFF_REPLY_TEMPLATE.md) | `<your-name>_kickoff_reply.md`, sent in the kickoff thread | One short setup and proposed-task reply per teammate |
 | [TASK](templates/TASK_TEMPLATE.md) | `docs/tasks/<TASK-ID>/TASK.md` | Every task; author |
-| [DESIGN](templates/DESIGN_TEMPLATE.md) | `docs/design/<TASK-ID>.md` | Standard or high-risk design; author drafts, Lead approves |
+| [SPEC_KIT_CONSTITUTION](templates/SPEC_KIT_CONSTITUTION_TEMPLATE.md) | `.specify/memory/constitution.md` | Spec Kit adoption; Lead ratifies the unchanged seven principles |
+| [DESIGN](templates/DESIGN_TEMPLATE.md) | Manual: `docs/design/<TASK-ID>.md`; Spec Kit: completeness guidance for native `plan.md` | Standard or high-risk design; author drafts, Lead approves |
 | [ARCHITECTURE](templates/ARCHITECTURE_TEMPLATE.md) | `docs/architecture/OVERVIEW.md` | Architecture baseline or changes; Lead |
 | [CONTRACT](templates/CONTRACT_TEMPLATE.md) | `docs/contracts/<contract>.md` | Boundary or interface changes; providers and consumers |
 | [ADR](templates/ADR_TEMPLATE.md) | `docs/adr/<NNNN>-<slug>.md` | Significant tradeoffs; decision owner |
@@ -34,8 +36,8 @@ All adoption locations are relative to the target code repository's root. Angle 
 | [TESTING](templates/TESTING_TEMPLATE.md) | `docs/governance/TESTING.md` | Project verification methods and matrix; owners and Lead |
 | [STATUS](templates/STATUS_TEMPLATE.md) | `docs/governance/CURRENT_STATUS.md` | Current project task status; authors and owners |
 | [WRITE_CODE](templates/WRITE_CODE_TEMPLATE.md) | `docs/tasks/<TASK-ID>/write_code.md` | Each implementation authorization; Lead |
-| [PLAN](templates/PLAN_TEMPLATE.md) | `docs/exec-plans/<TASK-ID>.md` | Nontrivial tasks; author |
-| [IMPLEMENTATION_CHECKLIST](templates/IMPLEMENTATION_CHECKLIST_TEMPLATE.md) | `docs/tasks/<TASK-ID>/IMPLEMENTATION_CHECKLIST.md` | Implementation self-checks; author |
+| [PLAN](templates/PLAN_TEMPLATE.md) | Manual: `docs/exec-plans/<TASK-ID>.md`; Spec Kit: completeness guidance for native `plan.md` and `tasks.md` | Nontrivial tasks; author |
+| [IMPLEMENTATION_CHECKLIST](templates/IMPLEMENTATION_CHECKLIST_TEMPLATE.md) | `docs/tasks/<TASK-ID>/IMPLEMENTATION_CHECKLIST.md` | SOP gates and author understanding; reference native work-item progress in Spec Kit mode |
 | [TEST_REPORT](templates/TEST_REPORT_TEMPLATE.md) | `docs/tasks/<TASK-ID>/TEST_REPORT.md` | Verification evidence; person running the checks |
 | [REVIEW](templates/REVIEW_TEMPLATE.md) | `docs/tasks/<TASK-ID>/review.md` | AI and human review; AI, author, and Lead |
 | [PR](templates/PR_TEMPLATE.md) | `.github/pull_request_template.md` | PR description template; Lead maintains, author completes |
@@ -62,6 +64,14 @@ Adopt the global template as `AGENTS.md` at the repository root and local templa
   AGENTS.md
   <actual-module-subtree>/AGENTS.md
   .github/pull_request_template.md
+  .specify/                            # Created only during validated Spec Kit adoption
+    memory/constitution.md
+    feature.json                       # Local feature selection; see Spec Kit guide
+  .agents/skills/                       # Codex integration; inspect generated files
+  specs/<feature-directory>/            # Spec Kit tasks only; register exact path in TASK
+    spec.md                            # Requirements and AC identifiers
+    plan.md                            # Technical design
+    tasks.md                           # Ordered work and implementation progress
   docs/
     code/                              # Published SOP package
       README.md
@@ -76,11 +86,11 @@ Adopt the global template as `AGENTS.md` at the repository root and local templa
       TESTING.md
       CURRENT_STATUS.md
     architecture/OVERVIEW.md
-    design/<TASK-ID>.md
+    design/<TASK-ID>.md                 # Manual mode only
     contracts/<contract>.md
     adr/<NNNN>-<slug>.md
     code-map/FILE_MAP.md
-    exec-plans/<TASK-ID>.md
+    exec-plans/<TASK-ID>.md             # Manual mode only
     tasks/<TASK-ID>/
       TASK.md
       write_code.md
@@ -104,4 +114,4 @@ The SOP package is published under `docs/code/`. The remaining directories above
 - `Template` / `Example`: cannot serve as execution evidence; do not prefill a real approval in an example.
 - Bind evidence to the implementation commit and main-branch base. State the scope of later report commits to avoid a cycle of recording a report's own SHA.
 
-The task's row in CURRENT_STATUS is the single summary of its current status; the plan retains detailed progress. To reproduce the work, start at TASK and follow its design, plan, report, review, and handoff references.
+The task's row in CURRENT_STATUS is the single summary of its current status; the Manual execution plan or Spec Kit `tasks.md` retains detailed implementation progress. To reproduce the work, start at TASK and follow its registered requirements, design, work items, report, review, and handoff references. Spec Kit task checkboxes describe work completion, not human approval or proof of passing tests.

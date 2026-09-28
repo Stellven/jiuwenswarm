@@ -4,7 +4,7 @@
 
 ## 1. Review target — required
 
-- Task / author / module: [Fill in].
+- Task registry / artifact mode / author / module: [Actual TASK path/version; Manual or Spec Kit; fill in].
 - Risk level and rationale: [Fill in].
 - Working branch: [Actual personnel branch or explicitly approved task branch].
 - Target branch: `ai4r_main_branch`.
@@ -12,12 +12,15 @@
 - Target baseline B: [Full SHA, source, and verification time].
 - Actual diff / working directory / command reviewed: [Comparison range, directory, exact command].
 - Implementation or integration version actually tested: [Match the actual verification record].
-- Acceptance source: [TASK version and AC identifiers; do not redefine thresholds here].
-- Design authorization: [Actual design or TASK minimum-design section, `write_code.md` version, approver, and evidence].
+- Acceptance source: [Manual: registered TASK acceptance section; Spec Kit: registered `spec.md`; exact path/version and stable AC identifiers; do not redefine thresholds here].
+- Design authorization: [Manual: registered design/TASK minimum design; Spec Kit: registered `plan.md`; artifact and `write_code.md` versions, approver, and evidence].
+- Ordered work and progress reviewed: [Manual: registered execution plan/TASK brief plan; Spec Kit: registered `tasks.md`; exact version and relevant work-item identifiers].
 - Verification evidence: [Actual TEST_REPORT, TASK verification section, or PR section].
 - Author file-level understanding: [Actual FILE_MAP, checklist, TASK, or PR section].
 
 Review the actual proposed diff, not only the task description or AI summary. Disclose whether uncommitted changes are included and how to reproduce the reviewed content. Reference real files/sections; simplified tasks do not need extra empty reports or checklists.
+
+Spec Kit analyze, requirements checklists, and converge may inform this review, but they do not replace review of the actual task diff, runtime test evidence, or a human decision. For Spec Kit mode, review native artifacts and code together, confirm required risk-proportionate tests remain in `tasks.md`, and identify convergence-added work that has not yet been authorized or verified.
 
 ## 2. AI review — complete first
 
@@ -67,7 +70,7 @@ The Code Lead must explain changed functions and affected key call chains: respo
 - Decision: **[Pending approval / Changes requested / Approved to merge / Rejected]**.
 - Code Lead or authorized independent reviewer / time and timezone: [Actual decision-maker].
 - Approval evidence: [PR review link or auditable human confirmation].
-- Covered implementation C / baseline B / integration result: [Explicit versions].
+- Covered implementation C / baseline B / integration result and registered artifact versions: [Explicit code and requirements/design/work-item versions].
 - Conditions and owners: [Unmet prerequisites prevent Ready to merge].
 - Deferred items and follow-up: [Actual CHANGE_REQUEST, permitted stage, owner, deadline, and failure response; or none].
 
@@ -77,7 +80,7 @@ AI may faithfully transcribe an existing human decision and cite its source, but
 
 ## 6. Version check before merge — required
 
-This record may reference reviewed implementation C; it need not contain its own commit SHA. Later explanatory documentation requires a recorded range, files, actual diff check, and impact assessment. Design, acceptance, code, tests, configuration, dependency, or target-baseline changes require appropriate revalidation and additional review, with Code Lead confirmation of the current version. Conflict resolution is new code to review.
+This record may reference reviewed implementation C; it need not contain its own commit SHA. Later explanatory documentation requires a recorded range, files, actual diff check, and impact assessment. Design, acceptance, code, tests, configuration, dependency, or target-baseline changes require appropriate revalidation and additional review, with Code Lead confirmation of the current version. Apply this rule to the registered native artifacts too: a task checkbox change is not a new approval, and convergence-added work must be assessed against authorized scope. Conflict resolution is new code to review.
 
 | Check | Current facts and evidence | Effect on original approval | Required action / completion |
 | --- | --- | --- | --- |
@@ -88,4 +91,3 @@ This record may reference reviewed implementation C; it need not contain its own
 Merge eligibility at this review time: [Yes / No / Pending verification]. Recorder / time / evidence: [Fill in]. Maintain live task state only in the TASK-ID row of `docs/governance/CURRENT_STATUS.md`.
 
 Related templates: [TEST_REPORT](TEST_REPORT_TEMPLATE.md), [PR](PR_TEMPLATE.md), [CHANGE_REQUEST](CHANGE_REQUEST_TEMPLATE.md).
-

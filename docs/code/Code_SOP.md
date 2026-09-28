@@ -1,10 +1,12 @@
 # AI4Research Code Collaboration SOP
 
-Version: 1.0 draft · Document date: 2026-09-25 · Process owner: Code Team Lead [name to be assigned]
+Version: 1.1 draft · Document date: 2026-09-28 · Process owner: Code Team Lead [name to be assigned]
 
 This SOP expands the original seven principles into a complete workflow covering requirements, design, implementation, testing, review, integration, handoff, and recovery. It applies to the team's work in `Stellven/jiuwenswarm`, including RSI, Router, Capsule, Verifier, and changes across module boundaries.
 
 Start here: [Documentation index](code_sop/README.md) · [Adoption checklist](code_sop/ADOPTION_CHECKLIST.md) · [Git workflow](code_sop/GIT_WORKFLOW.md) · [Worked example](code_sop/WORKED_EXAMPLE.md)
+
+Version 1.1 integrates [GitHub Spec Kit](code_sop/SPEC_KIT_WORKFLOW.md) for specification, design, and implementation planning. The seven principles below are unchanged. This package documents adoption; it does not initialize Spec Kit in the application repository or approve a feature.
 
 This delivery is a process and template package. Actual owners, module paths, acceptance thresholds, and operating commands must be completed from project evidence. Writing this package does not approve the policy or configure GitHub branch protection or CI. Existing research materials may inform designs; implementation must reference an identified, approved design version.
 
@@ -62,16 +64,21 @@ Use [AGENTS_global.md](AGENTS_global.md) for root instructions and [AGENTS_local
 | Information | Primary adopted location, relative to the code repository | Update trigger |
 | --- | --- | --- |
 | Durable rules and entry points | `AGENTS.md`, `<module-directory>/AGENTS.md` | Rules or paths change |
-| Requirements and acceptance criteria | `docs/tasks/<TASK-ID>/TASK.md` | Task creation or requirement change |
-| Design, architecture, and contracts | `docs/design/`, `docs/architecture/`, `docs/contracts/` | Approval before implementation; subsequent changes |
+| Task identity, risk, owners, and artifact registry | `docs/tasks/<TASK-ID>/TASK.md` | Creation, ownership, or artifact-mode change |
+| Requirements and acceptance criteria | Manual: TASK acceptance section; Spec Kit: registered `specs/<feature-directory>/spec.md` | Task creation or requirement change |
+| Technical design | Manual: `docs/design/<TASK-ID>.md` or short TASK design; Spec Kit: registered `plan.md` | Approval before implementation; subsequent changes |
+| Shared architecture and contracts | `docs/architecture/`, `docs/contracts/` | Affected design and interface changes |
 | Significant decisions and rationale | `docs/adr/` | A major choice is accepted or superseded |
 | Implementation authorization | `docs/tasks/<TASK-ID>/write_code.md` | Design approval or scope changes |
-| Steps, progress, and discoveries | `docs/exec-plans/<TASK-ID>.md` | Start, milestone, approach change, or handoff |
+| Steps, dependencies, and implementation progress | Manual: `docs/exec-plans/<TASK-ID>.md` or brief TASK plan; Spec Kit: registered `tasks.md` | Start, milestone, approach change, or handoff |
+| Spec Kit project principles and tooling baseline | `.specify/memory/constitution.md`; version and setup record in ENVIRONMENT | Adoption or approved tooling/policy amendment |
 | File, function, and dependency map | `docs/code-map/FILE_MAP.md` | Responsibilities or key functions change |
 | Checklists, tests, review, and handoff evidence | `docs/tasks/<TASK-ID>/` | Stage completion or evidence invalidation |
 | Team status, environment, and testing methods | `docs/governance/` | Status, dependencies, commands, or strategy change |
 
 AGENTS files link to these records rather than duplicating logs or weekly progress. Maintain each fact in one primary place and reference it elsewhere. Approval identities, dates, versions, and evidence must be real; `TODO`, `unconfirmed`, and `not run` are not completion states.
+
+Register one artifact mode, **Manual** or **Spec Kit**, in TASK. For Spec Kit, also register the exact feature directory and artifact versions: `spec.md` owns requirements and stable AC identifiers, `plan.md` owns technical design, and `tasks.md` owns ordered work and progress. Use DESIGN and PLAN templates as completeness guides within these native files; do not maintain duplicate design or execution-plan files. The task checklist records SOP gates and author understanding, linking to work-item progress. Existing shared contracts remain authoritative; feature-local contract drafts must identify proposed changes and the shared version they target. The [Spec Kit workflow](code_sop/SPEC_KIT_WORKFLOW.md) defines installation, commands, selection, and gate mapping.
 
 Read all AGENTS files along the path from the repository root to the file being edited. Local rules may add detail. If they conflict with root gates, task authorization, or the approved design, record the conflict and obtain Lead clarification; do not silently waive project requirements.
 
@@ -85,6 +92,8 @@ Read all AGENTS files along the path from the repository root to the file being 
 
 The simplified path still requires approval of a short design before implementation; one explicit decision may cover both TASK and write_code. For documentation-only work, check links, instructions, and consistency instead of claiming runtime tests. Reference existing designs by version. Explain N/A entries; they must not hide required verification. Instantiate optional templates only when their triggering conditions apply.
 
+After repository setup and a pilot are validated, new Standard and High-risk tasks use Spec Kit artifacts by default. Simplified tasks may retain Manual mode. Existing tasks keep their registered sources unless an explicit migration identifies the replacement sources and retires duplicates. If tooling is unavailable, record the blocker and the Lead's approval of a Manual fallback without changing any delivery gate.
+
 ## 6. End-to-end procedure
 
 ### Stage 0: Prepare and synchronize
@@ -95,25 +104,27 @@ Exit condition: owners, paths, baseline, environment, and known failures are ide
 
 ### Stage 1: Define the task
 
-Create a TASK-ID such as `AI4R-001`. Complete [TASK](code_sop/templates/TASK_TEMPLATE.md) with the problem, objectives, non-goals, risk path, owners, dependencies, and acceptance criteria. Assign stable identifiers such as `AC-01` to connect design, implementation, testing, and review. Define performance or quality methods and thresholds before implementation; if a baseline is missing, propose a measurement task first.
+Create a TASK-ID such as `AI4R-001`. Complete [TASK](code_sop/templates/TASK_TEMPLATE.md) with the risk path, owners, dependencies, and artifact registry. Record the problem, objectives, non-goals, and acceptance criteria in the registered requirements source. In Spec Kit mode, use specification and clarification commands to draft `spec.md`; register its actual directory rather than guessing it from the branch. Assign stable identifiers such as `AC-01` to connect design, implementation, testing, and review. Define performance or quality methods and thresholds before implementation; if a baseline is missing, propose a measurement task first.
 
 Investigate unclear requirements before committing to behavior. Exploratory work must have a stated authorization and purpose; it does not imply approval of the production implementation.
 
 ### Stage 2: Design and obtain approval
 
-Use [DESIGN](code_sop/templates/DESIGN_TEMPLATE.md) to describe the proposal, alternatives, data flow, boundaries, and failure handling. Update [ARCHITECTURE](code_sop/templates/ARCHITECTURE_TEMPLATE.md), [CONTRACT](code_sop/templates/CONTRACT_TEMPLATE.md), and [ADR](code_sop/templates/ADR_TEMPLATE.md) when applicable.
+Use [DESIGN](code_sop/templates/DESIGN_TEMPLATE.md) to describe the proposal, alternatives, data flow, boundaries, and failure handling. In Spec Kit mode, incorporate this coverage in native `plan.md`; native research and supporting artifacts provide evidence without duplicating shared authorities. Generate `tasks.md`, inspect consistency, and resolve blocking specification/design questions. Update [ARCHITECTURE](code_sop/templates/ARCHITECTURE_TEMPLATE.md), [CONTRACT](code_sop/templates/CONTRACT_TEMPLATE.md), and [ADR](code_sop/templates/ADR_TEMPLATE.md) when applicable.
 
 The Code Team Lead approves a specific design version. Affected owners confirm cross-module changes. List unresolved questions and whether they block implementation. Before approval, perform only authorized exploration.
 
 ### Stage 3: Publish write_code and prepare the plan
 
-The Lead publishes the task's `write_code.md` using [WRITE_CODE](code_sop/templates/WRITE_CODE_TEMPLATE.md), specifying allowed paths, excluded scope, interface versions, steps, checks, and stop conditions. The author uses [PLAN](code_sop/templates/PLAN_TEMPLATE.md) to identify file changes, dependencies, implementation steps, and acceptance checks within that authorization.
+The Lead publishes the task's `write_code.md` using [WRITE_CODE](code_sop/templates/WRITE_CODE_TEMPLATE.md), specifying allowed paths, excluded scope, interface versions, work-item references, checks, and stop conditions. The author uses [PLAN](code_sop/templates/PLAN_TEMPLATE.md) to identify file changes, dependencies, implementation steps, and acceptance checks within that authorization. In Spec Kit mode, verify that native `plan.md` and `tasks.md` provide this coverage and that the approved versions match the directive. Generated artifacts, analysis results, and command handoffs cannot authorize implementation.
 
 Authors or AI may draft the material; an actual human must confirm approval.
 
 ### Stage 4: Implement and maintain records
 
 Implement in small steps on the assigned branch. Run relevant checks as steps become verifiable and update the [IMPLEMENTATION_CHECKLIST](code_sop/templates/IMPLEMENTATION_CHECKLIST_TEMPLATE.md) and code map. AI inputs must include applicable AGENTS, write_code, design/contract versions, the plan, baseline, and current scope.
+
+For Spec Kit, invoke implementation only after the design and directive gates are satisfied; select the registered feature and limit work to authorized task IDs. Track step progress in `tasks.md`. Treat generated commands and hooks as actions requiring the same scope control as direct edits. Native checklist, analysis, or convergence output assists the author but cannot substitute for actual tests, the task's `review.md`, or human approval.
 
 Authors inspect generated code, dependencies, and data sources. Do not expand scope, lower thresholds, or delete failing tests to obtain a passing result. Keep credentials and restricted data out of code, logs, and external prompts.
 

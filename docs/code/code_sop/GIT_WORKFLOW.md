@@ -111,6 +111,8 @@ This command attempts to restore the pre-merge state. It does not replace saving
 
 A persistent personal branch carries only one task awaiting merge at a time. For concurrent tasks, obtain the Lead's agreement and create short-lived task branches from the latest team main branch, with names such as `task/AI4R-001-xiaoyang`. Each PR contains only its own task. Separate task working directories may use git worktree, but file and dependency boundaries must still be explicit.
 
+Spec Kit uses a feature directory registered in TASK; it does not replace these branch relationships. Follow [SPEC_KIT_WORKFLOW](SPEC_KIT_WORKFLOW.md) for the pinned core workflow without the optional Git extension. Do not enable automatic branch, commit, or PR hooks as part of ordinary task setup. Before each native command, confirm both the current branch and selected feature directory. A feature-directory name is not a request to switch branches. A new session or checkout must restore selection from TASK, and parallel tasks need separate checkouts and explicit paths; a shared current-feature pointer is not a task lock.
+
 Absorb updates from the upstream default branch through a separate integration task and PR. Record the source SHA, conflicts, compatibility, regression scope, and owners. Do not mistake `origin/HEAD` for the team main branch and replace local history with it.
 
 ## 7. Failures After Merging and Rollback

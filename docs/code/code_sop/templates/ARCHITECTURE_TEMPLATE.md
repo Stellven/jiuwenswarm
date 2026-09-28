@@ -19,7 +19,7 @@
 | Code version verified | `ai4r_main_branch` at [Full SHA] |
 | Current status | Not yet established / Verified / Partially verified, with scope |
 | Repository entry points | [Actual paths to README, build configuration, and execution entry points] |
-| Relevant current design | `docs/design/<TASK-ID>.md` |
+| Relevant current design | [TASK-registered design: Manual `docs/design/<TASK-ID>.md`, or Spec Kit `specs/<feature-directory>/plan.md`; approved version] |
 | Decision record | `docs/adr/<NNNN>-<slug>.md`, or N/A: no separate ADR yet |
 
 ## 2. System purpose and boundaries (required)

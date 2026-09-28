@@ -5,6 +5,8 @@
 ## 1. Identity, scope, and versions — required
 
 - Task record: `docs/tasks/<TASK-ID>/TASK.md`.
+- Artifact mode and authority register: [Manual / Spec Kit; actual TASK section].
+- Requirements / design / execution sources: [Manual: actual TASK, DESIGN, and PLAN or simplified sections; Spec Kit: registered `spec.md`, `plan.md`, and `tasks.md`, with exact paths/versions].
 - Author / module / Code Lead: [Fill in].
 - Risk level and reason: [Low / medium / high; scope, failure consequences, recovery difficulty].
 - Working branch: [Actual branch: `ai4r_xiaoyang`, `ai4r_saurav`, `ai4r_ramika`, `ai4r_muk`, or an explicitly approved task branch].
@@ -16,15 +18,18 @@
 
 Committing a report changes HEAD. Reference checked implementation C, not the checklist's own commit SHA. If only explanatory documentation follows C, record its commit range, files, and actual diff check. Executable documentation, configuration, tests, dependencies, interfaces, thresholds, or code changes do not qualify for this exception. Baseline changes also require impact assessment.
 
+This checklist records SOP gates and human understanding, not a second implementation backlog. In Spec Kit mode, reference implementation progress in the registered `tasks.md`. Generated native checklists, consistency analysis, and completed work-item boxes do not replace actual tests, human design authorization, AI code review, or the Lead's final decision. See [SPEC_KIT_WORKFLOW](../SPEC_KIT_WORKFLOW.md).
+
 ## 2. Before implementation — required
 
 - [ ] Read the root and all applicable path-level `AGENTS.md` files; record their paths: [Fill in].
-- [ ] Confirm design scope, interfaces, non-goals, and acceptance thresholds; reference the design and authoritative TASK version/AC: [Fill in].
+- [ ] Confirm design scope, interfaces, non-goals, and acceptance thresholds; reference the design and registered authoritative TASK/spec.md version and AC identifiers: [Fill in].
 - [ ] The Code Lead's `docs/tasks/<TASK-ID>/write_code.md` covers this work; authorization evidence: [Name, time, record].
 - [ ] An authorized human approved the design; approver / date / version: [Fill in; pause dependent implementation without approval].
 - [ ] Inspect the working tree and preserve unrelated changes; record: [Clean, or files and handling].
-- [ ] Synchronize the target branch and confirm B. Preserve standing branch history; do not force-push over it.
-- [ ] Record the plan: [Actual `docs/exec-plans/<TASK-ID>.md` or TASK brief-plan section; do not replace a needed plan with N/A].
+- [ ] Merge updates from the team integration branch into the current personal/approved task branch and confirm B. Preserve standing branch history; do not force-push over it.
+- [ ] Record design and execution sources: [Spec Kit: actual registered plan.md and tasks.md; Manual: actual `docs/exec-plans/<TASK-ID>.md` or TASK brief-plan section; do not replace required planning with N/A].
+- [ ] If Spec Kit is selected, verify repository setup, the pinned workflow version, feature-directory/branch mapping, and disposition of pre-implementation analysis findings. If a new Standard/High risk task uses Manual fallback because setup is blocked, reference explicit Lead approval. Existing Manual tasks and simplified Manual work do not need automatic migration.
 
 ## 3. Author understanding of every changed file — required
 
@@ -71,4 +76,3 @@ Later explanatory documentation: [Commit range after C, files, actual command su
 - Human merge decision: [Pending / Approved / Rejected; approver, time, evidence, covered C and B].
 
 Related templates: [TEST_REPORT](TEST_REPORT_TEMPLATE.md), [REVIEW](REVIEW_TEMPLATE.md), [PR](PR_TEMPLATE.md), [HANDOFF](HANDOFF_TEMPLATE.md).
-

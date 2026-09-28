@@ -2,16 +2,16 @@
 
 <!-- Deploy to .github/pull_request_template.md. Every PR records the problem, scope, versions, verification, risks, and human decision. A small low-risk change may keep compact evidence here; complex tasks reference actual records rather than duplicating them. Explain N/A. Never check an item that has not been completed. A Draft PR is not permission to merge. -->
 
-- Task: [TASK-ID and actual record path/link].
+- Task registry / artifact mode: [TASK-ID, actual TASK path/version, and Manual or Spec Kit].
 - Problem / trigger: [Fill in].
-- Resulting behavior and acceptance source: [Describe the behavior; reference TASK version and AC identifiers without redefining thresholds].
+- Resulting behavior and acceptance source: [Describe behavior; reference registered TASK acceptance in Manual mode or `spec.md` acceptance in Spec Kit mode, with version and AC identifiers; do not redefine thresholds].
 - Risk level and rationale: [Low / medium / high; impact and recovery difficulty].
 - Non-goals: [Fill in].
 
 ## Design authorization and scope
 
-- Approved design / `write_code.md`: [Actual paths or TASK minimum-design section, versions, approver, evidence].
-- Implementation plan: [Actual `docs/exec-plans/<TASK-ID>.md` or TASK brief-plan section; a small task still records its steps].
+- Approved technical design / `write_code.md`: [Manual: registered design/TASK minimum design; Spec Kit: registered `plan.md`; exact paths, versions, approver, evidence].
+- Ordered work and progress: [Manual: registered execution plan/TASK brief plan; Spec Kit: registered `tasks.md`; exact path/version and relevant work-item identifiers; do not create a parallel plan].
 - Affected modules and owners: [Fill in].
 - Author file-level understanding: [Actual FILE_MAP/checklist/TASK section, or list each file's responsibility, change, and downstream impact here].
 - Interface, data, configuration, or dependency changes: [Fill in; confirm before stating unchanged].
@@ -36,9 +36,11 @@ Reports and approval records may reference implementation C without containing t
 | --- | --- | --- | --- | --- |
 | [Fill in] | [Fill in command] | [C/B/integration version] | [Passed / Failed / Not run / Blocked and key output] | [Fill in] |
 
-- Performance: [TASK threshold reference, measured baseline/current values, environment, repetitions, evidence; explain N/A].
+- Performance: [Registered acceptance/design threshold reference, measured baseline/current values, environment, repetitions, evidence; explain N/A].
 - Unrun / failed / skipped checks: [Item, cause, impact, disposition, actual deferral if any; explicitly state none when supported].
 - Later changes and baseline recheck: [Actual commands/results, relevant revalidation, updated versions].
+
+For Spec Kit mode, confirm the required risk-proportionate checks appear in `tasks.md` despite upstream optional-test defaults. Native analyze/checklist/converge results are supporting artifact assessments, not runtime test results or substitutes for actual task AI review and human approval. Review convergence-added work against authorized scope before execution.
 
 ## Review and human decision
 
@@ -46,7 +48,7 @@ Reports and approval records may reference implementation C without containing t
 - Code Lead function-level review: [Evidence for affected functions/call chains; explain N/A for documentation-only changes].
 - Code Lead decision: [Pending approval / Changes requested / Approved / Rejected].
 - Human approver / time / decision evidence: [Keep pending if no actual approval exists; identify an authorized independent reviewer when the Lead authored the change].
-- Covered C/B and current-version check: [Fill in].
+- Covered C/B, registered requirements/design/work-item versions, and current-version check: [Fill in; include native `spec.md`, `plan.md`, and `tasks.md` versions for Spec Kit mode].
 
 AI review precedes the final human review. AI is not an approver, and checkboxes do not replace a human decision.
 
@@ -69,4 +71,3 @@ AI review precedes the final human review. AI is not an approver, and checkboxes
 - [ ] Required documentation, handoff, and follow-up owners are identified; incomplete required follow-up verification prevents Done.
 
 <!-- For full records, use IMPLEMENTATION_CHECKLIST_TEMPLATE.md, TEST_REPORT_TEMPLATE.md, REVIEW_TEMPLATE.md, and HANDOFF_TEMPLATE.md. After adoption, reference actual records or sections, not template filenames. -->
-
