@@ -41,7 +41,7 @@ Code we host is hashed file by file. A remote service we cannot hash (a remote M
 
 A **gate** in these pages is control code that folds check results into `pass`, `fail` or `blocked`. The rules that fold them live in the policy.
 
-Admission gives a level: `provisional` (the capsule's own checks pass), `certified` (a sealed suite written by someone else also passes; unchecked at M1) or `exempt` (for capabilities that cannot be checked in advance; every call records a trajectory).
+Admission gives a level: `provisional` (the capsule's own checks pass), `certified` (a sealed suite written by someone else also passes; unchecked at M1) or `exempt` (for capabilities that cannot be checked in advance; every call records a trajectory; unchecked at M1).
 
 ## What CC does
 
@@ -62,12 +62,12 @@ flowchart LR
     ADM -->|Verdict, Standing| LIB[(library)]
     LIB -->|current version| BND[a run pins it: Binding]
     BND -->|decl_hash, code_sha256, checks, budget| RU[runner]
-    RU -->|Verification request| GT{{gate}}
+    RU -->|Observation to check| GT{{gate}}
     RU -->|Observation| OBS[(observations)]
     OBS --> LBR[librarian]
     LBR -->|moves Standing| LIB
     OBS --> RSI[RSI]
-    RSI -->|new version, lineage.parent| ADM
+    RSI -->|new version, lineage.parent_hash| ADM
 ```
 
 1. An author, an importer, or RSI (recursive self-improvement: code that builds new capsule versions from evidence), submits a Candidate: a Declaration, the files and tests.
@@ -81,7 +81,7 @@ flowchart LR
 RSI (recursive self-improvement) is code that builds new capsule versions from evidence. Capsules give it two ways to make the system better:
 
 1. **More capsules, so the system can do more.** When the system authors a new capsule, for example to close a gap a Finding reports or by wrapping an outside tool, it can do something it could not do before. A capsule the system wrote goes through the same admission as one a person wrote.
-2. **Better capsules, so each thing it does gets better.** RSI submits a child of an existing capsule (`lineage.parent`). A child with the same `interface_hash` must pass its parent's test suites as well as its own. A child that changes the interface needs new test cases and records the parent's suite as `inherited_from`. The child becomes current only when admission admits it. The parent stays in the library for rollback.
+2. **Better capsules, so each thing it does gets better.** RSI submits a child of an existing capsule (`lineage.parent_hash`). A child with the same `interface_hash` must pass its parent's test suites as well as its own. A child that changes the interface needs new test cases and records the parent's suite as `inherited_from_hash`. The child becomes current only when admission admits it. The parent stays in the library for rollback.
 
 **Why capsules make this easier.** Each capsule is isolated and testable on its own: it has declared ports, effects and checks, and tests bound to its interface. A change can be tested on one capsule, against its own tests. How it fits a workflow is still checked at the gate. A version that fails its tests stops at admission, and live outputs are still checked at the gate. Every call leaves an Observation, so RSI can see which capsule to improve.
 

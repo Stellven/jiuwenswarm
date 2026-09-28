@@ -32,23 +32,25 @@ Grouped by the **Unlocks** column. A field that unlocks several things appears i
 
 | Unlocks | Unchecked fields |
 |---|---|
-| RSI | Declaration `identity.lineage` (`parent`, `relation`, `co_parents`, `builder_ref`), `guarantees.failure_modes`; Candidate `builder_evidence`, `test_aids`; test suite `inherited_from`; Artifact `issues`; Binding `overlays`; Observation `trajectory_ref`; every Finding field |
-| tracking | `identity.lineage`, `lineage.parent`, `lineage.relation` |
-| merge | `identity.lineage.co_parents` |
-| routing | `needs.model` (`min_context`, `families`, `excludes`); Observation `routing_policy`, `cost.money` |
+| RSI | Declaration `identity.lineage` (`parent_hash`, `relation`, `co_parent_hashes`), `guarantees.failure_modes`; Candidate `builder_evidence`, `test_aids`; test suite `inherited_from_hash`; Artifact `issues`; Binding `overlays`; Observation `trajectory_ref`; every Finding field |
+| tracking | `identity.lineage`, `lineage.parent_hash`, `lineage.relation` |
+| merge | `identity.lineage.co_parent_hashes` |
+| routing | `needs.model` (`min_context`, `families`, `excludes`); Observation `routing_policy`, `cost.tokens`, `cost.money`; Binding `budget.tokens`, `budget.money` |
+| planner | `Predicate.evaluable_at` |
 | selection | `identity.tags`, `Predicate.state_source` |
 | librarian | `guarantees.quality` (`criterion_check_id`, `target_rate`); every Finding field; Observation `effects_observed`; Standing `evidence` |
-| importer | Candidate `source` (`system`, `uri`, `name`, `version`, `publisher`); `identity.license`; `needs.dependencies` |
-| isolated verification | `needs.dependencies` (`runtime`, `platforms`, `packages`, `lockfile`), `needs.secrets`, `needs.resources`; Verdict `environment` (`runtime`, `image_sha256`) |
-| store | Candidate `source`, including `source.attestation`; `identity.owner`, `identity.tags`, `identity.license` |
-| remote capsules | `identity.remote` (`endpoint`, `version`, `interface_version_range`) |
+| importer | Candidate `source` (`system`, `uri`, `name`, `version`, `publisher`); `identity.namespace`, `identity.license`; `needs.dependencies`, `needs.config` |
+| isolated verification | `needs.dependencies` (`runtime`, `platforms`, `packages`, `lockfile`), `needs.config` (`args`, `env`), `needs.secrets`, `needs.resources`; Verdict `environment` (`runtime`, `image_sha256`) |
+| store | Candidate `source`, including `source.attestation`; `identity.namespace`, `identity.owner`, `identity.tags`, `identity.license` |
+| remote capsules | `identity.remote` (`endpoint`, `version`, `interface_version_range`); `capsule_kind` values `mcp`, `a2a` |
+| agents | `capsule_kind` values `subagent`, `agent_template` |
 | composer | `members` (`id`, `decl_hash`), `structure`, `wiring` |
 | retries | `idempotency_key`; `guarantees.failure_modes` |
 | fallbacks | `guarantees.failure_modes` (`reason_code`, `when`, `retriable`) |
-| certification | Candidate `requested_level`, `tests[].negative_control`; test case `negative_control`, test suite `access`; `visibility`; Verdict `evidence_requests` |
+| certification | Candidate `requested_level`, `tests[].negative_control`; test case `negative_control`, test suite `access`; `visibility`; Verdict `evidence_requests`, `level: certified` |
 | tracing | `trace` (`trace_id`, `span_id`) |
 | quality labels | Artifact `issues` |
-| exempt agents | Observation `trajectory_ref` |
+| exempt agents | Observation `trajectory_ref`; Verdict `level: exempt` |
 
 The [tools page](tools.md) says which tool reads each group.
 

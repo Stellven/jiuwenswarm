@@ -19,27 +19,28 @@ A Declaration also carries `schema_version` and `ext` (extensions, such as agent
 
 - **Port types.** Every port has a type from one shared list, the port type vocabulary. The base types are `text`, `integer`, `number`, `boolean`, `json` (its schema is given in `Port.value_schema`), `file` (stored by reference), `path` (a path inside the run's workspace) and `collection<T>` (a list of `T`). Domain types are added to the list with their own checks. There is no `any` type. Every type has a check that runs at the gate on every output of that type.
 - **`state_kind`:** `none` (the default), `reads_external`, `session` or `persistent`.
-- **`evaluable_at`:** `planning` (known before the run starts), `dispatch` (known just before the call) or `both`.
+- **`evaluable_at`:** `planning` (known before the run starts), `dispatch` (known just before the call, the default) or `both`.
 - **`pass`, `fail`, `blocked`.** The gate's decision on one call's output. `blocked` means the result cannot be trusted either way: the call did not end `ok`, a check gave `unknown`, or a judge failed. It is neither a pass nor a fail.
 - **Sealed suite.** A test suite written by someone other than the capsule's builder. Builders cannot read it, and it returns only pass or fail. A `certified` capsule must pass one.
 - **Hash.** Lowercase hex SHA-256 over RFC 8785 canonical JSON. Files are hashed over their raw bytes.
 - **Policy and epoch.** The policy holds every rule, default, threshold and required field. One version of it is an **epoch**, named (for example `e1`) and pinned by hash. Every admission and every run pins one epoch. A stricter epoch may require more fields; the schema does not change.
-- **Standing states:** `candidate`, `admitted`, `admitted_inactive`, `suspect`, `deprecated`, `revoked` or `retired`. Admission writes only `admitted`, and only `admitted` versions are offered for selection.
+- **Standing states:** `admitted`, `admitted_inactive`, `deprecated`, `suspect`, `retired` or `revoked`. Admission writes only `admitted`, and only `admitted` versions are offered for selection.
 
 ## identity: what it is, and which code
 
 | Field | M1 | What it is for |
 |---|---|---|
-| `identity.name` | checked | The stable handle. Every version of a capability hangs off it, the Standing is keyed by it, and Observations group by it |
-| `identity.kind` | checked | `tool`, `skill`, `prompt_section`, `mcp`, `a2a`, `subagent`, `agent_template` or `composite` (unchecked). The runner calls each kind its own way, and admission tests it that way |
-| `identity.carrier` (`.ref`, `.sha256`) | checked | The code of a single entry point, by hash. Admission hashes it again and refuses a mismatch (`HASH_MISMATCH`); the runner refuses changed code (`CARRIER_CHANGED`) |
+| `identity.name` | checked | The stable handle, local to a library; `decl_hash` is the global identity. Every version of a capability hangs off it, the Standing is keyed by it, and Observations group by it |
+| `identity.kind` | checked | `tool`, `skill`, `prompt_section`; unchecked: `mcp`, `a2a`, `subagent`, `agent_template`, `composite`. The runner calls each kind its own way, and admission tests it that way |
+| `identity.carrier` (`.ref`, `.sha256`) | checked | The code, by hash, when it is one file that imports no unpinned local module. Admission hashes it again and refuses a mismatch (`HASH_MISMATCH`); the runner refuses changed code (`CARRIER_CHANGED`) |
 | `identity.body[]` (`.path`, `.sha256`) | checked | The same for a capability of several files, such as a skill folder: every file hashed, including imported modules that are not pinned dependencies |
 | `identity.summary` | checked | At most 400 characters on what it does. It is the only prose a model sees when choosing a capsule, and it names no workflow step or other capsule |
 | `identity.remote` (`.endpoint`, `.version`, `.interface_version_range`) | unchecked: remote capsules | A service we cannot hash, such as a remote MCP server or an A2A agent, pinned by endpoint and version instead. The pin proves what was pinned, not what the service runs |
+| `identity.namespace` | unchecked: store, importer | The publisher the name belongs to, when a capsule moves between libraries |
 | `identity.owner` | unchecked: store | Who answers for it |
 | `identity.tags` | unchecked: store, selection | Labels for search |
 | `identity.license` | unchecked: importer, store | An SPDX licence id for imported code |
-| `identity.lineage` (`.parent`, `.relation`, `.co_parents`, `.builder_ref`) | unchecked: RSI, tracking, merge | Where this version came from: the parent's `decl_hash` and the relation (`supersedes`, `specialises`, `merges`, `rollback_of`, `migrated_from`). For a merge, the other parents; also the Candidate that built it. This is the version tree RSI branches from. A child with the same `interface_hash` must pass its parent's test suites as well as its own; a child that changes the interface needs new test cases and records the parent's suite as `inherited_from` |
+| `identity.lineage` (`.parent_hash`, `.relation`, `.co_parent_hashes`) | unchecked: RSI, tracking, merge | Where this version came from: the parent's `decl_hash` and the relation (`supersedes`, `specialises`, `merges`, `migrated_from`). For a merge, the other parents. A rollback is a Standing move, not a new version. This is the version tree RSI branches from. A child with the same `interface_hash` must pass its parent's test suites as well as its own; a child that changes the interface needs new test cases and records the parent's suite as `inherited_from_hash` |
 
 ## ports: what it takes and gives
 
@@ -54,11 +55,13 @@ A Declaration also carries `schema_version` and `ext` (extensions, such as agent
 
 | Field | M1 | What it is for |
 |---|---|---|
-| `needs.when[]` (Predicate `id`, `path`, `op`, `value`, `evaluable_at`) | checked | Preconditions. The runner refuses a call whose precondition is false and records each result in the Observation. Selection filters out capsules that cannot run |
+| `needs.when[]` (Predicate `id`, `path`, `op`, `value`) | checked | Preconditions. The runner refuses a call whose precondition is false and records each result in the Observation. Selection filters out capsules that cannot run |
+| `Predicate.evaluable_at` | unchecked: planner | When the precondition's fact can be known; default `dispatch` |
 | `Predicate.state_source` | unchecked: selection | Where the precondition's state comes from: `inputs`, `workspace` or an external source |
-| `needs.external[]` (`ref`, `pinned`, `decl_hash`, `unpinned_purpose`) | checked | The other capsules or services it calls. Admission refuses a capsule dependency that is not admitted, or a pinned one whose `decl_hash` is not admitted (`OPERATOR_NOT_ADMITTED`). An unpinned dependency states `unpinned_purpose`. The runner allows no calls outside this list |
-| `needs.network` | checked | `none` (the default), `egress`, `ingress` or `both`. The permission check allows only this |
+| `needs.external[]` (`ref`, `pinned`, `decl_hash`, `unpinned_purpose`) | checked | The other capsules or services it calls. Admission refuses a capsule dependency that is not admitted, or a pinned one whose `decl_hash` is not admitted (`OPERATOR_NOT_ADMITTED`). An unpinned dependency states `unpinned_purpose`. Calls made through the runner are refused outside this list; in-process calls are enforced only in the isolated sandbox |
+| `needs.network` | checked | `none` (the default), `egress`, `ingress` or `both`. Where a permission check or the sandbox runs, it allows only this |
 | `needs.dependencies` (`runtime`, `platforms`, `packages`, `lockfile`) | unchecked: importer, isolated verification | What must be installed to run it in isolation: runtime version, platforms, packages, and a lockfile pinned by hash |
+| `needs.config` (`args`, `env`) | unchecked: importer, isolated verification | Start-up arguments and environment variables that are not ports and not secrets |
 | `needs.secrets[]` (`name`, `purpose`) | unchecked: isolated verification | Credentials it needs, by name only, never by value. The sandbox injects them, and the permission check allows them |
 | `needs.resources` (`cpu`, `gpu`, `memory_mb`, `disk_mb`, `timeout_s`) | unchecked: isolated verification | What one call needs to run |
 | `needs.model` (`min_context`, `families`, `excludes`) | unchecked: routing | Limits on the model for model capsules. Routing picks a model inside them; the capsule never picks one |
@@ -76,7 +79,7 @@ A Declaration also carries `schema_version` and `ext` (extensions, such as agent
 | Field | M1 | What it is for |
 |---|---|---|
 | `guarantees.checks[]` | checked | Every promise, as a check (see the next table); at least one. A child with the same interface must keep these checks passing |
-| `guarantees.failure_modes[]` (`reason_code`, `when`, `retriable`) | unchecked: retries, fallbacks, RSI | Proposed. The only ways the capsule may end without an output. Codes are only ever added. An undeclared exception is a bug (`CAPSULE_RAISED_UNDECLARED`, also proposed), which the gate folds into `blocked`. At M1, any call that does not end `ok` is `blocked` |
+| `guarantees.failure_modes[]` (`reason_code`, `when`, `retriable`) | unchecked: retries, fallbacks, RSI | Proposed. The only ways the capsule may end without an output. Codes are only ever added. An undeclared exception is a bug (`CAPSULE_RAISED_UNDECLARED`, also proposed), which the gate folds into `blocked`. At M1, an exception is `CAPSULE_ERROR`, and any call that does not end `ok` is `blocked` |
 | `guarantees.quality` (`criterion_check_id`, `target_rate`) | unchecked: librarian | The pass rate a judged output should reach. The librarian measures the actual rate, and RSI improves toward the target |
 
 ## checks: one runnable test each
@@ -87,8 +90,8 @@ A Declaration also carries `schema_version` and `ext` (extensions, such as agent
 | `Check.anchor` | checked | What a pass rests on: `deterministic` (code), `reference` (a known answer) or `judged` (a model or person) |
 | `Check.target` | checked | The port or type it tests. Example: `ports.outputs.text` |
 | `Check.over` | checked | What it looks at: `each_call`, `outputs` or `inputs_and_outputs` |
-| `Check.applies_at` | checked | `admission` (needs a test case's expected result, so runs only at admission), `node` (runs at the gate on a live output) or `both` |
-| `Check.runner` (`.ref`, `.sha256`) | checked | The pinned code that runs it; for a judged check, the judge. Every result names the runner's hash |
+| `Check.applies_at` | checked | `admission` (needs a test case's expected result, so runs only at admission), `node` (runs at the gate on a live output, and at admission on test-call outputs) or `both` |
+| `Check.runner` (`.ref`, `.sha256`) | checked | The pinned code that runs it; for a judged check, the rubric code, while the Binding's `verifier` pins the model-backed judge. Every result names the runner's hash |
 | `Check.description`, `Check.author` | checked | What passes, in one line, and who wrote it. A certifying check is written by someone other than the builder |
 
 ## composition: capsules made of capsules
@@ -118,7 +121,7 @@ flowchart LR
     PAR -->|lineage, interface_hash, code by hash| RSI
     VER[parent Verdict: test suites] -->|suites a same-interface child must pass| RSI
     OBS[Observations: cost, outcome] --> RSI
-    RSI -->|Candidate: lineage.parent| ADM{{admission}}
+    RSI -->|Candidate: lineage.parent_hash| ADM{{admission}}
     ADM -->|parent suites if same interface, plus its own| NV[new Verdict]
 ```
 
@@ -133,10 +136,10 @@ The submitter (an author, an importer or RSI) writes the Candidate, which carrie
 | Candidate | checked | author, RSI, importer | a submission: Declaration, files, tests. Its `builder_evidence` is kept but never counts |
 | Verdict | checked | admission | admit, reject or defer, with the checks and test suites run |
 | Test case, test suite | checked | admission | one input and its expected result; a hashed set of them |
-| Standing | checked | admission, librarian | which version of a name is current, and its state |
+| Standing | checked | per state: admission (`admitted`), librarian (every other state) | which version of a name is current, and its state |
 | Binding | checked | the workflow runtime | the one version pinned for one call: `decl_hash`, `code_sha256`, checks, budget |
 | Observation | checked | runner | one call: outcome, reason, model, preconditions, cost |
 | Artifact | checked | runner (runs), admission (test inputs and fixtures) | one value a call produced or used |
-| Verification record | checked | runner (the request), gate (the result) | which checks passed for one call's output, and the gate's `pass`, `fail` or `blocked` |
+| Verification | checked | gate | which checks passed for one call's output, and the gate's `pass`, `fail` or `blocked` |
 | Finding | unchecked: RSI, librarian | selection, gate, librarian, RSI (one per kind) | something learned later: a gap, drift, an audit result, a measurement |
 | Policy, port type vocabulary | checked | a reviewed change | the rules and defaults of one epoch; the list of port types |

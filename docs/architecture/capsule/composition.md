@@ -14,7 +14,7 @@ On the Declaration, all unchecked:
 - `structure`: `sequence`, `parallel` or `graph`. Required with `members`.
 - `wiring`: each `{from, to}`. `from` is `inputs.<port>` or `<member>.outputs.<port>`; `to` is `<member>.inputs.<port>` or `outputs.<port>`. With `graph`, it gives the order.
 - `code_sha256`: the hash of the `members` list sorted by `id`. Each member's own `code_sha256` pins its code.
-- Lineage: `identity.lineage.relation: merges`, `parent` is one member's `decl_hash`, and `co_parents` lists the others. `co_parents` is required when `relation` is `merges`.
+- Lineage: `identity.lineage.relation: merges`, `parent_hash` is one member's `decl_hash`, and `co_parent_hashes` lists the others. `co_parent_hashes` is required when `relation` is `merges`.
 
 The `composite` value of the `capsule_kind` registry is unchecked in the policy.
 
