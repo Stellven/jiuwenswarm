@@ -83,3 +83,7 @@ $env:SPECIFY_FEATURE_NO_PERSIST = '1'
 
 - Details the recipient should not need to guess: startup/build commands, profile directory, default ports, personal sign-in and restart behavior are all in CODEX_DEMO.
 - Human decisions still needed and reasons: later capability tradeoffs and broader final review; no repeated approval is required for this explicitly authorized demo push.
+
+### Confirmed publication
+
+Atomic fast-forward push succeeded for all five destination branches at `295470d6d9f07cc3d81fe674e118abd453405ef1`. A subsequent `git ls-remote --heads origin ai4r_main_branch ai4r_xiaoyang ai4r_saurav ai4r_ramika ai4r_muk` returned that identical SHA for every branch. The existing local Web UI returned HTTP 200. This follow-up updates publication records only; implementation C is unchanged. No PR, force push, remote history deletion, credential upload or message to another person was performed.

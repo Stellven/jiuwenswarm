@@ -223,3 +223,5 @@ Current handoff: latest preview is running on loopback Web UI http://localhost:5
 ### Accepted demo publication record (2026-09-28)
 
 Implementation C is `97c1bd6930497c2a97cedeca82c49b62650b56c8`; baseline B remains `dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483`. T-50–T-53 are the final post-commit checks. Xiaoyang's T-49 acceptance authorizes direct fast-forward publication to the five team branches; broader AC gaps and independent-review limitations remain. No credentials, runtime profile, node_modules or virtual environment are included. The goal-poll fix has regression evidence but was not loaded into the user's pre-acceptance backend process. Later commits contain publication records only. See [HANDOFF](HANDOFF.md) and [CODEX_DEMO](../../code/CODEX_DEMO.md).
+
+Publication confirmation: atomic push of `295470d6d9f07cc3d81fe674e118abd453405ef1` succeeded to all five specified team refs. Read-back with `git ls-remote` matched all five SHAs. Local loopback Web UI HTTP status was 200. Later changes are publication records only; post-commit code verification T-50–T-53 remains applicable.
