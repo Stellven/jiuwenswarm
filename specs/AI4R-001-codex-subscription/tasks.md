@@ -191,3 +191,7 @@ Authority: TASK Section 4 and write_code v0.9. Execution order below specializes
 - [ ] M006: Xiaoyang signs in on his own machine; verify actual streaming, cancellation and refreshed history, then review remaining whole-project work. No claim of completion without this evidence.
 
 M001-M004 record implementation and fixture completion only. M005 startup, actual Gateway/AgentServer socket journey, tests/build and documentation are verified; browser inspection remains unavailable, so M005 stays unchecked. M006 requires personal sign-in and real subscription/model acceptance. The actual preview is started locally; native work-item completion is not release approval. Results and historical failed attempts are in TEST_REPORT. No active AC is declared fully passed.
+
+### M1 user acceptance and publication update (2026-09-28)
+
+Xiaoyang accepted the running localhost:5173 demo and explicitly requested direct publication to the five team branches. Post-commit backend/frontend/build/socket checks pass in TEST_REPORT. This supersedes earlier pending-user-acceptance and uncommitted-source statements. Detailed live scenario traces and independent visual review remain unrecorded, so M005/M006 checkboxes retain their stricter evidence meaning; they do not revoke the user's explicit demo publication instruction. Broader T001–T033 and whole-project ACs remain open.

@@ -64,3 +64,7 @@ Later explanatory documentation: report/checklist/review/status and record-point
 - Remaining risks and owners: Xiaoyang coordinates G1-G4 and acceptance; shared transport failure affects active streams and old threads cannot resume after process restart. Neither is waived.
 - Next executor and action: AI continues product integration verification; Xiaoyang participates in personal sign-in when ready. Implementation progress is solely in native tasks.md.
 - Human merge decision: Pending; no implementation commit, independent final review, PR or merge.
+
+### Subsequent demo acceptance and publication (2026-09-28)
+
+Xiaoyang accepted localhost:5173 and requested direct publication. Implementation C: `97c1bd6930497c2a97cedeca82c49b62650b56c8`; post-commit verification is in TEST_REPORT T-50–T-53. Earlier pending-delivery statements are historical for this demo; unchecked whole-project/independent-review gates are not silently marked passed. The explicit publication decision is in TASK Section 4, and the run guide and remaining work are in HANDOFF.

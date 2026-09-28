@@ -1,6 +1,6 @@
 # Review record: AI4R-001
 
-Version: 0.2. Template: [REVIEW_TEMPLATE](../../code/code_sop/templates/REVIEW_TEMPLATE.md). This is a bounded M1 AI self-review, not final review or merge approval.
+Version: 0.2. Template: [REVIEW_TEMPLATE](../../code/code_sop/templates/REVIEW_TEMPLATE.md). This is a bounded M1 AI self-review. The dated publication decision below records subsequent user acceptance and direct-push authority; earlier pending states are historical.
 
 ## 1. Review target — required
 
@@ -8,7 +8,7 @@ Version: 0.2. Template: [REVIEW_TEMPLATE](../../code/code_sop/templates/REVIEW_T
 - Risk level and rationale: High; account lifecycle, process ownership, session routing and frontend/backend integration.
 - Working branch: `ai4r_xiaoyang`.
 - Target branch: `ai4r_main_branch`.
-- Reviewed implementation C: pending implementation commit. HEAD is `dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483`; it does not contain the uncommitted M1 changes.
+- Reviewed publication implementation C: `97c1bd6930497c2a97cedeca82c49b62650b56c8`. Earlier working-tree review statements below describe the preparation history.
 - Target baseline B: `dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483`, fetched from origin/ai4r_main_branch on 2026-09-28; exact time not retained.
 - Actual diff / working directory / command reviewed: repository root `D:\research\ai_for_research\jiuwenswarm`; `git diff --` for the tracked M1 integration files and direct reads of new runtime, adapter, launcher, component and test files. `git status --short` includes earlier preparation/SOP work. This is not a review of every earlier change.
 - Implementation or integration version actually tested: uncommitted M1 files identified in `%LOCALAPPDATA%\ai4r-tools\evidence\AI4R-001\m1-journey-code-sha256.json`; [TEST_REPORT v0.8](TEST_REPORT.md). No separate integration commit.
@@ -68,9 +68,9 @@ AI conclusion: Recommend continued implementation and verification first. No who
 
 ## 5. Final human decision — required; initially pending
 
-- Decision: **Pending approval**.
+- Decision: **M1 demo accepted; direct publication explicitly requested by Xiaoyang**. Whole-project acceptance is not granted.
 - Code Lead or authorized independent reviewer / time and timezone: independent reviewer not assigned; Xiaoyang is author/Lead. No final review time.
-- Approval evidence: None for merge. Existing continuation authorizes M1 implementation only.
+- Approval evidence: latest user message accepts localhost:5173 and requests uploading to the team main and four personal branches. This explicit request governs this direct publication; it does not establish independent code review.
 - Covered implementation C / baseline B / integration result and registered artifact versions: pending final C; B as above; spec v0.2, plan/tasks v0.3, directive v0.9, report v0.8. No final integration result.
 - Conditions and owners: resolve blocking findings and required acceptance; Xiaoyang coordinates independent human review and personal account validation.
 - Deferred items and follow-up: no formal check deferral or acceptance waiver. Later work remains incomplete, not approved for omission.
@@ -86,3 +86,10 @@ AI conclusion: Recommend continued implementation and verification first. No who
 Merge eligibility at this review time: **No**. Recorder: Codex assistant, 2026-09-28. Live task state is maintained in [CURRENT_STATUS](../../governance/CURRENT_STATUS.md).
 
 Journey review addendum: the user now explicitly authorizes the full bounded journey and has agreed to perform personal sign-in. Login completion is not yet confirmed. Startup and account RPCs were exercised against the actual local preview; synthetic wire tests use an isolated profile and cannot authenticate a real account. The previous manifest is retained for historical checks; current 32-file manifest covers new startup, Gateway, frontend and probe changes. No final human review/merge approval is inferred.
+
+### Publication follow-up review (2026-09-28)
+
+- Actual implementation: `97c1bd6930497c2a97cedeca82c49b62650b56c8` against B. M1 adapter and caller changes inspected; the final goal-poll method returns an empty read-only snapshot and rejects goal execution. No new product behavior was added during publication preparation.
+- Revalidation: TEST_REPORT T-50–T-53: 91 backend cases, five frontend cases, production build and real socket fixture pass. Only records follow C.
+- Scope: publish the accepted staged demo, preserving the explicitly documented broader gaps. User acceptance does not retroactively establish automated real-account evidence, author function understanding or an independent reviewer.
+- Current publication decision: proceed with Xiaoyang's direct-push instruction. Earlier pending PR/merge statements are superseded for this bounded publication only. No force push and no changes to whole-project success criteria.

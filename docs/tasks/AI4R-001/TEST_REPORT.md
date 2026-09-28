@@ -1,7 +1,7 @@
 # Test and Acceptance Report: AI4R-001
 
 Version: 0.8 | Recorded: 2026-09-28 | Template: [TEST_REPORT_TEMPLATE](../../code/code_sop/templates/TEST_REPORT_TEMPLATE.md).
-Scope: historical preparation/R001-R004 and current M1 product login/basic-chat implementation. Mocked-provider integration and real signed-out process behavior are tested; full startup/socket fixtures now pass; browser and signed-in acceptance remain unverified.
+Scope: historical preparation/R001-R004 and the user-accepted M1 browser demo. Xiaoyang accepted localhost:5173 and explicitly requested direct publication on 2026-09-28. Detailed personal-account case traces were not supplied; fixture evidence and human acceptance remain separately identified. The publication rows below supersede earlier pending-demo-acceptance statements; full-project acceptance remains incomplete.
 
 ## 1. Verification target and acceptance basis (required)
 
@@ -13,7 +13,7 @@ Scope: historical preparation/R001-R004 and current M1 product login/basic-chat 
 - Merge target: `ai4r_main_branch`.
 - Target baseline B: `dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483`, fetched from `origin/ai4r_main_branch` during 2026-09-28 preparation; exact fetch time not retained.
 - Tested implementation commit C: pending implementation commit. HEAD is `dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483`, which excludes the uncommitted M1 implementation.
-- Tested working tree state: new backend runtime/adapter/account gateway/launcher and frontend account controls, routing and tests, plus historical preparation/SOP changes. The 32 current M1 executable/configuration/rule/test files are fingerprinted in L/m1-goal-poll-code-sha256.json; the earlier 25-file manifest is historical; FILE_MAP lists scope. Dependency locks remain unchanged.
+- Publication implementation C: `97c1bd6930497c2a97cedeca82c49b62650b56c8`; post-commit tests below ran against this source. Subsequent publication records change documentation only. Earlier manifests and working-tree descriptions are historical evidence.
 - Actual execution target: working tree on HEAD/B with the manifest-identified M1 changes; fake provider for integration tests, real packaged App Server for signed-out probes. No integration commit exists.
 - Relationship to final merge contents: implementation, full integration verification and final review remain required; no commit, push, PR or merge in this stage.
 
@@ -110,6 +110,11 @@ Backend command B1, run from repository root:
 | T-46 | Frontend | `npm run build` with Node22 PATH | Vite 29.12 s | 0 | TypeScript/Vite pass; existing chunk/import warnings only | L/m1-journey-frontend-build.log | Passed |
 | T-47 | UI tool | CUA getState; open_in_codex browser http://localhost:5173 | Duration not retained | N/A | No connected app/browser automation surface; opening app panel queued. No visual QA. User agreed to complete personal sign-in and notify the assistant; completion pending | Tool results/current conversation | Blocked for visual/live acceptance |
 | T-48 | Root | `.\.venv\Scripts\python.exe -m pytest tests/unit_tests/runtime/test_codex_subscription.py tests/unit_tests/runtime/test_codex_integration.py --no-cov -q --log-cli-level=ERROR` | 12.96 s | 0 | 26 passed after the real preview exposed a missing goal-status method. Read-only goal polling returns an empty snapshot; goal mutations are rejected without provider calls. The running preview has not been restarted, to preserve the user login flow | L/m1-goal-poll-regression.log; L/m1-goal-poll-code-sha256.json | Passed for fixture scope; running preview still uses pre-fix backend |
+| T-49 | User browser | Xiaoyang's explicit message accepting localhost:5173 and directing publication to main plus four child branches | Not recorded | N/A | User acceptance of the running M1 demo and direct publication authority. No independent function review, exact browser-case transcript or full AC pass inferred | TASK Section 4; current conversation | Accepted by user for M1 |
+| T-50 | Root | `.\.venv\Scripts\python.exe -m pytest tests/unit_tests/runtime/test_codex_subscription.py tests/unit_tests/runtime/test_codex_integration.py tests/unit_tests/agentserver/test_goal_history_bubble_parity.py tests/unit_tests/server/test_gateway_adapter.py --no-cov -q --log-cli-level=ERROR` | 20.10 s | 0 | 91 passed, one existing Authlib warning; includes the latest goal-poll compatibility correction | C; L/release-backend.log | Passed |
+| T-51 | Root | `.\.venv\Scripts\python.exe specs/AI4R-001-codex-subscription/verification/probe_journey.py` | Not retained | 0 | Real Gateway/AgentServer with synthetic provider: login/chat, stale-stop rejection, confirmed stop, continued chat, reconnect and retained history | C; L/release-journey.log; L/m1-wire-c38ru1_x/summary.json | Passed for fixture scope |
+| T-52 | Frontend | `npm.cmd run test:codex-subscription` with Node 22.23.3 on PATH | 1.885 s runner | 0 | Five tests passed | C; L/release-frontend.log | Passed |
+| T-53 | Frontend | `npm.cmd run build` with Node 22.23.3 on PATH | 31.15 s Vite stage | 0 | TypeScript and production build passed; existing chunk/import warnings retained | C; L/release-build.log | Passed |
 
 ### M1 evidence boundaries
 
@@ -214,3 +219,7 @@ Design update: plan/tasks v0.3 register the authorized M1 product milestone; dir
 Passing fixtures or builds is not approval to merge. Implementation progress belongs in native tasks.md and live task state in CURRENT_STATUS.
 
 Current handoff: latest preview is running on loopback Web UI http://localhost:5173; read-only status is signed_out. Start-Codex.cmd is an additional convenience launcher, not a second running instance. Personal sign-in is required to establish real replies/quota behavior. User data and credentials are not copied into test fixtures. No remote push or commit in this stage.
+
+### Accepted demo publication record (2026-09-28)
+
+Implementation C is `97c1bd6930497c2a97cedeca82c49b62650b56c8`; baseline B remains `dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483`. T-50–T-53 are the final post-commit checks. Xiaoyang's T-49 acceptance authorizes direct fast-forward publication to the five team branches; broader AC gaps and independent-review limitations remain. No credentials, runtime profile, node_modules or virtual environment are included. The goal-poll fix has regression evidence but was not loaded into the user's pre-acceptance backend process. Later commits contain publication records only. See [HANDOFF](HANDOFF.md) and [CODEX_DEMO](../../code/CODEX_DEMO.md).
