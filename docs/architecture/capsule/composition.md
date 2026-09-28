@@ -1,3 +1,8 @@
+---
+type: capsule
+tags: [capsule]
+---
+
 # Composition
 
 **Unchecked at M1. Unlocks: composer.** The schema has the fields now, so nothing built for M1 gets in the way. M1 neither requires nor tests them.
@@ -8,7 +13,7 @@
 
 ## Schema
 
-On the Declaration, all unchecked:
+On the [Declaration](../schemas/declaration.md), all unchecked:
 
 - `members`: each `{id, decl_hash}`. It is set instead of `carrier`, `body` or `remote`. `id` is the member's local name.
 - `structure`: `sequence`, `parallel` or `graph`. Required with `members`.
@@ -16,7 +21,7 @@ On the Declaration, all unchecked:
 - `code_sha256`: the hash of the `members` list sorted by `id`. Each member's own `code_sha256` pins its code.
 - Lineage: `identity.lineage.relation: merges`, `parent_hash` is one member's `decl_hash`, and `co_parent_hashes` lists the others. `co_parent_hashes` is required when `relation` is `merges`.
 
-The `composite` value of the `capsule_kind` registry is unchecked in the policy.
+The `composite` value of the `capsule_kind` registry is unchecked in the [policy](../schemas/policy.md).
 
 ## Rules
 
@@ -25,3 +30,5 @@ The `composite` value of the `capsule_kind` registry is unchecked in the policy.
 - **Proposals:** a composer proposes a composite from Observations of capsules that run in sequence and pass. Every composite proposal is approved before it is built. A gate is never inside a composite.
 - **Costs.** A-B declares all of its members' effects. A retry repeats the whole of A-B, and a failure is recorded against A-B.
 - **When a member changes.** If A gets a new version A′, A-B keeps pinning A; it picks up A′ only in a new composite version. If a member is revoked, the librarian moves A-B's Standing to `suspect`.
+
+Capsules that are fine alone can still fail together, even when they are not composed into one capsule. How the library could find such sets is in [When good capsules are bad together](interactions.md).
