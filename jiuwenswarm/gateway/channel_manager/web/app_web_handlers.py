@@ -401,6 +401,11 @@ class _DummyBus:
 
 # 仅转发到 Agent 的 Web method
 _FORWARD_REQ_METHODS = frozenset({
+    "codex.auth.status",
+    "codex.auth.login",
+    "codex.auth.cancel",
+    "codex.auth.logout",
+    "codex.models.list",
     "initialize",
     "session.switch",
     "session.fork",
@@ -586,6 +591,11 @@ _FORWARD_REQ_METHODS = frozenset({
 })
 
 _FORWARD_NO_LOCAL_HANDLER_METHODS = frozenset({
+    "codex.auth.status",
+    "codex.auth.login",
+    "codex.auth.cancel",
+    "codex.auth.logout",
+    "codex.models.list",
     "initialize",
     "session.switch",
     "session.fork",

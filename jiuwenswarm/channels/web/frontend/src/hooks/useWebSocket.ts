@@ -5,6 +5,7 @@
  */
 
 import { readOutputOrder } from '../features/sessionOutput';
+import { useCodexSubscription } from '../features/codexSubscription/state';
 import { handleTaskInputReceipt, sendQueuedTaskInput, handleSessionOutputBoundary, shouldIgnoreSessionOutput } from '../features/sessionInput';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -4737,6 +4738,10 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         if (useChatStore.getState().getRuntime(sessionId)?.switchingMode) return;
         flushPendingStreamDelta(sessionId);
         const resultPayload = payload as unknown as InterruptResultPayload;
+        if (useCodexSubscription.getState().enabled && resultPayload.success === false) {
+          onErrorRef.current?.(t('network.cancelFailed'));
+          return;
+        }
         useChatStore.getState().setInterruptResult(sessionId, resultPayload);
         // has_active_task 为 false 表示没有活跃任务（任务已完成）
         const hasActiveTask = resultPayload.has_active_task !== false;

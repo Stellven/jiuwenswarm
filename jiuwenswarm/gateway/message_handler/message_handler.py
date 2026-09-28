@@ -1264,6 +1264,31 @@ class MessageHandler(ABC):
         """
         from jiuwenswarm.common.schema.message import Message, ReqMethod
 
+        if os.environ.get("JIUWENSWARM_AGENT_SDK") == "codex_subscription":
+            # Keep the stream consumer alive until the provider's terminal event
+            # has been persisted. Legacy eager cancellation loses that event.
+            params = dict(msg.params or {})
+            target = params.get("target_request_id")
+            if not target:
+                candidates = [rid for rid, task in self._stream_tasks.items()
+                              if self._stream_sessions.get(rid) == old_sid and not task.done()
+                              and (channel_id is None or self._stream_channels.get(rid) == channel_id)]
+                if len(candidates) != 1:
+                    return False
+                target = candidates[0]
+            params.update(intent="cancel", session_id=old_sid, target_request_id=target)
+            cancel_msg = replace(msg, req_method=ReqMethod.CHAT_CANCEL, params=params, session_id=old_sid)
+            dispatched = await self._prepare_agent_dispatch_message(cancel_msg)
+            try:
+                response = await self._send_non_stream_agent_request(self.message_to_e2a(dispatched))
+                payload = response.payload if isinstance(response.payload, dict) else {}
+                success = bool(response.ok and payload.get("success"))
+            except Exception:
+                success = False
+            if publish_interrupt_result:
+                await self._send_interrupt_result_notification(msg.id, msg.channel_id, old_sid, "cancel", success=success)
+            return success
+
         async def _cancel_tasks(tasks: list[asyncio.Task]) -> None:
             if not tasks:
                 return

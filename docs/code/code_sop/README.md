@@ -4,6 +4,8 @@ Use this package with [Code_SOP.md](../Code_SOP.md). Read the main workflow firs
 
 ## Where to Start
 
+**Mandatory template rule:** all AI and human authors must follow [SOP Section 4.1](../Code_SOP.md#41-mandatory-template-conformance-for-ai-and-human-authors). Read the corresponding template, retain its required structure and evidence, and check conformance before delivering a record. Native Spec Kit artifacts must map applicable DESIGN/PLAN coverage without duplicating authorities.
+
 | What you need to do | Entry point |
 | --- | --- |
 | Adopt the workflow for the first time | [ADOPTION_CHECKLIST](ADOPTION_CHECKLIST.md) |

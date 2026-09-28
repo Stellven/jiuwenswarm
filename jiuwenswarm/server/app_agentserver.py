@@ -295,6 +295,12 @@ async def _start_runtime_backend(front: object, host: str, port: int) -> object:
     install_subagent_observability_hook()
     log_startup_stage("observability_installed")
 
+    if os.environ.get("JIUWENSWARM_AGENT_SDK") == "codex_subscription":
+        # M1 supports explicit ordinary-chat turns only. Native provider probes,
+        # alternate model catalogs and proactive agents are not subscription ports.
+        log_startup_stage("ready")
+        return server
+
     schedule_warmup = getattr(server, "schedule_image_modality_warmup", None)
     if callable(schedule_warmup):
         schedule_warmup(reason="startup")

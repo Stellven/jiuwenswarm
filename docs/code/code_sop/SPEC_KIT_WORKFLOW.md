@@ -39,6 +39,8 @@ In Spec Kit mode, do not also maintain `docs/design/<TASK-ID>.md` or `docs/exec-
 
 ## 3. Install and adopt safely in an existing repository
 
+Template conformance is mandatory under [SOP Section 4.1](../Code_SOP.md#41-mandatory-template-conformance-for-ai-and-human-authors). Keep native artifact structure, incorporate every applicable DESIGN/PLAN requirement, and include a mapping from each source template section to its native artifact section (or a specific N/A reason). TASK, write_code, TEST_REPORT, review, and other SOP records retain their own template structures. Generated defaults do not waive required fields or evidence.
+
 The setup owner first checks the pinned [core reference](https://github.com/github/spec-kit/blob/e77daa9021d20db26b878f7dfa5640fe5a42d04e/docs/reference/core.md), prepares Python **3.11 or newer**, [uv](https://docs.astral.sh/uv/getting-started/installation/), Git, and the Codex CLI, and records actual versions in ENVIRONMENT. The pinned package's [Python requirement](https://github.com/github/spec-kit/blob/e77daa9021d20db26b878f7dfa5640fe5a42d04e/pyproject.toml) applies to Spec Kit; application dependencies retain their own verified requirements. The following commands are adoption instructions, not an installation report:
 
 ```powershell

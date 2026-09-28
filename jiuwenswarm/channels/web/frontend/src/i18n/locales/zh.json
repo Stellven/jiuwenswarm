@@ -1,4 +1,26 @@
 {
+  "codexSubscription": {
+    "title": "Codex 订阅",
+    "scope": "预览阶段：普通文字聊天。团队、工具和媒体仍待接入。重启或退出账号后请新建会话，已保存的历史仍可查看。",
+    "model": "订阅模型",
+    "defaultModel": "账号默认模型",
+    "login": "使用 ChatGPT 登录",
+    "logout": "退出账号并停止任务",
+    "openLogin": "打开安全登录页面",
+    "cancel": "取消登录",
+    "refresh": "刷新状态",
+    "error": "暂时无法确认连接或操作结果。请检查网络并刷新状态后再试，无需填写 API Key。",
+    "signInFirst": "请先登录 Codex 订阅账号，再发送消息。",
+    "states": {
+      "checking": "正在检查连接…",
+      "ready": "已登录",
+      "signing_in": "请在浏览器中完成登录",
+      "signed_out": "尚未登录",
+      "subscription_required": "需要使用 ChatGPT 订阅账号",
+      "unavailable": "运行服务不可用",
+      "disconnected": "连接已断开"
+    }
+  },
   "common": {
     "noData": "暂无数据",
     "confirm": "确认",

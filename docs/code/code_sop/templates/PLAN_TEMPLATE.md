@@ -6,6 +6,8 @@
 
 ## Usage rules
 
+- AI and human authors must strictly follow [SOP Section 4.1](../../Code_SOP.md#41-mandatory-template-conformance-for-ai-and-human-authors): preserve required sections/fields and evidence, explain N/A, and record unresolved owners/resolution conditions. In Spec Kit mode, map every applicable section below to native plan.md/tasks.md sections without duplicating design or progress; verify that mapping before delivery.
+
 - Follow the artifact mode registered in TASK and [SPEC_KIT_WORKFLOW](../SPEC_KIT_WORKFLOW.md). New Standard/High risk tasks use Spec Kit by default after setup and successful pilot validation; a blocked setup needs documented Lead approval for Manual fallback. Existing Manual tasks do not migrate automatically.
 - In Manual mode, Standard/High risk tasks use a separate plan. Simplified tasks may keep this content in the plan section of `docs/tasks/<TASK-ID>/TASK.md`.
 - In Spec Kit mode, `plan.md` alone holds technical design, file/dependency rationale, and verification strategy; `tasks.md` alone holds ordered work, dependencies between work items, progress, blockers, and remaining work. Incorporate the relevant prompts below into those files rather than maintaining duplicate tables. Link technical decisions from work items to their design or ADR record.

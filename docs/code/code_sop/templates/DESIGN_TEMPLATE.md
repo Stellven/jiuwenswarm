@@ -6,6 +6,8 @@
 
 ## Usage rules
 
+- AI and human authors must strictly follow [SOP Section 4.1](../../Code_SOP.md#41-mandatory-template-conformance-for-ai-and-human-authors): preserve required sections/fields and evidence, explain N/A, and record unresolved owners/resolution conditions. In Spec Kit mode, map every applicable section below to the corresponding native design section; verify that mapping before presenting the design.
+
 - Follow the artifact mode registered in TASK and [SPEC_KIT_WORKFLOW](../SPEC_KIT_WORKFLOW.md). New Standard/High risk tasks use Spec Kit by default after setup and successful pilot validation; a blocked setup requires documented Lead approval for Manual fallback. Existing Manual tasks do not migrate automatically.
 - Use a full design for new behavior, changes across modules, public interfaces, algorithms or data flows, and significant performance objectives.
 - For a local, low-risk change that does not alter architecture or contracts, keep a minimum design in `docs/tasks/<TASK-ID>/TASK.md` and `write_code.md`: problem, proposed behavior, file scope, acceptance criteria, and Code Lead approval. A separate design file is optional; approval before implementation remains mandatory.

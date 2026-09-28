@@ -2662,6 +2662,10 @@ class JiuWenSwarm:
         # guard 能通过），再 cancel_session_task（其 finally 会把 session 从 _active_session_ids 移除）。
         # 顺序不能反，否则 process_interrupt 的 session guard 会误判为 "not active" 而跳过 abort。
         response = await adapter.process_interrupt(request)
+        if self._sdk_name == "codex_subscription":
+            # App Server confirms interruption and drains a terminal event so
+            # partial text/history persist. Never cancel a newer facade task.
+            return response
         await self._cancel_team_work_for_session(
             session_id,
             request.channel_id,

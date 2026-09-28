@@ -1,3 +1,4 @@
+import { useCodexSubscription } from '../features/codexSubscription/state';
 import {
   WebConnectOptions,
   WebConnectionState,
@@ -61,7 +62,10 @@ function logDevWsTraffic(entry: DevWsLogEntry): void {
   }
 
   const body = {
-    ...entry,
+    direction: entry.direction,
+    messageType: entry.messageType,
+    // Payloads can contain short-lived login material or user content.
+    data: undefined,
     at: new Date().toISOString(),
   };
 
@@ -89,6 +93,7 @@ class WebClient {
   private connectPromise: Promise<void> | null = null;
   private lastConnectOptions: WebConnectOptions = {};
   private requestSeq = 0;
+  private codexRequests = new Map<string, string>();
   private readonly sessionEventGate = createSessionEventGate((event) => {
     this.dispatchEventNow(event);
   });
@@ -274,6 +279,19 @@ class WebClient {
     }
 
     const id = this.generateRequestId();
+    const subscription = useCodexSubscription.getState();
+    if (subscription.enabled) {
+      const sid = String(params?.session_id || '');
+      if (method === 'chat.send') {
+        if (subscription.state !== 'ready') {
+          throw this.createWebError(i18n.t('codexSubscription.signInFirst'), 'SIGN_IN_REQUIRED', id, false);
+        }
+        params = { ...params, codex_model: subscription.model || undefined };
+        this.codexRequests.set(sid, id);
+      } else if (method === 'chat.interrupt') {
+        params = { ...params, target_request_id: this.codexRequests.get(sid) };
+      }
+    }
     const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     const message: WsRequest = {
       type: 'req',

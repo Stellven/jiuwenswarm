@@ -44,6 +44,11 @@ class ReqMethod(Enum):
     SWARMFLOW_STOP = "swarmflow.stop"
 
     CONFIG_GET = "config.get"
+    CODEX_AUTH_STATUS = "codex.auth.status"
+    CODEX_AUTH_LOGIN = "codex.auth.login"
+    CODEX_AUTH_CANCEL = "codex.auth.cancel"
+    CODEX_AUTH_LOGOUT = "codex.auth.logout"
+    CODEX_MODELS_LIST = "codex.models.list"
     CONFIG_SET = "config.set"
     CONFIG_SAVE_ALL = "config.save_all"
     CONFIG_VALIDATE_MODEL = "config.validate_model"

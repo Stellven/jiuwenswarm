@@ -16,6 +16,8 @@ These instructions supplement parent AGENTS files. For changes outside this subt
 
 ## 2. Required context
 
+AI and human authors must strictly follow the corresponding project template for every task card or process record, as required by Code_SOP Section 4.1. Read the template before editing; preserve required sections/fields/columns and evidence, explain N/A, and record pending owners/resolution conditions. Verify coverage before delivery, including DESIGN/PLAN coverage in native Spec Kit artifacts. Local context does not permit improvised replacement formats.
+
 Enter repository-relative paths and effective versions. Task references may be resolved from the current TASK-ID; do not copy task status history here.
 
 | Material | Location / version |

@@ -82,6 +82,18 @@ Register one artifact mode, **Manual** or **Spec Kit**, in TASK. For Spec Kit, a
 
 Read all AGENTS files along the path from the repository root to the file being edited. Local rules may add detail. If they conflict with root gates, task authorization, or the approved design, record the conflict and obtain Lead clarification; do not silently waive project requirements.
 
+### 4.1 Mandatory template conformance for AI and human authors
+
+Before creating or updating a task card or process record, read its corresponding template in `docs/code/code_sop/templates/` and follow it strictly. This applies to AI-generated drafts as well as human-authored records.
+
+- Preserve the template's required sections, field names, table columns, authorization boundaries, and evidence requirements. Do not replace them with an improvised summary or silently omit fields for brevity.
+- Fill fields with verified project facts. For a genuinely inapplicable item, retain the field and write `N/A — <specific reason>`. For unresolved items, record the actual status, accountable owner, and resolution condition. Missing approval, unrun checks, and unknown facts must not be disguised as N/A or completion.
+- Remove instructional placeholders after filling the record, repair links for its adopted location, and identify the source template. Additional explanatory subsections are allowed after the required coverage is preserved.
+- Use only the compact forms or omissions explicitly permitted by the template and the task's workflow/artifact mode. In Spec Kit mode, follow native artifact structure and incorporate all applicable DESIGN/PLAN template requirements into the registered `plan.md` and `tasks.md`; include a template-section-to-artifact-section mapping so coverage can be checked. Do not create duplicate authorities or copy acceptance tables into TASK when its template requires a specification reference.
+- Before presenting a record as complete, compare it against the source template section by section and check required fields, evidence, links, and honest pending states. If a template cannot express a necessary case, document the proposed adaptation and its rationale instead of silently redesigning the record. An AI-generated document never supplies missing human approval.
+
+This rule governs documentation structure; the seven principles and existing design, verification, and review gates remain unchanged. Optional records are still created only when their triggering conditions apply.
+
 ## 5. Scale the paperwork to the risk
 
 | Path | Appropriate changes | Required records |
@@ -184,3 +196,7 @@ Keep the check's actual status as not run, blocked, or failed. A deferral cannot
 The Lead maintains this SOP and root rules; module owners maintain local rules and entry points. Process changes identify the reason, scope, effective version, and adoption steps. Preserve superseded designs and ADRs with links to their replacements.
 
 Judge the process by earlier defect discovery, genuine human code understanding, handoffs that work without chat history, and reproducible verification—not by document count.
+
+## Accepted subscription demo
+
+For installation and browser operation of the staged AI4R-001 demo, see [CODEX_DEMO](CODEX_DEMO.md). Its publication and remaining scope are tracked in the task records.

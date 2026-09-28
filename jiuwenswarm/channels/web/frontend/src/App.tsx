@@ -1,3 +1,5 @@
+import { CodexSubscriptionPanel } from './features/codexSubscription/CodexSubscriptionPanel';
+import { useCodexSubscription } from './features/codexSubscription/state';
 import { AssetPublishHost } from './components/AssetPublishDrawer';
 // Copyright (c) Huawei Technologies Co., Ltd. 2025-2026. All rights reserved.
 
@@ -1722,10 +1724,11 @@ function AppContent({
       setRSIFeatureEnabled(normalizeRSIEnabled(config.rsi_enabled));
       setTrajectoryUiEnabled(normalizeTrajectoryUiEnabled(config.trajectory_ui_enabled));
       setServerConfig(config);
+      useCodexSubscription.getState().set({ enabled: config.runtime_mode === 'codex_subscription' });
       setConfigError(null);
       if (!modelSetupGuideEvaluatedRef.current) {
         modelSetupGuideEvaluatedRef.current = true;
-        if (shouldPreviewModelSetupGuide() || isSetupGuideEnabled(config.setup_guide_enabled)) {
+        if (config.runtime_mode !== 'codex_subscription' && (shouldPreviewModelSetupGuide() || isSetupGuideEnabled(config.setup_guide_enabled))) {
           setActiveNav('chat');
           setModelSetupGuideStep(1);
         }
@@ -3636,6 +3639,9 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
 
       {/* Main Content */}
       <main className={`content ${activeNav === 'chat' ? 'content--chat' : ''} ${effectiveTeamAreaExpanded ? 'content--team-expanded' : ''}`}>
+        {serverConfig?.runtime_mode === 'codex_subscription' && (
+          <CodexSubscriptionPanel connected={isConnected} request={request} />
+        )}
         {configError && (
           <div className="card mb-4" data-testid="app-config-error">
             <div className="text-sm text-text-muted">

@@ -37,6 +37,8 @@ For Spec Kit tasks, `spec.md` owns acceptance criteria, `plan.md` owns technical
 
 ## 3. Before implementation
 
+**Mandatory for every AI-authored task card or process record:** read and strictly follow its corresponding template under `docs/code/code_sop/templates/`. Preserve required sections, fields, table columns, authorization, and evidence; explain N/A and identify owners/resolution conditions for pending items. Check conformance before delivery. Apply Code_SOP Section 4.1, including the native Spec Kit coverage mapping; do not invent a shorter structure. Update this SOP reference to its deployed path during adoption.
+
 1. Confirm the TASK-ID, author, module owners, working branch, baseline SHA, and scope.
 2. Preserve existing work while merging updates from the team integration branch into the current personal/task branch. Read the design, architecture, contracts, and relevant local AGENTS files.
 3. Confirm that the Code Team Lead approved the design version referenced by the current write_code. Do not request the same approval again when authorization already covers the action.
