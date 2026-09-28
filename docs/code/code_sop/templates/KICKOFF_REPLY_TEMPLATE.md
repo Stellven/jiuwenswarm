@@ -9,9 +9,9 @@
 - Documentation repository access: [Confirmed / Blocked with error].
 - Application origin: [Actual remote URL].
 - Local application working directory: [Your path].
-- Personal branch: [Actual `huawei_waterloo_xiaoyang`, `huawei_waterloo_saurav`, `huawei_waterloo_ramika`, or `huawei_waterloo_muk`].
+- Personal branch: [Actual `ai4r_xiaoyang`, `ai4r_saurav`, `ai4r_ramika`, or `ai4r_muk`].
 - Current HEAD: [Full SHA, or Not cloned].
-- Latest fetched `origin/huawei_waterloo_main_branch`: [Full SHA and fetch time, or Not fetched].
+- Latest fetched `origin/ai4r_main_branch`: [Full SHA and fetch time, or Not fetched].
 - Baseline merged into the personal branch: [Same as latest fetched / Older baseline with reason / Not yet synchronized].
 - Existing uncommitted work: [None / Files and ownership; do not overwrite it].
 

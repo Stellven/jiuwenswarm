@@ -9,14 +9,14 @@
 
 ## 1. People and persistent branches (required)
 
-The team integration branch is `huawei_waterloo_main_branch`. Retain the following four personal branches. They do not imply a one-to-one assignment of people to the four modules. Record remote branch status from actual Git queries; this ownership table does not establish real-time status.
+The team integration branch is `ai4r_main_branch`. Retain the following four personal branches. They do not imply a one-to-one assignment of people to the four modules. Record remote branch status from actual Git queries; this ownership table does not establish real-time status.
 
 | Branch label | Persistent working branch | Confirmed name / GitHub identity | Modules and roles | Backup / effective period |
 | --- | --- | --- | --- | --- |
-| Xiaoyang | `huawei_waterloo_xiaoyang` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
-| Saurav | `huawei_waterloo_saurav` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
-| Ramika | `huawei_waterloo_ramika` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
-| Muk | `huawei_waterloo_muk` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
+| Xiaoyang | `ai4r_xiaoyang` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
+| Saurav | `ai4r_saurav` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
+| Ramika | `ai4r_ramika` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
+| Muk | `ai4r_muk` | [Pending confirmation] | [Pending confirmation] | [Fill in] |
 
 ## 2. Module boundaries and ownership (required)
 

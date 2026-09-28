@@ -8,7 +8,7 @@
 - Related tasks and PRs: [Fill in].
 - Target environment / affected parties / operating window and time zone: [Fill in].
 - Currently running version: [Code commit, artifact version/checksum, configuration, and data schema version].
-- Planned release version: [Full SHA merged into `huawei_waterloo_main_branch`, artifact checksum, configuration, and data schema version].
+- Planned release version: [Full SHA merged into `ai4r_main_branch`, artifact checksum, configuration, and data schema version].
 - Tested implementation C / baseline B / integration version: [Identifiers consistent with the test report].
 - Test and AI review evidence: [`TEST_REPORT.md` and `review.md` in the task directory].
 - Code Lead's human approval of release contents: [Approver, time, explicit version, and evidence; initially Pending approval].

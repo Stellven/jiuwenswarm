@@ -1,4 +1,4 @@
-﻿# [TASK-ID] — [Design title]
+# [TASK-ID] — [Design title]
 
 > Suggested location: `docs/design/<TASK-ID>.md`  
 > Maintainer: task author. Approver: Code Lead.  
@@ -19,7 +19,7 @@
 | Author / module owner / Code Lead | [Fill in names or accounts] |
 | Design version | [Fill in v1, v2, or the project version scheme] |
 | Design status | Draft / Pending approval / Approved / Superseded; initially Draft |
-| Code baseline | `huawei_waterloo_main_branch` at [full commit SHA] |
+| Code baseline | `ai4r_main_branch` at [full commit SHA] |
 | Task definition and requirements version | `docs/tasks/<TASK-ID>/TASK.md` at [version] |
 | Implementation directive | `docs/tasks/<TASK-ID>/write_code.md` |
 | Implementation plan | `docs/exec-plans/<TASK-ID>.md`; for a simplified task, identify the actual brief-plan section in TASK |

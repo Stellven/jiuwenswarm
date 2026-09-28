@@ -1,4 +1,4 @@
-﻿# Current team status
+# Current team status
 
 > Suggested location: `docs/governance/CURRENT_STATUS.md`.  
 > Maintainers: task authors update their rows, module owners verify blockers, and the Code Lead verifies review and merge state.  
@@ -16,7 +16,7 @@
 | Field | Record |
 | --- | --- |
 | Last update / updater | [Time and timezone] / [Name] |
-| Team integration branch | `huawei_waterloo_main_branch` |
+| Team integration branch | `ai4r_main_branch` |
 | Last verified main-branch SHA / verification time | [Full SHA] / [Actual time] |
 | Environment / known shared limits | `docs/governance/ENVIRONMENT.md` / [Limits or none] |
 | Authoritative responsibilities | `docs/governance/OWNERSHIP.md` |

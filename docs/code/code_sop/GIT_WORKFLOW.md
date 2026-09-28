@@ -4,9 +4,35 @@ Repository: `Stellven/jiuwenswarm`. This document provides instructions; it does
 
 ## 1. Branch Relationships
 
-The team main branch is `huawei_waterloo_main_branch`. Personal branches are `huawei_waterloo_xiaoyang`, `huawei_waterloo_saurav`, `huawei_waterloo_ramika`, and `huawei_waterloo_muk`. Each personal branch tracks its remote branch with the same name. Bring updates from the team main branch into each personal branch through an explicit merge.
+The team main branch is `ai4r_main_branch`. Personal branches are `ai4r_xiaoyang`, `ai4r_saurav`, `ai4r_ramika`, and `ai4r_muk`. Each personal branch tracks its remote branch with the same name. Bring updates from the team main branch into each personal branch through an explicit merge.
 
 All five branches were pushed to origin on 2026-09-25. The examples below use Xiaoyang's branch; other developers should substitute their own branch. The branch checked out at the time of this documentation is still the team main branch. Developers should switch to their personal branch when starting work.
+
+## Update an existing clone after the branch rename
+
+On 2026-09-28 the five team branches were renamed to use the `ai4r_` prefix. The suffixes and existing commit histories were preserved. Fresh clones should use the new names throughout this guide.
+
+For an existing clone, first inspect its working tree and local branches. Preserve uncommitted work. Replace `<existing-local-branch>` below with the old personal branch shown by `git branch --list`; choose your new name from the table. Do not rename an unrelated branch.
+
+| Branch purpose | New local and remote name |
+| --- | --- |
+| Team integration | `ai4r_main_branch` |
+| Xiaoyang | `ai4r_xiaoyang` |
+| Saurav | `ai4r_saurav` |
+| Ramika | `ai4r_ramika` |
+| Muk | `ai4r_muk` |
+
+Example for Xiaoyang, when the new local name does not already exist:
+
+```powershell
+git status --short --branch
+git branch --list
+git branch -m '<existing-local-branch>' ai4r_xiaoyang
+git fetch origin --prune
+git branch --set-upstream-to=origin/ai4r_xiaoyang ai4r_xiaoyang
+```
+
+Substitute the appropriate target for another person or the local team main branch. If the new local branch already exists, inspect it and update its tracking instead of forcing a rename or deleting work. Continue with the normal synchronization steps below before implementation. The repository default branch is a separate setting and is not changed by this team-branch rename. See [GitHub's branch-rename guide](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch) for local-clone update details.
 
 ## 2. Checks Before Starting
 
@@ -21,16 +47,16 @@ git fetch origin --prune
 Confirm that origin is correct and that another task has not been mixed in. Understand and preserve uncommitted work before proceeding; do not automatically clean, overwrite, or stash someone else's changes. Run the following only after confirming that switching branches is safe:
 
 ```powershell
-git switch huawei_waterloo_xiaoyang
-git merge --ff-only origin/huawei_waterloo_xiaoyang
-git merge origin/huawei_waterloo_main_branch
+git switch ai4r_xiaoyang
+git merge --ff-only origin/ai4r_xiaoyang
+git merge origin/ai4r_main_branch
 git rev-parse HEAD
-git rev-parse origin/huawei_waterloo_main_branch
+git rev-parse origin/ai4r_main_branch
 ```
 
 If `--ff-only` fails, the local and remote personal branches have diverged. Inspect their history, identify whose changes are involved, and determine how to merge them. Do not overwrite them with a force push. See Section 5 for conflicts when merging the team main branch.
 
-For a fresh clone that has only the remote personal branch and no local branch with the same name, first use `git switch --track origin/huawei_waterloo_xiaoyang` to establish tracking. Do not recreate a branch that already exists.
+For a fresh clone that has only the remote personal branch and no local branch with the same name, first use `git switch --track origin/ai4r_xiaoyang` to establish tracking. Do not recreate a branch that already exists.
 
 ## 3. Implement, Commit, and Push
 
@@ -44,7 +70,7 @@ git add -- '<task-file-path-1>' '<task-file-path-2>'
 git diff --cached
 git diff --cached --check
 git commit -m 'AI4R-001: describe the approved behavior change'
-git push origin huawei_waterloo_xiaoyang
+git push origin ai4r_xiaoyang
 ```
 
 Run the checks specified by write_code before committing. Replace the TASK-ID and description in the commit message with the actual task. Pushing a personal branch updates the shared working location; it does not establish that tests passed or that a merge was approved.
@@ -55,7 +81,7 @@ If a push is rejected, fetch and understand the remote updates first. If an LFS 
 
 1. A Draft PR may be opened early for collaboration. Fetch and merge the latest team main branch again before formal review.
 2. After resolving conflicts or adding changes, rerun affected checks and update TEST_REPORT, AI review, and any required human confirmation.
-3. The PR head is the personal or task branch. The base must be `huawei_waterloo_main_branch`. Complete the [PR template](templates/PR_TEMPLATE.md).
+3. The PR head is the personal or task branch. The base must be `ai4r_main_branch`. Complete the [PR template](templates/PR_TEMPLATE.md).
 4. Complete AI review and address its findings first. The Code Team Lead or independent delegate then reviews the current functions and call chains.
 5. The person merging verifies that the current head and base match the evidence, blocking findings are closed, and approval remains valid. Required checks must have passed or be covered by a specific Lead-approved deferral explicitly permitting merge. All other gates still apply; a deferral cannot bypass known blocking defects or current acceptance failures. Deferred checks remain incomplete, and the task cannot be Done until they are completed.
 6. Use a merge commit by default. Verify the actual merge commit afterward, then update status and handoff records.

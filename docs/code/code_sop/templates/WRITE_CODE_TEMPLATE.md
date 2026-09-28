@@ -10,7 +10,7 @@
 | --- | --- |
 | TASK-ID / author / module owner | [TODO] |
 | Document revision | [TODO] |
-| Working branch / integration branch | [TODO] / `huawei_waterloo_main_branch` |
+| Working branch / integration branch | [TODO] / `ai4r_main_branch` |
 | Main branch baseline SHA | [TODO] |
 | Approved design version and decision evidence | Pending approval: [TODO] |
 | Lead approval of this implementation scope, time, and evidence | Pending approval: [TODO] |

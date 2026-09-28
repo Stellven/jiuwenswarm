@@ -16,7 +16,7 @@
 | Field | Value |
 | --- | --- |
 | Maintainer / most recent verification date | [Name] / [Date] |
-| Code version verified | `huawei_waterloo_main_branch` at [Full SHA] |
+| Code version verified | `ai4r_main_branch` at [Full SHA] |
 | Current status | Not yet established / Verified / Partially verified, with scope |
 | Repository entry points | [Actual paths to README, build configuration, and execution entry points] |
 | Relevant current design | `docs/design/<TASK-ID>.md` |

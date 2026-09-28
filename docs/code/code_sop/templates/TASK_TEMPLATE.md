@@ -1,4 +1,4 @@
-﻿# [TASK-ID] — [Task title]
+# [TASK-ID] — [Task title]
 
 > Suggested location: `docs/tasks/<TASK-ID>/TASK.md`.  
 > Maintainer: task author. The Code Lead approves design and implementation boundaries.  
@@ -72,7 +72,7 @@ Documentation-only tasks may inspect links, content, and consistency. Report onl
 ## 7. Review and delivery entry points — required
 
 - AI and human review: `docs/tasks/<TASK-ID>/review.md`. Simplified tasks still retain genuine evidence for both stages.
-- PR: [Actual URL or not created]; base: `huawei_waterloo_main_branch`.
+- PR: [Actual URL or not created]; base: `ai4r_main_branch`.
 - Handoff: [Actual `docs/tasks/<TASK-ID>/HANDOFF.md`, or simplified TASK/PR section recording changes, verification, remaining items, recipient, and receipt evidence].
 - Post-merge verification and state update: [Actual merge SHA, check evidence, and CURRENT_STATUS row]. Do not claim Done while required checks, follow-up verification, or handoff remain incomplete.
 

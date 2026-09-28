@@ -7,7 +7,7 @@
 - Task / test executor / execution time and time zone: [Fill in].
 - Risk level and verification scope: [Fill in and explain why coverage is sufficient].
 - Approved design and `write_code.md`: [Paths, versions, and approval records].
-- Merge target: `huawei_waterloo_main_branch`.
+- Merge target: `ai4r_main_branch`.
 - Target baseline B: [Full SHA, synchronization source, and time].
 - Tested implementation commit C: [Full SHA].
 - Tested working tree state: [Clean / list uncommitted changes and their impact; do not cite C while omitting working tree differences].

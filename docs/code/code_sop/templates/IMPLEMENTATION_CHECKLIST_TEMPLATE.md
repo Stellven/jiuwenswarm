@@ -1,4 +1,4 @@
-﻿# Implementation checklist: [TASK-ID] — [Task title]
+# Implementation checklist: [TASK-ID] — [Task title]
 
 > Suggested location: `docs/tasks/<TASK-ID>/IMPLEMENTATION_CHECKLIST.md`. Use the full checklist for medium/high-risk work, changes across multiple files, or work across modules. Small, low-risk changes may keep applicable items in TASK or the PR. Version, design authorization, file understanding, verification evidence, and the status reference are required. Other items may use N/A with a specific reason. Checkboxes never replace evidence; all items start incomplete.
 
@@ -7,8 +7,8 @@
 - Task record: `docs/tasks/<TASK-ID>/TASK.md`.
 - Author / module / Code Lead: [Fill in].
 - Risk level and reason: [Low / medium / high; scope, failure consequences, recovery difficulty].
-- Working branch: [Actual branch: `huawei_waterloo_xiaoyang`, `huawei_waterloo_saurav`, `huawei_waterloo_ramika`, `huawei_waterloo_muk`, or an explicitly approved task branch].
-- Target branch: `huawei_waterloo_main_branch`.
+- Working branch: [Actual branch: `ai4r_xiaoyang`, `ai4r_saurav`, `ai4r_ramika`, `ai4r_muk`, or an explicitly approved task branch].
+- Target branch: `ai4r_main_branch`.
 - Synchronized and verified baseline B: [Full SHA, verification time, source].
 - Verified implementation C: [Full SHA; write Pending verification if not yet available].
 - Integration version or code tree actually tested: [Commit or reproducible construction; disclose if integration remains untested].

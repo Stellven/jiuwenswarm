@@ -1,4 +1,4 @@
-﻿## Problem and outcome
+## Problem and outcome
 
 <!-- Deploy to .github/pull_request_template.md. Every PR records the problem, scope, versions, verification, risks, and human decision. A small low-risk change may keep compact evidence here; complex tasks reference actual records rather than duplicating them. Explain N/A. Never check an item that has not been completed. A Draft PR is not permission to merge. -->
 
@@ -18,8 +18,8 @@
 
 ## Branches and verified versions
 
-- Source branch: [Actual `huawei_waterloo_xiaoyang`, `huawei_waterloo_saurav`, `huawei_waterloo_ramika`, `huawei_waterloo_muk`, or explicitly approved task branch].
-- Target branch: `huawei_waterloo_main_branch`.
+- Source branch: [Actual `ai4r_xiaoyang`, `ai4r_saurav`, `ai4r_ramika`, `ai4r_muk`, or explicitly approved task branch].
+- Target branch: `ai4r_main_branch`.
 - Baseline B: [Full SHA, latest synchronization and verification time].
 - Tested and reviewed implementation C: [Full SHA].
 - Integration version or code tree actually tested: [Identifier and construction; disclose if untested].

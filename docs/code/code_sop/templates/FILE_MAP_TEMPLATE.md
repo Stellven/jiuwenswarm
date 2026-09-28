@@ -18,7 +18,7 @@
 | --- | --- |
 | Map maintainer | [Name] |
 | Most recent verification | [Date and time zone] |
-| Reference version | `huawei_waterloo_main_branch` at [Full SHA] |
+| Reference version | `ai4r_main_branch` at [Full SHA] |
 | Covered scope | [Verified directories/modules] |
 | Uncovered scope and plan | [Paths, reasons, owners, and completion conditions, or None] |
 | Ownership source | `docs/governance/OWNERSHIP.md` |
@@ -37,7 +37,7 @@ Retain related task records after renames or deletions, and update the active ma
 ## 3. Author's file-level understanding (required for each task)
 
 - Task: [TASK-ID].
-- Branch: [Actual branch: `huawei_waterloo_xiaoyang`, `huawei_waterloo_saurav`, `huawei_waterloo_ramika`, or `huawei_waterloo_muk`].
+- Branch: [Actual branch: `ai4r_xiaoyang`, `ai4r_saurav`, `ai4r_ramika`, or `ai4r_muk`].
 - Comparison baseline: [Team main branch SHA].
 - Code under review: [Full SHA of this submission or candidate commit].
 - Author: [Name].

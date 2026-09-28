@@ -7,7 +7,7 @@
 
 - Purpose: [TODO: Describe the current objective and system boundary in one sentence.]
 - Code Team Lead: [TODO: Name, independent review delegate, and responsibility record.]
-- Team integration branch: `huawei_waterloo_main_branch`.
+- Team integration branch: `ai4r_main_branch`.
 - These instructions apply throughout the repository. Read all additional AGENTS files along the path to each file before editing.
 - Local rules may add implementation constraints, but cannot waive project review, testing, or human approval. Record conflicts and obtain Lead clarification.
 - Read existing implementation, tests, and callers before changing code. Inspect the working-tree diff and preserve unrelated work.

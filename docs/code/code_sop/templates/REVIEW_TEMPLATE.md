@@ -1,4 +1,4 @@
-﻿# Review record: [TASK-ID]
+# Review record: [TASK-ID]
 
 > Suggested location: `docs/tasks/<TASK-ID>/review.md`. Complete AI review first, then Code Lead function-level review and the final human decision. Small changes may use a shorter record with equivalent evidence. Versions, scope, findings, limits, and the human conclusion are required; explain N/A. AI reports findings and recommendations, never signs approval. Creating this file does not complete a review.
 
@@ -7,7 +7,7 @@
 - Task / author / module: [Fill in].
 - Risk level and rationale: [Fill in].
 - Working branch: [Actual personnel branch or explicitly approved task branch].
-- Target branch: `huawei_waterloo_main_branch`.
+- Target branch: `ai4r_main_branch`.
 - Reviewed implementation C: [Full SHA].
 - Target baseline B: [Full SHA, source, and verification time].
 - Actual diff / working directory / command reviewed: [Comparison range, directory, exact command].

@@ -20,6 +20,6 @@ The main SOP explains the process; detailed instructions and reusable records re
 
 ## Repository and adoption scope
 
-The canonical package lives in `docs/code/` on `huawei_waterloo_main_branch` in `Stellven/jiuwenswarm`, alongside the application code. Start here after cloning that branch, or use the documentation-only ZIP linked in the kickoff guide. The five `huawei_waterloo_*` branches described in the SOP belong to this same application repository.
+The canonical package lives in `docs/code/` on `ai4r_main_branch` in `Stellven/jiuwenswarm`, alongside the application code. Start here after cloning that branch, or use the documentation-only ZIP linked in the kickoff guide. The five `ai4r_*` branches described in the SOP belong to this same application repository.
 
 The package is a draft for team adoption. Complete marked owner, path, command, and acceptance fields using project evidence. Templates do not establish human approval, successful tests, or configured branch protection. Preserve and integrate existing instructions when adopting AGENTS files in the application repository.

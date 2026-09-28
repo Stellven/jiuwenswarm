@@ -1,4 +1,4 @@
-﻿# Handoff record: [TASK-ID]
+# Handoff record: [TASK-ID]
 
 > Suggested location: `docs/tasks/<TASK-ID>/HANDOFF.md`. Use for changes of person or session, pauses, or unresolved work and risks. A completed small change may retain equivalent information in TASK or the PR without a separate file. Handoff state, versions, evidence, remaining work, and next steps are required; use N/A with reasons elsewhere. A handoff records facts and does not grant implementation, review, merge, or release authority.
 
@@ -20,7 +20,7 @@ Use the same state names as CURRENT_STATUS: `Backlog / Design pending / Ready / 
 | --- | --- |
 | Repository working directory / remote URL | [Fill in] |
 | Current working branch / HEAD | [Actual branch and full SHA] |
-| Target branch / verified baseline B | `huawei_waterloo_main_branch`, [full SHA and verification time] |
+| Target branch / verified baseline B | `ai4r_main_branch`, [full SHA and verification time] |
 | Verified implementation C / integration version | [Actual SHA or reproducible tree; disclose when unverified] |
 | Working-tree state | [Clean, or uncommitted/untracked files and ownership] |
 | Task and design authorization | [Actual TASK section, `write_code.md`, and human approval evidence] |

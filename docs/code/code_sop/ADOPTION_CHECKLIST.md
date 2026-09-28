@@ -6,8 +6,9 @@ Maintainer: Code Team Lead. Use this checklist to adopt the documentation packag
 
 - Repository: `https://github.com/Stellven/jiuwenswarm.git`.
 - Current local location: `D:\research\ai_for_research\jiuwenswarm_stellven`.
-- On 2026-09-25, all five Huawei branches were pushed and verified, each with its corresponding origin tracking branch. Their initial SHA was `52abe68db2dd167485f6bd79d6e36e193d608e64`.
+- On 2026-09-25, all five team branches were pushed and verified, each with its corresponding origin tracking branch. Their initial SHA was `52abe68db2dd167485f6bd79d6e36e193d608e64`.
 - During the clone on that date, checkout was interrupted by a 404 for the LFS object associated with `docs/assets/videos/JiuwenSwarm_Introduction.mp4`. Code checkout was completed with the LFS pointer retained. Operations that depend on this video still require the object's availability to be restored.
+- On 2026-09-28, the five team branches were renamed to the `ai4r_` prefix with unchanged suffixes and preserved history. Existing clones must update local names and upstream tracking using GIT_WORKFLOW.
 - These facts do not establish that tests, branch protection, CI, or adoption of team rules are complete.
 
 ## 2. Establish Responsibilities and Actual Boundaries
@@ -30,7 +31,7 @@ Maintainer: Code Team Lead. Use this checklist to adopt the documentation packag
 ## 4. Remote Governance: Check Only After Configuration
 
 - [ ] Confirm that collaborators have the required read, push, review, and merge permissions.
-- [ ] Configure applicable protection rules or rulesets for `huawei_waterloo_main_branch`, restricting routine direct pushes, force pushes, and deletion.
+- [ ] Configure applicable protection rules or rulesets for `ai4r_main_branch`, restricting routine direct pushes, force pushes, and deletion.
 - [ ] Configure required checks and human review rules so that final approval covers the current implementation. Confirm available platform features and permissions.
 - [ ] Identify the Code Team Lead or delegated reviewer as the merge approver. One ordinary platform approval does not by itself establish that the team's role requirements are satisfied.
 - [ ] Confirm a merge strategy that preserves merge commits. If another strategy is selected, update the synchronization rules for persistent personal branches.

@@ -41,15 +41,15 @@ Authors must explain why each file changed, who calls it, how failures behave, a
 
 | Purpose | Branch |
 | --- | --- |
-| Team integration branch | `huawei_waterloo_main_branch` |
-| Xiaoyang working branch | `huawei_waterloo_xiaoyang` |
-| Saurav working branch | `huawei_waterloo_saurav` |
-| Ramika working branch | `huawei_waterloo_ramika` |
-| Muk working branch | `huawei_waterloo_muk` |
+| Team integration branch | `ai4r_main_branch` |
+| Xiaoyang working branch | `ai4r_xiaoyang` |
+| Saurav working branch | `ai4r_saurav` |
+| Ramika working branch | `ai4r_ramika` |
+| Muk working branch | `ai4r_muk` |
 
-All five branches were pushed to and verified on `origin` on 2026-09-25 at initial commit `52abe68db2dd167485f6bd79d6e36e193d608e64`. This is an initialization snapshot, not a claim that the branches remain identical. Neither `origin/HEAD` nor the upstream default branch automatically denotes the team's integration branch.
+All five branches were pushed to and verified on `origin` on 2026-09-25 at initial commit `52abe68db2dd167485f6bd79d6e36e193d608e64`. The branches were renamed to the names above on 2026-09-28, preserving their histories. This is an initialization snapshot, not a claim that the branches remain identical. Neither `origin/HEAD` nor the upstream default branch automatically denotes the team's integration branch.
 
-- Set the base of team feature PRs explicitly to `huawei_waterloo_main_branch`. Integrate through PRs; do not push routine implementation directly to it or force-push shared branches.
+- Set the base of team feature PRs explicitly to `ai4r_main_branch`. Integrate through PRs; do not push routine implementation directly to it or force-push shared branches.
 - Synchronize persistent personal branches by merging the team integration branch. Use merge commits for PR integration by default to preserve shared history. Define the subsequent synchronization procedure before adopting another strategy.
 - Keep one pending task on each persistent personal branch. For concurrent work, obtain Lead agreement to create short-lived task branches from the latest team baseline and associate each with an author and TASK-ID.
 - Treat upstream updates as separate integration tasks with their own review and testing.
