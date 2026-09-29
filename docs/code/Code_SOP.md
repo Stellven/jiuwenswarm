@@ -1,202 +1,100 @@
-# AI4Research Code Collaboration SOP
+# AI4Research Code SOP v2
+Revision: 2026-09-29. Prepare the complete M1 workflow while its PRD and architecture are still being written.
 
-Version: 1.1 draft · Document date: 2026-09-28 · Process owner: Code Team Lead [name to be assigned]
+## 1. Hierarchy
+**TASKS -> TASK -> one Spec Kit feature directory per TASK.**
 
-This SOP expands the original seven principles into a complete workflow covering requirements, design, implementation, testing, review, integration, handoff, and recovery. It applies to the team's work in `Stellven/jiuwenswarm`, including RSI, Router, Capsule, Verifier, and changes across module boundaries.
+- TASKS is the program register: source baselines, requirement allocation, task graph, interface index and system verification.
+- TASK is the task's identity and entry point: executor, scope, exact native artifact paths, dependencies and embedded cross-module agreements.
+- Spec Kit is the working core: spec.md defines acceptance; plan.md defines technical design and verification procedures; tasks.md holds ordered work, progress and the acceptance-to-evidence matrix.
+- Evidence records actual verification results inside that feature directory. It is not another task list.
 
-Start here: [Documentation index](code_sop/README.md) · [Adoption checklist](code_sop/ADOPTION_CHECKLIST.md) · [Git workflow](code_sop/GIT_WORKFLOW.md) · [Worked example](code_sop/WORKED_EXAMPLE.md)
+Uppercase TASKS.md is the program register. Lowercase tasks.md is one task's native work list. Install Spec Kit once per checkout; each TASK gets its own feature directory, not a separate tool installation.
 
-Version 1.1 integrates [GitHub Spec Kit](code_sop/SPEC_KIT_WORKFLOW.md) for specification, design, and implementation planning. The seven principles below are unchanged. This package documents adoption; it does not initialize Spec Kit in the application repository or approve a feature.
+There is no separate coding-authorization card, implementation checklist, test-report card, review card, handoff card, change-request card, or Manual design/plan track. Record the user's requested scope directly in TASK. This workflow introduces no reviewer-assignment or approval stage. Existing platform permissions and explicit user instructions still apply to actual external actions.
 
-This delivery is a process and template package. Actual owners, module paths, acceptance thresholds, and operating commands must be completed from project evidence. Writing this package does not approve the policy or configure GitHub branch protection or CI. Existing research materials may inform designs; implementation must reference an identified, approved design version.
-
-## 1. The seven governing principles
-
-1. **Approve the design before implementation.** Establish the objective, boundaries, interfaces, and acceptance criteria before writing the implementation. Obtain Code Team Lead approval. Small changes may use a short design record; material changes require an updated design and approval covering the new scope.
-2. **Use one team integration branch and individual working branches.** Synchronize with the latest team integration branch before starting. Code entering it must undergo testing, AI review, and Code Team Lead review.
-3. **Humans must understand the code.** Authors must explain every changed file. The Code Team Lead must understand affected functions, call chains, and system consequences. Authors remain accountable for AI-generated code.
-4. **Maintain root and local AGENTS.md files as durable human–AI context.** The Code Team Lead owns the root instructions; module owners maintain local instructions. These provide reliable entry points to design, architecture, contracts, responsibilities, environment, status, plans, checklists, and tests.
-5. **Implement against the Code Team Lead's write_code.md.** This document defines the task's implementation authorization and boundaries. Read it together with applicable AGENTS files and the approved design.
-6. **Complete the agreed verification before requesting formal review.** Provide traceable evidence for the current implementation. A Draft PR may support early collaboration; it must not become Ready for review before the applicable gates are met.
-7. **AI reviews first; the human lead decides afterward.** AI produces a structured review.md record. After the author addresses findings, the Code Team Lead makes the final decision for the current version. An AI recommendation is not merge approval.
-
-## 2. Roles and accountability
-
-Throughout this package, `Lead` and `Code Lead` mean `Code Team Lead`; an `owner` is a named accountable person. The `base` is the team integration baseline being compared, and the `head` is the proposed branch version.
-
-| Role | Responsibilities | Primary records |
-| --- | --- | --- |
-| Code Team Lead | Approve design and implementation boundaries; understand the system architecture; review affected functions; decide merges and exceptions | Root AGENTS, architecture, write_code, human review |
-| Module owner | Confirm responsibilities, interfaces, and caller impact; receive handoffs | Local AGENTS, contracts, module status and test entry points |
-| Task author | Plan, implement, explain files, test, and address findings | TASK, plan, code map, checklist, test report, handoff |
-| AI assistant / reviewer | Implement or review within authorization; identify evidence and coverage limits | Implementation records or the AI section of review |
-| Affected module owners | Confirm cross-module contracts, compatibility, joint testing, and migration order | Contract and design/PR confirmations |
-| Merge / release operator | Check the approved version, verify integration, and perform applicable release or recovery work | PR, status, release and rollback records |
-
-A person may hold multiple execution roles, but an author cannot replace independent human review. If the Code Team Lead authors the change, appoint a qualified human delegate who understands the system; record their authority and review scope. Without an appropriate reviewer, the PR remains pending.
-
-The [ownership register](code_sop/templates/OWNERSHIP_TEMPLATE.md) records names, backups, code paths, and interface relationships. Four personal branches do not imply a fixed one-to-one assignment of people to the four modules.
-
-Authors must explain why each file changed, who calls it, how failures behave, and which checks establish correctness. The Code Team Lead must trace affected functions, state transitions, and failure paths from the relevant entry points. The [file and function map](code_sop/templates/FILE_MAP_TEMPLATE.md) records this understanding; checked boxes do not replace reading the code.
-
-## 3. Branch policy
-
-| Purpose | Branch |
+## 2. Single authorities
+| Information | Authority |
 | --- | --- |
-| Team integration branch | `ai4r_main_branch` |
-| Xiaoyang working branch | `ai4r_xiaoyang` |
-| Saurav working branch | `ai4r_saurav` |
-| Ramika working branch | `ai4r_ramika` |
-| Muk working branch | `ai4r_muk` |
+| Product intent and complete M1 scope | Registered master PRD |
+| System structure and architecture nodes | Registered master architecture |
+| Source baselines, allocation, task dependency graph | TASKS.md |
+| Task identity, executor, scope and artifact paths | TASK.md |
+| Cross-module agreement | Owning TASK's interface section, with IF ID and revision |
+| Task requirements, ACs and measurable thresholds | Native spec.md |
+| Technical design, block boundaries and verification procedures | Native plan.md |
+| Work progress and AC -> block -> check -> evidence matrix | Native tasks.md |
+| Observed execution results | Feature evidence/RUN-ID.md and raw artifacts |
 
-All five branches were pushed to and verified on `origin` on 2026-09-25 at initial commit `52abe68db2dd167485f6bd79d6e36e193d608e64`. The branches were renamed to the names above on 2026-09-28, preserving their histories. This is an initialization snapshot, not a claim that the branches remain identical. Neither `origin/HEAD` nor the upstream default branch automatically denotes the team's integration branch.
+The PRD and spec.md are related levels. Every in-scope PRD clause maps to one or more owning ACs through TASKS. Each AC has one owning spec. A clause split across tasks must have every part covered. A spec cannot silently narrow or contradict the registered PRD.
 
-- Set the base of team feature PRs explicitly to `ai4r_main_branch`. Integrate through PRs; do not push routine implementation directly to it or force-push shared branches.
-- Synchronize persistent personal branches by merging the team integration branch. Use merge commits for PR integration by default to preserve shared history. Define the subsequent synchronization procedure before adopting another strategy.
-- Keep one pending task on each persistent personal branch. For concurrent work, obtain Lead agreement to create short-lived task branches from the latest team baseline and associate each with an author and TASK-ID.
-- Treat upstream updates as separate integration tasks with their own review and testing.
-- Recheck the baseline before starting, requesting formal review, and merging. Preserve existing uncommitted work; do not substitute reset/clean for resolving an issue. See the [Git workflow](code_sop/GIT_WORKFLOW.md).
+TASKS links task progress instead of copying work checkboxes. TASK links native acceptance instead of duplicating AC tables. Plans reference TASK agreements rather than redefining them. Generated schemas or contracts/ files implement the owning agreement and carry its IF ID and revision.
 
-## 4. Documentation and sources of truth
+## 3. Paths and IDs
+Recommended repository layout:
+```text
+docs/tasks/M1/TASKS.md
+docs/tasks/M1/M1-001/TASK.md
+docs/tasks/M1/M1-SYSTEM/TASK.md
+specs/M1-001-slug/{spec.md,plan.md,tasks.md,evidence/}
+specs/M1-SYSTEM-slug/{spec.md,plan.md,tasks.md,evidence/}
+```
+Use qualified IDs: M1-001/AC-001, M1-001/B01, M1-001/V01 and M1-001/T001. Interface IDs are program-wide, such as M1-IF-001@r1. Never reuse retired IDs.
 
-Use [AGENTS_global.md](AGENTS_global.md) for root instructions and [AGENTS_local.md](AGENTS_local.md) for local instructions. During adoption, place them in the appropriate code scopes under the name `AGENTS.md`, integrating existing instructions. Module adaptations are available for [RSI](code_sop/modules/RSI_AGENTS.md), [Router](code_sop/modules/Router_AGENTS.md), [Capsule](code_sop/modules/Capsule_AGENTS.md), and [Verifier](code_sop/modules/Verifier_AGENTS.md).
+Each TASK has an accountable executor; collaborators may be named. There is no role taxonomy. A task may span modules, and a module may need several tasks. Split by bounded, verifiable behavior and dependencies.
 
-| Information | Primary adopted location, relative to the code repository | Update trigger |
-| --- | --- | --- |
-| Durable rules and entry points | `AGENTS.md`, `<module-directory>/AGENTS.md` | Rules or paths change |
-| Task identity, risk, owners, and artifact registry | `docs/tasks/<TASK-ID>/TASK.md` | Creation, ownership, or artifact-mode change |
-| Requirements and acceptance criteria | Manual: TASK acceptance section; Spec Kit: registered `specs/<feature-directory>/spec.md` | Task creation or requirement change |
-| Technical design | Manual: `docs/design/<TASK-ID>.md` or short TASK design; Spec Kit: registered `plan.md` | Approval before implementation; subsequent changes |
-| Shared architecture and contracts | `docs/architecture/`, `docs/contracts/` | Affected design and interface changes |
-| Significant decisions and rationale | `docs/adr/` | A major choice is accepted or superseded |
-| Implementation authorization | `docs/tasks/<TASK-ID>/write_code.md` | Design approval or scope changes |
-| Steps, dependencies, and implementation progress | Manual: `docs/exec-plans/<TASK-ID>.md` or brief TASK plan; Spec Kit: registered `tasks.md` | Start, milestone, approach change, or handoff |
-| Spec Kit project principles and tooling baseline | `.specify/memory/constitution.md`; version and setup record in ENVIRONMENT | Adoption or approved tooling/policy amendment |
-| File, function, and dependency map | `docs/code-map/FILE_MAP.md` | Responsibilities or key functions change |
-| Checklists, tests, review, and handoff evidence | `docs/tasks/<TASK-ID>/` | Stage completion or evidence invalidation |
-| Team status, environment, and testing methods | `docs/governance/` | Status, dependencies, commands, or strategy change |
+## 4. Preparation before final inputs
+Build the document skeleton now. Missing future PRD, architecture, model lists, budgets or thresholds use PENDING_SOURCE, identifying affected work and a resolution condition. They are ordinary preparation states, not a requirement to complete existing teammates' work or run a pilot.
 
-AGENTS files link to these records rather than duplicating logs or weekly progress. Maintain each fact in one primary place and reference it elsewhere. Approval identities, dates, versions, and evidence must be real; `TODO`, `unconfirmed`, and `not run` are not completion states.
+When inputs arrive:
+1. Register actual paths, versions, content hashes and sizes.
+2. Give source clauses and architecture nodes stable IDs or exact section locators.
+3. Allocate every in-scope clause to TASKs and ACs; record exclusions with reasons.
+4. Establish dependencies and embed agreements in their owning TASKs.
+5. Populate each task's spec, plan, work items and evidence matrix before dependent implementation.
+6. Verify the full M1 through the system TASK on an integrated candidate.
 
-Register one artifact mode, **Manual** or **Spec Kit**, in TASK. For Spec Kit, also register the exact feature directory and artifact versions: `spec.md` owns requirements and stable AC identifiers, `plan.md` owns technical design, and `tasks.md` owns ordered work and progress. Use DESIGN and PLAN templates as completeness guides within these native files; do not maintain duplicate design or execution-plan files. The task checklist records SOP gates and author understanding, linking to work-item progress. Existing shared contracts remain authoritative; feature-local contract drafts must identify proposed changes and the shared version they target. The [Spec Kit workflow](code_sop/SPEC_KIT_WORKFLOW.md) defines installation, commands, selection, and gate mapping.
+Do not fabricate a real task breakdown from absent requirements. The worked example is illustrative. Existing task records remain historical evidence and do not gate this preparation.
 
-Read all AGENTS files along the path from the repository root to the file being edited. Local rules may add detail. If they conflict with root gates, task authorization, or the approved design, record the conflict and obtain Lead clarification; do not silently waive project requirements.
+## 5. Working loop
+1. Locate TASK through TASKS and read its native artifacts and dependencies.
+2. Specify observable ACs, failure behavior and applicable nonfunctional thresholds.
+3. Plan implementation blocks, affected files, agreements, fixtures and verification methods.
+4. Generate native work items and the correspondence matrix. Every AC maps to implementation and verification; every required check has an independent expected outcome.
+5. Implement and verify block by block. Preserve evidence, repair failures and follow the dependency graph. Independent blocks can proceed while another is blocked.
+6. Connect blocks and verify real provider/consumer boundaries.
+7. Verify complete M1 journeys and system constraints through the system TASK.
+8. Update the same native records; derive program progress from them.
 
-### 4.1 Mandatory template conformance for AI and human authors
+This is a development loop, not a sequence of approval cards. AI analysis helps detect inconsistencies; runtime evidence establishes behavior.
 
-Before creating or updating a task card or process record, read its corresponding template in `docs/code/code_sop/templates/` and follow it strictly. This applies to AI-generated drafts as well as human-authored records.
+## 6. Cross-module agreements inside TASK
+One TASK owns each interface definition. Its interface section identifies provider and consumer TASKs; input/output structure and semantics; validation; error states; timeout, retry and cancellation; side effects and idempotency; compatibility; and boundary verification. Explain N/A values.
 
-- Preserve the template's required sections, field names, table columns, authorization boundaries, and evidence requirements. Do not replace them with an improvised summary or silently omit fields for brevity.
-- Fill fields with verified project facts. For a genuinely inapplicable item, retain the field and write `N/A — <specific reason>`. For unresolved items, record the actual status, accountable owner, and resolution condition. Missing approval, unrun checks, and unknown facts must not be disguised as N/A or completion.
-- Remove instructional placeholders after filling the record, repair links for its adopted location, and identify the source template. Additional explanatory subsections are allowed after the required coverage is preserved.
-- Use only the compact forms or omissions explicitly permitted by the template and the task's workflow/artifact mode. In Spec Kit mode, follow native artifact structure and incorporate all applicable DESIGN/PLAN template requirements into the registered `plan.md` and `tasks.md`; include a template-section-to-artifact-section mapping so coverage can be checked. Do not create duplicate authorities or copy acceptance tables into TASK when its template requires a specification reference.
-- Before presenting a record as complete, compare it against the source template section by section and check required fields, evidence, links, and honest pending states. If a template cannot express a necessary case, document the proposed adaptation and its rationale instead of silently redesigning the record. An AI-generated document never supplies missing human approval.
+Consumers reference the owner and revision. Avoid parallel definitions. Separate interface-definition dependencies from implementation dependencies to expose and resolve cycles.
 
-This rule governs documentation structure; the seven principles and existing design, verification, and review gates remain unchanged. Optional records are still created only when their triggering conditions apply.
+Record interface changes in the owning TASK change table, update affected consumers, and invalidate affected evidence. Unknown details block only dependent work.
 
-## 5. Scale the paperwork to the risk
+## 7. Verification and completion
+Follow [VERIFICATION.md](code_sop/VERIFICATION.md).
+- A checked work item means work was done, not that acceptance passed.
+- An AC passes only when all mapped required checks have valid PASS evidence.
+- A TASK completes when required work, ACs and boundaries pass and no unresolved dependency invalidates the result.
+- M1 completes when source allocation is complete, required tasks are verified against the candidate, and its system TASK passes on that same candidate.
+- NOT_RUN, BLOCKED, FAIL and STALE are not PASS. Exclusions require a recorded scope basis; they cannot erase a failure.
 
-| Path | Appropriate changes | Required records |
-| --- | --- | --- |
-| Simplified | Documentation corrections or isolated, low-risk fixes without interface, architecture, data, or critical behavior changes | TASK, short write_code, verification, and AI plus human review; plan, checklist, and report may be TASK sections |
-| Standard | New behavior, substantial fixes, or extensions within a module | TASK, design, write_code, plan, checklist, test report, review, and PR; update maps and contracts as affected |
-| High risk | Cross-module interfaces, architecture, breaking compatibility, migrations, model/evaluation methodology, critical performance, or environment changes | Standard records plus affected architecture/contracts, ADR, migration/recovery plan, owner confirmations, integration checks, and applicable evaluation |
+Completion is based on evidence, without a separate review-and-close stage.
 
-The simplified path still requires approval of a short design before implementation; one explicit decision may cover both TASK and write_code. For documentation-only work, check links, instructions, and consistency instead of claiming runtime tests. Reference existing designs by version. Explain N/A entries; they must not hide required verification. Instantiate optional templates only when their triggering conditions apply.
+## 8. Large inputs, changes and continuity
+Retain the complete 100-200 KB source, but give each feature its relevant clauses, architecture nodes, agreements and surrounding constraints. Do not use summaries as substitutes for source coverage. TASKS detects gaps across the slices.
 
-After repository setup and a pilot are validated, new Standard and High-risk tasks use Spec Kit artifacts by default. Simplified tasks may retain Manual mode. Existing tasks keep their registered sources unless an explicit migration identifies the replacement sources and retires duplicates. If tooling is unavailable, record the blocker and the Lead's approval of a Manual fallback without changing any delivery gate.
+Use stable locators and revisions so work can resume after a session restart. Maintain an architecture overview and readable module/interaction views linked by node IDs. A diagram alone does not specify interface semantics.
 
-## 6. End-to-end procedure
+When requirements change, update the baseline and allocation, affected agreements and native artifacts. Record affected AC/block/check IDs and mark their evidence STALE. Ordinary progress changes only tasks.md. Keep previous runs and point to the current effective evidence.
 
-### Stage 0: Prepare and synchronize
+Integrate dependent blocks early. Whole-system acceptance covers the entire M1; smaller implementation units do not reduce that scope.
 
-Confirm the repository, origin, personal branch, and working-tree state. Read applicable AGENTS files, implementation, tests, and callers. Preserve other work, merge updates from the team integration branch into the current personal/task branch, and record the baseline SHA. Prepare the environment from ENVIRONMENT and run relevant baseline checks, recording existing failures. Complete the setup prerequisites in the [adoption checklist](code_sop/ADOPTION_CHECKLIST.md) before the first pilot task; complete the adoption record after that pilot validates the workflow.
+## 9. Templates and tools
+Follow the tables in the [catalog](code_sop/README.md). Preserve required fields, use meaningful N/A explanations and record unresolved conditions.
 
-Exit condition: owners, paths, baseline, environment, and known failures are identifiable.
-
-### Stage 1: Define the task
-
-Create a TASK-ID such as `AI4R-001`. Complete [TASK](code_sop/templates/TASK_TEMPLATE.md) with the risk path, owners, dependencies, and artifact registry. Record the problem, objectives, non-goals, and acceptance criteria in the registered requirements source. In Spec Kit mode, use specification and clarification commands to draft `spec.md`; register its actual directory rather than guessing it from the branch. Assign stable identifiers such as `AC-01` to connect design, implementation, testing, and review. Define performance or quality methods and thresholds before implementation; if a baseline is missing, propose a measurement task first.
-
-Investigate unclear requirements before committing to behavior. Exploratory work must have a stated authorization and purpose; it does not imply approval of the production implementation.
-
-### Stage 2: Design and obtain approval
-
-Use [DESIGN](code_sop/templates/DESIGN_TEMPLATE.md) to describe the proposal, alternatives, data flow, boundaries, and failure handling. In Spec Kit mode, incorporate this coverage in native `plan.md`; native research and supporting artifacts provide evidence without duplicating shared authorities. Generate `tasks.md`, inspect consistency, and resolve blocking specification/design questions. Update [ARCHITECTURE](code_sop/templates/ARCHITECTURE_TEMPLATE.md), [CONTRACT](code_sop/templates/CONTRACT_TEMPLATE.md), and [ADR](code_sop/templates/ADR_TEMPLATE.md) when applicable.
-
-The Code Team Lead approves a specific design version. Affected owners confirm cross-module changes. List unresolved questions and whether they block implementation. Before approval, perform only authorized exploration.
-
-### Stage 3: Publish write_code and prepare the plan
-
-The Lead publishes the task's `write_code.md` using [WRITE_CODE](code_sop/templates/WRITE_CODE_TEMPLATE.md), specifying allowed paths, excluded scope, interface versions, work-item references, checks, and stop conditions. The author uses [PLAN](code_sop/templates/PLAN_TEMPLATE.md) to identify file changes, dependencies, implementation steps, and acceptance checks within that authorization. In Spec Kit mode, verify that native `plan.md` and `tasks.md` provide this coverage and that the approved versions match the directive. Generated artifacts, analysis results, and command handoffs cannot authorize implementation.
-
-Authors or AI may draft the material; an actual human must confirm approval.
-
-### Stage 4: Implement and maintain records
-
-Implement in small steps on the assigned branch. Run relevant checks as steps become verifiable and update the [IMPLEMENTATION_CHECKLIST](code_sop/templates/IMPLEMENTATION_CHECKLIST_TEMPLATE.md) and code map. AI inputs must include applicable AGENTS, write_code, design/contract versions, the plan, baseline, and current scope.
-
-For Spec Kit, invoke implementation only after the design and directive gates are satisfied; select the registered feature and limit work to authorized task IDs. Track step progress in `tasks.md`. Treat generated commands and hooks as actions requiring the same scope control as direct edits. Native checklist, analysis, or convergence output assists the author but cannot substitute for actual tests, the task's `review.md`, or human approval.
-
-Authors inspect generated code, dependencies, and data sources. Do not expand scope, lower thresholds, or delete failing tests to obtain a passing result. Keep credentials and restricted data out of code, logs, and external prompts.
-
-When requirements, public interfaces, architecture, or critical assumptions change, create a [CHANGE_REQUEST](code_sop/templates/CHANGE_REQUEST_TEMPLATE.md). Pause dependent implementation while continuing independent, authorized work. Resume after approval of the revised scope. Ordinary implementation choices already within authorization do not require repeated approval.
-
-### Stage 5: Self-review and verify
-
-Inspect the final diff and explain every changed file. Use [TESTING](code_sop/templates/TESTING_TEMPLATE.md) to select proportionate unit, boundary/failure, contract, integration, regression, performance, or model evaluations. Prefer a reproducing regression test for bug fixes. Tests that simply mirror the implementation do not establish correctness.
-
-Record commands, working directories, environment, implementation commit, baseline, results, and logs in [TEST_REPORT](code_sop/templates/TEST_REPORT_TEMPLATE.md). Distinguish passed, failed, skipped, not run, and blocked. Check whether a zero exit code hides failures or collected no relevant tests. State limits caused by missing LFS objects, services, data, credentials, or GPUs.
-
-### Stage 6: Submit the PR and obtain AI review
-
-Before formal review, merge updates from the team integration branch into the current personal/task branch, resolve conflicts, and revalidate the affected scope. Use the [PR template](code_sop/templates/PR_TEMPLATE.md) to explain the problem, behavior change, scope, design, verification, risks, and recovery. Check the PR base.
-
-AI uses [REVIEW](code_sop/templates/REVIEW_TEMPLATE.md) to inspect the actual diff, callers, design, contracts, and evidence. Findings must identify files/functions, evidence, impact, a proposed remedy, and a verification method. State unreviewed areas. Authors fix findings or explain their disagreement with evidence; the Lead decides acceptance of significant risks. After implementation changes, rerun relevant checks and obtain AI follow-up review before final human review.
-
-### Stage 7: Human review and the merge decision
-
-The Code Team Lead reads affected functions and call chains, checking design, contracts, failure behavior, dependencies, and evidence credibility. Affected owners confirm joint behavior. Record approval, requested changes, or rejection with the covered version and rationale.
-
-Ready to merge requires closed blocking findings, passing required checks or a formal deferral under Section 8, explicit risk disposition, and valid human approval for the current version. “AI checked it” does not establish human understanding.
-
-### Stage 8: Verify integration and hand off
-
-The operator checks the current PR head, integration base, evidence, and approval scope. If the baseline moved, reassess impact and complete the necessary checks and review. After merging, verify the actual merge commit through CI or the required smoke checks. On failure, stop release, choose a fix or recovery action, and create an [INCIDENT](code_sop/templates/INCIDENT_TEMPLATE.md) record.
-
-Use [RELEASE_ROLLBACK](code_sop/templates/RELEASE_ROLLBACK_TEMPLATE.md) when the task includes a release. Update status, maps, and affected documentation; use [HANDOFF](code_sop/templates/HANDOFF_TEMPLATE.md) to transfer the work to its owner. Personal branches synchronize again before the next task. Mark Done only after post-merge verification and handoff are complete.
-
-## 7. Evidence and version validity
-
-Tests, AI review, and human approval must identify at least the implementation commit and integration baseline they cover. Checks of uncommitted implementation are work-in-progress evidence and cannot alone establish the final merge gate.
-
-Committing a report creates a new SHA; the report need not contain its own SHA. It may reference the tested implementation commit, followed by commits containing only results or approval records. The PR must identify those later commits and verify that they do not change implementation, configuration, tests, contracts, or acceptance criteria. A Markdown change to a contract or gate can invalidate evidence.
-
-| Later change | Required response |
-| --- | --- |
-| Results-only records; implementation, configuration, tests, contracts, and acceptance unchanged | Inspect the diff, state the scope, and reuse the applicable runtime evidence |
-| Implementation, dependencies, configuration, tests, or contracts change | Rerun relevant checks; add AI review and human confirmation |
-| New baseline merged or conflicts resolved | Inspect the resulting implementation, rerun affected integration/regression checks, and update review scope |
-| Quality thresholds, dataset, or evaluation methodology changes | Follow design change control, reevaluate, and explain why previous conclusions no longer apply |
-
-Unrelated documentation changes do not require repeating expensive full suites. Time pressure does not justify reporting unrun checks as passed.
-
-## 8. Definition of Done and exceptions
-
-Before merging, ensure traceable design and implementation authorization; author understanding of every changed file; truthful verification evidence; disposition of AI findings; current function-level human review; necessary cross-module confirmation, compatibility, and recovery information; and the correct PR base and scope.
-
-Done additionally requires post-merge checks and deferred verification to be complete, documentation and status to be updated, and the owner to have received the handoff. Release tasks must also complete their agreed release checks. Local completion, opening a PR, or an AI recommendation is not Done.
-
-Urgent fixes may use shorter design and planning records, but still need implementation boundaries, necessary verification, and an explicit human decision. When prerequisites prevent an individual check from completing promptly, the Lead may formally approve a deferral in CHANGE_REQUEST. State the permitted stage, reason, alternative evidence, risk, verification owner, deadline, and recovery trigger. Permission to continue implementation is not permission to merge; only an explicit deferral covering merge can satisfy that check's temporary disposition. Other gates remain applicable.
-
-Keep the check's actual status as not run, blocked, or failed. A deferral cannot bypass a known blocking defect or failure of current acceptance criteria. A genuine requirement change must instead follow design change control, approval, and verification of the new criteria. If verification is still outstanding after merge, keep the task Merged or Blocked, never Done. Exceptions must not conceal credential exposure, data corruption, or irreversible migration risks.
-
-## 9. Maintain the process
-
-The Lead maintains this SOP and root rules; module owners maintain local rules and entry points. Process changes identify the reason, scope, effective version, and adoption steps. Preserve superseded designs and ADRs with links to their replacements.
-
-Judge the process by earlier defect discovery, genuine human code understanding, handoffs that work without chat history, and reproducible verification—not by document count.
-
-## Accepted subscription demo
-
-For installation and browser operation of the staged AI4R-001 demo, see [CODEX_DEMO](CODEX_DEMO.md). Its publication and remaining scope are tracked in the task records.
+Project native templates live in .specify/templates/overrides/. They replace the optional-testing default for this process. Read [Spec Kit workflow](code_sop/SPEC_KIT_WORKFLOW.md) and [Git workflow](code_sop/GIT_WORKFLOW.md). Generated commands never override an explicit no-commit instruction.
