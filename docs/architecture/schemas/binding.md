@@ -7,7 +7,7 @@ tags: [schema]
 
 # Binding · `cc.binding.v1`
 
-The pin for one call site of a run: exactly one capsule version, by hash, with the Verdict that admitted it, the checks the gate runs on its output, its budget, and the judge the gate may call. It is written once, by the control code that starts the run (the workflow runtime), before the call site first runs. Every capsule call made through the runner is pinned: the runner refuses a call in a run that has no Binding, and refuses to load code that does not match it. Third-party packages are pinned only when the Declaration's `needs.dependencies.lockfile` is set.
+The pin for one call site of a run: exactly one capsule version, by hash, with the Verdict that admitted it, the checks the gate runs on its output, its budget, and the judge the gate may call. It is written once, by the control code that starts the run (the workflow runtime), before the call site first runs. Every capsule call made through the runner is pinned: the runner refuses a call in a run that has no Binding, and refuses to load code that does not match it. A `nested` call (an operator or other capsule the bound capsule calls) runs under the bound capsule's Binding, pinned by the `decl_hash` its Declaration names in `needs.external`, which admission already checked. The writer refuses a Binding when the capsule's code, or any code it pins in `needs.external`, no longer hashes to what was admitted (`CARRIER_CHANGED`): changed code is never bound. It refuses a wiring whose output type differs from the input it feeds (`PORT_TYPE_MISMATCH`). Third-party packages are pinned only when the Declaration's `needs.dependencies.lockfile` is set.
 
 **Rules:** INV-2, INV-5 (its `checks` list is the one allowed assembled copy), INV-9, INV-17.
 

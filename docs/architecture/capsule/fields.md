@@ -47,9 +47,9 @@ Authored JSON. It carries `schema_version` and `ext` (extensions, such as agent-
 | `identity.tags` | `list<string>` | opt | unchecked | store, selection | Free labels for search. Example: `["documents"]` |
 | `identity.license` | `string` | opt | unchecked | importer, store | An SPDX licence id for imported code. Example: `Apache-2.0` |
 | `identity.summary` | `text` | req | checked |  | At most 400 characters on what it does: the only prose a model sees when choosing a capsule. Names no step, workflow or other capsule (INV-7). Example: `Extract the plain text of a PDF, page by page.` |
-| `identity.lineage` | `object` | opt | unchecked | RSI, tracking | Where this version came from: the version tree RSI branches from. Merges make it a graph. A child with the same `interface_hash` must also pass its parent's suites ([checks](../schemas/checks.md)) |
-| `identity.lineage.parent_hash` | `sha256` | req | unchecked | RSI, tracking | The parent version's `decl_hash` |
-| `identity.lineage.relation` | `enum(supersedes, specialises, merges, migrated_from)` | req | unchecked | RSI, tracking | How it relates to its parent. `supersedes`: a new version under the same name. `specialises`: a branch under a new name. `merges`: joins `co_parent_hashes` into it. `migrated_from`: the same capability rewritten for a new schema or runtime. A rollback is a Standing move, not a new version |
+| `identity.lineage` | `object` | opt | checked |  | Where this version came from: the version tree RSI branches from. Merges make it a graph. A child with the same `interface_hash` must also pass its parent's suites ([checks](../schemas/checks.md)) |
+| `identity.lineage.parent_hash` | `sha256` | req | checked |  | The parent version's `decl_hash` |
+| `identity.lineage.relation` | `enum(supersedes, specialises, merges, migrated_from)` | req | checked |  | How it relates to its parent. `supersedes`: a new version under the same name. `specialises`: a branch under a new name. `merges`: joins `co_parent_hashes` into it. `migrated_from`: the same capability rewritten for a new schema or runtime. A rollback is a Standing move, not a new version |
 | `identity.lineage.co_parent_hashes` | `list<sha256>` | opt | unchecked | RSI, merge, composer | The other versions merged or fused into this one; required when `relation` is `merges` |
 
 ### ports: what it takes and gives
@@ -83,18 +83,21 @@ Each entry is a `Port`, with the field names of agent-core's `CapabilityIO`.
 | `needs.external` | `list<object>` | opt | checked |  | The other capsules it calls, each pinned to one admitted version. A service we cannot host is itself a remote capsule with its own pin. Admission refuses a dependency that is not admitted (`OPERATOR_NOT_ADMITTED`). Calls made through the runner are refused outside this list; in-process calls are enforced only in the isolated sandbox |
 | `needs.external[].ref` | `string` | req | checked |  | The capsule's name. Example: `op.ocr` |
 | `needs.external[].decl_hash` | `sha256` | req | checked |  | The exact admitted version it calls. A new version of the dependency changes nothing here until a new version of this capsule re-pins it |
-| `needs.external[].purpose` | `text` | opt | unchecked | RSI | What the dependency is for, in a sentence. When present, RSI may re-pin it to a newer version, if `evolution.rsi` allows ([RSI](rsi.md#updating-dependencies)). Knowing a dependency's purpose is what lets a builder repair a capsule when the dependency changes. Read by builders as data, never as instructions. Example: `OCR for scanned pages` |
+| `needs.external[].purpose` | `text` | opt | unchecked | RSI | What the dependency is for, in a sentence. RSI may re-pin it to a newer version only when it has a purpose and `evolution.may_change` lists its pin, `needs.external[<ref>].decl_hash` ([RSI](rsi.md#updating-dependencies)). Knowing a dependency's purpose is what lets a builder repair a capsule when the dependency changes. Read by builders as data, never as instructions. Example: `OCR for scanned pages` |
 | `needs.network` | `enum(none, egress, ingress, both)` | opt | checked |  | The network access it needs. Default `none`. Where a permission check or the sandbox runs, it allows only this |
+| `needs.human_interaction` | `enum(none, optional, blocking)` | opt | checked |  | Whether a call may call back to a person while running, not whether the call itself needs approval to start (that is `changes.effect_class: ASK`). Default `none`. `optional`: may ask, but finishes within its budget without an answer. `blocking`: waits on an answer and can halt everything scheduled after it. Selection reads it before a Binding exists, so a `blocking` capsule is not batched into parallel work |
 | `needs.dependencies` | `object` | opt | unchecked | importer, isolated verification | What must be installed to run it in isolation |
 | `needs.dependencies.runtime` | `string` | req | unchecked | importer, isolated verification | Language and runtime version. Example: `python>=3.11` |
 | `needs.dependencies.platforms` | `list<string>` | opt | unchecked | importer, isolated verification | Platforms it runs on. Example: `["linux/amd64"]` |
-| `needs.dependencies.packages` | `list<object>` | opt | unchecked | importer, isolated verification | The direct packages, each `{name, version, source, purpose}`, every one pinned by the lockfile. `purpose` is optional and means what it does in `needs.external`: when present, RSI may re-pin the package. Example: `{"name": "pydantic", "version": "2.9.2", "source": "pypi", "purpose": "validates port values"}` |
+| `needs.dependencies.packages` | `list<object>` | opt | unchecked | importer, isolated verification | The direct packages, each `{name, version, source, purpose}`, every one pinned by the lockfile. `purpose` is optional and means what it does in `needs.external`: RSI may re-pin the package only when it has a purpose and `evolution.may_change` lists its version. Example: `{"name": "pydantic", "version": "2.9.2", "source": "pypi", "purpose": "validates port values"}` |
 | `needs.dependencies.lockfile` | `object` | opt | unchecked | importer, isolated verification | `{uri, sha256}` of a lockfile that pins every package, including indirect ones. Required when `packages` is set (rule `dependencies_pinned`). Example: `{"uri": "uv.lock", "sha256": "..."}` |
 | `needs.config` | `object` | opt | unchecked | importer, isolated verification | Settings fixed when the capability is installed or started, which are not ports. Secrets go in `needs.secrets` |
 | `needs.config.args` | `map<string, json>` | opt | unchecked | importer, isolated verification | Start-up arguments. Example: `{"max_pages": 500}` |
 | `needs.config.env` | `map<string, string>` | opt | unchecked | importer, isolated verification | Environment variables that are not secrets. Example: `{"LANG": "C.UTF-8"}` |
 | `needs.secrets` | `list<object>` | opt | unchecked | isolated verification | Credentials it needs, by name only, never values: each `{name, purpose}`. The sandbox injects them and the permission check allows them. Example: `{"name": "GITHUB_TOKEN", "purpose": "read private repos"}` |
-| `needs.resources` | `object` | opt | unchecked | isolated verification | What one call needs to run: `{cpu, gpu, memory_mb, disk_mb, timeout_s}`, each optional. Example: `{"memory_mb": 2048, "timeout_s": 120}` |
+| `needs.resources` | `object` | opt | checked |  | What one call needs to run: `{cpu, gpu, memory_mb, disk_mb, timeout_s}`, each optional. At M1 only `timeout_s` is read: it sets the call's time budget, within the policy's cap; the rest wait for isolated verification. Example: `{"memory_mb": 2048, "timeout_s": 120}` |
+
+CC does not schedule pacing or cooldowns between calls to the same capsule. A capsule with its own internal queue or single-process bottleneck should declare `timeout_s` generously instead, so the budget already accounts for time spent waiting on its own backend. That waiting is the capsule's own implementation's job, the same way choosing a model is: not something the schema layer sees or manages.
 
 **Models are not part of the capsule layer.** There is no model field and no role field. Selection picks a capsule, never a model, and there is no central library that picks both. Whether a capsule uses a model, which one, and whether that model is routed at runtime are its author's choice and its author's job, made in the capsule's own files, such as a skill's front matter or its code. Those files are hashed, so a change of fixed model is a new version, tested like any other change. A capsule whose author wants its model chosen at runtime calls a model router from its own code; the capsule layer never sees that. The Declaration still describes the work in enough detail that a router could choose from it. Which agent or role runs a capsule is decided in the [Binding](../schemas/binding.md), not in the capsule.
 
@@ -155,13 +158,13 @@ Every capsule is a graph of capsules. A **singleton**, the most common form, is 
 
 ### evolution: what RSI may change
 
-RSI is opt-in. Every capsule states whether RSI may build new versions of it; if its author does not allow it, RSI may not touch it. See [RSI](rsi.md).
+RSI is opt-in, twice over. `evolution.rsi` says whether RSI may build new versions at all, and `evolution.may_change` lists the only parts it may change. Everything not listed stays fixed. So RSI applies only where the author explicitly allows it. See [RSI](rsi.md).
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
-| `evolution.rsi` | `enum(none, propose, submit)` | req | checked |  | What RSI may do with this capsule. `none`: nothing; RSI may not submit a child of it. `propose`: RSI may submit a child, which admission holds as `admitted_inactive` until a person activates it. `submit`: RSI may submit a child that becomes current when admitted. Example: `none` |
-| `evolution.frozen` | `list<string>` | opt | unchecked | RSI | Parts of the Declaration a child must keep unchanged, as field paths. Example: `["ports", "changes.effect_class"]` |
-| `evolution.notes` | `text` | opt | unchecked | RSI | What the author wants a builder to know: weak spots, ideas, what not to change |
+| `evolution.rsi` | `enum(none, propose, submit)` | req | checked |  | What RSI may do with this capsule. `none`: nothing; RSI may not submit a child of it. `propose`: RSI may submit a child, which admission holds as `admitted_inactive` until a person activates it. `submit`: RSI may submit a child that becomes current when admitted. Either way the child may differ from its parent only where `evolution.may_change` allows. Example: `none` |
+| `evolution.may_change` | `list<string>` | opt | checked |  | The only parts an RSI child may change; everything else must stay as in the parent. Absent or empty: RSI may change nothing, whatever `evolution.rsi` says. Each entry is a Declaration field path, with `[]` for every item of a list and `[<name>]` for one keyed item (such as `needs.external[op.ocr].decl_hash` or `guarantees.checks[text_not_empty].runner`), or `files:<glob>` for code or skill files relative to the capsule root (such as `files:SKILL.md`). Values that follow from an allowed change (file hashes, the computed hashes, `identity.lineage`) may change with it. Never lists `evolution` itself (rule `rsi_cannot_grant`). Example: `["files:pdf_text.py"]` |
+| `evolution.notes` | `text` | opt | unchecked | RSI | What the author wants a builder to know: weak spots, ideas, why the listed parts are open. Advice only, never a permission |
 
 Reserved names, not specified: `changes.provides[]`, `changes.invariants[]`, `needs.injects[]`.
 
@@ -206,9 +209,11 @@ A complete Declaration for a small tool, with only checked fields and `evolution
       "description": "The text has a non-space character.", "author": "reviewer-1"
     }]
   },
-  "evolution": {"rsi": "propose"}
+  "evolution": {"rsi": "propose", "may_change": ["files:pdf_text.py"]}
 }
 ```
+
+For a larger, real capsule with more of the optional fields filled in, `failure_modes` and what is computed rather than authored, see [the `compile_intent` example](example-compile-intent.md).
 
 ## Elsewhere, not in the Declaration
 

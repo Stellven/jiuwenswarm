@@ -1,11 +1,14 @@
 ---
 type: design
-tags: [design, draft, m1]
+status: past
+tags: [design, past, m1]
 ---
 
-# M1: the research pipeline
+# M1: the research pipeline (past design)
 
-> **Draft design, open to change.** M1 is the PRD's first milestone. It grows [B1](b1-design.md) into the full research pipeline: the same general stages, the same CC runner, and the same straight line. Dispatch now runs the fixed research DAG, and every handoff has a two-tier gate. M1 also adds operators and admission. RSI, the multi-model router and the dynamic planner are built beside the main path as parallel tracks.
+> **Past design, no longer current. Do not build from it.** Kept as a record of the M1 design proposed on 2026-09-28. It is replaced by [M1 architecture](m1-architecture.md).
+
+> **As first written:** M1 is the PRD's first milestone. It grows [B1](b1-design.md) into the full research pipeline: the same general stages, the same CC runner, and the same straight line. Dispatch now runs the fixed research DAG, and every handoff has a two-tier gate. M1 also adds operators and admission. RSI, the multi-model router and the dynamic planner are built beside the main path as parallel tracks.
 
 **What M1 is:**
 

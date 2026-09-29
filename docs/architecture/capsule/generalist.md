@@ -27,6 +27,14 @@ tags: [capsule, generalist, vision]
 - **It never writes the library.** It cannot admit what it built. It leaves a **gap Finding** with its trajectory and cost, and that Finding is where RSI starts.
 - **Never on a step that requires a certified capsule**, and capped per run.
 
+## Any agentic system, with no new kind and no use of role
+
+The generalist can run on Codex, on Claude Code, on openJiuwen's own agent, or on any other agentic system. That does not need a new `capsule_kind` or a new use of `Binding.role`.
+
+`kind: agent_template` already says how the runner calls it. That is enough, no matter which harness backs it. `role` is not the right home either: it is the workflow's own label for a call site, and the docs already say the capsule itself never sets it. A harness is a fact about the capsule, not about the call site, so it does not belong there.
+
+Each harness gets its own Declaration instead. `generalist.codex`, `generalist.claude_code`, and so on are separate capsules, each pinned by `identity.remote`, since a harness cannot be hashed as a file the way code can. "The generalist can go to any agentic system" means several admitted generalist capsules exist side by side. Selection picks whichever one fits a step, the same way it picks among any other capsules. See [a full example](example-generalist.md).
+
 ## From gap to capsule
 
 ```mermaid

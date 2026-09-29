@@ -7,6 +7,8 @@ tags: [index]
 
 This package describes **Capability Capsule (CC)** and its core schemas, plus the designs that use them. It is a draft for review.
 
+**Status: exploratory alpha and beta.** No schema page here is `v1` yet, every one is still `draft` or `proposed`, so nothing is version-locked. Fields can still move, merge or disappear. `v1` starts once real code for an actual module is being built against a page, not before. See [the invariants](schemas/invariants.md#change) for the exact rule.
+
 A **capability capsule** (能力胶囊) is one capability the system can run, described by a **Declaration** and referred to by the hash of its code. Start with [Capability Capsule](capsule/capsule.md): the `capsule/` folder alone explains what CC is, why it exists, and everything it connects to.
 
 Open this folder as an Obsidian vault, or read the Markdown files directly. All links are relative. Each fact is stated on one page and linked from the others.
@@ -19,8 +21,13 @@ Open this folder as an Obsidian vault, or read the Markdown files directly. All 
 3. [Composition](capsule/composition.md), [library](capsule/library.md), [trust](capsule/trust.md), [RSI](capsule/rsi.md), [generalist](capsule/generalist.md), [permissions](capsule/permissions.md), [Symphony](capsule/symphony.md), [tools](capsule/tools.md), [checked and unchecked at M1](capsule/stages.md).
 4. [Schemas](schemas/schemas.md): the records kept about a capsule (Candidate, Verdict, Standing, Binding, Observation, Artifact, Verification, Finding), with checks, port types, the policy and the invariants.
 5. [B1: the first working pipeline](b1-design.md): the earliest form, with one task-specific capsule. Preliminary.
-6. [The M1 design](m1-design.md): the whole of M1 as the PRD sets it, with CC placed in it. Draft, open to change.
-7. [The big picture](big-picture.md): a potential near-term goal, open to change, and how each workstream fits.
+6. [The big picture](big-picture.md): a potential near-term goal, open to change, and how each workstream fits.
+
+## Past designs
+
+Kept as a record only. They are not current; do not build from them.
+
+- [The M1 design](m1-design.md), proposed 2026-09-28.
 
 ## Other folders
 

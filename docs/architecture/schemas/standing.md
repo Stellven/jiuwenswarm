@@ -7,7 +7,7 @@ tags: [schema]
 
 # Standing · `cc.standing.v1`
 
-The one moving pointer in the library: for each capsule name, which version is current and in what state. It is a log. Each move is a new entry, and the entry with the highest `seq` for a name is the current Standing. Its writer is fixed by `state` (INV-3): admission writes `admitted` when it admits a version, or `admitted_inactive` for an RSI child whose parent has `evolution.rsi: propose`; the librarian (unchecked in M1) writes every other state and every revert, including a person's activation of an `admitted_inactive` version. Entries are keyed by name and `seq`, so two entries cannot claim the same `seq`.
+The one moving pointer in the library: for each capsule name, which version is current and in what state. It is a log. Each move is a new entry, and the entry with the highest `seq` for a name is the current Standing. Its writer is fixed by `state` (INV-3): admission writes `admitted` when it admits a version, or `admitted_inactive` for an RSI child whose parent has `evolution.rsi: propose`; the librarian writes every other state and every revert, including a person's activation of an `admitted_inactive` version. At M1 the librarian is a command that writes these moves only on a person's request; its automatic moves are unchecked (librarian). Entries are keyed by name and `seq`, so two entries cannot claim the same `seq`.
 
 **Rules:** INV-2 (entries are never edited), INV-3.
 
@@ -26,7 +26,7 @@ Each entry extends [common](common.md), with `scope.library: true`.
 | `reason` | `reg(reason_code)` | req | checked |  | Why it moved. Example: `ADMITTED`, `SUSPECT_DRIFT`, `REVERTED` |
 | `evidence` | `list<EvidenceRef>` | opt | unchecked | librarian | The Verdict or Finding behind the move |
 
-**States**, from most to least authority. Only `admitted` is checked in M1.
+**States**, from most to least authority. All are checked in M1; at M1 only admission and a person's request move them.
 
 | State | Meaning |
 |---|---|

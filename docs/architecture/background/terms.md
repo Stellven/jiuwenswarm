@@ -23,7 +23,7 @@ Where each term is defined. Each definition lives on one page only; this is an i
 | Check, test case, test suite, sealed suite | [Checks](../schemas/checks.md) |
 | Candidate, Verdict, Standing, Binding, Observation, Artifact, Verification, Finding | the [records table](../schemas/schemas.md#the-records) and each record's page |
 | Policy, epoch, registry, reason code | [Policy](../schemas/policy.md) |
-| Invariants (INV-n), type grammar, hash | [Invariants](../schemas/invariants.md) |
+| Invariants (INV-n), type grammar, hash, `schema_version`, page status (`draft`/`proposed`/`v1`/`v1.x`) | [Invariants](../schemas/invariants.md) |
 
 ## openJiuwen pieces named in these pages
 

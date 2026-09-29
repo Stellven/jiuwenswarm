@@ -16,18 +16,18 @@ Each capsule is isolated and testable on its own: declared ports, effects and ch
 
 ## RSI permissions: opt-in
 
-RSI may change a capsule only if its author allows it. Every Declaration must state `evolution.rsi` ([fields](fields.md#evolution-what-rsi-may-change)):
+RSI may change a capsule only where its author explicitly allows it. Two fields say so ([fields](fields.md#evolution-what-rsi-may-change)): `evolution.rsi`, which every Declaration must state, and `evolution.may_change`, the list of parts RSI may change.
 
 `none` forbids any RSI child; `propose` lets RSI submit a child that waits for a person; `submit` lets it become current when admitted. RSI cannot get round `none` by submitting a copy as a new capsule: admission refuses an RSI Candidate whose files match a capsule with `none` (rule `rsi_no_copy`).
 
-`evolution.frozen` lists parts a child must keep; `evolution.notes` tells a builder what the author knows. Because any node can be a capsule, these permissions are what keep the system safe to improve: **the actor may improve; the referee may not.** A capsule used as a gate or verifier should be `none` ([trust](trust.md#referees)).
+`evolution.may_change` is an allow-list: a child may differ from its parent only at the paths and files it names (rule `changes_allowed`), and it can never name `evolution` itself, so RSI cannot grant itself more (rule `rsi_cannot_grant`). With `rsi` set but `may_change` empty, RSI may change nothing. `evolution.notes` tells a builder what the author knows; it is advice, not permission. Because any node can be a capsule, these permissions are what keep the system safe to improve: **the actor may improve; the referee may not.** A capsule used as a gate or verifier should be `none` ([trust](trust.md#referees)).
 
 ## Improving a capsule
 
 ```mermaid
 flowchart LR
     OBS[("Observations, Verifications, Findings")] --> PICK["RSI picks a capsule to improve"]
-    PERM{"evolution.rsi allows it?"}
+    PERM{"evolution.rsi and may_change allow it?"}
     PICK --> PERM
     PERM -->|"none"| STOP["leave it"]
     PERM -->|"propose or submit"| PAR["parent: Declaration, code by hash, lineage, test suites"]
@@ -78,9 +78,9 @@ flowchart LR
 
 Every dependency is pinned in every version, so updating one is ordinary RSI, not a run-time float:
 
-1. The author gives a dependency a `purpose` ("validates port values" for pydantic). Only a dependency with a purpose may be re-pinned by RSI (rule `repin_needs_purpose`); one without is never updated automatically.
+1. The author gives a dependency a `purpose` ("validates port values" for pydantic) and lists its pin in `evolution.may_change`. Only a dependency with both may be re-pinned by RSI (rules `repin_needs_purpose`, `changes_allowed`); any other is never updated automatically.
 2. The librarian sees a newer version upstream and records a `dependency_update` Finding.
-3. If the capsule's `evolution.rsi` allows it, RSI builds a child that re-pins the dependency. The purpose tells the builder what the dependency must still do.
+3. If the capsule's `evolution.rsi` and `may_change` allow it, RSI builds a child that re-pins the dependency. The purpose tells the builder what the dependency must still do.
 4. A re-pin keeps the interface, so admission runs the child's tests and the parent's suites, as for any child.
 
 **Limits.** Re-pins of one capsule are spaced by the policy's `dep_update_min_interval_s`, except for security. A capsule dependency is re-pinned only when the pinned version is superseded or revoked, not on every release. A composite or a user of the dependency with `evolution.rsi: none` keeps its old pin until its author moves it. A security fix never waits for this loop: the librarian withdraws the vulnerable version first ([trust](trust.md#what-lowers-trust)). A re-pin is only as well tested as the parent's suites exercise the dependency.

@@ -74,11 +74,11 @@ Every field is checked by some tool at some moment, or it is listed here as unen
 | `evolution.notes` | none: read by builders as data | | none |
 | `identity.carrier`, `body` hashes | admission (re-hash); runner (at load) | submission; every call | `HASH_MISMATCH`; `CARRIER_CHANGED` |
 | `identity.remote` pin | runner | every call | open: no fingerprint check of what the service runs |
-| `identity.lineage` | admission: the parent exists, `rsi_permitted`, `frozen_kept`, `parent_suites_pass` | submission | `RSI_NOT_PERMITTED`, `CHECK_FAILED` |
+| `identity.lineage` | admission: the parent exists, `rsi_permitted`, `changes_allowed`, `parent_suites_pass` | submission | `RSI_NOT_PERMITTED`, `CHECK_FAILED` |
 | `ports`, `Port.value_schema`, `Port.check_id` | admission (a check on every output, a schema on every `json` port); runner (input names); gate (values against type and schema) | submission; every call | `CHECK_MISSING`, `PORT_MISMATCH`, `CHECK_FAILED` |
 | `needs.when` | precondition evaluator in the runner; selection filter | every call | `PRECONDITION_FAILED`, `PRECONDITION_DEFERRED` |
 | `needs.external` | admission (every dependency admitted and pinned); runner and permission layer (calls outside the list refused) | submission; every call | `OPERATOR_NOT_ADMITTED`, `PERMISSION_DENIED` |
-| `needs.external[].purpose`, package `purpose` | admission (`repin_needs_purpose` on an RSI child); dependency watcher | submission; on upstream release | `RSI_NOT_PERMITTED` |
+| `needs.external[].purpose`, package `purpose` | admission (`repin_needs_purpose` and `changes_allowed` on an RSI child); dependency watcher | submission; on upstream release | `RSI_NOT_PERMITTED` |
 | `needs.network` | permission layer (named tools); sandbox (everything) | every call | `PERMISSION_DENIED`; blocked by jiuwenbox |
 | `needs.dependencies`, `config`, `secrets`, `resources` | isolated verification sandbox; admission (`dependencies_pinned`) | submission; sandboxed calls | `DEPENDENCY_UNPINNED`; unenforced outside a sandbox |
 | `changes.effect_class`, `effects` | admission (`effect_class_matches_effects`); permission layer (level, paths); sandbox; librarian (observed against declared) | submission; every call; audit | `EFFECT_CLASS_INCONSISTENT`, `PERMISSION_DENIED`, `audit_violation` Finding. `reversibility` and `scope` are not enforced anywhere yet |
@@ -87,7 +87,7 @@ Every field is checked by some tool at some moment, or it is listed here as unen
 | `guarantees.failure_modes` | runner (records the code); gate (folds it); admission (`failure_modes_additive`) | every call; submission | `CAPSULE_RAISED_UNDECLARED`, `FAILURE_MODE_REMOVED` |
 | `guarantees.quality` | librarian | audit | `measurement` Finding, Standing move |
 | `members`, `wiring` | admission (members admitted, wires type-compatible); composer | submission | open: the composite checks are not specified yet |
-| `evolution.rsi`, `frozen` | admission (RSI children); freeze (a gate or verifier capsule must allow no RSI) | submission; run start | `RSI_NOT_PERMITTED` |
+| `evolution.rsi`, `may_change` | admission (RSI children: `rsi_permitted`, `changes_allowed`; every Declaration: `rsi_cannot_grant`); freeze (a gate or verifier capsule must allow no RSI) | submission; run start | `RSI_NOT_PERMITTED`, `SCHEMA_NONCONFORMANT` |
 | `decl_hash`, `interface_hash`, `code_sha256` | admission computes them; the Binding pins them; runner checks `code_sha256` | submission; every call | `CARRIER_CHANGED` |
 
 **Missing tools or abilities.** Nothing yet checks a remote service's fingerprint, `reversibility` or `scope`, the network use of MCP tools and shell outside a sandbox, or the composite rules. On the Codex runtime nothing but the runner and the sandbox enforces effects. These are the gaps to close before a capsule's promises can be called enforced rather than declared.

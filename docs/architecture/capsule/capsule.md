@@ -21,13 +21,13 @@ Five ideas:
 
 | Question | Page |
 |---|---|
-| What does a capsule hold? | [Declaration](fields.md): every field, with an [example](fields.md#example) |
+| What does a capsule hold? | [Declaration](fields.md): every field, with an [example](fields.md#example); [a fuller, fully-typed example](example-compile-intent.md) |
 | How do I author a capsule from a tool I have? | [Authoring a capsule](authoring.md) |
 | Why does CC exist? | [Why CC](why.md) |
 | How do capsules combine? | [Composition](composition.md) |
 | Where are capsules and their tests stored, and how do they get in? | [Library](library.md) |
 | How much is a capsule trusted, and why? | [Trust](trust.md) |
-| How does the system improve or add capsules? | [RSI](rsi.md), [generalist](generalist.md) |
+| How does the system improve or add capsules? | [RSI](rsi.md), [generalist](generalist.md), [a full generalist example](example-generalist.md) |
 | What is recorded when a capsule runs, and how is quality measured? | [Observability and quality](observability.md) |
 | What may a capsule touch in jiuwenswarm? | [Permissions](permissions.md) |
 | Which tool checks what? | [Tools](tools.md#which-tool-checks-each-field) |
@@ -98,7 +98,7 @@ A kind says how a capsule runs, not what job it does. A gate, a verifier or a de
 4. **Its dependencies are always pinned.** A dependency with a stated purpose may be re-pinned to a newer version by RSI, as a new version that passes admission ([RSI](rsi.md#updating-dependencies)).
 5. **Declare first, then check.** Every promise has a check, and every call is recorded as an [Observation](../schemas/observation.md). Authors declare each capability's effect class (how reversible its changes are); tools check that the declaration holds.
 6. **A capsule holds no task** (INV-7). Which run uses which capsule, and in what role, is recorded outside it, in a [Binding](../schemas/binding.md).
-7. **RSI is opt-in.** RSI may change a capsule only if its Declaration allows it ([RSI](rsi.md)).
+7. **RSI is opt-in.** RSI may change a capsule only if its Declaration allows it, and only the parts it lists in `evolution.may_change`; everything else stays fixed ([RSI](rsi.md)).
 8. **Nothing judges itself** (INV-10). No capsule gates its own output; certifying needs tests written by someone else; gates and verifiers are not RSI-able for now ([trust](trust.md#referees)).
 9. **Some things are protected.** No capsule writes admission, the test suites, the [policy](../schemas/policy.md) or the record stores. Model weights never change.
 10. **Every capsule is a graph of capsules.** Most are **singletons**: one node, its own code. A composite has members instead. A capsule has its own code or members, never both ([composition](composition.md)).

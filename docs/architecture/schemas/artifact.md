@@ -28,7 +28,7 @@ Extends [common](common.md). Its `scope` is `run_id` for what a run makes, `cand
 | `content_ref.mime_type` | `string` | opt | checked |  | Example: `application/pdf` |
 | `content_ref.size` | `integer` | opt | checked |  | The size in bytes. Example: `1824` |
 | `origin` | `enum(capsule, human, control)` | req | checked |  | Who made it: a capsule call, a person (a request, an uploaded document), or control code (e.g. a workflow saving the request text) |
-| `issues` | `list<Reason>` | opt | unchecked | quality labels, RSI | Proposed. The standard place for caveats about the value: vague, incomplete or contradictory input (`INPUT_AMBIGUOUS`, `INPUT_INCOMPLETE`, `INPUT_CONTRADICTORY`), and anything else a reader should know. Example: `[{"code": "INPUT_INCOMPLETE", "message": "pages 4-6 unreadable"}]` |
+| `issues` | `list<Reason>` | opt | checked |  | The standard place for caveats about the value: vague, incomplete or contradictory input (`INPUT_AMBIGUOUS`, `INPUT_INCOMPLETE`, `INPUT_CONTRADICTORY`), and anything else a reader should know. Example: `[{"code": "INPUT_INCOMPLETE", "message": "pages 4-6 unreadable"}]` |
 | `produced_by` | `object` | opt | checked |  | Set when `origin` is `capsule`: `{obs_id, port}`, the call and output port that produced it. An id, not a `Ref`: the Observation is written after its outputs and pins their hashes, so the Artifact cannot pin the Observation's |
 
 **Lineage.** `produced_by` names the call; that call's Observation names its input Artifacts; each of those names its own call. Following the chain gives the calls behind any value, so no `derived_from` field is stored (INV-5). What a call read outside its ports is not in the chain.

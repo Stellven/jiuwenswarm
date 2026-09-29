@@ -17,17 +17,17 @@ Extends [common](common.md). Its `scope` is `run_id`, or `candidate_id` for an a
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
-| `caller` | `reg(caller)` | req | checked |  | Who asked for the call: `dispatch` (a workflow call in a run), `gate` (a judge call by the gate) or `admission` (a test call). The gate checks every `dispatch` call and writes one [Verification](verification-record.md) for it |
+| `caller` | `reg(caller)` | req | checked |  | Who asked for the call: `dispatch` (a workflow call in a run), `gate` (a judge call by the gate), `admission` (a test call) or `nested` (a call a capsule's code makes to a capsule in its `needs.external`, such as an operator). The gate checks every `dispatch` call and writes one [Verification](verification-record.md) for it |
 | `started_at` | `time` | req | checked |  | When the call started. The envelope's `at` is when it ended |
 | `binding_ref` | `Ref(binding)?` | req | checked |  | The [Binding](binding.md) the call ran under; for a judge call, the Binding whose `verifier` it is. Null for admission test calls and for `BINDING_MISSING` |
 | `test_ref` | `Ref(test_case)` | opt | checked |  | For an admission test call: the test case it ran |
-| `decl_hash` | `sha256?` | req | checked |  | What the runner loaded and ran. In a run it must equal the Binding's `decl_hash` (or its `verifier.decl_hash`). Null when the call was refused before any code was chosen (`BINDING_MISSING`) |
+| `decl_hash` | `sha256?` | req | checked |  | What the runner loaded and ran. In a run it must equal the Binding's `decl_hash`, its `verifier.decl_hash`, or, for a `nested` call, a `decl_hash` the bound capsule pins in `needs.external`. Null when the call was refused before any code was chosen (`BINDING_MISSING`) |
 | `attempt` | `integer` | req | checked |  | 1 for the first try; a retry is a new Observation with this number one higher |
 | `inputs` | `map<string, Ref(artifact)>` | req | checked |  | Port name to the Artifact that went in. Example: `{"pdf": {"id": "art-0003", "sha256": "..."}}` |
 | `outputs` | `map<string, Ref(artifact)>` | req | checked |  | Port name to the Artifact that came out; empty when the call failed |
 | `predicates` | `list<object>` | req | checked |  | The preconditions checked on fresh state just before the call. Each is `{predicate_id, result}`, with `result` `pass`, `fail` or `defer` |
 | `outcome` | `enum(ok, error, refused)` | req | checked |  | `refused` when the runner would not start the call; the cases are listed on the [Binding](binding.md) page |
-| `reason` | `string?` | req | checked |  | Why, when `outcome` is not `ok`; otherwise null. A `reason_code` registry value. A failure outside the capsule uses a runtime code (`RUNTIME_UNAVAILABLE`, `TIMEOUT`), never a capsule code; an exception the capsule raises is `CAPSULE_ERROR`. *Proposed* (INV-19): for `error`, one of the capsule's `failure_modes[].reason_code`, and `CAPSULE_RAISED_UNDECLARED` for any other exception it raises. Example: `CARRIER_CHANGED` |
+| `reason` | `string?` | req | checked |  | Why, when `outcome` is not `ok`; otherwise null. A `reason_code` registry value. A failure outside the capsule uses a runtime code (`RUNTIME_UNAVAILABLE`, `TIMEOUT`), never a capsule code; an exception the capsule raises is `CAPSULE_ERROR`; a capsule stopped at its own time budget is `BUDGET_EXCEEDED`. Each code's owner is in the policy. *Proposed* (INV-19): for `error`, one of the capsule's `failure_modes[].reason_code`, and `CAPSULE_RAISED_UNDECLARED` for any other exception it raises. Example: `CARRIER_CHANGED` |
 | `seen_code_sha256` | `sha256` | opt | checked |  | On `CARRIER_CHANGED`: the hash the loader actually found |
 | `model` | `object` | opt | checked |  | For model capsules: the model that served the call, as `{id, version}`. Example: `{"id": "qwen3-32b", "version": "2026-08"}` |
 | `cost` | `object` | req | checked |  | What the call spent. The gate checks it against the Binding's `budget` |

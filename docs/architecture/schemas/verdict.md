@@ -32,6 +32,7 @@ Extends [common](common.md), with `scope.candidate_id`, which names the Candidat
 | `checks_run[].runner_sha256` | `sha256` | req | checked |  | Which runner code ran it |
 | `checks_run[].result` | `enum(pass, fail, unknown)` | req | checked |  | `unknown` when it could not be evaluated; never counted as a pass (INV-8) |
 | `checks_run[].evidence` | `list<EvidenceRef>` | opt | checked |  | The test calls behind the result |
+| `checks_run[].judge` | `object` | opt | checked |  | For a judged check: `{judge_decl_hash, model}`, the admission judge that ran it (policy `levels.admission_judge`), as in the [Verification](verification-record.md)'s `results[].judge`. Never the capsule's own `decl_hash` |
 | `level` | `enum(provisional, certified, exempt)?` | req | checked |  | Where it may run; null unless `outcome` is `admit`. `certified` (Unlocks: certification) and `exempt` (Unlocks: exempt agents) are unchecked in M1, so every capsule admitted in M1 is `provisional` |
 | `test_suites` | `list<Ref(test_suite)>` | req | checked |  | The suites it was checked with: the visible suite admission built from the Candidate's tests, and any sealed suites. This is how a capsule's latest tests are found |
 | `environment` | `object` | opt | unchecked | isolated verification | Where admission ran the tests, so a result can be reproduced |

@@ -18,7 +18,7 @@ tags: [design, draft, b1]
 - **A gate that does not pass stops the run.** The run ends with the failed gate named in the error. Where the person sees it is open (question 4).
 - **An unclear request is not a failure.** If the accepted IntentIR has a blocking ambiguity, control code ends the run with a clarify message that quotes the question. The fault is the input's, not the system's.
 
-**Only dispatch is task-specific.** To swap `count_spaces` for another capsule, you change the allowed-capsule list in the policy, the capsule folder and the step's checks. The stage code stays the same. The research stages (search, screening, hypothesis, POC, benchmark, report) come later as dispatch capsules; see [the M1 design](m1-design.md).
+**Only dispatch is task-specific.** To swap `count_spaces` for another capsule, you change the allowed-capsule list in the policy, the capsule folder and the step's checks. The stage code stays the same. The research stages (search, screening, hypothesis, POC, benchmark, report) come later as dispatch capsules; the [past M1 design](m1-design.md) sketched them, but it is no longer current.
 
 **What goes in and out is known; how each capsule works inside is not.** A capsule's job may grow. In the original workflow, intent compilation was several modules: normalise, compile, an independent fidelity review, then the acceptance gate. B1 starts it as one capsule and one gate, and the capsule's ports fix what goes in and out, so its inside can change later.
 

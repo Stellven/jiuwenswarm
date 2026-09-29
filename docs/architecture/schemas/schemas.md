@@ -5,6 +5,8 @@ tags: [index, schema]
 
 # The core schemas
 
+**Nothing here is approved yet.** Every page in this folder, and the Declaration on its own page, is `draft` or `proposed`, not `v1`. The items below are decisions to have ready for whenever a real review happens. They are not gates blocking anything today. See [the invariants](invariants.md#change) for what `v1` will mean once a page actually reaches it.
+
 ## For reviewers
 
 1. **Exception handling (proposed):** accept `guarantees.failure_modes`, INV-19, `CAPSULE_RAISED_UNDECLARED` and Artifact `issues`: yes or no. Without them, M1 records every capsule exception as `CAPSULE_ERROR` and folds it to `blocked`.
@@ -130,5 +132,7 @@ flowchart LR
 - A Candidate field naming the epoch it asks to be admitted under.
 - A verifiable `Check.author`; today it is self-declared.
 - A reader for v1.x records newer than itself; INV-14 refuses unknown fields.
+- A tool that compares what a capsule declared (`changes.effects`) against downstream evidence of what it actually touched, writing the result into `Observation.effects_observed`. Muk has reviewed a similar mechanism elsewhere and confirmed this is worth building. Not scheduled, but it will exist.
+- A tool, run by the planner or binder, that uses `changes.effects[].idempotent` and `Common.idempotency_key` together to skip re-dispatching a call that already ran with the same inputs. The fields already exist; nothing reads them together yet to make that call. Not scheduled, but it will exist.
 
 `SCHEMA.md` v2.10b stays as the reasoning; where it disagrees with an approved page, the page wins.
