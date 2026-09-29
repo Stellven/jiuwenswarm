@@ -7,7 +7,7 @@ tags: [schema]
 
 # Standing · `cc.standing.v1`
 
-The one moving pointer in the library: for each capsule name, which version is current and in what state. It is a log. Each move is a new entry, and the entry with the highest `seq` for a name is the current Standing. Its writer is fixed by `state` (INV-3): admission writes `admitted` when it admits a version; the librarian (unchecked in M1) writes every other state and every revert. Entries are keyed by name and `seq`, so two entries cannot claim the same `seq`.
+The one moving pointer in the library: for each capsule name, which version is current and in what state. It is a log. Each move is a new entry, and the entry with the highest `seq` for a name is the current Standing. Its writer is fixed by `state` (INV-3): admission writes `admitted` when it admits a version, or `admitted_inactive` for an RSI child whose parent has `evolution.rsi: propose`; the librarian (unchecked in M1) writes every other state and every revert, including a person's activation of an `admitted_inactive` version. Entries are keyed by name and `seq`, so two entries cannot claim the same `seq`.
 
 **Rules:** INV-2 (entries are never edited), INV-3.
 

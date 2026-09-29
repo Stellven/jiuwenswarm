@@ -18,9 +18,9 @@ Extends [common](common.md), with `scope.candidate_id` equal to its own `id`.
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
 | `submitted_by` | `object` | req | checked |  | Who answers for the submission |
-| `submitted_by.kind` | `reg(submitter_kind)` | req | checked |  | `author`, `rsi` or `importer` |
+| `submitted_by.kind` | `reg(submitter_kind)` | req | checked |  | `author`, `rsi`, `importer` or `composer` |
 | `submitted_by.id` | `string` | req | checked |  | An author's handle, an RSI run id, or an importer's name. Example: `author-17` |
-| `declaration` | `json` | req | checked |  | The [Declaration](declaration.md) being submitted, in full |
+| `declaration` | `json` | req | checked |  | The [Declaration](../capsule/fields.md) being submitted, in full |
 | `files` | `list<object>` | req | checked |  | The code the Declaration's `carrier` or `body` names. Admission hashes each file again and refuses a mismatch |
 | `files[].path` | `string` | req | checked |  | Relative to the capsule root. Example: `pdf_text.py` |
 | `files[].sha256` | `sha256` | req | checked |  | The file's hash |

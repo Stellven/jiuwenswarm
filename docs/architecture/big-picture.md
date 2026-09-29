@@ -87,13 +87,13 @@ flowchart TB
     style DISPATCH fill:#FFF4DC,stroke:#B86E00,stroke-width:3px
 ```
 
-**Key** (as in B1 and M1): amber stadium = a capability capsule. Purple dashed hexagon = a gate. White box = control code. Brown = the library or an object. White flag = a person. Orange box = the dynamic dispatch stage. Thick arrow = binding.
+Key as in [B1](b1-design.md#the-pipeline).
 
 - **The stages around dispatch stay the same as in B1 and M1:** intake, intent compilation, requirement compilation, then delivery. What changes is how dispatch is filled.
 - **The planner and selector fill dispatch at runtime.** The selector offers the admitted capsules that fit the contract. The planner orders them, possibly in parallel, and the binder pins each node by hash.
 - **Every capsule is still followed by its gate.** A gate can halt the run, or send it back to the planner for a new plan.
 - **A composite capsule** is a capsule made of other capsules. It is pinned and gated like any other.
-- **Selection picks capsules, never models.** There is no central library of models. Whether a capsule uses a model, and whether that model is routed at runtime, is its author's choice and its author's job, inside the capsule. The capsule layer never sees a model router.
+- **Selection picks capsules, never models** (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)).
 
 ## The cold paths after M1
 
@@ -128,7 +128,7 @@ flowchart TB
 
 - **RSI grows the system in two ways:** new capsules let it do more, and better capsules let it do the same things well. Capsules are isolated and testable one at a time, so each change is tested on its own capsule.
 - **Import brings in outside capabilities.** A tool, skill or MCP server is drafted into a Declaration with tests, verified in isolation, and then admitted like any other capsule.
-- **The library also screens capsules that are bad together.** Two capsules can each pass admission and still fail as a set. The library searches for such sets from their Declarations, confirms them in a sandbox, and records a Finding, so the selector avoids them. See [When good capsules are bad together](capsule/interactions.md).
+- **The library also screens capsules that are bad together.** Two capsules can each pass admission and still fail as a set. The library searches for such sets from their Declarations, confirms them in a sandbox, and records a Finding, so the selector avoids them. See [When good capsules are bad together](capsule/library.md#when-good-capsules-are-bad-together).
 - **The librarian closes the loop.** It measures how capsules behave in real runs, lowers the Standing of those that drift, and its Findings tell RSI where to work next.
 - **Stores and repositories** are the end point: admitted capsules shared with other systems, each carrying its Declaration, checks and Verdict.
 
@@ -136,15 +136,15 @@ flowchart TB
 
 Each workstream builds one part of the pictures above, and meets the others only at a named interface.
 
-| Workstream | Where it sits in the pictures | Its interface to the rest |
-|---|---|---|
-| Capability Capsule | the capsules, the CC runner, admission and the library at the middle of the three loops | the Declaration; admission; the Binding |
-| Verifier | every gate after a capsule, both tiers; and benchmarking, which measures the whole platform against native openJiuwen | the Verification record and its verdicts; reads the records of runs |
-| RSI | the RSI cold path, attached to the library | reads Findings, Observations, lineage and test suites; sends Candidates to admission |
-| RSI data foundation | feeds the RSI cold path | sample runs and fixtures |
-| Verifier fine-tuning | the model behind the tier 2 judge | a new version of the verifier capsule, through admission |
-| Model routing | inside capsules whose authors want a routed model; not in the pipeline or the capsule layer | none with the capsule layer: a capsule's own code calls the router |
-| Planner | fills the dispatch box at runtime | reads the contract and the selector's offer; writes the plan |
+| Workstream | Where it sits in the pictures | In M1 | Its interface to the rest |
+|---|---|---|---|
+| Capability Capsule | the capsules, the CC runner, admission and the library at the middle of the three loops | the six core capsules in the `make_capsule.md` contract, with rubrics ported from sciencediscovery and strict JSON payloads; the CC runner; admission | the Declaration; admission; the Binding |
+| Verifier | every gate after a capsule, both tiers; and benchmarking, which measures the whole platform against native openJiuwen | the Evaluator gate: the two tiers and the PRD's five gate outcomes; a three-phase benchmark against native openJiuwen | the Verification record and its outcomes; reads the records of runs |
+| RSI | the RSI cold path, attached to the library | mutation in an offline sandbox, against static contracts and hidden fixtures | reads Findings, Observations, lineage and test suites; sends Candidates to admission |
+| RSI data foundation | feeds the RSI cold path | the data and fixtures RSI works on | sample runs and fixtures |
+| Verifier fine-tuning | the model behind the tier 2 judge | tuning the model behind the tier 2 judge | a new version of the verifier capsule, through admission |
+| Model routing | inside capsules whose authors want a routed model; not in the capsule layer (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)) | on the main branch, the Codex CLI adapter over one subscription. On an isolated branch, a multi-model router against simulated endpoints until enterprise keys arrive | none with the capsule layer |
+| Planner | fills the dispatch box at runtime | the Cluster Mode planner, tested against offline scenarios; the Leader Agent for intent compilation. It may replace the fixed DAG after M1 | reads the contract and the selector's offer; writes the plan |
 
 Because the parts meet only at these interfaces, each workstream can build and test its part on its own.
 

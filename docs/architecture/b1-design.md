@@ -9,11 +9,11 @@ tags: [design, draft, b1]
 
 **What B1 is:**
 
-- **One straight line.** Every node runs once, in a fixed order: no branching, no retries, no repair loops. The engine retries an `agent()` call when the backend raises, when a `timeout` option expires, or when the result fails the schema passed to `agent()`. So the CC backend never raises, sets no `timeout`, and returns an envelope that always matches that schema. The engine's retries then never fire.
+- **One straight line.** Every node runs once, in a fixed order: no branching, no retries, no repair loops. The engine's own retries never fire; see the runner's [gate step](#the-cc-runner-how-capsules-plug-into-jiuwenswarm).
 - **The same components as the full workflow:** intake, intent compilation, requirement compilation, planner-binder, freeze, dispatch and delivery.
   - Planner-binder and freeze are **pass-throughs**: they make no choices. There is no library, no selector for binding and no planner. So there is also no admission gate: a person adds each capsule to a fixed capsule folder by hand (see [How capsules get into B1](#how-capsules-get-into-b1-by-hand)).
 - **A capsule and a gate where work is done.**
-  - A **capability capsule (CC)** makes one object and decides nothing. It is a model call with deterministic post-checks, or plain code for a pure task.
+  - A **capability capsule (CC)** in B1 makes one object. It is a model call with deterministic post-checks, or plain code for a pure task. Every B1 gate is deterministic code; in general a gate may itself be a capsule ([rules](capsule/capsule.md#rules)).
   - A **gate** is deterministic code. It checks that object and decides whether the run goes on.
 - **A gate that does not pass stops the run.** The run ends with the failed gate named in the error. Where the person sees it is open (question 4).
 - **An unclear request is not a failure.** If the accepted IntentIR has a blocking ambiguity, control code ends the run with a clarify message that quotes the question. The fault is the input's, not the system's.
@@ -58,7 +58,7 @@ flowchart TB
     style DISPATCH fill:#FFF4DC,stroke:#B86E00,stroke-width:3px
 ```
 
-**Key** (as in the M1 map): amber stadium = a capability capsule. Purple dashed hexagon = a gate: deterministic code that decides. White box, purple border = control code. White box, dashed orange border = a pass-through that makes no choices. Brown = an object or the capsule folder. Pale dotted = the capsule code, kept by hash. Orange box = the dynamic dispatch stage. Thick arrow = binding. White flag = the researcher.
+**Key** (for every diagram in B1, M1 and the big picture): amber stadium = a capability capsule. Purple dashed hexagon = a gate: deterministic code that decides. White box, purple border = control code, or new CC code. White box, dashed orange border = a pass-through that makes no choices. Brown = an object, a store or the capsule folder. Pale dotted = the capsule code, kept by hash. Orange box = the dynamic dispatch stage. Thick arrow = binding. White flag = the researcher or another person. Blue = an agent. Grey = jiuwenswarm or agent-core, already built. Grey dashed = not built yet.
 
 **Two kinds of stage.** Intake, intent compilation, requirement compilation, planner-binder, freeze and delivery are always in the pipeline. **Dispatch**, the boxed stage, is dynamic: which capsules run there, and in what order, is set at runtime by the plan. In B1 the plan is fixed at one step, so dispatch holds one capsule, `count_spaces`. A later planner changes what goes in the box, not the stages around it. Inside dispatch, every capsule is followed by its own gate.
 
@@ -124,7 +124,7 @@ flowchart LR
     classDef off fill:#F2F2F2,stroke:#A0A0A0,stroke-width:1.5px,stroke-dasharray:4 4,color:#8a8a8a
 ```
 
-Grey dashed = not built in B1. Blue = an agent in the RSI tree.
+Key as above: grey dashed = not built in B1.
 
 ### The RSI tree: from a Declaration to a capsule
 
@@ -186,7 +186,7 @@ flowchart TB
 
 It plugs in through one existing interface. agent-core's Swarmflow engine runs a script and hands every `agent()` call to a backend (`AgentBackend`). The CC runner is that backend. So the engine drives the pipeline, and the runner handles each capsule call.
 
-**A run starts on the chat stream.** A new branch in the Codex chat adapter (`CodexSubscriptionAdapter`, in the agent server) starts a CC run when a `chat.send` request carries a CC-run flag. The existing stream already carries deltas, the final answer, history and interrupt. The run must live in the agent server: that process holds the only signed-in Codex child for the profile, behind a file lock.
+**A run starts on the chat stream.** A new branch in the Codex chat adapter (`CodexSubscriptionAdapter`, `interface_codex.py:33-49`, in the agent server) starts a CC run when a `chat.send` request carries a CC-run flag. The flag can be `enable_swarmflow`, which every `chat.send` already carries and Codex mode ignores today, or a new `cc_run` flag. The existing stream already carries deltas, the final answer, history and interrupt. The run must live in the agent server: that process holds the only signed-in Codex child for the profile, behind a file lock.
 
 ```mermaid
 flowchart LR
@@ -224,7 +224,7 @@ flowchart LR
     classDef rec fill:#E6CFB6,stroke:#6E3F12,stroke-width:2px,color:#1a1208,font-weight:bold
 ```
 
-**Key:** grey = jiuwenswarm or agent-core, already built. White with purple = new CC code: the launcher and the runner. Purple dashed = the gate. Amber = capsule code. Brown = stored objects.
+Key as above. White with purple here = new CC code: the launcher and the runner.
 
 **What the runner does on every call:**
 
@@ -235,14 +235,14 @@ flowchart LR
 
 **One handler per kind.** What the runner can do for a capsule depends on the capsule's `kind` field. Each kind has its own handler, and a handler gives the runner the capabilities that kind needs. B1 builds two.
 
-| `kind` | The handler gives the runner | M1 |
+| `kind` | The handler gives the runner | M1 ([checked or unchecked](capsule/stages.md)) |
 |---|---|---|
 | `skill` | a model turn: the capsule's files plus its inputs as the prompt, its output schema stated in the prompt as the reply format, JSON parsed from the reply | checked; built in B1 |
 | `tool` | a Python call to the pinned code, with typed inputs and outputs | checked; built in B1 |
 | `prompt_section` | text inserted into another capsule's model turn | checked; not needed in B1 |
 | `mcp`, `a2a` | a call to a remote MCP tool or A2A agent, pinned by endpoint and version | unchecked |
 | `subagent`, `agent_template` | starting an agent for one task | unchecked |
-| `composite` | running member capsules as `structure` and `wiring` say | unchecked |
+| `composite` | running member capsules as `members` and `wiring` say | unchecked |
 
 A new kind means a new handler in the runner. The capsules, the gate and the pipeline stay the same.
 
@@ -338,7 +338,7 @@ flowchart TB
     classDef rec fill:#E6CFB6,stroke:#6E3F12,stroke-width:2px,color:#1a1208,font-weight:bold
 ```
 
-**Key:** grey = jiuwenswarm or agent-core, already built. White with purple = new CC code. Amber = a capsule. Purple dashed = a gate. Brown = files on disk. Dashed edge = option A, a separate adapter entry, not used in B1.
+Key as above. Brown here = files on disk. Dashed edge = option A, a separate adapter entry, not used in B1; see [File-level hooks](#file-level-hooks).
 
 **The hops.** Paths: `J/` is `jiuwenswarm/jiuwenswarm/` at `6d8c89e12`, `FE/` is `J/channels/web/frontend/src/`, and `A/` is agent-core `openjiuwen/`. **[pin]** `A/` lines are from `e23806c1`, not the pin `9e339019`.
 
@@ -357,8 +357,7 @@ flowchart TB
 
 **How to read it:**
 
-- **Only the agent server holds CC code.** The browser, web proxy and gateway stay as they are. Option A would change them too: a `ReqMethod` value, the gateway's forward sets and a frontend caller.
-- **The flag can be the one the chat already sends.** Every `chat.send` carries `enable_swarmflow`, and Codex mode ignores it today. A new `cc_run` flag works the same way.
+- **Only the agent server holds CC code.** The browser, web proxy and gateway stay as they are. The run entry and its flag are [above](#the-cc-runner-how-capsules-plug-into-jiuwenswarm).
 - **`count_spaces` is a Python call.** It has no edge to the model adapter.
 - **Intake, planner-binder, freeze and delivery are plain code** in the script or the launcher. They make no `agent()` calls, so they are not engine nodes.
 - **The gates return to the engine's schema check.** The envelope always passes it; the gate has already checked the port.
@@ -369,7 +368,7 @@ flowchart TB
 **What we imagine.** There are two layers, joined by ids:
 
 - **CC records: the source of truth.** Every capsule call writes an Observation, every gate a Verification, and every value an Artifact. Each Binding is kept. Records are never sampled and never expire. They answer "what ran, on which exact code, with what result", and they are what RSI, the librarian and benchmarking read later.
-- **Traces: for debugging.** The runner opens one OpenTelemetry span per capsule call, using agent-core's span conventions. The span carries our `run_id` as `openjiuwen.run.id`, plus `cc.obs_id`, `cc.decl_hash`, `cc.caller` and `cc.outcome`. The Observation keeps the span's `trace_id` and `span_id` (unchecked at M1). Spans can be sampled and can expire. They link to records; they never replace them.
+- **Traces: for debugging.** The runner opens one OpenTelemetry span per capsule call, using agent-core's span conventions. The span carries our `run_id` as `openjiuwen.run.id`, plus the `cc.*` attributes listed on the [Observation](schemas/observation.md#reuse) page. The Observation keeps the span's `trace_id` and `span_id` (unchecked at M1). Spans can be sampled and can expire. They link to records; they never replace them.
 
 ```mermaid
 flowchart LR
@@ -413,23 +412,33 @@ flowchart LR
 
 | B1 piece | In jiuwenswarm or agent-core | Status |
 |---|---|---|
-| Run entry | a CC-run branch in `CodexSubscriptionAdapter` (`interface_codex.py:33-49`), in the agent server, on the existing `chat.send` stream. The flag can be `enable_swarmflow`, which the chat already sends and Codex mode ignores, or a new one. Only the agent server can hold the run: the signed-in Codex child is locked to one process per profile | new branch in an existing adapter |
+| Run entry | a CC-run branch on the `chat.send` stream; see [A run starts on the chat stream](#the-cc-runner-how-capsules-plug-into-jiuwenswarm) | new branch in an existing adapter |
 | The pipeline | a Swarmflow script run by agent-core `run_workflow(path, backend=...)`, one `agent()` call per capsule, a fresh `run_id` per launch. Nothing in jiuwenswarm calls `run_workflow` today; Swarmflow there is team-only | the engine exists; nothing calls it this way yet |
 | Capsule calls | CC's runner as the engine's `AgentBackend`. The engine's resume signature covers only the prompt, `label`, `phase`, `model` and the schema, not `options`. So the capsule name, its `decl_hash` and the input hashes go in the prompt or `label`; otherwise a run is never resumed. `compile_intent` and `compile_requirement` are one model turn each; `count_spaces` is a Python call | new backend on an existing interface |
-| Gates | inside the CC backend, right after the runner writes the Observation. The gate checks the output against its port. The backend returns an envelope with the value and the decision, which always matches the schema passed to `agent()`, and never raises. The script raises when `agent()` returns `None` or the decision is not `pass` | new |
+| Gates | inside the CC backend, right after the runner writes the Observation. The envelope rule is in the runner's [gate step](#the-cc-runner-how-capsules-plug-into-jiuwenswarm). The script raises when `agent()` returns `None` or the decision is not `pass` | new |
 | The model | one model through the Codex subscription runtime, which is text-only. Each call is a text turn through `SubscriptionService.stream` on a fresh synthetic session id, such as `cc:<run_id>:<call hash>`. Each id stays in `subscription/bindings.json` for good, and every turn gets the chat's fixed developer instructions. The backend parses JSON from the reply. The text/JSON port with an `outputSchema`, proposed in AI4R-001, is the clean version | works now as text turns; the port is proposed |
-| Budget | the engine's `budget` counts tokens only, and Codex reports none. The time budget per call is enforced by the runner, not by an engine `timeout` | runner only |
+| Budget | time only; see the Model usage connector in [Observability and traces](#observability-and-traces) | runner only |
 | The document | read by intake from the workspace input directory. Chat attachments are refused on this runtime (`interface_codex.py:41`) | new |
 | Stopping | the script raises and the run ends with the gate named in the error. `human_session` needs a backend with sessions; only the team backend has one, and this runtime does not start it. There is also no reply path: the browser can show a Swarmflow question, but the Codex adapter refuses the answer (`interface_codex.py:67-70`) | B1 stops and shows the failure |
 | Capsule folder and records | files beside jiuwenswarm's own logs, under the profile folder | new |
 
-The file-level details are in [A possible first design](first-design.md).
+### File-level hooks
+
+Paths and commits are as in [the hops](#through-jiuwenswarm-the-deep-view); **[pin]** applies to the agent-core lines.
+
+- **Option A: a separate run entry.** Instead of the chat-stream branch, a new adapter method, such as `cc.run.start`, is registered in the agent server beside `CodexAccountAdapter` (`server/agent_ws_server.py:1133-1135`), on the `GatewayAdapter` pattern (`server/runtime/gateway_adapter/base.py:30`). The gateway only forwards it (`gateway/app_gateway.py:2159-2191`). Adapters return one reply, so it starts a background run, returns `{run_id}`, and pushes progress and the answer with `send_push`. It also changes the browser and gateway: a `ReqMethod` value, the gateway's forward sets and a frontend caller. B1 does not use it.
+- **Record keys.** CC records go in `cc/` under the profile root (`JIUWENSWARM_DATA_DIR`, `common/utils.py:416`), keyed `cc/<kind>/<scope>/<id>` and written with `exclusive_set` (`core/foundation/store/base_kv_store.py:42`).
+
+| CC piece | Hooks into (file:line) | Reuse or new |
+|---|---|---|
+| Tool capsule | agent-core `LocalFunction` (`core/foundation/tool/function/function.py:48`) | reuse |
+| Checks and gate | Symphony `Evaluator` (`symphony/evaluation/base.py:139`); engine `verify()` (`primitives.py:882`) returns pass, fail or undecided from reviewer votes (`engine/verify.py:83`), not per-check results, so unused | new |
 
 ## What B1 uses from the schemas
 
 | Schema | Used in B1 for |
 |---|---|
-| [Declaration](schemas/declaration.md) | the three capsules' ports, preconditions, effect class and checks |
+| [Declaration](capsule/fields.md) | the three capsules' ports, preconditions, effect class and checks |
 | [Check](schemas/checks.md) | the checks the gates run; the test cases the RSI tree writes |
 | [Policy](schemas/policy.md) | the one policy file every Binding pins |
 | [Port types](schemas/port-types.md) | `raw_intent`, `intent_ir` and `semantic_contract` as domain types, and `text` and `integer`, each with its checks |
@@ -449,3 +458,7 @@ The file-level details are in [A possible first design](first-design.md).
 5. **"Good enough" in the RSI tree.** Every test passing is the floor. Whether RSI also needs a judged quality bar, and who writes the tests' own checks, is for the RSI tree to decide.
 6. **Known risk: one Codex child for every session.** A failed, timed-out or cancelled turn closes the shared transport (`service.py:197-208`), which kills the Codex child. That breaks the user's own chat turn too, and the reverse. So the model adapter never cancels a turn mid-stream, and a CC call can still fail because of a chat turn.
 7. **The workflow tree outside team mode.** The browser's run panel is mounted in the non-team view and reads `workflow.updated`. Whether it renders a CC run has not been run.
+8. **The agent-core pin.** jiuwenswarm pins agent-core `9e339019` (`pyproject.toml:20`). The agent-core lines here were read at `e23806c1` and need a re-check at the pin.
+9. **Structured output.** `outputSchema` is in the App Server protocol, but the AI4R-001 plan's research proves syntax only.
+10. **Restart.** A restart forces `NEW_SESSION_REQUIRED`. Does a CC run resume from the journal or restart?
+11. **Naming.** In `service.py`, `bindings` maps sessions to threads. A CC Binding pins capsules.

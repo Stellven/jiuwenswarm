@@ -5,69 +5,29 @@ tags: [reference, index]
 
 # Terms
 
-Terms used in `read/`, and where each is defined.
+Where each term is defined. Each definition lives on one page only; this is an index.
 
-## The capsule
+| Term | Defined in |
+|---|---|
+| Capability capsule (CC, 能力胶囊), kind, control code, gate | [Capability Capsule](../capsule/capsule.md) |
+| Declaration, carrier, body, remote, members, wiring, predicate (`needs.when`), effect class, failure mode, lineage, `decl_hash`, `interface_hash`, `code_sha256` | [Declaration](../capsule/fields.md) |
+| M1, checked, unchecked, Unlocks | [Checked and unchecked at M1](../capsule/stages.md) |
+| Singleton, composite, fusion, spatiotemporal composability | [Composition](../capsule/composition.md) |
+| Author kit, admission, runner, check runner, library store, lineage index, librarian, RSI submitter, selection index, cost meter, importer, isolated verification sandbox, store, composer, remover | [Tools](../capsule/tools.md) |
+| RSI (recursive self-improvement), RSI permissions | [RSI](../capsule/rsi.md) |
+| Level, trust | [Trust](../capsule/trust.md) |
+| Library, admission, test storage, librarian, three clocks, sprint | [Library](../capsule/library.md) |
+| Generalist | [Generalist](../capsule/generalist.md) |
+| Observation, quality, fingerprint | [Observability and quality](../capsule/observability.md) |
+| Port, port type | [Port type vocabulary](../schemas/port-types.md) |
+| Check, test case, test suite, sealed suite | [Checks](../schemas/checks.md) |
+| Candidate, Verdict, Standing, Binding, Observation, Artifact, Verification, Finding | the [records table](../schemas/schemas.md#the-records) and each record's page |
+| Policy, epoch, registry, reason code | [Policy](../schemas/policy.md) |
+| Invariants (INV-n), type grammar, hash | [Invariants](../schemas/invariants.md) |
 
-| Term | What it is | Where |
-|---|---|---|
-| **Capability capsule (CC, 能力胶囊)** | one capability the system can run, described by a Declaration and referred to by its code's hash. "CC" also names the schema | [capsule](../capsule/capsule.md) |
-| **Declaration** | the capsule's contract: identity, ports, needs, changes, guarantees. The one record the author writes | [declaration](../schemas/declaration.md) |
-| **Kind** | the form of the capability: `tool`, `skill`, `prompt_section`, `mcp`, `a2a`, `subagent`, `agent_template`, `composite` (unchecked). | [capsule](../capsule/capsule.md#kinds-of-capsule) |
-| **Carrier, body, remote, members** | where the code is: one entry point, a list of hashed files, a remote service pinned by endpoint and version, or pinned member capsules | [declaration](../schemas/declaration.md) |
-| **`decl_hash`** | hash of the whole Declaration, v1.0 defaults filled in: one version's identity | [declaration](../schemas/declaration.md) |
-| **`interface_hash`** | hash of what tests depend on | [declaration](../schemas/declaration.md) |
-| **`code_sha256`** | hash of the capsule's code, checked before every load | [declaration](../schemas/declaration.md) |
-| **Port, port type** | a named, typed input or output; every type has a check | [port types](../schemas/port-types.md) |
-| **Predicate, `needs.when`** | a precondition on the state | [declaration](../schemas/declaration.md) |
-| **Effect class** | the author's promise about state and undo, from `pure` to `irreversible` | [declaration](../schemas/declaration.md) |
-| **Failure mode** | a declared way to end without an output (`guarantees.failure_modes`). Any other exception is `CAPSULE_RAISED_UNDECLARED` (INV-19, proposed); at M1 an exception is `CAPSULE_ERROR`. Unchecked at M1 | [declaration](../schemas/declaration.md) |
-| **Lineage** | each version's `parent_hash` and `relation`; `merges` with `co_parent_hashes` makes the tree a graph | [declaration](../schemas/declaration.md) |
-| **Composite, fusion** | a capsule that pins other capsules as `members`; fusion would rewrite them into one pass (a proposal) | [composition](../capsule/composition.md) |
+## openJiuwen pieces named in these pages
 
-## Milestone marks
-
-| Term | What it is | Where |
-|---|---|---|
-| **M1** | the PRD's first milestone. Every field row has an M1 column | [stages](../capsule/stages.md) |
-| **checked** | required for M1 and tested for M1 completion | [common](../schemas/common.md) |
-| **unchecked** | in the shared schema: type-checked and hashed when present, but not required or tested for M1 | [common](../schemas/common.md) |
-| **Unlocks** | names what reads an unchecked field, such as RSI or budgets | [stages](../capsule/stages.md) |
-
-## Records and rules
-
-| Term | What it is | Where |
-|---|---|---|
-| **Candidate** | a submission: Declaration, files, tests | [candidate](../schemas/candidate.md) |
-| **Check** | one runnable test of one target | [checks](../schemas/checks.md) |
-| **Test case, test suite** | an input with its expected result; a hashed set of them | [checks](../schemas/checks.md) |
-| **Verdict** | admission's decision on a Declaration, with the checks run | [verdict](../schemas/verdict.md) |
-| **Standing** | the log of which version of a name is current, and its state. Names are local to a library; `decl_hash` is global | [standing](../schemas/standing.md) |
-| **Binding** | the pin for one call site of a run: version, checks, budget, verifier | [binding](../schemas/binding.md) |
-| **Artifact** | a stored value. Every capsule output is one | [artifact](../schemas/artifact.md) |
-| **Observation** | one capsule call: its `caller`, inputs, outcome and cost | [observation](../schemas/observation.md) |
-| **Verification** | the gate's record for one `dispatch` call: which checks ran on its output, and the `decision` | [verification](../schemas/verification-record.md) |
-| **Finding** | an observation about capsules, judges or an unmet need. Unchecked at M1 | [finding](../schemas/finding.md) |
-| **Finding (measurement)** | a Finding of kind `measurement`: cost, latency or pass rate measured from Observations, never authored | [finding](../schemas/finding.md) |
-| **Policy** | every rule, default and registry, as a pinned epoch | [policy](../schemas/policy.md) |
-| **Invariants** | the rules every schema obeys | [invariants](../schemas/invariants.md) |
-
-## Tools
-
-| Term | What it is | Where |
-|---|---|---|
-| **Control code** | code that decides. Never a capsule | [capsule](../capsule/capsule.md#rules) |
-| **Author kit** | checks and hashes a draft Declaration before submission | [tools](../capsule/tools.md) |
-| **Admission** | checks a Candidate, runs its tests, writes the Verdict and Standing | [tools](../capsule/tools.md) |
-| **Runner** | the one path for every capsule call | [tools](../capsule/tools.md) |
-| **Check runner, gate** | a check runner runs checks on an output; the gate folds the results into `pass`, `fail` or `blocked` | [tools](../capsule/tools.md) |
-| **Librarian** | keeps Standing current from evidence | [tools](../capsule/tools.md) |
-| **RSI** | recursive self-improvement: code that builds new capsule versions from evidence. Built on a separate branch that shares the schema | [fields](../capsule/fields.md#how-rsi-uses-a-capsule) |
-| **Remover** | retires or revokes a capsule; each effect's `undo` is text, applied by a person or a later tool | [tools](../capsule/tools.md) |
-| **Selection index** | finds capsules by summary and port type. It picks capsules, never models: a model, and any routing of it, is inside a capsule, the author's choice | [tools](../capsule/tools.md) |
-| **Importer, sandbox** | an importer turns an outside skill, tool, MCP server or A2A agent into a Candidate; the sandbox verifies it in isolation | [tools](../capsule/tools.md) |
-
-## openJiuwen pieces named in `read/`
+Defined nowhere else in this folder.
 
 | Term | What it is |
 |---|---|

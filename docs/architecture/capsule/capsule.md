@@ -5,108 +5,155 @@ tags: [capsule, index]
 
 # Capability Capsule
 
-A **capability capsule** (能力胶囊) describes one capability the system can run. The description is the **Declaration**: what the capability takes, gives, needs, changes and promises. The Declaration refers to the capability's code by the code's hash; it does not contain the code. CC itself runs nothing. [Tools](tools.md) read the Declaration and write records about the capsule.
+A **capability capsule** (能力胶囊) describes one capability the system can run. The description is the **[Declaration](fields.md)**: what the capability takes, gives, needs, changes and promises, and what RSI may do with it. It refers to the capability's code by the code's hash; it does not contain the code. CC itself runs nothing: [tools](tools.md) read the Declaration and write records about the capsule.
 
 > **A 能力胶囊 is flexible in form and strict in verification and quality assurance.**
 
+Five ideas:
+
+1. **It declares.** Every promise is stated before the capsule runs, so it can be checked and found wrong.
+2. **It points, never holds.** The Declaration names its code by hash, like a label on a box.
+3. **It is a graph.** Usually a **singleton**, one capability as a one-node graph; sometimes a composite, a graph of capsules.
+4. **Flexible in form, strict in checking.** A tool, a skill, an MCP tool, an agent, a gate or a delivery step all fit one schema, and all pass the same admission.
+5. **Nothing judges itself.** Tests that certify a capsule come from someone else, and the referee is protected.
+
+## Find your answer
+
+| Question | Page |
+|---|---|
+| What does a capsule hold? | [Declaration](fields.md): every field, with an [example](fields.md#example) |
+| How do I author a capsule from a tool I have? | [Authoring a capsule](authoring.md) |
+| Why does CC exist? | [Why CC](why.md) |
+| How do capsules combine? | [Composition](composition.md) |
+| Where are capsules and their tests stored, and how do they get in? | [Library](library.md) |
+| How much is a capsule trusted, and why? | [Trust](trust.md) |
+| How does the system improve or add capsules? | [RSI](rsi.md), [generalist](generalist.md) |
+| What is recorded when a capsule runs, and how is quality measured? | [Observability and quality](observability.md) |
+| What may a capsule touch in jiuwenswarm? | [Permissions](permissions.md) |
+| Which tool checks what? | [Tools](tools.md#which-tool-checks-each-field) |
+| What does M1 require? | [Checked and unchecked at M1](stages.md) |
+| Where do the ideas come from? | [References](references.md) |
+
+## One schema, many roles
+
+CC is a schema connected to a series of tools. The same Declaration serves every part of the system that touches a capability:
+
+| Role | What the Declaration gives it | Tool |
+|---|---|---|
+| selection | ports, preconditions, effect class, summary: what may be picked for a call | selection index, [Symphony](symphony.md) |
+| admission | hashes, checks, rules: what may enter the library | admission |
+| running | the code by hash, the kind: how to call it, and whether the code is the code that was tested | runner |
+| verification | checks on every output: what each gate checks | check runner, gate |
+| permissions | effects, network, dependencies, secrets: what a call may touch | [permission layer](permissions.md), sandbox |
+| the library | versions, lineage, test suites: what is stored and what is current | library store, librarian |
+| improvement | RSI permissions, lineage, parent suites: what may change and how it is tested | [RSI](rsi.md) |
+| composition | members and wiring: capsules made of capsules | composer |
+| observability and quality | the record of every call against its declaration ([observability](observability.md)) | runner, gate, librarian |
+| import and sharing | a Declaration for any outside tool, skill or server | importer, store |
+
+## This folder
+
+This folder is enough to understand CC. Each fact is stated once and linked from everywhere else.
+
+| Page | What it holds |
+|---|---|
+| [Why CC](why.md) | the problem, the evidence, what openJiuwen lacks |
+| this page | what a capsule is, its kinds, the rules, and everything it connects to |
+| [Declaration](fields.md) | what a capsule holds: every field, its type, and what it is for |
+| [Authoring](authoring.md) | how to turn a tool into a capsule, step by step |
+| [Composition](composition.md) | A, B, A-B and AB: capsules made of capsules |
+| [Library](library.md) | storage, the tree of versions, test storage, admission, a capsule's life, the librarian, screening sets |
+| [Observability and quality](observability.md) | the record of every call, declared against observed, and how quality is measured |
+| [Trust](trust.md) | trust levels, dependency pinning, what raises and lowers trust |
+| [RSI](rsi.md) | RSI permissions, improving capsules, building capsules from gaps |
+| [Generalist](generalist.md) | the low-trust capsule that fills gaps |
+| [Permissions](permissions.md) | how a capsule's declarations become jiuwenswarm permission rules |
+| [Symphony](symphony.md) | what agent-core's Symphony does, and how CC plugs into it |
+| [Tools](tools.md) | the tools around a capsule, and which tool checks each field |
+| [Checked and unchecked at M1](stages.md) | what M1 requires and tests, and what each unchecked field unlocks |
+| [References](references.md) | the papers and designs CC draws on |
+
 ## Kinds of capsule
 
-One schema covers every kind. The kind tells the runner how to call it.
+One schema covers every kind. The kind tells the runner how to call it and admission how to test it. The values are the `capsule_kind` registry in the [policy](../schemas/policy.md).
 
-| Kind | What it is |
-|---|---|
-| `tool` | a function or service called directly |
-| `skill` | a Markdown skill that a model follows; its files are hashed one by one |
-| `prompt_section` | a piece of prompt text inserted into a model call |
-| `mcp` | a tool exposed by an MCP server |
-| `a2a` | a remote agent reached over the A2A protocol |
-| `subagent` | an agent started for one task |
-| `agent_template` | a reusable agent definition |
-| `composite` (unchecked at M1) | a capsule made of other capsules; see [composition](composition.md) |
+| Kind | What it is | M1 |
+|---|---|---|
+| `tool` | a function or service called directly | checked |
+| `skill` | a Markdown skill that a model follows; its files are hashed one by one | checked |
+| `prompt_section` | a piece of prompt text inserted into a model call | checked |
+| `mcp` | a tool exposed by an MCP server | unchecked |
+| `a2a` | a remote agent reached over the A2A protocol | unchecked |
+| `subagent` | an agent started for one task | unchecked |
+| `agent_template` | a reusable agent definition, such as a [generalist](generalist.md) | unchecked |
+| `composite` | a capsule made of other capsules; see [composition](composition.md) | unchecked |
 
-Code we host is hashed file by file. A remote service we cannot hash (a remote MCP server, an A2A agent) is pinned by endpoint and version instead. That pin proves what was pinned, not what the service runs.
-
-## Where CC is going
-
-**Now:** a schema for our own system. Every capability the system uses is declared, checked, pinned and improved the same way.
-
-**Later:** a user installs a tool, skill or MCP server from anywhere. It goes through an isolated verification cycle and comes out as a capsule. Its Declaration, checks and [Verdict](../schemas/verdict.md) tell anyone what it does and how well. Capsules can then be shared through stores or repositories, each carrying its Declaration, checks and Verdict as evidence of what it does and how well.
+A kind says how a capsule runs, not what job it does. A gate, a verifier or a delivery step is a capsule of one of these kinds.
 
 ## Rules
 
-1. **A capsule declares** what it takes, gives, needs, changes and promises, in its [Declaration](../schemas/declaration.md).
-2. **It refers to its code by hash.** If the code changes, the hash no longer matches and the runner refuses to load it.
-3. **Declare first, then check.** Every promise has a [check](../schemas/checks.md). Every call is recorded as an [Observation](../schemas/observation.md). Authors declare each capability's effect class (how reversible its changes are); tools check that the declaration holds.
-4. **A capsule holds no task.** Which run uses which capsule is recorded outside it, in a [Binding](../schemas/binding.md).
-5. **Nothing that decides is a capsule.** Admission, gates and planners are control code. A capsule may assess an output and report a result; control code decides what happens next.
-6. **No capsule is its own final judge.** Admission runs the submitted tests itself. The builder's own results are kept but never count. Certifying a capsule needs tests written by someone else.
-7. **Some things are protected.** No capsule writes the gates, the test suites, the [policy](../schemas/policy.md) or the record stores. Model weights never change.
-8. **A capsule is a leaf or a composite, never both.** A leaf has its own code; a composite refers to other capsules.
-9. **A capsule's output is always an [Artifact](../schemas/artifact.md).** Control code writes the records.
+1. **Any node can be a capsule.** Work steps, gates, verifiers and delivery can all be capsules. What is not a node stays outside: admission, the library, the librarian and the record stores.
+2. **A capsule declares** what it takes, gives, needs, changes and promises, in its [Declaration](fields.md).
+3. **It refers to its code by hash.** If the code changes, the hash no longer matches and the runner refuses to load it.
+4. **Its dependencies are always pinned.** A dependency with a stated purpose may be re-pinned to a newer version by RSI, as a new version that passes admission ([RSI](rsi.md#updating-dependencies)).
+5. **Declare first, then check.** Every promise has a check, and every call is recorded as an [Observation](../schemas/observation.md). Authors declare each capability's effect class (how reversible its changes are); tools check that the declaration holds.
+6. **A capsule holds no task** (INV-7). Which run uses which capsule, and in what role, is recorded outside it, in a [Binding](../schemas/binding.md).
+7. **RSI is opt-in.** RSI may change a capsule only if its Declaration allows it ([RSI](rsi.md)).
+8. **Nothing judges itself** (INV-10). No capsule gates its own output; certifying needs tests written by someone else; gates and verifiers are not RSI-able for now ([trust](trust.md#referees)).
+9. **Some things are protected.** No capsule writes admission, the test suites, the [policy](../schemas/policy.md) or the record stores. Model weights never change.
+10. **Every capsule is a graph of capsules.** Most are **singletons**: one node, its own code. A composite has members instead. A capsule has its own code or members, never both ([composition](composition.md)).
+11. **A capsule's output is always an [Artifact](../schemas/artifact.md).** The runner writes the records.
+12. **Models are not part of the capsule layer.** Selection picks capsules, never models ([details](fields.md#needs-what-must-hold-and-what-it-uses)).
 
-A **gate** in these pages is control code that folds check results into `pass`, `fail` or `blocked`. The rules that fold them live in the policy.
+A **gate** folds check results into `pass`, `fail` or `blocked`, with the folding rules in the policy. A gate may be control code or a capsule. A gate capsule returns its decision as an Artifact, like any capsule; control code writes the Verification from it (INV-3).
 
-Admission gives a level: `provisional` (the capsule's own checks pass), `certified` (a sealed suite written by someone else also passes; unchecked at M1) or `exempt` (for capabilities that cannot be checked in advance; every call records a trajectory; unchecked at M1).
-
-## What CC does
-
-CC supports four verbs. Each is done by tools, not by the capsule.
-
-| Verb | What it means | What it reads |
-|---|---|---|
-| **Pick** | choose a capsule for a call, by its ports, effect class and current [Standing](../schemas/standing.md) | name, summary, ports, effect class, Standing |
-| **Verify** | prove the code that runs is the code that was tested, and that each output passes its checks | hashes, checks, output ports, effects |
-| **Improve** | build a new version from evidence; a version with the parent's interface must also pass the parent's tests | lineage, tests, Observations, [Findings](../schemas/finding.md) |
-| **Remove** | retire or revoke a capsule, and undo its effects where it declared how | Standing, `needs`, each effect's `undo` |
-
-## A capsule's life
+## What a capsule connects to
 
 ```mermaid
 flowchart LR
-    AU([author, importer or RSI]) -->|Candidate: Declaration, files, tests| ADM{{admission}}
-    ADM -->|Verdict, Standing| LIB[(library)]
-    LIB -->|current version| BND[a run pins it: Binding]
+    AU([author, importer, composer or RSI]) -->|Candidate: Declaration, files, tests| ADM{{admission}}
+    ADM -->|Verdict, test suites, Standing| LIB[(library)]
+    LIB -->|current version| BND[Binding: one node of a run]
     BND -->|decl_hash, code_sha256, checks, budget| RU[runner]
-    RU -->|Observation to check| GT{{gate}}
-    RU -->|Observation| OBS[(observations)]
-    OBS --> LBR[librarian]
-    LBR -->|moves Standing| LIB
-    OBS --> RSI[RSI]
-    RSI -->|new version, lineage.parent_hash| ADM
+    PERM[permission rules] --> RU
+    RU -->|output| ART[(Artifact)]
+    RU -->|call record| OBS[(Observation)]
+    ART --> GT{{gate}}
+    GT -->|Verification| LOG[(records)]
+    OBS --> LOG
+    LOG --> LBR[librarian]
+    LBR -->|Findings, moves Standing| LIB
+    LOG --> RSI[RSI]
+    LIB -->|lineage, test suites| RSI
+    RSI -->|child or new capsule, if permitted| ADM
 ```
 
-1. An author, an importer, or RSI (recursive self-improvement: code that builds new capsule versions from evidence), submits a [Candidate](../schemas/candidate.md): a Declaration, the files and tests.
-2. **Admission** checks the Declaration, hashes the files again, runs the tests and writes a Verdict. If it admits the capsule, it adds a Standing entry to the **library**, the store of admitted capsules keyed by hash.
-3. A run **pins** one capsule version for one call in a [Binding](../schemas/binding.md): its `decl_hash`, `code_sha256`, checks, budget and verifier.
-4. The **runner** checks the hashes, calls the capsule, stores its output as an Artifact, writes an Observation and asks the gate to check the output.
-5. The librarian and RSI are unchecked at M1. The **librarian** reads Observations and Findings over time and moves the Standing. RSI reads the same records and submits a new version, which starts again at admission.
+| Connects to | What it is to a capsule |
+|---|---|
+| [Candidate](../schemas/candidate.md) | how a capsule is submitted: its Declaration, files and tests |
+| [Verdict](../schemas/verdict.md) | admission's decision on one version, with its trust level |
+| [Test cases, test suites](../schemas/checks.md) | the stored tests that re-run for every child |
+| [Standing](../schemas/standing.md) | which version of a name is current, and its state |
+| [Binding](../schemas/binding.md) | the pin that makes a capsule one node of a run |
+| [Observation](../schemas/observation.md) | the record of one call |
+| [Artifact](../schemas/artifact.md) | one value the capsule produced or used |
+| [Verification](../schemas/verification-record.md) | the gate's check of one call's output |
+| [Finding](../schemas/finding.md) | something learned later: a gap, drift, a measurement |
+| [Port types](../schemas/port-types.md), [policy](../schemas/policy.md), [invariants](../schemas/invariants.md) | the shared vocabulary, rules and defaults every capsule is checked against |
+| [Permissions](permissions.md) | the jiuwenswarm rules its declarations become |
+| [Symphony](symphony.md) | the index and planner that see admitted capsules |
+| Other capsules | as dependencies (`needs.external`), as members of a [composite](composition.md), as parents and children through lineage, and as [sets that may fail together](library.md#when-good-capsules-are-bad-together) |
 
-## How capsules let the system improve itself
+Who writes each record is in the [records table](../schemas/schemas.md#the-records).
 
-RSI (recursive self-improvement) is code that builds new capsule versions from evidence. Capsules give it two ways to make the system better:
-
-1. **More capsules, so the system can do more.** When the system authors a new capsule, for example to close a gap a Finding reports or by wrapping an outside tool, it can do something it could not do before. A capsule the system wrote goes through the same admission as one a person wrote.
-2. **Better capsules, so each thing it does gets better.** RSI submits a child of an existing capsule (`lineage.parent_hash`). A child with the same `interface_hash` must pass its parent's test suites as well as its own. A child that changes the interface needs new test cases and records the parent's suite as `inherited_from_hash`. The child becomes current only when admission admits it. The parent stays in the library for rollback.
-
-**Why capsules make this easier.** Each capsule is isolated and testable on its own: it has declared ports, effects and checks, and tests bound to its interface. A change can be tested on one capsule, against its own tests. How it fits a workflow is still checked at the gate. A version that fails its tests stops at admission, and live outputs are still checked at the gate. Every call leaves an Observation, so RSI can see which capsule to improve.
-
-RSI is built on a separate branch that shares this schema. Its fields are in the schema, but M1 does not require or test them.
+CC supports four verbs, each done by tools: **pick** a capsule for a call, by its ports, effect class and Standing; **verify** that the code that runs is the code that was tested, and that each output passes its checks; **improve** it by building a new version from evidence; **remove** it by retiring or revoking it, undoing its effects where it declared how.
 
 ## When a call goes wrong (proposed)
 
-A capsule should finish its job whenever it can. Three rules:
+A capsule should finish its job whenever it can. The rule is INV-19; this is what it means:
 
-1. **By default, complete the Declaration.** The capsule returns an output that matches its declared ports, even when the input is vague, contradictory or incomplete. It puts the difficulty inside the output as data: an ambiguity, an unknown, a partial result. The checks and the gate judge it. This is "label for quality": a weak result passes with a label, while a safety breach stops the call.
-2. **A declared failure mode is the only way to end without an output.** The capsule lists them in `guarantees.failure_modes`: each has a `reason_code` unique to the capsule, a `when`, and whether it is `retriable`. Codes are only ever added, never removed. The runner records the failure as an Observation with `outcome: error` and that code, and the policy folds it into `fail` or `blocked`.
-3. **An undeclared exception is a bug.** The runner records it as `CAPSULE_RAISED_UNDECLARED`, and the gate always folds it into `blocked`, never `pass` or `fail`. A capsule cannot turn a bug into a soft failure by raising.
+1. **By default, complete the Declaration.** The capsule returns an output that matches its declared ports, even when the input is vague, contradictory or incomplete. It puts the difficulty inside the output as data: an ambiguity, an unknown, a partial result. The checks and the gate judge it.
+2. **A declared failure mode is the only way to end without an output.** The capsule lists them in `guarantees.failure_modes`. The runner records the failure as an Observation with `outcome: error` and its code, and the policy folds it into `fail` or `blocked`.
+3. **An undeclared exception is a bug.** The runner records it as `CAPSULE_RAISED_UNDECLARED`, and the gate always folds it into `blocked`. A capsule cannot turn a bug into a soft failure by raising.
 
-Any output can also carry its caveats in a standard `issues` list on its Artifact. At M1, the gate folds any call that does not end `ok` into `blocked` (policy `gates`). The code `CAPSULE_RAISED_UNDECLARED`, `failure_modes` and `issues` are proposed and unchecked. They unlock automatic retries, fallbacks, quality labels, and RSI learning from failure types.
-
-## Read next
-
-- [What each field is for](fields.md)
-- [Tools](tools.md)
-- [Stages](stages.md)
-- [Composition](composition.md)
-- [A possible first design](../first-design.md): one way a first system could use CC.
-- [Terms](../background/terms.md)
+Any output can also carry its caveats in the `issues` list on its Artifact. At M1, an exception is `CAPSULE_ERROR`, and the gate folds any call that does not end `ok` into `blocked` (policy `gates`). These proposals are unchecked; they unlock retries, fallbacks, quality labels, and RSI learning from failure types.

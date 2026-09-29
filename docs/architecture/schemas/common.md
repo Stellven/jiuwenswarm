@@ -11,9 +11,7 @@ The fields every record carries and the shapes every schema reuses. It is not a 
 
 **Rules:** INV-1, INV-6, INV-14, INV-15.
 
-**Field tables.** Every schema page lists its fields with these columns: **Field**, **Type** (the grammar in the [invariants](invariants.md)), **Req** (`req` always present, `opt` may be absent), **M1**, **Unlocks** and **Description**. M1 means the PRD's first milestone.
-- **checked**: required for M1 performance and tested for M1 completion.
-- **unchecked**: part of the shared schema. When a value is present, admission validates its type and hashes it, but M1 neither requires it nor tests it. **Unlocks** names the tool or feature that reads it.
+**Field tables.** Every schema page lists its fields with these columns: **Field**, **Type** (the grammar in the [invariants](invariants.md)), **Req** (`req` always present, `opt` may be absent), **M1**, **Unlocks** and **Description**. **M1** and **Unlocks** are defined on [checked and unchecked at M1](../capsule/stages.md).
 
 A `req` field in an unchecked object or record is required only when that object or record is present.
 

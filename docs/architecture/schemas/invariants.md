@@ -45,7 +45,7 @@ Rules every schema obeys, cited as `INV-n`. `tools/sync.py` enforces the parts m
 | `enum(a, b)` | a closed set; a new value is v2 |
 | `reg(name)` | an open set from the policy registry `name`; a new value is a registry row |
 | `Ref(kind)` | `{id, sha256}` pointing at a record of that kind |
-| `EvidenceRef`, `Reason`, `Port`, `Predicate`, `Check` | shapes defined in [common](common.md), the [Declaration](declaration.md) and [Check](checks.md) |
+| `EvidenceRef`, `Reason`, `Port`, `Predicate`, `Check` | shapes defined in [common](common.md) and the [Declaration](../capsule/fields.md), which includes `Check` |
 | `list<T>`, `map<K, T>`, `object` | a list; an object keyed by `K`; an object whose fields are the rows below it, as `parent.child` |
 | `T?` | may be null |
 

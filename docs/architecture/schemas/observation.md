@@ -26,7 +26,7 @@ Extends [common](common.md). Its `scope` is `run_id`, or `candidate_id` for an a
 | `inputs` | `map<string, Ref(artifact)>` | req | checked |  | Port name to the Artifact that went in. Example: `{"pdf": {"id": "art-0003", "sha256": "..."}}` |
 | `outputs` | `map<string, Ref(artifact)>` | req | checked |  | Port name to the Artifact that came out; empty when the call failed |
 | `predicates` | `list<object>` | req | checked |  | The preconditions checked on fresh state just before the call. Each is `{predicate_id, result}`, with `result` `pass`, `fail` or `defer` |
-| `outcome` | `enum(ok, error, refused)` | req | checked |  | `refused` when the runner would not start the call (a changed hash, a failed precondition, a denied permission, a missing Binding) |
+| `outcome` | `enum(ok, error, refused)` | req | checked |  | `refused` when the runner would not start the call; the cases are listed on the [Binding](binding.md) page |
 | `reason` | `string?` | req | checked |  | Why, when `outcome` is not `ok`; otherwise null. A `reason_code` registry value. A failure outside the capsule uses a runtime code (`RUNTIME_UNAVAILABLE`, `TIMEOUT`), never a capsule code; an exception the capsule raises is `CAPSULE_ERROR`. *Proposed* (INV-19): for `error`, one of the capsule's `failure_modes[].reason_code`, and `CAPSULE_RAISED_UNDECLARED` for any other exception it raises. Example: `CARRIER_CHANGED` |
 | `seen_code_sha256` | `sha256` | opt | checked |  | On `CARRIER_CHANGED`: the hash the loader actually found |
 | `model` | `object` | opt | checked |  | For model capsules: the model that served the call, as `{id, version}`. Example: `{"id": "qwen3-32b", "version": "2026-08"}` |

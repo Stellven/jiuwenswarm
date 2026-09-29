@@ -5,26 +5,22 @@ tags: [index]
 
 # Capability Capsule and its core schemas
 
-This package describes **Capability Capsule (CC)**: what a capsule is, the schemas that describe it and the records kept about it, and the tools CC uses. It is a draft for review. Its one design page, the M1 design, is a draft open to change.
+This package describes **Capability Capsule (CC)** and its core schemas, plus the designs that use them. It is a draft for review.
 
-A **capability capsule** (能力胶囊) is one capability the system can run, such as a tool, a skill or an MCP tool, described by a **Declaration** and referred to by the hash of its code. CC is the schema plus the rules for it. Tools read the schema and write records; CC itself runs nothing.
+A **capability capsule** (能力胶囊) is one capability the system can run, described by a **Declaration** and referred to by the hash of its code. Start with [Capability Capsule](capsule/capsule.md): the `capsule/` folder alone explains what CC is, why it exists, and everything it connects to.
 
-Open this folder as an Obsidian vault, or read the Markdown files directly. All links are relative.
+Open this folder as an Obsidian vault, or read the Markdown files directly. All links are relative. Each fact is stated on one page and linked from the others.
 
 ## Reading order
 
-0. [What architecture covers](architecture.md): the layer between the PRD and the code. Code modules, data flow, schemas and interfaces.
-1. [Capability Capsule](capsule/capsule.md): what a capsule is, where CC is going, the rules, and a capsule's life.
-2. [Schemas](schemas/schemas.md) and the schema pages it lists: the Declaration, the records kept about a capsule, the policy and the invariants.
-3. [What each field is for](capsule/fields.md): which Declaration fields serve verification, RSI, selection and observability.
-4. [Tools](capsule/tools.md): the tools CC uses and should have, what each reads and writes, and whether M1 needs it.
-5. [Checked and unchecked at M1](capsule/stages.md): the schema is whole from day one. M1, the PRD's first milestone, requires and tests the checked fields; the unchecked fields unlock tools beyond it.
-6. [Composition](capsule/composition.md): capsules built from capsules. Unchecked at M1.
-   - [When good capsules are bad together](capsule/interactions.md): screening capsule sets with MCTS over their Declarations, after SkillFuzz. Unchecked at M1.
-7. [B1: the first working pipeline](b1-design.md): the earliest form. The general pipeline (intake, intent, requirement, pass-through planner and freeze, dispatch, delivery) with one task-specific capsule, `count_spaces`. Preliminary.
-8. [The M1 design](m1-design.md): the whole of M1 as the PRD sets it, with CC placed in it and where each schema is used. Draft, open to change.
-9. [A possible first design](first-design.md): how the fixed pipeline could run on today's jiuwenswarm code.
-10. [The big picture: where we are heading](big-picture.md): a potential near-term goal, open to change. Context for why M1 builds what it builds, and how each workstream fits.
+0. [What architecture covers](architecture.md): the layer between the PRD and the code.
+1. [Capability Capsule](capsule/capsule.md): what a capsule is, its kinds and rules, what it connects to, and the index of the capsule folder.
+2. [Why CC](capsule/why.md), then the [Declaration](capsule/fields.md): what a capsule holds, every field. To write one: [authoring a capsule](capsule/authoring.md).
+3. [Composition](capsule/composition.md), [library](capsule/library.md), [trust](capsule/trust.md), [RSI](capsule/rsi.md), [generalist](capsule/generalist.md), [permissions](capsule/permissions.md), [Symphony](capsule/symphony.md), [tools](capsule/tools.md), [checked and unchecked at M1](capsule/stages.md).
+4. [Schemas](schemas/schemas.md): the records kept about a capsule (Candidate, Verdict, Standing, Binding, Observation, Artifact, Verification, Finding), with checks, port types, the policy and the invariants.
+5. [B1: the first working pipeline](b1-design.md): the earliest form, with one task-specific capsule. Preliminary.
+6. [The M1 design](m1-design.md): the whole of M1 as the PRD sets it, with CC placed in it. Draft, open to change.
+7. [The big picture](big-picture.md): a potential near-term goal, open to change, and how each workstream fits.
 
 ## Other folders
 

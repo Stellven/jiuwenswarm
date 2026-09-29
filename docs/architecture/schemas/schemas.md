@@ -18,22 +18,22 @@ tags: [index, schema]
 
 ## What these pages are
 
-The records that Capability Capsule (CC) tools read and write. Each page gives the fields, what lives in the policy instead, and what it reuses. Start with the [invariants](invariants.md), then [common](common.md) and the [policy](policy.md). M1 means the PRD's first milestone. Each field is marked **checked** (required for M1 performance and tested for M1 completion) or **unchecked** (part of the shared schema: when present, admission validates its type and hashes it, but M1 neither requires nor tests it); **Unlocks** names the tool or feature that reads an unchecked field. RSI is developed on another branch that shares this schema.
+The records that Capability Capsule (CC) tools read and write about capsules. The capsule's own schema, the Declaration, is defined once, on its [own page](../capsule/fields.md) in the capsule folder; it is listed here because every record points at it. Each page gives the fields, what lives in the policy instead, and what it reuses. Start with the [invariants](invariants.md), then [common](common.md) and the [policy](policy.md). The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](../capsule/stages.md).
 
 ## The records
 
 | Record | Id | What it is | Written by |
 |---|---|---|---|
 | [Common](common.md) | `cc.common.v1` | the envelope and shared shapes; not a record | none |
-| [Declaration](declaration.md) | `cc.declaration.v1` | the contract one capability declares; its hash is its version | its author (checked with the author kit), RSI or an importer, inside a Candidate |
-| [Candidate](candidate.md) | `cc.candidate.v1` | a submission to admission | the submitter: author kit, RSI or an importer |
+| [Declaration](../capsule/fields.md) | `cc.declaration.v1` | the contract one capability declares; its hash is its version | its author (checked with the author kit), RSI, an importer or the composer, inside a Candidate |
+| [Candidate](candidate.md) | `cc.candidate.v1` | a submission to admission | the submitter: an author, RSI or an importer |
 | [Port type vocabulary](port-types.md) | `cc.types.v1` | type names, each with its schema and checks, and every registry check in full | a reviewed change, one record per version |
 | [Check, test case, test suite](checks.md) | `cc.check.v1`, `cc.check.case.v1`, `cc.check.suite.v1` | how a promise is tested | checks: in a Declaration, the vocabulary or a Binding; cases and suites: admission only |
 | [Verdict](verdict.md) | `cc.verdict.v1` | admission's decision on a Declaration | admission |
-| [Standing](standing.md) | `cc.standing.v1` | which version of a name is current | per `state`: admission (`admitted`), the librarian (every other state) |
+| [Standing](standing.md) | `cc.standing.v1` | which version of a name is current | per `state`: admission (`admitted`, `admitted_inactive`), the librarian (every other state) |
 | [Binding](binding.md) | `cc.binding.v1` | the pin for one call site of a run | the workflow runtime |
 | [Observation](observation.md) | `cc.observation.v1` | one capsule call | runner |
-| [Artifact](artifact.md) | `cc.artifact.v1` | one value; every capsule output is one | runner (runs), admission (admissions, library) |
+| [Artifact](artifact.md) | `cc.artifact.v1` | one value; every capsule output is one | runner (runs), admission (test inputs and fixtures) |
 | [Verification](verification-record.md) | `cc.verification.v1` | the gate's check of one call's live output | gate |
 | [Finding](finding.md) | `cc.finding.v1` | an observation about capsules, judges or an unmet need; unchecked in M1 | per kind: selection, gate, librarian, RSI |
 | [Policy](policy.md) | `cc.policy.v1` | every rule, default and registry, as a pinned epoch | a reviewed change, one record per epoch |
@@ -106,7 +106,7 @@ flowchart LR
 ## Approval checklist
 
 - [ ] Every field table: names, types, Req, M1, Unlocks.
-- [ ] `decl_hash`, `interface_hash` and `code_sha256` ([Declaration](declaration.md)).
+- [ ] `decl_hash`, `interface_hash` and `code_sha256` ([Declaration](../capsule/fields.md)).
 - [ ] `Check.applies_at`; where a Check is written in full; admission as the only writer of test cases and suites ([Check](checks.md)).
 - [ ] Every capsule output is an Artifact; lineage through `produced_by` ([Artifact](artifact.md)).
 - [ ] Reason codes and registries; `required`, `rules`, `levels`, `mappings`, epochs and the gates fold ([Policy](policy.md)).

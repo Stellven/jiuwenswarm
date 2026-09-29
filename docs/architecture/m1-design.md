@@ -17,17 +17,12 @@ tags: [design, draft, m1]
   | deepsearch | the operators: DeepSearch (document search) and CodeSearch (code navigation) |
   | sciencediscovery | the domain logic and grading rubrics, ported into the capsules |
 
-- **A fixed pipeline first, dynamic orchestration beside it.** The main branch runs a hardcoded Swarmflow DAG: the stable fallback and the release path. The dynamic planner is built at the same time on an offline track. It may replace the fixed DAG after M1.
+- **A fixed pipeline first, parallel tracks beside it.** The main branch runs a hardcoded Swarmflow DAG: the stable fallback and the release path. RSI, the router and the dynamic planner are [parallel tracks](#parallel-tracks).
 - **The same components as B1:** intake, intent compilation, requirement compilation, planner-binder, freeze, dispatch and delivery. Planner-binder and freeze are still **pass-throughs**. Dispatch now runs the research stages in order instead of one task-specific capsule.
-- **A two-tier gate at every handoff,** where B1 had one deterministic tier:
-  - **Tier 1** is Python assertions: schema, files present, non-empty, budget.
-  - **Tier 2** is an LLM semantic judge: the verifier capsule.
-
-  A gate that does not pass halts the run and hands it to `human_session`.
+- **A two-tier gate at every handoff,** where B1 had one deterministic tier; see [the two-tier gate](#inside-a-capsule-and-its-two-tier-gate).
 - **Six core capsules** in the `make_capsule.md` contract (the Declaration): five workflow capsules and one verifier. Their rubrics are ported from sciencediscovery, and every payload is strict JSON. The two general capsules from B1, `compile_intent` and `compile_requirement`, carry over.
-- **Admission, but no library search.** Capsules pass an admission gate before any run. There is no selector and no planner on the main path: the fixed DAG names its capsules.
-- **RSI, the multi-model router and the dynamic planner are parallel tracks,** kept off the main branch until the fixed pipeline is stable (the PRD's integration gate).
-- **Models are not in the capsule layer.** The pipeline selects capsules, never models. Whether a capsule uses a model, and whether that model is routed at runtime, is its author's choice, inside the capsule. On the main branch every model call goes to the one Codex model.
+- **Admission, but no library search;** see [How capsules get into M1](#how-capsules-get-into-m1).
+- **Models are not in the capsule layer** (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)).
 
 ## The pipeline
 
@@ -75,13 +70,11 @@ flowchart TB
     style DISPATCH fill:#FFF4DC,stroke:#B86E00,stroke-width:3px
 ```
 
-**Key** (as in B1 and the M1 map): amber stadium = a capability capsule, with or without a model. Purple dashed hexagon = a two-tier gate. White box, purple border = control code. White box, dashed orange border = a pass-through that makes no choices. Brown = an object or the capsule folder. Pale dotted = the capsule code, kept by hash. Orange box = the dynamic dispatch stage. Thick arrow = binding. White flag = a person. A dotted "halt" line is a gate's `FAIL`, `ENVIRONMENT_BLOCKED` or `ESCALATE_TO_HUMAN` verdict.
+Key as in [B1](b1-design.md#the-pipeline). Here an amber capsule may or may not use a model, the purple hexagon is a two-tier gate, and a dotted "halt" line is a gate's `FAIL`, `ENVIRONMENT_BLOCKED` or `ESCALATE_TO_HUMAN` outcome. The gate itself records `pass`, `fail` or `blocked`; how the PRD's five outcomes map onto those is Open 1.
 
-**Two kinds of stage.** Intake, intent compilation, requirement compilation, planner-binder, freeze and delivery are always in the pipeline. **Dispatch**, the boxed stage, is dynamic: which capsules run there, and in what order, is set at runtime by the plan. In M1 the plan is the fixed research DAG. The dynamic planner, built on its own track, may later fill the box at runtime; the stages around it stay the same. Inside dispatch, every capsule is followed by its own gate.
+As in B1: [the two kinds of stage, and how a Binding makes a capsule a node](b1-design.md#the-pipeline). In M1 the plan is the fixed research DAG, and the dynamic planner, built on its own track, may later fill the dispatch box at runtime.
 
-**A capsule points to its code; a Binding makes it a node.** A capsule is its Declaration. It does not hold its code: it points to files kept elsewhere by their sha256. Freeze writes a Binding for each node, and the Binding is what makes "this node runs this capsule, at this exact hash". The runner re-hashes the code before every call.
-
-Every gate has the same two tiers, drawn once below. Gates are drawn as separate nodes because they are separate modules. Tier 1 runs inside the CC backend, as in B1; where tier 2 runs is open.
+Every gate has the same two tiers, drawn once below. Gates are drawn as separate nodes because they are separate modules. Tier 1 runs inside the CC backend, as in B1.
 
 ## Inside a capsule and its two-tier gate
 
@@ -95,7 +88,7 @@ flowchart LR
     POST --> OBJ["output object + Observation"]:::rec
     OBJ --> T1{{"tier 1: Python assertions. Schema, files, non-empty, budget"}}:::gate
     T1 -->|"passes"| T2(["tier 2: verifier capsule. LLM semantic judge"]):::cc
-    T2 -->|"assessment"| V{{"gate: fold to one verdict"}}:::gate
+    T2 -->|"assessment"| V{{"gate: fold to one outcome"}}:::gate
     T1 -->|"fails"| V
     V -->|"PASS, PASS_WITH_KNOWN_LIMITATIONS"| NEXT["next node"]:::ctrl
     V -->|"FAIL, ENVIRONMENT_BLOCKED, ESCALATE_TO_HUMAN"| HS>"run halts: human_session"]:::ext
@@ -109,12 +102,11 @@ flowchart LR
 
 - **The capsule** makes the object and decides nothing, as in B1.
 - **Tier 1** runs the Binding's deterministic and reference checks, then the gate's fixed checks on the call (it ended ok, it stayed within budget). It needs no model. If tier 1 already decides, tier 2 does not run (policy `gates`).
-- **The budget is time only in M1.** The PRD's tier 1 checks token ceilings, but the Codex runtime reports no token use, so `cost.tokens` and `budget.tokens` stay unchecked until a runtime reports them.
-- **Tier 2** runs the Binding's judged checks with the verifier capsule, pinned in the Binding's `verifier` like any other capsule. It judges the output against the capsule's acceptance rules: task relevance, logical coherence, completeness, and claim-to-evidence integrity. It only writes an assessment. The gate, which is code, emits the verdict.
+- **Tier 2** runs the Binding's judged checks with the verifier capsule, pinned in the Binding's `verifier` like any other capsule. It judges the output against the capsule's acceptance rules: task relevance, logical coherence, completeness, and claim-to-evidence integrity. It only writes an assessment. The gate, which is code, emits the outcome.
 - **The Stage Evidence Bundle** the PRD names is the output Artifacts (the deliverables), the capsule's Declaration (the contract and its acceptance rules), and the Observation (outcome and cost against the budget).
-- **Five verdicts.** Two continue and three halt. The meanings are proposed:
+- **The PRD's five gate outcomes.** Two continue and three halt. The meanings are proposed:
 
-  | Verdict | Meaning | The run |
+  | Outcome | Meaning | The run |
   |---|---|---|
   | `PASS` | every check passed | continues |
   | `PASS_WITH_KNOWN_LIMITATIONS` | passed, with caveats carried forward | continues |
@@ -122,7 +114,7 @@ flowchart LR
   | `ENVIRONMENT_BLOCKED` | the call could not run: runtime down, timeout | halts |
   | `ESCALATE_TO_HUMAN` | the judge could not decide | halts |
 
-  The schema's Verification has three decisions (`pass`, `fail`, `blocked`); see Open.
+  How they map to the schema's three is [Open](#open) 1.
 
 ## How capsules get into M1
 
@@ -155,7 +147,7 @@ flowchart LR
     classDef off fill:#F2F2F2,stroke:#A0A0A0,stroke-width:1.5px,stroke-dasharray:4 4,color:#8a8a8a
 ```
 
-Grey dashed = not on the M1 main path. Blue = agents in the RSI sandbox.
+Key as in [B1](b1-design.md#the-pipeline). Grey dashed here = not on the M1 main path.
 
 - **Admission** checks a Candidate's Declaration against the policy, hashes every file, runs its tests, and writes a Verdict and an `admitted` Standing entry. M1 admits capsules at the `provisional` level.
 - **A person still approves the merge.** Nothing autonomous reaches the main branch until the fixed pipeline is stable.
@@ -255,7 +247,7 @@ flowchart TB
         OPS["operator clients for needs.external"]:::ctrl
         REC["3. record: Artifact, Observation"]:::ctrl
         T1{{"4. gate tier 1: deterministic checks"}}:::gate
-        FOLD{{"gate: fold to one verdict"}}:::gate
+        FOLD{{"gate: fold to one outcome"}}:::gate
     end
     CAP(["capsule code"]):::cc
     VER(["verifier capsule: tier 2 judge"]):::cc
@@ -272,20 +264,20 @@ flowchart TB
     VER -->|"a model call"| MA
     VER -->|"assessment"| FOLD
     T1 -->|"fails"| FOLD
-    FOLD -->|"envelope: value and verdict"| ENG
+    FOLD -->|"envelope: value and outcome"| ENG
     classDef js fill:#EEEEEE,stroke:#777777,stroke-width:2px,color:#1a1208,font-weight:bold
     classDef ctrl fill:#ffffff,stroke:#5B1F86,stroke-width:2.5px,color:#1a1208,font-weight:bold
     classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
     classDef cc fill:#F2A007,stroke:#8A4B00,stroke-width:3px,color:#1a1208,font-weight:bold
 ```
 
-**Key:** grey = already built: jiuwenswarm, agent-core, or the deepsearch repo. White with purple = the CC runner, new. Purple dashed = the gate. Amber = capsule code.
+Key as in [B1](b1-design.md#the-pipeline). Grey here also covers the deepsearch repo.
 
 **What M1 adds to the B1 runner:**
 
-- **Tier 2.** After tier 1 passes, the gate calls the verifier pinned in the Binding, as a call with `caller: gate`. The judge is one more Codex text turn through the same model adapter. The gate folds tier 1 and the assessment into one of the five verdicts. The diagram draws tier 2 inside the runner; whether it is its own `agent()` call instead is open.
-- **No model router in the runner.** The runner selects nothing about models. A `skill` capsule's model call goes through the model adapter to the one Codex model, and the runner records that model in the Observation's `model`. A capsule whose author wants a routed model calls the router from its own code, on the routing track.
-- **Operators.** The model cannot call tools on this runtime, so the runner calls DeepSearch, CodeSearch and workspace I/O for a capsule, and only those in its `needs.external`. Neither operator is a jiuwenswarm tool: DeepSearch is the pip library `openjiuwen-deepsearch`, run as a subprocess, and CodeSearch is an SDK or HTTP service over a Milvus index. The runner needs one client per operator, and checks each call first with a standalone `PermissionEngine`, built the way jiuwenswarm's `owner_scopes.py:161-169` builds one. There is no approval UI outside the permission rail, so CC must decide what an `ASK` result means.
+- **Tier 2.** After tier 1 passes, the gate calls the verifier pinned in the Binding, as a call with `caller: gate`. The judge is one more Codex text turn through the same model adapter. The gate folds tier 1 and the assessment into one of the PRD's five gate outcomes. The diagram draws tier 2 inside the runner (see [Open](#open) 5).
+- **No model router in the runner.** Models are not in the capsule layer (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A `skill` capsule's model call goes through the model adapter to the one Codex model, and the runner records that model in the Observation's `model`.
+- **Operators.** The model cannot call tools on this runtime, so the runner calls DeepSearch, CodeSearch and workspace I/O for a capsule, and only those in its `needs.external`. Neither operator is a jiuwenswarm tool: DeepSearch is the pip library `openjiuwen-deepsearch`, run as a subprocess, and CodeSearch is an SDK or HTTP service over a Milvus index. The runner needs one client per operator, and checks each call first with a standalone `PermissionEngine`, built without a DeepAgent, the way jiuwenswarm's `agents/harness/common/rails/permissions/owner_scopes.py:161-169` builds one. **[pin]** Its constructor is read at agent-core `e23806c1`, not the pin `9e339019`. There is no approval UI outside the permission rail, so CC must decide what an `ASK` result means.
 - **Admitted capsules.** The capsule folder loader also reads each capsule's Verdict.
 - **Kinds.** `skill` and `tool`, as in B1. `prompt_section` may be needed for shared rubric text.
 
@@ -295,7 +287,7 @@ flowchart TB
 |---|---|---|
 | admission | a Candidate, the policy | a Verdict, a Standing entry, and the capsule's files in the folder |
 | tier 2 caller | an output, the Binding's judged checks and its `verifier` | an assessment Artifact |
-| verdict fold | tier 1 results, the assessment | one of the five verdicts |
+| outcome fold | tier 1 results, the assessment | one of the PRD's five gate outcomes |
 | operator clients | a capsule's `needs.external`, an operator request | the operator's result, from its own library or service, after a standalone `PermissionEngine` check |
 | six core capsules, and `run_benchmark` | each capsule's Declaration | its code and tests, admitted |
 
@@ -311,7 +303,7 @@ flowchart TB
         C(["research capsule"]):::cc
         T1{{"tier 1 gate"}}:::gate
         T2(["tier 2: verifier capsule"]):::cc
-        V{{"verdict fold"}}:::gate
+        V{{"outcome fold"}}:::gate
         MA["model adapter"]:::ctrl
         SVC["SubscriptionService.stream"]:::js
         PE["PermissionEngine: standalone"]:::js
@@ -338,7 +330,7 @@ flowchart TB
     C --> T1 -->|"passes"| T2 -->|"one more model call"| MA
     T1 -->|"fails"| V
     T2 -->|"assessment"| V
-    V -->|"verdict"| ENG
+    V -->|"outcome"| ENG
     V -.->|"halt"| HS
     MA --> SVC <--> APP
     BK -->|"needs.external"| PE -->|"allow"| OPC
@@ -354,14 +346,13 @@ flowchart TB
     classDef ext fill:#ffffff,stroke:#3b3b3b,stroke-width:2px,color:#111111,font-weight:bold
 ```
 
-**Key:** grey = already built: jiuwenswarm, agent-core, the deepsearch repo, or an outside API. White with purple = new CC code. Amber = a capsule. Purple dashed = a gate. Brown = a store. White flag = a person.
+Key as in [B1](b1-design.md#the-pipeline). Grey here also covers the deepsearch repo and outside APIs.
 
 **What each addition needs:**
 
-- **Tier 2** is one more model call through the same model adapter and Codex child. Every judge call adds one more permanent entry to `subscription/bindings.json`. A judge turn that fails or times out closes the shared Codex child (`service.py:197-208`), as in B1.
-- **Operators** each need their own client and their own credentials. Neither runs on the Codex subscription. A DeepSearch run takes about 15 minutes as a subprocess and sends no progress events of its own.
-- **The permission check** uses a `PermissionEngine` built without a DeepAgent, as `owner_scopes.py:161-169` does. **[pin]** Its constructor is read at agent-core `e23806c1`, not the pin `9e339019`.
-- **`human_session`** is where the PRD sends a halted run. On this runtime nothing can take the person's reply: only the team backend has `human` sessions, and the Codex adapter refuses a Swarmflow reply (`interface_codex.py:67-70`). See Open.
+- **Tier 2** is one more model call through the same model adapter and Codex child. Every judge call adds one more permanent entry to `subscription/bindings.json`. A judge turn carries B1's [shared Codex child risk](b1-design.md#open) (question 6).
+- **Operators and the permission check:** see [the runner](#the-cc-runner-in-m1), and [Open](#open) 6 and 7 for keys and run time.
+- **`human_session`** is where the PRD sends a halted run. On this runtime nothing can take the person's reply: only the team backend has `human` sessions, and the Codex adapter refuses a Swarmflow reply (`interface_codex.py:67-70`). See [Open](#open) 3.
 - **The research nodes** change nothing on the path. They are more `agent()` calls on the same backend.
 
 ## Observability and traces
@@ -375,17 +366,7 @@ The same two layers as [B1](b1-design.md#observability-and-traces): CC records a
 
 ## Parallel tracks
 
-Capability Capsule and Verifier build the main path. RSI, the multi-model router and the dynamic planner are parallel tracks: built off the main branch, and merged only after the fixed pipeline is stable. The data foundation and verifier fine-tuning support RSI. Each workstream meets the main path only at its interface.
-
-| Workstream | What it builds in M1 | Its interface to the main path |
-|---|---|---|
-| Capability Capsule | the six core capsules in the `make_capsule.md` contract, with rubrics ported from sciencediscovery and strict JSON payloads; the CC runner; admission | the capsule folder and the runner |
-| Verifier | the Evaluator gate: the two tiers and the five verdicts; a three-phase benchmark against native openJiuwen | the Verification record; the records of sample runs |
-| RSI | mutation in an offline sandbox, against static contracts and hidden fixtures | a Candidate, through admission |
-| RSI data foundation | the data and fixtures RSI works on | sample runs and fixtures |
-| Verifier fine-tuning | tuning the model behind the tier 2 judge | a new version of the verifier capsule, through admission |
-| Model routing | on the main branch, the Codex CLI adapter over one subscription. On an isolated branch, a multi-model router against simulated endpoints until enterprise keys arrive | none in the capsule layer. A capsule's author who wants a routed model calls the router from the capsule's own code; the capsule layer only records which model served the call |
-| Dynamic planner | the Cluster Mode planner, tested against offline scenarios; the Leader Agent for intent compilation | may replace the fixed DAG after M1 |
+Capability Capsule and Verifier build the main path. RSI, the multi-model router and the dynamic planner are parallel tracks: built off the main branch, and merged only after the fixed pipeline is stable (the PRD's integration gate). What each workstream builds in M1 is in [the big picture's workstream table](big-picture.md#how-the-workstreams-fit-together).
 
 ## How M1 fits jiuwenswarm
 
@@ -393,18 +374,18 @@ Capability Capsule and Verifier build the main path. RSI, the multi-model router
 |---|---|---|
 | Run entry | the CC-run branch on the `chat.send` stream, as in B1 | as in B1 |
 | The pipeline | a Swarmflow script run by `run_workflow(path, backend=...)`, one `agent()` call per node | as in B1 |
-| Capsule calls, gates | the CC runner as the engine's `AgentBackend`. Tier 1 runs inside it; where tier 2 runs is open | new, extends B1 |
-| The model | the Codex subscription runtime (the PRD's Codex CLI adapter): text turns, with JSON parsed from the reply. Every model call goes to it; routing, where an author wants it, is inside that capsule | works now as text turns |
-| Budget | time only: Codex reports no tokens, so the PRD's token ceilings cannot be checked yet | runner only, as in B1 |
-| Operators | not jiuwenswarm tools. The runner calls each through its own client, after a check by a standalone `PermissionEngine` (`agents/harness/common/rails/permissions/owner_scopes.py:161-169`) | new: a client per operator, and a CC rule for an `ASK` result |
-| Halting to a person | `human_session` has no reply path on this runtime (`interface_codex.py:67-70`) | open |
+| Capsule calls, gates | the CC runner as the engine's `AgentBackend`. Tier 1 runs inside it; tier 2 is [Open](#open) 5 | new, extends B1 |
+| The model | the Codex subscription runtime (the PRD's Codex CLI adapter): text turns, with JSON parsed from the reply. Every model call goes to it | works now as text turns |
+| Budget | time only; see [Open](#open) 9 | runner only, as in B1 |
+| Operators | not jiuwenswarm tools; see [the runner](#the-cc-runner-in-m1) | new: a client per operator, and a CC rule for an `ASK` result |
+| Halting to a person | `human_session`, with no reply path yet; see [Open](#open) 3 | open |
 | Records | files under the profile folder, beside jiuwenswarm's own logs | as in B1 |
 
 ## What M1 uses from the schemas
 
 | Schema | Used in M1 for |
 |---|---|
-| [Declaration](schemas/declaration.md) | every capsule's `make_capsule.md` contract: ports, checks, acceptance rules, operators, effects |
+| [Declaration](capsule/fields.md) | every capsule's `make_capsule.md` contract: ports, checks, acceptance rules, operators, effects |
 | [Candidate](schemas/candidate.md), [Verdict](schemas/verdict.md) | admitting capsules, including RSI's new versions |
 | [Standing](schemas/standing.md) | the `admitted` entry admission writes; nothing on the main path reads or moves it |
 | [Check](schemas/checks.md) | both tiers' checks; the visible tests and the hidden (sealed) suites |
@@ -419,12 +400,12 @@ Capability Capsule and Verifier build the main path. RSI, the multi-model router
 
 ## Open
 
-1. **Five verdicts versus the schema's three.** The PRD's gate has five verdicts; the schema's Verification has three decisions.
+1. **The PRD's five gate outcomes versus the schema's three.** The schema's Verification has three outcomes (`pass`, `fail`, `blocked`). How the five map to them is open.
 2. **Which five workflow capsules.** The fuller PRD lists six workflow capsules; the newest summary counts five. This page draws a working choice.
-3. **`human_session` needs a reply path on the Codex runtime.** Until then a halted run cannot take the person's answer.
+3. **`human_session` needs a reply path on the Codex runtime** (see [the deep view](#through-jiuwenswarm-the-deep-view)).
 4. **Where POC and benchmark code run.** Today's Codex runtime is read-only, with no shell.
 5. **Tier 2 as its own `agent()` call or inside the runner.**
 6. **The operators need their own API keys.** DeepSearch needs its own LLM and web search keys, and CodeSearch its own LLM key. Neither runs on the Codex subscription.
 7. **Operator calls are long jobs.** A DeepSearch run takes about 15 minutes and sends no progress. The runner's time budget and the run view must allow for it.
 8. **Hidden fixtures.** How sealed suites reach admission is a known gap in the schemas.
-9. **Token budgets.** The PRD's tier 1 checks token ceilings, and the Codex runtime reports no tokens.
+9. **Token budgets.** The PRD's tier 1 checks token ceilings, and the Codex runtime reports no tokens, so the budget is time only (see [B1's model usage](b1-design.md#observability-and-traces)).

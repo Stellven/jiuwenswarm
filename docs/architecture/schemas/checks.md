@@ -13,20 +13,7 @@ A **check** is one runnable test of one target. A **test case** is one input and
 
 ## Fields
 
-**Check** (a `Check`, a shape, not a record). A Check is written in full in one of three places: a Declaration's `guarantees.checks`; the [port type vocabulary](port-types.md)'s `checks`, for registry checks and the gate's fixed checks; or a [Binding](binding.md)'s `step_checks`, for checks a workflow adds at one call site. Elsewhere it is named by id.
-
-| Field | Type | Req | M1 | Unlocks | Description |
-|---|---|---|---|---|---|
-| `Check.id` | `id` | req | checked |  | Referred to as `check_id`. Unique within its Declaration, and `<capsule name>/<id>` from outside. A registry check is `check.<name>.v<n>` |
-| `Check.anchor` | `reg(check_anchor)` | req | checked |  | What a pass rests on: `deterministic` (code), `reference` (a known answer) or `judged` (a model or person) |
-| `Check.target` | `string` | req | checked |  | A port or a type. Example: `ports.outputs.text` |
-| `Check.over` | `enum(each_call, outputs, inputs_and_outputs)` | req | checked |  | What it looks at. `each_call`: the call's Observation (outcome, cost), not the values. `outputs`: the output values. `inputs_and_outputs`: the input and output values |
-| `Check.applies_at` | `enum(admission, node, both)` | req | checked |  | `admission`: needs a test case's `expected`, so runs only at admission. `node`: needs only the output, so runs at the gate after a call in a run, and at admission on test-call outputs. `both`: each |
-| `Check.runner` | `object` | req | checked |  | The pinned code that runs it. For a judged check, the rubric code; the model-backed judge is the Binding's `verifier` |
-| `Check.runner.ref` | `string` | req | checked |  | A module path or evaluator id. Example: `checks/text.py:not_empty` |
-| `Check.runner.sha256` | `sha256` | req | checked |  | The runner's hash; every result names it |
-| `Check.description` | `text` | req | checked |  | What passes, in one line. Example: `The text has a non-space character.` |
-| `Check.author` | `string` | req | checked |  | Who wrote it; for a certifying check, not the builder (INV-10). Example: `reviewer-1` |
+**Check.** The Check shape is defined once, on the [Declaration](../capsule/fields.md#checks-one-runnable-test-each), with where a Check may be written in full.
 
 **Test case** (`cc.check.case.v1`). Extends [common](common.md), `scope.library`. Its `id` is the `test_id`; tests are re-run by it. **Written only by admission**, from a Candidate's `tests`, since only admission is trusted to compute `interface_hash`.
 

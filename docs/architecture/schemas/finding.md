@@ -37,6 +37,7 @@ Extends [common](common.md). Its `scope` is a `run_id`, or `library` for Finding
 | `verifier_audit` | librarian | a judge's calibration: `false_pass`, `false_fail`, `n`, and the dataset used |
 | `measurement` | librarian | measured use of one `decl_hash` over a window: `{window, n, pass_rate, time_s {p50, p95}, tokens {p50, p95}, money_p50}`, from Observations and Verifications. Cost, latency and quality live here, never in the Declaration |
 | `invalidation` | librarian | the Verdict that no longer holds, and why: a changed dependency, policy epoch or judge |
+| `dependency_update` | librarian | a newer version of a dependency a capsule pins: `{ref, pinned, available, security}`. It starts an RSI re-pin when the dependency has a `purpose` and `evolution.rsi` allows it. With `security: true` the librarian also moves the capsule to `suspect` or `revoked` |
 | `build_decision`, `build_failed` | RSI | RSI chose not to build for a gap, or tried and failed: the gap's id, and `reasons` (a list of `Reason`) |
 
 A new kind is one registry row `{kind, writer, detail shape}`; readers skip kinds they do not know.
