@@ -203,6 +203,16 @@ Every `sha256` above is real. It is the actual hash of the file it names in `cap
 
 `rsi_cannot_grant` blocks one more thing on its own, with no need for this capsule to list it: a child can never add `evolution` to its own `may_change`, so RSI can never widen its own future permissions.
 
+## How this was ported from an earlier schema shape
+
+This capsule was first written against an earlier shape of the schema. Three things had to change to match the current one.
+
+- Both `carrier` and `body` were set at first. The schema allows only one. Every check already pins `checks/intent_ir_checks.py` by its own hash, so `body` repeated a pin the checks already carried. Removed.
+- `identity.lineage` used a field name, `parent`, that the current schema does not have. This is a first version with no parent, so `lineage` is left out entirely now, rather than filled with a shape that does not match.
+- `evolution.rsi` was missing outright. It is required now. Set to `propose`, and later given the `may_change` list above once that field existed.
+
+`guarantees.failure_modes` was added at the same time: the two reason codes the carrier actually raises, `INTENT_INPUT_MISSING` and `INTENT_INPUT_NOT_STRING`. A third code, `INTENT_INPUT_ID_MISSING`, is documented in the capsule's own exception notes but never actually raised by the code. Left out here rather than declared falsely. Either the code should gain that check, or the exception notes should drop the code. Not decided yet.
+
 ## Fields left out, and why
 
 - **`identity.lineage`**. Left out, not set to a placeholder. This is a first version. The field only appears when a real parent exists.
