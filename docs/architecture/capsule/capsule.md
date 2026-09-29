@@ -1,3 +1,8 @@
+---
+type: capsule
+tags: [capsule, index]
+---
+
 # Capability Capsule
 
 A **capability capsule** (能力胶囊) describes one capability the system can run. The description is the **Declaration**: what the capability takes, gives, needs, changes and promises. The Declaration refers to the capability's code by the code's hash; it does not contain the code. CC itself runs nothing. [Tools](tools.md) read the Declaration and write records about the capsule.
@@ -25,19 +30,19 @@ Code we host is hashed file by file. A remote service we cannot hash (a remote M
 
 **Now:** a schema for our own system. Every capability the system uses is declared, checked, pinned and improved the same way.
 
-**Later:** a user installs a tool, skill or MCP server from anywhere. It goes through an isolated verification cycle and comes out as a capsule. Its Declaration, checks and Verdict tell anyone what it does and how well. Capsules can then be shared through stores or repositories, each carrying its Declaration, checks and Verdict as evidence of what it does and how well.
+**Later:** a user installs a tool, skill or MCP server from anywhere. It goes through an isolated verification cycle and comes out as a capsule. Its Declaration, checks and [Verdict](../schemas/verdict.md) tell anyone what it does and how well. Capsules can then be shared through stores or repositories, each carrying its Declaration, checks and Verdict as evidence of what it does and how well.
 
 ## Rules
 
-1. **A capsule declares** what it takes, gives, needs, changes and promises, in its Declaration.
+1. **A capsule declares** what it takes, gives, needs, changes and promises, in its [Declaration](../schemas/declaration.md).
 2. **It refers to its code by hash.** If the code changes, the hash no longer matches and the runner refuses to load it.
-3. **Declare first, then check.** Every promise has a check. Every call is recorded as an Observation. Authors declare each capability's effect class (how reversible its changes are); tools check that the declaration holds.
-4. **A capsule holds no task.** Which run uses which capsule is recorded outside it, in a Binding.
+3. **Declare first, then check.** Every promise has a [check](../schemas/checks.md). Every call is recorded as an [Observation](../schemas/observation.md). Authors declare each capability's effect class (how reversible its changes are); tools check that the declaration holds.
+4. **A capsule holds no task.** Which run uses which capsule is recorded outside it, in a [Binding](../schemas/binding.md).
 5. **Nothing that decides is a capsule.** Admission, gates and planners are control code. A capsule may assess an output and report a result; control code decides what happens next.
 6. **No capsule is its own final judge.** Admission runs the submitted tests itself. The builder's own results are kept but never count. Certifying a capsule needs tests written by someone else.
-7. **Some things are protected.** No capsule writes the gates, the test suites, the policy or the record stores. Model weights never change.
+7. **Some things are protected.** No capsule writes the gates, the test suites, the [policy](../schemas/policy.md) or the record stores. Model weights never change.
 8. **A capsule is a leaf or a composite, never both.** A leaf has its own code; a composite refers to other capsules.
-9. **A capsule's output is always an Artifact.** Control code writes the records.
+9. **A capsule's output is always an [Artifact](../schemas/artifact.md).** Control code writes the records.
 
 A **gate** in these pages is control code that folds check results into `pass`, `fail` or `blocked`. The rules that fold them live in the policy.
 
@@ -49,9 +54,9 @@ CC supports four verbs. Each is done by tools, not by the capsule.
 
 | Verb | What it means | What it reads |
 |---|---|---|
-| **Pick** | choose a capsule for a call, by its ports, effect class and current Standing | name, summary, ports, effect class, Standing |
+| **Pick** | choose a capsule for a call, by its ports, effect class and current [Standing](../schemas/standing.md) | name, summary, ports, effect class, Standing |
 | **Verify** | prove the code that runs is the code that was tested, and that each output passes its checks | hashes, checks, output ports, effects |
-| **Improve** | build a new version from evidence; a version with the parent's interface must also pass the parent's tests | lineage, tests, Observations, Findings |
+| **Improve** | build a new version from evidence; a version with the parent's interface must also pass the parent's tests | lineage, tests, Observations, [Findings](../schemas/finding.md) |
 | **Remove** | retire or revoke a capsule, and undo its effects where it declared how | Standing, `needs`, each effect's `undo` |
 
 ## A capsule's life
@@ -70,9 +75,9 @@ flowchart LR
     RSI -->|new version, lineage.parent_hash| ADM
 ```
 
-1. An author, an importer, or RSI (recursive self-improvement: code that builds new capsule versions from evidence), submits a Candidate: a Declaration, the files and tests.
+1. An author, an importer, or RSI (recursive self-improvement: code that builds new capsule versions from evidence), submits a [Candidate](../schemas/candidate.md): a Declaration, the files and tests.
 2. **Admission** checks the Declaration, hashes the files again, runs the tests and writes a Verdict. If it admits the capsule, it adds a Standing entry to the **library**, the store of admitted capsules keyed by hash.
-3. A run **pins** one capsule version for one call in a Binding: its `decl_hash`, `code_sha256`, checks, budget and verifier.
+3. A run **pins** one capsule version for one call in a [Binding](../schemas/binding.md): its `decl_hash`, `code_sha256`, checks, budget and verifier.
 4. The **runner** checks the hashes, calls the capsule, stores its output as an Artifact, writes an Observation and asks the gate to check the output.
 5. The librarian and RSI are unchecked at M1. The **librarian** reads Observations and Findings over time and moves the Standing. RSI reads the same records and submits a new version, which starts again at admission.
 
@@ -103,5 +108,5 @@ Any output can also carry its caveats in a standard `issues` list on its Artifac
 - [Tools](tools.md)
 - [Stages](stages.md)
 - [Composition](composition.md)
-- A possible first design: one way a first system could use CC.
-- Terms
+- [A possible first design](../first-design.md): one way a first system could use CC.
+- [Terms](../background/terms.md)

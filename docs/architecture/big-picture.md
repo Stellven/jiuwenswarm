@@ -66,8 +66,6 @@ flowchart TB
     BD ==>|"Bindings"| DISPATCH
     subgraph DISPATCH["dispatch: set at runtime by the plan"]
         D1(["capsule"]):::cc --> DG1{{"gate"}}:::gate
-        ROUTE["model router: inside the call, only if the capsule uses a model"]:::ctrl -.->|"a model for this capsule"| D1
-        ROUTE -.-> D3
         DG1 --> D2(["capsule"]):::cc
         DG1 --> D3(["capsule, in parallel"]):::cc
         D2 --> DG2{{"gate"}}:::gate
@@ -95,7 +93,7 @@ flowchart TB
 - **The planner and selector fill dispatch at runtime.** The selector offers the admitted capsules that fit the contract. The planner orders them, possibly in parallel, and the binder pins each node by hash.
 - **Every capsule is still followed by its gate.** A gate can halt the run, or send it back to the planner for a new plan.
 - **A composite capsule** is a capsule made of other capsules. It is pinned and gated like any other.
-- **The model router is inside a capsule call,** not a stage of the pipeline. When the runner calls a capsule that uses a model, the router picks a model for that one call at runtime, within the capsule's `needs.model` limits. A capsule that uses no model, such as a tool, never reaches it.
+- **Selection picks capsules, never models.** There is no central library of models. Whether a capsule uses a model, and whether that model is routed at runtime, is its author's choice and its author's job, inside the capsule. The capsule layer never sees a model router.
 
 ## The cold paths after M1
 
@@ -145,7 +143,7 @@ Each workstream builds one part of the pictures above, and meets the others only
 | RSI | the RSI cold path, attached to the library | reads Findings, Observations, lineage and test suites; sends Candidates to admission |
 | RSI data foundation | feeds the RSI cold path | sample runs and fixtures |
 | Verifier fine-tuning | the model behind the tier 2 judge | a new version of the verifier capsule, through admission |
-| Model routing | inside each capsule call that uses a model | reads the capsule's `needs.model`; records the model in the Observation |
+| Model routing | inside capsules whose authors want a routed model; not in the pipeline or the capsule layer | none with the capsule layer: a capsule's own code calls the router |
 | Planner | fills the dispatch box at runtime | reads the contract and the selector's offer; writes the plan |
 
 Because the parts meet only at these interfaces, each workstream can build and test its part on its own.

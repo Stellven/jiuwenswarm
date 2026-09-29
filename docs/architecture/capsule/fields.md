@@ -1,6 +1,11 @@
+---
+type: capsule
+tags: [capsule]
+---
+
 # The Declaration's fields
 
-This page covers every field a capsule's author writes: what it is for, and whether M1 checks it. Types, required flags and rules are on the Declaration page.
+This page covers every field a capsule's author writes: what it is for, and whether M1 checks it. Types, required flags and rules are on the [Declaration](../schemas/declaration.md) page.
 
 - **M1** is the PRD's first milestone.
 - **checked** fields are required for M1 and tested for M1 completion.
@@ -13,7 +18,7 @@ A field serves one or more of four uses:
 - **Selection:** choose a capsule for a call.
 - **Observability:** explain afterwards what ran, why and at what cost.
 
-A Declaration also carries `schema_version` and `ext` (extensions, such as agent-core settings) from the common fields.
+A Declaration also carries `schema_version` and `ext` (extensions, such as agent-core settings) from the [common](../schemas/common.md) fields.
 
 ## Values used on this page
 
@@ -64,7 +69,8 @@ A Declaration also carries `schema_version` and `ext` (extensions, such as agent
 | `needs.config` (`args`, `env`) | unchecked: importer, isolated verification | Start-up arguments and environment variables that are not ports and not secrets |
 | `needs.secrets[]` (`name`, `purpose`) | unchecked: isolated verification | Credentials it needs, by name only, never by value. The sandbox injects them, and the permission check allows them |
 | `needs.resources` (`cpu`, `gpu`, `memory_mb`, `disk_mb`, `timeout_s`) | unchecked: isolated verification | What one call needs to run |
-| `needs.model` (`min_context`, `families`, `excludes`) | unchecked: routing | Limits on the model for model capsules. Routing picks a model inside them; the capsule never picks one |
+
+**Models are not part of the capsule layer.** Selection picks a capsule, never a model, and there is no central library that picks both. Whether a capsule uses a model, which one, and whether that model is routed at runtime are its author's choice and its author's job, made in the capsule's own files, such as a skill's front matter or its code. Those files are hashed, so a change of fixed model is a new version, tested like any other change. A capsule whose author wants its model chosen at runtime calls a model router from its own code; the capsule layer never sees that. The Declaration still describes the work in enough detail that a router could choose from it. Which agent or role runs a capsule is decided in the Binding, not in the capsule.
 
 ## changes: what it does to the world
 
@@ -108,7 +114,7 @@ A Declaration also carries `schema_version` and `ext` (extensions, such as agent
 | `interface_hash` | checked | The hash of what a test depends on: name, kind, ports (without descriptions), preconditions, effect class, and each check's `id`, `target`, `anchor` and `applies_at`. Moving a file, editing the summary or updating a check's runner leaves it unchanged, so tests still apply. A child with the same interface reuses its parent's tests |
 | `code_sha256` | checked | What the loader checks before every call: the carrier's hash, the hash of the `body` list sorted by `path`, of `{endpoint, version}` for a remote, or of the `members` list sorted by `id`. The run's Binding pins it |
 
-Cost, latency and pass rate are measured from Observations, never written by the author. They are recorded in a Finding of kind `measurement` (unchecked: librarian, RSI).
+Cost, latency and pass rate are measured from Observations, never written by the author. They are recorded in a [Finding](../schemas/finding.md) of kind `measurement` (unchecked: librarian, RSI).
 
 ## How RSI uses a capsule
 
@@ -133,13 +139,13 @@ The submitter (an author, an importer or RSI) writes the Candidate, which carrie
 
 | Record | M1 | Written by | What it says |
 |---|---|---|---|
-| Candidate | checked | author, RSI, importer | a submission: Declaration, files, tests. Its `builder_evidence` is kept but never counts |
-| Verdict | checked | admission | admit, reject or defer, with the checks and test suites run |
+| [Candidate](../schemas/candidate.md) | checked | author, RSI, importer | a submission: Declaration, files, tests. Its `builder_evidence` is kept but never counts |
+| [Verdict](../schemas/verdict.md) | checked | admission | admit, reject or defer, with the checks and test suites run |
 | Test case, test suite | checked | admission | one input and its expected result; a hashed set of them |
-| Standing | checked | per state: admission (`admitted`), librarian (every other state) | which version of a name is current, and its state |
-| Binding | checked | the workflow runtime | the one version pinned for one call: `decl_hash`, `code_sha256`, checks, budget |
-| Observation | checked | runner | one call: outcome, reason, model, preconditions, cost |
-| Artifact | checked | runner (runs), admission (test inputs and fixtures) | one value a call produced or used |
-| Verification | checked | gate | which checks passed for one call's output, and the gate's `pass`, `fail` or `blocked` |
-| Finding | unchecked: RSI, librarian | selection, gate, librarian, RSI (one per kind) | something learned later: a gap, drift, an audit result, a measurement |
+| [Standing](../schemas/standing.md) | checked | per state: admission (`admitted`), librarian (every other state) | which version of a name is current, and its state |
+| [Binding](../schemas/binding.md) | checked | the workflow runtime | the one version pinned for one call: `decl_hash`, `code_sha256`, checks, budget |
+| [Observation](../schemas/observation.md) | checked | runner | one call: outcome, reason, model, preconditions, cost |
+| [Artifact](../schemas/artifact.md) | checked | runner (runs), admission (test inputs and fixtures) | one value a call produced or used |
+| [Verification](../schemas/verification-record.md) | checked | gate | which checks passed for one call's output, and the gate's `pass`, `fail` or `blocked` |
+| [Finding](../schemas/finding.md) | unchecked: RSI, librarian | selection, gate, librarian, RSI (one per kind) | something learned later: a gap, drift, an audit result, a measurement |
 | Policy, port type vocabulary | checked | a reviewed change | the rules and defaults of one epoch; the list of port types |

@@ -1,6 +1,11 @@
+---
+type: capsule
+tags: [capsule]
+---
+
 # Tools
 
-CC is a schema; tools do the work. Each tool reads the Declaration or records about a capsule, and writes one kind of record. Tools are control code, never capsules. Which fields M1 checks is on [stages](stages.md).
+CC is a schema; tools do the work. Each tool reads the [Declaration](../schemas/declaration.md) or records about a capsule, and writes one kind of record. Tools are control code, never capsules. Which fields M1 checks is on [stages](stages.md).
 
 **M1** says whether M1 (the PRD's first milestone) needs the tool: **needed** when M1 depends on the checked fields it reads or writes, **not needed** when the tool exists to read unchecked fields. For each not-needed tool, the table names the unchecked fields it unlocks.
 
@@ -10,16 +15,16 @@ CC is a schema; tools do the work. Each tool reads the Declaration or records ab
 
 | Tool | Reads | Writes | M1 | Builds on |
 |---|---|---|---|---|
-| **Author kit** | a draft Declaration, its files, its tests, the policy | nothing stored: a report for the author | needed | none found |
-| **Admission** | a Candidate, the policy | Verdict, Standing, test cases and test suites, Artifacts for test inputs and fixtures, stored files | needed | none found |
-| **Runner** | the Binding, the Declaration, the code by hash | Artifact, Observation | needed | Swarmflow's `agent()` (agent-core `agent_teams/workflow/engine/primitives.py`); on the DeepAgent (harness) path only, the permission rail (below) and `RailManager` (`agents/harness/common/plugins/rail_manager.py:52`), which registers custom rails (hooks) on the DeepAgent |
-| **Check runner and gate** | checks, Artifacts, Observations, the Binding, the policy | Verification; later, Findings of kind `fit_failure` and `use_outcome` (unchecked) | needed | agent-core Symphony `Evaluator` protocol (`symphony/evaluation/base.py`) for check runners |
+| **Author kit** | a draft Declaration, its files, its tests, the [policy](../schemas/policy.md) | nothing stored: a report for the author | needed | none found |
+| **Admission** | a [Candidate](../schemas/candidate.md), the policy | [Verdict](../schemas/verdict.md), [Standing](../schemas/standing.md), test cases and test suites, Artifacts for test inputs and fixtures, stored files | needed | none found |
+| **Runner** | the [Binding](../schemas/binding.md), the Declaration, the code by hash | [Artifact](../schemas/artifact.md), [Observation](../schemas/observation.md) | needed | Swarmflow's `agent()` (agent-core `agent_teams/workflow/engine/primitives.py`); on the DeepAgent (harness) path only, the permission rail (below) and `RailManager` (`agents/harness/common/plugins/rail_manager.py:52`), which registers custom rails (hooks) on the DeepAgent |
+| **Check runner and gate** | [checks](../schemas/checks.md), Artifacts, Observations, the Binding, the policy | [Verification](../schemas/verification-record.md); later, Findings of kind `fit_failure` and `use_outcome` (unchecked) | needed | agent-core Symphony `Evaluator` protocol (`symphony/evaluation/base.py`) for check runners |
 | **Library store** | everything admission and the runner write | records keyed by id, code keyed by sha256 | needed | agent-core `BaseKVStore` (`exclusive_set`, `get_by_prefix`) and its object store |
 | **Lineage index** | `identity.lineage` of every admitted version | an index from each `decl_hash` to its parent and children | not needed. Unlocks tracking and merge: `identity.lineage` (`parent_hash`, `relation`, `co_parent_hashes`) | none found |
-| **Librarian** | Standing, Observations, Verifications, Findings | Standing changes, Findings, including kind `measurement` | not needed. Unlocks `guarantees.quality`, every Finding field, Observation `effects_observed`, Standing `evidence` | none found |
+| **Librarian** | Standing, Observations, Verifications, Findings | Standing changes, [Findings](../schemas/finding.md), including kind `measurement` | not needed. Unlocks `guarantees.quality`, every Finding field, Observation `effects_observed`, Standing `evidence` | none found |
 | **RSI submitter** | reports from an RSI engine, the parent's Declaration and Verdict | Candidates with `submitted_by.kind: rsi` and `lineage.parent_hash` | not needed; RSI is built on a separate branch that shares the schema. Unlocks `identity.lineage`, `guarantees.failure_modes`, Candidate `builder_evidence` and `test_aids`, test suite `inherited_from_hash`, Artifact `issues`, Binding `overlays`, Observation `trajectory_ref` | jiuwenswarm RSI service (`agents/harness/common/rsi/`); agent-core `rsi/` |
 | **Selection index** | name, summary, ports, effect class, Standing | an index of admitted capsules for search and for matching by port type; Findings of kind `gap` when no capsule fits | not needed. Unlocks `identity.tags`, `Predicate.state_source` | jiuwenswarm `SkillTaxonomyRuntime` (`symphony/skill_retrieval/runtime.py:30`) over agent-core `AgenticSkillRetrievalToolkit`; agent-core Symphony `CapabilityProvider` (`symphony/interfaces/capability.py`) |
-| **Routing reader** | `needs.model` | the model limits handed to routing | not needed; the first epoch uses one model for every call. Unlocks `needs.model`, Observation `routing_policy` and `cost.money` | none found |
+| **Cost meter** | Observations | token and money cost per call, for Binding budgets | not needed; the first epoch budgets time only. Unlocks Observation `cost.tokens`, `cost.money`, Binding `budget.tokens`, `budget.money` | GenAI span attributes (`gen_ai_semconv.py:53-90`) |
 | **Importer for outside sources** | a skill, tool, MCP server or A2A agent from a hub, a repo or a local folder | draft Declarations, checks and test cases, and Candidates with `submitted_by.kind: importer` | not needed. Unlocks Candidate `source`, `identity.namespace`, `identity.license`, `needs.dependencies`, `needs.config`; for MCP servers and A2A agents, `identity.remote` | `SkillManager` install handlers (`server/runtime/skill/skill_manager.py`); the MCP registry (`server/runtime/mcp/registry.py`); agent-core MCP clients (`core/foundation/tool/mcp/client/`) |
 | **Isolated verification sandbox** | a Candidate from outside, its `needs.dependencies`, `needs.config`, `needs.secrets` and `needs.resources`, the policy | test results for admission, Verdict `environment`, the effects observed | not needed. Unlocks `needs.dependencies`, `needs.config`, `needs.secrets`, `needs.resources`, Verdict `environment` | jiuwenbox (`jiuwenbox/` at the jiuwenswarm repository root) |
 | **Store or registry** | admitted capsules, their Verdicts, Candidate `source` | published capsules with their Declarations | not needed. Unlocks Candidate `source` (with `attestation`), `identity.namespace`, `identity.owner`, `identity.tags`, `identity.license` | openJiuwen Agentic Hub (`openjiuwen/skillhub`); jiuwenswarm `HubClient` (`server/runtime/marketplace/hub_client.py:150`) |

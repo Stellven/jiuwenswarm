@@ -27,7 +27,7 @@ tags: [design, draft, m1]
 - **Six core capsules** in the `make_capsule.md` contract (the Declaration): five workflow capsules and one verifier. Their rubrics are ported from sciencediscovery, and every payload is strict JSON. The two general capsules from B1, `compile_intent` and `compile_requirement`, carry over.
 - **Admission, but no library search.** Capsules pass an admission gate before any run. There is no selector and no planner on the main path: the fixed DAG names its capsules.
 - **RSI, the multi-model router and the dynamic planner are parallel tracks,** kept off the main branch until the fixed pipeline is stable (the PRD's integration gate).
-- **The model router is not a pipeline stage.** It is an inner step of a capsule call, used only when that capsule uses a model. It picks the model for that one call at runtime. Tool capsules never reach it.
+- **Models are not in the capsule layer.** The pipeline selects capsules, never models. Whether a capsule uses a model, and whether that model is routed at runtime, is its author's choice, inside the capsule. On the main branch every model call goes to the one Codex model.
 
 ## The pipeline
 
@@ -251,7 +251,6 @@ flowchart TB
     subgraph RUN["CC runner: new system code"]
         PIN["1. pin: Binding, re-hash, needs.when"]:::ctrl
         CALL["2. call the capsule by its kind"]:::ctrl
-        RTR["model router: picks the model for this call"]:::ctrl
         MA["model adapter: JSON from text"]:::ctrl
         OPS["operator clients for needs.external"]:::ctrl
         REC["3. record: Artifact, Observation"]:::ctrl
@@ -264,13 +263,13 @@ flowchart TB
         OPSV["DeepSearch library, CodeSearch service"]:::js
     end
     ENG -->|"each agent call"| PIN --> CALL
-    CALL -->|"skill: model capsules only"| RTR --> MA --> CX
+    CALL -->|"skill: a model call"| MA --> CX
     CALL -->|"tool: Python call"| CAP
     CALL -->|"needs.external"| OPS -->|"check first"| PERM
     OPS --> OPSV
     CALL --> REC --> T1
     T1 -->|"passes: call the pinned verifier"| VER
-    VER -->|"a model call"| RTR
+    VER -->|"a model call"| MA
     VER -->|"assessment"| FOLD
     T1 -->|"fails"| FOLD
     FOLD -->|"envelope: value and verdict"| ENG
@@ -285,7 +284,7 @@ flowchart TB
 **What M1 adds to the B1 runner:**
 
 - **Tier 2.** After tier 1 passes, the gate calls the verifier pinned in the Binding, as a call with `caller: gate`. The judge is one more Codex text turn through the same model adapter. The gate folds tier 1 and the assessment into one of the five verdicts. The diagram draws tier 2 inside the runner; whether it is its own `agent()` call instead is open.
-- **The model router.** It sits inside the runner's model call, between the kind handler and the model adapter. It picks a model per capsule call, at runtime, within the capsule's `needs.model` limits, and records its choice in the Observation's `model`. `needs.model` is unchecked in M1 (Unlocks: routing), and on the main branch the router has one choice. Tool capsules never reach it.
+- **No model router in the runner.** The runner selects nothing about models. A `skill` capsule's model call goes through the model adapter to the one Codex model, and the runner records that model in the Observation's `model`. A capsule whose author wants a routed model calls the router from its own code, on the routing track.
 - **Operators.** The model cannot call tools on this runtime, so the runner calls DeepSearch, CodeSearch and workspace I/O for a capsule, and only those in its `needs.external`. Neither operator is a jiuwenswarm tool: DeepSearch is the pip library `openjiuwen-deepsearch`, run as a subprocess, and CodeSearch is an SDK or HTTP service over a Milvus index. The runner needs one client per operator, and checks each call first with a standalone `PermissionEngine`, built the way jiuwenswarm's `owner_scopes.py:161-169` builds one. There is no approval UI outside the permission rail, so CC must decide what an `ASK` result means.
 - **Admitted capsules.** The capsule folder loader also reads each capsule's Verdict.
 - **Kinds.** `skill` and `tool`, as in B1. `prompt_section` may be needed for shared rubric text.
@@ -298,7 +297,6 @@ flowchart TB
 | tier 2 caller | an output, the Binding's judged checks and its `verifier` | an assessment Artifact |
 | verdict fold | tier 1 results, the assessment | one of the five verdicts |
 | operator clients | a capsule's `needs.external`, an operator request | the operator's result, from its own library or service, after a standalone `PermissionEngine` check |
-| model router | a model capsule's call and its `needs.model` | the model for this call, passed to the model adapter |
 | six core capsules, and `run_benchmark` | each capsule's Declaration | its code and tests, admitted |
 
 ## Through jiuwenswarm: the deep view
@@ -314,7 +312,6 @@ flowchart TB
         T1{{"tier 1 gate"}}:::gate
         T2(["tier 2: verifier capsule"]):::cc
         V{{"verdict fold"}}:::gate
-        RTR["model router: model per call"]:::ctrl
         MA["model adapter"]:::ctrl
         SVC["SubscriptionService.stream"]:::js
         PE["PermissionEngine: standalone"]:::js
@@ -337,13 +334,13 @@ flowchart TB
     HS>"human_session: no reply path yet"]:::ext
 
     ENG --> BK --> C
-    C -->|"model capsule"| RTR
-    C --> T1 -->|"passes"| T2 -->|"one more model call"| RTR
+    C -->|"model capsule"| MA
+    C --> T1 -->|"passes"| T2 -->|"one more model call"| MA
     T1 -->|"fails"| V
     T2 -->|"assessment"| V
     V -->|"verdict"| ENG
     V -.->|"halt"| HS
-    RTR --> MA --> SVC <--> APP
+    MA --> SVC <--> APP
     BK -->|"needs.external"| PE -->|"allow"| OPC
     OPC --> DSL --> LLM & WSE
     OPC --> CSS --> MIL
@@ -361,8 +358,7 @@ flowchart TB
 
 **What each addition needs:**
 
-- **Tier 2** is one more model call through the same router, model adapter and Codex child. Every judge call adds one more permanent entry to `subscription/bindings.json`. A judge turn that fails or times out closes the shared Codex child (`service.py:197-208`), as in B1.
-- **The model router** is inside the runner's model call. Only model capsules and the judge reach it.
+- **Tier 2** is one more model call through the same model adapter and Codex child. Every judge call adds one more permanent entry to `subscription/bindings.json`. A judge turn that fails or times out closes the shared Codex child (`service.py:197-208`), as in B1.
 - **Operators** each need their own client and their own credentials. Neither runs on the Codex subscription. A DeepSearch run takes about 15 minutes as a subprocess and sends no progress events of its own.
 - **The permission check** uses a `PermissionEngine` built without a DeepAgent, as `owner_scopes.py:161-169` does. **[pin]** Its constructor is read at agent-core `e23806c1`, not the pin `9e339019`.
 - **`human_session`** is where the PRD sends a halted run. On this runtime nothing can take the person's reply: only the team backend has `human` sessions, and the Codex adapter refuses a Swarmflow reply (`interface_codex.py:67-70`). See Open.
@@ -388,7 +384,7 @@ Capability Capsule and Verifier build the main path. RSI, the multi-model router
 | RSI | mutation in an offline sandbox, against static contracts and hidden fixtures | a Candidate, through admission |
 | RSI data foundation | the data and fixtures RSI works on | sample runs and fixtures |
 | Verifier fine-tuning | tuning the model behind the tier 2 judge | a new version of the verifier capsule, through admission |
-| Model routing | on the main branch, the Codex CLI adapter over one subscription. On an isolated branch, a multi-model router against simulated endpoints until enterprise keys arrive | an inner step of a model capsule's call, never a pipeline stage: it reads `needs.model` and records the model in the Observation |
+| Model routing | on the main branch, the Codex CLI adapter over one subscription. On an isolated branch, a multi-model router against simulated endpoints until enterprise keys arrive | none in the capsule layer. A capsule's author who wants a routed model calls the router from the capsule's own code; the capsule layer only records which model served the call |
 | Dynamic planner | the Cluster Mode planner, tested against offline scenarios; the Leader Agent for intent compilation | may replace the fixed DAG after M1 |
 
 ## How M1 fits jiuwenswarm
@@ -398,7 +394,7 @@ Capability Capsule and Verifier build the main path. RSI, the multi-model router
 | Run entry | the CC-run branch on the `chat.send` stream, as in B1 | as in B1 |
 | The pipeline | a Swarmflow script run by `run_workflow(path, backend=...)`, one `agent()` call per node | as in B1 |
 | Capsule calls, gates | the CC runner as the engine's `AgentBackend`. Tier 1 runs inside it; where tier 2 runs is open | new, extends B1 |
-| The model | the Codex subscription runtime (the PRD's Codex CLI adapter): text turns, with JSON parsed from the reply. The model router sits inside the runner's model call; on the main branch it has one choice | works now as text turns |
+| The model | the Codex subscription runtime (the PRD's Codex CLI adapter): text turns, with JSON parsed from the reply. Every model call goes to it; routing, where an author wants it, is inside that capsule | works now as text turns |
 | Budget | time only: Codex reports no tokens, so the PRD's token ceilings cannot be checked yet | runner only, as in B1 |
 | Operators | not jiuwenswarm tools. The runner calls each through its own client, after a check by a standalone `PermissionEngine` (`agents/harness/common/rails/permissions/owner_scopes.py:161-169`) | new: a client per operator, and a CC rule for an `ASK` result |
 | Halting to a person | `human_session` has no reply path on this runtime (`interface_codex.py:67-70`) | open |
