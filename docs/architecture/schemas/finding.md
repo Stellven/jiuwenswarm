@@ -48,7 +48,7 @@ How many `use_outcome` Findings make a capsule `suspect`, and which moves a Find
 
 ## Reuse
 
-- `EvidenceRef` (agent-core `symphony/models/evaluation.py:57`): as is, as a list.
+- `EvidenceRef` (agent-core `openjiuwen/symphony/models/evaluation.py:57`, pin `9e339019`): as is, as a list.
 - Per-kind required fields (AI4Research `feedback-event.schema.v1.draft.json`): the pattern; the kind decides the detail shape.
-- `RsiTaskCreateRequest` (agent-core `rsi/schema.py:23`): the gap is not reshaped to fit it; a mapping is published instead.
+- `RsiTaskCreateRequest` (agent-core `openjiuwen/rsi/schema.py:23`, pin `9e339019`): the gap is not reshaped to fit it; a mapping is published instead.
 - RSI's candidate gate results (`rsi/harness_rsi/single_harness/iterative.py:1247`): not reused; ad hoc dictionaries.

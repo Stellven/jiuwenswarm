@@ -5,7 +5,7 @@ tags: [capsule, permissions, jiuwenswarm]
 
 # Permissions: how a capsule fits jiuwenswarm
 
-A capsule declares what it will touch. jiuwenswarm already has a permission system that decides, per tool call, whether a call may run. CC's job is to **turn each Declaration into rules that system enforces**, and to say plainly which declarations nothing enforces yet. Read in code at jiuwenswarm `bf0e8af7` (paths under `jiuwenswarm/jiuwenswarm/`) and agent-core `e23806c1` (paths under `openjiuwen/`; jiuwenswarm pins `9e339019`, which was not available locally).
+A capsule declares what it will touch. jiuwenswarm already has a permission system that decides, per tool call, whether a call may run. CC's job is to **turn each Declaration into rules that system enforces**, and to say plainly which declarations nothing enforces yet. Read in code at jiuwenswarm `bf0e8af7` (paths under `jiuwenswarm/jiuwenswarm/`, now stale — `ai4r_main_branch` has since moved to `eb4c2901c`, not yet re-checked) and agent-core `e23806c1` (paths under `openjiuwen/`). The agent-core pin, `9e339019`, is now available locally; only the `file_guard` row below has been re-checked against it so far (batch E), the rest of this table's agent-core citations still need their own pass.
 
 ## What jiuwenswarm has
 
@@ -13,7 +13,7 @@ A capsule declares what it will touch. jiuwenswarm already has a permission syst
 |---|---|---|---|---|
 | `PermissionEngine`: ALLOW, ASK or DENY | agent-core | `harness/security/permission_engine/core.py:272` | tool name and arguments | the strictest of three pipelines below |
 | tiered tool policy | agent-core | `harness/security/permission_engine/toolguard/tool_policy.py:588` | tool name; argument patterns for shell commands only | allow, ask or deny |
-| `file_guard` | agent-core | `harness/security/permission_engine/fileguard/file_guard.py:595` | path glob × read, write, execute; the workspace root | allow, ask or deny |
+| `file_guard` | agent-core | `openjiuwen/harness/security/permission_engine/fileguard/file_guard.py:595`, confirmed at pin `9e339019` (`FileGuardChecker.evaluate`) | path glob × read, write, execute; the workspace root | allow, ask or deny |
 | `net_guard` | agent-core | `harness/security/permission_engine/netguard/net_guard.py:110` | URL or host, for the web-fetch tools only | allow or deny |
 | permission rail | agent-core | `harness/rails/security/tool_security_rail.py:186` | every tool call of a DeepAgent | runs the engine; ASK becomes an interrupt for a person |
 | three-layer config | jiuwenswarm | `agents/harness/common/rails/permissions/permission_compose.py:237` | global `config.yaml`, user file, session | the rules in force |

@@ -36,6 +36,6 @@ The fold, blame and label rules: policy `gates`. Blame is not stored: it follows
 
 ## Reuse
 
-- `EvidenceRef` (agent-core `symphony/models/evaluation.py:57`): as is.
-- `MetricStatus` (`evaluation.py:22`): `unknown` maps from `error`, `not_applicable` and `observed`, so a Symphony evaluator can feed a check.
+- `EvidenceRef` (agent-core `openjiuwen/symphony/models/evaluation.py:57`, pin `9e339019`): as is.
+- `MetricStatus` (agent-core `openjiuwen/symphony/models/evaluation.py:22`, pin `9e339019`): `unknown` maps from `error`, `not_applicable` and `observed`, so a Symphony evaluator can feed a check.
 - AI4Research `acceptance-verdict`, `requirement-trace`, `coverage-report`: not reused; they are aggregates, computed by query instead.

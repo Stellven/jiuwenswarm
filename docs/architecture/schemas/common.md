@@ -58,7 +58,7 @@ Records are written once (INV-2); how a store keeps them is not part of the sche
 
 ## Reuse
 
-- `EvidenceRef`: agent-core `symphony/models/evaluation.py:57`, as is.
+- `EvidenceRef`: agent-core `openjiuwen/symphony/models/evaluation.py:57`, pin `9e339019`, as is.
 - `FailureReason` (`evaluation.py:70`): as `Reason`, without `severity`.
 - `SymphonyModel` (`symphony/models/_base.py:19`): frozen as there, but extra fields are refused, since ignoring one silently changes the hash.
 - `causation_id`, `idempotency_key`: from AI4Research `session-event-v2.schema.json:71-78`.
