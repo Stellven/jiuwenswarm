@@ -41,6 +41,6 @@ Domain types (research outputs, reports, patches and so on) are added as entries
 
 ## Reuse
 
-- `CapabilityIO.type` (agent-core `symphony/models/capability.py:19`): as is; this list is its legal values.
+- `CapabilityIO.type` (agent-core `openjiuwen/symphony/models/capability.py:19`, pin `9e339019`): as is; this list is its legal values.
 - AI4Research's evidence schemas (`harness/schemas/evidence/`): their `outputs` parts are the starting `value_schema`s for domain types. Their envelope requires `task_id`, `sprint_id` and `node_id`, which would put a task into a capsule (INV-7).
 - AI4Research's artifact-type checks (`evaluation-checks.v1.json`, `applies_to.kind: artifact_type`): imported into each type's `checks`.

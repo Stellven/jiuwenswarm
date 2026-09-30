@@ -155,8 +155,8 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 
 **M00c Policy epochs.** Owner: CC; the reason-code owners are agreed with the Verifier.
 - **Out:** development epochs during the build, each accepting the earlier ones, and `e1` for release ([policy](schemas/policy.md)).
-- **Contents:** the first-epoch values, the admission judge by name, the time budget default of 600 s and cap of 1800 s, and the reason-code owners.
-- **Tests:** the lint passes; every rule has a reason code, and every call-level code has an owner.
+- **Contents:** the first-epoch values, the admission judge by name, the time budget (default 600 s, cap 1800 s, 120 s per judge call), and the reason-code owners.
+- **Tests:** the lint passes; every rule has a reason code; every call-level code has an owner ([Open](#open) 2 — not yet true).
 
 ### Library side
 
@@ -378,6 +378,6 @@ flowchart LR
 ## Open
 
 1. **The five workflow capsules.** The kickoff counts "5 workflow + 1 verifier". This page follows PRD 4.1's six. Confirm with the PRD owner.
-2. **The reason-code owners and `BUDGET_EXCEEDED`.** Agree them with the Verifier, since the five verdicts rest on them.
+2. **Four call/gate-level reason codes have no owner, though `guard.observation.reason_owner_known` requires one for every `blocked` Observation.** Found auditing M00c against [guards](capsule/guards.md): `SCHEMA_NONCONFORMANT` (raised at each call by `guard.declaration.kind_known`, and by several Observation/Artifact shape guards, not only at admission), `HASH_MISMATCH` (raised at each call by `guard.artifact.content_sha256_correct`, on an Artifact's own content — distinct from the carrier-hash case, which already renames to the owned `CARRIER_CHANGED` at load), `OPERATOR_NOT_ADMITTED` (raised at each call by `guard.declaration.external_admitted_and_pinned`), and `JUDGE_IS_SELF` (raised at gate time by `guard.verification.judge_not_self`). Agree owners for these with the Verifier; `BUDGET_EXCEEDED` itself is already owned (`capsule`), so it is these four, not it, that are open.
 3. **`blocking` human interaction and the time budget.** Does waiting for a person count against a call's time budget, and what happens on the Codex runtime while `human_session` has no reply path? All six M1 workflow capsules can be `none` until this is settled.
 4. **DeepSearch's own model endpoint and index.** To confirm with the deepsearch repo. They sit inside `op.deepsearch` either way.
