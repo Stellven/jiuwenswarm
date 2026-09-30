@@ -36,6 +36,7 @@ The Research Brief schema is open: it fixes the minimum below, and allows extra 
 | `in_scope` | list of `{item, evidence}` | what the research covers; `evidence` is a quote from the intake text |
 | `out_of_scope` | list of `{item, evidence}` | what it must not cover |
 | `constraints.compute` | object | `hardware` (string, such as `single_gpu`); optional `gpu_memory_gb`, `runtime_limit_s`, `token_budget` |
+| `constraints.framework` | list of `{item, evidence}` | stated framework or library requirements (such as "PyTorch" or a CUDA version). Not itself a PRD 3.2 sub-feature, but PRD 3.6.1 says `poc_capsule` generates `requirements.txt` "based on the framework requirements detailed in the Research Brief" — added 2026-09-30 by reading 3.2 and 3.6 together, not 3.2 alone |
 | `constraints.other` | list of `{item, evidence}` | any other stated limit: data, time, tools, policy |
 | `mandatory_requirements` | list of `{id, statement, evidence}` | must be met; at least one |
 | `optional_preferences` | list of `{id, statement, evidence}` | nice to have |
@@ -55,7 +56,7 @@ Caveats, such as a vague request or a missing metric, go in the output Artifact'
   "objective_evidence": "Reduce the VRAM use of my model's attention",
   "in_scope": [{"item": "the model's attention layers", "evidence": "my model's attention"}],
   "out_of_scope": [{"item": "retraining from scratch", "evidence": "Don't retrain from scratch"}],
-  "constraints": {"compute": {"hardware": "single_gpu", "runtime_limit_s": 3600}, "other": []},
+  "constraints": {"compute": {"hardware": "single_gpu", "runtime_limit_s": 3600}, "framework": [], "other": []},
   "mandatory_requirements": [
     {"id": "R1", "statement": "VRAM reduction of at least 30%", "evidence": "by at least 30%"},
     {"id": "R2", "statement": "accuracy loss of at most 1%", "evidence": "without losing more than 1% accuracy"}
@@ -280,3 +281,4 @@ A real skill call with a known input and output schema. It can be routed to any 
 8. **Open schema, no read contract.** "Allows extra fields" (above) means a model can add fields no downstream stage is told to read or ignore. State which stages read only the declared fields, or reject unknowns for M1.
 9. **`hardware` is a free string used like an enum** (`single_gpu` in the example). 3.7's sandbox needs a concrete device. Needs a small enum, or a stage that resolves the string to one.
 10. **No rule for contradictory input.** `INPUT_CONTRADICTORY` is a valid issue code, but nothing says what the Brief contains when two stated constraints conflict (e.g. a stated percentage reduction against a stated absolute ceiling) — both kept as metrics, one dropped, or something else.
+11. **`constraints.framework` added 2026-09-30, found only by reading 3.2 and 3.6 together, not 3.2 alone.** PRD 3.6.1 depends on "framework requirements detailed in the Research Brief" for generating `requirements.txt`, but PRD 3.2 never lists framework/library requirements as one of 3.2's own sub-features. Confirm with Ramika whether this belongs here or should move to 3.2's own text.
