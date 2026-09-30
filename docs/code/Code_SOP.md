@@ -11,6 +11,8 @@ Revision: 2026-09-29. Prepare the complete M1 workflow while its PRD and archite
 
 Uppercase TASKS.md is the program register. Lowercase tasks.md is one task's native work list. Install Spec Kit once per checkout; each TASK gets its own feature directory, not a separate tool installation.
 
+A TASK is the logical task unit; TASK.md is its entry file. The task's functional specification (spec.md), implementation plan (plan.md), work list (tasks.md) and evidence belong to that TASK, but are separate files in its registered Spec Kit directory. TASK.md links to them; their full contents are not embedded in TASK.md.
+
 There is no separate coding-authorization card, implementation checklist, test-report card, review card, handoff card, change-request card, or Manual design/plan track. Record the user's requested scope directly in TASK. This workflow introduces no reviewer-assignment or approval stage. Existing platform permissions and explicit user instructions still apply to actual external actions.
 
 ## 2. Single authorities

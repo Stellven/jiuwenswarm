@@ -30,3 +30,11 @@ No M1 runtime suite, external model invocation, tool upgrade, commit, push or de
 
 ## Entry-guide localization
 The package entry docs/code/README.md is now Chinese at the user's request. Other guides, templates and examples remain English. The handbook, manifest and ZIP are regenerated to include that entry. Earlier English-only scan results describe the initial delivery before this localization.
+
+## Complete bilingual delivery
+2026-09-30: added an English-only README.en.md and used it as the English handbook entry. Chinese README.md accompanies the complete Chinese handbook. Counts above are historical results for the prior delivery; coverage, sections/tables, work-item IDs, links, language and archive hashes are checked again for this delivery. Translations are stored by source path in translations.zh-CN.json for regeneration and comparison. No commit was created.
+
+Current delivery results: all 33 bilingual sections correspond; heading counts, table structure, work-item IDs and code blocks match. The English handbook contains no CJK prose. Each handbook has 172 valid links. The ZIP has 38 entries with matching manifest hashes.
+
+## Module-guide removal and task-file clarification
+2026-09-30: removed the four legacy RSI, Router, Capsule and Verifier module guides at the user's request. Removed their catalog entries and translations, and regenerated both handbooks and the ZIP. Clarified that a logical TASK owns its spec.md, plan.md and tasks.md, while TASK.md is their entry and link registry. The current handbooks each contain 29 sections; previous counts above describe earlier deliveries. No commit was performed for this update.

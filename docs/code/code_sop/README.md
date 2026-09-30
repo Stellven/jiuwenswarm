@@ -1,8 +1,8 @@
 # Complete documentation catalog - SOP v2
-The package entry guide is in Chinese; all other active v2 documents are in English. Start with [Code SOP](../Code_SOP.md). This catalog is the complete process package; optional generated research/schema files are not additional mandatory cards.
+The package has English and Chinese entry guides. Editable process, template and example sources remain English; a complete Chinese handbook is also provided. Start with [Code SOP](../Code_SOP.md). This catalog is the complete process package; optional generated research/schema files are not additional mandatory cards.
 
 ## Reading order
-1. [Package entry](../README.md)
+1. [Package entry](../README.en.md)
 2. [Code SOP](../Code_SOP.md)
 3. [Spec Kit workflow](SPEC_KIT_WORKFLOW.md)
 4. [Block-to-system verification](VERIFICATION.md)
@@ -18,10 +18,6 @@ The package entry guide is in Chinese; all other active v2 documents are in Engl
 | [Local AGENTS template](../AGENTS_local.md) | Reusable subtree context |
 | [Active repository AGENTS](../../../AGENTS.md) | Deployed v2 repository entry and rules |
 | [Active constitution](../../../.specify/memory/constitution.md) | Spec Kit's v2 principles |
-| [RSI guide](modules/RSI_AGENTS.md) | Research-workflow boundary questions |
-| [Router guide](modules/Router_AGENTS.md) | Executor-only routing and PRD-derived model list |
-| [Capsule guide](modules/Capsule_AGENTS.md) | Product capsule scope and state |
-| [Verifier guide](modules/Verifier_AGENTS.md) | Product verification behavior |
 
 ## Required record templates
 | Template | Destination / authority |
@@ -57,4 +53,4 @@ The complete bundle is generated from this package, the active root instructions
 
 The previous kickoff ZIP and obsolete authorization/review/checklist/testing templates are removed to prevent accidental reuse.
 
-Download the [complete ZIP](../AI4Research_Documentation_v2.zip), read the [single-file handbook](../AI4Research_Documentation_v2.md), or inspect the [manifest](../DELIVERY_MANIFEST.json) and [documentation checks](../DOCUMENTATION_CHECKS.md). These are generated delivery snapshots; edit the source files listed above.
+Download the [complete ZIP](../AI4Research_Documentation_v2.zip), read the [English handbook](../AI4Research_Documentation_v2.md) or [Chinese handbook](../AI4Research_Documentation_v2.zh-CN.md), or inspect the [manifest](../DELIVERY_MANIFEST.json) and [documentation checks](../DOCUMENTATION_CHECKS.md). These are generated delivery snapshots; edit the source files listed above.

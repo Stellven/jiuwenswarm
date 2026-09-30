@@ -23,7 +23,7 @@ The removed templates and protocols are deleted from the active docs/code packag
 - Native spec/plan/tasks overrides.
 - Block, boundary and system verification method.
 - Updated root instructions and constitution.
-- Module context guides and a clearly fictional end-to-end documentation example.
+- A clearly fictional end-to-end documentation example.
 - A future-M1 TASKS skeleton with pending source inputs.
 - A complete English delivery bundle and manifest.
 

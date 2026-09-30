@@ -1,6 +1,8 @@
 # TASK: [TASK-ID] - [Title]
 Copy to docs/tasks/[PROGRAM-ID]/[TASK-ID]/TASK.md. TASK is an identity and entry point. Keep acceptance, design, progress and results in the registered Spec Kit artifacts.
 
+The logical TASK includes its Spec Kit artifacts. Physically, spec.md, plan.md and tasks.md are separate linked files, not sections copied into TASK.md.
+
 ## 1. Identity
 | Field | Value |
 | --- | --- |
