@@ -19,7 +19,7 @@ It turns the Qualified Intake Package from Ingestion (3.1.5) into the **Research
 | 3.2.3 Ambiguity Resolution | fills missing parameters from a fixed table of conservative defaults, such as `single_gpu`, and records each default it applied |
 | 3.2.4 Constraint Resolution | extracts stated compute limits: hardware, runtime, token budget |
 | 3.2.5 Requirement Prioritization | splits requirements into `mandatory_requirements` and `optional_preferences` |
-| 3.2.6 Acceptance Definition | defines concrete target metrics, each with a direction and a threshold |
+| 3.2.6 Acceptance Definition | defines concrete target metrics, each with a comparator and a threshold |
 | 3.2.7 Contract Confirmation | returns everything as one Research Brief JSON, which goes to the Evaluator Gate (4.2) |
 
 **The design choice that matters:** every item the Brief says the user *stated* carries a short quote from the intake text. A deterministic check then confirms the quote is really there. So the model cannot invent a requirement and present it as the user's. Anything not stated is either a recorded default or absent. `compile_intent` grounds its output the same way, with source spans.
@@ -39,8 +39,10 @@ The Research Brief schema is open: it fixes the minimum below, and allows extra 
 | `constraints.other` | list of `{item, evidence}` | any other stated limit: data, time, tools, policy |
 | `mandatory_requirements` | list of `{id, statement, evidence}` | must be met; at least one |
 | `optional_preferences` | list of `{id, statement, evidence}` | nice to have |
-| `metrics` | list of `{name, direction, comparator, target, unit, evidence}` | acceptance metrics. `direction` is `increase` or `decrease`; `comparator` is `>=` or `<=`; `target` is a number. Stage 3.7 takes its pass and fail thresholds from these |
+| `metrics` | list of `{id, requirement_id, name, comparator, target, unit, evidence}` | acceptance metrics, each operationalizing one `mandatory_requirements` or `optional_preferences` entry. `comparator` is `>=` or `<=`; `target` is a number. 3.5 copies a metric whose `requirement_id` names a mandatory requirement into the frozen Hypothesis Blueprint unchanged; 3.7 and 3.8 read thresholds only from there, never straight from the Brief (PRD 3.5.4, 3.8) |
 | `defaults_applied` | list of `{field, value, reason}` | every value taken from the defaults table instead of the text |
+
+No `direction` field: `comparator` alone fixes which way is better (`>=` means higher, `<=` means lower), and nothing downstream needs a second, independently-settable field that could disagree with it.
 
 Caveats, such as a vague request or a missing metric, go in the output Artifact's `issues`. Their codes are `INPUT_AMBIGUOUS`, `INPUT_INCOMPLETE` and `INPUT_CONTRADICTORY`. The Brief is still returned.
 
@@ -53,17 +55,20 @@ Caveats, such as a vague request or a missing metric, go in the output Artifact'
   "objective_evidence": "Reduce the VRAM use of my model's attention",
   "in_scope": [{"item": "the model's attention layers", "evidence": "my model's attention"}],
   "out_of_scope": [{"item": "retraining from scratch", "evidence": "Don't retrain from scratch"}],
-  "constraints": {"compute": {"hardware": "single_gpu"}, "other": []},
+  "constraints": {"compute": {"hardware": "single_gpu", "runtime_limit_s": 3600}, "other": []},
   "mandatory_requirements": [
     {"id": "R1", "statement": "VRAM reduction of at least 30%", "evidence": "by at least 30%"},
     {"id": "R2", "statement": "accuracy loss of at most 1%", "evidence": "without losing more than 1% accuracy"}
   ],
   "optional_preferences": [],
   "metrics": [
-    {"name": "vram_reduction", "direction": "increase", "comparator": ">=", "target": 30, "unit": "percent", "evidence": "by at least 30%"},
-    {"name": "accuracy_loss", "direction": "decrease", "comparator": "<=", "target": 1, "unit": "percent", "evidence": "without losing more than 1% accuracy"}
+    {"id": "M1", "requirement_id": "R1", "name": "vram_reduction", "comparator": ">=", "target": 30, "unit": "percent", "evidence": "by at least 30%"},
+    {"id": "M2", "requirement_id": "R2", "name": "accuracy_loss", "comparator": "<=", "target": 1, "unit": "percent", "evidence": "without losing more than 1% accuracy"}
   ],
-  "defaults_applied": [{"field": "constraints.compute.hardware", "value": "single_gpu", "reason": "no hardware stated"}]
+  "defaults_applied": [
+    {"field": "constraints.compute.hardware", "value": "single_gpu", "reason": "no hardware stated"},
+    {"field": "constraints.compute.runtime_limit_s", "value": 3600, "reason": "no runtime stated"}
+  ]
 }
 ```
 
@@ -112,17 +117,21 @@ Caveats, such as a vague request or a missing metric, go in the output Artifact'
        "runner": {"ref": "checks/brief_checks.py:evidence_grounded", "sha256": "<author kit>"},
        "description": "Every evidence quote appears verbatim in the intake prompt or a document's text.", "author": "muk"},
       {"id": "defaults_only_when_silent", "anchor": "deterministic", "target": "ports.outputs.research_brief",
-       "over": "inputs_and_outputs", "applies_at": "both",
+       "over": "outputs", "applies_at": "both",
        "runner": {"ref": "checks/brief_checks.py:defaults_only_when_silent", "sha256": "<author kit>"},
-       "description": "Every applied default comes from references/defaults.json, and only for a field the intake does not state.", "author": "muk"},
+       "description": "A structural check on the Brief alone, not a judgment about the intake: a field listed in defaults_applied has no evidence quote anywhere and its value equals the defaults table's value; a field with an evidence quote is never also in defaults_applied.", "author": "muk"},
       {"id": "requirements_and_metrics_present", "anchor": "deterministic", "target": "ports.outputs.research_brief",
        "over": "outputs", "applies_at": "both",
        "runner": {"ref": "checks/brief_checks.py:requirements_and_metrics_present", "sha256": "<author kit>"},
-       "description": "At least one mandatory requirement and one metric; every metric has a direction, comparator, numeric target and unit; requirement ids are unique.", "author": "muk"},
+       "description": "At least one mandatory requirement. At least one metric, unless every mandatory requirement is qualitative and `issues` records an `INPUT_INCOMPLETE` explaining why no metric was written. Every metric has a unique id, a comparator, a numeric target and a unit; requirement ids are unique among themselves, metric ids among themselves; every metric's requirement_id names a real mandatory_requirements or optional_preferences entry.", "author": "muk"},
+      {"id": "metric_target_grounded", "anchor": "deterministic", "target": "ports.outputs.research_brief",
+       "over": "outputs", "applies_at": "both",
+       "runner": {"ref": "checks/brief_checks.py:metric_target_grounded", "sha256": "<author kit>"},
+       "description": "Each metric's target number appears in its own evidence quote (after normalizing things like '30%' and '30 percent'), so a metric's threshold cannot silently diverge from the requirement it operationalizes.", "author": "muk"},
       {"id": "brief_matches_reference", "anchor": "reference", "target": "ports.outputs.research_brief",
        "over": "inputs_and_outputs", "applies_at": "admission",
        "runner": {"ref": "checks/brief_checks.py:matches_reference", "sha256": "<author kit>"},
-       "description": "On a test case, the Brief's requirements and metrics match the expected ones by name, comparator and target.", "author": "muk"},
+       "description": "On a test case, the Brief's metrics match the expected ones by requirement_id, comparator and target, not by name (a name mismatch such as vram_reduction vs vram_reduction_pct must not fail the fixture).", "author": "muk"},
       {"id": "objective_faithful", "anchor": "judged", "target": "ports.outputs.research_brief",
        "over": "inputs_and_outputs", "applies_at": "node",
        "runner": {"ref": "checks/brief_rubric.md", "sha256": "<author kit>"},
@@ -184,15 +193,16 @@ Compile a research request and its reference text into a Research Brief: objecti
 | Check | Passes when | Runs at |
 |---|---|---|
 | `brief_evidence_grounded` | every evidence quote appears verbatim in the intake | admission and every call |
-| `defaults_only_when_silent` | every applied default is from the table, and only where the intake is silent | admission and every call |
-| `requirements_and_metrics_present` | at least one mandatory requirement and one well-formed metric | admission and every call |
-| `brief_matches_reference` | on a test case, requirements and metrics match the expected ones | admission |
+| `defaults_only_when_silent` | a defaulted field has no evidence quote anywhere and its value equals the defaults table; no quoted field is also defaulted | admission and every call |
+| `requirements_and_metrics_present` | at least one mandatory requirement; at least one metric unless `issues` records why not; every metric well-formed with a real `requirement_id` | admission and every call |
+| `metric_target_grounded` | each metric's target number appears in its own evidence quote | admission and every call |
+| `brief_matches_reference` | on a test case, metrics match the expected ones by `requirement_id`, comparator and target | admission |
 
 **Tier 2: judged by the verifier**
 
 | Check | Passes when | Runs at |
 |---|---|---|
-| `objective_faithful` | the objective reflects the request, chooses no solution, and adds no scope | every call |
+| `objective_faithful` | the objective reflects the request, chooses no solution, and adds no scope | admission and every call |
 
 ## Needs
 
@@ -231,6 +241,10 @@ A draft, taken from PRD 3.2.3's example. The rule: choose the most conservative 
 | `constraints.compute.runtime_limit_s` | `3600` | one hour per benchmark run keeps a run bounded |
 | `constraints.other` | `[]` | nothing is assumed |
 
+`constraints.other: []` is the natural empty state, not a value worth recording in `defaults_applied` — there is nothing there to have come from the text instead. The two scalar defaults above are the ones `defaults_applied` actually lists.
+
+**`defaults_only_when_silent` does not yet check the compute fields it defaults.** `constraints.compute.*` has no per-field `evidence` slot (Open item 6), so the check's "no quoted field is also defaulted" rule has nothing to compare against there — it only bites on fields that could carry a quote. Applying it fully needs Open item 6 settled first.
+
 A missing metric is **not** defaulted. It is recorded as an `INPUT_INCOMPLETE` issue, because inventing an acceptance threshold would move the goalposts (PRD 3.5.4).
 
 ## Tests
@@ -260,3 +274,9 @@ A real skill call with a known input and output schema. It can be routed to any 
 2. **The Intention Compiler sync (PRD 3.2 flag).** It may add dynamic behaviour in Phase 2; Phase 1 stays one-shot.
 3. **The Qualified Intake Package's exact shape** belongs to Ingestion (3.1.5). This design assumes `{prompt, documents: [{path, text, size_bytes}]}`.
 4. **Token budgets** (3.2.4) are recorded in the Brief as a constraint, but M1 does not gate on tokens.
+5. **What a metric's number means.** `target: 30` could be absolute, a delta, or a relative-percent delta, and `unit: percent` alone doesn't say whether `accuracy_loss` is in percentage points or a relative drop — the two differ a lot near a high baseline. Needs a `basis` field (`absolute`/`delta`/`relative_delta`) or equivalent before 3.5 and 3.7 can build against this. Found in an adversarial design review, 2026-09-30.
+6. **Compute constraints carry no evidence, unlike everything else in the Brief.** `constraints.compute.*` are plain values with no per-field `evidence`; a model could write an ungrounded `gpu_memory_gb` and nothing would catch it. Needs the same evidence-or-default discipline the rest of the schema already has.
+7. **Evidence quotes don't record their source or enforce a minimum bar.** A quote can come from a reference document rather than the user's own prompt and still pass `brief_evidence_grounded` — a paper's claim could be presented as the user's requirement. A quote can also be trivially short. Needs `evidence_source: prompt | doc:<id>` (requirements and metrics should quote the prompt, not a document) and a minimum-length or term-overlap rule.
+8. **Open schema, no read contract.** "Allows extra fields" (above) means a model can add fields no downstream stage is told to read or ignore. State which stages read only the declared fields, or reject unknowns for M1.
+9. **`hardware` is a free string used like an enum** (`single_gpu` in the example). 3.7's sandbox needs a concrete device. Needs a small enum, or a stage that resolves the string to one.
+10. **No rule for contradictory input.** `INPUT_CONTRADICTORY` is a valid issue code, but nothing says what the Brief contains when two stated constraints conflict (e.g. a stated percentage reduction against a stated absolute ceiling) — both kept as metrics, one dropped, or something else.
