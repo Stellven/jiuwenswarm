@@ -163,15 +163,15 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 **M12 Record store.** Owner: CC.
 - **In:** any CC record or content.
 - **Out:** records keyed `cc/<kind>/<scope>/<id>` under the profile root, and content keyed by sha256 ([library](capsule/library.md#what-the-library-holds)).
-- **Must:** write once (`exclusive_set`); read by key and by prefix.
+- **Must:** write once; read by key and by prefix. `exclusive_set` alone cannot tell a duplicate write from a conflicting one — it returns `false` whenever the key exists, whatever the bytes are (agent-core `openjiuwen/core/foundation/store/base_kv_store.py:42`, pin `9e339019`) — so M12 reads the existing value and compares bytes before applying `guard.store.write_once`. It also checks `guard.common.envelope_shape`, `guard.common.scope_exclusive` and `guard.common.ref_integrity` on every write, `guard.store.one_writer_per_kind` at admission, and `guard.porttype.vocabulary_version_monotonic` for the port type vocabulary ([guards](capsule/guards.md)).
 - **Must not:** edit or delete.
-- **Tests:** a second write to a key fails; equal bytes are stored once.
+- **Tests:** a second write of different bytes to an existing key is refused; the same bytes at the same key are a no-op; equal content bytes are stored once.
 
 **M10a Check runner.** Owner: CC. Admission, the author kit and the gate all use it.
 - **In:** a check, the values it targets, and for a judged check the judge to call.
-- **Out:** `pass`, `fail` or `unknown`, with evidence.
+- **Out:** `pass`, `fail` or `unknown`, with evidence and `runner_sha256` ([verification-record](schemas/verification-record.md)).
 - **Must:** run `deterministic` and `reference` checks as pinned code; run `judged` checks through the given judge via M04 (`caller: gate`, or `admission` at admission).
-- **Must not:** decide a gate outcome; that is M10's job.
+- **Must not:** decide a gate outcome; that is M10's job. [guards](capsule/guards.md) lists every gate-time guard under "Check runner and gate (M10a, M10)" jointly, without splitting the two — M10a runs each check and reports its result; M10 owns the fold (`guard.verification.decision_fold_correct`) and everything downstream of it (`judge_not_self`, `one_per_dispatch`, `seb_complete`).
 - **Tests:** each anchor on fixtures; an error in a check's code gives `unknown`, never `pass`.
 
 **M13 Author kit.** Owner: CC.

@@ -48,5 +48,5 @@ Policy: which anchors may fail a gate (`blocking`); who may write a certifying c
 
 - AI4Research's 43-check registry (`harness/config/evaluation-checks.v1.json`): entries become registry checks; `mode: semantic` becomes `anchor: judged`, `implementation_ref` becomes `runner`. Its 20 semantic checks need a judge runner.
 - The Check shape: v2.10b `guarantees.checks`. Test case and test suite are new.
-- `Evaluator`, `MetricResult` (agent-core `symphony/evaluation/base.py:139`, `symphony/models/evaluation.py:223`): a runner may be one.
-- `EvaluationCase` and `EvaluationSuite` (`evaluation.py:125`, `symphony/evaluation/suite.py:83`): not reused; one mixes a test with its output, the other groups evaluators, not cases.
+- `Evaluator`, `MetricResult` (agent-core `openjiuwen/symphony/evaluation/base.py:139`, `openjiuwen/symphony/models/evaluation.py:223`, pin `9e339019`): a runner may be one.
+- `EvaluationCase` and `EvaluationSuite` (agent-core `openjiuwen/symphony/models/evaluation.py:125`, `openjiuwen/symphony/evaluation/suite.py:83`, pin `9e339019`): not reused; one mixes a test with its output, the other groups evaluators, not cases.

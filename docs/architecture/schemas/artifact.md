@@ -40,6 +40,6 @@ How `content_sha256` is computed: INV-15, policy `hashing`. Whether a value trav
 ## Reuse
 
 - `E2AFileRef {uri, name, mime_type, size}` (jiuwenswarm `common/e2a/models.py:60`): as is, for `content_ref`.
-- Object store and KV store (agent-core `core/foundation/store/object/base_storage_client.py`, `base_kv_store.py:42`): as is, for the content.
+- Object store and KV store (agent-core `openjiuwen/core/foundation/store/object/base_storage_client.py`, `openjiuwen/core/foundation/store/base_kv_store.py:42`, pin `9e339019`): as is, for the content.
 - `ArtifactRef {artifact_id, sha256, kind, path}` (`rsi/schema.py:152`): mapped on import from RSI; `sha256` becomes `content_sha256`, `kind` becomes `type`.
 - `content_hash` (`extensions/observability/content_addressing.py:84`, `:153`): not reused for JSON; it serialises without sorted keys, so equal values can hash differently.

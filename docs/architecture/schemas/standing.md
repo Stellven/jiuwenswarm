@@ -45,7 +45,7 @@ A Finding moves a capsule only toward less authority, in the order above, and mo
 
 ## Reuse
 
-- Write-once KV with prefix reads (agent-core `core/foundation/store/base_kv_store.py:42`, `:93`): as is, with `exclusive_set`.
+- Write-once KV with prefix reads (agent-core `openjiuwen/core/foundation/store/base_kv_store.py:42`, `:93`, pin `9e339019`): as is, with `exclusive_set`.
 - `CapabilityProvider.capabilities()` (`symphony/interfaces/capability.py:16`): as is, as a reader.
 - `CapabilityDescriptor.available` (`symphony/models/capability.py:69`): not relied on; non-admitted versions are left out instead.
 - v2.10b §3.3: the source. `previous[]` (versions it may revert to) became `prev_hash`, a hash chain of entries. Moved to the envelope: `since`, `by`. Not kept: `slot`.
