@@ -48,7 +48,7 @@ Only a failed check or a broken rule rejects; `unknown` defers, with reason `CHE
 
 ## Reuse
 
-- `FailureReason` (agent-core `symphony/models/evaluation.py:70`): as `Reason`, without `severity`.
-- `MetricResult`, `MetricStatus` (`evaluation.py:223`, `:22`): for `checks_run`; `pass` and `fail` map directly, `unknown` from `error`, `not_applicable` or `observed`.
+- `FailureReason` (agent-core `openjiuwen/symphony/models/evaluation.py:70`, pin `9e339019`): as `Reason`, without `severity`.
+- `MetricResult`, `MetricStatus` (agent-core `openjiuwen/symphony/models/evaluation.py:223`, `:22`, pin `9e339019`): for `checks_run`; `pass` and `fail` map directly, `unknown` from `error`, `not_applicable` or `observed`.
 - v2.10b §3.2: the source. Moved to the envelope: `issuer`, `issued_at`, `policy_epoch`. Moved to the Candidate: `builder_gate`. Not kept: `ESCALATE`, `unknown_cause`, `verifiers[]`, `baseline_snapshot`.
 - skillhub pins a review's `policy_version` (`market_assets.py:163`): the same pattern.

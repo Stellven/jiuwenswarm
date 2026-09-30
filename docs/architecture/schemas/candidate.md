@@ -52,6 +52,6 @@ At least one test, one test per `admission` or `both` check, and what each level
 
 ## Reuse
 
-- `EngineReport.artifact_index`, `ArtifactRef` (agent-core `rsi/schema.py:152-172`): the RSI submitter maps each `ArtifactRef` into `files`, hashing on the way in; RSI's score goes into `builder_gate`.
-- `RsiChange` (`rsi/schema.py:86`): as is, in the Candidate's `ext.rsi`.
+- `EngineReport.artifact_index`, `ArtifactRef` (agent-core `openjiuwen/rsi/schema.py:152-172`, pin `9e339019`): the RSI submitter maps each `ArtifactRef` into `files`, hashing on the way in; RSI's score goes into `builder_gate`.
+- `RsiChange` (agent-core `openjiuwen/rsi/schema.py:86`, pin `9e339019`): as is, in the Candidate's `ext.rsi`.
 - skillhub asset versions (`plugins_market/models/market_assets.py:100`): not reused; a mutable database row.
