@@ -38,6 +38,18 @@ Architecture does not decide how a module works inside. That is the issue's job.
 - A module is ready for an issue when three things are fixed: its input and output types, the checks its output must pass, and the modules on either side of it.
 - An issue names its module, its interface and its tests. It never needs another module's internals.
 
+## Code citations
+
+Most modules sit on top of jiuwenswarm, agent-core or deepsearch. Every claim about what that existing code does is a citation, not a description from memory or from what a name suggests.
+
+- **Cite `path:line` at a stated commit, never a branch.** A branch moves; a commit does not. As in `agent-core `e23806c1`` or `jiuwenswarm `bf0e8af7``.
+- **A dependency's own pin is authoritative.** jiuwenswarm pins agent-core to an exact commit (`pyproject.toml:20`). When a citation was read at a different commit because the pin was not available locally, mark it **[pin]** and name both commits. Grep the vault for `[pin]` to find every one still owed a re-check.
+- **Never cite a working tree's live state.** `huawei/jiuwenswarm` on `ai4r_main_branch` is a docs-focused branch; as of 2026-09-30 it is 23 commits behind and 24 ahead of `origin/AI4Research-Main`, the default branch. Reading whatever happens to be checked out there is not the same as reading current jiuwenswarm. Read an explicit commit (`git show <sha>:path`) and name it.
+- **Unverifiable is Open, never asserted.** A file that cannot be found, a pin that cannot be resolved, or behaviour that is unclear from the source goes in the page's Open section as unverified. It does not become a claim because the PRD or a module's name implies it.
+- **Read, never edit.** Reading jiuwenswarm, agent-core or deepsearch source to ground a module spec is expected. Changing that source is not architecture's job; it happens through the Code SOP's TASK to Spec Kit process in the working repo.
+
+**Standing item:** the agent-core pin (jiuwenswarm's `9e339019`) is now available locally (`huawei/openjiuwen/agent-core`), 49 commits ahead of `e23806c1`, the commit every current `[pin]`-marked citation was read at. The pin is checkable now; none of the existing `[pin]` citations have been re-checked against it yet.
+
 ## Why it matches Capability Capsule
 
 Muk holds both roles, architecture and Capability Capsule, and structured architecture to fit CC. A module spec and a capsule Declaration are much the same thing:

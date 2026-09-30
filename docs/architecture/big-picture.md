@@ -5,7 +5,7 @@ tags: [goal, post-m1]
 
 # The big picture: where we are heading
 
-> **A potential near-term goal, open to change.** This page gives context: it shows where the project is heading, so that someone working on M1 can see why M1 builds what it builds. Anyone may propose changes to it. It is not a design and not granular enough to build from: the smallest thing drawn is a capability capsule or a gate. The design to build from is [B1](b1-design.md); the [M1 design](m1-design.md) is past and no longer current.
+> **A potential near-term goal, open to change.** This page gives context: it shows where the project is heading, so that someone working on M1 can see why M1 builds what it builds. Anyone may propose changes to it. It is not a design and not granular enough to build from: the smallest thing drawn is a capability capsule or a gate. The design to build from is [B1](b1-design.md) for the earliest pipeline, then [M1 architecture](m1-architecture.md) for the full build; the earlier [M1 design](m1-design.md) is past and no longer current.
 
 **What the goal adds to M1:**
 
@@ -153,7 +153,7 @@ Because the parts meet only at these interfaces, each workstream can build and t
 | Part | First appears | Where to read more |
 |---|---|---|
 | fixed pipeline, CC runner, gates | B1 | [B1](b1-design.md) |
-| two-tier gate, admission, operators | M1 | [M1, past design](m1-design.md) |
-| RSI in an offline sandbox, dynamic planner and router on their own tracks | M1, as parallel tracks | [M1, past design](m1-design.md#parallel-tracks) |
+| two-tier gate, admission, operators | M1 | [M1 architecture](m1-architecture.md) |
+| RSI in an offline sandbox, dynamic planner and router on their own tracks | M1, as parallel tracks | [M1 architecture, Seams with other workstreams](m1-architecture.md#seams-with-other-workstreams) |
 | library, selector, planner and binder on the main path, librarian | after M1 | this page |
 | importer, isolated verification, composites, stores | after M1 | [Tools](capsule/tools.md), [Composition](capsule/composition.md) |

@@ -143,6 +143,8 @@ Every payload is a `json` port whose `value_schema` is a shared JSON Schema file
 
 Each module lists its owner, inputs and outputs, what it must do and must not do, its tests, and the modules it needs first. "CC" means this team. The checks each module hosts are in [guards](capsule/guards.md).
 
+**Audit status** (against PRD section 3, in [build order](#build-order); full detail in `tundle/obby/HANDOFF.md`): **audited** — M00a, M00b, M00c (batch A); M12, M10a (batch B); M04, M05 (batch C); M13, M14 (batch D). Everything else below is drafted but not yet cross-checked against the PRD text — read it as a working draft, not yet a build-from source.
+
 ### Shared content
 
 **M00a Port type vocabulary v1.** Owner: CC.

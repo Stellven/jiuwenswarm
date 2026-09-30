@@ -47,5 +47,5 @@ Ingestion (3.1) is deterministic control code, so it is a candidate for pure cap
 
 ## Relation to other pages
 
-- [M1 architecture](../m1-architecture.md) is an earlier whole-M1 draft. It predates PRD section 3, so it is stale; do not build from it.
+- [M1 architecture](../m1-architecture.md) is the whole-M1 build design: the system graph, the run graph, the payload table and all 27 modules (M00a-c, M01-M19, M07a-e, M10a), one issue each. It predates PRD section 3 and is being audited against it batch by batch, in the build order it already draws (see `tundle/obby/HANDOFF.md` for progress) — build from the audited modules; an unaudited one still needs its PRD cross-check first.
 - The 3.W answer (`prd/capsule-3w.md`) predates section 3 too.

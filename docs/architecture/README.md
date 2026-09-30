@@ -21,7 +21,8 @@ Open this folder as an Obsidian vault, or read the Markdown files directly. All 
 3. [Composition](capsule/composition.md), [library](capsule/library.md), [trust](capsule/trust.md), [RSI](capsule/rsi.md), [generalist](capsule/generalist.md), [permissions](capsule/permissions.md), [Symphony](capsule/symphony.md), [tools](capsule/tools.md), [checked and unchecked at M1](capsule/stages.md).
 4. [Schemas](schemas/schemas.md): the records kept about a capsule (Candidate, Verdict, Standing, Binding, Observation, Artifact, Verification, Finding), with checks, port types, the policy and the invariants.
 5. [B1: the first working pipeline](b1-design.md): the earliest form, with one task-specific capsule. Preliminary.
-6. [The big picture](big-picture.md): a potential near-term goal, open to change, and how each workstream fits.
+6. [M1 architecture: the build design](m1-architecture.md): 27 modules, the system and run graphs, the payload table and the build order, audited against PRD section 3 batch by batch (progress in `tundle/obby/HANDOFF.md`, outside this vault). Each module is one issue.
+7. [The big picture](big-picture.md): a potential near-term goal, open to change, and how each workstream fits.
 
 ## Past designs
 
@@ -32,3 +33,9 @@ Kept as a record only. They are not current; do not build from them.
 ## Other folders
 
 - `background/`: [terms](background/terms.md) and context. Nothing there needs review.
+
+## Outside this repository
+
+- **Schema drafts and derivations**: `huawei/capsule-openjiuwen/` (scratch and build, not the vault; finished pages move here).
+- **Presentation renders**: `huawei/mermaid-renders/` (PNG/SVG) and `huawei/slides-png/` (deck-to-PNG exports). Both are generated output, not source; see each folder's README for what generates them and from where.
+- **Notes and decision log**: `tundle/obby/` (Muk's notes; never the design itself).
