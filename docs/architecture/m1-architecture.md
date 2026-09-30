@@ -204,9 +204,10 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 - **Must not:** move anything on its own; leave `revoked`.
 - **Tests:** a revert makes the next run pin the earlier version; a `revoked` capsule is refused at freeze.
 
-**M16 Catalogue export.** Owner: CC. For Planner Phase 2.
+**M16 Catalogue export.** Owner: CC. For Planner Phase 2, and the Model Routing PRD's 3.X.2 "Capsule Registry" dependency — the same list serves both; there is no second registry to build.
 - **Out:** a JSON list of admitted capsules: name, summary, ports, effect class, `decl_hash`.
 - **Tests:** only `admitted` versions appear.
+- **What it gives a router is the Declaration's existing descriptive fields, never a dedicated model-capability field.** `fields.md`'s own rule: "There is no model field and no role field... The Declaration still describes the work in enough detail that a router could choose from it" ([capsule/fields.md#needs-what-must-hold-and-what-it-uses](capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A router works from `summary`, `ports` and the rest of what's already here — it does not get a purpose-built capability tag, and CC will not add one to suit it. See [seams](#seams-with-other-workstreams).
 
 **M17 Fixture export.** Owner: CC. For the RSI branch and the RSI data foundation.
 - **In:** a finished `run_id`.
@@ -348,9 +349,9 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 
 | Workstream | Owner | Interface | This page's side |
 |---|---|---|---|
-| Model Routing | Xiaoyang | a model call that can be recorded and replayed; the Codex CLI integration, which is the PRD's first step | M05 calls it |
+| Model Routing | Xiaoyang | a model call that can be recorded and replayed; the Codex CLI integration, which is the PRD's first step. **CC is in charge of the capsule side of this seam**: M05 calls the adapter, M16 is the one Capsule Registry the router reads (name, summary, ports, effect class, `decl_hash`). There is no dedicated model-capability field — `fields.md`'s rule is that a router works from the Declaration's existing descriptive fields, never a purpose-built tag; CC will not add one. **Unresolved, not CC's to invent:** the Model Routing PRD's 3.X.2 names routing for "Planner, Coder, and Reviewer roles" — none of those names match any of the M1 workflow, benchmark or verifier capsules (`requirement_capsule`, `search_capsule`, `screening_capsule`, `hypothesis_capsule`, `poc_capsule`, `benchmark_runner`, `report_capsule`, `verifier_capsule`), nor the M06 operators or M19's bare-arm capsules. Muk confirmed 09-30 this is about M1's own model-using capsules, not the team's coding process — so the PRD's role vocabulary needs mapping onto real capsule names, or dropping; that mapping is the Router PRD owner's to make, not assumed here. | M05 calls it; M16 serves it |
 | Verifier | Ramika | M10: the Stage Evidence Bundle in; the decision and one of five verdicts out; the reason-code owners; `verifier_capsule`'s rubric | M04, M10a and M09 are built by CC |
-| RSI | Saurav | works on its own branch. It reads M17's fixtures and the Declarations, and submits Candidates (`submitted_by.kind: rsi`) to M14 | M14 checks them; a person merges; nothing is admitted automatically |
+| RSI | Saurav | works on its own branch, against a sandbox copy with `evolution.rsi: propose` that never goes through mainline admission. It reads the mainline Verdict's `test_suites` (not M17's fixtures — that dependency is soft, see [build order](#build-order)) and submits Candidates (`submitted_by.kind: rsi`) to M14 for the capsules it actually promotes | M14 checks them; a person merges; nothing is admitted automatically |
 | RSI data foundation | Suraj | fixtures in M17's layout and the [test case](schemas/checks.md) format | M14 stores them |
 | Verifier fine-tuning | James | a new `verifier_capsule` version, submitted by a person | M14 admits it |
 | Planner Phase 2, Leader Agent, Code Mode | Planner and Builder tracks | M16's catalogue; M17's fixtures | read only |
@@ -374,9 +375,19 @@ flowchart LR
     D --> E["M06 operators, M09 verifier"] --> F["M10 gate"] --> G["M01, M03, M18"]
     G --> H["M02, M07a to M07e, M08"] --> I["M11: first full run"] --> J["M17 fixtures, for the tracks"]
     J --> K["M15, M16, M19"]
+    H -.->|"mainline screening_capsule admitted, its Verdict's test_suites available"| RSI["RSI target 1: sandbox mutation of rank_opportunities.\nParallel to I, J, K - not gated on them."]
+    RSI -.->|"still open, see below"| BLOCK["rank_opportunities has no module spec yet.\nNo M04 caller path for RSI.\nOpportunity_Card.json (Ramika). Hidden/dev fixtures (Suraj).\nA headless proposer call (Model Routing)."]
+    class BLOCK block
+    classDef block fill:#F2D2D2,stroke:#8A1F1F,stroke-width:2px,color:#1a1208,font-weight:bold
 ```
 
-- **M17 ships right after the first full run,** so the parallel tracks get sample fixtures early. Until then they can use B1's run.
+- **M17 ships right after the first full run,** so the parallel tracks get sample fixtures early for the general case. Until then they can use B1's run.
+- **RSI's target 1 does not need M17 or the first full run (M11)** — no dependency the RSI design states for target 1 names either as a hard gate (checked against `rsi-3y-full.md` and `PRD - RSI_completed.txt` directly). But it is not down to one blocker, and the `screening_capsule` dependency below was wrong in an earlier version of this note — corrected after review:
+  - **What it needs from mainline is not an admitted RSI Candidate.** `screening_capsule` itself is `evolution.rsi: propose` (that is target 2's territory). Target 1's mutation target is narrower: `rank_opportunities`, the pure helper nested inside it, which stays `evolution.rsi: none` in the mainline Declaration — `rsi_permitted` refuses an RSI child of a `none` parent, so RSI never proposes against the helper through mainline admission at all. What target 1 actually needs is a mainline `rank_opportunities` with its own Declaration (`none`), code, tier 1 checks, visible suite and Verdict — plus a sandbox copy of that same helper, whose Declaration is set to `propose` with `may_change` limited to the code file. The parent's Verdict `test_suites` run in the sandbox as compatibility tests; the copy never reaches mainline admission, so `parent_suites_pass` does not apply to target 1 in M1.
+  - **Not specced anywhere yet: `rank_opportunities` itself.** It has no Declaration, code file, tier 1 checks or visible suite on this page or in `m1/order.md`, only a name in this diagram. It needs writing, most naturally alongside a proper `screening_capsule` design page (the next one after `requirement_capsule`, per `m1/order.md`).
+  - **Not built anywhere yet: a way to run it.** M04 (batch C, audited) has exactly four callers — `dispatch`, `gate`, `admission`, `nested` — none for RSI. `rsi-3y-full.md` says RSI may ship its own thin hook if needed, so this is plausibly RSI's build rather than M04's, but it doesn't exist yet either way.
+  - **Genuinely someone else's, still missing:** the `Opportunity_Card.json` schema (Ramika, PRD 3.4.7), hidden and dev fixtures with known-good picks (Suraj), and the headless proposer model call (Model Routing).
+  - **The admission rules exist only as specification, not as enforced code.** `changes_allowed`, `parent_suites_pass`, `rsi_permitted`, `rsi_cannot_grant` are correctly documented in `policy.md` and in M14's spec (confirmed by batch D's audit) — but the RSI PRD itself still calls them "draft," and nothing runs them yet. Audited-as-documented is not the same as built.
 - **Each box is one or more issues,** each built and tested against its interface alone.
 
 ## Open
