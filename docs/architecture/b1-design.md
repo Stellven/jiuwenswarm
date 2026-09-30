@@ -340,7 +340,7 @@ flowchart TB
 
 Key as above. Brown here = files on disk. Dashed edge = option A, a separate adapter entry, not used in B1; see [File-level hooks](#file-level-hooks).
 
-**The hops.** Paths: `J/` is `jiuwenswarm/jiuwenswarm/` at `6d8c89e12`, `FE/` is `J/channels/web/frontend/src/`, and `A/` is agent-core `openjiuwen/`. **[pin]** `A/` lines are from `e23806c1`, not the pin `9e339019`.
+**The hops.** Paths: `J/` is `jiuwenswarm/jiuwenswarm/` at `6d8c89e12` (stale — `ai4r_main_branch` is now at `eb4c2901c`; re-check before relying on `J/` line numbers), `FE/` is `J/channels/web/frontend/src/`, and `A/` is agent-core `openjiuwen/`. `A/` lines below are confirmed at the actual pin, `9e339019`.
 
 | Hop | Process | Code (file:line) | Exists or new |
 |---|---|---|---|
@@ -348,8 +348,8 @@ Key as above. Brown here = files on disk. Dashed edge = option A, a separate ada
 | `/ws` tunnel; WebChannel parses the frame; the forward filter passes `chat.send` | web, gateway | `J/channels/web/app_web.py:648`; `J/gateway/channel_manager/web/web_connect.py:1560-1700`; `J/gateway/app_gateway.py:2159-2191` | exists |
 | MessageHandler sends an E2A stream request to the agent server | gateway | `J/gateway/message_handler/message_handler.py:4740-4866`; `J/gateway/routing/agent_client.py:585-640` | exists |
 | Dispatch, then `AgentRuntime.stream`, then the Codex chat adapter | agent server | `J/server/agent_ws_server.py:2320-2855, 4058-4120`; `J/server/runtime/agent_adapter/interface_codex.py:33-49` | exists |
-| CC-run branch on a request flag; the launcher calls `run_workflow` with `journal_path`, `resume` and `progress_sink` | agent server | `interface_codex.py:33-49`; `A/agent_teams/workflow/engine/runner.py:294-396` **[pin]** | branch and launcher new; engine exists |
-| `agent()`: resume signature, cache, `backend.run`, schema check, up to 3 attempts | agent server | `A/agent_teams/workflow/engine/primitives.py:540-735`; `journal.py:81` **[pin]** | exists |
+| CC-run branch on a request flag; the launcher calls `run_workflow` with `journal_path`, `resume` and `progress_sink` | agent server | `interface_codex.py:33-49` (confirmed still current at `ai4r_main_branch` `eb4c2901c`); `A/agent_teams/workflow/engine/runner.py:294-396` (confirmed at pin `9e339019`: `run_workflow` starts line 294) | branch and launcher new; engine exists |
+| `agent()`: resume signature, cache, `backend.run`, schema check, up to 3 attempts | agent server | `A/agent_teams/workflow/engine/primitives.py:540-735` (confirmed at pin `9e339019`: `agent(` starts line 540); `journal.py:81` (confirmed) | exists |
 | CC backend: pin, call by kind, record, gate | agent server | new `AgentBackend` subclass (`A/agent_teams/workflow/engine/backends/base.py:101-119`) | new |
 | Model adapter to `SubscriptionService.stream` to the `codex app-server` child | agent server, codex child | `J/server/runtime/codex_subscription/service.py:131-208`; `transport.py:30-189` | adapter new; service exists |
 | Progress sink builds `workflow.updated` from `WorkflowRunState` | agent server | `J/agents/harness/team/handlers/workflow_state.py`; `workflow_monitor_handler.py:323-331` | sink new; state builder exists |
@@ -424,14 +424,14 @@ flowchart LR
 
 ### File-level hooks
 
-Paths and commits are as in [the hops](#through-jiuwenswarm-the-deep-view); **[pin]** applies to the agent-core lines.
+Paths and commits are as in [the hops](#through-jiuwenswarm-the-deep-view); the agent-core lines below are confirmed at the actual pin, `9e339019` — the jiuwenswarm lines are still at the stale `6d8c89e12` and need their own re-check.
 
 - **Option A: a separate run entry.** Instead of the chat-stream branch, a new adapter method, such as `cc.run.start`, is registered in the agent server beside `CodexAccountAdapter` (`server/agent_ws_server.py:1133-1135`), on the `GatewayAdapter` pattern (`server/runtime/gateway_adapter/base.py:30`). The gateway only forwards it (`gateway/app_gateway.py:2159-2191`). Adapters return one reply, so it starts a background run, returns `{run_id}`, and pushes progress and the answer with `send_push`. It also changes the browser and gateway: a `ReqMethod` value, the gateway's forward sets and a frontend caller. B1 does not use it.
 - **Record keys.** CC records go in `cc/` under the profile root (`JIUWENSWARM_DATA_DIR`, `common/utils.py:416`), keyed `cc/<kind>/<scope>/<id>` and written with `exclusive_set` (`core/foundation/store/base_kv_store.py:42`).
 
 | CC piece | Hooks into (file:line) | Reuse or new |
 |---|---|---|
-| Tool capsule | agent-core `LocalFunction` (`core/foundation/tool/function/function.py:48`) | reuse |
+| Tool capsule | agent-core `LocalFunction` (`core/foundation/tool/function/function.py:48`, confirmed at pin `9e339019`) | reuse |
 | Checks and gate | Symphony `Evaluator` (`symphony/evaluation/base.py:139`); engine `verify()` (`primitives.py:882`) returns pass, fail or undecided from reviewer votes (`engine/verify.py:83`), not per-check results, so unused | new |
 
 ## What B1 uses from the schemas
@@ -458,7 +458,7 @@ Paths and commits are as in [the hops](#through-jiuwenswarm-the-deep-view); **[p
 5. **"Good enough" in the RSI tree.** Every test passing is the floor. Whether RSI also needs a judged quality bar, and who writes the tests' own checks, is for the RSI tree to decide.
 6. **Known risk: one Codex child for every session.** A failed, timed-out or cancelled turn closes the shared transport (`service.py:197-208`), which kills the Codex child. That breaks the user's own chat turn too, and the reverse. So the model adapter never cancels a turn mid-stream, and a CC call can still fail because of a chat turn.
 7. **The workflow tree outside team mode.** The browser's run panel is mounted in the non-team view and reads `workflow.updated`. Whether it renders a CC run has not been run.
-8. **The agent-core pin.** jiuwenswarm pins agent-core `9e339019` (`pyproject.toml:20`). The agent-core lines here were read at `e23806c1` and need a re-check at the pin.
+8. **The agent-core pin — resolved 2026-09-30.** jiuwenswarm pins agent-core `9e339019` (`pyproject.toml:20`); it is now available locally and every agent-core citation on this page has been re-checked against it directly (no drift found in the four checked: `runner.py:294`, `primitives.py:540`, `journal.py:81`, `function.py:48`). Still open: the jiuwenswarm-side citations (`J/` lines) are pinned at the stale `6d8c89e12`, and `ai4r_main_branch` has since moved to `eb4c2901c` — those need their own re-check, not covered by this item.
 9. **Structured output.** `outputSchema` is in the App Server protocol, but the AI4R-001 plan's research proves syntax only.
 10. **Restart.** A restart forces `NEW_SESSION_REQUIRED`. Does a CC run resume from the journal or restart?
 11. **Naming.** In `service.py`, `bindings` maps sessions to threads. A CC Binding pins capsules.

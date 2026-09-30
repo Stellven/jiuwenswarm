@@ -253,15 +253,17 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 - **Must not:** raise to the engine; let the engine retry; run a nested call to a capsule the caller does not pin.
 - **Tests:**
   - a changed file gives `CARRIER_CHANGED`;
-  - an unpinned nested call is refused;
+  - an unpinned nested call is refused with `OPERATOR_NOT_ADMITTED`;
   - a slow capsule gives `BUDGET_EXCEEDED`, never `TIMEOUT`;
   - an admission call writes no Verification.
-- **Builds on:** B1's [runner](b1-design.md#the-cc-runner-how-capsules-plug-into-jiuwenswarm).
+- **Builds on:** B1's [runner](b1-design.md#the-cc-runner-how-capsules-plug-into-jiuwenswarm), whose agent-core citations are now confirmed at the real pin (`9e339019`) — see that page's Open item 8. **Genuinely new work:** checked `jiuwenswarm` at `ai4r_main_branch` `eb4c2901c` (2026-09-30) for any existing CC-runner-shaped code (`AgentBackend`, `decl_hash`, a capsule runner) — none exists yet. M04 plugs into real, existing platform hooks (Swarmflow's `agent()`, the Codex chat adapter) but has no CC-specific code to build on.
+- **`blocking` human interaction is not implementable on the current runtime.** `interface_codex.py:67-70` (confirmed at `eb4c2901c`): `handle_swarmflow_reply` is aliased to `handle_user_answer`, which always returns `ok: false` with `MILESTONE_TEXT_ONLY` — there is no path back into a waiting call today. See [Open](#open) 3.
 
 **M05 Model client.** Owner: CC; a thin helper.
-- **In:** a prompt and an optional model hint from the capsule.
-- **Out:** the reply text; `model: {id, version}`; `tokens: {input, output, cache_hit}` when reported.
+- **In:** a prompt and an optional model hint from the capsule. Grounded in the real adapter (`jiuwenswarm/server/runtime/agent_adapter/interface_codex.py`, `ai4r_main_branch` `eb4c2901c`): the prompt is `params.get("query")` or `"content"`, falling back to `inputs.get("query")` (line 45); the model hint is `params.get("codex_model")`, passed straight through to `SubscriptionService.stream(session_id, request_id, text, model=None)` (`codex_subscription/service.py:131`).
+- **Out:** the reply text; `model: {id, version}`; `tokens: {input, output, cache_hit}` when reported — **confirmed always absent today:** `codex_subscription/service.py` has no token accounting anywhere in it.
 - **Seam with Model Routing:** the call goes to the Codex CLI adapter today, and to the router later. Where the router sits is Model Routing's decision. CC needs only that every model call can be recorded, and replayed from fixtures in tests.
+- **Confirmed current scope, `interface_codex.py:38-42`:** team mode, MCP, skills, attachments, media items, images, files, plugins and agent templates are all refused with `MILESTONE_TEXT_ONLY` before a call reaches M05 — text only, matching PRD 3.0's whitelist.
 - **Tests:** a reply that is not valid JSON, when JSON was asked for, is a capsule error.
 
 **M06 Operator capsules: `op.deepsearch`, `op.codesearch`, `op.workspace_io`.** Owner: CC. `tool` capsules that wrap the deepsearch repo and workspace I/O. Other capsules pin them by `decl_hash` at admission and call them as `nested` calls.
