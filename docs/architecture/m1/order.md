@@ -38,7 +38,7 @@ The rest follow the PRD's order:
 2. `hypothesis_capsule` (3.5);
 3. `poc_capsule` (3.6);
 4. `benchmark_capsule` (3.7);
-5. `verifier_capsule` for Scientific Evaluation (3.8);
+5. the scientific evaluation capsule, M20 (3.8) — not `verifier_capsule` (M09, the generic tier-2 judge used at every gate); see [m1-architecture.md](../m1-architecture.md#the-modules) Open 5 for why these are two different capsules despite the shared lineage;
 6. `report_capsule` (3.9).
 
 Ingestion (3.1) is deterministic control code, so it is a candidate for pure capsules later.

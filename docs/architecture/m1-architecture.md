@@ -50,6 +50,7 @@ flowchart TB
         CP(["M02, M07a to M07e: six workflow capsules"]):::cc
         BR(["M08 benchmark_runner"]):::cc
         VC(["M09 verifier_capsule"]):::cc
+        EVC(["M20 scientific evaluation"]):::cc
         OP(["M06 operators"]):::cc
     end
     subgraph LIBR["library side"]
@@ -104,9 +105,10 @@ flowchart TB
     G3 --> HY(["hypothesis_capsule"]):::cc -->|"hypothesis"| G4{{"gate"}}:::gate
     G4 --> PO(["poc_capsule"]):::cc -->|"poc_bundle"| G5{{"gate"}}:::gate
     G5 --> BR(["benchmark_runner"]):::cc -->|"benchmark_metrics"| G6{{"gate"}}:::gate
-    G6 --> RP(["report_capsule"]):::cc -->|"research_report"| G7{{"gate"}}:::gate
+    G6 --> EV(["M20: scientific evaluation"]):::cc -->|"evaluation_verdict"| G6b{{"gate: checks EV did its job, never the classification"}}:::gate
+    G6b --> RP(["report_capsule"]):::cc -->|"research_report"| G7{{"gate"}}:::gate
     G7 --> D["M11 delivery: writes the report file"]:::ctrl --> OUT>"report in the workspace and the UI"]:::ext
-    G1 & G2 & G3 & G4 & G5 & G6 & G7 -.->|"FAIL, ENVIRONMENT_BLOCKED, ESCALATE_TO_HUMAN"| HS>"M03 halts the run: human_session"]:::ext
+    G1 & G2 & G3 & G4 & G5 & G6 & G6b & G7 -.->|"FAIL, ENVIRONMENT_BLOCKED, ESCALATE_TO_HUMAN"| HS>"M03 halts the run: human_session"]:::ext
 
     classDef cc fill:#F2A007,stroke:#8A4B00,stroke-width:3px,color:#1a1208,font-weight:bold
     classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
@@ -115,7 +117,8 @@ flowchart TB
 ```
 
 - `PASS` and `PASS_WITH_KNOWN_LIMITATIONS` continue; the other three verdicts halt.
-- Each node's inputs are earlier outputs, wired by port. For example, `hypothesis_capsule` takes `idea_set` and `scored_ideas`, and `report_capsule` takes every earlier output.
+- Each node's inputs are earlier outputs, wired by port. For example, `hypothesis_capsule` takes `idea_set` and `scored_ideas`, and `report_capsule` takes `benchmark_metrics`, `evaluation_verdict` and every earlier output.
+- **PRD 3.8, Scientific Evaluation, is M20, not a change to M10 — but this is not yet the whole fix, see M20's own entry for the real gaps.** The intent: a disproven hypothesis is a *value* inside `evaluation_verdict.classification` (`FAIL` among four tags), never a gate-level `FAIL` — G6b's checks should be about whether M20 assembled and classified correctly, never about what the tag says, so M03's fixed DAG routes M20's output to `report_capsule` unconditionally like any other node. The fold mechanism itself genuinely can't be tripped by an Artifact field value (verified against `policy.md`), so that half holds. What's still open: which checks actually get bound to G6b is unenumerated, so the guarantee isn't enforced yet; and G6 (the gate right after `benchmark_runner`, before M20 runs at all) may itself judge the falsifiability comparison per PRD 3.7.4's own text, which would halt the run before M20 gets a chance to classify anything. See M20's entry for both.
 
 ## Payloads
 
@@ -133,6 +136,7 @@ Every payload is a `json` port whose `value_schema` is a shared JSON Schema file
 | `hypothesis` | `hypothesis_capsule` | `statement: string`; `independent_vars: [string]`; `dependent_vars: [string]`; `expected_metrics: [{name, value, unit}]`; `baseline: string`; `failure_criteria: [string]` |
 | `poc_bundle` | `poc_capsule` | `files: [string]` (workspace paths); `entry_point: string`; `harness_command: string` |
 | `benchmark_metrics` | `benchmark_runner` | `metrics: [{name: string, value: number, unit: string}]`; `unmeasured: [string]`; `exit_status: integer`; `runtime_s: number` |
+| `evaluation_verdict` | M20 (scientific evaluation) | `classification: "PASS", "FAIL", "INCONCLUSIVE" or "CONDITIONALLY_ACCEPTABLE"` (PRD 3.8.5 — `FAIL` here is a disproven hypothesis, a valid research outcome, never a gate halt); `evidence_complete: boolean`; `provenance_notes: [string]` (3.8.2); `plausibility_check: {plausible: boolean, rationale: string}` (3.8.3); `threshold_comparison: [{metric_name: string, target: number, comparator: string, observed: number, met: boolean}]` (3.8.4, from the pinned deterministic helper); `residual_risks: [string]`; `follow_ups: [string]` (3.8.6) |
 | `research_report` | `report_capsule` | `markdown: string`; `sections: [string]`; `citations: [{ref: string, source_idea_id: string}]`; `limitations: [string]` |
 | `evidence_bundle` | M10 | `artifacts: [Ref]`; `decl_hash: sha256`; `obs_ref: Ref`; `criteria: [check_id]` |
 | `verifier_assessment` | `verifier_capsule` | `criteria: [{check_id: string, result: "pass", "fail" or "unknown", rationale: string, evidence: [string]}]` |
@@ -332,6 +336,16 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 - **Effect class:** `compensable`, writing only `fs:workspace/runs/*`. On M1, network isolation is not enforced; a sandbox (jiuwenbox) is a later step.
 - **Tests:** a fixture harness produces its metrics; a hanging harness gives `BUDGET_EXCEEDED`.
 
+**M20 Scientific evaluation capsule.** Owner: CC builds it; the Verifier owns its rubric. PRD 3.8, all six sub-features (3.8.1-3.8.6). Reverses the earlier "build on existing structure, no new module" call — see [Open](#open) 5. **Draft, adversarially reviewed 2026-09-30, real gaps found and listed below — do not build from this entry yet.** The core mechanism (a scientific `FAIL` is a data value, never a gate-level check failure) is verified sound at the fold level; everything else here is honest about what still doesn't work.
+- **Kind:** `tool`, not `skill` — the working choice (above, "a capsule that calls an operator is a `tool`. Its code makes the operator call as a `nested` call, and its model call through M05") applies here the same as anywhere else: M20 needs both a model call (the plausibility check, 3.8.3) and a nested call to a pinned deterministic helper, and only `tool` code can make a nested call at all. Ported from `sciencediscovery/result-evaluator` and `citation-reviewer` (the PRD's own architectural note for 3.8 names the same lineage M09 uses; M20 is a separate capsule identity from M09, a `dispatch` node in the DAG, not the generic `gate`-caller tier-2 judge — **this is a departure from the PRD's literal text, which says all of 3.8 runs inside `verifier_capsule.md`; flagged for the PRD owner, not decided unilaterally here, same as Open 1 does for the capsule count**).
+- **In:** `benchmark_metrics` (M08, 3.7), `hypothesis` (M07c, the frozen Hypothesis Blueprint from 3.5), `research_brief` (M02, 3.2). **Not enough, and this is the main blocker:** `benchmark_metrics` has no `stdout`/`stderr` and no baseline-vs-treatment split (M08 runs one `harness_command` today), so there is no Δ for 3.8.3 to sanity-check and no log to audit for 3.8.2. `hypothesis.expected_metrics` has no `comparator`, so `compare_to_thresholds` has nothing to compare with. **Both are M08 and M07c problems, not M20's — M20 cannot be finished until those payloads carry this data.**
+- **Out:** `evaluation_verdict`.
+- **Must (what's actually buildable today):** confirm every `hypothesis` dependent variable has a non-null entry in `benchmark_metrics` (half of 3.8.2); record residual risks and follow-ups as text, never patching code or rerunning a node (3.8.6).
+- **Must (blocked on M08/M07c, not yet buildable):** audit metric values against raw `stdout`/`stderr` (3.8.2, needs M08 to carry logs); sanity-check an observed delta for physical plausibility (3.8.3, needs M08 to carry a baseline/treatment delta); compare against a pre-registered threshold via a pinned deterministic helper, `compare_to_thresholds` (3.8.4, needs `hypothesis` to carry a comparator — the helper itself also has no module entry yet, the same gap as `rank_opportunities`).
+- **Must not:** decide whether the run halts — but this guarantee is **not yet enforced, only intended.** The gate fold mechanism itself cannot read an Artifact's field values (verified against `policy.md`'s Fold steps), so a validly-classified `FAIL` cannot trip it directly — but any check actually bound to G6b *can* read `evaluation_verdict.classification`, and nothing today stops one from being bound. This page's own test list below already blurs the line (see next bullet). **Open, not resolved:** enumerate exactly which checks G6b runs, and add a rule — a guard or a policy rule — that none of them may read `classification`, the pass/fail margin, or the threshold-comparison outcome.
+- **Separate, upstream risk not fixed by M20 at all:** PRD 3.7.4 describes the Evaluator Gate's own tier-2 verifier "compar[ing] empirical performance deltas and the pre-registered falsifiability thresholds" — if G6 (the gate right after `benchmark_runner`, before M20 even runs) does this comparison as a judged check, a disproven hypothesis can halt the run at G6, before M20 gets the chance to classify it as a valid scientific `FAIL`. Nothing in this design currently prevents that. Needs its own fix, not assumed solved by M20 existing.
+- **Tests, revised to be honest:** only the dependent-variable-completeness check and the follow-up recording are testable today. The threshold/plausibility/classification tests from the first draft of this entry described behavior the capsule can't yet perform — removed until M08 and M07c are fixed.
+
 **M11 Delivery.** Owner: CC.
 - **In:** the checked `research_report`.
 - **Out:** the report written to `outputs/<run_id>/report.md` in the workspace; the run's final answer in the UI, naming the file and every `PASS_WITH_KNOWN_LIMITATIONS` node.
@@ -373,7 +387,7 @@ The parallel tracks *are* in M1, but decoupled: they work on fixtures and meet t
 flowchart LR
     A["M00a, M00b, M00c"] --> B["M12 store, M10a check runner"] --> C["M04 runner, M05 model client"] --> D["M13 author kit, M14 admission"]
     D --> E["M06 operators, M09 verifier"] --> F["M10 gate"] --> G["M01, M03, M18"]
-    G --> H["M02, M07a to M07e, M08"] --> I["M11: first full run"] --> J["M17 fixtures, for the tracks"]
+    G --> H["M02, M07a to M07e, M08, M20"] --> I["M11: first full run"] --> J["M17 fixtures, for the tracks"]
     J --> K["M15, M16, M19"]
     H -.->|"mainline screening_capsule admitted, its Verdict's test_suites available"| RSI["RSI target 1: sandbox mutation of rank_opportunities.\nParallel to I, J, K - not gated on them."]
     RSI -.->|"still open, see below"| BLOCK["rank_opportunities has no module spec yet.\nNo M04 caller path for RSI.\nOpportunity_Card.json (Ramika). Hidden/dev fixtures (Suraj).\nA headless proposer call (Model Routing)."]
@@ -389,6 +403,7 @@ flowchart LR
   - **Genuinely someone else's, still missing:** the `Opportunity_Card.json` schema (Ramika, PRD 3.4.7), hidden and dev fixtures with known-good picks (Suraj), and the headless proposer model call (Model Routing).
   - **The admission rules exist only as specification, not as enforced code.** `changes_allowed`, `parent_suites_pass`, `rsi_permitted`, `rsi_cannot_grant` are correctly documented in `policy.md` and in M14's spec (confirmed by batch D's audit) — but the RSI PRD itself still calls them "draft," and nothing runs them yet. Audited-as-documented is not the same as built.
 - **Each box is one or more issues,** each built and tested against its interface alone.
+- **This graph is a build (code) dependency order — the audit is now deviating from it on purpose.** An independent review (2026-09-30) found that every module audited so far (batches A-E: boxes A through part of E) is CC's own infrastructure, and nothing that maps to a PRD stage has actually been checked against the PRD text. Box H (the modules that carry the PRD's substance: M01, M02, M07a-e, M08, M20) is now next for audit, ahead of finishing F and moving to G/I/J/K as code-build order alone would suggest — the build order itself is unchanged, since those PRD-bearing modules still can't be coded before F's gate exists.
 
 ## Open
 
@@ -396,3 +411,4 @@ flowchart LR
 2. **Four call/gate-level reason codes have no owner, though `guard.observation.reason_owner_known` requires one for every `blocked` Observation.** Found auditing M00c against [guards](capsule/guards.md): `SCHEMA_NONCONFORMANT` (raised at each call by `guard.declaration.kind_known`, and by several Observation/Artifact shape guards, not only at admission), `HASH_MISMATCH` (raised at each call by `guard.artifact.content_sha256_correct`, on an Artifact's own content — distinct from the carrier-hash case, which already renames to the owned `CARRIER_CHANGED` at load), `OPERATOR_NOT_ADMITTED` (raised at each call by `guard.declaration.external_admitted_and_pinned`), and `JUDGE_IS_SELF` (raised at gate time by `guard.verification.judge_not_self`). Agree owners for these with the Verifier; `BUDGET_EXCEEDED` itself is already owned (`capsule`), so it is these four, not it, that are open.
 3. **`blocking` human interaction and the time budget.** Does waiting for a person count against a call's time budget, and what happens on the Codex runtime while `human_session` has no reply path? All six M1 workflow capsules can be `none` until this is settled.
 4. **DeepSearch's own model endpoint and index.** To confirm with the deepsearch repo. They sit inside `op.deepsearch` either way.
+5. **PRD 3.8, reversed 2026-09-30, still a draft.** An earlier call (see `tundle/obby/Directives.md`, 2026-09-30) deferred Scientific Evaluation on the premise that M09/M10 already had the data and the ability to cover it. An independent review of the whole design against the PRD showed that premise was false; a second, adversarial review of the M20 fix that followed found the fix itself isn't finished either. What's actually settled: the gate fold mechanism can't be tripped by an Artifact field value, so "a scientific FAIL is data, not a check failure" is mechanically possible. What's still open, all real blockers, not polish: (a) `benchmark_metrics` (M08) has no stdout/stderr or baseline/treatment delta, so 3.8.2's log audit and 3.8.3's plausibility check have nothing to read — needs an M08 redesign; (b) `hypothesis` (M07c) has no comparator field, so the deterministic threshold comparison (3.8.4) has nothing to compare against — needs an M07c redesign; (c) which checks G6b actually runs is unenumerated, so "never reads the classification" is an intention, not an enforced rule yet; (d) G6, the gate immediately after `benchmark_runner` and before M20 ever runs, may itself judge falsifiability per PRD 3.7.4's own text, which would halt the run before M20 exists to classify anything — a separate fix, not covered by M20 at all; (e) `compare_to_thresholds` has no module entry, the same gap as `rank_opportunities`; (f) `report_capsule`/M11 aren't required to surface `evaluation_verdict.classification`, so a FAIL could reach Delivery and still go unexplained to the user. Exact `INCONCLUSIVE` vs. `CONDITIONALLY_ACCEPTABLE` thresholds are Ramika's to set once (a)-(b) exist.
