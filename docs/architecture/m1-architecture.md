@@ -127,7 +127,7 @@ Every payload is a `json` port whose `value_schema` is a shared JSON Schema file
 |---|---|---|
 | `run_request` | M01 | `topic: string`; `options: object` (the template-mapped run variables); `repository: string?` (a workspace path); `skipped: [{path, reason}]` |
 | `documents` | M01 | a `collection<file>` port, one text Artifact per document |
-| `research_brief` | `requirement_capsule` | `question: string`; `scope: {in: [string], out: [string]}`; `compute_limits: object`; `metrics: [{name: string, direction: "max" or "min", target?: number}]`, at least one; `deliverables: [string]` |
+| `research_brief` | `requirement_capsule` | superseded by the audited schema in [`m1/requirement-capsule.md`](m1/requirement-capsule.md#the-research-brief-draft-payload-schema): `objective`, `objective_evidence`, `in_scope`/`out_of_scope` (each `{item, evidence}`), `constraints.compute`/`constraints.other`, `mandatory_requirements`/`optional_preferences` (each `{id, statement, evidence}`), `metrics` (`{name, direction, comparator, target, unit, evidence}`), `defaults_applied`. This row previously gave a different, pre-PRD shape (`question`/`scope`/`compute_limits`/`deliverables`) that no longer matches; kept only as a pointer now, not a second copy of the schema. |
 | `idea_set` | `search_capsule` | `ideas: [{id: string, title: string, summary: string, sources: [{ref: string, locator: string}]}]`, at least one |
 | `scored_ideas` | `screening_capsule` | `scores: [{idea_id: string, dimensions: {string: number}}]`; `chosen_id: string`; `rationale: string` |
 | `hypothesis` | `hypothesis_capsule` | `statement: string`; `independent_vars: [string]`; `dependent_vars: [string]`; `expected_metrics: [{name, value, unit}]`; `baseline: string`; `failure_criteria: [string]` |
