@@ -40,7 +40,7 @@ The one definition of every CC event. Each carries `run_id` (or `candidate_id` a
 | `cc.call.resolved` | runner | after code is verified | `obs_id`, `decl_hash`, `code_sha256` |
 | `cc.call.refused` | runner | a refusal in steps 1 to 6 | `obs_id`, reason |
 | `cc.call.nested` | runner (broker) | a nested call starts | parent and child `obs_id` |
-| `cc.model.turn` | runner (broker) | each finished model turn | `obs_id`, turn, elapsed, `model_hint`, `model_id`, `route_record_id` |
+| `cc.model.turn` | runner (broker) | each finished model turn (announce only) | `obs_id`, turn, elapsed, `model_hint`, `model_id`, `route_record_id` |
 | `cc.call.finished` | runner | after the Observation is written | Observation ref, outcome, reason |
 | `cc.gate.decided` | gate host | after the Verification is written | `step_id`, `obs_id`, Verification ref, decision, verdict |
 | `cc.run.halted` | halt host | a halting verdict ended the run | `step_id`, verdict, Verification ref |
@@ -61,49 +61,149 @@ The one definition of every CC event. Each carries `run_id` (or `candidate_id` a
 
 ## One join key, one answer per question
 
-*Reopened 2026-10-02; Muk confirmed the key and the build order. Not yet through the area loop.*
+*Reopened 2026-10-02. Muk confirmed `obs_id` as the key and the build order. A blind canary drew this system from the first version of this section and found the gaps listed below; they are now stated, not hidden. Not yet through the area loop.*
 
-**Records are the only authority.** Events, spans and every export are derived views. A view never holds a fact the records lack, and a reader that disagrees with the records is wrong.
+**Two authorities, one key.** The record store is the authority for decisions and lineage: what was called, with what, what came out, what the gate said. The sealed raw capture is the authority for evidence that cannot be recreated: prompts, replies, process frames ([storage](storage.md#required-evidence-and-derived-views)). Both carry `obs_id`, and the Observation names its capture manifest, so one key reaches both. Events, spans, Data Foundation exports and every reader's view are derived. A derived view never holds a fact the two authorities lack.
 
-**`obs_id` is the one join key** for everything that happens inside a capsule call. Every other id is stored as a field on that call's [Observation](../schemas/observation.md), so any feed reaches the capsule, step, role and run through the Observation. No other id is a join key.
+**`obs_id` is the one join key** for everything inside a capsule call. It is the Observation's own `id`. Every other id is stored where the table below says, and joins through `obs_id`.
 
-| Id | Where it lives | How it joins |
-|---|---|---|
-| `obs_id` | the Observation's own `id` | the key |
-| `run_id`, `step_id`, `attempt` | fields of the Observation | read from the Observation |
-| `decl_hash`, `capsule_name`, `role` | fields of the Observation (role from the Binding) | read from the Observation |
-| model bridge `request_id` | stored on the Observation, in `ext.runner.turns[]` per turn | `request_id` to `obs_id`, then the rest |
-| `route_id`, `route_record_id` | stored on the same turn entry | same |
-| process or tool frame id | stored on the Observation's effect record | same |
-| trace id and span id | stored on the Observation (`trace`); spans carry `cc.obs_id` | span to `obs_id` |
+```mermaid
+flowchart TB
+    subgraph SUPP["supervisor process: owns the bus"]
+        SUP["supervisor and launcher<br/>reserves obs_id and attempt"]
+        FRZ["freeze"]
+        GH["gate host"]
+        HH["halt host"]
+        BUS(("cc event bus<br/>in-process, derived"))
+    end
+    subgraph RUNP["managed runner process"]
+        RUN["runner: one call, one obs_id<br/>nested, judge and admission calls reserve their own"]
+    end
+    BODY["capsule body<br/>no write access to records"]
+    CONF["confined process<br/>POC and benchmark"]
+    BR["model bridge<br/>protected socket"]
+    EP["model endpoint<br/>prompt only"]
+    subgraph AUTH["authorities"]
+        REC[("record store<br/>Observation id is the obs_id<br/>Artifact, Binding, Verification, system records")]
+        CAP[("sealed raw capture<br/>prompts, replies, frames by sha256<br/>manifest carries obs_id")]
+    end
+    DF["Data Foundation<br/>exports, derived"]
+    TRC["tracer, optional<br/>spans carry cc.obs_id"]
+    PS["progress sink, optional"]
+    PX["benchmark proxy<br/>development only"]
+    RDR["RSI, librarian, a person"]
 
-Every CC-owned message that crosses a process boundary (runner to bridge, supervisor to managed runner, runner to a confined process) carries `obs_id`, so a record can always be written under it. A message that cannot name an `obs_id` is refused, not logged anonymously.
+    SUP -->|"RunnerRequest: dispatch_id, obs_id, attempt"| RUN
+    RUN -->|"RunnerResponse: observation_ref"| SUP
+    RUN -->|"call frame, GAP 2"| BODY
+    BODY -->|"model and nested frames"| RUN
+    RUN -->|"PocExecutionRequest, GAP 2"| CONF
+    RUN -->|"ModelBridgeRequest: request_id, run_id, obs_id"| BR
+    BR -->|"ModelBridgeResult: request_id, reply hash"| RUN
+    BR -->|"prompt only: no stage, role or capsule"| EP
+    EP -->|"reply"| BR
+    BR -->|"prompt and reply bytes before success"| CAP
+    RUN -->|"process and tool frames, seal_execution"| CAP
+    CONF -->|"process evidence, GAP 3"| CAP
+    RUN ==>|"Artifacts, then the Observation: turns, outcome, manifest ref"| REC
+    SUP ==>|"plan, intake, Bindings, reservation, release"| REC
+    FRZ ==> REC
+    SUP -->|"gate obs_ref"| GH
+    GH -->|"judge call, own obs_id"| RUN
+    GH ==>|"Verification"| REC
+    GH -->|"committed Verification ref"| SUP
+    SUP -->|"halt"| HH
+    HH ==>|"halt record and review requirement"| REC
+    HH -->|"headless: exit code 3. else human_session"| SUP
+
+    RUN -.->|"events after the record, relayed by supervisor IPC, GAP 1"| BUS
+    SUP -.-> BUS
+    FRZ -.-> BUS
+    GH -.-> BUS
+    HH -.-> BUS
+    BUS -.-> PS
+    BUS -.-> TRC
+    REC --> DF
+    CAP --> DF
+    REC --> RDR
+    DF --> RDR
+    BR -.->|"development-only trace event keyed by request_id, never upstream"| PX
+    PX -->|"join request_id to obs_id"| REC
+    TRC -->|"cc.obs_id to Observation"| REC
+
+    F1["capture or seal fails: EVIDENCE_UNAVAILABLE<br/>no completion, supervisor halts"]
+    F2["bridge unavailable or timed out<br/>Observation error, never resubmitted"]
+    F3["message with no obs_id<br/>refused and recorded, see rule below"]
+    F4["optional subscriber raises<br/>the call continues"]
+    F5["gate save fails<br/>no success, halt, incident if storage permits"]
+    CAP -.-> F1
+    BR -.-> F2
+    RUN -.-> F3
+    BUS -.-> F4
+    GH -.-> F5
+    F1 --> SUP
+    F2 --> SUP
+    F5 --> SUP
+```
+
+Solid lines are data flow, double lines are record writes, dotted lines are events or derived views. `GAP n` points to the table of gaps below.
+
+**Where each id is stored, and what exists today.** The first version of this table claimed fields the schemas do not have. This is the corrected one.
+
+| Id | Stored in | Exists today? | Change required |
+|---|---|---|---|
+| `obs_id` | the Observation's `id` | yes | none |
+| `run_id` | the Observation's `scope` | yes | none |
+| `attempt`, `decl_hash`, `caller`, `binding_ref` | Observation fields | yes | none |
+| `step_id`, `capsule_name`, `role` | not on the Observation. Reached through `binding_ref`, which for a nested call is the caller's Binding, and is null for an admission call | no | add `step_id`, `capsule_name` and `role` as Observation fields set by the runner for every call kind, null where none applies ([observation](../schemas/observation.md)). Without them, per-capsule attribution is wrong for nested calls |
+| model bridge `request_id` | the turn entry in `ext.runner.turns` | no: the entry has `session_id` but no `request_id` | add `request_id` to the turn entry, and promote `turns` from `ext.runner` (declared not part of the record's meaning) to a checked Observation field ([runner](../capsule/runner.md)) |
+| `route_id` | the turn entry, as `route_record_id` | partly: one field holds either the capsule's `route_id` or the gateway's id | split it into `route_id` and `gateway_route_id` |
+| process or tool frame id | the capture manifest, under `obs_id`. Not on the Observation | the manifest exists, with no frame ids | frames are indexed in the manifest; the Observation does not carry them ([storage](storage.md)) |
+| trace and span id | the Observation's `trace`. Spans carry `cc.obs_id` | yes | none |
 
 **Which source answers which question.**
 
 | Question | Source | Never |
 |---|---|---|
 | what happened, and was it right | records | an event or a span |
+| the exact prompts, replies and process output | sealed capture, found through the Observation's manifest | |
 | what is happening now | bus events | |
-| why was a call slow or costly | spans derived from records; CC emits its own until [issue 19](../open-issues.md) is settled | |
-| attribution of a model call, by stage, role and capsule (the benchmark proxy) | a join on `obs_id` through the Observation, done by the reader | a field on the model request |
-| raw evidence for replay and RSI | Data Foundation content, referenced from the Observation by hash | a copy kept anywhere else |
+| why was a call slow or costly | spans. CC writes its own from records. The native tool span the runner stamps is a debugging extra, not a source of facts | a span as the only copy of a fact |
+| attribution of a model call (the benchmark proxy) | a reader-side join on `obs_id` through the Observation | a field on the model request |
+| Data Foundation exports | read from records and capture after the fact. A live bus feed is optional | |
 
-**Nothing about the pipeline goes to the model endpoint.** Stage, role and capsule never travel on the model wire. The [bridge request](environment.md#model-bridge) names only `request_id`, `run_id` and `obs_id`. A proxy sees only that and joins it itself. A dev-only trace event keyed by `request_id`, never forwarded upstream, may feed a benchmark proxy a live view; it is gated by the telemetry flags in [environment](environment.md).
+**Nothing about the pipeline goes to the model endpoint.** The [bridge request](environment.md#model-bridge) names only `request_id`, `run_id` and `obs_id`, and the bridge forwards the prompt only. The runner's `ModelCallContext` (capsule name, step, role) goes to the trusted side of the bridge, for records and for an endpoint that routes itself. Whether the native service forwards the session id `cc:<run>:<obs_id>:<n>` upstream is unverified (open). Gateway mode is a separate decision with its own threat note.
+
+**The `obs_id` rule has a scope.** Every CC message made on behalf of a capsule call carries `obs_id`, and one that cannot is refused. The refusal is written as a system record, or as an incident when storage cannot be written. Startup probes, `doctor`, bridge `status` and other messages made before any call exists carry no `obs_id`, are exempt, and use their own system-record id. An admission call has `candidate_id` and no `run_id`, so the bridge request takes `scope` (a `run_id` or a `candidate_id`).
+
+### Gaps the canary found, and the resolution proposed for each
+
+| # | Gap | Proposed resolution | Owner to change |
+|---|---|---|---|
+| 1 | which process hosts the bus. Runner events cross a process boundary, and the runner protocol has no event frame | the supervisor hosts the bus. Add a `RunnerEvent` frame to the runner protocol, sent after its record is written | [lifecycle](lifecycle.md), [runner](../capsule/runner.md) |
+| 2 | `obs_id` on runner-to-tool-host and runner-to-confined-process frames (the tool-host frames carry an integer `id`) | add `obs_id` to both frame families | [runner](../capsule/runner.md), [process boundary](../capsule/process-boundary.md) |
+| 3 | who writes the confined process's evidence into capture | the supervisor's process service, under the `obs_id` of the call that launched it | [storage](storage.md), [process boundary](../capsule/process-boundary.md) |
+| 4 | halts with no gate verdict (gate-save failure, capture failure) emit no event, so the progress sink cannot show a reason | `cc.run.halted` covers every halt, with its reason owner. `cc.run.finished` follows a halt | this page |
+| 5 | `cc.model.turn` and `cc.call.refused` fire before the Observation exists | they describe no record yet, so they join the announce-only list with `cc.call.started` | this page |
+| 6 | the development trace flag does not exist | add `cc.telemetry.bridge_trace` (default false, development only). The proxy reads the trace sink, never the protected socket | [environment](environment.md) |
+| 7 | `freeze` is named as an event emitter, but lifecycle gives freeze to the supervisor | the supervisor emits `cc.run.frozen` | this page |
+| 8 | the Observation's own page says the call's details are on agent-core's span, which contradicts "records are authority" | reword it: spans are sampled and may expire, and hold nothing the records and capture lack | [observation](../schemas/observation.md) |
 
 ## Build order for observability
 
-Observability is built in the same thin slices as the capsules, because every check in the [build order](build-order.md) reads it. The event bus is not first.
+Observability is built in the same thin slices as the capsules, because every check in the [build order](build-order.md) reads it. Step numbers are the build order's. Each row says what it needs from earlier steps, which fixes the dependency the canary found.
 
-| Build step | Add | Check |
-|---|---|---|
-| 1 | the Observation and the content store, written only by the runner, keyed by `obs_id` | a second call produces a second Observation; the same input gives the same output hash; a changed body is refused and recorded |
-| 2 | the model-turn entries (`request_id`, prompt and reply hashes) on the Observation | the turn replays with no network; `request_id` resolves to its `obs_id` |
-| 3 | the Verification record, and the `cc.gate.decided` event | a failing check is readable from the Verification alone |
-| 4 | the remaining events and durable halt records | resume after a kill reads records only |
-| 5 to 7 | spans derived from records, then the Data Foundation export | a span's `cc.obs_id` resolves to exactly one Observation |
+| Build step | Add | Needs | Check |
+|---|---|---|---|
+| 1 | the Observation and the content store, written only by the runner, keyed by `obs_id` | a **stub reservation**: a single-process counter hands out `obs_id` and `attempt`. The supervisor's durable reservation replaces it at step 4 | a second call produces a second Observation. The same input gives the same output hash. A changed body is refused and the refusal recorded |
+| 2 | the model bridge with sealed capture, and the turn entries with `request_id` | step 1, and the Observation changes in the table above | the turn replays with no network. `request_id` resolves to exactly one `obs_id`. The prompt bytes in capture match the bridge request |
+| 3 | the Verification record, and an event bus **skeleton** (emit and subscribe only, with no sink) so `cc.gate.decided` can be emitted | steps 1 and 2 | a failing check is readable from the Verification alone. A test subscriber receives `cc.gate.decided` after the Verification is readable |
+| 4 | the supervisor's durable reservation, halt records, the `RunnerEvent` frame and the remaining events | step 3 | kill the process between steps and resume from records alone. Every halt, including a gate-save failure, emits `cc.run.halted` |
+| 5 | spans written from records, with `cc.obs_id` | step 4 | each span's `cc.obs_id` resolves to exactly one Observation |
+| 6 | the progress sink and the tracer as subscribers | step 5 | removing a subscriber changes no record and no run result |
+| 7 | the Data Foundation export, read from records and capture | step 6 | the export's row count equals the records, and a missing capture blocks completion |
 
-Until step 3 the runner writes records only. Required Data Foundation capture ([storage](storage.md#required-evidence-and-derived-views)) stays a separate acknowledged call, and its failure semantics are decided at step 4, not before.
+Required capture is decided already: a missing capture blocks completion (`EVIDENCE_UNAVAILABLE`, [storage](storage.md#required-evidence-and-derived-views)). It is built at step 2 with the bridge, not deferred.
 
 ## M1 limits, stated plainly
 

@@ -36,7 +36,7 @@ Each step below is small, ends with a check that someone other than the builder 
 - **The runner grows with the capsules.** Step 1 builds only what `compile_intent` calls. Each later step adds the runner features that step needs and nothing more.
 - **A seam is not proved by its two sides compiling.** It is proved when the producer's real output enters the consumer, and when a wrong output is refused. The canary and the hash comparison are how.
 - **Blocked work waits, it is not guessed.** Steps 5 to 7 name their open issues. The platform black boxes in [black boxes](../system/blackboxes.md) block only generated-code execution on the affected platform, so steps 1 to 5 proceed on Linux.
-- **Observability grows the same way.** Records first, keyed by `obs_id`; the event bus after the first gate. Owner and per-step additions: [observability](../system/observability.md#build-order-for-observability), decisions D14 to D16 in [decisions](../decisions.md).
+- **Observability grows the same way.** Records first, keyed by `obs_id`. Only an emit-and-subscribe bus skeleton arrives with the first gate; the real events, sinks and tracer come after. Step 1 may use a stub reservation counter until the supervisor lands at step 4. Owner and per-step additions: [observability](../system/observability.md#build-order-for-observability), decisions D14 to D16 in [decisions](../decisions.md).
 - **Model Routing is not on this path.** The runner's default model call serves steps 2 onward ([seams](../seams.md#model-routing)).
 - **Who builds.** Muk owns the architecture and shared CC. A coder takes one step at a time. Each step's check is written before the build, by someone other than the builder (INV-9, INV-10).
 
