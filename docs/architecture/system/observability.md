@@ -10,7 +10,7 @@ depends_on: [ledgers.md, integration.md]
 tags: [system, m1]
 ---
 
-> **Checked, not yet approved.** How M1 is observed, for now. The concept is on [observability and quality](../capsule/observability.md); this page is the M1 wiring.
+> **Draft: reopened 2026-10-02 for the join key and the build order below.** Previously checked. How M1 is observed, for now. The concept is on [observability and quality](../capsule/observability.md); this page is the M1 wiring.
 
 # Observability at M1
 
@@ -58,6 +58,52 @@ The one definition of every CC event. Each carries `run_id` (or `candidate_id` a
 | RSI | Data Foundation's exports | learning from real runs |
 | Librarian (later) | records | Standing moves and Findings |
 | A person debugging | records first, then spans if any | what ran, on which code, and why it stopped |
+
+## One join key, one answer per question
+
+*Reopened 2026-10-02; Muk confirmed the key and the build order. Not yet through the area loop.*
+
+**Records are the only authority.** Events, spans and every export are derived views. A view never holds a fact the records lack, and a reader that disagrees with the records is wrong.
+
+**`obs_id` is the one join key** for everything that happens inside a capsule call. Every other id is stored as a field on that call's [Observation](../schemas/observation.md), so any feed reaches the capsule, step, role and run through the Observation. No other id is a join key.
+
+| Id | Where it lives | How it joins |
+|---|---|---|
+| `obs_id` | the Observation's own `id` | the key |
+| `run_id`, `step_id`, `attempt` | fields of the Observation | read from the Observation |
+| `decl_hash`, `capsule_name`, `role` | fields of the Observation (role from the Binding) | read from the Observation |
+| model bridge `request_id` | stored on the Observation, in `ext.runner.turns[]` per turn | `request_id` to `obs_id`, then the rest |
+| `route_id`, `route_record_id` | stored on the same turn entry | same |
+| process or tool frame id | stored on the Observation's effect record | same |
+| trace id and span id | stored on the Observation (`trace`); spans carry `cc.obs_id` | span to `obs_id` |
+
+Every CC-owned message that crosses a process boundary (runner to bridge, supervisor to managed runner, runner to a confined process) carries `obs_id`, so a record can always be written under it. A message that cannot name an `obs_id` is refused, not logged anonymously.
+
+**Which source answers which question.**
+
+| Question | Source | Never |
+|---|---|---|
+| what happened, and was it right | records | an event or a span |
+| what is happening now | bus events | |
+| why was a call slow or costly | spans derived from records; CC emits its own until [issue 19](../open-issues.md) is settled | |
+| attribution of a model call, by stage, role and capsule (the benchmark proxy) | a join on `obs_id` through the Observation, done by the reader | a field on the model request |
+| raw evidence for replay and RSI | Data Foundation content, referenced from the Observation by hash | a copy kept anywhere else |
+
+**Nothing about the pipeline goes to the model endpoint.** Stage, role and capsule never travel on the model wire. The [bridge request](environment.md#model-bridge) names only `request_id`, `run_id` and `obs_id`. A proxy sees only that and joins it itself. A dev-only trace event keyed by `request_id`, never forwarded upstream, may feed a benchmark proxy a live view; it is gated by the telemetry flags in [environment](environment.md).
+
+## Build order for observability
+
+Observability is built in the same thin slices as the capsules, because every check in the [build order](../m1/capsule-inventory-proposal.md#build-order-what-comes-first-and-what-blocks-what) reads it. The event bus is not first.
+
+| Build step | Add | Check |
+|---|---|---|
+| 1 | the Observation and the content store, written only by the runner, keyed by `obs_id` | a second call produces a second Observation; the same input gives the same output hash; a changed body is refused and recorded |
+| 2 | the model-turn entries (`request_id`, prompt and reply hashes) on the Observation | the turn replays with no network; `request_id` resolves to its `obs_id` |
+| 3 | the Verification record, and the `cc.gate.decided` event | a failing check is readable from the Verification alone |
+| 4 | the remaining events and durable halt records | resume after a kill reads records only |
+| 5 to 7 | spans derived from records, then the Data Foundation export | a span's `cc.obs_id` resolves to exactly one Observation |
+
+Until step 3 the runner writes records only. Required Data Foundation capture ([storage](storage.md#required-evidence-and-derived-views)) stays a separate acknowledged call, and its failure semantics are decided at step 4, not before.
 
 ## M1 limits, stated plainly
 

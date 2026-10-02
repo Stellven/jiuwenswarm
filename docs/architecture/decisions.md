@@ -32,7 +32,7 @@ Statuses are `adopted`, `provisional`, `product-conflict`, `implementation-valid
 | PIP | [pip secure installs](https://pip.pypa.io/en/stable/topics/secure-installs/) | offline, hash-pinned, binary-only dependency installation | local wheelhouse only |
 | BWRAP | [Bubblewrap](https://github.com/containers/bubblewrap/blob/main/README.md) | unprivileged Linux namespace and mount isolation | Linux generated-code child only |
 
-## Dispositions: D1-D13
+## Dispositions: D1-D16
 
 | ID | Status | Decision and owner | Precedent | Recheck and replacement trigger |
 |---|---|---|---|---|
@@ -49,6 +49,9 @@ Statuses are `adopted`, `provisional`, `product-conflict`, `implementation-valid
 | D11 | adopted | `cc/` and `capsules/<capability-name>/` are proposed code locations; package/file names do not define capsule identity. | KFP | Code SOP may relocate modules through an adapter-preserving change. |
 | D12 | adopted | A frozen `run_plan` is the only step/wiring definition. | KFP, TMP | Recheck freeze, supervisor and graph after any plan-field change. |
 | D13 | adopted | Policy owns registries and bounded runner settings; named profiles own admission, Gate, retry and execution selection. | OPA | New profile version, never call-site branching. |
+| D14 | adopted | `obs_id` is the one join key for everything inside a capsule call. Every other id (`request_id`, `route_id`, frame id, trace id) is a field on the Observation. Records are the only authority; events and spans are derived views. Owner: [observability](system/observability.md). | OTEL, TMP | Recheck the runner, bridge, tracer, Data Foundation projection and the model-routing seam. Replace if a feed needs a second key. |
+| D15 | adopted | Nothing about stage, role or capsule is sent to the model endpoint. Attribution is a reader-side join on `obs_id`. Owner: [observability](system/observability.md). | OTEL | Recheck the bridge request and the router gateway mode. Replace only with a separate decision and threat note. |
+| D16 | adopted | Build in thin slices: one capsule, then one connected capsule with its wire tested, then expand. The runner and its records grow with the capsules; the event bus comes after the first gate. Owner: [capsule inventory proposal](m1/capsule-inventory-proposal.md). | PACT, TMP | Recheck the PRD stage order and every build-step check. |
 
 ## Dispositions: issues 1-58
 

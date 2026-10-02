@@ -140,6 +140,7 @@ Each step below is small, ends with a check that someone other than the builder 
 - **The runner grows with the capsules.** Step 1 builds only what `compile_intent` calls. Each later step adds the runner features that step needs and nothing more.
 - **A seam is not proved by its two sides compiling.** It is proved when the producer's real output enters the consumer, and when a wrong output is refused. The canary and the hash comparison are how.
 - **Blocked work waits, it is not guessed.** Steps 5 to 7 name their open issues. The platform black boxes in [black boxes](../system/blackboxes.md) block only generated-code execution on the affected platform, so steps 1 to 5 proceed on Linux.
+- **Observability grows the same way.** Records first, keyed by `obs_id`; the event bus after the first gate. Owner and per-step additions: [observability](../system/observability.md#build-order-for-observability), decisions D14 to D16 in [decisions](../decisions.md).
 - **Model Routing is not on this path.** The runner's default model call serves steps 2 onward ([seams](../seams.md#model-routing)).
 - **Who builds.** Muk owns the architecture and shared CC. A coder takes one step at a time. Each step's check is written before the build, by someone other than the builder (INV-9, INV-10).
 
@@ -209,7 +210,7 @@ The benchmarking workstream asked for two development-only features. Neither is 
 - The `seed` and the snapshot hash are in the run record from step 1, because they sit in the configuration snapshot the first runner slice already pins. Adding them later changes the record shape.
 - The headless flag lands with step 4 (durable gate release), where halting is first built.
 - The ablation switches land after step 7, once there is a full run to remove components from. The router switch waits for Model Routing.
-- These are new open decisions for the owners of lifecycle, environment and library; they are not recorded in [decisions](../decisions.md) yet.
+- The attribution answer (request 3) is recorded as decisions D14 and D15. Requests 1 and 2 are new open decisions for the owners of lifecycle, environment and library; they are not recorded in [decisions](../decisions.md) yet.
 
 ## Change order if adopted
 
