@@ -143,6 +143,74 @@ Each step below is small, ends with a check that someone other than the builder 
 - **Model Routing is not on this path.** The runner's default model call serves steps 2 onward ([seams](../seams.md#model-routing)).
 - **Who builds.** Muk owns the architecture and shared CC. A coder takes one step at a time. Each step's check is written before the build, by someone other than the builder (INV-9, INV-10).
 
+## Benchmark harness requests: headless entry and config-assembled components
+
+The benchmarking workstream asked for two development-only features. Neither is in the PRD's product roadmap. Both change the early build steps, so they are placed here. Product owners keep the decision on whether they ship; architecture only says where they land.
+
+### Request 1: a headless run that halts without a human
+
+**Ask.** A programmatic entry taking a task, a config and a seed. It runs the pipeline and returns the result and a run directory. Where a gate failure would open `human_session`, a headless flag records the halt in the run tree and exits with a status code instead.
+
+**What exists.** [Workstation](../system/workstation.md#cli-and-public-run-api) already gives `jiuwenswarm cc run`, `POST /cc/runs`, run states, and exit code 3 for a halted run. [Lifecycle](../system/lifecycle.md#human-review-and-recovery) already says a non-interactive terminal leaves the run halted with the review requirement exposed.
+
+**What is missing.**
+
+| Gap | Proposed landing | Owner page |
+|---|---|---|
+| a `--headless` flag (and `headless: true` on `POST /cc/runs`) that skips opening `human_session` and records the halt record directly | the halt host writes the same halt record and review requirement it writes today, then does not open the session; exit code 3 | [lifecycle](../system/lifecycle.md) |
+| a `seed` input | one `seed` in the request, pinned in the run's configuration snapshot ([storage](../system/storage.md)), and recorded as the root of the blueprint's seed policy | [workstation](../system/workstation.md), [environment](../system/environment.md) |
+| a per-run `config` argument | an overlay file passed with the request, merged as a layer above project `config.yaml`, and pinned by `begin_run` like any snapshot | [environment](../system/environment.md#effective-configuration) |
+| a return value of result plus run directory | `RunView.output_refs` plus a stable `run_dir` path in the JSON reply | [workstation](../system/workstation.md) |
+
+**Rules.**
+
+- The flag changes how a halt is surfaced, never whether the gate decides. A headless run still stops at the same gate, with the same Verification.
+- Resume stays terminal-only. A headless halt is final for that run; the harness starts a new run.
+- Mark the flag development-only in the config, so a headless run is recorded as such in its snapshot. A product run can never silently become headless.
+
+### Request 2: components wired from config
+
+**Ask.** The ablation study runs the same code with one component removed at a time. Capsules, the router, the evaluator gate and RSI must be wired from config, not hard-coded. The harness must pin the capsule library to a snapshot hash and read that hash back from the run output.
+
+**What exists.** `cc.plan_path` already names the run plan, and the run plan binds capsules by admitted hash ([pipeline](pipeline.md#plan-compilation)). The configuration snapshot is pinned per run. The library is versioned and append-only ([library](../capsule/library.md)).
+
+**What is missing.**
+
+| Component | Proposed config | Note |
+|---|---|---|
+| capsules | the run plan chooses them; a config key selects the plan, so an ablation plan omits or swaps one step | [run plan type](../types/run-plan.md) |
+| library snapshot | `cc.library.snapshot_sha256`: the run refuses any capsule whose admitted hash is not in that snapshot; the same hash is written into the run's `ConfigSnapshot` and returned in `RunView` | needs a snapshot object in [library](../capsule/library.md) and a field in the run view |
+| router | `cc.router.enabled`; off means the runner's default model call ([seams](../seams.md#model-routing)). The router is not on the M1 path yet, so this key waits for Model Routing | |
+| RSI | `cc.rsi.enabled`; off means no RSI session opens and no Candidate is accepted | [RSI engine](../capsule/rsi-engine.md) |
+| evaluator gate | `cc.gates.evaluator`: `on` (product) or `off` (development ablation) | see the conflict below |
+
+**Conflict to decide.** The design rule `every_step_gated` and INV-8 say no step is accepted without a gate, and the referee is never RSI-able. An evaluator-gate-off ablation breaks the first rule on purpose. The proposal: allow it only in a profile named `ablation`, record that profile in the run's snapshot, and have every output of such a run carry `ablation: true`, so it can never be taken for a product result. The harness's report must say which gate was off.
+
+**Rule.** A component switched off in config is absent from the run, never stubbed to pass. The run output states which components ran and the library snapshot hash, so the harness can prove it.
+
+### Request 3: stage, role and capsule id on each model call
+
+**Ask.** Each outgoing model call carries pipeline stage, role and capsule id in a field a proxy can read. The security objection raised in reply is that the model API should not learn what the system is doing, and an observability layer should trace it instead.
+
+**Already in the design.** The runner builds a [`ModelCallContext`](../capsule/runner.md) for every turn: `obs_id`, `turn`, `capsule_name`, `decl_hash`, `step_id` and `role` (role unchecked at M1). The protected [model bridge](../system/environment.md#model-bridge) request carries only `request_id`, `run_id` and `obs_id`, with prompt and reply stored by hash. Every turn is written to the Observation's `ext.runner.turns`. So the context exists and is recorded, but it stays inside CC. It is not sent to the model endpoint.
+
+**Proposed disposition: trace, do not tag.** This agrees with the security objection.
+
+- The wire to the model carries no stage, role or capsule field. The bridge is the only caller of the model, and it forwards the prompt only.
+- Attribution is by join. A benchmark proxy or log reads the bridge's `request_id` and `obs_id`, and joins them to the Observation, which names the step, capsule and role. [Observability](../system/observability.md) owns that join, and `route_id` already joins routing decisions to turns the same way.
+- If a proxy sits between the bridge and a real endpoint, it sees only `request_id`. It cannot attribute a call alone, and that is intended.
+
+**Dev-only option, if the benchmark needs the proxy to see the context live.** Let the bridge emit a trace event (not an HTTP header or prompt field) to a local observability sink, keyed by `request_id`: `{request_id, run_id, obs_id, step_id, capsule_name, decl_hash, role, turn}`. It is never forwarded upstream, and the `cc.telemetry` flags in [environment](../system/environment.md) control it. This gives the benchmark its proxy view with no change to what the model API receives.
+
+**Open for Muk and the Model Routing owner.** Confirm that the router's gateway mode (`route_record_id`, an endpoint that routes itself) does not need the context on the wire. If it does, that is a separate, explicit decision with its own threat note.
+
+### Effect on the build order
+
+- The `seed` and the snapshot hash are in the run record from step 1, because they sit in the configuration snapshot the first runner slice already pins. Adding them later changes the record shape.
+- The headless flag lands with step 4 (durable gate release), where halting is first built.
+- The ablation switches land after step 7, once there is a full run to remove components from. The router switch waits for Model Routing.
+- These are new open decisions for the owners of lifecycle, environment and library; they are not recorded in [decisions](../decisions.md) yet.
+
 ## Change order if adopted
 
 Follow [PROCESS](../PROCESS.md#the-order-for-changing-anything). Owner first, consumers after.
