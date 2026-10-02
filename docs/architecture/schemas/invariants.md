@@ -17,8 +17,8 @@ Rules every schema obeys, cited as `INV-n`. `tools/sync.py` enforces the parts m
 | INV-2 | **Written once.** No record is edited or appended to. A change is a new record: a new version, log entry or result. |
 | INV-3 | **One writer per record kind.** When two parties contribute, split the record (the runner's Observation and the gate's Verification). A kind may instead fix its writer per value of a discriminator (the Finding's `kind`, the Artifact's `scope`, the Standing's `state`). A store keeps records; it never writes them. |
 | INV-4 | **What, never how.** A record holds facts. Thresholds, defaults, bounds, rules and settings go in the [policy](policy.md). |
-| INV-5 | **No derived copies.** Do not store what another record already says. The one exception is the [Binding](binding.md)'s `checks`, assembled once so the gate reads one list. |
-| INV-6 | **Refer, do not repeat.** References are `Ref {id, sha256}`; code and content are referenced by hash. Capsule names are local to a library and are used only in the Standing, in `needs.external`, in a test suite's `capsule_name`, in check ids seen from outside a Declaration, and in policy `levels`. |
+| INV-5 | **No independent derived authorities.** Do not duplicate another record's facts as a separately mutable truth. Binding checks are assembled once for reproducibility; Verification's single durable gate_result snapshot is required by PRD 4.2.8. Its aliases and normalized/routing values are checked against the same record and frozen invocation at commit. Check details remain in results and are referenced by id. |
+| INV-6 | **Refer, do not repeat.** References are `Ref {id, sha256}`; code and content are referenced by hash. Capsule names are local to a library and are used only in the Standing, in `needs.external`, in a test suite's `capsule_name`, in check ids seen from outside a Declaration, in policy `levels`, in a `run_plan`'s capsule names, in an `evidence_bundle`'s `subject.capsule_name`, and in the model client's `ModelCallContext.capsule_name`. |
 | INV-7 | **A capsule holds no task.** A Declaration names no step, stage, run, workflow or other capsule, except its dependencies in `needs.external`, its `members` and its `identity.lineage`. |
 | INV-8 | **Unknown never passes.** A predicate or check that cannot be evaluated gives `defer`, `unknown` or `fail`, never `pass`. |
 | INV-9 | **Every promise has a check.** Every output port names a `check_id`. Every port type carries a check that applies at `node`, so every Binding has a check and every live output is checked. |
@@ -30,7 +30,7 @@ Rules every schema obeys, cited as `INV-n`. `tools/sync.py` enforces the parts m
 | Id | Rule |
 |---|---|
 | INV-11 | **(lint)** Every field row has a **Type** from the grammar below, a **Req**, an **M1** mark (`checked` or `unchecked`, defined in [common](common.md)), an **Unlocks** entry exactly when unchecked, and a **Description**. |
-| INV-12 | Names are `snake_case`. Ids end `_id` (or are `id`); hashes end `_sha256`, `_hash` or `_hashes` (or are `sha256`); times end `_at` (or are `at`); references end `_ref`; lists are plural. **(lint)** for ids, hashes, times and `Ref` fields. |
+| INV-12 | Names are `snake_case`. Ids end `_id` (or are `id`); hashes end `_sha256`, `_hash` or `_hashes` (or are `sha256`); times end `_at` (or are `at` or `timestamp`); references end `_ref`; lists are plural. **(lint)** for ids, hashes, times and `Ref` fields. |
 | INV-13 | Enum values are lowercase; reason codes are `UPPER_SNAKE` (**lint**). A list of values is closed (`enum`) only when a consumer switches on it; otherwise it is a registry (`reg`) whose values live in the policy's `registries`. Exception: `reg(port_type)` takes its values from the [port type vocabulary](port-types.md). |
 | INV-14 | Core fields are strict: an unknown field is refused, except inside `ext`, which is namespaced by tool. `ext` is part of a record's hash, never of `interface_hash`. |
 | INV-15 | Hashes are lowercase hex SHA-256 over RFC 8785 canonical JSON; content is hashed over its raw bytes. |
@@ -42,7 +42,7 @@ Rules every schema obeys, cited as `INV-n`. `tools/sync.py` enforces the parts m
 | `time` | RFC 3339 UTC |
 | `sha256` | 64 lowercase hex characters |
 | `id`, `uri` | an opaque string id, unique within its kind; a URI |
-| `enum(a, b)` | a closed set; a new value is v2 |
+| `enum(a, b)` | a closed set of case-sensitive wire values; source-defined uppercase values are preserved; a new value is v2 |
 | `reg(name)` | an open set from the policy registry `name`; a new value is a registry row |
 | `Ref(kind)` | `{id, sha256}` pointing at a record of that kind |
 | `EvidenceRef`, `Reason`, `Port`, `Predicate`, `Check` | shapes defined in [common](common.md) and the [Declaration](../capsule/fields.md), which includes `Check` |

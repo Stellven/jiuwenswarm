@@ -398,7 +398,7 @@ The team wants relatively open, flexible schemas. A guard checks shape, integrit
 
 **Checks with no hosting tool.**
 
-- A remote (`mcp`/`a2a`) capsule's fingerprint is never checked against what the service actually runs; the pin proves only what was pinned ([tools.md](tools.md#which-tool-checks-each-field)).
+- A remote (`mcp`/`a2a`) capsule's fingerprint is never checked against what the service actually runs; the pin proves only what was pinned ([CC tooling and field enforcement](tools.md#field-validation-and-enforcement-map)).
 - `changes.effects[].reversibility` and `.scope` are not enforced anywhere; only `resource_key` reaches `file_guard` ([permissions.md](permissions.md#gaps-and-conflicts)).
 - Network use by MCP tools and by shell outside a sandbox is not checked.
 - The composite rules (this page's [Composite graph](#composite-graph) group) have no owning tool yet; `tools.md` calls them "open: the composite checks are not specified yet."

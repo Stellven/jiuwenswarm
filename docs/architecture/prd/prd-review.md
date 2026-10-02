@@ -6,6 +6,8 @@ tags: [review, draft, prd, m1]
 
 # PRD review: architecture pushback
 
+> **Superseded 2026-10-01** by the [full PRD review](prd-m1-full-review.md), which says which of these points the full PRD settles.
+>
 > **Draft, not yet sent.** Architecture's review of the PRD ("Product Requirements Document: AI4Research") and the PRD owner's kickoff messages. The PRD is the PRD owner's. This page only lists the points where it contradicts itself, asks for something the M1 runtime cannot do, or asks for something the design should not do. Each point names its evidence and what we ask for. Points that touch RSI, the Verifier or model routing name the owner to agree them with.
 
 ## The PRD contradicts itself

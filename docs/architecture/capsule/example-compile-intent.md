@@ -5,6 +5,8 @@ tags: [capsule, example]
 
 # A complete example: `compile_intent` (tool)
 
+> **Superseded 2026-10-01** by the [intent capsule](../m1/intent-capsule.md), which reads the shared `intake` type. Kept for the porting history; build from the intent capsule page.
+
 [Declaration](fields.md) defines every field. This page shows one complete example that follows the schema. It mirrors the real, built capsule at `capsules-build/compile_intent/`, ported to the current schema in `PORT-NOTES.md` there. It is `kind: tool`, not a skill. It extracts goals, outcomes, constraints, ambiguities, conflicts, and unknowns by fixed rule, with no model call. Compiling it twice on the same input gives the same output.
 
 The `raw_intent` and `intent_ir` port types are not yet entries in the [port type vocabulary](../schemas/port-types.md). Their field shape comes from `cc.intent.v1`, which itself adopts AI4Research's `intent-ir.v3.schema.json`. This capsule's output matches that shape.

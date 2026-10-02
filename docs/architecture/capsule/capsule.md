@@ -21,7 +21,7 @@ Five ideas:
 
 | Question | Page |
 |---|---|
-| What does a capsule hold? | [Declaration](fields.md): every field, with an [example](fields.md#example); [a fuller, fully-typed example](example-compile-intent.md) |
+| What does a capsule hold? | [Declaration](fields.md): every field, with an [example](fields.md#example); [a fuller, fully-typed example](../m1/intent-capsule.md) |
 | How do I author a capsule from a tool I have? | [Authoring a capsule](authoring.md) |
 | Why does CC exist? | [Why CC](why.md) |
 | How do capsules combine? | [Composition](composition.md) |
@@ -30,7 +30,9 @@ Five ideas:
 | How does the system improve or add capsules? | [RSI](rsi.md), [generalist](generalist.md), [a full generalist example](example-generalist.md) |
 | What is recorded when a capsule runs, and how is quality measured? | [Observability and quality](observability.md) |
 | What may a capsule touch in jiuwenswarm? | [Permissions](permissions.md) |
-| Which tool checks what? | [Tools](tools.md#which-tool-checks-each-field) |
+| What happens when a node runs a capsule? | [Runner](runner.md) |
+| Which tool checks what, and what is still deferred? | [CC tooling and field enforcement](tools.md#field-validation-and-enforcement-map) |
+| Where does generated POC code run? | The provisional [M1 untrusted process boundary](process-boundary.md) |
 | What does M1 require? | [Checked and unchecked at M1](stages.md) |
 | Where do the ideas come from? | [References](references.md) |
 
@@ -69,7 +71,12 @@ This folder is enough to understand CC. Each fact is stated once and linked from
 | [Generalist](generalist.md) | the low-trust capsule that fills gaps |
 | [Permissions](permissions.md) | how a capsule's declarations become jiuwenswarm permission rules |
 | [Symphony](symphony.md) | what agent-core's Symphony does, and how CC plugs into it |
-| [Tools](tools.md) | the tools around a capsule, and which tool checks each field |
+| [CC tooling and field enforcement](tools.md) | M1 and later tool boundaries; field validation versus runtime enforcement |
+| [Runner](runner.md) | how a node's capsule is found by hash, run by its kind, and recorded: the M1 runner design |
+| [M1 untrusted process boundary](process-boundary.md) | the separate provisional boundary for generated POC execution in Stage 3.7 |
+| [RSI fixture oracle](fixture-oracle.md) | the separate provisional service that tests RSI candidates without revealing hidden fixtures |
+| [Toolchain](toolchain.md) | the API of every CC tool M1 needs, the capsule folder, and where code lives |
+| [Gate host](gate-host.md), [gate capsules](gate-capsules.md) | how every step is gated: the fixed fold, and the capsule that assesses |
 | [Checked and unchecked at M1](stages.md) | what M1 requires and tests, and what each unchecked field unlocks |
 | [References](references.md) | the papers and designs CC draws on |
 
@@ -105,7 +112,7 @@ A kind says how a capsule runs, not what job it does. A gate, a verifier or a de
 11. **A capsule's output is always an [Artifact](../schemas/artifact.md).** The runner writes the records.
 12. **Models are not part of the capsule layer.** Selection picks capsules, never models ([details](fields.md#needs-what-must-hold-and-what-it-uses)).
 
-A **gate** folds check results into `pass`, `fail` or `blocked`, with the folding rules in the policy. A gate may be control code or a capsule. A gate capsule returns its decision as an Artifact, like any capsule; control code writes the Verification from it (INV-3).
+A **gate** folds check results into `pass`, `fail` or `blocked`, with the folding rules in the policy. Every step has one **gate capsule** ([nodes](../system/nodes.md#gates)). It returns a [`verifier_assessment`](../types/verifier-assessment.md), an assessment per criterion, never the decision. Control code, the gate host, folds it with the other checks by policy and writes the Verification (INV-3).
 
 ## What a capsule connects to
 

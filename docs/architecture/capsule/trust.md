@@ -21,11 +21,11 @@ The exact rules for each epoch are in the policy's `levels`.
 
 | Level | Earned by | M1 |
 |---|---|---|
-| `exempt` | nothing is checked in advance; granted by name in the policy, for capabilities that cannot be tested ahead, such as the [generalist](generalist.md). Every call records a trajectory, and every output still passes its gate | unchecked |
+| `exempt` | no assurance suite is required; `puppet_admission` grants it only when a developer policy allowlists the exact `decl_hash`, after mandatory declaration/hash/dependency/permission/interface validation. Every call records a trajectory, and every output still passes its real runtime Gate | checked |
 | `provisional` | at least one test case, and every check on its test calls passes, including its `node` and `both` checks | checked |
 | `certified` | also a sealed suite passes, written by someone other than the builder | unchecked |
 
-The level says where a capsule may be used; the gate still checks every output it gives. After M1, work the workflow depends on should be certified-only, and a call site may require a level (open: a Binding field for it).
+The level says what admission evidence exists; Standing and the active alias say whether the version may be bound. The runtime Gate still checks every governed output. A Puppet decision cannot grant `certified`, activate an RSI child, change permissions or create a runtime Gate result.
 
 ## What lowers trust
 

@@ -26,6 +26,16 @@ Extends [common](common.md), with `scope.candidate_id`, which names the Candidat
 | `vocabulary_ref.version` | `integer` | req | checked |  | The vocabulary's `vocabulary_version`. Example: `1` |
 | `vocabulary_ref.sha256` | `sha256` | req | checked |  | The vocabulary document's hash |
 | `outcome` | `enum(admit, reject, defer)` | req | checked |  | The decision. `defer` waits for evidence |
+| `admission_basis` | `enum(test_evidence, developer_decision)` | req | checked |  | Provider basis. `developer_decision` is the Puppet Gate and can grant only `exempt` |
+| `admission_profile_ref` | `object` | req | checked |  | Pinned admission ProfileRef |
+| `admission_profile_ref.kind` | `enum(admission)` | req | checked |  | Always `admission` |
+| `admission_profile_ref.id` | `id` | req | checked |  | Policy-local profile id |
+| `admission_profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile hash |
+| `developer_decision` | `object` | opt | checked |  | Required exactly when `admission_basis` is `developer_decision` |
+| `developer_decision.allowlist_sha256` | `sha256` | req | checked |  | Exact developer-owned allowlist consulted |
+| `developer_decision.actor` | `string` | req | checked |  | Attributable local developer identity |
+| `developer_decision.reason` | `text` | req | checked |  | Why this exact declaration is admitted |
+| `developer_decision.decided_at` | `time` | req | checked |  | UTC RFC 3339 timestamp at which the developer decision was recorded |
 | `reasons` | `list<Reason>` | req | checked |  | Why, as typed codes. Empty only when admitted with nothing to note. Example: `[{"code": "CHECK_FAILED", "message": "text_not_empty failed on case 3"}]` |
 | `checks_run` | `list<object>` | req | checked |  | Every check admission ran |
 | `checks_run[].check_id` | `id` | req | checked |  | Which check. Example: `text_not_empty` |
@@ -33,8 +43,8 @@ Extends [common](common.md), with `scope.candidate_id`, which names the Candidat
 | `checks_run[].result` | `enum(pass, fail, unknown)` | req | checked |  | `unknown` when it could not be evaluated; never counted as a pass (INV-8) |
 | `checks_run[].evidence` | `list<EvidenceRef>` | opt | checked |  | The test calls behind the result |
 | `checks_run[].judge` | `object` | opt | checked |  | For a judged check: `{judge_decl_hash, model}`, the admission judge that ran it (policy `levels.admission_judge`), as in the [Verification](verification-record.md)'s `results[].judge`. Never the capsule's own `decl_hash` |
-| `level` | `enum(provisional, certified, exempt)?` | req | checked |  | Where it may run; null unless `outcome` is `admit`. `certified` (Unlocks: certification) and `exempt` (Unlocks: exempt agents) are unchecked in M1, so every capsule admitted in M1 is `provisional` |
-| `test_suites` | `list<Ref(test_suite)>` | req | checked |  | The suites it was checked with: the visible suite admission built from the Candidate's tests, and any sealed suites. This is how a capsule's latest tests are found |
+| `level` | `enum(provisional, certified, exempt)?` | req | checked |  | Assurance level; null unless admitted. `developer_decision` may grant only `exempt`; tested admission may grant `provisional` or `certified` according to policy |
+| `test_suites` | `list<Ref(test_suite)>` | req | checked |  | Suites actually run. Empty is valid for Puppet admission and never means a suite passed |
 | `environment` | `object` | opt | unchecked | isolated verification | Where admission ran the tests, so a result can be reproduced |
 | `environment.runtime` | `string` | req | unchecked | isolated verification | The runtime used. Example: `python 3.11.9` |
 | `environment.image_sha256` | `sha256` | opt | unchecked | isolated verification | The sandbox image's hash, when tests ran in one |

@@ -122,15 +122,17 @@ flowchart TB
 
 ## Payloads
 
+> **Superseded in part, 2026-10-01.** Every payload type now has one definition in [`types/`](types/types.md), and named types replace `json` ports between capsules. Rows that point there are settled; the rest are still drafts until their stage is designed.
+
 Every payload is a `json` port whose `value_schema` is a shared JSON Schema file, pinned by hash. Producer and consumer pin the same file ([fields](capsule/fields.md#ports-what-it-takes-and-gives)).
 
 **Each schema is open.** It fixes the minimum fields below with their types, and allows extra fields (`additionalProperties: true`). Anything beyond the minimum belongs to the capsule's author. M00b writes these files. Named port types can come later, when a second consumer needs to match by type.
 
 | Payload | Made by | Minimum fields |
 |---|---|---|
-| `run_request` | M01 | `topic: string`; `options: object` (the template-mapped run variables); `repository: string?` (a workspace path); `skipped: [{path, reason}]` |
-| `documents` | M01 | a `collection<file>` port, one text Artifact per document |
-| `research_brief` | `requirement_capsule` | **Defined only in [`m1/requirement-capsule.md`](m1/requirement-capsule.md#the-research-brief-draft-payload-schema) — a real pointer this time.** An earlier version of this row restated the fields inline and got them wrong (missing `constraints.framework` and `metrics[].id`/`.requirement_id`, and kept a `direction` field the source page had already dropped) — exactly the two-copies-can-drift problem this row was first fixed to avoid. Read the source page, not a summary of it, including here. |
+| `intake` | M01 | **Defined only in [`types/intake.md`](types/intake.md).** Replaces `run_request` and `documents` |
+| `intent_ir` | `research.compile_intent` | **Defined only in [`types/intent-ir.md`](types/intent-ir.md)** |
+| `research_brief` | `requirement_capsule` | **Defined only in [`types/research-brief.md`](types/research-brief.md).** |
 | `idea_set` | `search_capsule` | `ideas: [{id: string, title: string, summary: string, sources: [{ref: string, locator: string}]}]`, at least one |
 | `scored_ideas` | `screening_capsule` | `scores: [{idea_id: string, dimensions: {string: number}}]`; `chosen_id: string`; `rationale: string` |
 | `hypothesis` | `hypothesis_capsule` | **Broken, adversarially reviewed 2026-09-30, do not build from this row.** A genuinely serious error, not just a missing field: it collapses the PRD's *claim* (the expected effect, e.g. "reduce VRAM by 40%", 3.5.1) and its *falsification threshold* (e.g. "falsified if <10%", 3.5.4) into one `comparator`+`target` pair. The PRD's own worked examples give these as two different numbers with a band between them — almost certainly where `INCONCLUSIVE`/`CONDITIONALLY_ACCEPTABLE` (3.8.5) actually live. `repository_ref` (meant to name a runnable baseline) is also hollow — a bare optional path, same problem `run_request.repository` had before, just moved; `hypothesis_capsule` (a `skill`, pinning nothing) has no way to reach a repository or ground a file:line mechanism via `op.codesearch` either, the same kind-conflict already found and fixed for M20 and not yet applied here. No sign convention or absolute/delta/relative basis exists for any metric, so `benchmark_metrics.deltas` (arithmetic difference) and this payload's thresholds can disagree in sign and nobody would notice (a 3 GB reduction on a 10 GB baseline gives `delta_value: -3`, which a `>=30` comparator reads as false). Full findings: `tundle/obby/HANDOFF.md`, 2026-09-30. |
@@ -138,8 +140,8 @@ Every payload is a `json` port whose `value_schema` is a shared JSON Schema file
 | `benchmark_metrics` | `benchmark_runner` | Redesigned 2026-09-30 from PRD 3.7.2-3.7.4, not the original flat shape, which could not represent a comparison. `seed: integer` (held constant across both runs, 3.7.2); `baseline: {metrics: [{name: string, value: number, unit: string}], stdout: string, stderr: string, exit_status: integer}`; `treatment: {same shape as baseline}`; `deltas: [{name: string, baseline_value: number, treatment_value: number, delta_value: number, unit: string}]`; `unmeasured: [string]`; `runtime_s: number` |
 | `evaluation_verdict` | M20 (scientific evaluation) | `classification: "PASS", "FAIL", "INCONCLUSIVE" or "CONDITIONALLY_ACCEPTABLE"` (PRD 3.8.5 — `FAIL` here is a disproven hypothesis, a valid research outcome, never a gate halt); `evidence_complete: boolean`; `provenance_notes: [string]` (3.8.2); `plausibility_check: {plausible: boolean, rationale: string}` (3.8.3); `threshold_comparison: [{metric_name: string, target: number, comparator: string, observed: number, met: boolean}]` (3.8.4, from the pinned deterministic helper); `residual_risks: [string]`; `follow_ups: [string]` (3.8.6) |
 | `research_report` | `report_capsule` | `markdown: string`; `sections: [string]`; `citations: [{ref: string, source_idea_id: string}]`; `limitations: [string]` |
-| `evidence_bundle` | M10 | `artifacts: [Ref]`; `decl_hash: sha256`; `obs_ref: Ref`; `criteria: [check_id]` |
-| `verifier_assessment` | `verifier_capsule` | `criteria: [{check_id: string, result: "pass", "fail" or "unknown", rationale: string, evidence: [string]}]` |
+| `evidence_bundle` | M10a | **Defined only in [`types/evidence-bundle.md`](types/evidence-bundle.md)** |
+| `verifier_assessment` | `verifier_capsule` | **Defined only in [`types/verifier-assessment.md`](types/verifier-assessment.md)** |
 
 **Caveats go in the output.** Any output can carry caveats in its Artifact's `issues` ([Artifact](schemas/artifact.md)). `report_capsule` lists every earlier `issues` entry in `limitations`.
 
@@ -155,7 +157,7 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 - **Out:** the vocabulary record with the base types and the registry checks ([port types](schemas/port-types.md)).
 - **Tests:** a valid and an invalid value of each type pass and fail `check.value_matches_type.v1`.
 
-**M00b Payload schemas.** Owner: CC.
+**M00b Payload schemas.** *Retired 2026-10-01: the vocabulary builder generates each payload type's schema from its page ([toolchain](capsule/toolchain.md#m00a-vocabulary-builder)).* Owner: CC.
 - **Out:** one JSON Schema file per payload above, each with its sha256.
 - **Tests:** a minimal and an extended example of each validate; each example with a required field missing fails.
 
@@ -213,7 +215,7 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 - **Tests:** only `admitted` versions appear.
 - **What it gives a router is the Declaration's existing descriptive fields, never a dedicated model-capability field.** `fields.md`'s own rule: "There is no model field and no role field... The Declaration still describes the work in enough detail that a router could choose from it" ([capsule/fields.md#needs-what-must-hold-and-what-it-uses](capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A router works from `summary`, `ports` and the rest of what's already here — it does not get a purpose-built capability tag, and CC will not add one to suit it. See [seams](#seams-with-other-workstreams).
 
-**M17 Fixture export.** Owner: CC. For the RSI branch and the RSI data foundation.
+**M17 Fixture export.** *Retired 2026-10-01 in favour of Data Foundation's sample run export ([seams](seams.md#data-foundation)).* Owner: CC. For the RSI branch and the RSI data foundation.
 - **In:** a finished `run_id`.
 - **Out:** a folder `fixtures/<run_id>/` with one subfolder per node holding `inputs/`, `outputs/`, `observation.json` and `verification.json`, plus `declarations/` and a `manifest.json` of hashes. These are the PRD's "sample DAG fixtures".
 - **Tests:** replaying an export through tier 1 of M10 gives the same tier 1 results. Tier 2 calls a model, so it is not replayed.

@@ -5,7 +5,7 @@ tags: [capsule, rsi, vision]
 
 # RSI: improving and building capsules
 
-RSI (recursive self-improvement) is code that builds new capsule versions from evidence. It is built on a separate branch that shares this schema; its fields are in the schema, and M1 neither requires nor tests them, except `evolution.rsi`, which every Declaration states from M1. This page is the vision for it.
+RSI (recursive self-improvement) is code that builds new capsule versions from evidence. It is built on a separate branch that shares this schema. The RSI-specific Declaration fields are M1-unchecked, except `evolution.rsi`, which every Declaration states from M1. The full PRD nevertheless requires an M1 offline RSI path with private hidden-fixture evaluation; see the provisional [fixture oracle](fixture-oracle.md) and the [RSI seam](../seams.md#rsi). This page describes the broader RSI design.
 
 Capsules give RSI two ways to make the system better:
 
@@ -24,6 +24,8 @@ RSI may change a capsule only where its author explicitly allows it. Two fields 
 
 ## Improving a capsule
 
+For the M1 hidden-suite boundary, the proposer submits a candidate to the [fixture oracle](fixture-oracle.md). It gets aggregate pass/fail counts only; the oracle runs fresh child processes and never returns fixture inputs, expected outputs, or raw output. This contract remains provisional until issue 40 settles its trust principals and IPC.
+
 ```mermaid
 flowchart LR
     OBS[("Observations, Verifications, Findings")] --> PICK["RSI picks a capsule to improve"]
@@ -32,10 +34,14 @@ flowchart LR
     PERM -->|"none"| STOP["leave it"]
     PERM -->|"propose or submit"| PAR["parent: Declaration, code by hash, lineage, test suites"]
     PAR --> BLD["build a child"]
+    BLD --> ORA{{"fixture oracle: fresh child, hidden fixtures"}}
+    ORA -->|"aggregate pass/fail counts"| BLD
     BLD --> CAND[("Candidate: lineage.parent_hash")]
     CAND --> ADM{{"admission: own tests plus the parent's suites"}}
     ADM --> LIB[("library: the child, the parent kept for rollback")]
 ```
+
+The oracle receives the child Candidate through its private API and never returns case-level data ([fixture oracle](fixture-oracle.md)). Loop/final suite selection and attempt/session evidence are open under [issues 55–56](../open-issues.md); the diagram shows the contract boundary, not a completed RSI engine.
 
 - **RSI never edits a version; it submits a child** with `lineage.parent_hash` pointing at the parent.
 - **A child with the parent's interface must also pass the parent's test suites.** A child that changes the interface needs new test cases, and records the parent's `decl_hash` in `inherited_from_hash` on the suites it carries over.

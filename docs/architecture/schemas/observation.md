@@ -29,7 +29,7 @@ Extends [common](common.md). Its `scope` is `run_id`, or `candidate_id` for an a
 | `outcome` | `enum(ok, error, refused)` | req | checked |  | `refused` when the runner would not start the call; the cases are listed on the [Binding](binding.md) page |
 | `reason` | `string?` | req | checked |  | Why, when `outcome` is not `ok`; otherwise null. A `reason_code` registry value. A failure outside the capsule uses a runtime code (`RUNTIME_UNAVAILABLE`, `TIMEOUT`), never a capsule code; an exception the capsule raises is `CAPSULE_ERROR`; a capsule stopped at its own time budget is `BUDGET_EXCEEDED`. Each code's owner is in the policy. *Proposed* (INV-19): for `error`, one of the capsule's `failure_modes[].reason_code`, and `CAPSULE_RAISED_UNDECLARED` for any other exception it raises. Example: `CARRIER_CHANGED` |
 | `seen_code_sha256` | `sha256` | opt | checked |  | On `CARRIER_CHANGED`: the hash the loader actually found |
-| `model` | `object` | opt | checked |  | For model capsules: the model that served the call, as `{id, version}`. Example: `{"id": "qwen3-32b", "version": "2026-08"}` |
+| `models` | `list<object>` | opt | checked |  | For calls that used models: every distinct model that served a turn, in order of first use, as `{id, version}`. A call may use many, for example when it routes per turn; which turn used which is in `ext.runner.turns`. Only models the runtime reported. Example: `[{"id": "qwen3-32b", "version": "2026-08"}, {"id": "deepseek-r1", "version": null}]` |
 | `cost` | `object` | req | checked |  | What the call spent. The gate checks it against the Binding's `budget` |
 | `cost.tokens` | `object` | opt | unchecked | budgets | Model tokens, in RSI's shape: `{input, output, cache_hit}` |
 | `cost.time_s` | `number` | req | checked |  | Wall-clock seconds. Example: `0.004` |
@@ -47,7 +47,7 @@ No `upstream` field: `inputs` gives Artifacts, and each Artifact's `produced_by`
 - The current tool span (`span_context.py:946`): as is; the runner stamps `cc.obs_id`, `cc.decl_hash`, `cc.step_id`, `cc.caller`, `cc.attempt` and `cc.outcome` on it.
 - `openjiuwen.step.id` (`semconv.py:53`): not reused; it is the agent's reasoning-loop step.
 - `tool_failure_reason` (`tool_outcome.py:33`): as is, to derive `outcome`, so span status and record agree.
-- GenAI attributes (`gen_ai_semconv.py:53-90`): as is, the source of `model` and token counts. RSI's token shape (`rsi/schema.py:57`): for `cost.tokens`.
+- GenAI attributes (`gen_ai_semconv.py:53-90`): as is, the source of `models` and token counts. RSI's token shape (`rsi/schema.py:57`): for `cost.tokens`.
 - `Trajectory`, `TrajectoryStore` (`agent_evolving/trajectory/model.py:132`, `store.py:23`): as is, for `trajectory_ref`.
 - Write-once KV (`core/foundation/store/base_kv_store.py:42`, `:93`): as is, as the store.
 - Symphony `CapabilityCall` (`symphony/models/evaluation.py:90`): not reused; it holds values inline and names the capability, not its hash.

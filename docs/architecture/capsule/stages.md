@@ -18,7 +18,7 @@ What admission actually requires is set by the [policy](../schemas/policy.md)'s 
 
 ## What the unchecked fields unlock
 
-Generated from the Unlocks column of every field table; do not edit by hand. A field that unlocks several things appears in each group. [Tools](tools.md) says which tool reads each group.
+Generated from the Unlocks column of every field table; do not edit by hand. A field that unlocks several things appears in each group. [CC tooling and field enforcement](tools.md) says which tools read each group and distinguishes the M1 checked status from actual runtime enforcement.
 
 <!-- sync:unlocks -->
 | Unlocks | Unchecked fields |

@@ -21,7 +21,7 @@ Extends [common](common.md), with `scope.candidate_id` equal to its own `id`.
 | `submitted_by.kind` | `reg(submitter_kind)` | req | checked |  | `author`, `rsi`, `importer` or `composer` |
 | `submitted_by.id` | `string` | req | checked |  | An author's handle, an RSI run id, or an importer's name. Example: `author-17` |
 | `declaration` | `json` | req | checked |  | The [Declaration](../capsule/fields.md) being submitted, in full |
-| `files` | `list<object>` | req | checked |  | The code the Declaration's `carrier` or `body` names. Admission hashes each file again and refuses a mismatch |
+| `files` | `list<object>` | req | checked |  | At least one. Every local file pinned by the Declaration: carrier, body, check runners, rubrics and local value schemas. Admission requires exact path/hash coverage, rejects conflicting duplicate paths and rehashes all bytes |
 | `files[].path` | `string` | req | checked |  | Relative to the capsule root. Example: `pdf_text.py` |
 | `files[].sha256` | `sha256` | req | checked |  | The file's hash |
 | `files[].content_ref` | `uri` | req | checked |  | Where admission can fetch the bytes |
@@ -30,6 +30,7 @@ Extends [common](common.md), with `scope.candidate_id` equal to its own `id`.
 | `tests[].inputs` | `map<string, json>` | req | checked |  | Input port name to value. Admission stores each value as one Artifact. A `file` or `path` value is given as a URI, which admission fetches. Example: `{"pdf": "https://example.org/sample.pdf"}` |
 | `tests[].expected` | `json` | req | checked |  | The expected output, or a judged check's rubric. Example: `{"text": {"min_chars": 1}}` |
 | `tests[].fixtures` | `list<uri>` | opt | checked |  | Outside state the case needs, fetched and stored by admission as Artifacts |
+| `tests[].model_replies` | `list<text>` | opt | checked |  | *Proposed.* Recorded model replies, in turn order, for a capsule that calls a model. At admission the model client returns them instead of calling a model, so the test is exact and needs no live model ([runner](../capsule/runner.md#the-model-client-contract-m05)) |
 | `tests[].negative_control` | `boolean` | opt | unchecked | certification | `true` when the case must fail |
 | `requested_level` | `enum(provisional, certified)` | opt | unchecked | certification | The level asked for. Default `provisional` |
 | `builder_evidence` | `object` | opt | unchecked | RSI | How it was built. **Kept, never counted as a passed check** (INV-10) |

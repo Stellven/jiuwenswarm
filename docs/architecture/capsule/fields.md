@@ -11,7 +11,7 @@ A capsule is its Declaration: the contract one capability declares, written by i
 
 This is the only page that defines the Declaration's fields. The [schemas](../schemas/schemas.md) folder holds the records the system keeps *about* capsules, such as Candidates, Verdicts and Observations.
 
-The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](stages.md); the type grammar is in the [invariants](../schemas/invariants.md).
+The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](stages.md). The [CC tooling and field-enforcement map](tools.md#field-validation-and-enforcement-map) distinguishes schema/admission validation from test-time verification and call-time enforcement; this page remains the sole field-definition owner. The type grammar is in the [invariants](../schemas/invariants.md).
 
 A field serves one or more of four uses:
 
@@ -99,7 +99,7 @@ Each entry is a `Port`, with the field names of agent-core's `CapabilityIO`.
 
 CC does not schedule pacing or cooldowns between calls to the same capsule. A capsule with its own internal queue or single-process bottleneck should declare `timeout_s` generously instead, so the budget already accounts for time spent waiting on its own backend. That waiting is the capsule's own implementation's job, the same way choosing a model is: not something the schema layer sees or manages.
 
-**Models are not part of the capsule layer.** There is no model field and no role field. Selection picks a capsule, never a model, and there is no central library that picks both. Whether a capsule uses a model, which one, and whether that model is routed at runtime are its author's choice and its author's job, made in the capsule's own files, such as a skill's front matter or its code. Those files are hashed, so a change of fixed model is a new version, tested like any other change. A capsule whose author wants its model chosen at runtime calls a model router from its own code; the capsule layer never sees that. The Declaration still describes the work in enough detail that a router could choose from it. Which agent or role runs a capsule is decided in the [Binding](../schemas/binding.md), not in the capsule.
+**Models are not part of the capsule layer.** There is no model field and no role field. Selection picks a capsule, never a model, and there is no central library that picks both. Whether a capsule uses a model, which one, and whether that model is routed at runtime are its author's choice and its author's job, made in the capsule's own files, such as a skill's front matter or its code. Those files are hashed, so a change of fixed model is a new version, tested like any other change. A capsule whose author wants its model chosen at runtime, which is the preferred way, pins a router capsule in `needs.external` and calls it whenever it likes, so its Declaration shows which router version it uses; the models the router picks stay inside the capsule and may change on any turn ([model routing](../model-routing/README.md)). The Declaration still describes the work in enough detail that a router could choose from it. Which agent or role runs a capsule is decided in the [Binding](../schemas/binding.md), not in the capsule.
 
 ### changes: what it does to the world
 
@@ -119,10 +119,10 @@ CC does not schedule pacing or cooldowns between calls to the same capsule. A ca
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
 | `guarantees.checks` | `list<Check>` | req | checked |  | Every promise, each a [check](#checks-one-runnable-test-each); at least one |
-| `guarantees.failure_modes` | `list<object>` | opt | unchecked | retries, fallbacks, RSI | Proposed. The only ways the capsule may end without an output (INV-19). The runner records one as `outcome: error` with its code. What happens to other exceptions: [capsule](capsule.md#when-a-call-goes-wrong-proposed) |
+| `guarantees.failure_modes` | `list<object>` | opt | unchecked | verification, triage | Optional, economical hazards that the runner or Gate must prevent or classify and that are not already implied by a type, check, permission, effect or standard runner error. Every entry creates a verification obligation. Omitting a derived or unreachable mode is preferred. The runner records a declared capsule-raised mode as `outcome: error` |
 | `guarantees.failure_modes[].reason_code` | `string` | req | unchecked | retries, fallbacks, RSI | `UPPER_SNAKE`, unique within the capsule, and not a `reason_code` registry value. Additive: a later version never drops an admitted code. Example: `PDF_ENCRYPTED` |
 | `guarantees.failure_modes[].when` | `text` | req | unchecked | retries, fallbacks, RSI | When it happens. Example: `The PDF is password-protected.` |
-| `guarantees.failure_modes[].retriable` | `boolean` | req | unchecked | retries, fallbacks, RSI | Whether the same call may succeed if tried again |
+| `guarantees.failure_modes[].retriable` | `boolean` | req | unchecked | triage | Author evidence only; the pinned RetryProfile and operation class own whether the supervisor may retry. This flag never authorizes replay |
 | `guarantees.quality` | `object` | opt | unchecked | librarian | For judged outputs: the pass rate the judged check should reach. The librarian measures the actual rate, and RSI improves toward the target |
 | `guarantees.quality.criterion_check_id` | `id` | req | unchecked | librarian | The judged check that defines "good". Example: `text_faithful` |
 | `guarantees.quality.target_rate` | `number` | req | unchecked | librarian | Between 0 and 1. Example: `0.9` |
@@ -173,7 +173,7 @@ Reserved names, not specified: `changes.provides[]`, `changes.invariants[]`, `ne
 All three are checked at M1.
 
 - **`decl_hash`**: the hash (INV-15) of the whole Declaration **with every default filled in**. Each optional field whose description names a default (such as `Port.required: true`) is written out before hashing, so an explicit and an implicit default give the same hash. Only v1.0 defaults are filled in (INV-16). It is the capsule's identity and version; there is no version number. Every record about a capsule names it.
-- **`interface_hash`**: the hash of what a test depends on, and nothing else, with v1.0 defaults filled in as for `decl_hash`: `identity.name`, `identity.kind`, `ports` without `description`s, `needs.when`, `changes.effect_class`, and each check's `id`, `target`, `anchor` and `applies_at`. Moving a file, editing the summary or updating a check's runner leaves it unchanged, so the tests still apply, and a child with the same interface reuses its parent's tests. `guarantees.failure_modes` is left out: codes are only ever added (rule `failure_modes_additive`), and adding one does not change what existing tests expect.
+- **`interface_hash`**: the hash of what a test depends on, and nothing else, with v1.0 defaults filled in as for `decl_hash`: `identity.name`, `identity.kind`, `ports` without `description`s, `needs.when`, `changes.effect_class`, and each check's `id`, `target`, `anchor` and `applies_at`. Moving a file, editing the summary or updating a check's runner leaves it unchanged, so the tests still apply, and a child with the same interface reuses its parent's tests. `guarantees.failure_modes` is included because adding or removing an externally observable failure changes the verification contract.
 - **`code_sha256`**: what the loader checks before every call. With a `carrier`, `carrier.sha256`; with a `body`, the hash of the `body` list sorted by `path`; with a `remote`, the hash of `{endpoint, version}`, which proves what was pinned, not what the service runs; with `members`, the hash of the `members` list sorted by `id`.
 
 The [Verdict](../schemas/verdict.md) records `decl_hash` and `interface_hash`; the [Binding](../schemas/binding.md) records `decl_hash` and `code_sha256`. The Verdict's `scope.candidate_id` links a `decl_hash` to the Candidate that submitted it.
@@ -213,7 +213,7 @@ A complete Declaration for a small tool, with only checked fields and `evolution
 }
 ```
 
-For a larger, real capsule with more of the optional fields filled in, `failure_modes` and what is computed rather than authored, see [the `compile_intent` example](example-compile-intent.md).
+For a larger, real capsule with more of the optional fields filled in, `failure_modes` and what is computed rather than authored, see [the intent capsule](../m1/intent-capsule.md).
 
 ## Elsewhere, not in the Declaration
 

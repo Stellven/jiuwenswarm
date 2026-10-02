@@ -39,6 +39,8 @@ One document per version. Extends [common](common.md), with `scope.library: true
 
 Domain types (research outputs, reports, patches and so on) are added as entries, each with its own checks. No `unknown` or `any` type exists (policy rule `no_any_type`).
 
+**Domain types are defined in [`types/`](../types/types.md),** one page each: fields, type checks and an example. Each page's field table is the source; the vocabulary builder compiles it into the entry's `value_schema`, so nobody writes a domain type's JSON Schema by hand. Every value that crosses a module boundary has a named type ([the rules](../types/types.md#the-rules)).
+
 ## Reuse
 
 - `CapabilityIO.type` (agent-core `openjiuwen/symphony/models/capability.py:19`, pin `9e339019`): as is; this list is its legal values.

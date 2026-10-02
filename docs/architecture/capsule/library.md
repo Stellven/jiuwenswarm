@@ -60,16 +60,12 @@ flowchart TB
 
 ## Admission: the only way in
 
-A capsule from a person, the importer, RSI or the composer passes the same gate. In order, admission:
+A capsule from a person, importer, RSI or future composer uses the same [AdmissionProvider contract](admission.md). Admission first performs the mandatory Declaration, hash, dependency, permission, interface and policy validation that no provider may waive. It then calls the policy-selected provider:
 
-1. checks the Declaration's shape and the policy epoch;
-2. hashes every file again, and refuses the capsule if a hash differs (`HASH_MISMATCH`);
-3. applies the policy [`rules`](../schemas/policy.md), each with its reason code: among them, every output has a check, every dependency is admitted and pinned, and an RSI child respects its parent's `evolution` permissions;
-4. stores the files by hash, and writes the test cases and the visible suite;
-5. runs the tests through the runner, as Observations with `caller: admission`, plus any sealed suites and, for a child, the parent's suites;
-6. writes the [Verdict](../schemas/verdict.md) with a [trust level](trust.md) and, if admitted, a [Standing](../schemas/standing.md) entry: `admitted`, or `admitted_inactive` for an RSI child that waits for a person.
+- `tested_admission` runs the applicable suites and may grant `provisional` or `certified`.
+- `puppet_admission`, the M1 Puppet Gate, reads a developer-owned allowlist of exact declaration hashes and may grant only `exempt`.
 
-Every refusal carries a reason code.
+The provider never writes a runtime Verification or releases a node. Admission writes the immutable [Verdict](../schemas/verdict.md) and initial Standing. An RSI child always starts `admitted_inactive`; activation is a separate durable librarian action. Every refusal carries a reason code, and an assurance suite is recorded only when it actually ran.
 
 ## A capsule's life in the library
 
@@ -77,9 +73,9 @@ Standing is one pointer per name, so these are the states of a name's current ve
 
 ```mermaid
 stateDiagram-v2
-    [*] --> admitted: admission
-    [*] --> admitted_inactive: admission, waiting for a person
-    admitted_inactive --> admitted: a person activates it
+    [*] --> admitted: admission of a non-RSI candidate
+    [*] --> admitted_inactive: admission of an RSI candidate
+    admitted_inactive --> admitted: durable developer activation
     admitted --> suspect: drift, or a member or dependency lost
     suspect --> admitted: re-checked
     admitted --> deprecated: to be phased out

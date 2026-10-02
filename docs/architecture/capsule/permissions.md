@@ -25,7 +25,7 @@ A call is decided like this: owner scopes first (a hit decides without the engin
 
 ## How a Declaration becomes rules
 
-The runner builds a CC permission layer from the Binding's capsule and supplies it through the host's permission snapshot, so the rail applies it on every call. A rule set directly on the engine inside a DeepAgent is overwritten by the next snapshot, so the snapshot is the only safe way in.
+Where the DeepAgent permission rail runs, the runner builds a CC permission layer from the Binding's capsule and supplies it through the host's permission snapshot; a rule set directly on the engine would be overwritten by the next snapshot. The Codex-backed M1 path skips that rail. Separately, the runner enforces its explicit refusal decisions, and the PRD requires a distinct unprivileged process boundary for generated POC execution ([process boundary](process-boundary.md)); neither implies general OS-level confinement.
 
 | Declared | Becomes | Enforced where |
 |---|---|---|
@@ -41,13 +41,17 @@ The runner builds a CC permission layer from the Binding's capsule and supplies 
 
 ## Gaps and conflicts
 
-- **Not enforced anywhere today:** `reversibility`, `scope`, the difference between `compensable` and `irreversible`, network use by MCP tools and shell, and secrets outside a sandbox. These are enforced only in jiuwenbox, and otherwise checked after the fact by comparing observed effects with declared ones (librarian, `audit_violation`).
+- **Not enforced generally at M1:** `reversibility`, `scope`, the difference between `compensable` and `irreversible`, network use by MCP tools and shell, and secrets outside a sandbox. The generated POC process has a narrower dedicated M1 boundary; broad jiuwenbox mediation is deferred. Remaining observed-versus-declared auditing is future librarian work (`audit_violation`). See issue 54 and the [field map](tools.md#field-validation-and-enforcement-map).
 - **MCP tools pass unchecked by default**: they are matched by exact name, and their arguments are never inspected.
 - **Bypasses.** An owner-scope allow skips the engine. The silent skills rebuild swaps in an allow-all config. A failed rail build in manual mode installs no rail (fail-open). "Remember" answers persist allows that can loosen a capsule's declared level.
-- **Codex runtimes skip the whole system.** The subscription runtime accepts text only and rejects every tool request; team CLI members are spawned bypassing approvals and sandbox. So for M1 on Codex, capsule effects are enforced only by the runner and the sandbox, never by the rail.
+- **Codex runtime skips the host permission rail.** The subscription runtime accepts text only and rejects every tool request; team CLI members are spawned bypassing approvals and sandbox. The runner still applies its explicit allow/refuse contract, but it cannot mediate direct filesystem or socket access by ordinary capsule code. The generated POC process boundary is a separate M1 requirement and remains provisional.
 - **ASK needs someone to answer.** A headless runner must supply the host's confirmation hook, or treat ASK as a wait.
 - **Per-agent permissions are ignored** by the composer today; permissions are per tool and per user, not per capsule. CC's layer is what makes them per capsule.
 
 ## Who builds what
 
-CC supplies the Declaration and the translation above; it does not rebuild the permission engine, `file_guard`, `net_guard` or jiuwenbox. The tools that do the translation and checking are listed in [tools](tools.md#which-tool-checks-each-field).
+CC supplies the Declaration and the translation above; it does not rebuild the permission engine, `file_guard`, `net_guard` or jiuwenbox. The [CC tooling and field-enforcement map](tools.md#field-validation-and-enforcement-map) lists validation and runtime enforcement separately, including backend-specific gaps.
+
+## Effective M1 deployment contract
+
+The table above describes native reuse behavior, including bypasses; it is not the complete CC enforcement guarantee. The current [environment profile](../system/environment.md) denies direct host filesystem/network/credential access and grants descriptor-scoped broker operations. Unsupported platform or operation fails doctor/refuses launch. The [workspace operators](../m1/op-workspace-io.md) derive effective permissions from the authenticated caller and never trust caller-supplied grants. The runner alone cannot contain arbitrary ordinary code; required process confinement supplies that boundary. There is no fail-open native-rail fallback. Mandatory declared-versus-observed capture is M1; automated librarian drift responses remain later work.

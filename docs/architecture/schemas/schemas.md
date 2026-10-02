@@ -33,7 +33,7 @@ The records that Capability Capsule (CC) tools read and write about capsules. Th
 | [Check, test case, test suite](checks.md) | `cc.check.v1`, `cc.check.case.v1`, `cc.check.suite.v1` | how a promise is tested | checks: in a Declaration, the vocabulary or a Binding; cases and suites: admission only |
 | [Verdict](verdict.md) | `cc.verdict.v1` | admission's decision on a Declaration | admission |
 | [Standing](standing.md) | `cc.standing.v1` | which version of a name is current | per `state`: admission (`admitted`, `admitted_inactive`), the librarian (every other state) |
-| [Binding](binding.md) | `cc.binding.v1` | the pin for one call site of a run | the workflow runtime |
+| [Binding](binding.md) | `cc.binding.v1` | the pin for one call site of a run | freeze (M03) |
 | [Observation](observation.md) | `cc.observation.v1` | one capsule call | runner |
 | [Artifact](artifact.md) | `cc.artifact.v1` | one value; every capsule output is one | runner (runs), admission (test inputs and fixtures) |
 | [Verification](verification-record.md) | `cc.verification.v1` | the gate's check of one call's live output | gate |
