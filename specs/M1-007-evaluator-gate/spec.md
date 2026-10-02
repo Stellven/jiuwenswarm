@@ -1,9 +1,9 @@
 # Feature Specification: M1-007 - Evaluator Gate and independent Verifier
-**TASK**: [M1-007](../../docs/tasks/M1/M1-007/TASK.md)  
-**Parent TASKS**: [M1](../../docs/tasks/M1/TASKS.md)  
-**Revision / date**: r1 / 2026-10-01  
-**Feature Branch**: ai4r_xiaoyang (existing checkout; no task branch created)  
-**Input**: [PRD r1](../../docs/tasks/M1/sources/PRD-Full.r1.txt), §4.2, §4.2.1–§4.2.9; §4.2.10 explicitly excluded; sequencing §6.4; global §1.3–§1.6 and §2.1–§2.12. Architecture PENDING_SOURCE.  
+**TASK**: [M1-007](../../docs/tasks/M1/M1-007/TASK.md)
+**Parent TASKS**: [M1](../../docs/tasks/M1/TASKS.md)
+**Revision / date**: r2 / 2026-10-02
+**Feature Branch**: ai4r_xiaoyang (existing checkout; no task branch created)
+**Input**: [PRD r2](../../docs/tasks/M1/sources/PRD-Full.r2.txt), §4.2, §4.2.1–§4.2.9; §4.2.10 explicitly excluded; consumed §4.3.3–§4.3.4; sequencing §6.4; global §1.3–§1.6 and §2.1–§2.12. Architecture PENDING_SOURCE.
 **Status**: Preparing; product requirements populated, architecture-dependent design pending; not a runtime result.
 
 ## User Scenarios & Testing
@@ -37,6 +37,7 @@ A local scientific-workflow executor or connected component obtains attributable
 - AC-017: Valid negative scientific artifact with complete process/benchmark evidence.
 - AC-018: Instrumented A/Gate/B with controlled evaluation and persistence delays.
 - AC-019: Policy/dependency/configuration inspection and disallowed mutation/repair attempts.
+- AC-020: Tier-2 Verifier invocation with locally correlated evidence, a clean provider request and a planted unsupported bypass; stage/role/capsule audit labels remain local unless substantively required by the review task.
 
 Cancellation, interrupted persistence and compatibility details not fixed by PRD remain design inputs; they must preserve fail-fast evidence and cannot introduce autonomous recovery. N/A: distributed/cloud/multi-tenant recovery is outside the local single-user scope. Existing implementation has not been assessed; neither absence nor correctness is claimed.
 
@@ -61,9 +62,10 @@ Cancellation, interrupted persistence and compatibility details not fixed by PRD
 - **FR-017** (§4.2.9 case 9): Valid scientific FAIL stays in Evaluation_Verdict.json; infrastructure PASS releases Stage 3.9 Delivery normally.
 - **FR-018** (§4.2.9 case 10; §1.4): Delayed/blocked Gate decision cannot start downstream until an advancing verdict is durably recorded; producer success alone cannot release it.
 - **FR-019** (§4.2.1 blacklist; §4.2.2 blacklist; §4.2.3 blacklist; §4.2.4 blacklist; §4.2.5 blacklist; §4.2.6 blacklist; §4.2.7 blacklist; §4.2.8 constraints; §4.2.10 excluded): Gate remains fixed two-tier, read-only and evidence-bound without excluded autonomous evaluation/repair, ensembles, web fact checking, legal certification or enterprise approval machinery.
+- **FR-020** (§4.2.1; §4.3.3, §4.3.4, consumed from M1-004): Tier-2 Verifier calls use the approved audited model-routing/bridge boundary. Required artifact, contract, evidence and acceptance content remain available for semantic review, while internal labels used solely for attribution/benchmarking are not inserted into prompts or forwarded to the provider. Local invocation attribution consumes M1-004's canonical agreement without another audit schema.
 
 ### Key Entities
-The input/output/state meanings are defined canonically in [M1-IF-007@r0](../../docs/tasks/M1/M1-007/TASK.md#4-embedded-cross-module-agreements). This spec does not invent a competing schema. PRD artifact/model names are retained; missing field-level design is reserved for architecture.
+The PRD supplies evidence obligations, verdict vocabulary, tier order and release rules; their acceptance is specified above. [M1-IF-007@r0](../../docs/tasks/M1/M1-007/TASK.md#4-embedded-cross-module-agreements) reserves detailed Gate contracts for Architecture. Tier-2 invocation consumes [M1-IF-004@r0](../../docs/tasks/M1/M1-004/TASK.md#4-embedded-cross-module-agreements) for local model-use attribution and provider-boundary minimization. No competing payload schema is defined.
 
 ## Success Criteria
 ### Measurable Outcomes
@@ -88,6 +90,7 @@ The input/output/state meanings are defined canonically in [M1-IF-007@r0](../../
 | AC-017 | §4.2.9 case 9 / FR-017 / US1 | Valid scientific FAIL stays in Evaluation_Verdict.json; infrastructure PASS releases Stage 3.9 Delivery normally. | BOUNDARY; full journey owned by M1-SYSTEM |
 | AC-018 | §4.2.9 case 10; §1.4 / FR-018 / US1 | Delayed/blocked Gate decision cannot start downstream until an advancing verdict is durably recorded; producer success alone cannot release it. | BOUNDARY; full journey owned by M1-SYSTEM |
 | AC-019 | §4.2.1 blacklist; §4.2.2 blacklist; §4.2.3 blacklist; §4.2.4 blacklist; §4.2.5 blacklist; §4.2.6 blacklist; §4.2.7 blacklist; §4.2.8 constraints; §4.2.10 excluded / FR-019 / US1 | Gate remains fixed two-tier, read-only and evidence-bound without excluded autonomous evaluation/repair, ensembles, web fact checking, legal certification or enterprise approval machinery. | BLOCK, BOUNDARY; full journey owned by M1-SYSTEM |
+| AC-020 | §4.2.1; §4.3.3, §4.3.4 / FR-020 / US1; canonical audit acceptance owned by M1-004 | The Verifier call crosses the consumed M1-004 approved/audited routing boundary and remains locally joinable to its originating execution. Internal stage/role/capsule labels used solely for benchmarking are omitted from the provider-facing request; substantively required review evidence remains supplied. Supported calls cannot silently bypass auditing, and unavailable reliable token/cost usage is not itself a Gate failure. No independent audit payload format is defined here. | BLOCK, BOUNDARY; full journey owned by M1-SYSTEM |
 
 Numerical time/resource limits come from registered active capsule/task configuration; unspecified values remain PENDING_SOURCE until that source is supplied. No guessed time, token, cost or quality threshold is introduced. Runtime checks remain NOT_RUN.
 

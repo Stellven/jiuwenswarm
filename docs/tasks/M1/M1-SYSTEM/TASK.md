@@ -1,18 +1,18 @@
 # TASK: M1-SYSTEM - Integrated M1 governed research and workstation verification
 
-PRD-derived preparation, r1 / 2026-10-01. Current authorization: populate code documentation, not implement or execute the product.
+PRD-derived preparation, r2 / 2026-10-02. Current authorization: populate code documentation, not implement or execute the product.
 
 ## 1. Identity
 
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-SYSTEM / r1 / 2026-10-01 |
+| TASK ID / revision / date | M1-SYSTEM / r2 / 2026-10-02 |
 | Parent TASKS | [M1](../TASKS.md) |
 | Executor / collaborators | UNASSIGNED; drafting assistance does not assign the future implementation executor. |
-| Requested outcome and instruction/source | Whole-system journeys and cross-cutting invariants for the complete required Phase 1 scope, including workstation and offline RSI integration. Child feature requirements remain in their owning specs. User requested initial TASK/Spec Kit breakdown from the full PRD while Architecture remains forthcoming. |
-| Included scope / exclusions | Whole-system journeys and cross-cutting invariants for the complete required Phase 1 scope, including workstation and offline RSI integration. Child feature requirements remain in their owning specs. Exclusions: Phase 2 experiments do not block Phase 1 acceptance unless explicitly promoted. This task does not redefine child schemas, feature thresholds, component implementation or scientific hypotheses. |
-| PRD clause and architecture node references | [PRD r1](../sources/PRD-Full.r1.txt) §1, §2, §6; applicable §§1–2 and §6. Architecture nodes/revision PENDING_SOURCE. |
-| Working checkout / branch / base | Documentation prepared in existing ai4r_xiaoyang checkout at a8f36245a83358a606bf00f83a64b3353a41c4cd; implementation NOT_STARTED, candidate NOT_BUILT. |
+| Requested outcome and instruction/source | Whole-system journeys and cross-cutting invariants for the complete required M1 scope: Phase 1 research/workstation and the separate required offline RSI validation track. Child feature requirements remain in their owning specs. User requested update of existing TASK/Spec Kit records from the latest attached PRD while Architecture remains forthcoming. |
+| Included scope / exclusions | Whole-system journeys and cross-cutting invariants for the complete required M1 scope: Phase 1 research/workstation and the separate required offline RSI validation track. Child feature requirements remain in their owning specs. Exclusions: Phase 2 experiments do not block M1 acceptance unless explicitly promoted. This task does not redefine child schemas, feature thresholds, component implementation or scientific hypotheses. |
+| PRD clause and architecture node references | [PRD r2](../sources/PRD-Full.r2.txt) §1, §2, §6; applicable §§1–2 and §6. Architecture nodes/revision PENDING_SOURCE. Also §3.5.4/§3.6.1/§3.7.1, §4.3.3/§4.4/§4.5.2/§4.6.4, §5.3.1 and §5.6.5 supply the changed cross-cutting acceptance requirements. |
+| Working checkout / branch / base | Documentation prepared in existing ai4r_xiaoyang checkout at d9fe483ea64c273ef831886bfa83819f6d5bb21c; implementation NOT_STARTED, candidate NOT_BUILT. |
 | Affected code/document paths | docs/tasks/M1/M1-SYSTEM/TASK.md; specs/M1-SYSTEM-governed-research/{spec.md,plan.md,tasks.md}. Product and executable test paths PENDING_DESIGN. |
 
 ## 2. Spec Kit registry
@@ -24,7 +24,7 @@ PRD-derived preparation, r1 / 2026-10-01. Current authorization: populate code d
 | plan.md | [plan](../../../../specs/M1-SYSTEM-governed-research/plan.md) | Behavioral decomposition and verification design; technical realization pending |
 | tasks.md | [tasks](../../../../specs/M1-SYSTEM-governed-research/tasks.md) | Work/progress and AC-to-evidence mapping |
 | evidence/ | specs/M1-SYSTEM-governed-research/evidence/ | Reserved for actual verification runs; none produced |
-| Supporting artifacts | [PRD baseline](../sources/PRD-Full.r1.txt) | Registered source snapshot; no separate approval/review cards |
+| Supporting artifacts | [PRD baseline](../sources/PRD-Full.r2.txt) | Registered source snapshot; no separate approval/review cards |
 
 ## 3. Dependencies
 
@@ -72,7 +72,12 @@ Definition-time dependencies are not a demand to finish every provider/consumer 
 
 ## 4. Embedded cross-module agreements
 
+All seven [minimum architecture inputs](../ARCHITECTURE_MINIMUM_INPUTS.txt) remain reserved for Architecture. Source acceptance stays in spec.md; this section records provisional document allocation and leaves technical design unfilled.
+
+
 Owned: None. This task owns system ACs and verification, not a new product interface. Consumed agreements: M1-IF-001 through M1-IF-018 @r0 at the linked owning TASKs above. A provisional agreement must be completed before dependent implementation; this system task does not copy its schema.
+
+Architecture reservation: [minimum inputs](../ARCHITECTURE_MINIMUM_INPUTS.txt), items 1-7, owns actual modules/code/processes, typed payload/API/error contracts, runtime coordination, storage/durability, security isolation, configuration realization and executable test entry points. These remain PENDING_DESIGN; no implementation mechanism is selected by this PRD r2 update.
 
 ## 5. Changes and unresolved decisions
 
@@ -81,6 +86,6 @@ Owned: None. This task owns system ACs and verification, not a new product inter
 | M1-SYSTEM-OPEN-01 / 2026-10-01 | ARCH-SYSTEM: Candidate components, technical boundaries and exact supported deployment/test entry points await Architecture and implementation binding. | Corresponding ACs and plan blocks; T001/T002; consumed IFs | Only affected implementation/checks wait; all current runtime evidence NOT_RUN. | UNASSIGNED; register the missing source/design decision, update native records and parent allocation. |
 | M1-SYSTEM-OPEN-02 / 2026-10-01 | VERIFY-SYSTEM: Real service/account availability, permitted local research fixtures, dataset versions, execution budgets and any externally claimed quality/reliability thresholds must be registered before corresponding measurements. No new universal model score or budget is imposed by this scaffold. | Corresponding ACs and plan blocks; T001/T002; consumed IFs | Only affected implementation/checks wait; all current runtime evidence NOT_RUN. | UNASSIGNED; register the missing source/design decision, update native records and parent allocation. |
 | M1-SYSTEM-OPEN-03 / 2026-10-01 | COVERAGE-SYSTEM: Passing the first research journey does not discharge required workstation/RSI obligations or the parent full-source coverage requirement; Phase 2 stays separate. | Corresponding ACs and plan blocks; T001/T002; consumed IFs | Only affected implementation/checks wait; all current runtime evidence NOT_RUN. | UNASSIGNED; register the missing source/design decision, update native records and parent allocation. |
+| PRD-R2 / 2026-10-02 | §1.3/§1.5/§2.11, §3.5.4/§3.6.1/§3.7.1, §4.3.3/§4.4/§4.5.2/§4.6.4, §5.3.1/new §5.6.5, §6.4/§6.11/§6.12. Updates three-track acceptance: required adversarial RSI, headless reproduction, clean local attribution and ablation validity. | AC-004, AC-006, AC-007, AC-009, AC-010, AC-012, AC-013; native plan/tasks correspondence; consumed IFs | Invalidate affected earlier evidence if any; current candidate NOT_BUILT and runtime NOT_RUN. | UNASSIGNED; complete Architecture-dependent definitions before affected implementation. |
 
 Progress belongs only in native tasks.md. No approval stage or additional task card is introduced.
-

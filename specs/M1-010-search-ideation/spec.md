@@ -1,9 +1,9 @@
 # Feature Specification: M1-010 - Bounded literature search and evidence-grounded ideation
 **TASK**: [M1-010](../../docs/tasks/M1/M1-010/TASK.md)
 **Parent TASKS**: [M1](../../docs/tasks/M1/TASKS.md)
-**Revision / date**: r1 / 2026-10-01
+**Revision / date**: r2 / 2026-10-02
 **Feature Branch**: ai4r_xiaoyang (documentation checkout only; no implementation branch or candidate selected)
-**Input**: [PRD-Full.r1](../../docs/tasks/M1/sources/PRD-Full.r1.txt), §3.3.1–§3.3.6 (lines 578–632); applicable §§1.3–1.6 and 2. Architecture: PENDING_SOURCE; no architecture nodes have been invented.
+**Input**: [PRD-Full.r2](../../docs/tasks/M1/sources/PRD-Full.r2.txt), §3.3.1–§3.3.6 (lines 604–658); applicable §§1.3–1.6 and 2. Architecture: PENDING_SOURCE; no architecture nodes have been invented.
 **Status**: Preparing — PRD-backed requirements populated; Architecture and named local decisions pending. This is not a runtime result.
 
 ## User Scenarios & Testing
@@ -19,13 +19,13 @@ Sparse/empty evidence, over-limit connector results, unavailable/rate-limited co
 
 ## Requirements
 ### Functional Requirements
-- **FR-001**: Use one LLM prompt under search_capsule.md to generate a static keyword-query list from the Research Brief. Source: PRD-Full.r1 §3.3.1 (lines 582–589).
-- **FR-002**: Use allowlisted deepsearch for local buffer search and bounded structured queries to designated academic APIs, enforcing a programmatic Top-K external-paper limit per query in a single linear process. Source: PRD-Full.r1 §3.3.2 (lines 591–601).
-- **FR-003**: Extract exact verbatim text chunks matching queries from retrieved local and external documents. Source: PRD-Full.r1 §3.3.3 (lines 603–608).
-- **FR-004**: Group raw evidence chunks by their triggering query in a standardized JSON array. Source: PRD-Full.r1 §3.3.4 (lines 610–615).
-- **FR-005**: Use a single-turn synthesis to produce 1–3 concrete ideas, each explicitly cited to retrieved material. Source: PRD-Full.r1 §3.3.5 (lines 617–623).
-- **FR-006**: Package ideas and mapped citations into Candidate_Set.json and submit it to the independent Evaluator Gate without recursive coverage-review loops. Source: PRD-Full.r1 §3.3.6 (lines 625–632).
-- **FR-007**: Keep search within the admitted capsule and Brief bounds, preserving run-bound source evidence and stopping through shared failure handling on prohibited or inadmissible outcomes. Source: PRD-Full.r1 §1.3–§1.4; §2.2, §2.4, §2.6–§2.10; §6.6 (lines 2159–2179).
+- **FR-001**: Use one LLM prompt under search_capsule.md to generate a static keyword-query list from the Research Brief. Source: PRD-Full.r2 §3.3.1 (lines 608–615).
+- **FR-002**: Use allowlisted deepsearch for local buffer search and bounded structured queries to designated academic APIs, enforcing a programmatic Top-K external-paper limit per query in a single linear process. Source: PRD-Full.r2 §3.3.2 (lines 617–627).
+- **FR-003**: Extract exact verbatim text chunks matching queries from retrieved local and external documents. Source: PRD-Full.r2 §3.3.3 (lines 629–634).
+- **FR-004**: Group raw evidence chunks by their triggering query in a standardized JSON array. Source: PRD-Full.r2 §3.3.4 (lines 636–641).
+- **FR-005**: Use a single-turn synthesis to produce 1–3 concrete ideas, each explicitly cited to retrieved material. Source: PRD-Full.r2 §3.3.5 (lines 643–649).
+- **FR-006**: Package ideas and mapped citations into Candidate_Set.json and submit it to the independent Evaluator Gate without recursive coverage-review loops. Source: PRD-Full.r2 §3.3.6 (lines 651–658).
+- **FR-007**: Keep search within the admitted capsule and Brief bounds, preserving run-bound source evidence and stopping through shared failure handling on prohibited or inadmissible outcomes. Source: PRD-Full.r2 §1.3–§1.4; §2.2, §2.4, §2.6–§2.10; §6.6 (lines 2354–2374).
 
 ### Key Entities
 Static keyword query; allowlisted academic connector; bounded retrieval result; verbatim source chunk; query group; cited candidate idea; Candidate_Set.json.
@@ -35,13 +35,13 @@ Canonical semantic boundary: [M1-IF-010@r0](../../docs/tasks/M1/M1-010/TASK.md#4
 ### Measurable Outcomes
 | AC ID | Source clause / FR / story | Observable criterion and threshold | Required verification level(s) |
 | --- | --- | --- | --- |
-| AC-001 | PRD-Full.r1 §3.3.1 (lines 582–589) / FR-001 / US1 | Queries are derived from Brief scope and stay fixed during that search invocation; poor initial results do not trigger autonomous query reformulation. | BLOCK, BOUNDARY |
-| AC-002 | PRD-Full.r1 §3.3.2 (lines 591–601) / FR-002 / US1 | Both permitted source modes are exercised; retrieval never exceeds the adopted per-query limit or calls unapproved crawling/browser/multi-agent search tools. arXiv/Semantic Scholar and K=5 are examples, not a fabricated mandatory connector inventory or threshold. | BLOCK, BOUNDARY |
-| AC-003 | PRD-Full.r1 §3.3.3 (lines 603–608) / FR-003 / US1 | Every extracted chunk is traceable to actual retrieved text and matches it verbatim; no author-authority, publisher-bias or geographic credibility scoring is introduced. | BLOCK, BOUNDARY |
-| AC-004 | PRD-Full.r1 §3.3.4 (lines 610–615) / FR-004 / US1 | Every retained chunk has the correct query grouping without invented trend or cross-domain analyses. | BLOCK, BOUNDARY |
-| AC-005 | PRD-Full.r1 §3.3.5 (lines 617–623) / FR-005 / US1 | Output candidate count is between 1 and 3 inclusive; each idea has document-title, author or local-filename citations traceable to retrieved chunks; unsupported speculative proposals are not admissible. | BLOCK, BOUNDARY |
-| AC-006 | PRD-Full.r1 §3.3.6 (lines 625–632) / FR-006 / US1 | A schema-conforming evidence-backed Candidate_Set reaches screening only through shared advancing Gate behavior; malformed output cannot advance. Resource limits follow endpoint telemetry policy, not unsupported exact token accounting. | BLOCK, BOUNDARY |
-| AC-007 | PRD-Full.r1 §1.3–§1.4; §2.2, §2.4, §2.6–§2.10; §6.6 (lines 2159–2179) / FR-007 / US1 | No manufactured evidence, undeclared connector access, silent retry loop or gate bypass occurs; blocked external dependencies do not become fabricated research success. | BLOCK, BOUNDARY |
+| AC-001 | PRD-Full.r2 §3.3.1 (lines 608–615) / FR-001 / US1 | Queries are derived from Brief scope and stay fixed during that search invocation; poor initial results do not trigger autonomous query reformulation. | BLOCK, BOUNDARY |
+| AC-002 | PRD-Full.r2 §3.3.2 (lines 617–627) / FR-002 / US1 | Both permitted source modes are exercised; retrieval never exceeds the adopted per-query limit or calls unapproved crawling/browser/multi-agent search tools. arXiv/Semantic Scholar and K=5 are examples, not a fabricated mandatory connector inventory or threshold. | BLOCK, BOUNDARY |
+| AC-003 | PRD-Full.r2 §3.3.3 (lines 629–634) / FR-003 / US1 | Every extracted chunk is traceable to actual retrieved text and matches it verbatim; no author-authority, publisher-bias or geographic credibility scoring is introduced. | BLOCK, BOUNDARY |
+| AC-004 | PRD-Full.r2 §3.3.4 (lines 636–641) / FR-004 / US1 | Every retained chunk has the correct query grouping without invented trend or cross-domain analyses. | BLOCK, BOUNDARY |
+| AC-005 | PRD-Full.r2 §3.3.5 (lines 643–649) / FR-005 / US1 | Output candidate count is between 1 and 3 inclusive; each idea has document-title, author or local-filename citations traceable to retrieved chunks; unsupported speculative proposals are not admissible. | BLOCK, BOUNDARY |
+| AC-006 | PRD-Full.r2 §3.3.6 (lines 651–658) / FR-006 / US1 | A schema-conforming evidence-backed Candidate_Set reaches screening only through shared advancing Gate behavior; malformed output cannot advance. Resource limits follow endpoint telemetry policy, not unsupported exact token accounting. | BLOCK, BOUNDARY |
+| AC-007 | PRD-Full.r2 §1.3–§1.4; §2.2, §2.4, §2.6–§2.10; §6.6 (lines 2354–2374) / FR-007 / US1 | No manufactured evidence, undeclared connector access, silent retry loop or gate bypass occurs; blocked external dependencies do not become fabricated research success. | BLOCK, BOUNDARY |
 
 All allocated behavior and exclusions are covered above. Product examples remain examples; source-backed literal limits such as 1–3 candidate ideas remain requirements. No new performance, reliability or model-quality threshold is invented.
 
@@ -56,4 +56,3 @@ All allocated behavior and exclusions are covered above. Product examples remain
 - Runtime failure handling and explicit human restart use canonical M1-006/007 behavior; no independent retry mechanism is assumed.
 
 This spec is the AC authority. Provisional design/check procedures are in plan.md; work and evidence are in tasks.md.
-
