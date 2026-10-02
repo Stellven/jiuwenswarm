@@ -2,9 +2,9 @@
 
 **TASK**: [TASK](../../docs/tasks/M1/M1-017/TASK.md)
 **Parent TASKS**: [M1 TASKS](../../docs/tasks/M1/TASKS.md)
-**Revision / date**: r1 / 2026-10-01
+**Revision / date**: r2 / 2026-10-02
 **Feature Branch**: NOT_STARTED for implementation; documentation uses the existing checkout.
-**Input**: [registered PRD r1](../../docs/tasks/M1/sources/PRD-Full.r1.txt), §5.1, §5.2, §5.3, §5.5; global §§1–2, §6. Architecture PENDING_SOURCE.
+**Input**: [registered PRD r2](../../docs/tasks/M1/sources/PRD-Full.r2.txt), §5.1, §5.2, §5.3, §5.5; global §§1–2, §6. Architecture PENDING_SOURCE.
 **Status**: Preparing; source-derived requirements populated, architecture-dependent contracts pending.
 
 ## User Scenarios & Testing
@@ -29,6 +29,7 @@ Packaging/bootstrap, native CLI/Web/TUI, local trace and artifact access, static
 10. Given the prerequisites for AC-010, when its planned action is exercised, then the observable result must satisfy AC-010. Procedure: Inject a benchmark fault, enter the real native human session, inspect logs and explicitly abort/restart as supported; verify the prior failed record remains preserved.
 11. Given the prerequisites for AC-011, when its planned action is exercised, then the observable result must satisfy AC-011. Procedure: Launch a test workflow/service in the actual supported tmux setup, detach and reattach, and observe continued attributable logs. Lack of tmux on a candidate is not a passing stub result.
 12. Given the prerequisites for AC-012, when its planned action is exercised, then the observable result must satisfy AC-012. Procedure: Inspect built entry points, active listeners and enabled channels; confirm the source-blacklisted integrations are disabled and absent from release prerequisites.
+13. Given explicit headless mode, input/configuration and supported/unsupported seed requests, when execution succeeds or blocks, then AC-013 returns machine completion/bundle references without prompts and records requested/effective seed honestly; AC-008 provides stable terminal status.
 
 ### Edge Cases
 
@@ -43,13 +44,15 @@ Applicable rejection, unavailable-dependency, security, governance and phase-iso
 - **FR-003** (§5.1.3): Visibility exposes configured time/call limits and observed usage; unavailable token/cost telemetry is shown as unavailable and does not fail the run.
 - **FR-004** (§5.1.4): Host profiling captures static OS/CPU-count/GPU facts once at run start, with no continuous host CPU/GPU/RAM sampling introduced by the shell.
 - **FR-005** (§5.2.1): On source-supported macOS/Linux environments, package/bootstrap initializes input/POC/records locations, deploys admitted capsules and configures telemetry. Doctor checks provider authentication, paths and static DAG readiness; topic input reaches intake.
-- **FR-006** (§5.2.1): Installer integration provisions the RSI workspace and hidden fixture sets using the canonical RSI policy and security boundary; restricted workflow execution cannot read hidden fixtures.
+- **FR-006** (§5.2.1 (lines 2049-2066); §4.4.8 (lines 1656-1677); §4.4.9 (lines 1678-1703); §5.4.3 (lines 2144-2152)): Installation provisions the source-named offline RSI workspace (.jiuwenswarm/rsi/tasks/) and Secure Fixture Oracle directory outside public Git, configuring source-required directory ownership/POSIX isolation and manually seeded approved fixture sets. Restricted Swarmflow/POC execution cannot read hidden contents. Preserve the protected-data outcome and retained source constraints while actual accounts, custody, permissions, process design and legacy Oracle terminology realization remain PENDING_DESIGN; RSI optimization need not be complete before provisioning verification.
 - **FR-007** (§5.2.2): Startup serves the native local web/status surface at the PRD loopback binding, initializes the local authenticated session and connects intake, live progress and final report access.
-- **FR-008** (§5.3.1): CLI submits the user research string, displays node/tool/gate events and returns 0 for normal completion with defined non-success behavior on critical faults.
+- **FR-008** (§5.3.1 (lines 2089-2098)): CLI submits research input, displays node/tool/Gate events and emits stable process exit codes plus structured terminal statuses for success, infrastructure/Gate failure, environment blocking and required terminal conditions. Headless tooling determines completion/halt without interactive inspection. Exact numeric fault-code mapping PENDING_DESIGN.
 - **FR-009** (§5.3.2): Native web widgets provide intake, run observation and Markdown report retrieval with static AI4Research branding; users cannot edit the live DAG or scientific thresholds through this surface.
 - **FR-010** (§5.3.3): Native TUI exposes failure inspection through human_session, with explicit human abort/correction/restart behavior and no automatic repair or silent resume.
 - **FR-011** (§5.5.1): Local tmux sessions/panes support attach/detach and inspection of background workflow/services without remote session forwarding.
 - **FR-012** (§5.1, §5.2.3, §5.3, §5.5.2): The delivered shell respects M1 exclusions: no bespoke interactive dashboard/workflow builder, desktop executable packaging, external chat/webhook listener, cloud portal or remote terminal synchronization.
+
+- **FR-013** (§5.3.1 (lines 2089-2098); §4.6.4 (lines 1818-1826)): Explicit non-interactive development/evaluation entry accepts task input, explicit run configuration and reproducibility seed where supported; executes without prompts and returns machine-readable completion including run_id and Run Bundle reference. Record requested/effective seed; unsupported seed control is not deterministic model output. Consume M1-006 headless blocking behavior without weakening Gate.
 
 ### Key Entities
 
@@ -66,17 +69,20 @@ Research requests, effective configuration, local-session authorization, authori
 | AC-003 | §5.1.3 / FR-003 / US1 | Visibility exposes configured time/call limits and observed usage; unavailable token/cost telemetry is shown as unavailable and does not fail the run. | BLOCK, BOUNDARY |
 | AC-004 | §5.1.4 / FR-004 / US1 | Host profiling captures static OS/CPU-count/GPU facts once at run start, with no continuous host CPU/GPU/RAM sampling introduced by the shell. | BLOCK, BOUNDARY |
 | AC-005 | §5.2.1 / FR-005 / US1 | On source-supported macOS/Linux environments, package/bootstrap initializes input/POC/records locations, deploys admitted capsules and configures telemetry. Doctor checks provider authentication, paths and static DAG readiness; topic input reaches intake. | BLOCK, BOUNDARY |
-| AC-006 | §5.2.1 / FR-006 / US1 | Installer integration provisions the RSI workspace and hidden fixture sets using the canonical RSI policy and security boundary; restricted workflow execution cannot read hidden fixtures. | BOUNDARY |
+| AC-006 | PRD r2 §5.2.1 (lines 2049-2066); §4.4.8 (lines 1656-1677); §4.4.9 (lines 1678-1703); §5.4.3 (lines 2144-2152) / FR-006 / US1 | Installation provisions the source-named offline RSI workspace (.jiuwenswarm/rsi/tasks/) and Secure Fixture Oracle directory outside public Git, configuring source-required directory ownership/POSIX isolation and manually seeded approved fixture sets. Restricted Swarmflow/POC execution cannot read hidden contents. Preserve the protected-data outcome and retained source constraints while actual accounts, custody, permissions, process design and legacy Oracle terminology realization remain PENDING_DESIGN; RSI optimization need not be complete before provisioning verification. | BLOCK, BOUNDARY |
 | AC-007 | §5.2.2 / FR-007 / US1 | Startup serves the native local web/status surface at the PRD loopback binding, initializes the local authenticated session and connects intake, live progress and final report access. | BLOCK, BOUNDARY |
-| AC-008 | §5.3.1 / FR-008 / US1 | CLI submits the user research string, displays node/tool/gate events and returns 0 for normal completion with defined non-success behavior on critical faults. | BLOCK, BOUNDARY |
+| AC-008 | PRD r2 §5.3.1 (lines 2089-2098) / FR-008 / US1 | CLI submits research input, displays node/tool/Gate events and emits stable process exit codes plus structured terminal statuses for success, infrastructure/Gate failure, environment blocking and required terminal conditions. Headless tooling determines completion/halt without interactive inspection. Exact numeric fault-code mapping PENDING_DESIGN. | BLOCK, BOUNDARY |
 | AC-009 | §5.3.2 / FR-009 / US1 | Native web widgets provide intake, run observation and Markdown report retrieval with static AI4Research branding; users cannot edit the live DAG or scientific thresholds through this surface. | BLOCK, BOUNDARY |
 | AC-010 | §5.3.3 / FR-010 / US1 | Native TUI exposes failure inspection through human_session, with explicit human abort/correction/restart behavior and no automatic repair or silent resume. | BLOCK, BOUNDARY |
 | AC-011 | §5.5.1 / FR-011 / US1 | Local tmux sessions/panes support attach/detach and inspection of background workflow/services without remote session forwarding. | BLOCK, BOUNDARY |
 | AC-012 | §5.1, §5.2.3, §5.3, §5.5.2 / FR-012 / US1 | The delivered shell respects M1 exclusions: no bespoke interactive dashboard/workflow builder, desktop executable packaging, external chat/webhook listener, cloud portal or remote terminal synchronization. | BLOCK |
+| AC-013 | PRD r2 §5.3.1 (lines 2089-2098); §4.6.4 (lines 1818-1826) / FR-013 / US1 | Explicit non-interactive development/evaluation entry accepts task input, explicit run configuration and reproducibility seed where supported; executes without prompts and returns machine-readable completion including run_id and Run Bundle reference. Record requested/effective seed; unsupported seed control is not deterministic model output. Consume M1-006 headless blocking behavior without weakening Gate. | BLOCK, BOUNDARY |
 
 Thresholds are the source-defined rules or explicitly supplied run/configuration values; example numbers are not new release targets. A check's test settings are not global product requirements.
 
 ## Scope and Assumptions
+
+- Architecture reservation: [minimum inputs](../../docs/tasks/M1/ARCHITECTURE_MINIMUM_INPUTS.txt), items 1-7. Actual code/module/process boundaries, typed payloads/APIs/errors, coordination, storage/durability, security/settings mechanisms and executable test entry points remain PENDING_DESIGN; this spec states product outcomes only.
 
 - Included: Packaging/bootstrap, native CLI/Web/TUI, local trace and artifact access, static telemetry displays and tmux-based local session operation.
 - Excluded: Custom application dashboards/widgets, desktop binaries, cloud portals, continuous host sampling, external messaging adapters and distributed terminal management.
@@ -89,4 +95,3 @@ Thresholds are the source-defined rules or explicitly supplied run/configuration
 - System contribution: [M1-SYSTEM](../M1-SYSTEM-governed-research/spec.md) owns whole-system journeys. This spec retains its feature acceptance authority.
 
 This file owns acceptance; plan.md owns implementation and verification methods, tasks.md owns progress and evidence.
-

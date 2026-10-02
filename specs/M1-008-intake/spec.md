@@ -1,9 +1,9 @@
 # Feature Specification: M1-008 - Local research intake and resource binding
 **TASK**: [M1-008](../../docs/tasks/M1/M1-008/TASK.md)
 **Parent TASKS**: [M1](../../docs/tasks/M1/TASKS.md)
-**Revision / date**: r1 / 2026-10-01
+**Revision / date**: r2 / 2026-10-02
 **Feature Branch**: ai4r_xiaoyang (documentation checkout only; no implementation branch or candidate selected)
-**Input**: [PRD-Full.r1](../../docs/tasks/M1/sources/PRD-Full.r1.txt), §3.1.1–§3.1.5 (lines 440–511); applicable §§1.3–1.6 and 2. Architecture: PENDING_SOURCE; no architecture nodes have been invented.
+**Input**: [PRD-Full.r2](../../docs/tasks/M1/sources/PRD-Full.r2.txt), §3.1.1–§3.1.5 (lines 466–537); applicable §§1.3–1.6 and 2. Architecture: PENDING_SOURCE; no architecture nodes have been invented.
 **Status**: Preparing — PRD-backed requirements populated; Architecture and named local decisions pending. This is not a runtime result.
 
 ## User Scenarios & Testing
@@ -19,12 +19,12 @@ Empty prompt, unreadable/missing specified directory, unsupported extraction for
 
 ## Requirements
 ### Functional Requirements
-- **FR-001**: Accept the raw natural-language request from the local CLI argument and native local Web UI without treating raw text as a confirmed requirement. Source: PRD-Full.r1 §3.1.1 (lines 444–454).
-- **FR-002**: Extract .txt/.md/.pdf reference text from explicitly supplied local resources; bind code directory and validation data separately to the active run, recording local path, allowed resource type and run_id. Source: PRD-Full.r1 §3.1.2 (lines 456–477).
-- **FR-003**: Bind intake to the local single-user profile and current Swarmflow run identity without cross-session user-state persistence. Source: PRD-Full.r1 §3.1.3 (lines 479–488).
-- **FR-004**: Apply programmatic file-size qualification and record local path, size and ingest timestamp; exclude semantic deduplication and intake-document hashing/signing. Source: PRD-Full.r1 §3.1.4 (lines 490–499).
-- **FR-005**: Deterministically reject and halt on an empty user-prompt string or unreadable specified input directory; otherwise produce the combined prompt/reference-text dictionary for compilation. Source: PRD-Full.r1 §3.1.5 (lines 501–511).
-- **FR-006**: Supply run-bound intake evidence and use the shared governed transition into requirement compilation within the fixed local research flow. Source: PRD-Full.r1 §1.3 Phase 1; §1.4; §2.2–§2.4, §2.6–§2.10; §6.5 (lines 2139–2157).
+- **FR-001**: Accept the raw natural-language request from the local CLI argument and native local Web UI without treating raw text as a confirmed requirement. Source: PRD-Full.r2 §3.1.1 (lines 470–480).
+- **FR-002**: Extract .txt/.md/.pdf reference text from explicitly supplied local resources; bind code directory and validation data separately to the active run, recording local path, allowed resource type and run_id. Source: PRD-Full.r2 §3.1.2 (lines 482–503).
+- **FR-003**: Bind intake to the local single-user profile and current Swarmflow run identity without cross-session user-state persistence. Source: PRD-Full.r2 §3.1.3 (lines 505–514).
+- **FR-004**: Apply programmatic file-size qualification and record local path, size and ingest timestamp; exclude semantic deduplication and intake-document hashing/signing. Source: PRD-Full.r2 §3.1.4 (lines 516–525).
+- **FR-005**: Deterministically reject and halt on an empty user-prompt string or unreadable specified input directory; otherwise produce the combined prompt/reference-text dictionary for compilation. Source: PRD-Full.r2 §3.1.5 (lines 527–537).
+- **FR-006**: Supply run-bound intake evidence and use the shared governed transition into requirement compilation within the fixed local research flow. Source: PRD-Full.r2 §1.3 Phase 1; §1.4; §2.2–§2.4, §2.6–§2.10; §6.5 (lines 2334–2352).
 
 ### Key Entities
 Raw request; extracted reference buffer; resource binding (reference_document, project_asset, validation_data); local profile; active run; qualified intake package.
@@ -34,12 +34,12 @@ Canonical semantic boundary: [M1-IF-008@r0](../../docs/tasks/M1/M1-008/TASK.md#4
 ### Measurable Outcomes
 | AC ID | Source clause / FR / story | Observable criterion and threshold | Required verification level(s) |
 | --- | --- | --- | --- |
-| AC-001 | PRD-Full.r1 §3.1.1 (lines 444–454) / FR-001 / US1 | Each supported channel yields the supplied request for qualification; no external-channel or voice intake is introduced. | BLOCK, BOUNDARY |
-| AC-002 | PRD-Full.r1 §3.1.2 (lines 456–477) / FR-002 / US1 | Reference text is available to compilation; code/data remain separately identified resources and are not automatically inserted into the reasoning buffer. No clone, scrape, dataset download, vectorization or Office extraction occurs. | BLOCK, BOUNDARY |
-| AC-003 | PRD-Full.r1 §3.1.3 (lines 479–488) / FR-003 / US1 | Inputs from run A are attributable to A; a fresh run B does not inherit A's user session state or mislabel A's resources. | BLOCK, BOUNDARY |
-| AC-004 | PRD-Full.r1 §3.1.4 (lines 490–499) / FR-004 / US1 | Files violating the adopted size limit are rejected; accepted resource provenance records the required metadata. The PRD's >50 MB example is not silently promoted to a fixed threshold. | BLOCK, BOUNDARY |
-| AC-005 | PRD-Full.r1 §3.1.5 (lines 501–511) / FR-005 / US1 | Empty prompt and unreadable-directory cases produce no qualified success; valid readable intake produces a dictionary preserving prompt and extracted text. Intake does not invoke an LLM to decide logical validity. | BLOCK, BOUNDARY |
-| AC-006 | PRD-Full.r1 §1.3 Phase 1; §1.4; §2.2–§2.4, §2.6–§2.10; §6.5 (lines 2139–2157) / FR-006 / US1 | Qualified artifacts are submitted through the registered evidence/Gate boundary; rejected, stale or non-advancing intake does not release compilation. Local resource ownership and permitted side effects remain intact. | BLOCK, BOUNDARY |
+| AC-001 | PRD-Full.r2 §3.1.1 (lines 470–480) / FR-001 / US1 | Each supported channel yields the supplied request for qualification; no external-channel or voice intake is introduced. | BLOCK, BOUNDARY |
+| AC-002 | PRD-Full.r2 §3.1.2 (lines 482–503) / FR-002 / US1 | Reference text is available to compilation; code/data remain separately identified resources and are not automatically inserted into the reasoning buffer. No clone, scrape, dataset download, vectorization or Office extraction occurs. | BLOCK, BOUNDARY |
+| AC-003 | PRD-Full.r2 §3.1.3 (lines 505–514) / FR-003 / US1 | Inputs from run A are attributable to A; a fresh run B does not inherit A's user session state or mislabel A's resources. | BLOCK, BOUNDARY |
+| AC-004 | PRD-Full.r2 §3.1.4 (lines 516–525) / FR-004 / US1 | Files violating the adopted size limit are rejected; accepted resource provenance records the required metadata. The PRD's >50 MB example is not silently promoted to a fixed threshold. | BLOCK, BOUNDARY |
+| AC-005 | PRD-Full.r2 §3.1.5 (lines 527–537) / FR-005 / US1 | Empty prompt and unreadable-directory cases produce no qualified success; valid readable intake produces a dictionary preserving prompt and extracted text. Intake does not invoke an LLM to decide logical validity. | BLOCK, BOUNDARY |
+| AC-006 | PRD-Full.r2 §1.3 Phase 1; §1.4; §2.2–§2.4, §2.6–§2.10; §6.5 (lines 2334–2352) / FR-006 / US1 | Qualified artifacts are submitted through the registered evidence/Gate boundary; rejected, stale or non-advancing intake does not release compilation. Local resource ownership and permitted side effects remain intact. | BLOCK, BOUNDARY |
 
 All allocated behavior and exclusions are covered above. Product examples remain examples; source-backed literal limits such as the stated one-path/bounded execution obligations remain requirements. No new performance, reliability or model-quality threshold is invented.
 
@@ -54,4 +54,3 @@ All allocated behavior and exclusions are covered above. Product examples remain
 - Runtime failure handling and explicit human restart use canonical M1-006/007 behavior; no independent retry mechanism is assumed.
 
 This spec is the AC authority. Provisional design/check procedures are in plan.md; work and evidence are in tasks.md.
-

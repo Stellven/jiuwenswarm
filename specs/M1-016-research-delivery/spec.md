@@ -1,9 +1,9 @@
 # Feature Specification: M1-016 - Research report and local lifecycle delivery
 **TASK**: [M1-016](../../docs/tasks/M1/M1-016/TASK.md)
 **Parent TASKS**: [M1](../../docs/tasks/M1/TASKS.md)
-**Revision / date**: r1 / 2026-10-01
+**Revision / date**: r2 / 2026-10-02
 **Feature Branch**: ai4r_xiaoyang (document-preparation checkout; no feature branch created)
-**Input**: [PRD-Full.r1](../../docs/tasks/M1/sources/PRD-Full.r1.txt), §3.9 (all); sequencing §6.9; shared §§1–2; architecture PENDING_SOURCE.
+**Input**: [PRD-Full.r2](../../docs/tasks/M1/sources/PRD-Full.r2.txt), §3.9 (all); sequencing §6.9; shared §§1–2; architecture PENDING_SOURCE.
 **Status**: Preparing — PRD-derived requirements populated; architecture binding pending, runtime NOT_RUN.
 Local IDs are qualified by M1-016; this is the only AC authority for this task.
 
@@ -17,8 +17,8 @@ A researcher receives a local report and reproducible supporting artifacts, incl
 3. Given a connected consumer, when the provider submits an artifact/candidate, then respect the owning interface, governance boundary and version identity rather than infer success from a model response.
 
 ### Edge Cases
-- Provide admitted positive and negative scientific results; inspect capsule/template and input binding. Confirm inadmissible evaluation cannot be used for normal delivery and audience requests do not cause custom format invention.
-- Generate reports from positive and scientifically negative fixtures; compare every material statement and citation to frozen input evidence and inspect required sections. Check that no new experiment or excluded-format artifact was produced.
+- Provide admitted positive, negative and preregistered INCONCLUSIVE scientific results; inspect capsule/template and input binding. Confirm inadmissible evaluation cannot be used for normal delivery and audience requests do not cause custom format invention.
+- Generate reports from positive, scientifically negative and INCONCLUSIVE fixtures; compare every material statement and citation to frozen input evidence and inspect required sections. Check that no new experiment or excluded-format artifact was produced.
 - Inspect output membership and references against source artifacts; verify that a missing required artifact remains a visible failure under shared governance and no external publication call occurs.
 - Connect actual report/package, Harness, Data Foundations and one supported local display; observe readable artifacts and persisted completion. Exercise a delivery/persistence failure and verify no unsupported completed-success claim; inspect absence of external messages.
 Architecture supplies representation, timeout/cancellation and recovery details; there is no assumed retry or resume mechanism. Source-specific numerical limits are listed in ACs only. No real-service claim is established by fixtures or stubs.
@@ -26,7 +26,7 @@ Architecture supplies representation, timeout/cancellation and recovery details;
 ## Requirements
 ### Functional Requirements
 - **FR-001** (§3.9 introduction; §3.9.1): Use report_capsule.md and the static sciencediscovery/report-writer Markdown structure to bind admitted Evaluation Verdict, verified Benchmark Payload and original Brief. Do not invent audience-specific structures or replace the scientific verdict with the Gate's infrastructure judgement.
-- **FR-002** (§3.9.2; §§1.4,2.5): Produce structured Markdown with findings, empirical results and verified citations, explicitly including methodology, benchmark analysis and documented limitations. Preserve a valid negative scientific result. Do not generate new unsupported scientific claims, execute more experiments or emit excluded LaTeX/slides/interactive dashboards.
+- **FR-002** (§3.9.2; §3.5.4; §§1.4,2.5): Produce structured Markdown with findings, empirical results and verified citations, explicitly including methodology, benchmark analysis and documented limitations. Preserve the admitted scientific classification, including a valid negative result and preregistered INCONCLUSIVE classification under §3.5.4; reporting cannot relabel it as success or falsification. Do not generate new unsupported scientific claims, execute more experiments or emit excluded LaTeX/slides/interactive dashboards.
 - **FR-003** (§3.9.3; §2.12): Consolidate Markdown report, POC scripts, environment configuration and raw empirical data into a single clean user output directory. Do not automatically publish to external repositories or community registries.
 - **FR-004** (§3.9.4; §6.9; §§1.4,2.3,2.10): Transfer artifacts only to the sandboxed local user workspace, display the report through the supported native Web UI or TUI, and persist the completed execution trace in /swarmflows monitoring. Maintain governed lifecycle closure; no external channel notifications or attachments.
 ### Key Entities
@@ -36,10 +36,10 @@ Evaluation_Verdict.json; Benchmark_Payload.json; Research_Brief.json; static rep
 ### Measurable Outcomes
 | AC ID | Source clause / FR / story | Observable criterion and threshold | Required verification level(s) |
 | --- | --- | --- | --- |
-| AC-001 | PRD r1 §3.9 introduction; §3.9.1 / FR-001 / US1 | Use report_capsule.md and the static sciencediscovery/report-writer Markdown structure to bind admitted Evaluation Verdict, verified Benchmark Payload and original Brief. Do not invent audience-specific structures or replace the scientific verdict with the Gate's infrastructure judgement. | BLOCK |
-| AC-002 | PRD r1 §3.9.2; §§1.4,2.5 / FR-002 / US1 | Produce structured Markdown with findings, empirical results and verified citations, explicitly including methodology, benchmark analysis and documented limitations. Preserve a valid negative scientific result. Do not generate new unsupported scientific claims, execute more experiments or emit excluded LaTeX/slides/interactive dashboards. | BLOCK |
-| AC-003 | PRD r1 §3.9.3; §2.12 / FR-003 / US1 | Consolidate Markdown report, POC scripts, environment configuration and raw empirical data into a single clean user output directory. Do not automatically publish to external repositories or community registries. | BLOCK |
-| AC-004 | PRD r1 §3.9.4; §6.9; §§1.4,2.3,2.10 / FR-004 / US1 | Transfer artifacts only to the sandboxed local user workspace, display the report through the supported native Web UI or TUI, and persist the completed execution trace in /swarmflows monitoring. Maintain governed lifecycle closure; no external channel notifications or attachments. | BLOCK, BOUNDARY |
+| AC-001 | PRD r2 §3.9 introduction; §3.9.1 / FR-001 / US1 | Use report_capsule.md and the static sciencediscovery/report-writer Markdown structure to bind admitted Evaluation Verdict, verified Benchmark Payload and original Brief. Do not invent audience-specific structures or replace the scientific verdict with the Gate's infrastructure judgement. | BLOCK |
+| AC-002 | PRD r2 §3.9.2; §3.5.4; §§1.4,2.5 / FR-002 / US1 | Produce structured Markdown with findings, empirical results and verified citations, explicitly including methodology, benchmark analysis and documented limitations. Preserve the admitted scientific classification, including a valid negative result and preregistered INCONCLUSIVE classification under §3.5.4; reporting cannot relabel it as success or falsification. Do not generate new unsupported scientific claims, execute more experiments or emit excluded LaTeX/slides/interactive dashboards. | BLOCK |
+| AC-003 | PRD r2 §3.9.3; §2.12 / FR-003 / US1 | Consolidate Markdown report, POC scripts, environment configuration and raw empirical data into a single clean user output directory. Do not automatically publish to external repositories or community registries. | BLOCK |
+| AC-004 | PRD r2 §3.9.4; §6.9; §§1.4,2.3,2.10 / FR-004 / US1 | Transfer artifacts only to the sandboxed local user workspace, display the report through the supported native Web UI or TUI, and persist the completed execution trace in /swarmflows monitoring. Maintain governed lifecycle closure; no external channel notifications or attachments. | BLOCK, BOUNDARY |
 System-level end-to-end acceptance is owned by M1-SYSTEM, not copied into this task. Every row has block/check/work correspondence in plan.md and tasks.md; no runtime result is implied.
 
 ## Scope and Assumptions
@@ -52,4 +52,3 @@ System-level end-to-end acceptance is owned by M1-SYSTEM, not copied into this t
 - System tasks: [M1-SYSTEM](../../docs/tasks/M1/M1-SYSTEM/TASK.md) consumes this task's current candidate, block/boundary evidence and source constraints for complete journeys; its acceptance remains separate.
 
 This is the AC authority. Technical realization stays in plan.md; progress/results stay in tasks.md.
-

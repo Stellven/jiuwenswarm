@@ -1,9 +1,9 @@
 # Feature Specification: M1-001 - Codex CLI adapter
-**TASK**: [M1-001](../../docs/tasks/M1/M1-001/TASK.md)  
-**Parent TASKS**: [M1](../../docs/tasks/M1/TASKS.md)  
-**Revision / date**: r1 / 2026-10-01  
-**Feature Branch**: ai4r_xiaoyang (existing checkout; no task branch created)  
-**Input**: [PRD r1](../../docs/tasks/M1/sources/PRD-Full.r1.txt), §3.0, §3.0.1, §3.0.2; sequencing §6.3; global §1.3–§1.6 and §2.1–§2.12. Architecture PENDING_SOURCE.  
+**TASK**: [M1-001](../../docs/tasks/M1/M1-001/TASK.md)
+**Parent TASKS**: [M1](../../docs/tasks/M1/TASKS.md)
+**Revision / date**: r2 / 2026-10-02
+**Feature Branch**: ai4r_xiaoyang (existing checkout; no task branch created)
+**Input**: [PRD r2](../../docs/tasks/M1/sources/PRD-Full.r2.txt), §3.0, §3.0.1, §3.0.2; consumed §4.3.3; sequencing §6.3; global §1.3–§1.6 and §2.1–§2.12. Architecture PENDING_SOURCE.
 **Status**: Preparing; product requirements populated, architecture-dependent design pending; not a runtime result.
 
 ## User Scenarios & Testing
@@ -22,6 +22,7 @@ A local scientific-workflow executor or connected component obtains attributable
 - AC-002: Authorized caller, missing/wrong credential, inappropriate local context and listener/permission inspection.
 - AC-003: Provider consumer request, controlled timeout and missing/expired authentication.
 - AC-004: Implementation/configuration inspection and out-of-scope streaming/dynamic-route requests.
+- AC-005: A supported model call retains locally joinable attribution while its provider-facing request omits internal labels supplied only for audit/benchmarking; an attempted bypass cannot silently produce an unaudited supported call.
 
 Cancellation, interrupted persistence and compatibility details not fixed by PRD remain design inputs; they must preserve fail-fast evidence and cannot introduce autonomous recovery. N/A: distributed/cloud/multi-tenant recovery is outside the local single-user scope. Existing implementation has not been assessed; neither absence nor correctness is claimed.
 
@@ -31,9 +32,10 @@ Cancellation, interrupted persistence and compatibility details not fixed by PRD
 - **FR-002** (§3.0.1; §2.9): The adapter exposes only the required secured local IPC with restrictive permissions and ephemeral execution-bound session credentials; no adapter TCP listener; unauthorized local context cannot invoke it.
 - **FR-003** (§3.0.2): Provider abstraction is callable by native routing consumers; controlled timeout and authentication loss are attributable run-tree events rather than silent success.
 - **FR-004** (§3.0.1 blacklist; §3.0.2 blacklist): Implementation reuses the existing adapter instead of building a replacement proxy; Phase 1 remains synchronous single-turn and does not integrate dynamic model routing or autonomous recovery.
+- **FR-005** (§4.3.3, consumed from M1-004): Supported model invocations use the approved model-routing/bridge audit boundary. Local correlation remains available to benchmark/audit consumers, while stage, role, capsule identity and other labels used solely for attribution or benchmarking are excluded from the provider-facing request. Consume the canonical M1-004 agreement; this task does not define another audit schema.
 
 ### Key Entities
-The input/output/state meanings are defined canonically in [M1-IF-001@r0](../../docs/tasks/M1/M1-001/TASK.md#4-embedded-cross-module-agreements). This spec does not invent a competing schema. PRD artifact/model names are retained; missing field-level design is reserved for architecture.
+Source-defined request/completion behavior is specified above. [M1-IF-001@r0](../../docs/tasks/M1/M1-001/TASK.md#4-embedded-cross-module-agreements) reserves the future adapter agreement; its technical payloads remain PENDING_DESIGN. Local model-use attribution consumes [M1-IF-004@r0](../../docs/tasks/M1/M1-004/TASK.md#4-embedded-cross-module-agreements). No competing schema is defined.
 
 ## Success Criteria
 ### Measurable Outcomes
@@ -43,6 +45,7 @@ The input/output/state meanings are defined canonically in [M1-IF-001@r0](../../
 | AC-002 | §3.0.1; §2.9 / FR-002 / US1 | The adapter exposes only the required secured local IPC with restrictive permissions and ephemeral execution-bound session credentials; no adapter TCP listener; unauthorized local context cannot invoke it. | BLOCK, BOUNDARY; full journey owned by M1-SYSTEM |
 | AC-003 | §3.0.2 / FR-003 / US1 | Provider abstraction is callable by native routing consumers; controlled timeout and authentication loss are attributable run-tree events rather than silent success. | BLOCK, BOUNDARY; full journey owned by M1-SYSTEM |
 | AC-004 | §3.0.1 blacklist; §3.0.2 blacklist / FR-004 / US1 | Implementation reuses the existing adapter instead of building a replacement proxy; Phase 1 remains synchronous single-turn and does not integrate dynamic model routing or autonomous recovery. | BLOCK, BOUNDARY; full journey owned by M1-SYSTEM |
+| AC-005 | §4.3.3 / FR-005 / US1; canonical audit acceptance owned by M1-004 | Adapter invocation obeys the consumed M1-004 audited-call boundary: the call can be joined locally to its originating execution, supported calls cannot silently bypass auditing, and internal stage/role/capsule labels are not injected into prompts or forwarded to the provider solely for benchmarking. Absence of reliable token/cost usage does not fail the call. No local audit payload format is independently defined here. | BLOCK, BOUNDARY; full journey owned by M1-SYSTEM |
 
 Numerical time/resource limits come from registered active capsule/task configuration; unspecified values remain PENDING_SOURCE until that source is supplied. No guessed time, token, cost or quality threshold is introduced. Runtime checks remain NOT_RUN.
 
