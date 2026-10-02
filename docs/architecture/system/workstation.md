@@ -47,3 +47,7 @@ Installer/CLI/Web/TUI each demonstrate readiness and the same run state, halt st
 ## Token-file contract
 
 The launcher stores its ephemeral token at `~/.jiuwenswarm/runtime/local-session.json` in a user-owned mode-0700 directory, using exclusive creation/atomic replace at mode 0600 and no symlink following. Closed file fields are token, created_at, expires_at, instance_id and loopback_origin. CLI reads this file, verifies owner/mode/expiry/instance and adds `Authorization: Bearer <token>` to requests. Web uses the one-time exchange then the same header; WebSockets authenticate before subscription. Tokens never enter CC snapshots, stdout research logs or artifacts. Shutdown revokes and removes the file; stale instance/expired token is rejected. Restart invalidates previous tokens even if a stale file survived a crash. Existing single local service ownership is verified before replacing the file.
+
+## Proposed: programmatic run entry (development only, 2026-10-02)
+
+For the benchmark harness: an entry taking `{task, config, seed}` that returns the result and a stable `run_dir`, with `headless` ([lifecycle](lifecycle.md)). The `seed` is pinned in the run's configuration snapshot ([storage](storage.md)) and is the root of the blueprint's seed policy. Not adopted. Detail: [proposal](../m1/capsule-inventory-proposal.md#benchmark-harness-requests-headless-entry-and-config-assembled-components).

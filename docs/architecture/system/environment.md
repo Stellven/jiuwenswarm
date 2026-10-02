@@ -76,3 +76,7 @@ Every checked Declaration field maps, per execution backend, to one of four stat
 ## Startup and doctor
 
 `doctor(config_snapshot) -> DoctorReport` returns `{config_sha256, platform, python_version, checks: [{id, status: pass|fail|unsupported, evidence_ref?, message}], ready: boolean}`. Checks cover package versions, model/account auth and nonempty model, secure IPC ownership, local paths/fsync, admitted registry closure, plan structure, hardware, wheelhouse, private fixture separation, helper ownership, and actual negative filesystem/network/credential probes under the execution identities. No live run starts unless mandatory checks pass. The report lists unrun checks as unsupported/fail, never pass. [Verification](verification.md) defines the demonstration cases.
+
+## Proposed: component switches and library pin (development only, 2026-10-02)
+
+For ablation runs: `cc.library.snapshot_sha256` (the run refuses a capsule outside that snapshot, and returns the hash in its run output), `cc.rsi.enabled`, `cc.router.enabled` (waits for Model Routing), and `cc.gates.evaluator` (`on`, or `off` only under an `ablation` profile that marks every output `ablation: true`). A switched-off component is absent from the run, never stubbed to pass. Not adopted; the evaluator-gate switch conflicts with `every_step_gated` and needs Muk's decision. Detail: [proposal](../m1/capsule-inventory-proposal.md#benchmark-harness-requests-headless-entry-and-config-assembled-components).

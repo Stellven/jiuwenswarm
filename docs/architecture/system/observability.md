@@ -93,7 +93,7 @@ Every CC-owned message that crosses a process boundary (runner to bridge, superv
 
 ## Build order for observability
 
-Observability is built in the same thin slices as the capsules, because every check in the [build order](../m1/capsule-inventory-proposal.md#build-order-what-comes-first-and-what-blocks-what) reads it. The event bus is not first.
+Observability is built in the same thin slices as the capsules, because every check in the [build order](build-order.md) reads it. The event bus is not first.
 
 | Build step | Add | Check |
 |---|---|---|

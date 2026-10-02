@@ -32,6 +32,7 @@ The banner under the front matter says the same: **Checked, not yet approved** o
 - **One concept per page,** about 30 KB at most. A bigger page becomes a folder with an index. The lint warns.
 - **Mermaid is the graph format,** because machines can read it. [graph.md](graph.md) is generated from front matter; never edit it.
 
+- **Major architecture lives in architecture pages, never only in a proposal or a note.** Build order, observability, lifecycle, configuration, the capsule set and the decisions behind them each have an owner page in this folder. A proposal page records only the delta and the reasoning, links to the owners, and is replaced by edits to them on adoption. Muk's direction, 2026-10-02.
 ## The order for changing anything
 
 A change flows from its owner outward. Never edit a consumer before the owner.

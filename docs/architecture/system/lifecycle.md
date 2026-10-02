@@ -77,3 +77,7 @@ The canonical request hash covers run, step, attempt, declaration, profiles and 
 Invoke launch, call, gate, authorize_advance, resume and abort separately with fake dependencies. Required injection points are after output publication, before/after Observation commit, before/after Verification commit, before engine journal update, cancellation and child termination. [Verification](verification.md) defines observable outcomes; transport timeouts and process death cannot bypass durable authorization.
 
 Durable transition, review, dispatch and release shapes are owned by [system records](records.md), using put_system rather than an unregistered CC record kind. A returned Gate decision is followed by a committed release record; engine journal/cache recovery always rereads and validates that release and its exact CC refs.
+
+## Proposed: headless halt (development only, 2026-10-02)
+
+A benchmark harness runs hundreds of tasks unattended. A `headless` flag makes the halt host write the same halt record and review requirement it writes today, then skip opening `human_session` and exit with code 3. The gate still decides, resume stays terminal-only, and the flag is pinned in the run's configuration snapshot so a product run can never silently become headless. Not in the product roadmap; not adopted. Detail and the open points: [proposal](../m1/capsule-inventory-proposal.md#benchmark-harness-requests-headless-entry-and-config-assembled-components).

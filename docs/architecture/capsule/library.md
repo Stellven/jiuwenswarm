@@ -152,3 +152,7 @@ Screening only ranks sets; a set counts as bad only when a sandbox run confirms 
 - Invariants: `changes.invariants[]` is reserved; SkillFuzz ranks partly by clashing invariants.
 - Which sets are screened, and how often.
 - A Finding kind for a confirmed bad set (`fit_failure` covers one step at run time).
+
+## Proposed: a snapshot hash (2026-10-02)
+
+The library is append-only and versioned. Ablation needs one hash naming a fixed set of admitted capsules, so a run can pin it and prove which library ran. The snapshot object and its hash are not yet defined; this page will own them if the proposal is adopted. See [environment](../system/environment.md) and the [proposal](../m1/capsule-inventory-proposal.md#benchmark-harness-requests-headless-entry-and-config-assembled-components).
