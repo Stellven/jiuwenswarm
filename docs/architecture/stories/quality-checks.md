@@ -34,3 +34,30 @@ No product execution is implied. The checker covers complete schema-shaped scien
 ## Downstream observations
 
 Builders should turn each story's injection point into actual integrated fixtures: count successor invocations, inspect committed records/capture, verify exact model/profile and namespace identities, test process/access boundaries and record observed HTTP/status behavior. Use the [case index](../system/boundary-cases.md) for additional variants beyond these eight connected narratives. Finite walkthrough coverage is not proof that every possible defect has been excluded.
+
+## Second connected architecture audit
+
+This pass follows d383c1e6e. [R13](../decisions.md#r13-connected-runtime-corrections-from-the-second-audit) records the revised choices and affected boundaries. The earlier check counts above describe the initial story pass, not this revision.
+
+| Issue found | Resolution and ownership |
+|---|---|
+| Generic skill handler could not execute Screening's internal assessment-to-rank pipeline | Use the existing restricted Python tool handler and pinned screening.py:run entry, with one brokered assessment turn and local helper; preserve public name/ports/ranking rules |
+| Single-port tool return was wrapped twice | Return the card value; tool host creates the named outputs map |
+| Frozen dependency registry had no concrete path to the wrapper | Materialize canonical registry bytes into a protected, hash-checked body reference file; admission/freeze match the accepted epoch; no caller path or new input port |
+| No-winner helper failure had no declared tool-frame representation | Existing no-winner fixture backs a single declared mode; Observation stores CAPSULE_ERROR plus NO_ELIGIBLE_OPPORTUNITY diagnostic and emits no card |
+| Retry prose permitted finite/backoff attempts despite M1 no-autonomous-retry policy, and used a renamed effect class | Canonical services-v1 RetryProfile fixes zero retries for all effect classes; profile/Binding/lifecycle owners agree |
+| Tool launch/timeout still specified Windows groups and a larger independent frame limit | Validated Linux namespace launcher, whole-tree reaping and pinned IPC frame limit govern tool/check execution |
+| Model runtime errors could become capsule exceptions or spoofed unavailability | Failed model_result carries bridge broker_request_id/reason/message; SDK ModelUnavailable returns unavailable frame; trusted broker checks exact failed request attribution |
+| Gate diagram collapsed faults into blocked and omitted two commit edges | Source-sensitive fail/environment/inconclusive paths all reach durable Verification publication |
+| Mechanical nested Gate used an enum absent from Verification | Use NOT_RUN with mechanical-profile explanation; nested evidence remains governed |
+| Binding-missing refusal lacked its required stage alias source | Derive stage identity from committed dispatch/parent reservation and cross-check any existing Binding |
+| Malformed descriptor path minted an unreserved dispatch Observation | Entry protocol rejection retains system diagnostics without invoking runner/Gate; reserved calls retain ordinary Observation semantics |
+| Observation claimed sampled spans/KV were authoritative; deployment still suggested desktop credential copying | Mandatory sealed capture and durable file commits remain authority; KV/spans are projections, dedicated container login remains custody |
+
+Independent reviewer reread the corrected contracts and caught an additional missing identity field in the failed model_result frame. It was added, along with a targeted regression assertion. Source/body pins change for the proposed Screening implementation and the new RetryProfile definition; unchanged public payload schemas do not silently change version. Base checkpoint manifests remain historical snapshots. New coding allocations must use these revised owners and recheck their stated boundaries.
+
+Fresh reviewer m1_handoff_review reread the corrected wrapper, registry, retry, SDK/launch and Gate contracts. It closed the identified findings, including the failed model_result identity field after checking the actual frame row. No remaining concrete blocker was found in that targeted reread. This is bounded evidence, not exhaustive approval or runtime assurance.
+
+Executed final documentation checks: arch_lint regeneration/check passed; 428 services schema cases passed (including a nonzero-retry rejection); 134 story/interface/metadata checks passed; 131 generated payload cases passed; 20 frozen source hashes matched; eight independently derived input contracts, 18 production joins and the RSI admission seam agreed. git diff --check and staged equivalent passed. Regression assertions inspect folder-tool entry pins, protected wrapper/registry files, local versus nested helper labels, model error identity in the return frame, Gate commit edges and valid tier enum. These are static documentation/schema checks; they do not prove the proposed processes behave this way.
+
+No proposed runtime, image, account, process confinement or stored record resolution is asserted as executed. Frozen source receipts and earlier checkpoint manifests remain unchanged.

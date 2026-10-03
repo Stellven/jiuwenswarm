@@ -7,7 +7,7 @@ tags: [schema]
 
 # Observation: one capsule call · `cc.observation.v1`
 
-One record per capsule call, written by the runner, including every retry, judge call and admission test call. It is a thin index: ids, hashes, outcome and cost. The values are [Artifacts](artifact.md); the call's details are on agent-core's span. Spans are sampled, expire (7 days by default) and can be redacted, so a missing span is normal. A call with no Observation did not go through the runner.
+One record per reserved capsule call, logically produced by the runner and committed through the supervisor-owned store, including human-approved new attempts, judge calls and admission tests. Values are [Artifacts](artifact.md); mandatory raw execution details are retained in the sealed capture manifest referenced by ext.runner.execution_evidence. Native spans are optional debugging views and cannot replace that capture. No automatic execution retry occurs at M1. A call reserved before interruption may have no terminal Observation; that absence is not proof that no effects occurred.
 
 **Rules:** INV-2, INV-5 (no copies of values), INV-8.
 
@@ -49,5 +49,5 @@ No `upstream` field: `inputs` gives Artifacts, and each Artifact's `produced_by`
 - `tool_failure_reason` (`tool_outcome.py:33`): as is, to derive `outcome`, so span status and record agree.
 - GenAI attributes (`gen_ai_semconv.py:53-90`): as is, the source of `models` and token counts. RSI's token shape (`rsi/schema.py:57`): for `cost.tokens`.
 - `Trajectory`, `TrajectoryStore` (`agent_evolving/trajectory/model.py:132`, `store.py:23`): as is, for `trajectory_ref`.
-- Write-once KV (`core/foundation/store/base_kv_store.py:42`, `:93`): as is, as the store.
+- Write-once KV (core/foundation/store/base_kv_store.py:42, :93): a rebuildable index adapter. Durable file publication in [storage](../system/storage.md) is authoritative; exclusive_set alone is not a commit/fsync contract.
 - Symphony `CapabilityCall` (`symphony/models/evaluation.py:90`): not reused; it holds values inline and names the capability, not its hash.

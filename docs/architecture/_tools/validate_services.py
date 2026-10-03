@@ -87,7 +87,7 @@ names = ['planner_request', 'planner_proposal', 'validation_request', 'plan_vali
          'readiness', 'benchmark_profiles', 'export_handle', 'abort_request',
          'ablation_study', 'ablation_action', 'experimental_advance', 'experimental_gate_evidence',
          'auth_request', 'auth_result', 'model_bridge_request', 'model_bridge_result',
-         'private_model_capture', 'scoped_capture_ref']
+         'private_model_capture', 'scoped_capture_ref', 'retry_profile']
 checks = 0
 for name in names:
     validator = Draft202012Validator({'$schema': schema['$schema'], '$ref': schema['$id'] + '#/$defs/' + name}, registry=registry, format_checker=FormatChecker())
@@ -165,5 +165,10 @@ v = Draft202012Validator({'$ref': schema['$id'] + '#/$defs/private_model_capture
 example = sample(schema['$defs']['private_model_capture'])
 example['scope'] = {'kind': 'run', 'run_id': 'wrong'}
 assert not v.is_valid(example)
+checks += 1
+v = Draft202012Validator({'$ref': schema['$id'] + '#/$defs/retry_profile'}, registry=registry)
+bad = sample(schema['$defs']['retry_profile'])
+bad['max_execution_retries'] = 1
+assert not v.is_valid(bad)
 checks += 1
 print(f'{checks} schema/example checks passed; reference existence and runtime behavior are not tested')

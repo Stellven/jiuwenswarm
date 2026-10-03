@@ -4,7 +4,7 @@
 
 Search has emitted an admitted idea_set with ideas I1, I2 and I3 plus their source/chunk evidence. The Brief supplies the goal and compute constraint. These labels and scores are an illustrative ranking case, not actual LLM judgments. Different mechanisms remain separate in this case; a consolidated group would carry the sorted tuple of all represented source idea IDs.
 
-The [Screening capsule](../m1/screening.md) receives only idea_set and research_brief through `cc/runner/pipeline.py` and its skill handler. One bounded model pass forms screening_assessments. The trusted wrapper invokes the ordinary `helpers/rank_opportunities.py` helper; this is not a separately admitted capsule or an independent pipeline stage.
+The [Screening capsule](../m1/screening.md) receives only idea_set and research_brief through `cc/runner/pipeline.py` and the restricted tool handler. Its pinned screening.py:run wrapper makes one brokered model call returning screening_assessments, validates that internal value and invokes the ordinary helpers/rank_opportunities.py helper. The helper is not a separately admitted capsule or an independent pipeline stage.
 
 ## The local decision
 
@@ -17,6 +17,8 @@ The [Screening capsule](../m1/screening.md) receives only idea_set and research_
 Each score includes its one-sentence evidence-grounded justification. The helper queries the ordinary dependency module using the registry pinned by the owner version/Binding. It retains all three rows, including I3's rejection reason. It orders descending sum, then ascending lexicographic sorted idea_ids tuple. The winner is I1, the first eligible row; “highest score” alone would choose incorrectly here.
 
 The helper returns the full opportunity_card, not merely “I1.” Its card retains source IDs, chunk IDs, assumptions, risks, strategic context and verification path. Its scores retain ranks, dependency evidence and rationale. These shapes have one authority: [assessments](../types/screening-assessments.md) and [card](../types/opportunity-card.md).
+
+The Python wrapper returns that card value; the single-output tool host adds the opportunity_card port name to the result frame. The registry is the canonical policy snapshot materialized as a protected read-only body file, whose hash admission/freeze verify. No registry path or extra public input is supplied by the model.
 
 ## Handoff to Hypothesis
 

@@ -30,7 +30,7 @@ Extends [common](common.md), with `scope.run_id` set to the run's id, a plain st
 | `checks` | `list<object>` | req | checked |  | Every check the gate runs on this call's output, assembled once from every check whose `applies_at` is `node` or `both`. Each is `{check_id, source}`, `source` being `capsule` (the Declaration's), `type` (the output type's, from the vocabulary) or `step` (from `step_checks`). At least one, since every type has a `node` check (INV-9) |
 | `step_checks` | `list<Check>` | opt | checked |  | The full [Check](checks.md) for each `checks` entry with `source: step`: a check the workflow adds for this call site. Required when there is one |
 | `budget` | `object` | req | checked |  | The limit per call, from policy `budgets`: `{tokens, time_s, money}`, each optional; the Gate fails a finished call over it |
-| `retry_profile_ref` | `object` | req | checked |  | Pinned `ProfileRef(kind=retry)` selecting finite behavior for the operation class |
+| `retry_profile_ref` | `object` | req | checked |  | Pinned ProfileRef(kind=retry); canonical services-v1 retry_profile requires zero autonomous execution retries at M1. Freeze validates profile id/hash/epoch before publication |
 | `retry_profile_ref.kind` | `enum(retry)` | req | checked |  | Profile discriminator; always `retry` for this reference |
 | `retry_profile_ref.id` | `id` | req | checked |  | Policy-local profile id |
 | `retry_profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile hash |

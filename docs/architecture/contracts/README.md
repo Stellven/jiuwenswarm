@@ -2,6 +2,8 @@
 
 The service schema also owns normalized routing request/decision, seed-availability records, benchmark HTTP response envelopes, trusted local auth management, preregistered ablation studies and experimental evidence/advance Artifacts. Authentication management is not exposed through benchmark endpoints. [Model auth](../system/model-auth.md) and [track isolation](../system/experiments.md) own those APIs' authority and behavior.
 
+The retry_profile definition owns the closed M1 RetryProfile wire object; [profile meanings](../schemas/profiles.md) and [lifecycle](../system/lifecycle.md) require max_execution_retries=0 for every effect class. Existing reserved-result retrieval is not another execution.
+
 Reproducible documentation checks: `python docs/architecture/_tools/validate_services.py` validates constructed positive and negative service fixtures; `python docs/architecture/_tools/validate_handoff.py` checks frozen source hashes, all generated payload examples and independently derived producer/consumer packets. These scripts use Python/jsonschema in the documentation environment. They do not invoke research, authenticate Codex, resolve real records or validate process security.
 
 These JSON Schemas own service wire shapes; linked design pages own behavior, effects and field meanings. This folder contains documentation contracts, not implementation. Payload/CC record schemas remain generated under `exports/schemas/` from their owning tables. Never maintain a second payload field list here.

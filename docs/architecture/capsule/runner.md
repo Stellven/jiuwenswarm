@@ -310,14 +310,14 @@ The entry point is `identity.carrier.ref`, written `file.py:function`. A `tool` 
 ```python
 argv = [sys.executable, "-I", "-B", "-m", "cc.runner.tool_host",
         "--root", str(root), "--entry", entry_ref, "--mode", mode]   # mode: "call", or "check" for M10a
-env  = {"PATH": os.environ["PATH"], "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+env  = {"PATH": "<fixed image runtime path>",
         "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8"}
 cwd  = workspace
 ```
 
 **Check mode** (`--mode check`, used by M10a): `root` is the materialised folder holding the check's runner file; the `call` frame's `inputs` is `{inputs, outputs, observation, expected, context}`, passed as keyword arguments; there is no broker, so a `nested` or `model` frame ends the check `unknown`; and the `result` frame's `outputs` is the `CheckResult` ([checks](../schemas/checks.md#calling-convention)). Everything else is as for a call.
 
-`-I` (isolated) ignores the user's site folder and `PYTHON*` variables. `-B` writes no bytecode, so no `__pycache__` appears in the verified folder. The `cc` package and the `cc_sdk` module ([toolchain](toolchain.md#where-code-lives)) are installed in the agent server's environment, which `-I` keeps. The host puts `root` first on `sys.path` before importing the carrier's file. The environment holds no secrets. On Linux the process starts in its own session (`start_new_session=True`). On Windows it starts with `CREATE_NEW_PROCESS_GROUP` and is assigned at once to a Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, so every process it starts belongs to the job. The handler creates the process with `asyncio.create_subprocess_exec(..., limit=16 * 1024 * 1024)`; a larger frame is `CAPSULE_ERROR`.
+These argv/env/cwd values are a workload specification passed to the validated Linux execution service, not permission to spawn an unconfined child directly. The launcher applies the fixed image interpreter, namespaces, read-only admitted code/input mounts, private writable attempt root, capability drops and authenticated broker descriptor. The handler retains its namespace-init handle for complete cancellation/reaping. Windows/native-host launch is outside M1. -I ignores user-site/PYTHON variables; -B suppresses bytecode. Trusted cc/cc_sdk packages are installed in the pinned image. The tool host loads the entry file from the verified root inside that profile. The runtime environment contains no secrets. Framing and reader limits use pinned cc.ipc.max_frame_bytes; oversized frames fail the call rather than bypassing the configured limit.
 
 **Frames.** The host and the handler exchange JSON frames, one object per line (NDJSON, UTF-8), over the host's stdin and its original stdout. Before it imports capsule code, the host keeps private copies of both frame descriptors (`os.dup(0)`, `os.dup(1)`) and opens them in binary mode. It then points descriptor 0 at `os.devnull` and descriptor 1 at stderr (`os.dup2(2, 1)`). So a capsule's `print` cannot corrupt a frame, and its `input()` cannot swallow one. Both ends write each frame as `json.dumps(frame, ensure_ascii=False).encode("utf-8") + b"\n"`. The handler reads stderr in its own task for the whole call, so a chatty capsule never blocks. It keeps the first 64 KiB in the Observation's `ext.runner.stderr`.
 
@@ -328,11 +328,11 @@ cwd  = workspace
 | host to runner | `nested` | `id`: int, `ref`: string, `inputs`: object | `cc.call` |
 | runner to host | `nested_result` | `id`; `ok`: bool; if ok `outputs`: `{port: {"ref": Ref, "value": any}}` and `issues`: `{port: [Reason]}`; else `obs_id`, `outcome`, `reason` | |
 | host to runner | `model` | `id`, `prompt`: string, `model`: string or null, `route_id`: string or null | `cc.model` |
-| runner to host | `model_result` | `id`; `ok`; if ok `text`; else `reason` | |
+| runner to host | `model_result` | `id`; `ok`; if ok `text`; else `broker_request_id`, normalized runtime `reason` and safe `message` | Failed reply supplies the reserved bridge request identity separately from local integer id; SDK retains it in ModelUnavailable, and trusted broker records it for attribution |
 | host to runner | `issue` | `port`, `code`, `message` | `cc.issue` |
 | host to runner | `result` | `outputs`: object | the function returned |
 | host to runner | `failure` | `reason_code`, `message` | the function raised a declared failure |
-| host to runner | `unavailable` | `service` (the service named by `cc.ExternalUnavailable`, or the nested capsule's name for a re-raised `cc.NestedError`), `reason`, `message` | an outside service the capsule depends on is down: `cc.ExternalUnavailable`, or an uncaught `cc.NestedError` whose reason is `runtime`-owned |
+| host to runner | `unavailable` | `service`, `reason`, `message`; `broker_request_id` required for service=model | ExternalUnavailable/nested runtime failure, or model failure matching the trusted broker reply; a forged model attribution is rejected |
 | host to runner | `exception` | `type`, `message`, `traceback` | the function raised anything else |
 
 `id` is a counter local to the call; it pairs requests with results. `cc_sdk` calls block, so a capsule makes one request at a time.
@@ -344,14 +344,14 @@ cwd  = workspace
 | Call | Does |
 |---|---|
 | `cc.call(ref, **inputs) -> NestedResult` | a nested call to a capsule in `needs.external`. `NestedResult.outputs` is output values by port name; `NestedResult.issues` is each output Artifact's `issues` by port name, so the caller can carry a caveat forward with `cc.issue`. Raises `cc.NestedError(obs_id, outcome, reason)` when the nested call does not end `ok`, and `cc.NestedRefused(ref)` when `ref` is not pinned |
-| `cc.model(prompt, *, model=None, route_id=None) -> str` | one model turn through M05; `model` is the author's choice, and may differ on every turn; `route_id` is the id of the routing decision that chose it, if a router did ([model routing](../model-routing/README.md)) |
+| `cc.model(prompt, *, model=None, route_id=None) -> str` | one authorized model turn through M05; successful model_result returns text. A failed broker reply raises cc.ModelUnavailable carrying broker request id, safe detail and normalized runtime reason. Timeout remains TIMEOUT; auth/provider unavailable maps RUNTIME_UNAVAILABLE with original diagnostic detail. Model hint/route selection obeys frozen track/session policy |
 | `cc.issue(port, code, message)` | adds a caveat to an output's `issues`; `code` must be `INPUT_AMBIGUOUS`, `INPUT_INCOMPLETE`, `INPUT_CONTRADICTORY` or `EXTERNAL_UNAVAILABLE` (an outside service was partly unavailable; owner `runtime`). An output with issues makes a passing step `PASS_WITH_KNOWN_LIMITATIONS` |
 | `cc.input_ref(port) -> InputRef` | passed as a `cc.call` input, it binds the caller's own input Artifact for that port, by reference: nothing is re-sent in a frame or stored again |
 | `cc.Failure(reason_code, message)` | raise to end with a declared failure mode |
 | `cc.ExternalUnavailable(service, message)` | raise when an outside service the capsule depends on (arXiv, Semantic Scholar) cannot answer. The call ends `error` with the runtime-owned reason `EXTERNAL_UNAVAILABLE`, never blamed on the capsule |
 | `cc.replaying() -> bool` | true at admission and in every nested call under it. An adapter for an outside service then reads recorded responses from `<workspace>/.cc/replay/<adapter>/` instead of the network, and raises `cc.ExternalUnavailable` when a recording is missing |
 
-**How the host reports an ending.** `cc.Failure`, or any exception with a string `reason_code` attribute that the Declaration lists in `guarantees.failure_modes`, is sent as `failure`. Everything else is sent as `exception`. So existing code that raises its own coded errors, such as `compile_intent`'s `IntentCompilerInputError`, needs no rewrite.
+**How the host reports an ending.** An uncaught cc.ModelUnavailable from a failed model_result is sent as unavailable with service=model, broker request id and normalized reason. The trusted runner matches that id/reason to its recorded failed broker response before preserving runtime attribution; a fabricated unavailable claim is a capsule error. cc.Failure, or an exception whose reason_code is listed in guarantees.failure_modes, is sent as failure. Other exceptions are sent as exception. No new failure_modes entry is needed for standard model/provider failures.
 
 **What the handler does with each ending.**
 
@@ -361,13 +361,13 @@ cwd  = workspace
 | `failure` | `error: CAPSULE_ERROR`, `failure_code` set (see [failures](#failures-in-one-table)) |
 | `unavailable` | `error: EXTERNAL_UNAVAILABLE`, or the nested call's own runtime-owned reason (`TIMEOUT`, `RUNTIME_UNAVAILABLE`), so an outside failure stays an outside failure up the whole call tree |
 | `exception`; a bad frame; the host exits without `result` | `error: CAPSULE_ERROR` |
-| the deadline passes | kill the process tree (Linux: `os.killpg(pgid, SIGKILL)`; Windows: close the Job Object, with `taskkill /T /F /PID` as the fallback), then `error: BUDGET_EXCEEDED` |
+| the deadline passes | terminate the launcher-owned PID namespace init and reap the complete workload tree using the validated Linux execution service, then `error: BUDGET_EXCEEDED`; process-group signalling alone is insufficient. Windows/native-host launch is outside M1 |
 
 **The workspace is not rolled back.** A killed or failed tool may leave files in the workspace. Its declared `effects` say where; the runner does not clean up.
 
 ### `skill`: model turns that follow `SKILL.md`
 
-A skill is files a model follows. The handler builds a prompt, calls the model through the broker, and parses the reply into the output ports.
+A skill is files a model follows. The handler builds a prompt, calls the model through the broker, and parses the reply into the output ports. It does not execute local Python postprocessors. A capability mixing prompt work with deterministic local code uses the existing tool handler and brokered cc.model, with its entrypoint and helper files pinned in the Declaration body; Screening is such a tool wrapper. Internal model-reply schemas do not become extra public output ports.
 
 **Front matter.** `SKILL.md` may begin with YAML front matter. The handler reads one key, `model`, and passes it to M05 as the hint. It never picks a model itself.
 
@@ -579,9 +579,9 @@ The engine's cache key uses prompt, label, phase, model and schema (call_signatu
 
 **What `run()` does:**
 
-1. Parse the descriptor. Malformed (not JSON with exactly the keys `cc`, `decl_hash`, `inputs` and `step_id`): write a `dispatch` Observation with `outcome: refused`, `reason: BINDING_MISSING`, `decl_hash: null`, `binding_ref: null`, `inputs: {}` and the raw prompt in `ext.runner.descriptor`; call no gate; return `AgentResult(skipped=True)`. A script bug is never journalled.
+1. Parse the descriptor before reserving or invoking a capsule. Malformed (not JSON with exactly the keys `cc`, `decl_hash`, `inputs` and `step_id`) is an entry protocol rejection: retain sanitized descriptor/hash evidence in a supervisor incident, invoke no runner/Gate, mint no unreserved dispatch Observation, and return `AgentResult(skipped=True)` so the generic script halts. A script bug is never journalled as successful work. Well-formed calls reserve identity before executing the pipeline.
 2. Run the pipeline as `dispatch`.
-3. Call the gate: `gate(obs_ref) -> GateResult(verification_ref, decision, verdict)`. The gate writes one Verification for every `dispatch` Observation, refusals included ([Verification](../schemas/verification-record.md)). A refused or failed call folds to `blocked` (policy `gates`, fold step 1). How the gate handles a null `binding_ref` is M10's job.
+3. Call the gate: `gate(obs_ref) -> GateResult(verification_ref, decision, verdict)`. The gate writes Verification for governed dispatch/nested Observations, including validly reserved refusals, subject to cancellation and approved isolated ablation authority. A non-ok call follows the policy's source-sensitive fold: demonstrated capsule/conformance/permission/budget faults fail; unavailable runtime/dependency/capture blocks; other insufficient evidence is inconclusive. A null Binding is diagnosed from the run's frozen policy and reserved call identity; it cannot authorize advancement.
 4. Return the result:
    - `AgentResult(skipped=True)` when the call should run again on resume: `outcome: refused` with `PRECONDITION_DEFERRED`, or a `runtime`-owned reason (`RUNTIME_UNAVAILABLE`, `TIMEOUT`, `EXTERNAL_UNAVAILABLE`), or a gate verdict of `ENVIRONMENT_BLOCKED` (the gate call hit the runtime). A skipped result is a non-success with no retry (`engine/primitives.py:757-759`), so `agent()` returns `None` before the journal write (`:616-627`, write at `:631`), and a resume re-runs the step.
    - Otherwise `AgentResult(structured=envelope)`. The engine journals it, so a resume replays it.

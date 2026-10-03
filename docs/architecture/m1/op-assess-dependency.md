@@ -16,6 +16,8 @@ tags: [module, m1, operator, screening]
 
 A pure operator that maps one [`dependency_requirement`](../types/dependency-requirement.md) to one [`dependency_assessment`](../types/dependency-assessment.md) under the frozen policy registry. The caller supplies no registry path or policy override; its Binding pins the registry hash.
 
+Screening's author kit materializes those exact immutable registry bytes into its protected body reference file. Admission/freeze require its hash to equal the registry selected by the accepted policy epoch; the helper reads that verified view. This is content materialization of one authority, not a second registry definition. Changed registry facts require a new owner version/run, while RSI cannot mutate the reference file.
+
 ## Contract
 
 `assess_dependency(requirement: dependency_requirement) -> dependency_assessment`

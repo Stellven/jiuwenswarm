@@ -3,6 +3,18 @@
   "$id": "cc:contracts:services-v1",
   "title": "M1 public service contracts v1",
   "$defs": {
+    "retry_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "profile_id", "max_execution_retries", "duplicate_policy", "recovery"],
+      "properties": {
+        "version": {"const": 1},
+        "profile_id": {"$ref": "#/$defs/id"},
+        "max_execution_retries": {"const": 0},
+        "duplicate_policy": {"const": "reuse_reserved_result"},
+        "recovery": {"const": "explicit_review"}
+      }
+    },
     "id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"

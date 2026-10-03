@@ -76,4 +76,4 @@ The pattern is [gate capsules](gate-capsules.md).
 
 ## Which capsules need a brief
 
-Every capsule of the [M1 run plan](../m1/pipeline.md) whose kind is `skill`, and every gate capsule. Pure tools and pinned helpers have no prompt. Briefs written so far: [`compile_brief`](../m1/requirement-capsule.md#prompt-brief) and [`select_opportunity`](../m1/screening.md#prompt-brief). The intent and brief gates carry their text on their own pages. Hypothesis, the POC builder, evaluation and the report writer are provisional pages, so their briefs wait until those pages are firm. The [screening gate](../m1/screening-gate.md) has not been checked for its own text.
+Every model-backed capsule of the [M1 run plan](../m1/pipeline.md), whether a Markdown skill or Python tool wrapper, and every semantic Gate capsule needs a prompt brief. Pure tools and pinned helpers have no model prompt. The linked stage owners define bounded model behavior and grounding; Screening's brief distinguishes its model's internal assessments from its wrapper's public card output. Prompt wording and executed calibration remain downstream work.

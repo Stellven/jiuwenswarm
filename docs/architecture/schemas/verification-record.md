@@ -7,7 +7,7 @@ tags: [schema]
 
 # Verification · `cc.verification.v1`
 
-The gate's check of one capsule call's live output in a run: each check's result and the folded `decision`, `pass`, `fail` or `blocked`. The gate is its only writer (INV-3), and it writes one for every Observation with `caller: dispatch`. Judge calls and admission test calls get none, and neither does a `dispatch` call cancelled by a pause or stop (its Observation has `ext.runner.cancelled: true`). Any other `dispatch` Observation with no Verification is a call the gate skipped.
+The gate's check of one governed dispatch or nested call's live output: each check's result and folded decision pass/fail/blocked. The Gate is its only writer (INV-3). Judge/admission calls and cancelled calls receive none. Ordinary governed dispatch/nested calls require a committed Verification before outputs are consumed. Approved isolated Gate ablations retain truthful NOT_RUN/PARTIAL evidence and experimental authority as defined by the track owner; absent Verification is never interpreted as PASS. Entry protocol rejections before a call is reserved are system diagnostics, not capsule Observations.
 
 The gate runs the Binding's `checks`, then its own fixed checks from policy `gates`, and folds them as that section defines. What the workflow does after `fail` or `blocked` is not part of CC.
 
@@ -30,7 +30,7 @@ Extends [common](common.md), with `scope.run_id`. Its `id` is the `verification_
 | `decision` | `enum(pass, fail, blocked)` | req | checked |  | The fold of `results`, by policy `gates` |
 | `gate_result` | `object` | req | checked |  | The durable PRD 4.2.8 decision snapshot, computed once from this fold and frozen evidence; this record is its only authority |
 | `gate_result.run_id` | `id` | req | checked |  | Equals scope.run_id; external Gate JSON requires this alias |
-| `gate_result.stage_id` | `id` | req | checked |  | Equals the invocation Binding's step_id |
+| `gate_result.stage_id` | `id` | req | checked |  | Stage from the committed dispatch reservation; for nested calls resolve the parent reservation. Must equal Binding.step_id when a Binding exists; a reserved Binding-missing refusal still has stage identity |
 | `gate_result.gate_verdict` | `enum(PASS, PASS_WITH_KNOWN_LIMITATIONS, FAIL, ENVIRONMENT_BLOCKED, INCONCLUSIVE)` | req | checked |  | Detailed runtime Gate verdict; scientific classification is separate |
 | `gate_result.normalized_verdict` | `enum(PASS, FAIL, BLOCKED, INCONCLUSIVE)` | req | checked |  | PASS_WITH_KNOWN_LIMITATIONS maps to PASS; ENVIRONMENT_BLOCKED maps to BLOCKED; other verdicts retain their spelling |
 | `gate_result.routing_action` | `enum(ADVANCE, HALT, ESCALATE_TO_HUMAN)` | req | checked |  | Only PASS and PASS_WITH_KNOWN_LIMITATIONS advance. M1's other outcomes require attributable human triage |

@@ -26,7 +26,7 @@ GateProfile {
 }
 ```
 
-Every governed research stage has applicable independent semantic criteria, as frozen PRD 4.1.4/4.2 requires. A reusable pure nested operator receives immediate mechanical Gate checks and explicit Tier2 NOT_APPLICABLE; its source evidence is independently judged by the enclosing stage before release. One `research.verifier` capability receives the immutable stage profile and evidence; stage-specific criteria remain independently authored and pinned. Mechanical helper modules use deterministic checks inside their enclosing stage and do not create additional capsule Gates. Publication follows the Report Gate and performs mechanical manifest/commit checks.
+Every governed research stage has applicable independent semantic criteria, as frozen PRD 4.1.4/4.2 requires. A reusable pure nested operator receives immediate mechanical Gate checks and Tier2 status NOT_RUN with an explanation that its mechanical profile contains no semantic criteria; its source evidence is independently judged by the enclosing stage before release. One research.verifier capability receives the immutable stage profile and evidence; stage-specific criteria remain independently authored and pinned. Mechanical helper modules use deterministic checks inside their enclosing stage and do not create additional capsule Gates. Publication follows the Report Gate and performs mechanical manifest/commit checks.
 
 ## AdmissionProfile
 
@@ -44,7 +44,7 @@ The provider cannot weaken mechanical declaration, hash, dependency, permission 
 
 ## RetryProfile
 
-Operation classes are `pure`, `read_only`, `idempotent_effect`, and `nonrepeatable_effect`. A RetryProfile supplies a finite attempt count and backoff only for allowed classes. `idempotent_effect` additionally requires request-result reuse. Model calls and `nonrepeatable_effect` have one attempt in M1; another try is an explicit new attempt.
+The sole wire-shape owner is services-v1 retry_profile: version, profile_id, max_execution_retries=0, duplicate_policy=reuse_reserved_result, recovery=explicit_review. ProfileRef.id equals profile_id; its hash pins the complete canonical object under the Binding policy epoch. M1 permits no autonomous execution retries for any Declaration effect class. Replay/status reuses reserved state rather than performing another operation. Explicit recovery follows [lifecycle](../system/lifecycle.md); a new execution receives a new human-approved attempt. Effect-class names remain the [Declaration vocabulary](policy.md), including idempotent rather than idempotent_effect. A future retry policy needs a new profile revision and dependent rechecks.
 
 ## ExecutionProfile
 
