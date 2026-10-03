@@ -10,7 +10,7 @@ tags: [capsule, draft, guide]
 
 `make_capsule.md` is the PRD's name for a capsule's contract. In CC it is the **readable form of the [Declaration](fields.md)**. People, reviewers and the Verifier's tier 2 read it.
 
-**The Declaration (`capsule.json`) is the source; `make_capsule.md` is generated from it.** The author kit writes it (M13 in [M1 architecture](../m1-architecture.md)), and nobody edits it by hand. So the readable and the checked contract can never disagree.
+**The Declaration (`capsule.json`) is the source; `make_capsule.md` is generated from it.** The author kit writes it (M13 in [M1 architecture](../archive/m1-architecture.md)), and nobody edits it by hand. So the readable and the checked contract can never disagree.
 
 ## Where it sits in a capsule folder
 

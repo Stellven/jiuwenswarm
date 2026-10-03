@@ -70,5 +70,5 @@ openJiuwen already has the engine: a workflow runtime, tool cards, a permission 
 ## What CC is not
 
 - Not a runtime or a framework: CC runs nothing. It is a schema plus the rules for it, used by [tools](tools.md).
-- Not a model router: selection picks capsules, never models.
+- Not a model router: selection picks capsules, never models. A router is an optimization a capsule's author uses inside the capsule.
 - Not a guarantee of correctness in every case, of safety for every combination, or of undoing emissions. It makes each promise checkable, and each failure attributable.

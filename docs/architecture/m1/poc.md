@@ -3,14 +3,14 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt]
+sources: [../../product/prd-m1-full-2026-10-02.txt]
 provides: [research.build_poc]
 consumes: [cc.type.hypothesis_blueprint, cc.type.research_brief, cc.type.intake, cc.type.poc_bundle]
 depends_on: [pipeline.md, ../types/poc-bundle.md, op-codesearch.md, op-workspace-io.md]
-tags: [m1, blackbox]
+tags: [m1, contract]
 ---
 
-> **Draft contract.** Bundle v2 and the shared measurement protocol define assembly. Execution readiness still depends on the security profile and owner readings.
+> **Draft contract.** Bundle v2 and the shared measurement protocol define assembly. Execution readiness still depends on the validated security profile.
 
 # `poc_capsule`: `research.build_poc` (PRD 3.6)
 
@@ -26,9 +26,9 @@ It maps the ingested files and the dataset into `/workspace/poc/`, writes a stat
 | **Work capsule** | `research.build_poc`, a `tool` with model turns |
 | **Inputs** | [`hypothesis_blueprint`](../types/hypothesis-blueprint.md) from `hypothesis`; [`research_brief`](../types/research-brief.md); [`intake`](../types/intake.md) |
 | **Outputs** | [`poc_bundle`](../types/poc-bundle.md) |
-| **Operators it pins** | [`op.codesearch`](op-codesearch.md); [`op.workspace_read`, `op.workspace_write`, `op.workspace_list`](op-workspace-io.md); [`op.syntax_check`](measurement-protocol.md#syntax-checking) |
+| **Operators it pins** | [`op.codesearch`](op-codesearch.md); [`op.workspace_read`, `op.workspace_write`, `op.workspace_list`](op-workspace-io.md); [`syntax_check`](measurement-protocol.md#syntax-checking) |
 | **Effect class** | `idempotent`, writing only `fs:workspace/poc/*`, so it is allowed unattended |
-| **Gate capsule** | `research.accept_poc`: judged criteria, intended: the patch implements the blueprint's mechanism and nothing else, and the harness measures exactly the blueprint's metrics |
+| **Gate profile** | shared `research.verifier` + `research.accept_poc.v1`: judged criteria, intended: the patch implements the blueprint's mechanism and nothing else, and the harness measures exactly the blueprint's metrics |
 
 ## Known from the PRD
 
@@ -43,14 +43,12 @@ It maps the ingested files and the dataset into `/workspace/poc/`, writes a stat
 
 ## Assumptions
 
-- The blueprint pins trusted measurement registry entries; [measurement authority](measurement-protocol.md#trusted-measurement-authority) owns production and independent evidence. Method availability remains issue 58.
+- The blueprint pins trusted measurement registry entries; [measurement authority](measurement-protocol.md#trusted-measurement-authority) owns production and independent evidence. Method availability remains registered method fixtures.
 - The harness forwards canonical BenchmarkSample records obtained from the trusted measurement service; [measurement protocol](measurement-protocol.md) owns their exact shape.
 
-## Waits on, and revise when
+## Required validation
 
-- The published BenchmarkSample protocol is now fixed; its producer/consumer seam is checked separately.
-- Registered measurement implementation/hardware coverage remains issue 58.
-- [Open issues](../open-issues.md) 42, 43 and 57 (supported confinement), [`op.codesearch`](op-codesearch.md), [`op.workspace_io`](op-workspace-io.md).
+The registered method/hardware adapters, generated-code isolation profile, offline wheelhouse and CodeSearch source pin require implementation fixtures. These are explicit prerequisites of affected calls, not missing architecture decisions. CodeSearch and workspace interfaces are pinned independently.
 
 ## Coding handoff contracts
 

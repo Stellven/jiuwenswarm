@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ../capsule/runner.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../capsule/runner.md]
 provides: [op.local_search]
 consumes: [cc.type.intake, cc.type.search_hits]
 depends_on: [../types/search-hits.md, ../types/intake.md, ../capsule/runner.md]

@@ -1,6 +1,7 @@
 ---
 type: design
 tags: [design, draft, b1]
+status: past
 ---
 
 # B1: the first working pipeline
@@ -13,7 +14,7 @@ tags: [design, draft, b1]
 - **The same components as the full workflow:** intake, intent compilation, requirement compilation, planner-binder, freeze, dispatch and delivery.
   - Planner-binder and freeze are **pass-throughs**: they make no choices. There is no library, no selector for binding and no planner. So there is also no admission gate: a person adds each capsule to a fixed capsule folder by hand (see [How capsules get into B1](#how-capsules-get-into-b1-by-hand)).
 - **A capsule and a gate where work is done.**
-  - A **capability capsule (CC)** in B1 makes one object. It is a model call with deterministic post-checks, or plain code for a pure task. Every B1 gate is deterministic code; in general a gate may itself be a capsule ([rules](capsule/capsule.md#rules)).
+  - A **capability capsule (CC)** in B1 makes one object. It is a model call with deterministic post-checks, or plain code for a pure task. Every B1 gate is deterministic code; in general a gate may itself be a capsule ([rules](../capsule/capsule.md#rules)).
   - A **gate** is deterministic code. It checks that object and decides whether the run goes on.
 - **A gate that does not pass stops the run.** The run ends with the failed gate named in the error. Where the person sees it is open (question 4).
 - **An unclear request is not a failure.** If the accepted IntentIR has a blocking ambiguity, control code ends the run with a clarify message that quotes the question. The fault is the input's, not the system's.
@@ -235,7 +236,7 @@ Key as above. White with purple here = new CC code: the launcher and the runner.
 
 **One handler per kind.** What the runner can do for a capsule depends on the capsule's `kind` field. Each kind has its own handler, and a handler gives the runner the capabilities that kind needs. B1 builds two.
 
-| `kind` | The handler gives the runner | M1 ([checked or unchecked](capsule/stages.md)) |
+| `kind` | The handler gives the runner | M1 ([checked or unchecked](../capsule/stages.md)) |
 |---|---|---|
 | `skill` | a model turn: the capsule's files plus its inputs as the prompt, its output schema stated in the prompt as the reply format, JSON parsed from the reply | checked; built in B1 |
 | `tool` | a Python call to the pinned code, with typed inputs and outputs | checked; built in B1 |
@@ -246,7 +247,7 @@ Key as above. White with purple here = new CC code: the launcher and the runner.
 
 A new kind means a new handler in the runner. The capsules, the gate and the pipeline stay the same.
 
-**The modules to build.** Each is one issue, with fixed inputs and outputs (see [What architecture covers](architecture.md)):
+**The modules to build.** Each is one issue, with fixed inputs and outputs (see [What architecture covers](../architecture.md)):
 
 | Module | In | Out |
 |---|---|---|
@@ -368,7 +369,7 @@ Key as above. Brown here = files on disk. Dashed edge = option A, a separate ada
 **What we imagine.** There are two layers, joined by ids:
 
 - **CC records: the source of truth.** Every capsule call writes an Observation, every gate a Verification, and every value an Artifact. Each Binding is kept. Records are never sampled and never expire. They answer "what ran, on which exact code, with what result", and they are what RSI, the librarian and benchmarking read later.
-- **Traces: for debugging.** The runner opens one OpenTelemetry span per capsule call, using agent-core's span conventions. The span carries our `run_id` as `openjiuwen.run.id`, plus the `cc.*` attributes listed on the [Observation](schemas/observation.md#reuse) page. The Observation keeps the span's `trace_id` and `span_id` (unchecked at M1). Spans can be sampled and can expire. They link to records; they never replace them.
+- **Traces: for debugging.** The runner opens one OpenTelemetry span per capsule call, using agent-core's span conventions. The span carries our `run_id` as `openjiuwen.run.id`, plus the `cc.*` attributes listed on the [Observation](../schemas/observation.md#reuse) page. The Observation keeps the span's `trace_id` and `span_id` (unchecked at M1). Spans can be sampled and can expire. They link to records; they never replace them.
 
 ```mermaid
 flowchart LR
@@ -438,14 +439,14 @@ Paths and commits are as in [the hops](#through-jiuwenswarm-the-deep-view); the 
 
 | Schema | Used in B1 for |
 |---|---|
-| [Declaration](capsule/fields.md) | the three capsules' ports, preconditions, effect class and checks |
-| [Check](schemas/checks.md) | the checks the gates run; the test cases the RSI tree writes |
-| [Policy](schemas/policy.md) | the one policy file every Binding pins |
-| [Port types](schemas/port-types.md) | `raw_intent`, `intent_ir` and `semantic_contract` as domain types, and `text` and `integer`, each with its checks |
-| [Binding](schemas/binding.md) | freeze's pin of `count_spaces` (and of the two compile capsules at run start), with no Verdict |
-| [Observation](schemas/observation.md) | one per capsule call: outcome, model, time |
-| [Artifact](schemas/artifact.md) | each object a node makes, and the request and document |
-| [Verification](schemas/verification-record.md) | each gate's `pass`, `fail` or `blocked` |
+| [Declaration](../capsule/fields.md) | the three capsules' ports, preconditions, effect class and checks |
+| [Check](../schemas/checks.md) | the checks the gates run; the test cases the RSI tree writes |
+| [Policy](../schemas/policy.md) | the one policy file every Binding pins |
+| [Port types](../schemas/port-types.md) | `raw_intent`, `intent_ir` and `semantic_contract` as domain types, and `text` and `integer`, each with its checks |
+| [Binding](../schemas/binding.md) | freeze's pin of `count_spaces` (and of the two compile capsules at run start), with no Verdict |
+| [Observation](../schemas/observation.md) | one per capsule call: outcome, model, time |
+| [Artifact](../schemas/artifact.md) | each object a node makes, and the request and document |
+| [Verification](../schemas/verification-record.md) | each gate's `pass`, `fail` or `blocked` |
 
 **Not used in B1:** Candidate, Verdict and Standing, because there is no library or admission, and Finding. The RSI tree's output already has a Candidate's shape, ready for when admission exists.
 

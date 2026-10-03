@@ -1,13 +1,13 @@
 ---
 type: design
-status: blackbox
+status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt]
+sources: [../../product/prd-m1-full-2026-10-02.txt]
 provides: [research.run_benchmark]
 consumes: [cc.type.poc_bundle, cc.type.hypothesis_blueprint, cc.type.benchmark_payload]
 depends_on: [pipeline.md, ../types/benchmark-payload.md, ../capsule/process-boundary.md]
-tags: [m1, blackbox]
+tags: [m1, contract]
 ---
 
 > **Provisional security dependency.** The empirical protocol is defined; execution remains unavailable until its platform profile passes mandatory checks.
@@ -27,8 +27,8 @@ It requests the separate process service to provision the bundle in a POC-scoped
 | **Inputs** | [`poc_bundle`](../types/poc-bundle.md) from `poc`; [`hypothesis_blueprint`](../types/hypothesis-blueprint.md) |
 | **Outputs** | [`benchmark_payload`](../types/benchmark-payload.md) |
 | **Execution boundary** | [`PocExecutionRequest` / `PocExecutionResult`](../capsule/process-boundary.md#provisional-api); generated program execution is not the CC capsule-call runner |
-| **Effect class** | Provisional `idempotent` only if the process boundary confines writes to the run's POC workspace and throwaway venv and denies undeclared effects. If it cannot establish that boundary, do not run the benchmark (issue 54); do not silently fall back to an attended execution. |
-| **Gate capsule** | `research.accept_benchmark`: judged criteria, intended: both runs completed, and the values trace to the raw output. Never whether the claim held: that is evaluation's job |
+| **Effect class** | `nonrepeatable_effect`: pinned policy, gated inputs and the exact durable dispatch reservation authorize the first bounded empirical execution after predecessor release. Measurements are never repeated automatically. Stable request identity returns the original result/in-progress state; explicit human-reviewed restart allocates a new reserved attempt. The validated process profile bounds all effects. |
+| **Gate profile** | shared `research.verifier` + `research.accept_benchmark.v1`: judged criteria, intended: both runs completed, and the values trace to the raw output. Never whether the claim held: that is evaluation's job |
 
 ## Known from the PRD
 
@@ -38,14 +38,9 @@ It requests the separate process service to provision the bundle in a POC-scoped
 - The CC runner runs this capsule, like every other (4.1.4; item 42); this capsule calls the distinct process boundary for the generated program.
 - It collects numbers, never interprets them (3.7.3, 3.7.4).
 
-## Assumptions
+## Startup and required validation
 
-- The process boundary is mandatory; an attended run or jiuwenbox is not a substitute under the current PRD. Items 40, 42 and 43 resolve identity/oracle, capsule-versus-program roles, and offline package provisioning before this design can be checked.
-- The 1800 s policy cap may be below a long benchmark. The Brief's `runtime_limit_s` may need a higher cap for this step.
-
-## Waits on, and revise when
-
-- Resolve [open issues](../open-issues.md) 40, 42, 43 and 54; validate the effective restricted identity, oracle isolation, package-source rule, and boundary pre-check. Runtime provisioning of the unprivileged identity and local wheelhouse are prerequisites, not capsule schema fields.
+The restricted process profile, separate oracle identity and offline wheelhouse are mandatory prerequisites. Startup fails closed if their checks fail. Effective deadline is the frozen minimum of Brief runtime_limit_s and policy cap; a declared experiment that cannot fit is rejected before freeze with BUDGET_EXCEEDED. The process service owns cancellation and process-tree termination. No attended or unconstrained fallback is available.
 
 ## Coding handoff contracts
 
@@ -53,4 +48,4 @@ Code/process placement is [modules](../system/modules.md). Shared request, deadl
 
 The owning output type page defines fields and cross-input checks. [Measurement protocol](measurement-protocol.md) defines methods, samples, transforms and compiler evidence. [Research gates](research-gates.md) defines this stage's acceptance API and criteria. No local copy of a shared schema is authoritative. [Verification](../system/verification.md) gives independently callable entry points, expected observations and injectable failures; runtime acceptance results belong to coding work.
 
-Invoke execute_poc first with poc_setup, then benchmark: a single harness execution emits both arms for every repeat. Use only preinstalled or approved wheelhouse packages under issue 43. The process service owns unpacking, child deadlines and tree termination. Parse raw capture with the trusted protocol parser, derive raw deltas, store empirical_results.json and complete capture, then return benchmark_payload v2. Never ask a model to parse or grade results. Nonzero exit/timeout or malformed required stream preserves logs and halts; unavailable isolation is an environment failure.
+Invoke execute_poc first with poc_setup, then benchmark: a single harness execution emits both arms for every repeat. Use only preinstalled or approved wheelhouse packages under the frozen package-source profile. The process service owns unpacking, child deadlines and tree termination. Parse raw capture with the trusted protocol parser, derive raw deltas, store empirical_results.json and complete capture, then return benchmark_payload v2. Never ask a model to parse or grade results. Nonzero exit/timeout or malformed required stream preserves logs and halts; unavailable isolation is an environment failure.

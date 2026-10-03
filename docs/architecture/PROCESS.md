@@ -8,7 +8,7 @@ tags: [process]
 
 # How the architecture is built
 
-**The goal.** Turn the PRD into API-level design that is checked area by area and precise enough that separate builders can implement connected modules and get code that connects. Schemas are what make that possible, so the process is built around them. `locked` records Muk's approval; checked contracts may be design inputs before approval.
+**The goal.** Turn the [frozen PRD](../product/SOURCE_FREEZE.md) into API-level design that separate builders can implement and connect. [Architecture policies](policies.md) govern source precedence, minimal modules, AI review and handoff releases. `locked` records Muk's approval; checked contracts may be design inputs before approval.
 
 **Decisions and precedents.** Every architecturally significant choice is recorded in the [decision ledger](decisions.md) with its primary precedent, the exact pattern borrowed, local rationale, owner, affected contracts, validation state, replacement trigger and migration boundary. A cited system is precedent, not proof and not automatically a dependency.
 
@@ -19,9 +19,9 @@ tags: [process]
 | `draft` | written, not yet through the loop | the author |
 | `checked` | through the loop: the lint passes, the canary agrees or a review's findings are applied, and every dependency it relies on is `checked`, `locked`, or an explicitly named `blackbox` interface. It **should** be complete; what is still open is listed in [open issues](open-issues.md) | the architect, after the loop. The lint refuses `checked` while a dependency is still `draft` |
 | `locked` | `checked`, and approved by Muk. It changes only through the change order below. Locking is an approval state, not a prerequisite for other architecture work to consume the checked contract | Muk |
-| `blackbox` | an interface blocked by a genuine product-scope conflict or an unvalidated safety mechanism. It fixes a provisional boundary, states the unsafe or conflicting condition, and fails closed. Missing prose alone is handled with a sourced, replaceable `draft` default | the architect, after recording why a safe provisional default is impossible |
+| `blackbox` | legacy status, retired from the active coding path. Every current responsibility has a concrete design and failure outcome; unrun security evidence remains a validation obligation | history only |
 
-**A black box is promoted, never patched.** When its missing input arrives, it goes through the area loop like any new area, and its status becomes `checked`. Every page that depends on it is checked again in the same change. A checked or locked interface change likewise reopens the owner and every transitive producer, consumer, gate, run-plan, seam, and diagram page that relies on the changed field, meaning, error, or effect. Record that recheck set with the change. The list of black boxes, with what each waits on, is [system/blackboxes](system/blackboxes.md).
+**A contract change reopens its consumers.** Recheck the owner and every transitive producer, consumer, Gate, run-plan, seam and diagram page relying on the changed field, meaning, error or effect. Record that set before editing. [Validation obligations](open-issues.md) track missing runtime proof; [system boundaries](system/blackboxes.md) links concrete designs.
 
 The banner under the front matter says the same: **Checked, not yet approved** or **Draft**.
 
@@ -29,10 +29,22 @@ The banner under the front matter says the same: **Checked, not yet approved** o
 
 - **Design:** this folder, jiuwenswarm `docs/architecture/`. **PRD:** `docs/product/`, verbatim, indexed in its README. Notes elsewhere (obby) are never the design.
 - **Upstream material found anywhere else** (a teammate's PRD or design) is copied verbatim into `docs/product/` or a workstream folder here the same day, and its seams with CC are written in [seams](seams.md).
-- **One concept per page,** about 30 KB at most. A bigger page becomes a folder with an index. The lint warns.
+- **One concept per page, as big as it needs to be.** There is no size limit. Split a page only when it holds separable concepts, or when keeping two parts in one file makes them restate each other, so there are two sources of truth to keep in sync. A split page becomes a folder with an index. Muk's direction, 2026-10-02.
 - **Mermaid is the graph format,** because machines can read it. [graph.md](graph.md) is generated from front matter; never edit it.
 
 - **Major architecture lives in architecture pages, never only in a proposal or a note.** Build order, observability, lifecycle, configuration, the capsule set and the decisions behind them each have an owner page in this folder. A proposal page records only the delta and the reasoning, links to the owners, and is replaced by edits to them on adoption. Muk's direction, 2026-10-02.
+## Working agreements
+
+Kept here so they live with the design, not in anyone's notes.
+
+- **Provenance:** Muk authorized coherent architecture commits and pushes on 2026-10-02. Stage relevant paths explicitly and preserve unrelated changes. A commit does not imply that pages are locked or runtime checks passed.
+- **Fetch before every push.** Resolve compatible documentation changes against the frozen sources; preserve and record semantic conflicts. Never force-push or overwrite unrelated work.
+- **No `.pptx` in the repository.** A deck becomes Markdown with Mermaid.
+- **Owner files stay verbatim.** A teammate's PRD or design is copied unchanged, with its provenance (original name, date, sender, SHA-256) in [`docs/product/README.md`](../product/README.md). Architecture's notes go in reviews, [seams](seams.md) and the reply pages, never inside the owner's file. A new version goes beside the old one.
+- **Commit messages** have a simple descriptive title and no body.
+- **Reviews** normally use fresh AI contexts and exact source/contract evidence. No particular model is required. Independent producer and consumer reviews may run concurrently; the author resolves source-verified findings. People receive a concise decision brief.
+- **Language:** short sentences, active voice, main point first. Software jargon is fine; define a coined term. No em dash.
+
 ## The order for changing anything
 
 A change flows from its owner outward. Never edit a consumer before the owner.
@@ -74,11 +86,11 @@ A change flows from its owner outward. Never edit a consumer before the owner.
 
 ## The area loop
 
-An area starts when the contracts it reads are `checked` or `locked`. A named `blackbox` dependency may be used only at its published provisional interface; the consuming page must state its assumptions and which interface changes require revision. A `draft` dependency is not a usable contract.
+An area may be drafted against an explicitly pinned draft interface; record assumptions and the full recheck set. An area becomes `checked` only after its dependency checks pass. Design drafting does not wait for another person's availability. Pending external inputs use a bounded adapter; specified safety mechanisms carry validation obligations rather than undefined black boxes.
 
 ```mermaid
 flowchart LR
-    S0["0 pick area: inputs checked or locked"] --> S1["1 read the whole PRD chain and checked inputs"]
+    S0["0 pick area and pin dependency revisions"] --> S1["1 read frozen source clauses and contracts"]
     S1 --> S2["2 seam inventory: reuse ladder per datatype"]
     S2 --> S3["3 draft: types, then APIs, then node pages"]
     S3 --> S4{{"4 lint ok"}}
@@ -86,12 +98,12 @@ flowchart LR
     S5 -->|"mismatch: fix the docs"| S3
     S5 --> S6{{"6 fresh source-verified design review"}}
     S6 --> S7["7 apply verified findings, lint"]
-    S7 --> S8["8 lock"]
+    S7 --> S8["8 checked, then Muk may lock"]
     S7 -->|"what remains"| OI[("open-issues.md")]
 ```
 
 - **Node pages** follow [the node template](system/nodes.md#node-spec-template), so each can become a Declaration and code directly.
-- **Every review finding is checked in source before it is applied.** A third review round is never run; what remains goes to open issues.
+- **Every review finding is checked in source before it is applied.** Recheck changed claims; allow targeted further review when a material disagreement remains. Unresolved acceptance obligations go to open issues with an owner, consequence and expected evidence.
 - **The review checklist:** a datatype defined twice; an API whose arguments, return value, errors or records are unstated; a reference to something undefined; a type that does not compile or an example that does not validate; an invariant broken; a PRD sub-feature with no page and no written reason; stale text after a change; control flow outside a capsule or the run plan; a host with stage logic. Reviewers use a fresh context and verify every finding against the PRD and architecture sources. Apply verified findings; record unresolved product decisions in [open issues](open-issues.md).
 
 ## The canary
@@ -124,14 +136,13 @@ python _tools/arch_lint.py canary --compare A.json B.json
 ## The lint
 
 `python docs/architecture/_tools/arch_lint.py [--check]`. The old `tundle/tools/architecture_sync.py` now runs it. It checks:
-- field tables and the INV-11 to INV-13 rules;
+- payload/record field tables and the INV-11 to INV-13 rules; ordinary-service API envelopes use canonical authored JSON Schema under `contracts/` and separate fixture validation;
 - links and Mermaid;
 - every type page compiles and its example validates;
 - no page restates a type's field table;
 - no retired name is in use;
 - system pages carry front matter;
 - `graph.md` is current;
-- page sizes (as warnings).
 
 Still to add: lock hashes for locked pages, and `adapters_only` once code exists.
 

@@ -43,7 +43,7 @@ The runner is system code, not a capsule. It reads the [Declaration](fields.md) 
 | Bind inputs, check ports, confine paths | Running checks and folding a decision: the check runner (M10a) and the gate (M10) |
 | Evaluate `needs.when` | Admission, Standing, the library's contents. The runner does not re-check Standing; freeze bound only admitted capsules |
 | Decide permission from `effect_class` and `needs.human_interaction` | Rebuilding jiuwenswarm's permission engine or jiuwenbox |
-| Call the capsule by its `kind`, within its time budget | Choosing or routing a model: the capsule's author does that, in its own files |
+| Call the capsule by its `kind`, within its time budget | Selecting the model route: Model Routing owns the fixed production Codex configuration or isolated approved experiment route |
 | Broker the capsule's nested calls and model calls | The workflow's order and halts: the script and M03 |
 | Store every Artifact in a run, and one Observation per call | Spans as a source of truth: they are optional debug data |
 
@@ -283,7 +283,7 @@ class HandlerResult:
     failure_code: str | None              # a code from failure_modes, if the capsule raised one
     error: str | None                     # None, or "CAPSULE_ERROR", "BUDGET_EXCEEDED", "TIMEOUT", "RUNTIME_UNAVAILABLE", "EXTERNAL_UNAVAILABLE"
     error_detail: str | None              # a message or traceback, kept in ext.runner
-    model_hint: str | None                # the model the author asked for, if any
+    model_hint: str | None                # task/role hint only; Model Routing owns actual endpoint/model
 ```
 
 A handler never writes records. It returns values; the pipeline stores them.
@@ -303,7 +303,7 @@ The entry point is `identity.carrier.ref`, written `file.py:function`. A `tool` 
 
 - **The time budget must be enforceable.** A Python thread cannot be killed; a process can.
 - **Local imports must come from the verified folder.** A fresh process imports the capsule's own modules from its cache folder only, so two versions never share a module cache.
-- **Model calls must come back to the agent server.** The only signed-in Codex child belongs to the agent server process ([B1](../b1-design.md#the-cc-runner-how-capsules-plug-into-jiuwenswarm)), so a tool's model calls go back through the broker. That also records every model call.
+- **Model calls must come back to the agent server.** The only signed-in Codex child belongs to the agent server process ([B1](../archive/b1-design.md#the-cc-runner-how-capsules-plug-into-jiuwenswarm)), so a tool's model calls go back through the broker. That also records every model call.
 
 **Launch.**
 
@@ -439,7 +439,7 @@ stateDiagram-v2
     Error --> [*]
 ```
 
-**Why every turn is a fresh session.** PRD 3.0.1 keeps M1 on synchronous, single-turn requests. The Codex service reuses one thread per session id (`jiuwenswarm/server/runtime/codex_subscription/service.py:142-152`), so reusing an id would pile every turn into one thread. Each turn therefore uses its own session id, `cc:<run_id or candidate_id>:<obs_id>:<turn>`, and re-sends the whole exchange. Each id stays in `subscription/bindings.json` for good; that file grows by one entry per model turn.
+**Why every turn is a fresh session.** PRD3.0.1 keeps M1 model requests single-turn. The native service reuses a thread per session ID, so M05 derives a fresh ID from canonical ModelCallScope hash, request_id, obs_id and turn and re-sends the complete exchange. Run/admission uses public scoped capture; RSI controller/oracle uses private session capture owned by environment. No hidden fixture call invents a research run/Candidate or public Observation. Managed auth profile is reused; conversation identity is fresh. Session metadata stays in the appropriate private/public transport evidence namespace.
 
 **This settles the kind question.** Earlier drafts made any capsule that calls an operator a `tool`, because a skill was one text turn and could not call anything. With this handler, a skill can call any capsule it pins. Kind now means only how the capsule itself runs. Whether it may call others is set by `needs.external`, for every kind.
 
@@ -458,10 +458,11 @@ The runner depends on M05 through one call. M05 is designed with Model Routing; 
 ```python
 @dataclass(frozen=True)
 class ModelCallContext:       # which capsule call a model turn belongs to; for M05's records and an endpoint that routes itself
+    scope: ModelCallScope     # canonical discriminated scope owned by services-v1/environment
     obs_id: str
     turn: int                 # 1, 2, ... within that call
-    capsule_name: str
-    decl_hash: str
+    capsule_name: str | None  # null for non-capsule planner/controller calls
+    decl_hash: str | None
     step_id: str | None
     role: str | None          # the Binding's role (unchecked at M1)
 
@@ -480,7 +481,7 @@ async def complete(prompt: str, *, model_hint: str | None, session_id: str, dead
 
 This page owns ModelCallContext, ModelReply, complete and ModelError. M05 sends the reserved request to the protected [model bridge](../system/environment.md#model-bridge); only that bridge calls the native stream adapter. Router integration is on [seams](../seams.md#model-routing). Each native session is used for one turn, and the bridge retains one request/result identity across transport retries without resubmitting the model call.
 
-**Replay at admission.** When a test case carries `model_replies`, M05 returns them in turn order instead of calling Codex. The order is one sequence across the whole call tree, nested calls included, such as a router capsule's own model turns. A missing reply is `RUNTIME_UNAVAILABLE`.
+**Replay at admission.** When a test case carries model_replies, M05 returns them in turn order instead of calling Codex. There is one sequence across the complete call tree, including nested capabilities and the routing adapter's bounded judge if enabled in that fixture. A missing reply is RUNTIME_UNAVAILABLE.
 
 **Model transport cancellation.** M05 calls the authenticated [model bridge](../system/environment.md#model-bridge), which owns the native subscription stream and raw capture. Cancellation means stop waiting and cancel the reserved bridge request; it never resubmits a turn. The bridge drains an abandoned stream for at most the configured grace period, then terminates its dedicated CC app-server process if necessary. It never terminates a shared user-chat transport. Missing response or forced transport exit halts the call with preserved evidence. A new transport is established only by a subsequent explicit startup/recovery, not an automatic model retry.
 
@@ -516,7 +517,7 @@ Every call a capsule makes to another capsule, and every model call, goes throug
 5. The nested Observation's `causation_id` is the caller's `obs_id`, so the call tree can be rebuilt from records.
 6. Return `{port: {"ref": Ref, "value": value}}` and the outputs' `issues` on `ok`; otherwise `{obs_id, outcome, reason}`. An input given as `cc.input_ref(port)` is bound to the caller's own input Artifact, and step 2 stores nothing for it.
 
-A nested call gets no Verification; the caller's gate covers it. The caller's `cost.time_s` includes its nested calls, because they run inside its clock.
+Before returning a nested operator's output to the parent, the Gate host persists its Verification using the parent's frozen dependency GateProfile. Pure mechanical operators have deterministic checks and explicit semantic NOT_APPLICABLE; the parent stage's independent semantic Gate includes nested evidence before downstream release. A nonadvancing or unsaved nested Verification fails the parent call. This grants no workflow release authority. The parent's cost.time_s includes nested execution/check time. Gate/referee calls are not recursively gated.
 
 **A model call:** the broker calls M05 `complete` with the caller's deadline and a session id `cc:<scope id>:<obs_id>:<n>`, where `n` counts the caller's model turns from 1.
 
@@ -544,17 +545,17 @@ The engine calls `AgentBackend.run(prompt, opts, schema_json, *, call_key)` and 
 **What the script gets.** The launcher passes `args`:
 
 ```json
-{"run_id": "run-...", "plan": {"steps": ["..."], "launcher_inputs": {"intake": "intake"}},
- "pins": {"intent": "5d41...", "requirement": "77ab..."},
- "inputs": {"intake": {"id": "art-...", "sha256": "..."}}}
+{"run_id": "run-...", "plan": {"steps": ["..."], "launcher_inputs": {"intake": "intake", "source_text": "source_text"}},
+ "pins": {"requirement": {"id": "binding-brief", "sha256": "..."}, "search": {"id": "binding-search", "sha256": "..."}},
+ "inputs": {"intake": {"id": "art-...", "sha256": "..."}, "source_text": {"id": "art-source", "sha256": "..."}}}
 ```
 
-`plan` is the run's [`run_plan`](../types/run-plan.md) value. `pins` maps each `step_id` to its Binding's `decl_hash`, from freeze. `inputs` holds the refs from `record_input`. The launcher's exact order is on [toolchain M01](toolchain.md#m01-launcher).
+`plan` is the run's [`run_plan`](../types/run-plan.md) value. `pins` maps each `step_id` to its committed Binding Ref from freeze. The backend resolves and verifies that exact Binding before reading its decl_hash or constructing a descriptor; it never resolves a current alias. `inputs` holds the intake and source_text refs from `record_input`. The examples here abbreviate schema/hash bytes to explain the engine envelope and are not standalone validation fixtures. The launcher's exact order is on [toolchain M01](toolchain.md#m01-launcher).
 
 **What the script sends.** The prompt is a **call descriptor**: RFC 8785 canonical JSON of what decides the result.
 
 ```json
-{"cc":1,"decl_hash":"5d41...","inputs":{"intake":{"id":"art-...","sha256":"..."}},"step_id":"intent"}
+{"cc":1,"decl_hash":"5d41...","inputs":{"intake":{"id":"art-...","sha256":"..."},"source_text":{"id":"art-source","sha256":"..."}},"step_id":"requirement"}
 ```
 
 The engine's cache key uses prompt, label, phase, model and schema (call_signature, engine/journal.py:61). The label is step_id. This is only a cache key: the supervisor's dispatch identity and committed Observation/Verification authorize reuse. Every cache hit must pass authorize_advance. Changed inputs/pins start a new run, not an automatic re-execution in the frozen run ([lifecycle](../system/lifecycle.md)).
@@ -606,13 +607,14 @@ Step 6 decides from policy `mappings` and `needs.human_interaction`. **Every M1 
 | `effect_class: pure` or `read_only` | allow |
 | `effect_class: idempotent` or `compensable`, and every `effects[].resource_key` starts with `fs:workspace/` | allow |
 | `effect_class: idempotent` or `compensable`, any other effect | ASK, which is DENY when unattended: `PERMISSION_DENIED` |
+| `effect_class: nonrepeatable_effect` | allow only the pinned-policy bounded empirical operation through the validated process service, with the exact reserved Binding/attempt; otherwise `PERMISSION_DENIED` |
 | `effect_class: irreversible` | ASK, so DENY: `PERMISSION_DENIED` |
 | `needs.human_interaction: blocking` | `PERMISSION_DENIED`: nothing can answer |
 | `needs.human_interaction: optional` | allowed; `cc_sdk` offers no way to reach a person, so the capsule finishes without an answer |
 
-So at M1 an `irreversible` capsule never runs. Generated POC execution in 3.7 is a separate PRD-mandated unprivileged process boundary, not an exception to this decision table and not the general jiuwenbox sandbox. Until that boundary is designed and its pre-check passes, the benchmark stage is not runnable.
+At M1 an `irreversible` capsule never runs. Stage 3.7 declares `nonrepeatable_effect`: its frozen plan, policy, gated bundle and exact durable dispatch reservation authorize the first bounded empirical execution automatically after predecessor release. The process-service pre-check must pass. Duplicate requests attach to the original running/committed result and cannot execute again; interrupted uncertainty halts. An authenticated human review authorizes a new reserved attempt for explicit restart. This class grants no broader filesystem, network or irreversible authority. Generated program confinement remains the separate validated process boundary.
 
-**Runtime coverage is an execution prerequisite.** The proposed restricted child mount/network/identity profile and broker effect capabilities are defined by environment. If it cannot prevent host-file/socket bypass, doctor blocks that call/backend; a workspace cwd alone is insufficient. The POC program still uses its separate profile. General jiuwenbox remains deferred. The Linux bootstrap and macOS mechanism are unresolved owner/platform conditions (issues 40/57), so no runtime safety pass is claimed here.
+**Runtime coverage is an execution prerequisite.** Restricted child mount/network/identity profiles and broker capabilities are defined by environment. If the profile cannot prevent host-file/socket bypass, doctor blocks that backend; cwd alone is insufficient. POC execution uses its own fixed profile. [Deployment](../system/deployment.md) owns one Linux image using nested unprivileged Bubblewrap; macOS Docker Desktop executes that same profile. Actual negative probes must pass before enabling it. General jiuwenbox orchestration remains deferred. No runtime safety result is claimed here.
 
 ## Records the runner writes
 
@@ -650,15 +652,15 @@ Owners are from policy `registries`.
 | `error` | `RUNTIME_UNAVAILABLE` | M05: the Codex runtime is down or refused the turn; the store failed; a runner bug | runtime |
 | `ok` | null | step 9 | |
 
-**Declared failure modes at M1.** `guarantees.failure_modes` is unchecked at M1, and its codes are not `reason_code` values (rule `failure_codes_distinct`). So the Observation's `reason` is `CAPSULE_ERROR` for every capsule exception, and the declared code is kept in `ext.runner.failure_code`. When INV-19 is accepted, `reason` becomes the declared code and undeclared exceptions become `CAPSULE_RAISED_UNDECLARED`. Only step 7's mapping changes.
+**Optional failure modes at M1.** A listed enforceable hazard adds a matching verification obligation; its diagnostic code may be retained in ext.runner.failure_code. Standard Observation errors remain CAPSULE_ERROR or their infrastructure code. A declaration cannot authorize retries or redefine Gate failure handling.
 
 ## Three worked calls
 
-**`research.compile_intent` (tool, pure, no dependencies; the [intent capsule](../m1/intent-capsule.md)).** The Binding pins its `decl_hash`. Its `code_sha256` is its carrier's sha256, so the cache folder holds `compile_intent.py` only. Its check code is M10a's business, materialised separately. The runner binds `intake` (type [`intake`](../types/intake.md), inline JSON) and checks it against its type: a blank `prompt` fails the type's schema, so the call is `refused`, `PORT_MISMATCH`, and the function is never called. Then the tool host calls `compile_intent(intake=...)`. Its one output port is `intent_ir`, so the return value is that port's value, stored as an Artifact of type [`intent_ir`](../types/intent-ir.md).
+**`op.local_search` (tool, pure; [local search](../m1/op-local-search.md)).** The frozen dependency closure pins its declaration and code/check hashes. The broker binds intake, query and bounded top_k inputs, validates them, and invokes the restricted tool host. It returns canonical search_hits, stored as an Artifact linked to its Observation. The broker requires a durable mechanical Verification before the parent consumes that output. Input/schema/capture failure returns the documented refusal/error and no successful hit result.
 
-**`research.compile_brief` (skill, no dependencies; the [requirement capsule](../m1/requirement-capsule.md)).** Its inputs are `intake` and the optional `intent_ir`, both named [types](../types/types.md). The cache folder holds `SKILL.md` and the two reference files. The handler builds the prompt from those files, the `intake` value and the `research_brief` contract, and sends one turn through M05 with `SKILL.md`'s `model` hint. It parses `{"outputs": {"research_brief": ...}}` and returns any `issues`. The gate then runs its node checks.
+**`research.compile_brief` (skill; [requirement capsule](../m1/requirement-capsule.md)).** Required inputs are intake and source_text; optional intent_ir supplies ordinary deterministic hints. The handler builds its prompt from pinned SKILL.md/reference files, these inputs and the canonical research_brief output contract. M05 uses the fixed configured Codex route, preserving raw prompt/reply capture. Parsing and deterministic output checks precede the independent semantic Gate; a committed Verification and release are required before Search.
 
-**A skill that pins an operator** (as [asks](#what-this-design-asks-of-other-pages) 4 proposes for `hypothesis_capsule` with `op.codesearch`). The first reply is a `call` to `op.codesearch`. The broker finds it in `needs.external`, writes its inputs as Artifacts, and runs it as a `nested` tool call with its own Observation. The handler re-sends the prompt with the exchange. The second reply carries `outputs`. The record holds two Observations: the skill's, and the operator's with `causation_id` set to the skill's `obs_id`.
+**A skill that pins an operator** (Hypothesis with op.codesearch). The first reply requests a permitted pinned capability. The broker verifies needs.external, reserves the nested call identity and asks the supervisor to commit inputs. Nested execution publishes its Observation/output and mechanical Verification before the exchange is returned to the skill. The second reply supplies the parent outputs. Parent and operator Observations are linked through causation_id and the scoped call capture; the parent Gate also checks the nested evidence.
 
 ## Modules, one issue each
 
@@ -686,7 +688,7 @@ Each module can be built and tested with fixtures standing in for its neighbours
 flowchart LR
     S["M12 store"] --> R3["R3 materialiser"] --> R2["R2 pipeline with R4, R5"]
     R2 --> R6a["R6a tool host"]
-    R6a --> T1(["testable: tool capsules, compile_intent first"])
+    R6a --> T1(["testable: tool capsules, local_search fixture first"])
     M05["M05 client with fixture replay"] --> R6b["R6b skill handler"]
     R2 --> R6b --> R7["R7 broker"]
     R7 --> T2(["testable: skills and nested calls, no live model"])
@@ -703,7 +705,7 @@ These are proposals. Each needs approval before it changes the page that owns it
 1. **[Library](library.md):** admission also stores each admitted Declaration at `cc/declaration/library/<decl_hash>`, as the RFC 8785 bytes of the Declaration with v1.0 defaults filled in (exactly the bytes hashed for `decl_hash`); every `Port.value_schema` file at `cc/content/<sha256>`. The vocabulary and policy documents are stored by their own writers, the vocabulary builder and the policy publisher ([toolchain](toolchain.md#m00c-policy-publisher)).
 2. **[Policy](../schemas/policy.md) registries:** allow `OPERATOR_NOT_ADMITTED` as the reason of a refused nested call, owner `refusal`. Until then, an unpinned nested `ref` writes no Observation and fails the caller with `CAPSULE_ERROR`. Also give `SCHEMA_NONCONFORMANT` the owner `refusal` when step 2 raises it.
 3. **Policy:** add `runner.max_skill_turns` (proposed: 8), `runner.max_inline_file_bytes` (proposed: 200000), and the rule `effects_cover_dependencies`.
-4. **[M1 architecture](../m1-architecture.md):**
+4. **[M1 architecture](../archive/m1-architecture.md):**
    - Drop the working choice "a capsule that calls an operator is a `tool`". A skill may pin operators.
    - M04's return value becomes the envelope on this page, which carries refs, not values.
    - "A `prompt_section` is inserted into a skill's turn" now means through a nested call, as on this page.
@@ -719,3 +721,7 @@ These are proposals. Each needs approval before it changes the page that owns it
 3. **Throughput.** M05 runs one CC turn at a time, and every tool call starts a process. Both are deliberate for M1 safety. A pool of tool hosts per `code_sha256`, and parallel Codex turns, can come later without changing any interface here.
 4. **Structured output.** When the Codex App Server's `outputSchema` is usable (AI4R-001), M05 can take the reply contract as a schema. The parse rules stay as a second line of defence.
 5. **`documents` as files.** M1 architecture's M01 makes documents "a `collection<file>` port, one text Artifact per document". A skill reads them inline, within `runner.max_inline_file_bytes` each. Very long documents need a `search` operator, not a bigger prompt.
+
+## Required observed-operation capture
+
+The trusted broker/process collector supplies Observation.effects_observed for every call, including nested and admission calls, as resource_key/op entries backed by committed raw capture. Compare operations against the exact pinned Declaration/Binding and process profile before an ok result. Empty lists denote no observed operations, including refusal before launch; missing mandatory capture is an evidence failure, not proof no effects occurred. An undeclared/denied operation fails with attributable security evidence. An operation whose enforcement or capture cannot be verified remains unsupported. Automated librarian drift analysis and Standing changes are deferred.

@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ../PROCESS.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../PROCESS.md]
 provides: [system.verification_surface]
 consumes: [cc.gate_host, system.run_lifecycle, system.durable_storage]
 depends_on: [../capsule/gate-host.md, lifecycle.md, storage.md, environment.md, workstation.md]
@@ -29,6 +29,9 @@ This is an architecture specification for testable public interfaces and expecte
 | Data Foundation | seal execution, assemble, export | repeated assembly, loss/corruption of required capture; verify byte-for-byte prompts/logs, ids/hashes, no invented counts |
 | Entry/UI/config | load_config, doctor, public run API and native views | project-over-user overrides, unsupported platform, invalid token, reconnect; read the same durable state |
 | Offline RSI | begin session, proposal attempt, submit and activate | planted forbidden mutation/regression, frozen referee, loop/final separation; observe append-only hash chain and no live activation |
+| Planner/validator | propose with fake bridge; validate immutable run_plan | wrong port/cycle/permission/budget/missing objective/Gate; observe findings and zero dispatches |
+| Experimental entry | feature-profile request | forbidden production toggles, unapproved real endpoint, missing Code Mode confinement; observe wrong-track denial |
+| Benchmark export | headless run_task and export_run | halted/sealed runs, missing telemetry/corrupt ref/write interruption; observe stable identities and truthful unavailable fields |
 
 Fixture owners supply check/rubric expected outcomes independently of builders (INV-10). Inject faults through supplied model, store, process, clock, collector and engine adapters; do not alter production product behavior to manufacture a pass. Inputs and expected outputs belong to owning TASK fixtures after handoff.
 
@@ -40,16 +43,20 @@ Additional persistence scenarios: decision computed PASS but save fails; decisio
 
 ## Research and security scenarios
 
-For each payload: a valid example, required field removed, unknown core field, broken source/resource id, mismatched type/version and wrong-run reference. Screening includes equal scores, duplicate source ideas, all conflicts, missing rubric/registry and stable ordered output without selecting an internal sorting algorithm. Hypothesis/benchmark/evaluation cases distinguish acceptance target, claimed effect and falsification boundary; units, relative/absolute transform, zero denominator, missing measurements, plausibility anomaly, and scientific FAIL flow to Delivery. Domain classifications remain blocked by owner policy issues 10/41/44 rather than guessed by tests.
+For each payload: a valid example, required field removed, unknown core field, broken source/resource id, mismatched type/version and wrong-run reference. Screening includes equal scores, duplicate source ideas, all conflicts, missing rubric/registry and stable ordered output without selecting an internal sorting algorithm. Hypothesis/benchmark/evaluation cases distinguish acceptance target, claimed effect and falsification boundary; units, relative/absolute transform, zero denominator, missing measurements, plausibility anomaly, and scientific FAIL flow to Delivery. Classification follows the frozen PRD and owning evaluation contract, including its preregistered middle zone; tests never invent a missing target.
 
 Negative security probes execute under the actual child identities: read home/.ssh/Codex auth/store/hidden fixtures/other run; escape via symlink or parent path; direct socket and forbidden tool; privilege escalation; malicious pip build; timeout with surviving grandchild. All are denied or execution is unavailable. Test the oracle comparator never sends expected output to candidate code, and loop/final hashes do not overlap. Probe supported platform/Python/wheel combinations; absent mechanism or unrun probe stays unsupported, not passed.
 
 ## Connected design and handoff
 
+Final revision adds snapshot/alias activation-race checks; source_text launcher preparation; RSI all-three paired outcomes and ten known-bad/three known-good planted children; dedicated Codex-home contention/refresh/relogin/secret-exclusion; benchmark qualification of safe relative resources; conditional ablation-study validation; disabled/partial Gate evidence; and failed experimental-advance storage preventing successor dispatch. [Model auth](model-auth.md), [experiments](experiments.md), [oracle](../capsule/fixture-oracle.md), and [benchmark transport](benchmark-export.md#docker-http-transport) own these expected outcomes. Each is a downstream implementation scenario, separate from the executed schema/canary checks.
+
 Measurement authority checks include a harness emitting plausible invented values, a forged/replayed measurement_ref, wrong arm/seed/method/config, missing workload capture and zero completed baseline invocations. Each must block despite valid sample JSON. Inject failure between measurement capture and commit; no complete sample is returned. System record checks include a killed dispatch without Observation, quota reservation before interruption, and repeated human-review/activation IDs. The native token-file probes include wrong owner/mode, symlink, expiry and stale service instance.
 
-Architecture evidence for this pass: existing lint/schema/example/graph checks pass; the POC producer and Benchmark consumer were independently derived by fresh agents and the existing canary returned agree on poc_bundle with hypothesis_blueprint externally supplied. This is one checked seam, not a claim that every M1 seam has passed blind derivation. The fresh handoff review's seven verified findings are dispositioned in [open issues](../open-issues.md#review-dispositions-and-current-recheck-scope). New draft contracts still need area acceptance and owner/platform closure before complete coding handoff.
+Previous-pass evidence: POC producer and scientific Benchmark consumer were independently derived and the canary agreed on poc_bundle with hypothesis_blueprint externally supplied. This historical result does not validate newly revised contracts. Current checks/reviewer findings are recorded in the release review evidence; [decisions](../decisions.md) owns dispositions. Draft areas require connected review before checked status.
 
 Architecture lint compiles schema tables, validates examples, checks links and module/datatype graph. Independently derive producer and consumer interfaces from their owner pages and run the existing seam canary. A fresh source reviewer checks PRD coverage and the seven coder questions; every verified finding is fixed or dispositioned to a named owner and affected modules. Changed contracts recheck the transitive consumer set.
+
+Detailed AI review follows [coder requirements](coder-requirements.md#ai-review-policy). Reviewers receive bounded source/contract packets and provide evidence-backed findings. Humans receive a compact significant-decision brief. No AI approval substitutes for executed runtime/security evidence. This uses [Pact's provider/consumer model](https://docs.pact.io/) without adding Pact as a runtime dependency.
 
 Implementation integration follows startup/doctor, admission, freeze, intake-to-report, evidence reconstruction and explicit halt/resume. A full demonstration uses a small local baseline/dataset and reproducible model response fixtures, then the real authenticated model endpoint on a validated supported platform. A valid scientific FAIL is a successful governed research run. Record exact versions, fixtures, commands and observed results only after execution. This documentation session verifies architecture syntax/examples and reviewer findings; it cannot verify unbuilt runtime components.

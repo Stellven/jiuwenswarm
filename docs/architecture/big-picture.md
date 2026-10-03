@@ -5,7 +5,7 @@ tags: [goal, post-m1]
 
 # The big picture: where we are heading
 
-> **A potential near-term goal, open to change.** This page gives context: it shows where the project is heading, so that someone working on M1 can see why M1 builds what it builds. Anyone may propose changes to it. It is not a design and not granular enough to build from: the smallest thing drawn is a capability capsule or a gate. The design to build from is [B1](b1-design.md) for the earliest pipeline, then [M1 architecture](m1-architecture.md) for the full build; the earlier [M1 design](m1-design.md) is past and no longer current.
+> **A potential near-term goal, open to change.** This page gives context: it shows where the project is heading, so that someone working on M1 can see why M1 builds what it builds. Anyone may propose changes to it. It is not a design and not granular enough to build from: the smallest thing drawn is a capability capsule or a gate. The design to build from is [B1](archive/b1-design.md) for the earliest pipeline, then [M1 architecture](archive/m1-architecture.md) for the full build; the earlier [M1 design](archive/m1-design.md) is past and no longer current.
 
 **What the goal adds to M1:**
 
@@ -87,7 +87,7 @@ flowchart TB
     style DISPATCH fill:#FFF4DC,stroke:#B86E00,stroke-width:3px
 ```
 
-Key as in [B1](b1-design.md#the-pipeline).
+Key as in [B1](archive/b1-design.md#the-pipeline).
 
 - **The stages around dispatch stay the same as in B1 and M1:** intake, intent compilation, requirement compilation, then delivery. What changes is how dispatch is filled.
 - **The planner and selector fill dispatch at runtime.** The selector offers the admitted capsules that fit the contract. The planner orders them, possibly in parallel, and the binder pins each node by hash.
@@ -143,7 +143,7 @@ Each workstream builds one part of the pictures above, and meets the others only
 | RSI | the RSI cold path, attached to the library | mutation in an offline sandbox, against static contracts and hidden fixtures | reads Findings, Observations, lineage and test suites; sends Candidates to admission |
 | RSI data foundation | feeds the RSI cold path | the data and fixtures RSI works on | sample runs and fixtures |
 | Verifier fine-tuning | the model behind the tier 2 judge | tuning the model behind the tier 2 judge | a new version of the verifier capsule, through admission |
-| Model routing | inside capsules whose authors want a routed model; not in the capsule layer (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)) | on the main branch, the Codex CLI adapter over one subscription. On an isolated branch, a multi-model router against simulated endpoints until enterprise keys arrive | none with the capsule layer |
+| Model routing | an optimization inside capsules whose authors want a routed model; it never picks a capsule or changes the function; not in the capsule layer (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)) | on the main branch, the Codex CLI adapter over one subscription. On an isolated branch, a multi-model router against simulated endpoints until enterprise keys arrive | none with the capsule layer |
 | Planner | fills the dispatch box at runtime | the Cluster Mode planner, tested against offline scenarios; the Leader Agent for intent compilation. It may replace the fixed DAG after M1. Muk has reviewed a similar bounded, effect- and trust-aware graph search elsewhere. It informs the shape of this problem; the design here still needs to be built fresh, not carried over | reads the contract and the selector's offer; writes the plan |
 
 Because the parts meet only at these interfaces, each workstream can build and test its part on its own.
@@ -152,8 +152,8 @@ Because the parts meet only at these interfaces, each workstream can build and t
 
 | Part | First appears | Where to read more |
 |---|---|---|
-| fixed pipeline, CC runner, gates | B1 | [B1](b1-design.md) |
-| two-tier gate, admission, operators | M1 | [M1 architecture](m1-architecture.md) |
-| RSI in an offline sandbox, dynamic planner and router on their own tracks | M1, as parallel tracks | [M1 architecture, Seams with other workstreams](m1-architecture.md#seams-with-other-workstreams) |
+| fixed pipeline, CC runner, gates | B1 | [B1](archive/b1-design.md) |
+| two-tier gate, admission, operators | M1 | [M1 architecture](archive/m1-architecture.md) |
+| RSI in an offline sandbox, dynamic planner and router on their own tracks | M1, as parallel tracks | [M1 architecture, Seams with other workstreams](archive/m1-architecture.md#seams-with-other-workstreams) |
 | library, selector, planner and binder on the main path, librarian | after M1 | this page |
 | importer, isolated verification, composites, stores | after M1 | [Tools](capsule/tools.md), [Composition](capsule/composition.md) |

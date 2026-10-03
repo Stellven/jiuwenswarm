@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, integration.md, ../capsule/toolchain.md, ../capsule/runner.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, integration.md, ../capsule/toolchain.md, ../capsule/runner.md]
 provides: [system.module_map, system.process_topology]
 consumes: [system.adapters, cc.gate_host, cc.run_plan]
 depends_on: [integration.md, ../capsule/runner.md, ../capsule/toolchain.md]
@@ -31,23 +31,31 @@ All paths below are relative to the jiuwenswarm repository. Cross-module calls u
 | Check runner / Muk with Ramika for criteria | `cc/checks/runner.py`, `cc/checks/registry/` | trusted gate host; restricted check subprocess | fixed registry and check ABI | [toolchain M10a](../capsule/toolchain.md#m10a-check-runner-and-the-check-library) |
 | Gate host / Muk; acceptance profiles: Ramika | `cc/gate.py` | trusted supervisor | new fold and durable decision writer | [gate host](../capsule/gate-host.md), [Verification](../schemas/verification-record.md) |
 | Store, hashes, vocabulary, policy / Muk | `cc/store.py`, `cc/hashing.py`, `cc/vocab.py`, `cc/policy/` | trusted supervisor, sole persistent writer | new durable file publication; native KV may index committed records | [storage](storage.md), [toolchain](../capsule/toolchain.md) |
-| Author kit and admission / Muk | `cc/kit.py`, `cc/admission.py` | trusted CLI; test calls through runner | new; no hand-pinned bypass at M1 | [toolchain M13/M14](../capsule/toolchain.md#m13-author-kit) |
-| Research work and gate capsules / stage owner, Muk for schema | `capsules/research.<capability>/` | runner skill handler or restricted tool child | stage-specific instructions/code; gate rubric belongs to independent referee | [pipeline](../m1/pipeline.md) |
-| Fixed operators / Muk | `capsules/op.<capability>/`, `cc/adapters/deepsearch.py`, `cc/adapters/codesearch.py` | nested restricted tool child | local and scholarly search wrappers; rank fixed; workspace capability API | [M1 operators](../m1/order.md) |
+| Author kit and admission / Muk | `cc/kit.py`, `cc/admission.py` | trusted CLI; test calls through runner | tested or Puppet admission behind one provider; mandatory integrity first | [admission](../capsule/admission.md), [toolchain M13/M14](../capsule/toolchain.md#m13-author-kit) |
+| Eight research work capsules and shared verifier / stage owner, Muk for schema | `capsules/research.<capability>/` | runner skill handler or restricted tool child | one semantic verifier with pinned stage criteria; deterministic checks remain host code | [pipeline](../m1/pipeline.md) |
+| Three search capabilities / Muk | `capsules/op.<search>/`, `cc/adapters/deepsearch.py`, `cc/adapters/codesearch.py` | nested restricted tool child | local/scholarly/code search; bounded retrieval permissions | [M1 operators](../m1/order.md) |
+| Mechanical research helpers / Muk | `cc/research/` | supervisor, restricted child only where permission boundary requires | ordinary functions for source extraction, IntentIR, rank/arithmetic, snapshot/compiler/publication | [pipeline](../m1/pipeline.md); expose canonical payloads without separate capsule identity |
 | Generated POC service / Muk, Xiaoyang | `cc/security/poc_service.py`, `cc/security/linux_launcher.py` | separate restricted process tree | new confinement and offline installer | [process boundary](../capsule/process-boundary.md) |
 | Data Foundation / Suraj, Muk for shared evidence API | `cc/evidence.py`, `cc/data/collector.py`, `cc/data/assembler.py`, `cc/data/export.py` | mandatory capture in trusted supervisor; assembler offline | native memory/trace adapters plus new lossless capture | [storage](storage.md#required-evidence-and-derived-views), [seam](../seams.md#data-foundation) |
 | Progress and UI / workstation owner | `cc/events.py`, `cc/adapters/runview.py` | supervisor; native browser/TUI clients | reuse native views; new CC state mapping | [workstation](workstation.md) |
 | Offline RSI / Saurav, Muk for Candidate/evidence interfaces | `cc/rsi/session.py`, `cc/rsi/attempts.py`, `cc/rsi/submit.py` | isolated offline controller; no live DAG mutation | existing RSI sources are reuse candidates, not yet verified | [RSI engine](../capsule/rsi-engine.md) |
 | Fixture oracle / Saurav, Muk/Xiaoyang for security | `cc/security/oracle.py` | independent private daemon; isolated child per case | new aggregate-only authenticated API | [oracle](../capsule/fixture-oracle.md) |
+| Isolated planner and validator / Muk | `cc/planning/service.py`, `cc/planning/validate.py`, `cc/adapters/leader.py` | trusted experimental controller; model proposal through bridge | native Leader identity; new typed plan validator; planner is not capsule | [planner](planner.md) |
+| Experimental compiler/router/Code Mode adapters / workstream owner | `cc/experiments/entry.py`, `cc/adapters/` | separate experimental worker/profile | whitelist-only adapters; native permissions for Code Mode | [experiments](experiments.md) |
+| External benchmark entry/export / Muk interface, Saurav harness | `cc/benchmark_api.py`, `cc/data/export.py` | trusted headless entry/export | new versioned evidence boundary; harness internals external | [benchmark export](benchmark-export.md) |
+
+## Deployment placement
+
+[Deployment](deployment.md) owns one Docker image/container. The process labels below are internal monolith trust boundaries, not independent services or deployment units. Host CLI/browser and the external benchmark harness use loopback-published APIs; all runtime Python, TUI/tmux, Codex app-server and restricted children run inside the same Linux image. Benchmark traffic enters the authenticated versioned endpoint on host 127.0.0.1:8787. No per-task container creation or runtime Docker socket is available.
 
 ## Process topology
 
-Additional canonical components: `cc/records.py` owns [system-record variants and reservations](records.md); `cc/measurements/registry.py` and `protocol.py` own method registration, parsing and arithmetic; `cc/security/measurement_service.py` owns [trusted per-arm evidence](../m1/measurement-protocol.md#trusted-measurement-authority) in a trusted process with isolated workload children. Snapshot and compiler operator folders implement op.freeze_resources/op.syntax_check; the comparison helper lives in capsules/op.compare_to_thresholds. These are new modules, not reuse claims.
+Additional canonical components: `cc/records.py` owns [system-record variants and reservations](records.md); `cc/measurements/registry.py` and `protocol.py` own method registration, parsing and arithmetic; `cc/security/measurement_service.py` owns [trusted per-arm evidence](../m1/measurement-protocol.md#trusted-measurement-authority) in a trusted process with isolated workload children. Snapshot/compiler/comparison helpers live under `cc/research/`; requiring a restricted subprocess does not itself require a capsule. These are new modules, not reuse claims.
 
 ```mermaid
 flowchart LR
-    CLI["native CLI and TUI"] --> SUP["trusted supervisor: launcher, engine, gate, store"]
-    WEB["native loopback Web UI"] --> SUP
+    CLI["host API client / in-container CLI and TUI"] --> SUP["trusted supervisor: launcher, engine, gate, store"]
+    WEB["loopback-published Web UI"] --> SUP
     SUP <-->|"authenticated runner frames"| RUN["managed CC runner subprocess"]
     RUN --> TOOL["restricted tool and check children"]
     RUN <-->|"authorized model request"| MODEL["trusted model bridge"]
@@ -56,6 +64,10 @@ flowchart LR
     RSI["offline RSI controller"] <-->|"aggregate only"| ORA["private oracle daemon"]
     ORA --> CHILD["restricted child per fixture"]
     RSI -->|"Candidate to admission"| SUP
+    EXP["isolated experiment entry"] -->|"validated run_plan"| SUP
+    EXP --> LEAD["native Leader adapter / model bridge"]
+    HAR["external benchmark harness"] -->|"authenticated HTTP v1: task/config/seed"| SUP
+    SUP -->|"sealed export references"| HAR
 ```
 
 The runner is a managed subprocess for PRD 4.6.3. `CcBackend` remains the engine's client in the supervisor; the R2 pipeline and R6/R7 handlers execute in the runner process. Only the trusted supervisor writes the store. Runner record requests and required evidence return through its authenticated channel; the supervisor validates their writer/identity before committing. The model bridge holds login credentials and supplies text results only. No untrusted child inherits the supervisor environment, home directory, store directory or model login files.
@@ -66,4 +78,4 @@ Upstream adapters are owned by [integration](integration.md); cite the existing 
 
 ## Design status
 
-This map is draft pending the connected reviews. [Verification](verification.md) supplies invocation and failure-injection contracts. A module whose product or platform decision is open stays blocked locally; all other module interfaces can be completed against the canonical published boundary.
+This map is draft pending connected AI reviews. [Handoff](handoff.md) and [coder requirements](coder-requirements.md) provide the full seven-question matrix; [verification](verification.md) supplies failure hooks. Twelve capsules is the current minimal proposal, justified by capability boundaries rather than a target count. Platform validation obligations block execution on affected platforms while their system contracts remain defined.

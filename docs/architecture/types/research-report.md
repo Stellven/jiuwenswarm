@@ -3,7 +3,7 @@ type: payload-type
 id: cc.type.research_report
 version: 2
 status: draft
-tags: [types, m1, blackbox]
+tags: [types, m1]
 ---
 
 > **Draft.** The upstream report-writer template has been located and source-checked. See the adaptation and evidence inputs on [Delivery](../m1/delivery.md).
@@ -20,7 +20,7 @@ The final markdown report: findings, method, benchmark analysis, the verdict and
 |---|---|---|---|---|---|
 | `markdown` | `text` | req | checked |  | The whole report, in the template's structure |
 | `sections` | `list<string>` | req | checked |  | At least one. The section titles, in order; must include the method, the benchmark analysis and the limitations (3.9.2) |
-| `classification` | `enum(pass, fail, inconclusive, conditionally_acceptable)` | req | checked |  | The evaluation's classification, so the user sees a scientific `FAIL` explained (3.8.5) |
+| `classification` | `enum(PASS, FAIL, INCONCLUSIVE, CONDITIONALLY_ACCEPTABLE)` | req | checked |  | The evaluation's classification, so the user sees a scientific `FAIL` explained (3.8.5) |
 | `citations` | `list<id>` | req | checked |  | The `source_id`s the report cites. May be empty |
 | `limitations` | `list<text>` | req | checked |  | Every earlier output's `issues`, and the evaluation's residual risks |
 | `ext` | `map<string, json>` | opt | checked |  | Extensions keyed by producer; consumers ignore them |
@@ -46,7 +46,7 @@ The final markdown report: findings, method, benchmark analysis, the verdict and
     "7. Recommendations",
     "Verdict"
   ],
-  "classification": "fail",
+  "classification": "FAIL",
   "citations": [
     "arxiv:2205.14135"
   ],

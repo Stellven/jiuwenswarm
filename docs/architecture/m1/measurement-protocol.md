@@ -1,10 +1,10 @@
 ---
 type: design
-status: blackbox
+status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt]
-provides: [research.measurement_protocol, op.compare_to_thresholds, op.freeze_resources, op.syntax_check, system.measurement_service]
+sources: [../../product/prd-m1-full-2026-10-02.txt]
+provides: [research.measurement_protocol, compare_to_thresholds, freeze_resources, syntax_check, system.measurement_service]
 consumes: [cc.type.hypothesis_blueprint, cc.type.benchmark_payload, cc.type.evaluation_verdict]
 depends_on: [../types/hypothesis-blueprint.md, ../types/benchmark-payload.md, ../types/evaluation-verdict.md, ../system/storage.md]
 tags: [m1, measurements, contract]
@@ -12,13 +12,13 @@ tags: [m1, measurements, contract]
 
 # Measurement, compiler and resource contracts
 
-This page owns the technical protocol shared by Hypothesis, Builder, Benchmark and Evaluation. It does not choose the scientific classification mapping (issue 44) or invent measurement implementations (58). Proposed code lives in `cc/measurements/registry.py`, `cc/measurements/protocol.py` and the named operator capsule folders. The registry/checks are independently authored; RSI and generated code cannot change them.
+This page owns the technical protocol shared by Hypothesis, Builder, Benchmark and Evaluation. Scientific classification is owned by the frozen Blueprint rule and Evaluation contract. Trusted measurement implementations are registered separately. Proposed code lives in `cc/measurements/registry.py`, `cc/measurements/protocol.py` and ordinary helper modules. The registry/checks are independently authored; RSI and generated code cannot change them.
 
 ## Frozen methods
 
 `resolve_method(method_id, method_sha256) -> MeasurementMethod` resolves a committed registry entry with ID, raw unit, allowed comparison bases, code and configuration schema hashes, Python entry point, hardware requirements and supported statistics. The method validates the frozen benchmark configuration before Hypothesis can pass its Gate. Missing methods are `INPUT_INCOMPLETE`; no model-written replacement is accepted. Methods measure live arm outputs; fixture expected answers never become a measurement method.
 
-`op.freeze_resources(intake: intake, baseline_resource_id: id, dataset_resource_id: id, benchmark_config: file) -> snapshots: collection<resource_snapshot>` requests the trusted snapshot service. Each [`resource_snapshot`](../types/resource-snapshot.md) names the immutable manifest, content hash, kind and read-only authority used by the blueprint. The service checks resource kinds, readable non-symlink trees, config schema and registered hardware. One supervisor batch publishes all manifests, copied read-only resources and config before returning. Missing resources reject before code generation. Identical source hashes/config return identical content; changed input requires a new run. The capsule has no authority to snapshot arbitrary host paths. Source paths are resolved from authorized intake, as specified by [storage](../system/storage.md).
+`freeze_resources(intake: intake, baseline_resource_id: id, dataset_resource_id: id, benchmark_config: file) -> snapshots: collection<resource_snapshot>` requests the trusted snapshot service. Each [`resource_snapshot`](../types/resource-snapshot.md) names the immutable manifest, content hash, kind and read-only authority used by the blueprint. The service checks resource kinds, readable non-symlink trees, config schema and registered hardware. One supervisor batch publishes all manifests, copied read-only resources and config before returning. Missing resources reject before code generation. Identical source hashes/config return identical content; changed input requires a new run. The capsule has no authority to snapshot arbitrary host paths. Source paths are resolved from authorized intake, as specified by [storage](../system/storage.md).
 
 ## Harness stream: `BenchmarkSample`
 
@@ -35,13 +35,13 @@ Use canonical decimal arithmetic at precision 28 with round-half-even; mean is s
 | relative_percent | 100*(b-t)/abs(b) for lower; 100*(t-b)/abs(b) for higher | b must be nonzero; beneficial change is positive |
 | percentage_points | 100*(t-b) | Both raw values are fractions in [0,1]; output unit is percentage points |
 
-Zero denominators or missing samples produce a null comparison and explicit incomplete evidence, never division by zero, a zero improvement or an invented value. Classification of that evidence is issue 44. Comparators have their ordinary numeric meaning (`lt`, `lte`, `gt`, `gte`, `eq`), applied separately to expected, acceptance and falsification predicates. No downstream code chooses a unit or comparator.
+Zero denominators or missing samples produce a null comparison and explicit incomplete evidence, never division by zero, a zero improvement or an invented value. Missing mandatory evidence blocks infrastructure release; Evaluation records its validity blocker without treating it as scientific rejection. Comparators have their ordinary numeric meaning (`lt`, `lte`, `gt`, `gte`, `eq`), applied separately to expected, acceptance and falsification predicates. No downstream code chooses a unit or comparator.
 
-`op.compare_to_thresholds(benchmark_payload, hypothesis_blueprint) -> comparisons: file` is a pure fixed helper. Its file is canonical JSON of the comparison entries owned by evaluation_verdict; it is not a new hand-maintained schema. The work capsule combines these entries with its single plausibility turn and the approved fixed classification policy. Missing approved policy yields `POLICY_UNRESOLVED` before evaluation. Gate independently recomputes arithmetic and policy output.
+`compare_to_thresholds(benchmark_payload, hypothesis_blueprint) -> comparisons: file` is an ordinary pure fixed helper. Its file is canonical JSON of the comparison entries owned by evaluation_verdict; it is not a new hand-maintained schema. The work capsule combines these entries with its single plausibility turn and the pre-registered Blueprint classification rule. Missing preregistered Blueprint rule yields INPUT_INVALID before evaluation. Gate independently recomputes arithmetic and policy output.
 
 ## Syntax checking
 
-`op.syntax_check(patch: file, harness: file, blueprint: hypothesis_blueprint) -> evidence: file` runs the fixed compiler and AST scanner in the restricted syntax profile. Evidence is a closed object `{protocol_version:1, patch_sha256, harness_sha256, compiler_exit_code, ast_checks:[{id,result:pass|fail,message}], stdout_sha256, stderr_sha256}`. The runner publishes it as an Artifact and provides its Ref to the POC producer. Compile without importing or executing generated modules; compiler writes only disposable bytecode. Scan forbidden imports, mutation of frozen methods/resources, and conformance to the registered logging adapter. Static scanning supports confinement; it is not proof of safety or runtime measurement success. One failed check returns evidence and halts at the POC Gate; no repair loop runs.
+`syntax_check(patch: file, harness: file, blueprint: hypothesis_blueprint) -> evidence: file` runs the fixed compiler and AST scanner in the restricted syntax profile. Evidence is a closed object `{protocol_version:1, patch_sha256, harness_sha256, compiler_exit_code, ast_checks:[{id,result:pass|fail,message}], stdout_sha256, stderr_sha256}`. The runner publishes it as an Artifact and provides its Ref to the POC producer. Compile without importing or executing generated modules; compiler writes only disposable bytecode. Scan forbidden imports, mutation of frozen methods/resources, and conformance to the registered logging adapter. Static scanning supports confinement; it is not proof of safety or runtime measurement success. One failed check returns evidence and halts at the POC Gate; no repair loop runs.
 
 These operators inherit the runner's pinned dependency validation, deadline, cancellation and duplicate-call rules. File writes use the store/broker, not arbitrary capsule filesystem access. [Verification](../system/verification.md) supplies independent parser, snapshot, compiler and comparison invocation points; no runtime execution is claimed here.
 

@@ -1,41 +1,20 @@
 ---
 type: design
 status: draft
-version: 1
+version: 2
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ../capsule/gate-capsules.md, search-capsule.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt]
 provides: [research.accept_ideas]
-consumes: [cc.gate_capsule_pattern, prompt.gate_judging, cc.type.evidence_bundle, cc.type.verifier_assessment]
-depends_on: [../capsule/gate-capsules.md, pipeline.md]
-tags: [m1, gate, capsule]
+consumes: [cc.type.evidence_bundle, cc.type.verifier_assessment]
+depends_on: [../capsule/gate-host.md, pipeline.md]
+tags: [m1, gate, profile]
 ---
 
-> **Draft: reopened for changed shared contracts.** The gate capsule for step `search`: PRD 3.3.6's handoff to the 4.2 Evaluator Gate before Screening (3.4). It follows [the gate capsule pattern](../capsule/gate-capsules.md); only what differs is written here.
+# research.accept_ideas.v1 Gate profile
 
-# `search_gate`: `research.accept_ideas`
+This is a pinned profile for the shared `research.verifier`, not a separate capsule Declaration. Ideas are grounded in cited retained chunks and answer the Brief within scope. Tier 1 verifies source resolution, verbatim local passages, Top-K, one to three ideas and configured size bounds.
 
-## What it does
-
-It assesses the candidate ideas against two judged step checks:
-- **`ideas_grounded`:** each idea is supported by the passages it cites, and is not speculative (PRD 3.3.5's blacklist);
-- **`ideas_answer_brief`:** each idea addresses the Brief's objective and stays within its scope.
-
-The deterministic checks (citations resolve, local passages verbatim, Top-K, one to three ideas, size) run in Tier 1. This is PRD 3.3.6's "schema and token limits". If the ideas fail, the run halts before Screening.
-
-## Run-plan entry
-
-The gate slot of step `search` on [the M1 pipeline](pipeline.md): `gate_capsule_name: research.accept_ideas`, with the two step checks above, defined in [the plan](pipeline.md#the-plan-as-recorded).
-
-## Declaration (`capsule.json`)
-
-As [the intent gate](intent-gate.md#declaration-capsulejson), with these differences:
-
-| Field | Value |
-|---|---|
-| `identity.name` | `research.accept_ideas` |
-| `identity.body` | `SKILL.md`, then `rubrics/ideas_grounded.md` and `rubrics/ideas_answer_brief.md` |
-| `identity.summary` | `Assess a set of candidate research ideas against the evidence they cite and the brief they answer, per the given criteria and rubrics, answering each criterion with a rationale and verbatim quotes.` |
-| `ports.inputs[0].description` | `The idea set, the Brief and intake, and the criteria to judge by.` |
+The owning [Gate host](../capsule/gate-host.md) evaluates `evaluate(evidence_bundle_ref, gate_profile_ref, request_id) -> verification_ref`. The run plan sets `gate_capsule_name: research.verifier` and this profile's immutable reference. Referee rubrics are trusted profile assets with exact hashes, independently authored from work-capsule prompts and excluded from RSI mutation. Missing/unknown evidence halts; failed persistence cannot release the next step. Output is a durable Verification, while the verifier itself returns verifier_assessment.
 
 ## `rubrics/ideas_grounded.md`
 
@@ -73,7 +52,7 @@ Unknown when the Brief's objective is too vague to tell.
 
 ```text
 ---
-name: research.accept_ideas
+name: research.verifier
 ---
 You judge a set of candidate research ideas, with the evidence they cite. When a criterion looks at
 inputs, the Research Brief is in the bundle's inputs. Follow the judging instructions, and each

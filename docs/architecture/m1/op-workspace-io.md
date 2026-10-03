@@ -3,18 +3,20 @@ type: design
 status: draft
 version: 2
 owner: muk
-sources: [../capsule/runner.md, ../capsule/permissions.md, ../../product/prd-m1-full-2026-10-01.txt]
+sources: [../capsule/runner.md, ../capsule/permissions.md, ../../product/prd-m1-full-2026-10-02.txt]
 provides: [op.workspace_io, op.workspace_read, op.workspace_write, op.workspace_list]
 consumes: []
 depends_on: [../capsule/runner.md, ../system/storage.md, ../system/environment.md]
-tags: [m1, operator]
+tags: [module, m1, operator]
 ---
 
-# Workspace operators: one fixed API per operation
+# Ordinary module contract: Workspace operators: one fixed API per operation
 
-This page owns the workspace operator family, implemented under `capsules/op.workspace_read/`, `op.workspace_write/` and `op.workspace_list/`. `op.workspace_io` is the family name, not a callable capsule with conditional ports. All three are nested tool calls through the trusted broker; no model or network.
+> Module API names below retain their op.* namespace for callable interfaces. They are not separately admitted capsule identities; code is pinned through its owning work capability/profile. Screening RSI evaluates helper candidates offline and activation replaces the owner version, preserving runtime ranking checks.
 
-| Capsule | Required inputs | Required output | Effect class |
+This page owns the workspace operator family, implemented in `cc/workspace.py`. `op.workspace_io` is the family name, not a callable capsule with conditional ports. All three are authenticated broker tool operations through the trusted broker; no model or network.
+
+| Module call | Required inputs | Required output | Effect class |
 |---|---|---|---|
 | op.workspace_read | path: path | content: file | read_only |
 | op.workspace_write | path: path, content: file | written_path: path | idempotent |

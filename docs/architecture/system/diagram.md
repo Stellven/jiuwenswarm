@@ -14,6 +14,10 @@ tags: [system, diagram, canary]
 
 # The overall system
 
+Deployment and trust-process placement are drawn in [deployment](deployment.md#deployment-and-process-placement); the graph below expands the one application container. The browser and external harness remain outside it.
+
+## Detailed module and data connections
+
 ```mermaid
 flowchart LR
     USER(["user"])
@@ -49,29 +53,22 @@ flowchart LR
     FO["RSI fixture oracle"]
     MTH["trusted measurement service"]
     subgraph CAPS["M1 capsules"]
-        XT(["research.extract_text"])
-        CI(["research.compile_intent"])
+        XT["source extraction module"]
+        CI["intent hint module"]
         CB(["research.compile_brief"])
-        AI(["research.accept_intent"])
-        AB(["research.accept_brief"])
-        PG(["prompt.gate_judging"])
+        VF(["research.verifier"])
+
+
+        PG["pinned shared judging text"]
         CS(["research.search_ideas"])
-        AS(["research.accept_ideas"])
-        AXT(["research.accept_source_text"])
-        ASC(["research.accept_card"])
-        AH(["research.accept_hypothesis"])
-        AP(["research.accept_poc"])
-        ABE(["research.accept_benchmark"])
-        AE(["research.accept_evaluation"])
-        AR(["research.accept_report"])
-        AD(["research.accept_delivery"])
-        OFR(["op.freeze_resources"])
-        OSC(["op.syntax_check"])
-        OCT(["op.compare_to_thresholds"])
+
+        OFR["freeze_resources function"]
+        OSC["syntax_check function"]
+        OCT["compare_to_thresholds function"]
         OPL(["op.local_search"])
         OPS(["op.scholarly_search"])
-        OPR(["op.rank_opportunities"])
-        ODA(["op.assess_dependency"])
+        OPR["rank_opportunities function"]
+        ODA["assess_dependency function"]
         SCR(["research.select_opportunity"])
     end
     subgraph LIB["library side"]
@@ -84,23 +81,35 @@ flowchart LR
     ST[("record and content store M12")]
     BUS["CC event bus"]
     PS["progress sink M18"]
-    subgraph BOXES["black boxes: provisional interfaces"]
+    subgraph BOXES["research capabilities and workspace module"]
         HYP(["research.form_hypothesis"])
         POC(["research.build_poc"])
         BEN(["research.run_benchmark"])
         EVA(["research.evaluate_results"])
         REP(["research.write_report"])
-        DEL(["research.deliver_report"])
+        DEL["artifact publisher"]
         OPC(["op.codesearch"])
-        OPW(["workspace read, write and list"])
+        OPW["workspace module: read write list"]
     end
     CXA["codex adapter"]
     DSA["deepsearch adapter"]
     DSX["arXiv and Semantic Scholar"]
     CDX["Codex subscription service"]
     DF["Data Foundation"]
-    RSI["RSI"]
+    RSI["offline RSI controller"]
+    PL["isolated native Leader planner"]
+    VAL["plan validator"]
+    EX["experimental entry"]
+    EXP["benchmark export adapter"]
 
+    EX -->|"research_brief"| PL
+    PL -->|"run_plan"| VAL
+    VAL -->|"run_plan"| FRZ
+    MC -->|"ModelReply"| PL
+    PL -->|"ModelCallContext"| MC
+    ST -->|"SystemRecord"| EXP
+    EXP -->|"exports"| DF
+    EX -->|"ConfigSnapshot"| LN
     USER -->|"prompt"| ENTRY
     ENTRY -->|"launch"| LN
     LN -->|"run_plan, intake"| PIPE
@@ -118,18 +127,13 @@ flowchart LR
     PIPE -->|"frames"| TH
     PIPE -->|"inputs"| SK
     PIPE -->|"inputs"| PSH
-    TH -->|"intake"| XT
-    XT -->|"source_text"| TH
-    TH -->|"evidence_bundle"| AXT
-    AXT -->|"verifier_assessment"| TH
-    TH -->|"source_text"| CI
-    CI -->|"intent_ir"| TH
+    ENTRY -->|"intake"| XT
+    XT -->|"source_text"| CI
+    CI -->|"intent_ir"| ENTRY
     SK -->|"intake, intent_ir"| CB
     CB -->|"research_brief"| SK
-    SK -->|"evidence_bundle"| AI
-    AI -->|"verifier_assessment"| SK
-    SK -->|"evidence_bundle"| AB
-    AB -->|"verifier_assessment"| SK
+    SK -->|"evidence_bundle"| VF
+    VF -->|"verifier_assessment"| SK
     PSH -->|"text"| PG
     TH -->|"research_brief, intake"| CS
     CS -->|"idea_set"| TH
@@ -145,8 +149,8 @@ flowchart LR
     ODA -->|"dependency_assessment"| OPR
     OPR -->|"opportunity_card"| SCR
     SCR -->|"opportunity_card"| TH
-    TH -->|"evidence_bundle"| ASC
-    ASC -->|"verifier_assessment"| TH
+    TH -->|"evidence_bundle"| VF
+    VF -->|"verifier_assessment"| TH
     TH -->|"opportunity_card, research_brief, intake"| HYP
     HYP -->|"hypothesis_blueprint"| TH
     TH -->|"hypothesis_blueprint, research_brief, intake"| POC
@@ -159,14 +163,12 @@ flowchart LR
     EVA -->|"evaluation_verdict"| TH
     SK -->|"evaluation_verdict, benchmark_payload, research_brief, idea_set, opportunity_card, hypothesis_blueprint"| REP
     REP -->|"research_report"| SK
-    TH -->|"research_report, poc_bundle, benchmark_payload"| DEL
+    GH -->|"research_report, poc_bundle, benchmark_payload"| DEL
     DEL -->|"path"| TH
     TH -->|"query"| OPC
     OPC -->|"code_hits"| TH
     TH -->|"file"| OPW
     OPW -->|"file, path"| TH
-    SK -->|"evidence_bundle"| AS
-    AS -->|"verifier_assessment"| SK
     SK -->|"nested call, turn"| BRK
     TH -->|"frames"| BRK
     BRK -->|"call descriptor"| PIPE
@@ -215,18 +217,6 @@ flowchart LR
     OSC -->|"file"| POC
     EVA -->|"benchmark_payload, hypothesis_blueprint"| OCT
     OCT -->|"file"| EVA
-    SK -->|"evidence_bundle"| AH
-    AH -->|"verifier_assessment"| SK
-    SK -->|"evidence_bundle"| AP
-    AP -->|"verifier_assessment"| SK
-    SK -->|"evidence_bundle"| ABE
-    ABE -->|"verifier_assessment"| SK
-    SK -->|"evidence_bundle"| AE
-    AE -->|"verifier_assessment"| SK
-    SK -->|"evidence_bundle"| AR
-    AR -->|"verifier_assessment"| SK
-    GH -->|"checks"| AD
-    AD -->|"CheckResult"| GH
     BUS -->|"events"| DF
     ST -->|"Artifact, Observation, Verification"| DF
     DF -->|"exports"| RSI
@@ -235,15 +225,17 @@ flowchart LR
     FO -->|"FixtureEvaluationResult"| RSI
 ```
 
-**How to read it.** Each run step is one `dispatch` call through `CcBackend` and the pipeline, then one gate. All values move as Artifacts in the store; an edge such as `TH -->|intake| CI` shows which value a capsule receives, not a copy outside the store. An operator such as `op.scholarly_search` runs as a nested call in its own tool host, drawn through `TH`. Screening (PRD 3.4) to delivery (3.9) are drawn as black boxes, with their provisional types ([black boxes](blackboxes.md)); Screening's gate and pure ranking helper are drawn as well. The remaining stage Gate contracts and required trusted services are drawn here; their draft/provisional status is recorded at each owning page. A diagram edge is not a runnable-platform claim.
+**How to read it.** Each run step is one `dispatch` call through `CcBackend` and the pipeline, then one gate. All values move as Artifacts in the store; an edge such as `TH -->|intake| CI` shows which value a capsule receives, not a copy outside the store. An operator such as `op.scholarly_search` runs as a nested call in its own tool host, drawn through `TH`. All research stages have published contracts. Helpers and publication are ordinary modules. One shared semantic verifier is configured by independent stage criteria. The remaining stage Gate contracts and required trusted services are drawn here; their draft/provisional status is recorded at each owning page. A diagram edge is not a runnable-platform claim.
 
 ## Nodes
+
+The spatial graph shows public call/data boundaries. [Pipeline](../m1/pipeline.md) and [temporal flow](temporal.md) show execution order and durable release.
 
 Every node in the diagram, and the one page that defines it. The lint checks that every node id here is drawn and every drawn id is here.
 
 | Id | Node | Defined in |
 |---|---|---|
-| `USER` | the user, at the CLI or the web prompt box | [PRD 3.1.1](../../product/prd-m1-full-2026-10-01.txt) |
+| `USER` | the user, at the CLI or the web prompt box | [PRD 3.1.1](../../product/prd-m1-full-2026-10-02.txt) |
 | `UI` | the browser's workflow run view | [integration](integration.md#runview-what-the-user-sees) |
 | `ENTRY` | the entry adapter | [integration](integration.md#entry-how-a-run-starts) |
 | `LN` | the launcher | [toolchain M01](../capsule/toolchain.md#m01-launcher) |
@@ -261,29 +253,29 @@ Every node in the diagram, and the one page that defines it. The lint checks tha
 | `MC` | the model client | [runner](../capsule/runner.md#the-model-client-contract-m05) |
 | `GH` | the gate host | [gate host](../capsule/gate-host.md) |
 | `CR` | the check runner | [toolchain M10a](../capsule/toolchain.md#m10a-check-runner-and-the-check-library) |
-| `XT` | `research.extract_text` | [source projection](../m1/extract-text.md) |
-| `CI` | `research.compile_intent` | [intent capsule](../m1/intent-capsule.md) |
+| `XT` | ordinary source extraction | [source projection](../m1/extract-text.md) |
+| `CI` | ordinary intent hints | [intent capsule](../m1/intent-capsule.md) |
 | `CB` | `research.compile_brief` | [requirement capsule](../m1/requirement-capsule.md) |
-| `AI` | `research.accept_intent` | [intent gate](../m1/intent-gate.md) |
-| `AB` | `research.accept_brief` | [brief gate](../m1/brief-gate.md) |
-| `PG` | `prompt.gate_judging` | [gate capsules](../capsule/gate-capsules.md#promptgate_judging) |
+
+
+| `PG` | `prompt.gate_judging` | [shared verifier](../capsule/gate-capsules.md) |
 | `CS` | `research.search_ideas` | [search capsule](../m1/search-capsule.md) |
-| `AS` | `research.accept_ideas` | [search gate](../m1/search-gate.md) |
-| `AXT` | `research.accept_source_text` | [source projection](../m1/extract-text.md) |
-| `ASC` | `research.accept_card` | [screening gate](../m1/screening-gate.md) |
+
+
+
 | `OPL` | `op.local_search`, an operator | [op.local_search](../m1/op-local-search.md) |
 | `OPS` | `op.scholarly_search`, an operator | [op.scholarly_search](../m1/op-scholarly-search.md) |
-| `OPR` | `op.rank_opportunities`, an operator | [op.rank_opportunities](../m1/op-rank-opportunities.md) |
-| `ODA` | `op.assess_dependency`, an operator | [dependency operator](../m1/op-assess-dependency.md) |
+| `OPR` | ordinary rank_opportunities function | [op.rank_opportunities](../m1/op-rank-opportunities.md) |
+| `ODA` | ordinary assess_dependency function | [dependency operator](../m1/op-assess-dependency.md) |
 | `SCR` | `research.select_opportunity` | [screening](../m1/screening.md) |
-| `HYP` | `research.form_hypothesis`, a black box | [hypothesis](../m1/hypothesis.md) |
-| `POC` | `research.build_poc`, a black box | [POC](../m1/poc.md) |
-| `BEN` | `research.run_benchmark`, a black box | [benchmark](../m1/benchmark.md) |
-| `EVA` | `research.evaluate_results`, a black box | [evaluation](../m1/evaluation.md) |
-| `REP` | `research.write_report`, a black box | [delivery](../m1/delivery.md) |
-| `DEL` | `research.deliver_report`, a black box | [delivery](../m1/delivery.md) |
-| `OPC` | `op.codesearch`, a black-box operator | [op.codesearch](../m1/op-codesearch.md) |
-| `OPW` | `op.workspace_io`, a black-box operator | [op.workspace_io](../m1/op-workspace-io.md) |
+| `HYP` | `research.form_hypothesis`, a research capability | [hypothesis](../m1/hypothesis.md) |
+| `POC` | `research.build_poc`, a research capability | [POC](../m1/poc.md) |
+| `BEN` | `research.run_benchmark`, a research capability | [benchmark](../m1/benchmark.md) |
+| `EVA` | `research.evaluate_results`, a research capability | [evaluation](../m1/evaluation.md) |
+| `REP` | `research.write_report`, a research capability | [delivery](../m1/delivery.md) |
+| `DEL` | ordinary artifact publisher | [delivery](../m1/delivery.md) |
+| `OPC` | `op.codesearch`, a search operator | [op.codesearch](../m1/op-codesearch.md) |
+| `OPW` | `op.workspace_io`, a search operator | [op.workspace_io](../m1/op-workspace-io.md) |
 | `DSA` | the deepsearch adapter | [integration](integration.md#deepsearch-scholarly-search) |
 | `DSX` | the arXiv and Semantic Scholar services | [integration](integration.md#deepsearch-scholarly-search) |
 | `AUTH` | a capsule author: a person, RSI, the importer | [capsule](../capsule/capsule.md) |
@@ -299,19 +291,23 @@ Every node in the diagram, and the one page that defines it. The lint checks tha
 | `DF` | Data Foundation | [seams](../seams.md#data-foundation) |
 | `RSI` | RSI | [seams](../seams.md#rsi) |
 
+| `VF` | shared research.verifier with pinned independent stage criteria | [Gate capsules](../capsule/gate-capsules.md) |
+| `PL` | isolated planner orchestration service | [planner](planner.md) |
+| `VAL` | deterministic plan validation | [planner](planner.md) |
+| `EX` | experimental entry and feature isolation | [experiments](experiments.md) |
+| `EXP` | provisional external benchmark export adapter | [benchmark export](benchmark-export.md) |
 | `CFG` | configuration, startup, doctor | [environment](environment.md) |
 | `SR` | durable control-record API and reservations | [system records](records.md) |
 | `WS` | local workstation adapters | [workstation](workstation.md) |
 | `MTH` | trusted measurement/logging authority | [measurement protocol](../m1/measurement-protocol.md#trusted-measurement-authority) |
-| `AH` | research.accept_hypothesis | [research gates](../m1/research-gates.md) |
-| `AP` | research.accept_poc | [research gates](../m1/research-gates.md) |
-| `ABE` | research.accept_benchmark | [research gates](../m1/research-gates.md) |
-| `AE` | research.accept_evaluation | [research gates](../m1/research-gates.md) |
-| `AR` | research.accept_report | [research gates](../m1/research-gates.md) |
-| `AD` | research.accept_delivery with a mechanical Gate profile | [research gates](../m1/research-gates.md) |
-| `OFR` | op.freeze_resources | [measurement protocol](../m1/measurement-protocol.md#frozen-methods) |
-| `OSC` | op.syntax_check | [measurement protocol](../m1/measurement-protocol.md#syntax-checking) |
-| `OCT` | op.compare_to_thresholds | [measurement protocol](../m1/measurement-protocol.md) |
+
+
+
+
+
+| `OFR` | ordinary freeze_resources | [measurement protocol](../m1/measurement-protocol.md#frozen-methods) |
+| `OSC` | ordinary syntax_check | [measurement protocol](../m1/measurement-protocol.md#syntax-checking) |
+| `OCT` | ordinary compare_to_thresholds | [measurement protocol](../m1/measurement-protocol.md) |
 
 ## Edge labels
 

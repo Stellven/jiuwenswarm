@@ -1,9 +1,9 @@
----
+| RSI surface | Required offline helper-code mutation preserving rank reference outcomes; conditional SKILL.md/rubric text mutation. Checks, schemas, dependency policy and Gate profiles are protected |
 type: design
 status: draft
 version: 2
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ../types/idea-set.md, ../types/research-brief.md, ../types/screening-assessments.md, ../types/opportunity-card.md, op-rank-opportunities.md, ../capsule/runner.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../types/idea-set.md, ../types/research-brief.md, ../types/screening-assessments.md, ../types/opportunity-card.md, op-rank-opportunities.md, ../capsule/runner.md]
 provides: [research.select_opportunity]
 consumes: [cc.type.idea_set, cc.type.research_brief, cc.type.screening_assessments, cc.type.opportunity_card, op.rank_opportunities]
 depends_on: [../types/idea-set.md, ../types/research-brief.md, ../types/screening-assessments.md, ../types/opportunity-card.md, op-rank-opportunities.md, screening-gate.md, pipeline.md]
@@ -40,12 +40,12 @@ The [`opportunity_card`](../types/opportunity-card.md) page defines the complete
 2. Form a candidate card from the input ideas and their cited evidence. Preserve all source and chunk references. The candidate carries the PRD 3.4.3/3.4.4 content: title, summary, problem, mechanism, opportunity, relevance, assumptions, evidence maturity, verification path, uncertainties, risks, and open questions.
 3. In one bounded LLM turn over the full consolidated candidate set, assess each candidate against exactly the PRD's fixed 1–5 dimensions `novelty`, `feasibility`, and `compute_alignment`, with an evidence-grounded one-sentence justification for each. `evidence_maturity` and `verification_path` are required qualitative fields and do not add hidden numeric weights. Novelty compares the candidate to the Brief's cited evidence and the cited Idea evidence. There is no follow-up debate, vote, or live feasibility execution.
 4. Declare package, model and dataset dependencies with canonical registry identifiers. The pure helper assesses each against the frozen registry. Only `compatible` dependencies remain eligible; `conflict` and `unknown` are ineligible. User value, timing, safety, licensing exposure and resource implications remain visible context in the card and rationale; only the dependency assessment changes M1 eligibility.
-5. Call `op.rank_opportunities` once as `cc.call("op.rank_opportunities", assessments=<screening_assessments value>)`. It sums the three scores without weights, orders by composite descending and then the ascending lexicographic tuple of sorted source `idea_ids`, and selects the first eligible candidate. Sorting implementation is unspecified.
+5. Call `op.rank_opportunities` once as `rank_opportunities(assessments=<screening_assessments value>)`. It sums the three scores without weights, orders by composite descending and then the ascending lexicographic tuple of sorted source `idea_ids`, and selects the first eligible candidate. Sorting implementation is unspecified.
 6. Run deterministic type/provenance checks and the Screening gate. Only an accepted output reaches Hypothesis.
 
 ## Declaration (`capsule.json`)
 
-This capsule is `kind: skill`: the bounded prompt is its implementation and it makes one typed call to the pinned pure operator. RSI may propose changes only to `SKILL.md` and its owned assessment rubric. Deterministic provenance checks, ranking, dependency policy, schemas and Gate rubrics are separate non-RSI dependencies.
+This capsule is `kind: skill`: the bounded prompt is its implementation and it makes one typed call to the pinned local pure helper. The required offline RSI target may propose code changes to helpers/rank_opportunities.py while preserving the exact ranking/reference contract. Conditional text RSI may propose SKILL.md and the assessment rubric when the bounded headless path is available. Deterministic provenance checks, dependency policy, schemas and Gate rubrics are protected dependencies; offline helper optimization must preserve the ranking contract.
 
 ```json
 {
@@ -55,7 +55,8 @@ This capsule is `kind: skill`: the bounded prompt is its implementation and it m
     "kind": "skill",
     "body": [
       {"path": "SKILL.md", "sha256": "<author kit>"},
-      {"path": "rubrics/assess_opportunities.md", "sha256": "<author kit>"}
+      {"path": "rubrics/assess_opportunities.md", "sha256": "<author kit>"},
+      {"path": "helpers/rank_opportunities.py", "sha256": "<author kit>"}
     ],
     "summary": "Consolidate searched ideas, form evidence-linked opportunity assessments against the Research Brief, and return the top eligible opportunity with a complete deterministic ranking record."
   },
@@ -70,9 +71,7 @@ This capsule is `kind: skill`: the bounded prompt is its implementation and it m
   },
   "needs": {
     "when": [],
-    "external": [
-      {"ref": "op.rank_opportunities", "decl_hash": "<admitted>", "purpose": "apply the pinned dependency-conflict filter, score sum, deterministic order, and Top-1 selection"}
-    ],
+    "external": [],
     "network": "none",
     "human_interaction": "none",
     "resources": {"timeout_s": 600}
@@ -83,19 +82,36 @@ This capsule is `kind: skill`: the bounded prompt is its implementation and it m
       {"id": "screening_provenance", "anchor": "deterministic", "target": "ports.outputs.opportunity_card", "over": "inputs_and_outputs", "applies_at": "both", "runner": {"ref": "checks/screening_checks.py:provenance_is_complete", "sha256": "<author kit>"}, "description": "Every input idea occurs in exactly one consolidated candidate; every output idea id, citation and chunk reference resolves to the idea_set; score rows cover the consolidated groups exactly once; and the selected card equals the first eligible row.", "author": "muk"},
       {"id": "matches_reference", "anchor": "reference", "target": "ports.outputs.opportunity_card", "over": "inputs_and_outputs", "applies_at": "admission", "runner": {"ref": "checks/screening_checks.py:matches_reference", "sha256": "<author kit>"}, "description": "On each fixture, the consolidated assessments and final opportunity card match the expected reference values.", "author": "muk"}
     ],
-    "failure_modes": [
-      {"reason_code": "NO_ELIGIBLE_OPPORTUNITY", "when": "The pinned ranking helper finds that every consolidated candidate conflicts with the dependency registry.", "retriable": false}
-    ]
+    "failure_modes": []
   },
-  "evolution": {"rsi": "propose", "may_change": ["files:SKILL.md", "files:rubrics/assess_opportunities.md"], "notes": "Deterministic provenance, helper wiring, arithmetic, dependency policy, output schema and Gate rubrics are not mutation targets."}
+  "evolution": {"rsi": "propose", "may_change": ["files:helpers/rank_opportunities.py", "files:SKILL.md", "files:rubrics/assess_opportunities.md"], "notes": "Only offline implementation optimization preserving the rank reference contract and conditional text mutation are allowed; checks, dependency policy, output schema and Gate rubrics remain protected."}
 }
 ```
 
 ## Gate and failure semantics
 
-The step gate is [`research.accept_card`](screening-gate.md), following the [gate capsule pattern](../capsule/gate-capsules.md). Tier 1 validates type, score arithmetic, ordering, dependency decisions and provenance. Tier 2 assesses that candidates answer the Brief, use its evidence fairly, and that the selected card truthfully represents its source ideas. The Gate profile pins both sets.
+The step gate is [`research.verifier` with profile `research.accept_card.v1`](screening-gate.md), following the [gate capsule pattern](../capsule/gate-capsules.md). Tier 1 validates type, score arithmetic, ordering, dependency decisions and provenance. Tier 2 assesses that candidates answer the Brief, use its evidence fairly, and that the selected card truthfully represents its source ideas. The Gate profile pins both sets.
 
-`NO_ELIGIBLE_OPPORTUNITY` is a declared capsule failure, not an empty successful result. There is no `opportunity_card` artifact to judge or pass to Hypothesis. A malformed assessment, unresolved reference, or model reply that cannot be parsed is a capsule error. A nested call's runtime-owned failure is propagated with its original reason.
+`NO_ELIGIBLE_OPPORTUNITY` is a documented work outcome failure, not an empty successful result. There is no `opportunity_card` artifact to judge or pass to Hypothesis. A malformed assessment, unresolved reference, or model reply that cannot be parsed is a capsule error. A local helper or model runtime failure is propagated with its original reason.
+
+## Prompt brief
+
+The rows of the [prompt brief](../capsule/prompt-brief.md) for `SKILL.md` and `rubrics/assess_opportunities.md`. The wording is the prompt layer's; everything here is fixed. The behaviour is the six promises above.
+
+| Row | Brief |
+|---|---|
+| Job | Consolidate the input ideas, assess each candidate against the Research Brief, and call `op.rank_opportunities` once. The skill wrapper invokes the local helper; model text never overrides its selection |
+| Inputs | `idea_set`: the ideas and the evidence passages and sources they cite. `research_brief`: objective, scope and compute constraints |
+| Output | the one `opportunity_card`: the skill copies the card the helper returns into `outputs`. The skill's own product is the [`screening_assessments`](../types/screening-assessments.md) it sends to the helper |
+| Rules | One bounded pass over at most three ideas. Every input idea appears in exactly one consolidated candidate, with every source idea id and chunk reference kept. Variants that rely on different mechanisms or baseline papers stay separate. Score `novelty`, `feasibility` and `compute_alignment` from 1 to 5, each with a one-sentence justification grounded in evidence. `evidence_maturity` and `verification_path` are written, not scored. No hidden weights |
+| Grounding | Cite only evidence in the `idea_set` and the Brief. Novelty is judged against the Brief's cited evidence and the ideas' cited evidence |
+| Gaps | Declare dependencies by canonical registry id, as decisions 48 to 53 in [decisions](../decisions.md) set. Whether a dependency is eligible is the helper's decision, not the skill's |
+| Issue codes | Trusted wrapper emits NO_ELIGIBLE_OPPORTUNITY when local ranking reports no winner; malformed helper input/output becomes OUTPUT_INVALID. Model/helper timeouts use the shared lifecycle. No card is emitted after no-winner |
+| Tools | `op.rank_opportunities`, once, as `rank_opportunities(assessments=...)` |
+| Must not | Iterate, cluster again, debate or vote. Run a live feasibility test. Add weights. Let value, timing or licensing change eligibility. Search for new evidence. Change intake, repository or dataset state |
+| Examples wanted | Three distinct ideas. Two variants of one mechanism. Every candidate in dependency conflict. Equal composite scores, which the helper orders by ascending sorted source idea ids |
+| RSI surface | May change: `SKILL.md` and `rubrics/assess_opportunities.md`. Fixed: the checks, the helper, the dependency policy, the schemas and the gate rubrics |
+| Done when | The recorded replies reproduce the expected assessments on the fixtures, the provenance checks pass, and the [screening gate](screening-gate.md) accepts |
 
 ## Readiness
 

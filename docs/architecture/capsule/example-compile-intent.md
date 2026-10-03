@@ -221,7 +221,7 @@ This capsule was first written against an earlier shape of the schema. Three thi
 - **`identity.body`, `identity.remote`, `members`, `wiring`**. This capsule's code is one file, so `carrier` is enough. It is not a remote capsule or a composite capsule either. Only one of `carrier`, `body`, `remote`, or `members` is set, never more than one.
 - **`needs.external`**. Empty here. This capsule calls no other capsules.
 - **`needs.dependencies`, `needs.config`, `needs.secrets`, `needs.resources`**. This tool is plain Python with no packages beyond the standard library, so there is nothing to pin.
-- **`guarantees.quality`**. This field names a `judged` check as its criterion. B1's gate uses deterministic checks only. See [b1-design.md](../b1-design.md#inside-a-capsule-and-its-gate). There is no judged check for this capsule to point at.
+- **`guarantees.quality`**. This field names a `judged` check as its criterion. B1's gate uses deterministic checks only. See [b1-design.md](../archive/b1-design.md#inside-a-capsule-and-its-gate). There is no judged check for this capsule to point at.
 
 ## Why `tool`, not `skill`
 

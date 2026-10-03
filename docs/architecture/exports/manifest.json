@@ -1,0 +1,254 @@
+{
+  "generated_by": "_tools/arch_lint.py",
+  "note": "Generated from the field tables. Never edit by hand.",
+  "schemas": [
+    {
+      "kind": "types",
+      "name": "benchmark_payload",
+      "source": "types/benchmark-payload.md",
+      "version": "2",
+      "file": "schemas/types/benchmark-payload.schema.json",
+      "sha256": "b4e97f77b6a93d0fee4d47dc48f32fb7c3a8e144091812d47c754b9bff5f4987"
+    },
+    {
+      "kind": "types",
+      "name": "code_hits",
+      "source": "types/code-hits.md",
+      "version": "1",
+      "file": "schemas/types/code-hits.schema.json",
+      "sha256": "08a3376af4e668882fb6b73a6d928648f2964168f11a24f60ef2cc1950a34632"
+    },
+    {
+      "kind": "types",
+      "name": "dependency_assessment",
+      "source": "types/dependency-assessment.md",
+      "version": "1",
+      "file": "schemas/types/dependency-assessment.schema.json",
+      "sha256": "54a3383c7f999d1cbe70ba124b3ef6f5c82f61c564d7658fbbb2b75a9fb10338"
+    },
+    {
+      "kind": "types",
+      "name": "dependency_requirement",
+      "source": "types/dependency-requirement.md",
+      "version": "1",
+      "file": "schemas/types/dependency-requirement.schema.json",
+      "sha256": "c0859e36c410c6331717bbba7adae30136e71d27f18bfdbd3c71364dd3f8e6de"
+    },
+    {
+      "kind": "types",
+      "name": "evaluation_verdict",
+      "source": "types/evaluation-verdict.md",
+      "version": "2",
+      "file": "schemas/types/evaluation-verdict.schema.json",
+      "sha256": "5993439093abeefc9d17f83cbce21fbc442be762517acaa4eb627fcd02b629c9"
+    },
+    {
+      "kind": "types",
+      "name": "evidence_bundle",
+      "source": "types/evidence-bundle.md",
+      "version": "1",
+      "file": "schemas/types/evidence-bundle.schema.json",
+      "sha256": "a6697ffc22c0cd843ce4450ed112bfca664410a1637ba00ef038641f9464f1c6"
+    },
+    {
+      "kind": "types",
+      "name": "hypothesis_blueprint",
+      "source": "types/hypothesis-blueprint.md",
+      "version": "2",
+      "file": "schemas/types/hypothesis-blueprint.schema.json",
+      "sha256": "c4765f8b4ab1090308a5d4cfd10e31bd0a19c2036ed4117b6ad1eada2fa06c64"
+    },
+    {
+      "kind": "types",
+      "name": "idea_set",
+      "source": "types/idea-set.md",
+      "version": "1",
+      "file": "schemas/types/idea-set.schema.json",
+      "sha256": "93830afef923df8717cd013a976665229d235d0903d881d2c78d822e97f0c601"
+    },
+    {
+      "kind": "types",
+      "name": "intake",
+      "source": "types/intake.md",
+      "version": "2",
+      "file": "schemas/types/intake.schema.json",
+      "sha256": "1d94ae93ec721c1df912b024f2ed8d81a4616e08a1a380434f8feff218a73d5a"
+    },
+    {
+      "kind": "types",
+      "name": "intent_ir",
+      "source": "types/intent-ir.md",
+      "version": "1",
+      "file": "schemas/types/intent-ir.schema.json",
+      "sha256": "7966dff4b65aa136fe34df027a50971706f98738009bef1b4c69ebd2769dbec1"
+    },
+    {
+      "kind": "types",
+      "name": "opportunity_card",
+      "source": "types/opportunity-card.md",
+      "version": "2",
+      "file": "schemas/types/opportunity-card.schema.json",
+      "sha256": "3d46944469b9c3f0419a752225dca34cb7ebc45d4e387bbfcf8febe19c72d8bd"
+    },
+    {
+      "kind": "types",
+      "name": "poc_bundle",
+      "source": "types/poc-bundle.md",
+      "version": "2",
+      "file": "schemas/types/poc-bundle.schema.json",
+      "sha256": "28c72490bbb26e4b2bfbf9e013b09635f0c27285d31ca1580798562c494e2891"
+    },
+    {
+      "kind": "types",
+      "name": "research_brief",
+      "source": "types/research-brief.md",
+      "version": "1",
+      "file": "schemas/types/research-brief.schema.json",
+      "sha256": "6bd8a746bf370d904642aceaa598a50fef0ee7313fc3347dc99a1ae776586a59"
+    },
+    {
+      "kind": "types",
+      "name": "research_report",
+      "source": "types/research-report.md",
+      "version": "2",
+      "file": "schemas/types/research-report.schema.json",
+      "sha256": "e4240d9e6da7451a9cd1d4baf3ca967c99138e84cde7f0170ab1d177b130591c"
+    },
+    {
+      "kind": "types",
+      "name": "resource_snapshot",
+      "source": "types/resource-snapshot.md",
+      "version": "1",
+      "file": "schemas/types/resource-snapshot.schema.json",
+      "sha256": "215af12a84ba672376e168b5e84259827dd34a48ba28f9c535c5ac77b1c01922"
+    },
+    {
+      "kind": "types",
+      "name": "run_plan",
+      "source": "types/run-plan.md",
+      "version": "1",
+      "file": "schemas/types/run-plan.schema.json",
+      "sha256": "0b70123d0c34571686e0592bd6d49d4662e9e1125f4560bc6656c07364c123bf"
+    },
+    {
+      "kind": "types",
+      "name": "screening_assessments",
+      "source": "types/screening-assessments.md",
+      "version": "2",
+      "file": "schemas/types/screening-assessments.schema.json",
+      "sha256": "afbae6d6b945637c3aaeb12f0f9b3a2fd5c15f820d7eeaf53dc77417c13a9bf0"
+    },
+    {
+      "kind": "types",
+      "name": "search_hits",
+      "source": "types/search-hits.md",
+      "version": "1",
+      "file": "schemas/types/search-hits.schema.json",
+      "sha256": "8edcc87310cfb3b05905a562d150e87da64af20cf014d51f8ae69836a8faf5c5"
+    },
+    {
+      "kind": "types",
+      "name": "source_text",
+      "source": "types/source-text.md",
+      "version": "1",
+      "file": "schemas/types/source-text.schema.json",
+      "sha256": "2b5d3c5f380164a51ccf3ab67f6f4560ae8602145ccc158e82fa15937ba9d9b5"
+    },
+    {
+      "kind": "types",
+      "name": "verifier_assessment",
+      "source": "types/verifier-assessment.md",
+      "version": "1",
+      "file": "schemas/types/verifier-assessment.schema.json",
+      "sha256": "cce8de8d19e87a013a4cce476a4033e5ff31b0e81e561393e808f538a56ff501"
+    },
+    {
+      "kind": "records",
+      "name": "artifact",
+      "source": "schemas/artifact.md",
+      "version": "cc.artifact.v1",
+      "file": "schemas/records/artifact.schema.json",
+      "sha256": "ea0342dc58f852188344f7d216a0d527170bb0cefaff39ba932747eb90a713ef"
+    },
+    {
+      "kind": "records",
+      "name": "binding",
+      "source": "schemas/binding.md",
+      "version": "cc.binding.v1",
+      "file": "schemas/records/binding.schema.json",
+      "sha256": "74d3c4582f71eea07a9cb17f6ec2f627eafe1669d06065e246af2a5f335d9e1b"
+    },
+    {
+      "kind": "records",
+      "name": "candidate",
+      "source": "schemas/candidate.md",
+      "version": "cc.candidate.v1",
+      "file": "schemas/records/candidate.schema.json",
+      "sha256": "8a7a6161a8a04b52788fd9d3aaf392062826db58f736a894a4852d261aa01730"
+    },
+    {
+      "kind": "records",
+      "name": "checks",
+      "source": "schemas/checks.md",
+      "version": "cc.check.v1",
+      "file": "schemas/records/checks.schema.json",
+      "sha256": "a2650dd455355da361b01fcc61f795f752069a9102045cd654045767145a724d"
+    },
+    {
+      "kind": "records",
+      "name": "finding",
+      "source": "schemas/finding.md",
+      "version": "cc.finding.v1",
+      "file": "schemas/records/finding.schema.json",
+      "sha256": "3ee6c48997b325e1599d8211c3f988b2ae73ef623a2eb497be22a23ab1ffe028"
+    },
+    {
+      "kind": "records",
+      "name": "observation",
+      "source": "schemas/observation.md",
+      "version": "cc.observation.v1",
+      "file": "schemas/records/observation.schema.json",
+      "sha256": "a1aa306ffdc9ed28234becffe5e0728c2c2f0c2519220602527545a12f3b32e5"
+    },
+    {
+      "kind": "records",
+      "name": "port-types",
+      "source": "schemas/port-types.md",
+      "version": "cc.types.v1",
+      "file": "schemas/records/port-types.schema.json",
+      "sha256": "4e580f06061f2c7bcadb40c274060bed0b180d4d69c0eadab706c79481be3669"
+    },
+    {
+      "kind": "records",
+      "name": "standing",
+      "source": "schemas/standing.md",
+      "version": "cc.standing.v1",
+      "file": "schemas/records/standing.schema.json",
+      "sha256": "968315843ccc7917ec7d9a5b44af7af364c497cb1e626f805b375c3ba8246766"
+    },
+    {
+      "kind": "records",
+      "name": "verdict",
+      "source": "schemas/verdict.md",
+      "version": "cc.verdict.v1",
+      "file": "schemas/records/verdict.schema.json",
+      "sha256": "66ea0633ee588b47aa21e2b9986143f36c92cab8490a8bc57ad37052279ae1e7"
+    },
+    {
+      "kind": "records",
+      "name": "verification-record",
+      "source": "schemas/verification-record.md",
+      "version": "cc.verification.v1",
+      "file": "schemas/records/verification-record.schema.json",
+      "sha256": "8cf2a8f4b2ced94c98c4a2568846719e5620dc52ded0623c0c3f176944ec2fe6"
+    },
+    {
+      "kind": "records",
+      "name": "declaration",
+      "source": "capsule/fields.md",
+      "version": "cc.declaration.v1",
+      "file": "schemas/records/declaration.schema.json",
+      "sha256": "626e732ead74d7d92e0915b0fdbaaba9ddebe9822d1a6309e4a3c67a68e12565"
+    }
+  ]
+}

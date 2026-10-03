@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ledgers.md, ../capsule/toolchain.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ledgers.md, ../capsule/toolchain.md]
 provides: [system.durable_storage, system.stage_evidence]
 consumes: [cc.observation, cc.artifact, cc.binding, cc.verification]
 depends_on: [../capsule/toolchain.md, ledgers.md]
@@ -48,6 +48,8 @@ M12 serializes writers using one supervisor-owned process and a local advisory l
 Restart scans complete manifests, verifies every referenced file and rebuilds indexes. Incomplete staging directories are quarantined and never exposed as committed. A lost response after successful commit is safe to retry using the same batch identity. An orphan content blob is harmless and remains unreadable to consumers without an authorized ref. `records.jsonl` is an append-only derived view: truncate only an incomplete trailing line during repair, then regenerate missing entries from committed records. It is never the gate authorization source.
 
 ## Required evidence and derived views
+
+Model captures outside public runs/admission use the scoped private namespaces defined in [environment](environment.md#model-call-scope-and-private-capture). services-v1 private_model_capture owns the closed metadata record: version, scope, request_id, obs_id, turn, role, content_sha256, size_bytes and sealed_at. RSI controller and oracle are each the sole writer of their private namespace, using the same atomic temporary-directory/hash/fsync/publication discipline. The model bridge sends bytes over that owner's authenticated descriptor and waits for its committed capture Ref. Private records are not public CC Artifacts/Observations and cannot be served through normal store/export/StageContext APIs. A crash before capture commit cannot return complete, refund an oracle reservation or cause automatic model replay.
 
 The complete Stage Evidence Bundle is an internal immutable manifest, not the bounded model-facing [`evidence_bundle`](../types/evidence-bundle.md). `seal_execution(obs_id, capture) -> EvidenceManifestRef` and `get_execution(ref) -> ExecutionEvidence` are the collector's public APIs. `EvidenceManifestRef` contains `obs_id`, `manifest_sha256` and a workspace-relative manifest path. `ExecutionEvidence` contains record refs, captured files `{role, relative_path, content_sha256, size_bytes}`, start/end host facts, declared-versus-observed operations, and capture completeness/status. Allowed roles are input, output, stdout, stderr, model_prompt, model_reply, tool_call, security_check and environment. All paths resolve under the bundle root.
 

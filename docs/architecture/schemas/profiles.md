@@ -26,7 +26,7 @@ GateProfile {
 }
 ```
 
-`semantic_criteria` may be empty when no semantic judgment applies. Every stage still uses the same Gate API and produces the same durable Verification. Delivery's profile therefore has deterministic manifest/publication checks and zero semantic criteria; it is not an exception.
+Every governed research stage has applicable independent semantic criteria, as frozen PRD 4.1.4/4.2 requires. A reusable pure nested operator receives immediate mechanical Gate checks and explicit Tier2 NOT_APPLICABLE; its source evidence is independently judged by the enclosing stage before release. One `research.verifier` capability receives the immutable stage profile and evidence; stage-specific criteria remain independently authored and pinned. Mechanical helper modules use deterministic checks inside their enclosing stage and do not create additional capsule Gates. Publication follows the Report Gate and performs mechanical manifest/commit checks.
 
 ## AdmissionProfile
 
@@ -34,7 +34,7 @@ GateProfile {
 AdmissionProfile {
   profile_ref: ProfileRef(kind=admission)
   provider: tested_admission | puppet_admission
-  allowed_levels: list<exempt | provisional | certified>
+  allowed_levels: list<exempt | provisional>
   suite_refs: list<Ref(test_suite)>
   allowlist_ref: EvidenceRef?
 }
@@ -53,4 +53,3 @@ An ExecutionProfile pins platform, process identity, readable and writable roots
 ## Binding additions
 
 Every work Binding pins `retry_profile_ref` and `execution_profile_ref`; every gate binding pins `gate_profile_ref`. Admission records pin `admission_profile_ref`. Freeze rejects missing, wrong-kind, hash-mismatched or policy-epoch-mismatched references with `POLICY_UNRESOLVED`.
-

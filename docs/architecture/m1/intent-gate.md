@@ -1,9 +1,9 @@
 ---
 type: design
-status: draft
+status: past
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ../capsule/gate-capsules.md, intent-capsule.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../capsule/gate-capsules.md, intent-capsule.md]
 provides: [research.accept_intent]
 consumes: [cc.gate_capsule_pattern, prompt.gate_judging, cc.type.evidence_bundle, cc.type.verifier_assessment]
 depends_on: [../capsule/gate-capsules.md, intent-capsule.md, pipeline.md]
@@ -12,7 +12,7 @@ tags: [m1, gate, capsule]
 
 > **Draft: reopened for changed shared contracts.** The gate capsule for step `intent`. It follows [the gate capsule pattern](../capsule/gate-capsules.md); only what differs is written here.
 
-# `intent_gate`: `research.accept_intent`
+# Historical `intent_gate`: `research.accept_intent`
 
 ## What it does
 

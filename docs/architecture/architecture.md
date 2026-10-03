@@ -36,11 +36,11 @@ Architecture does not decide how a module works inside. That is the issue's job.
 
 Muk owns both this architecture and Capability Capsule (CC). That pairing fits because CC supplies the shared execution, schema, gate, record, and adapter contracts used across the project. The architecture defines those contracts once and maps each workstream's capabilities onto them, so independently built modules connect through known interfaces.
 
-CC ownership does not transfer another workstream's product decisions to architecture. The owning workstream defines its stage semantics, domain rubric, and acceptance intent; architecture records the canonical payload/API shape and CC seam that realizes them. An unresolved owner decision stays explicit and blocks only the modules that depend on it.
+The [frozen source set](../product/SOURCE_FREEZE.md) fixes product scope and domain intent. Architecture compares owner proposals and existing contracts, adopts the simpler correct interface or a documented combination, and records its rationale in the decision ledger. Missing implementation prose receives a replaceable concrete design. Product-scope conflicts and unvalidated execution claims remain explicit acceptance obligations.
 
 ## Level of detail
 
-- A design page shows modules and data flow, as in [B1](b1-design.md): each node has a named input, a named output and a pass condition.
+- A design page shows modules and data flow, as in [B1](archive/b1-design.md): each node has a named input, a named output and a pass condition.
 - A module is ready for an issue when three things are fixed: its input and output types, the checks its output must pass, and the modules on either side of it.
 - An issue names its module, its interface and its tests. It never needs another module's internals.
 

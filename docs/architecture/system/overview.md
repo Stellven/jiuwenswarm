@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ../capsule/capsule.md, ../capsule/runner.md, ../seams.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../capsule/capsule.md, ../capsule/runner.md, ../seams.md]
 provides: [system.layers]
 consumes: [cc.declaration, cc.binding, cc.type.run_plan]
 depends_on: [nodes.md, integration.md]
@@ -14,7 +14,7 @@ tags: [system, m1]
 
 # Where CC fits
 
-The M1 system is a pipeline of **nodes**. Every node is one capsule doing one job at one step of a run: compiling the intent, gating it, writing the Research Brief, and so on. **Capability Capsule (CC)** is the layer that makes every node the same kind of thing: declared first, pinned by hash, run by one runner, gated, and recorded. Under CC sit jiuwenswarm and agent-core, which CC uses and never rewrites.
+The production path has eight governed research capability steps and ordinary intake/publication modules. CC admits exact capability versions, binds typed ports, runs them, and records their evidence. One shared verifier supplies semantic assessment; the Gate host owns advancement. The [offline RSI and isolated experiments](experiments.md) have separate plans and manifests.
 
 ```mermaid
 flowchart TB
@@ -63,7 +63,7 @@ There is exactly one way across each boundary.
 |---|---|---|---|
 | Product | Control | an architect turns each PRD stage into nodes on a [node page](nodes.md#node-spec-template), and adds them to the run plan | `run_plan` |
 | Control | CC | the launcher records the run plan; freeze turns it into Bindings; the generic script asks the runner to run each step | `run_plan`, Binding, call descriptor, envelope |
-| CC | CC | modules talk only through records in the store and the runner's events | the [records](../schemas/schemas.md) |
+| CC | CC | public typed APIs; store and events supply persistence and observation | the [records](../schemas/schemas.md) and linked module APIs |
 | CC | Existing platform | only through one adapter per system in `cc/adapters/` | each adapter's API on [integration](integration.md) |
 
 ## What is a capsule, and what is not
@@ -72,10 +72,10 @@ Every **node** is a capsule. The few pieces that are not nodes stay control code
 
 | Piece | A capsule? | Why |
 |---|---|---|
-| work node: intent compiler, requirement compiler, search, and the rest | yes | it does the work of one step |
-| gate node: the capsule that checks one work node | yes | it decides whether the run may go on ([nodes](nodes.md#gates)) |
-| planner (Phase 2) | yes | it produces a `run_plan` value |
-| delivery (writing the report file) | yes | it is the last step's work |
+| governed research work | yes | reusable declared capability with independent admission |
+| shared semantic verifier | yes | returns assessment; Gate host decides advancement |
+| planner (isolated Phase 2) | no | orchestration service produces a candidate plan for validation |
+| intake, intent hints and publication | no | mechanical typed modules; report generation remains a capsule |
 | launcher, freeze, runner, gate host | no: fixed hosts | they run nodes; a node cannot run itself, and the referee must stay out of reach of RSI ([trust](../capsule/trust.md)) |
 | admission, the librarian, the store | no | they are not steps of a run ([capsule rule 1](../capsule/capsule.md#rules)) |
 

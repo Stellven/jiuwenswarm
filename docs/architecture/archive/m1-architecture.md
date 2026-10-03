@@ -1,6 +1,6 @@
 ---
 type: design
-status: draft
+status: past
 tags: [design, draft, m1]
 ---
 
@@ -12,9 +12,9 @@ tags: [design, draft, m1]
 
 **For the coding agent:**
 
-- **Sources of truth.** The PRD says *what* M1 must do. This page says *which modules* do it and *how they connect*. The [capsule folder](capsule/capsule.md) and the [schemas](schemas/schemas.md) define every record, and [guards](capsule/guards.md) lists the checks that keep them valid. If two of these disagree, stop and report; do not choose.
-- **One issue per module.** Build each module against its interface and tests only, with fixtures standing in for its neighbours. Never depend on another module's internals ([what architecture covers](architecture.md)).
-- **Do not build what is excluded.** Each module says what it must not do. The [stages page](capsule/stages.md) lists the schema fields M1 does not check: accept them when present, never require or act on them.
+- **Sources of truth.** The PRD says *what* M1 must do. This page says *which modules* do it and *how they connect*. The [capsule folder](../capsule/capsule.md) and the [schemas](../schemas/schemas.md) define every record, and [guards](../capsule/guards.md) lists the checks that keep them valid. If two of these disagree, stop and report; do not choose.
+- **One issue per module.** Build each module against its interface and tests only, with fixtures standing in for its neighbours. Never depend on another module's internals ([what architecture covers](../architecture.md)).
+- **Do not build what is excluded.** Each module says what it must not do. The [stages page](../capsule/stages.md) lists the schema fields M1 does not check: accept them when present, never require or act on them.
 - **Working choices** are decisions made here to unblock the build. Treat them as fixed until this page changes.
 - **Seam modules** belong to RSI, the Verifier or Model Routing. Their owners build them to the interface given here.
 
@@ -122,17 +122,17 @@ flowchart TB
 
 ## Payloads
 
-> **Superseded in part, 2026-10-01.** Every payload type now has one definition in [`types/`](types/types.md), and named types replace `json` ports between capsules. Rows that point there are settled; the rest are still drafts until their stage is designed.
+> **Superseded in part, 2026-10-01.** Every payload type now has one definition in [`types/`](../types/types.md), and named types replace `json` ports between capsules. Rows that point there are settled; the rest are still drafts until their stage is designed.
 
-Every payload is a `json` port whose `value_schema` is a shared JSON Schema file, pinned by hash. Producer and consumer pin the same file ([fields](capsule/fields.md#ports-what-it-takes-and-gives)).
+Every payload is a `json` port whose `value_schema` is a shared JSON Schema file, pinned by hash. Producer and consumer pin the same file ([fields](../capsule/fields.md#ports-what-it-takes-and-gives)).
 
 **Each schema is open.** It fixes the minimum fields below with their types, and allows extra fields (`additionalProperties: true`). Anything beyond the minimum belongs to the capsule's author. M00b writes these files. Named port types can come later, when a second consumer needs to match by type.
 
 | Payload | Made by | Minimum fields |
 |---|---|---|
-| `intake` | M01 | **Defined only in [`types/intake.md`](types/intake.md).** Replaces `run_request` and `documents` |
-| `intent_ir` | `research.compile_intent` | **Defined only in [`types/intent-ir.md`](types/intent-ir.md)** |
-| `research_brief` | `requirement_capsule` | **Defined only in [`types/research-brief.md`](types/research-brief.md).** |
+| `intake` | M01 | **Defined only in [`types/intake.md`](../types/intake.md).** Replaces `run_request` and `documents` |
+| `intent_ir` | `research.compile_intent` | **Defined only in [`types/intent-ir.md`](../types/intent-ir.md)** |
+| `research_brief` | `requirement_capsule` | **Defined only in [`types/research-brief.md`](../types/research-brief.md).** |
 | `idea_set` | `search_capsule` | `ideas: [{id: string, title: string, summary: string, sources: [{ref: string, locator: string}]}]`, at least one |
 | `scored_ideas` | `screening_capsule` | `scores: [{idea_id: string, dimensions: {string: number}}]`; `chosen_id: string`; `rationale: string` |
 | `hypothesis` | `hypothesis_capsule` | **Broken, adversarially reviewed 2026-09-30, do not build from this row.** A genuinely serious error, not just a missing field: it collapses the PRD's *claim* (the expected effect, e.g. "reduce VRAM by 40%", 3.5.1) and its *falsification threshold* (e.g. "falsified if <10%", 3.5.4) into one `comparator`+`target` pair. The PRD's own worked examples give these as two different numbers with a band between them — almost certainly where `INCONCLUSIVE`/`CONDITIONALLY_ACCEPTABLE` (3.8.5) actually live. `repository_ref` (meant to name a runnable baseline) is also hollow — a bare optional path, same problem `run_request.repository` had before, just moved; `hypothesis_capsule` (a `skill`, pinning nothing) has no way to reach a repository or ground a file:line mechanism via `op.codesearch` either, the same kind-conflict already found and fixed for M20 and not yet applied here. No sign convention or absolute/delta/relative basis exists for any metric, so `benchmark_metrics.deltas` (arithmetic difference) and this payload's thresholds can disagree in sign and nobody would notice (a 3 GB reduction on a 10 GB baseline gives `delta_value: -3`, which a `>=30` comparator reads as false). Full findings: `tundle/obby/HANDOFF.md`, 2026-09-30. |
@@ -140,29 +140,29 @@ Every payload is a `json` port whose `value_schema` is a shared JSON Schema file
 | `benchmark_metrics` | `benchmark_runner` | Redesigned 2026-09-30 from PRD 3.7.2-3.7.4, not the original flat shape, which could not represent a comparison. `seed: integer` (held constant across both runs, 3.7.2); `baseline: {metrics: [{name: string, value: number, unit: string}], stdout: string, stderr: string, exit_status: integer}`; `treatment: {same shape as baseline}`; `deltas: [{name: string, baseline_value: number, treatment_value: number, delta_value: number, unit: string}]`; `unmeasured: [string]`; `runtime_s: number` |
 | `evaluation_verdict` | M20 (scientific evaluation) | `classification: "PASS", "FAIL", "INCONCLUSIVE" or "CONDITIONALLY_ACCEPTABLE"` (PRD 3.8.5 — `FAIL` here is a disproven hypothesis, a valid research outcome, never a gate halt); `evidence_complete: boolean`; `provenance_notes: [string]` (3.8.2); `plausibility_check: {plausible: boolean, rationale: string}` (3.8.3); `threshold_comparison: [{metric_name: string, target: number, comparator: string, observed: number, met: boolean}]` (3.8.4, from the pinned deterministic helper); `residual_risks: [string]`; `follow_ups: [string]` (3.8.6) |
 | `research_report` | `report_capsule` | `markdown: string`; `sections: [string]`; `citations: [{ref: string, source_idea_id: string}]`; `limitations: [string]` |
-| `evidence_bundle` | M10a | **Defined only in [`types/evidence-bundle.md`](types/evidence-bundle.md)** |
-| `verifier_assessment` | `verifier_capsule` | **Defined only in [`types/verifier-assessment.md`](types/verifier-assessment.md)** |
+| `evidence_bundle` | M10a | **Defined only in [`types/evidence-bundle.md`](../types/evidence-bundle.md)** |
+| `verifier_assessment` | `verifier_capsule` | **Defined only in [`types/verifier-assessment.md`](../types/verifier-assessment.md)** |
 
-**Caveats go in the output.** Any output can carry caveats in its Artifact's `issues` ([Artifact](schemas/artifact.md)). `report_capsule` lists every earlier `issues` entry in `limitations`.
+**Caveats go in the output.** Any output can carry caveats in its Artifact's `issues` ([Artifact](../schemas/artifact.md)). `report_capsule` lists every earlier `issues` entry in `limitations`.
 
 ## The modules
 
-Each module lists its owner, inputs and outputs, what it must do and must not do, its tests, and the modules it needs first. "CC" means this team. The checks each module hosts are in [guards](capsule/guards.md).
+Each module lists its owner, inputs and outputs, what it must do and must not do, its tests, and the modules it needs first. "CC" means this team. The checks each module hosts are in [guards](../capsule/guards.md).
 
 **Audit status** (against PRD section 3, in [build order](#build-order); full detail in `tundle/obby/HANDOFF.md`): **audited** — M00a, M00b, M00c (batch A); M12, M10a (batch B); M04, M05 (batch C); M13, M14 (batch D). Everything else below is drafted but not yet cross-checked against the PRD text — read it as a working draft, not yet a build-from source.
 
 ### Shared content
 
 **M00a Port type vocabulary v1.** Owner: CC.
-- **Out:** the vocabulary record with the base types and the registry checks ([port types](schemas/port-types.md)).
+- **Out:** the vocabulary record with the base types and the registry checks ([port types](../schemas/port-types.md)).
 - **Tests:** a valid and an invalid value of each type pass and fail `check.value_matches_type.v1`.
 
-**M00b Payload schemas.** *Retired 2026-10-01: the vocabulary builder generates each payload type's schema from its page ([toolchain](capsule/toolchain.md#m00a-vocabulary-builder)).* Owner: CC.
+**M00b Payload schemas.** *Retired 2026-10-01: the vocabulary builder generates each payload type's schema from its page ([toolchain](../capsule/toolchain.md#m00a-vocabulary-builder)).* Owner: CC.
 - **Out:** one JSON Schema file per payload above, each with its sha256.
 - **Tests:** a minimal and an extended example of each validate; each example with a required field missing fails.
 
 **M00c Policy epochs.** Owner: CC; the reason-code owners are agreed with the Verifier.
-- **Out:** development epochs during the build, each accepting the earlier ones, and `e1` for release ([policy](schemas/policy.md)).
+- **Out:** development epochs during the build, each accepting the earlier ones, and `e1` for release ([policy](../schemas/policy.md)).
 - **Contents:** the first-epoch values, the admission judge by name, the time budget (default 600 s, cap 1800 s, 120 s per judge call), and the reason-code owners.
 - **Tests:** the lint passes; every rule has a reason code; every call-level code has an owner ([Open](#open) 2 — not yet true).
 
@@ -170,33 +170,33 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 
 **M12 Record store.** Owner: CC.
 - **In:** any CC record or content.
-- **Out:** records keyed `cc/<kind>/<scope>/<id>` under the profile root, and content keyed by sha256 ([library](capsule/library.md#what-the-library-holds)).
-- **Must:** write once; read by key and by prefix. `exclusive_set` alone cannot tell a duplicate write from a conflicting one — it returns `false` whenever the key exists, whatever the bytes are (agent-core `openjiuwen/core/foundation/store/base_kv_store.py:42`, pin `9e339019`) — so M12 reads the existing value and compares bytes before applying `guard.store.write_once`. It also checks `guard.common.envelope_shape`, `guard.common.scope_exclusive` and `guard.common.ref_integrity` on every write, `guard.store.one_writer_per_kind` at admission, and `guard.porttype.vocabulary_version_monotonic` for the port type vocabulary ([guards](capsule/guards.md)).
+- **Out:** records keyed `cc/<kind>/<scope>/<id>` under the profile root, and content keyed by sha256 ([library](../capsule/library.md#what-the-library-holds)).
+- **Must:** write once; read by key and by prefix. `exclusive_set` alone cannot tell a duplicate write from a conflicting one — it returns `false` whenever the key exists, whatever the bytes are (agent-core `openjiuwen/core/foundation/store/base_kv_store.py:42`, pin `9e339019`) — so M12 reads the existing value and compares bytes before applying `guard.store.write_once`. It also checks `guard.common.envelope_shape`, `guard.common.scope_exclusive` and `guard.common.ref_integrity` on every write, `guard.store.one_writer_per_kind` at admission, and `guard.porttype.vocabulary_version_monotonic` for the port type vocabulary ([guards](../capsule/guards.md)).
 - **Must not:** edit or delete.
 - **Tests:** a second write of different bytes to an existing key is refused; the same bytes at the same key are a no-op; equal content bytes are stored once.
 
 **M10a Check runner.** Owner: CC. Admission, the author kit and the gate all use it.
 - **In:** a check, the values it targets, and for a judged check the judge to call.
-- **Out:** `pass`, `fail` or `unknown`, with evidence and `runner_sha256` ([verification-record](schemas/verification-record.md)).
+- **Out:** `pass`, `fail` or `unknown`, with evidence and `runner_sha256` ([verification-record](../schemas/verification-record.md)).
 - **Must:** run `deterministic` and `reference` checks as pinned code; run `judged` checks through the given judge via M04 (`caller: gate`, or `admission` at admission).
-- **Must not:** decide a gate outcome; that is M10's job. [guards](capsule/guards.md) lists every gate-time guard under "Check runner and gate (M10a, M10)" jointly, without splitting the two — M10a runs each check and reports its result; M10 owns the fold (`guard.verification.decision_fold_correct`) and everything downstream of it (`judge_not_self`, `one_per_dispatch`, `seb_complete`).
+- **Must not:** decide a gate outcome; that is M10's job. [guards](../capsule/guards.md) lists every gate-time guard under "Check runner and gate (M10a, M10)" jointly, without splitting the two — M10a runs each check and reports its result; M10 owns the fold (`guard.verification.decision_fold_correct`) and everything downstream of it (`judge_not_self`, `one_per_dispatch`, `seb_complete`).
 - **Tests:** each anchor on fixtures; an error in a check's code gives `unknown`, never `pass`.
 
 **M13 Author kit.** Owner: CC.
 - **In:** a draft Declaration, its files and tests, and the policy.
-- **Out:** errors with reason codes; the computed `decl_hash`, `interface_hash` and `code_sha256`; and the generated `make_capsule.md` ([make_capsule.md](capsule/make-capsule.md)).
+- **Out:** errors with reason codes; the computed `decl_hash`, `interface_hash` and `code_sha256`; and the generated `make_capsule.md` ([make_capsule.md](../capsule/make-capsule.md)).
 - **Must:** share admission's validation and hashing code, and run the admission checks through M10a.
-- **Tests:** the [example Declaration](capsule/fields.md#example) passes; each checked rule has a fixture that fails with its code.
+- **Tests:** the [example Declaration](../capsule/fields.md#example) passes; each checked rule has a fixture that fails with its code.
 
 **M14 Admission.** Owner: CC.
-- **In:** a [Candidate](schemas/candidate.md), from an author or from the RSI branch.
+- **In:** a [Candidate](../schemas/candidate.md), from an author or from the RSI branch.
 - **Out:**
-  - a [Verdict](schemas/verdict.md), recording the judge in `checks_run[].judge`;
+  - a [Verdict](../schemas/verdict.md), recording the judge in `checks_run[].judge`;
   - test cases, a visible suite, and Artifacts for test inputs;
   - the stored files;
-  - a [Standing](schemas/standing.md) entry: `admitted`, or `admitted_inactive` for an RSI child of a `propose` parent.
+  - a [Standing](../schemas/standing.md) entry: `admitted`, or `admitted_inactive` for an RSI child of a `propose` parent.
 - **Must:**
-  - follow the [admission steps](capsule/library.md#admission-the-only-way-in);
+  - follow the [admission steps](../capsule/library.md#admission-the-only-way-in);
   - run test calls through M04 as `admission` calls, and checks through M10a;
   - use the policy's admission judge, never a capsule's own `decl_hash`;
   - apply the RSI rules to RSI Candidates: `rsi_permitted`, `changes_allowed`, `rsi_cannot_grant`, `parent_admitted`, `parent_suites_pass`.
@@ -213,9 +213,9 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 **M16 Catalogue export.** Owner: CC. For Planner Phase 2, and the Model Routing PRD's 3.X.2 "Capsule Registry" dependency — the same list serves both; there is no second registry to build.
 - **Out:** a JSON list of admitted capsules: name, summary, ports, effect class, `decl_hash`.
 - **Tests:** only `admitted` versions appear.
-- **What it gives a router is the Declaration's existing descriptive fields, never a dedicated model-capability field.** `fields.md`'s own rule: "There is no model field and no role field... The Declaration still describes the work in enough detail that a router could choose from it" ([capsule/fields.md#needs-what-must-hold-and-what-it-uses](capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A router works from `summary`, `ports` and the rest of what's already here — it does not get a purpose-built capability tag, and CC will not add one to suit it. See [seams](#seams-with-other-workstreams).
+- **What it gives a router is the Declaration's existing descriptive fields, never a dedicated model-capability field.** `fields.md`'s own rule: "There is no model field and no role field... The Declaration still describes the work in enough detail that a router could choose from it" ([capsule/fields.md#needs-what-must-hold-and-what-it-uses](../capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A router works from `summary`, `ports` and the rest of what's already here — it does not get a purpose-built capability tag, and CC will not add one to suit it. See [seams](#seams-with-other-workstreams).
 
-**M17 Fixture export.** *Retired 2026-10-01 in favour of Data Foundation's sample run export ([seams](seams.md#data-foundation)).* Owner: CC. For the RSI branch and the RSI data foundation.
+**M17 Fixture export.** *Retired 2026-10-01 in favour of Data Foundation's sample run export ([seams](../seams.md#data-foundation)).* Owner: CC. For the RSI branch and the RSI data foundation.
 - **In:** a finished `run_id`.
 - **Out:** a folder `fixtures/<run_id>/` with one subfolder per node holding `inputs/`, `outputs/`, `observation.json` and `verification.json`, plus `declarations/` and a `manifest.json` of hashes. These are the PRD's "sample DAG fixtures".
 - **Tests:** replaying an export through tier 1 of M10 gives the same tier 1 results. Tier 2 calls a model, so it is not replayed.
@@ -232,7 +232,7 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 
 **M03 Default DAG, freeze and halt.** Owner: CC. The PRD's Planner Phase 1.
 - **In:** the `run_request`; each named capsule's current Standing and Verdict; the policy; the vocabulary.
-- **Out:** one [Binding](schemas/binding.md) per node, then the Swarmflow script running the nodes in order.
+- **Out:** one [Binding](../schemas/binding.md) per node, then the Swarmflow script running the nodes in order.
 - **Freeze must:**
   - bind only `admitted` capsules;
   - re-hash each capsule's code, and all the code it pins in `needs.external`, and refuse any that differs from what was admitted (`CARRIER_CHANGED`). Changed code is never bound on the hot path;
@@ -257,7 +257,7 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
   - call by kind: a `skill` becomes a model turn through M05; a `tool` is a Python call; a `prompt_section` is inserted into a skill's turn;
   - pass a nested callee the caller's `decl_hash` and declared effects;
   - stop a call at its time budget (`BUDGET_EXCEEDED`);
-  - honour `needs.human_interaction` ([fields](capsule/fields.md#needs-what-must-hold-and-what-it-uses)): `none` gets no way to reach a person; `optional` may ask through `human_session` and carries on without an answer; `blocking` waits for the answer;
+  - honour `needs.human_interaction` ([fields](../capsule/fields.md#needs-what-must-hold-and-what-it-uses)): `none` gets no way to reach a person; `optional` may ask through `human_session` and carries on without an answer; `blocking` waits for the answer;
   - return `{value, verdict, obs_id}` to the engine for `dispatch` calls.
 - **Must not:** raise to the engine; let the engine retry; run a nested call to a capsule the caller does not pin.
 - **Tests:**
@@ -280,7 +280,7 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
   - `op.deepsearch`: a query and the run's documents in; ranked passages with locators out. It indexes the run's documents itself.
   - `op.codesearch`: a query and the repository in; files and line references out.
   - `op.workspace_io`: a read or write of a path.
-- **Must:** `op.workspace_io` refuses any path outside the run's workspace, or outside the caller's declared `fs:` effects. On the Codex runtime nothing else enforces these ([permissions](capsule/permissions.md#gaps-and-conflicts)).
+- **Must:** `op.workspace_io` refuses any path outside the run's workspace, or outside the caller's declared `fs:` effects. On the Codex runtime nothing else enforces these ([permissions](../capsule/permissions.md#gaps-and-conflicts)).
 - **Tests:** each works on a fixture corpus or repository; an out-of-bounds write is refused.
 
 **M09 `verifier_capsule`.** Owner: CC builds it; the Verifier owns its rubric.
@@ -292,7 +292,7 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 
 **M10 Evaluator Gate.** Owner: the **Verifier (seam)**. CC supplies M10a and the inputs.
 - **In:** the Stage Evidence Bundle (the output Artifacts, the Declaration, the Observation), and the Binding's checks and `verifier`.
-- **Out:** a [Verification](schemas/verification-record.md) with the decision (`pass`, `fail`, `blocked`), and one of five verdicts for M03.
+- **Out:** a [Verification](../schemas/verification-record.md) with the decision (`pass`, `fail`, `blocked`), and one of five verdicts for M03.
 - **Must:**
   - tier 1, through M10a: the deterministic and reference checks, and the fixed checks on the call's outcome and time. Tokens are recorded, not gated, until they are checked;
   - tier 2, only if tier 1 passes: the judged checks, through M10a and the verifier;
@@ -384,7 +384,7 @@ Each module lists its owner, inputs and outputs, what it must do and must not do
 | Model Routing | Xiaoyang | a model call that can be recorded and replayed; the Codex CLI integration, which is the PRD's first step. **CC is in charge of the capsule side of this seam**: M05 calls the adapter, M16 is the one Capsule Registry the router reads (name, summary, ports, effect class, `decl_hash`). There is no dedicated model-capability field — `fields.md`'s rule is that a router works from the Declaration's existing descriptive fields, never a purpose-built tag; CC will not add one. **Unresolved, not CC's to invent:** the Model Routing PRD's 3.X.2 names routing for "Planner, Coder, and Reviewer roles" — none of those names match any of the M1 workflow, benchmark or verifier capsules (`requirement_capsule`, `search_capsule`, `screening_capsule`, `hypothesis_capsule`, `poc_capsule`, `benchmark_runner`, `report_capsule`, `verifier_capsule`), nor the M06 operators or M19's bare-arm capsules. Muk confirmed 09-30 this is about M1's own model-using capsules, not the team's coding process — so the PRD's role vocabulary needs mapping onto real capsule names, or dropping; that mapping is the Router PRD owner's to make, not assumed here. | M05 calls it; M16 serves it |
 | Verifier | Ramika | M10: the Stage Evidence Bundle in; the decision and one of five verdicts out; the reason-code owners; `verifier_capsule`'s rubric | M04, M10a and M09 are built by CC |
 | RSI | Saurav | works on its own branch, against a sandbox copy with `evolution.rsi: propose` that never goes through mainline admission. It reads the mainline Verdict's `test_suites` (not M17's fixtures — that dependency is soft, see [build order](#build-order)) and submits Candidates (`submitted_by.kind: rsi`) to M14 for the capsules it actually promotes | M14 checks them; a person merges; nothing is admitted automatically |
-| RSI data foundation | Suraj | fixtures in M17's layout and the [test case](schemas/checks.md) format | M14 stores them |
+| RSI data foundation | Suraj | fixtures in M17's layout and the [test case](../schemas/checks.md) format | M14 stores them |
 | Verifier fine-tuning | James | a new `verifier_capsule` version, submitted by a person | M14 admits it |
 | Planner Phase 2, Leader Agent, Code Mode | Planner and Builder tracks | M16's catalogue; M17's fixtures | read only |
 
@@ -426,7 +426,7 @@ flowchart LR
 ## Open
 
 1. **The five workflow capsules.** The kickoff counts "5 workflow + 1 verifier". This page follows PRD 4.1's six. Confirm with the PRD owner.
-2. **Four call/gate-level reason codes have no owner, though `guard.observation.reason_owner_known` requires one for every `blocked` Observation.** Found auditing M00c against [guards](capsule/guards.md): `SCHEMA_NONCONFORMANT` (raised at each call by `guard.declaration.kind_known`, and by several Observation/Artifact shape guards, not only at admission), `HASH_MISMATCH` (raised at each call by `guard.artifact.content_sha256_correct`, on an Artifact's own content — distinct from the carrier-hash case, which already renames to the owned `CARRIER_CHANGED` at load), `OPERATOR_NOT_ADMITTED` (raised at each call by `guard.declaration.external_admitted_and_pinned`), and `JUDGE_IS_SELF` (raised at gate time by `guard.verification.judge_not_self`). Agree owners for these with the Verifier; `BUDGET_EXCEEDED` itself is already owned (`capsule`), so it is these four, not it, that are open.
+2. **Four call/gate-level reason codes have no owner, though `guard.observation.reason_owner_known` requires one for every `blocked` Observation.** Found auditing M00c against [guards](../capsule/guards.md): `SCHEMA_NONCONFORMANT` (raised at each call by `guard.declaration.kind_known`, and by several Observation/Artifact shape guards, not only at admission), `HASH_MISMATCH` (raised at each call by `guard.artifact.content_sha256_correct`, on an Artifact's own content — distinct from the carrier-hash case, which already renames to the owned `CARRIER_CHANGED` at load), `OPERATOR_NOT_ADMITTED` (raised at each call by `guard.declaration.external_admitted_and_pinned`), and `JUDGE_IS_SELF` (raised at gate time by `guard.verification.judge_not_self`). Agree owners for these with the Verifier; `BUDGET_EXCEEDED` itself is already owned (`capsule`), so it is these four, not it, that are open.
 3. **`blocking` human interaction and the time budget.** Does waiting for a person count against a call's time budget, and what happens on the Codex runtime while `human_session` has no reply path? All six M1 workflow capsules can be `none` until this is settled.
 4. **DeepSearch's own model endpoint and index.** To confirm with the deepsearch repo. They sit inside `op.deepsearch` either way.
 6. **Task Memory and Coding Memory vs. M12.** PRD 3.7.3 (and 3.1.4) name jiuwenswarm's native Task Memory and Coding Memory modules as the capture mechanism for run telemetry and provenance. This design uses CC's own M12 record store instead. Raised once, 2026-09-28 ("no custom database schema"), never settled here since. Whether M12 satisfies the PRD's "durably capture" in the native-module sense, or M01/M08 need to also write through Task/Coding Memory, is the PRD owner's call.

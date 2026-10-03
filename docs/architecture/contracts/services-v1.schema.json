@@ -1,0 +1,2431 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:contracts:services-v1",
+  "title": "M1 public service contracts v1",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "sha256": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "nullable_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ext": {
+      "type": "object"
+    },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "reason"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "reason": {
+          "$ref": "#/$defs/reason"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/ref"
+        }
+      }
+    },
+    "planner_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "task_ref",
+        "library_snapshot_ref",
+        "experiment_config_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "task_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "library_snapshot_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "experiment_config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "ext": {
+          "$ref": "#/$defs/ext"
+        }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "capability_name",
+        "decl_hash"
+      ],
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "capability_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decl_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "objective_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective_id",
+        "step_id",
+        "output_port",
+        "criterion_refs"
+      ],
+      "properties": {
+        "objective_id": {
+          "$ref": "#/$defs/id"
+        },
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "output_port": {
+          "type": "string",
+          "minLength": 1
+        },
+        "criterion_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        }
+      }
+    },
+    "planner_proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "task_ref",
+        "library_snapshot_ref",
+        "experiment_config_ref",
+        "plan",
+        "selections",
+        "objective_bindings",
+        "budget",
+        "model_response_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "task_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "library_snapshot_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "experiment_config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "plan": {
+          "$ref": "cc:types:run-plan"
+        },
+        "selections": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/selection"
+          }
+        },
+        "objective_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/objective_binding"
+          }
+        },
+        "budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maximum_elapsed_s",
+            "maximum_model_calls"
+          ],
+          "properties": {
+            "maximum_elapsed_s": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maximum_model_calls": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "model_response_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "ext": {
+          "$ref": "#/$defs/ext"
+        }
+      }
+    },
+    "validation_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "plan_ref",
+        "task_ref",
+        "library_snapshot_ref",
+        "policy_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "plan_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "task_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "library_snapshot_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "policy_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "explanation"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "port": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "plan_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "plan_ref",
+        "task_ref",
+        "library_snapshot_ref",
+        "policy_ref",
+        "status",
+        "findings"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "plan_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "task_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "library_snapshot_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "policy_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "status": {
+          "enum": [
+            "VALID",
+            "INVALID"
+          ]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "validated_plan_ref": {
+          "$ref": "#/$defs/ref"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "VALID"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "validated_plan_ref"
+            ],
+            "properties": {
+              "findings": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "findings": {
+                "minItems": 1
+              }
+            },
+            "not": {
+              "required": [
+                "validated_plan_ref"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "experiment_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "task_ref",
+        "feature_profile_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "task_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "feature_profile_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "experiment_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "id",
+        "allowed_features",
+        "config_ref",
+        "production_baseline_ref",
+        "external_access_approval_ref",
+        "ablation_study_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "allowed_features": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "dynamic_intent",
+              "leader_planning",
+              "capability_discovery",
+              "model_routing",
+              "alternate_verifier",
+              "code_mode",
+              "component_ablation"
+            ]
+          }
+        },
+        "config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "production_baseline_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "external_access_approval_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "ablation_study_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "allowed_features": {
+                "contains": {
+                  "const": "component_ablation"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "ablation_study_ref": {
+                "$ref": "#/$defs/ref"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "ablation_study_ref": {
+                "const": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    "benchmark_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "task",
+        "config_ref",
+        "seed",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "task": {
+          "$ref": "cc:types:intake"
+        },
+        "config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "run_handle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "run_dir",
+        "state",
+        "status_ref",
+        "manifest_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "run_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "running",
+            "evaluating",
+            "halted",
+            "completed",
+            "aborted"
+          ]
+        },
+        "status_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "manifest_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        }
+      }
+    },
+    "export_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit",
+        "evidence_ref",
+        "unavailable_reason"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "unavailable_reason": {
+          "enum": [
+            null,
+            "NOT_REPORTED",
+            "NOT_APPLICABLE",
+            "CAPTURE_MISSING"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "evidence_ref": {
+                "$ref": "#/$defs/ref"
+              },
+              "unavailable_reason": {
+                "const": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "attempt",
+        "request_id",
+        "decl_hash",
+        "binding_ref",
+        "observation_ref",
+        "artifact_refs",
+        "verification_ref",
+        "release_ref",
+        "missing_records",
+        "experimental_advance_ref"
+      ],
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "decl_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "binding_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "observation_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "artifact_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "verification_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "release_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "missing_records": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "observation",
+              "artifact",
+              "verification",
+              "release"
+            ]
+          }
+        },
+        "experimental_advance_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        }
+      }
+    },
+    "model_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "parent_obs_id",
+        "step_id",
+        "attempt",
+        "role",
+        "requested_model",
+        "served_model",
+        "route_ref",
+        "started_at",
+        "ended_at",
+        "elapsed",
+        "prompt_ref",
+        "reply_ref",
+        "input_tokens",
+        "output_tokens",
+        "cost",
+        "seed"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "parent_obs_id": {
+          "$ref": "#/$defs/id"
+        },
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requested_model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "served_model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "route_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ended_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "elapsed": {
+          "$ref": "#/$defs/measurement"
+        },
+        "prompt_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "reply_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "input_tokens": {
+          "$ref": "#/$defs/measurement"
+        },
+        "output_tokens": {
+          "$ref": "#/$defs/measurement"
+        },
+        "cost": {
+          "$ref": "#/$defs/measurement"
+        },
+        "seed": {
+          "$ref": "#/$defs/seed"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "type_name",
+        "type_version",
+        "name",
+        "size_bytes",
+        "retrieval_uri"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "type_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "retrieval_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "deviation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature",
+        "baseline_ref",
+        "configured_ref",
+        "reason"
+      ],
+      "properties": {
+        "feature": {
+          "enum": [
+            "dynamic_intent",
+            "leader_planning",
+            "capability_discovery",
+            "model_routing",
+            "alternate_verifier",
+            "code_mode",
+            "component_ablation"
+          ]
+        },
+        "baseline_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "configured_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "benchmark_export": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "export_id",
+        "run_id",
+        "track",
+        "source_manifest_ref",
+        "config_ref",
+        "library_snapshot_ref",
+        "plan_ref",
+        "run_state",
+        "failure_records",
+        "steps",
+        "model_calls",
+        "artifacts",
+        "scientific_outcome",
+        "timing",
+        "usage",
+        "deviations",
+        "seed"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "export_id": {
+          "$ref": "#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "track": {
+          "enum": [
+            "production",
+            "isolated_experiment"
+          ]
+        },
+        "source_manifest_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "library_snapshot_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "plan_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "run_state": {
+          "enum": [
+            "completed",
+            "halted",
+            "aborted"
+          ]
+        },
+        "failure_records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reason"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "model_calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/model_call"
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/artifact"
+          }
+        },
+        "scientific_outcome": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "verdict_ref",
+            "unavailable_reason"
+          ],
+          "properties": {
+            "verdict_ref": {
+              "$ref": "#/$defs/nullable_ref"
+            },
+            "unavailable_reason": {
+              "enum": [
+                null,
+                "NOT_APPLICABLE",
+                "CAPTURE_MISSING"
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "verdict_ref": {
+                    "type": "null"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "unavailable_reason": {
+                    "type": "string"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "unavailable_reason": {
+                    "const": null
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "timing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "elapsed"
+          ],
+          "properties": {
+            "elapsed": {
+              "$ref": "#/$defs/measurement"
+            }
+          }
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "model_calls",
+            "input_tokens",
+            "output_tokens",
+            "cost"
+          ],
+          "properties": {
+            "model_calls": {
+              "$ref": "#/$defs/measurement"
+            },
+            "input_tokens": {
+              "$ref": "#/$defs/measurement"
+            },
+            "output_tokens": {
+              "$ref": "#/$defs/measurement"
+            },
+            "cost": {
+              "$ref": "#/$defs/measurement"
+            }
+          }
+        },
+        "deviations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/deviation"
+          }
+        },
+        "ext": {
+          "$ref": "#/$defs/ext"
+        },
+        "seed": {
+          "$ref": "#/$defs/seed"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "track": {
+                "const": "production"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "deviations": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "seed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "effective",
+        "unavailable_reason"
+      ],
+      "properties": {
+        "requested": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "effective": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unavailable_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "effective": {
+                "type": "integer"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "const": null
+              },
+              "requested": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "requested"
+            ]
+          },
+          "else": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "benchmark_profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "profiles"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "config_ref",
+              "track",
+              "description"
+            ],
+            "properties": {
+              "config_ref": {
+                "$ref": "#/$defs/ref"
+              },
+              "track": {
+                "enum": [
+                  "production",
+                  "isolated_experiment"
+                ]
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "ready",
+        "doctor_ref",
+        "reason"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "doctor_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "export_handle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "export_ref",
+        "download_url"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "export_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "download_url": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "abort_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "routing_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "run_id",
+        "step_id",
+        "attempt",
+        "obs_id",
+        "capsule_name",
+        "decl_hash",
+        "catalog_ref",
+        "config_ref",
+        "required_capabilities",
+        "model_allowlist",
+        "default_model_id",
+        "deadline_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "obs_id": {
+          "$ref": "#/$defs/id"
+        },
+        "capsule_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "decl_hash": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "catalog_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "required_capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "model_allowlist": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "default_model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deadline_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "context_chars": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "preferences": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "cost",
+              "latency",
+              "quality"
+            ]
+          }
+        },
+        "ext": {
+          "$ref": "#/$defs/ext"
+        }
+      }
+    },
+    "routing_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "route_id",
+        "selected_model_id",
+        "catalog_ref",
+        "config_ref",
+        "reason",
+        "fallback",
+        "judge_obs_ref",
+        "record_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "route_id": {
+          "$ref": "#/$defs/id"
+        },
+        "selected_model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalog_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fallback": {
+          "type": "boolean"
+        },
+        "judge_obs_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "record_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "ext": {
+          "$ref": "#/$defs/ext"
+        }
+      }
+    },
+    "ablation_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "component",
+        "original_sha256",
+        "action",
+        "replacement_sha256",
+        "acceptance_evidence_refs"
+      ],
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "component": {
+          "enum": [
+            "capability",
+            "semantic_verifier",
+            "deterministic_gate"
+          ]
+        },
+        "original_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "action": {
+          "enum": [
+            "disable",
+            "replace"
+          ]
+        },
+        "replacement_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "acceptance_evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "replace"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "replacement_sha256": {
+                "$ref": "#/$defs/hash"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "replacement_sha256": {
+                "const": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ablation_study": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "study_id",
+        "production_baseline_ref",
+        "approved_by",
+        "reason",
+        "actions",
+        "evidence_requirements"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "study_id": {
+          "$ref": "#/$defs/id"
+        },
+        "production_baseline_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "approved_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ablation_action"
+          }
+        },
+        "evidence_requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        }
+      }
+    },
+    "experimental_advance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "step_id",
+        "attempt",
+        "observation_ref",
+        "verification_ref",
+        "feature_profile_ref",
+        "study_ref",
+        "action_index",
+        "gate_evidence_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "observation_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "verification_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "feature_profile_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "study_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "action_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gate_evidence_ref": {
+          "$ref": "#/$defs/ref"
+        }
+      }
+    },
+    "auth_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "profile_id",
+        "operation",
+        "login_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "profile_id": {
+          "$ref": "#/$defs/id"
+        },
+        "operation": {
+          "enum": [
+            "status",
+            "begin_login",
+            "cancel_login",
+            "logout"
+          ]
+        },
+        "login_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "cancel_login"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "login_id": {
+                "$ref": "#/$defs/id"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "login_id": {
+                "const": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    "auth_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "profile_id",
+        "state",
+        "login_id",
+        "verification_url",
+        "user_code",
+        "expires_at",
+        "reason"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "profile_id": {
+          "$ref": "#/$defs/id"
+        },
+        "state": {
+          "enum": [
+            "authenticated",
+            "login_required",
+            "pending",
+            "unavailable",
+            "profile_in_use"
+          ]
+        },
+        "login_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verification_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "user_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expires_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "pending"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "login_id": {
+                "$ref": "#/$defs/id"
+              },
+              "verification_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "user_code": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "login_id": {
+                "const": null
+              },
+              "verification_url": {
+                "const": null
+              },
+              "user_code": {
+                "const": null
+              },
+              "expires_at": {
+                "const": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    "experimental_gate_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "step_id",
+        "attempt",
+        "observation_ref",
+        "feature_profile_ref",
+        "study_ref",
+        "action_index",
+        "state",
+        "verification_ref",
+        "skipped_check_ids"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "step_id": {
+          "$ref": "#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "observation_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "feature_profile_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "study_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "action_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "state": {
+          "enum": [
+            "NOT_RUN",
+            "PARTIAL"
+          ]
+        },
+        "verification_ref": {
+          "$ref": "#/$defs/nullable_ref"
+        },
+        "skipped_check_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "NOT_RUN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "verification_ref": {
+                "const": null
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "verification_ref": {
+                "$ref": "#/$defs/ref"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "model_call_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "run_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "run"
+            },
+            "run_id": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "candidate_id",
+            "admission_session_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "admission"
+            },
+            "candidate_id": {
+              "$ref": "#/$defs/id"
+            },
+            "admission_session_id": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "session_id",
+            "attempt_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "rsi_controller"
+            },
+            "session_id": {
+              "$ref": "#/$defs/id"
+            },
+            "attempt_id": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "session_id",
+            "oracle_request_id",
+            "trial_ref",
+            "case_call_id",
+            "arm",
+            "repeat"
+          ],
+          "properties": {
+            "kind": {
+              "const": "oracle"
+            },
+            "session_id": {
+              "$ref": "#/$defs/id"
+            },
+            "oracle_request_id": {
+              "$ref": "#/$defs/id"
+            },
+            "trial_ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "case_call_id": {
+              "$ref": "#/$defs/id"
+            },
+            "arm": {
+              "enum": [
+                "parent",
+                "incumbent",
+                "child"
+              ]
+            },
+            "repeat": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3
+            }
+          }
+        }
+      ]
+    },
+    "scoped_capture_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "namespace",
+        "ref"
+      ],
+      "properties": {
+        "namespace": {
+          "enum": [
+            "public_artifact",
+            "rsi_private",
+            "oracle_private"
+          ]
+        },
+        "ref": {
+          "$ref": "#/$defs/ref"
+        }
+      }
+    },
+    "private_model_capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "scope",
+        "request_id",
+        "obs_id",
+        "turn",
+        "role",
+        "content_sha256",
+        "size_bytes",
+        "sealed_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "scope": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/model_call_scope"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "rsi_controller",
+                    "oracle"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "obs_id": {
+          "$ref": "#/$defs/id"
+        },
+        "turn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "role": {
+          "enum": [
+            "prompt",
+            "reply"
+          ]
+        },
+        "content_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sealed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "model_bridge_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "scope",
+        "obs_id",
+        "operation",
+        "target_request_id",
+        "session_id",
+        "model_id",
+        "deadline_at",
+        "prompt_content_ref",
+        "turn"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "scope": {
+          "$ref": "#/$defs/model_call_scope"
+        },
+        "obs_id": {
+          "$ref": "#/$defs/id"
+        },
+        "operation": {
+          "enum": [
+            "turn",
+            "cancel",
+            "status"
+          ]
+        },
+        "target_request_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "#/$defs/id"
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deadline_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "prompt_content_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/scoped_capture_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "turn": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "turn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_request_id": {
+                "const": null
+              },
+              "prompt_content_ref": {
+                "$ref": "#/$defs/scoped_capture_ref"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "target_request_id": {
+                "$ref": "#/$defs/id"
+              },
+              "prompt_content_ref": {
+                "const": null
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "run"
+                  }
+                }
+              },
+              "operation": {
+                "const": "turn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prompt_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "public_artifact"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "admission"
+                  }
+                }
+              },
+              "operation": {
+                "const": "turn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prompt_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "public_artifact"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "rsi_controller"
+                  }
+                }
+              },
+              "operation": {
+                "const": "turn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prompt_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "rsi_private"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "oracle"
+                  }
+                }
+              },
+              "operation": {
+                "const": "turn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prompt_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "oracle_private"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "model_bridge_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "scope",
+        "state",
+        "reply_content_ref",
+        "reply_content_sha256",
+        "reason"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "scope": {
+          "$ref": "#/$defs/model_call_scope"
+        },
+        "state": {
+          "enum": [
+            "queued",
+            "running",
+            "complete",
+            "cancelled",
+            "unavailable",
+            "timed_out",
+            "denied"
+          ]
+        },
+        "reply_content_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/scoped_capture_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reply_content_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reply_content_ref": {
+                "$ref": "#/$defs/scoped_capture_ref"
+              },
+              "reply_content_sha256": {
+                "$ref": "#/$defs/hash"
+              },
+              "reason": {
+                "const": null
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "reply_content_ref": {
+                "const": null
+              },
+              "reply_content_sha256": {
+                "const": null
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "run"
+                  }
+                }
+              },
+              "state": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reply_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "public_artifact"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "admission"
+                  }
+                }
+              },
+              "state": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reply_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "public_artifact"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "rsi_controller"
+                  }
+                }
+              },
+              "state": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reply_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "rsi_private"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "oracle"
+                  }
+                }
+              },
+              "state": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reply_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "oracle_private"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

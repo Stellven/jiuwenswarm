@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, nodes.md, ../capsule/runner.md, ../capsule/gate-host.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, nodes.md, ../capsule/runner.md, ../capsule/gate-host.md]
 provides: [system.run_lifecycle, system.runner_ipc]
 consumes: [cc.run_plan, cc.binding, cc.observation, cc.verification]
 depends_on: [nodes.md, ../capsule/runner.md, ../capsule/gate-host.md, storage.md, environment.md]
@@ -15,6 +15,8 @@ tags: [system, m1, recovery]
 The trusted supervisor owns node release. A model, tool, UI, event subscriber or cached journal result cannot release a node. This page owns execution/recovery sequencing; [runner](../capsule/runner.md) owns the call and handler semantics, and [gate host](../capsule/gate-host.md) owns evaluation.
 
 ## Public commands and identities
+
+Advancement uses the authority selected by the frozen track/profile: production and ordinary governed steps require a committed release following real Verification; preregistered isolated ablations require the committed experimental_advance and gate-evidence Artifacts defined in [experiments](experiments.md). The dispatcher cannot select authority from a model response. Replay checks the same exact Observation/attempt/profile/study evidence. Missing or failed publication prevents a successor in either track.
 
 `launch(prompt, channel, workspace) -> run_id` creates a new run; two independent submissions create two runs. `resume(run_id, human_review_ref) -> run_id` continues the same frozen run after an attributable terminal review. `abort(run_id, human_review_ref) -> None` leaves its evidence intact. A changed plan, input, config, capsule version or rubric requires a new run. Automatic retries, rewinds and mid-run reconfiguration are excluded.
 
@@ -78,6 +80,6 @@ Invoke launch, call, gate, authorize_advance, resume and abort separately with f
 
 Durable transition, review, dispatch and release shapes are owned by [system records](records.md), using put_system rather than an unregistered CC record kind. A returned Gate decision is followed by a committed release record; engine journal/cache recovery always rereads and validates that release and its exact CC refs.
 
-## Proposed: headless halt (development only, 2026-10-02)
+## Headless halt
 
-A benchmark harness runs hundreds of tasks unattended. A `headless` flag makes the halt host write the same halt record and review requirement it writes today, then skip opening `human_session` and exit with code 3. The gate still decides, resume stays terminal-only, and the flag is pinned in the run's configuration snapshot so a product run can never silently become headless. Not in the product roadmap; not adopted. Detail and the open points: [proposal](../m1/capsule-inventory-proposal.md#benchmark-harness-requests-headless-entry-and-config-assembled-components).
+`cc.execution.headless` is a boolean, default false, pinned in effective run configuration. When true, a halt publishes the same verdict/evidence and human-review requirement, opens no human_session, reads no stdin, and exits with code 3. Successful completion exits 0; launch/configuration rejection exits 2. Headless never changes Gate policy, timeout, release authority or acceptance. Explicit resume remains a separate authenticated operator command. This supports PRD 5.3.1 headless invocation and 5.6.5 frozen development/evaluation configuration and Saurav's benchmark boundary; it is adopted as a public execution mode.

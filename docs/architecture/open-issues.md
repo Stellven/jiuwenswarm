@@ -4,7 +4,7 @@ status: draft
 tags: [open, validation, conflicts]
 ---
 
-# Open issues
+# Implementation and acceptance obligations
 
 The authoritative dispositions for D1–D13 and issues 1–58 are in [decisions](decisions.md). This page contains only facts architecture cannot settle through a sourced, replaceable default: a product conflict, unavailable safety proof, or implementation validation. Missing owner prose alone is no longer a black-box reason.
 
@@ -12,8 +12,7 @@ The authoritative dispositions for D1–D13 and issues 1–58 are in [decisions]
 
 | ID | Condition | Affected area | Decision needed outside architecture |
 |---|---|---|---|
-| 40 | The Linux reference profile requires administrator-provisioned runner/oracle identities, while PRD 4.4.9 describes root-free oracle setup. Directory permissions alone do not meet the fixture, network and credential boundary. | RSI hidden oracle and generated execution bootstrap | Product either accepts one-time administrative provisioning or revises the security requirement. Architecture fails closed meanwhile. |
-| 57 | No source-verified macOS mechanism has demonstrated the same generated-code filesystem, network, credential and hidden-fixture isolation as the Linux profile. | Generated POC and RSI hidden execution on macOS | Full macOS execution support requires a validated profile or a PRD scope change. M1 reports `UNSUPPORTED_SECURITY_PROFILE`; control-plane use remains available. |
+| 57 | The Docker Linux execution profile has not yet demonstrated required generated-code filesystem, network, credential and hidden-fixture isolation on Linux Engine and macOS Docker Desktop. | Generated POC and RSI hidden execution | Implement and run the pinned image/kernel/profile negative probes in [deployment](system/deployment.md). Failure returns `UNSUPPORTED_SECURITY_PROFILE`; it does not satisfy platform acceptance. |
 
 ## Implementation validation
 
@@ -30,4 +29,4 @@ The authoritative dispositions for D1–D13 and issues 1–58 are in [decisions]
 
 ## Recheck set
 
-A changed decision reopens its owner and every producer, consumer, Gate profile, Binding/run plan, seam, record, coverage row and graph edge. Runtime evidence is never inferred from architecture lint. The PRD reply remains unsent and the worktree remains uncommitted.
+A changed decision reopens its owner and every producer, consumer, Gate profile, Binding/run plan, seam, record, coverage row and graph edge. Runtime evidence is never inferred from architecture lint. The October 2 installer custody clause resolves the old root-free bootstrap conflict; deployment validation remains required. External replies are outside this work. Architecture commits preserve provenance and do not claim implementation acceptance.

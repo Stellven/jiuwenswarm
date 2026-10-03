@@ -1,16 +1,16 @@
 ---
 type: design
-status: draft
+status: past
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, pipeline.md, order.md, ../capsule/gate-capsules.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, pipeline.md, order.md, ../capsule/gate-capsules.md]
 provides: []
 consumes: []
 depends_on: [pipeline.md, order.md, ../capsule/gate-capsules.md, ../capsule/gate-host.md, ../system/nodes.md]
 tags: [m1, proposal, capsule, inventory]
 ---
 
-> **Proposal, not adopted.** Nothing here changes a checked page. The current design stays as written in [pipeline](pipeline.md) until Muk approves and the change order below is run. Written 2026-10-02.
+> **Historical proposal, superseded.** The adopted minimal inventory is owned by [pipeline](pipeline.md). This document records the earlier fifteen-capsule alternative and supplies no current coding requirements.
 
 # Proposal: a smaller M1 capsule inventory
 
@@ -159,7 +159,7 @@ The benchmarking workstream asked for two development-only features. Neither is 
 |---|---|---|
 | capsules | the run plan chooses them; a config key selects the plan, so an ablation plan omits or swaps one step | [run plan type](../types/run-plan.md) |
 | library snapshot | `cc.library.snapshot_sha256`: the run refuses any capsule whose admitted hash is not in that snapshot; the same hash is written into the run's `ConfigSnapshot` and returned in `RunView` | needs a snapshot object in [library](../capsule/library.md) and a field in the run view |
-| router | `cc.router.enabled`; off means the runner's default model call ([seams](../seams.md#model-routing)). The router is not on the M1 path yet, so this key waits for Model Routing | |
+| router | `cc.router.enabled`; off means the runner's default model call, and the capsule keeps its router pin so the library hash is the same on and off ([seams](../seams.md#model-routing)). The router is not on the M1 path yet, so this key waits for Model Routing | |
 | RSI | `cc.rsi.enabled`; off means no RSI session opens and no Candidate is accepted | [RSI engine](../capsule/rsi-engine.md) |
 | evaluator gate | `cc.gates.evaluator`: `on` (product) or `off` (development ablation) | see the conflict below |
 

@@ -2,13 +2,13 @@
 type: payload-type
 id: cc.type.evaluation_verdict
 version: 2
-status: blackbox
+status: draft
 tags: [types, m1]
 ---
 
 # `evaluation_verdict`: the scientific outcome · version 2
 
-The PRD 3.8 scientific classification and its supporting comparisons. Full PRD 4.2 already supplies the infrastructure Gate requirements. Only the unresolved classification mapping in issue 44 remains a product blocker here.
+The frozen PRD 3.8 scientific classification and its supporting comparisons. PRD 3.5.4 requires pre-registered boundaries and defaults the middle zone to INCONCLUSIVE. Infrastructure errors are recorded separately and cannot masquerade as scientific rejection.
 
 A scientific fail is a valid research result. The Gate verifies correct evaluation, including recomputation of the approved mapping; it never requires scientific success. It may check the classification for consistency without substituting its own interpretation.
 
@@ -16,7 +16,7 @@ A scientific fail is a valid research result. The Gate verifies correct evaluati
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
-| `classification` | `enum(pass, fail, inconclusive, conditionally_acceptable)` | req | checked |  | Scientific label, distinct from Gate verdict |
+| `classification` | `enum(PASS, FAIL, INCONCLUSIVE, CONDITIONALLY_ACCEPTABLE)` | req | checked |  | Scientific label, distinct from Gate verdict; applies frozen Blueprint middle-zone rule |
 | `comparisons` | `list<object>` | req | checked |  | At least one. One entry per frozen metric |
 | `comparisons[].metric_id` | `id` | req | checked |  | Blueprint metric ID |
 | `comparisons[].measured` | `number?` | req | checked |  | Transformed value in the frozen comparison basis; null if not computable |
@@ -43,7 +43,7 @@ A scientific fail is a valid research result. The Gate verifies correct evaluati
 
 ```json
 {
-  "classification": "conditionally_acceptable",
+  "classification": "INCONCLUSIVE",
   "comparisons": [
     {
       "metric_id": "M1",
@@ -68,4 +68,6 @@ A scientific fail is a valid research result. The Gate verifies correct evaluati
 }
 ```
 
-This example validates structure. Its scientific label is illustrative until Ramika confirms issue 44; it is not an approved classification rule.
+The example lies between success 40 and falsification 10 and uses the Blueprint default INCONCLUSIVE. Passing Brief acceptance 30 cannot silently convert it to CONDITIONALLY_ACCEPTABLE.
+
+Classification order: unavailable/nonfinite comparisons, incomplete evidence or implausibility produce INCONCLUSIVE with explicit validity blockers and an infrastructure evidence check; falsified goals or failed guards on admissible evidence produce FAIL; all goal claims, guards and mandatory Brief acceptance passing produce PASS; remaining admissible evidence uses the preregistered middle-zone rule. CONDITIONALLY_ACCEPTABLE additionally requires every mandatory Brief acceptance and guard predicate passing. A label never authorizes advancement: the infrastructure Gate rejects missing mandatory evidence regardless of an INCONCLUSIVE payload. The evaluator cannot create an ERROR scientific tag, shift boundaries or rerun experiments.

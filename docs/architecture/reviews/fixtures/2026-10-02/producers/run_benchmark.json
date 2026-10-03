@@ -1,0 +1,31 @@
+{
+  "schema_version": "cc.declaration.v1",
+  "identity": {
+    "name": "research.run_benchmark",
+    "kind": "tool"
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "poc_bundle",
+        "type": "poc_bundle",
+        "required": true
+      },
+      {
+        "name": "hypothesis_blueprint",
+        "type": "hypothesis_blueprint",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "benchmark_payload",
+        "type": "benchmark_payload"
+      }
+    ]
+  },
+  "changes": {
+    "effect_class": "nonrepeatable_effect",
+    "effects": []
+  }
+}

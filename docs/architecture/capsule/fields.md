@@ -13,6 +13,10 @@ This is the only page that defines the Declaration's fields. The [schemas](../sc
 
 The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](stages.md). The [CC tooling and field-enforcement map](tools.md#field-validation-and-enforcement-map) distinguishes schema/admission validation from test-time verification and call-time enforcement; this page remains the sole field-definition owner. The type grammar is in the [invariants](../schemas/invariants.md).
 
+## Frozen M1 field policy
+
+The October 2 PRD whitelist is the runtime boundary. Required named ports, capability identity, hashed local implementation, dependency closure, checks, time budget, permission/effect boundaries, and explicit RSI permission are enforced. Remote/members/composite carriers, live selection/ranking, token or money enforcement, installs during a run, automatic repair and promotion remain inactive future fields even when parsable for archival compatibility. Freeze rejects an attempt to activate them as `M1_FEATURE_DISABLED`. Future-field presence cannot grant authority. Foundational model selection belongs to Model Routing, never Declaration capability selection. Released schema versions are immutable; coordinated drafts may be revised before release. Each `failure_modes` entry adds verification cost and is justified only by an enforceable hazard not already represented by a type, check, effect or standard runner error.
+
 A field serves one or more of four uses:
 
 - **Verification:** the code that runs is the code that was tested, and outputs keep their promises.
@@ -20,7 +24,7 @@ A field serves one or more of four uses:
 - **Selection:** choose a capsule for a call.
 - **Observability:** explain afterwards what ran, why and at what cost.
 
-**Rules:** INV-7 (no task), INV-9 (every output has a check), INV-14 (strict core), INV-17 (the policy decides what is required), INV-19 (proposed: declared failures only). See [invariants](../schemas/invariants.md).
+**Rules:** INV-7 (no task), INV-9 (every output has a check), INV-14 (strict core), INV-17 (the policy decides what is required), INV-19 (economical optional failure contracts). See [invariants](../schemas/invariants.md).
 
 ## Fields
 
@@ -99,13 +103,13 @@ Each entry is a `Port`, with the field names of agent-core's `CapabilityIO`.
 
 CC does not schedule pacing or cooldowns between calls to the same capsule. A capsule with its own internal queue or single-process bottleneck should declare `timeout_s` generously instead, so the budget already accounts for time spent waiting on its own backend. That waiting is the capsule's own implementation's job, the same way choosing a model is: not something the schema layer sees or manages.
 
-**Models are not part of the capsule layer.** There is no model field and no role field. Selection picks a capsule, never a model, and there is no central library that picks both. Whether a capsule uses a model, which one, and whether that model is routed at runtime are its author's choice and its author's job, made in the capsule's own files, such as a skill's front matter or its code. Those files are hashed, so a change of fixed model is a new version, tested like any other change. A capsule whose author wants its model chosen at runtime, which is the preferred way, pins a router capsule in `needs.external` and calls it whenever it likes, so its Declaration shows which router version it uses; the models the router picks stay inside the capsule and may change on any turn ([model routing](../model-routing/README.md)). The Declaration still describes the work in enough detail that a router could choose from it. Which agent or role runs a capsule is decided in the [Binding](../schemas/binding.md), not in the capsule.
+**Models are not selected by the capsule layer.** Capability selection chooses the work contract. Model Routing is an ordinary service that selects endpoint/model configuration for the authorized call role and records its decision; it is not an admitted router capsule. Production uses the fixed Codex route, isolated experiments use only approved or mocked routes, and RSI freezes parent/child model settings for comparison. Capsule prompts cannot override endpoint credentials, route policy or model budget. The run configuration and audit evidence pin the effective route separately from capability identity ([model routing](../model-routing/README.md)). Which execution role invokes a capability belongs to orchestration/Binding, not Declaration.
 
 ### changes: what it does to the world
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
-| `changes.effect_class` | `enum(pure, read_only, idempotent, compensable, irreversible)` | req | checked |  | The author's promise about state and undo. Admission checks it against `effects`. Retries, parallelism and permissions follow from it through policy `mappings` |
+| `changes.effect_class` | `enum(pure, read_only, idempotent, compensable, nonrepeatable_effect, irreversible)` | req | checked |  | The author's promise about state and undo. Admission checks it against `effects`. `nonrepeatable_effect` denotes a policy-authorized bounded empirical execution whose observations cannot be recreated by transport replay; it grants neither generic irreversible effects nor automatic retries. Pinned policy and reserved dispatch authorize the first execution, and explicit human-reviewed restart allocates a new attempt. Retries, parallelism and permissions follow policy `mappings` |
 | `changes.effects` | `list<object>` | opt | checked |  | Each effect on the world. Admission checks they agree with `effect_class` |
 | `changes.effects[].resource_key` | `string` | req | checked |  | What it touches. Example: `fs:workspace/out/*` |
 | `changes.effects[].scope` | `string` | req | checked |  | How far it reaches. Example: `run` |
@@ -224,6 +228,6 @@ For a larger, real capsule with more of the optional fields filled in, `failure_
 ## Reuse
 
 - `CapabilityDescriptor`, `CapabilityIO` (agent-core `symphony/models/capability.py:15`, `:61`): port names as there; `value_schema` travels in `CapabilityIO.metadata`.
-- `ToolCard` flags (`core/foundation/tool/base.py:92-119`) and `PermissionLevel` (`harness/security/permission_engine/models.py:19`): as is, as what `effect_class` maps to. Three booleans cannot hold five classes, so `effect_class` stays ours.
+- `ToolCard` flags (`core/foundation/tool/base.py:92-119`) and `PermissionLevel` (`harness/security/permission_engine/models.py:19`): as is, as what `effect_class` maps to. Three booleans cannot hold all effect classes, so `effect_class` stays ours.
 - `ToolExposure` (`core/foundation/tool/exposure.py:14`): as is, in `ext.openjiuwen.exposure`.
 - `capsule-openjiuwen/merged/capsule.schema.json` `$defs`: the starting shapes, renamed.

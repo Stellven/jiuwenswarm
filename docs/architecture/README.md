@@ -7,48 +7,69 @@ tags: [index]
 
 This package describes **Capability Capsule (CC)** and its core schemas, plus the designs that use them. It is a draft for review.
 
-**Status: exploratory alpha and beta.** No schema page here is `v1` yet, every one is still `draft` or `proposed`, so nothing is version-locked. Fields can still move, merge or disappear. `v1` starts once real code for an actual module is being built against a page, not before. See [the invariants](schemas/invariants.md#change) for the exact rule.
+**Status: architecture draft under connected review.** The [October 2 source set](../product/SOURCE_FREEZE.md) is frozen. Draft contracts may change together; a handoff release pins their revisions and generated hashes. Released core versions are immutable. [Policies](policies.md) define AI review, contract revision and evidence requirements; [invariants](schemas/invariants.md#change) define schema compatibility.
 
 A **capability capsule** (能力胶囊) is one capability the system can run, described by a **Declaration** and referred to by the hash of its code. Start with [Capability Capsule](capsule/capsule.md): the `capsule/` folder alone explains what CC is, why it exists, and everything it connects to.
 
 Open this folder as an Obsidian vault, or read the Markdown files directly. All links are relative. Each fact is stated on one page and linked from the others.
 
-## Reading order
+## Build from these
+
+For coders and the layer that turns design into prompts. Start at [coder requirements](system/coder-requirements.md) and the [full handoff](system/handoff.md), which link every module's seven engineering answers.
+
+[Reviewed checkpoint manifest](handoff-checkpoint-2026-10-03.json) pins the package's Git blob bytes. [Release evidence](reviews/2026-10-03-release-evidence.md) records the completed documentation checks and remaining implementation obligations.
+
+1. [Build order](system/build-order.md): one capsule, then one connected capsule, each step with a check someone else can run.
+2. [Module placement and process map](system/modules.md), [durable storage](system/storage.md), [system records](system/records.md), [run lifecycle](system/lifecycle.md), [environment and security](system/environment.md), [local workstation](system/workstation.md) and [verification](system/verification.md).
+3. [Runner](capsule/runner.md) and [toolchain](capsule/toolchain.md): how a call runs, and the tool APIs. [Gate host](capsule/gate-host.md) and [gate capsules](capsule/gate-capsules.md).
+4. [Payload types](types/types.md) and the generated JSON Schemas in [`exports/`](exports/manifest.json): the one definition of every value that moves between modules. Import the files; never write a type by hand.
+5. [The M1 pipeline](m1/pipeline.md): eight governed research steps, shared verifier and reusable search capabilities. [Spatial](system/diagram.md) and [temporal](system/temporal.md) diagrams map code boundaries and execution order. [Track isolation](system/experiments.md), [planner](system/planner.md), [offline RSI](capsule/rsi-engine.md) and [benchmark export](system/benchmark-export.md) cover the other paths.
+6. [Prompt brief](capsule/prompt-brief.md): the line between this design and the prompt text, and the rows a model-backed capsule page carries.
+7. [Seams](seams.md): the API between CC and each other workstream. [Decisions](decisions.md) and [open issues](open-issues.md) say what is settled and what blocks.
+
+These contracts are drafts or provisional until their pages are `checked`; [open issues](open-issues.md) lists the exact owner and platform blockers. The [full run plan](m1/pipeline.md), [measurement protocol](m1/measurement-protocol.md), [research-stage gates](m1/research-gates.md), [offline RSI engine](capsule/rsi-engine.md), [M1 untrusted process boundary](capsule/process-boundary.md) and [RSI fixture oracle](capsule/fixture-oracle.md) connect them.
+
+## Understand the design
+
+**Deployment agreement:** [one Dockerized modular monolith](system/deployment.md), with [authenticated benchmark HTTP endpoints](system/benchmark-export.md#docker-http-transport). Linux Engine and macOS Docker Desktop use the same Linux image; restricted internal processes retain security boundaries.
+
+[Model authentication](system/model-auth.md) chooses a dedicated persistent Codex home and separate container login, with replaceable auth/inference adapters. [Final fresh review](reviews/2026-10-03-final-fresh-review.md) records source-verified findings and their dispositions; [verification](system/verification.md) distinguishes architecture checks from required runtime evidence.
+
+In reading order:
 
 0. [What architecture covers](architecture.md): the layer between the PRD and the code. Then [the system layer](system/overview.md): where CC fits, [nodes](system/nodes.md), [integration with existing code](system/integration.md), [observability](system/observability.md) and [ledgers](system/ledgers.md).
 1. [Capability Capsule](capsule/capsule.md): what a capsule is, its kinds and rules, what it connects to, and the index of the capsule folder.
 2. [Why CC](capsule/why.md), then the [Declaration](capsule/fields.md): what a capsule holds, every field. To write one: [authoring a capsule](capsule/authoring.md).
 3. [Composition](capsule/composition.md), [library](capsule/library.md), [trust](capsule/trust.md), [RSI](capsule/rsi.md), [generalist](capsule/generalist.md), [permissions](capsule/permissions.md), [Symphony](capsule/symphony.md), [CC tooling and field enforcement](capsule/tools.md), [checked and unchecked at M1](capsule/stages.md).
 4. [Schemas](schemas/schemas.md): the records kept about a capsule (Candidate, Verdict, Standing, Binding, Observation, Artifact, Verification, Finding), with checks, port types, the policy and the invariants.
-5. [B1: the first working pipeline](b1-design.md): the earliest form, with one task-specific capsule. Preliminary.
-6. [The M1 pipeline](m1/pipeline.md): the run plan, step by step, and the [design order](m1/order.md). The [build order](system/build-order.md) says what is built first and what blocks what. A [smaller capsule inventory](m1/capsule-inventory-proposal.md) is proposed, not adopted. The [full PRD coverage and responsibility map](prd/coverage.md) connects clauses to contract owners and workstreams. The PRD is in [`docs/product`](../product/README.md) (current: the full PRD of 2026-10-01); architecture's [review of it](prd/prd-m1-full-review.md) and the [draft reply](prd/prd-m1-full-reply.md).
-7. [The big picture](big-picture.md): a potential near-term goal, open to change, and how each workstream fits.
-8. [Payload types](types/types.md): the one definition of every value that moves between modules, and where every other shared datatype is defined.
-9. [Seams](seams.md): the API between CC and each other workstream. [Runner](capsule/runner.md) and [toolchain](capsule/toolchain.md): M1 call execution and tool APIs. The [CC tooling map](capsule/tools.md) shows field enforcement and deferred capabilities; [M1 untrusted process boundary](capsule/process-boundary.md) and [RSI fixture oracle](capsule/fixture-oracle.md) define the two distinct provisional code-execution trust boundaries.
-10. [Decisions and precedents](decisions.md): authoritative dispositions, borrowed design patterns and replacement triggers. [Open issues](open-issues.md) now contains only unresolved product conflicts and implementation validation.
+5. [Design order](m1/order.md), [full PRD coverage](prd/coverage.md) and [exact clause inventory](prd/clause-inventory.md). The [frozen source set](../product/SOURCE_FREEZE.md) replaces file-date precedence. Earlier PRD reviews and the inventory proposal are historical and do not define current behavior.
+6. [The big picture](big-picture.md): a potential near-term goal, open to change, and how each workstream fits.
+7. [Model routing](model-routing/README.md): CC decides what is done; routing is an optimization inside a capsule.
 
-**What is not finished yet:** [black boxes](system/blackboxes.md), limited to genuine product conflicts or safety mechanisms that cannot yet be validated.
+**Validation still required:** [implementation and platform obligations](open-issues.md). Every M1 responsibility has a published design; specified confinement mechanisms require actual implementation probes before their platform acceptance can pass.
 
-**How this vault is built:** [PROCESS](PROCESS.md). Lint: `python _tools/arch_lint.py --check`. The generated [design graph](graph.md).
+**How this vault is built:** [PROCESS](PROCESS.md). Lint: `python _tools/arch_lint.py --check`. It also regenerates [`exports/`](exports/manifest.json) and the [design graph](graph.md). Reviews are in [`reviews/`](reviews/2026-10-02-build-readiness.md).
 
 ## Past designs
 
-Kept as a record only. They are not current; do not build from them.
+The current reviewed checkpoint and reproducible check results are in [release evidence](reviews/2026-10-03-release-evidence.md). [Boundary cases](system/boundary-cases.md) gives the coding team invocation points and expected outcomes without claiming executed implementation results.
 
-- [The M1 design](m1-design.md), proposed 2026-09-28.
-- [M1 architecture](m1-architecture.md), the 27-module build draft written against PRD section 3. Superseded by the pages above; its module ids (M01, M03, ...) are still used as names.
+Kept in [`archive/`](archive/m1-design.md) as a record only. They are not current; do not build from them.
+
+- [The M1 design](archive/m1-design.md), proposed 2026-09-28.
+- [M1 architecture](archive/m1-architecture.md), the 27-module build draft written against PRD section 3. Superseded by the pages above. Its module ids (M01, M03, ...) survive as names; the [handoff page](system/handoff.md#module-ids) says which are current.
+- [B1: the first working pipeline](archive/b1-design.md), the earliest form, with one task-specific capsule.
 - [First PRD review](prd/prd-review.md), against the initial PRD. Superseded by the full PRD review.
 
 ## Other folders
 
+- `exports/`: JSON Schemas generated from the field tables. Never edit by hand.
+- `model-routing/`: CC's reply to the Model Routing design, and `model_router_design_en.md`, that team's design, kept verbatim.
+- `data-foundation/`: the Data Foundation team's design, kept verbatim.
 - `background/`: [terms](background/terms.md) and context. Nothing there needs review.
 
 ## Outside this repository
 
 - **Schema drafts and derivations**: `huawei/capsule-openjiuwen/` (scratch and build, not the vault; finished pages move here).
 - **Presentation renders**: `huawei/mermaid-renders/` (PNG/SVG) and `huawei/slides-png/` (deck-to-PNG exports). Both are generated output, not source; see each folder's README for what generates them and from where.
-- **Notes and decision log**: `tundle/obby/` (Muk's notes; never the design itself).
-
-## Current coding-handoff design
-
-Start with [module placement and process map](system/modules.md), [durable storage](system/storage.md), [system records](system/records.md), [run lifecycle](system/lifecycle.md), [environment and security](system/environment.md), [local workstation](system/workstation.md), and [verification invocation contracts](system/verification.md). The [full run plan](m1/pipeline.md), [measurement protocol](m1/measurement-protocol.md), [research-stage gates](m1/research-gates.md) and [offline RSI engine](capsule/rsi-engine.md) connect them. These additions are drafts/provisional contracts, not approved implementation or completed runtime acceptance. [Open issues](open-issues.md) lists the exact owner/platform blockers.
+- **Notes**: `tundle/obby/` (Muk's notes; never the design itself).

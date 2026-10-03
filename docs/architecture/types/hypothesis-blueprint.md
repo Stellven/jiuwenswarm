@@ -2,19 +2,20 @@
 type: payload-type
 id: cc.type.hypothesis_blueprint
 version: 2
-status: blackbox
+status: draft
 tags: [types, m1]
 ---
 
 # `hypothesis_blueprint`: the frozen experiment contract · version 2
 
-The pre-registered claim, methods, resources and thresholds for PRD 3.5. Produced by [Hypothesis](../m1/hypothesis.md), read by POC, Benchmark, Evaluation and Report. This technical contract keeps readings 41 and 44 explicit; their product classification policy remains blocked. Repository input is supplied by intake version 2, not a reference document. Measurement methods must already exist in the trusted registry before POC generation; issue 58 owns missing methods.
+The pre-registered claim, methods, resources and thresholds for frozen PRD 3.5. Produced by [Hypothesis](../m1/hypothesis.md), read by POC, Benchmark, Evaluation and Report. Measurement methods must exist in the trusted registry before POC generation. Missing methods block only experiments selecting them. PRD 3.5.4 owns the default middle-zone rule; no downstream stage chooses it after observing results.
 
 ## Fields
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
 | `claim` | `text` | req | checked |  | One testable technical claim |
+| `middle_zone_classification` | `enum(INCONCLUSIVE, CONDITIONALLY_ACCEPTABLE)` | req | checked |  | Pre-registered middle-zone rule; default INCONCLUSIVE. CONDITIONALLY_ACCEPTABLE requires all Brief acceptance and guard predicates to pass; otherwise INCONCLUSIVE |
 | `independent_variable` | `text` | req | checked |  | The intervention |
 | `metrics` | `list<object>` | req | checked |  | At least one. Unique metric IDs; all mandatory Brief metrics preserved |
 | `metrics[].metric_id` | `id` | req | checked |  | Stable experiment metric ID |
@@ -61,6 +62,7 @@ Cross-input checks resolve the intake and Brief from the owning Observation; the
 ```json
 {
   "claim": "Tiled attention reduces peak VRAM by 40%.",
+  "middle_zone_classification": "INCONCLUSIVE",
   "independent_variable": "attention kernel",
   "metrics": [
     {

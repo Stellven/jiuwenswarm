@@ -9,7 +9,7 @@ tags: [index, schema]
 
 ## For reviewers
 
-1. **Exception handling (proposed):** accept `guarantees.failure_modes`, INV-19, `CAPSULE_RAISED_UNDECLARED` and Artifact `issues`: yes or no. Without them, M1 records every capsule exception as `CAPSULE_ERROR` and folds it to `blocked`.
+1. **Exception handling adopted:** economical optional failure modes supplement existing contracts; each adds verification cost. Unexpected exceptions use CAPSULE_ERROR, runtime failures keep their infrastructure codes, and Artifact issues carry permitted caveats.
 2. **Draft defaults.** Each is a default a reviewer may overturn:
    - (a) The admission core is checked: shape, re-hash, rules, and running the visible suite. Certification, sandbox and source fields are unchecked.
    - (b) `identity.lineage` is optional, and holds no submission id (`builder_ref` was removed).
@@ -114,7 +114,7 @@ flowchart LR
 - [ ] Reason codes and registries; `required`, `rules`, `levels`, `mappings`, epochs and the gates fold ([Policy](policy.md)).
 - [ ] The Standing states and their writers ([Standing](standing.md)).
 - [ ] INV-1 to INV-19, and the naming decisions.
-- [ ] The proposed exception rules: `guarantees.failure_modes`, `CAPSULE_RAISED_UNDECLARED` (INV-19), Artifact `issues`.
+- [x] Economical optional failure modes and standard error mapping (INV-19); execution evidence remains a downstream obligation.
 - [ ] The open questions and known gaps below.
 
 ## Open questions
@@ -132,7 +132,7 @@ flowchart LR
 - A Candidate field naming the epoch it asks to be admitted under.
 - A verifiable `Check.author`; today it is self-declared.
 - A reader for v1.x records newer than itself; INV-14 refuses unknown fields.
-- A tool that compares what a capsule declared (`changes.effects`) against downstream evidence of what it actually touched, writing the result into `Observation.effects_observed`. Muk has reviewed a similar mechanism elsewhere and confirmed this is worth building. Not scheduled, but it will exist.
+- Automated librarian analysis of effect drift across calls and resulting Standing changes remains deferred. M1 runtime broker/process capture and comparison to pinned permissions/effects are required: the runner writes checked Observation.effects_observed and mandatory raw capture, denies undeclared operations and cannot report ok with unavailable capture. See [permissions](../capsule/permissions.md) and [runtime observability](../system/observability.md).
 - A tool, run by the planner or binder, that uses `changes.effects[].idempotent` and `Common.idempotency_key` together to skip re-dispatching a call that already ran with the same inputs. The fields already exist; nothing reads them together yet to make that call. Not scheduled, but it will exist.
 
 `SCHEMA.md` v2.10b stays as the reasoning; where it disagrees with an approved page, the page wins.

@@ -9,12 +9,12 @@ consumes: [system.events]
 depends_on: [overview.md, nodes.md]
 tags: [system, m1, integration]
 ---
-
-> **Checked, not yet approved.** Every place CC code meets existing code. Read this before writing any CC code, so every author connects to the same places in the same way.
+****
+> **Draft, reopened for the frozen October 2 scope.** Every place CC code meets existing code. Each row fixes an adapter boundary; runtime verification remains downstream.
 
 # Integration: where CC code meets existing code
 
-**Citations.** AC is agent-core at `9e339019`, jiuwenswarm's pin; paths start `openjiuwen/`. JS is jiuwenswarm at `6cc05c36b`; paths start `jiuwenswarm/`. Every line below was read at that commit (2026-10-01). Anything not confirmed is marked **unclear**.
+**Citations.** AC is agent-core at `9e339019`, jiuwenswarm's dependency pin; paths start `openjiuwen/`. JS is jiuwenswarm at `6cc05c36b`; paths start `jiuwenswarm/`. Rows distinguish verified source entrypoints from new adapter behavior. Runtime integration probes remain validation obligations, not undefined architecture.
 
 ## Centralised communication
 
@@ -110,7 +110,7 @@ flowchart LR
 | Existing symbol | Where | What CC does with it | M1 |
 |---|---|---|---|
 | `WorkflowRunState.apply(progress)` | JS `jiuwenswarm/agents/harness/team/handlers/workflow_state.py:200`, `:345` (input `WorkflowProgress` :41) | the progress sink turns engine events and `cc.gate.decided` and `cc.run.halted` into run-view deltas | used |
-| `workflow.updated` event shape | JS `jiuwenswarm/agents/harness/team/handlers/workflow_monitor_handler.py:323-328` | the sink sends the same `{event_type, session_id, workflow}` shape, so the browser's existing run view renders it | used; whether it renders outside team mode is unconfirmed ([B1](../b1-design.md#open) Open 7) |
+| `workflow.updated` event shape | JS `jiuwenswarm/agents/harness/team/handlers/workflow_monitor_handler.py:323-328` | CC sink constructs the same `{event_type, session_id, workflow}` projection and installs subscription for the CC session; this adapter does not require team dispatch | used; non-team rendering is an explicit downstream fixture |
 
 ### `entry`: how a run starts
 
@@ -119,7 +119,7 @@ flowchart LR
 | Existing symbol | Where | What CC does with it | M1 |
 |---|---|---|---|
 | the `jiuwenswarm` CLI | JS `pyproject.toml` script `jiuwenswarm.channels.cli.main:main` | a `--topic` command calls the launcher (PRD 3.1.1) | used |
-| `dispatch_parsed_request` (`chat.send`) | JS `jiuwenswarm/server/agent_ws_server.py:2383` | the web UI's prompt box reaches the agent server here; a CC-run branch calls the launcher. The hop from `AgentRuntime.stream` to the adapter is **unclear** and is traced when this adapter is built | used |
+| `dispatch_parsed_request` (`chat.send`) | JS `jiuwenswarm/server/agent_ws_server.py:2383` | authenticated CC entry routes to `cc.adapters.entry` before ordinary text-chat runtime dispatch; the adapter calls the same launcher as CLI | used; explicit new branch, no dependency on ordinary AgentRuntime adapter hop |
 
 ### `deepsearch`: scholarly search
 
@@ -145,16 +145,24 @@ DS is the deepsearch repository at `ff243bc`; paths start `deepsearch/openjiuwen
 | `DeepSearchAgent`, `AgentFactory` | DS package root | **not used.** It needs its own LLM API key, and would hide model behaviour inside an operator | not used |
 | local search (Milvus index, embedding model) | DS `LocalSearchConfig` | **not used.** Local search is [`op.local_search`](../m1/op-local-search.md), plain keyword code | not used |
 
-**The dependency is a known conflict.** `openjiuwen-deepsearch` pins `openjiuwen[observability]==0.1.17`, while jiuwenswarm pins agent-core at git `9e339019` (jiuwenswarm `pyproject.toml:20`). Importing the connectors also runs `framework/openjiuwen/tools/__init__.py` and `search_api/__init__.py`. Those import local search, runtime API tools and a dozen other wrappers, and through them agent-core's `ToolCard` and `LocalFunction` (present at the pin) and deepsearch's `Config`. Proposal: install the package without its `openjiuwen` pin, and verify a clean `import` of `scholarly_search.arxiv` in CI. If that fails, the fallback is to copy the three connector files under `cc/adapters/deepsearch/` with their licence and commit, and say so here ([open issues](../open-issues.md) 33).
+**Dependency resolution.** `openjiuwen-deepsearch` pins `openjiuwen[observability]==0.1.17` while this project pins agent-core `9e339019`. Do not install its conflicting dependency tree into M1. Vendor the minimum licensed scholarly connector/parser sources under `cc/adapters/deepsearch/`, with source commit/licence notices and replacement imports isolated there. CodeSearch likewise implements the verified model-free BM25 interface behind `cc/adapters/codesearch.py`; no DeepSearch agent/model runtime is imported. Validate clean imports, parser fixtures and wire compatibility downstream. Replace the vendored adapter when upstream dependencies converge without changing search_hits or operator ports.
 
 ### `symphony`: planned nodes (Phase 2)
 
 | Existing symbol | Where | What CC does with it | M1 |
 |---|---|---|---|
 | `CapabilityProvider` (`capabilities()`, `source_snapshot()`) | AC `symphony/interfaces/capability.py:13` | `CapsuleProvider` publishes admitted capsules only, ports as `CapabilityIO` (AC `symphony/models/capability.py:15`, descriptor `:61`) | Phase 2 |
-| `SymphonyGraphEngine.plan(query, candidate_ids, ...)` | AC `symphony/graph_engine.py:113` | a planner capsule calls it through an operator capsule. It returns `{"planned_graph": {"graph": {nodes, edges}}}`, nodes keyed by capability id (AC `symphony/orchestration/planned_graph.py:28-37`); the planner turns that graph into a `run_plan` | Phase 2 |
+| `SymphonyGraphEngine.plan(query, candidate_ids, ...)` | AC `symphony/graph_engine.py:113` | source precedent only; M1 isolated native Leader supplies proposals through [planner](planner.md), followed by deterministic validation. No planner/operator capsule layer | not active |
 | `ScanResultCapabilityProvider`, `SwarmSymphonyService.plan` | JS `jiuwenswarm/symphony/adapter.py:27`; `jiuwenswarm/symphony/service.py:390` | templates for the provider and the planning call | Phase 2 |
 | `symphony.enabled` | JS `jiuwenswarm/resources/config.yaml:33-34`; `jiuwenswarm/symphony/config.py:142` | off unless a Phase 2 run turns it on | Phase 2 |
+
+### `leader`: isolated native planner
+
+At agent-core `9e339019`, `openjiuwen/agent_teams/schema/blueprint.py` exports `LeaderSpec` and `TeamAgentSpec.build`; `runtime/team_plan.py` exports `is_team_plan_enabled`. Reuse their identity/model/plan-mode configuration through `cc/adapters/leader.py`. Source was verified with `git show 9e339019:<path>` on 2026-10-02; the local mirror HEAD differs and is not the dependency pin. [Planner](planner.md) owns propose/validate interfaces. Native unrestricted delegation, plan approval and task mutation do not substitute for freeze or Gate release. The adapter exposes the read-only CC catalogue and returns a typed proposal; only CC supervisor dispatches admitted nodes.
+
+### Inspection and replacement policy
+
+This is the recorded integration map, inspected at the dependency pin. Reinspect a symbol only when its pin changes, a described behavior is disproved, or a new requirement affects it. Adapters are the migration boundary. The pattern follows [Microsoft's anti-corruption layer](https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer): translate upstream behavior into stable CC contracts without leaking upstream types into every module.
 
 ### `tracing`: optional spans
 

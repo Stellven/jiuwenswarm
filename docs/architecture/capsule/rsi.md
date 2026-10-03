@@ -1,107 +1,48 @@
 ---
-type: capsule
-tags: [capsule, rsi, vision]
+type: design
+status: draft
+version: 2
+owner: muk
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../../product/prd-m1-rsi-full.md]
+provides: [cc.rsi_boundaries]
+consumes: [cc.candidate, cc.declaration]
+depends_on: [rsi-engine.md, fixture-oracle.md, admission.md]
+tags: [capsule, rsi, m1]
 ---
 
-# RSI: improving and building capsules
+# M1 offline RSI boundaries
 
-RSI (recursive self-improvement) is code that builds new capsule versions from evidence. It is built on a separate branch that shares this schema. The RSI-specific Declaration fields are M1-unchecked, except `evolution.rsi`, which every Declaration states from M1. The full PRD nevertheless requires an M1 offline RSI path with private hidden-fixture evaluation; see the provisional [fixture oracle](fixture-oracle.md) and the [RSI seam](../seams.md#rsi). This page describes the broader RSI design.
+The [RSI controller](rsi-engine.md) owns execution and attempt records; the [private oracle](fixture-oracle.md) owns hidden evaluation and quota. This page owns scope. Production never triggers RSI automatically. A developer starts a separate offline session from frozen evidence.
 
-Capsules give RSI two ways to make the system better:
+Only a parent with `evolution.rsi: propose` and an explicit nonempty permitted mutation set is eligible. M1 rejects `none`, `submit`, empty permission, and an always-frozen change before execution. Work prompt/rubric wording or one permitted implementation file may change; required ports, effects, permission, dependencies, model-selection text, checks, referee criteria, fixture custody, scoring/acceptance policy and activation remain frozen. Fixed Screening scale/dimensions/arithmetic remain PRD behavior. Owner proposals allowing these to change are superseded by the master PRD.
 
-1. **Better capsules**, so each thing the system does gets better: [the improve loop](#improving-a-capsule).
-2. **More capsules**, so the system can do more: [the build loop](#building-new-capsules-from-gaps).
-
-Each capsule is isolated and testable on its own: declared ports, effects and checks, and tests bound to its interface. So a change is tested on one capsule against its own tests, live outputs are still checked at the gate, and every call leaves an Observation that shows which capsule to improve. RSI is uniform: one mechanism for every capsule, whether a research step, a gate's helper or a composite.
-
-## RSI permissions: opt-in
-
-RSI may change a capsule only where its author explicitly allows it. Two fields say so ([fields](fields.md#evolution-what-rsi-may-change)): `evolution.rsi`, which every Declaration must state, and `evolution.may_change`, the list of parts RSI may change.
-
-`none` forbids any RSI child; `propose` lets RSI submit a child that waits for a person; `submit` lets it become current when admitted. RSI cannot get round `none` by submitting a copy as a new capsule: admission refuses an RSI Candidate whose files match a capsule with `none` (rule `rsi_no_copy`).
-
-`evolution.may_change` is an allow-list: a child may differ from its parent only at the paths and files it names (rule `changes_allowed`), and it can never name `evolution` itself, so RSI cannot grant itself more (rule `rsi_cannot_grant`). With `rsi` set but `may_change` empty, RSI may change nothing. `evolution.notes` tells a builder what the author knows; it is advice, not permission. Because any node can be a capsule, these permissions are what keep the system safe to improve: **the actor may improve; the referee may not.** A capsule used as a gate or verifier should be `none` ([trust](trust.md#referees)).
-
-## Improving a capsule
-
-For the M1 hidden-suite boundary, the proposer submits a candidate to the [fixture oracle](fixture-oracle.md). It gets aggregate pass/fail counts only; the oracle runs fresh child processes and never returns fixture inputs, expected outputs, or raw output. This contract remains provisional until issue 40 settles its trust principals and IPC.
+The session pins parent, model/version, settings, policy, corpus, split and permitted paths. Parent and child compare under the same settings. Drift is `MODEL_MISMATCH` and cannot support admission. Loop queries are capped at 30/session and 90/loop-set lifetime; final holdout is custodian-only once/session after close. Interrupted reservations consume quota.
 
 ```mermaid
-flowchart LR
-    OBS[("Observations, Verifications, Findings")] --> PICK["RSI picks a capsule to improve"]
-    PERM{"evolution.rsi and may_change allow it?"}
-    PICK --> PERM
-    PERM -->|"none"| STOP["leave it"]
-    PERM -->|"propose or submit"| PAR["parent: Declaration, code by hash, lineage, test suites"]
-    PAR --> BLD["build a child"]
-    BLD --> ORA{{"fixture oracle: fresh child, hidden fixtures"}}
-    ORA -->|"aggregate pass/fail counts"| BLD
-    BLD --> CAND[("Candidate: lineage.parent_hash")]
-    CAND --> ADM{{"admission: own tests plus the parent's suites"}}
-    ADM --> LIB[("library: the child, the parent kept for rollback")]
+sequenceDiagram
+    participant D as Developer
+    participant C as Offline controller
+    participant O as Private oracle
+    participant A as Admission
+    participant L as Librarian
+    D->>C: start_rsi(parent, frozen export, request_id)
+    C->>O: begin_session(frozen target/model)
+    O-->>C: authenticated session handle
+    loop bounded proposals
+        C->>C: enforce permitted diff + visible checks
+        C->>O: evaluate(candidate, purpose, request_id)
+        O->>O: persist session + lifetime quota before execution
+        O-->>C: aggregate counts/status
+        C->>C: persist attempt and lineage
+    end
+    C->>O: close and request final custodian score
+    O-->>C: once-only aggregate final result
+    C->>A: Candidate + visible evidence + lineage
+    A-->>L: admitted_inactive or rejected decision
+    D->>L: explicit activate(exact admitted hash)
+    L->>L: persist activation then update future alias
 ```
 
-The oracle receives the child Candidate through its private API and never returns case-level data ([fixture oracle](fixture-oracle.md)). Loop/final suite selection and attempt/session evidence are open under [issues 55–56](../open-issues.md); the diagram shows the contract boundary, not a completed RSI engine.
+A Candidate is a new immutable version; RSI never edits its parent. Admission independently checks mandatory integrity and provider evidence. Puppet admission can allowlist a hash as exempt, and never turns hidden optimization results into certified evidence. A separate human activation selects future runs; active runs retain their library snapshot.
 
-- **RSI never edits a version; it submits a child** with `lineage.parent_hash` pointing at the parent.
-- **A child with the parent's interface must also pass the parent's test suites.** A child that changes the interface needs new test cases, and records the parent's `decl_hash` in `inherited_from_hash` on the suites it carries over.
-- The child becomes current only when admitted; the parent stays for rollback, which is a Standing move.
-- **The version tree** is kept by the lineage index. CC exposes it; RSI's own policy chooses where to branch, from any node.
-
-## Building new capsules from gaps
-
-When no capsule fits a step, the [generalist](generalist.md) fills it and leaves a gap Finding. A gap that recurs starts the build loop. Four roles, in separate sessions:
-
-| Role | Does | Never sees | Why |
-|---|---|---|---|
-| build decision | decides whether a new capsule is actually needed: build, import, or not build. Designing this decision is RSI's work; CC gives it the gap records and the library to search | drafts | models commit to building at first sight (AllocBench), so deciding is separate from building |
-| suite author | writes the tests from the Declaration alone, before the code | the generalist's work, drafts | tests written first catch tools that overfit (Beyond Task Completion) |
-| builder | writes the code | the suite; it hears only admit or reject, with capped tries | an uncapped loop learns the suite |
-| admission | admits or rejects | anything a capsule writes | an agent gamed its own checker (Darwin Godel Machine) |
-
-```mermaid
-flowchart LR
-    GAP[("gap Finding")] --> DEC["build decision"]
-    DEC -->|"import first"| IMP["importer"]
-    DEC -->|"build"| DECL[("Declaration, written first")]
-    DEC -->|"no build"| NB[("Finding: no build")]
-    DECL --> SA["suite author"]
-    DECL --> BD["builder"]
-    SA --> ADM{{"admission"}}
-    BD --> ADM
-    IMP --> ADM
-    ADM --> LIB[("library")]
-```
-
-- **When to build.** A gap must recur, counted in sprints (proposed: at least 2). Not building is always a valid answer.
-- **Import first.** An existing tool, skill or MCP server is tried before building. The importer derives what it can and invents nothing; a person confirms the effects and the checks.
-- **Declare first.** The Declaration is written before the code, so the tests bind to the interface and not to one implementation.
-- **The options** for an update: a new version of a capsule (it must pass its predecessor's tests), a specialisation under a new name, a new capsule, or no build.
-- **The budget is a hard limit**, never a price shown to the builder.
-- **What RSI builds gets the same admission** as what a person builds, and starts at `evolution.rsi` chosen by the person who approves it.
-
-## Updating dependencies
-
-Every dependency is pinned in every version, so updating one is ordinary RSI, not a run-time float:
-
-1. The author gives a dependency a `purpose` ("validates port values" for pydantic) and lists its pin in `evolution.may_change`. Only a dependency with both may be re-pinned by RSI (rules `repin_needs_purpose`, `changes_allowed`); any other is never updated automatically.
-2. The librarian sees a newer version upstream and records a `dependency_update` Finding.
-3. If the capsule's `evolution.rsi` and `may_change` allow it, RSI builds a child that re-pins the dependency. The purpose tells the builder what the dependency must still do.
-4. A re-pin keeps the interface, so admission runs the child's tests and the parent's suites, as for any child.
-
-**Limits.** Re-pins of one capsule are spaced by the policy's `dep_update_min_interval_s`, except for security. A capsule dependency is re-pinned only when the pinned version is superseded or revoked, not on every release. A composite or a user of the dependency with `evolution.rsi: none` keeps its old pin until its author moves it. A security fix never waits for this loop: the librarian withdraws the vulnerable version first ([trust](trust.md#what-lowers-trust)). A re-pin is only as well tested as the parent's suites exercise the dependency.
-
-## What must never evolve
-
-- **The referee:** admission, gates used as referees, test suites, the policy and the record stores. No capsule writes them.
-- **Model weights.** The system changes its library and its context, reversibly; never weights.
-- Prefer the most reversible change: the library before the context, the context before anything else.
-
-## Evidence
-
-Why verification is the whole value of self-generation: [why](why.md#the-evidence).
-
-## Open
-
-- Where the run-level controls live (whether a gap may lead to a build).
-- A meta-level tree of whole-workflow versions.
+New capability creation, dependency repinning, self-improver changes, model-weight changes, automatic promotion, live-run evolution and generalist gap repair are outside the M1 whitelist. Stronger optimization may replace the proposer behind the controller API; it must preserve Candidate, oracle and activation boundaries. Referee isolation follows [METR's observed reward-hacking failure modes](https://metr.org/blog/2025-06-05-recent-reward-hacking/). No claimed test result follows from this precedent.

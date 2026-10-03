@@ -32,7 +32,7 @@ The contract every later stage reads: the research objective, its scope, the con
 | `out_of_scope_items[].evidence_source_id` | `id` | req | checked |  | `prompt` or a `document_id` |
 | `constraints` | `object` | req | checked |  | Every stated limit (3.2.4) |
 | `constraints.compute` | `object` | req | checked |  | Compute limits. Each field present is either quoted in `constraints.compute.quotes` or listed in `defaults_applied`, never both |
-| `constraints.compute.hardware` | `string` | req | checked |  | The hardware target. Example: `single_gpu`. Open: a fixed list of values ([open issues](../open-issues.md)) |
+| `constraints.compute.hardware` | `string` | req | checked |  | Requested hardware label; conservative default single_gpu when silent. Trusted hardware/method registry validates availability before scientific freeze |
 | `constraints.compute.gpu_memory_gb` | `number` | opt | checked |  | Stated GPU memory limit, in GB |
 | `constraints.compute.runtime_limit_s` | `integer` | opt | checked |  | Stated runtime limit for one benchmark run, in seconds |
 | `constraints.compute.token_budget` | `integer` | opt | checked |  | Stated model token budget. Recorded, not gated, at M1 |
@@ -64,7 +64,8 @@ The contract every later stage reads: the research objective, its scope, the con
 | `metrics[].name` | `string` | req | checked |  | A short snake_case name. Example: `vram_reduction` |
 | `metrics[].comparator` | `enum(gte, lte)` | req | checked |  | `gte`: at least the target is good. `lte`: at most the target is good. The names match the `predicate_op` registry |
 | `metrics[].target` | `number` | req | checked |  | The threshold. The number appears in the metric's own quote |
-| `metrics[].unit` | `string` | req | checked |  | Example: `percent`. Open: whether `percent` means points or a relative change ([open issues](../open-issues.md)) |
+| `metrics[].unit` | `string` | req | checked |  | Explicit unit label; unit alone never determines comparison basis |
+| `metrics[].basis` | `enum(absolute, delta, relative_percent, percentage_points, unspecified)` | req | checked |  | Interpretation supported by the quote; unspecified retains INPUT_AMBIGUOUS and blocks Hypothesis until supplied input/default policy defines it, without weakening a target |
 | `metrics[].evidence` | `text` | req | checked |  | Its quote, from the prompt |
 | `metrics[].evidence_source_id` | `id` | req | checked |  | `prompt`; the producer's check `brief_evidence_grounded` enforces it |
 | `defaults_applied` | `list<object>` | req | checked |  | Every value taken from the defaults table because the intake said nothing (3.2.3). May be empty |
@@ -105,8 +106,8 @@ For the prompt `Reduce the VRAM use of my model's attention by at least 30% with
   ],
   "optional_preferences": [],
   "metrics": [
-    {"metric_id": "M1", "requirement_id": "R1", "name": "vram_reduction", "comparator": "gte", "target": 30, "unit": "percent", "evidence": "by at least 30%", "evidence_source_id": "prompt"},
-    {"metric_id": "M2", "requirement_id": "R2", "name": "accuracy_loss", "comparator": "lte", "target": 1, "unit": "percent", "evidence": "without losing more than 1% accuracy", "evidence_source_id": "prompt"}
+    {"metric_id": "M1", "requirement_id": "R1", "name": "vram_reduction", "comparator": "gte", "target": 30, "unit": "percent", "basis": "relative_percent", "evidence": "by at least 30%", "evidence_source_id": "prompt"},
+    {"metric_id": "M2", "requirement_id": "R2", "name": "accuracy_loss", "comparator": "lte", "target": 1, "unit": "percent", "basis": "unspecified", "evidence": "without losing more than 1% accuracy", "evidence_source_id": "prompt"}
   ],
   "defaults_applied": [
     {"field": "constraints.compute.hardware", "value": "single_gpu", "reason": "no hardware stated"},

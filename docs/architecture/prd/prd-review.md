@@ -21,12 +21,12 @@ tags: [review, draft, prd, m1]
 
 ## The M1 runtime cannot do this yet
 
-The M1 stack routes every model call through the Codex subscription runtime. What it cannot do is recorded in the design, read from the code ([B1](../b1-design.md), [permissions](../capsule/permissions.md#gaps-and-conflicts)).
+The M1 stack routes every model call through the Codex subscription runtime. What it cannot do is recorded in the design, read from the code ([B1](../archive/b1-design.md), [permissions](../capsule/permissions.md#gaps-and-conflicts)).
 
 | # | Point | Evidence | We ask |
 |---|---|---|---|
-| 5 | **Token budget ceilings in tier 1** (4.3, and "telemetry: token consumption against budget") | the Codex service reports no token usage ([B1](../b1-design.md), Model usage) | M1 budgets time only, or Model Routing makes the adapter report tokens. Owner: Model Routing |
-| 6 | **Halting to `human_session`** (section 3 Evaluation, 4.3) | `human_session` needs a backend with sessions. Only the team backend has one, and this runtime does not start it. The Codex adapter also refuses a reply ([B1](../b1-design.md), Stopping) | M1 halts and shows the failure. A reply path is planned as its own work item. Owner: Verifier, with Model Routing |
+| 5 | **Token budget ceilings in tier 1** (4.3, and "telemetry: token consumption against budget") | the Codex service reports no token usage ([B1](../archive/b1-design.md), Model usage) | M1 budgets time only, or Model Routing makes the adapter report tokens. Owner: Model Routing |
+| 6 | **Halting to `human_session`** (section 3 Evaluation, 4.3) | `human_session` needs a backend with sessions. Only the team backend has one, and this runtime does not start it. The Codex adapter also refuses a reply ([B1](../archive/b1-design.md), Stopping) | M1 halts and shows the failure. A reply path is planned as its own work item. Owner: Verifier, with Model Routing |
 | 7 | **Operator calls mediated by jiuwenswarm's permission system** (4.4; Operators; Account Management) | the subscription runtime accepts text only and rejects every tool request, so the permission rail never runs ([permissions](../capsule/permissions.md#gaps-and-conflicts)) | accept that on this runtime the CC runner and `op.workspace_io` enforce operator whitelists and workspace bounds |
 | 8 | **Code that must run:** POC scripts "in an isolated workspace", "basic runtime metrics" for benchmarking | the runtime executes no tools (point 7). Builder Phase 1 is "static artifact generation" of text and Markdown, which does not run code | name where POC and benchmark code run: the workspace through a code capsule, or a Code Mode worktree |
 | 9 | **Operators on the subscription** ("routing application requests through the active subscription to bypass API access limitations") | *to confirm before sending:* DeepSearch and CodeSearch appear to need their own LLM and search API keys | if confirmed, name who provides the keys. Owner: Model Routing |

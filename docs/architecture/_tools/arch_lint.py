@@ -39,7 +39,8 @@ if len(sys.argv) > 1 and sys.argv[1] == "canary":
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 V = Path(ARGS[0]) if ARGS else Path(__file__).resolve().parent.parent
 V = V.resolve()
-SKIP = {"OVERVIEW.md", "m1.md", "model_router_design_en.md"}  # verbatim external originals are not linted
+SKIP = {"OVERVIEW.md", "m1.md", "model_router_design_en.md",
+        "model_router_design_en-v1.4-2026-10-01.md"}  # verbatim external originals are not linted
 SCHEMAS = V / "schemas"
 CHECK = "--check" in sys.argv
 problems = []

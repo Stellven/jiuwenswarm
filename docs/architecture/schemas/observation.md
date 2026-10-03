@@ -27,7 +27,7 @@ Extends [common](common.md). Its `scope` is `run_id`, or `candidate_id` for an a
 | `outputs` | `map<string, Ref(artifact)>` | req | checked |  | Port name to the Artifact that came out; empty when the call failed |
 | `predicates` | `list<object>` | req | checked |  | The preconditions checked on fresh state just before the call. Each is `{predicate_id, result}`, with `result` `pass`, `fail` or `defer` |
 | `outcome` | `enum(ok, error, refused)` | req | checked |  | `refused` when the runner would not start the call; the cases are listed on the [Binding](binding.md) page |
-| `reason` | `string?` | req | checked |  | Why, when `outcome` is not `ok`; otherwise null. A `reason_code` registry value. A failure outside the capsule uses a runtime code (`RUNTIME_UNAVAILABLE`, `TIMEOUT`), never a capsule code; an exception the capsule raises is `CAPSULE_ERROR`; a capsule stopped at its own time budget is `BUDGET_EXCEEDED`. Each code's owner is in the policy. *Proposed* (INV-19): for `error`, one of the capsule's `failure_modes[].reason_code`, and `CAPSULE_RAISED_UNDECLARED` for any other exception it raises. Example: `CARRIER_CHANGED` |
+| `reason` | `string?` | req | checked |  | Why, when `outcome` is not `ok`; otherwise null. A `reason_code` registry value. A failure outside the capsule uses a runtime code (`RUNTIME_UNAVAILABLE`, `TIMEOUT`), never a capsule code; an exception the capsule raises is `CAPSULE_ERROR`; a capsule stopped at its own time budget is `BUDGET_EXCEEDED`. Each code's owner is in the policy. Optional failure-mode diagnostics are retained in ext; ordinary exceptions remain CAPSULE_ERROR. Example: `CARRIER_CHANGED` |
 | `seen_code_sha256` | `sha256` | opt | checked |  | On `CARRIER_CHANGED`: the hash the loader actually found |
 | `models` | `list<object>` | opt | checked |  | For calls that used models: every distinct model that served a turn, in order of first use, as `{id, version}`. A call may use many, for example when it routes per turn; which turn used which is in `ext.runner.turns`. Only models the runtime reported. Example: `[{"id": "qwen3-32b", "version": "2026-08"}, {"id": "deepseek-r1", "version": null}]` |
 | `cost` | `object` | req | checked |  | What the call spent. The gate checks it against the Binding's `budget` |
@@ -35,7 +35,7 @@ Extends [common](common.md). Its `scope` is `run_id`, or `candidate_id` for an a
 | `cost.time_s` | `number` | req | checked |  | Wall-clock seconds. Example: `0.004` |
 | `cost.money` | `number` | opt | unchecked | budgets | In the currency policy `budgets` names |
 | `trajectory_ref` | `id` | opt | unchecked | RSI, exempt agents | An agent-core trajectory id: what a general-purpose agent did. The policy requires it for `exempt` capsules |
-| `effects_observed` | `list<object>` | opt | unchecked | librarian | What the call was seen to touch, each `{resource_key, op}`, from the permission engine. The librarian compares it with the Declaration's `effects` |
+| `effects_observed` | `list<object>` | req | checked |  | Trusted broker/process capture of observed operations, each `{resource_key, op}`, compared with the pinned Declaration and authorized process profile before an ok Observation. Empty is valid only for no observed operations or pre-launch refusal; absent/incomplete required capture cannot report ok. Denied operations retain attributable capture/Reason evidence. Automated librarian drift/Standing changes remain deferred |
 
 ## Elsewhere
 

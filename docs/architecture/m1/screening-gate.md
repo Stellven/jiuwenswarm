@@ -1,44 +1,20 @@
 ---
 type: design
 status: draft
-version: 1
+version: 2
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, screening.md, ../capsule/gate-capsules.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt]
 provides: [research.accept_card]
-consumes: [cc.type.evidence_bundle, cc.type.verifier_assessment, cc.type.opportunity_card, cc.gate_capsule_pattern]
-depends_on: [../capsule/gate-capsules.md, screening.md, pipeline.md]
-tags: [m1, gate, capsule, screening]
+consumes: [cc.type.evidence_bundle, cc.type.verifier_assessment]
+depends_on: [../capsule/gate-host.md, pipeline.md]
+tags: [m1, gate, profile]
 ---
 
-> **Draft coding-handoff contract.** Follows the shared Gate API and pins the Screening Gate profile.
+# research.accept_card.v1 Gate profile
 
-# `research.accept_card`: Screening gate
+This is a pinned profile for the shared `research.verifier`, not a separate capsule Declaration. The selected card is grounded in linked ideas/evidence and answers the Brief with credible verification and compute constraints. Tier 1 independently recomputes dependency eligibility, composite score, stable tie break and preserved rejection reasons.
 
-## What it checks
-
-The gate assesses the accepted `opportunity_card` against the two Screening criteria recorded in the run plan:
-
-- **`card_grounded`:** selected card claims, mechanism, assumptions, and evidence maturity are supported by the linked idea text and evidence chunks. The maturity description must accurately characterize the evidence rather than inflate it.
-- **`card_answers_brief`:** the selected opportunity addresses the Research Brief objective and respects its scope and compute constraints; its verification path is credible against the supplied values and can test the proposed mechanism.
-
-Deterministic Tier 1 checks validate the named type, complete score/rank invariants, and references back to the `idea_set`. The judge assesses only the named criteria and cannot change ranking or eligibility; the shared gate host applies its fold policy to route the result.
-
-## Run-plan entry
-
-Step `screening` on [the M1 pipeline](pipeline.md), gate `research.accept_card`; criterion checks and rubric references appear in [the recorded plan](pipeline.md#the-plan-as-recorded).
-
-## Declaration (`capsule.json`)
-
-As [the shared gate pattern](../capsule/gate-capsules.md), with these values:
-
-| Field | Value |
-|---|---|
-| `identity.name` | `research.accept_card` |
-| `identity.body` | `SKILL.md`, `rubrics/card_grounded.md`, `rubrics/card_answers_brief.md` |
-| `identity.summary` | Assess whether the selected opportunity is grounded in its cited ideas and evidence, and answers the Research Brief under its scope and constraints; return an assessment for each criterion with rationale and verbatim quotes. |
-| `ports.inputs[0].description` | The opportunity card, Brief, idea set, and criteria to judge. |
-
-These two qualitative judgments cover evidence maturity and verification credibility as PRD 3.4.5 requests. They do not add score dimensions or alter deterministic ranking.
+The owning [Gate host](../capsule/gate-host.md) evaluates `evaluate(evidence_bundle_ref, gate_profile_ref, request_id) -> verification_ref`. The run plan sets `gate_capsule_name: research.verifier` and this profile's immutable reference. Referee rubrics are trusted profile assets with exact hashes, independently authored from work-capsule prompts and excluded from RSI mutation. Missing/unknown evidence halts; failed persistence cannot release the next step. Output is a durable Verification, while the verifier itself returns verifier_assessment.
 
 ## `rubrics/card_grounded.md` (provisional)
 
@@ -74,7 +50,7 @@ mechanism. Unknown when the Brief or card lacks enough information.
 
 ```text
 ---
-name: research.accept_card
+name: research.verifier
 ---
 You judge the selected research opportunity and its supporting evidence. The INPUT block contains
 the Brief, idea set, opportunity card, and criteria. Follow the judging instructions and each

@@ -30,6 +30,8 @@ flowchart LR
 
 ## The events
 
+This public bus serves research runs and published admission candidates. Private RSI controller and oracle model calls use the scoped private audit/capture contracts in [environment](environment.md#model-call-scope-and-private-capture) and [storage](storage.md). They do not invent run or Candidate IDs or emit prompt/reply references on this bus. Only authorized aggregate oracle results cross fixture custody; benchmark export cannot resolve private capture references.
+
 The one definition of every CC event. Each carries `run_id` (or `candidate_id` at admission) and `at`. An event that describes a record is emitted **after** that record is written, so a subscriber can always read it. `cc.call.started`, `cc.call.resolved` and `cc.call.nested` describe no record yet; they only announce.
 
 | Event | Emitted by | When | Also carries |
@@ -98,7 +100,7 @@ flowchart TB
     RUN -->|"call frame, GAP 2"| BODY
     BODY -->|"model and nested frames"| RUN
     RUN -->|"PocExecutionRequest, GAP 2"| CONF
-    RUN -->|"ModelBridgeRequest: request_id, run_id, obs_id"| BR
+    RUN -->|"ModelBridgeRequest: scope, request_id, obs_id, turn"| BR
     BR -->|"ModelBridgeResult: request_id, reply hash"| RUN
     BR -->|"prompt only: no stage, role or capsule"| EP
     EP -->|"reply"| BR
@@ -172,9 +174,9 @@ Solid lines are data flow, double lines are record writes, dotted lines are even
 | attribution of a model call (the benchmark proxy) | a reader-side join on `obs_id` through the Observation | a field on the model request |
 | Data Foundation exports | read from records and capture after the fact. A live bus feed is optional | |
 
-**Nothing about the pipeline goes to the model endpoint.** The [bridge request](environment.md#model-bridge) names only `request_id`, `run_id` and `obs_id`, and the bridge forwards the prompt only. The runner's `ModelCallContext` (capsule name, step, role) goes to the trusted side of the bridge, for records and for an endpoint that routes itself. Whether the native service forwards the session id `cc:<run>:<obs_id>:<n>` upstream is unverified (open). Gateway mode is a separate decision with its own threat note.
+The [bridge request](environment.md#model-bridge) carries the canonical ModelCallScope, request_id, reserved obs_id/turn and scoped capture reference. The trusted adapter resolves authorized prompt bytes and sends those to the selected model; local pipeline identity remains audit metadata. Native thread identity derives from the scope hash and request_id/obs_id/turn without exposing fixture labels. Provider metadata transmission must be checked against the pinned transport at implementation validation; it is not assumed private. ModelCallContext supplies trusted local attribution, with nullable capsule identity for non-capsule orchestration.
 
-**The `obs_id` rule has a scope.** Every CC message made on behalf of a capsule call carries `obs_id`, and one that cannot is refused. The refusal is written as a system record, or as an incident when storage cannot be written. Startup probes, `doctor`, bridge `status` and other messages made before any call exists carry no `obs_id`, are exempt, and use their own system-record id. An admission call has `candidate_id` and no `run_id`, so the bridge request takes `scope` (a `run_id` or a `candidate_id`).
+Every model turn and its cancel/status request carries the same authorized scope, obs_id and turn. Management uses a distinct request_id and names the target_request_id. Private RSI/oracle obs_id identifies private call evidence, not a public Observation. Pre-call startup/doctor and AuthProvider account/login status use their separate management APIs and system audit IDs; they are not model_bridge_request operations and do not invent call reservations. Refusals use the scope's authorized audit writer, or an incident when that storage cannot be written.
 
 ### Gaps the canary found, and the resolution proposed for each
 

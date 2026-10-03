@@ -1,10 +1,12 @@
 ---
 type: design
-status: draft
+status: past
 tags: [design, draft, m1, capsule]
 ---
 
-# `intent_capsule`: design
+# Historical deterministic intent capsule design
+
+> Superseded for production by ordinary optional launcher hints and the one-pass [Requirement Compilation](requirement-capsule.md). This document is a reference pattern, not a current admitted capability or coding requirement.
 
 > **Draft recheck.** The `compile_intent` reference capsule now consumes the composable [`source_text`](../types/source-text.md) projection and gives the shared [`intent_ir`](../types/intent-ir.md). Hashes are shown as `<author kit>`.
 

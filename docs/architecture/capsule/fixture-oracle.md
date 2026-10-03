@@ -1,66 +1,62 @@
 ---
 type: design
-status: blackbox
-version: 1
+status: draft
+version: 2
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../../product/prd-m1-rsi-full.md]
 provides: [cc.rsi_fixture_oracle, cc.fixture_oracle_api]
-consumes: [cc.candidate]
-depends_on: [process-boundary.md, library.md, ../schemas/candidate.md, ../schemas/checks.md]
-tags: [capsule, rsi, security, m1, blackbox]
+consumes: [cc.rsi_trial, cc.rsi_security_clearance]
+depends_on: [rsi-engine.md, ../system/environment.md, ../system/records.md]
+tags: [capsule, rsi, security, m1]
 ---
 
-> **Black box: RSI fixture oracle.** The full PRD requires hidden historical fixtures to remain outside the proposer’s reach. The provisional API below returns aggregate pass/fail counts only. Oracle identity, OS permissions, IPC authentication and the pre-check are open under issue 40; this service is not the Stage 3.7 benchmark process boundary.
+# Private RSI fixture oracle
 
-# RSI fixture oracle
+The oracle alone reads hidden loop/final fixtures and per-case results. It runs parent/incumbent and child in fresh confined processes under the same pinned model/settings, retaining expected answers in the comparator. Only aggregate outcomes cross into the offline controller. The proposer cannot call this service. Private identities, mounts, socket authentication and doctor probes are owned by environment; an unvalidated profile is unavailable, never degraded to ordinary-user execution.
 
-The fixture oracle is the only component that can read hidden RSI fixtures. It evaluates an RSI candidate in a fresh child process, one fixture input at a time, and returns only aggregate results. The RSI proposer submits a candidate reference under an oracle-issued session; it never chooses a suite and never reads hidden inputs, expected outputs, or raw child output.
+## Closed API envelopes
 
-**Source:** PRD 4.4.9 (hidden fixture sets, fresh subprocess, aggregate-only response, at most 30 queries per session) and 5.4.3 (oracle-only filesystem access, active Swarmflow runner pre-check). This page does not extend the oracle to user benchmarking or ordinary capsule admission.
+All requests have protocol_version=1 and stable request_id. Same ID plus identical canonical bytes returns committed status/result; different bytes returns REQUEST_CONFLICT. No caller supplies fixture-pool IDs, filesystem paths, cases or expected answers.
 
-## Provisional API
+- `begin_session(BeginRequest) -> SessionResult`: authenticated controller only. BeginRequest is closed `{protocol_version, request_id, target_decl_hash, parent_trial_ref, model_id, model_version, config_sha256, policy_ref, permitted_paths_sha256, evaluator_sha256, execution_profile_sha256}`. parent_trial_ref is a private TrialRef for the immutable parent snapshot, not a public Candidate. The private evaluator manifest resolves oracle-code/scoring-rule/split hashes and binds the target/model. Missing or inconsistent pins refuse start. The oracle selects the private loop/final sets and checks disjointness, at least 20 fixtures each, parent failures >=20% of each set and >=5 final cases, plus a broken-copy probe. Parent headroom uses fixture-owner preflight evidence pinned before optimization; it does not expose final results or consume the terminal child-versus-parent final reservation. It mints the session and cannot reset a set's lifetime counter. An uncleared security latch refuses creation before any evaluation.
+- `status(session_id, request_id) -> SessionResult`: authenticated controller/custodian; no per-case detail.
+- `evaluate(EvaluateRequest) -> AggregateResult`: controller only. Closed EvaluateRequest `{protocol_version, request_id, session_id, trial_ref, purpose: baseline|proposal|ablation}`. trial_ref is a private TrialRef; no public Candidate exists during proposal evaluation. The service chooses the set/incumbent; purpose and state are verified. Baseline/proposal require running; ablation requires closing and membership in the sealed ablation schedule. No final request is accepted here.
+- `close_session(CloseRequest) -> SessionResult`: controller only. Closed CloseRequest `{protocol_version, request_id, session_id, incumbent_trial_ref, accepted_lineage_refs, ablation_trial_refs}`. All three reference fields use TrialRef; ablation_trial_refs is an ordered list of zero to five separately pinned trials reverting accepted lineage steps. Atomically seals proposal access and validates that the incumbent/lineage match private accepted history and the ablations revert only those steps. The committed oracle_closure record fixes this schedule and state becomes closing. Proposer gets no closing ablation or final feedback.
+- `finish_close(FinishCloseRequest) -> SessionResult`: controller only. Closed FinishCloseRequest `{protocol_version, request_id, session_id, closing_record_ref, ablation_result_refs}`. The oracle verifies exactly one complete private result for every scheduled ablation in order, including zero results for an empty schedule. It atomically commits oracle_closure state=closed and its result refs. Missing, interrupted or extra results refuse closure; uncertainty blocks the session rather than repeating a query. Closed is permanent for proposal access. Identical duplicate finish requests return the same immutable closed_session_ref used by evaluate_final.
+- `evaluate_final(FinalRequest) -> AggregateResult`: custodian-only authenticated channel. Closed FinalRequest `{protocol_version, request_id, session_id, closed_session_ref}`. Only closed sessions qualify; reserve once, evaluate best child against original parent, persist complete result before returning. No new candidate or suite selector is accepted. A failed/uncertain final reservation is terminal and cannot be repeated automatically.
 
-`evaluate(FixtureEvaluationRequest) -> FixtureEvaluationResult`
+SessionResult is closed `{request_id, session_id?, state: preparing|running|closing|closed|finished|no_candidate|blocked, session_record_ref?, reason?}`. A session ID exists only after durable creation; non-success requires reason. For closing/closed, session_record_ref identifies the committed oracle_closure; for other states it identifies oracle_session. Closed/finished refs identify immutable private control records, not public fixture material.
 
-`begin_session() -> session_id`
+AggregateResult is closed `{request_id, state: complete|denied|unavailable|boundary_violation|query_limit, passed?, failed?, wins?, losses?, ties?, incumbent_median_ms?, child_median_ms?, disposition?: kept|rejected|promotable|no_candidate, scoring_rule_sha256?, result_ref?, reason?}`. Complete requires all count fields, rounded median durations, disposition, score hash and committed redacted result_ref. Other states expose no counts and require reason. Counts disclose no per-case ID, input, answer, exception text, stdout or stderr.
 
-`begin_session` is available only over the authenticated local channel to the RSI controller. The oracle mints the session id and binds it to that caller; an arbitrary client-supplied id is rejected. Exact IPC credentials and principal setup remain open under issue 40.
+### Private trials and control references
 
-### `FixtureEvaluationRequest`
+TrialRef and OracleRef each encode `{id:id, sha256:sha256}` but have distinct authorized namespaces and cannot substitute for Ref(Candidate), Artifact Ref or one another. The controller publishes an immutable rsi_trial in its private evidence namespace before calling the oracle. The closed payload, file coverage and authorizations are owned by [system records](../system/records.md). Trial bytes contain only the parent/child implementation snapshot and visible hard-gate evidence, never hidden cases. The oracle fetches only exact pinned trial files through the authenticated broker, rehashes them and independently validates permitted changes and hard-gate evidence before reserving a hidden query. It never fetches arbitrary paths or URIs supplied by the proposer. Existing admitted parent bytes are projected into a parent trial with the original declaration hash; no new parent Candidate is fabricated.
 
-| Field | Type | Required | Meaning |
-|---|---|---:|---|
-| `request_id` | `id` | yes | Unique request/result join key. |
-| `session_id` | `id` | yes | Oracle-issued session handle bound to the authenticated RSI controller; callers cannot mint or rebind it. |
-| `candidate_ref` | `Ref(Candidate)` | yes | Submitted child candidate whose implementation is tested. |
-| `purpose` | `enum(baseline, proposal, ablation, final)` | yes | Trusted-controller request class. The oracle validates the session state and chooses the corresponding private suite; the proposer cannot set it. |
+Session/control refs and private result refs are OracleRefs. AggregateResult.result_ref resolves only to a redacted oracle_result projection authorized for the controller; private vectors and raw outputs have no exported references. accepted_lineage_refs/ablation_trial_refs are TrialRefs; closing_record_ref/closed_session_ref/ablation_result_refs are OracleRefs. Publishing a public Candidate is a later submit_rsi action, permitted only after promotable terminal evidence, preserving frozen RSI owner §3.Y.5's gate-before-Candidate order.
 
-The request carries no fixture input, expected output, suite selector, or arbitrary filesystem path. The trusted controller supplies `purpose` over an authenticated channel; the oracle state machine permits baseline once, proposals before close, at most five accepted-lineage ablations during close, and final once after close. It selects loop/final suites internally. The proposer cannot call the oracle or select a weaker suite.
+## Frozen comparison and score
 
-### `FixtureEvaluationResult`
+For a model-backed fixture, each arm makes exactly three independent paired calls with identical pinned settings. The fixture passes only if all three satisfy Tier 1 and Top-1 expected label (frozen RSI source line75). Count wins/losses/ties over fixtures, not individual calls: parent fails/child passes is one win; parent passes/child fails is one loss; equal binary outcomes are one tie. This fixes the statistical denominator. One failure out of three fails the fixture. The fixed planted-child corpus contains at least ten known-bad and three known-good variants (§3.Y.5); an implementation must demonstrate the comparator rejects/adopts them as expected before optimization is enabled.
 
-| Field | Type | Required | Meaning |
-|---|---|---:|---|
-| `request_id` | `id` | yes | Echo of the request. |
-| `state` | `enum(complete, denied, unavailable, boundary_violation, query_limit)` | yes | Distinguishes an evaluation result from an unavailable or failed security boundary. |
-| `passed` | `integer?` | no | Aggregate count only, present when `state` is `complete`. |
-| `failed` | `integer?` | no | Aggregate count only, present when `state` is `complete`. |
-| `reason` | `Reason?` | no | Required for a non-complete state. |
+The immutable manifest pins all score behavior before the first session. Visible tests and parent suites are a mandatory hard gate before a proposal query. On the private loop set, a fixture passes only if Tier 1 passes and Top-1 matches the known-good label; model-backed target uses k=3 paired calls, deterministic target k=1. The oracle retains per-case vectors privately. Keep a child when wins>=1 and losses=0; at equal results keep only if median duration is >=10% lower. Time cannot offset any loss. Durations returned to controller round to 10ms. Execution errors are fixture failures with details private.
 
-The service enforces: one baseline reservation, at most 23 proposal reservations, at most five ablation reservations and one final reservation. Proposal calls cannot consume the final six. A call outside the state machine or budget returns `query_limit` without reading a fixture. Persist reservations before launching children. Identical request IDs, candidate hashes and purpose return the existing result; changed bytes are denied. Interrupted reservations consume quota and are not replayed. Audit evidence stays oracle-only. Complete results expose no per-case outcome, input, expected answer, stdout, stderr or patch content.
+At final close, compare best child and original parent once. A candidate is promotable only if losses=0 and the 5th percentile of Beta(1+wins,1+losses)>0.5; with zero losses this requires at least four wins. Otherwise finish no_candidate. Judged checks are excluded from RSI's score; runtime referee remains unchanged. These are fixed owner-source §3.Y.5 requirements, not optimizer implementation choices. Returned optimization labels never become admission/Gate assurance.
 
-## Security contract
+## Durable budget and recovery
 
-1. Only the oracle identity can read the hidden fixture directory. The active Swarmflow runner and RSI proposer must fail an automated read-access pre-check before the RSI service starts if this boundary is degraded.
-2. Candidate execution happens in a fresh subprocess with no direct path or credential to the hidden fixture store. Only the case input reaches the child. The expected answer stays in the oracle parent, which compares the result internally.
-3. The response is aggregate-only. Raw cases, expected outputs and child output stay in restricted records; the proposer receives only pass/fail counts and a non-sensitive status/reason.
-4. Any failed access pre-check or containment invariant returns `boundary_violation` and blocks RSI. It cannot become a candidate failure or a scientific result.
-5. The concrete user/account and IPC design remains provisional under issue 40. Do not infer that a separate UID alone prevents network or other system effects.
+The oracle enforces 30 loop queries per session and 90 per immutable loop-set lifetime. Baseline 1, proposal at most23 and ablation at most5 leave one loop query unused. Ablations are counted conservatively inside the loop budget; unused reservations stay unused. Final custody has a separate once/session reservation after close. Hash-identical copied sets retain the same lifetime budget.
 
-## Waiting on
+One serialized private commit reserves both session and lifetime ordinals before launching child processes. Persist reservation, evaluation state and result under an append-only private namespace; JSONL is a rebuildable view. Crashes/interruption consume the reservation and expose uncertain status. Recovery reuses committed session pins/quota and cannot mint a reset session. Final uncertainty cannot reopen proposals or reserve a second final call. Failed record writes cannot return complete.
 
-- Issue 40: settle the oracle and runner principals, POSIX permissions, and authenticated request channel against PRD 4.4.9 and 5.4.3.
-- Issue 54: define backend-specific effect enforcement and infrastructure failure mapping.
-- Implementation validation must prove the 30-query state machine, reserved headroom and final-set non-disclosure.
+## Security and acceptance
 
-Until those inputs are settled and the canary passes, this is a provisional contract, not an implementation-ready security guarantee.
+Model-backed case calls use environment's oracle ModelCallScope, exact quota/Trial/case/arm/repeat reservations and oracle_private capture refs. Hidden prompt/reply bytes stay in the oracle-owned capture namespace; only comparator aggregates are returned. The proposer has rsi_controller scope for its own visible generation turns, not an oracle capability. Neither private scope creates a public Candidate/run/Observation to satisfy model transport.
+
+Only oracle identity can read fixture/code/scoring material; runner/proposer must fail actual read-access probes. Tested children have no fixture directory, credential, oracle channel, store or expected answer. They receive one required case input and an empty secret environment. Raw errors/results remain private; canary/honeypot leakage blocks the session. Supervisor/runtime store exports cannot read private quota or cases.
+
+Any demonstrated security violation atomically records a private oracle_security_block, marks the affected session blocked and latches further optimization for its target, recording the offending execution-profile hash. All evaluate/close/final calls and new sessions for that target, including changed profiles, are refused with RSI_SECURITY_CLEARANCE_REQUIRED while the latch is active; restarting or copying a session cannot clear it. If the durable block cannot be written, stop the service and refuse startup until reconciliation records the incident. Expected attack refusals in the isolated acceptance suite are attributed to their test sessions; they cannot clear an existing real-session latch.
+
+`clear_security(ClearSecurityRequest) -> SessionResult` is available only on the authenticated human custodian channel. Closed request `{protocol_version, request_id, session_id, security_block_ref, clearance_ref}` uses an OracleRef for the exact incident and a SystemRef to the terminal-written rsi_security_clearance. Validate authenticated actor, matching incident/target/profile, remediation evidence and a passing current boundary report before committing oracle_security_clearance and clearing the latch. The controller/proposer cannot write or invoke clearance. Clearance permits only a separately requested explicit continuation with unchanged pins and remaining quota; it never reopens closed proposals, repeats an uncertain query/final evaluation, resets counters or activates a version. A changed security profile or implementation requires a new session and attributable clearance covering the prior incident. Frozen master PRD4.4.10 requires this human clearance before autonomous optimization continues.
+
+The required V1–V23 suite and 91st lifetime query are owned by rsi-engine.md. Test interrupted reservations, log-chain repair/refusal, early/duplicate final access, model mismatch, forged incumbent/lineage, score tampering and each forbidden path/network/credential access. No executed security or scoring result is claimed here. Referee isolation follows [METR's reward-hacking observations](https://metr.org/blog/2025-06-05-recent-reward-hacking/); replace the comparator implementation behind this API only through a new frozen manifest and validation, never by proposer mutation.

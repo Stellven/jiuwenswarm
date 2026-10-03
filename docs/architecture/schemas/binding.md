@@ -47,6 +47,12 @@ Extends [common](common.md), with `scope.run_id` set to the run's id, a plain st
 | `gate_profile_ref.kind` | `enum(gate)` | req | checked |  | Profile discriminator; always `gate` for this reference |
 | `gate_profile_ref.id` | `id` | req | checked |  | Policy-local profile id |
 | `gate_profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile hash |
+| `nested_gate_profiles` | `list<object>` | opt | checked |  | Freeze-generated entries for every admitted nested dependency reachable from this step; required when one exists; no runtime profile selection |
+| `nested_gate_profiles[].decl_hash` | `sha256` | req | checked |  | Exact dependency declaration subject to the nested Gate |
+| `nested_gate_profiles[].profile_ref` | `object` | req | checked |  | Policy-owned applicable deterministic/semantic criteria for this dependency |
+| `nested_gate_profiles[].profile_ref.kind` | `enum(gate)` | req | checked |  | Nested dependency profile discriminator; always gate |
+| `nested_gate_profiles[].profile_ref.id` | `id` | req | checked |  | Policy-local profile name |
+| `nested_gate_profiles[].profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile closure hash |
 | `role` | `string` | opt | unchecked | planner | Which agent or role runs the capsule at this call site, as the workflow names it. The capsule itself never names a role. Example: `reviewer` |
 | `overlays` | `list<Ref(artifact)>` | opt | unchecked | RSI | Experience or guidance loaded with the capsule at this call site. Nothing else is loaded |
 

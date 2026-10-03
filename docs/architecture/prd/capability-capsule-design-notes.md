@@ -66,7 +66,7 @@ The table below keeps the reasons.
 - **Workspace isolation on the Codex runtime:** the runner, or `op.workspace_io` itself, refuses file access outside the declared `fs:` resource keys. Nothing else enforces them there ([permissions](../capsule/permissions.md#gaps-and-conflicts)).
 - **A run-start check** that each wired output has the port type of the input it feeds. Today only input names are checked (`PORT_MISMATCH`).
 - **The author kit, the catalogue export, and a generator** that writes `make_capsule.md` from the Declaration.
-- **B1's "allowed-capsule list in the policy"**: the [policy](../schemas/policy.md) has no such section. Remove it from [B1](../b1-design.md) or define it. With change 5, M1 does not need it.
+- **B1's "allowed-capsule list in the policy"**: the [policy](../schemas/policy.md) has no such section. Remove it from [B1](../archive/b1-design.md) or define it. With change 5, M1 does not need it.
 
 ## Gate verdicts
 

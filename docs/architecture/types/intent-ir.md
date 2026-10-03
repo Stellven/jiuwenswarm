@@ -12,7 +12,7 @@ tags: [types, m1]
 
 What the user's prompt asks for, split into goals, outcomes, constraints, open questions, contradictions and unknowns. Every item points at the exact characters of the prompt it came from, so it can be checked against what was asked.
 
-**Made by** `research.compile_intent` at the `intent` step ([intent capsule](../m1/intent-capsule.md)). **Read by** `research.compile_brief` at the `requirement` step, as hints ([requirement capsule](../m1/requirement-capsule.md)). Later, by the Phase 2 Intention Compiler track (PRD 3.2 flag).
+**Made by** the optional deterministic launcher hint module. **Read by** research.compile_brief as hints only; not a separate production capsule or model turn. The archived [intent design](../m1/intent-capsule.md) records its original implementation pattern.
 
 **Spans.** A span is `[start, end]`: Unicode-code-point offsets into the producing `source_text.text`, end exclusive, so the quoted text is `text[start:end]` in Python. The exact source Artifact is recorded in the producing Observation inputs rather than copied into the value (INV-5).
 

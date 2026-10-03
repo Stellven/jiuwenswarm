@@ -25,7 +25,7 @@ tags: [design, past, m1]
 - **A two-tier gate at every handoff,** where B1 had one deterministic tier; see [the two-tier gate](#inside-a-capsule-and-its-two-tier-gate).
 - **Six core capsules** in the `make_capsule.md` contract (the Declaration): five workflow capsules and one verifier. Their rubrics are ported from sciencediscovery, and every payload is strict JSON. The two general capsules from B1, `compile_intent` and `compile_requirement`, carry over.
 - **Admission, but no library search;** see [How capsules get into M1](#how-capsules-get-into-m1).
-- **Models are not in the capsule layer** (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)).
+- **Models are not in the capsule layer** (see [needs](../capsule/fields.md#needs-what-must-hold-and-what-it-uses)).
 
 ## The pipeline
 
@@ -279,7 +279,7 @@ Key as in [B1](b1-design.md#the-pipeline). Grey here also covers the deepsearch 
 **What M1 adds to the B1 runner:**
 
 - **Tier 2.** After tier 1 passes, the gate calls the verifier pinned in the Binding, as a call with `caller: gate`. The judge is one more Codex text turn through the same model adapter. The gate folds tier 1 and the assessment into one of the PRD's five gate outcomes. The diagram draws tier 2 inside the runner (see [Open](#open) 5).
-- **No model router in the runner.** Models are not in the capsule layer (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A `skill` capsule's model call goes through the model adapter to the one Codex model, and the runner records that model in the Observation's `models` when Codex reports it.
+- **No model router in the runner.** Models are not in the capsule layer (see [needs](../capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A `skill` capsule's model call goes through the model adapter to the one Codex model, and the runner records that model in the Observation's `models` when Codex reports it.
 - **Operators.** The model cannot call tools on this runtime, so the runner calls DeepSearch, CodeSearch and workspace I/O for a capsule, and only those in its `needs.external`. Neither operator is a jiuwenswarm tool: DeepSearch is the pip library `openjiuwen-deepsearch`, run as a subprocess, and CodeSearch is an SDK or HTTP service over a Milvus index. The runner needs one client per operator, and checks each call first with a standalone `PermissionEngine`, built without a DeepAgent, the way jiuwenswarm's `agents/harness/common/rails/permissions/owner_scopes.py:161-169` builds one. **[pin]** Its constructor is read at agent-core `e23806c1`, not the pin `9e339019`. There is no approval UI outside the permission rail, so CC must decide what an `ASK` result means.
 - **Admitted capsules.** The capsule folder loader also reads each capsule's Verdict.
 - **Kinds.** `skill` and `tool`, as in B1. `prompt_section` may be needed for shared rubric text.
@@ -369,7 +369,7 @@ The same two layers as [B1](b1-design.md#observability-and-traces): CC records a
 
 ## Parallel tracks
 
-Capability Capsule and Verifier build the main path. RSI, the multi-model router and the dynamic planner are parallel tracks: built off the main branch, and merged only after the fixed pipeline is stable (the PRD's integration gate). What each workstream builds in M1 is in [the big picture's workstream table](big-picture.md#how-the-workstreams-fit-together).
+Capability Capsule and Verifier build the main path. RSI, the multi-model router and the dynamic planner are parallel tracks: built off the main branch, and merged only after the fixed pipeline is stable (the PRD's integration gate). What each workstream builds in M1 is in [the big picture's workstream table](../big-picture.md#how-the-workstreams-fit-together).
 
 ## How M1 fits jiuwenswarm
 
@@ -388,16 +388,16 @@ Capability Capsule and Verifier build the main path. RSI, the multi-model router
 
 | Schema | Used in M1 for |
 |---|---|
-| [Declaration](capsule/fields.md) | every capsule's `make_capsule.md` contract: ports, checks, acceptance rules, operators, effects |
-| [Candidate](schemas/candidate.md), [Verdict](schemas/verdict.md) | admitting capsules, including RSI's new versions |
-| [Standing](schemas/standing.md) | the `admitted` entry admission writes; nothing on the main path reads or moves it |
-| [Check](schemas/checks.md) | both tiers' checks; the visible tests and the hidden (sealed) suites |
-| [Policy](schemas/policy.md) | the gates' fold, the budgets, the mappings |
-| [Port types](schemas/port-types.md) | the typed JSON passed from node to node |
-| [Binding](schemas/binding.md) | each node's pin, and its verifier's |
-| [Observation](schemas/observation.md) | every capsule call and every judge call |
-| [Artifact](schemas/artifact.md) | every node's output, the Brief, the report |
-| [Verification](schemas/verification-record.md) | each gate's decision |
+| [Declaration](../capsule/fields.md) | every capsule's `make_capsule.md` contract: ports, checks, acceptance rules, operators, effects |
+| [Candidate](../schemas/candidate.md), [Verdict](../schemas/verdict.md) | admitting capsules, including RSI's new versions |
+| [Standing](../schemas/standing.md) | the `admitted` entry admission writes; nothing on the main path reads or moves it |
+| [Check](../schemas/checks.md) | both tiers' checks; the visible tests and the hidden (sealed) suites |
+| [Policy](../schemas/policy.md) | the gates' fold, the budgets, the mappings |
+| [Port types](../schemas/port-types.md) | the typed JSON passed from node to node |
+| [Binding](../schemas/binding.md) | each node's pin, and its verifier's |
+| [Observation](../schemas/observation.md) | every capsule call and every judge call |
+| [Artifact](../schemas/artifact.md) | every node's output, the Brief, the report |
+| [Verification](../schemas/verification-record.md) | each gate's decision |
 
 **Not used on the main path:** Finding (RSI and a librarian would use it, off the main branch).
 

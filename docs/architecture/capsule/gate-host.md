@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 2
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, ../../product/prd-m1-verifier.txt, ../schemas/policy.md, ../schemas/verification-record.md, ../system/nodes.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, ../../product/prd-m1-verifier.txt, ../schemas/policy.md, ../schemas/verification-record.md, ../system/nodes.md]
 provides: [cc.gate_host, cc.gate_result, cc.verdicts]
 consumes: [cc.observation, cc.binding, cc.verification, cc.type.evidence_bundle, cc.type.verifier_assessment, cc.check_calling_convention]
 depends_on: [../system/nodes.md, runner.md, toolchain.md, gate-capsules.md]
@@ -14,7 +14,7 @@ tags: [capsule, gate, m1]
 
 # The gate host
 
-The gate host checks one finished `dispatch` call and decides whether the run may go on. It runs the deterministic checks itself (Tier 1), asks the step's gate capsule to assess the judged checks (Tier 2), folds every result by policy `gates`, and writes the one [Verification](../schemas/verification-record.md). It holds no stage logic: every criterion it applies comes from the Binding.
+The gate host checks one finished `dispatch` or governed `nested` call and decides whether the run may go on. It runs the deterministic checks itself (Tier 1), asks the step's gate capsule to assess the judged checks (Tier 2), folds every result by policy `gates`, and writes the one [Verification](../schemas/verification-record.md). It holds no stage logic: every criterion it applies comes from the Binding.
 
 **Why it is control code, not a capsule.** The fold, the fixed checks and the Verification are the referee's own rules. A capsule may assess, but only fixed code may decide. So no capsule, and no RSI, can change what passing means ([trust](trust.md#referees)).
 
@@ -51,10 +51,10 @@ flowchart TB
     R1 & D1 & D2 & D3 & F2 --> W["commit Verification and gate result, emit event, return durable ref"]
 ```
 
-1. **Load.** Read the Observation by `obs_ref`. It must be `caller: dispatch`; anything else is a caller bug (raise). Read its Binding by `binding_ref`. When `binding_ref` is null (`BINDING_MISSING`), use the policy every other Binding of the run pins. *Defensive only:* the runner never gates a cancelled call ([runner](runner.md#swarmflow-backend-talking-to-the-engine)). If one arrives anyway (`ext.runner.cancelled: true`), write no Verification and return `decision: blocked`, `verdict: ENVIRONMENT_BLOCKED`, `verification_ref: None`.
+1. **Load.** Read the Observation by `obs_ref`. It must be caller dispatch or nested; gate/admission callers are rejected to terminate referee recursion. For nested, resolve the parent Binding, exact admitted dependency declaration and pinned dependency GateProfile; use that dependency's own checks/types rather than the parent's work checks. Read its Binding by `binding_ref`. When `binding_ref` is null (`BINDING_MISSING`), use the policy every other Binding of the run pins. *Defensive only:* the runner never gates a cancelled call ([runner](runner.md#swarmflow-backend-talking-to-the-engine)). If one arrives anyway (`ext.runner.cancelled: true`), write no Verification and return `decision: blocked`, `verdict: ENVIRONMENT_BLOCKED`, `verification_ref: None`.
 2. **A call that did not end `ok`.** A demonstrated capsule/schema/security/declared-budget violation gives `check.call_ok.v1: fail` and FAIL. An unavailable runtime/dependency gives `unknown` and ENVIRONMENT_BLOCKED. Insufficient admissible evidence gives `unknown` and INCONCLUSIVE. Tier 2 is NOT_RUN. The source-verified reason ownership in policy determines the category, never the model. Go to step 6.
 3. **Tier 1.** `run_checks(<the Binding's non-judged checks>, obs, ...)` over every `deterministic` and `reference` check in the Binding's `checks`: the work capsule's own, its output types', and the step's ([toolchain M10a](toolchain.md#m10a-check-runner-and-the-check-library)). Then the fixed checks `check.call_ok.v1` and `check.within_budget.v1`, which compares `cost.time_s` with `budget.time_s`. Fold: any `fail` gives `fail`; otherwise any `unknown` gives `blocked`. If this decides, go to step 6; judged checks are not run.
-4. **Tier 2.** Every step has at least one `judged` check (rule `every_step_gated`).
+4. **Tier 2.** Every research work step has independent judged criteria. A pure reusable nested operator may use a mechanical profile with no applicable semantic criteria; persist explicit Tier2 NOT_APPLICABLE and include its evidence in the parent stage's semantic assessment. No parent release is possible without all nested Verifications. If semantic criteria apply, use the same shared verifier algorithm.
    1. Build the [`evidence_bundle`](../types/evidence-bundle.md): `subject` from the work capsule's Declaration; one criterion per judged check, in Binding order, with its `rubric` read from the content store by the check runner's `sha256`; `inputs` when any criterion is `over: inputs_and_outputs`, holding only what the step's `judge_inputs` names (a port, or one field of it), else every input in full; `outputs` and `issues` from the output Artifacts.
    2. If the bundle's canonical JSON is over policy `runner.max_bundle_bytes`, do not call the gate capsule: every judged result is `unknown`, with evidence naming the size, so the decision is `blocked` and the verdict `INCONCLUSIVE`. Otherwise store it: `record_input(run_id, "evidence_bundle", vocabulary_ref=<the Binding's>, value=bundle, origin="control")`. The full [execution manifest](../system/storage.md#required-evidence-and-derived-views) remains separately complete; the bounded semantic projection cannot replace it.
    3. Call the gate capsule through the runner: `caller: gate`, the Binding's `verifier.decl_hash`, `verifier.code_sha256` and `verifier.budget`, input `{"evidence_bundle": ref}`.

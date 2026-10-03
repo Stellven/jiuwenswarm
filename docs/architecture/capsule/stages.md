@@ -31,7 +31,7 @@ Generated from the Unlocks column of every field table; do not edit by hand. A f
 | fallbacks | Declaration `guarantees.failure_modes[].reason_code`, `guarantees.failure_modes[].when` |
 | importer | Declaration `identity.namespace`, `identity.license`, `needs.dependencies`, `needs.config`; Candidate `source` |
 | isolated verification | Declaration `needs.dependencies`, `needs.config`, `needs.secrets`; Verdict `environment` |
-| librarian | Declaration `guarantees.quality`; Standing `evidence`; Observation `effects_observed`; Finding `kind`, `subjects`, `step_id`, `text`, `evidence`, `measure`, `detail` |
+| librarian | Declaration `guarantees.quality`; Standing `evidence`; Finding `kind`, `subjects`, `step_id`, `text`, `evidence`, `measure`, `detail` |
 | merge | Declaration `identity.lineage.co_parent_hashes` |
 | planner | Declaration `Predicate.evaluable_at`; Binding `role` |
 | remote capsules | Declaration `identity.remote` |

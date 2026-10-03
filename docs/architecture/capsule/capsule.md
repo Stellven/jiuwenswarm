@@ -160,7 +160,7 @@ CC supports four verbs, each done by tools: **pick** a capsule for a call, by it
 A capsule should finish its job whenever it can. The rule is INV-19; this is what it means:
 
 1. **By default, complete the Declaration.** The capsule returns an output that matches its declared ports, even when the input is vague, contradictory or incomplete. It puts the difficulty inside the output as data: an ambiguity, an unknown, a partial result. The checks and the gate judge it.
-2. **A declared failure mode is the only way to end without an output.** The capsule lists them in `guarantees.failure_modes`. The runner records the failure as an Observation with `outcome: error` and its code, and the policy folds it into `fail` or `blocked`.
-3. **An undeclared exception is a bug.** The runner records it as `CAPSULE_RAISED_UNDECLARED`, and the gate always folds it into `blocked`. A capsule cannot turn a bug into a soft failure by raising.
+2. **Keep failure declarations economical.** Optional failure_modes identify additional enforceable hazards not already covered by types/checks/effects or standard runner codes. Each needs a matching verification obligation.
+3. **An unexpected exception uses CAPSULE_ERROR.** The runner preserves diagnostic evidence and the Gate maps it by policy; an optional declaration cannot authorize missing evidence, retries or release.
 
-Any output can also carry its caveats in the `issues` list on its Artifact. At M1, an exception is `CAPSULE_ERROR`, and the gate folds any call that does not end `ok` into `blocked` (policy `gates`). These proposals are unchecked; they unlock retries, fallbacks, quality labels, and RSI learning from failure types.
+Outputs may carry caveats in Artifact issues where the contract allows them. Runtime, timeout, store and security errors retain their standard infrastructure meaning. Partial evidence never becomes a passing output solely through exception handling.

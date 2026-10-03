@@ -3,7 +3,7 @@ type: design
 status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt, op-local-search.md, op-scholarly-search.md, ../capsule/runner.md]
+sources: [../../product/prd-m1-full-2026-10-02.txt, op-local-search.md, op-scholarly-search.md, ../capsule/runner.md]
 provides: [research.search_ideas]
 consumes: [cc.type.research_brief, cc.type.intake, cc.type.idea_set, op.local_search, op.scholarly_search]
 depends_on: [../types/idea-set.md, ../types/research-brief.md, op-local-search.md, op-scholarly-search.md, pipeline.md, search-gate.md]
@@ -31,11 +31,11 @@ From the Research Brief, it forms keyword queries, searches the user's documents
 
 ## Run-plan entry
 
-Step `search` on [the M1 pipeline](pipeline.md): work capsule `research.search_ideas`, gate capsule [`research.accept_ideas`](search-gate.md), inputs `research_brief` from `requirement.research_brief` and `intake` from `launcher.intake`.
+Step `search` on [the M1 pipeline](pipeline.md): work capsule `research.search_ideas`, shared gate capsule `research.verifier` with profile [`research.accept_ideas.v1`](search-gate.md), inputs `research_brief` from `requirement.research_brief` and `intake` from `launcher.intake`.
 
 ## Gate
 
-- **Gate capsule:** [`research.accept_ideas`](search-gate.md), following [the gate capsule pattern](../capsule/gate-capsules.md).
+- **Gate:** shared `research.verifier`, profile [`research.accept_ideas.v1`](search-gate.md), following [the gate capsule pattern](../capsule/gate-capsules.md).
 - **Tier 1:** this capsule's deterministic checks below, and the `idea_set` type's checks. Together they cover PRD 3.3.6's "schema and token limits".
 - **Tier 2:** the step checks `ideas_grounded` and `ideas_answer_brief`, defined in [the M1 run plan](pipeline.md#the-plan-as-recorded).
 
@@ -107,8 +107,7 @@ Step `search` on [the M1 pipeline](pipeline.md): work capsule `research.search_i
       {"reason_code": "NO_SOURCES_FOUND", "when": "Every query found no local passage and no external source.", "retriable": false}
     ]
   },
-  "evolution": {"rsi": "propose", "may_change": ["files:prompts/queries.md", "files:prompts/ideas.md"],
-                "notes": "The two prompts are the levers. Top-K, grouping and the citation rules are fixed code."}
+  "evolution": {"rsi": "none"}
 }
 ```
 

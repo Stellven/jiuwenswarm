@@ -8,7 +8,7 @@ tags: [types, m1, composition]
 
 # `source_text`: text with a stable source and offset basis · version 1
 
-The smallest independently composable text input for language capabilities. `research.extract_text` projects it from an `intake`; a direct text launcher may record the same type without manufacturing an `intake` dependency.
+The smallest independently composable text input for language capabilities. Ordinary `launcher.extract_text` projects it from an `intake`; a direct text launcher may record the same type without manufacturing an `intake` dependency.
 
 ## Fields
 

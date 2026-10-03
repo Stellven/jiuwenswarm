@@ -60,9 +60,9 @@ Two paths share one store:
 What an author writes. One folder per capsule, named by its `identity.name`.
 
 ```text
-capsules/research.compile_intent/
+capsules/op.local_search/
   capsule.json          the Declaration; the author writes everything except file hashes
-  compile_intent.py     the code or skill files that carrier or body names. A tool of one file uses carrier;
+  local_search.py       the code or skill files that carrier or body names. A tool of one file uses carrier;
                         a tool of several files uses body and names its entry in ext.cc.entry (file.py:function)
   checks/               the files that guarantees.checks[].runner names
   tests/cases.json      the test cases: a list in the shape of Candidate tests[]
@@ -168,9 +168,9 @@ cc kit new <name> --kind tool|skill|prompt_section [--gate] [--store <dir>]   wr
   - `tool`: `capsule.json` with a `carrier`, the stub function, `checks/`, `tests/cases.json`;
   - `skill`: `SKILL.md` with front matter instead of the stub function;
   - `prompt_section`: one text file, no inputs, one `text` output.
-  - `--gate` adds every fixed row of [the gate capsule pattern](gate-capsules.md#what-every-gate-capsule-declares), `checks/gate_checks.py`, the pin to `prompt.gate_judging` and an empty `rubrics/`.
+  - `--gate` scaffolds the shared research.verifier pattern, its fixed checks and hashed judging files. Stage rubric profiles are policy artifacts, not separate admitted prompt capsules.
 
-  `--gate` implies `--kind skill`. The kit reads `prompt.gate_judging`'s current `decl_hash` from the store given by `--store`, else writes `"<fill>"`. Fields the author must fill are left as `"<fill>"`, which admission refuses (`SCHEMA_NONCONFORMANT`).
+  `--gate` implies `--kind skill` and scaffolds the shared verifier's hashed local instructions. Unfilled fields remain `"<fill>"`, which admission refuses (`SCHEMA_NONCONFORMANT`).
 
 ## M14 Admission
 
@@ -182,7 +182,7 @@ In the order the [library](library.md#admission-the-only-way-in) gives:
 
 1. Check the Declaration's shape against [fields](fields.md) and the policy's `required` section (`SCHEMA_NONCONFORMANT`).
 2. Re-hash every submitted file; refuse a mismatch (`HASH_MISMATCH`). The submitted files must be exactly the files the Declaration pins: its `carrier` or `body` files and every check's `runner` file ([open issues](../open-issues.md) 2).
-3. Apply the policy's `rules` in the order the [policy](../schemas/policy.md) lists them, stopping at the first refusal, with that rule's reason code. Among them, every capsule in `needs.external` must already be admitted (`OPERATOR_NOT_ADMITTED`). So `prompt.gate_judging` is admitted before any gate capsule, and an operator before any capsule that pins it.
+3. Apply the policy's `rules` in the order the [policy](../schemas/policy.md) lists them, stopping at the first refusal, with that rule's reason code. Among them, every capsule in `needs.external` must already be admitted (`OPERATOR_NOT_ADMITTED`). An operator is admitted before any capsule that pins it; shared verifier instructions are hashed local files.
 4. Store each file at `cc/content/<sha256>`, and the Declaration with `put_declaration`.
 5. Store each test's inputs and fixtures as Artifacts with `scope.library` (test cases are library records), then each test case (with its `model_replies`) and one visible suite.
 6. Run each test case through the runner's `call_admission`, with M05 replaying the case's `model_replies`. Then run its checks through M10a, with `expected` set: tier 1 always, and tier 2 through the policy's `levels.admission_judge` when the capsule has judged checks. Any `fail` refuses (`CHECK_FAILED`); any `unknown` defers (`CHECK_UNKNOWN`).
@@ -200,13 +200,13 @@ async def freeze(run_id: str, plan: dict, *, policy_ref: dict, vocabulary_ref: d
 
 `plan` is a `run_plan` value. For each step, freeze:
 
-1. resolves `capsule_name` and `gate_capsule_name` through their current Standing to a `decl_hash` and Verdict each; refuses a name that is not `admitted`;
-2. re-hashes both capsules' code and the transitive needs.external closure from the store (CARRIER_CHANGED), and refuses every dependency whose Standing is not admitted (OPERATOR_NOT_ADMITTED); cycles and missing pins refuse freeze;
+1. resolves `capsule_name` and `gate_capsule_name` only through the immutable library snapshot whose hash is run_plan.library_snapshot_sha256, obtaining its exact decl_hash and Verdict. The launcher snapshots active aliases before validation. A planner's validated snapshot and freeze must match; freeze never substitutes a newly activated alias. Missing entries/pin mismatches refuse. Current revocation/security state may deny a snapshot version but cannot choose replacement code;
+2. re-hashes both pinned capsules' code and transitive needs.external closure from that snapshot/store (CARRIER_CHANGED), and refuses every dependency not admitted at snapshot creation or subsequently revoked (OPERATOR_NOT_ADMITTED); cycles, missing pins and snapshot mutation refuse freeze;
 3. checks every wire: the source's type (from `launcher_inputs`, or the earlier step's output port) equals the input port's type, and neither is `json` (`PORT_TYPE_MISMATCH`, rule `wired_ports_named`);
 4. assembles `checks` from the work capsule's `node` and `both` checks, its output types' checks, and the step's `step_checks` (copied into the Binding's `step_checks`);
 5. pins the gate capsule in `verifier`, with its budget: the gate capsule's `timeout_s`, never over policy `budgets`' 120 s per judge call. This is the one list of what freeze checks about a gate (the [pattern](gate-capsules.md) links here):
    - the step's `checks` hold at least one judged check (`GATE_MISSING`);
-   - the gate capsule has kind `skill`; exactly one input, `evidence_bundle` of type `evidence_bundle`; exactly one output, `verifier_assessment` of type `verifier_assessment`; `effect_class` `pure` or `read_only`; `needs.external` exactly one entry, `prompt.gate_judging`, at an admitted `decl_hash`; and check ids exactly `answers_every_criterion`, `quotes_from_bundle` and `assessment_matches_expected` (`GATE_MISSING`);
+   - the gate capsule has kind `skill`; exactly one input, `evidence_bundle` of type `evidence_bundle`; exactly one output, `verifier_assessment` of type `verifier_assessment`; `effect_class` `pure` or `read_only`; no unapproved external call; shared judging instructions are hashed local files; and check ids exactly `answers_every_criterion`, `quotes_from_bundle` and `assessment_matches_expected` (`GATE_MISSING`);
    - `evolution.rsi: none` (`REFEREE_RSI_PERMITTED`);
    - it is not the work capsule (`JUDGE_IS_SELF`);
    - judged step check runners equal admitted gate body rubric refs/hashes (GATE_RUBRIC_MISMATCH); deterministic/reference checks resolve independent registry or gate-check code pins. Verify hashes and author independence. All pins enter Binding.step_checks; changes require a new plan;
@@ -256,12 +256,12 @@ async def launch(prompt: str, channel: str, workspace: Path) -> str     # the ru
 `workspace` is the user's workspace folder; the input folder is `<workspace>/input/` (PRD 3.1.2). The run is bound to the local single-user profile, whose data dir is `get_user_workspace_dir()` (PRD 3.1.3; [integration](../system/integration.md#kv-the-record-stores-backing)). In this order:
 
 1. **Qualify** (PRD 3.1.5). If the prompt is blank or the input folder is unreadable, reject with exit 2 before minting run_id. Load and validate a pinned config snapshot and run doctor. Unavailable environment/security returns exit 4; do not begin an unprotected run.
-2. **Mint** the `run_id`. Resolve `P` and `V` from `config.yaml`'s `cc.policy_epoch` and `cc.vocabulary_sha256` ([M00c](#m00c-policy-publisher)), and the M1 plan `PLAN` from `cc/launcher/plans/m1.json`, which must equal [the M1 pipeline](../m1/pipeline.md)'s plan.
+2. **Mint** the `run_id`. Resolve `P` and `V` from `config.yaml`'s `cc.policy_epoch` and `cc.vocabulary_sha256` ([M00c](#m00c-policy-publisher)). Resolve the immutable library snapshot and set PLAN.library_snapshot_sha256 to that exact hash. The fixed M1 plan template in `cc/launcher/plans/m1.json` must equal [the M1 pipeline](../m1/pipeline.md)'s wiring; validate this concrete snapshot-bound plan before freeze.
 3. `plan_ref = record_input(run_id, "run_plan", vocabulary_ref=V, value=PLAN, origin="control")`.
-4. Build intake v2: classify supplied/configured local resources, separately bind project_asset/validation_data, and extract text only from reference_document. Documents are added in path order under the fixed limits; excluded references are recorded in skipped. Then record_input stores the canonical intake. Resource readability and ids are checked; baseline/dataset suitability is a later blueprint gate obligation.
-5. Emit `cc.run.started` with `plan_ref`.
+4. Build intake v2: classify supplied/configured local resources, bind immutable project_asset/validation_data snapshots, and extract text only from reference_document. Documents are added in path order under the fixed limits; excluded references are recorded in skipped. Then record_input stores the canonical intake and its source_text prompt projection, with exact source/hash/offset basis owned by [source_text](../types/source-text.md). Ordinary extraction/hint helpers create these inputs; no compile_intent capsule runs. Resource readability and ids are checked; baseline/dataset suitability is a later blueprint gate obligation.
+5. Prepare config/library/source-manifest Artifact pins and intake/source_text references. No successor can start from an event alone.
 6. `bindings = freeze(run_id, PLAN, policy_ref=P, vocabulary_ref=V)`; freeze emits `cc.run.frozen`.
-7. `cc.adapters.swarmflow.start_run(run_id, args={run_id, plan: PLAN, pins, inputs: {intake: intake_ref}})`, where `pins` is `{step_id: decl_hash}` from `bindings`.
+7. Commit run_started with all frozen Binding/config/library/source references, then emit `cc.run.started`. Invoke `cc.adapters.swarmflow.start_run(run_id, args={run_id, plan: PLAN, pins, inputs: {intake: intake_ref, source_text: source_text_ref}})`, where `pins` maps each step to its frozen Binding ref. This supplies every required launcher port in the production plan; optional intent_ir hints may be added only when explicitly prepared and bound.
 8. When the script returns its envelopes, emit `cc.run.finished` with them. On `CcHalt`, call [`halt`](#m03h-halt-host).
 
 ## Build order, and what can be tested when
@@ -275,14 +275,14 @@ flowchart LR
     RUN --> CR["M10a check runner"]
     CR --> KIT["M13 author kit"]
     CR --> ADM["M14 admission"]
-    ADM --> T1(["admitted: research.compile_intent"])
+    ADM --> T1(["admitted: research.compile_brief"])
     ADM --> FRZ["M03 freeze"]
     CR --> GT["M10 gate"]
     FRZ --> LN["M01 launcher"]
     GT --> LN
-    LN --> T2(["first run: intent then requirement"])
+    LN --> T2(["first run: Brief then Search"])
 ```
 
 - After hashing, the store and the vocabulary builder, every type page is machine-checked.
-- After the runner, the check runner and admission, `research.compile_intent` can be admitted: the first capsule through the whole library side.
-- After freeze, the gate and the launcher, the first two-step run works: `intent`, then `requirement`.
+- After the runner, the check runner and admission, `research.compile_brief` and the shared verifier can be admitted: the first governed work boundary.
+- After freeze, the gate and the launcher, ordinary intake preparation supplies the first two-step run: Brief then Search. [Build order](../system/build-order.md) owns the complete sequence.

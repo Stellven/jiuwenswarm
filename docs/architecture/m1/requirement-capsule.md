@@ -1,12 +1,12 @@
 ---
 type: design
-status: checked
+status: draft
 tags: [design, draft, m1, capsule]
 ---
 
 # `requirement_capsule`: design
 
-> **Checked, not yet approved.** The first M1 capsule, designed from PRD 3.2 Requirement Compilation ([full PRD](../../product/prd-m1-full-2026-10-01.txt)). It follows the [Declaration](../capsule/fields.md) and the [`make_capsule.md`](../capsule/make-capsule.md) format. Hashes are shown as `<author kit>`: the author kit computes them once the files exist.
+> **Draft, reopened for frozen source and shared contracts.** The first M1 capsule, designed from PRD 3.2 Requirement Compilation ([full PRD](../../product/prd-m1-full-2026-10-02.txt)). It follows the [Declaration](../capsule/fields.md) and the [`make_capsule.md`](../capsule/make-capsule.md) format. Hashes are shown as `<author kit>`: the author kit computes them once the files exist.
 
 ## What it does
 
@@ -26,15 +26,15 @@ It turns the Qualified Intake Package from Ingestion (3.1.5) into the **Research
 
 ## The Research Brief
 
-The Brief is the shared payload type [`research_brief`](../types/research-brief.md). That page is its only definition: fields, type checks and an example. This capsule's input types are [`intake`](../types/intake.md) and [`intent_ir`](../types/intent-ir.md).
+The Brief is the shared payload type [`research_brief`](../types/research-brief.md). That page is its only definition: fields, type checks and an example. This capsule's input types are [`intake`](../types/intake.md) and [`source_text`](../types/source-text.md), with optional [`intent_ir`](../types/intent-ir.md) hints.
 
 ## Run-plan entry
 
-Step `requirement` on [the M1 pipeline](pipeline.md): work capsule `research.compile_brief`, gate capsule `research.accept_brief`, inputs `intake` from `launcher.intake` and `intent_ir` from `intent.intent_ir`.
+Step `requirement` on [the M1 pipeline](pipeline.md): work capsule `research.compile_brief`, shared gate capsule `research.verifier` with profile `research.accept_brief.v1`; inputs `intake` and `source_text` from launcher and optional `intent_ir` hints.
 
 ## Gate
 
-- **Gate capsule:** [`research.accept_brief`](brief-gate.md), following [the gate capsule pattern](../capsule/gate-capsules.md).
+- **Gate:** shared `research.verifier`, profile [`research.accept_brief.v1`](brief-gate.md), following [the gate capsule pattern](../capsule/gate-capsules.md).
 - **Tier 1:** this capsule's deterministic checks below, and the `research_brief` type's checks.
 - **Tier 2:** the step check `brief_objective_faithful`, defined in [the M1 run plan](pipeline.md#the-plan-as-recorded). A fail halts the run before `search`.
 
@@ -61,6 +61,8 @@ Its model turns go through M05 and `cc.adapters.codex` ([integration](../system/
     "inputs": [
       {"name": "intake", "type": "intake", "required": true,
        "description": "The Qualified Intake Package: the prompt, and the extracted text of each reference document."},
+      {"name": "source_text", "type": "source_text", "required": true,
+       "description": "Canonical prompt projection; all source spans use this text."},
       {"name": "intent_ir", "type": "intent_ir", "required": false,
        "description": "An IntentIR of the same prompt, used as hints only."}
     ],
@@ -101,20 +103,16 @@ Its model turns go through M05 and `cc.adapters.codex` ([integration](../system/
        "description": "On a test case, the Brief's metrics match the expected ones by requirement_id, comparator and target, not by name (a name mismatch such as vram_reduction vs vram_reduction_pct must not fail the fixture).", "author": "muk"}
     ]
   },
-  "evolution": {
-    "rsi": "propose",
-    "may_change": ["files:SKILL.md", "files:references/brief_example.json"],
-    "notes": "The prompt is the main lever. The defaults table is policy, not prompt: change it by hand."
-  }
+  "evolution": {"rsi": "none"}
 }
 ```
 
 **Why these choices:**
 
-- **`kind: skill`,** because PRD 3.2.1 calls for one LLM generation. The model is named in `SKILL.md`'s front matter, chosen by the author. Model Routing may route it; CC only needs the call recorded, and replayable in tests.
+- **`kind: skill`,** because PRD 3.2.1 calls for one LLM generation. The protected broker selects the frozen Phase 1 Codex route; author front matter cannot override the route. The call is recorded and replayable in fixtures.
 - **`effect_class: pure`:** it writes nothing outside its output.
-- **`intent_ir` is optional:** the PRD's Phase 1 path does not produce it. When `compile_intent` runs, its IntentIR is passed as hints. The Intention Compiler sync (PRD 3.2 flag) may change this.
-- **RSI may change the prompt and its worked example, not the defaults table.** The defaults are conservative policy (3.2.3), and they decide what the Brief assumes. The `defaults_only_when_silent` check reads them. So they change by hand, as a new version.
+- **`intent_ir` is optional:** the PRD's Phase 1 path does not produce it. An ordinary deterministic launcher helper may provide IntentIR hints. The Intention Compiler sync (PRD 3.2 flag) may change this.
+- **M1 RSI does not target this capsule.** Manual prompt/example/default revisions create an admitted new version; the defaults_only_when_silent check validates the frozen table.
 - **The checks' code (`checks/`) is not in `may_change`.** The referee stays fixed.
 - **No judged check of its own.** The judgement "the objective says what the user asked" is the step's, so it is a step check judged by the brief gate ([brief gate](brief-gate.md)). The capsule is then admitted with deterministic checks only, and needs no admission judge.
 
@@ -138,6 +136,25 @@ Whether a compute field is both quoted and defaulted is the type's check `check.
 
 A missing metric is **not** defaulted. It is recorded as an `INPUT_INCOMPLETE` issue, because inventing an acceptance threshold would move the goalposts (PRD 3.5.4).
 
+## Prompt brief
+
+The rows of the [prompt brief](../capsule/prompt-brief.md) for `SKILL.md`. The wording is the prompt layer's; everything here is fixed.
+
+| Row | Brief |
+|---|---|
+| Job | Turn the intake into one Research Brief in one model call. Do not ask the user anything, wait for approval, or pick a solution |
+| Inputs | `intake`: resources and prompt. `source_text`: canonical span basis. `intent_ir`: optional hints, never a source of quotes |
+| Output | `research_brief`, field by field as the [type page](../types/research-brief.md) defines it |
+| Rules | The Declaration's checks: every stated item is quoted (`brief_evidence_grounded`), defaults match the table (`defaults_only_when_silent`), requirements and metrics are present (`requirements_and_metrics_present`), every metric target is grounded (`metric_target_grounded`). The type's own checks: a compute field is quoted or defaulted and never both, and requirement ids are unique ([`research_brief`](../types/research-brief.md#type-checks)). At least one mandatory requirement exists |
+| Grounding | Every item the user stated carries a verbatim quote and its `evidence_source_id`. The objective, requirements and metrics quote the prompt. Scope comes from the intake only. Nothing is invented and presented as stated |
+| Gaps | A missing compute field takes its value from `references/defaults.json` and is listed in `defaults_applied`. A missing metric is never defaulted: raise `INPUT_INCOMPLETE`. A vague request raises `INPUT_AMBIGUOUS` and still returns a valid Brief. A request that contradicts itself raises `INPUT_CONTRADICTORY` |
+| Issue codes | `INPUT_AMBIGUOUS`, `INPUT_INCOMPLETE`, `INPUT_CONTRADICTORY` |
+| Tools | none |
+| Must not | Invent a requirement or a threshold. Choose a method, model or library the prompt did not name. Restate the schema |
+| Examples wanted | A clear request. A request with no hardware stated, which exercises the default. A vague request, which raises `INPUT_AMBIGUOUS`. One case with a metric missing, which raises `INPUT_INCOMPLETE` |
+| RSI surface | None in the frozen M1 whitelist; manual candidate revisions use normal admission |
+| Done when | Each fixture's recorded reply reproduces its expected Brief (metrics matched by `requirement_id`, comparator and target, not by name), all checks pass, and the [brief gate](brief-gate.md)'s `brief_objective_faithful` passes |
+
 ## Tests
 
 - **Fixtures.** At least three intake cases, each with a recorded model reply and its expected Brief:
@@ -147,33 +164,16 @@ A missing metric is **not** defaulted. It is recorded as an `INPUT_INCOMPLETE` i
 - **Test cases:** one per admission check. `brief_matches_reference` compares each fixture's output with its expected Brief.
 - **Replay.** Tests run on the recorded replies, so they are exact and need no live model.
 
-## What RSI gets
+## RSI boundary
 
-- **A small surface:** `SKILL.md` and one worked example.
-- **Exact deterministic checks:** they catch any invented requirement.
-- **A measurable score:** how often a new prompt's Briefs match the expected ones on the fixtures, and on hidden fixtures from the RSI data foundation.
-
-That makes this the easy first proof for RSI.
+M1 RSI cannot mutate this capability. The frozen whitelist targets Screening's rank helper and conditionally its text prompt. Manual capsule revisions use normal admission/versioning.
 
 ## What Model Routing gets
 
-A real skill call with a known input and output schema. It can be routed to any model and compared on the same fixtures.
+A real skill call with a known input and output schema. The protected model broker supplies the frozen Phase 1 Codex route; capsule authors cannot choose an alternate endpoint. Isolated experimental routes use explicit experimental policy.
 
-## Open
+## Adopted defaults and failure behavior
 
-Resolved on 2026-10-01, when the Brief became the shared type [`research_brief`](../types/research-brief.md):
+The canonical Brief type is authoritative. Token budgets are recorded and bounded by the model/run policy; hardware and frameworks remain user-request values until a supported trusted method/package adapter validates them. Contradictory requests retain INPUT_AMBIGUOUS evidence; missing required quantitative targets retain INPUT_INCOMPLETE. Both halt readiness when no valid experimental contract can be derived, without clarification or repair loops. Defaults are applied only when the source is silent, never to overwrite contradictory evidence.
 
-- **Intake shape** (was 3): now the type [`intake`](../types/intake.md).
-- **Compute constraints without evidence** (was 6): `constraints.compute.quotes`, checked by `check.research_brief_defaults_disjoint.v1`.
-- **Evidence without a source** (was 7): `evidence_source_id` on every quote. The objective, requirements and metrics cite the prompt. A minimum quote length is still open.
-- **Open schema** (was 8): closed core plus `ext`; consumers read only declared fields.
-
-Still open, tracked in [open issues](../open-issues.md):
-
-1. **The Brief's owner.** The full PRD (1.6, 6.13) gives exact payload schemas to the Architecture Design; its section 6 is the implementation order, not payload specs. So the type page is the definition, and changes to what the Brief must mean go to Ramika.
-2. **The Intention Compiler sync** (PRD 3.2 flag): Phase 2 may add dynamic behaviour; Phase 1 stays one-shot.
-3. **Token budgets** (3.2.4) are recorded, not gated, at M1.
-4. **What a metric's number means**: absolute, a difference, or a relative change.
-5. **`hardware` is a free string** used like a fixed list.
-6. **Contradictory input**: what the Brief holds when two stated constraints conflict.
-7. **`constraints.frameworks`** comes from PRD 3.6.1, not from 3.2's own text. Confirm with Ramika.
+Metric units and comparison basis are preserved explicitly; unspecified percentage interpretation blocks Hypothesis rather than weakening a target. Structural quote validation requires nonempty verbatim quotes and valid source identity; semantic fidelity is independently assessed by the Brief profile.

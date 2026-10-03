@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:types:idea-set",
+  "title": "idea_set",
+  "x-source": "types/idea-set.md",
+  "x-version": "1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "queries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "text": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "query_id",
+          "text"
+        ]
+      },
+      "minItems": 1
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "kind": {
+            "enum": [
+              "local",
+              "arxiv",
+              "semantic_scholar"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "published": {
+            "type": "string"
+          },
+          "locator": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "kind",
+          "title",
+          "authors",
+          "locator"
+        ]
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "chunk_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+                },
+                "source_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+                },
+                "text": {
+                  "type": "string",
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "chunk_id",
+                "source_id",
+                "text"
+              ]
+            }
+          }
+        },
+        "required": [
+          "query_id",
+          "chunks"
+        ]
+      }
+    },
+    "ideas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "idea_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "title": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "summary": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "mechanism": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "cited_chunk_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "idea_id",
+          "title",
+          "summary",
+          "mechanism",
+          "cited_chunk_ids"
+        ]
+      },
+      "minItems": 1
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "queries",
+    "sources",
+    "groups",
+    "ideas"
+  ]
+}

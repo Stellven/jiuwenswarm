@@ -1,32 +1,21 @@
 ---
-type: design
+type: index
 status: draft
-version: 2
+version: 3
 owner: muk
-sources: [../PROCESS.md, ../open-issues.md, ../decisions.md]
+sources: [../policies.md, ../open-issues.md]
 provides: [system.blackboxes]
 consumes: []
-depends_on: [overview.md, ../capsule/process-boundary.md, ../capsule/fixture-oracle.md]
-tags: [system, blackbox]
+depends_on: [environment.md, ../capsule/process-boundary.md, ../capsule/fixture-oracle.md]
+tags: [system, validation]
 ---
 
-# Black boxes: only unresolved product or safety boundaries
+# No undefined M1 system responsibilities
 
-The full M1 PRD is available. Architecture uses sourced, replaceable defaults for missing implementation detail and records them in the [decision ledger](../decisions.md). `blackbox` is reserved for a product conflict or safety boundary that cannot honestly be marked implementable.
+All in-scope components have concrete owning designs in [module map](modules.md), [handoff](handoff.md) and [coverage](../prd/coverage.md). The name of this page remains for older links; it no longer indexes implementation-free black boxes.
 
-## Active black boxes
+The [deployment](deployment.md) and [environment](environment.md) specify one Linux image/profile on Linux Docker Engine or macOS Docker Desktop, plus doctor probes. Generated-code and hidden-oracle execution remain unavailable on any profile whose checks do not pass. This is a failure contract, not a claim of validated platform support. Downstream runtime evidence belongs in [acceptance obligations](../open-issues.md).
 
-| Boundary | Published provisional interface | Blocking condition | Unblocked when |
-|---|---|---|---|
-| macOS generated POC execution | [`PocExecutionRequest/Result`](../capsule/process-boundary.md) and the common ExecutionProfile | no verified macOS equivalent for path/network/credential/fixture isolation | an execution profile passes every negative probe; until then it returns `UNSUPPORTED_SECURITY_PROFILE` |
-| Hidden RSI fixture oracle deployment | [`FixtureEvaluationRequest/Result`](../capsule/fixture-oracle.md) | root-free wording conflicts with the administrator-provisioned Linux principal model; enforcement is unvalidated | product resolves bootstrap and the runner/oracle principal and IPC probes pass |
+Saurav's pending external benchmark schema has a [provisional export adapter](benchmark-export.md). A new schema affects that boundary, not unrelated research-stage schemas. Later owner sources enter the [source-change queue](../../product/SOURCE_FREEZE.md#later-arrivals).
 
-These conditions block only generated or hidden execution on the affected platform. They do not block schema, parser, store, Gate, CLI, ordinary capsule, or Linux implementation work.
-
-## Drafts that are no longer black boxes
-
-Screening decisions 48–53, threshold semantics, execution roles, offline wheelhouse, scientific classification, Gate profiles, RSI query scheduling and trusted-method registration have provisional or adopted dispositions in [decisions](../decisions.md). Their pages remain `draft` until lint, canaries and review pass. Missing method coverage blocks the selected experiment; it does not make the protocol a black box.
-
-## Promotion and recheck
-
-Resolve a blocking condition through its owning schema/profile version. Recheck all producers, consumers, Gate/profile bindings, seams, run plan, records, coverage and diagrams. Passing lint is structural evidence, not platform validation.
+Missing prose is resolved with a sourced replaceable design. A genuine requirement conflict is recorded with affected consumers and a concrete safe outcome; it is not hidden behind a module named "TBD". The fresh AI review checks that each coding question has an answer and that unrun security checks are never represented as passed.

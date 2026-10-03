@@ -1,22 +1,22 @@
 ---
 type: design
-status: blackbox
+status: draft
 version: 1
 owner: muk
-sources: [../../product/prd-m1-full-2026-10-01.txt]
+sources: [../../product/prd-m1-full-2026-10-02.txt]
 provides: [cc.untrusted_process_boundary, cc.process_execution_api]
 consumes: [cc.type.poc_bundle, cc.run_plan, cc.binding]
 depends_on: [runner.md, permissions.md, ../m1/benchmark.md, ../types/poc-bundle.md]
-tags: [capsule, security, m1, blackbox]
+tags: [capsule, security, m1]
 ---
 
-> **Black box: M1 generated-code boundary.** This page records the required boundary and its provisional API. The PRD makes an unprivileged process boundary mandatory for generated POC execution in M1; it defers the broader jiuwenbox container sandbox. The exact operating-system identity, oracle permissions, and containment mechanism remain open under issues 40 and 54. Benchmarking and RSI must not be treated as runnable until their applicable boundary is checked.
+> **Draft: concrete execution profile.** The API below uses [environment](../system/environment.md)'s authenticated local service, restricted unprivileged identity, fixed mounts, no direct network, credential exclusion and child-tree termination. Doctor enables it only after executable negative probes pass. The user's Docker agreement packages this service inside the single monolith container; [deployment](../system/deployment.md) owns that outer boundary. General jiuwenbox orchestration remains outside M1. No runtime validation is claimed.
 
 # M1 untrusted process boundary
 
 This is a system service called by the `research.run_benchmark` capsule when it executes generated POC code. It is separate from the CC runner: the runner executes the stage capsule; this boundary contains the generated program that the capsule asks to run. It is also separate from the future, general-purpose jiuwenbox verification sandbox.
 
-**Sources:** PRD 2.9, 3.7.1–3.7.4, 4.1.4, 4.4.9 and 5.4.3. Product requirements include restricting generated code to authorized local resources, preventing unauthorized host-file access and undeclared network/system effects, retaining execution evidence, and treating a violated mandatory boundary as an infrastructure failure. Stage 3.7 specifically requires a restricted unprivileged process for the POC workspace. The PRD defers Docker/Kubernetes, VM and eBPF isolation to a future phase.
+**Sources:** PRD 2.9, 3.7.1–3.7.4, 4.1.4, 4.4.9 and 5.4.3. Product requirements include restricting generated code to authorized local resources, preventing unauthorized host-file access and undeclared network/system effects, retaining execution evidence, and treating a violated mandatory boundary as an infrastructure failure. Stage 3.7 specifically requires a restricted unprivileged process for the POC workspace. The frozen PRD deferred Docker/Kubernetes, VM and eBPF isolation; the later user agreement explicitly adopts Docker packaging for M1. Kubernetes, per-task containers, VM and eBPF orchestration remain outside this design.
 
 ## Placement and ownership
 
@@ -25,12 +25,12 @@ This is a system service called by the `research.run_benchmark` capsule when it 
 | Capsule call lifecycle, Binding, Observation, generic capsule permissions | [CC runner](runner.md) | The runner calls the benchmark capsule and records its call; it does not claim to contain arbitrary code. |
 | Generated benchmark child process | This boundary | Accepts a constrained execution request; starts only within the approved POC workspace and returns status plus evidence references. |
 | Benchmark protocol and interpretation of measurements | [Benchmark stage](../m1/benchmark.md) | The stage capsule supplies the declared baseline/treatment protocol and consumes the process outcome. |
-| Hidden RSI fixtures and oracle results | RSI / fixture oracle, under issue 40 | The proposer does not receive hidden inputs or expected outputs; the oracle returns aggregate results only. The oracle is not the benchmark process boundary. |
+| Hidden RSI fixtures and oracle results | RSI / protected fixture oracle | The proposer does not receive hidden inputs or expected outputs; the oracle returns aggregate results only. The oracle is not the benchmark process boundary. |
 | Broad verification sandbox | jiuwenbox, future phase | General dependency/config/secret/resource isolation; not the M1 process-boundary implementation. |
 
 ## Provisional API
 
-The caller and service exchange these named values over a local authenticated channel. This interface is provisional until issues 40 and 54 are resolved and the area passes the design loop.
+The caller and service exchange these named values over the bounded authenticated local channel owned by lifecycle/environment. The interface is defined here; implementation validation must demonstrate the selected profile before execution is enabled.
 
 `execute_poc(PocExecutionRequest) -> PocExecutionResult`
 
@@ -40,6 +40,10 @@ The caller and service exchange these named values over a local authenticated ch
 |---|---|---:|---|
 | `request_id` | `id` | yes | Unique execution request, used to join its result and logs. |
 | `run_id` | `id` | yes | Run whose authorized workspace is used. |
+| `dispatch_id` | `sha256` | yes | Exact durable dispatch reservation for the current benchmark capsule attempt. |
+| `obs_id` | `id` | yes | Observation identity allocated by that reservation. |
+| `attempt` | `integer` | yes | Positive attempt number allocated by the supervisor. |
+| `reservation_ref` | `SystemRef` | yes | ID/hash of the committed dispatch_reserved record; resolved and authenticated by the service. |
 | `caller_decl_hash` | `sha256` | yes | Admitted benchmark capsule allowed to request the execution. |
 | `bundle_ref` | `Ref(Artifact)` | yes | The gated `poc_bundle` containing the POC program and declared requirements. |
 | `profile` | `enum(poc_setup, benchmark)` | yes | Selects the fixed installer or the single baseline-then-treatment harness; it cannot relax policy. |
@@ -76,19 +80,19 @@ The benchmark capsule derives its stage output from this result and the register
 5. Hidden fixture evaluation is a separate oracle API. It never returns fixture contents to the proposer and returns only the allowed aggregate result.
 6. The Codex bridge's local IPC security is specified at its own integration seam; it must not be confused with this generated-code boundary.
 
-## Waiting on
+## Implementation acceptance obligations
 
-- Issue 40: reconcile the unprivileged execution identity and fixture-oracle isolation requirements across PRD 4.4.9 and 5.4.3; define the actual trust principals and oracle channel.
-- Issue 54: specify per-backend runtime guard coverage and failure classification, and ensure it agrees with this boundary.
-- PRD items 42–43: confirm capsule-versus-generated-code roles and offline wheelhouse provisioning.
+- Verify the installer-provisioned runner/oracle identities, POSIX custody and authenticated channel from environment.
+- Verify per-backend profile enforcement and typed failure classification.
+- Verify capsule/generated-code role separation and offline wheelhouse closure.
 - First-run validation: show the active Swarmflow runner cannot read the hidden fixture store and that the generated process cannot escape its POC workspace.
 
-The [environment](../system/environment.md) page proposes actual Linux process/mount/network confinement, wheelhouse and authenticated descriptor mechanisms. macOS remains unavailable pending issue 57. Requests are idempotent transport identities: identical duplicates return the durable result/status; changed bytes conflict. Reserve execution before launch, and never automatically repeat an interrupted request with uncertain effects. The service kills and reaps the entire child tree on deadline/cancellation and seals raw capture before returning. Required capture failure cannot return exited success. stdout_ref/stderr_ref refer to committed capture Artifacts with both record ID and hash.
+The [deployment](../system/deployment.md) and [environment](../system/environment.md) pages define one Linux Bubblewrap profile within Docker, wheelhouse and authenticated descriptor mechanisms. Linux Engine and macOS Docker Desktop execute that same Linux image. Execution is unavailable until the actual image/kernel/profile probes pass. Requests are idempotent transport identities: identical duplicates return durable result/status; changed bytes conflict. Reserve before launch; never automatically repeat an interrupted request with uncertain effects. Kill/reap the complete child tree on deadline/cancellation and seal raw capture before returning. Capture failure cannot return exited success. stdout_ref/stderr_ref identify committed capture Artifacts by ID and hash.
 
-Until the source conflicts and platform validation are settled, this is a provisional deployment contract, not a checked implementation guarantee.
+The design is concrete; platform/security validation remains an executable release obligation. Documentation review cannot substitute for those results.
 
 ## Frozen experiment binding
 
-Before setup or benchmark, resolve the reserved dispatch and its Binding, exact gated poc_bundle and hypothesis_blueprint inputs from the supervisor's immutable records. The request's run/caller/bundle must match that reservation. Never select a latest blueprint by name. The service derives snapshot, methods, hardware, seeds, configuration and four role hashes from those admitted refs and verifies all bytes. Setup and benchmark use the same run/bundle/blueprint hash tuple; a changed tuple requires a new run. working_directory must equal the service-assigned attempt root; benchmark argv and env must be empty, with all execution configuration coming from the frozen environment/blueprint. Setup arguments are also fixed by service policy, not caller-supplied pip flags. Reject overrides before launch.
+Before setup or benchmark, resolve the reserved dispatch and its Binding, exact gated poc_bundle and hypothesis_blueprint inputs from the supervisor's immutable records. The request's reservation_ref, dispatch_id, obs_id, attempt, run/caller/bundle must match that committed reservation and its authorized Binding. A run/caller/bundle tuple alone cannot identify an explicit restart attempt. Request identity includes profile and reservation identity; setup and benchmark use distinct request IDs under the same capsule reservation. Another attempt cannot reuse its process result. Never select a latest blueprint by name. The service derives snapshot, methods, hardware, seeds, configuration and four role hashes from those admitted refs and verifies all bytes. Setup and benchmark use the same run/bundle/blueprint hash tuple; a changed tuple requires a new run. working_directory must equal the service-assigned attempt root; benchmark argv and env must be empty, with all execution configuration coming from the frozen environment/blueprint. Setup arguments are also fixed by service policy, not caller-supplied pip flags. Reject overrides before launch.
 
 A benchmark exited result additionally requires measurement_manifest_ref:Ref(artifact), committing the ordered trusted MeasurementEvidence refs from [measurement authority](../m1/measurement-protocol.md#trusted-measurement-authority). Setup does not produce it. Raw stdout is checked against that manifest; inability to commit it cannot return success. The service chooses the Python executable and broker descriptors, never the generated code. Result envelopes are closed; this field is part of PocExecutionResult's schema.

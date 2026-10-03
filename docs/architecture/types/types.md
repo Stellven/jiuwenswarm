@@ -32,7 +32,7 @@ Use this table to find the one definition of anything that crosses a module boun
 | Gate API, `GateResult`, the five verdicts | how a step is gated and what may follow | [capsule/gate-host.md](../capsule/gate-host.md) |
 | AdmissionProvider and Puppet Gate | how a Candidate receives an assurance decision and enters the library | [capsule/admission.md](../capsule/admission.md) |
 | Admission, Gate, retry and execution profiles | policy-selected behavior behind uniform interfaces | [schemas/profiles.md](../schemas/profiles.md) |
-| Gate capsule pattern, `prompt.gate_judging` | what every gate capsule declares | [capsule/gate-capsules.md](../capsule/gate-capsules.md) |
+| Shared `research.verifier` and stage Gate profiles | one semantic verifier contract | [capsule/gate-capsules.md](../capsule/gate-capsules.md) |
 | Run plan | which nodes run, in order, wired how, gated by what | [types/run-plan.md](run-plan.md); the M1 plan is [m1/pipeline.md](../m1/pipeline.md) |
 | CC events | what the hosts announce live, and the bus | [system/observability.md](../system/observability.md#the-events) |
 | Adapters to existing code | every connection to agent-core and jiuwenswarm | [system/integration.md](../system/integration.md) |
@@ -70,7 +70,7 @@ Use this table to find the one definition of anything that crosses a module boun
 
 4. **No copies of facts another record holds** (INV-5). A payload never repeats its own type or version (the Artifact's `type` and the pinned vocabulary say it), who produced it, or when (the Observation says it).
 
-5. **Versions are immutable.** Once a payload version is published, no core field is added, removed, renamed, narrowed or reinterpreted. Producer-specific same-version additions go only under `ext`. Any core-shape or meaning change creates a new type version and an explicit adapter capsule where old and new versions must connect. The vocabulary itself also receives a new `vocabulary_version`, pinned by Verdict and Binding. This is the local form of versioned schema compatibility and explicit migration used by [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/fundamentals/data-contracts.html).
+5. **Released versions are immutable.** Draft schema revisions may change together with all affected producers/consumers before a handoff release. Once a payload version is released, no core field is added, removed, renamed, narrowed or reinterpreted. Producer-specific same-version additions go only under `ext`. Any core-shape or meaning change creates a new type version and an explicit typed adapter where old and new versions must connect. The vocabulary itself also receives a new `vocabulary_version`, pinned by Verdict and Binding. This is the local form of versioned schema compatibility and explicit migration used by [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/fundamentals/data-contracts.html).
 
 6. **Type checks.** A type page lists the checks every value of that type must pass, in a table with every column a Check needs: id, anchor, over, applies at, runner, author, and what passes (the target is the type). They are registry checks, written in full in the vocabulary, with `check.value_matches_type.v1` always first. The gate runs them on every output of the type, and `record_input` runs the deterministic ones before it stores a value. Their code lives in the CC repository's check library ([toolchain](../capsule/toolchain.md#where-code-lives)), written by someone other than the producing capsule's author (INV-10).
 
@@ -80,20 +80,20 @@ Use this table to find the one definition of anything that crosses a module boun
 
 | Type | Version | Status | Made by | Read by |
 |---|---|---|---|---|
-| [`intake`](intake.md) | 2 | draft | M01 launcher, through `record_input` (`origin: human`) | `intent` step, `requirement` step |
-| [`source_text`](source-text.md) | 1 | draft | `research.extract_text` or a direct-text launcher | `research.compile_intent` and other text capabilities |
+| [`intake`](intake.md) | 2 | draft | M01 launcher, through `record_input` (`origin: human`) | launcher projection, `requirement` step |
+| [`source_text`](source-text.md) | 1 | draft | ordinary launcher projection | `research.compile_brief` and experimental text consumers |
 | [`resource_snapshot`](resource-snapshot.md) | 1 | draft | launcher/store snapshot service | Search, Hypothesis, POC and Benchmark |
 | [`dependency_requirement`](dependency-requirement.md), [`dependency_assessment`](dependency-assessment.md) | 1 | draft | Screening and the pinned dependency policy | deterministic opportunity ranking; Hypothesis context |
-| [`intent_ir`](intent-ir.md) | 1 | draft | `research.compile_intent` | `requirement` step |
-| [`research_brief`](research-brief.md) | 1 | draft; three open questions in [open issues](../open-issues.md) | `research.compile_brief` | every later step |
+| [`intent_ir`](intent-ir.md) | 1 | draft | optional launcher hints | `requirement` step |
+| [`research_brief`](research-brief.md) | 1 | draft | `research.compile_brief` | every later step |
 | [`idea_set`](idea-set.md), [`search_hits`](search-hits.md) | 1 | checked | search, and its operators | screening; `research.search_ideas` |
 | [`screening_assessments`](screening-assessments.md) | 2 | draft; internal typed call input, not a pipeline Artifact | `research.select_opportunity` | `op.rank_opportunities` |
 | [`opportunity_card`](opportunity-card.md) | 2 | draft | Screening | Hypothesis and Report |
 | [`hypothesis_blueprint`](hypothesis-blueprint.md), [`poc_bundle`](poc-bundle.md), [`benchmark_payload`](benchmark-payload.md), [`evaluation_verdict`](evaluation-verdict.md), [`research_report`](research-report.md) | 2 | draft/provisional; policy and deployment blockers on owning pages | Hypothesis through Report | downstream work and independent Gates |
 | [`code_hits`](code-hits.md) | 1 | draft | op.codesearch | Hypothesis and POC |
-| [`evidence_bundle`](evidence-bundle.md) | 1 | draft | M10 gate host | the step's gate capsule, named in the Binding's `verifier` |
+| [`evidence_bundle`](evidence-bundle.md) | 1 | draft | M10 gate host | shared research.verifier, named in the Binding's `verifier` |
 | [`verifier_assessment`](verifier-assessment.md) | 1 | draft | the step's gate capsule | M10a, which writes it into the Verification through M10 |
-| [`run_plan`](run-plan.md) | 1 | draft | the launcher; later, a planner capsule | freeze, the generic script |
+| [`run_plan`](run-plan.md) | 1 | draft | the launcher; isolated planner service | freeze, the generic script |
 
 **Draft/checked/locked are review and approval states** as defined in [PROCESS](../PROCESS.md). A canonical schema version does not imply Muk approval or an executed acceptance result.
 
@@ -117,4 +117,4 @@ Which node makes and reads each type, step by step, is defined once in [the M1 p
 | code_hits payload, version 1 | [code hits](code-hits.md) |
 | source_text, resource_snapshot and dependency payloads | [source text](source-text.md), [resource snapshot](resource-snapshot.md), [requirement](dependency-requirement.md), [assessment](dependency-assessment.md) |
 
-Hypothesis, POC, Benchmark, Evaluation and Report payloads are now version 2. Their owning pages are canonical; product policy and deployment blockers are listed there. Capsule-level APIs use these types directly; internal envelopes are not alternate payload-schema copies.
+Hypothesis, POC, Benchmark, Evaluation and Report payloads are now version 2. Their owning pages are canonical; required deployment validation is listed there. Capsule-level APIs use these types directly; internal envelopes are not alternate payload-schema copies.

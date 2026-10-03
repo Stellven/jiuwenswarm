@@ -36,7 +36,7 @@ Admission parses the Declaration; verifies Candidate and file hashes; compiles t
 
 | Provider | Policy input | May grant | Behavior |
 |---|---|---|---|
-| `tested_admission` | visible/sealed suites and required assurance level | `provisional`, `certified` | replays all external/model responses from fixtures, runs applicable suites, records actual results |
+| `tested_admission` | visible suites and required M1 assurance level | `provisional` | replays external/model responses from fixtures, runs applicable suites, records actual results; `certified` is post-M1 |
 | `puppet_admission` | developer-owned allowlist of exact `decl_hash` values plus actor/reason | `exempt` | admits the selected hash after mandatory validation; runs no assurance suite and never represents one as passed |
 
 The Puppet Gate is library admission only. It cannot write Verification, release a workflow node, grant `certified`, change permissions, activate an RSI child, or choose a different declaration version by capability name.
@@ -50,4 +50,3 @@ Activation is a separate librarian action that writes a durable activation Syste
 ## Failures
 
 `SCHEMA_NONCONFORMANT`, `CARRIER_CHANGED`, `DEPENDENCY_UNAVAILABLE`, `POLICY_UNRESOLVED`, and `PERMISSION_UNENFORCEABLE` are mandatory-validation failures. `NOT_DEVELOPER_ALLOWED` and `SUITE_FAILED` are provider decisions. Store failure writes no Verdict or Standing. The same request may resume only by reusing its request id after storage recovery.
-
