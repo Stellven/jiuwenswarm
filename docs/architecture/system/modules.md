@@ -78,4 +78,4 @@ Upstream adapters are owned by [integration](integration.md); cite the existing 
 
 ## Design status
 
-This map is draft pending connected AI reviews. [Handoff](handoff.md) and [coder requirements](coder-requirements.md) provide the full seven-question matrix; [verification](verification.md) supplies failure hooks. Twelve capsules is the current minimal proposal, justified by capability boundaries rather than a target count. Platform validation obligations block execution on affected platforms while their system contracts remain defined.
+This map retains draft status pending Muk's approval. Connected AI review and dispositions are recorded in [final review](../reviews/2026-10-03-final-fresh-review.md). [Handoff](handoff.md) and [coder requirements](coder-requirements.md) provide the full seven-question matrix; [verification](verification.md) supplies failure hooks. Twelve capsules is the current minimal proposal, justified by capability boundaries rather than a target count. Platform validation obligations block execution on affected platforms while their system contracts remain defined.

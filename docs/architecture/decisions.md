@@ -106,7 +106,7 @@ Statuses are `adopted`, `provisional`, `product-conflict`, `implementation-valid
 | 47 | adopted | Native human session performs triage; explicit resume preserves pins and creates a new attempt. | TMP. |
 | 48 | adopted | Numeric Screening dimensions are exactly Novelty, Technical Feasibility and Compute Alignment. Evidence maturity and verification path are required qualitative context. Novelty compares against Brief evidence and cited Idea evidence. | KFP. |
 | 49 | provisional | A frozen dependency registry uses canonical kind/identifier entries with availability and license facts; CC policy owner publishes it. | OPA; replace provider without changing assessment type. |
-| 50 | adopted | `research.select_opportunity` is a prompt-led skill; RSI may alter only its prompt/rubric candidate. Deterministic ranking and policy remain non-RSI dependencies. | KFP, MLR. |
+| 50 | superseded | Earlier prompt-only RSI scope is superseded by R4 and the frozen RSI mutation contract: required isolated helper implementation optimization preserves exact ranking reference outputs; conditional text mutation uses separate sessions. Checks, policy, schemas and ranking semantics stay frozen. | KFP, MLR; [Screening](m1/screening.md), [RSI](capsule/rsi-engine.md). |
 | 51 | adopted | Only dependency conflicts affect M1 eligibility. Value, timing, safety, legal and resource observations remain card context; verified dependency/resource context flows to Hypothesis. | OPA. |
 | 52 | adopted | Ties resolve by ascending lexicographic sorted source `idea_ids` tuple. | DEC; replace only with a new ranking-policy version. |
 | 53 | adopted | No eligible candidate produces `NO_ELIGIBLE_OPPORTUNITY`, no card, no Gate call, and human triage. | TMP. |

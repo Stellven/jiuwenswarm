@@ -43,7 +43,8 @@ flowchart LR
     P -->|run_plan| V[Deterministic validator / freeze]
     V --> R[Governed runner]
     F --> R
-    R --> G[Real Gate / durable release]
+    R -->|ordinary governed step| G[Real Gate / durable release]
+    R -->|approved Gate ablation| X[NOT_RUN or PARTIAL evidence / experimental advance]
     O[Offline RSI controller] -->|Candidate only| A[Admission]
     A --> H[Human activation]
 ```

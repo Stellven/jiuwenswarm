@@ -15,6 +15,8 @@ Open this folder as an Obsidian vault, or read the Markdown files directly. All 
 
 ## Build from these
 
+[Stories](stories/README.md) follow concrete items through proposed code, interfaces, Gates and storage, including failure and recovery paths. Their [quality record](stories/quality-checks.md) distinguishes walkthrough/schema checks from executed product behavior.
+
 For coders and the layer that turns design into prompts. Start at [coder requirements](system/coder-requirements.md) and the [full handoff](system/handoff.md), which link every module's seven engineering answers.
 
 [Reviewed checkpoint manifest](handoff-checkpoint-2026-10-03.json) pins the package's Git blob bytes. [Release evidence](reviews/2026-10-03-release-evidence.md) records the completed documentation checks and remaining implementation obligations.

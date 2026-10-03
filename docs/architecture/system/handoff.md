@@ -49,6 +49,8 @@ Every card inherits [environment/config](environment.md), [confinement](../capsu
 
 ## Downstream allocation
 
+[Stories](../stories/README.md) give connected examples of these module cards in use: production payloads, scientific outcomes, persistence faults, auth, private RSI, planning and HTTP export. They are explanatory fixtures, not another API authority or executed acceptance evidence.
+
 [Boundary-case index](boundary-cases.md) assigns invocation points and expected observations across all three tracks. [Final fresh review](../reviews/2026-10-03-final-fresh-review.md) records the corrected final findings. Runtime observations are still the coding team's responsibility.
 
 Model-auth module card: `cc/model_auth.py` and `cc/adapters/codex_auth.py` implement [AuthProvider](model-auth.md), with the bridge as sole credential writer, dedicated named volume and device-login setup. Standalone cases cover login/cancel/expiry, profile contention, refresh persistence and secret exclusion. [Environment](environment.md) supplies ModelProvider call semantics so future endpoint/auth replacements remain confined to adapters.

@@ -1,4 +1,4 @@
-| RSI surface | Required offline helper-code mutation preserving rank reference outcomes; conditional SKILL.md/rubric text mutation. Checks, schemas, dependency policy and Gate profiles are protected |
+---
 type: design
 status: draft
 version: 2
@@ -110,9 +110,9 @@ The rows of the [prompt brief](../capsule/prompt-brief.md) for `SKILL.md` and `r
 | Tools | `op.rank_opportunities`, once, as `rank_opportunities(assessments=...)` |
 | Must not | Iterate, cluster again, debate or vote. Run a live feasibility test. Add weights. Let value, timing or licensing change eligibility. Search for new evidence. Change intake, repository or dataset state |
 | Examples wanted | Three distinct ideas. Two variants of one mechanism. Every candidate in dependency conflict. Equal composite scores, which the helper orders by ascending sorted source idea ids |
-| RSI surface | May change: `SKILL.md` and `rubrics/assess_opportunities.md`. Fixed: the checks, the helper, the dependency policy, the schemas and the gate rubrics |
+| RSI surface | Required offline target: permitted helper-code mutation preserving exact reference outcomes. Conditional text target: `SKILL.md` and `rubrics/assess_opportunities.md`. Checks, ranking semantics, dependency policy, schemas and Gate rubrics stay frozen; mutation modes are separate sessions |
 | Done when | The recorded replies reproduce the expected assessments on the fixtures, the provenance checks pass, and the [screening gate](screening-gate.md) accepts |
 
 ## Readiness
 
-This is a connected draft for independent implementation. Remaining work is executable schema generation, examples, contract canaries and source-aware review. The dependency registry is replaceable through its pinned policy artifact; changing its contents creates a new hash, while changing assessment semantics creates a new operator/profile version.
+This connected draft has generated schemas, example/canary checks and source-aware review recorded in [release evidence](../reviews/2026-10-03-release-evidence.md). Runtime validation and Muk's approval remain distinct obligations. The dependency registry is replaceable through its pinned policy artifact; changing its contents creates a new hash, while changing assessment semantics creates a new operator/profile version.

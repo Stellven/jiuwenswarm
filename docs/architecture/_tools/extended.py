@@ -224,6 +224,8 @@ def check_frontmatter_and_graph(V, problems, rd, wr):
     pages, provided = {}, {}
     for p in V.rglob("*.md"):
         rel = _rel(V, p)
+        if not _is_legacy(rel) and rel.startswith('m1/') and not rd(p).startswith('---\n'):
+            problems.append(f"{rel}: M1 page must begin with front matter")
         if not rel.startswith(FM_PAGES):
             continue
         fm = frontmatter(rd(p))
