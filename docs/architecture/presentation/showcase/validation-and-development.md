@@ -2,13 +2,17 @@
 
 [Start here](README.md) · Documentation evidence is separate from runtime acceptance
 
+## Current correction and readiness
+
+The main flow now gates intent and requirements before DAG planning, binding and local execution. Existing intent hint semantics, requirement inputs, experimental-only planner requests, capsule inventory and fixed-template fixtures need connected revision. Their old passing checks do not establish coding readiness for the new flow. [Control flow](../../m1/control-flow.md) lists affected owners.
+
 ## Evidence categories
 
 - **Specified design:** a contract and expected behavior are written at an owning page. Draft does not mean implemented or approved.
 - **Documentation checked:** a named command/review checked a particular source revision. Check freshness before reusing the result.
 - **Implementation validation pending:** runtime behavior, real platform/security enforcement, authentication, crash durability and measurement accuracy need executed tests after coding.
-- Existing documentation evidence at revision `1c09e8394` is recorded in [diagram review](../../reviews/2026-10-05-overall-diagrams-review.md): canonical diagram inventory, all four 23-binding flow views, schema/examples and navigation checks. This is historical baseline evidence, not automatic evidence for this expanded package.
-- [Snapshot review](../../reviews/2026-10-05-showcase-review.md) records this package's checks, candidate hashes, fresh review findings and limitations.
+- Existing documentation evidence at revision `1c09e8394` is recorded in [diagram review](../../reviews/2026-10-05-overall-diagrams-review.md): canonical diagram inventory, all four 23-binding flow views, schema/examples and navigation checks. This is historical baseline evidence, not evidence for the corrected planner-driven flow.
+- [Previous snapshot review](../../reviews/2026-10-05-showcase-review.md) records the superseded fixed-plan package. Current correction checks cover diagram/navigation freshness only; revised interfaces still need source review and seam validation.
 
 ## Failure scenarios to implement
 

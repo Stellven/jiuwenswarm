@@ -4,9 +4,10 @@
 
 ## Inputs and outputs
 
-- Intake validates locally provisioned text, Markdown, PDF, repository and dataset resources, then creates immutable snapshots. Extraction creates source text with source references and offset basis. It is an ordinary module. See [intake](../../types/intake.md), [source text](../../types/source-text.md), [resources](../../types/resource-snapshot.md) and [workstation](../../system/workstation.md).
-- Literature enters through bounded scholarly search; local/code search uses declared resources. A model receives authorized read-only evidence projections, not arbitrary store access. See [operators](../../m1/order.md).
+- Intake validates locally provisioned text, Markdown, PDF, repository and dataset resources, then creates immutable snapshots. Extraction creates source text with source references and offset basis. Intent capsules then derive accepted intent through their Gates; gated requirements supply the planner and DAG input contract. The exact revised ports are tracked in [control flow](../../m1/control-flow.md). See [intake](../../types/intake.md), [source text](../../types/source-text.md), [resources](../../types/resource-snapshot.md) and [workstation](../../system/workstation.md).
+- Literature enters through bounded scholarly search; local/code search uses declared resources. A model receives authorized read-only evidence projections, not arbitrary store access. See [local search](../../m1/op-local-search.md), [scholarly search](../../m1/op-scholarly-search.md) and [CodeSearch](../../m1/op-codesearch.md).
 - Scientific execution freezes protocol, datasets, baseline/treatment, methods, environment and predicates before execution. Trusted adapters own measurements; generated code supplies experiment behavior rather than self-awarded scores. See [measurement protocol](../../m1/measurement-protocol.md).
+- Delivery is ordinary code, not a capsule: it processes/formats accepted terminal results and returns published artifacts through authorized retrieval/user views. The report-writing CC is separate from this delivery boundary.
 - Publisher input is the report **and** POC, benchmark, trusted StageContext (the frozen stage/run evidence context), destination and request identity. It requires the committed report Verification/release, validates the complete manifest and publishes files atomically. See [delivery](../../m1/delivery.md).
 - The external benchmark runner uses authenticated local HTTP invocation/status/abort and sealed manifest/export retrieval. It does not use a runtime file-upload or clone endpoint. The API is published on `127.0.0.1:8787`, requires a local bearer token except for liveness, and accepts one active research run. Its final external schema connects through a bounded export adapter; harness internals are separate. See [benchmark export](../../system/benchmark-export.md).
 
@@ -26,7 +27,7 @@
 
 ## Data flow views
 
-Use [full flow](../../system/information-flow.md) to inspect required references and evidence. The same page has views without derived observability, without RSI, and without either. [Temporal sequences](../../system/temporal.md) show writes, publication and activation in order.
+Use [current control flow](../../m1/control-flow.md) for the request-to-DAG path. Use [research wiring baseline](../../system/information-flow.md) to inspect existing research references and evidence; it is not the corrected overall path. The same page has views without derived observability, without RSI, and without either. [Temporal sequences](../../system/temporal.md) show writes, publication and activation in order.
 
 Storage, sandboxing and API patterns are documented beside their decisions in the linked owners. This page introduces no new permission or endpoint.
 

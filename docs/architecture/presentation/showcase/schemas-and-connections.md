@@ -6,12 +6,12 @@
 
 - Producer and consumer use the exact pinned port type/version. An explicit pinned adapter is required for a mismatch; the binder cannot silently coerce data. [Run plan](../../types/run-plan.md) and [Declaration](../../capsule/fields.md) own this rule.
 - Released versions are immutable. Draft changes update the owner and all affected consumers together; release changes require a new version and migration decision. Controlled `ext` data does not allow unknown core fields. [Policies](../../policies.md) owns release control.
-- [Production ports](capsules.md#production-ports) is generated from the plan owner. [Information flow](../../system/information-flow.md) preserves all 23 required bindings and full publication fan-in. The overview graph intentionally omits some fan-in.
+- [Research ports](capsules.md#research-ports-to-reconcile) and the [23-binding research map](../../system/information-flow.md) are retained baseline contracts. [Current M1 control flow](../../m1/control-flow.md) requires intent capsule/Gate ports, accepted requirement entry and planner/binder callers to be reconciled before coding handoff.
 - Artifact references identify stored immutable evidence, not caller-selected filesystem paths. Validation includes existence, schema version, hash and authorization. [Storage](../../system/storage.md) owns resolution.
 
 ## Payload and record versions
 
-Generated from the [export manifest](../../exports/manifest.json). The version column uses each owner's vocabulary: numeric payload versions and named record versions are not interchangeable. Generated JSON schemas define shape; owner prose defines meaning and failure behavior.
+Existing schema baseline generated from the [export manifest](../../exports/manifest.json). The version column uses each owner's vocabulary: numeric payload versions and named record versions are not interchangeable. Generated JSON schemas define shape; owner prose defines meaning and failure behavior.
 
 <!-- generated:showcase-schemas -->
 | Definition | Exact version | Owning field table | Generated schema |

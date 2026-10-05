@@ -2,9 +2,9 @@
 
 [Start here](README.md) · Specified design · No measured optimization claims
 
-## Inventory and execution
+## Research capability baseline
 
-The [pipeline](../../m1/pipeline.md) owns the twelve identities. The [capability guide](../../m1/capability-designs.md) links each behavior owner, fixture family and optimization hypothesis. Installation does not mean every capability executes in every run: retrieval operators execute through declared callers, and the shared verifier executes at applicable Gates.
+The [pipeline](../../m1/pipeline.md) records twelve existing research/verifier/operator identities. This is not the complete inventory for the corrected intent-to-DAG architecture. Intent capability identities and their Gate profiles remain to be reconciled; do not count unnamed roles as admitted versions. The [capability guide](../../m1/capability-designs.md) links each behavior owner, fixture family and optimization hypothesis. Installation does not mean every capability executes in every run: retrieval operators execute through declared callers, and the shared verifier executes at applicable Gates.
 
 | Capability | Responsibility and execution | Dependencies / behavior owner |
 |---|---|---|
@@ -21,9 +21,13 @@ The [pipeline](../../m1/pipeline.md) owns the twelve identities. The [capability
 | `op.scholarly_search` | Tool; query produces bounded scholarly search hits | [Scholarly search](../../m1/op-scholarly-search.md) |
 | `op.codesearch` | Tool; query and repository snapshot produce code hits | [CodeSearch](../../m1/op-codesearch.md), [code hits](../../types/code-hits.md) |
 
-## Production ports
+## Verification count
 
-Generated from [pipeline](../../m1/pipeline.md). Exact payload versions are in [schema inventory](schemas-and-connections.md). StageContext is a trusted contextual input, not an invented output port.
+There is **one shared semantic verifier identity**, `research.verifier`; intent, requirement and DAG-node Gate profiles reuse it. Gate invocation count depends on the executed capsule calls, not the number of profiles. Gate-role capsules have zero RSI-mutable components. Deterministic host checks are ordinary code, not extra verifier capsules. See [Gate owner](../../capsule/gate-capsules.md).
+
+## Research ports to reconcile
+
+Baseline generated from [pipeline](../../m1/pipeline.md), whose fixed-plan entry is superseded. Exact payload versions are in [schema inventory](schemas-and-connections.md). StageContext is a trusted contextual input, not an invented output port. **The requirement row below is the old launcher/hint entry, not the corrected accepted-intent contract.**
 
 <!-- generated:showcase-ports -->
 | Step / capability | Required inputs and context | Output | Gate profile |
@@ -40,58 +44,33 @@ Generated from [pipeline](../../m1/pipeline.md). Exact payload versions are in [
 
 The shared verifier consumes an [evidence bundle](../../types/evidence-bundle.md) and emits a [verifier assessment](../../types/verifier-assessment.md). The Gate host combines that assessment with deterministic checks. Operator argument/result contracts are owned by [local search](../../m1/op-local-search.md), [scholarly search](../../m1/op-scholarly-search.md) and [CodeSearch](../../m1/op-codesearch.md), not this inventory.
 
-## Capsule-level graph
+## Bound capsule execution graph
 
-Generated from [overall draft](../../system/overall-draft.md). This overview suppresses cross-stage fan-in for readability; [complete information flow](../../system/information-flow.md) retains it.
+Generated from [M1 control flow](../../m1/control-flow.md). Every planned node binds work and Gate capsules. The diagram illustrates dependencies, not a concurrency promise.
 
 <!-- generated:showcase-capsules -->
 ```mermaid
 flowchart TB
-    IN["Intake and source projection<br/>ordinary launcher helpers"]
-    subgraph A["Research formation: fixed production order"]
-        direction LR
-        BR["CC: research.compile_brief"] -->|"research_brief"| SE["CC: research.search_ideas"]
-        SE -->|"idea_set"| SC["CC: research.select_opportunity"]
-        SC -->|"opportunity_card"| HY["CC: research.form_hypothesis"]
-    end
-    subgraph B["Scientific execution and report: fixed production order"]
-        direction LR
-        PO["CC: research.build_poc"] -->|"poc_bundle"| BM["CC: research.run_benchmark"]
-        BM -->|"benchmark_payload"| EV["CC: research.evaluate_results"]
-        EV -->|"evaluation_verdict"| RE["CC: research.write_report"]
-    end
-    subgraph RET["Nested retrieval: declared callers only"]
-        direction LR
-        LS["CC: op.local_search<br/>Search call: both per query"]
-        SS["CC: op.scholarly_search<br/>Search call: both per query"]
-        CS["CC: op.codesearch<br/>Hypothesis and POC code-location dependency"]
-    end
-    subgraph ACCEPT["One acceptance boundary reused after each work CC"]
-        direction LR
-        GH["Gate host<br/>deterministic checks and pinned criteria"]
-        VE["CC: research.verifier<br/>applicable semantic assessment"]
-        GH -->|"evidence and criteria via runner"| VE
-        VE -->|"assessment, not release"| GH
-    end
-    PUB["Publication<br/>ordinary module: committed manifest"]
-    MEAS["Trusted measurement and confined POC<br/>ordinary processes: baseline and treatment"]
-    IN -->|"intake and source_text to compile_brief"| A
-    A -->|"hypothesis_blueprint to build_poc"| B
-    B -->|"Benchmark executes frozen protocol"| MEAS
-    B -->|"research_report from write_report"| PUB
-    B ~~~ RET
-    RET ~~~ ACCEPT
-    classDef cc fill:#E4F2F5,stroke:#087E8B,color:#172D45;
-    classDef service fill:#F6F8FA,stroke:#A5B2BE,color:#172D45;
-    classDef conditional fill:#E4F2F5,stroke:#087E8B,stroke-dasharray:5 4,color:#172D45;
-    class BR,SE,SC,HY,PO,BM,EV,RE,LS,SS,CS,VE cc;
-    class IN,GH,PUB,MEAS service;
+  INPUT["Validated task data"] --> N1["Node 1: pinned work CC"]
+  N1 --> S1["Commit output and evidence"]
+  S1 --> G1["Gate: host checks then shared verifier<br/>RSI mutable components: 0"]
+  G1 -->|"advancing result only"| R1["Commit advancing Verification and release"]
+  R1 -->|"accepted typed output"| N2["Node 2: pinned work CC"]
+  R1 -->|"accepted typed output when required"| N3["Node 3: pinned work CC"]
+  N2 --> S2["Commit output and evidence"] --> G2["Gate: host checks then shared verifier<br/>RSI mutable components: 0"] -->|"advancing result only"| R2["Commit advancing Verification and release"]
+  N3 --> S3["Commit output and evidence"] --> G3["Gate: host checks then shared verifier<br/>RSI mutable components: 0"] -->|"advancing result only"| R3["Commit advancing Verification and release"]
+  R2 --> JOIN["Dependent join: required inputs accepted"]
+  R3 --> JOIN
+  JOIN --> END["Next governed node or ordinary delivery"]
+  G1 -->|"failure"| STOP["Halt entire run<br/>no next or sibling capsule starts"]
+  G2 -->|"failure"| STOP
+  G3 -->|"failure"| STOP
 ```
 <!-- /generated:showcase-capsules -->
 
 ## Construction and optimization
 
-- Build storage, runner, admission, broker and minimal fixtures first; then Brief, shared verifier and durable Gate continuation. Add retrieval/Screening, Hypothesis/POC, scientific execution/evaluation/report, workstation/export, RSI and isolated experiments in dependency order. [Build order](../../system/build-order.md) owns prerequisites.
+- Build storage, runner, admission, broker and minimal fixtures first; then intent capsules and Gates, requirements and Gates, planner/validator/binder, then durable node continuation. Reconcile the old [build order](../../system/build-order.md) before coding. Add retrieval/Screening, Hypothesis/POC, scientific execution/evaluation/report, workstation/export, RSI and isolated experiments in dependency order. [Build order](../../system/build-order.md) owns prerequisites.
 - Keep algorithm choices inside modules. Preserve output semantics, frozen policies, permission boundaries and evidence ordering when optimizing.
 - Measure model calls separately from deterministic helper work. Use pinned fixtures and compare correctness before latency/cost. [Capability guide](../../m1/capability-designs.md) owns proposed optimization experiments; [benchmark materials](../../m1/benchmarking-material.md) records candidate material and restrictions.
 - SkillFuzz capsule-set interaction analysis is deferred. Current contract checks establish interface compatibility, not semantic safety of every combination. See [library](../../capsule/library.md).

@@ -6,12 +6,18 @@ This is a linked reading package for Obsidian. It describes the architecture, no
 
 ## Two-minute summary
 
-- One Dockerized modular monolith contains the supervisor, capsule runner, Gate host, storage and local interfaces. Protected subprocesses separate model credentials, generated code and the private RSI oracle.
-- Twelve capsule identities: eight research capabilities, one shared semantic verifier and three search operators. Production follows a fixed plan; it does not ask a model to choose the next stage.
-- Every production step uses pinned inputs and policies. Work evidence, the Gate decision (Verification) and release must be committed before the supervisor dispatches its successor.
-- Offline recursive self-improvement (RSI) creates candidate versions. Admission records a candidate and its assurance; activation is a separate human decision. Isolated experimental planning cannot change the production workflow.
-- SkillFuzz analysis of interactions between capsule sets is **deferred**. Typed bindings and deterministic plan validation remain required; they do not establish that independently valid capsules behave well together.
-- Schemas and APIs have one owner. Presentation tables and repeated diagrams are generated from those owners. No runtime, isolation or measured performance result is claimed here.
+- **Main flow:** intake -> intent capsules -> intent Gate -> requirement capsules -> requirement Gate -> planner -> validated DAG -> capsule/Gate binding and freeze -> local execution -> delivery.
+- SwarmFlow provides the fixed required outer flow. Planned task nodes also become fixed after validation, binding and freeze.
+- The planner creates nodes, dependencies and typed data bindings from accepted requirements and an admitted library snapshot. It is an orchestration service, not a capsule.
+- Task data enters the DAG through declared inputs. Dispatch executes ready nodes using their pinned local capsules. Every capsule call is followed by its bound Gate capsule before dependent work can consume the result.
+- Output/capture, Verification and release are durable authority. A failed Gate or failed commit stops following work capsules; recovery reuses committed evidence.
+- One Dockerized modular monolith contains the control plane and restricted local execution processes. Model work uses the protected Codex adapter.
+- The research chain is a capability example, not the whole system. The previous twelve-capability inventory and 23 research bindings are baseline material; intent identities and revised planner entry contracts still need reconciliation.
+- One shared verifier capability serves the Gate call sites through pinned criteria profiles. Every Gate-role capsule has zero RSI-mutable components.
+- Delivery is ordinary result processing/publication and returns authorized data to the user view. It is not a capsule.
+- Offline RSI cannot change live runs or activate candidates. SkillFuzz interaction analysis remains deferred.
+
+**Flow owner:** [M1 control flow](../../m1/control-flow.md). This correction is specified at system level; it is not a completed schema/API release. The older [M1 map](../../m1.md) shows the same intake/intent/requirements/dispatch separation but has an earlier one-node pass-through planner.
 
 ## Reading order
 
@@ -42,11 +48,11 @@ flowchart TB
 
 ## Diagram and evidence routes
 
-- [Overall system](../../system/overall-draft.md): all capsules and conditional placement.
-- [Information flow](../../system/information-flow.md): full, observability-hidden, RSI-hidden and core views. Each preserves all 23 required production bindings and publication inputs.
+- [Current overall system](../../m1/control-flow.md): intake, gated intent/requirements, planning, binding, local DAG execution and delivery.
+- [Research wiring baseline](../../system/information-flow.md): historical fixed-plan views with 23 research bindings. Retained for contract reconciliation; not the corrected whole-system view.
 - [Temporal sequences](../../system/temporal.md) and [diagram atlas](../../system/diagram-atlas.md): call order, trust boundaries and deeper navigation.
 - [Quick PDF](../../../../output/pdf/m1-architecture-presentation-2026-10-05.pdf): portable reading view. Markdown contains the complete navigation and detail.
-- [Snapshot review](../../reviews/2026-10-05-showcase-review.md): actual documentation checks and review findings. Historical evidence is labelled with its revision.
+- [Previous snapshot review](../../reviews/2026-10-05-showcase-review.md): checks for the superseded fixed-plan presentation. It is not acceptance evidence for this flow correction.
 
 ## Maintenance
 

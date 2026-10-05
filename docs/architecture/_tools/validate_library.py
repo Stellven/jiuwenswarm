@@ -101,3 +101,9 @@ for name in ("full", "no-observability", "no-rsi", "core"):
     assert 'P3 -->|"query, repository snapshot and top_k"| CODE' in body
     assert 'CODE -->|"code_hits: mechanism source ranges"| P3' in body
 print("Seven showcase pages and generated owner projections agree; Hypothesis CodeSearch flow retained")
+
+# Corrected main flow is derived from its owner, not the fixed research baseline.
+control = (vault / "m1/control-flow.md").read_text(encoding="utf-8")
+for required in ("SwarmFlow", "shared research.verifier", "RSI mutable components: 0", "no next or sibling capsule starts", "Delivery: ordinary processing and publication"):
+    assert required in control, "Corrected diagram missing " + required
+print("Corrected M1 flow includes shared verifier, zero Gate RSI mutability, whole-run halt and ordinary delivery")

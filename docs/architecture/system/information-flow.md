@@ -12,6 +12,9 @@ tags: [diagram, data, review, m1]
 
 # Information flow: full and filtered views
 
+> **Flow correction, 5 October 2026:** [Current M1 control flow](../m1/control-flow.md) supersedes this page’s fixed-production / experimental-only overall layout. The contracts and diagrams below remain baseline material pending connected revision; they are not the current end-to-end showcase.
+
+
 These graphs show **logical information dependencies**, not unrestricted direct process access or a temporal scheduler. Payload arrows resolve immutable references through authorized runner/host interfaces. Every work result is persisted and accepted before any consumer may run. [Today's overview](overall-draft.md) explains placement; this page expands the actual bindings.
 
 ## What is complete here, and what is a filter?

@@ -61,3 +61,24 @@ The review record itself is excluded from its hash table. Commit provenance pins
 | `docs/architecture/_tools/information_views.py` | `520f176db6c17e790a7b64cc9596831af5d7b75b0769c3a4692b838b536c46f6` |
 | `docs/architecture/_tools/build_showcase_pdf.py` | `eda1755279164e9d21fcdc09c0eeab36d776f87dcf741331ad0cf427953974a9` |
 | `output/pdf/m1-architecture-presentation-2026-10-05.pdf` | `eb55ff0136d283c2cd7b96ab423176cf951a3b214e66f533391e23d560015d58` |
+
+## Superseding flow correction after f46f88255
+
+The user corrected the whole-system presentation: intake -> intent capsules/Gates -> requirement capsules/Gates -> planner-created DAG -> binding/freeze -> local capsule/Gate execution -> ordinary Delivery processing and user retrieval. SwarmFlow supplies required fixed outer positions; planned nodes become fixed before execution. Failed Gates halt all later work dispatch, including ready sibling branches.
+
+The new owning page is `m1/control-flow.md`. Existing fixed research wiring and experimental-only planner entry are labelled baseline/superseded, not silently promoted to new contract readiness. Intent identities, revised requirement/planner ports, profile contracts and affected fixtures remain connected design work.
+
+One shared semantic verifier identity serves multiple Gate profiles/call sites. All Gate-role capsules have `evolution.rsi: none` and `evolution.may_change: []`; the shared verifier and RSI controller owners now state this rule. Fixed referee pins support interpretable work-version comparisons, not a statistical success-rate claim from a small fixture suite.
+
+A Luna review found ambiguous grouped requirement/Gate ordering, a stale requirement-input row, unclear shared-verifier diagram identity and missing whole-run failure edges in the DAG detail. All were corrected: per-call ordering label, explicit baseline warning, shared verifier labels/zero mutable components and failure arrows to whole-run halt.
+
+Final checks: `arch_lint.py --check` passed; `validate_library.py` passed with 2075 active links, derived-view freshness and corrected-flow assertions. Mermaid parsed/rendered nine blocks with zero failures. The eight-page PDF was rebuilt and all rendered pages visually inspected; the main and DAG-detail views now match the corrected flow. Old schema/producer tests remain baseline evidence only. No implementation, new released wire schema or runtime acceptance is claimed.
+
+Final candidate hashes (review record excluded):
+
+- `docs/architecture/m1/control-flow.md`: `bd5b0c47d66544e37eaceeb86f1ac94555d6a2de6a0146ef0f4bb722eab24e08`
+- `docs/architecture/presentation/showcase/presentation.md`: `14ab38f5d02bcbfd5a77138c644fda3c658028a5be9202e92f0ee713b3007d87`
+- `docs/architecture/presentation/showcase/capsules.md`: `47a562a0641a6068f3d8425901daa73595f946971e2ca91ed677e6d37f2b7a39`
+- `docs/architecture/capsule/gate-capsules.md`: `383f6c97ab823a64f523ee54e47b3468c82d71c404214fe7f30d4760913e5f92`
+- `docs/architecture/capsule/rsi-engine.md`: `1797a32af26f6699bd1ee30b03c3500e403eb01e7e217e6ff60d8642131fef32`
+- `output/pdf/m1-architecture-presentation-2026-10-05.pdf`: `33dc58ed32dac48a50275b0146bfa4048f726ab65a6f331b85bdc033f7b86675`

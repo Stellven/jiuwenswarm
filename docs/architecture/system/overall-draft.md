@@ -12,6 +12,9 @@ tags: [diagram, presentation, m1]
 
 # Today's architecture: whole system at capsule level
 
+> **Flow correction, 5 October 2026:** [Current M1 control flow](../m1/control-flow.md) supersedes this page’s fixed-production / experimental-only overall layout. The contracts and diagrams below remain baseline material pending connected revision; they are not the current end-to-end showcase.
+
+
 **Snapshot: 5 October 2026. Draft, not executed acceptance.** These are reading views of the [production plan](../m1/pipeline.md), [module map](modules.md) and [three tracks](experiments.md). They add no contracts. Start here for the shape of the system; use the [atlas](diagram-atlas.md) for deeper spatial/temporal views and the [typed map](diagram.md) for complete ports.
 
 ## Legend and dynamic placement

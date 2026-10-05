@@ -12,6 +12,9 @@ tags: [system, planner, isolated-experiment]
 
 # Isolated capability planner and deterministic plan validation
 
+> **Flow correction, 5 October 2026:** [Current M1 control flow](../m1/control-flow.md) supersedes this page’s fixed-production / experimental-only overall layout. The contracts and diagrams below remain baseline material pending connected revision; they are not the current end-to-end showcase.
+
+
 PRD 6.12 permits the native Cluster Mode Leader and dynamic capability discovery in an isolated experiment; 4.1.2 supplies its admitted catalogue and pinning rules. PRD 3.2.4 supplies extracted constraints, not permission for dynamic production planning. The planner is an orchestration service, not a capsule. Phase 1 supplies its fixed plan to the same validator and never invokes this model planner.
 
 ## Placement and interface

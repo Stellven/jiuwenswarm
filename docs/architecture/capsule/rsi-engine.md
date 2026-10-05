@@ -14,6 +14,10 @@ tags: [capsule, rsi, m1]
 
 PRD 4.4.1–4.4.9 owns domain scope. Saurav owns optimization; Muk owns Candidate, admission, library and shared CC contracts. Placement is [modules](../system/modules.md). Hidden execution remains fail-closed until the configured boundary passes validation; query scheduling is fixed below. Proposal generation remains an implementation choice; the acceptance/comparison policy is frozen below and owned by the oracle.
 
+## Protected Gate targets
+
+Any capsule bound in a Gate role is ineligible for M1 RSI. Admission/binding require `evolution.rsi: none` and `evolution.may_change: []`; the RSI controller rejects it before proposing mutations or consuming oracle queries. Gate bodies, prompts, dependencies, checks and criteria policies remain frozen comparison authority. [Shared verifier](gate-capsules.md) owns the rule. Human referee revisions are separately versioned and start new benchmark comparison cohorts.
+
 ## Public API
 
 `start_rsi(target_decl_hash, export_id, request_id) -> RsiSessionResult`

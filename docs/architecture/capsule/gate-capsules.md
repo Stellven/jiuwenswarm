@@ -14,6 +14,14 @@ tags: [capsule, gate, m1]
 
 M1 admits one `research.verifier` skill. Stage Gate pages own independent criteria profiles, not separate verifier capsules. Fixed shared judging instructions are hashed files of this capability. The scientific evaluator is a separate work capability and never judges its own infrastructure admissibility.
 
+## Count, scope and frozen referee
+
+M1 uses **one semantic verifier capability identity**, `research.verifier`, with multiple stage-specific Gate profiles and invocation sites. The corrected [control flow](../m1/control-flow.md) adds intent/requirement acceptance before planned DAG execution; those profiles require connected contract revision, not additional verifier identities. Every executed work capsule enters its associated Gate boundary before any following work capsule can use the result.
+
+All capsules acting as Gates declare `evolution.rsi: none` and `evolution.may_change: []`: zero RSI-mutable components. RSI cannot change Gate prompts, bodies, dependencies, checks or criteria policies. A human-authored referee revision creates a new pinned comparison cohort. Success-rate reports retain work/referee/profile/fixture/model/protocol pins so an improved capsule is measured against the same referee rather than a moving one. Small fixture suites remain smoke/contract evidence, not a guaranteed statistical success rate.
+
+A Gate failure halts dispatch for the run, including other ready branches; results already committed remain diagnostic evidence. Delivery is ordinary result processing/publication after accepted terminal outputs, not a Gate or work capsule.
+
 ## What every gate capsule declares
 
 The verifier declares exactly one `evidence_bundle` input and one `verifier_assessment` output; effect class is read_only or pure, RSI is none, and it has no authority to release a step. It receives only immutable evidence selected by the Gate host and independently authored criteria from the pinned GateProfile. The producer cannot choose criteria. Freeze pins verifier declaration, profile, rubric/check closure and model-route configuration.

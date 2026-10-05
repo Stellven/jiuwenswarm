@@ -62,14 +62,14 @@ def page(title, source, groups):
 page('M1 architecture - current snapshot', 'README.md', [
     ('The system', section('README.md','Two-minute summary')),
     ('Component roles', section('presentation.md','Deployment and component roles')[1:4]),
-    ('Scope', section('presentation.md','Three tracks')[:3]),
+    ('Workflow order', section('presentation.md','Main workflow')[:3]),
 ])
 
 flows.append(PageBreak())
-flows.append(Paragraph('The twelve capabilities', styles['title']))
-flows.append(Paragraph('Eight production work capabilities, one shared verifier and three retrieval operators. See capsules.md for exact ports and owning contracts.', styles['source']))
+flows.append(Paragraph('Existing research capability baseline', styles['title']))
+flows.append(Paragraph('Twelve existing research, verifier and operator identities. Intent capabilities and revised planner entry are not yet reconciled; this is not the complete corrected inventory.', styles['source']))
 text = (showcase/'capsules.md').read_text(encoding='utf-8')
-inventory = text.split('## Inventory and execution',1)[1].split('## Production ports',1)[0]
+inventory = text.split('## Research capability baseline',1)[1].split('## Research ports to reconcile',1)[0]
 rows = [line.strip('|').split('|') for line in inventory.splitlines() if line.startswith('|') and not line.startswith('|---')]
 table = Table([[Paragraph(inline(cell.strip()),styles['cell']) for cell in row] for row in rows], colWidths=[145,236,130], repeatRows=1)
 table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),HexColor('#EDF5F7')),('VALIGN',(0,0),(-1,-1),'TOP'),('GRID',(0,0),(-1,-1),0.3,HexColor('#D9E1E8')),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
@@ -90,7 +90,7 @@ page('Data, credentials and access', 'data-and-permissions.md', [
 ])
 page('Contracts, planner and coding checks', 'validation-and-development.md', [
     ('Exact interfaces', section('schemas-and-connections.md','Rules for joining components')),
-    ('Isolated planning', section('runtime-and-improvement.md','Planner and deferred interaction analysis')),
+    ('Planning before DAG execution', section('runtime-and-improvement.md','Planner and deferred interaction analysis')),
     ('Evidence and development', [section('validation-and-development.md','Evidence categories')[i] for i in [0,1,2]] + section('validation-and-development.md','Coding handoff')),
 ])
 
@@ -105,11 +105,9 @@ SimpleDocTemplate(str(scratch), pagesize=(595.28,841.89), leftMargin=42,rightMar
 diagrams = opt.output.parent/'showcase-diagrams.tmp.pdf'
 c = canvas.Canvas(str(diagrams))
 views = [
-    ('Every capsule and its research position','capsules-1.png',(1190.55,841.89),'Overview omits cross-stage fan-in. All exact inputs remain in pipeline.md and the final appendix.'),
-    ('Monolith, tracks and trust boundaries','presentation-1.png',(841.89,1190.55),'Conditional participation is track-scoped. Capture remains required even where edges are hidden.'),
-    ('Halt, durable advancement and recovery','runtime-and-improvement-1.png',(841.89,1190.55),'Production advancement requires committed Verification and release; failed persistence blocks dispatch.'),
-    ('Isolated experimental authority','runtime-and-improvement-2.png',(841.89,595.28),'Approved ablation uses experimental evidence/advance, not fabricated production Verification.'),
-    ('Appendix: core information flow - zoom to read','information-flow-4.png',(2383.94,1683.78),'All 23 required production input bindings plus publication inputs. Derived observability and RSI are hidden, not disabled.'),
+    ('Whole M1 flow: intake to gated DAG execution','presentation-1.png',(841.89,1190.55),'Intent and requirements are accepted before planning. Local nodes execute their bound CC then their Gate.'),
+    ('Bound DAG nodes: data and acceptance order','capsules-1.png',(841.89,1190.55),'Dependencies unlock only after committed advancing Verification and release. Branches do not promise parallel execution.'),
+    ('Halt, durable advancement and recovery','runtime-and-improvement-1.png',(841.89,1190.55),'Per-node ordering remains: output/capture, Gate, Verification, release. Revised frontend contracts remain pending.'),
 ]
 for title,name,(w,h),caption in views:
     c.setPageSize((w,h));c.setFillColor(navy);c.setFont('Bold',16);c.drawString(36,h-40,title)
@@ -118,7 +116,7 @@ for title,name,(w,h),caption in views:
     with Image.open(png) as im: iw,ih=im.size
     scale=min((w-72)/iw,(h-120)/ih);dw,dh=iw*scale,ih*scale
     c.drawImage(str(png),(w-dw)/2,42+(h-120-dh)/2,dw,dh)
-    c.setFont('Body',8);c.drawString(36,22,'Source: presentation/showcase/ and system/information-flow.md | Specified design, not runtime proof')
+    c.setFont('Body',8);c.drawString(36,22,'Source: presentation/showcase/ and m1/control-flow.md | Specified design, not runtime proof')
     c.showPage()
 c.save()
 writer=PdfWriter()

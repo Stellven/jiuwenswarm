@@ -12,6 +12,9 @@ tags: [m1, contract]
 
 # M1 production path and capsule inventory
 
+> **Flow correction, 5 October 2026:** [Current M1 control flow](control-flow.md) supersedes this page’s fixed-production / experimental-only overall layout. The contracts and diagrams below remain baseline material pending connected revision; they are not the current end-to-end showcase.
+
+
 This page owns the production plan. The frozen October 2 PRD governs scope. Production is fixed and sequential; offline RSI and isolated Phase 2 experiments have separate plans and settings. Dynamic planning never modifies this plan.
 
 ## Smallest justified capsule set

@@ -10,74 +10,69 @@
 - **Ordinary module:** control or deterministic helper without independent capsule admission. Examples: supervisor, extraction, resource freezing, numeric arithmetic, plan validator and publisher. See [pipeline](../../m1/pipeline.md).
 - **Host boundary:** browser and benchmark client use the application API. CLI/TUI/tmux execute inside the workstation environment; host terminal attachment is an access path. See [workstation](../../system/workstation.md).
 
-## Three tracks
+## Main workflow
 
-- **Production:** fixed research plan, static Codex route, real Gates, durable records, local report publication. This is the first integration target.
-- **Offline RSI:** isolated candidate changes and private evaluation; no live production changes or automatic activation.
-- **Isolated experiments:** only whitelisted planning, routing, intention-compilation, Code Mode, alternate semantic verifier and approved component/Gate ablation paths. The planner is an orchestration service, not a CC. Conditional participation does not make required production stages optional.
-- Scope and promotion boundaries are owned by [experimental tracks](../../system/experiments.md). Fusion, composite capsules, live replanning and unrestricted delegation are outside current acceptance.
+- [SwarmFlow](../../system/integration.md#swarmflow-run-a-plan-be-the-backend) runs the fixed outer workflow. Its required preparation, planning, dispatch and delivery positions remain present; planned nodes become fixed at freeze.
+- Intake preserves the request and permitted resource snapshots.
+- Input-appropriate intent capsules derive intent. Each runs through its associated intent Gate; accepted intent is required before requirements begin.
+- Requirement capsules derive the task contract. Each is followed by its associated requirement Gate. Only accepted requirements enter planning.
+- The planner creates a DAG of nodes and typed data connections. Deterministic validation checks the plan; the binder resolves admitted work/Gate versions and freezes them.
+- Data enters declared DAG ports. Ready nodes execute locally through the runner. Every bound work capsule is followed by its Gate capsule, evidence commit and durable release before a successor receives its output.
+- Delivery is an ordinary module: it collects accepted terminal outputs, processes/formats and publishes them, then returns authorized results to the user view. Offline RSI and separately configured experiments retain their custody boundaries; neither changes a live frozen DAG.
+- [M1 control flow](../../m1/control-flow.md) owns this corrected sequence and its remaining contract work. The previous fixed chain does not define the overall system.
 
 ## Spatial view
 
-Generated from [overall draft](../../system/overall-draft.md). Arrows summarize placement and interfaces, not filesystem permissions. Required capture is present even where its edges are omitted. Host terminal attachment reaches the in-container CLI/TUI/tmux environment.
+Generated from [M1 control flow](../../m1/control-flow.md). Arrows summarize placement and interfaces, not filesystem permissions. Required capture is present even where its edges are omitted. Host terminal attachment reaches the in-container CLI/TUI/tmux environment.
 
 <!-- generated:showcase-system -->
 ```mermaid
 flowchart TB
-    USER["Researcher<br/>host browser/API or terminal attachment"]
-    HAR["External benchmark harness<br/>authenticated local HTTP"]
-    subgraph APP["One Dockerized modular monolith"]
-        direction TB
-        ENTRY["Shared entry and configuration<br/>container CLI/TUI, pin task and track"]
-        PLAN["CONDITIONAL: isolated planner<br/>ordinary controller, not a CC"]
-        EXP["CONDITIONAL: allowed experimental adapters<br/>compiler, routing or confined Code Mode"]
-        VALID["Deterministic plan validation and freeze<br/>production template or permitted proposal"]
-        SUP["Supervisor<br/>reserve, dispatch, halt and explicit recovery"]
-        RUN["CC runner and broker<br/>executes the capsule view above"]
-        LIB["Admitted library snapshot<br/>versions, profiles and exact pins"]
-        MODEL["Protected model bridge and Codex<br/>private persistent login"]
-        GATE["Gate host and shared verifier<br/>decision evidence, not dispatch authority"]
-        STORE["Canonical store and required capture<br/>Artifacts, Observations, Verifications, releases"]
-        RSI["CONDITIONAL session: required offline RSI<br/>bounded mutations, never live replanning"]
-        ORACLE["Private fixture oracle<br/>aggregate results, protected answers"]
-        ADMIT["Admission<br/>tested evidence or Puppet exempt assurance"]
-        ACT["Explicit human activation<br/>future snapshots only"]
-        OUT["Sealed report and benchmark export<br/>authorized manifest-based retrieval"]
-        ENTRY -.->|"isolated profile only"| PLAN
-        ENTRY -.->|"whitelisted feature profile"| EXP
-        ENTRY -->|"production fixed template"| VALID
-        PLAN -->|"complete typed proposal"| VALID
-        LIB -->|"admitted versions and profiles"| VALID
-        VALID -->|"committed valid plan and Bindings"| SUP
-        SUP -->|"reserved calls"| RUN
-        RUN -->|"authorized turns"| MODEL
-        PLAN -.->|"reserved proposal turn"| MODEL
-        SUP -->|"committed work evidence"| GATE
-        GATE -->|"Verification through supervisor writer"| STORE
-        SUP -->|"required capture and durable release"| STORE
-        STORE -->|"sealed public evidence"| OUT
-        ENTRY -.->|"offline session request"| RSI
-        RSI -->|"private trials"| ORACLE
-        ORACLE -->|"aggregate comparison"| RSI
-        RSI -->|"eligible Candidate"| ADMIT
-        ADMIT -->|"admitted inactive RSI child"| ACT
-        ACT -->|"human-selected version"| LIB
-    end
-    USER --> ENTRY
-    HAR --> ENTRY
-    classDef ordinary fill:#F6F8FA,stroke:#A5B2BE,color:#172D45;
-    classDef conditional fill:#FFF4DC,stroke:#A87B24,stroke-dasharray:5 4,color:#172D45;
-    classDef protected fill:#E4F2F5,stroke:#087E8B,color:#172D45;
-    class ENTRY,VALID,SUP,RUN,LIB,GATE,STORE,ADMIT,ACT,OUT ordinary;
-    class PLAN,EXP,RSI conditional;
-    class MODEL,ORACLE protected;
+  USER["User or benchmark client"] -->|"request and declared resources"| IN["Intake: validate and snapshot"]
+  subgraph UNDERSTAND["Intent compilation: input-appropriate capabilities"]
+    IC1["Intent capsule A"] -->|"output and captured evidence"| IG1["A: intent Gate profile<br/>shared research.verifier"]
+    IC2["Intent capsule B: when needed"] -->|"output and captured evidence"| IG2["B: intent Gate profile<br/>shared research.verifier"]
+  end
+  IN -->|"appropriate source inputs"| IC1
+  IN -.->|"additional input shape when needed"| IC2
+  IG1 -->|"accepted intent"| IA["Intent acceptance boundary"]
+  IG2 -.->|"accepted contribution when used"| IA
+  IA -->|"accepted intent and source refs"| RC["Requirement capsule or capsules"]
+  RC -->|"each call immediately: output and evidence"| RG["Requirement Gate profiles<br/>shared research.verifier"]
+  RG -->|"accepted task contract"| PLAN["Planner: propose a DAG of nodes and data bindings"]
+  LIB["Admitted capsule library snapshot"] -->|"capabilities, ports and exact versions"| PLAN
+  PLAN -->|"candidate DAG"| VAL["Deterministic plan validator"]
+  VAL -->|"valid plan"| BIND["Bind capsules and Gates then freeze closure"]
+  LIB -->|"pinned work and Gate implementations"| BIND
+  BIND -->|"frozen bound DAG"| DIS["SwarmFlow dispatch and CC supervisor"]
+  IN -->|"immutable resource refs"| DATA["Declared DAG input data"]
+  RG -->|"accepted requirements"| DATA
+  DATA -->|"validated input ports"| DIS
+  DIS -->|"ready node and Binding"| RUN["Local CC runner inside Docker"]
+  RUN -->|"execute bound capability"| CC["Work capsule: local restricted process"]
+  CC -->|"output and evidence"| SAVE["Commit output and capture"]
+  SAVE -->|"evidence and pinned criteria"| GATE["Node Gate: deterministic checks first<br/>then shared research.verifier when eligible"]
+  GATE -->|"assessment"| COMMIT["Commit Verification and release"]
+  COMMIT -->|"accepted output unlocks successors"| DIS
+  COMMIT -->|"required terminal outputs accepted"| PUB["Delivery: ordinary processing and publication"]
+  PUB -->|"processed report and artifact manifest"| VIEW["Result retrieval and user view"]
+  VIEW -->|"authorized results"| USER
+  GATE -->|"non-advancing result"| HALT["Halt entire run and preserve evidence<br/>no following or sibling capsule starts"]
+  VAL -->|"invalid plan"| HALT
+  COMMIT -->|"persistence failure"| HALT
+  HALT -->|"explicit operator recovery"| REC["Reconcile committed state before any execution"]
+  REC -->|"only recorded authority or approved unchanged-pin attempt"| DIS
+  classDef cc fill:#FFF1D6,stroke:#B86E00,color:#172D45;
+  classDef gate fill:#EEE4F6,stroke:#754A91,color:#172D45;
+  class IC1,IC2,RC,CC cc;
+  class IG1,IG2,IA,RG,GATE gate;
 ```
 <!-- /generated:showcase-system -->
 
 ## Why these boundaries
 
 - One deployment keeps M1 operation small; restricted subprocesses retain distinct credential and code identities. The borrowed container/process patterns and replacement points are recorded in [deployment](../../system/deployment.md) and [confinement](../../capsule/process-boundary.md).
-- Typed capabilities separate reusable behavior from scheduling. Component-specification precedent and the minimum-boundary rationale are recorded in [pipeline](../../m1/pipeline.md).
+- Typed capabilities separate reusable behavior from scheduling. The [control-flow owner](../../m1/control-flow.md) separates node identity, bound capability and dispatch authority; [pipeline](../../m1/pipeline.md) retains the research capability baseline.
 - Existing OpenJiuwen integration stays behind adapters. [Reuse audit](../../system/reuse-audit-2026-10-05.md) records source pins and actual symbols; [integration](../../system/integration.md) separates reused behavior from new work.
 
 [Next: capsules](capsules.md)

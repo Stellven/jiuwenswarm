@@ -6,10 +6,9 @@ from pathlib import Path
 def refresh(vault, check=False):
     root = vault / 'presentation/showcase'
     blocks = {}
-    for target, source, index in [('system', 'system/overall-draft.md', 1),
-                                   ('capsules', 'system/overall-draft.md', 0),
-                                   ('recovery', 'system/information-flow.md', 4),
-                                   ('experiments', 'system/experiments.md', 0)]:
+    for target, source, index in [('system', 'm1/control-flow.md', 0),
+                                   ('capsules', 'm1/control-flow.md', 1),
+                                   ('recovery', 'system/information-flow.md', 4)]:
         diagrams = re.findall(r'```mermaid\s*\n.*?```', (vault/source).read_text(encoding='utf-8'), re.S)
         blocks[target] = diagrams[index]
     pipeline = (vault/'m1/pipeline.md').read_text(encoding='utf-8')
@@ -21,7 +20,7 @@ def refresh(vault, check=False):
         [f'| `{s["name"]}` | `{s["version"]}` | [owner](../../{s["source"]}) | [schema](../../exports/{s["file"]}) |' for s in manifest['schemas']])
     success = True
     for filename, names in [('presentation.md',['system']), ('capsules.md',['capsules','ports']),
-                             ('runtime-and-improvement.md',['recovery','experiments']), ('schemas-and-connections.md',['schemas'])]:
+                             ('runtime-and-improvement.md',['recovery']), ('schemas-and-connections.md',['schemas'])]:
         path = root/filename
         original = path.read_text(encoding='utf-8')
         updated = original
