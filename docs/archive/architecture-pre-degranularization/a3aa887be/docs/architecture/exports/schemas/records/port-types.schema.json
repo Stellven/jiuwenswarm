@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:records:port-types",
+  "title": "port-types",
+  "x-source": "schemas/port-types.md",
+  "x-version": "cc.types.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "library": {
+          "type": "boolean"
+        }
+      },
+      "required": []
+    },
+    "at": {
+      "type": "string"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "version"
+      ]
+    },
+    "causation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "trace_id": {
+          "type": "string"
+        },
+        "span_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "trace_id",
+        "span_id"
+      ]
+    },
+    "visibility": {
+      "enum": [
+        "all",
+        "builder_hidden"
+      ]
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    },
+    "vocabulary_version": {
+      "type": "integer"
+    },
+    "types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "value_schema": {},
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "version",
+          "description",
+          "value_schema",
+          "checks"
+        ]
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "anchor",
+          "target",
+          "over",
+          "applies_at",
+          "runner",
+          "description",
+          "author"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "anchor": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "over": {
+            "enum": [
+              "each_call",
+              "outputs",
+              "inputs_and_outputs"
+            ]
+          },
+          "applies_at": {
+            "enum": [
+              "admission",
+              "node",
+              "both"
+            ]
+          },
+          "runner": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "sha256"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string"
+              }
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "scope",
+    "at",
+    "producer",
+    "vocabulary_version",
+    "types",
+    "checks"
+  ]
+}

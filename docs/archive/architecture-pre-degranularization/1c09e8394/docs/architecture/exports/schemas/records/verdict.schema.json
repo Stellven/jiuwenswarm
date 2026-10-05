@@ -1,0 +1,375 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:records:verdict",
+  "title": "verdict",
+  "x-source": "schemas/verdict.md",
+  "x-version": "cc.verdict.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "library": {
+          "type": "boolean"
+        }
+      },
+      "required": []
+    },
+    "at": {
+      "type": "string"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "version"
+      ]
+    },
+    "causation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "trace_id": {
+          "type": "string"
+        },
+        "span_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "trace_id",
+        "span_id"
+      ]
+    },
+    "visibility": {
+      "enum": [
+        "all",
+        "builder_hidden"
+      ]
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    },
+    "decl_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "interface_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "policy_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "epoch": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "epoch",
+        "sha256"
+      ]
+    },
+    "vocabulary_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "version",
+        "sha256"
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "admit",
+        "reject",
+        "defer"
+      ]
+    },
+    "admission_basis": {
+      "enum": [
+        "test_evidence",
+        "developer_decision"
+      ]
+    },
+    "admission_profile_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "admission"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "sha256"
+      ]
+    },
+    "developer_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowlist_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "decided_at": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "allowlist_sha256",
+        "actor",
+        "reason",
+        "decided_at"
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "evidence_type": {
+                  "type": "string"
+                },
+                "reference": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "evidence_type",
+                "reference"
+              ]
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      }
+    },
+    "checks_run": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "runner_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "result": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "evidence_type": {
+                  "type": "string"
+                },
+                "reference": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "evidence_type",
+                "reference"
+              ]
+            }
+          },
+          "judge": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "check_id",
+          "runner_sha256",
+          "result"
+        ]
+      }
+    },
+    "level": {
+      "anyOf": [
+        {
+          "enum": [
+            "provisional",
+            "certified",
+            "exempt"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "test_suites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "sha256"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "runtime": {
+          "type": "string"
+        },
+        "image_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "runtime"
+      ]
+    },
+    "evidence_requests": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\S"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "scope",
+    "at",
+    "producer",
+    "decl_hash",
+    "interface_hash",
+    "policy_ref",
+    "vocabulary_ref",
+    "outcome",
+    "admission_basis",
+    "admission_profile_ref",
+    "reasons",
+    "checks_run",
+    "level",
+    "test_suites"
+  ]
+}

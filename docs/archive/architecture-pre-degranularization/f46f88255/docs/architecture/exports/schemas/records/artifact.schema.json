@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:records:artifact",
+  "title": "artifact",
+  "x-source": "schemas/artifact.md",
+  "x-version": "cc.artifact.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "library": {
+          "type": "boolean"
+        }
+      },
+      "required": []
+    },
+    "at": {
+      "type": "string"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "version"
+      ]
+    },
+    "causation_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "trace_id": {
+          "type": "string"
+        },
+        "span_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "trace_id",
+        "span_id"
+      ]
+    },
+    "visibility": {
+      "enum": [
+        "all",
+        "builder_hidden"
+      ]
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "type": {
+      "type": "string"
+    },
+    "value": {},
+    "content_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "uri": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "mime_type": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "uri"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "capsule",
+        "human",
+        "control"
+      ]
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "evidence_type": {
+                  "type": "string"
+                },
+                "reference": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "evidence_type",
+                "reference"
+              ]
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      }
+    },
+    "produced_by": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "scope",
+    "at",
+    "producer",
+    "content_sha256",
+    "type",
+    "origin"
+  ]
+}

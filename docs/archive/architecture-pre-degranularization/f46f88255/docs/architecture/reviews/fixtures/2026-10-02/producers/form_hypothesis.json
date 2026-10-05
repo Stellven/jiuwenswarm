@@ -1,0 +1,40 @@
+{
+  "schema_version": "cc.declaration.v1",
+  "identity": {
+    "name": "research.form_hypothesis",
+    "kind": "tool"
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "opportunity_card",
+        "type": "opportunity_card",
+        "required": true
+      },
+      {
+        "name": "research_brief",
+        "type": "research_brief",
+        "required": true
+      },
+      {
+        "name": "intake",
+        "type": "intake",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "hypothesis_blueprint",
+        "type": "hypothesis_blueprint"
+      }
+    ]
+  },
+  "changes": {
+    "effect_class": "idempotent",
+    "effects": [
+      {
+        "resource_key": "fs:workspace/.cc/snapshots/*"
+      }
+    ]
+  }
+}

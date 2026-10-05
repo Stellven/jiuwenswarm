@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:types:poc-bundle",
+  "title": "poc_bundle",
+  "x-source": "types/poc-bundle.md",
+  "x-version": "2",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "requirements",
+              "patch",
+              "harness",
+              "environment"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "content_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "role",
+          "path",
+          "content_sha256"
+        ]
+      },
+      "minItems": 1
+    },
+    "archive_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "syntax_check_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "smoke_test_passed": {
+      "type": "boolean"
+    },
+    "smoke_test_output": {
+      "type": "string"
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "files",
+    "archive_sha256",
+    "syntax_check_ref",
+    "smoke_test_passed"
+  ]
+}

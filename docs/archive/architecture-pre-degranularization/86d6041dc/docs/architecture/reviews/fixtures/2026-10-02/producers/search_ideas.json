@@ -1,0 +1,155 @@
+{
+  "schema_version": "cc.declaration.v1",
+  "identity": {
+    "name": "research.search_ideas",
+    "kind": "tool",
+    "body": [
+      {
+        "path": "search_ideas.py",
+        "sha256": "<author kit>"
+      },
+      {
+        "path": "prompts/queries.md",
+        "sha256": "<author kit>"
+      },
+      {
+        "path": "prompts/ideas.md",
+        "sha256": "<author kit>"
+      }
+    ],
+    "summary": "From a Research Brief and the request's documents, form keyword queries, search the documents and the academic literature, and propose one to three candidate ideas, each citing the verbatim passages it rests on."
+  },
+  "ext": {
+    "cc": {
+      "entry": "search_ideas.py:search_ideas"
+    }
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "research_brief",
+        "type": "research_brief",
+        "required": true,
+        "description": "The Brief: objective, scope and constraints steer the queries."
+      },
+      {
+        "name": "intake",
+        "type": "intake",
+        "required": true,
+        "description": "The request and its documents, searched as the local scope."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "idea_set",
+        "type": "idea_set",
+        "check_id": "chunks_grounded",
+        "description": "The queries, the evidence by query, and the candidate ideas."
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [
+      {
+        "ref": "op.local_search",
+        "decl_hash": "<admitted>",
+        "purpose": "run each query over the request's documents"
+      },
+      {
+        "ref": "op.scholarly_search",
+        "decl_hash": "<admitted>",
+        "purpose": "run each query against arXiv and Semantic Scholar"
+      }
+    ],
+    "network": "none",
+    "human_interaction": "none",
+    "resources": {
+      "timeout_s": 900
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [],
+    "state_kind": "reads_external"
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "chunks_grounded",
+        "anchor": "deterministic",
+        "target": "ports.outputs.idea_set",
+        "over": "inputs_and_outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/search_checks.py:chunks_grounded",
+          "sha256": "<author kit>"
+        },
+        "description": "Every local chunk's source_id is an intake document_id and its text appears verbatim in that document; every external chunk's source has an http or https locator.",
+        "author": "muk"
+      },
+      {
+        "id": "ideas_one_to_three",
+        "anchor": "deterministic",
+        "target": "ports.outputs.idea_set",
+        "over": "outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/search_checks.py:ideas_one_to_three",
+          "sha256": "<author kit>"
+        },
+        "description": "There are one to three ideas, and two to five queries.",
+        "author": "muk"
+      },
+      {
+        "id": "top_k_respected",
+        "anchor": "deterministic",
+        "target": "ports.outputs.idea_set",
+        "over": "outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/search_checks.py:top_k_respected",
+          "sha256": "<author kit>"
+        },
+        "description": "Each query's group has chunks from at most TOP_K (5) external sources and at most TOP_K local documents.",
+        "author": "muk"
+      },
+      {
+        "id": "within_inline_limit",
+        "anchor": "deterministic",
+        "target": "ports.outputs.idea_set",
+        "over": "outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/search_checks.py:within_inline_limit",
+          "sha256": "<author kit>"
+        },
+        "description": "The value's canonical JSON is at most the policy's runner.max_inline_file_bytes, so the next model step can read it whole.",
+        "author": "muk"
+      },
+      {
+        "id": "matches_reference",
+        "anchor": "reference",
+        "target": "ports.outputs.idea_set",
+        "over": "inputs_and_outputs",
+        "applies_at": "admission",
+        "runner": {
+          "ref": "checks/search_checks.py:matches_reference",
+          "sha256": "<author kit>"
+        },
+        "description": "On a test case, the queries and every idea's cited_chunk_ids equal the expected ones.",
+        "author": "muk"
+      }
+    ],
+    "failure_modes": [
+      {
+        "reason_code": "NO_SOURCES_FOUND",
+        "when": "Every query found no local passage and no external source.",
+        "retriable": false
+      }
+    ]
+  },
+  "evolution": {
+    "rsi": "none"
+  }
+}

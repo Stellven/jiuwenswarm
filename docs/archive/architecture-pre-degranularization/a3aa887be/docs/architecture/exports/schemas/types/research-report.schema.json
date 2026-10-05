@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:types:research-report",
+  "title": "research_report",
+  "x-source": "types/research-report.md",
+  "x-version": "2",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "markdown": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "classification": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "INCONCLUSIVE",
+        "CONDITIONALLY_ACCEPTABLE"
+      ]
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\S"
+      }
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "markdown",
+    "sections",
+    "classification",
+    "citations",
+    "limitations"
+  ]
+}

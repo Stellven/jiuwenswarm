@@ -1,0 +1,47 @@
+{
+  "schema_version": "cc.declaration.v1",
+  "identity": {
+    "name": "research.write_report",
+    "kind": "skill"
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "evaluation_verdict",
+        "type": "evaluation_verdict",
+        "required": true
+      },
+      {
+        "name": "benchmark_payload",
+        "type": "benchmark_payload",
+        "required": true
+      },
+      {
+        "name": "research_brief",
+        "type": "research_brief",
+        "required": true
+      },
+      {
+        "name": "idea_set",
+        "type": "idea_set",
+        "required": true
+      },
+      {
+        "name": "opportunity_card",
+        "type": "opportunity_card",
+        "required": true
+      },
+      {
+        "name": "hypothesis_blueprint",
+        "type": "hypothesis_blueprint",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "research_report",
+        "type": "research_report"
+      }
+    ]
+  }
+}

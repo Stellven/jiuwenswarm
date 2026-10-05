@@ -1,0 +1,166 @@
+---
+type: design
+status: draft
+version: 1
+owner: muk
+sources: [../../product/prd-m1-full-2026-10-02.txt, lifecycle.md, ../m1/pipeline.md]
+provides: [system.temporal_flow]
+consumes: [m1.run_plan, system.record_api]
+depends_on: [lifecycle.md, records.md, ../capsule/gate-host.md, ../capsule/rsi-engine.md, planner.md, benchmark-export.md]
+tags: [diagram, control, temporal]
+---
+
+# Temporal flows and durable authority
+
+[Diagram atlas](diagram-atlas.md) introduces the system at four depths. [Spatial diagram](diagram.md) maps modules and typed connections. These diagrams map order and persistence; arrows do not grant authority. [Lifecycle](lifecycle.md) owns recovery, [control flow](../m1/control-flow.md) owns frontend/planning/dispatch order, and [records](records.md) owns durable identities.
+
+## Fixed frontend followed by planned execution
+
+```mermaid
+sequenceDiagram
+  participant U as User or benchmark client
+  participant S as SwarmFlow and CC supervisor
+  participant R as Local CC runner
+  participant G as Gate host and shared verifier
+  participant P as Planner
+  participant B as Validator and binder
+  participant D as Durable store
+  participant O as Ordinary Delivery
+  U->>S: request and declared resources
+  S->>D: validated intake and immutable resources
+  rect rgb(245, 245, 245)
+    S->>R: bound intent capability
+    R->>D: output and capture
+    S->>G: intent Gate profile and evidence
+    G->>D: Verification
+    S->>D: advancing release or halt
+  end
+  loop required requirement capsule calls
+    S->>R: accepted intent and requirement capability
+    R->>D: requirements and capture
+    S->>G: requirement Gate profile and evidence
+    G->>D: Verification
+    S->>D: advancing release or halt
+  end
+  S->>P: accepted requirements and admitted library snapshot
+  P-->>S: candidate DAG and typed bindings
+  S->>B: validate proposal and bind exact work/Gate versions
+  B->>D: validated frozen plan and complete bindings
+  loop ready task nodes while run is not halted
+    S->>R: bound local capsule and declared input refs
+    R->>D: output and required capture
+    S->>G: node Gate profile and evidence
+    G->>D: Verification
+    alt advancing decision committed
+      S->>D: commit release
+      D-->>S: accepted output can unlock dependent nodes
+    else failed Gate or failed persistence
+      S->>D: retain failure evidence when writable
+      Note over S,R: halt run and start no following or sibling capsule
+    end
+  end
+  Note over S,O: only if all required terminal outputs are accepted
+  S->>O: accepted results and authorized evidence
+  O->>D: processed output and publication manifest
+  O-->>U: authorized result retrieval and view
+```
+
+All frontend loops also stop on failed acceptance/persistence before the next phase. One shared verifier identity serves the profile-selected Gate calls and has zero RSI-mutable components. This is a design sequence, not proof that unreconciled intent/planner wire contracts are ready.
+
+## One governed step
+
+The deployment order is image/volume validation → identity bootstrap → store recovery → model bridge → security/fixture doctor → runner → HTTP readiness. This is one container's internal startup, owned by [deployment](deployment.md). The benchmark harness obtains an approved profile, submits a request, polls the durable handle, requests an export after completion/halt/abort, and retrieves its manifest-listed artifacts via the [HTTP API](benchmark-export.md#docker-http-transport). A transport disconnect never repeats accepted research work.
+
+```mermaid
+sequenceDiagram
+    participant U as Local user
+    participant S as Supervisor
+    participant D as Durable store
+    participant R as CC runner
+    participant G as Gate host
+    participant V as Shared verifier
+    U->>S: execute already validated and frozen task DAG
+    S->>D: read committed plan validation and exact bindings
+    loop Ready governed nodes while run is not halted
+        S->>D: reserve dispatch identity before effects
+        S->>R: call pinned capability and inputs
+        R->>D: supervisor commits outputs, capture, Observation
+        R-->>S: committed Observation reference
+        S->>G: gate(exact Observation)
+        G->>G: deterministic checks from pinned profile
+        opt Deterministic checks passed and semantic criteria apply
+            G->>V: evidence bundle + independent criteria
+            V-->>G: verifier_assessment
+        end
+        G->>D: commit Verification
+        alt Passing and durable
+            G-->>S: passing Verification reference
+            S->>D: commit release for same dispatch
+            S->>S: authorize successor from committed release
+        else Failure, unknown or write error
+            S->>D: preserve evidence and halt if store available
+            S-->>U: review requirement or headless terminal halt
+        end
+    end
+    S->>D: ordinary Delivery processes accepted terminal outputs and publishes manifest
+    S-->>U: retrievable immutable references
+```
+
+The runner's store arrows are requests to the sole trusted writer, not direct child filesystem access. A passing in-memory decision cannot release work. A scientific negative/inconclusive result continues when its infrastructure Gate passes; integrity failure stops advancement.
+
+## Restart after interruption
+
+```mermaid
+sequenceDiagram
+    participant U as Local user
+    participant S as Supervisor
+    participant D as Durable store
+    S->>D: read dispatch, output, Verification, release and capture
+    alt Release already committed
+        S->>S: advance without repeating work/model calls
+    else Output committed but decision/release incomplete
+        S->>S: repair missing Gate persistence/control record
+        S->>D: commit matching decision/release if checks complete
+    else Effects uncertain or genuine failure
+        S-->>U: preserved evidence + explicit review
+        U->>S: attributable restart/abort decision
+        S->>D: new attempt reservation under same run/step
+    end
+```
+
+No crash proves that an effect did not happen. Raw model response and gate-call reservations determine whether missing persistence can be repaired without another call. If evidence is insufficient, recovery requires explicit action and a new attempt. All store failure paths return truthful diagnostics without claiming a durable halt was written.
+
+## Offline RSI and activation
+
+```mermaid
+sequenceDiagram
+    participant C as Offline controller
+    participant O as Private oracle
+    participant K as Human custodian
+    participant A as Admission
+    participant L as Library writer
+    participant U as Developer
+    C->>C: pin target, parent, mutation scope and model
+    C->>O: open protected session
+    loop Bounded running-phase proposal requests
+        C->>O: private TrialRef + request identity
+        O->>O: durably reserve session/lifetime quota
+        O->>O: confined candidate against private fixtures
+        O-->>C: aggregate-only result
+        C->>C: persist attempt and lineage
+    end
+    C->>O: close_session pins incumbent and ablation schedule
+    C->>O: bounded closing ablations then finish_close
+    O-->>K: committed closed_session_ref
+    K->>O: evaluate_final once using closed reference
+    O-->>C: promotable or no_candidate aggregate evidence
+    C->>A: publish and submit Candidate only if promotable
+    A->>A: mandatory integrity + chosen admission provider
+    A-->>L: admitted inactive version and honest assurance
+    U->>L: explicit compare-and-set activation
+    L->>L: durable activation record / future snapshot
+```
+
+Puppet admission may grant exempt standing after mandatory integrity; it cannot produce a runtime Gate PASS or activate a candidate. Existing run pins survive later activation. Query details and separate final budget live in [oracle](../capsule/fixture-oracle.md).
+
+The isolated planner and benchmark export have their own ordered sequences in [planner](planner.md) and [benchmark export](benchmark-export.md). Their manifests expose track and deviations; they cannot silently become production acceptance.

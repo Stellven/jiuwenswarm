@@ -1,0 +1,138 @@
+{
+  "schema_version": "cc.declaration.v1",
+  "identity": {
+    "name": "research.compile_brief",
+    "kind": "skill",
+    "body": [
+      {
+        "path": "SKILL.md",
+        "sha256": "<author kit>"
+      },
+      {
+        "path": "references/defaults.json",
+        "sha256": "<author kit>"
+      },
+      {
+        "path": "references/brief_example.json",
+        "sha256": "<author kit>"
+      }
+    ],
+    "summary": "Compile a research request and its reference text into a Research Brief: objective, scope, constraints, prioritised requirements and acceptance metrics, each stated item quoted from the request, gaps filled from a fixed defaults table."
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "intake",
+        "type": "intake",
+        "required": true,
+        "description": "The Qualified Intake Package: the prompt, and the extracted text of each reference document."
+      },
+      {
+        "name": "source_text",
+        "type": "source_text",
+        "required": true,
+        "description": "Canonical prompt projection; all source spans use this text."
+      },
+      {
+        "name": "intent_ir",
+        "type": "intent_ir",
+        "required": false,
+        "description": "An IntentIR of the same prompt, used as hints only."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "research_brief",
+        "type": "research_brief",
+        "check_id": "brief_evidence_grounded",
+        "description": "The Research Brief."
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": "none",
+    "resources": {
+      "timeout_s": 300
+    },
+    "human_interaction": "none"
+  },
+  "changes": {
+    "effect_class": "pure",
+    "effects": [],
+    "state_kind": "none"
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "brief_evidence_grounded",
+        "anchor": "deterministic",
+        "target": "ports.outputs.research_brief",
+        "over": "inputs_and_outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/brief_checks.py:evidence_grounded",
+          "sha256": "<author kit>"
+        },
+        "description": "Every evidence quote appears verbatim in its evidence_source_id: the intake prompt, or the text of the named document. The objective, every requirement and every metric cite the prompt.",
+        "author": "muk"
+      },
+      {
+        "id": "defaults_only_when_silent",
+        "anchor": "deterministic",
+        "target": "ports.outputs.research_brief",
+        "over": "outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/brief_checks.py:defaults_only_when_silent",
+          "sha256": "<author kit>"
+        },
+        "description": "A structural check on the Brief alone, not a judgment about the intake: a field listed in defaults_applied has no evidence quote anywhere and its value equals the defaults table's value; a field with an evidence quote is never also in defaults_applied.",
+        "author": "muk"
+      },
+      {
+        "id": "requirements_and_metrics_present",
+        "anchor": "deterministic",
+        "target": "ports.outputs.research_brief",
+        "over": "outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/brief_checks.py:requirements_and_metrics_present",
+          "sha256": "<author kit>"
+        },
+        "description": "At least one metric, unless every mandatory requirement is qualitative and `issues` records an `INPUT_INCOMPLETE` explaining why no metric was written. The shape, the id rules and at least one mandatory requirement are the type's checks.",
+        "author": "muk"
+      },
+      {
+        "id": "metric_target_grounded",
+        "anchor": "deterministic",
+        "target": "ports.outputs.research_brief",
+        "over": "outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/brief_checks.py:metric_target_grounded",
+          "sha256": "<author kit>"
+        },
+        "description": "Each metric's target number appears in its own evidence quote (after normalizing things like '30%' and '30 percent'), so a metric's threshold cannot silently diverge from the requirement it operationalizes.",
+        "author": "muk"
+      },
+      {
+        "id": "brief_matches_reference",
+        "anchor": "reference",
+        "target": "ports.outputs.research_brief",
+        "over": "inputs_and_outputs",
+        "applies_at": "admission",
+        "runner": {
+          "ref": "checks/brief_checks.py:matches_reference",
+          "sha256": "<author kit>"
+        },
+        "description": "On a test case, the Brief's metrics match the expected ones by requirement_id, comparator and target, not by name (a name mismatch such as vram_reduction vs vram_reduction_pct must not fail the fixture).",
+        "author": "muk"
+      }
+    ]
+  },
+  "evolution": {
+    "rsi": "none"
+  }
+}

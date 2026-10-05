@@ -1,0 +1,31 @@
+{
+  "schema_version": "cc.declaration.v1",
+  "identity": {
+    "name": "research.evaluate_results"
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "benchmark_payload",
+        "type": "benchmark_payload",
+        "required": true
+      },
+      {
+        "name": "hypothesis_blueprint",
+        "type": "hypothesis_blueprint",
+        "required": true
+      },
+      {
+        "name": "research_brief",
+        "type": "research_brief",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "evaluation_verdict",
+        "type": "evaluation_verdict"
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:types:resource-snapshot",
+  "title": "resource_snapshot",
+  "x-source": "types/resource-snapshot.md",
+  "x-version": "1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "resource_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "kind": {
+      "enum": [
+        "reference_document",
+        "project_asset",
+        "validation_data",
+        "method_asset"
+      ]
+    },
+    "label": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_type",
+        "reference"
+      ],
+      "properties": {
+        "evidence_type": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "access": {
+      "enum": [
+        "read_only"
+      ]
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "resource_id",
+    "kind",
+    "label",
+    "content_sha256",
+    "manifest_ref",
+    "access"
+  ]
+}

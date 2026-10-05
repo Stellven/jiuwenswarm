@@ -1,0 +1,100 @@
+{
+  "schema_version": "cc.declaration.v1",
+  "identity": {
+    "name": "research.select_opportunity",
+    "kind": "skill",
+    "body": [
+      {
+        "path": "SKILL.md",
+        "sha256": "<author kit>"
+      },
+      {
+        "path": "rubrics/assess_opportunities.md",
+        "sha256": "<author kit>"
+      },
+      {
+        "path": "helpers/rank_opportunities.py",
+        "sha256": "<author kit>"
+      }
+    ],
+    "summary": "Consolidate searched ideas, form evidence-linked opportunity assessments against the Research Brief, and return the top eligible opportunity with a complete deterministic ranking record."
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "idea_set",
+        "type": "idea_set",
+        "required": true,
+        "description": "The searched candidate ideas and the evidence passages and sources they cite."
+      },
+      {
+        "name": "research_brief",
+        "type": "research_brief",
+        "required": true,
+        "description": "The objective, scope, and constraints candidates must answer."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "opportunity_card",
+        "type": "opportunity_card",
+        "check_id": "screening_provenance",
+        "description": "The selected opportunity and the ordered score and eligibility record for every consolidated candidate."
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": "none",
+    "human_interaction": "none",
+    "resources": {
+      "timeout_s": 600
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [],
+    "state_kind": "reads_external"
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "screening_provenance",
+        "anchor": "deterministic",
+        "target": "ports.outputs.opportunity_card",
+        "over": "inputs_and_outputs",
+        "applies_at": "both",
+        "runner": {
+          "ref": "checks/screening_checks.py:provenance_is_complete",
+          "sha256": "<author kit>"
+        },
+        "description": "Every input idea occurs in exactly one consolidated candidate; every output idea id, citation and chunk reference resolves to the idea_set; score rows cover the consolidated groups exactly once; and the selected card equals the first eligible row.",
+        "author": "muk"
+      },
+      {
+        "id": "matches_reference",
+        "anchor": "reference",
+        "target": "ports.outputs.opportunity_card",
+        "over": "inputs_and_outputs",
+        "applies_at": "admission",
+        "runner": {
+          "ref": "checks/screening_checks.py:matches_reference",
+          "sha256": "<author kit>"
+        },
+        "description": "On each fixture, the consolidated assessments and final opportunity card match the expected reference values.",
+        "author": "muk"
+      }
+    ],
+    "failure_modes": []
+  },
+  "evolution": {
+    "rsi": "propose",
+    "may_change": [
+      "files:helpers/rank_opportunities.py",
+      "files:SKILL.md",
+      "files:rubrics/assess_opportunities.md"
+    ],
+    "notes": "Only offline implementation optimization preserving the rank reference contract and conditional text mutation are allowed; checks, dependency policy, output schema and Gate rubrics remain protected."
+  }
+}

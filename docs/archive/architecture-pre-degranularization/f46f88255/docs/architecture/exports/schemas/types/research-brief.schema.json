@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:types:research-brief",
+  "title": "research_brief",
+  "x-source": "types/research-brief.md",
+  "x-version": "1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "objective": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "objective_evidence": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "in_scope_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence_source_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          }
+        },
+        "required": [
+          "item",
+          "evidence",
+          "evidence_source_id"
+        ]
+      }
+    },
+    "out_of_scope_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence_source_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          }
+        },
+        "required": [
+          "item",
+          "evidence",
+          "evidence_source_id"
+        ]
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "compute": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hardware": {
+              "type": "string"
+            },
+            "gpu_memory_gb": {
+              "type": "number"
+            },
+            "runtime_limit_s": {
+              "type": "integer"
+            },
+            "token_budget": {
+              "type": "integer"
+            },
+            "quotes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "enum": [
+                      "hardware",
+                      "gpu_memory_gb",
+                      "runtime_limit_s",
+                      "token_budget"
+                    ]
+                  },
+                  "evidence": {
+                    "type": "string",
+                    "pattern": "\\S"
+                  },
+                  "evidence_source_id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+                  }
+                },
+                "required": [
+                  "field",
+                  "evidence",
+                  "evidence_source_id"
+                ]
+              }
+            }
+          },
+          "required": [
+            "hardware",
+            "quotes"
+          ]
+        },
+        "frameworks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "item": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "evidence_source_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              }
+            },
+            "required": [
+              "item",
+              "evidence",
+              "evidence_source_id"
+            ]
+          }
+        },
+        "other_limits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "item": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "evidence_source_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              }
+            },
+            "required": [
+              "item",
+              "evidence",
+              "evidence_source_id"
+            ]
+          }
+        }
+      },
+      "required": [
+        "compute",
+        "frameworks",
+        "other_limits"
+      ]
+    },
+    "mandatory_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requirement_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "statement": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence_source_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          }
+        },
+        "required": [
+          "requirement_id",
+          "statement",
+          "evidence",
+          "evidence_source_id"
+        ]
+      },
+      "minItems": 1
+    },
+    "optional_preferences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requirement_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "statement": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence_source_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          }
+        },
+        "required": [
+          "requirement_id",
+          "statement",
+          "evidence",
+          "evidence_source_id"
+        ]
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "requirement_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "comparator": {
+            "enum": [
+              "gte",
+              "lte"
+            ]
+          },
+          "target": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "basis": {
+            "enum": [
+              "absolute",
+              "delta",
+              "relative_percent",
+              "percentage_points",
+              "unspecified"
+            ]
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidence_source_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          }
+        },
+        "required": [
+          "metric_id",
+          "requirement_id",
+          "name",
+          "comparator",
+          "target",
+          "unit",
+          "basis",
+          "evidence",
+          "evidence_source_id"
+        ]
+      }
+    },
+    "defaults_applied": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "value": {},
+          "reason": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "field",
+          "value",
+          "reason"
+        ]
+      }
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "objective",
+    "objective_evidence",
+    "in_scope_items",
+    "out_of_scope_items",
+    "constraints",
+    "mandatory_requirements",
+    "optional_preferences",
+    "metrics",
+    "defaults_applied"
+  ]
+}

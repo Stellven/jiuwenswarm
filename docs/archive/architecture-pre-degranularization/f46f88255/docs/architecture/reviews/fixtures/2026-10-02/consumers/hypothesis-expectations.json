@@ -1,0 +1,12 @@
+{
+  "stage": "hypothesis",
+  "derived_from": "docs/architecture/m1/hypothesis.md",
+  "required_capsule_ports": [
+    "opportunity_card",
+    "research_brief",
+    "intake"
+  ],
+  "optional_capsule_ports": [],
+  "additional_supervisor_bound_context": [],
+  "runtime_claim": false
+}

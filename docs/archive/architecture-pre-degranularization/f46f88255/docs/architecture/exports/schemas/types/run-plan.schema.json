@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:types:run-plan",
+  "title": "run_plan",
+  "x-source": "types/run-plan.md",
+  "x-version": "1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "capsule_name": {
+            "type": "string"
+          },
+          "gate_capsule_name": {
+            "type": "string"
+          },
+          "gate_profile_ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "gate"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "sha256"
+            ]
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "step_checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "anchor",
+                "target",
+                "over",
+                "applies_at",
+                "runner",
+                "description",
+                "author"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "anchor": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                },
+                "over": {
+                  "enum": [
+                    "each_call",
+                    "outputs",
+                    "inputs_and_outputs"
+                  ]
+                },
+                "applies_at": {
+                  "enum": [
+                    "admission",
+                    "node",
+                    "both"
+                  ]
+                },
+                "runner": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "ref",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "ref": {
+                      "type": "string"
+                    },
+                    "sha256": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "description": {
+                  "type": "string"
+                },
+                "author": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "judge_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "step_id",
+          "capsule_name",
+          "gate_capsule_name",
+          "gate_profile_ref",
+          "inputs"
+        ]
+      },
+      "minItems": 1
+    },
+    "library_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "track": {
+      "enum": [
+        "production",
+        "offline_rsi",
+        "isolated_experiment"
+      ]
+    },
+    "launcher_inputs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "ext": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "steps",
+    "library_snapshot_sha256",
+    "track",
+    "launcher_inputs"
+  ]
+}
