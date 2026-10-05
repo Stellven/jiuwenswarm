@@ -28,7 +28,7 @@ Today nothing lets us do that:
 | Performance falls as skills are added (-0.21 at 202 skills), mostly from choosing a look-alike | More Skills, Worse Agents | selection must be strict before a model ranks |
 | A contract-first tool reached 0.980 on 2,528 tokens, against 0.775 on 26,172 | Contract2Tool | declared contracts are cheaper and better |
 | Not offering what cannot run removed 59.1% and 90.5% of tokens | Don't Offer What Can't Be Done | preconditions pay for themselves |
-| Skills that each pass alone push plans off course together: severe drift from 4.7% with one skill to 66.5% with five | SkillFuzz | sets must be screened; see [library](library.md) |
+| Skills that each pass alone push plans off course together: severe drift from 4.7% with one skill to 66.5% with five | SkillFuzz | motivates future interaction analysis; currently deferred in [library](library.md#deferred-capsule-interaction-analysis) |
 | Knowing a dependency's purpose raised successful repair of drifted tools from 10% to 78% | Skill Drift | a dependency should say what it is for, so a builder can update the capsule when it changes |
 | Given the choice, models build a new tool at first sight 85 to 99% of the time | AllocBench | deciding to build must be separate from building |
 

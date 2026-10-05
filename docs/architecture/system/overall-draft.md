@@ -44,7 +44,7 @@ flowchart TB
         direction LR
         LS["CC: op.local_search<br/>Search call: both per query"]
         SS["CC: op.scholarly_search<br/>Search call: both per query"]
-        CS["CC: op.codesearch<br/>POC code-location dependency"]
+        CS["CC: op.codesearch<br/>Hypothesis and POC code-location dependency"]
     end
     subgraph ACCEPT["One acceptance boundary reused after each work CC"]
         direction LR
@@ -68,7 +68,7 @@ flowchart TB
     class IN,GH,PUB,MEAS service;
 ```
 
-Group arrows name their actual caller/consumer to preserve a readable layout: they are not all-to-all connections. Retrieval and acceptance boxes are supporting insets, not downstream stages; invisible layout links only position those insets. Their invocation points are named in each box and below. Search calls both local and scholarly operators per query, including when inputs/results are empty; POC owns the CodeSearch dependency. Benchmark owns scientific execution coordination. Every work node has its pinned Gate profile, even though the reusable acceptance boundary is drawn once. Verifier invocation depends on applicable criteria and deterministic-check success; its admission identity is shared, its criteria are stage-specific. The supervisor alone releases successors after durable Verification and release publication.
+Group arrows name their actual caller/consumer to preserve a readable layout: they are not all-to-all connections. Retrieval and acceptance boxes are supporting insets, not downstream stages; invisible layout links only position those insets. Their invocation points are named in each box and below. Search calls both local and scholarly operators per query, including when inputs/results are empty; Hypothesis and POC both pin CodeSearch to locate repository mechanisms. Benchmark owns scientific execution coordination. Every work node has its pinned Gate profile, even though the reusable acceptance boundary is drawn once. Verifier invocation depends on applicable criteria and deterministic-check success; its admission identity is shared, its criteria are stage-specific. The supervisor alone releases successors after durable Verification and release publication.
 
 **Why this shape:** [Kubeflow typed component specifications](https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/) motivate ports and reuse; [OPA policy/data separation](https://www.openpolicyagent.org/docs) motivates one Gate interface with criteria profiles. These are precedents, not runtime dependencies or proof of safety.
 

@@ -1,25 +1,83 @@
-# M1 architecture - quick presentation
+# System
 
-5 October 2026 | Current architecture draft | The decisions and diagrams are design evidence, not proof of an implemented system.
+[Start here](README.md) · Specified design · Runtime validation pending
 
-## 01 | What the architecture looks like - and why
+## Deployment and component roles
 
-- **One local Docker application:** modular monolith with internal protected processes. One deployment keeps operations simple; runner, model bridge, generated-code execution and private oracle keep distinct trust boundaries. **Pattern:** [Docker restricted containers](https://docs.docker.com/engine/containers/run/).
-- **Twelve CC identities:** eight research work CCs, one shared verifier and three nested retrieval CCs. Production runs Brief -> Search -> Screening -> Hypothesis -> POC -> scientific Benchmark -> Evaluation -> Report, then ordinary publication. **Pattern:** [Kubeflow typed components](https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/).
-- **Clear authority:** supervisor chooses when to dispatch; capsules perform their capability; Gate host folds pinned checks/criteria. A committed advancing Verification and release must exist before the next node. **Patterns:** [OPA profiles](https://www.openpolicyagent.org/docs) and [Temporal durable progress](https://docs.temporal.io/workflow-execution).
-- **Codex through an adapter:** protected bridge, separate persistent login, serialized credential owner, captured calls and bounded reservations. Generated code never receives credentials. **Pattern:** [Codex persistent authentication](https://learn.chatgpt.com/docs/auth/ci-cd-auth); replace provider/auth behind stable interfaces.
-- **Separate tracks:** fixed production; required isolated offline RSI with private oracle; optional whitelisted planner/routing/compiler/Code Mode experiments. Planner is not a CC and never changes production. Candidate admission, assurance and human activation are separate. **Pattern:** [MLflow versions and aliases](https://mlflow.org/docs/latest/ml/model-registry/workflow/).
-- **Controlled input/output:** local resources are validated and snapshotted; literature enters through bounded search; trusted measurements ground scientific results. Reports and sealed evidence leave through authorized manifests and benchmark HTTP. **Patterns:** [HTTP resource semantics](https://www.rfc-editor.org/rfc/rfc9110.html) and [OpenAPI](https://spec.openapis.org/oas/v3.1.1.html).
-- **Read the next diagrams:** blue boxes identify every CC; dashed amber boxes mark conditional track/session participation. They do not make production stages optional. Search calls both local and scholarly retrieval per query; CodeSearch supports POC. Required capture is summarized, not drawn from every capsule.
+- **Dockerized modular monolith:** one Linux application image, shared configuration and versioned internal interfaces. Separate subprocesses enforce trust boundaries; a component box does not imply a separately deployed service. See [deployment](../../system/deployment.md) and [module map](../../system/modules.md).
+- **Capability capsule (CC):** admitted, versioned capability with a Declaration, typed ports, dependencies, effects and checks. It performs work; it does not release the next workflow node. See [Declaration](../../capsule/fields.md).
+- **Workflow node:** a plan position binding one pinned capability to input references, budgets and a Gate profile. Multiple nodes can use one capability. See [run plan](../../types/run-plan.md).
+- **Ordinary module:** control or deterministic helper without independent capsule admission. Examples: supervisor, extraction, resource freezing, numeric arithmetic, plan validator and publisher. See [pipeline](../../m1/pipeline.md).
+- **Host boundary:** browser and benchmark client use the application API. CLI/TUI/tmux execute inside the workstation environment; host terminal attachment is an access path. See [workstation](../../system/workstation.md).
 
-## 05 | Depth, testing policy and coding value
+## Three tracks
 
-- **Depth without clutter:** the overview shows responsibilities and placement; the next maps show all capsules and conditional paths; failure/recovery shows temporal authority. The final zoom appendix contains every required production input binding and publisher fan-in. Full, observability-hidden, RSI-hidden and core Mermaid variants are linked from the sharing index.
-- **One owning contract:** schemas, APIs, config keys, records and errors have canonical definitions. Capsules pin compatible versions; the plan binds producers to consumers. Coders can build separate modules against these boundaries instead of deciding product behavior.
-- **Checks before joining:** schema/example/link/graph checks; blind producer/consumer derivations; seam canaries; fake adjacent services for independent invocation. **Pattern:** [Pact consumer/provider verification](https://docs.pact.io/), adapted to local design checks.
-- **Adversarial cases:** missing/wrong-version inputs, duplicates, timeout/cancel, corrupt refs, lost Gate/release writes, interrupted publication, denied paths/network/credentials, planner rejection and RSI budget reset. Observe actual records and next-node counts, not only PASS text.
-- **Connected acceptance:** production through report; halt/recovery; offline RSI through admission/manual activation; isolated planner through valid dispatch; benchmark invocation/export. Scientific FAIL can still be a valid completed report; invalid evidence cannot.
-- **Development policy:** freeze sources; change owners and affected consumers/diagrams/examples together; invalidate affected evidence; keep released interfaces immutable or migrate explicitly. Small source-verified AI reviews precede human decision briefs. **Pattern:** [Google small-change review](https://google.github.io/eng-practices/review/developer/small-cls.html).
-- **Honest readiness:** architecture lint, contract and story checks pass. Docker isolation/platforms, crash durability, native integration, real Codex behavior and trusted measurements still need implementation evidence. Coders create Spec Kit and execute tests; architecture defines the required observations.
+- **Production:** fixed research plan, static Codex route, real Gates, durable records, local report publication. This is the first integration target.
+- **Offline RSI:** isolated candidate changes and private evaluation; no live production changes or automatic activation.
+- **Isolated experiments:** only whitelisted planning, routing, intention-compilation, Code Mode, alternate semantic verifier and approved component/Gate ablation paths. The planner is an orchestration service, not a CC. Conditional participation does not make required production stages optional.
+- Scope and promotion boundaries are owned by [experimental tracks](../../system/experiments.md). Fusion, composite capsules, live replanning and unrestricted delegation are outside current acceptance.
 
-Canonical reading hub: showcase/README.md. The full report and exact contracts remain linked there; this presentation is a dated derived view.
+## Spatial view
+
+Generated from [overall draft](../../system/overall-draft.md). Arrows summarize placement and interfaces, not filesystem permissions. Required capture is present even where its edges are omitted. Host terminal attachment reaches the in-container CLI/TUI/tmux environment.
+
+<!-- generated:showcase-system -->
+```mermaid
+flowchart TB
+    USER["Researcher<br/>host browser/API or terminal attachment"]
+    HAR["External benchmark harness<br/>authenticated local HTTP"]
+    subgraph APP["One Dockerized modular monolith"]
+        direction TB
+        ENTRY["Shared entry and configuration<br/>container CLI/TUI, pin task and track"]
+        PLAN["CONDITIONAL: isolated planner<br/>ordinary controller, not a CC"]
+        EXP["CONDITIONAL: allowed experimental adapters<br/>compiler, routing or confined Code Mode"]
+        VALID["Deterministic plan validation and freeze<br/>production template or permitted proposal"]
+        SUP["Supervisor<br/>reserve, dispatch, halt and explicit recovery"]
+        RUN["CC runner and broker<br/>executes the capsule view above"]
+        LIB["Admitted library snapshot<br/>versions, profiles and exact pins"]
+        MODEL["Protected model bridge and Codex<br/>private persistent login"]
+        GATE["Gate host and shared verifier<br/>decision evidence, not dispatch authority"]
+        STORE["Canonical store and required capture<br/>Artifacts, Observations, Verifications, releases"]
+        RSI["CONDITIONAL session: required offline RSI<br/>bounded mutations, never live replanning"]
+        ORACLE["Private fixture oracle<br/>aggregate results, protected answers"]
+        ADMIT["Admission<br/>tested evidence or Puppet exempt assurance"]
+        ACT["Explicit human activation<br/>future snapshots only"]
+        OUT["Sealed report and benchmark export<br/>authorized manifest-based retrieval"]
+        ENTRY -.->|"isolated profile only"| PLAN
+        ENTRY -.->|"whitelisted feature profile"| EXP
+        ENTRY -->|"production fixed template"| VALID
+        PLAN -->|"complete typed proposal"| VALID
+        LIB -->|"admitted versions and profiles"| VALID
+        VALID -->|"committed valid plan and Bindings"| SUP
+        SUP -->|"reserved calls"| RUN
+        RUN -->|"authorized turns"| MODEL
+        PLAN -.->|"reserved proposal turn"| MODEL
+        SUP -->|"committed work evidence"| GATE
+        GATE -->|"Verification through supervisor writer"| STORE
+        SUP -->|"required capture and durable release"| STORE
+        STORE -->|"sealed public evidence"| OUT
+        ENTRY -.->|"offline session request"| RSI
+        RSI -->|"private trials"| ORACLE
+        ORACLE -->|"aggregate comparison"| RSI
+        RSI -->|"eligible Candidate"| ADMIT
+        ADMIT -->|"admitted inactive RSI child"| ACT
+        ACT -->|"human-selected version"| LIB
+    end
+    USER --> ENTRY
+    HAR --> ENTRY
+    classDef ordinary fill:#F6F8FA,stroke:#A5B2BE,color:#172D45;
+    classDef conditional fill:#FFF4DC,stroke:#A87B24,stroke-dasharray:5 4,color:#172D45;
+    classDef protected fill:#E4F2F5,stroke:#087E8B,color:#172D45;
+    class ENTRY,VALID,SUP,RUN,LIB,GATE,STORE,ADMIT,ACT,OUT ordinary;
+    class PLAN,EXP,RSI conditional;
+    class MODEL,ORACLE protected;
+```
+<!-- /generated:showcase-system -->
+
+## Why these boundaries
+
+- One deployment keeps M1 operation small; restricted subprocesses retain distinct credential and code identities. The borrowed container/process patterns and replacement points are recorded in [deployment](../../system/deployment.md) and [confinement](../../capsule/process-boundary.md).
+- Typed capabilities separate reusable behavior from scheduling. Component-specification precedent and the minimum-boundary rationale are recorded in [pipeline](../../m1/pipeline.md).
+- Existing OpenJiuwen integration stays behind adapters. [Reuse audit](../../system/reuse-audit-2026-10-05.md) records source pins and actual symbols; [integration](../../system/integration.md) separates reused behavior from new work.
+
+[Next: capsules](capsules.md)

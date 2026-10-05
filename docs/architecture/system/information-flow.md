@@ -93,6 +93,8 @@ flowchart TB
     SCHOLAR -->|"search_hits: paper abstracts"| P1
     SCHOLAR -->|"approved broker requests"| WEB
     WEB -->|"paper metadata and abstracts"| SCHOLAR
+    P3 -->|"query, repository snapshot and top_k"| CODE
+    CODE -->|"code_hits: mechanism source ranges"| P3
     P4 -->|"query, repository snapshot and top_k"| CODE
     CODE -->|"code_hits: verified source ranges"| P4
     P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE
@@ -214,6 +216,8 @@ flowchart TB
     SCHOLAR -->|"search_hits: paper abstracts"| P1
     SCHOLAR -->|"approved broker requests"| WEB
     WEB -->|"paper metadata and abstracts"| SCHOLAR
+    P3 -->|"query, repository snapshot and top_k"| CODE
+    CODE -->|"code_hits: mechanism source ranges"| P3
     P4 -->|"query, repository snapshot and top_k"| CODE
     CODE -->|"code_hits: verified source ranges"| P4
     P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE
@@ -331,6 +335,8 @@ flowchart TB
     SCHOLAR -->|"search_hits: paper abstracts"| P1
     SCHOLAR -->|"approved broker requests"| WEB
     WEB -->|"paper metadata and abstracts"| SCHOLAR
+    P3 -->|"query, repository snapshot and top_k"| CODE
+    CODE -->|"code_hits: mechanism source ranges"| P3
     P4 -->|"query, repository snapshot and top_k"| CODE
     CODE -->|"code_hits: verified source ranges"| P4
     P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE
@@ -436,6 +442,8 @@ flowchart TB
     SCHOLAR -->|"search_hits: paper abstracts"| P1
     SCHOLAR -->|"approved broker requests"| WEB
     WEB -->|"paper metadata and abstracts"| SCHOLAR
+    P3 -->|"query, repository snapshot and top_k"| CODE
+    CODE -->|"code_hits: mechanism source ranges"| P3
     P4 -->|"query, repository snapshot and top_k"| CODE
     CODE -->|"code_hits: verified source ranges"| P4
     P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE

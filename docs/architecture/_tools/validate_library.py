@@ -91,3 +91,13 @@ for name,has_views,has_rsi in [('full',True,True),('no-observability',False,True
     for publication_input in ('poc_bundle_ref','benchmark_payload_ref','stage_context_ref','destination_ref'):
         assert publication_input in body,name+' omitted publisher input '+publication_input
 print(f'Four information-flow variants preserve all {len(expected_bindings)} canonical input bindings and required boundaries')
+
+# Showcase is a seven-page derived reading package.
+from showcase_views import refresh as check_showcase
+assert check_showcase(vault, check=True), "Stale showcase projection"
+assert len(list((vault / "presentation/showcase").glob("*.md"))) == 7
+for name in ("full", "no-observability", "no-rsi", "core"):
+    body = re.search(rf"<!-- generated:information-{name} -->(.*?)<!-- /generated:information-{name} -->", flow_views, re.S).group(1)
+    assert 'P3 -->|"query, repository snapshot and top_k"| CODE' in body
+    assert 'CODE -->|"code_hits: mechanism source ranges"| P3' in body
+print("Seven showcase pages and generated owner projections agree; Hypothesis CodeSearch flow retained")

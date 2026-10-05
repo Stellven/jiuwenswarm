@@ -32,7 +32,8 @@ def refresh(vault, check=False):
     if not same and not check:
         path.write_text(updated, encoding='utf-8', newline='\n')
     from information_views import refresh as refresh_information
-    return refresh_production_flow(vault, check) and refresh_information(vault, check) and (same or not check)
+    from showcase_views import refresh as refresh_showcase
+    return refresh_production_flow(vault, check) and refresh_information(vault, check) and refresh_showcase(vault, check) and (same or not check)
 
 
 def refresh_production_flow(vault, check=False):
