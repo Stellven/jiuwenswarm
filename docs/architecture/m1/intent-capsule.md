@@ -6,6 +6,9 @@ tags: [design, draft, m1, capsule]
 
 # Historical deterministic intent capsule design
 
+> **Contract reconciliation:** [Current control flow](control-flow.md) requires actual intent capsule calls and declaration-derived Gate tests before requirements. This page retains earlier intent/hint contracts for revision; its old removed-capsule or hint-only status does not define the current architecture. Do not treat its examples as newly admitted intent versions.
+
+
 > Superseded for production by ordinary optional launcher hints and the one-pass [Requirement Compilation](requirement-capsule.md). This document is a reference pattern, not a current admitted capability or coding requirement.
 
 > **Draft recheck.** The `compile_intent` reference capsule now consumes the composable [`source_text`](../types/source-text.md) projection and gives the shared [`intent_ir`](../types/intent-ir.md). Hashes are shown as `<author kit>`.

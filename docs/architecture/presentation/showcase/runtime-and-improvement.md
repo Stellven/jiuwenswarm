@@ -10,12 +10,20 @@
 - Advancement requires committed `PASS` or `PASS_WITH_KNOWN_LIMITATIONS` with `routing_action: ADVANCE`, plus the release record. A passing calculation whose durable save fails cannot release work. See [lifecycle](../../system/lifecycle.md).
 - Scientific `PASS`, `FAIL`, `INCONCLUSIVE` and `CONDITIONALLY_ACCEPTABLE` describe research results, not infrastructure permission to advance. A valid negative result can reach a report. See [evaluation](../../m1/evaluation.md).
 
+## What the verifier checks
+
+`research.verifier` is a CC. It checks the actual result of a task-specific workflow node against the reusable bound CC’s Declaration and criteria. A library capsule is a capability definition; a node is its hot-path application with concrete inputs and run identity. [Nodes](../../system/nodes.md#capsule-versus-node) owns this distinction.
+
 ## Gate count and protection
 
 - One shared `research.verifier` capability identity serves intent, requirement and DAG-node Gate call sites. Different criteria profiles are not different verifier capsules.
 - Each capsule call enters its Gate boundary immediately after output/capture commit. Mandatory deterministic failure blocks the boundary before a semantic verifier call; otherwise the Gate host invokes the pinned verifier and records its assessment.
 - Every Gate-role capsule has `evolution.rsi: none` and `evolution.may_change: []`: zero RSI-mutable components. The [verifier owner](../../capsule/gate-capsules.md) and [RSI controller](../../capsule/rsi-engine.md) protect this fixed referee.
 - Success-rate comparisons retain capsule, verifier, criteria, fixture, model and protocol pins. Keeping the referee fixed makes comparisons interpretable; a human referee revision starts a new cohort.
+
+## Automatic Gate preparation
+
+The Gate builder reads each bound work capsule’s Declaration and prepares its schema/guarantee/effect checks with mandatory policy. It binds a declaration-specific test instance of the shared `research.verifier` capsule immediately after that work call. Declaration, test, verifier and profile pins freeze together; Gate-role RSI mutation remains zero. Unsupported checks refuse preparation. The exact builder/test-record interfaces remain architecture work. See [Gate owner](../../capsule/gate-capsules.md#declaration-derived-gate-construction).
 
 ## Failure and recovery
 

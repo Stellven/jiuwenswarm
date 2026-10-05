@@ -23,7 +23,7 @@ The [pipeline](../../m1/pipeline.md) records twelve existing research/verifier/o
 
 ## Verification count
 
-There is **one shared semantic verifier identity**, `research.verifier`; intent, requirement and DAG-node Gate profiles reuse it. Gate invocation count depends on the executed capsule calls, not the number of profiles. Gate-role capsules have zero RSI-mutable components. Deterministic host checks are ordinary code, not extra verifier capsules. See [Gate owner](../../capsule/gate-capsules.md).
+Each work Binding gets an automatically prepared test instance derived from its capsule Declaration. These instances reuse a fixed implementation; they are not independently mutable referees. There is **one shared semantic verifier identity**, `research.verifier`; intent, requirement and DAG-node Gate profiles reuse it. Gate invocation count depends on the executed capsule calls, not the number of profiles. Gate-role capsules have zero RSI-mutable components. Deterministic host checks are ordinary code, not extra verifier capsules. See [Gate owner](../../capsule/gate-capsules.md).
 
 ## Research ports to reconcile
 
@@ -51,12 +51,12 @@ Generated from [M1 control flow](../../m1/control-flow.md). Every planned node b
 <!-- generated:showcase-capsules -->
 ```mermaid
 flowchart TB
-  INPUT["Validated task data"] --> N1["Node 1: pinned work CC"]
+  INPUT["Validated task data"] --> N1["Node 1: task-specific bound CC use"]
   N1 --> S1["Commit output and evidence"]
   S1 --> G1["Gate: host checks then shared verifier<br/>RSI mutable components: 0"]
   G1 -->|"advancing result only"| R1["Commit advancing Verification and release"]
-  R1 -->|"accepted typed output"| N2["Node 2: pinned work CC"]
-  R1 -->|"accepted typed output when required"| N3["Node 3: pinned work CC"]
+  R1 -->|"accepted typed output"| N2["Node 2: task-specific bound CC use"]
+  R1 -->|"accepted typed output when required"| N3["Node 3: task-specific bound CC use"]
   N2 --> S2["Commit output and evidence"] --> G2["Gate: host checks then shared verifier<br/>RSI mutable components: 0"] -->|"advancing result only"| R2["Commit advancing Verification and release"]
   N3 --> S3["Commit output and evidence"] --> G3["Gate: host checks then shared verifier<br/>RSI mutable components: 0"] -->|"advancing result only"| R3["Commit advancing Verification and release"]
   R2 --> JOIN["Dependent join: required inputs accepted"]

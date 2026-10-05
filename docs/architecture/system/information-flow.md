@@ -1,483 +1,310 @@
 ---
 type: design
 status: draft
-version: 1
+version: 2
 owner: muk
-sources: [../m1/pipeline.md, ../m1/search-capsule.md, ../m1/poc.md, lifecycle.md, storage.md]
+sources: [../m1/control-flow.md, lifecycle.md, storage.md]
 provides: [system.information_flow_views]
-consumes: [m1.run_plan, system.record_api]
-depends_on: [../m1/pipeline.md, overall-draft.md, lifecycle.md, storage.md]
-tags: [diagram, data, review, m1]
+consumes: [m1.control_flow, system.record_api]
+depends_on: [../m1/control-flow.md, lifecycle.md, storage.md]
+tags: [diagram, data, m1]
 ---
 
-# Information flow: full and filtered views
+# Information flow: fixed preparation and planned execution
 
-> **Flow correction, 5 October 2026:** [Current M1 control flow](../m1/control-flow.md) supersedes this page’s fixed-production / experimental-only overall layout. The contracts and diagrams below remain baseline material pending connected revision; they are not the current end-to-end showcase.
+The [M1 control-flow owner](../m1/control-flow.md) defines the main path: intake -> intent capsules/Gates -> requirement capsules/Gates -> planner -> validation/binding/freeze -> local DAG execution -> ordinary Delivery processing and user retrieval.
 
+SwarmFlow supplies required fixed outer positions. Requirements determine the task DAG, which becomes fixed before execution. Every work capsule enters its Gate boundary before its output can unlock consumers. A failed Gate halts further capsule dispatch for the whole run. Gate call sites reuse one `research.verifier` identity through criteria profiles, with zero RSI-mutable components.
 
-These graphs show **logical information dependencies**, not unrestricted direct process access or a temporal scheduler. Payload arrows resolve immutable references through authorized runner/host interfaces. Every work result is persisted and accepted before any consumer may run. [Today's overview](overall-draft.md) explains placement; this page expands the actual bindings.
+## Reading these views
 
-## What is complete here, and what is a filter?
+- Arrows show logical data and authority dependencies, not unrestricted process access. Inputs/evidence resolve through authorized references.
+- All four views preserve the fixed preparation path, planner boundary, bound local execution, Gates, durable authority and ordinary Delivery/output path.
+- Observability filtering hides derived display branches only. Required capture and records remain. RSI filtering hides the separate offline session only; it does not remove its M1 scope.
+- The previous 23-binding research example is preserved in the [archived fixed-chain map](../archive/information-flow-fixed-research-2026-10-05.md). It does not define this overall flow. Concrete intent/requirement/planner wire contracts remain in connected revision; diagram labels are logical data roles, not newly released schemas.
+- [Storage](storage.md), [Gate host](../capsule/gate-host.md), [shared verifier](../capsule/gate-capsules.md), [Codex bridge](model-auth.md) and [benchmark export](benchmark-export.md) own enforcement and persistence details.
 
-- All eight work CCs, their **23 required production input bindings** (18 inter-stage joins plus five launcher inputs), all three nested retrieval CCs, and the shared verifier are included. These binding edges are generated directly from the owning pipeline fixture; changing that plan makes the projection stale.
-- Optional IntentIR and authorized Report StageContext are drawn separately. They are not invented extra required run-plan ports.
-- Intake resources enter through requalification/snapshot/extraction, not arbitrary host paths. External scholarly retrieval enters only through its broker; model results enter through the protected bridge.
-- Report publication, sealed benchmark export and authorized downloads leave through public manifests. Hidden oracle inputs/answers and model credentials never enter those exports. RSI proposal prompts/replies and session evidence stay in private controller custody; the public store arrow represents public run capture, not those private records.
-- The full view includes capture-derived UI/telemetry/Data Foundation views and offline RSI. Filtered views hide their branches only; hiding observability never disables required capture, and hiding RSI never removes its M1 acceptance requirement.
-- [Isolated planner placement](overall-draft.md#2-whole-application-alternate-tracks-and-authority) remains a separate overlay: allowed plans can differ, so the fixed production wiring below must not be presented as a universal experimental DAG.
-- Scope is every capsule and system-level information boundary, not every internal helper/file or every record field. Exact schemas, authorized mounts, settings and private session evidence remain on their owning pages.
-
-## 1. Full: research, evidence views and offline RSI
+## 1. Full system with derived views and offline RSI
 
 <!-- generated:information-full -->
 ```mermaid
 flowchart TB
-    USER["Researcher: question and declared local resources"]
-    HAR["External harness: intake proposal and config_ref"]
-    IN["Entry: validate, snapshot, extract source_text"]
-    POLICY["Configuration, policy, schemas and admitted library pins"]
-    VALID["Validate fixed production plan, then freeze Bindings"]
-    CTRL["Supervisor and runner: dispatch, resolve refs, enforce quotas"]
-    GATE["Gate host and CC: research.verifier"]
-    STORE["Canonical store: required evidence and committed records"]
-    MODEL["Protected bridge and Codex: authorized prompt and reply captures"]
-    LOCAL["CC: op.local_search"]
-    SCHOLAR["CC: op.scholarly_search"]
-    CODE["CC: op.codesearch"]
-    WEB["arXiv and Semantic Scholar: bounded retrieval"]
-    MEASURE["Confined baseline/treatment and trusted measurement"]
-    CONTEXT["Authorized StageContext: committed evidence references"]
-    PUB["Publisher: validate report and commit directory manifest"]
-    EXPORT["Export/retrieval: sealed manifest members and correlated evidence"]
-    HALT["Halt: retained evidence and explicit human recovery"]
-    subgraph WORK["Eight fixed production work CCs: logical input bindings"]
-        P0["CC: research.compile_brief"]
-        P1["CC: research.search_ideas"]
-        P2["CC: research.select_opportunity"]
-        P3["CC: research.form_hypothesis"]
-        P4["CC: research.build_poc"]
-        P5["CC: research.run_benchmark"]
-        P6["CC: research.evaluate_results"]
-        P7["CC: research.write_report"]
-    end
-    USER -->|"question and provisioned resource locators"| IN
-    HAR -->|"authenticated task, config, seed and request identity"| IN
-    IN -->|"committed intake identity"| VALID
-    POLICY -->|"exact versions, policy and permitted config"| VALID
-    VALID -->|"committed valid plan and frozen Bindings"| CTRL
-    CTRL -->|"reserved invocation through admitted ports"| WORK
-    IN -->|"intake to intake"| P0
-    IN -->|"source_text to source_text"| P0
-    P0 -->|"research_brief to research_brief"| P1
-    IN -->|"intake to intake"| P1
-    P1 -->|"idea_set to idea_set"| P2
-    P0 -->|"research_brief to research_brief"| P2
-    P2 -->|"opportunity_card to opportunity_card"| P3
-    P0 -->|"research_brief to research_brief"| P3
-    IN -->|"intake to intake"| P3
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P4
-    P0 -->|"research_brief to research_brief"| P4
-    IN -->|"intake to intake"| P4
-    P4 -->|"poc_bundle to poc_bundle"| P5
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P5
-    P5 -->|"benchmark_payload to benchmark_payload"| P6
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P6
-    P0 -->|"research_brief to research_brief"| P6
-    P6 -->|"evaluation_verdict to evaluation_verdict"| P7
-    P5 -->|"benchmark_payload to benchmark_payload"| P7
-    P0 -->|"research_brief to research_brief"| P7
-    P1 -->|"idea_set to idea_set"| P7
-    P2 -->|"opportunity_card to opportunity_card"| P7
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P7
-    IN -.->|"optional deterministic intent_ir hints"| P0
-    P1 -->|"query, documents and top_k: each query"| LOCAL
-    LOCAL -->|"search_hits: verbatim passages"| P1
-    P1 -->|"query and top_k: each query"| SCHOLAR
-    SCHOLAR -->|"search_hits: paper abstracts"| P1
-    SCHOLAR -->|"approved broker requests"| WEB
-    WEB -->|"paper metadata and abstracts"| SCHOLAR
-    P3 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: mechanism source ranges"| P3
-    P4 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: verified source ranges"| P4
-    P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE
-    MEASURE -->|"trusted samples, logs and raw evidence refs"| P5
-    CONTEXT -->|"authorized StageContext, not a capsule port"| P7
-    STORE -->|"committed permitted evidence only"| CONTEXT
-    CTRL -->|"authorized model requests: work or verifier"| MODEL
-    MODEL -->|"captured result or typed failure"| CTRL
-    CTRL -->|"work output and required capture publication"| STORE
-    CTRL -->|"committed evidence_bundle and pinned gate profile"| GATE
-    GATE -->|"Verification publication via supervisor writer"| STORE
-    STORE -->|"committed Verification and release replay"| CTRL
-    CTRL -->|"persist release before successor dispatch"| STORE
-    CTRL -->|"failure, nonpass or uncertain effect"| HALT
-    HALT -.->|"explicit recovery reuses committed results or records new attempt"| CTRL
-    P7 -->|"research_report after committed acceptance"| PUB
-    P4 -->|"poc_bundle_ref"| PUB
-    P5 -->|"benchmark_payload_ref"| PUB
-    CONTEXT -->|"stage_context_ref"| PUB
-    CTRL -->|"report release, authorized destination_ref and request_id"| PUB
-    PUB -->|"atomic manifest publication through store"| STORE
-    STORE -->|"sealed public evidence snapshot"| EXPORT
-    EXPORT -->|"report and authorized artifact retrieval"| USER
-    EXPORT -->|"benchmark_export and manifest-scoped downloads"| HAR
-    VIEWS["Derived Data Foundation, telemetry and local progress views"]
-    STORE -.->|"lossless committed evidence: assemble, never rewrite"| VIEWS
-    CTRL -.->|"progress notifications: not release authority"| VIEWS
-    VIEWS -.->|"display and diagnostics"| USER
-    RSI["CONDITIONAL session: required offline RSI"]
-    ORACLE["Private fixture oracle: inputs/answers stay protected"]
-    ADMIT["Admission: integrity plus tested or Puppet provider"]
-    ACT["Explicit human activation for future snapshots"]
-    USER -.->|"offline target/session request"| RSI
-    POLICY -->|"frozen parent, suites and mutation policy"| RSI
-    RSI -->|"private trial refs and reserved query"| ORACLE
-    RSI -->|"authorized private proposal prompt"| MODEL
-    MODEL -->|"private captured proposal, no hidden cases"| RSI
-    ORACLE -->|"aggregate comparison and final evidence only"| RSI
-    RSI -->|"eligible public Candidate, no hidden cases"| ADMIT
-    USER -->|"developer-authored Candidate or allowlist"| ADMIT
-    ADMIT -->|"admitted inactive RSI version"| ACT
-    USER -->|"explicit activation command"| ACT
-    ACT -->|"new future library snapshot, never active Binding"| POLICY
-    classDef cc fill:#E4F2F5,stroke:#087E8B,color:#172D45;
-    classDef optional fill:#FFF4DC,stroke:#A87B24,stroke-dasharray:5 4,color:#172D45;
-    class P0,P1,P2,P3,P4,P5,P6,P7,LOCAL,SCHOLAR,CODE,GATE cc;
-    class RSI optional;
+  USER["User or benchmark client"] -->|"request and declared resources"| IN["Intake: validate and snapshot"]
+  IN -->|"normalized source inputs and context"| IC1["Intent compilation capsule"]
+  IC1 -->|"output and captured evidence"| IG1["Intent Gate CC<br/>shared research.verifier"]
+  IG1 -->|"accepted intent and source refs"| RC["Requirement compilation capsule calls"]
+  RC -->|"each call immediately: output and evidence"| RG["Requirement Gate profiles<br/>shared research.verifier"]
+  RG -->|"accepted task contract"| PLAN["Planner: propose a DAG of nodes and data bindings"]
+  LIB["Reusable CC library snapshot"] -->|"capabilities, ports and exact versions"| PLAN
+  PLAN -->|"candidate DAG"| VAL["Deterministic plan validator"]
+  VAL -->|"valid plan"| BIND["Bind work CCs and declaration-derived Gate tests<br/>then freeze closure"]
+  LIB -->|"pinned work and Gate implementations"| BIND
+  BIND -->|"frozen bound DAG"| DIS["SwarmFlow dispatch and CC supervisor"]
+  IN -->|"immutable resource refs"| DATA["Declared DAG input data"]
+  RG -->|"accepted requirements"| DATA
+  DATA -->|"validated input ports"| DIS
+  DIS -->|"ready node and Binding"| RUN["Local CC runner inside Docker"]
+  RUN -->|"execute bound capability"| CC["Bound CC executes task node locally<br/>restricted process"]
+  CC -->|"output and evidence"| SAVE["Commit output and capture"]
+  SAVE -->|"evidence and pinned criteria"| GATE["Node Gate: deterministic checks first<br/>then declaration-derived shared verifier test<br/>when deterministic checks pass"]
+  GATE -->|"assessment"| COMMIT["Commit Verification and release"]
+  COMMIT -->|"accepted output unlocks successors"| DIS
+  COMMIT -->|"required terminal outputs accepted"| PUB["Delivery: ordinary processing and publication"]
+  PUB -->|"processed report and artifact manifest"| VIEW["Result retrieval and user view"]
+  VIEW -->|"authorized results"| USER
+  GATE -->|"non-advancing result"| HALT["Halt entire run and preserve evidence<br/>no following or sibling capsule starts"]
+  VAL -->|"invalid plan"| HALT
+  COMMIT -->|"persistence failure"| HALT
+  HALT -->|"explicit operator recovery"| REC["Reconcile committed state before any execution"]
+  REC -->|"only recorded authority or approved unchanged-pin attempt"| DIS
+  classDef cc fill:#FFF1D6,stroke:#B86E00,color:#172D45;
+  classDef gate fill:#EEE4F6,stroke:#754A91,color:#172D45;
+  class IC1,RC,CC cc;
+  class IG1,RG,GATE gate;
+  HAR["Benchmark client: authenticated local API"] -->|"task, config and request identity"| IN
+  STORE["Canonical store: required capture and durable records"]
+  MODEL["Protected Codex bridge: private credential owner"]
+  EXPORT["Sealed export and authorized manifest retrieval"]
+  POLICY["Pinned configuration, budgets and policy"]
+  POLICY -->|"permitted planning limits"| PLAN
+  POLICY -->|"frozen enforcement inputs"| BIND
+  PLAN -->|"authorized bounded proposal request"| MODEL
+  RUN -->|"authorized work and verifier requests"| MODEL
+  MODEL -->|"captured proposal or typed failure"| PLAN
+  MODEL -->|"captured result or typed failure"| RUN
+  IC1 -->|"output and required capture via trusted writer"| STORE
+  RC -->|"requirements and required capture"| STORE
+  IG1 -->|"frontend Verification and release via supervisor"| STORE
+  RG -->|"requirement Verification and release"| STORE
+  SAVE -->|"immutable output and required raw capture"| STORE
+  COMMIT -->|"Verification then release: one trusted writer"| STORE
+  STORE -->|"only committed authority is replayed"| REC
+  PUB -->|"processed outputs and committed manifest"| STORE
+  STORE -->|"authorized sealed public evidence"| EXPORT
+  EXPORT -->|"manifest-scoped data"| VIEW
+  EXPORT -->|"correlated benchmark evidence"| HAR
+  VIEWS["Derived telemetry, UI progress and Data Foundation views"]
+  STORE -.->|"derive views without changing authority"| VIEWS
+  VIEWS -.->|"optional displays"| VIEW
+  RSI["Offline RSI: eligible work capsules only"]
+  ORACLE["Private fixture oracle"]
+  ADMIT["Admission: integrity plus tested or Puppet policy"]
+  ACT["Explicit human activation"]
+  USER -.->|"separate offline session"| RSI
+  LIB -->|"frozen parent and zero Gate mutation permission"| RSI
+  RSI -->|"reserved private evaluation"| ORACLE
+  ORACLE -->|"aggregate results, no hidden answers"| RSI
+  RSI -->|"public Candidate without hidden fixtures"| ADMIT
+  ADMIT -->|"admitted inactive candidate"| ACT
+  USER -->|"explicit activation command"| ACT
+  ACT -->|"future snapshots only"| LIB
 ```
 <!-- /generated:information-full -->
 
-## 2. Observability hidden: preserve required evidence and RSI
-
-Only derived displays/telemetry/assembler edges disappear. Canonical raw capture and durable decision/release records remain, because they are execution authority rather than optional logging.
+## 2. Without derived observability
 
 <!-- generated:information-no-observability -->
 ```mermaid
 flowchart TB
-    USER["Researcher: question and declared local resources"]
-    HAR["External harness: intake proposal and config_ref"]
-    IN["Entry: validate, snapshot, extract source_text"]
-    POLICY["Configuration, policy, schemas and admitted library pins"]
-    VALID["Validate fixed production plan, then freeze Bindings"]
-    CTRL["Supervisor and runner: dispatch, resolve refs, enforce quotas"]
-    GATE["Gate host and CC: research.verifier"]
-    STORE["Canonical store: required evidence and committed records"]
-    MODEL["Protected bridge and Codex: authorized prompt and reply captures"]
-    LOCAL["CC: op.local_search"]
-    SCHOLAR["CC: op.scholarly_search"]
-    CODE["CC: op.codesearch"]
-    WEB["arXiv and Semantic Scholar: bounded retrieval"]
-    MEASURE["Confined baseline/treatment and trusted measurement"]
-    CONTEXT["Authorized StageContext: committed evidence references"]
-    PUB["Publisher: validate report and commit directory manifest"]
-    EXPORT["Export/retrieval: sealed manifest members and correlated evidence"]
-    HALT["Halt: retained evidence and explicit human recovery"]
-    subgraph WORK["Eight fixed production work CCs: logical input bindings"]
-        P0["CC: research.compile_brief"]
-        P1["CC: research.search_ideas"]
-        P2["CC: research.select_opportunity"]
-        P3["CC: research.form_hypothesis"]
-        P4["CC: research.build_poc"]
-        P5["CC: research.run_benchmark"]
-        P6["CC: research.evaluate_results"]
-        P7["CC: research.write_report"]
-    end
-    USER -->|"question and provisioned resource locators"| IN
-    HAR -->|"authenticated task, config, seed and request identity"| IN
-    IN -->|"committed intake identity"| VALID
-    POLICY -->|"exact versions, policy and permitted config"| VALID
-    VALID -->|"committed valid plan and frozen Bindings"| CTRL
-    CTRL -->|"reserved invocation through admitted ports"| WORK
-    IN -->|"intake to intake"| P0
-    IN -->|"source_text to source_text"| P0
-    P0 -->|"research_brief to research_brief"| P1
-    IN -->|"intake to intake"| P1
-    P1 -->|"idea_set to idea_set"| P2
-    P0 -->|"research_brief to research_brief"| P2
-    P2 -->|"opportunity_card to opportunity_card"| P3
-    P0 -->|"research_brief to research_brief"| P3
-    IN -->|"intake to intake"| P3
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P4
-    P0 -->|"research_brief to research_brief"| P4
-    IN -->|"intake to intake"| P4
-    P4 -->|"poc_bundle to poc_bundle"| P5
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P5
-    P5 -->|"benchmark_payload to benchmark_payload"| P6
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P6
-    P0 -->|"research_brief to research_brief"| P6
-    P6 -->|"evaluation_verdict to evaluation_verdict"| P7
-    P5 -->|"benchmark_payload to benchmark_payload"| P7
-    P0 -->|"research_brief to research_brief"| P7
-    P1 -->|"idea_set to idea_set"| P7
-    P2 -->|"opportunity_card to opportunity_card"| P7
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P7
-    IN -.->|"optional deterministic intent_ir hints"| P0
-    P1 -->|"query, documents and top_k: each query"| LOCAL
-    LOCAL -->|"search_hits: verbatim passages"| P1
-    P1 -->|"query and top_k: each query"| SCHOLAR
-    SCHOLAR -->|"search_hits: paper abstracts"| P1
-    SCHOLAR -->|"approved broker requests"| WEB
-    WEB -->|"paper metadata and abstracts"| SCHOLAR
-    P3 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: mechanism source ranges"| P3
-    P4 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: verified source ranges"| P4
-    P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE
-    MEASURE -->|"trusted samples, logs and raw evidence refs"| P5
-    CONTEXT -->|"authorized StageContext, not a capsule port"| P7
-    STORE -->|"committed permitted evidence only"| CONTEXT
-    CTRL -->|"authorized model requests: work or verifier"| MODEL
-    MODEL -->|"captured result or typed failure"| CTRL
-    CTRL -->|"work output and required capture publication"| STORE
-    CTRL -->|"committed evidence_bundle and pinned gate profile"| GATE
-    GATE -->|"Verification publication via supervisor writer"| STORE
-    STORE -->|"committed Verification and release replay"| CTRL
-    CTRL -->|"persist release before successor dispatch"| STORE
-    CTRL -->|"failure, nonpass or uncertain effect"| HALT
-    HALT -.->|"explicit recovery reuses committed results or records new attempt"| CTRL
-    P7 -->|"research_report after committed acceptance"| PUB
-    P4 -->|"poc_bundle_ref"| PUB
-    P5 -->|"benchmark_payload_ref"| PUB
-    CONTEXT -->|"stage_context_ref"| PUB
-    CTRL -->|"report release, authorized destination_ref and request_id"| PUB
-    PUB -->|"atomic manifest publication through store"| STORE
-    STORE -->|"sealed public evidence snapshot"| EXPORT
-    EXPORT -->|"report and authorized artifact retrieval"| USER
-    EXPORT -->|"benchmark_export and manifest-scoped downloads"| HAR
-    RSI["CONDITIONAL session: required offline RSI"]
-    ORACLE["Private fixture oracle: inputs/answers stay protected"]
-    ADMIT["Admission: integrity plus tested or Puppet provider"]
-    ACT["Explicit human activation for future snapshots"]
-    USER -.->|"offline target/session request"| RSI
-    POLICY -->|"frozen parent, suites and mutation policy"| RSI
-    RSI -->|"private trial refs and reserved query"| ORACLE
-    RSI -->|"authorized private proposal prompt"| MODEL
-    MODEL -->|"private captured proposal, no hidden cases"| RSI
-    ORACLE -->|"aggregate comparison and final evidence only"| RSI
-    RSI -->|"eligible public Candidate, no hidden cases"| ADMIT
-    USER -->|"developer-authored Candidate or allowlist"| ADMIT
-    ADMIT -->|"admitted inactive RSI version"| ACT
-    USER -->|"explicit activation command"| ACT
-    ACT -->|"new future library snapshot, never active Binding"| POLICY
-    classDef cc fill:#E4F2F5,stroke:#087E8B,color:#172D45;
-    classDef optional fill:#FFF4DC,stroke:#A87B24,stroke-dasharray:5 4,color:#172D45;
-    class P0,P1,P2,P3,P4,P5,P6,P7,LOCAL,SCHOLAR,CODE,GATE cc;
-    class RSI optional;
+  USER["User or benchmark client"] -->|"request and declared resources"| IN["Intake: validate and snapshot"]
+  IN -->|"normalized source inputs and context"| IC1["Intent compilation capsule"]
+  IC1 -->|"output and captured evidence"| IG1["Intent Gate CC<br/>shared research.verifier"]
+  IG1 -->|"accepted intent and source refs"| RC["Requirement compilation capsule calls"]
+  RC -->|"each call immediately: output and evidence"| RG["Requirement Gate profiles<br/>shared research.verifier"]
+  RG -->|"accepted task contract"| PLAN["Planner: propose a DAG of nodes and data bindings"]
+  LIB["Reusable CC library snapshot"] -->|"capabilities, ports and exact versions"| PLAN
+  PLAN -->|"candidate DAG"| VAL["Deterministic plan validator"]
+  VAL -->|"valid plan"| BIND["Bind work CCs and declaration-derived Gate tests<br/>then freeze closure"]
+  LIB -->|"pinned work and Gate implementations"| BIND
+  BIND -->|"frozen bound DAG"| DIS["SwarmFlow dispatch and CC supervisor"]
+  IN -->|"immutable resource refs"| DATA["Declared DAG input data"]
+  RG -->|"accepted requirements"| DATA
+  DATA -->|"validated input ports"| DIS
+  DIS -->|"ready node and Binding"| RUN["Local CC runner inside Docker"]
+  RUN -->|"execute bound capability"| CC["Bound CC executes task node locally<br/>restricted process"]
+  CC -->|"output and evidence"| SAVE["Commit output and capture"]
+  SAVE -->|"evidence and pinned criteria"| GATE["Node Gate: deterministic checks first<br/>then declaration-derived shared verifier test<br/>when deterministic checks pass"]
+  GATE -->|"assessment"| COMMIT["Commit Verification and release"]
+  COMMIT -->|"accepted output unlocks successors"| DIS
+  COMMIT -->|"required terminal outputs accepted"| PUB["Delivery: ordinary processing and publication"]
+  PUB -->|"processed report and artifact manifest"| VIEW["Result retrieval and user view"]
+  VIEW -->|"authorized results"| USER
+  GATE -->|"non-advancing result"| HALT["Halt entire run and preserve evidence<br/>no following or sibling capsule starts"]
+  VAL -->|"invalid plan"| HALT
+  COMMIT -->|"persistence failure"| HALT
+  HALT -->|"explicit operator recovery"| REC["Reconcile committed state before any execution"]
+  REC -->|"only recorded authority or approved unchanged-pin attempt"| DIS
+  classDef cc fill:#FFF1D6,stroke:#B86E00,color:#172D45;
+  classDef gate fill:#EEE4F6,stroke:#754A91,color:#172D45;
+  class IC1,RC,CC cc;
+  class IG1,RG,GATE gate;
+  HAR["Benchmark client: authenticated local API"] -->|"task, config and request identity"| IN
+  STORE["Canonical store: required capture and durable records"]
+  MODEL["Protected Codex bridge: private credential owner"]
+  EXPORT["Sealed export and authorized manifest retrieval"]
+  POLICY["Pinned configuration, budgets and policy"]
+  POLICY -->|"permitted planning limits"| PLAN
+  POLICY -->|"frozen enforcement inputs"| BIND
+  PLAN -->|"authorized bounded proposal request"| MODEL
+  RUN -->|"authorized work and verifier requests"| MODEL
+  MODEL -->|"captured proposal or typed failure"| PLAN
+  MODEL -->|"captured result or typed failure"| RUN
+  IC1 -->|"output and required capture via trusted writer"| STORE
+  RC -->|"requirements and required capture"| STORE
+  IG1 -->|"frontend Verification and release via supervisor"| STORE
+  RG -->|"requirement Verification and release"| STORE
+  SAVE -->|"immutable output and required raw capture"| STORE
+  COMMIT -->|"Verification then release: one trusted writer"| STORE
+  STORE -->|"only committed authority is replayed"| REC
+  PUB -->|"processed outputs and committed manifest"| STORE
+  STORE -->|"authorized sealed public evidence"| EXPORT
+  EXPORT -->|"manifest-scoped data"| VIEW
+  EXPORT -->|"correlated benchmark evidence"| HAR
+  RSI["Offline RSI: eligible work capsules only"]
+  ORACLE["Private fixture oracle"]
+  ADMIT["Admission: integrity plus tested or Puppet policy"]
+  ACT["Explicit human activation"]
+  USER -.->|"separate offline session"| RSI
+  LIB -->|"frozen parent and zero Gate mutation permission"| RSI
+  RSI -->|"reserved private evaluation"| ORACLE
+  ORACLE -->|"aggregate results, no hidden answers"| RSI
+  RSI -->|"public Candidate without hidden fixtures"| ADMIT
+  ADMIT -->|"admitted inactive candidate"| ACT
+  USER -->|"explicit activation command"| ACT
+  ACT -->|"future snapshots only"| LIB
 ```
 <!-- /generated:information-no-observability -->
 
-## 3. RSI hidden: production with evidence views
-
-Candidate/oracle/admission/activation detail disappears. The pinned admitted library remains a production prerequisite. The library can also receive normal developer-authored candidates through the owning admission API.
+## 3. Without the offline RSI branch
 
 <!-- generated:information-no-rsi -->
 ```mermaid
 flowchart TB
-    USER["Researcher: question and declared local resources"]
-    HAR["External harness: intake proposal and config_ref"]
-    IN["Entry: validate, snapshot, extract source_text"]
-    POLICY["Configuration, policy, schemas and admitted library pins"]
-    VALID["Validate fixed production plan, then freeze Bindings"]
-    CTRL["Supervisor and runner: dispatch, resolve refs, enforce quotas"]
-    GATE["Gate host and CC: research.verifier"]
-    STORE["Canonical store: required evidence and committed records"]
-    MODEL["Protected bridge and Codex: authorized prompt and reply captures"]
-    LOCAL["CC: op.local_search"]
-    SCHOLAR["CC: op.scholarly_search"]
-    CODE["CC: op.codesearch"]
-    WEB["arXiv and Semantic Scholar: bounded retrieval"]
-    MEASURE["Confined baseline/treatment and trusted measurement"]
-    CONTEXT["Authorized StageContext: committed evidence references"]
-    PUB["Publisher: validate report and commit directory manifest"]
-    EXPORT["Export/retrieval: sealed manifest members and correlated evidence"]
-    HALT["Halt: retained evidence and explicit human recovery"]
-    subgraph WORK["Eight fixed production work CCs: logical input bindings"]
-        P0["CC: research.compile_brief"]
-        P1["CC: research.search_ideas"]
-        P2["CC: research.select_opportunity"]
-        P3["CC: research.form_hypothesis"]
-        P4["CC: research.build_poc"]
-        P5["CC: research.run_benchmark"]
-        P6["CC: research.evaluate_results"]
-        P7["CC: research.write_report"]
-    end
-    USER -->|"question and provisioned resource locators"| IN
-    HAR -->|"authenticated task, config, seed and request identity"| IN
-    IN -->|"committed intake identity"| VALID
-    POLICY -->|"exact versions, policy and permitted config"| VALID
-    VALID -->|"committed valid plan and frozen Bindings"| CTRL
-    CTRL -->|"reserved invocation through admitted ports"| WORK
-    IN -->|"intake to intake"| P0
-    IN -->|"source_text to source_text"| P0
-    P0 -->|"research_brief to research_brief"| P1
-    IN -->|"intake to intake"| P1
-    P1 -->|"idea_set to idea_set"| P2
-    P0 -->|"research_brief to research_brief"| P2
-    P2 -->|"opportunity_card to opportunity_card"| P3
-    P0 -->|"research_brief to research_brief"| P3
-    IN -->|"intake to intake"| P3
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P4
-    P0 -->|"research_brief to research_brief"| P4
-    IN -->|"intake to intake"| P4
-    P4 -->|"poc_bundle to poc_bundle"| P5
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P5
-    P5 -->|"benchmark_payload to benchmark_payload"| P6
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P6
-    P0 -->|"research_brief to research_brief"| P6
-    P6 -->|"evaluation_verdict to evaluation_verdict"| P7
-    P5 -->|"benchmark_payload to benchmark_payload"| P7
-    P0 -->|"research_brief to research_brief"| P7
-    P1 -->|"idea_set to idea_set"| P7
-    P2 -->|"opportunity_card to opportunity_card"| P7
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P7
-    IN -.->|"optional deterministic intent_ir hints"| P0
-    P1 -->|"query, documents and top_k: each query"| LOCAL
-    LOCAL -->|"search_hits: verbatim passages"| P1
-    P1 -->|"query and top_k: each query"| SCHOLAR
-    SCHOLAR -->|"search_hits: paper abstracts"| P1
-    SCHOLAR -->|"approved broker requests"| WEB
-    WEB -->|"paper metadata and abstracts"| SCHOLAR
-    P3 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: mechanism source ranges"| P3
-    P4 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: verified source ranges"| P4
-    P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE
-    MEASURE -->|"trusted samples, logs and raw evidence refs"| P5
-    CONTEXT -->|"authorized StageContext, not a capsule port"| P7
-    STORE -->|"committed permitted evidence only"| CONTEXT
-    CTRL -->|"authorized model requests: work or verifier"| MODEL
-    MODEL -->|"captured result or typed failure"| CTRL
-    CTRL -->|"work output and required capture publication"| STORE
-    CTRL -->|"committed evidence_bundle and pinned gate profile"| GATE
-    GATE -->|"Verification publication via supervisor writer"| STORE
-    STORE -->|"committed Verification and release replay"| CTRL
-    CTRL -->|"persist release before successor dispatch"| STORE
-    CTRL -->|"failure, nonpass or uncertain effect"| HALT
-    HALT -.->|"explicit recovery reuses committed results or records new attempt"| CTRL
-    P7 -->|"research_report after committed acceptance"| PUB
-    P4 -->|"poc_bundle_ref"| PUB
-    P5 -->|"benchmark_payload_ref"| PUB
-    CONTEXT -->|"stage_context_ref"| PUB
-    CTRL -->|"report release, authorized destination_ref and request_id"| PUB
-    PUB -->|"atomic manifest publication through store"| STORE
-    STORE -->|"sealed public evidence snapshot"| EXPORT
-    EXPORT -->|"report and authorized artifact retrieval"| USER
-    EXPORT -->|"benchmark_export and manifest-scoped downloads"| HAR
-    VIEWS["Derived Data Foundation, telemetry and local progress views"]
-    STORE -.->|"lossless committed evidence: assemble, never rewrite"| VIEWS
-    CTRL -.->|"progress notifications: not release authority"| VIEWS
-    VIEWS -.->|"display and diagnostics"| USER
-    classDef cc fill:#E4F2F5,stroke:#087E8B,color:#172D45;
-    classDef optional fill:#FFF4DC,stroke:#A87B24,stroke-dasharray:5 4,color:#172D45;
-    class P0,P1,P2,P3,P4,P5,P6,P7,LOCAL,SCHOLAR,CODE,GATE cc;
+  USER["User or benchmark client"] -->|"request and declared resources"| IN["Intake: validate and snapshot"]
+  IN -->|"normalized source inputs and context"| IC1["Intent compilation capsule"]
+  IC1 -->|"output and captured evidence"| IG1["Intent Gate CC<br/>shared research.verifier"]
+  IG1 -->|"accepted intent and source refs"| RC["Requirement compilation capsule calls"]
+  RC -->|"each call immediately: output and evidence"| RG["Requirement Gate profiles<br/>shared research.verifier"]
+  RG -->|"accepted task contract"| PLAN["Planner: propose a DAG of nodes and data bindings"]
+  LIB["Reusable CC library snapshot"] -->|"capabilities, ports and exact versions"| PLAN
+  PLAN -->|"candidate DAG"| VAL["Deterministic plan validator"]
+  VAL -->|"valid plan"| BIND["Bind work CCs and declaration-derived Gate tests<br/>then freeze closure"]
+  LIB -->|"pinned work and Gate implementations"| BIND
+  BIND -->|"frozen bound DAG"| DIS["SwarmFlow dispatch and CC supervisor"]
+  IN -->|"immutable resource refs"| DATA["Declared DAG input data"]
+  RG -->|"accepted requirements"| DATA
+  DATA -->|"validated input ports"| DIS
+  DIS -->|"ready node and Binding"| RUN["Local CC runner inside Docker"]
+  RUN -->|"execute bound capability"| CC["Bound CC executes task node locally<br/>restricted process"]
+  CC -->|"output and evidence"| SAVE["Commit output and capture"]
+  SAVE -->|"evidence and pinned criteria"| GATE["Node Gate: deterministic checks first<br/>then declaration-derived shared verifier test<br/>when deterministic checks pass"]
+  GATE -->|"assessment"| COMMIT["Commit Verification and release"]
+  COMMIT -->|"accepted output unlocks successors"| DIS
+  COMMIT -->|"required terminal outputs accepted"| PUB["Delivery: ordinary processing and publication"]
+  PUB -->|"processed report and artifact manifest"| VIEW["Result retrieval and user view"]
+  VIEW -->|"authorized results"| USER
+  GATE -->|"non-advancing result"| HALT["Halt entire run and preserve evidence<br/>no following or sibling capsule starts"]
+  VAL -->|"invalid plan"| HALT
+  COMMIT -->|"persistence failure"| HALT
+  HALT -->|"explicit operator recovery"| REC["Reconcile committed state before any execution"]
+  REC -->|"only recorded authority or approved unchanged-pin attempt"| DIS
+  classDef cc fill:#FFF1D6,stroke:#B86E00,color:#172D45;
+  classDef gate fill:#EEE4F6,stroke:#754A91,color:#172D45;
+  class IC1,RC,CC cc;
+  class IG1,RG,GATE gate;
+  HAR["Benchmark client: authenticated local API"] -->|"task, config and request identity"| IN
+  STORE["Canonical store: required capture and durable records"]
+  MODEL["Protected Codex bridge: private credential owner"]
+  EXPORT["Sealed export and authorized manifest retrieval"]
+  POLICY["Pinned configuration, budgets and policy"]
+  POLICY -->|"permitted planning limits"| PLAN
+  POLICY -->|"frozen enforcement inputs"| BIND
+  PLAN -->|"authorized bounded proposal request"| MODEL
+  RUN -->|"authorized work and verifier requests"| MODEL
+  MODEL -->|"captured proposal or typed failure"| PLAN
+  MODEL -->|"captured result or typed failure"| RUN
+  IC1 -->|"output and required capture via trusted writer"| STORE
+  RC -->|"requirements and required capture"| STORE
+  IG1 -->|"frontend Verification and release via supervisor"| STORE
+  RG -->|"requirement Verification and release"| STORE
+  SAVE -->|"immutable output and required raw capture"| STORE
+  COMMIT -->|"Verification then release: one trusted writer"| STORE
+  STORE -->|"only committed authority is replayed"| REC
+  PUB -->|"processed outputs and committed manifest"| STORE
+  STORE -->|"authorized sealed public evidence"| EXPORT
+  EXPORT -->|"manifest-scoped data"| VIEW
+  EXPORT -->|"correlated benchmark evidence"| HAR
+  VIEWS["Derived telemetry, UI progress and Data Foundation views"]
+  STORE -.->|"derive views without changing authority"| VIEWS
+  VIEWS -.->|"optional displays"| VIEW
 ```
 <!-- /generated:information-no-rsi -->
 
-## 4. Core: both overlays hidden
-
-Use this for the research data path and its acceptance/I/O boundaries. It is still the same architecture; this filter is not a reduced release scope.
+## 4. Core request-to-DAG flow
 
 <!-- generated:information-core -->
 ```mermaid
 flowchart TB
-    USER["Researcher: question and declared local resources"]
-    HAR["External harness: intake proposal and config_ref"]
-    IN["Entry: validate, snapshot, extract source_text"]
-    POLICY["Configuration, policy, schemas and admitted library pins"]
-    VALID["Validate fixed production plan, then freeze Bindings"]
-    CTRL["Supervisor and runner: dispatch, resolve refs, enforce quotas"]
-    GATE["Gate host and CC: research.verifier"]
-    STORE["Canonical store: required evidence and committed records"]
-    MODEL["Protected bridge and Codex: authorized prompt and reply captures"]
-    LOCAL["CC: op.local_search"]
-    SCHOLAR["CC: op.scholarly_search"]
-    CODE["CC: op.codesearch"]
-    WEB["arXiv and Semantic Scholar: bounded retrieval"]
-    MEASURE["Confined baseline/treatment and trusted measurement"]
-    CONTEXT["Authorized StageContext: committed evidence references"]
-    PUB["Publisher: validate report and commit directory manifest"]
-    EXPORT["Export/retrieval: sealed manifest members and correlated evidence"]
-    HALT["Halt: retained evidence and explicit human recovery"]
-    subgraph WORK["Eight fixed production work CCs: logical input bindings"]
-        P0["CC: research.compile_brief"]
-        P1["CC: research.search_ideas"]
-        P2["CC: research.select_opportunity"]
-        P3["CC: research.form_hypothesis"]
-        P4["CC: research.build_poc"]
-        P5["CC: research.run_benchmark"]
-        P6["CC: research.evaluate_results"]
-        P7["CC: research.write_report"]
-    end
-    USER -->|"question and provisioned resource locators"| IN
-    HAR -->|"authenticated task, config, seed and request identity"| IN
-    IN -->|"committed intake identity"| VALID
-    POLICY -->|"exact versions, policy and permitted config"| VALID
-    VALID -->|"committed valid plan and frozen Bindings"| CTRL
-    CTRL -->|"reserved invocation through admitted ports"| WORK
-    IN -->|"intake to intake"| P0
-    IN -->|"source_text to source_text"| P0
-    P0 -->|"research_brief to research_brief"| P1
-    IN -->|"intake to intake"| P1
-    P1 -->|"idea_set to idea_set"| P2
-    P0 -->|"research_brief to research_brief"| P2
-    P2 -->|"opportunity_card to opportunity_card"| P3
-    P0 -->|"research_brief to research_brief"| P3
-    IN -->|"intake to intake"| P3
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P4
-    P0 -->|"research_brief to research_brief"| P4
-    IN -->|"intake to intake"| P4
-    P4 -->|"poc_bundle to poc_bundle"| P5
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P5
-    P5 -->|"benchmark_payload to benchmark_payload"| P6
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P6
-    P0 -->|"research_brief to research_brief"| P6
-    P6 -->|"evaluation_verdict to evaluation_verdict"| P7
-    P5 -->|"benchmark_payload to benchmark_payload"| P7
-    P0 -->|"research_brief to research_brief"| P7
-    P1 -->|"idea_set to idea_set"| P7
-    P2 -->|"opportunity_card to opportunity_card"| P7
-    P3 -->|"hypothesis_blueprint to hypothesis_blueprint"| P7
-    IN -.->|"optional deterministic intent_ir hints"| P0
-    P1 -->|"query, documents and top_k: each query"| LOCAL
-    LOCAL -->|"search_hits: verbatim passages"| P1
-    P1 -->|"query and top_k: each query"| SCHOLAR
-    SCHOLAR -->|"search_hits: paper abstracts"| P1
-    SCHOLAR -->|"approved broker requests"| WEB
-    WEB -->|"paper metadata and abstracts"| SCHOLAR
-    P3 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: mechanism source ranges"| P3
-    P4 -->|"query, repository snapshot and top_k"| CODE
-    CODE -->|"code_hits: verified source ranges"| P4
-    P5 -->|"frozen protocol, POC bundle and resource pins"| MEASURE
-    MEASURE -->|"trusted samples, logs and raw evidence refs"| P5
-    CONTEXT -->|"authorized StageContext, not a capsule port"| P7
-    STORE -->|"committed permitted evidence only"| CONTEXT
-    CTRL -->|"authorized model requests: work or verifier"| MODEL
-    MODEL -->|"captured result or typed failure"| CTRL
-    CTRL -->|"work output and required capture publication"| STORE
-    CTRL -->|"committed evidence_bundle and pinned gate profile"| GATE
-    GATE -->|"Verification publication via supervisor writer"| STORE
-    STORE -->|"committed Verification and release replay"| CTRL
-    CTRL -->|"persist release before successor dispatch"| STORE
-    CTRL -->|"failure, nonpass or uncertain effect"| HALT
-    HALT -.->|"explicit recovery reuses committed results or records new attempt"| CTRL
-    P7 -->|"research_report after committed acceptance"| PUB
-    P4 -->|"poc_bundle_ref"| PUB
-    P5 -->|"benchmark_payload_ref"| PUB
-    CONTEXT -->|"stage_context_ref"| PUB
-    CTRL -->|"report release, authorized destination_ref and request_id"| PUB
-    PUB -->|"atomic manifest publication through store"| STORE
-    STORE -->|"sealed public evidence snapshot"| EXPORT
-    EXPORT -->|"report and authorized artifact retrieval"| USER
-    EXPORT -->|"benchmark_export and manifest-scoped downloads"| HAR
-    classDef cc fill:#E4F2F5,stroke:#087E8B,color:#172D45;
-    classDef optional fill:#FFF4DC,stroke:#A87B24,stroke-dasharray:5 4,color:#172D45;
-    class P0,P1,P2,P3,P4,P5,P6,P7,LOCAL,SCHOLAR,CODE,GATE cc;
+  USER["User or benchmark client"] -->|"request and declared resources"| IN["Intake: validate and snapshot"]
+  IN -->|"normalized source inputs and context"| IC1["Intent compilation capsule"]
+  IC1 -->|"output and captured evidence"| IG1["Intent Gate CC<br/>shared research.verifier"]
+  IG1 -->|"accepted intent and source refs"| RC["Requirement compilation capsule calls"]
+  RC -->|"each call immediately: output and evidence"| RG["Requirement Gate profiles<br/>shared research.verifier"]
+  RG -->|"accepted task contract"| PLAN["Planner: propose a DAG of nodes and data bindings"]
+  LIB["Reusable CC library snapshot"] -->|"capabilities, ports and exact versions"| PLAN
+  PLAN -->|"candidate DAG"| VAL["Deterministic plan validator"]
+  VAL -->|"valid plan"| BIND["Bind work CCs and declaration-derived Gate tests<br/>then freeze closure"]
+  LIB -->|"pinned work and Gate implementations"| BIND
+  BIND -->|"frozen bound DAG"| DIS["SwarmFlow dispatch and CC supervisor"]
+  IN -->|"immutable resource refs"| DATA["Declared DAG input data"]
+  RG -->|"accepted requirements"| DATA
+  DATA -->|"validated input ports"| DIS
+  DIS -->|"ready node and Binding"| RUN["Local CC runner inside Docker"]
+  RUN -->|"execute bound capability"| CC["Bound CC executes task node locally<br/>restricted process"]
+  CC -->|"output and evidence"| SAVE["Commit output and capture"]
+  SAVE -->|"evidence and pinned criteria"| GATE["Node Gate: deterministic checks first<br/>then declaration-derived shared verifier test<br/>when deterministic checks pass"]
+  GATE -->|"assessment"| COMMIT["Commit Verification and release"]
+  COMMIT -->|"accepted output unlocks successors"| DIS
+  COMMIT -->|"required terminal outputs accepted"| PUB["Delivery: ordinary processing and publication"]
+  PUB -->|"processed report and artifact manifest"| VIEW["Result retrieval and user view"]
+  VIEW -->|"authorized results"| USER
+  GATE -->|"non-advancing result"| HALT["Halt entire run and preserve evidence<br/>no following or sibling capsule starts"]
+  VAL -->|"invalid plan"| HALT
+  COMMIT -->|"persistence failure"| HALT
+  HALT -->|"explicit operator recovery"| REC["Reconcile committed state before any execution"]
+  REC -->|"only recorded authority or approved unchanged-pin attempt"| DIS
+  classDef cc fill:#FFF1D6,stroke:#B86E00,color:#172D45;
+  classDef gate fill:#EEE4F6,stroke:#754A91,color:#172D45;
+  class IC1,RC,CC cc;
+  class IG1,RG,GATE gate;
+  HAR["Benchmark client: authenticated local API"] -->|"task, config and request identity"| IN
+  STORE["Canonical store: required capture and durable records"]
+  MODEL["Protected Codex bridge: private credential owner"]
+  EXPORT["Sealed export and authorized manifest retrieval"]
+  POLICY["Pinned configuration, budgets and policy"]
+  POLICY -->|"permitted planning limits"| PLAN
+  POLICY -->|"frozen enforcement inputs"| BIND
+  PLAN -->|"authorized bounded proposal request"| MODEL
+  RUN -->|"authorized work and verifier requests"| MODEL
+  MODEL -->|"captured proposal or typed failure"| PLAN
+  MODEL -->|"captured result or typed failure"| RUN
+  IC1 -->|"output and required capture via trusted writer"| STORE
+  RC -->|"requirements and required capture"| STORE
+  IG1 -->|"frontend Verification and release via supervisor"| STORE
+  RG -->|"requirement Verification and release"| STORE
+  SAVE -->|"immutable output and required raw capture"| STORE
+  COMMIT -->|"Verification then release: one trusted writer"| STORE
+  STORE -->|"only committed authority is replayed"| REC
+  PUB -->|"processed outputs and committed manifest"| STORE
+  STORE -->|"authorized sealed public evidence"| EXPORT
+  EXPORT -->|"manifest-scoped data"| VIEW
+  EXPORT -->|"correlated benchmark evidence"| HAR
 ```
 <!-- /generated:information-core -->
 
-## 5. Failure and recovery: which data authorizes the next step?
+## 5. Gate persistence, halt and recovery
+
+This per-call temporal view applies to intent, requirements and DAG work. It does not authorize bypassing frontend Gates or replanning a live DAG.
 
 ```mermaid
 flowchart TB
@@ -514,14 +341,3 @@ flowchart TB
     REC -->|"human-approved environment or reviewed partial-effect retry, unchanged pins"| CALL
     REC -->|"changed task, input, policy or config"| START
 ```
-
-An existing committed release is replayed without rerunning the work or Gate. If a committed Observation exists but its Verification is absent, recovery evaluates the Gate on that Observation; the shorthand graph's reuse arrow applies only to a committed decision. New-run recovery allocates a new run identity; input/setting changes cannot silently alter the old one. Scientific FAIL/INCONCLUSIVE/preregistered conditional outcomes can continue when their infrastructure Gate passes. No eligible opportunity, invalid evidence, unsupported environment or failed durable write halts the affected path. An uncertain effect is not automatically retried.
-
-## How to read the deeper design
-
-- A CC's responsibility and exact inputs/outputs: [capability guides](../m1/capability-designs.md), [pipeline table](../m1/pipeline.md) and [owning type index](../types/types.md).
-- Who writes/authorizes/restarts: [records](records.md), [storage](storage.md), [lifecycle](lifecycle.md), [Gate host](../capsule/gate-host.md).
-- External/private access: [deployment](deployment.md), [model auth](model-auth.md), [oracle](../capsule/fixture-oracle.md), [benchmark API](benchmark-export.md).
-- Expected boundary failures and actual evidence limits: [verification](verification.md), [stories](../stories/README.md), [validation obligations](../open-issues.md).
-
-The filtered graphs are generated from one projection definition, following [C4's views at different detail levels](https://c4model.com/diagrams) and the typed-component pattern in [Kubeflow](https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/). This is a documentation method, not a new runtime dependency.

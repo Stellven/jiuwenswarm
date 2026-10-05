@@ -65,45 +65,23 @@ if errors:
 print(f'{checked} active local file/anchor links agree; {len(actual)} capability packets match inventory')
 print('Three tracks and ten PRD construction stages have navigation rows; semantic compliance and runtime remain separately reviewed.')
 
-# Simplified presentation must show every current capsule without inventing identities.
-overview = (vault / 'system/overall-draft.md').read_text(encoding='utf-8')
-first_view = re.search(r'```mermaid\s*\n(.*?)```', overview, re.S).group(1)
-overview_capsules = re.findall(r'CC: ([a-z_]+\.[a-z_]+)', first_view)
-assert len(overview_capsules) == len(set(overview_capsules)), 'Duplicate capsule in overview'
-assert set(overview_capsules) == expected, 'Overview differs from canonical capsule inventory'
-print(f'{len(overview_capsules)} overview CC identities match the production/operator inventory')
-
+# All current views preserve the fixed frontend before planned execution.
 flow_views = (vault / 'system/information-flow.md').read_text(encoding='utf-8')
-step_nodes = {step['step_id']: f'P{i}' for i,step in enumerate(plan['steps'])}
-expected_bindings = set()
-for step in plan['steps']:
-    for port,binding in step['inputs'].items():
-        producer,payload = binding.split('.',1)
-        expected_bindings.add(('IN' if producer == 'launcher' else step_nodes[producer],payload,port,step_nodes[step['step_id']]))
-for name,has_views,has_rsi in [('full',True,True),('no-observability',False,True),('no-rsi',True,False),('core',False,False)]:
+from information_views import refresh as check_information
+assert check_information(vault, check=True), 'Stale information-flow projection'
+for name,obs,rsi in [('full',True,True),('no-observability',False,True),('no-rsi',True,False),('core',False,False)]:
     body = re.search(rf'<!-- generated:information-{name} -->(.*?)<!-- /generated:information-{name} -->',flow_views,re.S).group(1)
-    actual_bindings = re.findall(r'([A-Z0-9]+) -->\|"([a-z_]+) to ([a-z_]+)"\| (P\d+)',body)
-    assert len(actual_bindings) == len(set(actual_bindings)),name+' duplicate input edge'
-    assert set(actual_bindings) == expected_bindings,name+' missing/extra canonical binding'
-    assert ('VIEWS[' in body) == has_views,name+' incorrect observation filter'
-    assert ('RSI[' in body) == has_rsi,name+' incorrect RSI filter'
-    assert all(node+'[' in body for node in ('STORE','GATE','MODEL','EXPORT')),name+' removed required authority/I/O'
-    for publication_input in ('poc_bundle_ref','benchmark_payload_ref','stage_context_ref','destination_ref'):
-        assert publication_input in body,name+' omitted publisher input '+publication_input
-print(f'Four information-flow variants preserve all {len(expected_bindings)} canonical input bindings and required boundaries')
-
-# Showcase is a seven-page derived reading package.
+    for edge in ['IG1 -->', 'RC -->', 'RG -->', 'PLAN -->', 'VAL -->', 'BIND -->', 'DATA -->', 'DIS -->', 'SAVE -->', 'GATE -->', 'COMMIT -->', 'PUB -->']:
+        assert edge in body, name + ' missing fixed/planned boundary ' + edge
+    for node in ['STORE[','MODEL[','EXPORT[','VIEW[','HALT[']:
+        assert node in body, name + ' removed authority/output boundary'
+    assert ('VIEWS[' in body) == obs
+    assert ('RSI[' in body) == rsi
+    assert 'Eight fixed production work CCs' not in body
+    assert 'shared research.verifier' in body
+    assert body.count('IC1[') == 1 and 'IC2' not in body, name + ' must have one intent capsule'
+print('Four information-flow variants preserve fixed intake/intent/requirements, planned/frozen DAG, Gates and delivery')
 from showcase_views import refresh as check_showcase
-assert check_showcase(vault, check=True), "Stale showcase projection"
-assert len(list((vault / "presentation/showcase").glob("*.md"))) == 7
-for name in ("full", "no-observability", "no-rsi", "core"):
-    body = re.search(rf"<!-- generated:information-{name} -->(.*?)<!-- /generated:information-{name} -->", flow_views, re.S).group(1)
-    assert 'P3 -->|"query, repository snapshot and top_k"| CODE' in body
-    assert 'CODE -->|"code_hits: mechanism source ranges"| P3' in body
-print("Seven showcase pages and generated owner projections agree; Hypothesis CodeSearch flow retained")
-
-# Corrected main flow is derived from its owner, not the fixed research baseline.
-control = (vault / "m1/control-flow.md").read_text(encoding="utf-8")
-for required in ("SwarmFlow", "shared research.verifier", "RSI mutable components: 0", "no next or sibling capsule starts", "Delivery: ordinary processing and publication"):
-    assert required in control, "Corrected diagram missing " + required
-print("Corrected M1 flow includes shared verifier, zero Gate RSI mutability, whole-run halt and ordinary delivery")
+assert check_showcase(vault, check=True), 'Stale showcase projection'
+assert len(list((vault / 'presentation/showcase').glob('*.md'))) == 7
+print('Seven showcase pages agree with canonical projections')

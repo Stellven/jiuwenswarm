@@ -192,7 +192,7 @@ In the order the [library](library.md#admission-the-only-way-in) gives:
 
 ## M03 Freeze: the Binding writer
 
-Freeze consumes only the normalized [`run_plan`](../types/run-plan.md) identified by a committed VALID result from [planner validation](../system/planner.md#proposal-envelope-and-reference-semantics), then creates one Binding per step before dispatch. Production bootstraps from committed intake and its exact fixed-template envelope with no model turn or invented Brief; isolated planning validates the complete Brief-based proposal. Resolve exact snapshot/policy/config pins again and refuse changed/revoked dependencies. ExecutionProfile direct-call limits cover every reachable work/verifier/dependency hash before publication.
+Freeze consumes only the normalized [`run_plan`](../types/run-plan.md) identified by a committed VALID result from [planner validation](../system/planner.md#proposal-envelope-and-reference-semantics), then creates one Binding per step before dispatch. The planner follows accepted intent and requirements. Validate the complete proposal before binding/freeze; the old fixed-template bootstrap is superseded. Resolve exact snapshot/policy/config pins again and refuse changed/revoked dependencies. ExecutionProfile direct-call limits cover every reachable work/verifier/dependency hash before publication.
 
 ```python
 async def freeze(run_id: str, validation_ref: dict, *, policy_ref: dict, vocabulary_ref: dict) -> dict[str, Ref]   # step_id -> Binding

@@ -18,6 +18,17 @@ def refresh(vault, check=False):
     manifest = json.loads((vault/'exports/manifest.json').read_text(encoding='utf-8'))
     blocks['schemas'] = '\n'.join(['| Definition | Exact version | Owning field table | Generated schema |', '|---|---|---|---|'] +
         [f'| `{s["name"]}` | `{s["version"]}` | [owner](../../{s["source"]}) | [schema](../../exports/{s["file"]}) |' for s in manifest['schemas']])
+    control_graphs = re.findall(r'```mermaid\s*\n.*?```', (vault/'m1/control-flow.md').read_text(encoding='utf-8'), re.S)
+    for rel in ['system/diagram.md', 'system/overall-draft.md']:
+        path = vault/rel
+        original = path.read_text(encoding='utf-8')
+        updated = original
+        for marker, graph in [('current-main',control_graphs[0]),('current-dag',control_graphs[1])]:
+            updated = re.sub(rf'<!-- generated:{marker} -->.*?<!-- /generated:{marker} -->', lambda _: f'<!-- generated:{marker} -->\n{graph}\n<!-- /generated:{marker} -->', updated, flags=re.S)
+        if updated != original:
+            if check:
+                return False
+            path.write_text(updated, encoding='utf-8', newline='\n')
     success = True
     for filename, names in [('presentation.md',['system']), ('capsules.md',['capsules','ports']),
                              ('runtime-and-improvement.md',['recovery']), ('schemas-and-connections.md',['schemas'])]:

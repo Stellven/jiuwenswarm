@@ -21,7 +21,7 @@ These views summarize linked contracts. They do not define extra APIs or product
 | 3 Research data | What does each capability consume and produce? | [pipeline ports and plan fixture](../m1/pipeline.md), [capability design packets](../m1/capability-designs.md) |
 | 4 Time and failure | What commits before the next step? | [temporal sequences](temporal.md), [failure stories](../stories/README.md) |
 
-Start with [today's whole-system capsule views](overall-draft.md) to see all twelve CCs and conditional track participation together. Use the [complete information-flow variants](information-flow.md) for all required bindings, filtered observability/RSI and failure recovery. Return here for deeper questions.
+Start with [today's whole-system capsule views](overall-draft.md) for the fixed frontend and planned/frozen execution section. Use the [complete information-flow variants](information-flow.md) for current data/authority connections, filtered observability/RSI and failure recovery. Return here for deeper questions.
 
 ## 1. Context and deployment
 
@@ -74,34 +74,47 @@ flowchart LR
     R -->|"scoped model request"| M
 ```
 
-This is an authority map, not a filesystem permission grant. Workload processes cannot open the store. [Deployment](deployment.md) owns process identities, [environment](environment.md) owns IPC, [records](records.md) owns reservations, and [Gate host](../capsule/gate-host.md) owns the fold. The [full typed map](diagram.md) expands implementation modules and payload names without changing these boundaries.
+This is an authority map, not a filesystem permission grant. Workload processes cannot open the store. [Deployment](deployment.md) owns process identities, [environment](environment.md) owns IPC, [records](records.md) owns reservations, and [Gate host](../capsule/gate-host.md) owns the fold. The [current system map](diagram.md) expands the preparation/planning/execution boundaries without changing these boundaries.
 
-## 3. Production data spine
+## 3. Fixed preparation and planned execution spine
 
-This generated view shows the primary successive output at each stage. Brief/intake/evidence fan-in and exact complete input sets are owned by the [pipeline table and plan fixture](../m1/pipeline.md); the [deep typed map](diagram.md) shows all those edges. Each research transition also includes its Gate/commit/release sequence below. This view is regenerated from the owning plan/table, never edited independently.
+This generated view follows the [control-flow owner](../m1/control-flow.md): fixed intake/intent/requirements acceptance, planning, binding/freeze and governed DAG execution. [Information flow](information-flow.md) adds evidence, model, export and optional display branches. The [research contract baseline](research-contract-map.md) retains earlier detailed payload wiring for reconciliation, not current overall ordering.
 
 <!-- generated:production-flow -->
 ```mermaid
 flowchart TB
-    IN["Launcher: committed intake and source_text"]
-    P0["requirement: research.compile_brief"]
-    IN -->|"intake and source_text"| P0
-    P1["search: research.search_ideas"]
-    P0 -->|"research_brief"| P1
-    P2["screening: research.select_opportunity"]
-    P1 -->|"idea_set"| P2
-    P3["hypothesis: research.form_hypothesis"]
-    P2 -->|"opportunity_card"| P3
-    P4["poc: research.build_poc"]
-    P3 -->|"hypothesis_blueprint"| P4
-    P5["benchmark: research.run_benchmark"]
-    P4 -->|"poc_bundle"| P5
-    P6["evaluation: research.evaluate_results"]
-    P5 -->|"benchmark_payload"| P6
-    P7["report: research.write_report"]
-    P6 -->|"evaluation_verdict"| P7
-    PUB["Publisher: committed report manifest"]
-    P7 -->|"research_report"| PUB
+  USER["User or benchmark client"] -->|"request and declared resources"| IN["Intake: validate and snapshot"]
+  IN -->|"normalized source inputs and context"| IC1["Intent compilation capsule"]
+  IC1 -->|"output and captured evidence"| IG1["Intent Gate CC<br/>shared research.verifier"]
+  IG1 -->|"accepted intent and source refs"| RC["Requirement compilation capsule calls"]
+  RC -->|"each call immediately: output and evidence"| RG["Requirement Gate profiles<br/>shared research.verifier"]
+  RG -->|"accepted task contract"| PLAN["Planner: propose a DAG of nodes and data bindings"]
+  LIB["Reusable CC library snapshot"] -->|"capabilities, ports and exact versions"| PLAN
+  PLAN -->|"candidate DAG"| VAL["Deterministic plan validator"]
+  VAL -->|"valid plan"| BIND["Bind work CCs and declaration-derived Gate tests<br/>then freeze closure"]
+  LIB -->|"pinned work and Gate implementations"| BIND
+  BIND -->|"frozen bound DAG"| DIS["SwarmFlow dispatch and CC supervisor"]
+  IN -->|"immutable resource refs"| DATA["Declared DAG input data"]
+  RG -->|"accepted requirements"| DATA
+  DATA -->|"validated input ports"| DIS
+  DIS -->|"ready node and Binding"| RUN["Local CC runner inside Docker"]
+  RUN -->|"execute bound capability"| CC["Bound CC executes task node locally<br/>restricted process"]
+  CC -->|"output and evidence"| SAVE["Commit output and capture"]
+  SAVE -->|"evidence and pinned criteria"| GATE["Node Gate: deterministic checks first<br/>then declaration-derived shared verifier test<br/>when deterministic checks pass"]
+  GATE -->|"assessment"| COMMIT["Commit Verification and release"]
+  COMMIT -->|"accepted output unlocks successors"| DIS
+  COMMIT -->|"required terminal outputs accepted"| PUB["Delivery: ordinary processing and publication"]
+  PUB -->|"processed report and artifact manifest"| VIEW["Result retrieval and user view"]
+  VIEW -->|"authorized results"| USER
+  GATE -->|"non-advancing result"| HALT["Halt entire run and preserve evidence<br/>no following or sibling capsule starts"]
+  VAL -->|"invalid plan"| HALT
+  COMMIT -->|"persistence failure"| HALT
+  HALT -->|"explicit operator recovery"| REC["Reconcile committed state before any execution"]
+  REC -->|"only recorded authority or approved unchanged-pin attempt"| DIS
+  classDef cc fill:#FFF1D6,stroke:#B86E00,color:#172D45;
+  classDef gate fill:#EEE4F6,stroke:#754A91,color:#172D45;
+  class IC1,RC,CC cc;
+  class IG1,RG,GATE gate;
 ```
 <!-- /generated:production-flow -->
 
@@ -121,7 +134,7 @@ flowchart TB
     E -->|"production config"| P
     E -->|"offline session request"| R
     E -->|"approved experiment profile"| X
-    P -->|"validated fixed plan"| S
+    P -->|"validated requirements-planned frozen DAG"| S
     R -->|"private TrialRef and reserved quota"| O
     O -->|"aggregate results only"| R
     R -->|"promotable Candidate"| A
@@ -149,7 +162,7 @@ sequenceDiagram
     S->>D: commit Verification
     alt Verification commit fails
         S->>S: halt, no successor
-    else Committed PASS
+    else Committed advancing PASS or PASS_WITH_KNOWN_LIMITATIONS
         S->>D: commit release
         alt Release commit fails
             S->>S: halt, no successor

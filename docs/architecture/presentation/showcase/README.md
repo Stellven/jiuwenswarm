@@ -6,7 +6,7 @@ This is a linked reading package for Obsidian. It describes the architecture, no
 
 ## Two-minute summary
 
-- **Main flow:** intake -> intent capsules -> intent Gate -> requirement capsules -> requirement Gate -> planner -> validated DAG -> capsule/Gate binding and freeze -> local execution -> delivery.
+- **Main flow:** intake -> intent capsule -> intent Gate -> requirement capsules -> requirement Gate -> planner -> validated DAG -> capsule/Gate binding and freeze -> local execution -> delivery.
 - SwarmFlow provides the fixed required outer flow. Planned task nodes also become fixed after validation, binding and freeze.
 - The planner creates nodes, dependencies and typed data bindings from accepted requirements and an admitted library snapshot. It is an orchestration service, not a capsule.
 - Task data enters the DAG through declared inputs. Dispatch executes ready nodes using their pinned local capsules. Every capsule call is followed by its bound Gate capsule before dependent work can consume the result.
@@ -49,7 +49,7 @@ flowchart TB
 ## Diagram and evidence routes
 
 - [Current overall system](../../m1/control-flow.md): intake, gated intent/requirements, planning, binding, local DAG execution and delivery.
-- [Research wiring baseline](../../system/information-flow.md): historical fixed-plan views with 23 research bindings. Retained for contract reconciliation; not the corrected whole-system view.
+- [Information flow](../../system/information-flow.md): current fixed frontend and planned/frozen DAG, with full, observability-hidden, RSI-hidden and core views.
 - [Temporal sequences](../../system/temporal.md) and [diagram atlas](../../system/diagram-atlas.md): call order, trust boundaries and deeper navigation.
 - [Quick PDF](../../../../output/pdf/m1-architecture-presentation-2026-10-05.pdf): portable reading view. Markdown contains the complete navigation and detail.
 - [Previous snapshot review](../../reviews/2026-10-05-showcase-review.md): checks for the superseded fixed-plan presentation. It is not acceptance evidence for this flow correction.

@@ -5,7 +5,7 @@ tags: [index]
 
 # M1 architecture and shared Capability Capsule contracts
 
-This package describes the complete M1 system design, its **Capability Capsule (CC)** foundation and the shared contracts used by production, offline RSI and isolated experiments. It is a draft for review.
+This package describes the M1 architecture direction and existing contract library, its **Capability Capsule (CC)** foundation and the shared contracts used by production, offline RSI and isolated experiments. It is a draft for review.
 
 **Status: architecture draft under connected review.** The [October 2 source set](../product/SOURCE_FREEZE.md) is frozen. Draft contracts may change together; a handoff release pins their revisions and generated hashes. Released core versions are immutable. [Policies](policies.md) define AI review, contract revision and evidence requirements; [invariants](schemas/invariants.md#change) define schema compatibility.
 
@@ -33,7 +33,7 @@ For coders and the layer that turns design into prompts. Start at [coder require
 2. [Module placement and process map](system/modules.md), [durable storage](system/storage.md), [system records](system/records.md), [run lifecycle](system/lifecycle.md), [environment and security](system/environment.md), [local workstation](system/workstation.md) and [verification](system/verification.md).
 3. [Runner](capsule/runner.md) and [toolchain](capsule/toolchain.md): how a call runs, and the tool APIs. [Gate host](capsule/gate-host.md) and [gate capsules](capsule/gate-capsules.md).
 4. [Payload types](types/types.md) and the generated JSON Schemas in [`exports/`](exports/manifest.json): the one definition of every value that moves between modules. Import the files; never write a type by hand.
-5. [The M1 pipeline](m1/pipeline.md): eight governed research steps, shared verifier and reusable search capabilities. [Capsule design packets](m1/capability-designs.md) connect all twelve capabilities to their owning contracts, optimization hypotheses and failure fixtures; [benchmark material](m1/benchmarking-material.md) identifies sources and custody requirements. [Spatial](system/diagram.md) and [temporal](system/temporal.md) diagrams map code boundaries and execution order. [Track isolation](system/experiments.md), [planner](system/planner.md), [offline RSI](capsule/rsi-engine.md) and [benchmark export](system/benchmark-export.md) cover the other paths.
+5. [M1 control flow](m1/control-flow.md): fixed gated intent/requirements preparation, planner, binding/freeze and local governed DAG. [Research capability baseline](m1/pipeline.md) retains stage ports for reconciliation. [Capsule design packets](m1/capability-designs.md) connect all twelve capabilities to their owning contracts, optimization hypotheses and failure fixtures; [benchmark material](m1/benchmarking-material.md) identifies sources and custody requirements. [Spatial](system/diagram.md) and [temporal](system/temporal.md) diagrams map code boundaries and execution order. [Track isolation](system/experiments.md), [planner](system/planner.md), [offline RSI](capsule/rsi-engine.md) and [benchmark export](system/benchmark-export.md) cover the other paths.
 6. [Prompt brief](capsule/prompt-brief.md): the line between this design and the prompt text, and the rows a model-backed capsule page carries.
 7. [Seams](seams.md): the API between CC and each other workstream. [Decisions](decisions.md) and [open issues](open-issues.md) say what is settled and what blocks.
 

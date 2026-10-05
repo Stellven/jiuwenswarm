@@ -301,14 +301,14 @@ def check_status(V, problems, rd):
 
 def check_diagram(V, problems, rd):
     """The overall system diagram is a canary: every node defined, every edge labelled with a defined datatype."""
-    p = V / "system" / "diagram.md"
+    p = V / "system" / "research-contract-map.md"
     if not p.exists():
-        problems.append("system/diagram.md: missing; the overall system diagram is required")
+        problems.append("system/research-contract-map.md: missing; the overall system diagram is required")
         return
     text = rd(p)
     blk = re.search(r"```mermaid\n(.*?)```", text, flags=re.S)
     if not blk:
-        problems.append("system/diagram.md: no mermaid block")
+        problems.append("system/research-contract-map.md: no mermaid block")
         return
     body = blk.group(1)
     subgraphs = set(re.findall(r"^\s*subgraph\s+(\w+)", body, flags=re.M))
@@ -321,35 +321,35 @@ def check_diagram(V, problems, rd):
     label_rows = set(re.findall(r"^\| `([^`]+)` \| [^|]+ \| [^|]+\|$", text.split("## Edge labels", 1)[-1], flags=re.M))
     for n in drawn:
         if n not in node_rows:
-            problems.append(f"system/diagram.md: node {n} is drawn but not in the Nodes table")
+            problems.append(f"system/research-contract-map.md: node {n} is drawn but not in the Nodes table")
     for n in node_rows:
         if n not in drawn:
-            problems.append(f"system/diagram.md: node {n} is in the Nodes table but not drawn")
+            problems.append(f"system/research-contract-map.md: node {n} is in the Nodes table but not drawn")
     used = set()
     for a, label, b in edges:
         for end in (a, b):
             if end not in drawn:
-                problems.append(f"system/diagram.md: edge end {end} is not a declared node")
+                problems.append(f"system/research-contract-map.md: edge end {end} is not a declared node")
         for tok in [t.strip() for t in label.split(",")]:
             used.add(tok)
             if tok not in label_rows:
-                problems.append(f"system/diagram.md: edge label `{tok}` ({a} -> {b}) is not a defined datatype in Edge labels")
+                problems.append(f"system/research-contract-map.md: edge label `{tok}` ({a} -> {b}) is not a defined datatype in Edge labels")
     unconnected = [n for n in drawn if not any(n in (a, b) for a, _, b in edges)]
     for n in unconnected:
-        problems.append(f"system/diagram.md: node {n} has no edge")
+        problems.append(f"system/research-contract-map.md: node {n} has no edge")
     for tp in (V / "types").glob("*.md"):
         if tp.stem == "types":
             continue
         m = re.search(r"^# `([a-z_]+)`", rd(tp), flags=re.M)
         if m and m.group(1) not in used:
-            problems.append(f"system/diagram.md: payload type `{m.group(1)}` is on no edge")
+            problems.append(f"system/research-contract-map.md: payload type `{m.group(1)}` is on no edge")
     pipe = V / "m1" / "pipeline.md"
     if pipe.exists():
         names = set(re.findall(r'"(?:capsule_name|gate_capsule_name)": "([a-z_.]+)"', rd(pipe)))
         labels = " ".join(drawn.values())
         for nm in names:
             if nm not in labels:
-                problems.append(f"system/diagram.md: pipeline capsule {nm} is not drawn")
+                problems.append(f"system/research-contract-map.md: pipeline capsule {nm} is not drawn")
 
 
 def _with_parents(rows):

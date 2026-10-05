@@ -15,7 +15,7 @@ tags: [m1, contract]
 > **Flow correction, 5 October 2026:** [Current M1 control flow](control-flow.md) supersedes this page’s fixed-production / experimental-only overall layout. The contracts and diagrams below remain baseline material pending connected revision; they are not the current end-to-end showcase.
 
 
-This page owns the production plan. The frozen October 2 PRD governs scope. Production is fixed and sequential; offline RSI and isolated Phase 2 experiments have separate plans and settings. Dynamic planning never modifies this plan.
+This page retains the research capability binding baseline and fixture. It does not own the current end-to-end flow. [Control flow](control-flow.md) owns fixed intent/requirement preparation followed by requirements-planned DAG validation, binding/freeze and execution. The fixture below is historical input to contract reconciliation, not the main-flow bootstrap.
 
 ## Smallest justified capsule set
 

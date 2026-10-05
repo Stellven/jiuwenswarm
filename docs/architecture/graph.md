@@ -33,6 +33,7 @@ flowchart LR
     p_system_overview_md["system/overview.md"]
     p_system_planner_md["system/planner.md"]
     p_system_records_md["system/records.md"]
+    p_system_research_contract_map_md["system/research-contract-map.md"]
     p_system_reuse_audit_2026_10_05_md["system/reuse-audit-2026-10-05.md"]
     p_system_storage_md["system/storage.md"]
     p_system_temporal_md["system/temporal.md"]
@@ -75,17 +76,9 @@ flowchart LR
     p_system_diagram_atlas_md --> p_system_temporal_md
     p_system_diagram_atlas_md --> p_system_planner_md
     p_system_diagram_atlas_md --> p_m1_pipeline_md
-    p_system_diagram_md --> p_system_overview_md
-    p_system_diagram_md --> p_system_nodes_md
-    p_system_diagram_md --> p_system_integration_md
-    p_system_diagram_md --> p_system_observability_md
-    p_system_diagram_md --> p_capsule_runner_md
-    p_system_diagram_md --> p_capsule_process_boundary_md
-    p_system_diagram_md --> p_capsule_fixture_oracle_md
-    p_capsule_toolchain_md["capsule/toolchain.md"]
-    p_system_diagram_md --> p_capsule_toolchain_md
-    p_system_diagram_md --> p_capsule_gate_host_md
-    p_system_diagram_md --> p_m1_pipeline_md
+    p_m1_control_flow_md["m1/control-flow.md"]
+    p_system_diagram_md --> p_m1_control_flow_md
+    p_system_diagram_md --> p_system_information_flow_md
     p_system_environment_md --> p_system_integration_md
     p_system_environment_md --> p_capsule_process_boundary_md
     p_system_environment_md --> p_capsule_fixture_oracle_md
@@ -98,8 +91,7 @@ flowchart LR
     p_system_handoff_md --> p_system_build_order_md
     p_system_handoff_md --> p_system_verification_md
     p_system_handoff_md --> p_system_coder_requirements_md
-    p_system_information_flow_md --> p_m1_pipeline_md
-    p_system_information_flow_md --> p_system_overall_draft_md
+    p_system_information_flow_md --> p_m1_control_flow_md
     p_system_information_flow_md --> p_system_lifecycle_md
     p_system_information_flow_md --> p_system_storage_md
     p_system_integration_md --> p_system_overview_md
@@ -117,6 +109,7 @@ flowchart LR
     p_system_model_auth_md --> p_system_records_md
     p_system_modules_md --> p_system_integration_md
     p_system_modules_md --> p_capsule_runner_md
+    p_capsule_toolchain_md["capsule/toolchain.md"]
     p_system_modules_md --> p_capsule_toolchain_md
     p_system_nodes_md --> p_system_overview_md
     p_system_nodes_md --> p_types_run_plan_md
@@ -124,14 +117,11 @@ flowchart LR
     p_system_nodes_md --> p_system_lifecycle_md
     p_system_observability_md --> p_system_ledgers_md
     p_system_observability_md --> p_system_integration_md
-    p_system_overall_draft_md --> p_m1_pipeline_md
-    p_system_overall_draft_md --> p_system_deployment_md
-    p_system_overall_draft_md --> p_system_planner_md
-    p_system_overall_draft_md --> p_system_modules_md
+    p_system_overall_draft_md --> p_m1_control_flow_md
+    p_system_overall_draft_md --> p_system_information_flow_md
     p_system_overview_md --> p_system_nodes_md
     p_system_overview_md --> p_system_integration_md
-    p_system_planner_md --> p_system_experiments_md
-    p_system_planner_md --> p_system_integration_md
+    p_system_planner_md --> p_m1_control_flow_md
     p_system_planner_md --> p_types_run_plan_md
     p_capsule_library_md["capsule/library.md"]
     p_system_planner_md --> p_capsule_library_md
@@ -139,6 +129,16 @@ flowchart LR
     p_system_records_md --> p_system_storage_md
     p_system_records_md --> p_system_lifecycle_md
     p_system_records_md --> p_capsule_rsi_engine_md
+    p_system_research_contract_map_md --> p_system_overview_md
+    p_system_research_contract_map_md --> p_system_nodes_md
+    p_system_research_contract_map_md --> p_system_integration_md
+    p_system_research_contract_map_md --> p_system_observability_md
+    p_system_research_contract_map_md --> p_capsule_runner_md
+    p_system_research_contract_map_md --> p_capsule_process_boundary_md
+    p_system_research_contract_map_md --> p_capsule_fixture_oracle_md
+    p_system_research_contract_map_md --> p_capsule_toolchain_md
+    p_system_research_contract_map_md --> p_capsule_gate_host_md
+    p_system_research_contract_map_md --> p_m1_pipeline_md
     p_system_reuse_audit_2026_10_05_md --> p_system_integration_md
     p_system_reuse_audit_2026_10_05_md --> p_system_modules_md
     p_system_reuse_audit_2026_10_05_md --> p_system_environment_md

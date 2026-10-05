@@ -14,6 +14,9 @@ tags: [m1, gate, capsule]
 
 # Historical `intent_gate`: `research.accept_intent`
 
+> **Contract reconciliation:** [Current control flow](control-flow.md) requires actual intent capsule calls and declaration-derived Gate tests before requirements. This page retains earlier intent/hint contracts for revision; its old removed-capsule or hint-only status does not define the current architecture. Do not treat its examples as newly admitted intent versions.
+
+
 ## What it does
 
 It assesses whether the IntentIR from `research.compile_intent` is faithful to its bound `source_text`. It is also where PRD 3.1.5's deferred sense check is met: text too vague to judge yields `unknown`, blocks the step, and enters human triage. The IntentIR must add nothing and omit nothing central. The deterministic half is the intent capsule's own checks, which the Gate host runs first.

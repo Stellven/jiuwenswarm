@@ -12,7 +12,60 @@ tags: [diagram, control, temporal]
 
 # Temporal flows and durable authority
 
-[Diagram atlas](diagram-atlas.md) introduces the system at four depths. [Spatial diagram](diagram.md) maps modules and typed connections. These diagrams map order and persistence; arrows do not grant authority. [Lifecycle](lifecycle.md) owns recovery, [pipeline](../m1/pipeline.md) owns stage order, and [records](records.md) owns durable identities.
+[Diagram atlas](diagram-atlas.md) introduces the system at four depths. [Spatial diagram](diagram.md) maps modules and typed connections. These diagrams map order and persistence; arrows do not grant authority. [Lifecycle](lifecycle.md) owns recovery, [control flow](../m1/control-flow.md) owns frontend/planning/dispatch order, and [records](records.md) owns durable identities.
+
+## Fixed frontend followed by planned execution
+
+```mermaid
+sequenceDiagram
+  participant U as User or benchmark client
+  participant S as SwarmFlow and CC supervisor
+  participant R as Local CC runner
+  participant G as Gate host and shared verifier
+  participant P as Planner
+  participant B as Validator and binder
+  participant D as Durable store
+  participant O as Ordinary Delivery
+  U->>S: request and declared resources
+  S->>D: validated intake and immutable resources
+  rect rgb(245, 245, 245)
+    S->>R: bound intent capability
+    R->>D: output and capture
+    S->>G: intent Gate profile and evidence
+    G->>D: Verification
+    S->>D: advancing release or halt
+  end
+  loop required requirement capsule calls
+    S->>R: accepted intent and requirement capability
+    R->>D: requirements and capture
+    S->>G: requirement Gate profile and evidence
+    G->>D: Verification
+    S->>D: advancing release or halt
+  end
+  S->>P: accepted requirements and admitted library snapshot
+  P-->>S: candidate DAG and typed bindings
+  S->>B: validate proposal and bind exact work/Gate versions
+  B->>D: validated frozen plan and complete bindings
+  loop ready task nodes while run is not halted
+    S->>R: bound local capsule and declared input refs
+    R->>D: output and required capture
+    S->>G: node Gate profile and evidence
+    G->>D: Verification
+    alt advancing decision committed
+      S->>D: commit release
+      D-->>S: accepted output can unlock dependent nodes
+    else failed Gate or failed persistence
+      S->>D: retain failure evidence when writable
+      Note over S,R: halt run and start no following or sibling capsule
+    end
+  end
+  Note over S,O: only if all required terminal outputs are accepted
+  S->>O: accepted results and authorized evidence
+  O->>D: processed output and publication manifest
+  O-->>U: authorized result retrieval and view
+```
+
+All frontend loops also stop on failed acceptance/persistence before the next phase. One shared verifier identity serves the profile-selected Gate calls and has zero RSI-mutable components. This is a design sequence, not proof that unreconciled intent/planner wire contracts are ready.
 
 ## One governed step
 
@@ -26,17 +79,16 @@ sequenceDiagram
     participant R as CC runner
     participant G as Gate host
     participant V as Shared verifier
-    U->>S: launch intake/config/request
-    S->>S: doctor, validate fixed plan, resolve pinned snapshot
-    S->>D: freeze bindings + run-start manifest
-    loop Eight production research steps
+    U->>S: execute already validated and frozen task DAG
+    S->>D: read committed plan validation and exact bindings
+    loop Ready governed nodes while run is not halted
         S->>D: reserve dispatch identity before effects
         S->>R: call pinned capability and inputs
         R->>D: supervisor commits outputs, capture, Observation
         R-->>S: committed Observation reference
         S->>G: gate(exact Observation)
         G->>G: deterministic checks from pinned profile
-        opt Applicable semantic criteria
+        opt Deterministic checks passed and semantic criteria apply
             G->>V: evidence bundle + independent criteria
             V-->>G: verifier_assessment
         end
@@ -50,7 +102,7 @@ sequenceDiagram
             S-->>U: review requirement or headless terminal halt
         end
     end
-    S->>D: publish report/artifact manifest after report release
+    S->>D: ordinary Delivery processes accepted terminal outputs and publishes manifest
     S-->>U: retrievable immutable references
 ```
 

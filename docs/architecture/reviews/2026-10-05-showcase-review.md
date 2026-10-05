@@ -82,3 +82,35 @@ Final candidate hashes (review record excluded):
 - `docs/architecture/capsule/gate-capsules.md`: `383f6c97ab823a64f523ee54e47b3468c82d71c404214fe7f30d4760913e5f92`
 - `docs/architecture/capsule/rsi-engine.md`: `1797a32af26f6699bd1ee30b03c3500e403eb01e7e217e6ff60d8642131fef32`
 - `output/pdf/m1-architecture-presentation-2026-10-05.pdf`: `33dc58ed32dac48a50275b0146bfa4048f726ab65a6f331b85bdc033f7b86675`
+
+## Connected Markdown correction after 86d6041dc
+
+Rebuilt all four `system/information-flow.md` variants from the fixed intake/intent/requirements preparation and planned/frozen DAG owner. Required evidence, model bridge, sealed retrieval, ordinary Delivery and optional display/RSI branches now follow that flow. The old 23-binding research view is archived, not used as whole-system authority.
+
+Revised the overall/system diagrams, atlas, complete temporal sequence, planner authority, node definition, environment scope, root reading path and showcase links. Retained typed research contracts under `system/research-contract-map.md`; their canary remains enabled separately from current main-flow checks. Repeated main/DAG graphs and filtered flow views are generated from the control-flow owner. No PRD source was edited.
+
+The user clarified the distinction: a CC is reusable library capability; a node is its hot-path task-specific bound use; `research.verifier` is a CC checking the result of that node. A trusted builder automatically prepares declaration-specific test instances, binds them immediately after work calls and pins them before execution. Every Gate-role capsule has zero RSI-mutable components. Exact revised builder/intent/requirement entry wire contracts remain pending; old schema tests do not establish those new interfaces.
+
+A fresh Luna audit found remaining fixed-template planner scope, an eight-step temporal loop, misleading old atlas fan-in ownership and conditional verifier wording. Current planner/nodes/environment prose and diagrams were corrected. The diagram now distinguishes deterministic-first Gate checks from semantic verifier invocation when those checks pass. Explicit recovery retains the lifecycle's committed-state reconciliation; no new permanent no-resume product rule was inferred.
+
+Final structural checks: architecture lint/check passed; active navigation/projection checks passed with 2083 links; four filtered views preserve fixed preparation, planned/frozen execution, Gates and ordinary delivery. Mermaid parsed/rendered 23 blocks across showcase, information flow, overall/system diagrams, atlas and temporal sequences with zero failures. The eight-page PDF was refreshed and visually inspected; the core information map was inspected separately as a zoom view. Scoped whitespace check passed. These are documentation checks, not runtime, platform or completed new-wire-contract acceptance.
+
+Current owning files and output hashes:
+
+- `docs/architecture/system/information-flow.md`: `1dca5b7bcf9acea7adb1d0c29627ba1c75839e9d4c968010614199600f568412`
+- `docs/architecture/system/planner.md`: `8b570ddbdbc91a3bc572637efe7e2f2de491e820b34dd223b946371640af1843`
+- `docs/architecture/system/nodes.md`: `9c30bd1f488295a562a9d701fe376ec0c44432f3b243aab6d05bdbe9df88bcdb`
+- `docs/architecture/capsule/gate-capsules.md`: `a3b2943c06eb9d6fcc13290d75071cc94b5fdc185103b927b777849b640f1259`
+- `docs/architecture/_tools/information_views.py`: `94d9f4597a047d6c01a0436236320d421ce8429139ab2875b66a3482696d78c8`
+- `output/pdf/m1-architecture-presentation-2026-10-05.pdf`: `75e945fb66bafcc285c0bb23b558c662e530cbf64aed9812f837a6fe13a5e616`
+
+### Final single-intent and terminology update
+
+All current main-flow views now contain exactly one intent compilation capsule followed by its Gate. The generator/checks enforce that shape. Node labels now say task-specific bound CC use; the shared verifier is explicitly a CC checking node results, with automatic declaration-derived test preparation and zero Gate RSI mutation. Both PDF names now point to the same current eight-page snapshot rather than retaining contradictory diagram sets.
+
+Final lint and navigation checks passed with 2090 active links. Twenty-three current Mermaid blocks parsed/rendered with zero failures. All PDF pages were inspected after the single-intent correction. The revised interface/builder contracts remain pending architecture work, not completed runtime results.
+
+- `docs/architecture/m1/control-flow.md`: `1b041ca6575ff163299d3b8c53110c4119181afb192c79e17297db19a9af2ab1`
+- `docs/architecture/system/information-flow.md`: `781a043567a6e11a43b5c46dcd2e9844b57dcc3229d81d3e4de2240e7a0267f3`
+- `output/pdf/m1-architecture-presentation-2026-10-05.pdf`: `99cdeaa7b63457c3058ba9d4e1e5db3737b3cdf131ce97147eb553c83e3f373b`
+- `output/pdf/m1-architecture-current-state-2026-10-05.pdf`: `99cdeaa7b63457c3058ba9d4e1e5db3737b3cdf131ce97147eb553c83e3f373b`

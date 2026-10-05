@@ -27,7 +27,7 @@
 
 ## Data flow views
 
-Use [current control flow](../../m1/control-flow.md) for the request-to-DAG path. Use [research wiring baseline](../../system/information-flow.md) to inspect existing research references and evidence; it is not the corrected overall path. The same page has views without derived observability, without RSI, and without either. [Temporal sequences](../../system/temporal.md) show writes, publication and activation in order.
+Use [current control flow](../../m1/control-flow.md) for the request-to-DAG path. Use [information-flow variants](../../system/information-flow.md) to inspect current data, Gate, persistence and output boundaries. The same page has views without derived observability, without RSI, and without either. [Temporal sequences](../../system/temporal.md) show writes, publication and activation in order.
 
 Storage, sandboxing and API patterns are documented beside their decisions in the linked owners. This page introduces no new permission or endpoint.
 

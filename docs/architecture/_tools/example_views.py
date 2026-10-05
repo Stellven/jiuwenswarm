@@ -37,21 +37,9 @@ def refresh(vault, check=False):
 
 
 def refresh_production_flow(vault, check=False):
-    pipeline = (vault / 'm1/pipeline.md').read_text(encoding='utf-8')
-    plan = json.loads(re.search(r'```json\s*\n(.*?)```', pipeline, re.S).group(1))
-    outputs = {}
-    for line in pipeline.splitlines():
-        match = re.match(r'^\| ([a-z]+) \| (research\.[a-z_]+) \| [^|]+ \| ([a-z_]+) \|', line)
-        if match:
-            outputs[match.group(1)] = match.group(3)
-    lines = ['```mermaid', 'flowchart TB', '    IN["Launcher: committed intake and source_text"]']
-    previous, payload = 'IN', 'intake and source_text'
-    for ordinal, step in enumerate(plan['steps']):
-        node = 'P' + str(ordinal)
-        lines.append(f'    {node}["{step["step_id"]}: {step["capsule_name"]}"]')
-        lines.append(f'    {previous} -->|"{payload}"| {node}')
-        previous, payload = node, outputs[step['step_id']]
-    lines += ['    PUB["Publisher: committed report manifest"]', f'    {previous} -->|"{payload}"| PUB', '```']
+    source = (vault / 'm1/control-flow.md').read_text(encoding='utf-8')
+    diagram = re.findall(r'```mermaid\s*\n.*?```', source, re.S)[0]
+    lines = diagram.splitlines()
     block = '<!-- generated:production-flow -->\n' + '\n'.join(lines) + '\n<!-- /generated:production-flow -->'
     path = vault / 'system/diagram-atlas.md'
     text = path.read_text(encoding='utf-8')

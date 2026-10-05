@@ -52,7 +52,7 @@ flowchart TB
 |---|---|---|
 | **Product** | what each stage must achieve, and by which milestone | [PRD](../../product/README.md); we never write it |
 | **Control** | which node runs at which step, what feeds it, and which gate checks it | the [`run_plan`](../types/run-plan.md) value, and the one generic Swarmflow script that walks it ([nodes](nodes.md)) |
-| **Capability Capsule** | every node's contract, its code by hash, how it runs, how it is checked, and every record | [capsule/](../capsule/capsule.md), [schemas/](../schemas/schemas.md), [types/](../types/types.md), [runner](../capsule/runner.md), [toolchain](../capsule/toolchain.md) |
+| **Capability Capsule** | each bound capability's contract, its code by hash, how it runs, how it is checked, and every record | [capsule/](../capsule/capsule.md), [schemas/](../schemas/schemas.md), [types/](../types/types.md), [runner](../capsule/runner.md), [toolchain](../capsule/toolchain.md) |
 | **Existing platform** | the engine, the model runtime, storage, the planner index, the UI | jiuwenswarm and agent-core, reached only through `cc/adapters/` ([integration](integration.md)) |
 
 ## How each layer talks to the next
@@ -74,7 +74,7 @@ Every **node** is a capsule. The few pieces that are not nodes stay control code
 |---|---|---|
 | governed research work | yes | reusable declared capability with independent admission |
 | shared semantic verifier | yes | returns assessment; Gate host decides advancement |
-| planner (isolated Phase 2) | no | orchestration service produces a candidate plan for validation |
+| planner (after accepted requirements) | no | orchestration service produces a candidate plan for validation |
 | intake, intent hints and publication | no | mechanical typed modules; report generation remains a capsule |
 | launcher, freeze, runner, gate host | no: fixed hosts | they run nodes; a node cannot run itself, and the referee must stay out of reach of RSI ([trust](../capsule/trust.md)) |
 | admission, the librarian, the store | no | they are not steps of a run ([capsule rule 1](../capsule/capsule.md#rules)) |
@@ -86,3 +86,7 @@ Every **node** is a capsule. The few pieces that are not nodes stay control code
 - [Nodes](nodes.md): what a node is, its life from declared to recorded, locked against planned nodes, the run plan, and the template every node page follows.
 - [Integration](integration.md): every place CC code meets existing code, cited to the line.
 - [Observability](observability.md) and [ledgers](ledgers.md): what is recorded, where, by whom, and what each consumer reads.
+
+## Current flow authority
+
+[Control flow](../m1/control-flow.md) owns the fixed SwarmFlow frontend and planned/frozen DAG. Intake -> intent capsules/Gates -> requirement capsules/Gates precedes planning. Each executed task node binds local work and Gate capabilities; failed acceptance stops further dispatch. Delivery is ordinary result processing/publication and user retrieval. [Information flow](information-flow.md) and [temporal sequence](temporal.md) show the connected data/order views. Any earlier fixed-chain placement here is superseded; research-stage contracts remain capability references.
