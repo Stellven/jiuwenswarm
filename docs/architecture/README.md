@@ -115,4 +115,4 @@ RSI, model routing, distributed workers, autoscaling, and expanded DevOps design
 
 Read the relevant [PRD clauses](../product/prd-m1-full-2026-10-02.txt) and [October 5 meeting notes](../product/meeting-notes-2026-10-05.txt). Preserve owner sources verbatim. Later user decisions are summarized in [principles](principles.md#changes-from-the-previous-design).
 
-The former library is [archived background](../archive/README.md), not an active specification. Follow the [Spec Kit workflow](../code/code_sop/SPEC_KIT_WORKFLOW.md) and [coding constitution](../../.specify/memory/constitution.md).
+The former library is [archived background](../archive/README.md), not an active specification. Earlier commit snapshots and a guide to their most important pages are under [old](old/README.md). Follow the [Spec Kit workflow](../code/code_sop/SPEC_KIT_WORKFLOW.md) and [coding constitution](../../.specify/memory/constitution.md).

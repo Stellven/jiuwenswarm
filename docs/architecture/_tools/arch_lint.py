@@ -13,7 +13,8 @@ def main():
     parser.add_argument("--max-words", type=int, help="Optional word budget, including diagram source")
     args = parser.parse_args()
     root = args.docs.resolve()
-    pages = sorted(root.rglob("*.md"))
+    # `old/` is an immutable, multi-commit archive, not active architecture input.
+    pages = sorted(page for page in root.rglob("*.md") if page.relative_to(root).parts[0] != "old")
     problems = []
     total = 0
     prose_total = 0
