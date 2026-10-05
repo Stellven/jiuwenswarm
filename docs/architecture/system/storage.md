@@ -87,7 +87,7 @@ The same run pins its configuration snapshot, library snapshot, prep plan, plann
 | Situation | Outcome | Recovery |
 |---|---|---|
 | Before publication | no record is visible; downstream remains locked | repeat the same batch identity |
-| After freeze 1 but before freeze 2 is published | committed preparation evidence stays; no planned node can dispatch | resume revalidates the committed planner proposal and publishes freeze 2 from the same snapshot; never re-plans silently ([lifecycle](lifecycle.md#failure-human-review-and-recovery)) |
+| After freeze 1 but before freeze 2 is published | committed preparation evidence stays; no task node can dispatch | resume revalidates the committed planner proposal and publishes freeze 2 from the same snapshot; never re-plans silently ([lifecycle](lifecycle.md#failure-human-review-and-recovery)) |
 | After publication but before the reply or event | records are committed | repeat the same identity, return committed refs, then emit any missing notification |
 | After work completed but before its Verification | Observation is committed | reuse it and evaluate it; do not execute work again just to repair a gate write |
 | Child may have performed effects but no terminal Observation exists | attempt is marked interrupted | explicit human review before a new execution attempt |

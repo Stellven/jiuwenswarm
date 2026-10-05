@@ -22,7 +22,7 @@ PRD: 4.2.1, 4.2.8
 
 ## One identity, many call sites
 
-M1 admits one verifier CC, `research.verifier`, [kind](capsule.md#term-capsule-kind) `skill`. Every Gate call site (intent, the requirement call, each planned node) reuses it through a pinned [GateProfile](../schemas/profiles.md#term-gateprofile). A profile supplies criteria as data; it is not a separate capsule. The fixed judging instructions are hashed files of this capsule. The scientific evaluator is a separate work capability and never judges its own infrastructure admissibility.
+M1 admits one verifier CC, `research.verifier`, [kind](capsule.md#term-capsule-kind) `skill`. Every Gate call site (intent, the requirement call, each task node) reuses it through a pinned [GateProfile](../schemas/profiles.md#term-gateprofile). A profile supplies criteria as data; it is not a separate capsule. The fixed judging instructions are hashed files of this capsule. The scientific evaluator is a separate work capability and never judges its own infrastructure admissibility.
 
 Every verifier-role capsule declares `evolution.rsi: none` and `evolution.may_change: []`: zero RSI-mutable components. [RSI](../rsi.md#term-rsi) cannot change its prompt, body, dependencies, [checks](fields.md#term-check) or criteria. A human referee revision creates a new comparison cohort. Reports retain work/referee/profile/fixture/model/protocol pins so a changed capsule is measured against the same referee. Small fixture suites are smoke/contract evidence, not a statistical success rate.
 

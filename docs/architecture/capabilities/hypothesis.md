@@ -28,7 +28,7 @@ It turns the chosen opportunity into one testable claim: what changes, what is m
 
 | | |
 |---|---|
-| <a id="term-flow-position"></a>**Flow position** | Planned node in the research chain template (see [capabilities](README.md)); the planner binds its inputs when it composes the DAG. |
+| <a id="term-flow-position"></a>**Flow position** | Task node in the research chain template (see [capabilities](README.md)); the planner binds its inputs when it composes the DAG. |
 | <a id="term-work-capsule"></a>**Work capsule** | `research.form_hypothesis`, a `tool` with one bounded model turn that pins `op.codesearch` and uses ordinary resource-freezing services |
 | <a id="term-inputs"></a>**Inputs** | [`opportunity_card`](../types/opportunity-card.md) from `screening`; [`research_brief`](../types/research-brief.md); [`intake`](../types/intake.md) (project_asset and validation_data resources, not text documents) |
 | <a id="term-outputs"></a>**Outputs** | [`hypothesis_blueprint`](../types/hypothesis-blueprint.md) |

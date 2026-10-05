@@ -12,7 +12,7 @@ level: detail
 prd: [3.4.1, 3.4.3, 3.4.4, 3.4.5, 3.4.6, 3.4.7]
 ---
 
-This page is the home of Screening, the only M1 RSI target ([rsi](../rsi.md)): the rank helper is Target 1, the prompt/rubric text is Target 2 (conditional). Sourced, replaceable defaults are recorded in [decisions](../decisions.md). It is a planned node in the research chain template ([capabilities](README.md)).
+This page is the home of Screening, the only M1 RSI target ([rsi](../rsi.md)): the rank helper is Target 1, the prompt/rubric text is Target 2 (conditional). Sourced, replaceable defaults are recorded in [decisions](../decisions.md). It is a task node in the research chain template ([capabilities](README.md)).
 
 # `research.select_opportunity`: Screening (PRD 3.4)
 

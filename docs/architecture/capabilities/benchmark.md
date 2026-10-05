@@ -28,7 +28,7 @@ It requests the separate process service to provision the bundle in a POC-scoped
 
 | | |
 |---|---|
-| <a id="term-flow-position"></a>**Flow position** | Planned node in the research chain template (see [capabilities](README.md)); the planner binds its inputs when it composes the DAG. |
+| <a id="term-flow-position"></a>**Flow position** | Task node in the research chain template (see [capabilities](README.md)); the planner binds its inputs when it composes the DAG. |
 | <a id="term-work-capsule"></a>**Work capsule** | `research.run_benchmark`, a `tool`, no model |
 | <a id="term-inputs"></a>**Inputs** | [`poc_bundle`](../types/poc-bundle.md) from `poc`; [`hypothesis_blueprint`](../types/hypothesis-blueprint.md) |
 | <a id="term-outputs"></a>**Outputs** | [`benchmark_payload`](../types/benchmark-payload.md) |

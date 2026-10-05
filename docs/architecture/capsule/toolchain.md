@@ -61,7 +61,7 @@ flowchart LR
     ADM -->|"test calls"| RUN
     ADM -->|"checks"| CR
     ADM -->|"Declaration, code, Verdict, Standing, suites"| ST
-    LN -->|"prep plan, then planned DAG"| FRZ
+    LN -->|"prep plan, then task DAG"| FRZ
     ST -->|"Standing, Verdict, Declaration"| FRZ
     FRZ -->|"Bindings"| ST
     LN -->|"intake, args"| RUN
@@ -75,7 +75,7 @@ flowchart LR
 Two paths share one store:
 
 - **The library side** (cold): an author writes a [capsule](capsule.md#term-capability-capsule) folder; the author kit packs it into a Candidate; admission tests it through the runner and writes its records.
-- **The run side** (hot): the launcher starts a run; freeze pins one admitted capsule per step (the [fixed prep plan](../system/lifecycle.md#term-prep-plan) at launch, the [planned DAG](../types/run-plan.md#term-planned-plan) after requirements); the runner [runs](../system/lifecycle.md#term-run) each; the gate checks each output.
+- **The run side** (hot): the launcher starts a run; freeze pins one admitted capsule per step (the [fixed prep plan](../system/lifecycle.md#term-prep-plan) at launch, the [task DAG](../types/run-plan.md#term-planned-plan) after requirements); the runner [runs](../system/lifecycle.md#term-run) each; the gate checks each output.
 
 ## The capsule folder
 
@@ -228,7 +228,7 @@ Tool: freeze and binder. Steps 2 (toy plan), 4 (phase `prep`) and 7 (phase `plan
 Freeze runs **twice per run**, from the same pinned [library snapshot](library.md#term-library-snapshot) ([A26](../decisions.md)):
 
 1. **At launch, for the prep plan.** The prep plan (intent step, requirement step) is fixed by the launcher, so freeze binds those steps before dispatch.
-2. **After requirements are accepted, for the planned DAG.** The planner's proposal is validated, then bound and [frozen](../system/lifecycle.md#term-freeze). No planned node dispatches before its complete committed Binding mapping exists.
+2. **After requirements are accepted, for the task DAG.** The planner's proposal is validated, then bound and [frozen](../system/lifecycle.md#term-freeze). No task node dispatches before its complete committed Binding mapping exists.
 
 Each pass consumes only a normalized [`run_plan`](../types/run-plan.md) identified by a committed VALID result from [planner validation](../system/planner.md#proposal-envelope); the prep plan uses launcher-committed fixed-plan provenance. It creates one Binding per step. It re-resolves exact snapshot/policy/config pins and refuses changed or revoked dependencies. [ExecutionProfile](../schemas/profiles.md#term-executionprofile) direct-call limits cover every reachable work/verifier/dependency hash before publication.
 
@@ -304,12 +304,12 @@ Schema of the request (CLI/Web/benchmark entry): `execution-v1.schema.json#launc
 
 1. **Qualify** (PRD 3.1.5). If the prompt is blank or the input folder is unreadable, reject with exit 2 before minting [run_id](../system/records.md#term-run-id). Load and validate a pinned config snapshot and run doctor. Unavailable environment/security returns exit 4; do not begin an unprotected run. The CLI exit codes are 0 success, 2 launch or configuration rejected, 3 [halted](../system/lifecycle.md#term-halt), 4 environment unavailable ([workstation](../system/workstation.md#interface-cli-and-public-run-api)).
 2. **Mint** the `run_id`. Resolve `P` and `V` from `config.yaml`'s `cc.policy_epoch` and `cc.vocabulary_sha256` ([M00c](#m00c-policy-publisher)). Resolve **one** immutable library snapshot and pin its hash for the whole run (A26).
-3. **Prepare the prep plan.** The fixed prep plan (intent step, requirement step) comes from launcher configuration, bound to that snapshot. It is frozen at launch and contains no planned DAG. Its wiring must equal the [intent](../capabilities/intent-compile.md) and [requirement](../capabilities/requirement-capsule.md) pages. Port wiring between the two is `PENDING_SOURCE` until both CCs are built together ([decisions](../decisions.md#pending-source-do-not-invent)).
+3. **Prepare the prep plan.** The fixed prep plan (intent step, requirement step) comes from launcher configuration, bound to that snapshot. It is frozen at launch and contains no task DAG. Its wiring must equal the [intent](../capabilities/intent-compile.md) and [requirement](../capabilities/requirement-capsule.md) pages. Port wiring between the two is `PENDING_SOURCE` until both CCs are built together ([decisions](../decisions.md#pending-source-do-not-invent)).
 4. **Build intake v2.** Classify supplied/configured local resources, bind immutable project_asset/validation_data snapshots, and extract text only from reference_document. Documents are added in path order under the fixed limits; excluded references are recorded in skipped. Then the supervisor-side `record_input` control function stores the canonical intake and its [source_text](../types/source-text.md#term-source-text) prompt projection ([source_text](../types/source-text.md) is the home of the source/hash/offset basis). Ordinary extraction helpers create these inputs; no capsule runs for intake. Baseline/dataset suitability is a later Gate obligation.
 5. **Commit** config/library/source-manifest control Artifact pins and the intake/source_text references. The trusted launcher publishes the prep plan with fixed-plan provenance and invokes deterministic validate. The trusted host publishes the normalized run_plan, then its VALID result. At step 4 the toy plan carries fixed-plan provenance and the plan [validator](../system/planner.md#term-plan-validator) (B06) is wired from step 7. Invalid or failed publication ends launch before freeze. No successor can start from an event alone.
 6. `bindings = freeze(run_id, validation_ref, policy_ref=P, vocabulary_ref=V, request_id=...)` for the prep plan (freeze 1). Freeze rereads validation authority and publishes the whole Binding batch.
 7. Commit `run_phase_started` with phase `prep` (plan, Binding batch, library, config, intake and source references), emit `cc.run.frozen` and `cc.run.started`. Invoke `cc.adapters.swarmflow.start_run(args)` with `plan_ref`, `pins_ref` (the Binding batch) and `inputs: {intake, source_text}`. The adapter passes `CcBackend` (and asserts the type, because the engine falls back to a mock backend), the run's `run_id` and an `abort_event` to `run_workflow`. `args` hold references only, never secrets and never `None`. Schema: `execution-v1.schema.json#workflow_start_args`.
-8. **After the requirement Gate advances**, the planner service emits the fixed template DAG from the accepted intent and requirements (no model call, no planning reservation). The supervisor calls the validator, then `freeze` runs again for the planned DAG against the **same snapshot**. The supervisor commits `run_phase_started` with phase `planned` (with `prep_release_refs`) and starts the generic script a second time with `plan_ref`, `pins_ref` and the prep release refs, before any planned node dispatches ([planner](../system/planner.md), [lifecycle](../system/lifecycle.md)). Planned inputs may use the source form `prep.<step_id>.<port>`.
+8. **After the requirement Gate advances**, the planner service emits the fixed template DAG from the accepted intent and requirements (no model call, no planning reservation). The supervisor calls the validator, then `freeze` runs again for the task DAG against the **same snapshot**. The supervisor commits `run_phase_started` with phase `planned` (with `prep_release_refs`) and starts the generic script a second time with `plan_ref`, `pins_ref` and the prep release refs, before any task node dispatches ([planner](../system/planner.md), [lifecycle](../system/lifecycle.md)). Planned inputs may use the source form `prep.<step_id>.<port>`.
 9. When the script returns its envelopes, emit `cc.run.finished` with them and exit 0. Delivery is ordinary code after the last accepted output. On `CcHalt`, call [`halt`](#m03h-halt-host); in headless mode the halt report is printed and the CLI exits 3.
 
 ## Failure

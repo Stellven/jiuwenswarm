@@ -39,7 +39,7 @@ flowchart TB
   G_req -->|"accepted requirements"| DATA
   DATA -->|"validated input ports"| N_dispatch
   N_dispatch -->|"ready node and Binding"| N_run["N_run: runner, local, restricted process"]
-  N_run -->|"execute pinned CC"| N_node["N_node: task node (planned, frozen)"]
+  N_run -->|"execute pinned CC"| N_node["N_node: task node (chosen by the planner, frozen)"]
   N_node -->|"output and evidence"| SAVE["Commit output and capture"]
   SAVE -->|"evidence and pinned criteria"| G_node["G_node: Gate right after the node<br/>deterministic checks, then verifier test"]
   G_node -->|"assessment"| COMMIT["Commit Verification and release"]
@@ -104,7 +104,7 @@ flowchart TB
   G_req -->|"accepted requirements"| DATA
   DATA -->|"validated input ports"| N_dispatch
   N_dispatch -->|"ready node and Binding"| N_run["N_run: runner, local, restricted process"]
-  N_run -->|"execute pinned CC"| N_node["N_node: task node (planned, frozen)"]
+  N_run -->|"execute pinned CC"| N_node["N_node: task node (chosen by the planner, frozen)"]
   N_node -->|"output and evidence"| SAVE["Commit output and capture"]
   SAVE -->|"evidence and pinned criteria"| G_node["G_node: Gate right after the node<br/>deterministic checks, then verifier test"]
   G_node -->|"assessment"| COMMIT["Commit Verification and release"]
@@ -160,7 +160,7 @@ flowchart TB
   G_req -->|"accepted requirements"| DATA
   DATA -->|"validated input ports"| N_dispatch
   N_dispatch -->|"ready node and Binding"| N_run["N_run: runner, local, restricted process"]
-  N_run -->|"execute pinned CC"| N_node["N_node: task node (planned, frozen)"]
+  N_run -->|"execute pinned CC"| N_node["N_node: task node (chosen by the planner, frozen)"]
   N_node -->|"output and evidence"| SAVE["Commit output and capture"]
   SAVE -->|"evidence and pinned criteria"| G_node["G_node: Gate right after the node<br/>deterministic checks, then verifier test"]
   G_node -->|"assessment"| COMMIT["Commit Verification and release"]

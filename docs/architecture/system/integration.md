@@ -179,7 +179,7 @@ DS is the deepsearch repository at `ff243bc`; paths start `deepsearch/openjiuwen
 
 **Adapter API:** `cc/adapters/sandbox.py` calls the [jiuwenbox](../isolation.md#term-jiuwenbox) HTTP API through our own client: create, exec, upload, download and delete, once per attempt (`jiuwenbox/src/jiuwenbox/server/routes/sandbox.py`). It sets [Landlock](../isolation.md#term-landlock) compatibility to `hard_requirement` (the jiuwenbox default is `best_effort`), network `isolated` and the server token. It does **not** use the process-global `JiuwenBoxRunner` singleton (JS `jiuwenswarm/server/sandbox/jiuwenbox_runner.py`), which auto-starts a server. See [isolation](../isolation.md) and [environment](environment.md#linux-confinement-inside-the-monolith). Route and policy field names are `(pin, re-check)`.
 
-### `symphony`: planned nodes (Phase 2)
+### `symphony`: task nodes (Phase 2)
 
 | Existing symbol | Where | What CC does with it | M1 |
 |---|---|---|---|

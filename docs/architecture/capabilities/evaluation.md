@@ -24,7 +24,7 @@ PRD: 3.8.1, 3.8.2, 3.8.3, 3.8.4, 3.8.5
 
 ## Where it sits
 
-[Planned node](../system/nodes.md#term-planned-node) `research.evaluate_results` in the research chain template ([capabilities](README.md)). Inputs: `benchmark_payload`, `hypothesis_blueprint`, `research_brief`. Output: [evaluation_verdict](../types/evaluation-verdict.md). [Gate profile](../schemas/profiles.md#term-gateprofile): shared `research.verifier` with `research.accept_evaluation.v1` ([research gates](research-gates.md)).
+[Task node](../system/nodes.md#term-task-node) `research.evaluate_results` in the research chain template ([capabilities](README.md)). Inputs: `benchmark_payload`, `hypothesis_blueprint`, `research_brief`. Output: [evaluation_verdict](../types/evaluation-verdict.md). [Gate profile](../schemas/profiles.md#term-gateprofile): shared `research.verifier` with `research.accept_evaluation.v1` ([research gates](research-gates.md)).
 
 ## Contract and sequence
 

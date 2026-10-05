@@ -59,7 +59,7 @@ sequenceDiagram
   participant U as User
   participant S as Supervisor
   participant P as Prep plan nodes
-  participant D as Planned DAG nodes
+  participant D as Task DAG nodes
   participant L as Delivery
   U->>S: request and files (CLI or web)
   S->>S: snapshot inputs, pin library, freeze prep plan
@@ -70,7 +70,7 @@ sequenceDiagram
   L-->>U: report and artifacts
 ```
 
-**Must observe:** run record with one [Binding](schemas/binding.md#term-binding) and one [Verification](schemas/verification-record.md#term-verification) per dispatch call (1 intent, 1 requirement, one per planned node), two freeze records (prep, planned), release records for every node, an output directory with a manifest. Flow: all [nodes](system/nodes.md#term-node). Specs: [flow](flow.md), [lifecycle](system/lifecycle.md).
+**Must observe:** run record with one [Binding](schemas/binding.md#term-binding) and one [Verification](schemas/verification-record.md#term-verification) per dispatch call (1 intent, 1 requirement, one per task node), two freeze records (prep, planned), release records for every node, an output directory with a manifest. Flow: all [nodes](system/nodes.md#term-node). Specs: [flow](flow.md), [lifecycle](system/lifecycle.md).
 
 ## US-02 Intent is checked before anything builds on it
 
@@ -110,7 +110,7 @@ flowchart LR
 
 **Must observe:** `research_brief` committed and Gate-released before the planner is called; an invented requirement fails the quote-grounding check; vague text produces recorded issues, not guesses. Specs: [requirement](capabilities/requirement-capsule.md), [brief gate](capabilities/brief-gate.md).
 
-## US-05 A planned DAG runs only if it validates
+## US-05 A task DAG runs only if it validates
 
 **As a developer**, I want a bad plan never to run.
 

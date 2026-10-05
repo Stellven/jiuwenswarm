@@ -395,7 +395,7 @@ flowchart LR
 | Result | `services-v1.schema.json#planner_proposal` |
 | Story / demo | US-05 / D4 |
 
-**On failure:** A planner failure or timeout halts the run before any planned node starts. The proposal is not authority.
+**On failure:** A planner failure or timeout halts the run before any task node starts. The proposal is not authority.
 
 **A valid request**
 

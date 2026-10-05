@@ -47,7 +47,7 @@ Where this sits in the V model: [v-model](v-model.md). Each step below is a smal
 | <a id="term-d1s"></a>**D1s** | skill CC runs: an admitted toy skill CC runs its model turns through the skill runner and the bridge (recorded replies), output typed and captured | step 3 |
 | <a id="term-d2"></a>**D2** | work CC then Gate CC: toy node A runs, output and capture are committed by the supervisor, the verifier Gate runs right after, a passing verdict releases the next step, a failing verdict stops it. Tool kind and skill kind | step 4 |
 | <a id="term-d3"></a>**D3** | two nodes connected: a frozen two-node toy plan, node A feeds node B, a Gate after each. Failure at A means B never starts. A kill leaves a halt report (INTERRUPTED) and `cc resume` continues with no result lost | step 5 |
-| <a id="term-d4"></a>**D4** | prep to plan: request in, intent and Gate, requirement and Gate, template planner, validate, bind, freeze 2, planned nodes, delivery. Toy capsules | step 8 |
+| <a id="term-d4"></a>**D4** | prep to plan: request in, intent and Gate, requirement and Gate, template planner, validate, bind, freeze 2, task nodes, delivery. Toy capsules | step 8 |
 | <a id="term-d5"></a>**D5** | one research capability end to end with its Gate, then each next capability the same way | each later capability |
 | <a id="term-d6"></a>**D6** | full research run on a small fixture; a valid scientific FAIL still produces a report. Exit of step 10; the benchmark API (V29) is built after it | step 11 |
 
@@ -161,7 +161,7 @@ Where this sits in the V model: [v-model](v-model.md). Each step below is a smal
 
 ### Step 12: isolated experiments (non-blocking)
 
-- **Write:** B27 experiment entry; model-planned DAGs, router, Code Mode. Mocks until access is approved.
+- **Write:** B27 experiment entry; model-task DAGs, router, Code Mode. Mocks until access is approved.
 - **Schemas:** `services-v1.schema.json#experiment_request`, `#planning_reservation`.
 - **Tests:** V32. Never part of the production path.
 

@@ -33,7 +33,7 @@ One graph, edited in one place. The full view below and the three views in [flow
 
 Nested [operator](capabilities/README.md#term-operator) calls (`op.*`) inside a node get a mechanical [Verification](schemas/verification-record.md#term-verification) and are covered by the node's Gate. The nested verifier review inside `research.compile_intent` is validated by that capsule and is not Gated.
 
-SwarmFlow [runs](system/lifecycle.md#term-run) the fixed outer flow (all nine positions always exist). Planned nodes become fixed after step 5. M1 may run ready nodes one at a time. Steps 2-3 and every node call use the same runner and Gate path. See [verification](verification.md), [runtime](runtime.md).
+SwarmFlow [runs](system/lifecycle.md#term-run) the fixed outer flow (all nine positions always exist). Task nodes become fixed after step 5. M1 may run ready nodes one at a time. Steps 2-3 and every node call use the same runner and Gate path. See [verification](verification.md), [runtime](runtime.md).
 
 ## Key terms
 
@@ -47,17 +47,17 @@ Three stages in one picture. Names match the graph source below. Detail views fo
 
 ```mermaid
 flowchart TB
-  subgraph PREP["1 Prepare (fixed, frozen at launch)"]
+  subgraph PREP["1 Prep nodes: mandatory, always on, frozen at launch"]
     direction LR
     N_intake["N_intake<br/>validate, snapshot"] --> N_intent["N_intent<br/>intent CC"] --> G_intent["G_intent<br/>Gate"] --> N_req["N_req<br/>requirement CC"] --> G_req["G_req<br/>Gate"]
   end
-  subgraph PLAN["2 Plan (frozen after requirements)"]
+  subgraph PLAN["2 Control steps: plan, validate, bind"]
     direction LR
     N_plan["N_plan<br/>planner service"] --> N_validate["N_validate<br/>check graph"] --> N_bind["N_bind<br/>bind CC and Gate, freeze"]
   end
-  subgraph EXEC["3 Execute (local, one Gate per node)"]
+  subgraph EXEC["3 Task DAG: nodes chosen by the planner, one Gate each"]
     direction LR
-    N_dispatch["N_dispatch<br/>SwarmFlow"] --> N_node["N_node<br/>planned CC node"] --> G_node["G_node<br/>Gate"] --> N_deliver["N_deliver<br/>delivery, not a capsule"]
+    N_dispatch["N_dispatch<br/>SwarmFlow"] --> N_node["N_node<br/>task node, one CC"] --> G_node["G_node<br/>Gate"] --> N_deliver["N_deliver<br/>delivery, not a capsule"]
   end
   PREP --> PLAN --> EXEC
   G_node -.->|"release unlocks next node"| N_dispatch
@@ -90,7 +90,7 @@ flowchart TB
   G_req -->|"accepted requirements"| DATA
   DATA -->|"validated input ports"| N_dispatch
   N_dispatch -->|"ready node and Binding"| N_run["N_run: runner, local, restricted process"]
-  N_run -->|"execute pinned CC"| N_node["N_node: task node (planned, frozen)"]
+  N_run -->|"execute pinned CC"| N_node["N_node: task node (chosen by the planner, frozen)"]
   N_node -->|"output and evidence"| SAVE["Commit output and capture"]
   SAVE -->|"evidence and pinned criteria"| G_node["G_node: Gate right after the node<br/>deterministic checks, then verifier test"]
   G_node -->|"assessment"| COMMIT["Commit Verification and release"]
@@ -138,20 +138,22 @@ flowchart TB
 
 Three smaller views (without observability, without [RSI](rsi.md#term-rsi), core) are in [flow variants](flow-variants.md). They come from the same graph source below.
 
-## Which nodes are fixed, planned or optional
+## Which nodes are mandatory and which are chosen
 
-| Node ID | Role | Fixed or planned | Present in every run? |
+Mandatory nodes are always on. Task nodes are placed by the planner. The Run graph is all of them. The Task DAG is the task nodes and their edges ([nodes](system/nodes.md#node-classes)).
+
+| Node ID | Role | Class | Mandatory? |
 |---|---|---|---|
-| N_intake | validate, snapshot | fixed | yes |
-| N_intent, G_intent | intent CC and its Gate | fixed | yes |
-| N_req, G_req | requirement CC and Gate | fixed | yes |
-| N_plan | planner service | fixed position | yes. M1 emits one fixed template DAG. Model-proposed DAGs exist only in the isolated experiment track. |
-| N_validate, N_bind | validate, bind, freeze | fixed | yes |
-| N_dispatch, N_run | dispatch, local execution | fixed | yes |
-| N_node + G_node | task node and its Gate | **planned**, then frozen | one pair per planned node. Number varies. |
-| N_deliver | delivery | fixed | yes |
-| Observability views | derived displays | optional display | capture is always on |
-| RSI area | offline improvement | separate, optional | never in a run |
+| N_intake | validate, snapshot | Prep node | yes |
+| N_intent, G_intent | intent CC and its Gate | Prep node | yes |
+| N_req, G_req | requirement CC and its Gate | Prep node | yes |
+| N_plan | planner service | Control step | yes. M1 emits one fixed template DAG; no model call |
+| N_validate, N_bind | validate, bind, freeze | Control step | yes |
+| N_dispatch, N_run | dispatch, local execution | Control step | yes |
+| N_node + G_node | one task node and its Gate | Task node | no. One pair per task node, count varies |
+| N_deliver | delivery | Delivery | yes |
+| Observability views | derived displays | none | capture is always on, views are optional |
+| RSI area | offline improvement | none | separate, never in a run |
 
 ## Data in and out
 
@@ -201,7 +203,7 @@ flowchart TB
   G_req -->|"accepted requirements"| DATA
   DATA -->|"validated input ports"| N_dispatch
   N_dispatch -->|"ready node and Binding"| N_run["N_run: runner, local, restricted process"]
-  N_run -->|"execute pinned CC"| N_node["N_node: task node (planned, frozen)"]
+  N_run -->|"execute pinned CC"| N_node["N_node: task node (chosen by the planner, frozen)"]
   N_node -->|"output and evidence"| SAVE["Commit output and capture"]
   SAVE -->|"evidence and pinned criteria"| G_node["G_node: Gate right after the node<br/>deterministic checks, then verifier test"]
   G_node -->|"assessment"| COMMIT["Commit Verification and release"]

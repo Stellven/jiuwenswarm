@@ -89,7 +89,7 @@ Use this table to find the one definition of anything that crosses a module boun
 
 | Type | Version | Status | Made by | Read by |
 |---|---|---|---|---|
-| [`intake`](intake.md) | 2 | draft | intake, through `record_input` (`origin: human`) | source projection, requirement CC, planned nodes taking resources |
+| [`intake`](intake.md) | 2 | draft | intake, through `record_input` (`origin: human`) | source projection, requirement CC, task nodes taking resources |
 | [`source_text`](source-text.md) | 1 | draft | ordinary intake projection | `research.compile_brief` and experimental text consumers |
 | [`resource_snapshot`](resource-snapshot.md) | 1 | draft | intake/store [snapshot](../capsule/library.md#term-library-snapshot) service | Search, Hypothesis, POC and Benchmark |
 | [`dependency_requirement`](dependency-requirement.md), [`dependency_assessment`](dependency-assessment.md) | 1 | draft | Screening and the pinned dependency policy | deterministic opportunity ranking; Hypothesis context |
@@ -102,7 +102,7 @@ Use this table to find the one definition of anything that crosses a module boun
 | [`code_hits`](code-hits.md) | 1 | draft | op.codesearch | Hypothesis and POC |
 | [`evidence_bundle`](evidence-bundle.md) | 1 | draft | M10 gate host | shared [research.verifier](../capsule/gate-capsules.md#term-verifier), named in the Binding's `verifier` |
 | [`verifier_assessment`](verifier-assessment.md) | 1 | draft | the shared `research.verifier` (stage profile) | M10a, which writes it into the Verification through M10 |
-| [`run_plan`](run-plan.md) | 1 | draft | intake ([fixed prep plan](../system/lifecycle.md#term-prep-plan)); planner service ([planned DAG](run-plan.md#term-planned-plan)) | freeze, the generic script |
+| [`run_plan`](run-plan.md) | 1 | draft | intake ([fixed prep plan](../system/lifecycle.md#term-prep-plan)); planner service ([task DAG](run-plan.md#term-planned-plan)) | freeze, the generic script |
 
 Draft/checked/locked are status labels in each page's front matter. A canonical schema version does not imply an executed acceptance result.
 

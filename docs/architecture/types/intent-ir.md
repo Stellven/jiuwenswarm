@@ -14,7 +14,7 @@ PRD: 3.2.1, 4.7.1
 
 What the user's prompt asks for, split into goals, outcomes, constraints, open questions, contradictions and unknowns. Every item points at the exact characters of the prompt it came from, so it can be checked against what was asked.
 
-**Made by** the intent CC `research.compile_intent` ([intent-compile](../capabilities/intent-compile.md)), model-backed: bounded compile, validate, nested review and repair (policy `intent.max_repairs`), with a compile and a repair prompt. **Read by** the requirement [capsule](../capsule/capsule.md#term-capability-capsule) `research.compile_brief` as a required, Gate-accepted input ([requirement](../capabilities/requirement-capsule.md)). The type is unchanged; the [planned DAG](run-plan.md#term-planned-plan) wires the accepted `intent_ir` into the requirement call.
+**Made by** the intent CC `research.compile_intent` ([intent-compile](../capabilities/intent-compile.md)), model-backed: bounded compile, validate, nested review and repair (policy `intent.max_repairs`), with a compile and a repair prompt. **Read by** the requirement [capsule](../capsule/capsule.md#term-capability-capsule) `research.compile_brief` as a required, Gate-accepted input ([requirement](../capabilities/requirement-capsule.md)). The type is unchanged; the [task DAG](run-plan.md#term-planned-plan) wires the accepted `intent_ir` into the requirement call.
 
 **Spans.** A span is `[start, end]`: Unicode-code-point offsets into the producing `source_text.text`, end exclusive, so the quoted text is `text[start:end]` in Python. The exact source Artifact is recorded in the producing [Observation](../schemas/observation.md#term-observation) inputs rather than copied into the value (INV-5).
 

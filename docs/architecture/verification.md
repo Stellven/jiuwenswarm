@@ -20,7 +20,7 @@ PRD: 2.8, 4.2.1, 4.2.2, 4.2.8, 4.2.9
 ## Rules
 
 1. **The verifier is a CC.** `research.verifier` is one admitted capability. It is reused at every Gate. It takes one `evidence_bundle` and returns one `verifier_assessment`. It cannot release anything.
-2. **Every dispatch call has a Gate.** The intent call, the one requirement call, each planned node. Nothing consumes an ungated output. A nested [operator](capabilities/README.md#term-operator) call (`op.*`) gets a mechanical [Verification](schemas/verification-record.md#term-verification) persisted before it returns and is covered by its parent node's Gate. The nested verifier review inside `research.compile_intent` is validated by the calling [capsule](capsule/capsule.md#term-capability-capsule) and is not itself Gated.
+2. **Every dispatch call has a Gate.** The intent call, the one requirement call, each task node. Nothing consumes an ungated output. A nested [operator](capabilities/README.md#term-operator) call (`op.*`) gets a mechanical [Verification](schemas/verification-record.md#term-verification) persisted before it returns and is covered by its parent node's Gate. The nested verifier review inside `research.compile_intent` is validated by the calling [capsule](capsule/capsule.md#term-capability-capsule) and is not itself Gated.
 3. **The verifier [checks](capsule/fields.md#term-check) the result of the node.** Not the library entry. The node is the task-specific use of a CC; the verifier sees its actual output and captured effects.
 4. **Tests come from the [Declaration](capsule/fields.md#term-declaration).** A trusted builder compiles a test for each node from the producer's Declaration (output schema, [ports](capsule/fields.md#term-port), checks, effects, permissions, allowed failures) plus mandatory host checks. It places the Gate right after the node. A Declaration obligation the builder cannot test fails freeze. Nothing is silently skipped.
 5. **Gates stop or change control flow.** Only a committed advancing Verification plus a committed release lets a successor start.
@@ -41,7 +41,7 @@ PRD: 2.8, 4.2.1, 4.2.2, 4.2.8, 4.2.9
 | Question | Answer |
 |---|---|
 | How many verifier CCs? | **One identity**, `research.verifier`. Many call sites reuse it through pinned criteria profiles. |
-| How many Gates per run? | One per dispatch call: 1 intent + 1 for the requirement call (`research.compile_brief`) + one per planned node. Intent is a bounded loop (compile, validate, nested review, repair; `intent.max_repairs` default 1, hard cap 4) but it is one call with one Gate. |
+| How many Gates per run? | One per dispatch call: 1 intent + 1 for the requirement call (`research.compile_brief`) + one per task node. Intent is a bounded loop (compile, validate, nested review, repair; `intent.max_repairs` default 1, hard cap 4) but it is one call with one Gate. |
 | What does one Gate see? | Its producer's output, captured evidence, declared vs observed effects, pinned criteria. Not later [steps](system/nodes.md#term-step). |
 | Who decides? | Gate host code, called by `CcBackend` on the supervisor side, folds checks into one Verification. The verifier only assesses. Order: runner returns, supervisor commits, then Gate, then release. |
 | Where do criteria live? | Pinned Gate profiles ([profiles](schemas/profiles.md)); a producer cannot choose its own. |
@@ -82,7 +82,7 @@ Quality comes from independent checks at every size of boundary. Nobody certifie
 |---|---|---|---|
 | Block | one module or CC through its public API with fake neighbours | fixed [test cases](schemas/checks.md#term-test-case), injected faults, no live model | observed outputs and refusals |
 | Boundary | a producer's real output entering its consumer | independently derived producer and consumer [fixtures](system/test-surfaces.md#term-fixture); a wrong output must be refused | both sides agree, wrong input refused |
-| System | request to answer through the fixed flow and a small [planned DAG](types/run-plan.md#term-planned-plan) | small local baseline and recorded model replies, then real endpoint | run record shows every Gate and release |
+| System | request to answer through the fixed flow and a small [task DAG](types/run-plan.md#term-planned-plan) | small local baseline and recorded model replies, then real endpoint | run record shows every Gate and release |
 
 Rules:
 

@@ -75,7 +75,7 @@ Every key term is defined on the page that is its home, in a `Key terms` section
 | **Attempt** | One try at executing a step, numbered from 1. | [system/lifecycle.md](system/lifecycle.md#term-attempt) |
 | **Attempt directory** | The one writable scratch directory of a single call, owned by that capsule's child process. | [isolation.md](isolation.md#term-attempt-directory) |
 | **benchmark_payload** | The baseline and treatment samples with their raw evidence, collected by Benchmark without any scientific grading. | [types/benchmark-payload.md](types/benchmark-payload.md#term-benchmark-payload) |
-| **Binder** | The deterministic step that resolves each planned node to an exact admitted capsule version in the run's library snapshot and attaches its Gate. | [system/planner.md](system/planner.md#term-binder) |
+| **Binder** | The deterministic step that resolves each task node to an exact admitted capsule version in the run's library snapshot and attaches its Gate. | [system/planner.md](system/planner.md#term-binder) |
 | **Binding** | The pin for one call site of a run: exactly one capsule version by hash, the Verdict that admitted it, the checks the Gate runs on its output, its budget and the judge it may use. | [schemas/binding.md](schemas/binding.md#term-binding) |
 | **Block** | A bounded behavior with inputs, outputs, failure semantics and an executable check; the unit coders build. | [system/modules.md](system/modules.md#term-block) |
 | **BLOCK** | The verification level for one block, paired with unit design. | [v-model.md](v-model.md#term-block) |
@@ -102,6 +102,7 @@ Every key term is defined on the page that is its home, in a `Key terms` section
 | **ConfigSnapshot** | The effective configuration after layering packaged defaults, user config and project config, with its provenance and sha256. | [system/environment.md](system/environment.md#term-configsnapshot) |
 | **confinement** | Running generated code in a restricted, unprivileged process that can reach only its authorized workspace, with no network egress. | [capsule/process-boundary.md](capsule/process-boundary.md#term-confinement) |
 | **Confinement** | The mechanism that limits a restricted child to its input snapshots and one attempt directory, with no network and no credentials. | [isolation.md](isolation.md#term-confinement) |
+| **Control step** | A fixed step between the prep nodes and the task nodes that runs in the supervisor and is not a capsule: plan, validate, bind and freeze. | [system/nodes.md](system/nodes.md#term-control-step) |
 | **Data Foundation** | The evidence layer that captures required raw execution evidence as it happens and later assembles and exports records. | [system/storage.md](system/storage.md#term-data-foundation) |
 | **decl_hash** | The hash of the whole Declaration with every default filled in, computed by admission. | [capsule/fields.md](capsule/fields.md#term-decl-hash) |
 | **Declaration** | The contract one capability declares: what it takes, gives, needs, changes and promises, and what RSI may change. | [capsule/fields.md](capsule/fields.md#term-declaration) |
@@ -128,6 +129,7 @@ Every key term is defined on the page that is its home, in a `Key terms` section
 | **exempt** | The assurance level Puppet admission grants to an allowlisted hash after mandatory validation. | [capsule/admission.md](capsule/admission.md#term-exempt) |
 | **ext** | The one open field of a record or payload: a map keyed by tool or producer for extra data. | [schemas/common.md](schemas/common.md#term-ext) |
 | **Finding** | A typed, never-edited observation about capsules, judges or an unmet need, such as a measured cost, a judge calibration or the invalidation of a Verdict. | [schemas/finding.md](schemas/finding.md#term-finding) |
+| **Fixed node** | A node that is always present in every run and is not chosen by the planner: the prep nodes, the control steps and delivery. | [system/nodes.md](system/nodes.md#term-fixed-node) |
 | **Fixed outer flow** | The positions that always exist in a run: intake, intent and Gate, requirements and Gate, planner, validate and bind and freeze, dispatch and delivery. | [flow.md](flow.md#term-fixed-outer-flow) |
 | **Fixture** | Immutable fixed input bytes or a fake neighbour used to exercise a block or boundary without live services. | [system/test-surfaces.md](system/test-surfaces.md#term-fixture) |
 | **fixture oracle** | The private service that alone reads hidden RSI fixtures and per-case results, runs parent and child in fresh confined processes, and returns only aggregate outcomes. | [capsule/fixture-oracle.md](capsule/fixture-oracle.md#term-fixture-oracle) |
@@ -176,7 +178,6 @@ Every key term is defined on the page that is its home, in a `Key terms` section
 | **Phase** | One of the two plan stages of a run: `prep` (intent and requirement steps) or `planned` (the planner's task nodes). | [system/lifecycle.md](system/lifecycle.md#term-phase) |
 | **phase** | Which of a run's two plans a `run_plan` is: `prep` or `planned`. | [types/run-plan.md](types/run-plan.md#term-phase) |
 | **Plan validator** | A pure function that checks a whole proposed DAG for wrong ports, cycles, permissions, budgets, missing objective coverage and missing Gates. | [system/planner.md](system/planner.md#term-plan-validator) |
-| **Planned node** | A task node the planner emitted from the accepted requirements, for example search, screening or POC. | [system/nodes.md](system/nodes.md#term-planned-node) |
 | **Planned plan** | The validated and bound DAG of task nodes the planner emitted. | [system/lifecycle.md](system/lifecycle.md#term-planned-plan) |
 | **planned plan** | The second plan, proposed by the planner after requirements are accepted, then validated, bound and frozen in the same run. | [types/run-plan.md](types/run-plan.md#term-planned-plan) |
 | **Planner** | An ordinary service that proposes the DAG of task nodes. | [system/planner.md](system/planner.md#term-planner) |
@@ -185,9 +186,9 @@ Every key term is defined on the page that is its home, in a `Key terms` section
 | **Policy** | A named policy document holding every "how": required fields, rules, defaults, thresholds, mappings and the values of every open list. | [schemas/policy.md](schemas/policy.md#term-policy) |
 | **port** | One named input or output of a capsule, with a port type. | [capsule/fields.md](capsule/fields.md#term-port) |
 | **port type** | A type name that ports and checks use, with the schema a value must match and the checks every value of that type must pass. | [schemas/port-types.md](schemas/port-types.md#term-port-type) |
+| **Prep node** | A fixed node that takes the user's data and carries it toward the planner: intake, the intent call and the requirement call, each followed by its Gate. | [system/nodes.md](system/nodes.md#term-prep-node) |
 | **Prep plan** | The fixed list of preparation steps (intent, then requirement) with their Bindings and Gate profiles. | [system/lifecycle.md](system/lifecycle.md#term-prep-plan) |
 | **prep plan** | The fixed first plan, frozen at launch: the intent step, then the requirement step, each with its Gate. | [types/run-plan.md](types/run-plan.md#term-prep-plan) |
-| **Preparation node** | A node from the fixed prep plan: the intent call or the requirement call. | [system/nodes.md](system/nodes.md#term-preparation-node) |
 | **Probe** | A doctor test that tries something a confined child must not be able to do, such as reading credentials, the store or fixtures. | [system/environment.md](system/environment.md#term-probe) |
 | **ProfileRef** | A reference `{kind, id, sha256}` to one immutable policy profile of kind `admission`, `gate`, `retry` or `execution`. | [schemas/profiles.md](schemas/profiles.md#term-profileref) |
 | **provisional** | The assurance level `tested_admission` grants after the visible suites actually ran and passed. | [capsule/admission.md](capsule/admission.md#term-provisional) |
@@ -218,6 +219,7 @@ Every key term is defined on the page that is its home, in a `Key terms` section
 | **rubric** | The pinned criteria text or code behind a judged check. | [capsule/fields.md](capsule/fields.md#term-rubric) |
 | **Run** | One execution of a research request from launch to delivery or halt, named by its `run_id`. | [system/lifecycle.md](system/lifecycle.md#term-run) |
 | **Run bundle** | The raw execution capture of one call, kept under `records/bundles/<run_id>/<obs_id>/` and completed by an immutable manifest. | [system/storage.md](system/storage.md#term-run-bundle) |
+| **Run graph** | Every node of one run: the prep nodes, the control steps, the task DAG and delivery. | [system/nodes.md](system/nodes.md#term-run-graph) |
 | **run_id** | The id of one run, created at launch. | [system/records.md](system/records.md#term-run-id) |
 | **run_plan** | The control flow of one run as data: the steps in order, each naming its work capsule, its gate capsule and where each input comes from. | [types/run-plan.md](types/run-plan.md#term-run-plan) |
 | **runner** | The only code that runs a capsule: it checks the exact code by hash, binds inputs, calls the capsule by its kind, and returns Artifacts and an Observation. | [capsule/runner.md](capsule/runner.md#term-runner) |
@@ -238,6 +240,8 @@ Every key term is defined on the page that is its home, in a `Key terms` section
 | **SYSTEM** | The verification level for the whole integrated system, paired with architecture and requirements. | [v-model.md](v-model.md#term-system) |
 | **SystemRecord** | A durable control record the supervisor writes (run phase, dispatch reservation, release, human review, RSI and oracle records). | [system/records.md](system/records.md#term-systemrecord) |
 | **SystemRef** | A reference `{id, sha256}` to one SystemRecord. | [system/records.md](system/records.md#term-systemref) |
+| **Task DAG** | The task nodes and the typed edges between them. | [system/nodes.md](system/nodes.md#term-task-dag) |
+| **Task node** | A node the planner places for this task and assigns one Capability Capsule to, for example search, screening or POC. | [system/nodes.md](system/nodes.md#term-task-node) |
 | **test case** | One input and its expected result, written only by admission from a Candidate's tests. | [schemas/checks.md](schemas/checks.md#term-test-case) |
 | **test suite** | A hashed set of test cases, visible to the builder or sealed from them. | [schemas/checks.md](schemas/checks.md#term-test-suite) |
 | **tested_admission** | The default admission provider: it runs the visible test suites against fixtures and may grant `provisional`. | [capsule/admission.md](capsule/admission.md#term-tested-admission) |

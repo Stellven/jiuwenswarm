@@ -27,9 +27,13 @@ A governed node is a plan position, not a capsule implementation. It becomes a [
 | Term | Meaning |
 |---|---|
 | <a id="term-node"></a>**Node** (also: nodes, governed node) | One use of a Capability Capsule for one task, bound into a frozen run plan with its exact version, actual inputs, limits and Gate. Several nodes can use one capsule, and a node never changes after freeze. |
-| <a id="term-step"></a>**Step** (also: steps) | A position in a frozen plan, named by its `step_id`. Preparation steps and planned nodes are all steps and use the same Binding, runner, Gate and release path. |
-| <a id="term-preparation-node"></a>**Preparation node** | A node from the fixed prep plan: the intent call or the requirement call. It is frozen at freeze 1, at launch. |
-| <a id="term-planned-node"></a>**Planned node** | A task node the planner emitted from the accepted requirements, for example search, screening or POC. It is frozen at freeze 2. |
+| <a id="term-step"></a>**Step** (also: steps) | A position in a frozen plan, named by its `step_id`. Preparation steps and task nodes are all steps and use the same Binding, runner, Gate and release path. |
+| <a id="term-fixed-node"></a>**Fixed node** (also: fixed nodes, mandatory node) | A node that is always present in every run and is not chosen by the planner: the prep nodes, the control steps and delivery. |
+| <a id="term-prep-node"></a>**Prep node** (also: prep nodes) | A fixed node that takes the user's data and carries it toward the planner: intake, the intent call and the requirement call, each followed by its Gate. Prep nodes are always on and are frozen at freeze 1, at launch. |
+| <a id="term-control-step"></a>**Control step** (also: control steps) | A fixed step between the prep nodes and the task nodes that runs in the supervisor and is not a capsule: plan, validate, bind and freeze. |
+| <a id="term-task-node"></a>**Task node** (also: task nodes) | A node the planner places for this task and assigns one Capability Capsule to, for example search, screening or POC. Task nodes are chosen, not mandatory, and are frozen at freeze 2 together with their Gates. |
+| <a id="term-task-dag"></a>**Task DAG** | The task nodes and the typed edges between them. This is the graph that the earlier AI4Research called "the DAG". It is frozen at freeze 2 and its plan is the planned phase of `run_plan`. |
+| <a id="term-run-graph"></a>**Run graph** | Every node of one run: the prep nodes, the control steps, the task DAG and delivery. Strictly it is one DAG. The architecture says "prep nodes" and "task DAG" for its two named parts. |
 
 ## Interface
 
@@ -40,14 +44,20 @@ A node is a frozen run-plan step. The supervisor releases it through these messa
 - **Dispatch reservation and release** (records, supervisor). Schema: [`execution-v1.schema.json#dispatch_reservation`](../contracts/execution-v1.schema.json) and [`execution-v1.schema.json#release_record`](../contracts/execution-v1.schema.json).
 - **Workflow start** (call, supervisor -> workflow script). Schema: [`execution-v1.schema.json#workflow_start_args`](../contracts/execution-v1.schema.json).
 
-## Two kinds of governed node
+## Node classes
 
-| Kind | Examples | Decided by | Frozen at |
-|---|---|---|---|
-| Preparation node | intent (`research.compile_intent`), requirement (`research.compile_brief`) | [fixed prep plan](lifecycle.md#term-prep-plan) | freeze 1, at launch |
-| Planned node | search, screening, hypothesis, POC, benchmark, evaluation, report writing | the fixed template the planner emits from the accepted requirements | freeze 2, after the requirement call is released |
+Every node of a run belongs to one class. Mandatory classes are always on. Task nodes are chosen by the planner.
 
-- Both kinds use the same dispatch, runner, Gate and release path. The runner and supervisor know nothing about which [kind](../capsule/capsule.md#term-capsule-kind) a step is.
+| Class | Mandatory? | Examples | Decided by | Frozen at |
+|---|---|---|---|---|
+| Prep node | yes, always on | intake, intent (`research.compile_intent`), requirement (`research.compile_brief`) | the fixed [prep plan](lifecycle.md#term-prep-plan) | freeze 1, at launch |
+| Control step | yes, always on | plan, validate, bind and freeze (not capsules) | supervisor code | not frozen: it produces freeze 2 |
+| Task node | no, chosen by the planner | search, screening, hypothesis, POC, benchmark, evaluation, report writing | the planner, from the accepted requirements | freeze 2, after the requirement call is released |
+| Delivery | yes, always on | publish accepted results (not a capsule, no Gate) | supervisor code | n/a |
+
+The task nodes and their edges are the **Task DAG**. All of these together are the **Run graph**.
+
+- Prep nodes and task nodes use the same dispatch, runner, Gate and release path. The runner and supervisor know nothing about which [kind](../capsule/capsule.md#term-capsule-kind) a step is.
 - The planner, [validator](planner.md#term-plan-validator), binder and Gate host are ordinary services, not nodes with capsules.
 - No path installs a capsule, mutates a frozen plan, repairs a failure automatically or promotes a candidate. A failed Gate [halts](lifecycle.md#term-halt) the whole run. See [lifecycle](lifecycle.md#phases-and-the-two-freeze-points-decision-a26) and [flow](../flow.md).
 
@@ -73,7 +83,7 @@ sequenceDiagram
     F->>D: atomically publish prep Binding set
     F-->>L: frozen prep plan
     L->>S: start exact frozen run
-    Note over S,G: preparation steps use the step loop below.<br/>After the last requirement release: planner, validate, bind, freeze 2 (planned plan), then planned nodes use the same loop.
+    Note over S,G: preparation steps use the step loop below.<br/>After the last requirement release: planner, validate, bind, freeze 2 (planned plan), then task nodes use the same loop.
     S->>D: reserve dispatch(run,step,attempt,request)
     S->>R: call(binding,inputs,reservation)
     R->>S: commit_request per record, capture, outputs, Observation

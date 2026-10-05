@@ -32,7 +32,7 @@ It writes the final `research_report` from the admitted evaluation, benchmark, b
 
 | | |
 |---|---|
-| <a id="term-flow-position"></a>**Flow position** | Planned node in the research chain template ([capabilities](README.md)); the last work node before delivery |
+| <a id="term-flow-position"></a>**Flow position** | Task node in the research chain template ([capabilities](README.md)); the last work node before delivery |
 | <a id="term-work-capsule"></a>**Work capsule** | `research.write_report`, a `skill` with a pinned template body and one model turn, no admitted nested dependencies |
 | <a id="term-inputs"></a>**Inputs** | [`evaluation_verdict`](../types/evaluation-verdict.md), [`benchmark_payload`](../types/benchmark-payload.md), [`research_brief`](../types/research-brief.md), [`idea_set`](../types/idea-set.md), [`opportunity_card`](../types/opportunity-card.md), [`hypothesis_blueprint`](../types/hypothesis-blueprint.md) |
 | <a id="term-output"></a>**Output** | [`research_report`](../types/research-report.md) |

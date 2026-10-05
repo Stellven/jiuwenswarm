@@ -28,7 +28,7 @@ It maps the ingested files and the dataset into `/workspace/poc/`, writes a stat
 
 | | |
 |---|---|
-| <a id="term-flow-position"></a>**Flow position** | Planned node in the research chain template (see [capabilities](README.md)); the planner binds its inputs when it composes the DAG. |
+| <a id="term-flow-position"></a>**Flow position** | Task node in the research chain template (see [capabilities](README.md)); the planner binds its inputs when it composes the DAG. |
 | <a id="term-work-capsule"></a>**Work capsule** | `research.build_poc`, a `tool` with at most two scheduled generation calls under the [bounded generation design](#bounded-generation-design) |
 | <a id="term-inputs"></a>**Inputs** | [`hypothesis_blueprint`](../types/hypothesis-blueprint.md) from `hypothesis`; [`research_brief`](../types/research-brief.md); [`intake`](../types/intake.md) |
 | <a id="term-outputs"></a>**Outputs** | [`poc_bundle`](../types/poc-bundle.md) |

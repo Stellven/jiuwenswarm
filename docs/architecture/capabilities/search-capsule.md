@@ -37,7 +37,7 @@ From the [Research Brief](../types/research-brief.md#term-research-brief), it fo
 
 ## Where it sits
 
-[Planned node](../system/nodes.md#term-planned-node) in the research chain template (see [capabilities](README.md)). Work capsule `research.search_ideas`; its [Gate](../verification.md#term-gate) is the profile [`research.accept_ideas.v1`](search-gate.md) of the shared `research.verifier`. Inputs `research_brief` (from the requirement CC) and `intake`; the planner binds them.
+[Task node](../system/nodes.md#term-task-node) in the research chain template (see [capabilities](README.md)). Work capsule `research.search_ideas`; its [Gate](../verification.md#term-gate) is the profile [`research.accept_ideas.v1`](search-gate.md) of the shared `research.verifier`. Inputs `research_brief` (from the requirement CC) and `intake`; the planner binds them.
 
 ## Gate
 

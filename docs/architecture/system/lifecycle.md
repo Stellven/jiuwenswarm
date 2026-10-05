@@ -31,7 +31,7 @@ The trusted supervisor decides node release. A model, tool, UI, event subscriber
 | <a id="term-run"></a>**Run** (also: runs) | One execution of a research request from launch to delivery or halt, named by its `run_id`. A changed plan, input, config, capsule version or rubric needs a new run. |
 | <a id="term-phase"></a>**Phase** (also: phases) | One of the two plan stages of a run: `prep` (intent and requirement steps) or `planned` (the planner's task nodes). Each phase is frozen before it starts and recorded by one `run_phase_started` record. |
 | <a id="term-prep-plan"></a>**Prep plan** (also: fixed prep plan) | The fixed list of preparation steps (intent, then requirement) with their Bindings and Gate profiles. It is published at freeze 1, at launch. |
-| <a id="term-planned-plan"></a>**Planned plan** | The validated and bound DAG of task nodes the planner emitted. It is published at freeze 2, after the last requirement release and before any planned node is dispatched. |
+| <a id="term-planned-plan"></a>**Planned plan** | The validated and bound DAG of task nodes the planner emitted. It is published at freeze 2, after the last requirement release and before any task node is dispatched. |
 | <a id="term-freeze"></a>**Freeze** (also: freezes, frozen) | Publishing one phase's plan and Bindings as one atomic batch so nothing changes afterwards. A run has two freeze points: the prep plan at launch and the planned plan after requirements. |
 | <a id="term-release"></a>**Release** (also: released, releases) | The committed record that lets a node's successors run. It exists only after a committed advancing Verification, and only the supervisor writes it. |
 | <a id="term-halt"></a>**Halt** (also: halted, halts) | A failed Gate, failed commit, timeout or denied effect stops all further dispatch for the run, siblings included. The evidence is kept and nothing retries on its own. |
@@ -52,16 +52,16 @@ One [library snapshot](../capsule/library.md#term-library-snapshot) is pinned pe
 |---|---|---|---|
 | 0. Launch | doctor, config snapshot, intake, [resource snapshot](../types/resource-snapshot.md#term-resource-snapshot), library snapshot pin | n/a | n/a |
 | 1. Preparation | intent call (`research.compile_intent`, a bounded loop) then the one requirement call (`research.compile_brief`, one model pass), each followed immediately by its [Gate](../verification.md#term-gate) | **freeze 1: [prep plan](../types/run-plan.md#term-prep-plan)** (the preparation [nodes](nodes.md#term-node), their Bindings and Gate profiles), published at launch | reserve, runner call, commit Observation, Gate, commit Verification, commit release |
-| 2. Planning | planner service emits the fixed template DAG from accepted requirements and the pinned snapshot; the supervisor calls the [validator](planner.md#term-plan-validator), then the binder, which pins CC versions and Gates | **freeze 2: [planned plan](../types/run-plan.md#term-planned-plan)**, published after the last requirement release and before any planned node is [dispatched](records.md#term-dispatch) | the M1 planner makes no model call and writes no planning reservation; not a CC call, no Gate. The planning reservation and the model-proposed DAG exist only in the isolated experiment track |
-| 3. Execution | planned nodes, each followed immediately by its Gate | both plans | same path as phase 1 |
+| 2. Planning | planner service emits the fixed template DAG from accepted requirements and the pinned snapshot; the supervisor calls the [validator](planner.md#term-plan-validator), then the binder, which pins CC versions and Gates | **freeze 2: [planned plan](../types/run-plan.md#term-planned-plan)**, published after the last requirement release and before any task node is [dispatched](records.md#term-dispatch) | the M1 planner makes no model call and writes no planning reservation; not a CC call, no Gate. The planning reservation and the model-proposed DAG exist only in the isolated experiment track |
+| 3. Execution | task nodes, each followed immediately by its Gate | both plans | same path as phase 1 |
 | 4. Delivery | ordinary code on accepted terminal outputs | n/a | n/a |
 
 - Freeze 1 uses the same Binding and batch-publication rules as freeze 2. Neither is ever partially visible.
 - Each freeze is recorded by one `run_phase_started` [SystemRecord](records.md#term-systemrecord): phase `prep` at launch (intent step, then requirement step; library snapshot pinned) and phase `planned` after the last requirement release (planner DAG validated, bound, frozen). The planned record carries `prep_release_refs` and the same `library_snapshot_sha256` and `effective_config_ref`. Schema: `execution-v1.schema.json#run_phase_started`.
 - The supervisor starts the generic [SwarmFlow](integration.md#term-swarmflow) script once per phase. The second start, for the planned phase, passes `plan_ref` and `pins_ref` of the planned plan plus the prep release refs, so `prep.<step_id>.<port>` sources resolve only to released prep outputs. Schema: `execution-v1.schema.json#workflow_start_args`.
-- Freeze 2 may not change the library snapshot, config, policy or the prep plan. It adds Bindings only for planned nodes.
+- Freeze 2 may not change the library snapshot, config, policy or the prep plan. It adds Bindings only for task nodes.
 - The intent step is a bounded loop: compile, validate, nested review, repair. Policy key `intent.max_repairs` has default 1 and hard cap 4 ([policy](../schemas/policy.md)). The requirement call is one model pass. The nested verifier review inside `research.compile_intent` is validated by the calling [capsule](../capsule/capsule.md#term-capability-capsule) and is not itself Gated.
-- Preparation nodes are ordinary [steps](nodes.md#term-step) of the run. They appear in the run manifest like planned nodes, marked by phase.
+- Prep nodes are ordinary [steps](nodes.md#term-step) of the run. They appear in the run manifest like task nodes, marked by phase.
 - An invalid planned plan (validation failure) means zero planned-node dispatch. The run halts after phase 1 evidence is kept.
 - Any failed Gate in any phase halts the whole run, including sibling branches. Zero autonomous retries.
 - The planner's own input is only released requirement outputs. It cannot read an unreleased or failed preparation result.
@@ -104,7 +104,7 @@ sequenceDiagram
     S->>S: release next node or halt
 ```
 
-The sequence below shows one governed step. Preparation steps and planned nodes use it identically; before the first planned node, the planner, validator and freeze 2 run as described in [planner](planner.md).
+The sequence below shows one governed step. Preparation steps and task nodes use it identically; before the first task node, the planner, validator and freeze 2 run as described in [planner](planner.md).
 
 The supervisor alone writes the store: the runner returns what it built and the supervisor commits it on its behalf. Startup requires readable inputs, admitted capsule/gate/dependency closure, available model endpoint, correct configuration/policy/vocabulary, supported confinement profile and passed negative security [probes](environment.md#term-probe). Each freeze publishes its Bindings in one [batch](storage.md#term-commit-batch). The engine never sees a partially frozen plan. Progress uses Pending, Running, Evaluating, Completed or Failed/Halted; lifecycle transitions are durable append-only supervisor records, keyed by run/step/attempt.
 
@@ -126,7 +126,7 @@ The pinned native API was verified at agent-core `9e339019`, `openjiuwen/agent_t
 | after freeze 1, during preparation | resume under the frozen prep plan, using the rows below per step |
 | requirement released, planner not yet run or interrupted | the M1 planner makes no model call and has no reservation: `cc resume` runs it again from the same snapshot. Experiment track only: reuse the planning reservation, never issue a second paid call silently; explicit human review allows a new planning attempt under the same pins |
 | proposal committed, freeze 2 absent | revalidate the committed proposal against the same pinned snapshot and publish freeze 2; never re-plan |
-| freeze 2 published, no planned node dispatched | dispatch from the frozen planned plan |
+| freeze 2 published, no task node dispatched | dispatch from the frozen planned plan |
 | before dispatch committed | validate frozen inputs and dispatch the pending step |
 | work complete and Observation committed; decision absent | run Gate on that Observation only |
 | advancing Verification committed; journal reply absent | validate authorization and continue without executing work or judge again |

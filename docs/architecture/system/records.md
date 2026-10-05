@@ -88,12 +88,12 @@ A run publishes two frozen plans (decision A26; sequencing in [lifecycle](lifecy
 | Freeze | When | Covers | Record |
 |---|---|---|---|
 | 1. [Prep plan](lifecycle.md#term-prep-plan) | at launch | intent and requirement [steps](nodes.md#term-step), their Bindings and [Gate](../verification.md#term-gate) profiles, library snapshot, config, source manifest | `run_phase_started` with phase `prep` |
-| 2. [Planned plan](lifecycle.md#term-planned-plan) | after the last requirement release, before the first planned node | planned [nodes](nodes.md#term-node)' Bindings and Gates, accepted requirement refs, the planner proposal ref | `run_phase_started` with phase `planned`, carrying `prep_release_refs` and `proposal_ref` |
+| 2. [Planned plan](lifecycle.md#term-planned-plan) | after the last requirement release, before the first task node | planned [nodes](nodes.md#term-node)' Bindings and Gates, accepted requirement refs, the planner proposal ref | `run_phase_started` with phase `planned`, carrying `prep_release_refs` and `proposal_ref` |
 
 Rules that any shape must satisfy:
 - Freeze 2 carries the same `library_snapshot_sha256` and `config_sha256` as freeze 1; a mismatch is a conflict and halts.
 - Each freeze publishes its Binding set in one batch; both link to the proposal and requirement refs they depend on.
-- A `dispatch_reserved` for a planned node requires a committed freeze 2. A dispatch for a preparation step requires freeze 1.
+- A `dispatch_reserved` for a task node requires a committed freeze 2. A dispatch for a preparation step requires freeze 1.
 - The kind enum above is closed. Adding a kind is a new records revision with affected [fixtures](test-surfaces.md#term-fixture) rechecked. `run_phase_started` replaces the earlier `run_started` kind.
 - The supervisor starts the generic script a second time for the planned phase with `plan_ref` and `pins_ref` (the `batch_ref` batch of the planned record), see [lifecycle](lifecycle.md#phases-and-the-two-freeze-points-decision-a26).
 - A planned plan may wire inputs from [released](lifecycle.md#term-release) prep outputs with source form `prep.<step_id>.<port>`; the planned record's `prep_release_refs` is how those sources resolve.
@@ -106,7 +106,7 @@ Schema: `execution-v1.schema.json#run_phase_started`.
 | Situation | Outcome | Recovery |
 |---|---|---|
 | Freeze 2 carries a different `library_snapshot_sha256` or `config_sha256` than freeze 1 | conflict; the run halts | new run |
-| `dispatch_reserved` for a planned node without a committed freeze 2 (or a preparation step without freeze 1) | not allowed | commit the freeze first |
+| `dispatch_reserved` for a task node without a committed freeze 2 (or a preparation step without freeze 1) | not allowed | commit the freeze first |
 | Same record identity with different bytes | `STORE_CONFLICT`; halt; both hashes kept in incident evidence ([storage](storage.md)) | explicit review |
 | A record kind outside the closed enum | rejected | adding a kind is a new records revision with affected [seams](seams.md#term-seam) rechecked |
 | Duplicate dispatch identity | the existing reservation or committed result is returned | none needed |

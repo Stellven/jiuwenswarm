@@ -46,7 +46,7 @@ How the design maps to the PRD: [prd-map](prd-map.md).
 | Min | Open | Say |
 |---|---|---|
 | 0-3 | [README](README.md) | what the system is, the two levels of docs, one home per fact |
-| 3-10 | [flow](flow.md): Overview, then Full view | the fixed flow, planned nodes, a Gate on every dispatch call, halt, delivery. Data in and out, failures |
+| 3-10 | [flow](flow.md): Overview, then Full view | the fixed flow, task nodes, a Gate on every dispatch call, halt, delivery. Data in and out, failures |
 | 10-14 | [terms](terms.md) | CC vs node vs step; verifier is a CC; what is not a capsule |
 | 14-20 | [verification](verification.md) | Gates, two tiers, zero RSI on referees, test policy |
 | 20-24 | [placement](placement.md), [isolation](isolation.md) | one Docker container, where model routing sits, how capsules are run and confined |

@@ -12,9 +12,9 @@ level: detail
 
 PRD: 4.8.2, 4.6.2
 
-The control flow of one run, as data. A run has two plans: a **[fixed prep plan](../system/lifecycle.md#term-prep-plan)** (intent CC, then requirement CC, each with its gate) [frozen](../system/lifecycle.md#term-freeze) at launch, and a **planned DAG** proposed by the planner after requirements are accepted, then validated, bound and frozen in the same run ([planner](../system/planner.md), [lifecycle](../system/lifecycle.md)). Both use this type. It lists the [steps](../system/nodes.md#term-step) in order. For each step it names the [work capsule](../capabilities/README.md#term-work-capsule), the gate [capsule](../capsule/capsule.md#term-capability-capsule) that [checks](../capsule/fields.md#term-check) it, and where each input comes from. Control flow lives here and nowhere else: not in a script, a prompt or a host ([nodes](../system/nodes.md)).
+The control flow of one run, as data. A run has two plans: a **[fixed prep plan](../system/lifecycle.md#term-prep-plan)** (intent CC, then requirement CC, each with its gate) [frozen](../system/lifecycle.md#term-freeze) at launch, and a **task DAG** proposed by the planner after requirements are accepted, then validated, bound and frozen in the same run ([planner](../system/planner.md), [lifecycle](../system/lifecycle.md)). Both use this type. It lists the [steps](../system/nodes.md#term-step) in order. For each step it names the [work capsule](../capabilities/README.md#term-work-capsule), the gate [capsule](../capsule/capsule.md#term-capability-capsule) that [checks](../capsule/fields.md#term-check) it, and where each input comes from. Control flow lives here and nowhere else: not in a script, a prompt or a host ([nodes](../system/nodes.md)).
 
-**Made by** intake/launch for the fixed prep plan, and by the planner service (an ordinary service, not a capsule) for the planned DAG; the first planner emits the fixed research chain template ([capabilities](../capabilities/README.md)). Each plan is validated and frozen before its [nodes](../system/nodes.md#term-node) dispatch; no live replanning after a failure occurs in M1. A plan carries `phase` (`prep` or `planned`); a planned plan declares the prep outputs it reads in `prep_inputs`. **Read by** freeze and the generic [Swarmflow](../system/integration.md#term-swarmflow) script. Exact type-version bindings follow [Kubeflow component specifications](https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/).
+**Made by** intake/launch for the fixed prep plan, and by the planner service (an ordinary service, not a capsule) for the task DAG; the first planner emits the fixed research chain template ([capabilities](../capabilities/README.md)). Each plan is validated and frozen before its [nodes](../system/nodes.md#term-node) dispatch; no live replanning after a failure occurs in M1. A plan carries `phase` (`prep` or `planned`); a planned plan declares the prep outputs it reads in `prep_inputs`. **Read by** freeze and the generic [Swarmflow](../system/integration.md#term-swarmflow) script. Exact type-version bindings follow [Kubeflow component specifications](https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/).
 
 ## Key terms
 
@@ -23,7 +23,7 @@ The control flow of one run, as data. A run has two plans: a **[fixed prep plan]
 | <a id="term-run-plan"></a>**run_plan** (also: run plan) | The control flow of one run as data: the steps in order, each naming its work capsule, its gate capsule and where each input comes from. A run has two plans, and control flow lives in the plan and nowhere else. |
 | <a id="term-phase"></a>**phase** | Which of a run's two plans a `run_plan` is: `prep` or `planned`. Each plan is validated and frozen before its steps dispatch. |
 | <a id="term-prep-plan"></a>**prep plan** (also: fixed prep plan) | The fixed first plan, frozen at launch: the intent step, then the requirement step, each with its Gate. Its accepted outputs feed the planned plan. |
-| <a id="term-planned-plan"></a>**planned plan** (also: planned DAG) | The second plan, proposed by the planner after requirements are accepted, then validated, bound and frozen in the same run. It declares the prep outputs it reads in `prep_inputs`; M1 allows no live replanning after a failure. |
+| <a id="term-planned-plan"></a>**planned plan** (also: task DAG) | The second plan, proposed by the planner after requirements are accepted, then validated, bound and frozen in the same run. It declares the prep outputs it reads in `prep_inputs`; M1 allows no live replanning after a failure. |
 
 ## Fields
 
@@ -58,7 +58,7 @@ Whether each wire joins two [ports](../capsule/fields.md#term-port) of the same 
 
 ## Examples
 
-The intent step of the fixed prep plan. Full plans: [prep.plan.json](../capabilities/prep.plan.json) (intent and requirement steps, frozen at launch) and [research-template.plan.json](../capabilities/research-template.plan.json) (planned DAG, frozen after requirements). See [capabilities](../capabilities/README.md).
+The intent step of the fixed prep plan. Full plans: [prep.plan.json](../capabilities/prep.plan.json) (intent and requirement steps, frozen at launch) and [research-template.plan.json](../capabilities/research-template.plan.json) (task DAG, frozen after requirements). See [capabilities](../capabilities/README.md).
 
 ```json
 {

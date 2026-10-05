@@ -12,7 +12,7 @@ level: detail
 prd: [3.3.2]
 ---
 
-An operator capsule: one keyword query over the user's documents (PRD 3.3.2, "keyword queries against the local document buffer"). The pattern for every operator: a small `tool` that other capsules pin and call as a `nested` call, never a planned node.
+An operator capsule: one keyword query over the user's documents (PRD 3.3.2, "keyword queries against the local document buffer"). The pattern for every operator: a small `tool` that other capsules pin and call as a `nested` call, never a task node.
 
 # `op.local_search`: one keyword query over the intake's documents
 
