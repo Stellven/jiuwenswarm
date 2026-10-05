@@ -13,3 +13,6 @@ docs/architecture/data-foundation/capsule-run-records.md -text whitespace=cr-at-
 docs/architecture/prd/capsule-3w-full.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
 docs/architecture/**/*.py text eol=lf
 docs/architecture/**/*.json text eol=lf
+
+# PDF artifacts contain structured binary streams; never normalize or text-diff them.
+output/pdf/*.pdf binary

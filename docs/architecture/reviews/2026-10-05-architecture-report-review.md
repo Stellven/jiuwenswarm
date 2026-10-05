@@ -30,7 +30,7 @@ The reviewer inspected README, authority, obligations, modules, deployment, stor
 - Diagram views are explanatory production projections, not alternatives to canonical contract/diagram owners.
 - `python docs/architecture/_tools/arch_lint.py --check`: ok.
 - `python docs/architecture/_tools/validate_library.py`: 1784 active file/anchor links passed after final navigation updates.
-- `git diff --check`: passed after the final report and review updates.
+- `git diff --check`: passed for documentation. Git initially treated the PDF as text and flagged binary-stream/xref whitespace; the artifact path is now explicitly binary in .gitattributes, and the complete diff check passed with that classification.
 - The report's historical test counts retain their original extent. No new runtime/platform/model/benchmark test was run.
 
 PDF SHA-256: `dd72cf27836409a6acae1a04fac41bb0e74a341c2b1a712a819d65c0bc27b61e`.
