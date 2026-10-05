@@ -74,7 +74,7 @@ The runner is a managed subprocess for PRD 4.6.3. `CcBackend` remains the engine
 
 ## Reuse evidence
 
-Upstream adapters are owned by [integration](integration.md); cite the existing symbol there rather than copy it. The current checkout is `6cc05c36b`, with agent-core pin `9e339019`. Newly verified destinations include `pyproject.toml:9` (Python), `:134` (CLI scripts), `:141` (startup), `jiuwenswarm/start_services.py:525` (process commands), `:687` (readiness), and `server/runtime/codex_subscription/transport.py:97` under `jiuwenswarm/` (inherited stdio). These establish reuse entrypoints, not that upstream already satisfies the security or persistence contracts.
+Upstream adapters are owned by [integration](integration.md); cite the existing symbol there rather than copy it. The inspected integration source pin is `6cc05c36b`, with agent-core pin `9e339019`; it is distinct from the current architecture revision. Newly verified destinations include `pyproject.toml:9` (Python), `:134` (CLI scripts), `:141` (startup), `jiuwenswarm/start_services.py:525` (process commands), `:687` (readiness), and `server/runtime/codex_subscription/transport.py:97` under `jiuwenswarm/` (inherited stdio). These establish reuse entrypoints, not that upstream already satisfies the security or persistence contracts.
 
 ## Design status
 

@@ -25,3 +25,7 @@ Typed components, durable evidence, registry versioning and confined execution s
 The contracts, ownership map, walkthroughs and documentation checks can be inspected today. [Work checklist](../reviews/2026-10-05-work-checklist.md) records this pass's extent. Real workflow success, measured speed/cost improvement, account compatibility and sandbox security require downstream execution evidence. Use "designed to" for those outcomes until observations support stronger wording.
 
 Avoid claims of an unbreakable system, company equivalence, proven quality or a performance improvement without measurements. Pair each design claim with its owner link and the relevant evidence status.
+
+## Current architecture report
+
+[Seven-page bullet report](architecture-report-2026-10-05.md) summarizes the architecture, CC inventory, borrowed patterns and validation limits. Its [review record](../reviews/2026-10-05-architecture-report-review.md) records source findings and PDF checks. This dated view never overrides canonical contracts.

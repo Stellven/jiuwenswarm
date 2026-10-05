@@ -25,11 +25,11 @@ This is an architecture specification for testable public interfaces and expecte
 | Gate | gate(obs_ref) with fixture Bindings and committed evidence | fake check runner and judge replies; observe durable Verification and absence/presence of authorization |
 | Node control | authorize_advance and generic script with fake runner/Gate | spy on next dispatch; advance never occurs without a valid committed decision |
 | POC service | execute_poc against a fixture bundle | offline wheelhouse, mock harness, timeouts, missing file, unauthorized path/network; observe raw logs and boundary evidence |
-| Oracle | start/open session, evaluate, finalize through its private API | private seeded fixtures and planted wrong child; inspect aggregate response only, quota, inaccessible answers |
+| Oracle | begin_session, evaluate, close_session, finish_close and evaluate_final through its private API | private seeded fixtures and planted wrong child; inspect aggregate response only, quota, inaccessible answers |
 | Data Foundation | seal execution, assemble, export | repeated assembly, loss/corruption of required capture; verify byte-for-byte prompts/logs, ids/hashes, no invented counts |
 | Entry/UI/config | load_config, doctor, public run API and native views | project-over-user overrides, unsupported platform, invalid token, reconnect; read the same durable state |
 | Offline RSI | begin session, proposal attempt, submit and activate | planted forbidden mutation/regression, frozen referee, loop/final separation; observe append-only hash chain and no live activation |
-| Planner/validator | propose with fake bridge; validate immutable run_plan | wrong port/cycle/permission/budget/missing objective/Gate; forged planning scope, missing quota reservation, incomplete proposal envelope and alias race; observe findings and zero unauthorized turns/dispatches |
+| Planner/validator | propose with fake bridge; validate committed planner_proposal Artifact and publish normalized run_plan | wrong port/cycle/permission/budget/missing objective/Gate; forged planning scope, missing quota reservation, incomplete proposal envelope and alias race; observe findings and zero unauthorized turns/dispatches |
 | Experimental entry | feature-profile request | forbidden production toggles, unapproved real endpoint, missing Code Mode confinement; observe wrong-track denial |
 | Benchmark export | headless run_task and export_run | halted/sealed runs, missing telemetry/corrupt ref/write interruption; observe stable identities and truthful unavailable fields |
 
