@@ -3,12 +3,12 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 
 ## Entry points
 - [Code SOP v2](docs/code/Code_SOP.md)
-- [Future M1 TASKS](docs/tasks/M1/TASKS.md)
-- [Spec Kit workflow](docs/code/code_sop/SPEC_KIT_WORKFLOW.md)
-- [Verification method](docs/code/code_sop/VERIFICATION.md)
+- [Future M1 TASKS](docs/code/Missions/M1/TASKS.md)
+- [Spec Kit workflow](docs/code/SPEC_KIT_WORKFLOW.md)
+- [Verification method](docs/code/VERIFICATION.md)
 - [Constitution](.specify/memory/constitution.md)
 - Historical environment facts: docs/governance/ENVIRONMENT.md.
-- Historical task: docs/tasks/AI4R-001/TASK.md; it is not the future-M1 register.
+- Historical task: docs/code/Missions/AI4R-001/TASK.md; it is not the future-M1 register.
 
 ## Working rules
 1. Follow TASKS -> TASK -> one registered Spec Kit directory per TASK. Read applicable AGENTS, the exact source clauses, agreements, native spec/plan/tasks and existing callers/tests before implementation.

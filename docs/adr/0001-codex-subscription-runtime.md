@@ -10,7 +10,7 @@ Template: [ADR_TEMPLATE](../code/code_sop/templates/ADR_TEMPLATE.md).
 | Status | Proposed |
 | Author / participants | Xiaoyang with Codex drafting/research support; affected owners pending |
 | Proposal date | 2026-09-28 |
-| Related task / design | [TASK](../tasks/AI4R-001/TASK.md) / [native plan v0.1](../../specs/AI4R-001-codex-subscription/plan.md), pending approval |
+| Related task / design | [TASK](../code/Missions/AI4R-001/TASK.md) / [native plan v0.1](../code/Missions/AI4R-001/plan.md), pending approval |
 | Applicable code baseline | dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483 |
 | Supersedes / superseded by | N/A — first proposed ADR; no previous ADR directory existed |
 
@@ -56,10 +56,10 @@ The user selects Codex App Server with personal local subscription login, fresh 
 
 | Document version | Code Lead | Decision | Time and time zone | Evidence of explicit approval or rejection | Conditions |
 | --- | --- | --- | --- | --- | --- |
-| 0.1 | Xiaoyang | Pending | Pending | [Plan approval record](../../specs/AI4R-001-codex-subscription/plan.md#8-approval-record--required) | Resolve prerequisite gates; no approval inferred from requirements confirmation |
+| 0.1 | Xiaoyang | Pending | Pending | [Plan approval record](../code/Missions/AI4R-001/plan.md#8-approval-record--required) | Resolve prerequisite gates; no approval inferred from requirements confirmation |
 
 ## 8. Related material
 
 - [Architecture](../architecture/OVERVIEW.md).
-- [Draft runtime contract](../../specs/AI4R-001-codex-subscription/contracts/runtime.md).
-- [Research and protocol evidence](../../specs/AI4R-001-codex-subscription/research.md); no live model proof performed.
+- [Draft runtime contract](../code/Missions/AI4R-001/contracts/runtime.md).
+- [Research and protocol evidence](../code/Missions/AI4R-001/research.md); no live model proof performed.

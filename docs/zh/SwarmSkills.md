@@ -143,7 +143,7 @@ roles:
 |------|------------------|-------------|
 | [workflow.md](workflow.md) | Mermaid 流程图、步骤协议、集成规则、最终报告格式 | 首次分派前 — 完整执行手册 |
 | [bind.md](bind.md) | 资源限制、行为约束、失败处理和降级模式 | 遇到限制、处理失败或需要降级规则时 |
-| [roles/*.md](roles/) | 每个角色的身份、成功标准、输出格式、Inline Persona | 分派每个队友前 — 提取 Inline Persona |
+| [roles*.md](roles) | 每个角色的身份、成功标准、输出格式、Inline Persona | 分派每个队友前 — 提取 Inline Persona |
 | [dependencies.yaml](dependencies.yaml) | 外部技能和工具依赖 | **启动时** — 验证依赖，报告缺失项，用户决定是否继续 |
 ````
 

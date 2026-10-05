@@ -1,26 +1,18 @@
-# AI4Research 开发文档入口 v2
+# AI4Research 开发文档
 
-本体系采用 **TASKS → TASK → 每个 TASK 一套 Spec Kit**，按“逐块验证 → 跨块连接验证 → 整个系统验证”推进开发。
+本目录统一收纳开发指南与真实任务记录。实际工作位于 `Missions/项目阶段/`：阶段目录放 TASKS.md，每个任务目录并列放 TASK.md、spec.md、plan.md、tasks.md。按逐块、跨块连接、整个系统的顺序验证。
 
-建议先阅读 [开发 SOP](Code_SOP.md)，再查看 [完整文档目录](code_sop/README.md) 和 [M1 总任务入口](../tasks/M1/TASKS.md)。目前正在为完整 M1 提前铺设流程，最终 PRD 与架构仍待补齐；文档准备完成不代表 M1 已实现或通过验证。
+先读 [开发 SOP](Code_SOP.md) 和 [文档目录](CATALOG.md)，再从 [M1 任务登记表](Missions/M1/TASKS.md) 进入实际工作。任务与规格中的当前记录决定输入和进度。
 
-## 常用入口
+## 内容在哪里
 
-- [Spec Kit 使用流程](code_sop/SPEC_KIT_WORKFLOW.md)：从需求、设计到工作项及证据对照表。
-- [验证体系](code_sop/VERIFICATION.md)：如何验证单个 block、跨模块连接和整个系统。
-- [Git 工作方式](code_sop/GIT_WORKFLOW.md)：分支、集成版本与验证证据的关系。
-- [完整示例](code_sop/WORKED_EXAMPLE.md)：查看 TASKS、TASK 与各自 Spec Kit 如何配合。
-- [迁移与准备说明](code_sop/MIGRATION.md)：旧文档如何替换，以及未完成任务如何衔接。
+| 内容 | 位置 |
+| --- | --- |
+| 开发规范与操作指南 | 本目录；[Spec Kit 使用流程](SPEC_KIT_WORKFLOW.md)、[验证方法](VERIFICATION.md)、[Git 工作方式](GIT_WORKFLOW.md)、[迁移说明](MIGRATION.md) |
+| 通用 Spec Kit 能力 | [Codex 插件](../../plugins/spec-kit/README.md)，统一持有 skills、脚本与基础模板 |
+| 项目规则与本地设置 | [.specify 项目状态](../../.specify/README.md)；仅项目专属覆盖配置放在这里 |
+| 项目记录模板 | [TASKS](../../plugins/spec-kit/templates/TASKS_TEMPLATE.md)、[TASK](../../plugins/spec-kit/templates/TASK_TEMPLATE.md)、[证据](../../plugins/spec-kit/templates/EVIDENCE_TEMPLATE.md)及 AGENTS 模板 |
+| 真实任务与原生规格 | docs/code/Missions/；[M1](Missions/M1/TASKS.md)与[开发工具维护](Missions/DEVTOOLS/TASKS.md)各自组织实际任务，四个任务文件放在一起 |
+| 历史浏览器 demo | [AI4R-001 的运行指南](Missions/AI4R-001/CODEX_DEMO.md)，与对应任务放在一起 |
 
-本入口使用中文，并提供完整中文合订本。可编辑的流程、模板和示例源文件保持英文；英文版使用独立的英文入口。新体系已替换独立的开工授权、实施清单、审查和交接卡；历史任务证据仍然保留。旧的 CODEX_DEMO.md 属于历史功能文档，不属于本流程包。
-
-完整 ZIP 包含流程指南、全部模板、示例、仓库指令、Spec Kit 模板覆盖文件、constitution 和 M1 骨架。文件清单记录各文件的内容哈希。阅读和使用这套文档不要求创建 commit。
-
-## 完整交付
-
-- [完整中文合订本](AI4Research_Documentation_v2.zh-CN.md)
-- [完整英文合订本](AI4Research_Documentation_v2.md)
-- [英文入口](README.en.md)
-- [完整文档 ZIP](AI4Research_Documentation_v2.zip)
-- [文件与哈希清单](DELIVERY_MANIFEST.json)
-- [文档检查记录](DOCUMENTATION_CHECKS.md)
+当前指南和模板是可维护来源；旧交付快照保持历史原文。阅读和使用本流程不要求创建 commit。参见 [English entry](README.en.md)。
