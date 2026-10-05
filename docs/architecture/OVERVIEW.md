@@ -11,7 +11,7 @@ Template: [ARCHITECTURE_TEMPLATE](../code/code_sop/templates/ARCHITECTURE_TEMPLA
 | Code version verified | ai4r_main_branch at dc9e6afdbacdc78a5d2eede3b4ab0dd1347e7483 |
 | Current status | Partially verified by source inspection and prior bounded baseline checks; proposed runtime not implemented |
 | Repository entry points | pyproject.toml; jiuwenswarm/start_services.py, channels/web/, gateway/, server/ |
-| Relevant current design | [plan v0.1](../../specs/AI4R-001-codex-subscription/plan.md), Draft |
+| Relevant current design | [plan v0.1](../code/Missions/AI4R-001/plan.md), Draft |
 | Decision record | [ADR-0001 v0.1](../adr/0001-codex-subscription-runtime.md), Proposed |
 
 ## 2. System purpose and boundaries (required)
@@ -67,7 +67,7 @@ Legacy migration N/A under CR-01; newly created data durability remains required
 - Launcher: pyproject.toml maps jiuwenswarm-start to jiuwenswarm.start_services:main; proposed fresh-profile behavior is not yet implemented or launched.
 - External dependencies: personal subscription, compatible Codex SDK/binary, scoped resource services; embeddings/media equivalents unresolved.
 - Configuration precedence proposed: selected data root before cached path resolution; explicit binary and sanitized child config/env; no ambient model keys/provider overrides.
-- Verification entry points: [TEST_REPORT](../tasks/AI4R-001/TEST_REPORT.md) baseline and [quickstart](../../specs/AI4R-001-codex-subscription/quickstart.md) proposed acceptance; no standalone TESTING record yet.
+- Verification entry points: [TEST_REPORT](../code/Missions/AI4R-001/TEST_REPORT.md) baseline and [quickstart](../code/Missions/AI4R-001/quickstart.md) proposed acceptance; no standalone TESTING record yet.
 
 ## 7. Quality attributes and architectural constraints (required; select applicable items)
 

@@ -139,7 +139,7 @@ This swarm skill uses a specialization pipeline pattern (Pattern C) to organize 
 |------|------------------|-------------|
 | [workflow.md](workflow.md) | Mermaid flowchart, step-by-step protocol, integration rules, Final Report format | Before first dispatch — the complete playbook |
 | [bind.md](bind.md) | Resource limits, behavioral constraints, failure handling and degraded modes | When hitting limits, handling failures, or needing degraded-mode rules |
-| [roles/*.md](roles/) | Per-role identity, success criteria, output schema, Inline Persona for Teammate | Before dispatching each teammate — extract Inline Persona |
+| [roles*.md](roles) | Per-role identity, success criteria, output schema, Inline Persona for Teammate | Before dispatching each teammate — extract Inline Persona |
 | [dependencies.yaml](dependencies.yaml) | External skills and tools required to run | **Startup** — verify deps, report missing items, user decides go/no-go |
 ```
 

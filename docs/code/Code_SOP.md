@@ -1,5 +1,5 @@
 # AI4Research Code SOP v2
-Revision: 2026-09-29. Prepare the complete M1 workflow while its PRD and architecture are still being written.
+Revision: 2026-10-05 (tool packaging and directory layout). Current source readiness is recorded in the registered TASKS/TASK/native artifacts.
 
 ## 1. Hierarchy
 **TASKS -> TASK -> one Spec Kit feature directory per TASK.**
@@ -9,7 +9,7 @@ Revision: 2026-09-29. Prepare the complete M1 workflow while its PRD and archite
 - Spec Kit is the working core: spec.md defines acceptance; plan.md defines technical design and verification procedures; tasks.md holds ordered work, progress and the acceptance-to-evidence matrix.
 - Evidence records actual verification results inside that feature directory. It is not another task list.
 
-Uppercase TASKS.md is the program register. Lowercase tasks.md is one task's native work list. Install Spec Kit once per checkout; each TASK gets its own feature directory, not a separate tool installation.
+Uppercase TASKS.md is the program register. Lowercase tasks.md is one task's native work list. Install the Spec Kit Codex plugin once and retain project-owned rules per checkout; each TASK gets its own feature directory, not a separate tool installation.
 
 A TASK is the logical task unit; TASK.md is its entry file. The task's functional specification (spec.md), implementation plan (plan.md), work list (tasks.md) and evidence belong to that TASK, but are separate files in its registered Spec Kit directory. TASK.md links to them; their full contents are not embedded in TASK.md.
 
@@ -35,9 +35,9 @@ TASKS links task progress instead of copying work checkboxes. TASK links native 
 ## 3. Paths and IDs
 Recommended repository layout:
 ```text
-docs/tasks/M1/TASKS.md
-docs/tasks/M1/M1-001/TASK.md
-docs/tasks/M1/M1-SYSTEM/TASK.md
+docs/code/Missions/M1/TASKS.md
+docs/code/Missions/M1/M1-001/TASK.md
+docs/code/Missions/M1/M1-SYSTEM/TASK.md
 specs/M1-001-slug/{spec.md,plan.md,tasks.md,evidence/}
 specs/M1-SYSTEM-slug/{spec.md,plan.md,tasks.md,evidence/}
 ```
@@ -78,7 +78,7 @@ Consumers reference the owner and revision. Avoid parallel definitions. Separate
 Record interface changes in the owning TASK change table, update affected consumers, and invalidate affected evidence. Unknown details block only dependent work.
 
 ## 7. Verification and completion
-Follow [VERIFICATION.md](code_sop/VERIFICATION.md).
+Follow [VERIFICATION.md](VERIFICATION.md).
 - A checked work item means work was done, not that acceptance passed.
 - An AC passes only when all mapped required checks have valid PASS evidence.
 - A TASK completes when required work, ACs and boundaries pass and no unresolved dependency invalidates the result.
@@ -97,6 +97,6 @@ When requirements change, update the baseline and allocation, affected agreement
 Integrate dependent blocks early. Whole-system acceptance covers the entire M1; smaller implementation units do not reduce that scope.
 
 ## 9. Templates and tools
-Follow the tables in the [catalog](code_sop/README.md). Preserve required fields, use meaningful N/A explanations and record unresolved conditions.
+Follow the tables in the [catalog](CATALOG.md). Preserve required fields, use meaningful N/A explanations and record unresolved conditions.
 
-Project native templates live in .specify/templates/overrides/. They replace the optional-testing default for this process. Read [Spec Kit workflow](code_sop/SPEC_KIT_WORKFLOW.md) and [Git workflow](code_sop/GIT_WORKFLOW.md). Generated commands never override an explicit no-commit instruction.
+TASK-native templates live in the plugin, alongside TASKS/TASK templates. Project-specific overrides may live in .specify/templates/overrides/. Read [Spec Kit workflow](SPEC_KIT_WORKFLOW.md) and [Git workflow](GIT_WORKFLOW.md). Generated commands never override an explicit no-commit instruction.

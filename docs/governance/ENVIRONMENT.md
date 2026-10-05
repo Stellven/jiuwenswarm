@@ -79,14 +79,14 @@ node --version
 .\.venv\Scripts\python.exe --version
 ```
 
-Use the project `.venv\Scripts\python.exe` for backend tests and the selected portable Node for frontend scripts. An unqualified global `python`, `node`, or IDE-provided `codex` may select a different runtime. Actual baseline results and exact test commands are in [TEST_REPORT](../tasks/AI4R-001/TEST_REPORT.md).
+Use the project `.venv\Scripts\python.exe` for backend tests and the selected portable Node for frontend scripts. An unqualified global `python`, `node`, or IDE-provided `codex` may select a different runtime. Actual baseline results and exact test commands are in [TEST_REPORT](../code/Missions/AI4R-001/TEST_REPORT.md).
 
 ## Task selection
 
 From the application root, in the process that executes native commands:
 
 ```powershell
-$env:SPECIFY_FEATURE_DIRECTORY = 'specs/AI4R-001-codex-subscription'
+$env:SPECIFY_FEATURE_DIRECTORY = 'docs/code/Missions/AI4R-001'
 $env:SPECIFY_FEATURE_NO_PERSIST = '1'
 & ./.specify/scripts/powershell/check-prerequisites.ps1 -PathsOnly -Json
 ```
@@ -95,4 +95,4 @@ The local `.specify/feature.json` selects the same feature and is ignored by `.s
 
 ## Remaining preparation
 
-Inspect the pinned OpenJiuwen Codex integration, select and validate the application Codex protocol, and run an explicit local-account validation scenario. Dependency installation and bounded baseline checks do not establish whole-project subscription compatibility. Complete an end-to-end SOP pilot before claiming normal team-wide adoption is complete. See [AI4R-001 preparation evidence](../tasks/AI4R-001/TEST_REPORT.md).
+Inspect the pinned OpenJiuwen Codex integration, select and validate the application Codex protocol, and run an explicit local-account validation scenario. Dependency installation and bounded baseline checks do not establish whole-project subscription compatibility. Complete an end-to-end SOP pilot before claiming normal team-wide adoption is complete. See [AI4R-001 preparation evidence](../code/Missions/AI4R-001/TEST_REPORT.md).
