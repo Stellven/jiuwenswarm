@@ -4,11 +4,21 @@ id: cc.type.code_hits
 version: 1
 status: draft
 tags: [types, m1]
+prd: [3.3.2, 3.5.5]
+level: detail
 ---
 
 # `code_hits`: snapshot code locations · version 1
 
-Ordered verbatim Python source locations produced by [CodeSearch](../m1/op-codesearch.md), consumed by Hypothesis and POC. Every path and line resolves against the authorized immutable project snapshot.
+PRD: 3.3.2, 3.5.5
+
+Ordered verbatim Python source locations produced by [CodeSearch](../capabilities/op-codesearch.md), consumed by Hypothesis and POC. Every path and line resolves against the authorized immutable project [snapshot](../capsule/library.md#term-library-snapshot).
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-code-hits"></a>**code_hits** (also: code hits) | Ordered verbatim Python source locations produced by CodeSearch, each resolving against an authorized immutable project snapshot. Hypothesis and POC consume it. |
 
 ## Fields
 
@@ -26,8 +36,8 @@ Ordered verbatim Python source locations produced by [CodeSearch](../m1/op-codes
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | Matches generated schema |
-| `code_hits_source` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:code_hits_source` | muk | Count/bounds/path and exact source match the authorized snapshot and query |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | Matches generated schema |
+| `code_hits_source` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:code_hits_source` | cc-team | Count/bounds/path and exact source match the authorized snapshot and query |
 
 ## Example
 

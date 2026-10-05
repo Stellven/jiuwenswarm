@@ -3,13 +3,23 @@ type: schema
 id: cc.standing.v1
 status: proposed
 tags: [schema]
+prd: [4.1.2]
+level: detail
 ---
 
 # Standing · `cc.standing.v1`
 
-The one moving pointer in the library: for each capsule name, which version is current and in what state. It is a log. Each move is a new entry, and the entry with the highest `seq` for a name is the current Standing. Its writer is fixed by `state` (INV-3): admission writes `admitted` when it admits a version, or `admitted_inactive` for an RSI child whose parent has `evolution.rsi: propose`; the librarian writes every other state and every revert, including a person's activation of an `admitted_inactive` version. At M1 the librarian is a command that writes these moves only on a person's request; its automatic moves are unchecked (librarian). Entries are keyed by name and `seq`, so two entries cannot claim the same `seq`.
+PRD: 4.1.2
+
+The one moving [pointer](../capsule/library.md#term-alias) in the library: for each [capsule](../capsule/capsule.md#term-capability-capsule) name, which version is current and in what state. It is a log. Each move is a new entry, and the entry with the highest `seq` for a name is the current Standing. Its writer is fixed by `state` (INV-3): admission writes `admitted` when it admits a version, or `admitted_inactive` for an [RSI child](../capsule/rsi.md#term-parent-and-child) whose parent has `evolution.rsi: propose`; the librarian writes every other state and every revert, including a person's activation of an `admitted_inactive` version. At M1 the librarian is a command that writes these moves only on a person's request; its automatic moves are unchecked (librarian). Entries are keyed by name and `seq`, so two entries cannot claim the same `seq`.
 
 **Rules:** INV-2 (entries are never edited), INV-3.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-standing"></a>**Standing** | The one moving pointer in the library: for each capsule name, which version is current and in what state (`admitted`, `admitted_inactive`, `deprecated`, `suspect`, `retired`, `revoked`). It is a log: each move is a new entry and the highest `seq` is current. |
 
 ## Fields
 
@@ -20,7 +30,7 @@ Each entry extends [common](common.md), with `scope.library: true`.
 | `name` | `string` | req | checked |  | The capsule name this pointer is for. Example: `doc.pdf_to_text` |
 | `seq` | `integer` | req | checked |  | 1 for a name's first entry, then +1. Gives the entries a total order, which timestamps cannot |
 | `prev_hash` | `sha256?` | req | checked |  | The hash of the previous entry for this name; null for the first. The log cannot be rewritten unnoticed |
-| `current_hash` | `sha256?` | req | checked |  | The `decl_hash` in use; null when no version is. A revert names an earlier version here, with reason `REVERTED` |
+| `current_hash` | `sha256?` | req | checked |  | The `decl_hash` in use; null when no version is. A rollback names an earlier admitted version here, with reason `REVERTED`; it is requested by an `activation_request`, not by a standing change |
 | `verdict_ref` | `Ref(verdict)?` | req | checked |  | The Verdict that admitted `current_hash`; null when `current_hash` is null. The way to a capsule's latest Verdict and tests |
 | `state` | `reg(standing_state)` | req | checked |  | See the states below. Only `admitted` versions are offered for selection |
 | `reason` | `reg(reason_code)` | req | checked |  | Why it moved. Example: `ADMITTED`, `SUSPECT_DRIFT`, `REVERTED` |
@@ -32,7 +42,7 @@ Each entry extends [common](common.md), with `scope.library: true`.
 |---|---|
 | `admitted` | current, and offered for selection |
 | `admitted_inactive` | admitted, but not offered for selection |
-| `deprecated` | not offered for new Bindings; existing Bindings still run |
+| `deprecated` | not offered for new [Bindings](binding.md#term-binding); existing Bindings still run |
 | `suspect` | evidence against it (e.g. `SUSPECT_DRIFT`); not offered for new Bindings |
 | `retired` | withdrawn on evidence (`RETIRED_ON_EVIDENCE`); no new Bindings |
 | `revoked` | withdrawn for cause (`REVOKED_SECURITY`); the Binding writer and the runner refuse it |
@@ -40,6 +50,8 @@ Each entry extends [common](common.md), with `scope.library: true`.
 One `current_hash` per name, so two branches cannot both be live under one name: a live branch takes a new name, with `lineage.relation: specialises`.
 
 ## Elsewhere
+
+Schema: the manual Standing command is `tools-v1.schema.json#standing_change_request` and its result is `tools-v1.schema.json#standing_change_record` (see [library](../capsule/library.md#interface)).
 
 A Finding moves a capsule only toward less authority, in the order above, and moving up needs a new Verdict; how many failures make a capsule `suspect`: policy `librarian`.
 

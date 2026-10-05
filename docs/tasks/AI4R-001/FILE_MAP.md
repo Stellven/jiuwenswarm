@@ -12,7 +12,7 @@ Scope: AI4R-001 research plus the M1 login/basic-chat implementation. Template: 
 | Covered scope | Historical research scripts plus M1 production files/tests listed below |
 | Uncovered scope and plan | Whole application and real leader/account/model operation; G1-G4 owned by Xiaoyang before dependent delivery |
 | Ownership source | TASK Section 1; broader module ownership remains unassigned |
-| Architecture source | docs/architecture/OVERVIEW.md; native plan v0.3 M1 addendum; broader architecture proposed |
+| Architecture source | docs/tasks/AI4R-001/OVERVIEW.md; native plan v0.3 M1 addendum; broader architecture proposed |
 
 ## 2. Project file map (required)
 

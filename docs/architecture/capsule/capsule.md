@@ -1,11 +1,21 @@
 ---
+id: capsule.capsule
 type: capsule
+level: detail
+status: proposed
+provides: [capsule.index]
+depends_on: [fields.md, authoring.md, library.md, trust.md]
 tags: [capsule, index]
+prd: [4.1.1, 4.1.2, 4.1.4]
 ---
 
 # Capability Capsule
 
-A **capability capsule** (能力胶囊) describes one capability the system can run. The description is the **[Declaration](fields.md)**: what the capability takes, gives, needs, changes and promises, and what RSI may do with it. It refers to the capability's code by the code's hash; it does not contain the code. CC itself runs nothing: [tools](tools.md) read the Declaration and write records about the capsule.
+PRD: 4.1.1, 4.1.2, 4.1.4
+
+> Answers: What is a Capability Capsule and where is each part of it defined?
+
+A **capability capsule** (能力胶囊) describes one capability the system can run. The description is the **[Declaration](fields.md)**: what the capability takes, gives, needs, changes and promises, and what [RSI](../rsi.md#term-rsi) may do with it. It refers to the capability's code by the code's hash; it does not contain the code. CC itself [runs](../system/lifecycle.md#term-run) nothing: [tools](tools.md) read the [Declaration](fields.md#term-declaration) and write records about the capsule.
 
 > **A 能力胶囊 is flexible in form and strict in verification and quality assurance.**
 
@@ -14,27 +24,34 @@ Five ideas:
 1. **It declares.** Every promise is stated before the capsule runs, so it can be checked and found wrong.
 2. **It points, never holds.** The Declaration names its code by hash, like a label on a box.
 3. **It is a graph.** Usually a **singleton**, one capability as a one-node graph; sometimes a composite, a graph of capsules.
-4. **Flexible in form, strict in checking.** A tool, a skill, an MCP tool, an agent, a gate or a delivery step all fit one schema, and all pass the same admission.
+4. **Flexible in form, strict in checking.** A tool, a skill, an MCP tool or an agent fits one schema, and all pass the same admission. M1 admits `tool` and `skill`; the verifier is one such capsule.
 5. **Nothing judges itself.** Tests that certify a capsule come from someone else, and the referee is protected.
 
 ## Find your answer
 
 | Question | Page |
 |---|---|
-| What does a capsule hold? | [Declaration](fields.md): every field, with an [example](fields.md#example); [a fuller, fully-typed example](../m1/intent-capsule.md) |
+| What does a capsule hold? | [Declaration](fields.md): every field, with an [example](fields.md#example); [a fuller, fully-typed example](../capabilities/intent-compile.md) |
 | How do I author a capsule from a tool I have? | [Authoring a capsule](authoring.md) |
 | Why does CC exist? | [Why CC](why.md) |
-| How do capsules combine? | [Composition](composition.md) |
+| How might capsules combine later? | [Future state: composition](future-state.md#composition) |
 | Where are capsules and their tests stored, and how do they get in? | [Library](library.md) |
 | How much is a capsule trusted, and why? | [Trust](trust.md) |
-| How does the system improve or add capsules? | [RSI](rsi.md), [generalist](generalist.md), [a full generalist example](example-generalist.md) |
+| How does the system improve or add capsules? | [RSI](rsi.md); later: [generalist and example](future-state.md#generalist) |
 | What is recorded when a capsule runs, and how is quality measured? | [Observability and quality](observability.md) |
 | What may a capsule touch in jiuwenswarm? | [Permissions](permissions.md) |
 | What happens when a node runs a capsule? | [Runner](runner.md) |
-| Which tool checks what, and what is still deferred? | [CC tooling and field enforcement](tools.md#field-validation-and-enforcement-map) |
+| Which tool [checks](fields.md#term-check) what, and what is still deferred? | [CC tooling and field enforcement](tools.md#field-validation-and-enforcement-map) |
 | Where does generated POC code run? | The provisional [M1 untrusted process boundary](process-boundary.md) |
 | What does M1 require? | [Checked and unchecked at M1](stages.md) |
 | Where do the ideas come from? | [References](references.md) |
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-capability-capsule"></a>**Capability Capsule** (also: CC, capsule, capsules) | One capability the system can run, described by its Declaration and pointing at its code by hash. CC itself runs nothing; tools read the Declaration and write records about it. |
+| <a id="term-capsule-kind"></a>**capsule kind** (also: capsule_kind, kind) | How a capsule runs, not what job it does: `tool`, `skill`, `prompt_section`, or the unchecked `mcp`, `a2a`, `subagent`, `agent_template` and `composite`; M1 checks the first three. The runner calls each kind its own way and admission tests it that way. |
 
 ## One schema, many roles
 
@@ -42,43 +59,18 @@ CC is a schema connected to a series of tools. The same Declaration serves every
 
 | Role | What the Declaration gives it | Tool |
 |---|---|---|
-| selection | ports, preconditions, effect class, summary: what may be picked for a call | selection index, [Symphony](symphony.md) |
+| selection | [ports](fields.md#term-port), preconditions, [effect class](fields.md#term-effect-class), summary: what a planner may pick for a call (in M1 the planner emits a fixed template and makes no selection) | planner |
 | admission | hashes, checks, rules: what may enter the library | admission |
 | running | the code by hash, the kind: how to call it, and whether the code is the code that was tested | runner |
-| verification | checks on every output: what each gate checks | check runner, gate |
+| verification | checks on every output: what each gate checks | [check runner](gate-host.md#term-check-runner), gate |
 | permissions | effects, network, dependencies, secrets: what a call may touch | [permission layer](permissions.md), sandbox |
-| the library | versions, lineage, test suites: what is stored and what is current | library store, librarian |
+| the library | versions, lineage, [test suites](../schemas/checks.md#term-test-suite): what is stored and what is current | library store, librarian |
 | improvement | RSI permissions, lineage, parent suites: what may change and how it is tested | [RSI](rsi.md) |
-| composition | members and wiring: capsules made of capsules | composer |
 | observability and quality | the record of every call against its declaration ([observability](observability.md)) | runner, gate, librarian |
-| import and sharing | a Declaration for any outside tool, skill or server | importer, store |
 
 ## This folder
 
-This folder is enough to understand CC. Each fact is stated once and linked from everywhere else.
-
-| Page | What it holds |
-|---|---|
-| [Why CC](why.md) | the problem, the evidence, what openJiuwen lacks |
-| this page | what a capsule is, its kinds, the rules, and everything it connects to |
-| [Declaration](fields.md) | what a capsule holds: every field, its type, and what it is for |
-| [Authoring](authoring.md) | how to turn a tool into a capsule, step by step |
-| [Composition](composition.md) | A, B, A-B and AB: capsules made of capsules |
-| [Library](library.md) | storage, the tree of versions, test storage, admission, a capsule's life, the librarian, screening sets |
-| [Observability and quality](observability.md) | the record of every call, declared against observed, and how quality is measured |
-| [Trust](trust.md) | trust levels, dependency pinning, what raises and lowers trust |
-| [RSI](rsi.md) | RSI permissions, improving capsules, building capsules from gaps |
-| [Generalist](generalist.md) | the low-trust capsule that fills gaps |
-| [Permissions](permissions.md) | how a capsule's declarations become jiuwenswarm permission rules |
-| [Symphony](symphony.md) | what agent-core's Symphony does, and how CC plugs into it |
-| [CC tooling and field enforcement](tools.md) | M1 and later tool boundaries; field validation versus runtime enforcement |
-| [Runner](runner.md) | how a node's capsule is found by hash, run by its kind, and recorded: the M1 runner design |
-| [M1 untrusted process boundary](process-boundary.md) | the separate provisional boundary for generated POC execution in Stage 3.7 |
-| [RSI fixture oracle](fixture-oracle.md) | the separate provisional service that tests RSI candidates without revealing hidden fixtures |
-| [Toolchain](toolchain.md) | the API of every CC tool M1 needs, the capsule folder, and where code lives |
-| [Gate host](gate-host.md), [gate capsules](gate-capsules.md) | how every step is gated: the fixed fold, and the capsule that assesses |
-| [Checked and unchecked at M1](stages.md) | what M1 requires and tests, and what each unchecked field unlocks |
-| [References](references.md) | the papers and designs CC draws on |
+Each fact is stated once and linked from the table above. Also: [Toolchain](toolchain.md) (the API of every CC tool M1 needs), [Gate host](gate-host.md) and [gate capsules](gate-capsules.md) (how every step is gated), [RSI fixture oracle](fixture-oracle.md), [Future state](future-state.md) (not M1).
 
 ## Kinds of capsule
 
@@ -92,33 +84,33 @@ One schema covers every kind. The kind tells the runner how to call it and admis
 | `mcp` | a tool exposed by an MCP server | unchecked |
 | `a2a` | a remote agent reached over the A2A protocol | unchecked |
 | `subagent` | an agent started for one task | unchecked |
-| `agent_template` | a reusable agent definition, such as a [generalist](generalist.md) | unchecked |
-| `composite` | a capsule made of other capsules; see [composition](composition.md) | unchecked |
+| `agent_template` | a reusable agent definition, such as a [generalist](future-state.md#generalist) | unchecked |
+| `composite` | a capsule made of other capsules; see [composition](future-state.md#composition) | unchecked |
 
-A kind says how a capsule runs, not what job it does. A gate, a verifier or a delivery step is a capsule of one of these kinds.
+A kind says how a capsule runs, not what job it does. The verifier (`research.verifier`) is a capsule of kind `skill`. [Gate](../verification.md#term-gate) decisions, the planner and Supervisor are ordinary code, not capsules ([terms](../terms.md)).
 
 ## Rules
 
-1. **Any node can be a capsule.** Work steps, gates, verifiers and delivery can all be capsules. What is not a node stays outside: admission, the library, the librarian and the record stores.
+1. **A capsule is a reusable capability.** Intent and requirement compilers, research work capabilities, search [operators](../capabilities/README.md#term-operator) and the verifier are capsules ([inventory](../capabilities/README.md)). intake, [validator](../system/planner.md#term-plan-validator), binder, Freeze, supervisor, [Gate host](gate-host.md#term-gate-host), delivery, admission, the library, the librarian and the record stores stay ordinary code ([terms](../terms.md)).
 2. **A capsule declares** what it takes, gives, needs, changes and promises, in its [Declaration](fields.md).
 3. **It refers to its code by hash.** If the code changes, the hash no longer matches and the runner refuses to load it.
 4. **Its dependencies are always pinned.** A dependency update creates a new version through admission. M1 RSI cannot re-pin external dependencies; later dependency evolution needs a separately authorized policy ([RSI](rsi.md)).
 5. **Declare first, then check.** Every promise has a check, and every call is recorded as an [Observation](../schemas/observation.md). Authors declare each capability's effect class (how reversible its changes are); tools check that the declaration holds.
 6. **A capsule holds no task** (INV-7). Which run uses which capsule, and in what role, is recorded outside it, in a [Binding](../schemas/binding.md).
 7. **RSI is opt-in.** RSI may change a capsule only if its Declaration allows it, and only the parts it lists in `evolution.may_change`; everything else stays fixed ([RSI](rsi.md)).
-8. **Nothing judges itself** (INV-10). No capsule gates its own output; certifying needs tests written by someone else; gates and verifiers are not RSI-able for now ([trust](trust.md#referees)).
+8. **Nothing judges itself** (INV-10). No capsule gates its own output; certifying needs tests written by someone else; the verifier has zero RSI-mutable components ([trust](trust.md#referees)).
 9. **Some things are protected.** No capsule writes admission, the test suites, the [policy](../schemas/policy.md) or the record stores. Model weights never change.
-10. **Every capsule is a graph of capsules.** Most are **singletons**: one node, its own code. A composite has members instead. A capsule has its own code or members, never both ([composition](composition.md)).
-11. **A capsule's output is always an [Artifact](../schemas/artifact.md).** The runner writes the records.
+10. **Every capsule is a graph of capsules.** Most are **singletons**: one node, its own code. A composite has members instead. A capsule has its own code or members, never both ([composition](future-state.md#composition)).
+11. **A capsule's output is always an [Artifact](../schemas/artifact.md).** The runner returns the records and the supervisor commits them on its behalf.
 12. **Models are not part of the capsule layer.** Selection picks capsules, never models ([details](fields.md#needs-what-must-hold-and-what-it-uses)).
 
-A **gate** folds check results into `pass`, `fail` or `blocked`, with the folding rules in the policy. Every step has one **gate capsule** ([nodes](../system/nodes.md#gates)). It returns a [`verifier_assessment`](../types/verifier-assessment.md), an assessment per criterion, never the decision. Control code, the gate host, folds it with the other checks by policy and writes the Verification (INV-3).
+A **gate** folds check results into `pass`, `fail` or `blocked`, with the folding rules in the policy. Every capsule call is followed by a Gate ([verification](../verification.md)). Its semantic part calls the one `research.verifier` capsule with a pinned rubric; the verifier returns a [`verifier_assessment`](../types/verifier-assessment.md), an assessment per criterion, never the decision. Control code, the gate host, folds it with the other checks by policy and writes the [Verification](../schemas/verification-record.md#term-verification) (INV-3).
 
 ## What a capsule connects to
 
 ```mermaid
 flowchart LR
-    AU([author, importer, composer or RSI]) -->|Candidate: Declaration, files, tests| ADM{{admission}}
+    AU([author or RSI]) -->|Candidate: Declaration, files, tests| ADM{{admission}}
     ADM -->|Verdict, test suites, Standing| LIB[(library)]
     LIB -->|current version| BND[Binding: one node of a run]
     BND -->|decl_hash, code_sha256, checks, budget| RU[runner]
@@ -148,8 +140,7 @@ flowchart LR
 | [Finding](../schemas/finding.md) | something learned later: a gap, drift, a measurement |
 | [Port types](../schemas/port-types.md), [policy](../schemas/policy.md), [invariants](../schemas/invariants.md) | the shared vocabulary, rules and defaults every capsule is checked against |
 | [Permissions](permissions.md) | the jiuwenswarm rules its declarations become |
-| [Symphony](symphony.md) | the index and planner that see admitted capsules |
-| Other capsules | as dependencies (`needs.external`), as members of a [composite](composition.md), as parents and children through lineage, and as [sets that may fail together](library.md#eligibility-and-failure) |
+| Other capsules | as dependencies (`needs.external`), as members of a [composite](future-state.md#composition), as parents and children through lineage, and as [sets that may fail together](library.md#failure-eligibility-and-failure) |
 
 Who writes each record is in the [records table](../schemas/schemas.md#the-records).
 

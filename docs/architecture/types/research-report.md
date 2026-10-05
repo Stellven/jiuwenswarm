@@ -4,15 +4,25 @@ id: cc.type.research_report
 version: 2
 status: draft
 tags: [types, m1]
+prd: [3.9.2]
+level: detail
 ---
 
-> **Draft.** The upstream report-writer template has been located and source-checked. See the adaptation and evidence inputs on [Delivery](../m1/delivery.md).
+> **Draft.** The upstream report-writer template has been located and source-checked. See the adaptation and evidence inputs on [write report](../capabilities/write-report.md).
 
 # `research_report`: the user's report · version 2
 
+PRD: 3.9.2
+
 The final markdown report: findings, method, benchmark analysis, the verdict and its limitations, and verified citations (3.9.2).
 
-**Made by** the report step ([delivery](../m1/delivery.md)). **Read by** the delivery step, which writes it to the user's workspace and shows it in the UI.
+**Made by** the report step ([write report](../capabilities/write-report.md)). **Read by** the delivery step, which writes it to the user's workspace and shows it in the UI.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-research-report"></a>**research_report** (also: research report) | The final Markdown report: findings, method, benchmark analysis, the verdict and its limitations, and verified citations. Delivery writes it out. |
 
 ## Fields
 
@@ -29,7 +39,7 @@ The final markdown report: findings, method, benchmark analysis, the verdict and
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
 
 ## Example
 

@@ -3,13 +3,23 @@ type: schema
 id: cc.verdict.v1
 status: proposed
 tags: [schema]
+prd: [4.1.2, 4.2.8]
+level: detail
 ---
 
 # Verdict · `cc.verdict.v1`
 
-Admission's decision on one Declaration under one policy epoch and one port type vocabulary, with its reasons and evidence. Admission is its only writer. It is written once. Re-admission under a new epoch writes a new Verdict; a Verdict that stops holding is marked by a Finding of kind `invalidation`, never by editing it (INV-2).
+PRD: 4.1.2, 4.2.8
+
+Admission's decision on one [Declaration](../capsule/fields.md#term-declaration) under one [policy epoch](policy.md#term-epoch) and one [port type vocabulary](port-types.md#term-port-type), with its reasons and evidence. Admission is its only writer. It is written once. Re-admission under a new epoch writes a new Verdict; a Verdict that stops holding is marked by a Finding of [kind](../capsule/capsule.md#term-capsule-kind) `invalidation`, never by editing it (INV-2).
 
 **Rules:** INV-2, INV-8, INV-10.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-verdict"></a>**Verdict** (also: Verdicts) | Admission's decision on one Declaration under one policy epoch and port type vocabulary, with its reasons and evidence. It is written once by admission; a later change is a new Verdict or a Finding of kind `invalidation`. |
 
 ## Fields
 
@@ -22,12 +32,12 @@ Extends [common](common.md), with `scope.candidate_id`, which names the Candidat
 | `policy_ref` | `object` | req | checked |  | The rules it was judged under |
 | `policy_ref.epoch` | `string` | req | checked |  | The policy epoch name. Example: `e1` |
 | `policy_ref.sha256` | `sha256` | req | checked |  | The policy document's hash |
-| `vocabulary_ref` | `object` | req | checked |  | The [port type vocabulary](port-types.md) its ports and checks were judged under. A Binding must use the same version of each of its port types |
+| `vocabulary_ref` | `object` | req | checked |  | The [port type vocabulary](port-types.md) its [ports](../capsule/fields.md#term-port) and [checks](../capsule/fields.md#term-check) were judged under. A [Binding](binding.md#term-binding) must use the same version of each of its port types |
 | `vocabulary_ref.version` | `integer` | req | checked |  | The vocabulary's `vocabulary_version`. Example: `1` |
 | `vocabulary_ref.sha256` | `sha256` | req | checked |  | The vocabulary document's hash |
 | `outcome` | `enum(admit, reject, defer)` | req | checked |  | The decision. `defer` waits for evidence |
-| `admission_basis` | `enum(test_evidence, developer_decision)` | req | checked |  | Provider basis. `developer_decision` is the Puppet Gate and can grant only `exempt` |
-| `admission_profile_ref` | `object` | req | checked |  | Pinned admission ProfileRef |
+| `admission_basis` | `enum(test_evidence, developer_decision)` | req | checked |  | Provider basis. `developer_decision` is the [Puppet Gate](../capsule/admission.md#term-puppet-admission) and can grant only `exempt` |
+| `admission_profile_ref` | `object` | req | checked |  | Pinned admission [ProfileRef](profiles.md#term-profileref) |
 | `admission_profile_ref.kind` | `enum(admission)` | req | checked |  | Always `admission` |
 | `admission_profile_ref.id` | `id` | req | checked |  | Policy-local profile id |
 | `admission_profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile hash |
@@ -42,8 +52,8 @@ Extends [common](common.md), with `scope.candidate_id`, which names the Candidat
 | `checks_run[].runner_sha256` | `sha256` | req | checked |  | Which runner code ran it |
 | `checks_run[].result` | `enum(pass, fail, unknown)` | req | checked |  | `unknown` when it could not be evaluated; never counted as a pass (INV-8) |
 | `checks_run[].evidence` | `list<EvidenceRef>` | opt | checked |  | The test calls behind the result |
-| `checks_run[].judge` | `object` | opt | checked |  | For a judged check: `{judge_decl_hash, model}`, the admission judge that ran it (policy `levels.admission_judge`), as in the [Verification](verification-record.md)'s `results[].judge`. Never the capsule's own `decl_hash` |
-| `level` | `enum(provisional, certified, exempt)?` | req | checked |  | Assurance level; null unless admitted. `developer_decision` may grant only `exempt`; tested admission may grant `provisional` or `certified` according to policy |
+| `checks_run[].judge` | `object` | opt | checked |  | For a judged check: `{judge_decl_hash, model}`, the admission judge that ran it (policy `levels.admission_judge`), as in the [Verification](verification-record.md)'s `results[].judge`. Never the [capsule](../capsule/capsule.md#term-capability-capsule)'s own `decl_hash` |
+| `level` | `enum(provisional, certified, exempt)?` | req | checked |  | Assurance level; null unless admitted. `developer_decision` may grant only `exempt`; tested admission grants `provisional` in M1. `certified` is defined but not granted in M1 |
 | `test_suites` | `list<Ref(test_suite)>` | req | checked |  | Suites actually run. Empty is valid for Puppet admission and never means a suite passed |
 | `environment` | `object` | opt | unchecked | isolated verification | Where admission ran the tests, so a result can be reproduced |
 | `environment.runtime` | `string` | req | unchecked | isolated verification | The runtime used. Example: `python 3.11.9` |

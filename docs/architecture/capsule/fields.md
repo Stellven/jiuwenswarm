@@ -3,28 +3,54 @@ type: schema
 id: cc.declaration.v1
 status: proposed
 tags: [capsule, schema]
+level: detail
+prd: [4.1.1]
 ---
 
 # Declaration · `cc.declaration.v1`
 
-A capsule is its Declaration: the contract one capability declares, written by its author. It says what the capability takes, gives, needs, changes and promises. It points at its code by hash and never holds it. It holds no task and no policy. Once admitted it never changes; a change is a new version with its own `decl_hash`. A capsule completes its Declaration rather than failing: see [when a call goes wrong](capsule.md#when-a-call-goes-wrong-proposed) (proposed, INV-19).
+PRD: 4.1.1
 
-This is the only page that defines the Declaration's fields. The [schemas](../schemas/schemas.md) folder holds the records the system keeps *about* capsules, such as Candidates, Verdicts and Observations.
+A [capsule](capsule.md#term-capability-capsule) is its Declaration: the contract one capability declares, written by its author. It says what the capability takes, gives, needs, changes and promises. It points at its code by hash and never holds it. It holds no task and no policy. Once admitted it never changes; a change is a new version with its own `decl_hash`. A capsule completes its Declaration rather than failing: see [when a call goes wrong](capsule.md#when-a-call-goes-wrong-proposed) (proposed, INV-19).
 
-The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](stages.md). The [CC tooling and field-enforcement map](tools.md#field-validation-and-enforcement-map) distinguishes schema/admission validation from test-time verification and call-time enforcement; this page remains the sole field-definition owner. The type grammar is in the [invariants](../schemas/invariants.md).
+This is the only page that defines the Declaration's fields. The [schemas](../schemas/schemas.md) folder holds the records the system keeps *about* capsules, such as [Candidates](../schemas/candidate.md#term-candidate), [Verdicts](../schemas/verdict.md#term-verdict) and [Observations](../schemas/observation.md#term-observation).
+
+The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](stages.md). The [CC tooling and field-enforcement map](tools.md#field-validation-and-enforcement-map) distinguishes schema/admission validation from test-time verification and call-time enforcement; this page remains the sole home of field definitions. The type grammar is in the [invariants](../schemas/invariants.md).
 
 ## Frozen M1 field policy
 
-The October 2 PRD whitelist is the runtime boundary. Required named ports, capability identity, hashed local implementation, dependency closure, checks, time budget, permission/effect boundaries, and explicit RSI permission are enforced. Remote/members/composite carriers, live selection/ranking, token or money enforcement, installs during a run, automatic repair and promotion remain inactive future fields even when parsable for archival compatibility. Freeze rejects an attempt to activate them as `M1_FEATURE_DISABLED`. Future-field presence cannot grant authority. Foundational model selection belongs to Model Routing, never Declaration capability selection. Released schema versions are immutable; coordinated drafts may be revised before release. Each `failure_modes` entry adds verification cost and is justified only by an enforceable hazard not already represented by a type, check, effect or standard runner error.
+The October 2 PRD whitelist is the runtime boundary. Required named ports, capability identity, hashed local implementation, dependency closure, checks, time budget, permission/effect [boundaries](../system/modules.md#term-boundary), and explicit [RSI](../rsi.md#term-rsi) permission are enforced. Remote/members/composite carriers, live selection/ranking, token or money enforcement, installs during a run, automatic repair and promotion remain inactive future fields even when parsable for archival compatibility. Freeze rejects an attempt to activate them as `M1_FEATURE_DISABLED`. Future-field presence cannot grant authority. Foundational model selection belongs to Model Routing, never Declaration capability selection. Released schema versions are immutable; coordinated drafts may be revised before release. Each `failure_modes` entry adds verification cost and is justified only by an enforceable hazard not already represented by a type, check, effect or standard runner error.
 
 A field serves one or more of four uses:
 
-- **Verification:** the code that runs is the code that was tested, and outputs keep their promises.
+- **[Verification](../schemas/verification-record.md#term-verification):** the code that [runs](../system/lifecycle.md#term-run) is the code that was tested, and outputs keep their promises.
 - **RSI** (recursive self-improvement): build a new version from evidence.
 - **Selection:** choose a capsule for a call.
 - **Observability:** explain afterwards what ran, why and at what cost.
 
 **Rules:** INV-7 (no task), INV-9 (every output has a check), INV-14 (strict core), INV-17 (the policy decides what is required), INV-19 (economical optional failure contracts). See [invariants](../schemas/invariants.md).
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-declaration"></a>**Declaration** (also: Declarations) | The contract one capability declares: what it takes, gives, needs, changes and promises, and what RSI may change. It points at its code by hash, holds no task and no policy, and never changes once admitted; a change is a new version with its own `decl_hash`. |
+| <a id="term-port"></a>**port** (also: ports) | One named input or output of a capsule, with a port type. The runner validates each value by its port type, and every output port names a check. |
+| <a id="term-needs"></a>**needs** | The Declaration section for what must hold before a call and what the capsule uses: preconditions, dependencies on other capsules, network, packages, secrets and resources. |
+| <a id="term-effect-class"></a>**effect class** (also: effect_class) | The author's promise about state and undo: `pure`, `read_only`, `idempotent`, `compensable`, `nonrepeatable_effect` or `irreversible`. Admission checks it against `effects`, and policy mappings turn it into permissions. |
+| <a id="term-effects"></a>**effects** | The list of changes a capsule makes to the world, each with the resource it touches, its scope, whether it is idempotent and whether it can be undone. Admission checks that they agree with the effect class. |
+| <a id="term-guarantees"></a>**guarantees** | The Declaration section for what a capsule promises: its checks, optional failure modes and an optional quality target. |
+| <a id="term-check"></a>**check** (also: checks) | One runnable test of one target (a port or a type), anchored as `deterministic` (code), `reference` (a known answer) or `judged` (a model or person). The same shape serves capsules, port types and call sites. |
+| <a id="term-rubric"></a>**rubric** | The pinned criteria text or code behind a judged check. The model-backed judge scores outputs against it, and the Binding names that judge in `verifier`. |
+| <a id="term-evolution"></a>**evolution** | The Declaration section that says whether RSI may build new versions of this capsule (`rsi`: none, propose or submit) and which parts it may change (`may_change`). |
+| <a id="term-may-change"></a>**may_change** | The list of Declaration field paths or `files:` globs that an RSI child may change; everything else must stay as in the parent. Absent or empty means RSI may change nothing. |
+| <a id="term-carrier"></a>**carrier** | The single code file, hashed, that a capsule points at by path and symbol, used when the code imports no unpinned local module. Otherwise the Declaration uses a `body`. |
+| <a id="term-body"></a>**body** | The list of every file of a multi-file capability (such as a skill folder), each hashed. It is used instead of a `carrier` when more than one file makes up the code. |
+| <a id="term-singleton"></a>**singleton** | The most common capsule form: one capability as a one-node graph whose node is its own code. A composite capsule is a graph of capsules instead. |
+| <a id="term-lineage"></a>**lineage** | Where a version came from: its parent's `decl_hash` and how it relates to it (supersedes, specialises, merges, migrated_from). It forms the version tree RSI branches from. |
+| <a id="term-decl-hash"></a>**decl_hash** | The hash of the whole Declaration with every default filled in, computed by admission. It is the capsule's identity and version; there is no version number, and every record about a capsule names it. |
+| <a id="term-interface-hash"></a>**interface_hash** | The hash of only what a test depends on (name, kind, ports, preconditions, effect class and each check's identity). A child with the same interface hash reuses its parent's tests. |
+| <a id="term-code-sha256"></a>**code_sha256** | The hash of a capsule's code that the loader checks before every call: the carrier hash, the hash of the sorted body list, or the hash of the pinned remote or members. |
 
 ## Fields
 
@@ -36,7 +62,7 @@ Authored JSON. It carries `schema_version` and `ext` (extensions, such as agent-
 |---|---|---|---|---|---|
 | `identity.name` | `string` | req | checked |  | A stable dot-separated handle, local to a library; `decl_hash` is the global identity. Every version hangs off it, the Standing is keyed by it, and Observations group by it. Example: `doc.pdf_to_text` |
 | `identity.namespace` | `string` | opt | unchecked | store, importer | The publisher the name belongs to, when a capsule moves between libraries. Example: `org.example` |
-| `identity.kind` | `reg(capsule_kind)` | req | checked |  | How the capability runs, a `capsule_kind` value; see [kinds](capsule.md#kinds-of-capsule). The runner calls each kind its own way, and admission tests it that way. Example: `tool` |
+| `identity.kind` | `reg(capsule_kind)` | req | checked |  | How the capability runs, a `capsule_kind` value; see [kinds](capsule.md#kinds-of-capsule). The runner calls each [kind](capsule.md#term-capsule-kind) its own way, and admission tests it that way. Example: `tool` |
 | `identity.carrier` | `object` | opt | checked |  | The code, when it is one file that imports no unpinned local module; otherwise use `body`. Exactly one of `carrier`, `body`, `remote` or `members` is set |
 | `identity.carrier.ref` | `string` | req | checked |  | A path relative to the capsule root (one of the Candidate's `files[].path`) plus a symbol. Example: `pdf_text.py:extract` |
 | `identity.carrier.sha256` | `sha256` | req | checked |  | The file's hash. Admission hashes the file again and refuses a mismatch (`HASH_MISMATCH`); the runner refuses changed code at load (`CARRIER_CHANGED`) |
@@ -47,7 +73,7 @@ Authored JSON. It carries `schema_version` and `ext` (extensions, such as agent-
 | `identity.remote.endpoint` | `uri` | req | unchecked | remote capsules | Where it is. Example: `https://mcp.example.org/sse` |
 | `identity.remote.version` | `string` | req | unchecked | remote capsules | The version pinned at admission. Example: `1.4.2` |
 | `identity.remote.interface_version_range` | `string` | opt | unchecked | remote capsules | Compatible interface versions. Example: `>=1.4 <2` |
-| `identity.owner` | `string` | opt | unchecked | store | Who answers for the capability now. Example: `team-docs` |
+| `identity` responsible-party key (spelled in the [declaration schema](../exports/schemas/records/declaration.schema.json)) | `string` | opt | unchecked | store | Who answers for the capability now. Example: `team-docs` |
 | `identity.tags` | `list<string>` | opt | unchecked | store, selection | Free labels for search. Example: `["documents"]` |
 | `identity.license` | `string` | opt | unchecked | importer, store | An SPDX licence id for imported code. Example: `Apache-2.0` |
 | `identity.summary` | `text` | req | checked |  | At most 400 characters on what it does: the only prose a model sees when choosing a capsule. Names no step, workflow or other capsule (INV-7). Example: `Extract the plain text of a PDF, page by page.` |
@@ -89,7 +115,7 @@ Each entry is a `Port`, with the field names of agent-core's `CapabilityIO`.
 | `needs.external[].decl_hash` | `sha256` | req | checked |  | The exact admitted version it calls. A new version of the dependency changes nothing here until a new version of this capsule re-pins it |
 | `needs.external[].purpose` | `text` | opt | unchecked | RSI | What the dependency is for, in a sentence. RSI may re-pin it to a newer version only when it has a purpose and `evolution.may_change` lists its pin, `needs.external[<ref>].decl_hash` ([RSI](rsi.md)). Knowing a dependency's purpose is what lets a builder repair a capsule when the dependency changes. Read by builders as data, never as instructions. Example: `OCR for scanned pages` |
 | `needs.network` | `enum(none, egress, ingress, both)` | opt | checked |  | The network access it needs. Default `none`. Where a permission check or the sandbox runs, it allows only this |
-| `needs.human_interaction` | `enum(none, optional, blocking)` | opt | checked |  | Whether a call may call back to a person while running, not whether the call itself needs approval to start (that is `changes.effect_class: ASK`). Default `none`. `optional`: may ask, but finishes within its budget without an answer. `blocking`: waits on an answer and can halt everything scheduled after it. Selection reads it before a Binding exists, so a `blocking` capsule is not batched into parallel work |
+| `needs.human_interaction` | `enum(none, optional, blocking)` | opt | checked |  | Whether a call may call back to a person while running, not whether the call itself needs approval to start (that is `changes.effect_class: ASK`). Default `none`. `optional`: may ask, but finishes within its budget without an answer. `blocking`: waits on an answer and can halt everything scheduled after it. Selection reads it before a [Binding](../schemas/binding.md#term-binding) exists, so a `blocking` capsule is not batched into parallel work |
 | `needs.dependencies` | `object` | opt | unchecked | importer, isolated verification | What must be installed to run it in isolation |
 | `needs.dependencies.runtime` | `string` | req | unchecked | importer, isolated verification | Language and runtime version. Example: `python>=3.11` |
 | `needs.dependencies.platforms` | `list<string>` | opt | unchecked | importer, isolated verification | Platforms it runs on. Example: `["linux/amd64"]` |
@@ -103,7 +129,7 @@ Each entry is a `Port`, with the field names of agent-core's `CapabilityIO`.
 
 CC does not schedule pacing or cooldowns between calls to the same capsule. A capsule with its own internal queue or single-process bottleneck should declare `timeout_s` generously instead, so the budget already accounts for time spent waiting on its own backend. That waiting is the capsule's own implementation's job, the same way choosing a model is: not something the schema layer sees or manages.
 
-**Models are not selected by the capsule layer.** Capability selection chooses the work contract. Model Routing is an ordinary service that selects endpoint/model configuration for the authorized call role and records its decision; it is not an admitted router capsule. Production uses the fixed Codex route, isolated experiments use only approved or mocked routes, and RSI freezes parent/child model settings for comparison. Capsule prompts cannot override endpoint credentials, route policy or model budget. The run configuration and audit evidence pin the effective route separately from capability identity ([model routing](../model-routing/README.md)). Which execution role invokes a capability belongs to orchestration/Binding, not Declaration.
+**Models are not selected by the capsule layer.** Capability selection chooses the work contract. Model Routing is an ordinary service that selects endpoint/model configuration for the authorized call role and records its decision; it is not an admitted router capsule. Production uses the fixed Codex route, isolated experiments use only approved or mocked routes, and RSI [freezes](../system/lifecycle.md#term-freeze) parent/child model settings for comparison. Capsule prompts cannot override endpoint credentials, route policy or model budget. The run configuration and audit evidence pin the effective route separately from capability identity ([model routing](../model-routing/README.md)). Which execution role invokes a capability belongs to orchestration/Binding, not Declaration.
 
 ### changes: what it does to the world
 
@@ -116,17 +142,17 @@ CC does not schedule pacing or cooldowns between calls to the same capsule. A ca
 | `changes.effects[].idempotent` | `boolean` | req | checked |  | Whether doing it twice equals doing it once |
 | `changes.effects[].reversibility` | `enum(none, compensable, reversible)` | req | checked |  | Whether and how it can be undone: `none`, by a compensating action, or by restoring the prior state |
 | `changes.effects[].undo` | `text` | opt | checked |  | How to undo it, applied by a person or a later tool, or a statement that it cannot be undone |
-| `changes.state_kind` | `enum(none, reads_external, session, persistent)` | opt | checked |  | Which outside state it depends on. Default `none`. `reads_external` capsules ship fixtures with their tests, so the tests do not depend on the outside world |
+| `changes.state_kind` | `enum(none, reads_external, session, persistent)` | opt | checked |  | Which outside state it depends on. Default `none`. `reads_external` capsules ship [fixtures](../system/test-surfaces.md#term-fixture) with their tests, so the tests do not depend on the outside world |
 
 ### guarantees: what it promises
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
 | `guarantees.checks` | `list<Check>` | req | checked |  | Every promise, each a [check](#checks-one-runnable-test-each); at least one |
-| `guarantees.failure_modes` | `list<object>` | opt | unchecked | verification, triage | Optional, economical hazards that the runner or Gate must prevent or classify and that are not already implied by a type, check, permission, effect or standard runner error. Every entry creates a verification obligation. Omitting a derived or unreachable mode is preferred. The runner records a declared capsule-raised mode as `outcome: error` |
+| `guarantees.failure_modes` | `list<object>` | opt | unchecked | verification, triage | Optional, economical hazards that the runner or [Gate](../verification.md#term-gate) must prevent or classify and that are not already implied by a type, check, permission, effect or standard runner error. Every entry creates a verification obligation. Omitting a derived or unreachable mode is preferred. The runner records a declared capsule-raised mode as `outcome: error` |
 | `guarantees.failure_modes[].reason_code` | `string` | req | unchecked | retries, fallbacks, RSI | `UPPER_SNAKE`, unique within the capsule, and not a `reason_code` registry value. Additive: a later version never drops an admitted code. Example: `PDF_ENCRYPTED` |
 | `guarantees.failure_modes[].when` | `text` | req | unchecked | retries, fallbacks, RSI | When it happens. Example: `The PDF is password-protected.` |
-| `guarantees.failure_modes[].retriable` | `boolean` | req | unchecked | triage | Author evidence only; the pinned RetryProfile and operation class own whether the supervisor may retry. This flag never authorizes replay |
+| `guarantees.failure_modes[].retriable` | `boolean` | req | unchecked | triage | Author evidence only; the pinned [RetryProfile](../schemas/profiles.md#term-retryprofile) and operation class own whether the supervisor may retry. This flag never authorizes replay |
 | `guarantees.quality` | `object` | opt | unchecked | librarian | For judged outputs: the pass rate the judged check should reach. The librarian measures the actual rate, and RSI improves toward the target |
 | `guarantees.quality.criterion_check_id` | `id` | req | unchecked | librarian | The judged check that defines "good". Example: `text_faithful` |
 | `guarantees.quality.target_rate` | `number` | req | unchecked | librarian | Between 0 and 1. Example: `0.9` |
@@ -141,7 +167,7 @@ A `Check` is a shape, not a record. It is written in full in one of three places
 | `Check.anchor` | `reg(check_anchor)` | req | checked |  | What a pass rests on: `deterministic` (code), `reference` (a known answer) or `judged` (a model or person) |
 | `Check.target` | `string` | req | checked |  | A port or a type. Example: `ports.outputs.text` |
 | `Check.over` | `enum(each_call, outputs, inputs_and_outputs)` | req | checked |  | What it looks at. `each_call`: the call's Observation (outcome, cost), not the values. `outputs`: the output values. `inputs_and_outputs`: the input and output values |
-| `Check.applies_at` | `enum(admission, node, both)` | req | checked |  | `admission`: needs a test case's `expected`, so runs only at admission. `node`: needs only the output, so runs at the gate after a call in a run, and at admission on test-call outputs. `both`: each |
+| `Check.applies_at` | `enum(admission, node, both)` | req | checked |  | `admission`: needs a [test case](../schemas/checks.md#term-test-case)'s `expected`, so runs only at admission. `node`: needs only the output, so runs at the gate after a call in a run, and at admission on test-call outputs. `both`: each |
 | `Check.runner` | `object` | req | checked |  | The pinned code that runs it. For a judged check, the rubric code; the model-backed judge is the Binding's `verifier` |
 | `Check.runner.ref` | `string` | req | checked |  | A module path or evaluator id. Example: `checks/text.py:not_empty` |
 | `Check.runner.sha256` | `sha256` | req | checked |  | The runner's hash; every result names it |
@@ -151,7 +177,7 @@ A `Check` is a shape, not a record. It is written in full in one of three places
 
 ### composition: capsules made of capsules
 
-Every capsule is a graph of capsules. A **singleton**, the most common form, is a one-node graph whose node is its own code. A composite lists its nodes in `members` and its edges in `wiring`. A sequence, a fan-out and a tree are all just wirings, so there is no field for the shape. See [composition](composition.md).
+Every capsule is a graph of capsules. A **singleton**, the most common form, is a one-node graph whose node is its own code. A composite lists its [nodes](../system/nodes.md#term-node) in `members` and its edges in `wiring`. A sequence, a fan-out and a tree are all just wirings, so there is no field for the shape. See [composition](future-state.md#composition).
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
@@ -167,7 +193,7 @@ RSI is opt-in, twice over. `evolution.rsi` says whether RSI may build new versio
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
 | `evolution.rsi` | `enum(none, propose, submit)` | req | checked |  | What RSI may do with this capsule. `none`: nothing; RSI may not submit a child of it. `propose`: RSI may submit a child, which admission holds as `admitted_inactive` until a person activates it. `submit`: RSI may submit a child that becomes current when admitted. Either way the child may differ from its parent only where `evolution.may_change` allows. Example: `none` |
-| `evolution.may_change` | `list<string>` | opt | checked |  | The only parts an RSI child may change; everything else must stay as in the parent. Absent or empty: RSI may change nothing, whatever `evolution.rsi` says. Each entry is a Declaration field path, with `[]` for every item of a list and `[<name>]` for one keyed item (such as `needs.external[op.ocr].decl_hash` or `guarantees.checks[text_not_empty].runner`), or `files:<glob>` for code or skill files relative to the capsule root (such as `files:SKILL.md`). Values that follow from an allowed change (file hashes, the computed hashes, `identity.lineage`) may change with it. Never lists `evolution` itself (rule `rsi_cannot_grant`). Example: `["files:pdf_text.py"]` |
+| `evolution.may_change` | `list<string>` | opt | checked |  | The only parts an [RSI child](rsi.md#term-parent-and-child) may change; everything else must stay as in the parent. Absent or empty: RSI may change nothing, whatever `evolution.rsi` says. Each entry is a Declaration field path, with `[]` for every item of a list and `[<name>]` for one keyed item (such as `needs.external[op.ocr].decl_hash` or `guarantees.checks[text_not_empty].runner`), or `files:<glob>` for code or skill files relative to the capsule root (such as `files:SKILL.md`). Values that follow from an allowed change (file hashes, the computed hashes, `identity.lineage`) may change with it. Never lists `evolution` itself (rule `rsi_cannot_grant`). Example: `["files:pdf_text.py"]` |
 | `evolution.notes` | `text` | opt | unchecked | RSI | What the author wants a builder to know: weak spots, ideas, why the listed parts are open. Advice only, never a permission |
 
 Reserved names, not specified: `changes.provides[]`, `changes.invariants[]`, `needs.injects[]`.
@@ -217,7 +243,7 @@ A complete Declaration for a small tool, with only checked fields and `evolution
 }
 ```
 
-For a larger, real capsule with more of the optional fields filled in, `failure_modes` and what is computed rather than authored, see [the intent capsule](../m1/intent-capsule.md).
+For a larger, real capsule with more of the optional fields filled in, `failure_modes` and what is computed rather than authored, see [the intent capsule](../capabilities/intent-compile.md).
 
 ## Elsewhere, not in the Declaration
 

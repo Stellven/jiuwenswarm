@@ -3,19 +3,29 @@ type: schema
 id: cc.artifact.v1
 status: proposed
 tags: [schema]
+prd: [4.1.4, 4.5.2]
+level: detail
 ---
 
 # Artifact: one value · `cc.artifact.v1`
 
-One value that a capsule produced, a person supplied, or control code made. It has two layers: the **content**, stored once and keyed by its hash, and the **Artifact record**, one per appearance, which says what the content is and where it came from. Observations, test cases and the Candidate refer to it by `Ref(artifact)`.
+PRD: 4.1.4, 4.5.2
+
+One value that a [capsule](../capsule/capsule.md#term-capability-capsule) produced, a person supplied, or control code made. It has two layers: the **content**, stored once and keyed by its hash, and the **Artifact record**, one per appearance, which says what the content is and where it came from. [Observations](observation.md#term-observation), [test cases](checks.md#term-test-case) and the Candidate refer to it by `Ref(artifact)`.
 
 **A capsule's output is always an Artifact.** Its `type` is the output port's type; for a `json` port its `value` also matches the port's `Port.value_schema`. It is never written again as a separate record (INV-5). Records are what CC's tools write; values are Artifacts.
 
 **Rules:** INV-2, INV-5, INV-15.
 
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-artifact"></a>**Artifact** (also: Artifacts) | One value that a capsule produced, a person supplied or control code made: its content stored once by hash, plus a record of what the content is and where it came from. Every capsule output is an Artifact. |
+
 ## Fields
 
-Extends [common](common.md). Its `scope` is `run_id` for what a run makes, `candidate_id` for what an admission makes (test inputs, test-call outputs), or `library` for test inputs and fixtures kept with a suite. Its `id` is the `artifact_id`. Runner and trusted control hosts produce run Artifacts; the supervisor is their sole persistent writer, including pre-freeze planning captures under the real run_id allocated at intake. Admission owns admission/library publication. Artifact origin records logical provenance, not child filesystem authority.
+Extends [common](common.md). Its `scope` is `run_id` for what a run makes, `candidate_id` for what an admission makes (test inputs, test-call outputs), or `library` for test inputs and [fixtures](../system/test-surfaces.md#term-fixture) kept with a suite. Its `id` is the `artifact_id`. Runner and trusted control hosts produce run Artifacts; the supervisor is their sole persistent writer, including pre-freeze planning captures under the real [run_id](../system/records.md#term-run-id) allocated at intake. Admission owns admission/library publication. Artifact origin records logical provenance, not child filesystem authority.
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
@@ -31,15 +41,15 @@ Extends [common](common.md). Its `scope` is `run_id` for what a run makes, `cand
 | `issues` | `list<Reason>` | opt | checked |  | The standard place for caveats about the value: vague, incomplete or contradictory input (`INPUT_AMBIGUOUS`, `INPUT_INCOMPLETE`, `INPUT_CONTRADICTORY`), and anything else a reader should know. Example: `[{"code": "INPUT_INCOMPLETE", "message": "pages 4-6 unreadable"}]` |
 | `produced_by` | `object` | opt | checked |  | Set when `origin` is `capsule`: `{obs_id, port}`, the call and output port that produced it. An id, not a `Ref`: the Observation is written after its outputs and pins their hashes, so the Artifact cannot pin the Observation's |
 
-**Lineage.** `produced_by` names the call; that call's Observation names its input Artifacts; each of those names its own call. Following the chain gives the calls behind any value, so no `derived_from` field is stored (INV-5). What a call read outside its ports is not in the chain.
+**Lineage.** `produced_by` names the call; that call's Observation names its input Artifacts; each of those names its own call. Following the chain gives the calls behind any value, so no `derived_from` field is stored (INV-5). What a call read outside its [ports](../capsule/fields.md#term-port) is not in the chain.
 
 ## Elsewhere
 
-How `content_sha256` is computed: INV-15, policy `hashing`. Whether a value travels inline, and which store holds content: the runner's choice. A new kind of value is a new [port type](port-types.md), never a new Artifact field.
+How `content_sha256` is computed: INV-15, policy `hashing`. Whether a value travels inline, and which store holds content: the runner's choice. A new [kind](../capsule/capsule.md#term-capsule-kind) of value is a new [port type](port-types.md), never a new Artifact field.
 
 ## Reuse
 
 - `E2AFileRef {uri, name, mime_type, size}` (jiuwenswarm `common/e2a/models.py:60`): as is, for `content_ref`.
 - Object store and KV store (agent-core `openjiuwen/core/foundation/store/object/base_storage_client.py`, `openjiuwen/core/foundation/store/base_kv_store.py:42`, pin `9e339019`): as is, for the content.
-- `ArtifactRef {artifact_id, sha256, kind, path}` (`rsi/schema.py:152`): mapped on import from RSI; `sha256` becomes `content_sha256`, `kind` becomes `type`.
+- `ArtifactRef {artifact_id, sha256, kind, path}` (`rsi/schema.py:152`): mapped on import from [RSI](../rsi.md#term-rsi); `sha256` becomes `content_sha256`, `kind` becomes `type`.
 - `content_hash` (`extensions/observability/content_addressing.py:84`, `:153`): not reused for JSON; it serialises without sorted keys, so equal values can hash differently.

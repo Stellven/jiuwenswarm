@@ -1,11 +1,16 @@
 ---
 type: index
 tags: [index, schema]
+prd: [4.1.1, 4.1.2]
+id: schemas.schemas
+level: detail
 ---
 
 # The core schemas
 
-**Nothing here is approved yet.** Every page in this folder, and the Declaration on its own page, is `draft` or `proposed`, not `v1`. The items below are decisions to have ready for whenever a real review happens. They are not gates blocking anything today. See [the invariants](invariants.md#change) for what `v1` will mean once a page actually reaches it.
+PRD: 4.1.1, 4.1.2
+
+**Nothing here is approved yet.** Every page in this folder, and the [Declaration](../capsule/fields.md#term-declaration) on its own page, is `draft` or `proposed`, not `v1`. The items below are decisions to have ready for whenever a real review happens. They are not gates blocking anything today. See [the invariants](invariants.md#change) for what `v1` will mean once a page actually reaches it.
 
 ## For reviewers
 
@@ -13,31 +18,31 @@ tags: [index, schema]
 2. **Draft defaults.** Each is a default a reviewer may overturn:
    - (a) The admission core is checked: shape, re-hash, rules, and running the visible suite. Certification, sandbox and source fields are unchecked.
    - (b) `identity.lineage` is optional, and holds no submission id (`builder_ref` was removed).
-   - (c) The Verification is one record, written by the gate, with `invocation_ref`. A `dispatch` Observation with no Verification is a call the gate skipped.
+   - (c) The [Verification](verification-record.md#term-verification) is one record, written by the gate, with `invocation_ref`. A `dispatch` [Observation](observation.md#term-observation) with no Verification is a call the gate skipped.
    - (d) Names are local to a library; `decl_hash` is global; `identity.namespace` (unchecked) names the publisher.
    - (e) `interface_hash` leaves out `failure_modes`.
 3. What v1 does not cover: [Known gaps](#known-gaps-not-in-v1).
 
 ## What these pages are
 
-The records that Capability Capsule (CC) tools read and write about capsules. The capsule's own schema, the Declaration, is defined once, on its [own page](../capsule/fields.md) in the capsule folder; it is listed here because every record points at it. Each page gives the fields, what lives in the policy instead, and what it reuses. Start with the [invariants](invariants.md), then [common](common.md) and the [policy](policy.md). The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](../capsule/stages.md).
+The records that [Capability Capsule](../capsule/capsule.md#term-capability-capsule) (CC) tools read and write about capsules. The capsule's own schema, the Declaration, is defined once, on its [own page](../capsule/fields.md) in the capsule folder; it is listed here because every record points at it. Each page gives the fields, what lives in the policy instead, and what it reuses. Start with the [invariants](invariants.md), then [common](common.md) and the [policy](policy.md). The **M1** and **Unlocks** columns are defined on [checked and unchecked at M1](../capsule/stages.md).
 
 ## The records
 
 | Record | Id | What it is | Written by |
 |---|---|---|---|
 | [Common](common.md) | `cc.common.v1` | the envelope and shared shapes; not a record | none |
-| [Declaration](../capsule/fields.md) | `cc.declaration.v1` | the contract one capability declares; its hash is its version | its author (checked with the author kit), RSI, an importer or the composer, inside a Candidate |
+| [Declaration](../capsule/fields.md) | `cc.declaration.v1` | the contract one capability declares; its hash is its version | its author (checked with the author kit), [RSI](../rsi.md#term-rsi), an importer or the composer, inside a Candidate |
 | [Candidate](candidate.md) | `cc.candidate.v1` | a submission to admission | the submitter: an author, RSI or an importer |
-| [Port type vocabulary](port-types.md) | `cc.types.v1` | type names, each with its schema and checks, and every registry check in full | a reviewed change, one record per version |
-| [Check, test case, test suite](checks.md) | `cc.check.v1`, `cc.check.case.v1`, `cc.check.suite.v1` | how a promise is tested | checks: in a Declaration, the vocabulary or a Binding; cases and suites: admission only |
+| [Port type vocabulary](port-types.md) | `cc.types.v1` | type names, each with its schema and [checks](../capsule/fields.md#term-check), and every registry check in full | a reviewed change, one record per version |
+| [Check, test case, test suite](checks.md) | `cc.check.v1`, `cc.check.case.v1`, `cc.check.suite.v1` | how a promise is tested | checks: in a Declaration, the vocabulary or a [Binding](binding.md#term-binding); cases and suites: admission only |
 | [Verdict](verdict.md) | `cc.verdict.v1` | admission's decision on a Declaration | admission |
 | [Standing](standing.md) | `cc.standing.v1` | which version of a name is current | per `state`: admission (`admitted`, `admitted_inactive`), the librarian (every other state) |
 | [Binding](binding.md) | `cc.binding.v1` | the pin for one call site of a run | freeze (M03) |
 | [Observation](observation.md) | `cc.observation.v1` | one capsule call | runner |
-| [Artifact](artifact.md) | `cc.artifact.v1` | one value; every capsule output is one | runner (runs), admission (test inputs and fixtures) |
+| [Artifact](artifact.md) | `cc.artifact.v1` | one value; every capsule output is one | runner ([runs](../system/lifecycle.md#term-run)), admission (test inputs and [fixtures](../system/test-surfaces.md#term-fixture)) |
 | [Verification](verification-record.md) | `cc.verification.v1` | the gate's check of one call's live output | gate |
-| [Finding](finding.md) | `cc.finding.v1` | an observation about capsules, judges or an unmet need; unchecked in M1 | per kind: selection, gate, librarian, RSI |
+| [Finding](finding.md) | `cc.finding.v1` | an observation about capsules, judges or an unmet need; unchecked in M1 | per [kind](../capsule/capsule.md#term-capsule-kind): selection, gate, librarian, RSI |
 | [Policy](policy.md) | `cc.policy.v1` | every rule, default and registry, as a pinned epoch | a reviewed change, one record per epoch |
 
 ## How the schemas relate
@@ -109,9 +114,9 @@ flowchart LR
 
 - [ ] Every field table: names, types, Req, M1, Unlocks.
 - [ ] `decl_hash`, `interface_hash` and `code_sha256` ([Declaration](../capsule/fields.md)).
-- [ ] `Check.applies_at`; where a Check is written in full; admission as the only writer of test cases and suites ([Check](checks.md)).
+- [ ] `Check.applies_at`; where a Check is written in full; admission as the only writer of [test cases](checks.md#term-test-case) and suites ([Check](checks.md)).
 - [ ] Every capsule output is an Artifact; lineage through `produced_by` ([Artifact](artifact.md)).
-- [ ] Reason codes and registries; `required`, `rules`, `levels`, `mappings`, epochs and the gates fold ([Policy](policy.md)).
+- [ ] Reason codes and [registries](policy.md#term-registry); `required`, `rules`, `levels`, `mappings`, [epochs](policy.md#term-epoch) and the gates fold ([Policy](policy.md)).
 - [ ] The Standing states and their writers ([Standing](standing.md)).
 - [ ] INV-1 to INV-19, and the naming decisions.
 - [x] Economical optional failure modes and standard error mapping (INV-19); execution evidence remains a downstream obligation.

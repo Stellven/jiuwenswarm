@@ -66,7 +66,15 @@
       ]
     },
     "ext": {
-      "type": "object"
+      "type": "object",
+      "maxProperties": 32,
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "type": "object"
+      },
+      "description": "Optional extension map, only on Record and Report defs. Keyed by producer name, at most 32 producers, each value an object."
     },
     "reason": {
       "type": "object",
@@ -78,17 +86,20 @@
       "properties": {
         "code": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "message": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 65536
         },
         "evidence_refs": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/ref"
-          }
+          },
+          "maxItems": 10000
         }
       }
     },
@@ -120,31 +131,51 @@
       "additionalProperties": false,
       "required": [
         "version",
-        "task_ref",
+        "run_id",
+        "accepted_requirements_ref",
+        "accepted_intent_ref",
         "library_snapshot_ref",
-        "experiment_config_ref",
-        "request_id"
+        "config_ref",
+        "request_id",
+        "task_ref",
+        "planning_reservation_ref",
+        "experiment_config_ref"
       ],
       "properties": {
         "version": {
           "const": 1
         },
-        "task_ref": {
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "accepted_requirements_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "accepted_intent_ref": {
           "$ref": "#/$defs/ref"
         },
         "library_snapshot_ref": {
           "$ref": "#/$defs/ref"
         },
-        "experiment_config_ref": {
+        "config_ref": {
           "$ref": "#/$defs/ref"
+        },
+        "experiment_config_ref": {
+          "$ref": "#/$defs/nullable_ref"
         },
         "request_id": {
           "$ref": "#/$defs/id"
         },
-        "ext": {
-          "$ref": "#/$defs/ext"
+        "task_ref": {
+          "$ref": "#/$defs/ref",
+          "description": "The accepted requirements record (the same record as accepted_requirements_ref). Copied into the proposal and the validation so every later record names the same task."
+        },
+        "planning_reservation_ref": {
+          "$ref": "#/$defs/nullable_ref",
+          "description": "Ref of the committed planning_reservation (system record planning_reserved). Null in M1: the fixed-template planner makes no model call and writes no planning reservation. In the experiment track, no reservation, no planner call."
         }
-      }
+      },
+      "description": "Ask the planner for a DAG after the requirement Gate released. Production uses accepted_requirements_ref, accepted_intent_ref and task_ref (the accepted requirements) and sets experiment_config_ref to null. experiment_config_ref is a ref only in the isolated experiment track. planning_reservation_ref is null in M1 (no model call, no reservation) and names the committed planning reservation only in the experiment track."
     },
     "selection": {
       "type": "object",
@@ -160,7 +191,8 @@
         },
         "capability_name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "decl_hash": {
           "$ref": "#/$defs/hash"
@@ -185,14 +217,16 @@
         },
         "output_port": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "criterion_refs": {
           "type": "array",
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/ref"
-          }
+          },
+          "maxItems": 10000
         }
       }
     },
@@ -225,7 +259,8 @@
           "$ref": "#/$defs/ref"
         },
         "experiment_config_ref": {
-          "$ref": "#/$defs/ref"
+          "$ref": "#/$defs/nullable_ref",
+          "description": "null in production; the experiment configuration ref in the isolated experiment track."
         },
         "plan": {
           "$ref": "cc:types:run-plan"
@@ -235,14 +270,16 @@
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/selection"
-          }
+          },
+          "maxItems": 10000
         },
         "objective_bindings": {
           "type": "array",
           "minItems": 0,
           "items": {
             "$ref": "#/$defs/objective_binding"
-          }
+          },
+          "maxItems": 10000
         },
         "budget": {
           "type": "object",
@@ -290,6 +327,39 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "plan": {
+                "properties": {
+                  "track": {
+                    "const": "isolated_experiment"
+                  }
+                },
+                "required": [
+                  "track"
+                ]
+              }
+            },
+            "required": [
+              "plan"
+            ]
+          },
+          "then": {
+            "properties": {
+              "experiment_config_ref": {
+                "$ref": "#/$defs/ref"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "experiment_config_ref": {
+                "type": "null"
+              }
+            }
+          }
         }
       ]
     },
@@ -323,7 +393,8 @@
         "request_id": {
           "$ref": "#/$defs/id"
         }
-      }
+      },
+      "description": "Ask the validator to check a proposal. plan_ref points at the committed planner_proposal envelope (never a bare run_plan). The validator publishes the normalized run_plan ref in plan_validation.validated_plan_ref; freeze accepts only that ref."
     },
     "finding": {
       "type": "object",
@@ -334,19 +405,20 @@
       ],
       "properties": {
         "code": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/plan_finding_code"
         },
         "explanation": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 65536
         },
         "step_id": {
           "$ref": "#/$defs/id"
         },
         "port": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         }
       }
     },
@@ -392,7 +464,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/finding"
-          }
+          },
+          "maxItems": 10000
         },
         "validated_plan_ref": {
           "$ref": "#/$defs/ref"
@@ -430,7 +503,8 @@
             }
           }
         }
-      ]
+      ],
+      "description": "Validator verdict. plan_ref echoes the planner_proposal envelope that was checked. status VALID carries validated_plan_ref, the normalized run_plan control Artifact; INVALID carries findings with plan_finding_code codes and no validated_plan_ref."
     },
     "experiment_request": {
       "type": "object",
@@ -489,7 +563,8 @@
               "code_mode",
               "component_ablation"
             ]
-          }
+          },
+          "maxItems": 10000
         },
         "config_ref": {
           "$ref": "#/$defs/ref"
@@ -581,7 +656,8 @@
         },
         "run_dir": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "state": {
           "enum": [
@@ -639,7 +715,8 @@
         },
         "unit": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "evidence_ref": {
           "$ref": "#/$defs/nullable_ref"
@@ -665,7 +742,8 @@
           "then": {
             "properties": {
               "unavailable_reason": {
-                "type": "string"
+                "type": "string",
+                "maxLength": 4096
               }
             }
           },
@@ -722,7 +800,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/ref"
-          }
+          },
+          "maxItems": 10000
         },
         "verification_ref": {
           "$ref": "#/$defs/nullable_ref"
@@ -740,7 +819,8 @@
               "verification",
               "release"
             ]
-          }
+          },
+          "maxItems": 10000
         },
         "experimental_advance_ref": {
           "$ref": "#/$defs/nullable_ref"
@@ -785,31 +865,36 @@
         },
         "role": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "requested_model": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "served_model": {
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "maxLength": 4096
         },
         "route_ref": {
           "$ref": "#/$defs/nullable_ref"
         },
         "started_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
         },
         "ended_at": {
           "type": [
             "string",
             "null"
           ],
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
         },
         "elapsed": {
           "$ref": "#/$defs/measurement"
@@ -851,7 +936,8 @@
         },
         "type_name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "type_version": {
           "type": "integer",
@@ -859,7 +945,8 @@
         },
         "name": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "size_bytes": {
           "type": "integer",
@@ -867,7 +954,8 @@
         },
         "retrieval_uri": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         }
       }
     },
@@ -900,7 +988,8 @@
         },
         "reason": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         }
       }
     },
@@ -966,25 +1055,29 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/reason"
-          }
+          },
+          "maxItems": 10000
         },
         "steps": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/step"
-          }
+          },
+          "maxItems": 10000
         },
         "model_calls": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/model_call"
-          }
+          },
+          "maxItems": 10000
         },
         "artifacts": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/artifact"
-          }
+          },
+          "maxItems": 10000
         },
         "scientific_outcome": {
           "type": "object",
@@ -1017,7 +1110,8 @@
               "then": {
                 "properties": {
                   "unavailable_reason": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 4096
                   }
                 }
               },
@@ -1071,7 +1165,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/deviation"
-          }
+          },
+          "maxItems": 10000
         },
         "ext": {
           "$ref": "#/$defs/ext"
@@ -1126,7 +1221,8 @@
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "maxLength": 4096
         }
       },
       "allOf": [
@@ -1156,7 +1252,8 @@
             "properties": {
               "unavailable_reason": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 4096
               }
             }
           }
@@ -1196,10 +1293,12 @@
               },
               "description": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 4096
               }
             }
-          }
+          },
+          "maxItems": 10000
         }
       }
     },
@@ -1255,7 +1354,8 @@
         },
         "download_url": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         }
       }
     },
@@ -1318,7 +1418,8 @@
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "maxLength": 4096
         },
         "decl_hash": {
           "anyOf": [
@@ -1341,24 +1442,30 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "minLength": 1
-          }
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "maxItems": 10000
         },
         "model_allowlist": {
           "type": "array",
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "minLength": 1
-          }
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "maxItems": 10000
         },
         "default_model_id": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "deadline_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
         },
         "context_chars": {
           "type": "integer",
@@ -1373,10 +1480,8 @@
               "latency",
               "quality"
             ]
-          }
-        },
-        "ext": {
-          "$ref": "#/$defs/ext"
+          },
+          "maxItems": 10000
         }
       }
     },
@@ -1407,7 +1512,8 @@
         },
         "selected_model_id": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "catalog_ref": {
           "$ref": "#/$defs/ref"
@@ -1417,7 +1523,8 @@
         },
         "reason": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "fallback": {
           "type": "boolean"
@@ -1479,7 +1586,8 @@
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/ref"
-          }
+          },
+          "maxItems": 10000
         }
       },
       "allOf": [
@@ -1532,25 +1640,29 @@
         },
         "approved_by": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "reason": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "actions": {
           "type": "array",
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/ablation_action"
-          }
+          },
+          "maxItems": 10000
         },
         "evidence_requirements": {
           "type": "array",
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/ref"
-          }
+          },
+          "maxItems": 10000
         }
       }
     },
@@ -1717,20 +1829,23 @@
             "string",
             "null"
           ],
-          "format": "uri"
+          "format": "uri",
+          "maxLength": 4096
         },
         "user_code": {
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "maxLength": 4096
         },
         "expires_at": {
           "type": [
             "string",
             "null"
           ],
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
         },
         "reason": {
           "anyOf": [
@@ -1759,11 +1874,13 @@
               },
               "verification_url": {
                 "type": "string",
-                "format": "uri"
+                "format": "uri",
+                "maxLength": 4096
               },
               "user_code": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 4096
               }
             }
           },
@@ -1831,8 +1948,8 @@
         },
         "state": {
           "enum": [
-            "NOT_RUN",
-            "PARTIAL"
+            "not_run",
+            "partial"
           ]
         },
         "verification_ref": {
@@ -1844,7 +1961,8 @@
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/id"
-          }
+          },
+          "maxItems": 10000
         }
       },
       "allOf": [
@@ -1852,7 +1970,7 @@
           "if": {
             "properties": {
               "state": {
-                "const": "NOT_RUN"
+                "const": "not_run"
               }
             }
           },
@@ -2075,7 +2193,8 @@
         },
         "sealed_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
         }
       }
     },
@@ -2130,11 +2249,13 @@
         },
         "model_id": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "deadline_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
         },
         "prompt_content_ref": {
           "anyOf": [
@@ -2574,7 +2695,7 @@
         "experiment_config_ref",
         "policy_ref",
         "model_id",
-        "deadline",
+        "deadline_at",
         "max_model_calls"
       ],
       "properties": {
@@ -2591,22 +2712,24 @@
           "$ref": "#/$defs/ref"
         },
         "experiment_config_ref": {
-          "$ref": "#/$defs/ref"
+          "$ref": "#/$defs/nullable_ref"
         },
         "policy_ref": {
           "$ref": "#/$defs/ref"
         },
         "model_id": {
           "type": "string",
-          "minLength": 1
-        },
-        "deadline": {
-          "type": "string",
-          "format": "date-time"
+          "minLength": 1,
+          "maxLength": 4096
         },
         "max_model_calls": {
           "type": "integer",
           "minimum": 1
+        },
+        "deadline_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
         }
       }
     },
@@ -2671,7 +2794,8 @@
         },
         "model_id": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 4096
         },
         "config_sha256": {
           "$ref": "#/$defs/hash"
@@ -2729,6 +2853,21 @@
           }
         }
       ]
+    },
+    "plan_finding_code": {
+      "enum": [
+        "CYCLE",
+        "MISSING_PRODUCER",
+        "WRONG_VERSION",
+        "UNREACHABLE_OBJECTIVE",
+        "DENIED_EFFECT",
+        "MISSING_GATE",
+        "BUDGET_EXCEEDED",
+        "TYPE_MISMATCH",
+        "UNKNOWN_CAPABILITY",
+        "MISSING_INPUT"
+      ],
+      "description": "Closed registry of plan validation finding codes (system/planner.md). CYCLE: the graph is not acyclic. MISSING_PRODUCER: a required input has no producer. WRONG_VERSION: a type or capsule version differs from the pinned snapshot or vocabulary. UNREACHABLE_OBJECTIVE: an objective has no terminal output covering it. DENIED_EFFECT: a node needs an effect or permission the policy denies. MISSING_GATE: a node has no Gate. BUDGET_EXCEEDED: the plan is over its time or model-call budget. TYPE_MISMATCH: an edge joins ports of different types. UNKNOWN_CAPABILITY: a selection names a capsule absent from the pinned snapshot. MISSING_INPUT: a required port or task input is not bound."
     }
   }
 }

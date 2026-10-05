@@ -1,0 +1,1738 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:contracts:tools-v1",
+  "title": "M1 tool-side contracts v1: standing command, doctor, checks, author kit, execution profile, broker search, policy publish",
+  "$defs": {
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "x-internal": true,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_type",
+        "reference"
+      ],
+      "properties": {
+        "evidence_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "metadata": {
+          "type": "object"
+        }
+      },
+      "description": "EvidenceRef as in common.",
+      "x-internal": true
+    },
+    "standing_change_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "capability_name",
+        "action",
+        "expected_current_hash",
+        "actor",
+        "reason",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "capability_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "action": {
+          "enum": [
+            "suspend",
+            "deprecate",
+            "retire",
+            "revoke",
+            "restore",
+            "rollback"
+          ]
+        },
+        "expected_current_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Manual Standing command by a person (librarian, M1). suspend moves to suspect, deprecate to deprecated, retire to retired, revoke to revoked, restore returns the current version to admitted, rollback makes an earlier admitted version current (target_decl_hash required for rollback, forbidden for every other action). Activation of an admitted_inactive version is library-rsi-v1 activation_request, not this def. Nothing leaves revoked. A stale expected_current_hash returns STORE_CONFLICT; an identical request returns the committed record.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "rollback"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "required": [
+              "target_decl_hash"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "target_decl_hash"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "standing_change_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "capability_name",
+        "action",
+        "previous_state",
+        "state",
+        "reason_code",
+        "previous_decl_hash",
+        "decl_hash",
+        "actor",
+        "reason",
+        "at",
+        "standing_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "capability_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "action": {
+          "enum": [
+            "suspend",
+            "deprecate",
+            "retire",
+            "revoke",
+            "restore",
+            "rollback"
+          ]
+        },
+        "previous_state": {
+          "enum": [
+            "admitted",
+            "admitted_inactive",
+            "deprecated",
+            "suspect",
+            "retired"
+          ]
+        },
+        "state": {
+          "enum": [
+            "admitted",
+            "admitted_inactive",
+            "deprecated",
+            "suspect",
+            "retired",
+            "revoked"
+          ]
+        },
+        "reason_code": {
+          "enum": [
+            "SUSPENDED_BY_OWNER",
+            "DEPRECATED_BY_OWNER",
+            "RETIRED_BY_OWNER",
+            "REVOKED_BY_OWNER",
+            "REVERTED"
+          ]
+        },
+        "previous_decl_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "decl_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "standing_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "ext": {
+          "$ref": "cc:contracts:services-v1#/$defs/ext"
+        }
+      },
+      "description": "Result of a manual Standing command: standing_ref is the new entry in the append-only Standing log (INV-2). reason_code is SUSPENDED_BY_OWNER, DEPRECATED_BY_OWNER, RETIRED_BY_OWNER or REVOKED_BY_OWNER for the matching action, and REVERTED for restore and rollback. previous_state is never revoked, because nothing leaves revoked.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "suspend"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "suspect"
+              },
+              "reason_code": {
+                "const": "SUSPENDED_BY_OWNER"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "deprecate"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "deprecated"
+              },
+              "reason_code": {
+                "const": "DEPRECATED_BY_OWNER"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "retire"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "retired"
+              },
+              "reason_code": {
+                "const": "RETIRED_BY_OWNER"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "revoke"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "revoked"
+              },
+              "reason_code": {
+                "const": "REVOKED_BY_OWNER"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "restore",
+                  "rollback"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "admitted"
+              },
+              "reason_code": {
+                "const": "REVERTED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "doctor_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "mandatory",
+        "source",
+        "message"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNSUPPORTED",
+            "NOT_RUN",
+            "BLOCKED"
+          ]
+        },
+        "mandatory": {
+          "type": "boolean"
+        },
+        "source": {
+          "enum": [
+            "native_run_doctor",
+            "cc_probe"
+          ]
+        },
+        "native_status": {
+          "enum": [
+            "ok",
+            "failed"
+          ]
+        },
+        "evidence_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "blocks_profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/id"
+          },
+          "maxItems": 10000
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        }
+      },
+      "description": "One startup/doctor probe. An unrun probe is NOT_RUN (or UNSUPPORTED or FAIL), never PASS; a probe that is not PASS blocks the execution profiles named in blocks_profiles. Check zero is the native startup_diagnostics.run_doctor (source native_run_doctor): native_status ok maps to PASS, failed maps to FAIL or UNSUPPORTED. Every later check is a CC probe. native_status is present only for native_run_doctor.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "native_run_doctor"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          },
+          "then": {
+            "required": [
+              "native_status"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "native_status"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "native_status": {
+                "const": "ok"
+              }
+            },
+            "required": [
+              "native_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "PASS"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "native_status": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "native_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "FAIL",
+                  "UNSUPPORTED"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "doctor_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "config_sha256",
+        "platform",
+        "python_version",
+        "profile_id",
+        "checks",
+        "ready"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "config_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "platform": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "python_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "profile_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/doctor_check"
+          },
+          "maxItems": 10000
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "ext": {
+          "$ref": "cc:contracts:services-v1#/$defs/ext"
+        }
+      },
+      "description": "doctor(config_snapshot) -> DoctorReport. ready is true only when every mandatory check is PASS; no live run starts otherwise. profile_id names the platform/execution profile that was probed. Checks cover package versions, model auth, secure IPC ownership, local paths, registry closure, plan structure, hardware, wheelhouse, fixture separation, helper ownership and the negative probes under the child identities.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ready": {
+                "const": true
+              }
+            },
+            "required": [
+              "ready"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "items": {
+                  "if": {
+                    "properties": {
+                      "mandatory": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "mandatory"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "status": {
+                        "const": "PASS"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "check_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputs",
+        "outputs",
+        "observation",
+        "expected",
+        "context"
+      ],
+      "properties": {
+        "inputs": {
+          "type": "object"
+        },
+        "outputs": {
+          "type": "object"
+        },
+        "observation": {
+          "anyOf": [
+            {
+              "$ref": "cc:records:observation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected": {},
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_port",
+            "port_type",
+            "value_schema",
+            "budget",
+            "runner_limits"
+          ],
+          "properties": {
+            "target_port": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "port_type": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "value_schema": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "budget": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "runner_limits": {
+              "type": "object"
+            }
+          },
+          "description": "Filled by M10a: budget is the Binding budget (or verifier.budget for a judge call); runner_limits is the pinned policy runner section."
+        }
+      },
+      "description": "Arguments of check(*, inputs, outputs, observation, expected, context) in the check calling convention, as the tool host in check mode passes them. inputs and outputs are port name to value (empty when the check's over does not give them); observation is null unless over is each_call; expected is null unless M10a runs the check at admission on a test case."
+    },
+    "check_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result"
+      ],
+      "properties": {
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence_ref"
+          },
+          "maxItems": 10000
+        }
+      },
+      "description": "What a check function returns. message is one line a person can act on and is required (non-empty) on fail and unknown. A check that raises, returns anything else or exceeds runner.check_timeout_s is recorded as unknown by M10a, never pass.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "enum": [
+                  "fail",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "required": [
+              "message"
+            ],
+            "properties": {
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 65536
+              }
+            }
+          }
+        }
+      ]
+    },
+    "run_checks_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "checks",
+        "obs",
+        "vocabulary_ref",
+        "policy_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "cc:records:declaration#/properties/guarantees/properties/checks/items"
+                  },
+                  {
+                    "properties": {
+                      "anchor": {
+                        "enum": [
+                          "deterministic",
+                          "reference"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "check_id",
+                  "source"
+                ],
+                "properties": {
+                  "check_id": {
+                    "$ref": "cc:contracts:services-v1#/$defs/id"
+                  },
+                  "source": {
+                    "enum": [
+                      "capsule",
+                      "type",
+                      "step"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "maxItems": 10000
+        },
+        "obs": {
+          "$ref": "cc:records:observation"
+        },
+        "vocabulary_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "policy_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "inputs": {
+          "type": "object"
+        },
+        "expected": {},
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "run_checks(checks, obs, *, vocabulary_ref, policy_ref, inputs=None, expected=None). checks are full deterministic or reference Checks, or Binding entries {check_id, source} that M10a resolves (capsule: the Declaration of obs.decl_hash; type: the pinned vocabulary; step: the Binding step_checks). A judged check here is a caller bug. inputs overrides the call's input values; expected is the test case's expected when run at admission."
+    },
+    "run_checks_result": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check_id",
+          "source",
+          "result",
+          "runner_sha256"
+        ],
+        "properties": {
+          "check_id": {
+            "$ref": "cc:contracts:services-v1#/$defs/id"
+          },
+          "source": {
+            "enum": [
+              "capsule",
+              "type",
+              "step",
+              "gate"
+            ]
+          },
+          "result": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown"
+            ]
+          },
+          "runner_sha256": {
+            "$ref": "cc:contracts:services-v1#/$defs/hash"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/evidence_ref"
+            },
+            "maxItems": 10000
+          }
+        }
+      },
+      "description": "In-process return (an array, so it has no envelope fields): Reply of run_checks: one row per check, in the order given, in the shape of Verification results[]. A check's message is written as the first evidence entry {evidence_type: check_message, reference: <check_id>, description: <message>}, followed by the check's own evidence.",
+      "maxItems": 10000
+    },
+    "kit_finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "path": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        }
+      },
+      "description": "One validation problem, with a policy reason_code such as SCHEMA_NONCONFORMANT.",
+      "x-internal": true
+    },
+    "author_kit_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "folder",
+        "capsule_name",
+        "advisory",
+        "declaration_valid",
+        "findings",
+        "files",
+        "decl_hash",
+        "interface_hash",
+        "code_sha256",
+        "make_capsule_written",
+        "test_results"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "folder": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "capsule_name": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "advisory": {
+          "const": true
+        },
+        "declaration_valid": {
+          "type": "boolean"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kit_finding"
+          },
+          "maxItems": 10000
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "sha256": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "decl_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "interface_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "code_sha256": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "make_capsule_written": {
+          "type": "boolean"
+        },
+        "test_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "case_index",
+              "check_id",
+              "result"
+            ],
+            "properties": {
+              "case_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "check_id": {
+                "$ref": "cc:contracts:services-v1#/$defs/id"
+              },
+              "result": {
+                "enum": [
+                  "pass",
+                  "fail",
+                  "unknown"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 65536
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "ext": {
+          "$ref": "cc:contracts:services-v1#/$defs/ext"
+        }
+      },
+      "description": "Output of cc kit check <folder>: the Declaration validated against the schema and the policy required section; every submitted file hashed (carrier or body files and check runner files only); the three capsule hashes computed with M00d (null when the Declaration is invalid); make_capsule.md regenerated; each test case run as an admission call against a throwaway store, with checks through M10a. The report is advice only (advisory is always true): only admission's Verdict counts.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "declaration_valid": {
+                "const": false
+              }
+            },
+            "required": [
+              "declaration_valid"
+            ]
+          },
+          "then": {
+            "properties": {
+              "decl_hash": {
+                "type": "null"
+              },
+              "interface_hash": {
+                "type": "null"
+              },
+              "code_sha256": {
+                "type": "null"
+              },
+              "make_capsule_written": {
+                "const": false
+              },
+              "findings": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "execution_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "profile_id",
+        "platform",
+        "identity",
+        "capabilities_dropped",
+        "no_new_privs",
+        "network_mode",
+        "brokers",
+        "credentials_exposed",
+        "seccomp_profile_id",
+        "engine",
+        "mounts",
+        "ipc_transport",
+        "limits",
+        "doctor_check_ids",
+        "on_unsupported"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "profile_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "platform": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "identity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "capabilities_dropped": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "maxItems": 10000
+        },
+        "no_new_privs": {
+          "const": true
+        },
+        "network_mode": {
+          "enum": [
+            "isolated"
+          ]
+        },
+        "brokers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "model",
+              "nested",
+              "search",
+              "workspace"
+            ]
+          },
+          "maxItems": 10000
+        },
+        "credentials_exposed": {
+          "const": false
+        },
+        "seccomp_profile_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "engine": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "landlock",
+            "network",
+            "server_token_required"
+          ],
+          "properties": {
+            "name": {
+              "const": "jiuwenbox"
+            },
+            "landlock": {
+              "const": "hard_requirement"
+            },
+            "network": {
+              "const": "isolated"
+            },
+            "server_token_required": {
+              "const": true
+            }
+          },
+          "description": "Confinement engine settings: jiuwenbox policy model and launcher, never its defaults (opt-in, Landlock best_effort, egress allowed, authentication off)."
+        },
+        "mounts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "read_only",
+            "writable"
+          ],
+          "properties": {
+            "read_only": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "maxItems": 10000
+            },
+            "writable": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "maxItems": 10000
+            }
+          },
+          "description": "Paths mounted into the child. Credential, fixture and store paths are omitted entirely."
+        },
+        "ipc_transport": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "wall_time_s",
+            "max_processes",
+            "max_output_bytes",
+            "max_files"
+          ],
+          "properties": {
+            "wall_time_s": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "max_processes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_files": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "description": "Hard limits: the first one hit kills the whole child tree and ends the call with the standard budget error."
+        },
+        "enforcement_matrix": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "denied",
+              "mediated",
+              "observed",
+              "unsupported"
+            ]
+          }
+        },
+        "model_call_limits": {
+          "$ref": "cc:contracts:services-v1#/$defs/model_call_limits"
+        },
+        "doctor_check_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/id"
+          },
+          "maxItems": 10000
+        },
+        "on_unsupported": {
+          "const": "UNSUPPORTED_SECURITY_PROFILE"
+        }
+      },
+      "description": "Named, versioned, content-addressed ExecutionProfile of a restricted child (restricted_child, poc, oracle and bridge are profile_id values; a Binding pins one with a ProfileRef of kind execution). It pins platform, non-root identity, dropped capabilities, no-new-privs, network mode, permitted brokers, credential exposure, inner seccomp profile, jiuwenbox engine settings, read-only and writable mounts, IPC transport, resource limits and doctor check ids. enforcement_matrix maps a checked Declaration field to denied, mediated, observed or unsupported; an observed value cannot satisfy a required safety boundary. A requirement that is missing or not validated by doctor is unsupported and fails closed with UNSUPPORTED_SECURITY_PROFILE; there is no fallback to the host."
+    },
+    "broker_search_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "service",
+        "query",
+        "top_k"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "service": {
+          "enum": [
+            "local",
+            "scholarly",
+            "code"
+          ]
+        },
+        "query": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "top_k": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "intake_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "repository_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "A capsule's search call through the runner broker: local runs op.local_search over the run's intake (intake_ref required), scholarly runs op.scholarly_search against arXiv and Semantic Scholar through cc.adapters.deepsearch, code runs op.codesearch over the authorized project_asset snapshot (repository_ref required, never a host path). Only the service that needs a ref may carry it.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "service": {
+                "const": "local"
+              }
+            },
+            "required": [
+              "service"
+            ]
+          },
+          "then": {
+            "required": [
+              "intake_ref"
+            ],
+            "not": {
+              "required": [
+                "repository_ref"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "service": {
+                "const": "code"
+              }
+            },
+            "required": [
+              "service"
+            ]
+          },
+          "then": {
+            "required": [
+              "repository_ref"
+            ],
+            "not": {
+              "required": [
+                "intake_ref"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "service": {
+                "const": "scholarly"
+              }
+            },
+            "required": [
+              "service"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "intake_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "repository_ref"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "broker_search_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "service",
+        "state"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "service": {
+          "enum": [
+            "local",
+            "scholarly",
+            "code"
+          ]
+        },
+        "state": {
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "refused"
+          ]
+        },
+        "hits": {
+          "type": "object"
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/reason"
+          },
+          "maxItems": 10000
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        }
+      },
+      "description": "Reply to broker_search_request. hits is the search_hits payload for local and scholarly and the code_hits payload for code. partial (scholarly only): one service answered and the other did not; hits from the answering one plus an EXTERNAL_UNAVAILABLE issue. unavailable: every service down (cc.ExternalUnavailable), reason required. refused: unreadable or absent resource (STORE_NOT_FOUND, INPUT_INCOMPLETE) or a rule violation, reason required. The broker records the call as a nested call; no model call, package install or arbitrary host access happens.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "ok",
+                  "partial"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "hits"
+            ]
+          },
+          "else": {
+            "required": [
+              "reason"
+            ],
+            "not": {
+              "required": [
+                "hits"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "partial"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "issues"
+            ],
+            "properties": {
+              "issues": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "service": {
+                "enum": [
+                  "local",
+                  "scholarly"
+                ]
+              }
+            },
+            "required": [
+              "service"
+            ]
+          },
+          "then": {
+            "properties": {
+              "hits": {
+                "$ref": "cc:types:search-hits"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "service": {
+                "const": "code"
+              }
+            },
+            "required": [
+              "service"
+            ]
+          },
+          "then": {
+            "properties": {
+              "hits": {
+                "$ref": "cc:types:code-hits"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "service": {
+                "enum": [
+                  "local",
+                  "code"
+                ]
+              }
+            },
+            "required": [
+              "service"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "ok",
+                  "unavailable",
+                  "refused"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "policy_publish_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "epoch_path",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "epoch_path": {
+          "type": "string",
+          "pattern": "^cc/policy/[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\\.json$"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "cc policy publish <epoch.json>: one policy epoch document, written as cc/policy/<epoch>.json and reviewed like code."
+    },
+    "policy_publish_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "state",
+        "epoch",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "state": {
+          "enum": [
+            "published",
+            "unchanged",
+            "refused"
+          ]
+        },
+        "epoch": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "policy_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Result of cc policy publish. published: validated against the policy schema and stored with put_hashed(policy, doc); policy_ref is {id: epoch name, sha256 of the document}. unchanged: the epoch is already stored with the same bytes (no-op, INV-2). refused: schema nonconformance, or the epoch name is already stored with different bytes; reason required. The publisher is the policy's one writer (INV-3).",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "refused"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason"
+            ],
+            "not": {
+              "required": [
+                "policy_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "policy_ref"
+            ],
+            "not": {
+              "required": [
+                "reason"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "wheelhouse_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "python_version",
+        "wheels"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "python_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "wheels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "filename",
+              "name",
+              "version",
+              "sha256",
+              "python_tag",
+              "abi_tag",
+              "platform_tag",
+              "requires"
+            ],
+            "properties": {
+              "filename": {
+                "type": "string",
+                "pattern": "^[^/\\\\]+\\.whl$",
+                "maxLength": 4096
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "sha256": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              },
+              "python_tag": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "abi_tag": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "platform_tag": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "requires": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096
+                },
+                "maxItems": 10000
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "ext": {
+          "$ref": "cc:contracts:services-v1#/$defs/ext"
+        }
+      },
+      "description": "Wheelhouse manifest (config cc.packages.manifest_sha256 pins its bytes): each approved wheel with filename, hash, version, Python/ABI/platform tags and its direct dependencies; the dependency closure is the transitive set of requires, and the installer checks that every required name is itself a listed wheel. Used by pip --no-index --find-links --require-hashes --only-binary=:all:; source distributions, editable installs and remote URLs are not representable."
+    },
+    "config_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "sha256",
+        "effective",
+        "provenance",
+        "loaded_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "effective": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cc"
+          ],
+          "properties": {
+            "cc": {
+              "type": "object"
+            }
+          },
+          "description": "Effective configuration in the closed M1 cc namespace; keys, types and defaults are validated by load_config against the key table in environment, not by this schema."
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "loaded_at": {
+          "$ref": "#/$defs/time"
+        }
+      },
+      "description": "ConfigSnapshot returned by load_config(project_root): {version: 1, sha256, effective, provenance: key path to source file, loaded_at}. begin_run durably pins it and resume uses the old one. Credentials never appear in it."
+    }
+  }
+}

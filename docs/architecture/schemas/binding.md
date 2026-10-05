@@ -3,17 +3,29 @@ type: schema
 id: cc.binding.v1
 status: proposed
 tags: [schema]
+prd: [4.1.3, 4.1.4]
+level: detail
 ---
 
 # Binding · `cc.binding.v1`
 
-The pin for one call site of a run: exactly one capsule version, by hash, with the Verdict that admitted it, the checks the gate runs on its output, its budget, and the judge the gate may call. It is written once, by freeze (M03), before the call site first runs. Every capsule call made through the runner is pinned: the runner refuses a call in a run that has no Binding, and refuses to load code that does not match it. A `nested` call (an operator or other capsule the bound capsule calls) runs under the bound capsule's Binding, pinned by the `decl_hash` its Declaration names in `needs.external`, which admission already checked. The writer refuses a Binding when the capsule's code, or any code it pins in `needs.external`, no longer hashes to what was admitted (`CARRIER_CHANGED`): changed code is never bound. It refuses a wiring whose output type differs from the input it feeds (`PORT_TYPE_MISMATCH`). Third-party packages are pinned only when the Declaration's `needs.dependencies.lockfile` is set.
+PRD: 4.1.3, 4.1.4
+
+The pin for one call site of a run: exactly one [capsule](../capsule/capsule.md#term-capability-capsule) version, by hash, with the Verdict that admitted it, the [checks](../capsule/fields.md#term-check) the gate [runs](../system/lifecycle.md#term-run) on its output, its budget, and the judge the gate may call. It is written once, by freeze (M03), before the call site first runs. Every capsule call made through the runner is pinned: the runner refuses a call in a run that has no Binding, and refuses to load code that does not match it. A `nested` call (an [operator](../capabilities/README.md#term-operator) or other capsule the bound capsule calls) runs under the bound capsule's Binding, pinned by the `decl_hash` its [Declaration](../capsule/fields.md#term-declaration) names in `needs.external`, which admission already checked. The writer refuses a Binding when the capsule's code, or any code it pins in `needs.external`, no longer hashes to what was admitted (`CARRIER_CHANGED`): changed code is never bound. It refuses a wiring whose output type differs from the input it feeds (`PORT_TYPE_MISMATCH`). Third-party packages are pinned only when the Declaration's `needs.dependencies.lockfile` is set.
 
 **Rules:** INV-2, INV-5 (its `checks` list is the one allowed assembled copy), INV-9, INV-17.
 
+**Wire note.** The Binding record keeps `policy_ref {epoch, sha256}` and `vocabulary_ref {version, sha256}` as written below. The freeze call (`execution-v1.schema.json#freeze_request`) carries both pins as the common `{id, sha256}` ref instead, with `id` the epoch name or the vocabulary version name; freeze converts them when it writes the Binding. The two shapes differ on purpose and the Binding record is not the freeze wire.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-binding"></a>**Binding** (also: Bindings) | The pin for one call site of a run: exactly one capsule version by hash, the Verdict that admitted it, the checks the Gate runs on its output, its budget and the judge it may use. Freeze writes it once before the call site first runs, and the runner refuses a call that has no Binding. |
+
 ## Fields
 
-Extends [common](common.md), with `scope.run_id` set to the run's id, a plain string. Its `id` is the `binding_id`. `binding_sha256` is its hash (INV-15); Observations cite it through `Ref(binding)`.
+Extends [common](common.md), with `scope.run_id` set to the run's id, a plain string. Its `id` is the `binding_id`. `binding_sha256` is its hash (INV-15); [Observations](observation.md#term-observation) cite it through `Ref(binding)`.
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
@@ -29,8 +41,8 @@ Extends [common](common.md), with `scope.run_id` set to the run's id, a plain st
 | `vocabulary_ref.sha256` | `sha256` | req | checked |  | The vocabulary document's hash |
 | `checks` | `list<object>` | req | checked |  | Every check the gate runs on this call's output, assembled once from every check whose `applies_at` is `node` or `both`. Each is `{check_id, source}`, `source` being `capsule` (the Declaration's), `type` (the output type's, from the vocabulary) or `step` (from `step_checks`). At least one, since every type has a `node` check (INV-9) |
 | `step_checks` | `list<Check>` | opt | checked |  | The full [Check](checks.md) for each `checks` entry with `source: step`: a check the workflow adds for this call site. Required when there is one |
-| `budget` | `object` | req | checked |  | The limit per call, from policy `budgets`: `{tokens, time_s, money}`, each optional; the Gate fails a finished call over it |
-| `retry_profile_ref` | `object` | req | checked |  | Pinned ProfileRef(kind=retry); canonical services-v1 retry_profile requires zero autonomous execution retries at M1. Freeze validates profile id/hash/epoch before publication |
+| `budget` | `object` | req | checked |  | The limit per call, from policy `budgets`: `{tokens, time_s, money}`, each optional; the [Gate](../verification.md#term-gate) fails a finished call over it |
+| `retry_profile_ref` | `object` | req | checked |  | Pinned [ProfileRef](profiles.md#term-profileref)([kind](../capsule/capsule.md#term-capsule-kind)=retry); canonical services-v1 retry_profile requires zero autonomous execution retries at M1. Freeze validates profile id/hash/epoch before publication |
 | `retry_profile_ref.kind` | `enum(retry)` | req | checked |  | Profile discriminator; always `retry` for this reference |
 | `retry_profile_ref.id` | `id` | req | checked |  | Policy-local profile id |
 | `retry_profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile hash |
@@ -38,7 +50,7 @@ Extends [common](common.md), with `scope.run_id` set to the run's id, a plain st
 | `execution_profile_ref.kind` | `enum(execution)` | req | checked |  | Always `execution` |
 | `execution_profile_ref.id` | `id` | req | checked |  | Policy-local profile id |
 | `execution_profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile hash |
-| `verifier` | `object` | opt | checked |  | The step's **gate capsule**: the capsule the gate host calls with this Binding's `judged` checks, pinned like the capsule ([nodes](../system/nodes.md#gates)). Required when any of `checks` is judged; policy `every_step_gated` (proposed) requires it on every `dispatch` Binding |
+| `verifier` | `object` | opt | checked |  | The step's **gate capsule**: the capsule the gate host calls with this Binding's `judged` checks, pinned like the capsule ([nodes](../system/nodes.md#gates)). Required when any of `checks` is judged; policy `every_step_gated` requires it in M1 on every `dispatch` Binding |
 | `verifier.decl_hash` | `sha256` | req | checked |  | The judge's version |
 | `verifier.code_sha256` | `sha256` | req | checked |  | What the loader checks before each judge call |
 | `verifier.verdict_ref` | `Ref(verdict)` | req | checked |  | The Verdict that admitted the judge |
@@ -54,11 +66,11 @@ Extends [common](common.md), with `scope.run_id` set to the run's id, a plain st
 | `nested_gate_profiles[].profile_ref.id` | `id` | req | checked |  | Policy-local profile name |
 | `nested_gate_profiles[].profile_ref.sha256` | `sha256` | req | checked |  | Complete immutable profile closure hash |
 | `role` | `string` | opt | unchecked | planner | Which agent or role runs the capsule at this call site, as the workflow names it. The capsule itself never names a role. Example: `reviewer` |
-| `overlays` | `list<Ref(artifact)>` | opt | unchecked | RSI | Experience or guidance loaded with the capsule at this call site. Nothing else is loaded |
+| `overlays` | `list<Ref(artifact)>` | opt | unchecked | [RSI](../rsi.md#term-rsi) | Experience or guidance loaded with the capsule at this call site. Nothing else is loaded |
 
 **The runner refuses** a call in a run, writing an Observation with `outcome: refused`, when: there is no Binding (`BINDING_MISSING`); a profile is missing or hash/epoch mismatched (`POLICY_UNRESOLVED`); the loaded code's hash differs from `code_sha256` (`CARRIER_CHANGED`); input names or types differ (`PORT_MISMATCH`); an execution requirement is unsupported (`PERMISSION_UNENFORCEABLE` or `UNSUPPORTED_SECURITY_PROFILE`); a permission is denied (`PERMISSION_DENIED`); or a precondition fails.
 
-A capsule tried in place of another is bound by its own Binding with its own `step_id`. Everything else the runner needs (effect class, preconditions, ports, model limits) it reads from the Declaration by `decl_hash`, so the Binding repeats none of it (INV-5).
+A capsule tried in place of another is bound by its own Binding with its own `step_id`. Everything else the runner needs ([effect class](../capsule/fields.md#term-effect-class), preconditions, [ports](../capsule/fields.md#term-port), model limits) it reads from the Declaration by `decl_hash`, so the Binding repeats none of it (INV-5).
 
 ## Reuse
 

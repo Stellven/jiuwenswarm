@@ -4,17 +4,27 @@ id: cc.type.research_brief
 version: 1
 status: checked
 tags: [types, m1]
+prd: [3.2.7, 3.2.6]
+level: detail
 ---
 
 > **Checked, not yet approved.** Compiles, its example validates, and it has been through review.
 
 # `research_brief`: the Research Brief · version 1
 
+PRD: 3.2.7, 3.2.6
+
 The contract every later stage reads: the research objective, its scope, the constraints, the prioritised requirements and the acceptance metrics (PRD 3.2.7). Every item the user stated carries a quote and names where the quote came from, so a check can confirm the user really said it. Anything the user did not state is either a recorded default or absent.
 
-**Made by** `research.compile_brief` at the `requirement` step ([requirement capsule](../m1/requirement-capsule.md)). **Read by** every later step: search (3.2.2 scope), hypothesis (3.5 copies its metrics), benchmarking and evaluation (3.2.6 thresholds), and the report.
+**Made by** `research.compile_brief` at the `requirement` step ([requirement capsule](../capabilities/requirement-capsule.md)). **Read by** every later step: search (3.2.2 scope), hypothesis (3.5 copies its metrics), benchmarking and evaluation (3.2.6 thresholds), and the report.
 
 **Evidence.** An `evidence` quote is copied verbatim from its source. `evidence_source_id` names the source: `prompt` for `intake.prompt`, or a `documents[].document_id` of the same `intake`. Requirements, metrics and the objective quote the prompt: a document can inform the Brief, but only the user states what is required.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-research-brief"></a>**Research Brief** (also: research_brief, Brief) | The contract every later stage reads: the research objective, scope, constraints, prioritised requirements and acceptance metrics. Every item the user stated carries a verbatim quote and its source; anything not stated is a recorded default or absent. |
 
 ## Fields
 
@@ -65,7 +75,7 @@ The contract every later stage reads: the research objective, its scope, the con
 | `metrics[].comparator` | `enum(gte, lte)` | req | checked |  | `gte`: at least the target is good. `lte`: at most the target is good. The names match the `predicate_op` registry |
 | `metrics[].target` | `number` | req | checked |  | The threshold. The number appears in the metric's own quote |
 | `metrics[].unit` | `string` | req | checked |  | Explicit unit label; unit alone never determines comparison basis |
-| `metrics[].basis` | `enum(absolute, delta, relative_percent, percentage_points, unspecified)` | req | checked |  | Interpretation supported by the quote; unspecified retains INPUT_AMBIGUOUS and blocks Hypothesis until supplied input/default policy defines it, without weakening a target |
+| `metrics[].basis` | `enum(absolute, delta, relative_percent, percentage_points, unspecified)` | req | checked |  | Interpretation supported by the quote; unspecified retains INPUT_AMBIGUOUS and [blocks](../system/modules.md#term-block) Hypothesis until supplied input/default policy defines it, without weakening a target |
 | `metrics[].evidence` | `text` | req | checked |  | Its quote, from the prompt |
 | `metrics[].evidence_source_id` | `id` | req | checked |  | `prompt`; the producer's check `brief_evidence_grounded` enforces it |
 | `defaults_applied` | `list<object>` | req | checked |  | Every value taken from the defaults table because the intake said nothing (3.2.3). May be empty |
@@ -80,11 +90,11 @@ Caveats about the request (vague, incomplete, contradictory) go in the Artifact'
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
-| `check.research_brief_ids_resolve.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/research_brief.py:research_brief_ids_resolve` | muk | `requirement_id` values are unique across both requirement lists; `metric_id` values are unique; every `metrics[].requirement_id` names a requirement |
-| `check.research_brief_defaults_disjoint.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/research_brief.py:research_brief_defaults_disjoint` | muk | no field is both in `defaults_applied` and quoted in `constraints.compute.quotes`, and every compute field present is in exactly one of them |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
+| `check.research_brief_ids_resolve.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/research_brief.py:research_brief_ids_resolve` | cc-team | `requirement_id` values are unique across both requirement lists; `metric_id` values are unique; every `metrics[].requirement_id` names a requirement |
+| `check.research_brief_defaults_disjoint.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/research_brief.py:research_brief_defaults_disjoint` | cc-team | no field is both in `defaults_applied` and quoted in `constraints.compute.quotes`, and every compute field present is in exactly one of them |
 
-Checks that need the intake, such as whether each quote really appears in its source, belong to the producing capsule ([requirement capsule](../m1/requirement-capsule.md)).
+Checks that need the intake, such as whether each quote really appears in its source, belong to the producing [capsule](../capsule/capsule.md#term-capability-capsule) ([requirement capsule](../capabilities/requirement-capsule.md)).
 
 ## Example
 
@@ -118,14 +128,14 @@ For the prompt `Reduce the VRAM use of my model's attention by at least 30% with
 
 ## History
 
-Moved here from the [requirement capsule](../m1/requirement-capsule.md) page, where it was drafted, so it has one definition. Changes when it moved, each from a CC rule or a recorded open item:
+Moved here from the [requirement capsule](../capabilities/requirement-capsule.md) page, where it was drafted, so it has one definition. Changes when it moved, each from a CC rule or a recorded open item:
 
 | Change | Why |
 |---|---|
 | `brief_version` removed | the Artifact's `type` and the pinned vocabulary already say the version (INV-5) |
-| closed core with `ext` | requirement page Open 8: a field nobody declared must not be relied on (INV-14) |
+| [closed core](types.md#term-closed-type) with `ext` | requirement page Open 8: a field nobody declared must not be relied on (INV-14) |
 | `evidence_source_id` on every quote | requirement page Open 7: a document's claim must not pass as the user's requirement |
 | `constraints.compute.quotes` | requirement page Open 6: compute limits had no quotes, so nothing checked them |
 | `id` renamed `requirement_id` and `metric_id` | INV-12: ids end `_id` |
 | `framework`, `other` renamed `frameworks`, `other_limits`; compute quotes in `quotes` | INV-12: lists are plural. `in_scope` and `out_of_scope`, the PRD's names (3.2.2), become `in_scope_items` and `out_of_scope_items`: one naming rule for every field, no exception |
-| comparator `>=`, `<=` renamed `gte`, `lte` | one name per operator across CC, as in the `predicate_op` registry; enum values are lowercase words (INV-13) |
+| comparator `>=`, `<=` renamed `gte`, `lte` | one name per [operator](../capabilities/README.md#term-operator) across CC, as in the `predicate_op` registry; enum values are lowercase words (INV-13) |

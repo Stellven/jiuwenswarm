@@ -1,28 +1,34 @@
 ---
+id: capsule.prompt-brief
 type: capsule
-status: draft
+status: proposed
 version: 1
-owner: muk
-sources: [runner.md, authoring.md, gate-capsules.md, ../m1/requirement-capsule.md, ../PROCESS.md]
+sources: [runner.md, authoring.md, gate-capsules.md, ../capabilities/requirement-capsule.md]
 provides: [cc.prompt_brief]
 consumes: [cc.declaration, cc.run_plan]
-depends_on: [runner.md, authoring.md, gate-capsules.md]
+depends_on: [runner.md, authoring.md, gate-capsules.md, ../verification.md]
 tags: [capsule, prompt, handoff, m1]
+level: detail
+prd: [4.1.1, 4.2.1]
 ---
 
 # Prompt brief: what architecture hands to the prompt layer
 
-Architecture does not write prompts. A later layer turns this design into the files a model follows (`SKILL.md`, references, gate rubrics). This page says where the line is, and what every model-backed capsule page must give that layer so it can work without guessing.
+PRD: 4.1.1, 4.2.1
+
+> Answers: How does a prompt brief hand a capsule its task text?
+
+Architecture does not write prompts. A later layer turns this design into the files a model follows (`SKILL.md`, references, gate rubrics). This page says where the line is, and what every model-backed [capsule](capsule.md#term-capability-capsule) page must give that layer so it can work without guessing.
 
 ## Who decides what
 
 | Architecture fixes (do not change in the prompt layer) | The prompt layer writes |
 |---|---|
 | Ports, types and their schemas, `issues` codes | `SKILL.md` text and the worked example |
-| The deterministic and reference checks, and what each one means | reference files the skill reads (tables, rubrics marked mutable) |
-| The prompt envelope, reply format and parsing ([runner](runner.md#kind-handlers)) | the recorded-reply fixtures for tests |
-| Effect class, budgets, turn limit, which capsules it may call | the wording of gate rubrics, inside the criteria the run plan names |
-| What RSI may change (`evolution.may_change`) | nothing outside that list is touched by RSI |
+| The deterministic and reference [checks](fields.md#term-check), and what each one means | reference files the skill reads (tables, rubrics marked mutable) |
+| The prompt envelope, reply format and parsing ([runner](runner-handlers.md#kind-handlers)) | the recorded-reply [fixtures](../system/test-surfaces.md#term-fixture) for tests |
+| Effect class, budgets, [turn](../system/model-bridge.md#term-model-turn) limit, which capsules it may call | the wording of [Gate](../verification.md#term-gate) rubrics, inside the criteria the [run plan](../types/run-plan.md#term-run-plan) names |
+| What [RSI](../rsi.md#term-rsi) may change (`evolution.may_change`) | nothing outside that list is touched by RSI |
 
 ## What the runner already does
 
@@ -52,11 +58,11 @@ Each capsule page that has a model call adds a section named **Prompt brief** wi
 | RSI surface | the files RSI may rewrite, and the files that stay fixed |
 | Done when | the fixtures that must reproduce the expected output, and the checks that must pass |
 
-[`requirement_capsule`](../m1/requirement-capsule.md) already holds most of these rows spread over its sections. The brief gathers them in one place.
+[`requirement_capsule`](../capabilities/requirement-capsule.md) already holds most of these rows spread over its sections. The brief gathers them in one place.
 
-## Gate capsules
+## The verifier and Gate profiles
 
-A gate capsule's rubric is also prompt text, pinned by hash in the run plan. The gate pages ([intent](../m1/intent-gate.md), [brief](../m1/brief-gate.md)) already hold the whole draft of `SKILL.md` and each rubric. The prompt layer may refine the wording, but not the criteria, the three answers or the quote rule. A gate's brief is its page. It adds:
+The verifier's judging instructions are prompt text, pinned by hash. There is one verifier CC ([gate capsules](gate-capsules.md)); each Gate call site supplies criteria through a profile, for example the [intent](../capabilities/intent-compile.md#gate) and [brief](../capabilities/brief-gate.md) Gates. The prompt layer may refine wording, but not the criteria, the three answers or the quote rule. A [Gate profile](../schemas/profiles.md#term-gateprofile)'s brief is its capability page. It adds:
 
 - the criteria it judges, with the step check id for each;
 - what `pass`, `fail` and `unknown` mean for each criterion;
@@ -64,7 +70,6 @@ A gate capsule's rubric is also prompt text, pinned by hash in the run plan. The
 - the rule that a criterion it cannot evaluate is `unknown`, never `pass` (INV-8);
 - the rule that it never judges its own work (the policy rule "no self-judging", [policy](../schemas/policy.md)).
 
-The pattern is [gate capsules](gate-capsules.md).
 
 ## Rules for the prompt layer
 
@@ -76,4 +81,4 @@ The pattern is [gate capsules](gate-capsules.md).
 
 ## Which capsules need a brief
 
-Every model-backed capsule of the [M1 run plan](../m1/pipeline.md), whether a Markdown skill or Python tool wrapper, and every semantic Gate capsule needs a prompt brief. Pure tools and pinned helpers have no model prompt. The linked stage owners define bounded model behavior and grounding; Screening's brief distinguishes its model's internal assessments from its wrapper's public card output. Prompt wording and executed calibration remain downstream work.
+Every model-backed capsule listed in [capabilities](../capabilities/README.md), whether a Markdown skill or Python tool wrapper, and the verifier itself, needs a prompt brief. `research.compile_intent` is model-backed (compile and repair prompts) and needs a prompt brief for both. Pure tools and pinned helpers have no model prompt. Capability pages define bounded model behavior and grounding; Screening's brief distinguishes its model's internal assessments from its wrapper's public card output. Prompt wording and calibration are downstream work.

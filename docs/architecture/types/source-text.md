@@ -4,11 +4,21 @@ id: cc.type.source_text
 version: 1
 status: draft
 tags: [types, m1, composition]
+prd: [3.1.5, 3.2.1]
+level: detail
 ---
 
 # `source_text`: text with a stable source and offset basis · version 1
 
+PRD: 3.1.5, 3.2.1
+
 The smallest independently composable text input for language capabilities. Ordinary `launcher.extract_text` projects it from an `intake`; a direct text launcher may record the same type without manufacturing an `intake` dependency.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-source-text"></a>**source_text** (also: source text) | Text with a stable source and offset basis: the smallest independent text input for language capabilities. A span of characters is always counted in Unicode code points into its `text`. |
 
 ## Fields
 
@@ -25,8 +35,8 @@ The smallest independently composable text input for language capabilities. Ordi
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
-| `check.source_text_hash.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/source_text.py:source_text_hash` | muk | `content_sha256` equals the SHA-256 of `text` encoded as UTF-8 |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
+| `check.source_text_hash.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/source_text.py:source_text_hash` | cc-team | `content_sha256` equals the SHA-256 of `text` encoded as UTF-8 |
 
 ## Example
 
@@ -40,4 +50,4 @@ The smallest independently composable text input for language capabilities. Ordi
 }
 ```
 
-The example hash is checked by the vocabulary/example validator. If the prose changes, regenerate the hash before accepting the example.
+The example hash is checked by the vocabulary/example [validator](../system/planner.md#term-plan-validator). If the prose changes, regenerate the hash before accepting the example.

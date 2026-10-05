@@ -4,22 +4,32 @@ id: cc.type.search_hits
 version: 1
 status: checked
 tags: [types, m1]
+prd: [3.3.2]
+level: detail
 ---
 
 > **Checked, not yet approved.** Written 2026-10-01 for the search area.
 
 # `search_hits`: what one search query found · version 1
 
-The ranked sources one query found, with the verbatim passages that matched. It is the output of the operators [`op.local_search`](../m1/op-local-search.md) and [`op.scholarly_search`](../m1/op-scholarly-search.md), one value per call.
+PRD: 3.3.2
 
-**Made by** `op.local_search` and `op.scholarly_search`. **Read by** `research.search_ideas`, through nested calls ([search capsule](../m1/search-capsule.md)). The query that produced it is the call's input, recorded in its Observation, not repeated here (INV-5).
+The ranked sources one query found, with the verbatim passages that matched. It is the output of the [operators](../capabilities/README.md#term-operator) [`op.local_search`](../capabilities/op-local-search.md) and [`op.scholarly_search`](../capabilities/op-scholarly-search.md), one value per call.
+
+**Made by** `op.local_search` and `op.scholarly_search`. **Read by** `research.search_ideas`, through nested calls ([search capsule](../capabilities/search-capsule.md)). The query that produced it is the call's input, recorded in its [Observation](../schemas/observation.md#term-observation), not repeated here (INV-5).
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-search-hits"></a>**search_hits** (also: search hits) | The ranked sources one query found, with the verbatim passages that matched. It is the output of a search operator, one value per call. |
 
 ## Fields
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
 | `hits` | `list<object>` | req | checked |  | The sources found, best first. May be empty |
-| `hits[].source_id` | `id` | req | checked |  | Stable across runs for the same source: the intake `document_id` for a local document, `arxiv:<id>` without its `v<n>` version for arXiv, `s2:<paperId>` for Semantic Scholar. Example: `arxiv:2205.14135` |
+| `hits[].source_id` | `id` | req | checked |  | Stable across [runs](../system/lifecycle.md#term-run) for the same source: the intake `document_id` for a local document, `arxiv:<id>` without its `v<n>` version for arXiv, `s2:<paperId>` for Semantic Scholar. Example: `arxiv:2205.14135` |
 | `hits[].kind` | `enum(local, arxiv, semantic_scholar)` | req | checked |  | Where the source came from |
 | `hits[].title` | `text` | req | checked |  | The source's title, or the local document's path |
 | `hits[].authors` | `list<string>` | req | checked |  | Its authors, as the source gives them. Empty for a local document |
@@ -32,8 +42,8 @@ The ranked sources one query found, with the verbatim passages that matched. It 
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
-| `check.search_hits_sources_unique.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/search_hits.py:search_hits_sources_unique` | muk | no `source_id` appears twice |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
+| `check.search_hits_sources_unique.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/search_hits.py:search_hits_sources_unique` | cc-team | no `source_id` appears twice |
 
 ## Example
 

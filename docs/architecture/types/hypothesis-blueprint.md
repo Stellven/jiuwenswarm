@@ -4,18 +4,28 @@ id: cc.type.hypothesis_blueprint
 version: 2
 status: draft
 tags: [types, m1]
+prd: [3.5.4, 3.5.5, 3.5.2]
+level: detail
 ---
 
 # `hypothesis_blueprint`: the frozen experiment contract · version 2
 
-The pre-registered claim, methods, resources and thresholds for frozen PRD 3.5. Produced by [Hypothesis](../m1/hypothesis.md), read by POC, Benchmark, Evaluation and Report. Measurement methods must exist in the trusted registry before POC generation. Missing methods block only experiments selecting them. PRD 3.5.4 owns the default middle-zone rule; no downstream stage chooses it after observing results.
+PRD: 3.5.4, 3.5.5, 3.5.2
+
+The pre-registered claim, methods, resources and thresholds for [frozen](../system/lifecycle.md#term-freeze) PRD 3.5. Produced by [Hypothesis](../capabilities/hypothesis.md), read by POC, Benchmark, Evaluation and Report. Measurement methods must exist in the trusted registry before POC generation. Missing methods block only experiments selecting them. PRD 3.5.4 owns the default middle-zone rule; no downstream stage chooses it after observing results.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-hypothesis-blueprint"></a>**hypothesis_blueprint** (also: hypothesis blueprint) | The pre-registered claim, methods, resources and thresholds of the hypothesis, fixed before any experiment runs. POC, Benchmark, Evaluation and Report read it, and no later stage chooses the middle-zone rule after seeing results. |
 
 ## Fields
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
 | `claim` | `text` | req | checked |  | One testable technical claim |
-| `middle_zone_classification` | `enum(INCONCLUSIVE, CONDITIONALLY_ACCEPTABLE)` | req | checked |  | Pre-registered middle-zone rule; default INCONCLUSIVE. CONDITIONALLY_ACCEPTABLE requires all Brief acceptance and guard predicates to pass; otherwise INCONCLUSIVE |
+| `middle_zone_classification` | `enum(INCONCLUSIVE, CONDITIONALLY_ACCEPTABLE)` | req | checked |  | Pre-registered middle-zone rule; default INCONCLUSIVE. CONDITIONALLY_ACCEPTABLE requires all [Brief](research-brief.md#term-research-brief) acceptance and guard predicates to pass; otherwise INCONCLUSIVE |
 | `independent_variable` | `text` | req | checked |  | The intervention |
 | `metrics` | `list<object>` | req | checked |  | At least one. Unique metric IDs; all mandatory Brief metrics preserved |
 | `metrics[].metric_id` | `id` | req | checked |  | Stable experiment metric ID |
@@ -37,7 +47,7 @@ The pre-registered claim, methods, resources and thresholds for frozen PRD 3.5. 
 | `metrics[].statistic` | `enum(mean, median, minimum, maximum)` | req | checked |  | Declared aggregation across repeats |
 | `baseline_resource_id` | `id` | req | checked |  | A project_asset in intake |
 | `dataset_resource_id` | `id` | req | checked |  | A validation_data resource in intake |
-| `resource_snapshot_sha256` | `sha256` | req | checked |  | Committed read-only baseline/dataset snapshot manifest |
+| `resource_snapshot_sha256` | `sha256` | req | checked |  | Committed read-only baseline/dataset [snapshot](../capsule/library.md#term-library-snapshot) manifest |
 | `benchmark_config_sha256` | `sha256` | req | checked |  | Frozen method-validated benchmark settings; includes declared hardware |
 | `repeats` | `integer` | req | checked |  | Positive repeat count fixed before code generation |
 | `seed` | `integer` | req | checked |  | Same seed policy for baseline and treatment; protocol owns expansion |
@@ -45,17 +55,17 @@ The pre-registered claim, methods, resources and thresholds for frozen PRD 3.5. 
 | `mechanism.description` | `text` | req | checked |  | Description of the intervention |
 | `mechanism.file` | `string` | req | checked |  | Snapshot-relative Python file identified by CodeSearch |
 | `mechanism.line` | `integer` | req | checked |  | Positive line in that snapshot |
-| `verification_plan` | `list<text>` | req | checked |  | At least one. Ordered protocol steps |
+| `verification_plan` | `list<text>` | req | checked |  | At least one. Ordered protocol [steps](../system/nodes.md#term-step) |
 | `ext` | `map<string, json>` | opt | checked |  | Producer extensions; consumers ignore |
 
 ## Type checks
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | Generated schema matches |
-| `blueprint_contract` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:blueprint_contract` | muk | Unique metrics; positive repeats and line; paired nulls; method/config and snapshot exist; mandatory Brief targets translated without weakening; threshold predicates and basis approved before generation |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | Generated schema matches |
+| `blueprint_contract` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:blueprint_contract` | cc-team | Unique metrics; positive repeats and line; paired nulls; method/config and snapshot exist; mandatory Brief targets translated without weakening; threshold predicates and basis approved before generation |
 
-Cross-input checks resolve the intake and Brief from the owning Observation; the payload carries no run or step ID. The frozen Artifact is the authority. Method/dataset/threshold changes require a new run. [Measurement protocol](../m1/measurement-protocol.md) defines all arithmetic. A claimed expected effect is never silently replaced by the Brief target.
+Cross-input [checks](../capsule/fields.md#term-check) resolve the intake and Brief from the owning [Observation](../schemas/observation.md#term-observation); the payload carries no run or step ID. The frozen Artifact is the authority. Method/dataset/threshold changes require a new run. [Measurement protocol](../capabilities/measurement-protocol.md) defines all arithmetic. A claimed expected effect is never silently replaced by the Brief target.
 
 ## Example
 

@@ -4,13 +4,23 @@ id: cc.type.evaluation_verdict
 version: 2
 status: draft
 tags: [types, m1]
+prd: [3.8.5, 3.8.4, 3.5.4]
+level: detail
 ---
 
 # `evaluation_verdict`: the scientific outcome · version 2
 
-The frozen PRD 3.8 scientific classification and its supporting comparisons. PRD 3.5.4 requires pre-registered boundaries and defaults the middle zone to INCONCLUSIVE. Infrastructure errors are recorded separately and cannot masquerade as scientific rejection.
+PRD: 3.8.5, 3.8.4, 3.5.4
 
-A scientific fail is a valid research result. The Gate verifies correct evaluation, including recomputation of the approved mapping; it never requires scientific success. It may check the classification for consistency without substituting its own interpretation.
+The [frozen](../system/lifecycle.md#term-freeze) PRD 3.8 scientific classification and its supporting comparisons. PRD 3.5.4 requires pre-registered [boundaries](../system/modules.md#term-boundary) and defaults the middle zone to INCONCLUSIVE. Infrastructure errors are recorded separately and cannot masquerade as scientific rejection.
+
+A scientific fail is a valid research result. The [Gate](../verification.md#term-gate) verifies correct evaluation, including recomputation of the approved mapping; it never requires scientific success. It may check the classification for consistency without substituting its own interpretation.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-evaluation-verdict"></a>**evaluation_verdict** (also: evaluation verdict) | The scientific classification of the results, with its supporting comparisons. A middle-zone result defaults to INCONCLUSIVE, and infrastructure errors are recorded separately and never pass as scientific rejection. |
 
 ## Fields
 
@@ -21,11 +31,11 @@ A scientific fail is a valid research result. The Gate verifies correct evaluati
 | `comparisons[].metric_id` | `id` | req | checked |  | Blueprint metric ID |
 | `comparisons[].measured` | `number?` | req | checked |  | Transformed value in the frozen comparison basis; null if not computable |
 | `comparisons[].claim_met` | `boolean?` | req | checked |  | Frozen expected predicate; null if unavailable |
-| `comparisons[].acceptance_met` | `boolean?` | req | checked |  | Frozen Brief acceptance predicate; null if absent or unavailable |
+| `comparisons[].acceptance_met` | `boolean?` | req | checked |  | Frozen [Brief](research-brief.md#term-research-brief) acceptance predicate; null if absent or unavailable |
 | `comparisons[].falsified` | `boolean?` | req | checked |  | Frozen falsification predicate; null if unavailable |
 | `comparisons[].outcome` | `enum(met, between, falsified, unmeasured)` | req | checked |  | Convenience projection checked against these predicates |
 | `evidence_complete` | `boolean` | req | checked |  | All declared metrics have traceable complete samples |
-| `plausibility` | `object` | req | checked |  | Exactly one model turn for qualitative physical/experimental sanity review |
+| `plausibility` | `object` | req | checked |  | Exactly one model model [turn](../system/model-bridge.md#term-model-turn) for qualitative physical/experimental sanity review |
 | `plausibility.plausible` | `boolean` | req | checked |  | False flags an execution/validity anomaly |
 | `plausibility.rationale` | `text` | req | checked |  | Grounded in admitted evidence, no new external fetch |
 | `residual_risks` | `list<text>` | req | checked |  | Untested conditions and guards; may be empty |
@@ -36,8 +46,8 @@ A scientific fail is a valid research result. The Gate verifies correct evaluati
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | Generated schema matches |
-| `evaluation_contract` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:evaluation_contract` | muk | Metric coverage and transformations recompute from frozen inputs; predicate booleans match; classification matches approved policy, including guards/missing data/anomalies; no benchmark rerun or changed thresholds |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | Generated schema matches |
+| `evaluation_contract` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:evaluation_contract` | cc-team | Metric coverage and transformations recompute from frozen inputs; predicate booleans match; classification matches approved policy, including guards/missing data/anomalies; no benchmark rerun or changed thresholds |
 
 ## Example
 

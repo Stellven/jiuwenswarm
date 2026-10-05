@@ -2,14 +2,12 @@
 and checks that the pieces still fit. Lives in jiuwenswarm docs/architecture/_tools/ (moved from tundle 2026-10-01).
 
 Usage: python arch_lint.py [DOCS] [--check]          regenerate, then lint (DOCS defaults to this vault)
-       python arch_lint.py canary --compare A.json B.json     two derivations of one module must agree
-       python arch_lint.py canary --producer A.json --consumer B.json --wire OUT=IN [...]   a seam must connect
 
 Earlier header, kept:
 Keep the architecture docs consistent: every fact is edited in one place, and this regenerates the rest.
 
 Runs on the single source of truth: jiuwenswarm docs/architecture (branch ai4r_main_branch).
-Skips OVERVIEW.md and m1.md (written by others) and .obsidian/.
+Skips OVERVIEW.md (historical task source), the verbatim router design and .obsidian/.
 
 Generates:
 - the schema map between `<!-- sync:schema-map -->` markers in schemas/schemas.md, from the field tables:
@@ -33,21 +31,17 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-if len(sys.argv) > 1 and sys.argv[1] == "canary":
-    from canary import main as _canary_main  # noqa: E402  (sibling module)
-    sys.exit(_canary_main(sys.argv[2:]))
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 V = Path(ARGS[0]) if ARGS else Path(__file__).resolve().parent.parent
 V = V.resolve()
-SKIP = {"OVERVIEW.md", "m1.md", "model_router_design_en.md",
-        "model_router_design_en-v1.4-2026-10-01.md"}  # verbatim external originals are not linted
+SKIP = {"OVERVIEW.md", "model_router_design_en.md"}  # verbatim external originals are not linted
 SCHEMAS = V / "schemas"
 CHECK = "--check" in sys.argv
 problems = []
 
 from example_views import refresh as refresh_example_views
 if not refresh_example_views(V, CHECK):
-    problems.append("types/evidence-bundle.md: stale generated projection example; regenerate architecture views")
+    problems.append("types/evidence-bundle.md: stale generated example or flow view; run flow_views.py and arch_lint.py")
 
 # Record pages in reading order; foundation pages are listed separately.
 RECORDS = ["declaration", "candidate", "port-types", "checks", "verdict", "standing", "binding", "observation",

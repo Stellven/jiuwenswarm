@@ -1,0 +1,154 @@
+{
+  "phase": "planned",
+  "track": "production",
+  "library_snapshot_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "launcher_inputs": {
+    "intake": "intake",
+    "source_text": "source_text"
+  },
+  "prep_inputs": {
+    "requirement.research_brief": "research_brief"
+  },
+  "steps": [
+    {
+      "step_id": "search",
+      "capsule_name": "research.search_ideas",
+      "gate_capsule_name": "research.verifier",
+      "gate_profile_ref": {
+        "kind": "gate",
+        "id": "research.accept_ideas.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "inputs": {
+        "research_brief": "prep.requirement.research_brief",
+        "intake": "launcher.intake"
+      },
+      "judge_inputs": [
+        "research_brief",
+        "intake"
+      ]
+    },
+    {
+      "step_id": "screening",
+      "capsule_name": "research.select_opportunity",
+      "gate_capsule_name": "research.verifier",
+      "gate_profile_ref": {
+        "kind": "gate",
+        "id": "research.accept_card.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "inputs": {
+        "idea_set": "search.idea_set",
+        "research_brief": "prep.requirement.research_brief"
+      },
+      "judge_inputs": [
+        "idea_set",
+        "research_brief"
+      ]
+    },
+    {
+      "step_id": "hypothesis",
+      "capsule_name": "research.form_hypothesis",
+      "gate_capsule_name": "research.verifier",
+      "gate_profile_ref": {
+        "kind": "gate",
+        "id": "research.accept_hypothesis.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "inputs": {
+        "opportunity_card": "screening.opportunity_card",
+        "research_brief": "prep.requirement.research_brief",
+        "intake": "launcher.intake"
+      },
+      "judge_inputs": [
+        "opportunity_card",
+        "research_brief",
+        "intake"
+      ]
+    },
+    {
+      "step_id": "poc",
+      "capsule_name": "research.build_poc",
+      "gate_capsule_name": "research.verifier",
+      "gate_profile_ref": {
+        "kind": "gate",
+        "id": "research.accept_poc.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "inputs": {
+        "hypothesis_blueprint": "hypothesis.hypothesis_blueprint",
+        "research_brief": "prep.requirement.research_brief",
+        "intake": "launcher.intake"
+      },
+      "judge_inputs": [
+        "hypothesis_blueprint",
+        "research_brief",
+        "intake"
+      ]
+    },
+    {
+      "step_id": "benchmark",
+      "capsule_name": "research.run_benchmark",
+      "gate_capsule_name": "research.verifier",
+      "gate_profile_ref": {
+        "kind": "gate",
+        "id": "research.accept_benchmark.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "inputs": {
+        "poc_bundle": "poc.poc_bundle",
+        "hypothesis_blueprint": "hypothesis.hypothesis_blueprint"
+      },
+      "judge_inputs": [
+        "poc_bundle",
+        "hypothesis_blueprint"
+      ]
+    },
+    {
+      "step_id": "evaluation",
+      "capsule_name": "research.evaluate_results",
+      "gate_capsule_name": "research.verifier",
+      "gate_profile_ref": {
+        "kind": "gate",
+        "id": "research.accept_evaluation.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "inputs": {
+        "benchmark_payload": "benchmark.benchmark_payload",
+        "hypothesis_blueprint": "hypothesis.hypothesis_blueprint",
+        "research_brief": "prep.requirement.research_brief"
+      },
+      "judge_inputs": [
+        "benchmark_payload",
+        "hypothesis_blueprint",
+        "research_brief"
+      ]
+    },
+    {
+      "step_id": "report",
+      "capsule_name": "research.write_report",
+      "gate_capsule_name": "research.verifier",
+      "gate_profile_ref": {
+        "kind": "gate",
+        "id": "research.accept_report.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "inputs": {
+        "evaluation_verdict": "evaluation.evaluation_verdict",
+        "benchmark_payload": "benchmark.benchmark_payload",
+        "research_brief": "prep.requirement.research_brief",
+        "idea_set": "search.idea_set",
+        "opportunity_card": "screening.opportunity_card",
+        "hypothesis_blueprint": "hypothesis.hypothesis_blueprint"
+      },
+      "judge_inputs": [
+        "evaluation_verdict",
+        "benchmark_payload",
+        "research_brief",
+        "idea_set",
+        "opportunity_card",
+        "hypothesis_blueprint"
+      ]
+    }
+  ]
+}

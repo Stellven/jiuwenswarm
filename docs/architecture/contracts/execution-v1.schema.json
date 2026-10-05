@@ -1,0 +1,5019 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:contracts:execution-v1",
+  "title": "M1 execution and control contracts v1",
+  "$defs": {
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "x-internal": true,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+    },
+    "system_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        }
+      },
+      "description": "SystemRef returned by put_system and accepted by get_system (system/records.md). Same id/sha256 pair as a Ref, but it names a system record, never a CC record."
+    },
+    "trial_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        }
+      },
+      "description": "TrialRef: resolves only to a controller-written rsi_trial in the private controller evidence root.",
+      "x-internal": true
+    },
+    "oracle_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        }
+      },
+      "description": "OracleRef: resolves only through the oracle authenticated API.",
+      "x-internal": true
+    },
+    "trial_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "content_ref"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "content_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      }
+    },
+    "token_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "output",
+        "cache_hit"
+      ],
+      "properties": {
+        "input": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cache_hit": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "x-internal": true
+    },
+    "skill_issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "INPUT_AMBIGUOUS",
+            "INPUT_INCOMPLETE",
+            "INPUT_CONTRADICTORY"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        }
+      }
+    },
+    "launch_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "prompt",
+        "channel",
+        "workspace",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "workspace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "config_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "headless": {
+          "type": "boolean"
+        }
+      },
+      "description": "launch(prompt, channel, workspace) and POST /cc/runs. request_id is required: same id and same bytes return the same run (lost-response recovery), changed bytes give REQUEST_CONFLICT. seed is the requested nonnegative seed; headless maps to cc.execution.headless."
+    },
+    "launch_result": {
+      "oneOf": [
+        {
+          "$ref": "cc:contracts:services-v1#/$defs/run_handle"
+        },
+        {
+          "$ref": "cc:contracts:services-v1#/$defs/error"
+        }
+      ],
+      "description": "Success is the services-v1 run_handle (run_id, run_dir, state, status_ref, manifest_ref). Rejection is the services-v1 error whose reason code names the cause: invalid intake or configuration exits 2, unavailable environment exits 4 (exit_code set 0, 2, 3, 4, shared with run_status_view and cli_json_output)."
+    },
+    "resume_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "run_id",
+        "human_review_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "human_review_ref": {
+          "$ref": "#/$defs/system_ref"
+        }
+      },
+      "description": "resume(run_id, human_review_ref). human_review_ref names a committed human_review record whose action is resume_after_fix. Resume is terminal-only at M1."
+    },
+    "abort_request_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "run_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "human_review_ref": {
+          "$ref": "#/$defs/system_ref"
+        }
+      },
+      "description": "abort(run_id, human_review_ref) and POST /cc/runs/{id}/abort. Differs from services-v1 abort_request, which addresses a benchmark request id only. human_review_ref is required when the run is halted and may be omitted for a running run. Evidence is never erased."
+    },
+    "run_status_view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "state",
+        "output_refs"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "running",
+            "evaluating",
+            "halted",
+            "completed",
+            "aborted"
+          ]
+        },
+        "output_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "phase": {
+          "enum": [
+            "prep",
+            "planned"
+          ]
+        },
+        "current_step": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "gate_verdict": {
+          "enum": [
+            "PASS",
+            "PASS_WITH_KNOWN_LIMITATIONS",
+            "FAIL",
+            "ENVIRONMENT_BLOCKED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "prep_plan_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "planned_plan_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "ext": {
+          "$ref": "cc:contracts:services-v1#/$defs/ext"
+        },
+        "exit_code": {
+          "$ref": "#/$defs/exit_code"
+        }
+      },
+      "description": "RunView read by CLI, Web and TUI from GET /cc/runs/{id}. Rebuilt from committed records. planned_plan_ref is absent until freeze 2. exit_code, when present, is 0 completed, 3 halted or aborted, 4 environment unavailable (same set as launch_result and cli_json_output)."
+    },
+    "cli_json_output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "state"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "state": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "data": {
+          "type": "object"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "exit_code": {
+          "$ref": "#/$defs/exit_code"
+        }
+      },
+      "description": "JSON printed by cc status, inspect and doctor with --json; text output renders the same state. exit_code is the process exit code and uses the one closed set: 0 success or completed research (including a scientific FAIL), 2 invalid intake, configuration or arguments, 3 halted research, 4 unavailable environment, security or storage."
+    },
+    "run_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "run_id",
+        "track",
+        "source_manifest_sha256",
+        "prep_plan_ref",
+        "library_snapshot_sha256",
+        "config_sha256",
+        "binding_refs",
+        "step_records",
+        "artifact_refs",
+        "model_audit_refs",
+        "started_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "track": {
+          "enum": [
+            "production",
+            "offline_rsi",
+            "isolated_experiment"
+          ]
+        },
+        "source_manifest_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "prep_plan_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "library_snapshot_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "config_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "binding_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "step_records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "step_id",
+              "attempt",
+              "phase",
+              "dispatch_ref",
+              "state"
+            ],
+            "properties": {
+              "step_id": {
+                "$ref": "cc:contracts:services-v1#/$defs/id"
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "phase": {
+                "enum": [
+                  "prep",
+                  "planned"
+                ]
+              },
+              "dispatch_ref": {
+                "$ref": "#/$defs/system_ref"
+              },
+              "state": {
+                "enum": [
+                  "pending",
+                  "running",
+                  "evaluating",
+                  "halted",
+                  "completed",
+                  "aborted"
+                ]
+              },
+              "observation_ref": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              },
+              "verification_ref": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              },
+              "release_ref": {
+                "$ref": "#/$defs/system_ref"
+              },
+              "experimental_advance_ref": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              },
+              "reason": {
+                "$ref": "cc:contracts:services-v1#/$defs/reason"
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "artifact_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "model_audit_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "started_at": {
+          "$ref": "#/$defs/time"
+        },
+        "planned_plan_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "finished_at": {
+          "$ref": "#/$defs/time"
+        }
+      },
+      "description": "read_manifest(run_id): rebuildable closed view written only by the supervisor. Each step record is marked with its phase. planned_plan_ref is absent until freeze 2; an absent value is unavailable, never inferred success."
+    },
+    "local_session_token": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token",
+        "created_at",
+        "expires_at",
+        "instance_id",
+        "loopback_origin",
+        "version"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "created_at": {
+          "$ref": "#/$defs/time"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/time"
+        },
+        "instance_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "loopback_origin": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "version": {
+          "const": 1
+        }
+      },
+      "description": "Contents of /run/jiuwenswarm/local-session.json (mode 0600): launcher to the in-container CLI."
+    },
+    "record_input_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "type",
+        "vocabulary_ref",
+        "origin",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "vocabulary_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref",
+          "description": "Vocabulary pin: id is the version name, sha256 the hash of its bytes."
+        },
+        "origin": {
+          "enum": [
+            "human",
+            "control"
+          ]
+        },
+        "value": {},
+        "file_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "value"
+          ]
+        },
+        {
+          "required": [
+            "file_ref"
+          ]
+        }
+      ],
+      "description": "record_input(run_id, type, vocabulary_ref, value | file, origin) from launcher or gate host to the runner. Exactly one of value and file_ref. The reply is the services-v1 ref of the written Artifact."
+    },
+    "freeze_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "phase",
+        "validation_ref",
+        "policy_ref",
+        "vocabulary_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "phase": {
+          "enum": [
+            "prep",
+            "planned"
+          ]
+        },
+        "validation_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "policy_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref",
+          "description": "Policy pin: id is the epoch name, sha256 the hash of the epoch document."
+        },
+        "vocabulary_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref",
+          "description": "Vocabulary pin: id is the version name, sha256 the hash of its bytes."
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "freeze(run_id, validation_ref, policy_ref, vocabulary_ref) for one phase (launcher or supervisor to M03). validation_ref resolves to a committed plan_validation with status VALID and no findings."
+    },
+    "commit_batch_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "batch_id",
+        "entries"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "batch_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "scope",
+              "id",
+              "sha256"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "id": {
+                "$ref": "cc:contracts:services-v1#/$defs/id"
+              },
+              "sha256": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              }
+            }
+          },
+          "maxItems": 10000
+        }
+      },
+      "description": "manifest.json of DATA/cc/commits/<batch_id>/ (system/storage.md). The Ref of this manifest is what run_phase_started.batch_ref and workflow_start_args.pins_ref point to; resolve step_id to Binding ref through the entries."
+    },
+    "freeze_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "phase",
+        "plan_ref",
+        "batch_ref",
+        "bindings",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "phase": {
+          "enum": [
+            "prep",
+            "planned"
+          ]
+        },
+        "plan_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "bindings": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          }
+        },
+        "batch_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Result of freeze: step_id to Binding ref map plus batch_ref, the Ref of the commit batch manifest that published all of them at once. An incomplete batch is never visible."
+    },
+    "workflow_start_args": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "phase",
+        "plan_ref",
+        "pins_ref",
+        "inputs",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "phase": {
+          "enum": [
+            "prep",
+            "planned"
+          ]
+        },
+        "plan_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "pins_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "inputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          }
+        },
+        "prep_release_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/system_ref"
+          },
+          "maxItems": 10000
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "planned"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "prep_release_refs"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "prep_release_refs"
+          ]
+        }
+      },
+      "description": "args of cc.adapters.swarmflow.start_run. The supervisor starts the same generic script once per phase. plan_ref is the run_plan control Artifact; pins_ref is run_phase_started.batch_ref (commit batch manifest of step_id to Binding ref). The planned phase also carries the prep release records so that prep.<step_id>.<port> sources resolve only to released outputs."
+    },
+    "run_phase_started": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "run_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "run_phase_started"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "run_id",
+            "phase",
+            "plan_ref",
+            "batch_ref",
+            "library_snapshot_sha256",
+            "effective_config_ref"
+          ],
+          "properties": {
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "phase": {
+              "enum": [
+                "prep",
+                "planned"
+              ]
+            },
+            "plan_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "library_snapshot_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "prep_release_refs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/system_ref"
+              },
+              "maxItems": 10000
+            },
+            "effective_config_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "proposal_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "intake_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "source_manifest_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "track": {
+              "enum": [
+                "production",
+                "offline_rsi",
+                "isolated_experiment"
+              ]
+            },
+            "batch_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "phase": {
+                    "const": "prep"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "intake_ref",
+                  "source_manifest_sha256",
+                  "track"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "prep_release_refs"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "proposal_ref"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "else": {
+                "required": [
+                  "prep_release_refs",
+                  "proposal_ref"
+                ]
+              }
+            }
+          ]
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "System record for one freeze point (replaces run_started). Written once per phase by the supervisor after that phase's Bindings are committed as one batch: phase prep at launch (freeze 1, fixed prep plan: intent step then requirement step) and phase planned after the last requirement release (freeze 2, planner DAG validated and bound). id is run-phase-<run_id>-<phase>. payload.run_id equals the envelope run_id. batch_ref is the Ref of the commit batch manifest. A planned record carries the same library_snapshot_sha256 and the same effective_config_ref as the prep record; a mismatch is a conflict that halts. prep_release_refs lists the committed release records of every prep step and proposal_ref names the validated planner proposal. A dispatch_reserved for a prep step requires the prep record; for a planned node it requires the planned record."
+    },
+    "dispatch_reservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "dispatch_reserved"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "caller",
+            "attempt",
+            "obs_id",
+            "dispatch_id",
+            "request_sha256",
+            "input_refs"
+          ],
+          "properties": {
+            "caller": {
+              "enum": [
+                "dispatch",
+                "nested",
+                "gate",
+                "admission"
+              ]
+            },
+            "step_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "dispatch_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "request_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "binding_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "input_refs": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              }
+            },
+            "parent_obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "ordinal": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "caller": {
+                    "const": "dispatch"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "step_id",
+                  "binding_ref"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "caller": {
+                    "enum": [
+                      "nested",
+                      "gate"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "parent_obs_id",
+                  "ordinal"
+                ]
+              }
+            }
+          ]
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "payload": {
+                "properties": {
+                  "caller": {
+                    "const": "admission"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "session_id"
+            ],
+            "not": {
+              "required": [
+                "run_id"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "run_id"
+            ],
+            "not": {
+              "required": [
+                "session_id"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "dispatch_reserved record, id dispatch-<dispatch_id>. dispatch_id is an id derived from the canonical tuple (run_id, step_id, binding_sha256, input content hashes, attempt); it is an opaque identity, not a content hash. Reserved before any effect. dispatch needs step_id and binding_ref; nested and gate need parent_obs_id and ordinal; admission uses session_id instead of run_id."
+    },
+    "release_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "run_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "release"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "step_id",
+            "attempt",
+            "dispatch_ref",
+            "observation_ref",
+            "verification_ref"
+          ],
+          "properties": {
+            "step_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "dispatch_ref": {
+              "$ref": "#/$defs/system_ref"
+            },
+            "observation_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "verification_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            }
+          }
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "release record, id release-<dispatch_id>. Written by the supervisor only after authorize_advance re-read the committed Observation and Verification and found routing_action ADVANCE with verdict PASS or PASS_WITH_KNOWN_LIMITATIONS."
+    },
+    "human_review_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "run_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "human_review"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "step_id",
+            "attempt",
+            "action",
+            "reviewed_refs",
+            "response_text"
+          ],
+          "properties": {
+            "step_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "action": {
+              "enum": [
+                "abort",
+                "resume_after_fix",
+                "new_run"
+              ]
+            },
+            "reviewed_refs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/system_ref"
+              },
+              "maxItems": 10000
+            },
+            "response_text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            }
+          }
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "human_review record written by the terminal adapter from an authenticated reply, fresh id. The envelope at is the review time."
+    },
+    "system_record_lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "run_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "step_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "state": {
+              "enum": [
+                "pending",
+                "running",
+                "evaluating",
+                "halted",
+                "completed",
+                "aborted"
+              ]
+            },
+            "dispatch_ref": {
+              "$ref": "#/$defs/system_ref"
+            },
+            "observation_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "verification_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "release_ref": {
+              "$ref": "#/$defs/system_ref"
+            },
+            "experimental_advance_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "halted"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "reason"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "completed"
+                  }
+                },
+                "required": [
+                  "step_id"
+                ]
+              },
+              "then": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "release_ref"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "experimental_advance_ref"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Append-only lifecycle transition linked by previous_ref. A completed step requires release_ref (or experimental_advance_ref in an isolated experiment); halted requires reason."
+    },
+    "system_record_planning_reserved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "run_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "planning_reserved"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "$ref": "cc:contracts:services-v1#/$defs/planning_reservation"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Reserved for the planner call after the last requirement release and before freeze 2. Payload is the services-v1 planning_reservation."
+    },
+    "system_record_model_call_reserved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "run_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "model_call_reserved"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "$ref": "cc:contracts:services-v1#/$defs/model_call_reservation"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Reserved before the bridge forwards a model turn. Payload is the services-v1 model_call_reservation."
+    },
+    "system_record_rsi_session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "rsi_session"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_decl_hash",
+            "parent_decl_hash",
+            "export_id",
+            "model_id",
+            "config_sha256",
+            "policy_epoch",
+            "evaluator_sha256",
+            "execution_profile_sha256",
+            "state"
+          ],
+          "properties": {
+            "target_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "parent_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "export_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "model_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "config_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "policy_epoch": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "evaluator_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "execution_profile_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "state": {
+              "enum": [
+                "preparing",
+                "running",
+                "closing",
+                "closed",
+                "stopped",
+                "blocked",
+                "finished",
+                "no_candidate"
+              ]
+            },
+            "oracle_session_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "incumbent_trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "oracle_closure_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "final_result_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "security_block_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "clearance_ref": {
+              "$ref": "#/$defs/system_ref"
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "closing",
+                      "closed"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "incumbent_trial_ref",
+                  "oracle_closure_ref"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "finished",
+                      "no_candidate"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "final_result_ref"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "blocked"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Offline RSI controller session state, a sequence linked by previous_ref. Parent, model, config, policy, evaluator and profile are immutable across the sequence."
+    },
+    "system_record_rsi_trial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "rsi_trial"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_decl_hash",
+            "parent_decl_hash",
+            "trial_decl_hash",
+            "declaration",
+            "files",
+            "visible_suite_result_refs",
+            "policy_ref",
+            "permitted_paths_sha256",
+            "config_sha256",
+            "evaluator_sha256"
+          ],
+          "properties": {
+            "target_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "parent_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "trial_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "declaration": {
+              "type": "object"
+            },
+            "files": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/trial_file"
+              },
+              "maxItems": 10000
+            },
+            "visible_suite_result_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              },
+              "maxItems": 10000
+            },
+            "policy_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "permitted_paths_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "config_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "evaluator_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            }
+          }
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Immutable implementation snapshot of one RSI trial, written by the controller in its private evidence root. No hidden bytes."
+    },
+    "system_record_rsi_security_clearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "rsi_security_clearance"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_id",
+            "actor",
+            "target_decl_hash",
+            "execution_profile_sha256",
+            "security_block_ref",
+            "remediation_refs",
+            "boundary_report_ref",
+            "reason"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "actor": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "target_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "execution_profile_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "security_block_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "remediation_refs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/system_ref"
+              },
+              "maxItems": 10000
+            },
+            "boundary_report_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          }
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Authenticated human request to clear an oracle security latch. It is permission to request clearance, not the latch transition itself."
+    },
+    "system_record_oracle_session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "oracle_session"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_id",
+            "request_sha256",
+            "target_decl_hash",
+            "parent_trial_ref",
+            "model_id",
+            "model_version",
+            "config_sha256",
+            "policy_ref",
+            "permitted_paths_sha256",
+            "evaluator_sha256",
+            "execution_profile_sha256",
+            "loop_set_sha256",
+            "final_set_sha256",
+            "state",
+            "incumbent_trial_ref"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "request_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "target_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "parent_trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "model_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "model_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "config_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "policy_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "permitted_paths_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "evaluator_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "execution_profile_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "loop_set_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "final_set_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "state": {
+              "enum": [
+                "preparing",
+                "running",
+                "closing",
+                "closed",
+                "finished",
+                "no_candidate",
+                "blocked"
+              ]
+            },
+            "incumbent_trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "closure_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "final_result_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "security_block_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "clearance_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "blocked"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "reason"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "closed"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "closure_ref"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "finished",
+                      "no_candidate"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "final_result_ref"
+                ]
+              }
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Private oracle session, written by the oracle in its protected namespace. Private set hashes never cross into public controller records."
+    },
+    "system_record_oracle_closure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "oracle_closure"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_id",
+            "request_sha256",
+            "state",
+            "incumbent_trial_ref",
+            "accepted_lineage_refs",
+            "ablation_trial_refs",
+            "ablation_result_refs"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "request_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "state": {
+              "enum": [
+                "closing",
+                "closed"
+              ]
+            },
+            "incumbent_trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "accepted_lineage_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/trial_ref"
+              },
+              "maxItems": 10000
+            },
+            "ablation_trial_refs": {
+              "type": "array",
+              "maxItems": 5,
+              "items": {
+                "$ref": "#/$defs/trial_ref"
+              }
+            },
+            "ablation_result_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/oracle_ref"
+              },
+              "maxItems": 10000
+            },
+            "closing_record_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "closing"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "ablation_result_refs": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "closed"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "closing_record_ref"
+                ]
+              }
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Oracle closure record. Closing fixes zero to five ablations and has an empty result list; closed points to the closing record and the complete scheduled results."
+    },
+    "system_record_oracle_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "oracle_result"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_id",
+            "trial_ref",
+            "incumbent_trial_ref",
+            "purpose",
+            "state",
+            "scoring_rule_sha256"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "incumbent_trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "purpose": {
+              "enum": [
+                "baseline",
+                "proposal",
+                "ablation",
+                "final"
+              ]
+            },
+            "state": {
+              "enum": [
+                "complete",
+                "denied",
+                "unavailable",
+                "boundary_violation",
+                "query_limit"
+              ]
+            },
+            "scoring_rule_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "passed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "wins": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "losses": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ties": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "incumbent_median_ms": {
+              "type": "number",
+              "minimum": 0
+            },
+            "child_median_ms": {
+              "type": "number",
+              "minimum": 0
+            },
+            "disposition": {
+              "enum": [
+                "kept",
+                "rejected",
+                "promotable",
+                "no_candidate"
+              ]
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "complete"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "passed",
+                  "failed",
+                  "wins",
+                  "losses",
+                  "ties",
+                  "incumbent_median_ms",
+                  "child_median_ms",
+                  "disposition"
+                ]
+              },
+              "else": {
+                "required": [
+                  "reason"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "passed"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "failed"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "wins"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "losses"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "ties"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "incumbent_median_ms"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "child_median_ms"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "disposition"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Redacted aggregate oracle result. No per-case vectors, cases, outputs or set hashes. This exact immutable record supplies AggregateResult.result_ref."
+    },
+    "system_record_oracle_security_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "oracle_security_block"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_id",
+            "target_decl_hash",
+            "execution_profile_sha256",
+            "blocked_from_state",
+            "reason",
+            "private_audit_sha256"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "target_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "execution_profile_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "blocked_from_state": {
+              "enum": [
+                "preparing",
+                "running",
+                "closing",
+                "closed"
+              ]
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            },
+            "private_audit_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            }
+          }
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Target-wide security latch keyed by incident ref. Append-only; cannot be erased to resume."
+    },
+    "system_record_oracle_security_clearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "oracle_security_clearance"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_id",
+            "security_block_ref",
+            "terminal_clearance_ref",
+            "actor",
+            "target_decl_hash",
+            "execution_profile_sha256",
+            "boundary_report_ref",
+            "restored_state"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "security_block_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            },
+            "terminal_clearance_ref": {
+              "$ref": "#/$defs/system_ref"
+            },
+            "actor": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "target_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "execution_profile_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "boundary_report_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "restored_state": {
+              "enum": [
+                "preparing",
+                "running",
+                "closing",
+                "closed"
+              ]
+            }
+          }
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Written only by the oracle after human, custody and report validation. Restores the interrupted phase only, never quota."
+    },
+    "system_record_oracle_quota": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "oracle_quota"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request_id",
+            "trial_ref",
+            "request_sha256",
+            "loop_set_sha256",
+            "purpose",
+            "ordinal",
+            "state"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "request_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "loop_set_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "purpose": {
+              "enum": [
+                "baseline",
+                "proposal",
+                "ablation",
+                "final"
+              ]
+            },
+            "ordinal": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            },
+            "lifetime_ordinal": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90
+            },
+            "state": {
+              "enum": [
+                "reserved",
+                "complete",
+                "interrupted"
+              ]
+            },
+            "passed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "purpose": {
+                    "const": "final"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "ordinal": {
+                    "const": 1
+                  }
+                },
+                "not": {
+                  "required": [
+                    "lifetime_ordinal"
+                  ]
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "complete"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "passed",
+                  "failed"
+                ]
+              }
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Private oracle quota reservation in its own protected root. Loop queries use session ordinal 1-30 and lifetime ordinal 1-90; final uses ordinal 1 and no lifetime ordinal. Uncertain queries are never refunded."
+    },
+    "system_record_rsi_attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload",
+        "session_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "rsi_attempt"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attempt_id",
+            "session_id",
+            "target_decl_hash",
+            "parent_decl_hash",
+            "changed_path",
+            "before_sha256",
+            "after_sha256",
+            "model_id",
+            "config_sha256",
+            "model_call_count",
+            "observation_refs",
+            "elapsed_s",
+            "policy_epoch",
+            "export_id",
+            "state",
+            "entry_sha256",
+            "at"
+          ],
+          "properties": {
+            "attempt_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "session_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "parent_attempt_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "target_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "parent_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "child_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "changed_path": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "before_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "after_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "model_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "config_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "served_model_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "served_model_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "model_call_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "observation_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              },
+              "maxItems": 10000
+            },
+            "elapsed_s": {
+              "type": "number",
+              "minimum": 0
+            },
+            "tokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "money": {
+              "type": "number",
+              "minimum": 0
+            },
+            "usage_unavailable_reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "policy_epoch": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "export_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "oracle_request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "state": {
+              "enum": [
+                "proposed",
+                "rejected",
+                "evaluated",
+                "not_comparable",
+                "ablation",
+                "submitted"
+              ]
+            },
+            "passed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            },
+            "candidate_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "previous_entry_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "entry_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "trial_ref": {
+              "$ref": "#/$defs/trial_ref"
+            },
+            "wins": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "losses": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ties": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "incumbent_median_ms": {
+              "type": "number",
+              "minimum": 0
+            },
+            "child_median_ms": {
+              "type": "number",
+              "minimum": 0
+            },
+            "disposition": {
+              "enum": [
+                "kept",
+                "rejected",
+                "promotable",
+                "no_candidate"
+              ]
+            },
+            "scoring_rule_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "oracle_result_ref": {
+              "$ref": "#/$defs/oracle_ref"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "proposed",
+                      "evaluated"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "trial_ref"
+                ]
+              }
+            }
+          ]
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "One closed Attempt entry (attempts.jsonl) owned by capsule/rsi-engine.md#attempt-record. attempt_id is the record id; previous_entry_sha256 links entries; no hidden cases."
+    },
+    "system_record_activation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "id",
+        "at",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "activation"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "at": {
+          "$ref": "#/$defs/time"
+        },
+        "previous_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "capability_name",
+            "admitted_decl_hash",
+            "expected_current_hash",
+            "actor",
+            "reason",
+            "request_id",
+            "verdict_ref"
+          ],
+          "properties": {
+            "capability_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "admitted_decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "expected_current_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "actor": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "verdict_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            }
+          }
+        }
+      },
+      "description": "Library-scope activation written by the librarian. Neither run_id nor session_id is present. No run manifest mutates its library snapshot after activation."
+    },
+    "system_record": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/system_record_planning_reserved"
+        },
+        {
+          "$ref": "#/$defs/system_record_model_call_reserved"
+        },
+        {
+          "$ref": "#/$defs/run_phase_started"
+        },
+        {
+          "$ref": "#/$defs/dispatch_reservation"
+        },
+        {
+          "$ref": "#/$defs/system_record_lifecycle"
+        },
+        {
+          "$ref": "#/$defs/release_record"
+        },
+        {
+          "$ref": "#/$defs/human_review_record"
+        },
+        {
+          "$ref": "#/$defs/system_record_rsi_session"
+        },
+        {
+          "$ref": "#/$defs/system_record_rsi_trial"
+        },
+        {
+          "$ref": "#/$defs/system_record_rsi_security_clearance"
+        },
+        {
+          "$ref": "#/$defs/system_record_oracle_session"
+        },
+        {
+          "$ref": "#/$defs/system_record_oracle_closure"
+        },
+        {
+          "$ref": "#/$defs/system_record_oracle_result"
+        },
+        {
+          "$ref": "#/$defs/system_record_oracle_security_block"
+        },
+        {
+          "$ref": "#/$defs/system_record_oracle_security_clearance"
+        },
+        {
+          "$ref": "#/$defs/system_record_oracle_quota"
+        },
+        {
+          "$ref": "#/$defs/system_record_rsi_attempt"
+        },
+        {
+          "$ref": "#/$defs/system_record_activation"
+        }
+      ],
+      "description": "SystemRecord union. Closed envelope {schema_version, kind, id, run_id?, session_id?, at, previous_ref?, payload}. kind selects exactly one variant; unknown kinds fail before publication. The old run_started kind is replaced by run_phase_started."
+    },
+    "call_descriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cc",
+        "decl_hash",
+        "inputs",
+        "step_id"
+      ],
+      "properties": {
+        "cc": {
+          "const": 1
+        },
+        "decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "inputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          }
+        },
+        "step_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "The prompt the Swarmflow script sends to agent(): RFC 8785 canonical JSON of exactly these keys. Values travel by hash, control by reference: inputs are Artifact refs. The engine uses it only as a cache key; the supervisor dispatch identity authorizes reuse. A malformed descriptor is a protocol rejection with no Observation."
+    },
+    "runner_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "protocol_version",
+        "operation",
+        "dispatch_id",
+        "obs_id",
+        "attempt",
+        "reservation_ref"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "protocol_version": {
+          "const": 1
+        },
+        "operation": {
+          "enum": [
+            "call",
+            "cancel",
+            "status"
+          ]
+        },
+        "dispatch_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "obs_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reservation_ref": {
+          "$ref": "#/$defs/system_ref"
+        },
+        "call_descriptor": {
+          "$ref": "#/$defs/call_descriptor",
+          "description": "Present only for operation call. The caller (dispatch, nested, gate or admission), the parent obs_id and the ordinal are not fields of the request: they come from the dispatch reservation in reservation_ref."
+        }
+      },
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "call"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "call_descriptor"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "call_descriptor"
+          ]
+        }
+      },
+      "description": "Supervisor to runner (decision D-b: the supervisor-side CcBackend calls the runner, then the Gate host). Frames are length-prefixed UTF-8 JSON (4-byte big-endian length), limited by cc.ipc.max_frame_bytes. Only call carries call_descriptor. The caller (dispatch, nested, gate or admission), the parent obs and the ordinal come from the reservation in reservation_ref, not from the request. cancel and status address the existing dispatch_id and never start work. The same dispatch_id with changed bytes is REQUEST_CONFLICT."
+    },
+    "runner_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "protocol_version",
+        "state"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "protocol_version": {
+          "const": 1
+        },
+        "state": {
+          "enum": [
+            "running",
+            "complete",
+            "cancelled",
+            "denied",
+            "unavailable"
+          ]
+        },
+        "observation_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "observation_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "denied",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        }
+      ],
+      "description": "Runner to supervisor. A complete response requires a durable Observation ref (outputs and capture are committed first). The call outcome (ok, error, refused) is read from the Observation, not from this state."
+    },
+    "runner_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "event"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "event": {
+          "$ref": "#/$defs/event_envelope"
+        }
+      },
+      "description": "Proposed RunnerEvent frame (observability gap 1): runner to supervisor, sent after the described record is written, so the supervisor-hosted bus can publish it."
+    },
+    "step_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "obs_id",
+        "outcome",
+        "reason",
+        "decision",
+        "verdict",
+        "outputs"
+      ],
+      "properties": {
+        "step_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "obs_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "outcome": {
+          "enum": [
+            "ok",
+            "error",
+            "refused"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "decision": {
+          "enum": [
+            "pass",
+            "fail",
+            "blocked"
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "PASS",
+            "PASS_WITH_KNOWN_LIMITATIONS",
+            "FAIL",
+            "ENVIRONMENT_BLOCKED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "outputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          }
+        }
+      },
+      "description": "ENVELOPE_SCHEMA (cc.adapters.swarmflow.ENVELOPE_SCHEMA): CcBackend to the engine, returned by agent() to the script. A cache only; it never authorizes release without the committed Verification and release record."
+    },
+    "tool_host_frame": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t"
+          ],
+          "properties": {
+            "t": {
+              "const": "ready"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "inputs",
+            "failure_codes"
+          ],
+          "properties": {
+            "t": {
+              "const": "call"
+            },
+            "inputs": {
+              "type": "object"
+            },
+            "failure_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "maxItems": 10000
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "id",
+            "ref",
+            "inputs"
+          ],
+          "properties": {
+            "t": {
+              "const": "nested"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "inputs": {
+              "type": "object"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "id",
+            "ok"
+          ],
+          "properties": {
+            "t": {
+              "const": "nested_result"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ok": {
+              "type": "boolean"
+            },
+            "outputs": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ref",
+                  "value"
+                ],
+                "properties": {
+                  "ref": {
+                    "$ref": "cc:contracts:services-v1#/$defs/ref"
+                  },
+                  "value": {}
+                }
+              }
+            },
+            "issues": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "cc:contracts:services-v1#/$defs/reason"
+                },
+                "maxItems": 10000
+              }
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "outcome": {
+              "enum": [
+                "ok",
+                "error",
+                "refused"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          },
+          "if": {
+            "properties": {
+              "ok": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "outputs",
+              "issues"
+            ]
+          },
+          "else": {
+            "required": [
+              "obs_id",
+              "outcome",
+              "reason"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "id",
+            "prompt",
+            "model",
+            "route_id"
+          ],
+          "properties": {
+            "t": {
+              "const": "model"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            },
+            "model": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "route_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "id",
+            "ok"
+          ],
+          "properties": {
+            "t": {
+              "const": "model_result"
+            },
+            "id": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ok": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 65536
+            },
+            "broker_request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "reason": {
+              "enum": [
+                "TIMEOUT",
+                "RUNTIME_UNAVAILABLE",
+                "CAPSULE_ERROR",
+                "BUDGET_EXCEEDED"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "if": {
+            "properties": {
+              "ok": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "text"
+            ]
+          },
+          "else": {
+            "required": [
+              "broker_request_id",
+              "reason",
+              "message"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "port",
+            "code",
+            "message"
+          ],
+          "properties": {
+            "t": {
+              "const": "issue"
+            },
+            "port": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "code": {
+              "enum": [
+                "INPUT_AMBIGUOUS",
+                "INPUT_INCOMPLETE",
+                "INPUT_CONTRADICTORY",
+                "EXTERNAL_UNAVAILABLE"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "outputs"
+          ],
+          "properties": {
+            "t": {
+              "const": "result"
+            },
+            "outputs": {
+              "type": "object"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "reason_code",
+            "message"
+          ],
+          "properties": {
+            "t": {
+              "const": "failure"
+            },
+            "reason_code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "service",
+            "reason",
+            "message"
+          ],
+          "properties": {
+            "t": {
+              "const": "unavailable"
+            },
+            "service": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            },
+            "broker_request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "if": {
+            "properties": {
+              "service": {
+                "const": "model"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "broker_request_id"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "t",
+            "type",
+            "message",
+            "traceback"
+          ],
+          "properties": {
+            "t": {
+              "const": "exception"
+            },
+            "type": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 65536
+            },
+            "traceback": {
+              "type": "string",
+              "maxLength": 65536
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          }
+        }
+      ],
+      "description": "Length-prefixed frames (4-byte big-endian length, then one UTF-8 JSON object; max cc.ipc.max_frame_bytes, large values by ref) between the runner tool handler and the tool-kind child process (the tool host), over the inherited socket pair. t selects the frame. Tool host to runner: ready, nested (nested call), model (model request), issue, result, failure, unavailable, exception. Runner to tool host: call, nested_result, model_result. id is a counter local to the call and pairs requests with results. The optional obs_id is the proposed observability gap 2 correlation field. Check mode uses the same frames with no broker, so nested and model frames end the check unknown."
+    },
+    "skill_turn_frame": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outputs"
+          ],
+          "properties": {
+            "outputs": {
+              "type": "object"
+            },
+            "issues": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/skill_issue"
+                },
+                "maxItems": 10000
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "call"
+          ],
+          "properties": {
+            "call": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ref",
+                "inputs"
+              ],
+              "properties": {
+                "ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4096
+                },
+                "inputs": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "The one JSON object a model must reply with in a skill turn (after optional code-fence removal): either outputs (keys equal the output port names exactly, optional issues) or one call to a pinned non-prompt_section capsule. Any other top-level key, or both outputs and call, breaks a parse rule and ends the call with CAPSULE_ERROR."
+    },
+    "runner_turn_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "turn",
+        "session_id",
+        "prompt_sha256",
+        "reply_sha256",
+        "elapsed_s",
+        "model_hint",
+        "model_id",
+        "tokens",
+        "route_record_id"
+      ],
+      "properties": {
+        "turn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "prompt_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "reply_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "elapsed_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "model_hint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "model_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/token_usage"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "route_record_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "One entry of Observation.ext.runner.turns, appended per model turn. request_id (the bridge request id) is the proposed addition from observability so that a bridge request joins to its obs_id."
+    },
+    "model_client_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "scope",
+        "obs_id",
+        "turn",
+        "prompt",
+        "session_id",
+        "deadline_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "scope": {
+          "$ref": "cc:contracts:services-v1#/$defs/model_call_scope"
+        },
+        "obs_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "turn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "deadline_at": {
+          "$ref": "#/$defs/time"
+        },
+        "capsule_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "decl_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "step_id": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "model_hint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        }
+      },
+      "description": "The runner M05 complete(prompt, model_hint, session_id, deadline, context=ModelCallContext) call as data. It maps to services-v1 model_bridge_request as follows. scope -> scope. obs_id -> obs_id. turn -> turn. operation = turn and target_request_id = null. session_id -> session_id (fresh per turn, derived from the scope hash, request_id, obs_id and turn). model_id = model_hint when given, else the model_id of the reserved model_call_reservation. deadline_at -> deadline_at. prompt is first stored as scoped capture and its scoped_capture_ref becomes prompt_content_ref (namespace public_artifact for run, planning and admission scopes). request_id is allocated by the broker from the reservation. capsule_name, decl_hash, step_id and role stay local audit metadata and are never sent to the endpoint."
+    },
+    "model_client_reply": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ok",
+            "request_id",
+            "text",
+            "elapsed_s",
+            "model_id",
+            "tokens",
+            "route_record_id",
+            "version"
+          ],
+          "properties": {
+            "ok": {
+              "const": true
+            },
+            "request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 65536
+            },
+            "elapsed_s": {
+              "type": "number",
+              "minimum": 0
+            },
+            "model_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "tokens": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/token_usage"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "route_record_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "version": {
+              "const": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ok",
+            "reason_code",
+            "message",
+            "version"
+          ],
+          "properties": {
+            "ok": {
+              "const": false
+            },
+            "reason_code": {
+              "enum": [
+                "TIMEOUT",
+                "RUNTIME_UNAVAILABLE",
+                "CAPSULE_ERROR",
+                "BUDGET_EXCEEDED"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            },
+            "broker_request_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "version": {
+              "const": 1
+            }
+          }
+        }
+      ],
+      "description": "M05 result as data: ModelReply on success, ModelError otherwise. Success is built from a model_bridge_result with state complete: the reply bytes come from reply_content_ref and are checked against reply_content_sha256; request_id is the bridge request_id; model_id, tokens and route_record_id come from the model audit record and are null when the runtime did not report them (Codex reports none). Error mapping: timed_out -> TIMEOUT; unavailable, denied, cancelled, or queued/running at the deadline -> RUNTIME_UNAVAILABLE; a reservation or budget ceiling reached (BUDGET_EXCEEDED) -> BUDGET_EXCEEDED; an empty prompt (INVALID_INPUT) -> CAPSULE_ERROR. A cancelled turn is never a success."
+    },
+    "gate_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "obs_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "obs_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "gate(obs_ref) (decision D-b: the supervisor-side CcBackend calls the runner, then the Gate host, after the runner committed the Observation). The Observation must have caller dispatch or nested; gate and admission callers are rejected to end referee recursion."
+    },
+    "gate_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "verification_ref",
+        "decision",
+        "verdict",
+        "normalized_verdict",
+        "routing_action",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "verification_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/nullable_ref"
+        },
+        "decision": {
+          "enum": [
+            "pass",
+            "fail",
+            "blocked"
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "PASS",
+            "PASS_WITH_KNOWN_LIMITATIONS",
+            "FAIL",
+            "ENVIRONMENT_BLOCKED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "normalized_verdict": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "BLOCKED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "routing_action": {
+          "enum": [
+            "ADVANCE",
+            "HALT",
+            "ESCALATE_TO_HUMAN"
+          ]
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "enum": [
+                  "PASS",
+                  "PASS_WITH_KNOWN_LIMITATIONS"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "const": "pass"
+              },
+              "routing_action": {
+                "const": "ADVANCE"
+              },
+              "normalized_verdict": {
+                "const": "PASS"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "routing_action": {
+                "enum": [
+                  "HALT",
+                  "ESCALATE_TO_HUMAN"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "FAIL"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "const": "fail"
+              },
+              "normalized_verdict": {
+                "const": "FAIL"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "ENVIRONMENT_BLOCKED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "const": "blocked"
+              },
+              "normalized_verdict": {
+                "const": "BLOCKED"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verdict": {
+                "const": "INCONCLUSIVE"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "const": "blocked"
+              },
+              "normalized_verdict": {
+                "const": "INCONCLUSIVE"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verification_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "decision": {
+                "const": "blocked"
+              },
+              "verdict": {
+                "const": "ENVIRONMENT_BLOCKED"
+              }
+            }
+          }
+        }
+      ],
+      "description": "GateResult returned by gate(obs_ref), computed once and read back from the committed Verification (its gate_result). verification_ref is null only for a cancelled call, which is blocked/ENVIRONMENT_BLOCKED. Fold: PASS and PASS_WITH_KNOWN_LIMITATIONS are decision pass, normalized PASS, ADVANCE; FAIL is decision fail; ENVIRONMENT_BLOCKED is decision blocked, normalized BLOCKED; INCONCLUSIVE is decision blocked. M1 non-advancing outcomes use HALT or ESCALATE_TO_HUMAN (an action, not a verdict). The supervisor still re-reads the committed Verification before releasing."
+    },
+    "halt_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "phase",
+        "reason",
+        "reason_owner",
+        "permitted_actions",
+        "headless",
+        "durable_evidence_refs"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "phase": {
+          "enum": [
+            "prep",
+            "planned"
+          ]
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "reason_owner": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "permitted_actions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "abort",
+              "resume_after_fix",
+              "new_run"
+            ]
+          },
+          "maxItems": 10000
+        },
+        "headless": {
+          "type": "boolean"
+        },
+        "durable_evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "step_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "observation_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "verification_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "verdict": {
+          "enum": [
+            "PASS",
+            "PASS_WITH_KNOWN_LIMITATIONS",
+            "FAIL",
+            "ENVIRONMENT_BLOCKED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "exit_code": {
+          "const": 3
+        }
+      },
+      "description": "What the halt host reports to the human session (or prints in headless mode, which exits with code 3): failing step, exact Observation and Verification, reason and its owner, known durable evidence and permitted actions. A halt with no Gate verdict (gate-save failure, capture failure, invalid planned plan) omits verdict and verification_ref. Reading a report is not approval."
+    },
+    "event_envelope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "prep_plan_ref"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.run.started"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "prep_plan_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "phase",
+            "plan_ref",
+            "pins"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.run.frozen"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "phase": {
+              "enum": [
+                "prep",
+                "planned"
+              ]
+            },
+            "plan_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "pins": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              }
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "obs_id",
+            "caller"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.call.started"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "caller": {
+              "enum": [
+                "dispatch",
+                "nested",
+                "gate",
+                "admission"
+              ]
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "step_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "obs_id",
+            "decl_hash",
+            "code_sha256"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.call.resolved"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "decl_hash": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "code_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "obs_id",
+            "reason"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.call.refused"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "parent_obs_id",
+            "child_obs_id"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.call.nested"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "parent_obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "child_obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "obs_id",
+            "turn",
+            "elapsed_s",
+            "model_hint",
+            "model_id",
+            "route_record_id"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.model.turn"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "turn": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "elapsed_s": {
+              "type": "number",
+              "minimum": 0
+            },
+            "model_hint": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "model_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "route_record_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "observation_ref",
+            "outcome",
+            "reason"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.call.finished"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "observation_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "outcome": {
+              "enum": [
+                "ok",
+                "error",
+                "refused"
+              ]
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 4096
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "step_id",
+            "obs_id",
+            "verification_ref",
+            "decision",
+            "verdict"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.gate.decided"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "step_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "obs_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "verification_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            },
+            "decision": {
+              "enum": [
+                "pass",
+                "fail",
+                "blocked"
+              ]
+            },
+            "verdict": {
+              "enum": [
+                "PASS",
+                "PASS_WITH_KNOWN_LIMITATIONS",
+                "FAIL",
+                "ENVIRONMENT_BLOCKED",
+                "INCONCLUSIVE"
+              ]
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "reason",
+            "reason_owner"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.run.halted"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "reason": {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            },
+            "reason_owner": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "step_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "verdict": {
+              "enum": [
+                "PASS",
+                "PASS_WITH_KNOWN_LIMITATIONS",
+                "FAIL",
+                "ENVIRONMENT_BLOCKED",
+                "INCONCLUSIVE"
+              ]
+            },
+            "verification_ref": {
+              "$ref": "cc:contracts:services-v1#/$defs/ref"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "event",
+            "at",
+            "envelopes"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "event": {
+              "const": "cc.run.finished"
+            },
+            "at": {
+              "$ref": "#/$defs/time"
+            },
+            "envelopes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/step_envelope"
+              },
+              "maxItems": 10000
+            },
+            "run_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            },
+            "candidate_id": {
+              "$ref": "cc:contracts:services-v1#/$defs/id"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "run_id"
+              ]
+            },
+            {
+              "required": [
+                "candidate_id"
+              ]
+            }
+          ]
+        }
+      ],
+      "description": "Events on the in-process cc event bus (cc.events.emit and subscribe), one variant per event name. Each carries run_id (or candidate_id at admission) and at. An event that describes a record is emitted after the record is written. cc.call.started, cc.call.resolved, cc.call.refused, cc.call.nested and cc.model.turn only announce. cc.run.frozen is emitted once per freeze (phase prep at launch, phase planned after requirements). cc.run.halted covers every halt, including halts with no Gate verdict. Events never carry authority; the committed records do."
+    },
+    "evidence_manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "obs_id",
+        "manifest_sha256",
+        "manifest_path"
+      ],
+      "properties": {
+        "obs_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "manifest_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "manifest_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "description": "Return of seal_execution(obs_id, capture). manifest_path is workspace-relative, never absolute and never contains a .. segment."
+    },
+    "execution_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "obs_id",
+        "record_refs",
+        "files",
+        "host_facts_start",
+        "host_facts_end",
+        "operations_declared",
+        "operations_observed",
+        "capture_complete",
+        "capture_status"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "obs_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "record_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role",
+              "relative_path",
+              "content_sha256",
+              "size_bytes"
+            ],
+            "properties": {
+              "role": {
+                "enum": [
+                  "input",
+                  "output",
+                  "stdout",
+                  "stderr",
+                  "model_prompt",
+                  "model_reply",
+                  "tool_call",
+                  "security_check",
+                  "environment"
+                ]
+              },
+              "relative_path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "content_sha256": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              },
+              "size_bytes": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "host_facts_start": {
+          "type": "object"
+        },
+        "host_facts_end": {
+          "type": "object"
+        },
+        "operations_declared": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resource_key",
+              "op"
+            ],
+            "properties": {
+              "resource_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "op": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "operations_observed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resource_key",
+              "op"
+            ],
+            "properties": {
+              "resource_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "op": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "capture_complete": {
+          "type": "boolean"
+        },
+        "capture_status": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "description": "Return of get_execution(ref): the internal complete Stage Evidence Bundle manifest, not the bounded model-facing evidence_bundle. All relative_path values resolve under the bundle root. Missing required evidence is EVIDENCE_UNAVAILABLE or EVIDENCE_CORRUPT."
+    },
+    "exit_code": {
+      "enum": [
+        0,
+        2,
+        3,
+        4
+      ],
+      "x-internal": true,
+      "description": "Process exit code, one closed set for every command: 0 success or completed research (a scientific FAIL is still 0), 2 launch, intake or configuration rejected, 3 halted, 4 environment unavailable (security, storage or model auth)."
+    },
+    "commit_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "run_id",
+        "dispatch_id",
+        "obs_id",
+        "kind",
+        "content_ref",
+        "sha256"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "dispatch_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id",
+          "description": "Identity of the reserved dispatch this commit belongs to."
+        },
+        "obs_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "observation",
+            "artifact",
+            "capture"
+          ]
+        },
+        "content_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref",
+          "description": "Staged bytes the runner wrote to its own staging area. The supervisor re-reads them, checks sha256 and commits."
+        },
+        "refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "description": "For kind capture: the staged capture parts, in order.",
+          "maxItems": 10000
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash",
+          "description": "SHA-256 of the canonical bytes to commit; equals content_ref.sha256."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "capture"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "refs"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "refs"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "The runner asks the supervisor, over their authenticated channel, to commit an Observation, Artifacts or capture on its behalf. The runner holds no write access to the store (single writer per kind); the supervisor verifies run_id, dispatch_id and obs_id against the dispatch reservation, re-hashes the staged bytes and commits. Same request_id with the same bytes returns the same result."
+    },
+    "commit_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "state",
+        "ref",
+        "reason"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "state": {
+          "enum": [
+            "committed",
+            "refused",
+            "conflict"
+          ]
+        },
+        "ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/nullable_ref"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/reason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "committed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "$ref": "cc:contracts:services-v1#/$defs/ref"
+              },
+              "reason": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "ref": {
+                "type": "null"
+              },
+              "reason": {
+                "$ref": "cc:contracts:services-v1#/$defs/reason"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Reply to commit_request. committed carries the Ref of the stored record. refused (unknown dispatch, wrong run, hash mismatch, over the size limit) and conflict (same record id with different bytes: REQUEST_CONFLICT or STORE_CONFLICT) carry a reason and no ref. A refused commit is never retried automatically."
+    }
+  }
+}

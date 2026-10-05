@@ -4,24 +4,34 @@ id: cc.type.idea_set
 version: 1
 status: checked
 tags: [types, m1]
+prd: [3.3.5, 3.3.6]
+level: detail
 ---
 
 > **Checked, not yet approved.** Written 2026-10-01 for the search area.
 
 # `idea_set`: candidate ideas with their evidence · version 1
 
-The output of Search & Ideation (PRD 3.3): the queries run, the verbatim evidence they found grouped by query, and 1 to 3 candidate ideas, each citing the evidence it rests on. It is the PRD's `Candidate_Set.json`. The name is `idea_set` because `Candidate` is already the CC record a capsule is submitted in.
+PRD: 3.3.5, 3.3.6
 
-**Made by** `research.search_ideas` at step `search` ([search capsule](../m1/search-capsule.md)). **Read by** the screening step (PRD 3.4), which merges near-duplicate ideas, keeps variants that rest on different sources (3.4.1), and builds idea cards with linked citations (3.4.3).
+The output of Search & Ideation (PRD 3.3): the queries run, the verbatim evidence they found grouped by query, and 1 to 3 candidate ideas, each citing the evidence it rests on. It is the PRD's `Candidate_Set.json`. The name is `idea_set` because `Candidate` is already the CC record a [capsule](../capsule/capsule.md#term-capability-capsule) is submitted in.
+
+**Made by** `research.search_ideas` at step `search` ([search capsule](../capabilities/search-capsule.md)). **Read by** the screening step (PRD 3.4), which merges near-duplicate ideas, keeps variants that rest on different sources (3.4.1), and builds idea cards with linked citations (3.4.3).
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-idea-set"></a>**idea_set** (also: idea set) | The output of Search and Ideation: the queries run, the verbatim evidence found grouped by query, and one to three candidate ideas, each citing its evidence. Named `idea_set` because Candidate is already a CC record. |
 
 ## Fields
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
-| `queries` | `list<object>` | req | checked |  | At least one. The keyword queries formed from the Brief (3.3.1) |
+| `queries` | `list<object>` | req | checked |  | At least one. The keyword queries formed from the [Brief](research-brief.md#term-research-brief) (3.3.1) |
 | `queries[].query_id` | `id` | req | checked |  | Unique within the value. Example: `Q1` |
 | `queries[].text` | `text` | req | checked |  | The query as run. Example: `memory efficient attention` |
-| `sources` | `list<object>` | req | checked |  | Every source any chunk comes from, once each. Copied from the operator's `search_hits` |
+| `sources` | `list<object>` | req | checked |  | Every source any chunk comes from, once each. Copied from the [operator](../capabilities/README.md#term-operator)'s `search_hits` |
 | `sources[].source_id` | `id` | req | checked |  | As in `search_hits`. Unique within the value |
 | `sources[].kind` | `enum(local, arxiv, semantic_scholar)` | req | checked |  | Where it came from |
 | `sources[].title` | `text` | req | checked |  | Its title, or the local document's path |
@@ -46,8 +56,8 @@ The output of Search & Ideation (PRD 3.3): the queries run, the verbatim evidenc
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
-| `check.idea_set_references_resolve.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/idea_set.py:idea_set_references_resolve` | muk | ids are unique in their lists; every group's `query_id` is a query; every chunk's `source_id` is a source; every `cited_chunk_ids` entry is a chunk |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
+| `check.idea_set_references_resolve.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/idea_set.py:idea_set_references_resolve` | cc-team | ids are unique in their lists; every group's `query_id` is a query; every chunk's `source_id` is a source; every `cited_chunk_ids` entry is a chunk |
 
 Whether a local chunk really appears in its document needs the intake, so it is a check of the producer.
 

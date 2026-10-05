@@ -4,11 +4,21 @@ id: cc.type.poc_bundle
 version: 2
 status: draft
 tags: [types, m1]
+prd: [3.6.5]
+level: detail
 ---
 
 # `poc_bundle`: the benchmark-ready proof of concept · version 2
 
-The immutable four-file bundle assembled under PRD 3.6. [POC](../m1/poc.md) produces it and [Benchmark](../m1/benchmark.md) consumes it. This contract permits syntax validation only at construction; scientific execution starts at 3.7.
+PRD: 3.6.5
+
+The immutable four-file bundle assembled under PRD 3.6. [POC](../capabilities/poc.md) produces it and [Benchmark](../capabilities/benchmark.md) consumes it. This contract permits syntax validation only at construction; scientific execution starts at 3.7.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-poc-bundle"></a>**poc_bundle** (also: POC bundle) | The immutable four-file bundle of generated proof-of-concept code (patch, harness and requirements) assembled before any execution. Construction allows syntax validation only; Benchmark runs it later. |
 
 ## Fields
 
@@ -20,7 +30,7 @@ The immutable four-file bundle assembled under PRD 3.6. [POC](../m1/poc.md) prod
 | `files[].content_sha256` | `sha256` | req | checked |  | Immutable bytes in the store |
 | `archive_sha256` | `sha256` | req | checked |  | POC_Artifact_Bundle.zip; contents must exactly match the four-role manifest |
 | `syntax_check_ref` | `Ref(artifact)` | req | checked |  | Trusted compiler/AST check evidence; model assertion is insufficient |
-| `smoke_test_passed` | `boolean` | req | checked |  | True only if both Python files passed compiler checks |
+| `smoke_test_passed` | `boolean` | req | checked |  | True only if both Python files passed compiler [checks](../capsule/fields.md#term-check) |
 | `smoke_test_output` | `text` | opt | checked |  | Non-sensitive compiler error when false |
 | `ext` | `map<string, json>` | opt | checked |  | Producer extensions; consumers ignore |
 
@@ -28,8 +38,8 @@ The immutable four-file bundle assembled under PRD 3.6. [POC](../m1/poc.md) prod
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | Generated schema matches |
-| `poc_contract` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:poc_contract` | muk | Exact four roles, safe ZIP members, content hashes, trusted syntax evidence, frozen method imports and output protocol; no prohibited imports or generated measurement replacement |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | Generated schema matches |
+| `poc_contract` | deterministic | `outputs` | `both` | `cc/checks/registry/research.py:poc_contract` | cc-team | Exact four roles, safe ZIP members, content hashes, trusted syntax evidence, [frozen](../system/lifecycle.md#term-freeze) method imports and output protocol; no prohibited imports or generated measurement replacement |
 
 ## Example
 

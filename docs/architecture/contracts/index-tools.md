@@ -1,0 +1,33 @@
+---
+id: contracts.index.tools
+type: index
+level: detail
+status: draft
+provides: []
+depends_on: []
+prd: []
+prd_note: index
+---
+
+# Tool-side contracts index
+
+Wire shapes for messages of the M1 tools that had no schema: the manual Standing command, doctor, the check calling convention and `run_checks`, the author kit report, the restricted-child [execution profile](../schemas/profiles.md#term-executionprofile), the search broker, `cc policy publish`, the wheelhouse manifest and [ConfigSnapshot](../system/environment.md#term-configsnapshot). Schema file: [tools-v1.schema.json](tools-v1.schema.json). Fixtures: [fixtures/tools-v1.json](fixtures/tools-v1.json). Shared definitions (id, hash, ref, reason, [ext](../schemas/common.md#term-ext), model_call_limits) come from [services-v1.schema.json](services-v1.schema.json); search and code hit payloads come from the generated `search-hits` and `code-hits` type schemas, and the [Verification](../schemas/verification-record.md#term-verification) and Verdict check shapes from the generated records. Activation of an `admitted_inactive` version stays `library-rsi-v1.schema.json#activation_request`. Nested [capsule](../capsule/capsule.md#term-capability-capsule) calls through the broker stay `execution-v1.schema.json#tool_host_frame` and `execution-v1.schema.json#skill_turn_frame`. Behavior stays on the linked pages.
+
+| Schema def | Family | Message | Sender -> receiver | Transport | Described in |
+|---|---|---|---|---|---|
+| `tools-v1.schema.json#standing_change_request` | Call | Manual Standing command: suspend, deprecate, retire, revoke, restore or rollback | developer CLI -> librarian | in-process call, developer CLI | [library](../capsule/library.md), [standing](../schemas/standing.md) |
+| `tools-v1.schema.json#standing_change_record` | Record | Result of a manual Standing command, with the new Standing ref | librarian -> developer CLI, store | in-process call; the Standing entry is a committed record | [library](../capsule/library.md), [standing](../schemas/standing.md) |
+| `tools-v1.schema.json#doctor_check` | Helper | One startup or doctor probe result (PASS, FAIL, UNSUPPORTED, [NOT_RUN](../decisions.md#term-not-run), [BLOCKED](../decisions.md#term-blocked)) | doctor -> doctor_report | element of the report | [environment](../system/environment.md#behavior-startup-and-doctor) |
+| `tools-v1.schema.json#doctor_report` | Report | DoctorReport: [checks](../capsule/fields.md#term-check), ready flag, probed profile | doctor -> launcher, supervisor, CLI | in-process call; `cc doctor --json` wraps it in cli_json_output | [environment](../system/environment.md#behavior-startup-and-doctor), [workstation](../system/workstation.md) |
+| `tools-v1.schema.json#check_call` | Helper | Arguments a check function receives (inputs, outputs, observation, expected, context) | Check runner (M10a) -> tool host in check mode | `call` frame inputs, length-prefixed frame on the inherited socket | [checks](../schemas/checks.md#calling-convention), [runner](../capsule/runner.md) |
+| `tools-v1.schema.json#check_result` | Helper | What a check function returns: result, message, evidence | check code -> [check runner](../capsule/gate-host.md#term-check-runner) (M10a) | `result` frame outputs, length-prefixed frame on the inherited socket | [checks](../schemas/checks.md#calling-convention) |
+| `tools-v1.schema.json#run_checks_request` | Call | run_checks(): full checks or [Binding](../schemas/binding.md#term-binding) entries, [Observation](../schemas/observation.md#term-observation), pins | gate host, admission, author kit -> check runner (M10a) | in-process Python call | [toolchain](../capsule/toolchain.md#m10a-check-runner-and-the-check-library) |
+| `tools-v1.schema.json#run_checks_result` | Call | One Verification-shaped result row per check | check runner (M10a) -> gate host, admission, author kit | in-process Python call | [toolchain](../capsule/toolchain.md#m10a-check-runner-and-the-check-library) |
+| `tools-v1.schema.json#author_kit_report` | Report | Report of `cc kit check`: validation, hashes, local test results (advice only) | author kit (M13) -> author | stdout and in-process call | [toolchain](../capsule/toolchain.md#m13-author-kit), [authoring](../capsule/authoring.md) |
+| `tools-v1.schema.json#execution_profile` | Profile | Named ExecutionProfile of a [restricted child](../capsule/process-boundary.md#term-restricted-child) (restricted_child, poc, oracle, [bridge](../system/model-bridge.md#term-model-bridge)) | policy publisher -> store; launcher, doctor, Binding | content-addressed policy profile | [profiles](../schemas/profiles.md), [process boundary](../capsule/process-boundary.md#confinement-engine), [environment](../system/environment.md#linux-confinement-inside-the-monolith), [isolation](../isolation.md) |
+| `tools-v1.schema.json#broker_search_request` | Call | A capsule's local, scholarly or code search call | tool capsule -> runner broker | tool host frame, then in-process call to the adapter | [op.local_search](../capabilities/op-local-search.md), [op.scholarly_search](../capabilities/op-scholarly-search.md), [op.codesearch](../capabilities/op-codesearch.md), [integration](../system/integration.md#deepsearch-scholarly-search) |
+| `tools-v1.schema.json#broker_search_result` | Call | Search hits, partial answer or typed unavailable or refused | runner broker -> tool capsule | tool host frame | [op.local_search](../capabilities/op-local-search.md), [op.scholarly_search](../capabilities/op-scholarly-search.md), [op.codesearch](../capabilities/op-codesearch.md) |
+| `tools-v1.schema.json#policy_publish_request` | Call | `cc policy publish <epoch.json>` | developer CLI -> policy publisher (M00c) | command line, in-process call | [toolchain](../capsule/toolchain.md#m00c-policy-publisher), [policy](../schemas/policy.md) |
+| `tools-v1.schema.json#policy_publish_result` | Call | Published, unchanged or refused epoch with its ref | policy publisher (M00c) -> developer CLI | command output, in-process call | [toolchain](../capsule/toolchain.md#m00c-policy-publisher), [policy](../schemas/policy.md) |
+| `tools-v1.schema.json#wheelhouse_manifest` | Record | Approved offline wheel closure for POC execution | installer -> doctor, process service | file pinned by cc.packages.manifest_sha256 | [environment](../system/environment.md#platform-and-dependency-matrix) |
+| `tools-v1.schema.json#config_snapshot` | Record | ConfigSnapshot: effective config, provenance, hash | config loader -> launcher, doctor, store | in-process Python call, pinned run | [environment](../system/environment.md#interface-effective-configuration) |

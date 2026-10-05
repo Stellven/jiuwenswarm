@@ -1,0 +1,2092 @@
+{
+ "generated_by": "_tools/arch_lint.py",
+ "note": "Generated from front matter. Never edit by hand.",
+ "pages": {
+  "README.md": {
+   "id": "arch.home",
+   "level": "present",
+   "provides": [
+    "arch.home"
+   ]
+  },
+  "build-order.md": {
+   "id": "arch.build_order",
+   "level": "present",
+   "provides": [
+    "arch.build_order"
+   ]
+  },
+  "capabilities/README.md": {
+   "id": "cap.index",
+   "level": "detail",
+   "provides": [
+    "cap.inventory"
+   ]
+  },
+  "capabilities/benchmark.md": {
+   "id": "cap.benchmark",
+   "level": "detail",
+   "provides": [
+    "research.run_benchmark"
+   ]
+  },
+  "capabilities/benchmarking-material.md": {
+   "id": "cap.benchmarking-material",
+   "level": "detail",
+   "provides": [
+    "research.benchmark_material_policy"
+   ]
+  },
+  "capabilities/brief-gate.md": {
+   "id": "cap.brief-gate",
+   "level": "detail",
+   "provides": [
+    "research.accept_brief"
+   ]
+  },
+  "capabilities/delivery.md": {
+   "id": "cap.delivery",
+   "level": "detail",
+   "provides": [
+    "publication.publish_report",
+    "publication.manifest.v1"
+   ]
+  },
+  "capabilities/evaluation.md": {
+   "id": "cap.evaluation",
+   "level": "detail",
+   "provides": [
+    "research.evaluate_results"
+   ]
+  },
+  "capabilities/extract-text.md": {
+   "id": "cap.extract-text",
+   "level": "detail",
+   "provides": [
+    "launcher.extract_text"
+   ]
+  },
+  "capabilities/hypothesis.md": {
+   "id": "cap.hypothesis",
+   "level": "detail",
+   "provides": [
+    "research.form_hypothesis"
+   ]
+  },
+  "capabilities/improvement.md": {
+   "id": "cap.improvement",
+   "level": "detail",
+   "provides": [
+    "research.capability_design_guide"
+   ]
+  },
+  "capabilities/intent-compile.md": {
+   "id": "cap.research.compile_intent",
+   "level": "detail",
+   "provides": [
+    "research.compile_intent"
+   ]
+  },
+  "capabilities/intent-gate.md": {
+   "id": "cap.intent-gate",
+   "level": "detail",
+   "provides": [
+    "research.accept_intent"
+   ]
+  },
+  "capabilities/measurement-protocol.md": {
+   "id": "cap.measurement-protocol",
+   "level": "detail",
+   "provides": [
+    "research.measurement_protocol",
+    "compare_to_thresholds",
+    "freeze_resources",
+    "syntax_check",
+    "system.measurement_service"
+   ]
+  },
+  "capabilities/op-assess-dependency.md": {
+   "id": "cap.op-assess-dependency",
+   "level": "detail",
+   "provides": [
+    "op.assess_dependency"
+   ]
+  },
+  "capabilities/op-codesearch.md": {
+   "id": "cap.op-codesearch",
+   "level": "detail",
+   "provides": [
+    "op.codesearch"
+   ]
+  },
+  "capabilities/op-local-search.md": {
+   "id": "cap.op-local-search",
+   "level": "detail",
+   "provides": [
+    "op.local_search"
+   ]
+  },
+  "capabilities/op-rank-opportunities.md": {
+   "id": "cap.op-rank-opportunities",
+   "level": "detail",
+   "provides": [
+    "op.rank_opportunities"
+   ]
+  },
+  "capabilities/op-scholarly-search.md": {
+   "id": "cap.op-scholarly-search",
+   "level": "detail",
+   "provides": [
+    "op.scholarly_search"
+   ]
+  },
+  "capabilities/op-workspace-io.md": {
+   "id": "cap.op-workspace-io",
+   "level": "detail",
+   "provides": [
+    "op.workspace_io",
+    "op.workspace_read",
+    "op.workspace_write",
+    "op.workspace_list"
+   ]
+  },
+  "capabilities/poc.md": {
+   "id": "cap.poc",
+   "level": "detail",
+   "provides": [
+    "research.build_poc"
+   ]
+  },
+  "capabilities/requirement-capsule.md": {
+   "id": "cap.requirement-capsule",
+   "level": "detail",
+   "provides": []
+  },
+  "capabilities/research-gates.md": {
+   "id": "cap.research-gates",
+   "level": "detail",
+   "provides": [
+    "research.accept_hypothesis",
+    "research.accept_poc",
+    "research.accept_benchmark",
+    "research.accept_evaluation",
+    "research.accept_report"
+   ]
+  },
+  "capabilities/screening-gate.md": {
+   "id": "cap.screening-gate",
+   "level": "detail",
+   "provides": [
+    "research.accept_card"
+   ]
+  },
+  "capabilities/screening.md": {
+   "id": "cap.screening",
+   "level": "detail",
+   "provides": [
+    "research.select_opportunity"
+   ]
+  },
+  "capabilities/search-capsule.md": {
+   "id": "cap.search-capsule",
+   "level": "detail",
+   "provides": [
+    "research.search_ideas"
+   ]
+  },
+  "capabilities/search-gate.md": {
+   "id": "cap.search-gate",
+   "level": "detail",
+   "provides": [
+    "research.accept_ideas"
+   ]
+  },
+  "capabilities/write-report.md": {
+   "id": "cap.research.write_report",
+   "level": "detail",
+   "provides": [
+    "research.write_report"
+   ]
+  },
+  "capsule/admission.md": {
+   "id": "capsule.admission",
+   "level": "detail",
+   "provides": [
+    "AdmissionProvider",
+    "tested_admission",
+    "puppet_admission"
+   ]
+  },
+  "capsule/authoring.md": {
+   "id": "capsule.authoring",
+   "level": "detail",
+   "provides": [
+    "capsule.authoring"
+   ]
+  },
+  "capsule/capsule.md": {
+   "id": "capsule.capsule",
+   "level": "detail",
+   "provides": [
+    "capsule.index"
+   ]
+  },
+  "capsule/fields.md": {
+   "id": "cc.declaration.v1",
+   "level": "detail",
+   "provides": []
+  },
+  "capsule/fixture-oracle.md": {
+   "id": "capsule.fixture-oracle",
+   "level": "detail",
+   "provides": [
+    "cc.rsi_fixture_oracle",
+    "cc.fixture_oracle_api"
+   ]
+  },
+  "capsule/future-state.md": {
+   "id": "capsule.future-state",
+   "level": "detail",
+   "provides": [
+    "capsule.future_state"
+   ]
+  },
+  "capsule/gate-capsules.md": {
+   "id": "capsule.gate-capsules",
+   "level": "detail",
+   "provides": [
+    "cc.gate_capsule_pattern",
+    "prompt.gate_judging"
+   ]
+  },
+  "capsule/gate-host.md": {
+   "id": "capsule.gate-host",
+   "level": "detail",
+   "provides": [
+    "cc.gate_host",
+    "cc.gate_result",
+    "cc.verdicts"
+   ]
+  },
+  "capsule/library.md": {
+   "id": "capsule.library",
+   "level": "detail",
+   "provides": [
+    "capsule.library"
+   ]
+  },
+  "capsule/make-capsule.md": {
+   "id": "capsule.make-capsule",
+   "level": "detail",
+   "provides": [
+    "capsule.make_capsule"
+   ]
+  },
+  "capsule/observability.md": {
+   "id": "capsule.observability",
+   "level": "detail",
+   "provides": [
+    "capsule.observability"
+   ]
+  },
+  "capsule/permissions.md": {
+   "id": "capsule.permissions",
+   "level": "detail",
+   "provides": [
+    "capsule.permissions"
+   ]
+  },
+  "capsule/process-boundary.md": {
+   "id": "capsule.process-boundary",
+   "level": "detail",
+   "provides": [
+    "cc.untrusted_process_boundary",
+    "cc.process_execution_api"
+   ]
+  },
+  "capsule/prompt-brief.md": {
+   "id": "capsule.prompt-brief",
+   "level": "detail",
+   "provides": [
+    "cc.prompt_brief"
+   ]
+  },
+  "capsule/references.md": {
+   "id": "capsule.references",
+   "level": "detail",
+   "provides": [
+    "capsule.references"
+   ]
+  },
+  "capsule/rsi-attacks.md": {
+   "id": "capsule.rsi_attacks",
+   "level": "detail",
+   "provides": [
+    "cc.rsi_attack_suite"
+   ]
+  },
+  "capsule/rsi-engine.md": {
+   "id": "capsule.rsi-engine",
+   "level": "detail",
+   "provides": [
+    "cc.offline_rsi",
+    "cc.rsi_attempt_api"
+   ]
+  },
+  "capsule/rsi.md": {
+   "id": "capsule.rsi",
+   "level": "detail",
+   "provides": [
+    "cc.rsi_boundaries"
+   ]
+  },
+  "capsule/runner-broker.md": {
+   "id": "capsule.runner-broker",
+   "level": "detail",
+   "provides": [
+    "cc.runner_broker",
+    "cc.model_client"
+   ]
+  },
+  "capsule/runner-handlers.md": {
+   "id": "capsule.runner-handlers",
+   "level": "detail",
+   "provides": [
+    "cc.runner_handlers"
+   ]
+  },
+  "capsule/runner.md": {
+   "id": "capsule.runner",
+   "level": "detail",
+   "provides": [
+    "cc.runner"
+   ]
+  },
+  "capsule/stages.md": {
+   "id": "capsule.stages",
+   "level": "detail",
+   "provides": [
+    "capsule.stages"
+   ]
+  },
+  "capsule/toolchain.md": {
+   "id": "capsule.toolchain",
+   "level": "detail",
+   "provides": [
+    "cc.toolchain_api"
+   ]
+  },
+  "capsule/tools.md": {
+   "id": "capsule.tools",
+   "level": "detail",
+   "provides": [
+    "cc.tooling_map",
+    "cc.field_enforcement_map",
+    "cc.tools_inventory"
+   ]
+  },
+  "capsule/trust.md": {
+   "id": "capsule.trust",
+   "level": "detail",
+   "provides": [
+    "capsule.trust"
+   ]
+  },
+  "capsule/why.md": {
+   "id": "capsule.why",
+   "level": "detail",
+   "provides": [
+    "capsule.why"
+   ]
+  },
+  "decisions.md": {
+   "id": "arch.decisions",
+   "level": "present",
+   "provides": [
+    "arch.decisions",
+    "arch.deviations",
+    "arch.open"
+   ]
+  },
+  "flow-variants.md": {
+   "id": "arch.flow-variants",
+   "level": "detail",
+   "provides": [
+    "arch.flow.variants"
+   ]
+  },
+  "flow.md": {
+   "id": "arch.flow",
+   "level": "present",
+   "provides": [
+    "arch.flow",
+    "arch.flow.nodes"
+   ]
+  },
+  "placement.md": {
+   "id": "arch.placement",
+   "level": "present",
+   "provides": [
+    "arch.placement"
+   ]
+  },
+  "rsi.md": {
+   "id": "arch.rsi",
+   "level": "present",
+   "provides": [
+    "arch.rsi"
+   ]
+  },
+  "runtime.md": {
+   "id": "arch.runtime",
+   "level": "present",
+   "provides": [
+    "arch.runtime"
+   ]
+  },
+  "system/benchmark-export.md": {
+   "id": "system.benchmark-export",
+   "level": "detail",
+   "provides": [
+    "system.benchmark_export"
+   ]
+  },
+  "system/boundary-cases.md": {
+   "id": "system.boundary-cases",
+   "level": "detail",
+   "provides": [
+    "system.boundary_case_index"
+   ]
+  },
+  "system/deployment.md": {
+   "id": "system.deployment",
+   "level": "detail",
+   "provides": [
+    "system.deployment"
+   ]
+  },
+  "system/environment.md": {
+   "id": "system.environment",
+   "level": "detail",
+   "provides": [
+    "system.environment",
+    "system.config",
+    "system.secure_ipc",
+    "system.isolation_profiles"
+   ]
+  },
+  "system/experiments.md": {
+   "id": "system.experiments",
+   "level": "detail",
+   "provides": [
+    "system.track_isolation"
+   ]
+  },
+  "system/integration.md": {
+   "id": "system.integration",
+   "level": "detail",
+   "provides": [
+    "system.adapters"
+   ]
+  },
+  "system/ledgers.md": {
+   "id": "system.ledgers",
+   "level": "detail",
+   "provides": [
+    "system.ledgers"
+   ]
+  },
+  "system/lifecycle.md": {
+   "id": "system.lifecycle",
+   "level": "detail",
+   "provides": [
+    "system.run_lifecycle",
+    "system.runner_ipc"
+   ]
+  },
+  "system/model-auth.md": {
+   "id": "system.model-auth",
+   "level": "detail",
+   "provides": [
+    "system.model_auth"
+   ]
+  },
+  "system/model-bridge.md": {
+   "id": "system.model-bridge",
+   "level": "detail",
+   "provides": [
+    "system.model_bridge"
+   ]
+  },
+  "system/modules.md": {
+   "id": "system.modules",
+   "level": "detail",
+   "provides": [
+    "system.module_map",
+    "system.process_topology"
+   ]
+  },
+  "system/nodes.md": {
+   "id": "system.nodes",
+   "level": "detail",
+   "provides": [
+    "system.node",
+    "system.node_lifecycle",
+    "system.generic_script"
+   ]
+  },
+  "system/observability.md": {
+   "id": "system.observability",
+   "level": "detail",
+   "provides": [
+    "system.events"
+   ]
+  },
+  "system/planner.md": {
+   "id": "system.planner",
+   "level": "detail",
+   "provides": [
+    "system.planner",
+    "system.plan_validation",
+    "system.experimental_planner"
+   ]
+  },
+  "system/records.md": {
+   "id": "system.records",
+   "level": "detail",
+   "provides": [
+    "system.record_api",
+    "system.dispatch_identity"
+   ]
+  },
+  "system/reuse-audit.md": {
+   "id": "system.reuse-audit",
+   "level": "detail",
+   "provides": [
+    "system.reuse_audit"
+   ]
+  },
+  "system/seams.md": {
+   "id": "system.seams",
+   "level": "detail",
+   "provides": []
+  },
+  "system/storage.md": {
+   "id": "system.storage",
+   "level": "detail",
+   "provides": [
+    "system.durable_storage",
+    "system.stage_evidence"
+   ]
+  },
+  "system/test-surfaces.md": {
+   "id": "system.test-surfaces",
+   "level": "detail",
+   "provides": [
+    "system.verification_surface"
+   ]
+  },
+  "system/workstation.md": {
+   "id": "system.workstation",
+   "level": "detail",
+   "provides": [
+    "system.workstation_api",
+    "system.installer",
+    "system.local_session"
+   ]
+  },
+  "terms.md": {
+   "id": "arch.terms",
+   "level": "present",
+   "provides": [
+    "arch.terms"
+   ]
+  },
+  "verification.md": {
+   "id": "arch.verification",
+   "level": "present",
+   "provides": [
+    "arch.verification",
+    "arch.test_policy"
+   ]
+  }
+ },
+ "edges": [
+  [
+   "README.md",
+   "terms.md"
+  ],
+  [
+   "README.md",
+   "v-model.md"
+  ],
+  [
+   "README.md",
+   "flow.md"
+  ],
+  [
+   "README.md",
+   "placement.md"
+  ],
+  [
+   "README.md",
+   "isolation.md"
+  ],
+  [
+   "README.md",
+   "verification.md"
+  ],
+  [
+   "README.md",
+   "runtime.md"
+  ],
+  [
+   "README.md",
+   "rsi.md"
+  ],
+  [
+   "README.md",
+   "build-order.md"
+  ],
+  [
+   "README.md",
+   "decisions.md"
+  ],
+  [
+   "README.md",
+   "prd-map.md"
+  ],
+  [
+   "build-order.md",
+   "flow.md"
+  ],
+  [
+   "build-order.md",
+   "verification.md"
+  ],
+  [
+   "build-order.md",
+   "runtime.md"
+  ],
+  [
+   "build-order.md",
+   "rsi.md"
+  ],
+  [
+   "build-order.md",
+   "system/modules.md"
+  ],
+  [
+   "build-order.md",
+   "capabilities/README.md"
+  ],
+  [
+   "build-order.md",
+   "decisions.md"
+  ],
+  [
+   "build-order.md",
+   "contracts/README.md"
+  ],
+  [
+   "build-order.md",
+   "system/test-surfaces.md"
+  ],
+  [
+   "capabilities/README.md",
+   "terms.md"
+  ],
+  [
+   "capabilities/README.md",
+   "flow.md"
+  ],
+  [
+   "capabilities/README.md",
+   "capsule/capsule.md"
+  ],
+  [
+   "capabilities/README.md",
+   "types/types.md"
+  ],
+  [
+   "capabilities/README.md",
+   "capabilities/research-template.plan.json"
+  ],
+  [
+   "capabilities/README.md",
+   "capabilities/write-report.md"
+  ],
+  [
+   "capabilities/README.md",
+   "capabilities/delivery.md"
+  ],
+  [
+   "capabilities/benchmark.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/benchmark.md",
+   "types/benchmark-payload.md"
+  ],
+  [
+   "capabilities/benchmark.md",
+   "capsule/process-boundary.md"
+  ],
+  [
+   "capabilities/benchmarking-material.md",
+   "capabilities/improvement.md"
+  ],
+  [
+   "capabilities/benchmarking-material.md",
+   "capsule/fixture-oracle.md"
+  ],
+  [
+   "capabilities/benchmarking-material.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "capabilities/benchmarking-material.md",
+   "system/benchmark-export.md"
+  ],
+  [
+   "capabilities/benchmarking-material.md",
+   "capabilities/measurement-protocol.md"
+  ],
+  [
+   "capabilities/brief-gate.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capabilities/brief-gate.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/delivery.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/delivery.md",
+   "capabilities/write-report.md"
+  ],
+  [
+   "capabilities/delivery.md",
+   "capabilities/research-gates.md"
+  ],
+  [
+   "capabilities/delivery.md",
+   "capabilities/measurement-protocol.md"
+  ],
+  [
+   "capabilities/evaluation.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/evaluation.md",
+   "capabilities/research-gates.md"
+  ],
+  [
+   "capabilities/evaluation.md",
+   "capabilities/measurement-protocol.md"
+  ],
+  [
+   "capabilities/extract-text.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/extract-text.md",
+   "types/source-text.md"
+  ],
+  [
+   "capabilities/hypothesis.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/hypothesis.md",
+   "types/hypothesis-blueprint.md"
+  ],
+  [
+   "capabilities/hypothesis.md",
+   "capabilities/op-codesearch.md"
+  ],
+  [
+   "capabilities/improvement.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/improvement.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capabilities/improvement.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capabilities/improvement.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "capabilities/improvement.md",
+   "capabilities/benchmarking-material.md"
+  ],
+  [
+   "capabilities/intent-compile.md",
+   "types/intent-ir.md"
+  ],
+  [
+   "capabilities/intent-compile.md",
+   "types/source-text.md"
+  ],
+  [
+   "capabilities/intent-compile.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capabilities/intent-compile.md",
+   "capsule/gate-capsules.md"
+  ],
+  [
+   "capabilities/intent-compile.md",
+   "capabilities/intent-gate.md"
+  ],
+  [
+   "capabilities/intent-compile.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/intent-gate.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capabilities/intent-gate.md",
+   "capsule/gate-capsules.md"
+  ],
+  [
+   "capabilities/intent-gate.md",
+   "capabilities/intent-compile.md"
+  ],
+  [
+   "capabilities/intent-gate.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/measurement-protocol.md",
+   "types/hypothesis-blueprint.md"
+  ],
+  [
+   "capabilities/measurement-protocol.md",
+   "types/benchmark-payload.md"
+  ],
+  [
+   "capabilities/measurement-protocol.md",
+   "types/evaluation-verdict.md"
+  ],
+  [
+   "capabilities/measurement-protocol.md",
+   "system/storage.md"
+  ],
+  [
+   "capabilities/op-assess-dependency.md",
+   "types/dependency-requirement.md"
+  ],
+  [
+   "capabilities/op-assess-dependency.md",
+   "types/dependency-assessment.md"
+  ],
+  [
+   "capabilities/op-assess-dependency.md",
+   "schemas/policy.md"
+  ],
+  [
+   "capabilities/op-codesearch.md",
+   "types/code-hits.md"
+  ],
+  [
+   "capabilities/op-codesearch.md",
+   "system/storage.md"
+  ],
+  [
+   "capabilities/op-codesearch.md",
+   "system/environment.md"
+  ],
+  [
+   "capabilities/op-local-search.md",
+   "types/search-hits.md"
+  ],
+  [
+   "capabilities/op-local-search.md",
+   "types/intake.md"
+  ],
+  [
+   "capabilities/op-local-search.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capabilities/op-rank-opportunities.md",
+   "capabilities/screening.md"
+  ],
+  [
+   "capabilities/op-rank-opportunities.md",
+   "capabilities/op-assess-dependency.md"
+  ],
+  [
+   "capabilities/op-scholarly-search.md",
+   "types/search-hits.md"
+  ],
+  [
+   "capabilities/op-scholarly-search.md",
+   "system/integration.md"
+  ],
+  [
+   "capabilities/op-scholarly-search.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capabilities/op-workspace-io.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capabilities/op-workspace-io.md",
+   "system/storage.md"
+  ],
+  [
+   "capabilities/op-workspace-io.md",
+   "system/environment.md"
+  ],
+  [
+   "capabilities/poc.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/poc.md",
+   "types/poc-bundle.md"
+  ],
+  [
+   "capabilities/poc.md",
+   "capabilities/op-codesearch.md"
+  ],
+  [
+   "capabilities/poc.md",
+   "capabilities/op-workspace-io.md"
+  ],
+  [
+   "capabilities/research-gates.md",
+   "capsule/gate-capsules.md"
+  ],
+  [
+   "capabilities/research-gates.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capabilities/research-gates.md",
+   "capabilities/measurement-protocol.md"
+  ],
+  [
+   "capabilities/research-gates.md",
+   "capabilities/write-report.md"
+  ],
+  [
+   "capabilities/screening-gate.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capabilities/screening-gate.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/screening.md",
+   "types/idea-set.md"
+  ],
+  [
+   "capabilities/screening.md",
+   "types/research-brief.md"
+  ],
+  [
+   "capabilities/screening.md",
+   "types/screening-assessments.md"
+  ],
+  [
+   "capabilities/screening.md",
+   "types/opportunity-card.md"
+  ],
+  [
+   "capabilities/screening.md",
+   "capabilities/op-rank-opportunities.md"
+  ],
+  [
+   "capabilities/screening.md",
+   "capabilities/screening-gate.md"
+  ],
+  [
+   "capabilities/screening.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/search-capsule.md",
+   "types/idea-set.md"
+  ],
+  [
+   "capabilities/search-capsule.md",
+   "types/research-brief.md"
+  ],
+  [
+   "capabilities/search-capsule.md",
+   "capabilities/op-local-search.md"
+  ],
+  [
+   "capabilities/search-capsule.md",
+   "capabilities/op-scholarly-search.md"
+  ],
+  [
+   "capabilities/search-capsule.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/search-capsule.md",
+   "capabilities/search-gate.md"
+  ],
+  [
+   "capabilities/search-gate.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capabilities/search-gate.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/write-report.md",
+   "capabilities/README.md"
+  ],
+  [
+   "capabilities/write-report.md",
+   "capabilities/delivery.md"
+  ],
+  [
+   "capabilities/write-report.md",
+   "capabilities/research-gates.md"
+  ],
+  [
+   "capabilities/write-report.md",
+   "capabilities/measurement-protocol.md"
+  ],
+  [
+   "capabilities/write-report.md",
+   "types/research-report.md"
+  ],
+  [
+   "capsule/admission.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/admission.md",
+   "capsule/trust.md"
+  ],
+  [
+   "capsule/admission.md",
+   "schemas/verdict.md"
+  ],
+  [
+   "capsule/admission.md",
+   "schemas/profiles.md"
+  ],
+  [
+   "capsule/admission.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "capsule/authoring.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/authoring.md",
+   "capsule/prompt-brief.md"
+  ],
+  [
+   "capsule/authoring.md",
+   "capsule/trust.md"
+  ],
+  [
+   "capsule/authoring.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/capsule.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/capsule.md",
+   "capsule/authoring.md"
+  ],
+  [
+   "capsule/capsule.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/capsule.md",
+   "capsule/trust.md"
+  ],
+  [
+   "capsule/fixture-oracle.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "capsule/fixture-oracle.md",
+   "capsule/rsi-attacks.md"
+  ],
+  [
+   "capsule/fixture-oracle.md",
+   "system/environment.md"
+  ],
+  [
+   "capsule/fixture-oracle.md",
+   "system/records.md"
+  ],
+  [
+   "capsule/future-state.md",
+   "capsule/capsule.md"
+  ],
+  [
+   "capsule/future-state.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/future-state.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/gate-capsules.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capsule/gate-capsules.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/gate-capsules.md",
+   "verification.md"
+  ],
+  [
+   "capsule/gate-capsules.md",
+   "schemas/profiles.md"
+  ],
+  [
+   "capsule/gate-host.md",
+   "system/nodes.md"
+  ],
+  [
+   "capsule/gate-host.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/gate-host.md",
+   "capsule/runner-broker.md"
+  ],
+  [
+   "capsule/gate-host.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "capsule/gate-host.md",
+   "capsule/gate-capsules.md"
+  ],
+  [
+   "capsule/gate-host.md",
+   "verification.md"
+  ],
+  [
+   "capsule/library.md",
+   "capsule/admission.md"
+  ],
+  [
+   "capsule/library.md",
+   "system/storage.md"
+  ],
+  [
+   "capsule/library.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/make-capsule.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/make-capsule.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "capsule/observability.md",
+   "schemas/observation.md"
+  ],
+  [
+   "capsule/observability.md",
+   "schemas/artifact.md"
+  ],
+  [
+   "capsule/observability.md",
+   "capsule/trust.md"
+  ],
+  [
+   "capsule/permissions.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/permissions.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/permissions.md",
+   "capsule/process-boundary.md"
+  ],
+  [
+   "capsule/process-boundary.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/process-boundary.md",
+   "capsule/permissions.md"
+  ],
+  [
+   "capsule/process-boundary.md",
+   "capabilities/benchmark.md"
+  ],
+  [
+   "capsule/process-boundary.md",
+   "types/poc-bundle.md"
+  ],
+  [
+   "capsule/prompt-brief.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/prompt-brief.md",
+   "capsule/authoring.md"
+  ],
+  [
+   "capsule/prompt-brief.md",
+   "capsule/gate-capsules.md"
+  ],
+  [
+   "capsule/prompt-brief.md",
+   "verification.md"
+  ],
+  [
+   "capsule/references.md",
+   "capsule/why.md"
+  ],
+  [
+   "capsule/references.md",
+   "capsule/trust.md"
+  ],
+  [
+   "capsule/references.md",
+   "capsule/rsi.md"
+  ],
+  [
+   "capsule/references.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/rsi-attacks.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "capsule/rsi-attacks.md",
+   "capsule/fixture-oracle.md"
+  ],
+  [
+   "capsule/rsi-attacks.md",
+   "capsule/rsi.md"
+  ],
+  [
+   "capsule/rsi-attacks.md",
+   "system/test-surfaces.md"
+  ],
+  [
+   "capsule/rsi-engine.md",
+   "capsule/fixture-oracle.md"
+  ],
+  [
+   "capsule/rsi-engine.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "capsule/rsi-engine.md",
+   "system/storage.md"
+  ],
+  [
+   "capsule/rsi-engine.md",
+   "system/environment.md"
+  ],
+  [
+   "capsule/rsi.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "capsule/rsi.md",
+   "capsule/fixture-oracle.md"
+  ],
+  [
+   "capsule/rsi.md",
+   "capsule/admission.md"
+  ],
+  [
+   "capsule/rsi.md",
+   "capsule/rsi-attacks.md"
+  ],
+  [
+   "capsule/runner-broker.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/runner-broker.md",
+   "capsule/runner-handlers.md"
+  ],
+  [
+   "capsule/runner-broker.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "capsule/runner-broker.md",
+   "system/model-bridge.md"
+  ],
+  [
+   "capsule/runner-broker.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "capsule/runner-handlers.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/runner-handlers.md",
+   "capsule/runner-broker.md"
+  ],
+  [
+   "capsule/runner-handlers.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/runner-handlers.md",
+   "schemas/checks.md"
+  ],
+  [
+   "capsule/runner-handlers.md",
+   "types/types.md"
+  ],
+  [
+   "capsule/runner.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/runner.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "capsule/runner.md",
+   "capsule/runner-handlers.md"
+  ],
+  [
+   "capsule/runner.md",
+   "capsule/runner-broker.md"
+  ],
+  [
+   "capsule/runner.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "capsule/runner.md",
+   "system/records.md"
+  ],
+  [
+   "capsule/runner.md",
+   "system/environment.md"
+  ],
+  [
+   "capsule/stages.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/stages.md",
+   "capsule/tools.md"
+  ],
+  [
+   "capsule/stages.md",
+   "schemas/policy.md"
+  ],
+  [
+   "capsule/toolchain.md",
+   "capsule/tools.md"
+  ],
+  [
+   "capsule/toolchain.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/toolchain.md",
+   "capsule/runner-handlers.md"
+  ],
+  [
+   "capsule/toolchain.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/toolchain.md",
+   "system/modules.md"
+  ],
+  [
+   "capsule/toolchain.md",
+   "build-order.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/stages.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/runner.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/runner-handlers.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/runner-broker.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/permissions.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/tools.md",
+   "capsule/process-boundary.md"
+  ],
+  [
+   "capsule/tools.md",
+   "system/modules.md"
+  ],
+  [
+   "capsule/tools.md",
+   "build-order.md"
+  ],
+  [
+   "capsule/trust.md",
+   "capsule/fields.md"
+  ],
+  [
+   "capsule/trust.md",
+   "capsule/permissions.md"
+  ],
+  [
+   "capsule/trust.md",
+   "capsule/library.md"
+  ],
+  [
+   "capsule/trust.md",
+   "verification.md"
+  ],
+  [
+   "capsule/why.md",
+   "capsule/capsule.md"
+  ],
+  [
+   "decisions.md",
+   "terms.md"
+  ],
+  [
+   "decisions.md",
+   "flow.md"
+  ],
+  [
+   "decisions.md",
+   "placement.md"
+  ],
+  [
+   "decisions.md",
+   "verification.md"
+  ],
+  [
+   "decisions.md",
+   "runtime.md"
+  ],
+  [
+   "decisions.md",
+   "rsi.md"
+  ],
+  [
+   "decisions.md",
+   "prd-map.md"
+  ],
+  [
+   "flow-variants.md",
+   "flow.md"
+  ],
+  [
+   "flow.md",
+   "terms.md"
+  ],
+  [
+   "flow.md",
+   "placement.md"
+  ],
+  [
+   "flow.md",
+   "verification.md"
+  ],
+  [
+   "flow.md",
+   "runtime.md"
+  ],
+  [
+   "flow.md",
+   "rsi.md"
+  ],
+  [
+   "flow.md",
+   "capabilities/README.md"
+  ],
+  [
+   "flow.md",
+   "system/planner.md"
+  ],
+  [
+   "flow.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "placement.md",
+   "terms.md"
+  ],
+  [
+   "placement.md",
+   "flow.md"
+  ],
+  [
+   "placement.md",
+   "system/deployment.md"
+  ],
+  [
+   "placement.md",
+   "system/modules.md"
+  ],
+  [
+   "placement.md",
+   "system/model-auth.md"
+  ],
+  [
+   "placement.md",
+   "system/storage.md"
+  ],
+  [
+   "placement.md",
+   "model-routing/README.md"
+  ],
+  [
+   "rsi.md",
+   "terms.md"
+  ],
+  [
+   "rsi.md",
+   "verification.md"
+  ],
+  [
+   "rsi.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "rsi.md",
+   "capsule/rsi.md"
+  ],
+  [
+   "rsi.md",
+   "capsule/fixture-oracle.md"
+  ],
+  [
+   "rsi.md",
+   "capsule/admission.md"
+  ],
+  [
+   "rsi.md",
+   "capsule/library.md"
+  ],
+  [
+   "rsi.md",
+   "capabilities/improvement.md"
+  ],
+  [
+   "rsi.md",
+   "capabilities/benchmarking-material.md"
+  ],
+  [
+   "runtime.md",
+   "terms.md"
+  ],
+  [
+   "runtime.md",
+   "flow.md"
+  ],
+  [
+   "runtime.md",
+   "verification.md"
+  ],
+  [
+   "runtime.md",
+   "capsule/runner.md"
+  ],
+  [
+   "runtime.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "runtime.md",
+   "system/environment.md"
+  ],
+  [
+   "runtime.md",
+   "system/storage.md"
+  ],
+  [
+   "runtime.md",
+   "system/observability.md"
+  ],
+  [
+   "runtime.md",
+   "capsule/permissions.md"
+  ],
+  [
+   "system/benchmark-export.md",
+   "system/workstation.md"
+  ],
+  [
+   "system/benchmark-export.md",
+   "system/storage.md"
+  ],
+  [
+   "system/benchmark-export.md",
+   "system/records.md"
+  ],
+  [
+   "system/benchmark-export.md",
+   "system/observability.md"
+  ],
+  [
+   "system/benchmark-export.md",
+   "system/experiments.md"
+  ],
+  [
+   "system/boundary-cases.md",
+   "system/test-surfaces.md"
+  ],
+  [
+   "system/boundary-cases.md",
+   "system/modules.md"
+  ],
+  [
+   "system/boundary-cases.md",
+   "system/deployment.md"
+  ],
+  [
+   "system/boundary-cases.md",
+   "system/model-auth.md"
+  ],
+  [
+   "system/boundary-cases.md",
+   "system/experiments.md"
+  ],
+  [
+   "system/deployment.md",
+   "system/environment.md"
+  ],
+  [
+   "system/deployment.md",
+   "system/modules.md"
+  ],
+  [
+   "system/deployment.md",
+   "system/benchmark-export.md"
+  ],
+  [
+   "system/environment.md",
+   "system/integration.md"
+  ],
+  [
+   "system/environment.md",
+   "capsule/process-boundary.md"
+  ],
+  [
+   "system/environment.md",
+   "capsule/fixture-oracle.md"
+  ],
+  [
+   "system/experiments.md",
+   "system/planner.md"
+  ],
+  [
+   "system/experiments.md",
+   "decisions.md"
+  ],
+  [
+   "system/experiments.md",
+   "system/environment.md"
+  ],
+  [
+   "system/experiments.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "system/experiments.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "system/integration.md",
+   "terms.md"
+  ],
+  [
+   "system/integration.md",
+   "system/nodes.md"
+  ],
+  [
+   "system/ledgers.md",
+   "terms.md"
+  ],
+  [
+   "system/ledgers.md",
+   "system/observability.md"
+  ],
+  [
+   "system/ledgers.md",
+   "system/integration.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "system/nodes.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "system/planner.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "system/records.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "flow.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "verification.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "runtime.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "capsule/runner.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "system/storage.md"
+  ],
+  [
+   "system/lifecycle.md",
+   "system/environment.md"
+  ],
+  [
+   "system/model-auth.md",
+   "system/environment.md"
+  ],
+  [
+   "system/model-auth.md",
+   "system/deployment.md"
+  ],
+  [
+   "system/model-auth.md",
+   "system/records.md"
+  ],
+  [
+   "system/model-bridge.md",
+   "system/environment.md"
+  ],
+  [
+   "system/model-bridge.md",
+   "system/model-auth.md"
+  ],
+  [
+   "system/model-bridge.md",
+   "system/records.md"
+  ],
+  [
+   "system/model-bridge.md",
+   "capsule/runner-broker.md"
+  ],
+  [
+   "system/model-bridge.md",
+   "contracts/principles.md"
+  ],
+  [
+   "system/modules.md",
+   "system/integration.md"
+  ],
+  [
+   "system/modules.md",
+   "capsule/runner.md"
+  ],
+  [
+   "system/modules.md",
+   "capsule/runner-handlers.md"
+  ],
+  [
+   "system/modules.md",
+   "capsule/runner-broker.md"
+  ],
+  [
+   "system/modules.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "system/modules.md",
+   "system/model-bridge.md"
+  ],
+  [
+   "system/modules.md",
+   "placement.md"
+  ],
+  [
+   "system/modules.md",
+   "flow.md"
+  ],
+  [
+   "system/nodes.md",
+   "terms.md"
+  ],
+  [
+   "system/nodes.md",
+   "flow.md"
+  ],
+  [
+   "system/nodes.md",
+   "verification.md"
+  ],
+  [
+   "system/nodes.md",
+   "types/run-plan.md"
+  ],
+  [
+   "system/nodes.md",
+   "capsule/runner.md"
+  ],
+  [
+   "system/nodes.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "system/nodes.md",
+   "system/planner.md"
+  ],
+  [
+   "system/nodes.md",
+   "system/experiments.md"
+  ],
+  [
+   "system/observability.md",
+   "system/ledgers.md"
+  ],
+  [
+   "system/observability.md",
+   "system/integration.md"
+  ],
+  [
+   "system/planner.md",
+   "flow.md"
+  ],
+  [
+   "system/planner.md",
+   "decisions.md"
+  ],
+  [
+   "system/planner.md",
+   "verification.md"
+  ],
+  [
+   "system/planner.md",
+   "types/run-plan.md"
+  ],
+  [
+   "system/planner.md",
+   "capsule/library.md"
+  ],
+  [
+   "system/planner.md",
+   "capabilities/research-template.plan.json"
+  ],
+  [
+   "system/planner.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "system/planner.md",
+   "system/experiments.md"
+  ],
+  [
+   "system/records.md",
+   "system/storage.md"
+  ],
+  [
+   "system/records.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "system/records.md",
+   "capsule/rsi-engine.md"
+  ],
+  [
+   "system/reuse-audit.md",
+   "system/integration.md"
+  ],
+  [
+   "system/reuse-audit.md",
+   "system/modules.md"
+  ],
+  [
+   "system/reuse-audit.md",
+   "system/environment.md"
+  ],
+  [
+   "system/reuse-audit.md",
+   "system/model-auth.md"
+  ],
+  [
+   "system/reuse-audit.md",
+   "capsule/runner.md"
+  ],
+  [
+   "system/seams.md",
+   "verification.md"
+  ],
+  [
+   "system/seams.md",
+   "placement.md"
+  ],
+  [
+   "system/seams.md",
+   "rsi.md"
+  ],
+  [
+   "system/seams.md",
+   "types/types.md"
+  ],
+  [
+   "system/storage.md",
+   "capsule/toolchain.md"
+  ],
+  [
+   "system/storage.md",
+   "system/ledgers.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "system/modules.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "build-order.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "stories.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "system/storage.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "system/environment.md"
+  ],
+  [
+   "system/test-surfaces.md",
+   "system/workstation.md"
+  ],
+  [
+   "system/workstation.md",
+   "system/integration.md"
+  ],
+  [
+   "system/workstation.md",
+   "system/observability.md"
+  ],
+  [
+   "system/workstation.md",
+   "system/lifecycle.md"
+  ],
+  [
+   "system/workstation.md",
+   "system/environment.md"
+  ],
+  [
+   "terms.md",
+   "flow.md"
+  ],
+  [
+   "terms.md",
+   "capsule/capsule.md"
+  ],
+  [
+   "verification.md",
+   "terms.md"
+  ],
+  [
+   "verification.md",
+   "flow.md"
+  ],
+  [
+   "verification.md",
+   "capsule/gate-host.md"
+  ],
+  [
+   "verification.md",
+   "capsule/gate-capsules.md"
+  ],
+  [
+   "verification.md",
+   "system/test-surfaces.md"
+  ],
+  [
+   "verification.md",
+   "schemas/verification-record.md"
+  ],
+  [
+   "verification.md",
+   "types/evidence-bundle.md"
+  ],
+  [
+   "verification.md",
+   "types/verifier-assessment.md"
+  ]
+ ]
+}

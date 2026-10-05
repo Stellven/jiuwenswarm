@@ -31,22 +31,6 @@ def refresh(vault, check=False):
     same = updated == text
     if not same and not check:
         path.write_text(updated, encoding='utf-8', newline='\n')
-    from information_views import refresh as refresh_information
-    from showcase_views import refresh as refresh_showcase
-    return refresh_production_flow(vault, check) and refresh_information(vault, check) and refresh_showcase(vault, check) and (same or not check)
+    from flow_views import refresh as refresh_flow
+    return refresh_flow(check) and (same or not check)
 
-
-def refresh_production_flow(vault, check=False):
-    source = (vault / 'm1/control-flow.md').read_text(encoding='utf-8')
-    diagram = re.findall(r'```mermaid\s*\n.*?```', source, re.S)[0]
-    lines = diagram.splitlines()
-    block = '<!-- generated:production-flow -->\n' + '\n'.join(lines) + '\n<!-- /generated:production-flow -->'
-    path = vault / 'system/diagram-atlas.md'
-    text = path.read_text(encoding='utf-8')
-    updated = re.sub(r'<!-- generated:production-flow -->.*?<!-- /generated:production-flow -->', lambda _: block, text, flags=re.S)
-    if text == updated:
-        return True
-    if check:
-        return False
-    path.write_text(updated, encoding='utf-8', newline='\n')
-    return True

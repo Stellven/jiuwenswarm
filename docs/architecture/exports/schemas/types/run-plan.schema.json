@@ -7,6 +7,18 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "phase": {
+      "enum": [
+        "prep",
+        "planned"
+      ]
+    },
+    "prep_inputs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "steps": {
       "type": "array",
       "items": {
@@ -157,6 +169,7 @@
     }
   },
   "required": [
+    "phase",
     "steps",
     "library_snapshot_sha256",
     "track",

@@ -3,13 +3,23 @@ type: schema
 id: cc.candidate.v1
 status: proposed
 tags: [schema]
+prd: [4.1.2, 4.1.5]
+level: detail
 ---
 
 # Candidate · `cc.candidate.v1`
 
-A submission to admission: a Declaration, the files it points at, its tests, how it was built and where it came from. It is the only way into the library, for authors, RSI and importers alike. The submitter writes it; admission only reads it (INV-3).
+PRD: 4.1.2, 4.1.5
+
+A submission to admission: a [Declaration](../capsule/fields.md#term-declaration), the files it points at, its tests, how it was built and where it came from. It is the only way into the library, for authors, [RSI](../rsi.md#term-rsi) and importers alike. The submitter writes it; admission only reads it (INV-3).
 
 **Rules:** INV-3, INV-10.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-candidate"></a>**Candidate** (also: Candidates) | A submission to admission: a Declaration, the files it points at, its tests, how it was built and where it came from. It is the only way into the library, for authors, RSI and importers alike, and admission only reads it. |
 
 ## Fields
 
@@ -22,15 +32,15 @@ Extends [common](common.md), with `scope.candidate_id` equal to its own `id`.
 | `submitted_by.id` | `string` | req | checked |  | An author's handle, an RSI run id, or an importer's name. Example: `author-17` |
 | `declaration` | `json` | req | checked |  | The [Declaration](../capsule/fields.md) being submitted, in full |
 | `files` | `list<object>` | req | checked |  | At least one. Every local file pinned by the Declaration: carrier, body, check runners, rubrics and local value schemas. Admission requires exact path/hash coverage, rejects conflicting duplicate paths and rehashes all bytes |
-| `files[].path` | `string` | req | checked |  | Relative to the capsule root. Example: `pdf_text.py` |
+| `files[].path` | `string` | req | checked |  | Relative to the [capsule](../capsule/capsule.md#term-capability-capsule) root. Example: `pdf_text.py` |
 | `files[].sha256` | `sha256` | req | checked |  | The file's hash |
 | `files[].content_ref` | `uri` | req | checked |  | Where admission can fetch the bytes |
-| `tests` | `list<object>` | req | checked |  | The submitter's test cases, inline; at least one. Admission stores each as a [test case](checks.md) and groups them into one visible suite. The policy also requires one per `admission` or `both` check |
+| `tests` | `list<object>` | req | checked |  | The submitter's [test cases](checks.md#term-test-case), inline; at least one. Admission stores each as a [test case](checks.md) and groups them into one visible suite. The policy also requires one per `admission` or `both` check |
 | `tests[].check_id` | `id` | req | checked |  | The check the case exercises. Example: `text_not_empty` |
 | `tests[].inputs` | `map<string, json>` | req | checked |  | Input port name to value. Admission stores each value as one Artifact. A `file` or `path` value is given as a URI, which admission fetches. Example: `{"pdf": "https://example.org/sample.pdf"}` |
 | `tests[].expected` | `json` | req | checked |  | The expected output, or a judged check's rubric. Example: `{"text": {"min_chars": 1}}` |
-| `tests[].fixtures` | `list<uri>` | opt | checked |  | Outside state the case needs, fetched and stored by admission as Artifacts |
-| `tests[].model_replies` | `list<text>` | opt | checked |  | *Proposed.* Recorded model replies, in turn order, for a capsule that calls a model. At admission the model client returns them instead of calling a model, so the test is exact and needs no live model ([runner](../capsule/runner.md#the-model-client-contract-m05)) |
+| `tests[].fixtures` | `list<uri>` | opt | checked |  | Outside state the case needs, fetched and stored by admission as [Artifacts](artifact.md#term-artifact) |
+| `tests[].model_replies` | `list<text>` | opt | checked |  | *Proposed.* Recorded model replies, in [turn](../system/model-bridge.md#term-model-turn) order, for a capsule that calls a model. At admission the model client returns them instead of calling a model, so the test is exact and needs no live model ([runner](../capsule/runner-broker.md#the-model-client-contract-m05)) |
 | `tests[].negative_control` | `boolean` | opt | unchecked | certification | `true` when the case must fail |
 | `requested_level` | `enum(provisional, certified)` | opt | unchecked | certification | The level asked for. Default `provisional` |
 | `builder_evidence` | `object` | opt | unchecked | RSI | How it was built. **Kept, never counted as a passed check** (INV-10) |
@@ -38,7 +48,7 @@ Extends [common](common.md), with `scope.candidate_id` equal to its own `id`.
 | `builder_evidence.prompt_ref` | `uri` | opt | unchecked | RSI | The prompt that produced it |
 | `builder_evidence.trajectory_ref` | `id` | opt | unchecked | RSI | An agent-core trajectory id: what the builder did |
 | `builder_evidence.builder_gate` | `json` | opt | unchecked | RSI | The builder's own test result, e.g. RSI's score and baseline. A label only |
-| `test_aids` | `list<Ref(artifact)>` | opt | unchecked | RSI | Example inputs and fixtures for testers and RSI. Never evidence |
+| `test_aids` | `list<Ref(artifact)>` | opt | unchecked | RSI | Example inputs and [fixtures](../system/test-surfaces.md#term-fixture) for testers and RSI. Never evidence |
 | `source` | `object` | opt | unchecked | importer, store | Provenance, for imports: where the capability came from |
 | `source.system` | `string` | req | unchecked | importer, store | The system it came from. Example: `skillhub` |
 | `source.uri` | `uri` | req | unchecked | importer, store | Where it was fetched. Example: `https://github.com/org/pdf-tools` |

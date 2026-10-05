@@ -1,0 +1,3673 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cc:contracts:library-rsi-v1",
+  "title": "M1 library, admission, offline RSI, oracle, process, delivery and intake contracts v1",
+  "$defs": {
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "x-internal": true,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+    },
+    "profile_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "kind": {
+          "const": "admission"
+        },
+        "id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        }
+      },
+      "description": "ProfileRef for an admission profile.",
+      "x-internal": true
+    },
+    "check_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "runner_sha256",
+        "result"
+      ],
+      "properties": {
+        "check_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "runner_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        }
+      },
+      "description": "One mechanical or suite check that actually ran."
+    },
+    "library_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability_name",
+        "decl_hash",
+        "interface_hash",
+        "verdict_ref",
+        "standing_ref"
+      ],
+      "properties": {
+        "capability_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "interface_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "verdict_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "standing_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      }
+    },
+    "trial_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "content_ref"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "content_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "Closed TrialFile; content_ref resolves to a controller artifact."
+    },
+    "finding_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "source_quotes"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        },
+        "source_quotes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "maxItems": 10000
+        },
+        "item_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/id"
+          },
+          "maxItems": 10000
+        }
+      },
+      "x-internal": true
+    },
+    "oracle_purpose": {
+      "enum": [
+        "baseline",
+        "proposal",
+        "ablation"
+      ],
+      "x-internal": true
+    },
+    "rsi_state": {
+      "enum": [
+        "preparing",
+        "running",
+        "closing",
+        "closed",
+        "stopped",
+        "blocked",
+        "finished",
+        "no_candidate"
+      ]
+    },
+    "attempt_disposition": {
+      "enum": [
+        "kept",
+        "rejected",
+        "promotable",
+        "no_candidate"
+      ]
+    },
+    "sample_values": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+      },
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "published_file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "source_ref"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!(.*/)?\\.\\.(/|$))[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$",
+          "maxLength": 4096
+        },
+        "sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "One file written under the destination. path is relative with no parent traversal.",
+      "x-internal": true
+    },
+    "admission_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "candidate_ref",
+        "policy_ref",
+        "admission_profile_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "candidate_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "policy_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "admission_profile_ref": {
+          "$ref": "#/$defs/profile_ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "assess(): ask the policy-selected provider for an assurance decision. Identity is (candidate sha, policy sha, profile sha, request_id)."
+    },
+    "admission_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "provider",
+        "candidate_ref",
+        "decl_hash",
+        "interface_hash",
+        "policy_ref",
+        "admission_profile_ref",
+        "parent_decl_hash",
+        "outcome",
+        "admission_basis",
+        "level",
+        "standing_state",
+        "checks_run",
+        "test_suites",
+        "reasons",
+        "decided_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "provider": {
+          "enum": [
+            "tested_admission",
+            "puppet_admission"
+          ]
+        },
+        "candidate_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "interface_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "policy_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "admission_profile_ref": {
+          "$ref": "#/$defs/profile_ref"
+        },
+        "parent_decl_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "admit",
+            "reject",
+            "defer"
+          ]
+        },
+        "admission_basis": {
+          "enum": [
+            "test_evidence",
+            "developer_decision"
+          ]
+        },
+        "level": {
+          "anyOf": [
+            {
+              "enum": [
+                "provisional",
+                "exempt"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "standing_state": {
+          "anyOf": [
+            {
+              "enum": [
+                "admitted",
+                "admitted_inactive"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "checks_run": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/check_run"
+          },
+          "maxItems": 10000
+        },
+        "test_suites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "sha256"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "sha256": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/reason"
+          },
+          "maxItems": 10000
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        },
+        "developer_decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowlist_sha256",
+            "actor",
+            "reason",
+            "decided_at"
+          ],
+          "properties": {
+            "allowlist_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "actor": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "decided_at": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+            }
+          }
+        },
+        "ext": {
+          "$ref": "cc:contracts:services-v1#/$defs/ext"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "provider": {
+                "const": "tested_admission"
+              }
+            },
+            "required": [
+              "provider"
+            ]
+          },
+          "then": {
+            "properties": {
+              "admission_basis": {
+                "const": "test_evidence"
+              }
+            },
+            "not": {
+              "required": [
+                "developer_decision"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provider": {
+                "const": "puppet_admission"
+              }
+            },
+            "required": [
+              "provider"
+            ]
+          },
+          "then": {
+            "properties": {
+              "admission_basis": {
+                "const": "developer_decision"
+              },
+              "test_suites": {
+                "maxItems": 0
+              }
+            },
+            "required": [
+              "developer_decision"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "admit"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "level": {
+                "enum": [
+                  "provisional",
+                  "exempt"
+                ]
+              },
+              "standing_state": {
+                "enum": [
+                  "admitted",
+                  "admitted_inactive"
+                ]
+              },
+              "checks_run": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "reject",
+                  "defer"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "level": {
+                "type": "null"
+              },
+              "standing_state": {
+                "type": "null"
+              },
+              "reasons": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provider": {
+                "const": "tested_admission"
+              },
+              "outcome": {
+                "const": "admit"
+              }
+            },
+            "required": [
+              "provider",
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "level": {
+                "const": "provisional"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provider": {
+                "const": "puppet_admission"
+              },
+              "outcome": {
+                "const": "admit"
+              }
+            },
+            "required": [
+              "provider",
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "level": {
+                "const": "exempt"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "admit"
+              },
+              "parent_decl_hash": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              }
+            },
+            "required": [
+              "outcome",
+              "parent_decl_hash"
+            ]
+          },
+          "then": {
+            "properties": {
+              "standing_state": {
+                "const": "admitted_inactive"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Provider output committed as the Verdict body. An RSI child (parent_decl_hash set) is always admitted_inactive. Puppet decisions run no suite."
+    },
+    "library_snapshot_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "snapshot(request_id): librarian publishes the active selection atomically."
+    },
+    "library_snapshot_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "snapshot_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "snapshot_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "Reply to snapshot(): ref of the committed library_snapshot."
+    },
+    "library_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "entries",
+        "policy_epoch",
+        "vocabulary_sha256",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/library_entry"
+          },
+          "maxItems": 10000
+        },
+        "policy_epoch": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "vocabulary_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        }
+      },
+      "description": "Frozen LibrarySnapshot. Entries are sorted by capability_name then decl_hash; no duplicate names or hashes in the active selection (checked at publication)."
+    },
+    "catalogue_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "snapshot_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "snapshot_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "catalogue(snapshot_ref): read-only listing for the isolated planner."
+    },
+    "catalogue_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "snapshot_ref",
+        "entries"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "snapshot_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/library_entry"
+          },
+          "maxItems": 10000
+        }
+      },
+      "description": "Entries of the pinned snapshot, no redaction of contract fields."
+    },
+    "activation_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "capability_name",
+        "admitted_decl_hash",
+        "expected_current_hash",
+        "actor",
+        "reason",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "capability_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "admitted_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "expected_current_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "activate(): move the active alias to an admitted exact hash. Null expected_current_hash means no current pointer. Rollback uses the same request with an older admitted hash."
+    },
+    "activation_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "capability_name",
+        "previous_decl_hash",
+        "decl_hash",
+        "actor",
+        "reason",
+        "at",
+        "standing_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "capability_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "previous_decl_hash": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        },
+        "standing_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "Payload of the activation SystemRecord. It is authority; the alias projection can be rebuilt from it."
+    },
+    "rsi_start_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "target_decl_hash",
+        "export_id",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "export_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "start_rsi(): developer starts an offline session on one eligible parent."
+    },
+    "rsi_status_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "session_id",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "rsi_status(session_id)."
+    },
+    "rsi_stop_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "session_id",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "stop_rsi()."
+    },
+    "rsi_submit_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "session_id",
+        "attempt_id",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "attempt_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "submit_rsi(): publish the sealed incumbent as a Candidate. Reply is a bare Ref(Candidate)."
+    },
+    "rsi_resume_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "session_id",
+        "clearance_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "clearance_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "resume_rsi(): explicit human command after a security block. clearance_ref is the committed rsi_security_clearance SystemRef."
+    },
+    "rsi_session_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "session_id",
+        "state",
+        "target_decl_hash",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "state": {
+          "$ref": "#/$defs/rsi_state"
+        },
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "latest_attempt_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "candidate_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "oracle_closure_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "final_result_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "security_block_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "clearance_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "closed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "oracle_closure_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "finished",
+                  "no_candidate"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "final_result_ref"
+            ]
+          }
+        }
+      ],
+      "description": "RsiSessionResult, a closed internal envelope. Optional fields are absent when not applicable. A security block also carries security_block_ref (checked by the controller)."
+    },
+    "rsi_attempt_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "attempt_id",
+        "session_id",
+        "target_decl_hash",
+        "parent_decl_hash",
+        "changed_path",
+        "before_sha256",
+        "after_sha256",
+        "model_id",
+        "config_sha256",
+        "model_call_count",
+        "observation_refs",
+        "elapsed_s",
+        "policy_epoch",
+        "export_id",
+        "state",
+        "previous_entry_sha256",
+        "entry_sha256",
+        "at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "attempt_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "parent_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "changed_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "before_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "after_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "config_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "model_call_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observation_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "elapsed_s": {
+          "type": "number",
+          "minimum": 0
+        },
+        "policy_epoch": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "export_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "state": {
+          "enum": [
+            "proposed",
+            "rejected",
+            "evaluated",
+            "not_comparable",
+            "ablation",
+            "submitted"
+          ]
+        },
+        "previous_entry_sha256": {
+          "anyOf": [
+            {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "entry_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        },
+        "parent_attempt_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "child_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "served_model_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "served_model_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "money": {
+          "type": "number",
+          "minimum": 0
+        },
+        "usage_unavailable_reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "oracle_request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "candidate_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "trial_ref": {
+          "$ref": "#/$defs/trial_ref"
+        },
+        "wins": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "losses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ties": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "incumbent_median_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "child_median_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "disposition": {
+          "$ref": "#/$defs/attempt_disposition"
+        },
+        "scoring_rule_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "oracle_result_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "proposed",
+                  "evaluated",
+                  "ablation"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "trial_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "submitted"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "candidate_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "rejected"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        },
+        {
+          "dependentRequired": {
+            "wins": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ],
+            "losses": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ],
+            "ties": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ],
+            "incumbent_median_ms": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ],
+            "child_median_ms": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ],
+            "disposition": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ],
+            "scoring_rule_sha256": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ],
+            "oracle_result_ref": [
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "oracle_result_ref"
+            ]
+          }
+        }
+      ],
+      "description": "One immutable, hash-chained line of attempts.jsonl. entry_sha256 is the SHA-256 of canonical UTF-8 JSON of every other field. First entry has previous_entry_sha256=null. Comparison fields appear together or not at all; interrupted or rejected-before-query entries omit them."
+    },
+    "rsi_trial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_decl_hash",
+        "parent_decl_hash",
+        "trial_decl_hash",
+        "declaration",
+        "files",
+        "visible_suite_result_refs",
+        "policy_ref",
+        "permitted_paths_sha256",
+        "config_sha256",
+        "evaluator_sha256"
+      ],
+      "properties": {
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "parent_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "trial_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "declaration": {
+          "type": "object"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trial_file"
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        },
+        "visible_suite_result_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "policy_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "permitted_paths_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "config_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "evaluator_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        }
+      },
+      "description": "Payload of the private rsi_trial SystemRecord: implementation snapshot plus visible hard-gate evidence. Never hidden bytes; not a Candidate."
+    },
+    "rsi_security_clearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "actor",
+        "target_decl_hash",
+        "execution_profile_sha256",
+        "security_block_ref",
+        "remediation_refs",
+        "boundary_report_ref",
+        "reason"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "execution_profile_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "security_block_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "remediation_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        },
+        "boundary_report_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "description": "Payload of the rsi_security_clearance SystemRecord, written only by the authenticated human terminal."
+    },
+    "rsi_verify_boundary_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "profile_ref",
+        "fixture_manifest_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "profile_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "fixture_manifest_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "rsi.verify_boundary(profile_ref, fixture_manifest_ref); runs independently of optimization."
+    },
+    "rsi_verify_boundary_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "profile_ref",
+        "fixture_manifest_ref",
+        "run_number",
+        "scenarios",
+        "lifetime_query_attack",
+        "result",
+        "created_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "profile_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "fixture_manifest_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "run_number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/rsi_attack_result"
+              },
+              {
+                "properties": {
+                  "scenario_id": {
+                    "pattern": "^RSI-S(0[1-9]|1[0-9]|2[0-3])$"
+                  }
+                }
+              }
+            ]
+          },
+          "minItems": 23,
+          "maxItems": 23,
+          "uniqueItems": true
+        },
+        "lifetime_query_attack": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/rsi_attack_result"
+            },
+            {
+              "properties": {
+                "scenario_id": {
+                  "const": "RSI-S24"
+                }
+              }
+            }
+          ]
+        },
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "incomplete"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "scenarios": {
+                "items": {
+                  "properties": {
+                    "observed": {
+                      "const": "PASS"
+                    }
+                  }
+                }
+              },
+              "lifetime_query_attack": {
+                "properties": {
+                  "observed": {
+                    "const": "PASS"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Immutable report of one run of RSI-S01..RSI-S23 (the suite is run three times) plus the lifetime query attack (the 91st query, RSI-S24). result=pass requires every observed=PASS; NOT_RUN is never a pass."
+    },
+    "trial_ref": {
+      "$ref": "cc:contracts:services-v1#/$defs/ref",
+      "description": "Private rsi_trial reference {id, sha256}. Authorized namespace: controller evidence root only. Not a Candidate Ref."
+    },
+    "oracle_ref": {
+      "$ref": "cc:contracts:services-v1#/$defs/ref",
+      "description": "Private oracle control/result record reference {id, sha256}. Resolves only through the oracle's authenticated API."
+    },
+    "oracle_begin_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "target_decl_hash",
+        "parent_trial_ref",
+        "model_id",
+        "model_version",
+        "config_sha256",
+        "policy_ref",
+        "permitted_paths_sha256",
+        "evaluator_sha256",
+        "execution_profile_sha256"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "parent_trial_ref": {
+          "$ref": "#/$defs/trial_ref"
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "config_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "policy_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "permitted_paths_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "evaluator_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "execution_profile_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        }
+      },
+      "description": "begin_session(): authenticated controller only. No fixture-pool ids, paths or cases."
+    },
+    "oracle_status_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "session_id"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "status(): controller or custodian; no per-case detail."
+    },
+    "oracle_session_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "state",
+        "protocol_version"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "state": {
+          "enum": [
+            "preparing",
+            "running",
+            "closing",
+            "closed",
+            "finished",
+            "no_candidate",
+            "blocked"
+          ]
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_record_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "protocol_version": {
+          "const": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "blocked"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason",
+              "session_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "closing",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "session_id",
+              "session_record_ref"
+            ]
+          }
+        }
+      ],
+      "description": "SessionResult. session_id exists only after durable creation. For closing/closed, session_record_ref is the oracle_closure; otherwise the oracle_session."
+    },
+    "oracle_evaluate_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "session_id",
+        "trial_ref",
+        "purpose"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "trial_ref": {
+          "$ref": "#/$defs/trial_ref"
+        },
+        "purpose": {
+          "$ref": "#/$defs/oracle_purpose"
+        }
+      },
+      "description": "evaluate(): controller only. No final purpose is accepted here; the service chooses set and incumbent."
+    },
+    "oracle_aggregate_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "state",
+        "protocol_version"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "state": {
+          "enum": [
+            "complete",
+            "denied",
+            "unavailable",
+            "boundary_violation",
+            "query_limit"
+          ]
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "wins": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "losses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ties": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "incumbent_median_ms": {
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 10
+        },
+        "child_median_ms": {
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 10
+        },
+        "disposition": {
+          "$ref": "#/$defs/attempt_disposition"
+        },
+        "scoring_rule_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "result_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        },
+        "protocol_version": {
+          "const": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "passed",
+              "failed",
+              "wins",
+              "losses",
+              "ties",
+              "incumbent_median_ms",
+              "child_median_ms",
+              "disposition",
+              "scoring_rule_sha256",
+              "result_ref"
+            ]
+          },
+          "else": {
+            "required": [
+              "reason"
+            ],
+            "properties": {
+              "passed": false,
+              "failed": false,
+              "wins": false,
+              "losses": false,
+              "ties": false,
+              "incumbent_median_ms": false,
+              "child_median_ms": false,
+              "disposition": false,
+              "scoring_rule_sha256": false,
+              "result_ref": false
+            }
+          }
+        }
+      ],
+      "description": "AggregateResult. Complete carries every count, medians rounded to 10 ms, disposition, score hash and the redacted result_ref. Other states expose no counts. No per-case data crosses."
+    },
+    "oracle_close_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "session_id",
+        "incumbent_trial_ref",
+        "accepted_lineage_refs",
+        "ablation_trial_refs"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "incumbent_trial_ref": {
+          "$ref": "#/$defs/trial_ref"
+        },
+        "accepted_lineage_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trial_ref"
+          },
+          "maxItems": 10000
+        },
+        "ablation_trial_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trial_ref"
+          },
+          "maxItems": 5
+        }
+      },
+      "description": "close_session(): seals proposals, fixes a zero-to-five ablation schedule."
+    },
+    "oracle_finish_close_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "session_id",
+        "closing_record_ref",
+        "ablation_result_refs"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "closing_record_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "ablation_result_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/oracle_ref"
+          },
+          "maxItems": 5
+        }
+      },
+      "description": "finish_close(): one result ref per scheduled ablation, in order; empty for an empty schedule."
+    },
+    "oracle_final_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "session_id",
+        "closed_session_ref"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "closed_session_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        }
+      },
+      "description": "evaluate_final(): custodian-only authenticated channel, once per closed session."
+    },
+    "oracle_clear_security_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "session_id",
+        "security_block_ref",
+        "clearance_ref"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "security_block_ref": {
+          "$ref": "#/$defs/oracle_ref"
+        },
+        "clearance_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "clear_security(): human custodian channel only. clearance_ref is the terminal-written rsi_security_clearance SystemRef."
+    },
+    "poc_execute_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "run_id",
+        "dispatch_id",
+        "obs_id",
+        "attempt",
+        "reservation_ref",
+        "caller_decl_hash",
+        "bundle_ref",
+        "profile",
+        "entrypoint_path",
+        "working_directory",
+        "argv",
+        "env",
+        "timeout_s"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "dispatch_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "obs_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reservation_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "caller_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "bundle_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "profile": {
+          "enum": [
+            "poc_setup",
+            "benchmark"
+          ]
+        },
+        "entrypoint_path": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "working_directory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "argv": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "maxItems": 10000
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 4096
+          }
+        },
+        "timeout_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "profile": {
+                "const": "benchmark"
+              }
+            },
+            "required": [
+              "profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "entrypoint_path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "argv": {
+                "maxItems": 0
+              },
+              "env": {
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "profile": {
+                "const": "poc_setup"
+              }
+            },
+            "required": [
+              "profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "entrypoint_path": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "execute_poc(): runner-side benchmark capsule asks the process service to run generated code. The caller never chooses executable, host path, UID or network."
+    },
+    "poc_execute_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "profile",
+        "state"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "profile": {
+          "enum": [
+            "poc_setup",
+            "benchmark"
+          ]
+        },
+        "state": {
+          "enum": [
+            "exited",
+            "timed_out",
+            "denied",
+            "unavailable",
+            "boundary_violation"
+          ]
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "stdout_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "stderr_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        },
+        "boundary_evidence_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "measurement_manifest_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "exited"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "exit_code",
+              "stdout_ref",
+              "stderr_ref",
+              "boundary_evidence_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "denied",
+                  "unavailable",
+                  "boundary_violation"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "exited"
+              },
+              "profile": {
+                "const": "benchmark"
+              }
+            },
+            "required": [
+              "state",
+              "profile"
+            ]
+          },
+          "then": {
+            "required": [
+              "measurement_manifest_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "profile": {
+                "const": "poc_setup"
+              }
+            },
+            "required": [
+              "profile"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "measurement_manifest_ref"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "PocExecutionResult. A nonzero exit_code is workload evidence, not an infrastructure failure. Capture failure never returns exited."
+    },
+    "measurement_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "operation",
+        "request_id"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "operation": {
+          "const": "measure_next"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "measure_next on a descriptor bound to one reserved POC request. A repeated request_id returns the same sample."
+    },
+    "benchmark_sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "arm",
+        "repeat_index",
+        "seed",
+        "values",
+        "measurement_ref"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "arm": {
+          "enum": [
+            "baseline",
+            "treatment"
+          ]
+        },
+        "repeat_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "values": {
+          "$ref": "#/$defs/sample_values"
+        },
+        "measurement_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "One harness stdout line (BenchmarkSample), as returned by the measurement service."
+    },
+    "measurement_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "request_id",
+        "state"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "state": {
+          "enum": [
+            "sample",
+            "denied",
+            "unavailable"
+          ]
+        },
+        "sample": {
+          "$ref": "#/$defs/benchmark_sample"
+        },
+        "reason": {
+          "$ref": "cc:contracts:services-v1#/$defs/reason"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "sample"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "sample"
+            ]
+          },
+          "else": {
+            "required": [
+              "reason"
+            ],
+            "not": {
+              "required": [
+                "sample"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Reply to measure_next. denied after the final scheduled sample."
+    },
+    "measurement_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "poc_request_id",
+        "blueprint_ref",
+        "resource_snapshot_sha256",
+        "benchmark_config_sha256",
+        "method_hashes",
+        "arm",
+        "repeat_index",
+        "seed",
+        "values",
+        "workload_capture_refs"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "poc_request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "blueprint_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "resource_snapshot_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "benchmark_config_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "method_hashes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "additionalProperties": {
+            "$ref": "cc:contracts:services-v1#/$defs/hash"
+          }
+        },
+        "arm": {
+          "enum": [
+            "baseline",
+            "treatment"
+          ]
+        },
+        "repeat_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "values": {
+          "$ref": "#/$defs/sample_values"
+        },
+        "workload_capture_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        }
+      },
+      "description": "Artifact value committed by the measurement service for each arm. Service-owned; no capsule-to-capsule wire uses it."
+    },
+    "syntax_check_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_version",
+        "patch_sha256",
+        "harness_sha256",
+        "compiler_exit_code",
+        "ast_checks",
+        "stdout_sha256",
+        "stderr_sha256"
+      ],
+      "properties": {
+        "protocol_version": {
+          "const": 1
+        },
+        "patch_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "harness_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "compiler_exit_code": {
+          "type": "integer"
+        },
+        "ast_checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "result",
+              "message"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "cc:contracts:services-v1#/$defs/id"
+              },
+              "result": {
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 65536
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "stdout_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "stderr_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        }
+      },
+      "description": "Output of syntax_check(), published as an Artifact."
+    },
+    "deliver_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "terminal_output_refs",
+        "destination_ref",
+        "request_id"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "terminal_output_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 10000
+        },
+        "destination_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        }
+      },
+      "description": "Type-agnostic delivery call. Ordinary code, no Gate, no capsule. Publishes the listed terminal outputs verbatim under the destination."
+    },
+    "publication_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "run_id",
+        "request_id",
+        "destination_ref",
+        "files",
+        "created_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "destination_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/published_file"
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        }
+      },
+      "description": "Committed record of every published file with its sha256 and source ref. Paths are unique."
+    },
+    "deliver_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "run_id",
+        "publication_manifest_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "publication_manifest_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "Reply to deliver(): ref of the committed publication_manifest."
+    },
+    "intake_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "prompt",
+        "channel",
+        "workspace"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "prompt": {
+          "type": "string",
+          "pattern": "\\S",
+          "maxLength": 65536
+        },
+        "channel": {
+          "enum": [
+            "cli",
+            "web"
+          ]
+        },
+        "workspace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "resources": {
+          "$ref": "cc:types:intake#/properties/resources"
+        }
+      },
+      "description": "launch(prompt, channel, workspace) as sent to the intake module by CLI or web. Intake qualifies it into an intake value and a source_text."
+    },
+    "intake_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "run_id",
+        "intake_ref",
+        "source_text_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "intake_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "source_text_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        }
+      },
+      "description": "Reply after intake recorded the intake and source_text artifacts."
+    },
+    "resource_snapshot_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "intake_ref",
+        "resource_ids"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "intake_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "resource_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 10000
+        }
+      },
+      "description": "snapshot_resources(): trusted supervisor service copies explicitly bound inputs into an owned read-only snapshot."
+    },
+    "resource_snapshot_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "manifest_ref",
+        "snapshots"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "manifest_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "snapshots": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:types:resource-snapshot"
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        }
+      },
+      "description": "Committed snapshots, one per requested resource_id, published in one supervisor batch."
+    },
+    "intent_check_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "result",
+        "errors",
+        "warnings"
+      ],
+      "properties": {
+        "check_id": {
+          "enum": [
+            "goals_supported_by_source",
+            "outcomes_supported_by_source",
+            "constraints_supported_by_source",
+            "no_material_omissions",
+            "no_unrequested_execution",
+            "ambiguity_unknown_classification"
+          ]
+        },
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding_item"
+          },
+          "maxItems": 10000
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding_item"
+          },
+          "maxItems": 10000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "errors": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "errors": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "x-internal": true
+    },
+    "intent_fidelity_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "profile",
+        "intent_ref",
+        "source_text_ref",
+        "checks",
+        "result"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "profile": {
+          "const": "research.accept_intent.v1"
+        },
+        "intent_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "source_text_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/intent_check_result"
+          },
+          "minItems": 6,
+          "maxItems": 6
+        },
+        "ext": {
+          "$ref": "cc:contracts:services-v1#/$defs/ext"
+        },
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "properties": {
+            "checks": {
+              "allOf": [
+                {
+                  "contains": {
+                    "properties": {
+                      "check_id": {
+                        "const": "goals_supported_by_source"
+                      }
+                    },
+                    "required": [
+                      "check_id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "check_id": {
+                        "const": "outcomes_supported_by_source"
+                      }
+                    },
+                    "required": [
+                      "check_id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "check_id": {
+                        "const": "constraints_supported_by_source"
+                      }
+                    },
+                    "required": [
+                      "check_id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "check_id": {
+                        "const": "no_material_omissions"
+                      }
+                    },
+                    "required": [
+                      "check_id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "check_id": {
+                        "const": "no_unrequested_execution"
+                      }
+                    },
+                    "required": [
+                      "check_id"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "properties": {
+                      "check_id": {
+                        "const": "ambiguity_unknown_classification"
+                      }
+                    },
+                    "required": [
+                      "check_id"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "pass"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "items": {
+                  "properties": {
+                    "result": {
+                      "const": "pass"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "fail"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "contains": {
+                  "properties": {
+                    "result": {
+                      "const": "fail"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Independent fidelity review of a compiled intent_ir against the source text, produced by research.verifier with profile research.accept_intent.v1. Each of the six checks appears exactly once. result is the overall check outcome (pass, fail, unknown); it is not a Gate verdict. Errors carry source_quotes."
+    },
+    "intent_repair_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "request_id",
+        "generation",
+        "repair_budget",
+        "trigger",
+        "prior_intent_ref",
+        "finding_codes",
+        "outcome"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "request_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "repair_budget": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "trigger": {
+          "enum": [
+            "deterministic_validation",
+            "fidelity_review"
+          ]
+        },
+        "prior_intent_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "finding_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        },
+        "outcome": {
+          "enum": [
+            "repaired",
+            "still_failing",
+            "budget_exhausted"
+          ]
+        },
+        "trigger_review_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "repaired_intent_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "model_call_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "trigger": {
+                "const": "fidelity_review"
+              }
+            },
+            "required": [
+              "trigger"
+            ]
+          },
+          "then": {
+            "required": [
+              "trigger_review_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "repaired"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "repaired_intent_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "still_failing",
+                  "budget_exhausted"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "repaired_intent_ref"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "One bounded repair pass of research.compile_intent. generation is the new intent_ir.generation (1..4); repair_budget defaults to 1, hard cap 4."
+    },
+    "evaluator_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "manifest_id",
+        "evaluator_sha256",
+        "oracle_code_sha256",
+        "launcher_sha256",
+        "write_guard_sha256",
+        "scoring_rule_sha256",
+        "planted_child_manifest_ref",
+        "split_hashes",
+        "loop_fixture_set_ref",
+        "final_fixture_set_ref",
+        "model_pins",
+        "minimums",
+        "hash_registry_sha256",
+        "frozen_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "manifest_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "evaluator_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash",
+          "description": "Hash of this manifest as pinned in rsi_session and oracle_session (evaluator_sha256)."
+        },
+        "oracle_code_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "launcher_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "write_guard_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "scoring_rule_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash",
+          "description": "Hash of the frozen scoring rule: keep when wins>=1 and losses=0, tie-break by median duration at least 10 percent lower, final promotable only if losses=0 and the 5th percentile of Beta(1+wins,1+losses) exceeds 0.5."
+        },
+        "planted_child_manifest_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "split_hashes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dev_set_sha256",
+            "loop_set_sha256",
+            "final_set_sha256"
+          ],
+          "properties": {
+            "dev_set_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "loop_set_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            },
+            "final_set_sha256": {
+              "$ref": "cc:contracts:services-v1#/$defs/hash"
+            }
+          },
+          "description": "Content hashes of the three splits. They must be pairwise different and hash-disjoint at the case level (checked by the oracle, not by this schema)."
+        },
+        "loop_fixture_set_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "final_fixture_set_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/ref"
+        },
+        "model_pins": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "model_id",
+              "model_version"
+            ],
+            "properties": {
+              "model_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "model_version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "minimums": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min_loop_cases",
+            "min_final_cases",
+            "parent_failure_floor_percent",
+            "min_final_failures"
+          ],
+          "properties": {
+            "min_loop_cases": {
+              "type": "integer",
+              "minimum": 20
+            },
+            "min_final_cases": {
+              "type": "integer",
+              "minimum": 20
+            },
+            "parent_failure_floor_percent": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 100
+            },
+            "min_final_failures": {
+              "type": "integer",
+              "minimum": 5
+            }
+          },
+          "description": "Pinned floors: at least 20 loop and 20 final cases, the parent fails at least 20 percent of each set, and at least 5 parent failures in the final set. A manifest may raise a floor, never lower it."
+        },
+        "hash_registry_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash",
+          "description": "Hash of the commit-before-reveal registry (per-fixture sha256, set_sha256, count, frozen_at) merged before the first session."
+        },
+        "frozen_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        }
+      },
+      "description": "Private evaluator manifest, readable only by the oracle account and the custodian. It resolves the evaluator_sha256 pinned by begin_session to the oracle code, launcher, write guard, scoring rule, split hashes, the loop and final fixture set manifests, the planted-child corpus and the pinned models. It carries no case content. Missing or inconsistent pins refuse the session (fixture-oracle.md)."
+    },
+    "fixture_set_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "set_id",
+        "role",
+        "case_count",
+        "lineage_group_ids",
+        "content_sha256",
+        "created_at",
+        "case_sha256s",
+        "headroom_evidence_ref"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "set_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "role": {
+          "enum": [
+            "loop",
+            "final",
+            "dev"
+          ]
+        },
+        "case_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lineage_group_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/id"
+          },
+          "description": "Ids of the source groups the cases derive from; a group never spans two splits.",
+          "maxItems": 10000
+        },
+        "content_sha256": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash",
+          "description": "Hash of the sealed set; equals the matching split hash in the evaluator manifest."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        },
+        "case_sha256s": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/hash"
+          },
+          "description": "Hash of each fixture (case), in set order; one entry per case, so its length equals case_count. Hashes only, never the case.",
+          "maxItems": 10000
+        },
+        "headroom_evidence_ref": {
+          "$ref": "cc:contracts:services-v1#/$defs/nullable_ref",
+          "description": "Fixture-author preflight evidence that the parent fails at least the pinned share of the set (headroom rule); null for a dev set."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "enum": [
+                  "loop",
+                  "final"
+                ]
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "case_count": {
+                "minimum": 20
+              }
+            }
+          }
+        }
+      ],
+      "description": "Metadata of one sealed fixture set: its role, size, lineage groups and hash. It never carries case inputs, labels or expected answers. A loop or final set has at least 20 cases."
+    },
+    "planted_child_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "manifest_id",
+        "target_decl_hash",
+        "known_bad",
+        "known_good",
+        "created_at"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "manifest_id": {
+          "$ref": "cc:contracts:services-v1#/$defs/id"
+        },
+        "target_decl_hash": {
+          "$ref": "cc:contracts:services-v1#/$defs/hash"
+        },
+        "known_bad": {
+          "type": "array",
+          "minItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "child_sha256",
+              "expected_disposition"
+            ],
+            "properties": {
+              "child_sha256": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              },
+              "expected_disposition": {
+                "const": "rejected"
+              },
+              "defect": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "known_good": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "child_sha256",
+              "expected_disposition"
+            ],
+            "properties": {
+              "child_sha256": {
+                "$ref": "cc:contracts:services-v1#/$defs/hash"
+              },
+              "expected_disposition": {
+                "enum": [
+                  "kept",
+                  "promotable"
+                ]
+              }
+            }
+          },
+          "maxItems": 10000
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+        }
+      },
+      "description": "The fixed planted-child corpus: at least ten known-bad child hashes (each must be rejected) and at least three known-good child hashes (each must be kept or promotable). The oracle must show the comparator behaves as expected on all of them before optimization is enabled."
+    },
+    "rsi_attack_scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "id",
+        "attack",
+        "threat",
+        "expected",
+        "expected_reason_codes"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^RSI-S(0[1-9]|1[0-9]|2[0-4])$",
+          "maxLength": 4096
+        },
+        "attack": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "threat": {
+          "type": "string",
+          "pattern": "^T([1-9]|1[0-8])$",
+          "maxLength": 4096
+        },
+        "expected": {
+          "const": "refused"
+        },
+        "expected_reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+          },
+          "uniqueItems": true,
+          "description": "Reason codes the refusal must carry. Empty when the expected effect is \"no effect on the result\" (the attack is ignored).",
+          "maxItems": 10000
+        }
+      },
+      "description": "One entry of the violation suite (PRD 3.Y.11, formerly V1 to V23): RSI-S01 to RSI-S23, plus RSI-S24, the 91st lifetime query attack. Each scenario attacks on purpose and expects a refusal that is logged."
+    },
+    "rsi_attack_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "expected",
+        "reason_code",
+        "observed",
+        "evidence_refs"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "pattern": "^RSI-S(0[1-9]|1[0-9]|2[0-4])$",
+          "maxLength": 4096
+        },
+        "expected": {
+          "const": "refused"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_RUN"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "cc:contracts:services-v1#/$defs/ref"
+          },
+          "maxItems": 10000
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "observed": {
+                "const": "PASS"
+              }
+            },
+            "required": [
+              "observed"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "description": "Result of one attack run. observed PASS means the system refused with the expected reason code and the refusal is logged (evidence_refs lists the private audit and OS events); FAIL means it was not refused or the code differs; NOT_RUN means the scenario did not run and is never a pass. reason_code is the code actually observed, null when none was produced."
+    }
+  }
+}

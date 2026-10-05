@@ -4,23 +4,31 @@ id: cc.type.intake
 version: 2
 status: draft
 tags: [types, m1]
+prd: [3.1.5, 3.1.3]
+level: detail
 ---
-
-> **Draft recheck.** Version 2 adds separately bound project and validation resources from full PRD 3.1.2. The downstream resource contract is reviewed together with launcher, Search, Hypothesis and Builder.
 
 # `intake`: the Qualified Intake Package · version 2
 
+PRD: 3.1.5, 3.1.3
+
 The user's request and the text of their reference documents, as one value. It is PRD 3.1.5's "Qualified Intake Package": "the combined prompt and extracted document text as a single in-memory dictionary". Every M1 run starts from exactly one.
 
-**Made by** the M01 launcher, which is control code. It calls the runner's `record_input` with `origin: human` ([runner](../capsule/runner.md#values-how-each-port-type-travels)), so the value is stored as an Artifact like any other. **Read by** the `intent` and `requirement` steps ([M1 pipeline](../m1/pipeline.md)).
+**Made by** intake (`N_intake`), which is control code. It calls the runner's `record_input` with `origin: human` ([runner](../capsule/runner-handlers.md#values-how-each-port-type-travels)), so the value is stored as an Artifact like any other. **Read by** the source projection that feeds the intent CC, the requirement CC, and planned research [nodes](../system/nodes.md#term-node) that take resources ([capabilities](../capabilities/README.md)).
 
 **It replaces three earlier shapes.** The parked `raw_intent`, the M1 architecture's `run_request` and `documents`, and the requirement page's assumed `{prompt, documents}` all described this one value. They are retired in its favour.
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-intake"></a>**intake** (also: Qualified Intake Package) | The user's request and the extracted text of their reference documents as one value. Every M1 run starts from exactly one, made by control code and stored as an Artifact. |
 
 ## Fields
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|
-| `prompt` | `text` | req | checked |  | The request exactly as the user typed it, unchanged (PRD 3.1.1). Not blank: the launcher halts before making an `intake` when it is (3.1.5). Every `source_spans` range and every `evidence` quote with `evidence_source_id: prompt` points into this string |
+| `prompt` | `text` | req | checked |  | The request exactly as the user typed it, unchanged (PRD 3.1.1). Not blank: the launcher [halts](../system/lifecycle.md#term-halt) before making an `intake` when it is (3.1.5). Every `source_spans` range and every `evidence` quote with `evidence_source_id: prompt` points into this string |
 | `channel` | `enum(cli, web)` | req | checked |  | Where the prompt came from: the CLI `--topic` argument or the web UI prompt box (3.1.1). Other channels are excluded from M1 |
 | `resources` | `list<object>` | req | checked |  | Separately bound reference documents, project assets and validation data. May be empty at raw qualification; scientific resource readiness is checked before a blueprint passes |
 | `resources[].resource_id` | `id` | req | checked |  | Unique intake-local identity; downstream references use it instead of inventing a dataset document_id |
@@ -47,9 +55,9 @@ Run by the gate on every `intake` value, and by `record_input` before storing it
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
-| `check.intake_ids_and_paths_unique.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/intake.py:intake_ids_and_paths_unique` | muk | `documents[].document_id` values are unique, and no path appears twice across `documents` and `skipped` |
-| `check.intake_resources_resolve.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/intake.py:intake_resources_resolve` | muk | resource ids and paths are unique and safe relative paths; every extracted document names a reference_document resource; no project/data content is extracted |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
+| `check.intake_ids_and_paths_unique.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/intake.py:intake_ids_and_paths_unique` | cc-team | `documents[].document_id` values are unique, and no path appears twice across `documents` and `skipped` |
+| `check.intake_resources_resolve.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/intake.py:intake_resources_resolve` | cc-team | resource ids and paths are unique and safe relative paths; every extracted document names a reference_document resource; no project/data content is extracted |
 
 ## Example
 
@@ -71,7 +79,7 @@ Run by the gate on every `intake` value, and by `record_input` before storing it
 
 ## History
 
-- Version 2: source/role/path resource bindings are introduced under issue 45. Raw intake qualification retains PRD 3.1.5's prompt/readability checks; absent baseline or validation data prevents a scientifically executable blueprint, rather than inventing an additional raw-intake rejection. The later immutable snapshot contract is owned by [storage](../system/storage.md).
+- Version 2: source/role/path resource bindings are introduced under issue 45. Raw intake qualification retains PRD 3.1.5's prompt/readability [checks](../capsule/fields.md#term-check); absent baseline or validation data prevents a scientifically executable blueprint, rather than inventing an additional raw-intake rejection. The later immutable [snapshot](../capsule/library.md#term-library-snapshot) contract is owned by [storage](../system/storage.md).
 
 - `raw_intent` (`cc.intent.raw.v1`, parked in obby) carried `attachments` as Artifact refs, `channel` with `tui`, and E2A `source_ref` ids. M1 has two channels (3.1.1) and attaches no chat files, so those are dropped. The E2A ids can return as optional fields when a chat channel feeds a run.
 - The requirement page's assumed `documents: [{path, text, size_bytes}]` gains `document_id` and `format`, so evidence can name its document.

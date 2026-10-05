@@ -52,8 +52,10 @@ def sample(s, owner=schema):
         if 'profile_id' in result and 'state' in result:
             for key in ['login_id', 'verification_url', 'user_code', 'expires_at']:
                 result[key] = None
-        if result.get('state') == 'NOT_RUN' and 'skipped_check_ids' in result:
+        if result.get('state') == 'not_run' and 'skipped_check_ids' in result:
             result['verification_ref'] = None
+        if 'experiment_config_ref' in result and 'plan' in result:
+            result['experiment_config_ref'] = None
         if result.get('operation') == 'turn':
             result['target_request_id'] = None
         if 'content_sha256' in result and 'role' in result:

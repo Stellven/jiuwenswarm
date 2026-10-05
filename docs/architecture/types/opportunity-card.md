@@ -4,15 +4,25 @@ id: cc.type.opportunity_card
 version: 2
 status: draft
 tags: [types, m1, screening]
+prd: [3.4.4, 3.4.7]
+level: detail
 ---
 
 > **Draft coding-handoff contract.** The canonical architecture shape for PRD 3.4's `Opportunity_Card.json`, with decisions 48–53 fixed in the decision ledger.
 
 # `opportunity_card`: the selected opportunity and screening record · version 2
 
+PRD: 3.4.4, 3.4.7
+
 The winning consolidated opportunity, with its evidence references and the ordered scores and dispositions for every consolidated candidate. It is PRD 3.4's `Opportunity_Card.json`.
 
-**Made by** `research.select_opportunity` at step `screening` ([screening](../m1/screening.md)). **Read by** `research.form_hypothesis` at step `hypothesis` ([hypothesis](../m1/hypothesis.md)).
+**Made by** `research.select_opportunity` at step `screening` ([screening](../capabilities/screening.md)). **Read by** `research.form_hypothesis` at step `hypothesis` ([hypothesis](../capabilities/hypothesis.md)).
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-opportunity-card"></a>**opportunity_card** (also: opportunity card) | The winning consolidated opportunity with its evidence references, plus the ordered scores and dispositions of every consolidated candidate. Screening makes it and the Hypothesis step reads it. |
 
 ## Fields
 
@@ -25,7 +35,7 @@ The winning consolidated opportunity, with its evidence references and the order
 | `card.problem_statement` | `text` | req | checked |  | The technical problem or bottleneck being addressed (3.4.2, 3.4.4) |
 | `card.mechanism` | `text` | req | checked |  | The proposed mechanism of action, grounded in the input idea (3.4.2) |
 | `card.opportunity_statement` | `text` | req | checked |  | The unmet need or bottleneck and why the proposed method addresses it (3.4.4) |
-| `card.relevance` | `text` | req | checked |  | Why this opportunity advances the Research Brief objective within its scope and constraints |
+| `card.relevance` | `text` | req | checked |  | Why this opportunity advances the [Research Brief](research-brief.md#term-research-brief) objective within its scope and constraints |
 | `card.linked_citations` | `list<id>` | req | checked |  | Source ids from `idea_set.sources`, sorted and unique (3.4.3) |
 | `card.linked_chunk_ids` | `list<id>` | req | checked |  | At least one. Evidence chunk ids cited by the represented input ideas, sorted and unique; these and Brief evidence are the novelty comparison set |
 | `card.core_assumptions` | `list<text>` | req | checked |  | Assumptions retained from the represented input ideas (3.4.3) |
@@ -48,7 +58,7 @@ The winning consolidated opportunity, with its evidence references and the order
 | `scores[].justifications` | `map<string, text>` | req | checked |  | One evidence-grounded sentence per scored dimension, keyed `novelty`, `feasibility`, and `compute_alignment` (3.4.5) |
 | `scores[].composite` | `integer` | req | checked |  | Sum of the three scores, calculated by fixed code; range 3 to 15 (3.4.7) |
 | `scores[].rank` | `integer` | req | checked |  | One-based position in the complete ordering; ineligible candidates remain in the ordered record but cannot be selected |
-| `scores[].eligible` | `boolean` | req | checked |  | True only when every dependency assessment is `compatible` |
+| `scores[].eligible` | `boolean` | req | checked |  | True only when every [dependency assessment](dependency-assessment.md#term-dependency-assessment) is `compatible` |
 | `scores[].dependency_assessments` | `list<object>` | req | checked |  | One deterministic policy result per declared dependency; may be empty |
 | `scores[].dependency_assessments[].kind` | `enum(package, model, dataset)` | req | checked |  | Registry namespace |
 | `scores[].dependency_assessments[].identifier` | `string` | req | checked |  | Canonical registry identity |
@@ -64,10 +74,10 @@ The winning consolidated opportunity, with its evidence references and the order
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
-| `check.opportunity_card_scores_valid.v2` | deterministic | `outputs` | both | `cc/checks/registry/opportunity_card.py:opportunity_card_scores_valid` | muk | every score is within 1–5; each row has exactly three justifications; composite equals the sum; ranks follow composite then idea-id tuple; candidate groups are disjoint; eligibility equals all dependency statuses being compatible; the selected card matches the first eligible row |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
+| `check.opportunity_card_scores_valid.v2` | deterministic | `outputs` | both | `cc/checks/registry/opportunity_card.py:opportunity_card_scores_valid` | cc-team | every score is within 1–5; each row has exactly three justifications; composite equals the sum; ranks follow composite then idea-id tuple; candidate groups are disjoint; eligibility equals all dependency statuses being compatible; the selected card matches the first eligible row |
 
-The producer also has an input-aware check that every `idea_id`, citation, and chunk resolves to the `idea_set`, the linked citations and chunks are supported by the represented input ideas, and every input idea occurs in exactly one score row. That check belongs to the screening capsule because it needs the input value.
+The producer also has an input-aware check that every `idea_id`, citation, and chunk resolves to the `idea_set`, the linked citations and chunks are supported by the represented input ideas, and every input idea occurs in exactly one score row. That check belongs to the screening [capsule](../capsule/capsule.md#term-capability-capsule) because it needs the input value.
 
 ## Example
 

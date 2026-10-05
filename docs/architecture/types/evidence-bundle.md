@@ -4,17 +4,27 @@ id: cc.type.evidence_bundle
 version: 1
 status: draft
 tags: [types, m1, verifier]
+prd: [4.2.1, 4.2.6]
+level: detail
 ---
 
 > **Draft: example refreshed to the current production Requirement capability.** Shape checks are documentation evidence, not semantic acceptance.
 
 # `evidence_bundle`: what the judge is shown Ã‚· version 1
 
-The bounded semantic projection a judge needs against judged checks: criteria/rubrics, promises and admitted input/output values. The complete PRD Stage Evidence Bundle also includes immutable runtime/process/security evidence and is owned by [storage](../system/storage.md#required-evidence-and-derived-views). This model-facing projection never replaces that manifest.
+PRD: 4.2.1, 4.2.6
 
-**Made by** the gate host (M10), once per gated call, after Tier 1 passed, and stored with `record_input(..., origin="control")`. **Read by** the step's gate capsule, which the Binding names in `verifier`, called through the runner with `caller: gate` on input port `evidence_bundle` ([seams](../seams.md#evaluator-gate-and-verifier)). Its answer is a [`verifier_assessment`](verifier-assessment.md).
+The bounded semantic projection a judge needs against judged [checks](../capsule/fields.md#term-check): criteria/rubrics, promises and admitted input/output values. The complete PRD Stage Evidence Bundle also includes immutable runtime/process/security evidence and is owned by [storage](../system/storage.md#behavior-required-evidence-and-derived-views). This model-facing projection never replaces that manifest.
 
-The bundle holds values, not references, because the judge is a model and reads text. Which Artifacts they came from is in the judged call's Observation, which the gate's Verification already names (INV-5).
+**Made by** the gate host (M10), once per gated call, after [Tier 1](../verification.md#term-tier-1) passed, and stored with `record_input(..., origin="control")`. **Read by** the step's gate [capsule](../capsule/capsule.md#term-capability-capsule), which the [Binding](../schemas/binding.md#term-binding) names in `verifier`, called through the runner with `caller: gate` on input port `evidence_bundle` ([seams](../system/seams.md)). Its answer is a [`verifier_assessment`](verifier-assessment.md).
+
+The bundle holds values, not references, because the judge is a model and reads text. Which [Artifacts](../schemas/artifact.md#term-artifact) they came from is in the judged call's [Observation](../schemas/observation.md#term-observation), which the gate's [Verification](../schemas/verification-record.md#term-verification) already names (INV-5).
+
+## Key terms
+
+| Term | Meaning |
+|---|---|
+| <a id="term-evidence-bundle"></a>**evidence_bundle** (also: evidence bundle) | The bounded package a judge is shown: the criteria or rubrics, the producer's promises, and the admitted input and output values as text. The Gate host builds it once per gated call, after Tier 1 passed. |
 
 ## Fields
 
@@ -34,18 +44,18 @@ The bundle holds values, not references, because the judge is a model and reads 
 | `issues` | `map<string, list<Reason>>` | req | checked |  | Output port name to the Artifact's `issues`. The judge reads the capsule's own caveats before judging |
 | `ext` | `map<string, json>` | opt | checked |  | Extensions keyed by producer |
 
-A `file` value appears as its text, by the runner's inline rule ([runner values](../capsule/runner.md#values-how-each-port-type-travels)). A value too large to inline makes the criterion `unknown`, never `pass` (INV-8).
+A `file` value appears as its text, by the runner's inline rule ([runner values](../capsule/runner-handlers.md#values-how-each-port-type-travels)). A value too large to inline makes the criterion `unknown`, never `pass` (INV-8).
 
 ## Type checks
 
 | Check | Anchor | Over | Applies at | Runner | Author | What passes |
 |---|---|---|---|---|---|---|
-| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
-| `check.evidence_bundle_criteria_unique.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/evidence_bundle.py:evidence_bundle_criteria_unique` | muk | no `check_id` appears twice in `criteria` |
+| `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | cc-team | the value matches the generated schema |
+| `check.evidence_bundle_criteria_unique.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/evidence_bundle.py:evidence_bundle_criteria_unique` | cc-team | no `check_id` appears twice in `criteria` |
 
 ## Example
 
-For Requirement, the embedded input/output values below are generated from their canonical type examples by architecture lint. The zero hash is illustrative, not admitted authority. This example exercises the projection schema; actual criterion and source-grounding checks still require their own fixtures.
+For Requirement, the embedded input/output values below are generated from their canonical type examples by architecture lint. The zero hash is illustrative, not admitted authority. This example exercises the projection schema; actual criterion and source-grounding checks still require their own [fixtures](../system/test-surfaces.md#term-fixture).
 
 <!-- generated:example-view -->
 ```json

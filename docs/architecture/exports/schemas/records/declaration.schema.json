@@ -110,9 +110,6 @@
             "version"
           ]
         },
-        "owner": {
-          "type": "string"
-        },
         "tags": {
           "type": "array",
           "items": {
@@ -161,6 +158,37 @@
         "kind",
         "summary"
       ]
+    },
+    "identity` responsible-party key (spelled in the [declaration schema](": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "/exports/schemas/records/declaration": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "json))": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": []
+            }
+          },
+          "required": []
+        }
+      },
+      "required": []
     },
     "ports": {
       "type": "object",

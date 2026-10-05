@@ -128,7 +128,7 @@
       "source": "types/run-plan.md",
       "version": "1",
       "file": "schemas/types/run-plan.schema.json",
-      "sha256": "0b70123d0c34571686e0592bd6d49d4662e9e1125f4560bc6656c07364c123bf"
+      "sha256": "aeb70bd7ceed26561f1aa4d1560ef88e9fea4ff21e5811efce4c70d909f5c649"
     },
     {
       "kind": "types",
@@ -248,7 +248,7 @@
       "source": "capsule/fields.md",
       "version": "cc.declaration.v1",
       "file": "schemas/records/declaration.schema.json",
-      "sha256": "626e732ead74d7d92e0915b0fdbaaba9ddebe9822d1a6309e4a3c67a68e12565"
+      "sha256": "7a32a89e823c9303d09dcb4a2bb315f414ecd9de9129b928bbae06ec9806ba5e"
     }
   ]
 }
