@@ -84,6 +84,10 @@ A change flows from its owner outward. Never edit a consumer before the owner.
 
 **Every connection to existing code** is a row on [integration](system/integration.md) before it is code, and goes through `cc/adapters/`. Earlier systems, such as AI4Research, are lessons only: a schema stands on its own reasons.
 
+## Review allocation
+
+Use the [bounded agent review workflow](review-workflow.md) for each connected change. Mechanical checks precede agent review; fresh roles receive pinned owners and exact source clauses. Routine reviews are targeted, while handoff reviews cover all five system journeys. Confirm transitive impact before reusing unchanged evidence.
+
 ## The area loop
 
 An area may be drafted against an explicitly pinned draft interface; record assumptions and the full recheck set. An area becomes `checked` only after its dependency checks pass. Design drafting does not wait for another person's availability. Pending external inputs use a bounded adapter; specified safety mechanisms carry validation obligations rather than undefined black boxes.
@@ -129,7 +133,7 @@ python _tools/arch_lint.py canary --compare A.json B.json
 
 ## The step back
 
-- **When:** after every third locked area, after any change to a CC rule, and before a hand-off to coders.
+- **When:** follow the connected-batch and five-journey cadence in the [review workflow](review-workflow.md#cadence-and-journey-rotation), including every shared authority/security change and before coding handoff. This cadence does not wait for a page to be locked.
 - **Who:** a fresh reviewer, reading the vault and the PRD without relying on the author’s conclusions. It walks one run end to end, maps every PRD sub-feature to a page, and reads the graph. No particular model is required.
 - **Output:** a report in [reviews/](reviews/2026-10-01-system-step-back.md). The loop resumes once every finding has a disposition.
 

@@ -13,6 +13,8 @@ A **capability capsule** (èƒ½åŠ›èƒ¶å›Š) is one capability the syst
 
 Open this folder as an Obsidian vault, or read the Markdown files directly. Links are relative. The [authority index](authority.md) identifies which file owns each definition and how to trace a change. Summaries, stories and diagrams link those owners; historical reviews describe the revision reviewed at that time.
 
+Review changes with the [bounded agent workflow](review-workflow.md): pinned packets, targeted roles, source-verified findings and selective rechecks.
+
 ## Explain and review
 
 Start with the [diagram atlas](system/diagram-atlas.md) for shallow and deep views; the [presentable variant](presentation/README.md) gives claim/reason/owner lines. [October 5 work checklist](reviews/2026-10-05-work-checklist.md) records the extent and evidence of this cleanup.

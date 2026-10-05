@@ -30,7 +30,7 @@ Draft contract revisions may change together. A handoff release pins source mani
 
 ## AI review is the normal review path
 
-People receive a short decision brief; fresh AI reviewers inspect the full evidence. There is no required reviewer model. A reviewer receives the frozen source manifest, the exact claims and owning pages, and affected consumer links, without relying on the author's conclusions.
+People receive a short decision brief; fresh AI reviewers inspect bounded evidence with confirmed impact. The [bounded review workflow](review-workflow.md) owns packet preparation, role allocation, escalation, cadence and evidence freshness. There is no required reviewer model. A reviewer receives the frozen source manifest, the exact claims and owning pages, and affected consumer links, without relying on the author's conclusions.
 
 | Review | Required evidence and output |
 |---|---|

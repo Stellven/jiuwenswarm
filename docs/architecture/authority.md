@@ -44,6 +44,7 @@ This page is a routing index. It owns no payload fields, signatures, configurati
 | External benchmark and local user interfaces | [Benchmark export](system/benchmark-export.md), [workstation](system/workstation.md) | Client adapters, public service envelopes, auth, record joins |
 | Live events, debug traces and required evidence | [Observability](system/observability.md); required durable custody remains [storage](system/storage.md) | UI, reconstruction, Data Foundation and export |
 | PRD coverage and build dependency order | [Coverage](prd/coverage.md), [build order](system/build-order.md) | Clause inventory, coder completeness, handoff |
+| How is review allocated; when is evidence stale? | [Review workflow](review-workflow.md) | PROCESS, policies, packets and review dispositions |
 | What remains unverified? | [Validation obligations](open-issues.md), [verification surface](system/verification.md) | Release evidence, relevant acceptance conditions and security/platform claims |
 
 An interface can have one wire-shape owner and one semantic owner. They own different facts: the schema defines fields and constraints; the API page defines authorization, timing, effects and reference resolution. The API page links the schema rather than maintaining another field table. A summary or pseudocode shape is a reading aid, never an alternative wire contract. If the two disagree, fix both before handing that boundary to builders; do not silently choose the convenient version.
