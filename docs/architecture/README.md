@@ -17,6 +17,8 @@ Review changes with the [bounded agent workflow](review-workflow.md): pinned pac
 
 ## Explain and review
 
+**For presenting or sharing:** [Start here](presentation/showcase/README.md) centralizes the PDF, overview, full/filtered flows, decisions and testing/coder depth.
+
 Start with the [diagram atlas](system/diagram-atlas.md) for shallow and deep views; the [presentable variant](presentation/README.md) gives claim/reason/owner lines. [October 5 work checklist](reviews/2026-10-05-work-checklist.md) records the extent and evidence of this cleanup.
 
 ## Build from these

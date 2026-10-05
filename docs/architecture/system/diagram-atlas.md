@@ -21,6 +21,8 @@ These views summarize linked contracts. They do not define extra APIs or product
 | 3 Research data | What does each capability consume and produce? | [pipeline ports and plan fixture](../m1/pipeline.md), [capability design packets](../m1/capability-designs.md) |
 | 4 Time and failure | What commits before the next step? | [temporal sequences](temporal.md), [failure stories](../stories/README.md) |
 
+Start with [today's whole-system capsule views](overall-draft.md) to see all twelve CCs and conditional track participation together. Use the [complete information-flow variants](information-flow.md) for all required bindings, filtered observability/RSI and failure recovery. Return here for deeper questions.
+
 ## 1. Context and deployment
 
 ```mermaid

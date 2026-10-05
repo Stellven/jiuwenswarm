@@ -28,4 +28,6 @@ Avoid claims of an unbreakable system, company equivalence, proven quality or a 
 
 ## Current architecture report
 
-[Seven-page bullet report](architecture-report-2026-10-05.md) summarizes the architecture, CC inventory, borrowed patterns and validation limits. Its [review record](../reviews/2026-10-05-architecture-report-review.md) records source findings and PDF checks. This dated view never overrides canonical contracts.
+[Architecture bullet report with whole-system diagrams](architecture-report-2026-10-05.md) summarizes the architecture, CC inventory, borrowed patterns and validation limits. Its [review record](../reviews/2026-10-05-architecture-report-review.md) records source findings and PDF checks. This dated view never overrides canonical contracts.
+
+[Whole-system Mermaid views](../system/overall-draft.md) show every capability and conditional track participation; the PDF appends their rendered views and a depth/testing/development guide.

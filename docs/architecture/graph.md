@@ -21,6 +21,7 @@ flowchart LR
     p_system_environment_md["system/environment.md"]
     p_system_experiments_md["system/experiments.md"]
     p_system_handoff_md["system/handoff.md"]
+    p_system_information_flow_md["system/information-flow.md"]
     p_system_integration_md["system/integration.md"]
     p_system_ledgers_md["system/ledgers.md"]
     p_system_lifecycle_md["system/lifecycle.md"]
@@ -28,6 +29,7 @@ flowchart LR
     p_system_modules_md["system/modules.md"]
     p_system_nodes_md["system/nodes.md"]
     p_system_observability_md["system/observability.md"]
+    p_system_overall_draft_md["system/overall-draft.md"]
     p_system_overview_md["system/overview.md"]
     p_system_planner_md["system/planner.md"]
     p_system_records_md["system/records.md"]
@@ -96,6 +98,10 @@ flowchart LR
     p_system_handoff_md --> p_system_build_order_md
     p_system_handoff_md --> p_system_verification_md
     p_system_handoff_md --> p_system_coder_requirements_md
+    p_system_information_flow_md --> p_m1_pipeline_md
+    p_system_information_flow_md --> p_system_overall_draft_md
+    p_system_information_flow_md --> p_system_lifecycle_md
+    p_system_information_flow_md --> p_system_storage_md
     p_system_integration_md --> p_system_overview_md
     p_system_integration_md --> p_system_nodes_md
     p_system_ledgers_md --> p_system_overview_md
@@ -118,6 +124,10 @@ flowchart LR
     p_system_nodes_md --> p_system_lifecycle_md
     p_system_observability_md --> p_system_ledgers_md
     p_system_observability_md --> p_system_integration_md
+    p_system_overall_draft_md --> p_m1_pipeline_md
+    p_system_overall_draft_md --> p_system_deployment_md
+    p_system_overall_draft_md --> p_system_planner_md
+    p_system_overall_draft_md --> p_system_modules_md
     p_system_overview_md --> p_system_nodes_md
     p_system_overview_md --> p_system_integration_md
     p_system_planner_md --> p_system_experiments_md

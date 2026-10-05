@@ -1,6 +1,6 @@
 # M1 architecture | Design, rationale and review
 
-5 October 2026 | Architecture 952fde474 plus report-review corrections | Frozen PRD: 2 October 2026 | Draft design, not executed system acceptance.
+5 October 2026 | Architecture d7c0fd22c plus current diagram-review corrections | Frozen PRD: 2 October 2026 | Draft design, not executed system acceptance.
 
 ## 01 | Whole system: what and why
 
@@ -12,7 +12,7 @@
 - **Authority:** frozen PRD sets scope; owner inputs supply domain detail; architecture chooses shared interfaces. One owner per schema/API/record, with linked generated views. **Pattern:** [Nygard ADRs](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) preserve rationale and supersession.
 - **Current state:** proposed modules and concrete contracts are documented. Architecture remains draft; document checks and AI review do not prove a working implementation, platform safety or approval.
 
-Sources: README.md; authority.md; system/modules.md; m1/pipeline.md; policies.md.
+Sources: README.md; authority.md; system/overall-draft.md; system/modules.md; m1/pipeline.md; policies.md.
 
 ## 02 | Connections, control and evidence
 
@@ -87,3 +87,16 @@ Sources: capsule/rsi-engine.md; capsule/fixture-oracle.md; capsule/admission.md;
 - **Maintenance:** this report is a dated derived view. Owning pages, decisions and open obligations stay authoritative. An implementation or handoff release must pin current contracts and connected evidence; historical checkpoints cannot certify a later revision.
 
 Sources: authority.md; system/diagram-atlas.md; system/coder-requirements.md; system/handoff.md; open-issues.md; review-workflow.md; reviews/2026-10-05-adversarial-design.md.
+
+## 08 | Decisions, depth and development policy
+
+- **The short answer:** one Dockerized local application; twelve capability identities; a fixed eight-step production research flow; protected Codex access; real durable Gates; offline RSI with human activation; isolated optional planning. These are design choices, not claims of implemented acceptance.
+- **Why those choices:** one deployable reduces operational burden; typed CC contracts enable independent builders; shared Gate profiles avoid duplicate judgment infrastructure; persisted release authority stops unsafe continuation; provider/export adapters limit replacement cost. Pattern sources appear beside each design choice earlier in this report.
+- **Depth 1 - explain the system:** the overview Mermaid views show every CC, nested helpers, track selection, trust placement and admission/activation. Dashed CONDITIONAL nodes may be absent from a particular run. They are not permission to omit required production stages or mandatory Search dependencies.
+- **Depth 2 - define the boundaries:** the module map and capsule guides link single owning schemas, API/effect/error semantics, configuration, immutable references and write authority. The generated information-flow variants include all 23 required production bindings plus publication fan-in. Appendix maps show the core wiring and failure/recovery; full/filtered Mermaid views are linked from the sharing index.
+- **Depth 3 - test the joins:** blind producer/consumer derivations and seam canaries; valid/missing/unknown-field fixtures; wrong versions/references; duplicates, timeout/cancellation, lost writes, restart, planner rejection, unauthorized access and scientific-negative completion. **Pattern:** [Pact boundary verification](https://docs.pact.io/).
+- **Depth 4 - prove the system:** independent component invocation with fake adjacent services, then integrated production, halt/recovery, RSI/admission, planner/dispatch and benchmark-export journeys. Observe actual records and successor invocation counts. Planned scenarios are not recorded passes.
+- **Change policy:** update the owning contract and impacted consumers, profiles, records, diagrams/examples and coverage together; recheck affected evidence. Frozen sources stay verbatim. A released interface change requires explicit compatibility/migration, not silent edits to builders' assumptions.
+- **How this helps coding:** separate owners build against agreed types and mockable public APIs, then connect without deciding product behavior. Coders translate the architecture into Spec Kit, choose internal algorithms and implement tests. Parallel work starts at stable shared boundaries; runtime safety still needs executed evidence.
+
+Sources: presentation/showcase/README.md; system/overall-draft.md; system/information-flow.md; authority.md; system/modules.md; m1/capability-designs.md; system/coder-requirements.md; system/verification.md; review-workflow.md; system/handoff.md.

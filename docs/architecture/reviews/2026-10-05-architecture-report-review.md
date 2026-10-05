@@ -6,6 +6,8 @@ tags: [review, report, adversarial]
 
 # Current-state architecture report review
 
+This record describes the original seven-page PDF at its recorded hash. The [whole-system diagram update](2026-10-05-overall-diagrams-review.md) records the later ten-page artifact; the PDF at the stable output path now contains that newer view.
+
 The user requested a short bullet PDF focused on architecture, first capabilities, rationale and primary pattern sources, with adversarial review. [Report source](../presentation/architecture-report-2026-10-05.md) is a derived presentation, not a contract owner. Snapshot: `952fde474` plus the summary corrections below. PDF: `output/pdf/m1-architecture-current-state-2026-10-05.pdf`, seven pages.
 
 ## Fresh source review and disposition

@@ -64,3 +64,30 @@ if errors:
     raise SystemExit(1)
 print(f'{checked} active local file/anchor links agree; {len(actual)} capability packets match inventory')
 print('Three tracks and ten PRD construction stages have navigation rows; semantic compliance and runtime remain separately reviewed.')
+
+# Simplified presentation must show every current capsule without inventing identities.
+overview = (vault / 'system/overall-draft.md').read_text(encoding='utf-8')
+first_view = re.search(r'```mermaid\s*\n(.*?)```', overview, re.S).group(1)
+overview_capsules = re.findall(r'CC: ([a-z_]+\.[a-z_]+)', first_view)
+assert len(overview_capsules) == len(set(overview_capsules)), 'Duplicate capsule in overview'
+assert set(overview_capsules) == expected, 'Overview differs from canonical capsule inventory'
+print(f'{len(overview_capsules)} overview CC identities match the production/operator inventory')
+
+flow_views = (vault / 'system/information-flow.md').read_text(encoding='utf-8')
+step_nodes = {step['step_id']: f'P{i}' for i,step in enumerate(plan['steps'])}
+expected_bindings = set()
+for step in plan['steps']:
+    for port,binding in step['inputs'].items():
+        producer,payload = binding.split('.',1)
+        expected_bindings.add(('IN' if producer == 'launcher' else step_nodes[producer],payload,port,step_nodes[step['step_id']]))
+for name,has_views,has_rsi in [('full',True,True),('no-observability',False,True),('no-rsi',True,False),('core',False,False)]:
+    body = re.search(rf'<!-- generated:information-{name} -->(.*?)<!-- /generated:information-{name} -->',flow_views,re.S).group(1)
+    actual_bindings = re.findall(r'([A-Z0-9]+) -->\|"([a-z_]+) to ([a-z_]+)"\| (P\d+)',body)
+    assert len(actual_bindings) == len(set(actual_bindings)),name+' duplicate input edge'
+    assert set(actual_bindings) == expected_bindings,name+' missing/extra canonical binding'
+    assert ('VIEWS[' in body) == has_views,name+' incorrect observation filter'
+    assert ('RSI[' in body) == has_rsi,name+' incorrect RSI filter'
+    assert all(node+'[' in body for node in ('STORE','GATE','MODEL','EXPORT')),name+' removed required authority/I/O'
+    for publication_input in ('poc_bundle_ref','benchmark_payload_ref','stage_context_ref','destination_ref'):
+        assert publication_input in body,name+' omitted publisher input '+publication_input
+print(f'Four information-flow variants preserve all {len(expected_bindings)} canonical input bindings and required boundaries')
