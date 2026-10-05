@@ -1,87 +1,101 @@
----
-id: arch.placement
-type: design
-level: present
-status: draft
-version: 1
-provides: [arch.placement]
-consumes: [arch.terms, arch.flow]
-depends_on: [terms.md, flow.md, system/deployment.md, system/modules.md, system/model-auth.md, system/storage.md, model-routing/README.md]
-tags: [placement, docker, model-routing, start-here]
-prd: [2.3, 2.9, 5.2, 5.4.3, 4.3.2]
----
+# Placement, stack, and reuse
 
-# Placement: where everything runs
+## Intent
 
-PRD: 2.3, 2.9, 5.2, 5.4.3, 4.3.2
+Use one reproducible application deployment. Preserve clear internal responsibilities without adding a network service for each responsibility. The server is a research workstation that runs long jobs, not initially a distributed cloud platform. Terms are defined in the [overview vocabulary](README.md#vocabulary-and-naming).
 
-> Answers: Where does each part of the system run?
-
-## Decisions
-
-- **One Docker container, one image: a modular monolith.** Control plane and restricted execution processes live in the same Linux image. Modules call each other as ordinary in-process calls. Separate OS processes exist only where trust must be separated.
-- **Docker is packaging and the outer boundary.** It does not replace the inner confinement for generated code or hidden [fixtures](system/test-surfaces.md#term-fixture). Capsule execution never starts another container. No Docker socket inside.
-- **[Model routing](model-routing/README.md#term-model-routing) sits inside a model call, never above the plan.** The plan picks CCs (in M1 the planner emits a fixed template and makes no model call). A **[Model bridge](system/model-bridge.md#term-model-bridge)** wraps Codex behind a provider interface and records which endpoint served each call. In M1 production the route is static: Codex. An isolated experiment may pick among approved endpoints; it cannot change which [capsule](capsule/capsule.md#term-capability-capsule) [runs](system/lifecycle.md#term-run) or what a [Gate](verification.md#term-gate) decides.
-- **Credentials stay with the bridge.** A dedicated persistent volume holds the Codex login, used only by the bridge process. Capsules, prompts, exports and child processes never see it.
-- **The image holds the [jiuwenbox](isolation.md#term-jiuwenbox) HTTP server, its token and policy.** The doctor [probes](system/environment.md#term-probe) it. `op.scholarly_search` declares egress, but its child has no network: the egress is brokered.
-- **Every local socket and child channel uses length-prefixed frames** (4-byte big-endian length, then UTF-8 JSON, at most `cc.ipc.max_frame_bytes`, default 1 MiB). Large values go by reference.
-- **Only the supervisor writes the store.** The runner returns its [Artifacts](schemas/artifact.md#term-artifact), [Observation](schemas/observation.md#term-observation) and capture, and the supervisor commits them on its behalf.
-
-## Placement graph
+## One container
 
 ```mermaid
-flowchart LR
-  CLIENT["Browser, host CLI, benchmark client<br/>(outside the container)"]
-  subgraph APP["One pinned Linux Docker container"]
-    API["HTTP: workstation UI and benchmark API<br/>loopback only, ports in deployment spec"]
-    SUP["Supervisor and ordinary modules<br/>intake, planner, validator, binder, Gate host, delivery, store writer"]
-    RUN["CC runner (managed subprocess)"]
-    CHILD["Restricted children<br/>tools, checks, generated POC code"]
-    BRIDGE["Model bridge: wraps Codex<br/>static route in production"]
-    ORACLE["Private fixture oracle<br/>(offline RSI only)"]
-    STORE[("Store volume: supervisor writes")]
-    CRED[("Credential volume: bridge only")]
-    FIX[("Fixture volume: oracle only")]
-  end
-  CLIENT -->|"token-authenticated"| API
-  API --> SUP
-  SUP -->|"typed request"| RUN
-  RUN --> CHILD
-  RUN -->|"scoped model request"| BRIDGE
-  SUP --> STORE
-  CRED --> BRIDGE
-  FIX --> ORACLE
-  SUP -.->|"RSI trial requests"| ORACLE
+flowchart TB
+    Browser[Browser: renders the served web UI]
+    subgraph App[One JiuwenSwarm application container]
+        Web[Web UI assets and web server]
+        CP[Control plane: web gateway and run control]
+        Worker[Background workflow execution]
+        Scheduler[Scheduler and gate mechanism]
+        Runner[CC runner]
+        Nodes[Fixed and planned CC nodes]
+        Harness[Bounded agent and tool execution]
+        Restricted[Restricted generated POC process]
+        ModelClient[Model provider integration]
+        StateModule[Shared run-state module]
+        Library[(Versioned CC library)]
+        CP --> Worker --> Scheduler --> Runner --> Nodes
+        Nodes --> Harness
+        Harness --> ModelClient
+        Harness --> Restricted
+        Scheduler -->|Status and decisions| CP
+        Web <--> CP
+        CP <--> StateModule
+        Scheduler <--> StateModule
+        Library -->|Available CCs and versions| Nodes
+        Library -->|Resolve selected CCs| Runner
+    end
+    Browser <-->|Published web endpoint| Web
+    StateModule <--> State[(Mounted SQLite run and DAG state)]
+    Worker <--> Files[(Mounted inputs, logs, and artifacts)]
+    ModelClient <-->|Configured endpoint| Models[Model provider]
+    subgraph Legend[Legend]
+        LKey["Blue: CC work<br/>Amber: infrastructure<br/>Green: data / artifacts<br/>Gray: outside components"]
+    end
+    Models ~~~ Legend
+    classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
+    classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
+    classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
+    classDef outside fill:#F1F5F9,stroke:#475569,color:#0F172A
+    class Nodes work
+    class Web,CP,Worker,Scheduler,Runner,Harness,Restricted,ModelClient,StateModule control
+    class State,Files,Library data
+    class Browser,Models outside
+    style App fill:#F8FAFC,stroke:#94A3B8
+    style Legend fill:#F8FAFC,stroke:#94A3B8
+    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
 ```
 
-## Where each piece lives and why
+These are logical modules. Preserve useful native process boundaries; one container does not mean one process.
 
-| Piece | Where it runs | Reads | Writes | Why here |
-|---|---|---|---|---|
-| intake, planner, [validator](system/planner.md#term-plan-validator), binder, [Gate host](capsule/gate-host.md#term-gate-host), delivery | trusted supervisor process | store, config | store (the only writer) | one writer makes records consistent. These pieces decide, so they must not run untrusted code |
-| [CC runner](capsule/runner.md#term-runner) | managed subprocess of the supervisor | admitted capsule bytes, input snapshots | returns evidence to the supervisor | a crash or hang in a capsule must not take the supervisor down |
-| Restricted children (tools, [operators](capabilities/README.md#term-operator), generated POC code) | no network, no secrets, one attempt directory | their inputs | their attempt directory only | generated code is untrusted, so it gets the least it needs |
-| Model bridge | its own identity | credential volume | nothing durable except capture through the supervisor | the login must be unreachable from capsule code |
-| Fixture oracle | its own identity | fixture volume | private records | hidden answers must be unreachable from the improver and its candidates |
-| Store | supervisor only | n/a | n/a | see [storage](system/storage.md) |
-
-Details: [modules](system/modules.md), [lifecycle](system/lifecycle.md), [runner](capsule/runner.md), [process boundary](capsule/process-boundary.md), [model auth](system/model-auth.md), [oracle](capsule/fixture-oracle.md).
-
-## Model routing in one view
-
-| Question | Answer |
+| Location | Responsibility |
 |---|---|
-| Who chooses the capsule? | The plan. Never the router. |
-| Who chooses the model? | Production: fixed Codex route. Experiment: router inside one call, from an approved list. |
-| What does the bridge record? | requested and served model, `route_id`, joined to the call by `obs_id`. Unknown tokens/cost are null, not zero. |
-| What does the model receive? | The prompt only. Stage, role and capsule labels stay on the trusted side. |
-| What if the router is off or fails? | Use the pinned default if compatible; otherwise typed failure. No silent failover after an effectful call began. |
-| Can routing change a Gate? | No. |
+| Browser | Render the container-served UI; display runs; submit objectives and files; answer clarification; retrieve outputs |
+| Container web server | Serve the built TypeScript UI and proxy the existing application connections through the published endpoint |
+| Container control plane | Accept requests; manage run identity and user decisions; communicate with UI and expose artifacts |
+| Container execution | Compile intent and requirements; plan; run CCs and checks; build and measure POCs; prepare delivery |
+| Shared run-state module | Store the authoritative run/DAG progress, attempts, decisions, and accepted artifact references used by both control plane and execution |
+| CC library | Hold versioned declarations and implementation references used by planning and the CC runner |
+| Persistent mounts | Keep run state, imported resources, logs, and accepted artifacts across container replacement |
+| External model endpoint | Serve configured model requests; routing algorithms are deferred |
 
-The router source design is kept verbatim in [model_router_design_en.md](model_router_design_en.md). Our adaptation is [model-routing](model-routing/README.md).
+Docker is packaging and an outer boundary. Generated code still needs a restricted process/workspace inside it. It must not inherit model credentials, unrestricted network access, or the application's control privileges. Reuse a suitable native isolation mechanism; never expose the Docker socket to generated code.
 
-## Limits to remember
+If the required isolation is unavailable, pause the affected execution with a clear reason rather than running generated code unrestricted. The coding task selects and verifies the native mechanism; a Docker image alone does not establish that boundary.
 
-- M1 is single-user, local, loopback. No multi-tenant, cluster or cloud.
-- Nested user namespaces and [Landlock](isolation.md#term-landlock) for generated code must pass real probes on each platform. A failed probe returns `UNSUPPORTED_SECURITY_PROFILE` and [halts](system/lifecycle.md#term-halt) that workload. Not yet run: see [decisions](decisions.md#open).
-- Startup order and doctor probes: [deployment](system/deployment.md#behavior-startup-and-shutdown).
+The run-state module coordinates durable storage updates. The control plane supplies requests and user decisions; execution supplies attempts, check results, and release decisions. The UI and scheduler read the same authoritative facts. This is an internal module backed by SQLite, not another deployed service or a second queue database.
+
+The CC library is packaged or configured versioned declarations plus their code/skills. Both planner and runner resolve from it. Freeze pins the selected capabilities and declared internal dependencies. Later library changes affect future plans, not the meaning of an already frozen run. Authoring and publishing this library do not require RSI.
+
+## Stack and operational defaults
+
+Keep the existing Python server and TypeScript web stack. Build and serve the UI inside the application image, as JiuwenSwarm already does; users only need a browser. Publish the existing web endpoint, initially bound to localhost (for example `http://localhost:5173`). Backend connections use the native web proxy rather than requiring users to configure another endpoint. Use SQLite for workflow state and references, and filesystem storage for large inputs, evidence, and deliverables. Do not replace unrelated native stores merely to make all persistence uniform.
+
+Use one Compose application service, based on the existing [Dockerfile](../../Dockerfile.claw), with persistent data and separately supplied configuration/credentials. Retain [JiuwenSwarm startup](../../pyproject.toml) where suitable. Pin the application and dependency versions needed to reproduce a run. Image availability and actual startup still require implementation validation.
+
+Local access comes first. Remote deployment retains this structure but needs suitable access control, durable storage, and hardware.
+
+## Reuse map
+
+| Area | Starting point | Adaptation intent |
+|---|---|---|
+| Client and server connection | [Existing web frontend and proxy](../../jiuwenswarm/channels/web/app_web.py) | Add workflow submission, status, clarification, and delivery using existing transport |
+| Application startup and Docker | Existing JiuwenSwarm image and entry point | Add the pipeline and its dependencies without another server framework |
+| Background execution and recovery | [Native worker](../../jiuwenswarm/agents/harness/common/rsi/worker.py) and [recovery pattern](../../jiuwenswarm/agents/harness/common/rsi/recovery.py) | Reuse compatible machinery or its small pattern; do not enable RSI or import its product semantics into research runs |
+| Scheduling and progress | OpenJiuwen SwarmFlow workflow engine | Wrap suitable scheduling, concurrency, and progress features; preserve gate-controlled readiness |
+| Planner and agent internals | OpenJiuwen Symphony team/agent and harness components | Reuse model/tool execution and configuration; restrict planner output to supported CC graphs |
+| Human interaction | Native run controls and human-session support | Carry questions, pause, resume, and cancellation through the UI |
+| Storage and diagnostics | Native state/artifact and logging facilities where suitable | Add only the durable workflow records and views that are missing |
+
+Symphony and SwarmFlow are distinct building blocks. Their dependency is pinned in [pyproject.toml](../../pyproject.toml). The [archived source audit](../archive/architecture-2026-10-05/system/reuse-audit.md) is optional background; its old policies are superseded.
+
+Verify native behavior at the installed version. These are reuse candidates, not proven integrations. Adapters must prevent retries, caches, or exception handling from releasing unchecked results or repeating effects silently.
+
+Add missing CC declarations, node bindings, freeze, and verification integration as application modules. Spec Kit defines their APIs and files.
