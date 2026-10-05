@@ -15,7 +15,7 @@ One value that a capsule produced, a person supplied, or control code made. It h
 
 ## Fields
 
-Extends [common](common.md). Its `scope` is `run_id` for what a run makes, `candidate_id` for what an admission makes (test inputs, test-call outputs), or `library` for test inputs and fixtures kept with a suite. Its `id` is the `artifact_id`. The runner writes every Artifact in a run, including values that people or control code hand to it; admission writes those of an admission and of the library.
+Extends [common](common.md). Its `scope` is `run_id` for what a run makes, `candidate_id` for what an admission makes (test inputs, test-call outputs), or `library` for test inputs and fixtures kept with a suite. Its `id` is the `artifact_id`. Runner and trusted control hosts produce run Artifacts; the supervisor is their sole persistent writer, including pre-freeze planning captures under the real run_id allocated at intake. Admission owns admission/library publication. Artifact origin records logical provenance, not child filesystem authority.
 
 | Field | Type | Req | M1 | Unlocks | Description |
 |---|---|---|---|---|---|

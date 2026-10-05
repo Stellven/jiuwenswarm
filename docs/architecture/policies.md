@@ -22,7 +22,9 @@ Every substantial decision cites a primary software or paper precedent, identifi
 
 ## One owner and controlled change
 
-Schemas, API signatures, errors, configuration keys, record variants and write authority have one owning definition. A module card links that definition instead of copying it. Consumers cannot infer additional semantics from an example or diagram.
+Schemas, API signatures, errors, configuration keys, record variants and write authority have one owning definition. The [authority index](authority.md) routes each concern to its owner. A module card links that definition instead of copying it. Consumers cannot infer additional semantics from an example or diagram. Wire shape and API behavior may have different owners, explicitly linked; these are complementary definitions, not independent versions of the same field list.
+
+Only the owner carries a complete normative field/signature/configuration table. Summaries identify purpose and link it. Generated schemas and graphs are regenerated from their owners. Stories carry example values and expected observations, with links to the governing rule. Historical reviews, received sources and checkpoint manifests retain their original bytes or results; a new revision produces new evidence rather than rewriting history. [Authority and impact](authority.md#what-to-edit-and-what-to-regenerate) defines the file classes used for maintenance.
 
 Draft contract revisions may change together. A handoff release pins source manifest, architecture commit, generated-schema hashes, configuration/profile versions, module map and review evidence. Once released, any core shape or meaning change creates a new contract version and explicit migration; namespaced `ext` is the existing-version extension boundary. Identify all producers, consumers, gates, records, plans, diagrams and fixtures requiring recheck before editing.
 
@@ -38,7 +40,7 @@ People receive a short decision brief; fresh AI reviewers inspect the full evide
 | Security | Inspect principals, readable/writable paths, IPC, model credentials, hidden material, network/process limits and failure-closed behavior |
 | End-to-end review | Walk production, offline RSI and permitted isolated tracks, including temporal failure paths and evidence joins |
 
-Every finding has an ID, severity, exact source/contract evidence, consequence, proposed correction, affected consumers and disposition. The author verifies findings against source before applying them. Resolve disagreements with the canonical requirement and contract evidence; further targeted review is allowed when a material disagreement remains. Re-review affected claims after a fix. A model's approval or repeated agreement alone is not evidence of correctness.
+Every finding has an ID, severity, exact source/contract evidence, consequence, proposed correction, affected consumers and disposition. The author verifies findings against source before applying them. Resolve disagreements with the canonical requirement and contract evidence; further targeted review is allowed when a material disagreement remains. Re-review affected claims after a fix. A model's approval or repeated agreement alone is not evidence of correctness. Adversarial review deliberately attempts contradictory bindings, lost writes, identity confusion, protected-data access and authority bypass. Record the attack, expected defense, remaining uncertainty and affected validation hook. A finite review cannot establish that a system is unbreakable.
 
 Mechanical schema/link/graph/source-hash checks complement AI review. `checked` records completed architecture checks; `locked` records Muk's approval. Neither claims a working implementation. The human brief lists only scope changes, significant tradeoffs, unresolved disagreements and runtime/security validation obligations.
 

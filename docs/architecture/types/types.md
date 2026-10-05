@@ -27,7 +27,7 @@ Use this table to find the one definition of anything that crosses a module boun
 | Check calling convention, `CheckResult` | how check code is called and what it returns | [schemas/checks.md](../schemas/checks.md#calling-convention) |
 | Call descriptor, envelope, tool host frames, `cc_sdk`, model client contract | how the runner talks to Swarmflow, tool code and the model | [capsule/runner.md](../capsule/runner.md) |
 | System API envelopes: `PocExecutionRequest`, `PocExecutionResult` | generated POC subprocess request and result; provisional M1 security boundary | [capsule/process-boundary.md](../capsule/process-boundary.md#provisional-api) |
-| System API envelopes: `FixtureEvaluationRequest`, `FixtureEvaluationResult` | private fixture-oracle request and aggregate-only response for RSI | [capsule/fixture-oracle.md](../capsule/fixture-oracle.md#provisional-api) |
+| System API envelopes: `FixtureEvaluationRequest`, `FixtureEvaluationResult` | private fixture-oracle request and aggregate-only response for RSI | [capsule/fixture-oracle.md](../capsule/fixture-oracle.md#closed-api-envelopes) |
 | Capsule folder layout | what an author puts in a capsule's folder | [capsule/toolchain.md](../capsule/toolchain.md#the-capsule-folder) |
 | Gate API, `GateResult`, the five verdicts | how a step is gated and what may follow | [capsule/gate-host.md](../capsule/gate-host.md) |
 | AdmissionProvider and Puppet Gate | how a Candidate receives an assurance decision and enters the library | [capsule/admission.md](../capsule/admission.md) |
@@ -44,7 +44,7 @@ Use this table to find the one definition of anything that crosses a module boun
 
    **Why named types, not `json` plus a schema.** Freeze checks a wiring by comparing type names (`PORT_TYPE_MISMATCH`). Selection chains capsules by type name, and Symphony matches `CapabilityIO.type` by name ([port types](../schemas/port-types.md)). Two `json` ports with different schemas compare equal by name, so a wrong wiring would pass every check. One named type gives one schema that producer and consumer both pin, through the vocabulary the Binding pins.
 
-2. **The page is the source; the JSON Schema is generated.** A type page's field table uses the type grammar of the [invariants](../schemas/invariants.md). The vocabulary builder ([toolchain](../capsule/toolchain.md#vocabulary-builder)) compiles each table into the type's `value_schema`. Nobody writes a payload type's JSON Schema by hand, so the page and the schema cannot drift. The generation rules:
+2. **The page is the source; the JSON Schema is generated.** A type page's field table uses the type grammar of the [invariants](../schemas/invariants.md). The vocabulary builder ([toolchain](../capsule/toolchain.md#m00a-vocabulary-builder)) compiles each table into the type's `value_schema`. Nobody writes a payload type's JSON Schema by hand, so the page and the schema cannot drift. The generation rules:
 
    | Grammar | JSON Schema |
    |---|---|

@@ -66,7 +66,7 @@ It asks arXiv and Semantic Scholar for one query, keeps at most `top_k` papers i
 
 **Why these choices:**
 - **`read_only`, `reads_external`:** it changes nothing and reads public services, so it may run unattended. Rule `state_fixtures_present` makes its tests carry fixtures, which is how replay works.
-- **`network: egress`** is declared, not enforced, at M1 (no sandbox).
+- **`network: egress`** authorizes only the designated academic connector route under the validated runtime profile. The operator cannot obtain model credentials or arbitrary host/network access; [environment](../system/environment.md) owns enforcement and fail-closed startup probes.
 - **`timeout_s: 120`:** one request per service, each capped at 50 s by the adapter, plus the spacing wait.
 
 ## How it works
@@ -77,7 +77,7 @@ It asks arXiv and Semantic Scholar for one query, keeps at most `top_k` papers i
 
 ## Runs, and tests
 
-A nested call gets no Verification of its own, so its checks run at **admission** only; at run time its caller's checks cover them. Two test cases, one per check. Each carries `fixtures` with the recorded service responses, which the adapter replays at admission ([integration](../system/integration.md#deepsearch-scholarly-search)).
+Admission cases cover the declared checks and carry recorded service responses that the adapter replays ([integration](../system/integration.md#deepsearch-scholarly-search)). At runtime the Gate host persists the nested call's mechanical Verification before returning its output to the parent; an empty semantic criteria set is Tier 2 `NOT_RUN`. The parent retains partial-service limitations and includes the nested evidence in its semantic Gate. [Runner](../capsule/runner.md#nested-calls-and-the-broker) owns this protocol.
 
 ## Existing code it touches
 

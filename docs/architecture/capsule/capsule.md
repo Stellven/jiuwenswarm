@@ -102,7 +102,7 @@ A kind says how a capsule runs, not what job it does. A gate, a verifier or a de
 1. **Any node can be a capsule.** Work steps, gates, verifiers and delivery can all be capsules. What is not a node stays outside: admission, the library, the librarian and the record stores.
 2. **A capsule declares** what it takes, gives, needs, changes and promises, in its [Declaration](fields.md).
 3. **It refers to its code by hash.** If the code changes, the hash no longer matches and the runner refuses to load it.
-4. **Its dependencies are always pinned.** A dependency with a stated purpose may be re-pinned to a newer version by RSI, as a new version that passes admission ([RSI](rsi.md#updating-dependencies)).
+4. **Its dependencies are always pinned.** A dependency update creates a new version through admission. M1 RSI cannot re-pin external dependencies; later dependency evolution needs a separately authorized policy ([RSI](rsi.md)).
 5. **Declare first, then check.** Every promise has a check, and every call is recorded as an [Observation](../schemas/observation.md). Authors declare each capability's effect class (how reversible its changes are); tools check that the declaration holds.
 6. **A capsule holds no task** (INV-7). Which run uses which capsule, and in what role, is recorded outside it, in a [Binding](../schemas/binding.md).
 7. **RSI is opt-in.** RSI may change a capsule only if its Declaration allows it, and only the parts it lists in `evolution.may_change`; everything else stays fixed ([RSI](rsi.md)).
@@ -149,7 +149,7 @@ flowchart LR
 | [Port types](../schemas/port-types.md), [policy](../schemas/policy.md), [invariants](../schemas/invariants.md) | the shared vocabulary, rules and defaults every capsule is checked against |
 | [Permissions](permissions.md) | the jiuwenswarm rules its declarations become |
 | [Symphony](symphony.md) | the index and planner that see admitted capsules |
-| Other capsules | as dependencies (`needs.external`), as members of a [composite](composition.md), as parents and children through lineage, and as [sets that may fail together](library.md#when-good-capsules-are-bad-together) |
+| Other capsules | as dependencies (`needs.external`), as members of a [composite](composition.md), as parents and children through lineage, and as [sets that may fail together](library.md#eligibility-and-failure) |
 
 Who writes each record is in the [records table](../schemas/schemas.md#the-records).
 

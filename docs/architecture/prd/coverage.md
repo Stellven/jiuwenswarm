@@ -55,3 +55,33 @@ Muk owns architecture and CC shared interfaces. Ramika's frozen PRD supplies res
 The [Verifier model-selection proposal](../../product/verifier-model-selection-proposal-2026-10-02.md) permits isolated recommendation and unmodified-model integration after access approval. Training, quality claims from functional examples and production-route replacement are excluded. It consumes the existing semantic-assessment contract and cannot change Gate authority.
 
 Each source heading maps to the relevant row here; its individual whitelist/blacklist and expected observation are checked during fresh source review. A row is not proof that every linked contract is checked. Remaining runtime/platform/method evidence is tracked in [validation obligations](../open-issues.md). Saurav's pending schema changes the provisional export adapter only.
+
+## Phases and implementation stages
+
+These rows account for the frozen PRD's separate phase and construction-stage axes. They route to the owning design; they do not replace its rules or assert implementation acceptance.
+
+| PRD phase (1.3) | Owning design and handoff | Acceptance boundary |
+|---|---|---|
+| Track 1: Phase 1 static research baseline | [Fixed pipeline](../m1/pipeline.md), [Codex bridge](../system/environment.md#model-bridge), [lifecycle](../system/lifecycle.md), [production story](../stories/01-research-workflow.md) | Release-critical static route and workflow; valid negative science reaches delivery |
+| Track 2: required offline RSI validation | [RSI engine](../capsule/rsi-engine.md), [oracle](../capsule/fixture-oracle.md), [RSI story](../stories/06-offline-rsi.md) | Required M1 acceptance; isolated from live DAG and active-alias mutation |
+| Track 3: Phase 2 dynamic test tracks | [Experimental whitelist](../system/experiments.md), [planner](../system/planner.md), [planner story](../stories/07-experimental-planner.md) | Isolated, non-blocking; external access approval precedes real alternate-model integration |
+
+| PRD implementation stage | Design routing | Boundary that must be demonstrated by implementation |
+|---|---|---|
+| 0 (6.3): runtime unblocker and local configuration | [Integration](../system/integration.md), [environment](../system/environment.md), [auth](../system/model-auth.md), [deployment](../system/deployment.md) | Bounded Codex request under the selected secured configuration |
+| 1 (6.4): governed execution backbone | [Runner](../capsule/runner.md), [Gate](../capsule/gate-host.md), [storage](../system/storage.md), [records](../system/records.md), [lifecycle](../system/lifecycle.md) | Valid A releases B; invalid A blocks B; headless halt returns durable machine status |
+| 2 (6.5): intake, Brief and static DAG | [Intake](../types/intake.md), [Brief capability](../m1/requirement-capsule.md), [fixed plan](../m1/pipeline.md) | Submitted assets become validated Brief and frozen static bindings |
+| 3 (6.6): evidence to hypothesis | [Search](../m1/search-capsule.md), [Screening](../m1/screening.md), [Hypothesis](../m1/hypothesis.md) | Referenced ideas, one selected opportunity and pre-registered hypothesis cross real Gates |
+| 4 (6.7): Builder and POC | [POC](../m1/poc.md), [workspace](../m1/op-workspace-io.md), [process boundary](../capsule/process-boundary.md) | Bounded valid executable bundle and build evidence; no autonomous repair |
+| 5 (6.8): benchmarking and scientific evaluation | [Benchmark](../m1/benchmark.md), [protocol](../m1/measurement-protocol.md), [Evaluation](../m1/evaluation.md), [science story](../stories/04-scientific-execution.md) | Positive and negative valid execution preserve separate scientific/infrastructure verdicts |
+| 6 (6.9): delivery and complete research run | [Delivery](../m1/delivery.md), [publication/recovery story](../stories/03-durable-recovery.md), [production story](../stories/01-research-workflow.md) | Complete request-to-report evidence and committed final result |
+| 7 (6.10): operational shell | [Workstation](../system/workstation.md), [observability](../system/observability.md), [benchmark endpoints](../system/benchmark-export.md), [client story](../stories/08-benchmark-and-workstation.md) | Install, initialize, execute, inspect and retrieve through supported local interfaces |
+| 8 (6.11): offline RSI | [RSI engine](../capsule/rsi-engine.md), [oracle](../capsule/fixture-oracle.md), [admission](../capsule/admission.md), [library activation](../capsule/library.md) | Bounded improvement, hidden-data defense, guardrail evidence, human activation and rollback |
+| 9 (6.12): isolated Phase 2 tests | [Experiments](../system/experiments.md), [planner](../system/planner.md), [routing](../model-routing/README.md) | Permitted variants compared against operational baseline without modifying production acceptance |
+| Handoff (6.13) | [Authority index](../authority.md), [coder requirements](../system/coder-requirements.md), [module handoff](../system/handoff.md) | Every boundary has canonical fields, behavior, placement, evidence and validation hooks |
+
+[Build order](../system/build-order.md) owns the detailed construction dependencies. Its numbered engineering slices are not PRD stage identifiers; use the clause IDs above when allocating downstream tasks. [Clause inventory](clause-inventory.md) remains the exact numbered-heading list, including excluded/future headings. Whitelist/blacklist checks require reading each heading's body, not assuming every inventoried heading is active M1 work.
+
+### Coverage audit limitations, October 5
+
+The architecture has owner links for all nine research stages, all three tracks and all ten construction stages. This navigation audit reread the frozen phase model and section 6 stage bodies. It does not turn the existing grouped map into a claim of line-by-line requirement satisfaction. In particular, stage 8 explicitly requires protected-set separation, guardrail execution and rollback evidence; stage 9 preserves the external-access gate and non-blocking status. Their linked designs and implementation obligations remain subject to fresh contract/source review. [Boundary cases](../system/boundary-cases.md) routes negative scenarios; actual commands/results belong to the coding workstream.

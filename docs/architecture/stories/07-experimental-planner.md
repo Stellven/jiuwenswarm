@@ -4,7 +4,7 @@
 
 A developer selects a pinned isolated_experiment feature profile allowing Leader capability planning. Its task is a validated research_brief; its library snapshot exposes admitted capabilities, exact ports, versions, effects and bounds. Production keeps the fixed plan and never invokes this model planner.
 
-`cc/experiments/entry.py` validates track/profile/access first. `cc/planning/service.py` uses `cc/adapters/leader.py` for native Leader identity and the protected model bridge for a single gpt-6.1-sol proposal. The planner is an orchestration service with no execution or activation authority.
+`cc/experiments/entry.py` validates track/profile/access first. `cc/planning/service.py` uses `cc/adapters/leader.py` for native Leader identity and the protected model bridge for a single gpt-6.1-sol proposal. The planner is an orchestration service with no execution or activation authority. Entry allocates the real experimental run identity and supervisor commits planning_reserved with task/library/config/policy pins before granting a planning-scope bridge descriptor; a frozen Binding is not fabricated. Each turn reserves durable quota before forwarding.
 
 ## A concrete bad wire
 
@@ -13,7 +13,7 @@ The proposal connects `search.idea_set` to Hypothesis's `opportunity_card` input
 | Order | Connection | Expected result |
 |---|---|---|
 | 1 | Experimental entry → propose(task_ref, library_snapshot_ref, experiment_config_ref, request_id) | Raw turn and typed PlanProposal committed |
-| 2 | Entry → `cc/planning/validate.py` validate | Independently compare source output type and required input type |
+| 2 | Entry → `cc/planning/validate.py` validate | Resolve plan_ref to the complete planner_proposal Artifact, cross-check its task/library/config pins, selections, requirement-to-output criteria and budget, then compare source/output types |
 | 3 | Validator → supervisor store | INVALID with TYPE_MISMATCH findings and exact input refs; no validated_plan_ref |
 | 4 | Entry → local clarification/review | Return findings; zero runner dispatches and no live plan |
 | 5 | Human explicitly requests a new proposal | Fresh request identity, prior rejected evidence preserved; no autonomous repair loop |

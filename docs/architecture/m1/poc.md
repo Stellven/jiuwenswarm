@@ -23,10 +23,11 @@ It maps the ingested files and the dataset into `/workspace/poc/`, writes a stat
 | | |
 |---|---|
 | **Step id** | `poc` |
-| **Work capsule** | `research.build_poc`, a `tool` with model turns |
+| **Work capsule** | `research.build_poc`, a `tool` with at most two scheduled generation calls under the [bounded generation design](#bounded-generation-design) |
 | **Inputs** | [`hypothesis_blueprint`](../types/hypothesis-blueprint.md) from `hypothesis`; [`research_brief`](../types/research-brief.md); [`intake`](../types/intake.md) |
 | **Outputs** | [`poc_bundle`](../types/poc-bundle.md) |
-| **Operators it pins** | [`op.codesearch`](op-codesearch.md); [`op.workspace_read`, `op.workspace_write`, `op.workspace_list`](op-workspace-io.md); [`syntax_check`](measurement-protocol.md#syntax-checking) |
+| **Admitted dependency** | [`op.codesearch`](op-codesearch.md) |
+| **Ordinary module/service calls** | [workspace read/write/list](op-workspace-io.md); trusted [syntax_check](measurement-protocol.md#syntax-checking). These are not independently admitted capsules |
 | **Effect class** | `idempotent`, writing only `fs:workspace/poc/*`, so it is allowed unattended |
 | **Gate profile** | shared `research.verifier` + `research.accept_poc.v1`: judged criteria, intended: the patch implements the blueprint's mechanism and nothing else, and the harness measures exactly the blueprint's metrics |
 
@@ -57,3 +58,9 @@ Code/process placement is [modules](../system/modules.md). Shared request, deadl
 The owning output type page defines fields and cross-input checks. [Measurement protocol](measurement-protocol.md) defines methods, samples, transforms and compiler evidence. [Research gates](research-gates.md) defines this stage's acceptance API and criteria. No local copy of a shared schema is authoritative. [Verification](../system/verification.md) gives independently callable entry points, expected observations and injectable failures; runtime acceptance results belong to coding work.
 
 Assembly order: map frozen resources read-only, generate static declared requirements and environment.json, locate the intervention, write one patch and one sequential harness, call op.syntax_check once, publish the four-role ZIP/manifest. Store syntax evidence as an Artifact; set syntax_check_ref to its returned Ref. No generated import or experiment runs at this stage. A compiler failure is recorded and routed to human triage without repairs. The harness uses registered measurement methods and BenchmarkSample stdout; it cannot supply replacements.
+
+## Bounded generation design
+
+The provisional M1 authoring budget is two brokered generation calls: first propose the one patch using the frozen mechanism and authorized code excerpts; then propose the one harness using that patch, frozen protocol and trusted measurement adapter instructions. Requirements/environment assembly is deterministic. A malformed patch reply stops before the harness call; a malformed harness or failed syntax check ends the attempt without repair. The second call is scheduled assembly, not a retry. The admitted wrapper and frozen per-call budget enforce this ceiling. No model-directed dependency loop or third call is permitted.
+
+This is an architecture default, not a PRD-prescribed call count or demonstrated quality result. Separate typed component interfaces and implementation steps follow [Kubeflow](https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/); the Codex adapter uses the explicit turn boundary documented by [OpenAI app-server](https://developers.openai.com/codex/app-server/). Compare one-pass and this bounded two-pass generation on paired visible fixtures before a manual version change; preserve the same public bundle, permissions and Gate criteria. Capsule-specific optimization and defect families are in the [capability guide](capability-designs.md#5-researchbuild_poc).

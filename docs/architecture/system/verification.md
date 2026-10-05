@@ -29,7 +29,7 @@ This is an architecture specification for testable public interfaces and expecte
 | Data Foundation | seal execution, assemble, export | repeated assembly, loss/corruption of required capture; verify byte-for-byte prompts/logs, ids/hashes, no invented counts |
 | Entry/UI/config | load_config, doctor, public run API and native views | project-over-user overrides, unsupported platform, invalid token, reconnect; read the same durable state |
 | Offline RSI | begin session, proposal attempt, submit and activate | planted forbidden mutation/regression, frozen referee, loop/final separation; observe append-only hash chain and no live activation |
-| Planner/validator | propose with fake bridge; validate immutable run_plan | wrong port/cycle/permission/budget/missing objective/Gate; observe findings and zero dispatches |
+| Planner/validator | propose with fake bridge; validate immutable run_plan | wrong port/cycle/permission/budget/missing objective/Gate; forged planning scope, missing quota reservation, incomplete proposal envelope and alias race; observe findings and zero unauthorized turns/dispatches |
 | Experimental entry | feature-profile request | forbidden production toggles, unapproved real endpoint, missing Code Mode confinement; observe wrong-track denial |
 | Benchmark export | headless run_task and export_run | halted/sealed runs, missing telemetry/corrupt ref/write interruption; observe stable identities and truthful unavailable fields |
 

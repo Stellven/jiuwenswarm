@@ -78,7 +78,7 @@ flowchart TB
 
 The reserved names `changes.provides[]` and `needs.injects[]` in the Declaration are kept for the space half.
 
-Capsules that are fine alone can still fail together without being composed. How the library screens such sets is in [the library](library.md#when-good-capsules-are-bad-together).
+Capsules that are fine alone can still fail together without being composed. How the library screens such sets is in [the library](library.md#eligibility-and-failure).
 
 ## Open
 

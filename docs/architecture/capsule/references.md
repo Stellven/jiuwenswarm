@@ -3,6 +3,8 @@ type: reference
 tags: [capsule, reference]
 ---
 
+> Research rationale index. Earlier paper figures and future mechanisms are historical context, not current M1 acceptance or runtime guarantees. Use [frozen coverage](../prd/coverage.md) and [current decision owners](../authority.md) for coding. Verify primary paper evidence before reusing numerical claims in a presentation.
+
 # References
 
 The papers and designs Capability Capsule draws on. Every cited paper was read in full; the numbers, pages and caveats are kept in the CC paper ledger. Each row says what CC took from it and where it is used.
@@ -18,8 +20,8 @@ The papers and designs Capability Capsule draws on. Every cited paper was read i
 | More Skills, Worse Agents? | 2605.24050 | pass rate falls 0.21 at 202 skills, largely from picking a look-alike: selection must be strict before a model ranks | [why](why.md) |
 | Contract2Tool | 2606.07904 | a contract filter reached 0.980 success on 2,528 tokens, against 26,172: declared contracts are cheaper and better | [why](why.md) |
 | Don't Offer What Can't Be Done | 2608.01050 | preconditions checked before offering remove 59.1% and 90.5% of description tokens; one evaluator for filter and dispatch | [why](why.md), [Declaration](fields.md) (`needs.when`) |
-| SkillFuzz | 2607.02345 | skills that pass alone drift plans together (4.7% with one, 66.5% with five); contract-guided MCTS finds risky sets, 80.6% confirmed | [library](library.md#when-good-capsules-are-bad-together) |
-| Skill Drift Is Contract Violation | 2605.10990 | given the failed contract, one-round repair of drifted tools rose from 10% to 78%; no false alarms over 599 cases. That each dependency states its purpose is CC's design, built on this | [trust](trust.md), [RSI](rsi.md#updating-dependencies) |
+| SkillFuzz | 2607.02345 | skills that pass alone drift plans together (4.7% with one, 66.5% with five); contract-guided MCTS finds risky sets, 80.6% confirmed | [library](library.md#eligibility-and-failure) |
+| Skill Drift Is Contract Violation | 2605.10990 | given the failed contract, one-round repair of drifted tools rose from 10% to 78%; no false alarms over 599 cases. That each dependency states its purpose is CC's design, built on this | [trust](trust.md), [RSI](rsi.md) |
 | AllocBench | 2607.23332 | models commit to building at first sight 85 to 99% of the time: the decision to build is separate from building, and recurrence drives a build | [RSI](rsi.md) |
 | The Blind Curator | 2607.07436 | a biased judge silently stops retirement; deterministic checks and a judge catch different defects: audit the judges | [library](library.md), [observability](observability.md) |
 | When Self-Evolution Backfires | 2608.05810 | removing the gate cost 8 points; clean-up won back only 1.7 of 12.3: gate first, clean later | [library](library.md) |
@@ -33,7 +35,7 @@ The papers and designs Capability Capsule draws on. Every cited paper was read i
 | GraSP | 2604.17870 | prior art on structured skill planning | [Symphony](symphony.md) |
 | RelAIBuild | 2606.26924 | prior art on lineage and taint across builds | [library](library.md) |
 | CostBench | 2511.02734 | cost as a measured property, not an authored one | [observability](observability.md) |
-| Self-evolving agents survey | 2507.21046 | every system freezes something; the claim is what it checks | [RSI](rsi.md#what-must-never-evolve) |
+| Self-evolving agents survey | 2507.21046 | every system freezes something; the claim is what it checks | [RSI](rsi.md) |
 
 ## Design inspirations
 
@@ -46,7 +48,7 @@ The papers and designs Capability Capsule draws on. Every cited paper was read i
 | Protocol Buffers | never add a required field: new fields are optional, old data stays valid; the policy, not the schema, tightens | [checked and unchecked](stages.md), [invariants](../schemas/invariants.md) |
 | C++26 contracts | a contract can be ignored, observed or enforced; CC's unchecked, labelled and blocking levels | [trust](trust.md) |
 | npm lockfile integrity, Bazel content-addressed storage | code and dependencies pinned by hash; the same bytes stored once | [library](library.md), [Declaration](fields.md) |
-| Git | append-only history, each version naming its parent: a linked list that branches into a tree | [library](library.md#a-tree-of-versions) |
+| Git | append-only history, each version naming its parent: a linked list that branches into a tree | [library](library.md#tests-and-lineage) |
 | Google Binary Authorization, SLSA provenance | a Verdict as an attestation checked at bind time, never re-tested; a Binding as provenance of what ran | [Verdict](../schemas/verdict.md), [Binding](../schemas/binding.md) |
 | Kubernetes admission control and CEL | one admission gate with typed rules and reason codes | [library](library.md#admission-the-only-way-in), [policy](../schemas/policy.md) |
 | kube-scheduler | filter, then score: strict rules rule out, then a model ranks | [Symphony](symphony.md) |

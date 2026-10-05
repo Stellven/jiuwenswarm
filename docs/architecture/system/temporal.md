@@ -12,7 +12,7 @@ tags: [diagram, control, temporal]
 
 # Temporal flows and durable authority
 
-[Spatial diagram](diagram.md) maps modules and typed connections. These diagrams map order and persistence; arrows do not grant authority. [Lifecycle](lifecycle.md) owns recovery, [pipeline](../m1/pipeline.md) owns stage order, and [records](records.md) owns durable identities.
+[Diagram atlas](diagram-atlas.md) introduces the system at four depths. [Spatial diagram](diagram.md) maps modules and typed connections. These diagrams map order and persistence; arrows do not grant authority. [Lifecycle](lifecycle.md) owns recovery, [pipeline](../m1/pipeline.md) owns stage order, and [records](records.md) owns durable identities.
 
 ## One governed step
 
@@ -27,7 +27,7 @@ sequenceDiagram
     participant G as Gate host
     participant V as Shared verifier
     U->>S: launch intake/config/request
-    S->>S: doctor, validate plan, resolve active snapshot
+    S->>S: doctor, validate fixed plan, resolve pinned snapshot
     S->>D: freeze bindings + run-start manifest
     loop Eight production research steps
         S->>D: reserve dispatch identity before effects

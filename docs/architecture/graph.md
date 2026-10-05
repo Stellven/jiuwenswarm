@@ -16,6 +16,7 @@ flowchart LR
     p_system_build_order_md["system/build-order.md"]
     p_system_coder_requirements_md["system/coder-requirements.md"]
     p_system_deployment_md["system/deployment.md"]
+    p_system_diagram_atlas_md["system/diagram-atlas.md"]
     p_system_diagram_md["system/diagram.md"]
     p_system_environment_md["system/environment.md"]
     p_system_experiments_md["system/experiments.md"]
@@ -30,6 +31,7 @@ flowchart LR
     p_system_overview_md["system/overview.md"]
     p_system_planner_md["system/planner.md"]
     p_system_records_md["system/records.md"]
+    p_system_reuse_audit_2026_10_05_md["system/reuse-audit-2026-10-05.md"]
     p_system_storage_md["system/storage.md"]
     p_system_temporal_md["system/temporal.md"]
     p_system_verification_md["system/verification.md"]
@@ -66,6 +68,11 @@ flowchart LR
     p_system_deployment_md --> p_system_environment_md
     p_system_deployment_md --> p_system_modules_md
     p_system_deployment_md --> p_system_benchmark_export_md
+    p_system_diagram_atlas_md --> p_system_deployment_md
+    p_system_diagram_atlas_md --> p_system_diagram_md
+    p_system_diagram_atlas_md --> p_system_temporal_md
+    p_system_diagram_atlas_md --> p_system_planner_md
+    p_system_diagram_atlas_md --> p_m1_pipeline_md
     p_system_diagram_md --> p_system_overview_md
     p_system_diagram_md --> p_system_nodes_md
     p_system_diagram_md --> p_system_integration_md
@@ -122,6 +129,11 @@ flowchart LR
     p_system_records_md --> p_system_storage_md
     p_system_records_md --> p_system_lifecycle_md
     p_system_records_md --> p_capsule_rsi_engine_md
+    p_system_reuse_audit_2026_10_05_md --> p_system_integration_md
+    p_system_reuse_audit_2026_10_05_md --> p_system_modules_md
+    p_system_reuse_audit_2026_10_05_md --> p_system_environment_md
+    p_system_reuse_audit_2026_10_05_md --> p_system_model_auth_md
+    p_system_reuse_audit_2026_10_05_md --> p_capsule_runner_md
     p_system_storage_md --> p_capsule_toolchain_md
     p_system_storage_md --> p_system_ledgers_md
     p_system_temporal_md --> p_system_lifecycle_md

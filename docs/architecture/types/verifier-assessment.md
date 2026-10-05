@@ -33,7 +33,7 @@ The judge's result for each criterion of an [`evidence_bundle`](evidence-bundle.
 |---|---|---|---|---|---|---|
 | `check.value_matches_type.v1` | deterministic | `outputs` | `both` | `cc/checks/registry/common.py:value_matches_type` | muk | the value matches the generated schema |
 
-Checks that need the bundle, such as whether every criterion is answered and every quote is real, belong to the producer: every gate capsule carries them ([gate capsules](../capsule/gate-capsules.md#the-three-checks-every-gate-capsule-carries)). A gate call gets no Verification, so the gate host runs the type check and those checks itself before folding; a fail makes every criterion `unknown`, and the step `blocked` (INV-8).
+Checks that need the bundle, such as whether every criterion is answered and every quote is real, belong to the producer: every gate capsule carries them ([gate capsules](../capsule/gate-capsules.md#what-every-gate-capsule-declares)). A gate call gets no Verification, so the gate host runs the type check and those checks itself before folding; a fail makes every criterion `unknown`, and the step `blocked` (INV-8).
 
 ## Example
 

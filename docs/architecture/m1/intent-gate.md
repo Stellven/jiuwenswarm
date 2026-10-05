@@ -69,7 +69,7 @@ The gate slot of step `intent` on [the M1 pipeline](pipeline.md): `gate_capsule_
 }
 ```
 
-The three checks are [the pattern's](../capsule/gate-capsules.md#the-three-checks-every-gate-capsule-carries); `checks/gate_checks.py` is byte-identical in every gate capsule. Add `{"path": "checks/gate_checks.py", ...}` to the Candidate's files, as every check runner file ([open issues](../open-issues.md) 2).
+The three checks are [the pattern's](../capsule/gate-capsules.md#what-every-gate-capsule-declares); `checks/gate_checks.py` is byte-identical in every gate capsule. Add `{"path": "checks/gate_checks.py", ...}` to the Candidate's files, as every check runner file ([open issues](../open-issues.md) 2).
 
 ## `SKILL.md`
 

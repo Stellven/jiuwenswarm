@@ -20,7 +20,7 @@ The control flow of one run, as data. It lists the steps in order. For each step
 |---|---|---|---|---|---|
 | `steps` | `list<object>` | req | checked |  | At least one. The steps in the order they run. M1 runs them one after another |
 | `steps[].step_id` | `id` | req | checked |  | Unique within the plan. It becomes the Binding's `step_id` and the Swarmflow `label`. Example: `intent` |
-| `steps[].capsule_name` | `string` | req | checked |  | The work capsule's `identity.name`. Freeze resolves it through its current Standing. Example: `research.compile_intent` |
+| `steps[].capsule_name` | `string` | req | checked |  | The work capsule's `identity.name`. Freeze resolves the exact admitted version in the pinned library snapshot, checks current revocation, and never substitutes a changed active alias. Example: `research.compile_brief` |
 | `steps[].gate_capsule_name` | `string` | req | checked |  | Shared independent verifier capability `research.verifier`; freeze pins its exact declaration hash |
 | `steps[].gate_profile_ref` | `object` | req | checked |  | Closed ProfileRef `{kind: gate, id, sha256}` selecting this stage's independently authored checks and rubrics |
 | `steps[].gate_profile_ref.kind` | `enum(gate)` | req | checked |  | Profile discriminator |

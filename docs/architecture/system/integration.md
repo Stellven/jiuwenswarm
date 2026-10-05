@@ -16,6 +16,8 @@ tags: [system, m1, integration]
 
 **Citations.** AC is agent-core at `9e339019`, jiuwenswarm's dependency pin; paths start `openjiuwen/`. JS is jiuwenswarm at `6cc05c36b`; paths start `jiuwenswarm/`. Rows distinguish verified source entrypoints from new adapter behavior. Runtime integration probes remain validation obligations, not undefined architecture.
 
+The [October 5 pinned-source audit](reuse-audit-2026-10-05.md) records native retries, cache bypass, flush/rename limitations, shared Codex service custody, Leader limits and CodeSearch execution controls. These source mechanisms require the described adapters and probes; native behavior is not automatically CC authority.
+
 ## Centralised communication
 
 Rechecked additions: the native human_session and backend session quartet at AC openjiuwen/agent_teams/workflow/engine/primitives.py and engine/backends/base.py map through cc.adapters.local_session, as specified by [lifecycle](lifecycle.md#human-review-and-recovery). OpenJiuwen CodeSearch's model-free BM25Retriever/build_index/search_ast_nodes at deepsearch ff243bca4ab409116476587dcb106cf526581804 map through cc.adapters.codesearch, as specified by [CodeSearch](../m1/op-codesearch.md). These rows establish adapter scope; terminal execution and package import acceptance are still unrun.
@@ -24,7 +26,7 @@ Three rules keep every author on the same wires:
 
 1. **Only `cc/adapters/` imports agent-core or jiuwenswarm.** There is one adapter per existing system, each with the small API below. No other CC module imports `openjiuwen` or `jiuwenswarm`. This is checked once code exists (proposed lint `adapters_only`).
 2. **Inside CC, modules use published public APIs, the record store and the event bus.** No CC module calls another module's internals. The [module/process map](modules.md) names allowed calls; [lifecycle](lifecycle.md) owns service IPC.
-3. **A new connection to existing code is a new row on this page first, then code.** An author who needs something not listed adds the row (with its citation) through [the change order](../open-issues.md), never a private import.
+3. **A new connection to existing code is a new row on this page first, then code.** An author who needs something not listed adds the row (with its citation) through [the change order](../PROCESS.md#the-order-for-changing-anything), never a private import.
 
 ```mermaid
 flowchart LR
@@ -73,7 +75,7 @@ flowchart LR
 
 | Existing symbol | Where | What CC does with it | M1 |
 |---|---|---|---|
-| `run_workflow(path, *, args, backend, resume, journal_path, progress_sink, run_id, ...)` | AC `agent_teams/workflow/engine/runner.py:294` (`args` :297, `backend` :298, `resume` :299, `journal_path` :300, `progress_sink` :305, `run_id` :311) | the launcher calls it directly with the [generic script](nodes.md#the-one-generic-script), `CcBackend`, the run's journal and the progress sink | used |
+| `run_workflow(path, *, args, backend, resume, journal_path, progress_sink, run_id, ...)` | AC `agent_teams/workflow/engine/runner.py:294` (`args` :297, `backend` :298, `resume` :299, `journal_path` :300, `progress_sink` :305, `run_id` :311) | the launcher calls it directly with the [generic script](nodes.md#generic-workflow-adapter), `CcBackend`, the run's journal and the progress sink | used |
 | `AgentBackend.run(prompt, opts, schema_json, *, call_key) -> AgentResult` | AC `agent_teams/workflow/engine/backends/base.py:118` (class :39; `AgentResult` :22) | `CcBackend` implements it ([runner](../capsule/runner.md#swarmflow-backend-talking-to-the-engine)) | used |
 | `agent(prompt, *, label, phase, schema, options)` | AC `agent_teams/workflow/engine/primitives.py:540` | `cc_node` calls it once per step | used |
 | script entry `async def run(args)` | AC `agent_teams/workflow/engine/primitives.py:1668-1680` | the generic script defines `run(args)` | used |
@@ -84,11 +86,11 @@ flowchart LR
 
 ### `codex`: the model, for M05
 
-**Adapter API:** `async turn(session_id: str, text: str, model_hint: str | None) -> TurnResult` with `{text, cancelled}`; it drains `stream` to completion in a task nothing cancels, and raises `CodexError` codes unchanged. M05 maps them ([runner](../capsule/runner.md#the-model-client-contract-m05)).
+**Adapter authority:** [environment ModelBridge](environment.md#model-bridge) owns turn/cancel/status, deadlines, required capture and dedicated process custody. Reuse the pinned service/transport primitives through a CC-owned instance; the native shared singleton and its inactivity/interrupt defaults are not the CC lifecycle. Map provider failures through M05 without silently repeating a turn.
 
 | Existing symbol | Where | What CC does with it | M1 |
 |---|---|---|---|
-| `get_service()` | JS `jiuwenswarm/server/runtime/codex_subscription/service.py:214` | M05 gets the one service per profile | used |
+| `get_service()` | JS `jiuwenswarm/server/runtime/codex_subscription/service.py:214` | Native shared root accessor, inspected for reuse only; CC constructs a dedicated instance/profile through its adapter | used |
 | `SubscriptionService.stream(session_id, request_id, text, model=None)` | JS same file `:131` | M05 sends one turn and drains it to completion ([model client](../capsule/runner.md#the-model-client-contract-m05)) | used |
 | `CodexSubscriptionAdapter.process_message_stream_impl` | JS `jiuwenswarm/server/runtime/agent_adapter/interface_codex.py:33` | **not used by M05.** It refuses everything but plain chat (`MILESTONE_TEXT_ONLY`). A web entry into a CC run is a new branch beside it ([entry](#entry-how-a-run-starts)) | entry only |
 

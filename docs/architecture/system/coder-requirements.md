@@ -39,3 +39,11 @@ Checked status requires resolved findings, matching contracts and mechanical sch
 ## Release handoff
 
 Pin the source manifest, design revisions, schema hashes and review dispositions. Supply module cards, build order, APIs/types, spatial/temporal diagrams and acceptance scenarios. After release, changed contracts recheck producers, consumers, Gates and diagrams before publishing a new revision.
+
+## Capsule and planner implementation questions
+
+Use the [authority index](../authority.md) to locate the field/API owner, then the [twelve capability packets](../m1/capability-designs.md) for control decisions, protected logic, optimization hypotheses and defect fixtures. [Planner](planner.md) states which decisions belong to model proposal, deterministic validation, supervisor, policy authors and human recovery. [Reuse audit](reuse-audit-2026-10-05.md) names source mechanisms that adapters must override or verify; native defaults are not implied CC policy. [Benchmark material](../m1/benchmarking-material.md) prepares downstream verification/RSI assets without exposing private tests.
+
+If an implementation question is not answered, identify its owning contract and affected consumers before making a product assumption. Wire-shape questions go to schema owners; timing, effect and authorization questions go to the semantic API owner. A missing field may require coordinated draft revision or released-version migration. Coding TASK/Spec Kit records hold actual commands and results. Do not create a private local interpretation that the other builder cannot see.
+
+[Diagram atlas](diagram-atlas.md) provides explanation at successive depths. Run validate_library.py for active file/section links, capsule inventory and stage navigation; this is structural navigation evidence, not exhaustive semantic compliance.

@@ -45,6 +45,10 @@ SCHEMAS = V / "schemas"
 CHECK = "--check" in sys.argv
 problems = []
 
+from example_views import refresh as refresh_example_views
+if not refresh_example_views(V, CHECK):
+    problems.append("types/evidence-bundle.md: stale generated projection example; regenerate architecture views")
+
 # Record pages in reading order; foundation pages are listed separately.
 RECORDS = ["declaration", "candidate", "port-types", "checks", "verdict", "standing", "binding", "observation",
            "artifact", "verification-record", "finding"]

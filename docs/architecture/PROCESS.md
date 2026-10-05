@@ -17,7 +17,7 @@ tags: [process]
 | Status | Means | Who sets it |
 |---|---|---|
 | `draft` | written, not yet through the loop | the author |
-| `checked` | through the loop: the lint passes, the canary agrees or a review's findings are applied, and every dependency it relies on is `checked`, `locked`, or an explicitly named `blackbox` interface. It **should** be complete; what is still open is listed in [open issues](open-issues.md) | the architect, after the loop. The lint refuses `checked` while a dependency is still `draft` |
+| `checked` | through the loop: the lint passes, the canary agrees or a review's findings are applied, and every dependency it relies on is `checked` or `locked`. It **should** be complete; what is still open is listed in [open issues](open-issues.md) | the architect, after the loop. The lint refuses `checked` while a dependency is still `draft` |
 | `locked` | `checked`, and approved by Muk. It changes only through the change order below. Locking is an approval state, not a prerequisite for other architecture work to consume the checked contract | Muk |
 | `blackbox` | legacy status, retired from the active coding path. Every current responsibility has a concrete design and failure outcome; unrun security evidence remains a validation obligation | history only |
 
@@ -37,10 +37,10 @@ The banner under the front matter says the same: **Checked, not yet approved** o
 
 Kept here so they live with the design, not in anyone's notes.
 
-- **Provenance:** Muk authorized coherent architecture commits and pushes on 2026-10-02. Stage relevant paths explicitly and preserve unrelated changes. A commit does not imply that pages are locked or runtime checks passed.
+- **Provenance:** follow [clean release policy](policies.md#provenance-and-clean-releases). A commit does not imply locked pages or runtime acceptance.
 - **Fetch before every push.** Resolve compatible documentation changes against the frozen sources; preserve and record semantic conflicts. Never force-push or overwrite unrelated work.
 - **No `.pptx` in the repository.** A deck becomes Markdown with Mermaid.
-- **Owner files stay verbatim.** A teammate's PRD or design is copied unchanged, with its provenance (original name, date, sender, SHA-256) in [`docs/product/README.md`](../product/README.md). Architecture's notes go in reviews, [seams](seams.md) and the reply pages, never inside the owner's file. A new version goes beside the old one.
+- **Received files stay verbatim.** [Policies](policies.md) own source precedence and provenance; architecture interpretations link the frozen receipt and never rewrite it.
 - **Commit messages** have a simple descriptive title and no body.
 - **Reviews** normally use fresh AI contexts and exact source/contract evidence. No particular model is required. Independent producer and consumer reviews may run concurrently; the author resolves source-verified findings. People receive a concise decision brief.
 - **Language:** short sentences, active voice, main point first. Software jargon is fine; define a coined term. No em dash.
@@ -61,7 +61,7 @@ A change flows from its owner outward. Never edit a consumer before the owner.
 
 | Rule | Prevents |
 |---|---|
-| Every shared datatype has one page, one id and one current version | copies drifting apart; several versions in force at once |
+| Every shared datatype has one owning page and immutable released versions; each binding pins its exact version | copies drifting apart; several versions in force at once |
 | One identity per object, one field name for it everywhere | the same object under two ids |
 | No task, step or run id inside a reusable schema (INV-7) | values that only work in one run |
 | Closed core plus one `ext`; consumers read only declared fields | checkers and schemas that disagree on field names |
@@ -102,7 +102,7 @@ flowchart LR
     S7 -->|"what remains"| OI[("open-issues.md")]
 ```
 
-- **Node pages** follow [the node template](system/nodes.md#node-spec-template), so each can become a Declaration and code directly.
+- **Node pages** follow [the node template](system/modules.md), so each can become a Declaration and code directly.
 - **Every review finding is checked in source before it is applied.** Recheck changed claims; allow targeted further review when a material disagreement remains. Unresolved acceptance obligations go to open issues with an owner, consequence and expected evidence.
 - **The review checklist:** a datatype defined twice; an API whose arguments, return value, errors or records are unstated; a reference to something undefined; a type that does not compile or an example that does not validate; an invariant broken; a PRD sub-feature with no page and no written reason; stale text after a change; control flow outside a capsule or the run plan; a host with stage logic. Reviewers use a fresh context and verify every finding against the PRD and architecture sources. Apply verified findings; record unresolved product decisions in [open issues](open-issues.md).
 

@@ -36,7 +36,7 @@ Step `requirement` on [the M1 pipeline](pipeline.md): work capsule `research.com
 
 - **Gate:** shared `research.verifier`, profile [`research.accept_brief.v1`](brief-gate.md), following [the gate capsule pattern](../capsule/gate-capsules.md).
 - **Tier 1:** this capsule's deterministic checks below, and the `research_brief` type's checks.
-- **Tier 2:** the step check `brief_objective_faithful`, defined in [the M1 run plan](pipeline.md#the-plan-as-recorded). A fail halts the run before `search`.
+- **Tier 2:** the step check `brief_objective_faithful`, defined in [the M1 run plan](pipeline.md#complete-plan-fixture). A fail halts the run before `search`.
 
 ## Existing code it touches
 
@@ -174,6 +174,6 @@ A real skill call with a known input and output schema. The protected model brok
 
 ## Adopted defaults and failure behavior
 
-The canonical Brief type is authoritative. Token budgets are recorded and bounded by the model/run policy; hardware and frameworks remain user-request values until a supported trusted method/package adapter validates them. Contradictory requests retain INPUT_AMBIGUOUS evidence; missing required quantitative targets retain INPUT_INCOMPLETE. Both halt readiness when no valid experimental contract can be derived, without clarification or repair loops. Defaults are applied only when the source is silent, never to overwrite contradictory evidence.
+The canonical Brief type is authoritative. Token budgets are recorded and bounded by the model/run policy; hardware and frameworks remain user-request values until a supported trusted method/package adapter validates them. Contradictory requests retain INPUT_CONTRADICTORY evidence; vague requests retain INPUT_AMBIGUOUS, and missing required quantitative targets retain INPUT_INCOMPLETE. These halt readiness when no valid experimental contract can be derived, without clarification or repair loops. Defaults are applied only when the source is silent, never to overwrite contradictory evidence.
 
 Metric units and comparison basis are preserved explicitly; unspecified percentage interpretation blocks Hypothesis rather than weakening a target. Structural quote validation requires nonempty verbatim quotes and valid source identity; semantic fidelity is independently assessed by the Brief profile.

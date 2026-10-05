@@ -49,7 +49,7 @@ flowchart LR
     ADM --> LIB[("library: a new capsule for the step")]
 ```
 
-Next time, selection finds the new capsule and the generalist is not needed. The build loop is on the [RSI](rsi.md#building-new-capsules-from-gaps) page.
+Next time, selection finds the new capsule and the generalist is not needed. The build loop is on the [RSI](rsi.md) page.
 
 ## Controls (proposed)
 

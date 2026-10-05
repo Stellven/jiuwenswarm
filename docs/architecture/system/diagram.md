@@ -10,7 +10,7 @@ depends_on: [overview.md, nodes.md, integration.md, observability.md, ../capsule
 tags: [system, diagram, canary]
 ---
 
-> **Draft: reopened after shared runtime and research contracts changed.** The whole M1 system on one graph. It is also a canary. The lint checks that every node is a defined module and every edge carries a defined datatype. A part that cannot be drawn this way is a wrong part, and a part that does not make sense here is a design error. Redraw it whenever a module or a datatype changes ([process](../PROCESS.md)).
+> **Draft: detailed implementation map.** Start with the [diagram atlas](diagram-atlas.md) for shallow context, trust components and ordered failure views. This detailed canary checks that drawn nodes and edge payload labels have linked definitions; it cannot prove execution ordering, permissions or completeness. Update it when its owning contracts change.
 
 # The overall system
 
@@ -241,7 +241,7 @@ Every node in the diagram, and the one page that defines it. The lint checks tha
 | `LN` | the launcher | [toolchain M01](../capsule/toolchain.md#m01-launcher) |
 | `FRZ` | freeze, the Binding writer | [toolchain M03](../capsule/toolchain.md#m03-freeze-the-binding-writer) |
 | `HH` | the halt host | [toolchain M03h](../capsule/toolchain.md#m03h-halt-host) |
-| `ENG` | the Swarmflow engine and the generic script | [nodes](nodes.md#the-one-generic-script), [integration](integration.md#swarmflow-run-a-plan-be-the-backend) |
+| `ENG` | the Swarmflow engine and the generic script | [nodes](nodes.md#generic-workflow-adapter), [integration](integration.md#swarmflow-run-a-plan-be-the-backend) |
 | `BK` | `CcBackend` | [runner R1](../capsule/runner.md#swarmflow-backend-talking-to-the-engine) |
 | `PIPE` | the call pipeline | [runner R2](../capsule/runner.md#one-call-start-to-finish) |
 | `PB` | M1 generated-code process boundary for benchmark execution | [process boundary](../capsule/process-boundary.md) |
@@ -347,8 +347,8 @@ Every datatype an edge carries, and the one page that defines it. The lint check
 | `call descriptor` | the prompt `agent()` sends; also a nested call's request | [runner](../capsule/runner.md#swarmflow-backend-talking-to-the-engine) |
 | `PocExecutionRequest` | constrained request from the benchmark capsule to the M1 generated-code boundary | [process boundary](../capsule/process-boundary.md#provisional-api) |
 | `PocExecutionResult` | process outcome and evidence references returned to the benchmark capsule | [process boundary](../capsule/process-boundary.md#provisional-api) |
-| `FixtureEvaluationRequest` | candidate and session request for private fixture evaluation; oracle selects its suite | [fixture oracle](../capsule/fixture-oracle.md#provisional-api) |
-| `FixtureEvaluationResult` | aggregate-only fixture result returned to RSI | [fixture oracle](../capsule/fixture-oracle.md#provisional-api) |
+| `FixtureEvaluationRequest` | candidate and session request for private fixture evaluation; oracle selects its suite | [fixture oracle](../capsule/fixture-oracle.md#closed-api-envelopes) |
+| `FixtureEvaluationResult` | aggregate-only fixture result returned to RSI | [fixture oracle](../capsule/fixture-oracle.md#closed-api-envelopes) |
 | `envelope` | what a node returns to the script | [runner](../capsule/runner.md#swarmflow-backend-talking-to-the-engine) |
 | `CcHalt` | the exception that ends a run on a halting verdict | [runner](../capsule/runner.md#swarmflow-backend-talking-to-the-engine) |
 | `frames` | the tool host's NDJSON frames | [runner](../capsule/runner.md#tool-a-python-function-in-its-own-process) |

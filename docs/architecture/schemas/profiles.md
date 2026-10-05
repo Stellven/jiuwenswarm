@@ -50,6 +50,8 @@ The sole wire-shape owner is services-v1 retry_profile: version, profile_id, max
 
 An ExecutionProfile pins platform, process identity, readable and writable roots, network policy, credential exposure, IPC transport, resource limits, and doctor check ids. A missing or unvalidated requirement is `unsupported` and fails closed.
 
+For brokered inference, the profile additionally pins model_call_limits, whose sole wire shape is services-v1 model_call_limits: a map from exact declaration hash to nonnegative integer maximum direct model turns per reserved call. Entries cover every reachable work, verifier and nested dependency; absence is POLICY_UNRESOLVED, never an unlimited default. Zero forbids model calls. Freeze verifies body/profile agreement, including the [POC two-call default](../m1/poc.md#bounded-generation-design) and [Report one-call default](../m1/delivery.md#bounded-synthesis-design). The broker counts direct turns by reserved obs_id/decl_hash before forwarding and enforces the global durable run quota separately. A nested call has its own direct ceiling and also consumes the parent run's allowance; its Declaration/profile cannot reset the total. Standard skill max-turn and timeout caps additionally apply. This profile data is authored by developers, never by RSI or model proposals. Changing a ceiling requires profile/body version pins and affected fixture rechecks.
+
 ## Binding additions
 
 Every work Binding pins `retry_profile_ref` and `execution_profile_ref`; every gate binding pins `gate_profile_ref`. Admission records pin `admission_profile_ref`. Freeze rejects missing, wrong-kind, hash-mismatched or policy-epoch-mismatched references with `POLICY_UNRESOLVED`.

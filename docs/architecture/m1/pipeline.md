@@ -75,6 +75,8 @@ Scientific `FAIL`, `INCONCLUSIVE` and `CONDITIONALLY_ACCEPTABLE` advance to repo
 
 ## Compilation, startup and completion
 
+Production validation uses its committed intake and exact fixed-template proposal envelope before the Brief exists; no prerequisite model planning or fabricated Brief/objective IDs are required. [Planner validation](../system/planner.md) owns the track-specific bootstrap rules.
+
 The static Swarmflow script instantiates this typed [run-plan contract](../types/run-plan.md); it contains no alternative analytical behavior. Startup resolves admitted work versions, the shared verifier, Gate profiles, schemas, library snapshot, model route and required measurement methods. It validates exact wires and permission/dependency closure before freeze. Missing contracts return POLICY_UNRESOLVED or the documented input error; unsupported execution profiles return UNSUPPORTED_SECURITY_PROFILE.
 
 Launcher validates [intake](../types/intake.md), freezes resources and produces [source_text](../types/source-text.md). It may derive deterministic IntentIR hints without another model turn. [Requirement Compilation](requirement-capsule.md) owns the sole bounded semantic intention-compilation pass.

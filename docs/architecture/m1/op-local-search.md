@@ -76,7 +76,7 @@ It scores passages of the intake's documents by how many query words they contai
 
 ## Runs, and tests
 
-A nested call gets no Verification of its own, so its checks run at **admission** only. At run time its caller's checks cover the same promises. Two test cases, one per check, over a two-document intake with an exact expected answer.
+Admission replay uses two cases over a two-document intake with an exact expected answer, covering the declared checks. At runtime the Gate host persists the nested call's mechanical Verification before returning its output to the parent; an empty semantic criteria set is recorded as Tier 2 `NOT_RUN`. The parent's independent semantic Gate includes that nested evidence. [Runner](../capsule/runner.md#nested-calls-and-the-broker) owns this protocol.
 
 ## Existing code it touches
 

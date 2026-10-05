@@ -24,7 +24,7 @@ Step `intent` on [the M1 pipeline](pipeline.md): work capsule `research.compile_
 
 - **Gate capsule:** [`research.accept_intent`](intent-gate.md), following [the gate capsule pattern](../capsule/gate-capsules.md).
 - **Tier 1:** this capsule's deterministic checks below, and the `intent_ir` type's checks.
-- **Tier 2:** the step's judged check `intent_fidelity`, defined in [the M1 run plan](pipeline.md#the-plan-as-recorded).
+- **Tier 2:** the step's judged check `intent_fidelity`, defined in [the M1 run plan](pipeline.md#complete-plan-fixture).
 
 Its rubric, `rubrics/intent_fidelity.md`, is one of the gate capsule's `body` files, and freeze checks that ([gate capsules](../capsule/gate-capsules.md#what-every-gate-capsule-declares)). A fail halts the run before `requirement`.
 

@@ -37,7 +37,7 @@ Step `search` on [the M1 pipeline](pipeline.md): work capsule `research.search_i
 
 - **Gate:** shared `research.verifier`, profile [`research.accept_ideas.v1`](search-gate.md), following [the gate capsule pattern](../capsule/gate-capsules.md).
 - **Tier 1:** this capsule's deterministic checks below, and the `idea_set` type's checks. Together they cover PRD 3.3.6's "schema and token limits".
-- **Tier 2:** the step checks `ideas_grounded` and `ideas_answer_brief`, defined in [the M1 run plan](pipeline.md#the-plan-as-recorded).
+- **Tier 2:** the step checks `ideas_grounded` and `ideas_answer_brief`, defined in [the M1 run plan](pipeline.md#complete-plan-fixture).
 
 ## Declaration (`capsule.json`)
 
@@ -117,7 +117,7 @@ Step `search` on [the M1 pipeline](pipeline.md): work capsule `research.search_i
 - **`timeout_s: 900`:** up to 5 queries, each one local call (seconds) and one scholarly call (up to 120 s), plus two model turns. Within the policy cap of 1800.
 - **`network: none`** for the capsule itself: only `op.scholarly_search` reaches the network.
 - **`within_inline_limit`** reads its limit from `context.runner_limits` ([checks](../schemas/checks.md#calling-convention)), so the check never copies a policy value.
-- **RSI may change the prompts only.** The referee's checks, the code and the operator stay fixed.
+- **M1 RSI cannot mutate this capability.** The frozen whitelist permits only the isolated Screening targets. Manual prompt revisions use ordinary admission and versioning; the referee, checks and operators remain independently governed.
 
 ## How it works
 
@@ -136,7 +136,7 @@ API-level, so the code fits the checks:
 
 **When something fails:**
 - A model reply that does not parse is a capsule error.
-- A nested call that ends with a runtime-owned reason (`EXTERNAL_UNAVAILABLE`, `TIMEOUT`) is re-raised unchanged ([runner](../capsule/runner.md#nested-calls-and-the-broker)), so the step halts as `ENVIRONMENT_BLOCKED` and re-runs on resume.
+- A nested call that ends with a runtime-owned reason (`EXTERNAL_UNAVAILABLE`, `TIMEOUT`) is re-raised unchanged ([runner](../capsule/runner.md#nested-calls-and-the-broker)), so the step halts as `ENVIRONMENT_BLOCKED`. Recovery reads committed evidence; a new execution requires explicit human restart and a newly reserved attempt under [lifecycle](../system/lifecycle.md).
 - If every group is empty and some service was unavailable, the capsule raises `cc.ExternalUnavailable`: the outside failure is the cause.
 - If every group is empty and every service answered, it ends with its declared failure `NO_SOURCES_FOUND`. At M1 the reason is `CAPSULE_ERROR`, with the code in `ext.runner.failure_code`, and the run halts as `ESCALATE_TO_HUMAN`: there is nothing to build on.
 

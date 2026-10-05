@@ -6,13 +6,29 @@
     "retry_profile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["version", "profile_id", "max_execution_retries", "duplicate_policy", "recovery"],
+      "required": [
+        "version",
+        "profile_id",
+        "max_execution_retries",
+        "duplicate_policy",
+        "recovery"
+      ],
       "properties": {
-        "version": {"const": 1},
-        "profile_id": {"$ref": "#/$defs/id"},
-        "max_execution_retries": {"const": 0},
-        "duplicate_policy": {"const": "reuse_reserved_result"},
-        "recovery": {"const": "explicit_review"}
+        "version": {
+          "const": 1
+        },
+        "profile_id": {
+          "$ref": "#/$defs/id"
+        },
+        "max_execution_retries": {
+          "const": 0
+        },
+        "duplicate_policy": {
+          "const": "reuse_reserved_result"
+        },
+        "recovery": {
+          "const": "explicit_review"
+        }
       }
     },
     "id": {
@@ -193,7 +209,7 @@
         "selections",
         "objective_bindings",
         "budget",
-        "model_response_ref"
+        "proposal_source_ref"
       ],
       "properties": {
         "version": {
@@ -223,7 +239,7 @@
         },
         "objective_bindings": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "items": {
             "$ref": "#/$defs/objective_binding"
           }
@@ -246,13 +262,36 @@
             }
           }
         },
-        "model_response_ref": {
-          "$ref": "#/$defs/ref"
-        },
         "ext": {
           "$ref": "#/$defs/ext"
+        },
+        "proposal_source_ref": {
+          "$ref": "#/$defs/ref",
+          "description": "Committed captured model response for isolated proposal, or deterministic fixed-plan provenance for production; never fabricated model evidence."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "plan": {
+                "properties": {
+                  "track": {
+                    "const": "isolated_experiment"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "objective_bindings": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "validation_request": {
       "type": "object",
@@ -1933,6 +1972,26 @@
               "maximum": 3
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "run_id",
+            "planning_request_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "planning"
+            },
+            "run_id": {
+              "$ref": "#/$defs/id"
+            },
+            "planning_request_id": {
+              "$ref": "#/$defs/id"
+            }
+          }
         }
       ]
     },
@@ -2229,6 +2288,33 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "planning"
+                  }
+                }
+              },
+              "operation": {
+                "const": "turn"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prompt_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "public_artifact"
+                  }
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -2434,6 +2520,211 @@
                   }
                 }
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "planning"
+                  }
+                }
+              },
+              "state": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reply_content_ref": {
+                "properties": {
+                  "namespace": {
+                    "const": "public_artifact"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "model_call_limits": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-f0-9]{64}$": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "planning_reservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planning_request_id",
+        "request_sha256",
+        "task_ref",
+        "library_snapshot_ref",
+        "experiment_config_ref",
+        "policy_ref",
+        "model_id",
+        "deadline",
+        "max_model_calls"
+      ],
+      "properties": {
+        "planning_request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "request_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "task_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "library_snapshot_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "experiment_config_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "policy_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "max_model_calls": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "model_call_reservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "request_sha256",
+        "scope",
+        "ordinal",
+        "obs_id",
+        "turn",
+        "model_id",
+        "config_sha256",
+        "budget_ref",
+        "ceiling"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/id"
+        },
+        "request_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "scope": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/model_call_scope"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "planning",
+                    "run"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "obs_id": {
+          "$ref": "#/$defs/id"
+        },
+        "turn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "decl_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "dispatch_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "planning_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "config_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "budget_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "ceiling": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "properties": {
+                  "kind": {
+                    "const": "run"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "decl_hash",
+              "dispatch_ref"
+            ],
+            "not": {
+              "required": [
+                "planning_ref"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "planning_ref"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "decl_hash"
+                  ]
+                },
+                {
+                  "required": [
+                    "dispatch_ref"
+                  ]
+                }
+              ]
             }
           }
         }

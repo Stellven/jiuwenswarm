@@ -128,7 +128,7 @@ flowchart TB
 
 - **RSI grows the system in two ways:** new capsules let it do more, and better capsules let it do the same things well. Capsules are isolated and testable one at a time, so each change is tested on its own capsule.
 - **Import brings in outside capabilities.** A tool, skill or MCP server is drafted into a Declaration with tests, verified in isolation, and then admitted like any other capsule.
-- **The library also screens capsules that are bad together.** Two capsules can each pass admission and still fail as a set. The library searches for such sets from their Declarations, confirms them in a sandbox, and records a Finding, so the selector avoids them. See [When good capsules are bad together](capsule/library.md#when-good-capsules-are-bad-together).
+- **Later composition research may examine capabilities that fail together.** M1 instead validates its fixed plan and bounded experimental proposals; automated library-wide risky-set search is not an M1 acceptance component. See [When good capsules are bad together](capsule/library.md#eligibility-and-failure).
 - **The librarian closes the loop.** It measures how capsules behave in real runs, lowers the Standing of those that drift, and its Findings tell RSI where to work next.
 - **Stores and repositories** are the end point: admitted capsules shared with other systems, each carrying its Declaration, checks and Verdict.
 

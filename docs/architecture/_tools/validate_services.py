@@ -133,7 +133,7 @@ assert not m.is_valid(missing)
 checks += 2
 for variant in schema['$defs']['model_call_scope']['oneOf']:
     scope = sample(variant)
-    namespace = {'run': 'public_artifact', 'admission': 'public_artifact',
+    namespace = {'run': 'public_artifact', 'admission': 'public_artifact', 'planning': 'public_artifact',
                  'rsi_controller': 'rsi_private', 'oracle': 'oracle_private'}[scope['kind']]
     for name, field in [('model_bridge_request', 'prompt_content_ref'),
                         ('model_bridge_result', 'reply_content_ref')]:
@@ -169,6 +169,59 @@ checks += 1
 v = Draft202012Validator({'$ref': schema['$id'] + '#/$defs/retry_profile'}, registry=registry)
 bad = sample(schema['$defs']['retry_profile'])
 bad['max_execution_retries'] = 1
+assert not v.is_valid(bad)
+checks += 1
+v = Draft202012Validator({'$ref': schema['$id'] + '#/$defs/model_call_limits'}, registry=registry)
+for good in [{'a' * 64: 0}, {'b' * 64: 2, 'c' * 64: 1}]:
+    v.validate(good)
+    checks += 1
+for bad in [{}, {'capability_name': 2}, {'a' * 64: -1}, {'a' * 64: 1.5}, {'a' * 64: True}]:
+    assert not v.is_valid(bad)
+    checks += 1
+v = Draft202012Validator({'$ref': schema['$id'] + '#/$defs/planner_proposal'}, registry=registry)
+proposal = sample(schema['$defs']['planner_proposal'])
+proposal['plan']['track'] = 'production'
+proposal['objective_bindings'] = []
+v.validate(proposal)
+checks += 1
+proposal['plan']['track'] = 'isolated_experiment'
+assert not v.is_valid(proposal)
+checks += 1
+v = Draft202012Validator({'$ref': schema['$id'] + '#/$defs/planning_reservation'}, registry=registry)
+reservation = sample(schema['$defs']['planning_reservation'])
+v.validate(reservation)
+checks += 1
+for field in schema['$defs']['planning_reservation']['required']:
+    bad = copy.deepcopy(reservation)
+    del bad[field]
+    assert not v.is_valid(bad)
+    checks += 1
+v = Draft202012Validator({'$ref': schema['$id'] + '#/$defs/model_call_reservation'}, registry=registry)
+reservation = sample(schema['$defs']['model_call_reservation'])
+reservation['scope'] = {'kind': 'run', 'run_id': 'r1'}
+reservation['decl_hash'] = 'b' * 64
+reservation['dispatch_ref'] = {'id': 'dispatch1', 'sha256': 'a' * 64}
+reservation.pop('planning_ref', None)
+v.validate(reservation)
+checks += 1
+for field in ['obs_id', 'turn', 'decl_hash', 'dispatch_ref']:
+    bad = copy.deepcopy(reservation)
+    del bad[field]
+    assert not v.is_valid(bad)
+    checks += 1
+planning = copy.deepcopy(reservation)
+planning.update(scope={'kind': 'planning', 'run_id': 'r1', 'planning_request_id': 'p1'}, planning_ref={'id': 'planning1', 'sha256': 'a' * 64})
+for field in ['decl_hash', 'dispatch_ref']:
+    del planning[field]
+v.validate(planning)
+checks += 1
+for field in ['decl_hash', 'dispatch_ref']:
+    bad = copy.deepcopy(planning)
+    bad[field] = reservation[field]
+    assert not v.is_valid(bad)
+    checks += 1
+bad = copy.deepcopy(planning)
+del bad['planning_ref']
 assert not v.is_valid(bad)
 checks += 1
 print(f'{checks} schema/example checks passed; reference existence and runtime behavior are not tested')

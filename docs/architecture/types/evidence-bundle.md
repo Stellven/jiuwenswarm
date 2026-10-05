@@ -2,13 +2,13 @@
 type: payload-type
 id: cc.type.evidence_bundle
 version: 1
-status: checked
+status: draft
 tags: [types, m1, verifier]
 ---
 
-> **Checked, not yet approved.** Compiles, its example validates, and it has been through review.
+> **Draft: example refreshed to the current production Requirement capability.** Shape checks are documentation evidence, not semantic acceptance.
 
-# `evidence_bundle`: what the judge is shown · version 1
+# `evidence_bundle`: what the judge is shown Ã‚· version 1
 
 The bounded semantic projection a judge needs against judged checks: criteria/rubrics, promises and admitted input/output values. The complete PRD Stage Evidence Bundle also includes immutable runtime/process/security evidence and is owned by [storage](../system/storage.md#required-evidence-and-derived-views). This model-facing projection never replaces that manifest.
 
@@ -45,14 +45,158 @@ A `file` value appears as its text, by the runner's inline rule ([runner values]
 
 ## Example
 
-For the `intent` step's judged check:
+For Requirement, the embedded input/output values below are generated from their canonical type examples by architecture lint. The zero hash is illustrative, not admitted authority. This example exercises the projection schema; actual criterion and source-grounding checks still require their own fixtures.
 
+<!-- generated:example-view -->
 ```json
 {
-  "subject": {"capsule_name": "research.compile_intent", "decl_hash": "5d41402abc4b2a76b9719d911017c592ae0a7b5e6d3b8e0c5e8f2f9a1b2c3d4e", "summary": "Extract goals, outcomes, constraints, ambiguities, conflicts and unknowns from a request's prompt into an IntentIR, each item citing an exact source span, using fixed rules and no model call."},
-  "criteria": [{"check_id": "intent_fidelity", "description": "Every goal, outcome and constraint is stated in the prompt, and nothing central to the prompt is missing.", "rubric": "Read the prompt, then each item...", "over": "inputs_and_outputs"}],
-  "inputs": {"intake": {"prompt": "Compare 4-bit and 8-bit quantisation; the report must cover both.", "channel": "cli", "documents": [], "skipped": []}},
-  "outputs": {"intent_ir": {"generation": 0, "goals": [], "outcomes": [], "constraints": [], "ambiguities": [], "conflicts": [], "unknowns": []}},
-  "issues": {"intent_ir": []}
+  "subject": {
+    "capsule_name": "research.compile_brief",
+    "decl_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "summary": "Compile source-grounded objectives, constraints and acceptance into a Research Brief."
+  },
+  "criteria": [
+    {
+      "check_id": "brief_objective_faithful",
+      "description": "The Brief preserves mandatory task requirements without inventing evidence.",
+      "rubric": "Check each mandatory requirement against the supplied source evidence; missing or unsupported coverage cannot pass.",
+      "over": "inputs_and_outputs"
+    }
+  ],
+  "inputs": {
+    "intake": {
+      "prompt": "Reduce the VRAM use of my model's attention by at least 30% without losing more than 1% accuracy. Don't retrain from scratch.",
+      "channel": "cli",
+      "resources": [
+        {
+          "resource_id": "res-doc-1",
+          "kind": "reference_document",
+          "source": "supplied",
+          "path": "input/flash-attention.pdf",
+          "label": "FlashAttention reference"
+        },
+        {
+          "resource_id": "res-repo-1",
+          "kind": "project_asset",
+          "source": "supplied",
+          "path": "input/repo",
+          "label": "User baseline code"
+        },
+        {
+          "resource_id": "res-data-1",
+          "kind": "validation_data",
+          "source": "supplied",
+          "path": "input/datasets/validation",
+          "label": "Validation split"
+        }
+      ],
+      "documents": [
+        {
+          "document_id": "doc-1",
+          "path": "input/flash-attention.pdf",
+          "format": "pdf",
+          "size_bytes": 1824311,
+          "text": "FlashAttention: Fast and Memory-Efficient Exact Attention ..."
+        }
+      ],
+      "skipped": [
+        {
+          "path": "input/slides.pptx",
+          "reason": "unsupported_format"
+        }
+      ]
+    },
+    "source_text": {
+      "text": "Reduce peak VRAM by at least 30% without losing more than 1% accuracy.",
+      "source_ref": "prompt",
+      "source_kind": "prompt",
+      "content_sha256": "d52e0efde980d3066305e9f49d37fe2e546f68a096dadf76e70efc542df9a51f",
+      "offset_basis": "unicode_codepoint"
+    }
+  },
+  "outputs": {
+    "research_brief": {
+      "objective": "Reduce attention-layer VRAM use while keeping accuracy close to the baseline.",
+      "objective_evidence": "Reduce the VRAM use of my model's attention",
+      "in_scope_items": [
+        {
+          "item": "the model's attention layers",
+          "evidence": "my model's attention",
+          "evidence_source_id": "prompt"
+        }
+      ],
+      "out_of_scope_items": [
+        {
+          "item": "retraining from scratch",
+          "evidence": "Don't retrain from scratch",
+          "evidence_source_id": "prompt"
+        }
+      ],
+      "constraints": {
+        "compute": {
+          "hardware": "single_gpu",
+          "runtime_limit_s": 3600,
+          "quotes": []
+        },
+        "frameworks": [],
+        "other_limits": []
+      },
+      "mandatory_requirements": [
+        {
+          "requirement_id": "R1",
+          "statement": "VRAM reduction of at least 30%",
+          "evidence": "by at least 30%",
+          "evidence_source_id": "prompt"
+        },
+        {
+          "requirement_id": "R2",
+          "statement": "accuracy loss of at most 1%",
+          "evidence": "without losing more than 1% accuracy",
+          "evidence_source_id": "prompt"
+        }
+      ],
+      "optional_preferences": [],
+      "metrics": [
+        {
+          "metric_id": "M1",
+          "requirement_id": "R1",
+          "name": "vram_reduction",
+          "comparator": "gte",
+          "target": 30,
+          "unit": "percent",
+          "basis": "relative_percent",
+          "evidence": "by at least 30%",
+          "evidence_source_id": "prompt"
+        },
+        {
+          "metric_id": "M2",
+          "requirement_id": "R2",
+          "name": "accuracy_loss",
+          "comparator": "lte",
+          "target": 1,
+          "unit": "percent",
+          "basis": "unspecified",
+          "evidence": "without losing more than 1% accuracy",
+          "evidence_source_id": "prompt"
+        }
+      ],
+      "defaults_applied": [
+        {
+          "field": "constraints.compute.hardware",
+          "value": "single_gpu",
+          "reason": "no hardware stated"
+        },
+        {
+          "field": "constraints.compute.runtime_limit_s",
+          "value": 3600,
+          "reason": "no runtime stated"
+        }
+      ]
+    }
+  },
+  "issues": {
+    "research_brief": []
+  }
 }
 ```
+<!-- /generated:example-view -->

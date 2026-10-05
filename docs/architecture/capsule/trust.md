@@ -29,7 +29,7 @@ The level says what admission evidence exists; Standing and the active alias say
 
 ## What lowers trust
 
-- **Nothing floats.** Every dependency is pinned in every version: capsules by `decl_hash`, packages by the lockfile. So a `decl_hash` means one set of code everywhere, and a newer dependency arrives only as a new, tested version ([updating dependencies](rsi.md#updating-dependencies)).
+- **Nothing floats.** Every dependency is pinned in every version: capsules by `decl_hash`, packages by the lockfile. So a `decl_hash` means one set of code everywhere, and a newer dependency arrives only as a new, tested version ([updating dependencies](rsi.md)).
 - **A security fix does not wait for RSI.** When a pinned dependency has a known vulnerability, the librarian moves the capsule to `suspect` or `revoked` at once, and so every capsule that pins it. A fixed version comes from RSI if the capsule allows it, or from its author. Until then the capsule is unavailable, by design.
 - **A remote capsule.** An `mcp` or `a2a` service we cannot hash is pinned by endpoint and version; the pin proves what was pinned, not what the service runs. So a remote capsule, and any capsule that depends on one, cannot be `certified`.
 - **Drift or a lost member.** The librarian moves the Standing to `suspect`; a revoked dependency or member does the same to capsules that use it.

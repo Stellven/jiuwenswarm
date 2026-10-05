@@ -61,7 +61,7 @@ There is exactly one way across each boundary.
 
 | From | To | The one way | Datatype |
 |---|---|---|---|
-| Product | Control | an architect turns each PRD stage into nodes on a [node page](nodes.md#node-spec-template), and adds them to the run plan | `run_plan` |
+| Product | Control | an architect turns each PRD stage into nodes on a [node page](modules.md), and adds them to the run plan | `run_plan` |
 | Control | CC | the launcher records the run plan; freeze turns it into Bindings; the generic script asks the runner to run each step | `run_plan`, Binding, call descriptor, envelope |
 | CC | CC | public typed APIs; store and events supply persistence and observation | the [records](../schemas/schemas.md) and linked module APIs |
 | CC | Existing platform | only through one adapter per system in `cc/adapters/` | each adapter's API on [integration](integration.md) |

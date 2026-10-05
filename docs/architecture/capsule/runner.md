@@ -439,7 +439,7 @@ stateDiagram-v2
     Error --> [*]
 ```
 
-**Why every turn is a fresh session.** PRD3.0.1 keeps M1 model requests single-turn. The native service reuses a thread per session ID, so M05 derives a fresh ID from canonical ModelCallScope hash, request_id, obs_id and turn and re-sends the complete exchange. Run/admission uses public scoped capture; RSI controller/oracle uses private session capture owned by environment. No hidden fixture call invents a research run/Candidate or public Observation. Managed auth profile is reused; conversation identity is fresh. Session metadata stays in the appropriate private/public transport evidence namespace.
+**Why every turn is a fresh session.** PRD3.0.1 keeps M1 model requests single-turn. The native service reuses a thread per session ID, so M05 derives a fresh ID from canonical ModelCallScope hash, request_id, obs_id and turn and re-sends the complete exchange. Planning/run/admission uses public scoped capture; RSI controller/oracle uses private session capture owned by environment. No hidden fixture call invents a research run/Candidate or public Observation. Managed auth profile is reused; conversation identity is fresh. Session metadata stays in the appropriate private/public transport evidence namespace.
 
 **This settles the kind question.** Earlier drafts made any capsule that calls an operator a `tool`, because a skill was one text turn and could not call anything. With this handler, a skill can call any capsule it pins. Kind now means only how the capsule itself runs. Whether it may call others is set by `needs.external`, for every kind.
 
@@ -517,7 +517,7 @@ Every call a capsule makes to another capsule, and every model call, goes throug
 5. The nested Observation's `causation_id` is the caller's `obs_id`, so the call tree can be rebuilt from records.
 6. Return `{port: {"ref": Ref, "value": value}}` and the outputs' `issues` on `ok`; otherwise `{obs_id, outcome, reason}`. An input given as `cc.input_ref(port)` is bound to the caller's own input Artifact, and step 2 stores nothing for it.
 
-Before returning a nested operator's output to the parent, the Gate host persists its Verification using the parent's frozen dependency GateProfile. Pure mechanical operators have deterministic checks and explicit semantic NOT_APPLICABLE; the parent stage's independent semantic Gate includes nested evidence before downstream release. A nonadvancing or unsaved nested Verification fails the parent call. This grants no workflow release authority. The parent's cost.time_s includes nested execution/check time. Gate/referee calls are not recursively gated.
+Before returning a nested operator's output to the parent, the Gate host persists its Verification using the parent's frozen dependency GateProfile. Pure mechanical operators have deterministic checks and Tier 2 status NOT_RUN with a reason explaining the empty semantic-criteria set; the parent stage's independent semantic Gate includes nested evidence before downstream release. A nonadvancing or unsaved nested Verification fails the parent call. This grants no workflow release authority. The parent's cost.time_s includes nested execution/check time. Gate/referee calls are not recursively gated.
 
 **A model call:** the broker calls M05 `complete` with the caller's deadline and a session id `cc:<scope id>:<obs_id>:<n>`, where `n` counts the caller's model turns from 1.
 
@@ -592,7 +592,7 @@ If the gate raises or any required record/capture write fails, run returns Agent
 
 Apart from re-raising a cancellation, `run()` never raises and never lets the engine time it out. The engine retries a call only when the backend raises or times out (`primitives.py:726`) or the result fails the schema (`:767`). So the script must never pass `options={"timeout": ...}` for a CC node. The envelope always passes the engine's schema check. Neither cause of a retry can happen.
 
-**The script.** There is one generic Swarmflow script, which walks the run plan and calls `cc_node(args, step_id, **refs)` once per step ([nodes](../system/nodes.md#the-one-generic-script)). `cc_node`, `CcHalt`, `CcBackend` and the script live in `cc.adapters.swarmflow` ([integration](../system/integration.md#swarmflow-run-a-plan-be-the-backend)). No step is wired by hand.
+**The script.** There is one generic Swarmflow script, which walks the run plan and calls `cc_node(args, step_id, **refs)` once per step ([nodes](../system/nodes.md#generic-workflow-adapter)). `cc_node`, `CcHalt`, `CcBackend` and the script live in `cc.adapters.swarmflow` ([integration](../system/integration.md#swarmflow-run-a-plan-be-the-backend)). No step is wired by hand.
 
 Before returning any advancing envelope, cc_node calls supervisor authorize_advance on the exact attempt's Observation and Verification, including journal replays. Otherwise it raises CcHalt. A skipped result reads that attempt's committed evidence; absent Verification yields ENVIRONMENT_BLOCKED and cannot borrow an older PASS. The launcher invokes the native human-session halt/recovery adapter. ESCALATE_TO_HUMAN is a routing action, not a verdict. The script passes refs only.
 
@@ -639,7 +639,7 @@ Owners are from policy `registries`.
 
 | Outcome | Reason | Detected at | Owner |
 |---|---|---|---|
-| `refused` | `BINDING_MISSING` | step 1; R1 for a malformed descriptor | refusal |
+| `refused` | `BINDING_MISSING` | step 1 after a valid descriptor reservation; malformed R1 descriptors are protocol rejections without an Observation | refusal |
 | `refused` | `CARRIER_CHANGED` | steps 2, 3 | refusal |
 | `refused` | `SCHEMA_NONCONFORMANT` | step 2: unparseable Declaration, a kind M1 does not run, a malformed `prompt_section`, a skill with a `file` output, a `tool` with no entry point; step 3: a non-text skill file | open (M1 architecture Open 2) |
 | `refused` | `PORT_MISMATCH` | step 4 | refusal |
@@ -668,7 +668,7 @@ Each module can be built and tested with fixtures standing in for its neighbours
 
 | Id | Module | Interface | Tests |
 |---|---|---|---|
-| R1 | Swarmflow backend: `CcBackend`, `cc_node`, the generic script, in `cc.adapters.swarmflow` | `run(prompt, opts, schema_json, *, call_key) -> AgentResult`; `cc_node(args, step_id, **refs)`; `ENVELOPE_SCHEMA` | a descriptor reaches the pipeline as `dispatch`; a malformed one writes an Observation and returns `skipped`; a cancelled call kills its tool host and still writes an Observation; a runtime failure returns `skipped`; a repeated descriptor replays from the journal; `run` never raises |
+| R1 | Swarmflow backend: `CcBackend`, `cc_node`, the generic script, in `cc.adapters.swarmflow` | `run(prompt, opts, schema_json, *, call_key) -> AgentResult`; `cc_node(args, step_id, **refs)`; `ENVELOPE_SCHEMA` | a descriptor reaches the pipeline as `dispatch`; a malformed descriptor is rejected before reservation with sanitized protocol diagnostics and no fabricated Observation; a cancelled call kills its tool host and still writes an Observation; a runtime failure returns `skipped`; a repeated descriptor replays from the journal; `run` never raises |
 | R2 | Call pipeline and `record_input` | `call(caller, ...) -> (obs_ref, outcome)`; `record_input(...) -> Ref` | fixture failure codes; output/capture before Observation; reserved attempts include interrupted calls; duplicate transport cannot create another output set |
 | R3 | Code materialiser | `materialise(decl, expected_code_sha256) -> Path` | a changed byte, an extra file, or a `__pycache__` folder gives `CARRIER_CHANGED` on the next call; `..` and absolute paths refused; two concurrent first calls both succeed; `code_sha256` equals the author kit's |
 | R4 | Input binder and precondition evaluator | `bind(decl, refs) -> values`; `evaluate(when, values) -> list` | every row of the values table; path escape refused; every row of the evaluator table; an unknown op gives `defer` |
