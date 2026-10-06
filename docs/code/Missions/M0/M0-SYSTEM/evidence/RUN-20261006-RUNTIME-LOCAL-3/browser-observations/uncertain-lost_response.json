@@ -1,0 +1,31 @@
+{
+  "case": "uncertain-lost_response",
+  "scope": "Actual native built browser/local HTTP/durable plumbing with ScriptedBridge; mock provider only",
+  "real_model_acceptance": "NOT_RUN",
+  "secured_ipc_os_custody": "NOT_ESTABLISHED",
+  "browser": "154.0.8037.95",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "geometry": {
+    "viewport": 1440,
+    "document": 1440,
+    "content": 900
+  },
+  "page_errors": [],
+  "native_entry_sha256": "ec068fef1d8e8360112279a204a06f8b081a59f99a40315a746b8521badaa452",
+  "screenshot_sha256": "477af83f7cd583480ff03b2c315c49857351c43780bc1b399ad190d0e1b369ff",
+  "scripted_invocations": 2,
+  "roles": [
+    "compiler",
+    "verifier"
+  ],
+  "server_runs": 1,
+  "credential_in_browser_storage": false,
+  "outcomes": {
+    "pending_retained": true,
+    "posted_requests": 1,
+    "server_runs": 1
+  }
+}

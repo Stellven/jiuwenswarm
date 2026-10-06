@@ -1,0 +1,15 @@
+{
+  "result": "PASS for visually inspected current narrow local fixture screenshots",
+  "screenshots": [
+    "browser-observations/accepted-narrow.png",
+    "browser-observations/refused-narrow.png"
+  ],
+  "observations": [
+    "Controls, state, reasons, output and evidence download remain readable at the captured narrow width.",
+    "No horizontal overflow was observed.",
+    "The page explicitly labels model results as fixture wiring with no semantic-truth claim."
+  ],
+  "limitations": [
+    "No actual model acceptance or Chrome107/dark-theme measurement."
+  ]
+}

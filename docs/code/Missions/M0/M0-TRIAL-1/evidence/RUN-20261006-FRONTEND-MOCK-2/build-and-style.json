@@ -1,0 +1,82 @@
+{
+  "run_id": "RUN-20261006-FRONTEND-MOCK-2",
+  "revision": "r2",
+  "utc": "2026-10-06T18:41:16.144184+00:00",
+  "scope": "Build/style/locale validation for native frontend; no live acceptance",
+  "observations": {
+    "prettier": {
+      "command": [
+        "node.exe",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/features/intentTrial/IntentTrialPage.tsx",
+        "src/features/intentTrial/IntentTrialPage.css"
+      ],
+      "cwd": "D:\\research\\ai_for_research\\jiuwenswarm\\jiuwenswarm\\channels\\web\\frontend",
+      "exit_code": 0,
+      "stdout_sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "eslint": {
+      "command": [
+        "node.exe",
+        "node_modules/eslint/bin/eslint.js",
+        "src/features/intentTrial/IntentTrialPage.tsx",
+        "--max-warnings",
+        "0"
+      ],
+      "cwd": "D:\\research\\ai_for_research\\jiuwenswarm\\jiuwenswarm\\channels\\web\\frontend",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "whitespace": {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "jiuwenswarm/channels/web/frontend/src/features/intentTrial",
+        "jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json",
+        "jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json",
+        "tests/journeys/ai4research/test_intent_trial_frontend.py"
+      ],
+      "cwd": "D:\\research\\ai_for_research\\jiuwenswarm",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "6498082c233748bec465e0894704038dc181b99bbf6bc24d01f8f3b42392a18a"
+    },
+    "build": {
+      "command": [
+        "cmd.exe",
+        "/d",
+        "/c",
+        "npm.cmd",
+        "run",
+        "build"
+      ],
+      "cwd": "D:\\research\\ai_for_research\\jiuwenswarm\\jiuwenswarm\\channels\\web\\frontend",
+      "exit_code": 0,
+      "stdout_sha256": "51b2ef7b2c9c5abce2854bd84143e281d43738c9bc66dab90f0772c0ad1af16c",
+      "stderr_sha256": "a7d510bbb71a89445f4a949f8817037f23547b79e40aa1aae8c8ad0dcfaaa6b9"
+    }
+  },
+  "locale_scope": [
+    {
+      "locale": "en",
+      "changed_top_level_keys": [
+        "intentTrial"
+      ],
+      "trial_values_all_english": true,
+      "valid": true
+    },
+    {
+      "locale": "zh",
+      "changed_top_level_keys": [
+        "intentTrial"
+      ],
+      "trial_values_all_english": true,
+      "valid": true
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+services:
+  intent-trial:
+    build:
+      context: ../..
+      dockerfile: deploy/intent-trial/Dockerfile
+    network_mode: host
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - trial-state:/state
+      - trial-workspace:/workspace
+      - ${TRIAL_DEFINITION_EVIDENCE_DIR:-./definition-evidence}:/definition-evidence:ro
+    tmpfs:
+      - /tmp:mode=1777,size=128m
+    restart: "no"
+    command: [python, -m, jiuwenswarm.ai4research.service, --state-dir, /state, --workspace, /workspace, --admission-receipt, /definition-evidence/definition-admission.json]
+volumes:
+  trial-state:
+  trial-workspace:

@@ -1,0 +1,128 @@
+{
+  "result": "PASS",
+  "wheel": ".codex-tmp\\intent-wheel-final-2\\workswarm-0.2.5b1-py3-none-any.whl",
+  "sha256": "dd20af705e9fd1dd9d45048d640e98ec3440bfef135cd5c58db1c2314a5c7395",
+  "compared_trial_files": [
+    {
+      "path": "jiuwenswarm/ai4research/__init__.py",
+      "sha256": "330ee4a1775b7abc4cdba11107b7628e22d48649da2483aa9f69601a797f17cb"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/admission.py",
+      "sha256": "4ef307430f5dec3749a52daca0f0211747d9afa819307b1f2e2240e336987b3a"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/application.py",
+      "sha256": "4f8f00c9aff8015384a8c20d8d5f2e9bb2fec4709134c426d552a5e41d453d2b"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/bridge.py",
+      "sha256": "b28fd3c997843c826507f263a473734938937c501240345b70034ff1db1f1faa"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/capsules.py",
+      "sha256": "f9aba3c3d0a66269ffb2a08c677dd0861a121e69378d87858222a4ac068fde6f"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/characterization.py",
+      "sha256": "5409ca98e28e1798a9f0d033f16471eec1c84088857ed9003ec1ad58e584c56e"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/common.py",
+      "sha256": "e44aa5d98609ad04df8df4ce171e15212802e184a6bcb43a35e4b1196eb3e627"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/configuration.py",
+      "sha256": "fa7cd65eefc734834603d8cc99387040eb43f504968c32c53437566bb6a27bba"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/declaration/library/README.md",
+      "sha256": "3350adb5038844229a809d96339997b017ac5277f7bf23bf62a6b75ee826eb35"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/declaration/library/intent_compiler.json",
+      "sha256": "914a4d29a83a62b935b5d57f03e1c579e17453e156c8cb27c08366a8e63f7451"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/declaration/library/intent_verifier.json",
+      "sha256": "3bae5050a0a13140a088fafec072758217fc1802323fa1549549f78a893579c0"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/evidence.py",
+      "sha256": "378228164b6e67bb78e0d13e2caa000e8d9ffb931d4098d45c18d38b584f1203"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/headless.py",
+      "sha256": "54db7daa183897274d138632673150e96e5db52e408e6f827608257ec5441eec"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/http.py",
+      "sha256": "0c89a69cd2ebf250b3ea599f39d30a405fd6102a848ce6cf6f965cae726020cf"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/identity.py",
+      "sha256": "42be3fe7971e16d9a4cfc92c5f4d1764c57552b1eb733a727a5a4415ecbfc246"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/__init__.py",
+      "sha256": "a5217ffcae0c0139faeaea08fc473fe59554151cce91a2a6e37bbfef8c3eb730"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/compiler.prompt.md",
+      "sha256": "49f7772a93f3d6628335322dccdd21f5f69742dcbf56fbf7192955e33b7c375f"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/models.py",
+      "sha256": "5a91088bf478091d82cdd5dfcb4c6082fb31788680cd13959f445478cbf09020"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/verifier.prompt.md",
+      "sha256": "f7e09ac723dd09d5d5b23b3cb6acab921f24bcaff7c0952b8d75fa67c63219c2"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/runner.py",
+      "sha256": "ca21447a192b68ad757ee35ee079979873bc970509861d2029d6920c7cdb3baa"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/service.py",
+      "sha256": "97064a8a4f617a3e528a85799686b89cb2e81c01ee795d6210fa4bf560d3de54"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/state.py",
+      "sha256": "a73654a7f93cbee4e6bfae3411d34806d3ee252147e7a90522bd9cfd2dff1c06"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/__init__.py",
+      "sha256": "b93bb49f0a755e73f3dd8def21b5276c5ad26f1394527a9ff9410e2d2530add9"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/gate.py",
+      "sha256": "baa921a2d2c63294a2bf9477785f974ce0037e91bfe08b0b1be66f55d863bf50"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/profile.json",
+      "sha256": "613bfc40ef756b154c8376a8947e8341872168ce185c124edd1b1a3b75e90071"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream-adaptation.json",
+      "sha256": "699b14bb79afb1acb5484073890b3803bd6cf7bfa826ccf8cd32bce8a01b6722"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream/LICENSE",
+      "sha256": "c5accbbd8546e94c34aed24afe689a617627d18eed5a6c48277e48db57c23851"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream/citation-reviewer.md",
+      "sha256": "be727c863d5e3cc038acd5a6d65d0e2aa536a40b439e40b9652141ecf6bcc750"
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream/result-evaluator.md",
+      "sha256": "ea27c88ca1355af889e85892c2c176b1c296273ee258b9e44fee668c43385f71"
+    }
+  ],
+  "entrypoints_verified": [
+    "ai4research-intent-client",
+    "ai4research-intent-trial"
+  ],
+  "limitations": "Wheel resource/byte check only; no Docker or real model acceptance."
+}

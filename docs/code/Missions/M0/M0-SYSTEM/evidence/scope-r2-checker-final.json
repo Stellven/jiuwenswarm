@@ -1,0 +1,81 @@
+{
+  "run_id": "RUN-20261006-SCOPE-R2",
+  "revision": "r2",
+  "scope": "M0-SYSTEM AC-001 documentary only; runtime NOT_RUN",
+  "utc": "2026-10-06T18:27:44.323271+00:00",
+  "candidate_sha256": "4894bfe1277e6595bd54f456d2d5891b5f0050ce4ce9523d02399b05d78f1b7e",
+  "candidate_snapshot_sha256": "197812ed8a4cb8a1d365ea2da6ae6ad968e8f6a1fad6e19c4faa156690e7a6cf",
+  "candidate_files_unchanged_during_checks": true,
+  "observations": {
+    "BLOCK": {
+      "command": [
+        "D:\\research\\ai_for_research\\jiuwenswarm\\.venv\\Scripts\\python.exe",
+        "D:\\research\\ai_for_research\\jiuwenswarm\\docs\\code\\Missions\\M0\\tools\\validate_framework.py",
+        "--level",
+        "BLOCK"
+      ],
+      "cwd": "D:\\research\\ai_for_research\\jiuwenswarm",
+      "exit_code": 0,
+      "stdout": "{\r\n  \"level\": \"BLOCK\",\r\n  \"status\": \"PASS\",\r\n  \"scope\": \"Scoped r2 TRIAL-1 documentation/source/traceability only; runtime NOT_RUN\",\r\n  \"scope_authority\": \"source/build-package/immediate-plan.md\",\r\n  \"totals\": {\r\n    \"features\": 9,\r\n    \"source_files\": 68,\r\n    \"active_scope_units\": 8,\r\n    \"context_prd_headings\": 184,\r\n    \"acceptance_criteria\": 58,\r\n    \"deferred_acceptance\": 20,\r\n    \"blocks\": 58,\r\n    \"checks\": 116,\r\n    \"work_items\": 201,\r\n    \"interfaces\": 8,\r\n    \"authored_capabilities\": 2,\r\n    \"markdown_links\": 0\r\n  },\r\n  \"errors\": []\r\n}\r\n",
+      "stderr": "",
+      "stdout_sha256": "af38564c0f74a105e2e2ad9aec4de419da40e97fae4f12c70a0ec8dc0637289a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "parsed": {
+        "level": "BLOCK",
+        "status": "PASS",
+        "scope": "Scoped r2 TRIAL-1 documentation/source/traceability only; runtime NOT_RUN",
+        "scope_authority": "source/build-package/immediate-plan.md",
+        "totals": {
+          "features": 9,
+          "source_files": 68,
+          "active_scope_units": 8,
+          "context_prd_headings": 184,
+          "acceptance_criteria": 58,
+          "deferred_acceptance": 20,
+          "blocks": 58,
+          "checks": 116,
+          "work_items": 201,
+          "interfaces": 8,
+          "authored_capabilities": 2,
+          "markdown_links": 0
+        },
+        "errors": []
+      }
+    },
+    "BOUNDARY": {
+      "command": [
+        "D:\\research\\ai_for_research\\jiuwenswarm\\.venv\\Scripts\\python.exe",
+        "D:\\research\\ai_for_research\\jiuwenswarm\\docs\\code\\Missions\\M0\\tools\\validate_framework.py",
+        "--level",
+        "BOUNDARY"
+      ],
+      "cwd": "D:\\research\\ai_for_research\\jiuwenswarm",
+      "exit_code": 0,
+      "stdout": "{\r\n  \"level\": \"BOUNDARY\",\r\n  \"status\": \"PASS\",\r\n  \"scope\": \"Scoped r2 TRIAL-1 documentation/source/traceability only; runtime NOT_RUN\",\r\n  \"scope_authority\": \"source/build-package/immediate-plan.md\",\r\n  \"totals\": {\r\n    \"features\": 9,\r\n    \"source_files\": 68,\r\n    \"active_scope_units\": 8,\r\n    \"context_prd_headings\": 184,\r\n    \"acceptance_criteria\": 58,\r\n    \"deferred_acceptance\": 20,\r\n    \"blocks\": 58,\r\n    \"checks\": 116,\r\n    \"work_items\": 201,\r\n    \"interfaces\": 8,\r\n    \"authored_capabilities\": 2,\r\n    \"markdown_links\": 867\r\n  },\r\n  \"errors\": []\r\n}\r\n",
+      "stderr": "",
+      "stdout_sha256": "61f55b41e2d67336ac3f5220bdef2b0431d6ee1352a51f58bdf59d362ba320ad",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "parsed": {
+        "level": "BOUNDARY",
+        "status": "PASS",
+        "scope": "Scoped r2 TRIAL-1 documentation/source/traceability only; runtime NOT_RUN",
+        "scope_authority": "source/build-package/immediate-plan.md",
+        "totals": {
+          "features": 9,
+          "source_files": 68,
+          "active_scope_units": 8,
+          "context_prd_headings": 184,
+          "acceptance_criteria": 58,
+          "deferred_acceptance": 20,
+          "blocks": 58,
+          "checks": 116,
+          "work_items": 201,
+          "interfaces": 8,
+          "authored_capabilities": 2,
+          "markdown_links": 867
+        },
+        "errors": []
+      }
+    }
+  }
+}

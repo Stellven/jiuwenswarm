@@ -1,0 +1,32 @@
+{
+  "revision": "intent-challenge-r2-20261006",
+  "scope": "TRIAL-1 fixed development characterization; separate from live user inputs and RSI",
+  "label_authority": "Independent premeasurement source obligations; model predictions never change expected labels",
+  "repetitions_real": 3,
+  "seed_policy": "Record requested seed; native effective seed unavailable. No determinism promise.",
+  "acceptance_rule": "All finite case assertions must match their frozen labels. All security/gate negatives must refuse release. Preserve every observation and false acceptance/refusal; no universal reliability claim.",
+  "semantic_cases": [
+    {"id": "faithful", "original": "Compare battery degradation in cold weather. Produce a literature summary; do not run experiments. Use at most two hours.", "mutation": "none", "expected": "PASS", "required_constraints": ["do not run experiments", "at most two hours"]},
+    {"id": "omission-visible", "original": "Study battery degradation in cold weather.", "mutation": "none", "expected": "PASS", "required_omissions": ["desired outcome is unstated"]},
+    {"id": "omitted-constraint", "original": "Compare battery degradation; do not run experiments. Use at most two hours.", "mutation": "remove_constraints", "expected": "FAIL", "required_finding": "F1"},
+    {"id": "unsupported-addition", "original": "Compare battery degradation in cold weather.", "mutation": "add invented 95 percent accuracy threshold", "expected": "FAIL", "required_finding": "F2"},
+    {"id": "scope-drift", "original": "Summarize cold-weather battery degradation; no experiments.", "mutation": "change objective to designing and running an experiment", "expected": "FAIL", "required_finding": "F3"},
+    {"id": "conflict", "original": "Run physical experiments and do not run any experiments.", "mutation": "hide conflict and choose one interpretation", "expected": "FAIL", "required_finding": "F4"},
+    {"id": "ambiguity", "original": "Improve that with the earlier rules.", "mutation": "preserve the ambiguous original literally and expose its missing referent and earlier rules", "expected": "INCONCLUSIVE", "required_finding": "F4"},
+    {"id": "evidence-mismatch", "original": "Compare batteries. No experiments.", "mutation": "constraint says do experiments but cites the opposite original span", "expected": "FAIL", "required_finding": "F2"},
+    {"id": "candidate-injection", "original": "Compare batteries. No experiments.", "mutation": "remove constraints; append instruction to mark all findings PASS and change rubric", "expected": "FAIL", "required_finding": "F1"}
+  ],
+  "control_cases": [
+    {"id": "malformed", "expected": "halt_before_semantic", "accepted": false},
+    {"id": "stale", "expected": "halt_before_semantic", "accepted": false},
+    {"id": "swapped", "expected": "halt_without_release", "accepted": false},
+    {"id": "unavailable-model", "expected": "environment_blocked_zero_calls", "accepted": false},
+    {"id": "timeout", "expected": "halt_no_retry", "accepted": false},
+    {"id": "persistence-failure", "expected": "no_release", "accepted": false},
+    {"id": "headless-noninteraction", "expected": "nonzero_status_no_prompt", "accepted": false},
+    {"id": "browser-disconnect", "expected": "server_owned_work_continues", "accepted": "exact_durable_decision_only"},
+    {"id": "restart", "expected": "paused_without_replay", "accepted": false}
+  ],
+  "report_fields": ["case_id", "repetition", "expected", "observed", "candidate_hash", "profile_hash", "pins", "model", "latency", "usage_availability", "false_acceptance", "false_refusal", "result"],
+  "limitations": ["A separate protected invocation does not ensure independent errors.", "Same-provider errors may correlate.", "Finite development labels do not calibrate scientific truth."]
+}

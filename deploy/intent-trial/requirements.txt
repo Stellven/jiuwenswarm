@@ -1,0 +1,4 @@
+fastapi==0.136.1
+uvicorn==0.46.0
+pydantic==2.13.3
+openai-codex-cli-bin==0.144.4

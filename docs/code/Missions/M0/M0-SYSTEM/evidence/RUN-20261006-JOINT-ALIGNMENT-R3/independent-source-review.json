@@ -1,0 +1,385 @@
+{
+  "review": "Independent read-only semantic and source-allocation review",
+  "status": "PASS_DOCUMENTARY_SCOPE_AUDIT",
+  "product_authority": {
+    "path": "jiuwenswarm\\docs\\code\\Missions\\M0\\source\\PRD - AI4Research.txt",
+    "sha256": "897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036"
+  },
+  "architecture_authority": {
+    "path": "jiuwenswarm\\docs\\code\\Missions\\M0\\source\\build-package\\immediate-plan.md",
+    "sha256": "0a7c21c2933c0be3b07e67cedaa91d2bd1706ca4382c364eb474ae616b919ec3"
+  },
+  "observed_counts": {
+    "active_features": 9,
+    "active_product_units": 148,
+    "indexed_numbered_headings": 184,
+    "preserved_source_files": 68,
+    "retained_trial_interfaces": 8,
+    "allocation_by_system_ac": {
+      "AC-026": 5,
+      "AC-027": 22,
+      "AC-018": 3,
+      "AC-020": 21,
+      "AC-021": 19,
+      "AC-022": 11,
+      "AC-023": 11,
+      "AC-024": 5,
+      "AC-019": 28,
+      "AC-025": 23
+    },
+    "unchanged_runtime_candidate_inputs": 316
+  },
+  "structural_errors": [],
+  "material_findings": [
+    {
+      "id": "AR-D5",
+      "finding": "Authorized D5 split must be retained with explicit deviation from original one-shot wording, combined frozen budgets and fullBrief obligation.",
+      "state": "CORRECTED_AND_RECHECKED",
+      "refs": [
+        "source/build-package/principles.md:L11-L19",
+        "source/build-package/principles.md:L35-L37",
+        "source/build-package/workflow.md:L7"
+      ]
+    },
+    {
+      "id": "AR-GATE",
+      "finding": "PRD4.2.8/4.2.9 mandatory verdict, gate and failure coverage cannot be supporting-only.",
+      "state": "CORRECTED_AND_RECHECKED",
+      "refs": [
+        "source/PRD - AI4Research.txt:L1546-L1624",
+        "source/PRD - AI4Research.txt:L1632-L1695"
+      ]
+    },
+    {
+      "id": "AR-PREFACE",
+      "finding": "Section5 Visibility preface requires operational owner and adopted D6 data-amendment reconciliation rather than incidental Builder allocation.",
+      "state": "CORRECTED_AND_RECHECKED",
+      "refs": [
+        "source/PRD - AI4Research.txt:L2261-L2265"
+      ]
+    },
+    {
+      "id": "AR-ORACLE",
+      "finding": "Required operational RSI/oracle scaffold and boot isolation are conditional readiness, not optional or N/A because Phase2 optimization is excluded.",
+      "state": "CORRECTED_AND_RECHECKED",
+      "refs": [
+        "source/PRD - AI4Research.txt:L2318",
+        "source/PRD - AI4Research.txt:L2415"
+      ]
+    },
+    {
+      "id": "AR-IDENTITY",
+      "finding": "M0-002 source question must label full product identity beyond current Intent component as active SYSTEM gap, not future context.",
+      "state": "CORRECTED_AND_RECHECKED",
+      "refs": [
+        "M0-002/spec.md:L86",
+        "M0-002/plan.md:L87"
+      ]
+    },
+    {
+      "id": "AR-QUICKSTART",
+      "finding": "Historical snapshots are reference-only, but selected Phase1 duties from them are currently active under SYSTEM.",
+      "state": "CORRECTED_AND_RECHECKED",
+      "refs": [
+        "M0-001/quickstart.md:L8",
+        "M0-TRIAL-1/quickstart.md:L8"
+      ]
+    }
+  ],
+  "semantic_conclusions": [
+    "PRD Phase1 and immediate-plan are joint product/architecture views of the same M0 objective.",
+    "Current twoCC limitation is correctly scoped to existing intermediate Intent realization, not the full Phase1 capability inventory.",
+    "All eight trial IF identities remain at r2 with bounded implemented purposes; prospective full product extensions need canonical owned contracts.",
+    "SYSTEM AC018-027 criteria include full Brief, static native SwarmFlow, actual NodeB, research/POC/scientific evaluation/Delivery, operating interfaces and exact completion/global constraints.",
+    "Scientific Stage3.8 verdict authority and valid negative result delivery remain distinct from mandatory infrastructure verification and release.",
+    "Phase2 optimization and Phase3 dynamic execution remain separately accounted rather than automatically activated.",
+    "Existing real provider/security/container acceptance remains BLOCKED and local mock/development observations do not establish full Phase1 completion."
+  ],
+  "limitations": [
+    "Scope/source/native-artifact consistency is reviewed; full Phase1 implementation and acceptance are not established.",
+    "At review, broadened SYSTEM documentary AC001 was correctly reopened STALE pending its current-candidate evidence renewal; final parent evidence capture may update that status.",
+    "Stage0 actual secured runtime remains BLOCKED; new full-product AC019-027 implementation/connected checks remain NOT_RUN.",
+    "Required approved hidden-fixture assets remain conditional readiness prerequisites, never optional/N/A merely because Phase2 optimization is excluded.",
+    "No source/runtime/native-record/evidence mutations; no provider/account calls. Only scratch review artifacts were written."
+  ],
+  "reviewed_at_utc": "2026-10-06T20:33:48.626878+00:00",
+  "remaining_material_findings": [],
+  "validator_observations": [
+    {
+      "command": ".\\jiuwenswarm\\.venv\\Scripts\\python.exe jiuwenswarm/docs/code/Missions/M0/tools/validate_framework.py --level BLOCK",
+      "cwd": "D:/research/ai_for_research",
+      "observed_exit": 0,
+      "observed_status": "PASS",
+      "counts": {
+        "features": 9,
+        "source_files": 68,
+        "active_scope_units": 8,
+        "phase1_product_units": 148,
+        "context_prd_headings": 184,
+        "acceptance_criteria": 68,
+        "deferred_acceptance": 20,
+        "blocks": 68,
+        "checks": 136,
+        "work_items": 232,
+        "interfaces": 8,
+        "authored_capabilities": 2,
+        "markdown_links": 0
+      },
+      "scope": "Documentation/source/traceability only; no runtime acceptance"
+    },
+    {
+      "command": ".\\jiuwenswarm\\.venv\\Scripts\\python.exe jiuwenswarm/docs/code/Missions/M0/tools/validate_framework.py --level BOUNDARY",
+      "cwd": "D:/research/ai_for_research",
+      "observed_exit": 0,
+      "observed_status": "PASS",
+      "markdown_links": 948,
+      "scope": "Documentation/source/traceability only; no runtime acceptance"
+    }
+  ],
+  "reviewed_document_snapshot": [
+    {
+      "path": "docs/code/Missions/M0/TASKS.md",
+      "sha256": "8255818995d034e79f656922ca548bcd874640b580c42426f01b94ab330bea99"
+    },
+    {
+      "path": "docs/code/Missions/M0/registry.json",
+      "sha256": "3a8a528e2cc673323d43bc3aa876a728d1f7d8418e1460379fcbc18f6a8a66ae"
+    },
+    {
+      "path": "docs/code/Missions/M0/source-coverage.json",
+      "sha256": "59f629d8066faf95fb3d7a18a04929073f81a8240d14b0cd5ac1e3c8530fd0b6"
+    },
+    {
+      "path": "docs/code/Missions/M0/source-manifest.json",
+      "sha256": "44cc42f5e6fbc808040b625fa1b06692217d7062ca2705565d07a9e87a90c761"
+    },
+    {
+      "path": "docs/code/Missions/M0/alignment.md",
+      "sha256": "e63be172380924093a079eed0f2f3fabfe1a887eae52899b91e6e1093a0ee00a"
+    },
+    {
+      "path": "docs/code/Missions/M0/AGENTS.md",
+      "sha256": "886bcf20fe701399adc60333a18259217c442d83e84d04e688122061d2f81c62"
+    },
+    {
+      "path": "docs/code/Missions/M0/README.md",
+      "sha256": "ea22201bbc9bb766d5469747f881b880b5fdfb088fd09755982bf99f52b43c41"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/TASK.md",
+      "sha256": "78b8cc63ad33efe4d68782b7382d3787275e616cea2821b161242e447d7d4edd"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/spec.md",
+      "sha256": "7e8eb6186c6231cca819279342c84fa0733b3f6969caf826d3b814eaf9ab53ed"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/plan.md",
+      "sha256": "31fd37b905b359ee2b089a6d5108ed287c66d9695584cbd0b5f915059648597c"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/tasks.md",
+      "sha256": "a98a2585b1bef0b5738736d8ba3f4f11553a559b3df94a627441d9d129971c49"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/quickstart.md",
+      "sha256": "0372d4c3519b3af81f7e2d46230090cf5608881dd5032bfbd03668887eca1578"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/research.md",
+      "sha256": "6468fc9c91751005a0cd6b15f49c5fe1d2a95a4f154fbd183eb9d6606bbcbdaf"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/TASK.md",
+      "sha256": "4d4f48f2663828f21bc56546bf7c4ef4647ebf7a4feb397dc261090bbb7c00bb"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/spec.md",
+      "sha256": "7f46d7e69f30c19cf2942b59aed214ce6c2020aff607f6646b67d8629b5ee1ad"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/plan.md",
+      "sha256": "a6eedd1f179e25375a439945bab61be41d5cb7897d7d1f33d72b9f4637fb870c"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/tasks.md",
+      "sha256": "9a1ef0ba33c9d0b599a00f0d9194063a957cd36d244b27a2ce3692525f4cca66"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/quickstart.md",
+      "sha256": "117f3a4a82d251576bcd3d65bd46ae7c69ef8ebd48ec963ce556ae21caaca18d"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/research.md",
+      "sha256": "bbc52507a27bdb8b20eaee3733238268b28b9a52a0d7d083cae34b8d3f0858c9"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/TASK.md",
+      "sha256": "4a613bd04201e111ebf8193edf54dd3c8a3d64e6374fc7e5e9fa3d52aa0d717a"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/spec.md",
+      "sha256": "09dd414531a0e33c834b3114a284c3e9dce632867032c64ff14e16e9ca9eef3f"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/plan.md",
+      "sha256": "9f7ff8e3297269e44361e1306a7a9966668d51c37e3e944d7a85b8749ba925b7"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/tasks.md",
+      "sha256": "735b6e5965426c7d557c0b1ffc216ecbd18fb6155359ba21a323a17392e5b9a4"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/quickstart.md",
+      "sha256": "4f8bd4955cf2bb61fc475f97d5432cac61e8e094ea35863ff989544a4a477f4a"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/research.md",
+      "sha256": "cca5ff8332fed8112aedf1f2b6881c10773abc52fca0dc9e4a132ada2d357ce8"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/TASK.md",
+      "sha256": "6eff17068b5a7169027d119ca9b81cde87a41ff1eb844bda886092ed94dcc46e"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/spec.md",
+      "sha256": "e0ff221cb56701cce5ff0b0787c5cd9e34419828ee472d2920b532f6c52a83db"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/plan.md",
+      "sha256": "a1a58bb631e71c04ef51b321cd7f9015cc902dbd8980b42914f0f09b7d9bc4ac"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/tasks.md",
+      "sha256": "0aeac42b62a20207c93c770c72660b7352cddc1db9fa16ee7e509fa0696d4dda"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/quickstart.md",
+      "sha256": "7aa1109a36a72beebf9eb48576802ba5894546297c557b5e5b7237802a802dcb"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/research.md",
+      "sha256": "3f3e43e61cb73ae942c40caf474cda5f6cb6dcf841053f872f08404912df728f"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/TASK.md",
+      "sha256": "649295e814de62a8af8beabb2814838818e8d5fabd5850ce58d8876ccdd9dc94"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/spec.md",
+      "sha256": "7eb1213b95cee009e4a7805541549e2cde37dd8036bf3ac78f51ced84aa3ac94"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/plan.md",
+      "sha256": "67e9676659a071cbbdb7427e9a447b147f0af41d436217cb266c50ba6501d1bd"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/tasks.md",
+      "sha256": "8fe9d119708d02ddd78e5d0c44cad037171cb98d9cee412ca5bddd0b5121387e"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/quickstart.md",
+      "sha256": "200018ed5920d74bc6ba7a4a31b6612fa9d228b7ec3c2fde23cdf3a83f5a4f97"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/research.md",
+      "sha256": "32f627107cdc585b3b0a52a82a29b9186714b09513f2004dc5b86f21ef265ce8"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/TASK.md",
+      "sha256": "36fe908c4aa71237d87098bfc6964470c1995d4e5003f563a1828debcbeda316"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/spec.md",
+      "sha256": "fec356031109088ff1cd4785013aa54dea5ecb827b86120abdf35c8acf954b21"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/plan.md",
+      "sha256": "fcd08a657f027f0f1b20b9e73e3be4c215602ecf9f8942bd58a94f339c5f3005"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/tasks.md",
+      "sha256": "220ac27f3631217d16876a5e449702c9e825d41bd33c74b699af13994f72329d"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/quickstart.md",
+      "sha256": "975e8a215caf5c4a58c1cf1caf130066b8a1db201f624ef2fa24c584958253e2"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/research.md",
+      "sha256": "d516be6f60593e61551489402a93f6925e6a7b6fd29db6be0385b03127e6475b"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/TASK.md",
+      "sha256": "8d361a0cdba7d38fcbc83a01880fa2d4be2842ede110129c9d812d6bfc4f3844"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/spec.md",
+      "sha256": "46031c052e9569a4141a13a369858266379799cd024f1c12fa3808bb9c5e336b"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/plan.md",
+      "sha256": "09fda4366083aa5a5afb8463c2316bd408540ce47033c87f52be93b3ef6aa674"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/tasks.md",
+      "sha256": "08e2793495e338d0bb145b2c274331126d2630a9dc5e940c7c848e91f5f42301"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/quickstart.md",
+      "sha256": "b0d0c6b2d2ea3ee8231e50e7ac3f979cf1c846b9dc9fbb24c8ad27695b6872fb"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/research.md",
+      "sha256": "c1f88b3197d52fa7a4cf2906c036f59c671ecd8caa2cbe6049a1fdbd3d243093"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/TASK.md",
+      "sha256": "6c3dd2238ce0dbd0cc87c2266f93a515f9466b51665cf426ad750421a61ab4e0"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/spec.md",
+      "sha256": "f0cc901e9df02593c0773c683d59629bdf02234a1d4e9d3900d5a6403ff6f7ea"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/plan.md",
+      "sha256": "abb5b018df054c1718cbc252e0abc11fee5e74838f08ec569b15ddbabbe46661"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/tasks.md",
+      "sha256": "734be5f2cfa6285a559ec967c6b4bf5a1e844ed751b79d9e9d473991fe991f52"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/quickstart.md",
+      "sha256": "4c5aa232105b8f600e9f86ffebf7fd683f1cf8c58711a779ef91dd8d57edfe6b"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/research.md",
+      "sha256": "d5e2fbddc6acef0f4ede99c344c5728897e87702995e857e904e06bd179ddf02"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/TASK.md",
+      "sha256": "a9bff2d91c3cc696865f45fbbe518cd5dc8b23923d8e83aea84426a5938cd571"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/spec.md",
+      "sha256": "22d5425de5c9fd3ec5fd8b17d2b81c42d73d0e17600cd9c5d3fc8ec0eb4d66cb"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/plan.md",
+      "sha256": "3048c78792d616b9d78c158d431c203be9a1ac8ad07f8332f1855df2203250f8"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/tasks.md",
+      "sha256": "2f381ca6e1619e1a9c9b85ee98e85e70db7ec9145495a359b3e92ad870d24a43"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/quickstart.md",
+      "sha256": "36ebda614115e6db2de20447aa5adba5882db7c96335a70dee0db54d8e78d994"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/research.md",
+      "sha256": "4722af429b51c0554aa605b34069ba3468e1b214f35d6edc50666db6057ecef5"
+    }
+  ]
+}

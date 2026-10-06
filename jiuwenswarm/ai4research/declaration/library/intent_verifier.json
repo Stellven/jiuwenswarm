@@ -1,0 +1,269 @@
+{
+  "schema_version": "2.11",
+  "identity": {
+    "name": "intent_verifier",
+    "version_label": "trial-r2-packaged",
+    "kind": "skill",
+    "carrier": {
+      "ref": "intent/verifier.prompt.md",
+      "sha256": null
+    },
+    "body": [
+      {
+        "path": "intent/__init__.py",
+        "sha256": null
+      },
+      {
+        "path": "intent/models.py",
+        "sha256": null
+      },
+      {
+        "path": "common.py",
+        "sha256": null
+      },
+      {
+        "path": "runner.py",
+        "sha256": null
+      },
+      {
+        "path": "bridge.py",
+        "sha256": null
+      },
+      {
+        "path": "capsules.py",
+        "sha256": null
+      },
+      {
+        "path": "verification/profile.json",
+        "sha256": null
+      },
+      {
+        "path": "verification/upstream-adaptation.json",
+        "sha256": null
+      },
+      {
+        "path": "verification/upstream/result-evaluator.md",
+        "sha256": null
+      },
+      {
+        "path": "verification/upstream/citation-reviewer.md",
+        "sha256": null
+      },
+      {
+        "path": "verification/upstream/LICENSE",
+        "sha256": null
+      },
+      {
+        "path": "verification/gate.py",
+        "sha256": null
+      },
+      {
+        "path": "verification/__init__.py",
+        "sha256": null
+      }
+    ],
+    "summary": "Assess the exact intermediate intent against its original text and protected fidelity/ambiguity obligations, without repairing or releasing it.",
+    "load_mode": "eager",
+    "lineage": {
+      "parent": null,
+      "co_parents": [],
+      "relation": "authored",
+      "builder": "protected_host_packager",
+      "build_trigger": "explicit_two_definition_seed",
+      "provenance": {
+        "generating_model": null,
+        "prompt_ref": "intent/verifier.prompt.md",
+        "trajectory_ref": null
+      }
+    }
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "original_request",
+        "artifact_type": "text/plain",
+        "required": true,
+        "schema_ref": "M0-IF-020@r2/original_text"
+      },
+      {
+        "name": "candidate",
+        "artifact_type": "IntermediateIntent",
+        "required": true,
+        "schema_ref": "M0-IF-020@r2/IntermediateIntent"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "assessment",
+        "artifact_type": "IntentAssessment",
+        "schema_ref": "M0-IF-007@r2/IntentAssessment",
+        "check_id": "output-schema"
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [
+      {
+        "ref": "common.py",
+        "kind": "package",
+        "pin": {
+          "sha256": null
+        },
+        "pinned": true
+      },
+      {
+        "ref": "runner.py",
+        "kind": "package",
+        "pin": {
+          "sha256": null
+        },
+        "pinned": true
+      },
+      {
+        "ref": "bridge.py",
+        "kind": "package",
+        "pin": {
+          "sha256": null
+        },
+        "pinned": true
+      },
+      {
+        "ref": "capsules.py",
+        "kind": "package",
+        "pin": {
+          "sha256": null
+        },
+        "pinned": true
+      }
+    ],
+    "network": "none",
+    "resources": [
+      {
+        "resource_key": "original_request",
+        "mode": "read"
+      },
+      {
+        "resource_key": "exact_candidate",
+        "mode": "read"
+      },
+      {
+        "resource_key": "protected_fidelity_profile",
+        "mode": "read"
+      }
+    ],
+    "injects": [
+      {
+        "service_key": "static_text_model_bridge",
+        "interface_version_range": "M0-IF-001@r2"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "bounded-model-call",
+        "resource_key": "approved_static_model_bridge",
+        "op": "model_invoke",
+        "scope": "host-approved role-specific text context",
+        "idempotent": false,
+        "reversibility": "irreversible",
+        "undo": null,
+        "risk": {
+          "severity": "low",
+          "blast_radius": "one disclosed approved context",
+          "irreversibility": "provider disclosure cannot be undone"
+        },
+        "assurance": "protected bridge with disabled tools and owned bounded invocation"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "output-schema",
+        "kind": "deterministic",
+        "target": "typed output",
+        "runner": {
+          "ref": "intent/models.py",
+          "sha256": null
+        },
+        "anchor": "exact candidate or assessment",
+        "over": [
+          "outputs"
+        ],
+        "author": "protected_host",
+        "written_before_body": false,
+        "held_out": false,
+        "signal_source": "captured bytes",
+        "owner": "M0-007",
+        "assurance": "typed exact-subject validation"
+      },
+      {
+        "id": "implementation-integrity",
+        "kind": "deterministic",
+        "target": "declaration and source closure",
+        "runner": {
+          "ref": "capsules.py",
+          "sha256": null
+        },
+        "anchor": "exact admitted declaration and dependency hashes",
+        "over": [
+          "identity",
+          "needs"
+        ],
+        "author": "protected_host",
+        "written_before_body": false,
+        "held_out": false,
+        "signal_source": "captured package bytes",
+        "owner": "M0-003",
+        "assurance": "content-hashed scoped regular files"
+      }
+    ],
+    "acceptance": [
+      "output-schema",
+      "implementation-integrity"
+    ],
+    "unanchored": [],
+    "exempt": false
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 300,
+      "tool_calls": 0,
+      "iterations": 1
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "tool_calls": "hard",
+      "iterations": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "frozen": [
+      "ports",
+      "needs",
+      "changes",
+      "guarantees",
+      "budget"
+    ],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No authored value predicates apply: protected host checks actual model, profile, storage, security readiness and current standing before invocation.",
+      "Compatibility fields do not enable a planner, composite, remote route or RSI; run-specific criteria remain outside this declaration.",
+      "The 300-second declaration ceiling is a bounded implementation maximum; a frozen run may narrow it, never widen it."
+    ]
+  }
+}

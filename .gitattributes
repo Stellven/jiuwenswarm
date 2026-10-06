@@ -1,2 +1,4 @@
 *.mp4 filter=lfs diff=lfs merge=lfs -text
 jiuwenswarm/server/runtime/agent_adapter/browser_runtime_network_guard.js text eol=lf
+tests/fixtures/ai4research/intent/characterization/locked-candidates.json text eol=lf
+jiuwenswarm/ai4research/** text eol=lf

@@ -1,0 +1,109 @@
+{
+  "schema_revision": "r3-joint-alignment-validator-contract",
+  "shared": {
+    "revision": "r3",
+    "scope_authority": "source/build-package/immediate-plan.md",
+    "alignment": "one-program-two-views",
+    "capability_scope": "implemented TRIAL-1 only; not Phase1 ceiling",
+    "scope_authorities": {
+      "product": {
+        "path": "source/PRD - AI4Research.txt",
+        "scope": "M1 Delivery Phase 1",
+        "sha256": "actual raw-file SHA256"
+      },
+      "architecture": {
+        "path": "source/build-package/immediate-plan.md",
+        "scope": "TRIAL-1",
+        "sha256": "actual raw-file SHA256"
+      }
+    },
+    "legacy_authority_sha256": "Retain the actual immediate-plan hash in coverage/manifest for backwards-compatible architecture identity only; it is not sole authority."
+  },
+  "registry": {
+    "features": "Exact existing nine features; no archived M0-008..019 live directories/dependencies.",
+    "interfaces": "Exact existing eight uniquely owned IF@r2 agreements; document revision r3 does not change runtime contract revision.",
+    "authored_capabilities": [
+      "intent_compiler",
+      "intent_verifier"
+    ],
+    "acceptance": {
+      "required_fields": [
+        "id",
+        "block",
+        "checks",
+        "scopeRefs",
+        "productRefs",
+        "phase1Units"
+      ],
+      "scopeRefs": "Nonempty exact immediate-plan.md:Lx-Ly locators, including appropriate boundary/context segments for new SYSTEM gaps.",
+      "productRefs": "Array of exact PRD - AI4Research.txt:Lx-Ly locators; may be empty for pure trial assertions.",
+      "phase1Units": "Array of current product-unit IDs; empty permitted for partial supporting trial assertions. All complete product-unit owners reciprocate exactly.",
+      "new_system_gaps": "AC-018..027; B18..27; V35..54; source ownership does not establish current PASS."
+    }
+  },
+  "coverage": {
+    "active_scope_units": "Retain all eight exact IP heading ranges/hashes and reciprocal AC scopeRefs.",
+    "prd_phase1_units": {
+      "required_fields": [
+        "id",
+        "title",
+        "start",
+        "end",
+        "sha256",
+        "owners",
+        "applicability",
+        "selection",
+        "rationale"
+      ],
+      "applicability_enum": [
+        "ACTIVE_PHASE_1",
+        "GLOBAL_PHASE_1",
+        "MIXED_PHASE_1"
+      ],
+      "owners": "Exactly one complete {task,ac} owner per unit; exact reciprocal registry phase1Units. Supporting trial contributors are not complete product owners.",
+      "selection": "Nonempty English description of selected Phase 1 duties and excluded/conditional portions; mixed sections must preserve separate Phase 2/3/Future boundaries.",
+      "rationale": "Nonempty English source-based reason for applicability/selection.",
+      "hash_rule": "SHA256(UTF8(join source.splitlines()[start-1:end] with LF plus terminal LF)).",
+      "source_bullets_optional": "[{line:int,text:exact source line,disposition:enum}]. If included, lines must stay within this unit, unique and byte/text-exact.",
+      "inventory": "Exact 148 reviewed active leaf/global/stage units, including separately owned PRD-5.PREFACE L2261-L2265."
+    },
+    "prd_context": {
+      "inventory": "All 184 numbered headings preserve exact id/title/line.",
+      "disposition_enum": [
+        "ACTIVE_PHASE_1",
+        "GLOBAL_PHASE_1",
+        "MIXED_PHASE_1",
+        "SEPARATE_PHASE_2",
+        "SEPARATE_PHASE_3",
+        "FUTURE_CONTEXT",
+        "EXCLUDED_PHASE_1"
+      ],
+      "phase1Units": "Exact applicable product-unit IDs. Nonempty for active/global/mixed dispositions; empty for genuinely separate/future/excluded headings unless a selected mixed boundary is explicitly represented."
+    },
+    "source_bullet_disposition_enum": [
+      "required",
+      "conditional",
+      "excluded",
+      "context",
+      "separate_phase2",
+      "separate_phase3"
+    ]
+  },
+  "evidence": {
+    "old_trial_rows": "Preserve exact r2 evidence/progress only for unchanged bounded trial criteria. New productRefs do not expand prior PASS into full Phase1.",
+    "new_phase1_gaps": "NOT_RUN initially. A future PASS requires checked implementation/check work and new linked observed native runtime proof for that exact Phase1 AC/check/candidate; trial/model-fixture/doc-only evidence is insufficient.",
+    "documentary_ac001": "Renew documentary r3 evidence after changing allocation; historical r2 scope evidence stays immutable.",
+    "phase1_json_prerequisite": {
+      "evidence_kind": "phase1-connected-acceptance",
+      "task_id": "M0-SYSTEM",
+      "ac_id": "AC-018..AC-027 as appropriate",
+      "checks": "Exact required V identifiers mapped to PASS",
+      "source_authorities": "Exact registry scope_authorities object",
+      "candidate_sha256": "64 lowercase hexadecimal characters",
+      "execution_mode": "observed-native",
+      "mock": false,
+      "observations": "Nonempty list of actual native observations. Documentary format is necessary, never independently sufficient for runtime acceptance."
+    }
+  },
+  "scope_guard": "Reject active unit labels/owners that promote separate Phase2 RSI execution or Phase3 dynamic execution; conditional Phase1 fixture scaffolding/security or experimental configuration is not such promotion."
+}

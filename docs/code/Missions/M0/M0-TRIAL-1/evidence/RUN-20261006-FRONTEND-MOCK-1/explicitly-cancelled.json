@@ -1,0 +1,30 @@
+{
+  "case": "explicitly-cancelled",
+  "scope": "Actual native built browser/local HTTP/durable plumbing with ScriptedBridge; mock provider only",
+  "real_model_acceptance": "NOT_RUN",
+  "secured_ipc_os_custody": "NOT_ESTABLISHED",
+  "browser": "154.0.8037.95",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "geometry": {
+    "viewport": 1440,
+    "document": 1440,
+    "content": 900
+  },
+  "page_errors": [],
+  "native_entry_sha256": "b4ac5b274ffc0e5c1c5aab8f15d6ee5d6b0db295159c19b4bc17a19abc6ff645",
+  "screenshot_sha256": "0528f201ba6f8bbd80350e28fe79a7622f9644fdf7d47618c5f2471a1a28d893",
+  "scripted_invocations": 1,
+  "roles": [
+    "compiler"
+  ],
+  "server_runs": 1,
+  "credential_in_browser_storage": false,
+  "outcomes": {
+    "explicit_cancellation": true,
+    "accepted_output_absent": true,
+    "no_replay": true
+  }
+}

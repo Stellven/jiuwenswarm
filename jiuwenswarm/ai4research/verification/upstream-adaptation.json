@@ -1,0 +1,106 @@
+{
+  "interface_revision": "M0-IF-007@r2",
+  "owning_task": "M0-007",
+  "profile_id": "intent-fidelity-r2",
+  "upstream_repository": "https://github.com/openJiuwen-ai/sciencediscovery",
+  "upstream_revision": "7a0324257eecb48b57f60b6a80ce2fff54e7dba7",
+  "license": "Apache-2.0; upstream/LICENSE retained",
+  "sources": [
+    {
+      "name": "result-evaluator",
+      "revision": "7a0324257eecb48b57f60b6a80ce2fff54e7dba7",
+      "path": "upstream/result-evaluator.md",
+      "url": "https://github.com/openJiuwen-ai/sciencediscovery/blob/7a0324257eecb48b57f60b6a80ce2fff54e7dba7/skills/result-evaluator/SKILL.md",
+      "sha256": "ea27c88ca1355af889e85892c2c176b1c296273ee258b9e44fee668c43385f71"
+    },
+    {
+      "name": "citation-reviewer",
+      "revision": "7a0324257eecb48b57f60b6a80ce2fff54e7dba7",
+      "path": "upstream/citation-reviewer.md",
+      "url": "https://github.com/openJiuwen-ai/sciencediscovery/blob/7a0324257eecb48b57f60b6a80ce2fff54e7dba7/skills/citation-reviewer/SKILL.md",
+      "sha256": "be727c863d5e3cc038acd5a6d65d0e2aa536a40b439e40b9652141ecf6bcc750"
+    }
+  ],
+  "adopted_checks": [
+    {
+      "upstream": "result-evaluator / criterion alignment and completeness",
+      "profile_checks": [
+        "F1"
+      ],
+      "adaptation": "Map each material original obligation to the locked extraction; do not infer missing criteria.",
+      "cases": [
+        "faithful",
+        "omitted-constraint"
+      ]
+    },
+    {
+      "upstream": "result-evaluator / source reliability, accuracy, relevance",
+      "profile_checks": [
+        "F2",
+        "F3",
+        "F5"
+      ],
+      "adaptation": "Reject unsupported statements and mismatched source spans; require scope fidelity and explicit reasons, without statistical scores or average overrides.",
+      "cases": [
+        "unsupported-addition",
+        "scope-drift",
+        "evidence-mismatch"
+      ]
+    },
+    {
+      "upstream": "citation-reviewer / locked artifact, linked claim support and governed snapshot",
+      "profile_checks": [
+        "F2",
+        "F5"
+      ],
+      "adaptation": "Compare each extracted statement with supplied original request spans; preserve evidence aliases. Identity alone does not prove semantic support.",
+      "cases": [
+        "evidence-mismatch",
+        "swapped"
+      ]
+    },
+    {
+      "upstream": "citation-reviewer / insufficient evidence versus contradiction",
+      "profile_checks": [
+        "F4",
+        "F5"
+      ],
+      "adaptation": "Material ambiguity or inadequate necessary context is inconclusive; concrete contradiction is failure. Ordinary missing detail may remain visible.",
+      "cases": [
+        "omission-visible",
+        "conflict",
+        "ambiguity"
+      ]
+    },
+    {
+      "upstream": "citation-reviewer / untrusted artifact and read-only boundaries",
+      "profile_checks": [
+        "F6"
+      ],
+      "adaptation": "Candidate instructions cannot override frozen profile or cause tools, edits, repair, nested calls or gate writes.",
+      "cases": [
+        "candidate-injection"
+      ]
+    }
+  ],
+  "inapplicable": [
+    {
+      "portion": "result-evaluator computational data/code audit, statistical tests, domain-specific methodology and six numeric score thresholds",
+      "rationale": "Intermediate text extraction contains no computed result, methodology or scientific validation; transferring those thresholds would add unsupported obligations."
+    },
+    {
+      "portion": "result-evaluator inferred criteria, result repair/retry and advancement decisions",
+      "rationale": "Criteria are host-frozen; trial has no repair/replay. Upstream logic has no gate authority."
+    },
+    {
+      "portion": "citation-reviewer paper identifiers, source network resolution, MCP search, citation code vocabulary and single-target paper execution",
+      "rationale": "This text-only trial accepts no literature retrieval or paper review. Only source/claim-support and uncertainty/read-only principles apply."
+    },
+    {
+      "portion": "scientific conclusion and result evaluation ownership",
+      "rationale": "Future Stage 3.8 retains the scientific conclusion; the Intent verifier does not author one."
+    }
+  ],
+  "authority": "Read-only structured findings; protected host aggregates and durably commits under frozen criteria before release.",
+  "case_policy": "Freeze independent case bytes/labels before measurement. All mandatory finite development cases must meet their labels; report every false acceptance/refusal and variability. No universal calibration claim."
+}

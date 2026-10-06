@@ -1,0 +1,88 @@
+{
+  "status": "PASS",
+  "scope": "Isolated documentary validator fixtures; no product runtime tests",
+  "fixture_root": "D:\\research\\ai_for_research\\.codex_work\\m0-spec-kit\\framework-fixtures-o0h6ljrc\\jiuwenswarm",
+  "case_count": 10,
+  "results": [
+    {
+      "case": "unchanged copied framework",
+      "expected": "PASS",
+      "observed": "PASS",
+      "matching_assertion": null,
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "missing PRD allocation",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "Source coverage is incomplete",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "stale source bytes",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "Primary PRD coverage baseline is stale",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "broken native link",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "Broken generated link",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "cyclic definition dependencies",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "Definition dependency cycle",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "duplicate IF owner",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "Duplicate interface owner",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "unobserved acceptance claim",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "PASS without retained evidence",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "command and work path drift",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "Planned command/work path disagreement",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "non-English generated artifact",
+      "expected": "FAIL",
+      "observed": "FAIL",
+      "matching_assertion": "Generated native artifact is not English",
+      "diagnostics": [],
+      "passed": true
+    },
+    {
+      "case": "restored fixture framework",
+      "expected": "PASS",
+      "observed": "PASS",
+      "matching_assertion": null,
+      "diagnostics": [],
+      "passed": true
+    }
+  ]
+}

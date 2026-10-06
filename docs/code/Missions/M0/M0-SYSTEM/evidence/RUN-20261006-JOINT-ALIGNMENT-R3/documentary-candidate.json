@@ -1,0 +1,796 @@
+{
+  "run_id": "RUN-20261006-JOINT-ALIGNMENT-R3",
+  "revision": "r3",
+  "scope": "Documentary AC-001 only; no runtime acceptance",
+  "head": "2cc0b8695d4000cc72af64eb781356697f7fd861",
+  "dirty": true,
+  "current_files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "165076812e77ae7c837ae408702e9f311d7a660df414fbbf0e44d970084e329b",
+      "bytes": 3896
+    },
+    {
+      "path": "deploy/intent-trial/README.md",
+      "sha256": "bd41156331757f15024aa91ccba8c90abc8d1b3eb82b08598415a103052e2117",
+      "bytes": 4715
+    },
+    {
+      "path": "docs/code/CATALOG.md",
+      "sha256": "3a081b647d3185fda138643cb9861e21b4e54f72dfcc737a12f680b31b927863",
+      "bytes": 2220
+    },
+    {
+      "path": "docs/code/Missions/M0/AGENTS.md",
+      "sha256": "886bcf20fe701399adc60333a18259217c442d83e84d04e688122061d2f81c62",
+      "bytes": 2736
+    },
+    {
+      "path": "docs/code/Missions/M0/alignment.md",
+      "sha256": "e63be172380924093a079eed0f2f3fabfe1a887eae52899b91e6e1093a0ee00a",
+      "bytes": 5886
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/checklists/requirements.md",
+      "sha256": "706dbe82052e6a576403c1eac553aa0e3f4ef3729f32d77ae5b9c8002fd6da13",
+      "bytes": 800
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/data-model.md",
+      "sha256": "c54cb96eb904021e200c76db146a89adadbf048503bc2288c1b9d1f28a373c66",
+      "bytes": 475
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/plan.md",
+      "sha256": "c116ebd76816fd6a95641781a26eac1e3e002a8ea02b540536aa89361bb22532",
+      "bytes": 32492
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/quickstart.md",
+      "sha256": "0372d4c3519b3af81f7e2d46230090cf5608881dd5032bfbd03668887eca1578",
+      "bytes": 934
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/research.md",
+      "sha256": "6468fc9c91751005a0cd6b15f49c5fe1d2a95a4f154fbd183eb9d6606bbcbdaf",
+      "bytes": 699
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/spec.md",
+      "sha256": "ec12718facb1b4339acb40793a24511f24c10a993b23d38f6e1e0e39c4c81792",
+      "bytes": 12158
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/TASK.md",
+      "sha256": "8614e62f8fa525a65dc2ac9606648b9a61900d971392febb65b92f4d9e76958a",
+      "bytes": 8009
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/tasks.md",
+      "sha256": "7bcff43c18b880d28d970aa87ac6491c334e3a7bdda65165a967ac936f103ca0",
+      "bytes": 17303
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/checklists/requirements.md",
+      "sha256": "40523de34d1eade49527ccbc6d0a61ef7a23fb54f9df90bcb7f9572e044def22",
+      "bytes": 800
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/data-model.md",
+      "sha256": "3074d06be2ee0085902527a4ec033b32e9305c828231dae1771afa562af39733",
+      "bytes": 475
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/plan.md",
+      "sha256": "54826e5bc34fc8c8bee057f895399c95bd8988aa277694a2ebdb1bbc507f7cb0",
+      "bytes": 42388
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/quickstart.md",
+      "sha256": "117f3a4a82d251576bcd3d65bd46ae7c69ef8ebd48ec963ce556ae21caaca18d",
+      "bytes": 934
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/research.md",
+      "sha256": "bbc52507a27bdb8b20eaee3733238268b28b9a52a0d7d083cae34b8d3f0858c9",
+      "bytes": 699
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/spec.md",
+      "sha256": "b1aca9136b2555b4b423705265e61584d2b0509ee792c02843d35f3772103e3a",
+      "bytes": 29211
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/TASK.md",
+      "sha256": "3a0ea2d95efa44208964a8ab49db21d8fa2235ca13fb527ee090984240ce4109",
+      "bytes": 12476
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/tasks.md",
+      "sha256": "62b3339878812afe229cf06661330c564574efb0bb415675059b00a14e9cb9d6",
+      "bytes": 16229
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/checklists/requirements.md",
+      "sha256": "f942dad827c8e44593870b75883a26ed84ebe549fcc31ae009dfe8504aff3f52",
+      "bytes": 800
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/data-model.md",
+      "sha256": "407a4bd0d64a8bc3bf042a7588d892b48584c53a1b5010beabcbd73478db8a7b",
+      "bytes": 475
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/plan.md",
+      "sha256": "d8e96f923a68eacf2b22490d850b13b97fb46b5ebd70cb7bd595710b61e720d0",
+      "bytes": 28195
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/quickstart.md",
+      "sha256": "4f8bd4955cf2bb61fc475f97d5432cac61e8e094ea35863ff989544a4a477f4a",
+      "bytes": 934
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/research.md",
+      "sha256": "cca5ff8332fed8112aedf1f2b6881c10773abc52fca0dc9e4a132ada2d357ce8",
+      "bytes": 699
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/spec.md",
+      "sha256": "882dbd78282bdd32b02fc01ec7518c5111126a9ea39f5e44d05b2d89f182a3e6",
+      "bytes": 14011
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/TASK.md",
+      "sha256": "8678fc4c071022a22361a88e420ded0a0b1c0092b3f3b8ef7e69c8c9022f866c",
+      "bytes": 11588
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/tasks.md",
+      "sha256": "7a4bda904b98d785931920dee65b51abb5854f0cb652e87d3a53debf8d08da5a",
+      "bytes": 14401
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/checklists/requirements.md",
+      "sha256": "db2c0aaaf75399f818ff6c850dae949a7e04ca04b2ab3102fcc9f587bd46cb40",
+      "bytes": 800
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/data-model.md",
+      "sha256": "29d9ca87d02ec96b6e4a18c7b2b559cc446206c3b9a35c4724d5a94df550b42b",
+      "bytes": 475
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/plan.md",
+      "sha256": "296382e8cd9883ca696a6a726b8911e31c34e9ba020dc8a9f7c2e533f327c7bd",
+      "bytes": 31219
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/quickstart.md",
+      "sha256": "7aa1109a36a72beebf9eb48576802ba5894546297c557b5e5b7237802a802dcb",
+      "bytes": 934
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/research.md",
+      "sha256": "3f3e43e61cb73ae942c40caf474cda5f6cb6dcf841053f872f08404912df728f",
+      "bytes": 699
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/spec.md",
+      "sha256": "4025d5d989b5ca8403a0e9380d014a832adc6a9b0f69fed13e5028b124ad5492",
+      "bytes": 15081
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/TASK.md",
+      "sha256": "933d4dbc89035ea27991260e0255b60cdb6f63e17a268461bdcfe6ed4518e34c",
+      "bytes": 9464
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/tasks.md",
+      "sha256": "7af8e65348b01a11b012670adcb3cdc36be20f668d16664b9f47f168690aeacd",
+      "bytes": 15389
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/checklists/requirements.md",
+      "sha256": "5737cbed5ac8bcf8751f5bfb39734cd61d94ff199606f4fa39681236a7a90b73",
+      "bytes": 800
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/data-model.md",
+      "sha256": "cccb0f5f5f7de06c940a7a50157d8305f9947545735cbf236d08e0faed5fbb15",
+      "bytes": 475
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/plan.md",
+      "sha256": "340db744ead1bf5be43b5bf3b388431fea759c19284f114e0fe2b4182edd8769",
+      "bytes": 28527
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/quickstart.md",
+      "sha256": "200018ed5920d74bc6ba7a4a31b6612fa9d228b7ec3c2fde23cdf3a83f5a4f97",
+      "bytes": 934
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/research.md",
+      "sha256": "32f627107cdc585b3b0a52a82a29b9186714b09513f2004dc5b86f21ef265ce8",
+      "bytes": 699
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/spec.md",
+      "sha256": "ea85d2f1aa5950179ac31b01001fd47b4b7c48b413fedbe245359de4dc41476e",
+      "bytes": 19068
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/TASK.md",
+      "sha256": "64e587603a61a052b75eff0f8b11cd8926c13b8fbb850181807e1434c75c4e6c",
+      "bytes": 11855
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/tasks.md",
+      "sha256": "a739660b46107f4d0db915dfc22b2186deeb17f2f6dda0736583aebaa128c5dd",
+      "bytes": 13701
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/checklists/requirements.md",
+      "sha256": "729b48d813c2d280b3335b166d8e8c23a265de575e67a5d15584c2b4dc907755",
+      "bytes": 800
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/data-model.md",
+      "sha256": "d4f553b29c1e15257266bb4bbc25892c81c92712b1dd6f1174be6134ee5c9626",
+      "bytes": 475
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/plan.md",
+      "sha256": "e73c695020ea2a5c8d024b39ec41acb2b552520068f8faf67b7f0b85adc3be11",
+      "bytes": 38557
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/quickstart.md",
+      "sha256": "975e8a215caf5c4a58c1cf1caf130066b8a1db201f624ef2fa24c584958253e2",
+      "bytes": 934
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/research.md",
+      "sha256": "d516be6f60593e61551489402a93f6925e6a7b6fd29db6be0385b03127e6475b",
+      "bytes": 699
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/spec.md",
+      "sha256": "8834038bf8f0b879327838b7f76c070e99c20627b1cc9736a924b515a6f0815b",
+      "bytes": 16923
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/TASK.md",
+      "sha256": "c7b547cb0d71b0bfa748e1717d97dfae2d76a5925c9e2008f436b14439b0e828",
+      "bytes": 9689
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/tasks.md",
+      "sha256": "b5fc82d26747e578492755110edbc8da56dc79acfd01e270e2a5da9842cb370c",
+      "bytes": 18237
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/checklists/requirements.md",
+      "sha256": "9a120fd7e64810db04012a9323a0c61294fc254d66eafab8c46d1b91aba0016e",
+      "bytes": 800
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/data-model.md",
+      "sha256": "712d472a982c9785183102d77828462297b88d6351e67d8eea1dc1bc8b8ca050",
+      "bytes": 475
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/plan.md",
+      "sha256": "d0b1979f796b0dc6e9b85d8aba037cefbd1e98e41b4b3139ec6483f3c7e97874",
+      "bytes": 57444
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/quickstart.md",
+      "sha256": "b0d0c6b2d2ea3ee8231e50e7ac3f979cf1c846b9dc9fbb24c8ad27695b6872fb",
+      "bytes": 934
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/research.md",
+      "sha256": "c1f88b3197d52fa7a4cf2906c036f59c671ecd8caa2cbe6049a1fdbd3d243093",
+      "bytes": 699
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/spec.md",
+      "sha256": "f6e4029be791d3ac07b9cfdf7165604e8ce7e2c41dbb58d17b890ac0072b830b",
+      "bytes": 25877
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/TASK.md",
+      "sha256": "4fbc1c7ae00387bf284ff01a37e9c87f628516c2d16d35aba5175f8994741ab2",
+      "bytes": 13374
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/tasks.md",
+      "sha256": "7fffaf504298a26a2ac5678104afcb39d64a776a680a413205b0d6b6210a9fbc",
+      "bytes": 25230
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/checklists/requirements.md",
+      "sha256": "08a2658c783993558a00f801ed581bd0c835f9843f874cf174f4979384418155",
+      "bytes": 792
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/data-model.md",
+      "sha256": "9901af4683652019975e83df60cdd3e9c8c52bcd3e1c93215fac4ab4f5c5eea9",
+      "bytes": 462
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/plan.md",
+      "sha256": "abb5b018df054c1718cbc252e0abc11fee5e74838f08ec569b15ddbabbe46661",
+      "bytes": 102662
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/quickstart.md",
+      "sha256": "4c5aa232105b8f600e9f86ffebf7fd683f1cf8c58711a779ef91dd8d57edfe6b",
+      "bytes": 940
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/research.md",
+      "sha256": "d5e2fbddc6acef0f4ede99c344c5728897e87702995e857e904e06bd179ddf02",
+      "bytes": 973
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/spec.md",
+      "sha256": "f0cc901e9df02593c0773c683d59629bdf02234a1d4e9d3900d5a6403ff6f7ea",
+      "bytes": 60031
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/TASK.md",
+      "sha256": "6c3dd2238ce0dbd0cc87c2266f93a515f9466b51665cf426ad750421a61ab4e0",
+      "bytes": 12154
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-SYSTEM/tasks.md",
+      "sha256": "b3a4c9a7c43b04523fc371ff1e1db52d94ee8edbbdc2efb2a1ebcf070f6128d8",
+      "bytes": 43700
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/checklists/requirements.md",
+      "sha256": "30d748d695ea6463cd0e7ca11586b3a86c6176675a8f7574343302944601615e",
+      "bytes": 804
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/data-model.md",
+      "sha256": "d2a3e92f9f5bad1fd37300e45d5cc18a8e81e2d1b29294ff9aa0e2cf80a15856",
+      "bytes": 479
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/plan.md",
+      "sha256": "5c801818342af1b9ae242edfdacb4a701daa9c3c0dfaf576b54c46a473d92251",
+      "bytes": 68999
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/quickstart.md",
+      "sha256": "36ebda614115e6db2de20447aa5adba5882db7c96335a70dee0db54d8e78d994",
+      "bytes": 942
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/research.md",
+      "sha256": "4722af429b51c0554aa605b34069ba3468e1b214f35d6edc50666db6057ecef5",
+      "bytes": 703
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/spec.md",
+      "sha256": "f2d7eee0fa09d73c3374536987ae8deaef4f2ff5564843cc0079dd2a0391aae3",
+      "bytes": 31234
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/TASK.md",
+      "sha256": "f244d0768a51a6f6895ea3488896e65133c8894056cc03d6d9fe5a037f9c3626",
+      "bytes": 13445
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/tasks.md",
+      "sha256": "a62c712067ea380a22346d6f94770f1efecfb3f7bd8cc50bce3e8339a135db62",
+      "bytes": 32086
+    },
+    {
+      "path": "docs/code/Missions/M0/README.md",
+      "sha256": "ea22201bbc9bb766d5469747f881b880b5fdfb088fd09755982bf99f52b43c41",
+      "bytes": 2710
+    },
+    {
+      "path": "docs/code/Missions/M0/registry.json",
+      "sha256": "3a8a528e2cc673323d43bc3aa876a728d1f7d8418e1460379fcbc18f6a8a66ae",
+      "bytes": 104365
+    },
+    {
+      "path": "docs/code/Missions/M0/source-coverage.json",
+      "sha256": "59f629d8066faf95fb3d7a18a04929073f81a8240d14b0cd5ac1e3c8530fd0b6",
+      "bytes": 685804
+    },
+    {
+      "path": "docs/code/Missions/M0/source-manifest.json",
+      "sha256": "44cc42f5e6fbc808040b625fa1b06692217d7062ca2705565d07a9e87a90c761",
+      "bytes": 13115
+    },
+    {
+      "path": "docs/code/Missions/M0/TASKS.md",
+      "sha256": "8255818995d034e79f656922ca548bcd874640b580c42426f01b94ab330bea99",
+      "bytes": 17261
+    },
+    {
+      "path": "docs/code/Missions/M0/tools/check_alignment.py",
+      "sha256": "c21514869c08b144f24ea1796e7aa2c192ce3ec6643cc210de6c376292f2dffc",
+      "bytes": 12321
+    },
+    {
+      "path": "docs/code/Missions/M0/tools/validate_framework.py",
+      "sha256": "0d703fc73e8552ab598349535627d3ae976c079255e8b2ce8c5d79895a7b3534",
+      "bytes": 41071
+    },
+    {
+      "path": "docs/code/README.en.md",
+      "sha256": "856b4f6a258d69dfbae9266e61fda1599bac8e89daf3cc4474ba601467f2cbc1",
+      "bytes": 1697
+    }
+  ],
+  "source_files": [
+    {
+      "path": "docs/code/Missions/M0/source/build-package/.gitattributes",
+      "sha256": "5453aa960a9a168a352e6a0b43b29f15a12ab07211107cc1f5285895c9da6156",
+      "bytes": 81
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/.gitignore",
+      "sha256": "2b78ca28b3b8fee75879a2e6e4b3c5b97508e0416a7489111ca1efed3e41531d",
+      "bytes": 11
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/authority-index.md",
+      "sha256": "d05c5749fb1408790466db1129fcfbc101750ad9f07b3e1049826cf2c7ec52f3",
+      "bytes": 1931
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/automation.md",
+      "sha256": "4102d1344c6b8d448e3e9562c290d55f393879d997e06b6f2d46043b2d2eddb0",
+      "bytes": 7132
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/capsule/authoring.md",
+      "sha256": "e993418f781ad814f4232bcfe40149801c26765128f9cfa86c9fd5a5d6b98bec",
+      "bytes": 2600
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/capsule/declaration.md",
+      "sha256": "e8df51c67a8f7a199ac8384adfb40de696db6da48f0308c0697117bdbe9bf0e3",
+      "bytes": 11318
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/capsules.md",
+      "sha256": "e5c5b8952646ef62d2842d2b05de7c9e71fd77a376674e3771afa60928d267ab",
+      "bytes": 11277
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/contracts-and-native-reuse.md",
+      "sha256": "106d5989a9ac0e63794caf0c4931454aa4431f32323a96a6c443869bc4ea82f7",
+      "bytes": 14596
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/coverage-allocation.md",
+      "sha256": "2b568d75d096071b5297933e602a89ab63c145863caf269d4bef1b4f92217620",
+      "bytes": 32583
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/coverage.md",
+      "sha256": "dac375bb28dca200f7064c18daec0729438b20c8907f6f564c923bc31e61a9de",
+      "bytes": 13544
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/delivery-phases.md",
+      "sha256": "308fd64054283b28db8301f0e6f6adafdab53412e0cef06d6a7ad9a471516b94",
+      "bytes": 13775
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/authority-index-1.png",
+      "sha256": "a29fcc3df666afa59573c6d976aef705bb5416faf9a68c62073a1c1da441da13",
+      "bytes": 7531
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/authority-index-1.svg",
+      "sha256": "e4d06ac8f7356e71ad0c3ec07752369e3ca95a44002702de2929731f6fdfc9a6",
+      "bytes": 14052
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/automation-1.png",
+      "sha256": "68adb7ddc8b69b28c41a77f497b7bc958a7d370038216bc7879dc6b3a40f3263",
+      "bytes": 30245
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/automation-1.svg",
+      "sha256": "e83fa05c13c281ace4dfb8867290dcb1501da3ed5a569c2a1b8c8da687c17e8e",
+      "bytes": 18638
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/capsules-1.png",
+      "sha256": "fb3c47ea93f97f03ca79db64cb2e2202605c07cfb47f167ffed1fb6cc807d0c4",
+      "bytes": 44276
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/capsules-1.svg",
+      "sha256": "75ac684586b46715fca7652df86b658a4f3380a3a286a3f445fe2936dfa20a7c",
+      "bytes": 27603
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/contracts-and-native-reuse-1.png",
+      "sha256": "78e629da30b2b15a4254b1812dd717e07401bd9b7ae529ab3e29de068d71f2b4",
+      "bytes": 36662
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/contracts-and-native-reuse-1.svg",
+      "sha256": "025b3d7232f7a021cd573c5183693ae5fc671bea706c8fbee0cb760ddf829766",
+      "bytes": 29156
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/delivery-phases-1.png",
+      "sha256": "511ca6b6612788f3badc85d74a9b4c984b9240f2b8520f20daccb76d95698a0f",
+      "bytes": 30859
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/delivery-phases-1.svg",
+      "sha256": "167af62042bef13c9b4c1708e798c0f8fe61db6ed4c7a213af5e09ce8383365f",
+      "bytes": 21710
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/failure-and-human-1.png",
+      "sha256": "3ec778d1bdd76735af574d85478ee07c75193a8c0d8f2f5e6290d925105533e9",
+      "bytes": 57724
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/failure-and-human-1.svg",
+      "sha256": "fc94c552b1fcecfcf4a7d2e84222f34ba9de7928140b58ab962c2cc3758e2cb4",
+      "bytes": 31613
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/failure-and-human-2.png",
+      "sha256": "fbe8bbb36a757ee2931c410268a64989357aa26f6866c4aec3a3f4ce12d16349",
+      "bytes": 39423
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/failure-and-human-2.svg",
+      "sha256": "51c8721d2b1cffb0d37f400db3c53ff06603589a7d7edd5a44e2e938c65c76bf",
+      "bytes": 28649
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/guard-design-1.png",
+      "sha256": "c8fcd8ba637257427bbe0a631f3c79946eac2b147ed26ace1ee8e5a35dee00b4",
+      "bytes": 18202
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/guard-design-1.svg",
+      "sha256": "8104ec4c81944655975500c7f10018f93e6118c22262914ba36a852b2d8252f9",
+      "bytes": 19988
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/guard-design-2.png",
+      "sha256": "f7aedb178a1cb6000cb035ad53e0e4fd2385f71f661e323f54bd08bac636d737",
+      "bytes": 27058
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/guard-design-2.svg",
+      "sha256": "885135c4bf041b40621a4fe73ca4d74d2ec8c79e08193059107c6e94f304bb01",
+      "bytes": 22602
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/guard-design-3.png",
+      "sha256": "098681ba6f38755fa5b7f778bcd2e0b08540428d5618e41b5c4e6b3e4e2042e6",
+      "bytes": 35451
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/guard-design-3.svg",
+      "sha256": "1732a5393921c7195db2f87cd82d6072b15237399ea8e67813e821bde0db5740",
+      "bytes": 22975
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/immediate-plan-1.png",
+      "sha256": "4cc8ee6f2636524c7636c4484abb1224d2f037d57217124e22bf7ad4a243affe",
+      "bytes": 50443
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/immediate-plan-1.svg",
+      "sha256": "d8bba81ecfa8a22bc068a33e37458cba077941ee069eda42a2f5d384e9b9b7af",
+      "bytes": 32754
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/m1-design-1.png",
+      "sha256": "0d6007ac277ca93d874e5a0e8b219d18cb1b1938d0f3f0eeec8ea9841b8ce24d",
+      "bytes": 38162
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/m1-design-1.svg",
+      "sha256": "42024b5531d1ecac0f30ac6f899e10b9942bd20286efa068e6d9dcae1c207f33",
+      "bytes": 31634
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/m1-design-2.png",
+      "sha256": "493de56e14e7730b8c0cab8d339d13f6572ad3daa133346932afa6104ee21e4c",
+      "bytes": 45154
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/m1-design-2.svg",
+      "sha256": "9ae75c175792828458253541e9f9725a6da6f9d05dd44205734868e00a9caef6",
+      "bytes": 30549
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/placement-1.png",
+      "sha256": "396a1f7cd52ca615ed00a6bc5d1f11a06a621bf88a418e8dda534f26f5fc4b73",
+      "bytes": 104448
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/placement-1.svg",
+      "sha256": "d6a2ed3f9da10cfb8041aa775c6f0017d3d6a55bd9fe640efb7db646b7e76cfc",
+      "bytes": 56942
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/placement-2.png",
+      "sha256": "6d3cdbb2700362b558e4f04ddd0ea24d4a7b6367e3d5c0be252f9afff233ef88",
+      "bytes": 42019
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/placement-2.svg",
+      "sha256": "1e7d113dea03176adef5f23c7ba7d9b3a9fbb6472e8134c99d7e2eaf4b4c4201",
+      "bytes": 31890
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/README-1.png",
+      "sha256": "04f36869b3f329b47630e68c74cfe9fbf5d2a968b059c5fa7fec8ce3cb234cbb",
+      "bytes": 54614
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/README-1.svg",
+      "sha256": "61c386df65c38956ed72195fec0984de9ef2a713023e1da1912cadf1c47f869e",
+      "bytes": 37494
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/README.md",
+      "sha256": "c8cb7efede430def27d5277e65105d2108afc1ea9ba5a74f81067fd7dda17bbe",
+      "bytes": 3518
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/workflow-1.png",
+      "sha256": "1f37cd7825b3e4aa9404cb5adb85c0d3e9bde6dd8c2ca26e645148f28cc408de",
+      "bytes": 35475
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/workflow-1.svg",
+      "sha256": "27e060a3d074ad7ad9a5b214d8f6177d48658e49650394ddb6b5fb9c99d669a6",
+      "bytes": 29698
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/workflow-2.png",
+      "sha256": "08be33fcff76d5bfc42d94eb110e274b33cf40e46643d85af8778dc4000af8f5",
+      "bytes": 40626
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/diagrams/workflow-2.svg",
+      "sha256": "b5f5016ba362e4a01c9ec46f812a08ecaf39ccbb726e7b6f0bc7a469de098080",
+      "bytes": 30854
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/failure-and-human.md",
+      "sha256": "b762635cd8ba1e712410dcaf47514b36ba1ab2e108b53d1df39730f882a060e6",
+      "bytes": 11163
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/glossary.md",
+      "sha256": "7f168fa2c20bec6b01b22041989e110054ac32220eec828ea8c45fd066594f16",
+      "bytes": 10112
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/guard-design.md",
+      "sha256": "9b04552a46a4b798e5ae783adfcc66671f21a546310b560f11fd1e4084278da7",
+      "bytes": 16231
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/handoff.md",
+      "sha256": "48bc557d2fd5fd4738f5e65fd27a770a0e870cbc5e0107d98d01941bb0d57f32",
+      "bytes": 2341
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/history.md",
+      "sha256": "ac8f2a066191e28ec4a41b88daabb4b4b30d98d6a4e99d433e85730eae994e6c",
+      "bytes": 1414
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/immediate-plan.md",
+      "sha256": "0a7c21c2933c0be3b07e67cedaa91d2bd1706ca4382c364eb474ae616b919ec3",
+      "bytes": 14565
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/m1-design.md",
+      "sha256": "98f601deaa66fba92de3dafcc5ecf3483554f37b607337744df3be361513df8e",
+      "bytes": 17627
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/offline-rsi.md",
+      "sha256": "c906826da84710bc40dc19158fd8a8fc43776b196e9a541efbced6ddccb3db15",
+      "bytes": 7093
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/placement.md",
+      "sha256": "aa00cec894131602f8dcec03c8acbcd6910aa6b6b98b31246da83b09c597f274",
+      "bytes": 12454
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/principles.md",
+      "sha256": "bda2892efcaca11d3c67e181a63e57d6cf59c2600fe3d7a8590a7b47db71149a",
+      "bytes": 10425
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/README.md",
+      "sha256": "3e7f93e818bc7c6015a4a87a33312597a103f360286da282689f65ab13f50124",
+      "bytes": 12169
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/sources/capsule-semantic-v2.10b.md",
+      "sha256": "30b02e874dda0a9acd4c06e5fadd8c855cd3024d6aaca58c7c937aed161d00b9",
+      "bytes": 174011
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/sources/capsule.schema.json",
+      "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd",
+      "bytes": 22040
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/sources/native-reuse-evidence.json",
+      "sha256": "9c4125f625819735f90ee9a7f34afc15ea5226b9dd047ce1a2cfac5a8c1fc732",
+      "bytes": 7302
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/sources/policy-m1.json",
+      "sha256": "43305e008f72d480b24269e06285225617b969944b771fd181e911b988d4c011",
+      "bytes": 3225
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/sources/product/prd-m1-current-2026-10-06.txt",
+      "sha256": "6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839",
+      "bytes": 232489
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/sources/product/README.md",
+      "sha256": "2e21531fff54a98ddff3166a47e536dede814103a2e4cccc36edd929484d35d3",
+      "bytes": 838
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/usage-scenarios.md",
+      "sha256": "3cb242fcc99c368ffc6c0ea1570a6960ee268a103dc22b3ac8155b482f265b4a",
+      "bytes": 7128
+    },
+    {
+      "path": "docs/code/Missions/M0/source/build-package/workflow.md",
+      "sha256": "4b96fbd1947e939d7fe5ca7efb490088d7c7d0932c943f1bf10230ebf0462768",
+      "bytes": 11151
+    },
+    {
+      "path": "docs/code/Missions/M0/source/PRD - AI4Research.txt",
+      "sha256": "897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036",
+      "bytes": 232081
+    }
+  ],
+  "snapshot_sha256": "1bea9257d5db0d2289f99dc0d8d09708dc3c8c7df275de3e485dc670d7e8de75",
+  "tracked_dirty_diff_sha256": "603600ebcd2b414402b75153a0e96b1f4293faaa4a57dd31668d23bf00c0418e",
+  "runtime_candidate": {
+    "path": "docs/code/Missions/M0/M0-SYSTEM/evidence/RUN-20261006-RUNTIME-LOCAL-3/candidate.json",
+    "sha256": "25da509bd35cb7daa8aa28a4eaac588f5619548229d1f635056db9ebf7a91a06",
+    "snapshot_sha256": "1a2510b1dff775a97d00a8ef9254027ec84c0bd427facb633ec19025fcbe4d85",
+    "execution_inputs_unchanged": 316
+  },
+  "scope_authorities": {
+    "product": {
+      "path": "source/PRD - AI4Research.txt",
+      "scope": "M1 Delivery Phase 1",
+      "sha256": "897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036"
+    },
+    "architecture": {
+      "path": "source/build-package/immediate-plan.md",
+      "scope": "TRIAL-1",
+      "sha256": "0a7c21c2933c0be3b07e67cedaa91d2bd1706ca4382c364eb474ae616b919ec3"
+    }
+  }
+}

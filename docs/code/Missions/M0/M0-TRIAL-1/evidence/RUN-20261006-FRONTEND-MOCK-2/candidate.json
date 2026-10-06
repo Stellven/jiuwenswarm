@@ -1,0 +1,1670 @@
+{
+  "run_id": "RUN-20261006-FRONTEND-MOCK-2",
+  "revision": "r2",
+  "scope": "Supplemental built native frontend mock journeys; no live acceptance",
+  "head": "2cc0b8695d4000cc72af64eb781356697f7fd861",
+  "dirty": true,
+  "dirty_status_for_candidate_paths": " M jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json\n M jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json\n M jiuwenswarm/channels/web/frontend/src/main.tsx\n?? jiuwenswarm/ai4research/__init__.py\n?? jiuwenswarm/ai4research/application.py\n?? jiuwenswarm/ai4research/bridge.py\n?? jiuwenswarm/ai4research/capsules.py\n?? jiuwenswarm/ai4research/common.py\n?? jiuwenswarm/ai4research/configuration.py\n?? jiuwenswarm/ai4research/declaration/library/README.md\n?? jiuwenswarm/ai4research/declaration/library/intent_compiler.json\n?? jiuwenswarm/ai4research/declaration/library/intent_verifier.json\n?? jiuwenswarm/ai4research/evidence.py\n?? jiuwenswarm/ai4research/headless.py\n?? jiuwenswarm/ai4research/http.py\n?? jiuwenswarm/ai4research/identity.py\n?? jiuwenswarm/ai4research/intent/__init__.py\n?? jiuwenswarm/ai4research/intent/compiler.prompt.md\n?? jiuwenswarm/ai4research/intent/models.py\n?? jiuwenswarm/ai4research/intent/verifier.prompt.md\n?? jiuwenswarm/ai4research/runner.py\n?? jiuwenswarm/ai4research/service.py\n?? jiuwenswarm/ai4research/state.py\n?? jiuwenswarm/ai4research/verification/__init__.py\n?? jiuwenswarm/ai4research/verification/gate.py\n?? jiuwenswarm/ai4research/verification/profile.json\n?? jiuwenswarm/ai4research/verification/upstream-adaptation.json\n?? jiuwenswarm/ai4research/verification/upstream/LICENSE\n?? jiuwenswarm/ai4research/verification/upstream/citation-reviewer.md\n?? jiuwenswarm/ai4research/verification/upstream/result-evaluator.md\n?? jiuwenswarm/channels/web/frontend/src/features/intentTrial/IntentTrialPage.css\n?? jiuwenswarm/channels/web/frontend/src/features/intentTrial/IntentTrialPage.tsx\n?? tests/fixtures/ai4research/trial_support.py\n?? tests/journeys/ai4research/test_intent_trial_frontend.py\n",
+  "tracked_dirty_diff_sha256": "4934492df53200822e96e26a368caa29c35651cd319672ae36a7cfe33defb4c1",
+  "snapshot_sha256": "2b32665d9b9b1723f80bd4aa89daa9efcff3158796adccb0b53178695f5b9d93",
+  "current_files": [
+    {
+      "path": "jiuwenswarm/ai4research/__init__.py",
+      "sha256": "330ee4a1775b7abc4cdba11107b7628e22d48649da2483aa9f69601a797f17cb",
+      "bytes": 101
+    },
+    {
+      "path": "jiuwenswarm/ai4research/application.py",
+      "sha256": "dad241d41972a51adc0abdf0f00edde6f6189b840f51356c4a3cb0399955110f",
+      "bytes": 16984
+    },
+    {
+      "path": "jiuwenswarm/ai4research/bridge.py",
+      "sha256": "bd0508e914ca9c047ea7cf8bdc5f630ffa0bb3ada4101dfa9aa954b4299c6d81",
+      "bytes": 21751
+    },
+    {
+      "path": "jiuwenswarm/ai4research/capsules.py",
+      "sha256": "f9aba3c3d0a66269ffb2a08c677dd0861a121e69378d87858222a4ac068fde6f",
+      "bytes": 41057
+    },
+    {
+      "path": "jiuwenswarm/ai4research/common.py",
+      "sha256": "e44aa5d98609ad04df8df4ce171e15212802e184a6bcb43a35e4b1196eb3e627",
+      "bytes": 948
+    },
+    {
+      "path": "jiuwenswarm/ai4research/configuration.py",
+      "sha256": "fa7cd65eefc734834603d8cc99387040eb43f504968c32c53437566bb6a27bba",
+      "bytes": 11703
+    },
+    {
+      "path": "jiuwenswarm/ai4research/declaration/library/intent_compiler.json",
+      "sha256": "914a4d29a83a62b935b5d57f03e1c579e17453e156c8cb27c08366a8e63f7451",
+      "bytes": 5499
+    },
+    {
+      "path": "jiuwenswarm/ai4research/declaration/library/intent_verifier.json",
+      "sha256": "3bae5050a0a13140a088fafec072758217fc1802323fa1549549f78a893579c0",
+      "bytes": 6511
+    },
+    {
+      "path": "jiuwenswarm/ai4research/declaration/library/README.md",
+      "sha256": "3350adb5038844229a809d96339997b017ac5277f7bf23bf62a6b75ee826eb35",
+      "bytes": 2595
+    },
+    {
+      "path": "jiuwenswarm/ai4research/evidence.py",
+      "sha256": "378228164b6e67bb78e0d13e2caa000e8d9ffb931d4098d45c18d38b584f1203",
+      "bytes": 10975
+    },
+    {
+      "path": "jiuwenswarm/ai4research/headless.py",
+      "sha256": "42c53a2d51244aebe476a4a385cd8615b195889fe1f837bcfe2fd90bf49e0609",
+      "bytes": 3429
+    },
+    {
+      "path": "jiuwenswarm/ai4research/http.py",
+      "sha256": "0c89a69cd2ebf250b3ea599f39d30a405fd6102a848ce6cf6f965cae726020cf",
+      "bytes": 6995
+    },
+    {
+      "path": "jiuwenswarm/ai4research/identity.py",
+      "sha256": "42be3fe7971e16d9a4cfc92c5f4d1764c57552b1eb733a727a5a4415ecbfc246",
+      "bytes": 13988
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/__init__.py",
+      "sha256": "a5217ffcae0c0139faeaea08fc473fe59554151cce91a2a6e37bbfef8c3eb730",
+      "bytes": 84
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/compiler.prompt.md",
+      "sha256": "49f7772a93f3d6628335322dccdd21f5f69742dcbf56fbf7192955e33b7c375f",
+      "bytes": 1354
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/models.py",
+      "sha256": "5a91088bf478091d82cdd5dfcb4c6082fb31788680cd13959f445478cbf09020",
+      "bytes": 3252
+    },
+    {
+      "path": "jiuwenswarm/ai4research/intent/verifier.prompt.md",
+      "sha256": "f7e09ac723dd09d5d5b23b3cb6acab921f24bcaff7c0952b8d75fa67c63219c2",
+      "bytes": 2250
+    },
+    {
+      "path": "jiuwenswarm/ai4research/runner.py",
+      "sha256": "06c402b8788f2d7ab98c70ac5c25853236779f749d7bcb0c17095612e954588e",
+      "bytes": 7910
+    },
+    {
+      "path": "jiuwenswarm/ai4research/service.py",
+      "sha256": "f0f8b4873944a00dac8a1c06d8891602ce3d128ff898cd10f8572c633145e885",
+      "bytes": 14576
+    },
+    {
+      "path": "jiuwenswarm/ai4research/state.py",
+      "sha256": "ce3b584d382d619ddce7bcabc67b894bddf76b7a743f005e630fe8f1e60f3cec",
+      "bytes": 38120
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/__init__.py",
+      "sha256": "b93bb49f0a755e73f3dd8def21b5276c5ad26f1394527a9ff9410e2d2530add9",
+      "bytes": 81
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/gate.py",
+      "sha256": "baa921a2d2c63294a2bf9477785f974ce0037e91bfe08b0b1be66f55d863bf50",
+      "bytes": 2997
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/profile.json",
+      "sha256": "613bfc40ef756b154c8376a8947e8341872168ce185c124edd1b1a3b75e90071",
+      "bytes": 1110
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream/citation-reviewer.md",
+      "sha256": "be727c863d5e3cc038acd5a6d65d0e2aa536a40b439e40b9652141ecf6bcc750",
+      "bytes": 2359
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream/LICENSE",
+      "sha256": "c5accbbd8546e94c34aed24afe689a617627d18eed5a6c48277e48db57c23851",
+      "bytes": 11356
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream/result-evaluator.md",
+      "sha256": "ea27c88ca1355af889e85892c2c176b1c296273ee258b9e44fee668c43385f71",
+      "bytes": 17983
+    },
+    {
+      "path": "jiuwenswarm/ai4research/verification/upstream-adaptation.json",
+      "sha256": "699b14bb79afb1acb5484073890b3803bd6cf7bfa826ccf8cd32bce8a01b6722",
+      "bytes": 4672
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/arc-ByFvARSW.js",
+      "sha256": "93c09707496af0b7859c071878aedc44a4a68e74b2f12c1a97c36d2694e6f4bd",
+      "bytes": 3421
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/architectureDiagram-3BPJPVTR-Byc4vC-N.js",
+      "sha256": "0b60959516eb3e6766ee9a0a794b773f6532fd7a769735005821c867a982879d",
+      "bytes": 149544
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/baichuan-CtU4EFSj.png",
+      "sha256": "1c377074baa7d29beaa29cb6a1a1747a83e2e89522e0126eb14488178e115c2a",
+      "bytes": 4286
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/bee-flying-COl2UB-p.webp",
+      "sha256": "42eea0905d55bd9f02b1176b66b97f45a8b2f7dc5404f4c01d04a8f7668dceab",
+      "bytes": 1843142
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/bee-static-D5AZM8Xv.png",
+      "sha256": "101303d758ec6c694149d7db96ef4a457da1f120da225859685cdfe07079a4fc",
+      "bytes": 279876
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/blockDiagram-GPEHLZMM-A9xRbY6_.js",
+      "sha256": "5d190a003545f5eca7e4b31e5a226b7feb319506900be69c86c977f88f9c6974",
+      "bytes": 75113
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/c-BIGW1oBm.js",
+      "sha256": "d6cf83167ef5e3f3ce64b34b57082b5ad6824eba4970eae9a278ab9285c9f3d8",
+      "bytes": 72113
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/c4Diagram-AAUBKEIU-B332IHgv.js",
+      "sha256": "7fd22940f27c8f5ab7fc0d0640a64012a60cb22d0a522dec858e2f93f9662b2a",
+      "bytes": 69957
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/channel-C6KyvR_b.js",
+      "sha256": "fb16566a7c874496936b09108a96c8933e0a06932d8066a21c123c3eb404d2e1",
+      "bytes": 113
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-2J33WTMH-BG19-f3f.js",
+      "sha256": "0e4af3ad16150953dbf3910764fd4318a80a3fa41697e0956a32f85a9c920621",
+      "bytes": 532
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-4BX2VUAB-B3wjDQI-.js",
+      "sha256": "2ac122f797200fe49acc8f0fb09bad415bf77bba38ed145fabc2ed5777bdd368",
+      "bytes": 297
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-55IACEB6-CB7ake23.js",
+      "sha256": "bb155327f7e92548c74fcba42b82c2f684dd7599aef336b36473758bb43cb01e",
+      "bytes": 268
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-727SXJPM-CrNcq58z.js",
+      "sha256": "b2afab70e179e603fb10a367b360fa62b79b5b3f06dd94eae1f494716bf693b0",
+      "bytes": 49092
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-AQP2D5EJ-DObAcXMq.js",
+      "sha256": "397e458422d27d320348bf0e39442c8cc21b9d4ad5ec9119b90821cfc8e36bc2",
+      "bytes": 37568
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-FMBD7UC4-C6mM0Tas.js",
+      "sha256": "c1c1b4095675c7d842433ed09cab4ef5c668a1c481f0c3571833f295a97436a7",
+      "bytes": 366
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-ND2GUHAM-4hfCw70o.js",
+      "sha256": "a55797d8301839245e673508a34f00205ad122085337b095dbcf4a57bd322c56",
+      "bytes": 1892
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/chunk-QZHKN3VN-DmZlPJ01.js",
+      "sha256": "2dfb5bb4797750be8468ddffb0fb5e13cc6ebce702757cab7bb3c2ee07207ed4",
+      "bytes": 193
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/classDiagram-4FO5ZUOK-C_Cfqv9F.js",
+      "sha256": "f87df7a4d354f549871ff41305507a5befe66237bf79826ee92a28476b233f06",
+      "bytes": 467
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/classDiagram-v2-Q7XG4LA2-C_Cfqv9F.js",
+      "sha256": "f87df7a4d354f549871ff41305507a5befe66237bf79826ee92a28476b233f06",
+      "bytes": 467
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/clike-JgAqeYFi.js",
+      "sha256": "ea13cab709d54c20a2723cabebf77e9420a8dc3ca23cf8d4b0624328c3916a5b",
+      "bytes": 22111
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/cohere-C9M1rUjr.png",
+      "sha256": "4f0032eaa7383e82643cdc2828a30ae945148bcd0130c95af3f81e93e9500e90",
+      "bytes": 15406
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/cose-bilkent-S5V4N54A-BmBUaBi8.js",
+      "sha256": "c7646fb6c1143f4d55de97b58d313fd9e7966c60c51029e96389528d44b97216",
+      "bytes": 81546
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/cpp-DddhVWhK.js",
+      "sha256": "b9dfa8023b6f306908141bf8b39b56f6ef9702fc17b9f9154836248444899256",
+      "bytes": 796962
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/csharp-DSvCPggb.js",
+      "sha256": "1ed6cae3a3f91c58b1ce9d8da2f95090c1804cd330b3ef813d35df14da2b88c6",
+      "bytes": 90189
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/css-CLj8gQPS.js",
+      "sha256": "2848016b846e4595ae4798cb70305f259eb0e8d297b0cc9fa4ac5b0b612a3166",
+      "bytes": 49041
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/cynefin-VYW2F7L2-vWz8Sgz4.js",
+      "sha256": "637e07850415d7d64c92a0ee1a183f9b781a2930a312c4eb12df336918da3408",
+      "bytes": 690588
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/cytoscape.esm-CUqq0XTU.js",
+      "sha256": "9bb1dbac73bc986536b9d4f3c6509da2c104606dc115b3e03114361719388b7c",
+      "bytes": 443693
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/dagre-BM42HDAG-Bv1bkz6f.js",
+      "sha256": "d59c74c38dea0b27b5e312c1b94bc3fda73fb998c6a649d1722093d15d0658dd",
+      "bytes": 11400
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/defaultLocale-DX6XiGOO.js",
+      "sha256": "0cefbd76f932c4eea4758d28169802589b1ad15b46607253de4bd82328998ece",
+      "bytes": 4688
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/diagram-2AECGRRQ-asCu6B6W.js",
+      "sha256": "7f9a958b1743b499612b2b09e769c7e7cf0eeedabc208d7ed89dbc52d5181ddd",
+      "bytes": 5963
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/diagram-5GNKFQAL-B1xa7ynW.js",
+      "sha256": "65f1e6c79e425745a854bcb8ed601625ec309cfdae4e6896b3db4ad4252eae2d",
+      "bytes": 2758
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/diagram-KO2AKTUF-DgUuKrtp.js",
+      "sha256": "09f22b015630cfa93b2ab6aff3101b724bf87f8f573f8925af276d1e1f3ed4ee",
+      "bytes": 10823
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/diagram-LMA3HP47-BbMDDURy.js",
+      "sha256": "430b842e07724e0fa326633ae6869a6a77af5bc58029b5d85740948067894697",
+      "bytes": 4244
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/diagram-OG6HWLK6-5ycIpxCO.js",
+      "sha256": "6e247298937501f99b05c497a8b986af6db76246b951224fc7d3c1c2994d20cc",
+      "bytes": 15932
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/docx-preview-BymjQP9_.js",
+      "sha256": "b0291f5dee402629fdf55900e42571bd57c4de86a59bb9acaadf92595fca3ba7",
+      "bytes": 76366
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/duplex-playback-C1TAL5m4.js",
+      "sha256": "9827b6addbc5924d221ff152453012aa8dba70c7710815051fce200a27147659",
+      "bytes": 5271
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/edge-bookmarks-BxLshAnA.svg",
+      "sha256": "ffe0ea587d543887777c61d3a572ac59ced2f2c60fcfa75743ebcc51ebc17c6c",
+      "bytes": 131454
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/empty-artifacts-BEtdZOz2.svg",
+      "sha256": "a674aeb1d92290cd80b6991809d9039a7b77f8b4f0355e8da753fb28dca86890",
+      "bytes": 7722
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/empty-box-8sugPuLY.svg",
+      "sha256": "5c9d60084838b2b7c38ca2fb2ace42e431657c90843a842968ae8f1f3ab189eb",
+      "bytes": 19178
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/empty-members-DRQpnNOi.svg",
+      "sha256": "2c4a322a43d4332dbb99b2a06410630b5a589d9ea2e906ff64d66d4d4ce613b2",
+      "bytes": 10705
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/empty-planning-zGK2eq1D.svg",
+      "sha256": "72c0cfa85a585b8d04085cbf703079e56cf4dc277219f4be69b82e86ab3153ff",
+      "bytes": 7791
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/empty-references-CavDcCUr.svg",
+      "sha256": "97adbab999987edae18f6a455389331d2b7deb2c771ff00235d391210fbdadc1",
+      "bytes": 10331
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/erDiagram-TEJ5UH35-D3dnNJdh.js",
+      "sha256": "332e6f7780ae38eb82e036c551e5522da8c89d15d1105e1ac8ad950cad5ef812",
+      "bytes": 26972
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/feishu-BoIkLlHw.svg",
+      "sha256": "ef7cdbd5bd039ae39da641eacd42ff51db95821a64a2322c5ad6c908581f6d3d",
+      "bytes": 23102
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/flowDiagram-I6XJVG4X-PWYjKto8.js",
+      "sha256": "c9d2e09867b43e5fa6b521f1f2aa93170dad3ff6de6d3b12a8ba554c918078b2",
+      "bytes": 61182
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ganttDiagram-6RSMTGT7-ndKgc1vU.js",
+      "sha256": "c4db87d4288a5a5c0be7b64c5dbcd3de8af0a849298408060e045a3d29000398",
+      "bytes": 69288
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/gitcode-DBvCfMpi.png",
+      "sha256": "04e6fc8c7c098a1d00c284156ea50dd574a7f2a49d4a03cc201ab21a8c1064fa",
+      "bytes": 15660
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/gitGraphDiagram-PVQCEYII-xl_z8t_B.js",
+      "sha256": "c0cc73372f76b2ed4730b0607cf6d4e3cb26af03fcc1170d9f9c9f3af971c442",
+      "bytes": 29940
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/GitHub-BWZ7DPn4.svg",
+      "sha256": "8f6e928280cfbbab42d1df810c78d24d9d9b13668e1d5ca65e7968c8988c5d0f",
+      "bytes": 20909
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/go-C27-OAKa.js",
+      "sha256": "46ec75c1455e917fb6e0b1b4aa0f0b15686386aba0c8e3ca3615984ae9be696e",
+      "bytes": 46818
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/google-B89G92vX.png",
+      "sha256": "6da5620880159634213e197fafca1dde0272153be3e4590818533fab8d040770",
+      "bytes": 5430
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/graph-BlwPajkw.js",
+      "sha256": "6e58a78224e976c8da7e8fe5a42c0ad2948515132cfefa0cb04cdec411b9c70b",
+      "bytes": 23942
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/groq-BYxwq3Lx.png",
+      "sha256": "945268e4ed2640dcad9667a598323e572f50a9065928399f465d43cdd0c6aa57",
+      "bytes": 15406
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/home-banner-pvwvhkA2.svg",
+      "sha256": "5429938b90fb5609d1f9b0a21a2daa4558920001b26942c9eeaa7410a7479847",
+      "bytes": 2554309
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/html-BlxqI32m.svg",
+      "sha256": "bca3bb035f0395b7228c74bbe20467869fb9fc0f5b08e5c37d14778d2ed6f32b",
+      "bytes": 4697
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/html-CfGypltT.js",
+      "sha256": "21b1434a82cad81174ffdc1bc99fffffbef06a25b9838632e99eccc8c89ceeff",
+      "bytes": 232117
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/image-4Hjc2Lye.svg",
+      "sha256": "b2e0d49677b5297c9af7a639fe1b6b20b2b3401aed224dfe707a03aeae2f5a88",
+      "bytes": 6799
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-B1zm8-Z1.js",
+      "sha256": "276db540f007f6221248b9fc732a8301d74bf4df1dd1f7df5ddbd301f8cc6d30",
+      "bytes": 97884
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-B4wMnNMm.js",
+      "sha256": "5f010c5a340f192b2e4bde40c607c2bd4f9c7c6749902740678848cf81203271",
+      "bytes": 28552
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-BhJ8Wft8.js",
+      "sha256": "30d3060d2c2c470f18cb6cd8ca7c292d59cb99e54f5a0a037412481778087fda",
+      "bytes": 84668
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-BlRfP8Mc.js",
+      "sha256": "14e6819e3b3a78a665f083868014487a7162f4cb28c5d1b479f3115995bd10ad",
+      "bytes": 40732
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-bxf4kOR1.js",
+      "sha256": "57f09dd023a8e1a1d50eed858ddfd56205efc7ef7e00614ba170cfdf5dedaf35",
+      "bytes": 3427
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-C-7FD-lA.js",
+      "sha256": "f026a8332f3fe5011f4fc1ef73291aed1d686e39c403c82d84d70c1ebd21b433",
+      "bytes": 26491
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-C-FwVAqi.js",
+      "sha256": "dbc5ac919c3aecaa275c41f3440a6871f54ac108efe155328ce28a6f59808608",
+      "bytes": 14025
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-C1KH8OPZ.js",
+      "sha256": "5e350df48ec052c3cf63181951f15905281ccc5764b9fab94debbbfb2778968b",
+      "bytes": 103916
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-C7oNT6Po.css",
+      "sha256": "2a33d995bb460e6f384c7a1ad42ceef506694dc447111294d46a80dc42f5705e",
+      "bytes": 735275
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-CchBerSU.js",
+      "sha256": "7eb0cc96af8c06b041a840f5ee21e115b2045c25b221743b814d19b4f70e06c0",
+      "bytes": 11594
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-CFVefoaB.js",
+      "sha256": "1b8985ea3f09c6df66cd87a1e77e3939fed02089ac81e75e323cbb77f33fbcf5",
+      "bytes": 4505082
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-Cnhr2PPN.js",
+      "sha256": "abb441133d670e243c8f93bae75d4488cf11bd4e7554d88bca9222c3acecf473",
+      "bytes": 45134
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-D4kNAZNF.js",
+      "sha256": "283296646ffd169983dd9db26d927f6bf738315376acdde3073473716cab2cb3",
+      "bytes": 14791
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-DTrhM6jg.js",
+      "sha256": "179904abe4cfd828a41510bd8f59edfdb1f9db7071e8527c22719de822b279dc",
+      "bytes": 70809
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-DyYO_gin.js",
+      "sha256": "dccb9ae156358df77f82e9a05b1e4f475f302a3f76930ed52f31daebfdb181c6",
+      "bytes": 28110
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-w1taQatZ.js",
+      "sha256": "d97a7dd795c808b3132514840448ccf829d5884bf76cb5c0fb96e44cbc3509b1",
+      "bytes": 30821
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/index-Y9uMeB9X.js",
+      "sha256": "01197c1a66b4fa0ec6a563da6fcee51000ea23b443da8442dad795022bc78064",
+      "bytes": 7498
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/infoDiagram-5YYISTIA-BOv3Kdm6.js",
+      "sha256": "ebc339edaae0ce6319a0538e3b50495d4e26d3a3e197a7e1837a853ede22f61b",
+      "bytes": 587
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ini-BEwlwnbL.js",
+      "sha256": "7830e62a2a96e22c418b5a1e52ba15545ece3c5684346dd50fc174a60b3c225f",
+      "bytes": 1525
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/init-Gi6I4Gst.js",
+      "sha256": "379fa880c14ad48f43b0c23ff56b30b2b808e8460fd9f9cad8bf7cb278c5b814",
+      "bytes": 147
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ishikawaDiagram-YF4QCWOH-DDh4OYe1.js",
+      "sha256": "644dcc93202074b27b1f2c0fd36bed44f5f61379600788bcdad5802838ddce1b",
+      "bytes": 17563
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/java-CylS5w8V.js",
+      "sha256": "2bec4be5ba0dea3d8258669df1e6957e1ba2590a1ad56c6e103ea8c00baeba7e",
+      "bytes": 27219
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/journeyDiagram-JHISSGLW-7gTkNLVV.js",
+      "sha256": "273afb39464f869f6e7b6943c34e3eee3124ae9e07803fe1f0082ff52ce780b4",
+      "bytes": 23589
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/kanban-definition-UN3LZRKU-CW9VcBz4.js",
+      "sha256": "74572d51e9ae5a3bf39a0b3b407ffb202b5e52607b2dfbc1123a7caf0e776c2a",
+      "bytes": 20697
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_AMS-Regular-BQhdFMY1.woff2",
+      "sha256": "0cdd387c9590a1a9f9794560022dbb59654a7d86f187aa0c81495ad42d3a7308",
+      "bytes": 28076
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+      "sha256": "30da91e84c893f875e252689faebdc590b2871145e8adc7f9a9d4dbd8ce0b251",
+      "bytes": 33516
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+      "sha256": "68534840bcfdd2bffb6f0e8deb48684dd01e7f04ea2813267577afb906de1d13",
+      "bytes": 63632
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf",
+      "sha256": "07d8e303ce4fc12b4bb54f1004170dd190a1f3db45d400fe68060df3e0897268",
+      "bytes": 12368
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff",
+      "sha256": "1ae6bd7475590e97e7f145a89e09ccde322f7a6bc0b91607b1c8b8ee28290fed",
+      "bytes": 7716
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2",
+      "sha256": "de7701e42cf1f4cf0b766c03fb27977207eee2f4fd5d76fa82188406da43ea4c",
+      "bytes": 6912
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff",
+      "sha256": "3398dd02302557a793f2863f88e02d96ce10df2abffa07c8e9fa90775116e65c",
+      "bytes": 7656
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2",
+      "sha256": "5d53e70ad607c2352162dec9e0923fb54ecdafaccbf604cd8dcf7d00facb989b",
+      "bytes": 6908
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf",
+      "sha256": "ed0b74372feefcbb9c0666b2e210da37b7e49fa7fbbf3eeb11db5f693dacfbb7",
+      "bytes": 12344
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf",
+      "sha256": "9163df9c7122432e6495b4229fa9071cf9ae86a758ae5efc4924ec2e1a6dbce1",
+      "bytes": 19584
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Fraktur-Bold-BsDP51OF.woff",
+      "sha256": "9be7ceb88004ab8ad124082246fbfcca4091e36385d4ec6ed1df67375dad50fb",
+      "bytes": 13296
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2",
+      "sha256": "74444efd593c005e3f4573b44524704c0af0a937fe911cca9e94068d0d140d3f",
+      "bytes": 11348
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Fraktur-Regular-CB_wures.ttf",
+      "sha256": "1e6f9579e90e2cac37f8f60a597c436e075c114385652b7cbeb0dec0421291b3",
+      "bytes": 19572
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2",
+      "sha256": "51814d270d06ff0255dba0799994fa4d8c84d11f09951d47595f4abb1f3602dc",
+      "bytes": 11316
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff",
+      "sha256": "5e28753be717dac97f559f49bc10be9cf3c124ddcabda6659d11cb68febc6463",
+      "bytes": 13208
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Bold-Cx986IdX.woff2",
+      "sha256": "0f60d1b897938ec918c8ce073092411baf9438f6739465693ff18b0f9d20b021",
+      "bytes": 25324
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Bold-Jm3AIy58.woff",
+      "sha256": "c76c5d696297d51b9cb1639c7da4334f0e7dec81b42b11213b5e25ef671bb822",
+      "bytes": 29912
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+      "sha256": "138ac28d1663b3037e9c5f52371fa5c63d8324f4a38d22cd573e6ea3a3fd0cf8",
+      "bytes": 51336
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2",
+      "sha256": "99cd42a3c072d918f2f44984a807cf7aa16e13545fd0875fc07c6c65f99e715b",
+      "bytes": 16780
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+      "sha256": "70ee1f64a20f2048c21940ef46d0144fd215baa953ca69afd1e31e98544f708f",
+      "bytes": 32968
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-BoldItalic-SpSLRI95.woff",
+      "sha256": "a6f7ec0d846ac7ad975adb8959c37ed49b94acbc4ae436db9ce9e20287e4a64c",
+      "bytes": 19412
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+      "sha256": "0d85ae7cc30f23790a7f1a58c4a112fdca8aae769b6ba11429af1d98b1b6cb3a",
+      "bytes": 33580
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Italic-BMLOBm91.woff",
+      "sha256": "f1d6ef86f3b11a528bd5185199bd2443ecb2b0dead96d88674b5a2c12be24bdf",
+      "bytes": 19676
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Italic-NWA7e6Wa.woff2",
+      "sha256": "97479ca6cce906abc961ecac96faa5f9ca2e61b8e7670d475826bcdee9a7c267",
+      "bytes": 16988
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Regular-B22Nviop.woff2",
+      "sha256": "c2342cd8b869e01752a9321dc17213fc40d4d04c79688c1d43f2cf316abd7866",
+      "bytes": 26272
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Regular-Dr94JaBh.woff",
+      "sha256": "c6368d87e8a1a3a5d337623d83d8dc4b868f242a9ad476237d6f8d1e0f168cdc",
+      "bytes": 30772
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+      "sha256": "d0332f52868370fd83ae7fa46470f90c8f2eab2fcf12bc4f88080b340c95a830",
+      "bytes": 53580
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf",
+      "sha256": "f9377ab0271cda59af24bcffbd46a4d0c8a3572ffafdbb38de2ad5ea7b0d5ee5",
+      "bytes": 31196
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2",
+      "sha256": "dc47344dbb6cb5b655c8460d561f4df5f501b90c804ad3c6cec65fe322351ab1",
+      "bytes": 16400
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff",
+      "sha256": "850c0af5c2238497febaf5e461d880bf458c341f42f4f330f1b1ab5698b1998e",
+      "bytes": 18668
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Math-Italic-DA0__PXp.woff",
+      "sha256": "8a8d244581371912b8f3f5a23e2437cb2a59cd9bcaebb0346e722c05737a2571",
+      "bytes": 18748
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Math-Italic-flOr_0UB.ttf",
+      "sha256": "08ce98e51b04d58945a301e639e02b6998af29fdfd61a7b8afdd07bbfc479d4a",
+      "bytes": 31308
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Math-Italic-t53AETM-.woff2",
+      "sha256": "7af58c5ec8f132a2ddde9027c6d7814decce4d3b822a11192a42a20e2e973264",
+      "bytes": 16440
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf",
+      "sha256": "1ece03f79f95277d57dc7f6b435a74e1379b0d46104a8530286b60ff49369ea0",
+      "bytes": 24504
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2",
+      "sha256": "e99ae51144bf1232efcc1bfe5add36262c6866b0faab24fa75740e1b98577a62",
+      "bytes": 12216
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff",
+      "sha256": "ece03cfd83e22c212cdef66feb8442d25a083beb988db3f1883f3f9738d750ba",
+      "bytes": 14408
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2",
+      "sha256": "00b26ac825e2095056396e0553b8ac26d3f8ad158c3826e28b4c45b385c4714a",
+      "bytes": 12028
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Italic-DN2j7dab.woff",
+      "sha256": "91ee67500cc0129aa0ace3ac5c61ff1692102f0f31d02b69347fba35dcb75bf2",
+      "bytes": 14112
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf",
+      "sha256": "3931dd81faed86ba021bb2bbdc36f5bed9a38d6b4f4077aca59b265aa1b02083",
+      "bytes": 22364
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf",
+      "sha256": "f36ea897e19f4a2e571d1e900e4e3710e438deb05a842486045ba0a3e616a4ad",
+      "bytes": 19436
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff",
+      "sha256": "11e4dc8a6471ff6d6ee561d53d10fde8f7489e798257ff449c5d37c197435605",
+      "bytes": 12316
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2",
+      "sha256": "68e8c73ef42afd3ccec58bf0fba302cce448938e7fc020a5e31f8a952eee1342",
+      "bytes": 10344
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Script-Regular-C5JkGWo-.ttf",
+      "sha256": "1c67f068fea8bb09bf099c088b1cf64bd27516a6e07f4684344873564bb66a67",
+      "bytes": 16648
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Script-Regular-D3wIWfF6.woff2",
+      "sha256": "036d4e95149b69ff9bcc0cd55771efeb25ffa3947293e69acd78d5ac328c684b",
+      "bytes": 9644
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Script-Regular-D5yQViql.woff",
+      "sha256": "d96cdf2b3bdd4d64a8fd5f74a4c467f123a8a73931cd435889f08ffaf9bf947a",
+      "bytes": 10588
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size1-Regular-C195tn64.woff",
+      "sha256": "c943cc986384f59e86bea5fd7dc50a9c4dfe567a7c05eb40d6790720dead97c9",
+      "bytes": 6496
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size1-Regular-Dbsnue_I.ttf",
+      "sha256": "95b6d2f1a50173bfedb8c63e1d1c99b10427d0a4df4201cb44513b226951a22b",
+      "bytes": 12228
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size1-Regular-mCD8mA8B.woff2",
+      "sha256": "6b47c40166b6dbe21a5dfca7718413f2147fd2399be1ba605d8ad39cedf25dfe",
+      "bytes": 5468
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size2-Regular-B7gKUWhC.ttf",
+      "sha256": "a6b2099fb555c60e3a0db3a08842ebf1d732c6eb4e4bf44913613bed4fc4e39b",
+      "bytes": 11508
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size2-Regular-Dy4dx90m.woff2",
+      "sha256": "d04c54219f9eaec6d4d4fd42dfb28785975a4794d6b2fc71e566b9cd6db842dd",
+      "bytes": 5208
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size2-Regular-oD1tc_U0.woff",
+      "sha256": "2014c523c3210bcc166648c4d4cc57f05b747df07a24277bf71c51e67dc79e3d",
+      "bytes": 6188
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size3-Regular-CTq5MqoE.woff",
+      "sha256": "6ab6b62e9b62dae2c00dd90f791bd10950be0ecc3490d7d6045f51c2e8fe0949",
+      "bytes": 4420
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size3-Regular-DgpXs0kz.ttf",
+      "sha256": "500e04d54f0d51666332c9d2089aa803be22aa878eca539e59fa53c6e522b082",
+      "bytes": 7588
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size4-Regular-BF-4gkZK.woff",
+      "sha256": "99f9c6750b489c9462bf04900bd3f939df9b829339daaaaa99ef5495cdddea58",
+      "bytes": 5980
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2",
+      "sha256": "a4af7d414440a1c1790825cfb700cf9cf43b0f2c4b04f0ebc523011ad9853ec0",
+      "bytes": 4928
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Size4-Regular-DWFBv043.ttf",
+      "sha256": "c647367d1dd4e162468717d020e1fc0f1dc5c26ebfdffbe55261713bf88c5877",
+      "bytes": 10364
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff",
+      "sha256": "e14fed02b1aba7ce9f5afd5844b5d0321b22351febc720e0de8b8723527609f7",
+      "bytes": 16028
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2",
+      "sha256": "71d517d67827787cfabdf186914cc3358eda539e37931941f2b2fd4a21f68c0b",
+      "bytes": 13568
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf",
+      "sha256": "f01f3e87d9c6a61c0c081ceb577abd864eb00a612f7ac1620dd6915fad2ef5aa",
+      "bytes": 27556
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/kotlin-BdnUsdx6.js",
+      "sha256": "2a95758b9ec1532516fb3fa38cdd82fed5534d944ca791f327e624ec94e829ac",
+      "bytes": 8785
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/layout-Boy8vhSP.js",
+      "sha256": "f58075098c7bb029f500be2dda931ca28a7036c8aa0d60722395baff83114809",
+      "bytes": 35836
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/less-B1dDrJ26.js",
+      "sha256": "ed3ea44927fda1db6ba56ae932f08ce7f82f8d8a06d2b3d63e3b29db54ec5c65",
+      "bytes": 97633
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/linear-B29jM0dC.js",
+      "sha256": "b52e6bd2686ff8b77b8775db3dc4f77e91235586f2d5ccf521254555a923f1a1",
+      "bytes": 4624
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/lua-BaeVxFsk.js",
+      "sha256": "890724e2d1bc79e6f6498ce6cedd5a4bed0d9489121621c1946ef05e209f5623",
+      "bytes": 15535
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/lua-VAEuO923.js",
+      "sha256": "ad18df7e84403433d3dc6847268b41d31e2bdb44e293ce5b147af333a9f456a7",
+      "bytes": 3407
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/markdown-Cvjx9yec.js",
+      "sha256": "ce6a8b1a6ed9b803b1847231214ba37621c2fa51611ec3037d38b561b360c278",
+      "bytes": 59335
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/md-B3x8laMD.svg",
+      "sha256": "52b09a2123f3531fd23bd2d1761cada1ca0f10fb55cf52a72efa055cc632dc21",
+      "bytes": 4719
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/mdx-Cmh6b_Ma.js",
+      "sha256": "c2c652334464f6085341dd1c46e32717e22556890fbc0d2651d9200f372069bb",
+      "bytes": 136114
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/mermaid.core-BLwIrABM.js",
+      "sha256": "327b87c50703d4046b04c65bfdb0863d6ecf60b33351eb69bf642b13ba149c3c",
+      "bytes": 583977
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/meta-DKJXgEUV.png",
+      "sha256": "2f4a5bdbba2fb745a850457779f479517ce0ffa8c6418438c6fb6884155b7fd2",
+      "bytes": 9662
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/mimo-D1vwp7ub.svg",
+      "sha256": "8511476dc20a2139f119d292ccaed6385d81ea27dd2b7445ada324d54afb7160",
+      "bytes": 9803
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/mindmap-definition-RKZ34NQL-0T97TPxu.js",
+      "sha256": "561b782c29626ac3611bd9c7f57fc240a30f565e422d0945e50f0a07de8a8e84",
+      "bytes": 23359
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/minimax-B2NoRXmU.svg",
+      "sha256": "88ef784357dcf57074bc2bb1adba1908416135a34032c551c7e6cdfac1618db2",
+      "bytes": 5382
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ordinal-Cboi1Yqb.js",
+      "sha256": "71be569ce2355b7f256a834b3a4c11668fe80a880b3587c1b3b14e9e5dedf478",
+      "bytes": 1189
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ort-wasm-simd-threaded-BQQNiIPt.wasm",
+      "sha256": "207d02be4591c156b0a98f024f3d58005b5b04c92274d759fb390338c63559ea",
+      "bytes": 11246032
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ort-wasm-simd-threaded-Rz2TxrO3.mjs",
+      "sha256": "745eb7c0ce6f18a6aa521971b2877babc7ffb27eecb58ab3bc6e5ef4692672e8",
+      "bytes": 24618
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/pangu-RhCrgZ8L.svg",
+      "sha256": "7b0c7a571578f279c2fe80803e26d61424be765f0b0810f75777e4b63d43894e",
+      "bytes": 162740
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/pc-feature-2-f_RUafsP.svg",
+      "sha256": "1a0b3311907c6e24da6afcb3db8972a08319653080bbea48a7a6d0c67d70e78e",
+      "bytes": 12408
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/pc-feature-3-CJJnQ_ji.svg",
+      "sha256": "c4e8b07bc947972c3ee647626704c1e816e8a4c899264ca58ecd4086aa7e62a8",
+      "bytes": 8867
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/pc-step-1-oOQDg48H.svg",
+      "sha256": "353bf7ca9f77e305c77c34d091275a9a9e5292163299d2f1788553000d7a1c58",
+      "bytes": 87630
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/pc-step-2-Dh3kp3In.svg",
+      "sha256": "dc2624d0706cc49bc887d731b20234e44b8892a88066879fd4d6b864a7934f64",
+      "bytes": 2644488
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/perl-CdXCOZ3F.js",
+      "sha256": "195216883cd9274b5414861746c3ca02f4df013330b91440c785561fbc188f37",
+      "bytes": 9753
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/perplexity-EE4hoygl.png",
+      "sha256": "0f310164224f649803cf1ae586cd1d881a718e899a86716b5ebf7b878f5be29c",
+      "bytes": 9759
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/php-DEK9WL0x.js",
+      "sha256": "27ddaef8b3c72e9dc9fadac69036f8c4e95425b5b3515f00c860e6d177d8de94",
+      "bytes": 113106
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/pieDiagram-4H26LBE5-B6MqCK9k.js",
+      "sha256": "6e0cbe0306e7c50a9554bedc44ad36eb0f2695ecc3f8445574a93c65bd2acf5e",
+      "bytes": 5316
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/pptxPreview.worker-BtYrAnxf.js",
+      "sha256": "1198c7ecbdcd30925b574af54338f0cd30257b6ce9c117727e7f5a538bc195ea",
+      "bytes": 148281
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/python-B6aJPvgy.js",
+      "sha256": "7652ab863f920a5959c4aa52d6decb8c11d23fd590773977ce8aa0fbb3c555c4",
+      "bytes": 69952
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/python-QPsON5gQ.svg",
+      "sha256": "b418be245d066a8669b6c9a8079bc9ec85531c0ab6bfc23638db975a0b82d672",
+      "bytes": 5424
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/quadrantDiagram-W4KKPZXB-vwnopPE6.js",
+      "sha256": "6ce399cd481fc26ee864c2f1bb864a9508849cea126fa1190e576266c6254db5",
+      "bytes": 34505
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/requirementDiagram-4Y6WPE33-we0IKcVY.js",
+      "sha256": "bc11f20bf781519e74939fa5c9ebb6560aa1158e7186a5c169c215490f5604f9",
+      "bytes": 31204
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-background-qyXNygBC.svg",
+      "sha256": "19de3bb48862d01503dc876cf6d5d82d600b06364c3808a7c6fe0f250bd2c7cf",
+      "bytes": 929613
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-background2-B5jKsD5c.svg",
+      "sha256": "ec3ac8956582270867305bb25e0ac41690977915f31025cef6678eea56511c03",
+      "bytes": 358386
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-best-BWgxNsOI.svg",
+      "sha256": "6f2e139fab0350225b900683a66ff296d067aa5ecd7ff1119f8e248a0b133fa4",
+      "bytes": 5609
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-delete-CMOi1eMI.svg",
+      "sha256": "eced1d0372d25a30d880faba1906493a787dc6f912721f9c79ccc843f851c1cf",
+      "bytes": 5250
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-empty-exams-BAmLlaOn.svg",
+      "sha256": "e7c9bd6d0d519c2a19902a5d4bd835f2bdd9004f3e24223936459db7649549c6",
+      "bytes": 15870
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-evaluating-DK5vND_F.svg",
+      "sha256": "ba635525ec2eccbcb37704b6fa8044dc4700f1d517eb152248db66842ef13b21",
+      "bytes": 4287
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-feature1-CrEwAu2O.svg",
+      "sha256": "abd679f1126370a4b5404de2ead75b3fccc48945c6f7fabf1104f0c0c7116217",
+      "bytes": 24645
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-feature2-HcPf1_8R.svg",
+      "sha256": "0ee16f8b462668f85d261f5415f3b29c9940120bc704963b6c0d13af32cd60f1",
+      "bytes": 33878
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-icon-Cx2mzQ2q.svg",
+      "sha256": "66d85f1ec3b26dfb39f84e7d1b3d71ff89efd65dccf38b7f544e9b1abfc55e97",
+      "bytes": 10237
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-optimize-grmTflv-.svg",
+      "sha256": "6815d8465773961bb26ffe622154598d10df105502729c574b1fdced252eff1f",
+      "bytes": 1320582
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-step1-DSwlE8AR.svg",
+      "sha256": "4e2e2f522699c95ec9f54de0601816508096ccfdd8e91a525f5d53880f8f52c1",
+      "bytes": 25546
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-step2-C5ACcI_6.svg",
+      "sha256": "e0c78de03d0c7efbee74565b7da371ad628f385067d3dfbd2a0f59e6ce5cfebf",
+      "bytes": 74989
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rsi-step3-DXU71Rxv.svg",
+      "sha256": "f3a9ab8b0978580fa5402a6236476bacc0ae7daa3073be6b9edd7fa2208734c8",
+      "bytes": 35039
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ruby-B2Rjki9n.js",
+      "sha256": "5cd3a5c7aab2013878c02b629ac364781ffd33eea086457f1d1c28f5cdede906",
+      "bytes": 5164
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/ruby-WtsPEvr9.js",
+      "sha256": "1327bb3cba5f8ee94c99b5f1b7bfb79eed0e8f1220bf8672ceb769df2a1228b6",
+      "bytes": 425785
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/rust-B1yitclQ.js",
+      "sha256": "c48161f6b21740ac415d982a627f24bb81081225f7405632784f667cf915d985",
+      "bytes": 15069
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/sankeyDiagram-5OEKKPKP-D7W3ddpp.js",
+      "sha256": "d65b6783de16539d6332c362c454551914c2062597e7231d3aecd86175423eeb",
+      "bytes": 23391
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/scss-D5BDwBP9.js",
+      "sha256": "82424791b215254726f7754b2b7ac79cf90ec58a31c023cc959957e832fa0326",
+      "bytes": 27204
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/sequenceDiagram-3UESZ5HK-Dbp_EASn.js",
+      "sha256": "0258cbea29358e64fedd19e910692ccff6b5cff196732293c53097e0c047d687",
+      "bytes": 117296
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/shareImagePng.worker-DV7L3oJO.js",
+      "sha256": "93f69fc7d9c42065c7b217a9afec16d470cd27f626d2a1906218d6a9ba6a1d63",
+      "bytes": 3572
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/shell-CjFT_Tl9.js",
+      "sha256": "b4da8a11db1127e003f10a94ff707474af1392051c41f1e0ef78152e9bd0ea95",
+      "bytes": 2571
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/silero.worker-DfLg1t9v.js",
+      "sha256": "9021fb3f1a083479304532ac046ae16231c7cf8fc2eb8c13ccc37019039bb0af",
+      "bytes": 50636
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/silero_vad_v5-Dt9-bTDn.onnx",
+      "sha256": "2623a2953f6ff3d2c1e61740c6cdb7168133479b267dfef114a4a3cc5bdd788f",
+      "bytes": 2327524
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/sileroVad-isFeleT9.js",
+      "sha256": "48c7edbe4f93f61808ca70a37d21bf54cae5ceb808278f3c77406546e18ef0ef",
+      "bytes": 3833
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/spreadsheetPreview.worker-CK4ZsbC3.js",
+      "sha256": "e2cf37e4e1c8b63005ea0f793837ec070199a0359c80447873bd5353137fb9e5",
+      "bytes": 1114770
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/sql-CRqJ_cUM.js",
+      "sha256": "6df4a8b7587aced94ab3c692d791a8095269b8cb3106c7276088aaa3b7a016e7",
+      "bytes": 23428
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/stateDiagram-AJRCARHV-BsdrV9Dg.js",
+      "sha256": "085cb90abe68071c03c22a793c816abd3464944b9f7fc8201f28d5d362e4a668",
+      "bytes": 10365
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/stateDiagram-v2-BHNVJYJU-MzGRqDn-.js",
+      "sha256": "d64a614e434aa15035c6b8b7591f32a65b22e12970a22e7ad0913cc3c08a76c1",
+      "bytes": 391
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/status-processing-CcFGZRN3.svg",
+      "sha256": "ace2b9b2562f35dcf000010dc51b57effecf8087a6ffc0cb9015ac31ac08bf96",
+      "bytes": 7634
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/stex-BsDSf4zR.js",
+      "sha256": "c040a11e0fadd34e0050fa831e2a5b1a7afcef9499d02db020d26f7ccd8fcc20",
+      "bytes": 3108
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/structure-DXbYH3Mr.svg",
+      "sha256": "5100c1bc8983f5bf43e879069dcf81fee1d8d17676d343826fcf6a953c8e9b9a",
+      "bytes": 6303
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/swift-BzpIVaGY.js",
+      "sha256": "6fdd63ef4febc2aaff6b39553ef9b5d60a76a59a4ddfedbbd260b0ebded352f9",
+      "bytes": 3955
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/swift-C2oV4EkX.js",
+      "sha256": "9f7077844a225a537eea5869de8ca98bd00d512cf62674f7d0b903d827cab839",
+      "bytes": 87231
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/Team-2-B0ItJWqY.svg",
+      "sha256": "3481ae2e149edb06fb9a01000054b53ec71e8a0a092a18f98782ef69f2cd2b90",
+      "bytes": 470448
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/Team-3-0auKqGFC.svg",
+      "sha256": "c9e9c1336f329c5a8534c68bdac71e07c4884997e43a9aed57f800fa589a7349",
+      "bytes": 355915
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/Team-4-Bx-6j-Ya.svg",
+      "sha256": "4769fd7d66b61d56851a050cc22b4ad9eb5fd1f72a3d58ced68ead201f71cbdd",
+      "bytes": 323837
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/Team-5-DQux203x.svg",
+      "sha256": "739cdf5a57d03bc044448beea5b95e90f07fff0927ae60a8b795d7189d93a734",
+      "bytes": 376574
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/Team-6-DS9YIVL5.svg",
+      "sha256": "fefbcc35937baa060be11bcdfec6551f536b7eafb51a4a2ec58d90420ead3427",
+      "bytes": 437895
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/team-C_uuziMx.svg",
+      "sha256": "dd5d4383c5cadb2bf1b04f54cc0828a7b3c582d58c5d1ebe0f73dc402bf2f3c0",
+      "bytes": 4564
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/teamleader-CQbvTBpo.svg",
+      "sha256": "529c2402625da87ed52d2d2758318668c5433821dcba1554e483056eb290af53",
+      "bytes": 253164
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/timeline-definition-PNZ67QCA-DIcFZNwC.js",
+      "sha256": "07cd5f9d177576ce401ef0302726e25a11ea0db2ecc0de71ffc827a8e53ee3d1",
+      "bytes": 31364
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/toml-Bm5Em-hy.js",
+      "sha256": "b7f8416bfb193fea056e2ea29ac97d5569055b02829786fae1f23d619a3b08d6",
+      "bytes": 1138
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/toml-vGWfd6FD.js",
+      "sha256": "13957c3e75de850523d59c55223a274de54f38319159b54c11a41e1e909965de",
+      "bytes": 6426
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/toutiao-C4nApfZ4.svg",
+      "sha256": "510d377a8a13ac3ade9ad9a6e8f3b77ad2e1e12a3361890f3d532548f8a8ec97",
+      "bytes": 12993
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/TrajectoryPanel-CVUQ8CEq.css",
+      "sha256": "c29f1863d1ea1d4c22380b5e9463256450b08867d8513c2daaf8907130235374",
+      "bytes": 131715
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/TrajectoryPanel-sCNTm0Cn.js",
+      "sha256": "4bfb8513b7adb64ba25bdcf186a333b2e28a82a96c959735ca74e6a2652b6f89",
+      "bytes": 695260
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/user-in-team-BiBhtabP.svg",
+      "sha256": "f07702b07548776c1c2fe8e03c388289a44df317d87c59a841f0b271c312cdf7",
+      "bytes": 415442
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/vennDiagram-CIIHVFJN-B90Yoc4A.js",
+      "sha256": "3df178d8f5f4ec255c9a5858669c280df2e2735a83df7453f92c1e6d5fa3d989",
+      "bytes": 41838
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/wardleyDiagram-YWT4CUSO-BnX6Kzzk.js",
+      "sha256": "2f6715ec100362bd861fcca20dbfde5a2f1318f53c1808abfd79c960cd7f2ab5",
+      "bytes": 26099
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/xai-D6RK__sW.png",
+      "sha256": "59fbabd76920f7170cfd1b75c610253dd06b0c45c4c58bf03bdf3f439392f2ee",
+      "bytes": 4286
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/xiaoyi-CYyq_dPl.svg",
+      "sha256": "258150d036b003e4633fb767945ec32ccf84f42cf69b9f8f8a848945ae2a540e",
+      "bytes": 71178
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/xml-sdJ4AIDG.js",
+      "sha256": "50f00554f7503986c098ada8706f8e6a8fdad39e5158c7626d31532a883a51e8",
+      "bytes": 5384
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/xychartDiagram-2RQKCTM6-DUTKL74w.js",
+      "sha256": "a6b98c267d6f5d176e555e2dfaaff5dfa5050f148093062a454a0b327bfa39de",
+      "bytes": 40391
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/yaml-Buea-lGh.js",
+      "sha256": "a7a8b4fc14fa7ba338598f61185a3a13e49d7450830af367407ae61b9634bede",
+      "bytes": 10506
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/assets/zhihu-58mCpwFt.svg",
+      "sha256": "50fd24f1ca29fc7445eee204e1f54875e97f02a4e6b2ea0dac15bde578740d78",
+      "bytes": 76846
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/dingtalk.png",
+      "sha256": "b711aafad966bef37adce79c5ce46a11339f4b29db077d68a492e59814791845",
+      "bytes": 65992
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/discord.jpg",
+      "sha256": "a3d0ceceb0d46b0342fe1dd4060883dc7d8e7f36107c683762bf6fa901ec4369",
+      "bytes": 11532
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/discord.webp",
+      "sha256": "f03c5b7158e9affd546e8f0bd4a09a1cf77f4dd8af84b7f9db5b7374f7f7229a",
+      "bytes": 548
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/feishu.webp",
+      "sha256": "ff05738dbf23799d0a31b32068439559158d8c86af22305ad47c587b31809e0b",
+      "bytes": 13496
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/index.html",
+      "sha256": "ec068fef1d8e8360112279a204a06f8b081a59f99a40315a746b8521badaa452",
+      "bytes": 2758
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/logo.icns",
+      "sha256": "58370aef104edde2e4960022098eb530aaa1f8934e67517c6e2ab1c47ade6601",
+      "bytes": 209120
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/logo.ico",
+      "sha256": "ea8a897e0045251853d31ae6150420bdf0cb85d9690f162e7d354ba11db70ea0",
+      "bytes": 35702
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/logo.svg",
+      "sha256": "981903d70d2d99e02dc5d8f20a881eb8ec5adfc9b3bbadfe7763e56e3322831c",
+      "bytes": 27554
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/slack.svg",
+      "sha256": "122eac3623dbb9d508bc753fa86dcec6ba99547af4a2c1f2596b4a1ca61ae080",
+      "bytes": 611
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/telegram.webp",
+      "sha256": "eaf233d4bdf180d9205bcf9911ab0e1e6a45462b360b0b1bb74729c265b7df69",
+      "bytes": 9384
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/third-party/deepseek-harness/LICENSE",
+      "sha256": "e5b182b2fccc24c632788ed1e86a45e7a927d801bdf11c1b6b2a831854678826",
+      "bytes": 1086
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/third-party/deepseek-harness/NOTICE.md",
+      "sha256": "8c9d298ce2a432e4e48182585e50f80dbc47ee8c87de831347b60c4a22b14c08",
+      "bytes": 867
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/third-party/deepseek-harness/NOTICE.zh.md",
+      "sha256": "1e48a570deb03bb17c8cb16915de03a35b187f57403d6fc0011fa2b13e1a9005",
+      "bytes": 777
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/vite.svg",
+      "sha256": "4b0a512772b44e94a47ade7c27013065f936db0106ceff73a09e8b882e7914e7",
+      "bytes": 516
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/wechat.png",
+      "sha256": "31635a391f1c8bcd9e64ab1ecab37b9f7c4f92e86c26b674d1194c6afe23b737",
+      "bytes": 13781
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/wecom.webp",
+      "sha256": "9cb5c08cfb730996d76c7746a273a53f7f509cdbd28658d6c67bf9cd4e4646e4",
+      "bytes": 5064
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/whatsapp.png",
+      "sha256": "1c2ea322054f3c300352396ca53ff2326fb20503f05a7a15d24a03e5e2a8fbc9",
+      "bytes": 41511
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/dist/xiaoyi.webp",
+      "sha256": "5f16c68a9cb82bdf9237bde72a9b90c88afe1553922ecd913f8035979a2d9b80",
+      "bytes": 11274
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/package-lock.json",
+      "sha256": "cfa7c21fa7b19feef82b8c5dd8461000e6e730dba518c4337d9b247c23d8f2fb",
+      "bytes": 381997
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/package.json",
+      "sha256": "068162b79a96ece378c4baee88400cd2a952f0704d697400d37007b3fc5472fb",
+      "bytes": 41317
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/features/intentTrial/IntentTrialPage.css",
+      "sha256": "57b636a7b5e2e62a90a78456feb2b833ce382d76487074a5b688f44096a9a589",
+      "bytes": 1334
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/features/intentTrial/IntentTrialPage.tsx",
+      "sha256": "9674225589efc57c6f56e193702534f788bb8e9f61e63a2852a51eeb101fc4fd",
+      "bytes": 10868
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json",
+      "sha256": "e43992a817a526a6a2e57a2cd6dd5adce7a8394d65e074bac7286e1107ade3b5",
+      "bytes": 206154
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json",
+      "sha256": "346c335966170dc369a84a2808def6b822f43210532c57fee825a5aa89ea6d6c",
+      "bytes": 199488
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/main.tsx",
+      "sha256": "9493a0958fb37460230ec2e4fa7630c02eed7dccf04c84eb0dd1857767dc1dd0",
+      "bytes": 2368
+    },
+    {
+      "path": "tests/fixtures/ai4research/trial_support.py",
+      "sha256": "47f25d8b96e01fc6e9ebc1fd3313e5a41a7e4f66d420adccd4a04941730668d7",
+      "bytes": 9671
+    },
+    {
+      "path": "tests/journeys/ai4research/test_intent_trial_frontend.py",
+      "sha256": "a29f5bf8ffd8eb53e93f533d934ac03db13dc0d6087fe65c5e480722fad4a732",
+      "bytes": 16611
+    }
+  ],
+  "candidate_unchanged_during_browser_run": true,
+  "normative_records": [
+    {
+      "path": "docs/code/Missions/M0/source/build-package/immediate-plan.md",
+      "sha256": "0a7c21c2933c0be3b07e67cedaa91d2bd1706ca4382c364eb474ae616b919ec3"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/TASK.md",
+      "sha256": "9d3f60e2ab0c3dee8047862bb19653a4e4fa76eab12d0f3a3161b74e7c85bab3"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/spec.md",
+      "sha256": "4fd771a5dd294b57e60cc05dfbf1332827a2e96ec9ac5e099ae613f6ed666e44"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-TRIAL-1/plan.md",
+      "sha256": "55badd73236b8a10482aa745a438d4169aca2dffbffad284fe761936feca1d5c"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/TASK.md",
+      "sha256": "8c8022cd1c3abd89c6125cc453a76992f1a7d250c63effc2c372a408d6b2af53"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-002/TASK.md",
+      "sha256": "86d6b15e5e7990ea99a85bb437f2df58d4b9acb490c8ee24308b3272f967c994"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-003/TASK.md",
+      "sha256": "d10f96d76e4116acdb5c8576fbc90e230ddd47e372fc8ce69cf1adac245dafbc"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-004/TASK.md",
+      "sha256": "b7669038322f73a9edca3b5a72ddfe2cb6f8679f3b5531ce9110ec0db83bca81"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-005/TASK.md",
+      "sha256": "33561c59f6c86daae9f0c652f70c408abf3a565eb04c3f08a75fdb3ac05e9e5f"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-006/TASK.md",
+      "sha256": "ee08b6d7a49976bf3b0e78579e13578d78394155aa6ca0e6516af05d83b68a8c"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-007/TASK.md",
+      "sha256": "be113e8af9b5c9f354132baf0fa62c3d316d46afbf2c7e762d6aad083cc9cbfa"
+    }
+  ],
+  "authored_capabilities": [
+    "intent_compiler",
+    "intent_verifier"
+  ],
+  "actual_provider": "ScriptedBridge explicit scripted mock only",
+  "model_id": "scripted-mock-intent",
+  "actual_browser": "Chrome 154.0.8037.95",
+  "required_skips": 0,
+  "observed_test_counts": {
+    "collected": 9,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0
+  },
+  "artifacts": [
+    {
+      "path": "accepted-narrow.json",
+      "sha256": "8043527d69ea635b1b72895c17ca97d75cbaaca291e0b32050dec121f23ca24c",
+      "bytes": 1347
+    },
+    {
+      "path": "accepted-narrow.png",
+      "sha256": "080d2f8112066094d69e573b738e87c29c411c95e71e35d0e962f821aa2639c4",
+      "bytes": 68889
+    },
+    {
+      "path": "accepted-wide.json",
+      "sha256": "44109ba4b03271ae15b535c811669a1ac24e2fabf577ef66da2ccbf8fb5838e9",
+      "bytes": 1349
+    },
+    {
+      "path": "accepted-wide.png",
+      "sha256": "0bef2a9e83d8fa429c354758b3658e5e97bb4a67d81bee5b55079b4159490dca",
+      "bytes": 79610
+    },
+    {
+      "path": "authentication-rejected.json",
+      "sha256": "c9df11f5766e9f3cf6186596945bcc1f094f40d0ae5843955b7026129323c95f",
+      "bytes": 858
+    },
+    {
+      "path": "authentication-rejected.png",
+      "sha256": "9273cab843208ecf6bfb7e44a0a3056f6f89ef9b3d6fbb08eb36490fcc02e475",
+      "bytes": 31412
+    },
+    {
+      "path": "build-and-style.json",
+      "sha256": "38afc1b4a0a9f1afba10736094934ca452efacde893cb3309082f9d55b8285c1",
+      "bytes": 2814
+    },
+    {
+      "path": "build.stderr.txt",
+      "sha256": "a7d510bbb71a89445f4a949f8817037f23547b79e40aa1aae8c8ad0dcfaaa6b9",
+      "bytes": 7640
+    },
+    {
+      "path": "build.stdout.txt",
+      "sha256": "51b2ef7b2c9c5abce2854bd84143e281d43738c9bc66dab90f0772c0ad1af16c",
+      "bytes": 23968
+    },
+    {
+      "path": "candidate-dirty.diff",
+      "sha256": "4934492df53200822e96e26a368caa29c35651cd319672ae36a7cfe33defb4c1",
+      "bytes": 5148
+    },
+    {
+      "path": "corrected-after-refusal.json",
+      "sha256": "0825f38b7c75af955f3282d80a7b2ac42511aa9fbbed950e8274599399d5f2ce",
+      "bytes": 938
+    },
+    {
+      "path": "corrected-after-refusal.png",
+      "sha256": "a71befd5feec9eca0670c009a79bd0ab09be9656ae55649b6b12a96fa984bd0c",
+      "bytes": 70374
+    },
+    {
+      "path": "eslint.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "eslint.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "explicitly-cancelled.json",
+      "sha256": "9f50bebb9b870d0592fd6fc276fee025d389620936f2bcd86703d215a176ab97",
+      "bytes": 878
+    },
+    {
+      "path": "explicitly-cancelled.png",
+      "sha256": "ffb546fba76d230bf9e0b17a11000efd7cd28cf544daf8908f0ff23b6b06037f",
+      "bytes": 41468
+    },
+    {
+      "path": "fresh-after-unresolved.json",
+      "sha256": "7ff13a85a27f30c75be46e71da482e481d7b0ac0b0b5cd1cb9ee868bc210b475",
+      "bytes": 939
+    },
+    {
+      "path": "fresh-after-unresolved.png",
+      "sha256": "f0ec794d58cbd2aecc4127c0fe8daa512dbf924fa6853828657c7befa3c5901c",
+      "bytes": 80538
+    },
+    {
+      "path": "pending-not-found.json",
+      "sha256": "174992ed4192ecc9f6e8f1639c9c6baedbce26d59739d0deb24a52510e1fd456",
+      "bytes": 894
+    },
+    {
+      "path": "pending-not-found.png",
+      "sha256": "34ecc0655f688aff2ae6bc738ee23cc738c6e045768fb998bb8e457d9fb997ae",
+      "bytes": 69585
+    },
+    {
+      "path": "prettier.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "prettier.stdout.txt",
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "bytes": 66
+    },
+    {
+      "path": "pytest.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "pytest.stdout.txt",
+      "sha256": "3eefe98f332ef6caf9b07c5697478deafd3a6291ad63cf4b50b69d226750587f",
+      "bytes": 1301
+    },
+    {
+      "path": "reconciled-lost_response.json",
+      "sha256": "901229d2bd8f6dcc7699b0b981bdaf0fafc1391d6e574a1a00a68b36987e8986",
+      "bytes": 910
+    },
+    {
+      "path": "reconciled-lost_response.png",
+      "sha256": "48fd88cb2c1db1d2de7668fa9b2010fb046dfe925fdcaf21ac7a914fb66b3268",
+      "bytes": 76692
+    },
+    {
+      "path": "reconciled-server_503.json",
+      "sha256": "357346eb5add643a739912127b7328c98b05553da66473061225ab4e16990bde",
+      "bytes": 907
+    },
+    {
+      "path": "reconciled-server_503.png",
+      "sha256": "40e9c7a906c100e0119d85e7c75a417cb5d56cda0baf00bec89a0e9266f08645",
+      "bytes": 76502
+    },
+    {
+      "path": "reconnected-after-disconnect.json",
+      "sha256": "e93b3c54fb7f5196693e1e00e876e088b26cf229f93885ab340fab08c2b00d5e",
+      "bytes": 895
+    },
+    {
+      "path": "reconnected-after-disconnect.png",
+      "sha256": "87d58f71c0c0ca15a68a6cdc872f3e08b5cdaa6f725d9403006c30bbc9f942d7",
+      "bytes": 76863
+    },
+    {
+      "path": "refused-narrow.json",
+      "sha256": "af8ae8e9a82d78f323251e36c4ca1656db40da7207023529c1f07d628d07d0c2",
+      "bytes": 887
+    },
+    {
+      "path": "refused-narrow.png",
+      "sha256": "a52c29b85e15c9e88b6ec7736408abaff44538972d3fc34e81065624c61c7794",
+      "bytes": 48551
+    },
+    {
+      "path": "run.json",
+      "sha256": "63d1b6dbf739e06db2cb93080e4ec134d893601a0ccf0168225e2a8c489ebfe4",
+      "bytes": 118091
+    },
+    {
+      "path": "uncertain-lost_response.json",
+      "sha256": "33d7aef160fb5aa66bd26a06e5707eab78917fb69c88e9ec3ad660417d5deaff",
+      "bytes": 882
+    },
+    {
+      "path": "uncertain-lost_response.png",
+      "sha256": "e566f9fe1636f22dbbca2a7e6f504dce34ef044c5824ebffd03e7beead27cfca",
+      "bytes": 38537
+    },
+    {
+      "path": "uncertain-server_503.json",
+      "sha256": "8041c8788d0bd5d421e041748a35f67fe962805ef9abf323500a20b9662ebf30",
+      "bytes": 879
+    },
+    {
+      "path": "uncertain-server_503.png",
+      "sha256": "8e479f02280cfd68ba4baea60a155887c7ef431659fb4c34ba278f8079d1588c",
+      "bytes": 38592
+    },
+    {
+      "path": "whitespace.stderr.txt",
+      "sha256": "6498082c233748bec465e0894704038dc181b99bbf6bc24d01f8f3b42392a18a",
+      "bytes": 302
+    },
+    {
+      "path": "whitespace.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}

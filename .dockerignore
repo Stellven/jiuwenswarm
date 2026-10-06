@@ -45,3 +45,13 @@ _pptx_selftest_tmp/
 .research_cache/
 .ai_research/
 .learnings/
+
+# Trial host credentials and local evidence never enter an image context.
+.env
+.env.*
+.codex-tmp/
+**/session.token
+**/codex-home/
+**/*.sqlite
+**/*.sqlite-wal
+**/*.sqlite-shm

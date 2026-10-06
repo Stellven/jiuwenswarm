@@ -4,6 +4,7 @@ import { A2UIProvider } from '@a2ui/react';
 import type { A2UIClientEventMessage } from '@a2ui/react';
 import { injectStyles } from '@a2ui/react/styles';
 import App from './App.tsx'
+import { IntentTrialPage } from './features/intentTrial/IntentTrialPage'
 import { ShareImageExportRunner } from './features/shareImageExport'
 import { openSourceSettingsPageDefinition } from './features/settings/registry/openSourceDefinition'
 import type { SettingsRequest } from './features/settings/services/settingsContract'
@@ -51,7 +52,9 @@ const runnerJobId = window.location.pathname === '/share-export-runner'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <A2UIProvider onAction={handleA2UIAction}>
-    {runnerJobId ? (
+    {window.location.pathname === '/intent-trial' ? (
+      <IntentTrialPage />
+    ) : runnerJobId ? (
       <ShareImageExportRunner jobId={runnerJobId} />
     ) : (
       <App

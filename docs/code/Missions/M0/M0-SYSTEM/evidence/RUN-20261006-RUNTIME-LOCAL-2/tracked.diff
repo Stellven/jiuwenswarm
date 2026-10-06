@@ -1,0 +1,258 @@
+diff --git a/.dockerignore b/.dockerignore
+index 4aef747f5..04793d4f4 100644
+--- a/.dockerignore
++++ b/.dockerignore
+@@ -45,3 +45,13 @@ _pptx_selftest_tmp/
+ .research_cache/
+ .ai_research/
+ .learnings/
++
++# Trial host credentials and local evidence never enter an image context.
++.env
++.env.*
++.codex-tmp/
++**/session.token
++**/codex-home/
++**/*.sqlite
++**/*.sqlite-wal
++**/*.sqlite-shm
+diff --git a/.gitattributes b/.gitattributes
+index b50d09fd5..bc89c0a47 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -1,2 +1,4 @@
+ *.mp4 filter=lfs diff=lfs merge=lfs -text
+ jiuwenswarm/server/runtime/agent_adapter/browser_runtime_network_guard.js text eol=lf
++tests/fixtures/ai4research/intent/characterization/locked-candidates.json text eol=lf
++jiuwenswarm/ai4research/** text eol=lf
+diff --git a/.gitignore b/.gitignore
+index 3da4c3d58..d25df2851 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -105,4 +105,7 @@ report/index.html
+ /memory/
+ /sub_agents/
+ /context/
++.codex-tmp/
++**/session.token
++**/codex-home/
+ /.plans/
+diff --git a/AGENTS.md b/AGENTS.md
+index e0ab69d81..5b5fef2d4 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -3,12 +3,12 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
+ 
+ ## Entry points
+ - [Code SOP v2](docs/code/Code_SOP.md)
+-- [Future M1 TASKS](docs/code/Missions/M1/TASKS.md)
++- [M0 immediate-plan Intent trial TASKS](docs/code/Missions/M0/TASKS.md)
+ - [Spec Kit workflow](docs/code/SPEC_KIT_WORKFLOW.md)
+ - [Verification method](docs/code/VERIFICATION.md)
+ - [Constitution](.specify/memory/constitution.md)
+ - Historical environment facts: docs/governance/ENVIRONMENT.md.
+-- Historical task: docs/code/Missions/AI4R-001/TASK.md; it is not the future-M1 register.
++- Historical task: docs/code/Missions/AI4R-001/TASK.md; current product work is registered under M0.
+ 
+ ## Working rules
+ 1. Follow TASKS -> TASK -> one registered Spec Kit directory per TASK. Read applicable AGENTS, the exact source clauses, agreements, native spec/plan/tasks and existing callers/tests before implementation.
+diff --git a/docs/architecture/build-package/capsules.md b/docs/architecture/build-package/capsules.md
+index 80fbf8d3a..da69711d9 100644
+--- a/docs/architecture/build-package/capsules.md
++++ b/docs/architecture/build-package/capsules.md
+@@ -12,6 +12,8 @@ Reusable guard definitions, full-context check-plan binding, independent profile
+ 
+ ## Exact verification boundary
+ 
++Verification checks the structural and semantic correctness of a governed node's outputs against its active contract, accepted inputs, and required execution evidence, and produces a structured verdict with reasons and evidence references. Gating applies the workflow's advancement policy to that verdict. A verifier can conceptually operate without controlling advancement; in M1, mandatory verification is integrated into the Evaluator Gate. Deterministic checks and independent semantic assessment establish the findings, while protected host code aggregates and durably records the final verdict before releasing or blocking downstream work. References to "Verifier = Evaluator Gate" describe this M1 composition, rather than a general equivalence between verification and gating.
++
+ **Required now.** Every work invocation, including planning and delivery, has a pinned verification assignment. Protected configuration establishes mandatory checks from the Node Execution Contract, every participating CC declaration, applicable accepted obligations, artifact type and run policy. Fixed preparation uses the qualified original request and protected template obligations before an accepted Research Brief exists; planned research uses the Brief. Invocation checks protect intermediate boundaries; the node aggregate gate also checks the objective and all required outputs/evidence before successor release. The planner may add checks but cannot remove obligations. Missing supported verification blocks readiness.
+ 
+ ```mermaid
+@@ -48,7 +50,7 @@ Bind the decision to run, node, attempt, Node Execution Contract identity/hash/r
+ 
+ ## Verifier internals and referee protection
+ 
+-**Required now.** Verifier and Evaluator Gate name the same logical component: deterministic checks, read-only semantic assessment and protected decision/release. A runtime verifier CC supplies the semantic part: “this result violates the contract; stop.” Protected runtime code owns application of that assessment, durable release, and scheduler readiness. A CC-supplied boolean or free-text instruction never unlocks work directly. The host is an internal authority of the Verifier, not another semantic agent. [Human callbacks](failure-and-human.md) define every non-advancing outcome and mode-specific routing.
++**Required now.** M1 integrates mandatory verification into the Evaluator Gate: deterministic checks, read-only semantic assessment and protected decision/release remain distinct responsibilities within that composition. A runtime verifier CC supplies semantic findings and evidence references. Protected runtime code owns verdict aggregation, application of advancement policy, durable release, and scheduler readiness. A CC-supplied boolean or free-text instruction never unlocks work directly. The host is an internal authority of the M1 Evaluator Gate, not another semantic agent. [Human callbacks](failure-and-human.md) define every non-advancing outcome and mode-specific routing.
+ 
+ Verification CCs end the semantic checking branch. Mechanically validate their response; do not generate an endless verifier-of-verifier chain. Pin and test them through separate development evaluation. Sharing a provider gives process separation, not independent model failure modes or a truth guarantee. Use protected labeled challenge cases to characterize omissions, unsupported claims, ambiguity, and instruction injection; record observed errors and limitations. Spec Kit determines cases, metrics, and thresholds before measuring the candidate.
+ 
+diff --git a/docs/architecture/build-package/glossary.md b/docs/architecture/build-package/glossary.md
+index e6b4dc933..6a29d594d 100644
+--- a/docs/architecture/build-package/glossary.md
++++ b/docs/architecture/build-package/glossary.md
+@@ -13,7 +13,9 @@ Use this page when moving between the PRD, architecture, owner contributions, an
+ | Capability Capsule; `search_capsule.md`, etc. (§4.1) | CC declaration and implementation | A prompt file is one implementation form; it does not replace typed ports, immutable implementation identity, or checks. [Capsules](capsules.md), [declaration](capsule/declaration.md). |
+ | CC Runner (§4.6, §4.9) | Runner | Shared execution infrastructure for work and verifier CCs. Builder is a work responsibility, not another universal runner. |
+ | Builder / POC Implementation (§3.6, §4.9) | POC builder CC | Constructs bounded code, harness, dependency declaration, and package; analytical outputs belong to their own CCs. |
+-| Evaluator Gate (§4.2); verifier gate; gate capsule | Verifier (Evaluator Gate) | Tier 1 deterministic checks → Tier 2 verifier assessment → protected host decision and durable release. “Gate capsule” means the assessment CC only; never a capsule with independent release authority. [Exact boundary](capsules.md#exact-verification-boundary). |
++| Verification; verifier | Structural and semantic checking | Checks outputs against the active contract, accepted inputs and required execution evidence; produces structured findings/verdict with reasons and evidence references. Verification can conceptually operate without controlling advancement. [Exact boundary](capsules.md#exact-verification-boundary). |
++| Gating | Advancement-policy application | Applies workflow advancement policy to the verification verdict. Protected host code aggregates and durably records the final verdict before releasing or blocking downstream work. |
++| Evaluator Gate (§4.2); verifier gate; gate capsule | M1 integrated verification and gating | Tier 1 deterministic checks → Tier 2 verifier assessment → protected host verdict and durable advancement-policy application. “Verifier = Evaluator Gate” names this M1 composition, not general equivalence. “Gate capsule” means the assessment CC only; never a capsule with independent release authority. [Exact boundary](capsules.md#exact-verification-boundary). |
+ | AI Reviewer Agent (§4.3.4); infrastructure `verifier_capsule.md` | Runtime verifier CC | Read-only semantic assessment executed in a separate context, supplied through the model bridge. Its role/profile names the question; it is not a separate service for every stage. |
+ | Mandatory deterministic guard / guard profile / binder | Reusable admitted check or trusted host primitive / independently approved obligation-to-check recipe / protected assignment into a frozen contract. [Guard design](guard-design.md). A planner proposes extra checks but cannot approve its own mandatory profile. |
+ | Scientific evaluator (§3.8); `scientific_evaluator_capsule.md` | Scientific evaluation CC | Interprets admitted measurements against the frozen protocol. Its scientific verdict is data subsequently checked by a runtime verifier. It cannot release itself. |
+diff --git a/docs/architecture/build-package/guard-design.md b/docs/architecture/build-package/guard-design.md
+index a6ecd5d00..f91f844b1 100644
+--- a/docs/architecture/build-package/guard-design.md
++++ b/docs/architecture/build-package/guard-design.md
+@@ -92,6 +92,8 @@ Effect controls apply before and during work as well as verification. A gate can
+ 
+ ## Two tiers and evidence
+ 
++As required by PRD §4.2.6, the admitted Tier-2 verifier profiles must incorporate applicable evaluation logic adapted from sciencediscovery/result-evaluator and sciencediscovery/citation-reviewer. The owning Spec Kit artifacts must identify the upstream source revision, map the adopted checks to node-specific semantic obligations, document any inapplicable portions and their rationale, and define verification cases for the adaptation. Preserve read-only assessment, structured reasons and evidence references, frozen acceptance criteria, and Stage 3.8's ownership of the scientific conclusion. Upstream logic informs the profiles; it does not acquire gate authority.
++
+ Tier 1 answers mechanically decidable questions: schema and contract conformance, identity and hash binding, required evidence presence, execution completion, declared versus observed scope, tool and access enforcement, budgets, and protocol-record integrity. Mandatory Tier 1 failure, missing required environment, or unavailable required check prevents semantic advancement; absence is never a pass.
+ 
+ Only after Tier 1 passes does Tier 2 assess grounded fidelity, coverage of obligations, support from cited evidence, internal consistency, and scientific interpretation where the assigned question requires it. The assessor cannot alter artifacts, criteria, permissions, or release state. A malformed, unsupported, uncertain, or out-of-scope assessment does not advance. The host validates subject and evidence references, records the applicable stable verdict and raw assessment, and releases only exact accepted artifact identities after durable commit. Verdict meanings and halt routing follow the [failure policy](failure-and-human.md).
+diff --git a/docs/code/CATALOG.md b/docs/code/CATALOG.md
+index 1123725b8..21294fa0b 100644
+--- a/docs/code/CATALOG.md
++++ b/docs/code/CATALOG.md
+@@ -27,5 +27,4 @@
+ 
+ ## Tools and actual work
+ 
+-[Spec Kit plugin](../../plugins/spec-kit/README.md) owns the reusable tool resources. [.specify](../../.specify/README.md) owns this project's rules/settings. Real work starts at the [M1 register](Missions/M1/TASKS.md) or [developer-tools register](Missions/DEVTOOLS/TASKS.md); the two have separate scope.
+-
++[Spec Kit plugin](../../plugins/spec-kit/README.md) owns the reusable tool resources. [.specify](../../.specify/README.md) owns this project's rules/settings. Current product work starts at the [M0 immediate-plan Intent trial register](Missions/M0/TASKS.md). Full-M1 records are future context; [developer-tool maintenance](Missions/DEVTOOLS/TASKS.md) has separate scope.
+diff --git a/docs/code/README.en.md b/docs/code/README.en.md
+index 0273accf3..83f986450 100644
+--- a/docs/code/README.en.md
++++ b/docs/code/README.en.md
+@@ -2,7 +2,7 @@
+ 
+ This directory contains development guides and their subordinate Missions/ tree. Follow **TASKS -> TASK -> one Spec Kit feature directory per TASK**, with block, boundary and whole-system verification.
+ 
+-Start with the [SOP](Code_SOP.md) and [catalog](CATALOG.md), then the [M1 register](Missions/M1/TASKS.md). Current task and feature records determine source readiness and progress.
++Start with the [SOP](Code_SOP.md) and [catalog](CATALOG.md), then the [M0 immediate-plan Intent trial register](Missions/M0/TASKS.md). Other PRD/architecture and full-M1 records provide future context; the current registered trial records determine work and progress.
+ 
+ ## Content locations
+ 
+diff --git a/jiuwenswarm/channels/web/AGENTS.md b/jiuwenswarm/channels/web/AGENTS.md
+index 5845ea73c..bfe823382 100644
+--- a/jiuwenswarm/channels/web/AGENTS.md
++++ b/jiuwenswarm/channels/web/AGENTS.md
+@@ -96,6 +96,7 @@
+ 
+ | 组件目录(相对 `src/`) | 模块前缀 | 功能特性 |
+ |---|---|---|
++| `features/intentTrial` | `intent-trial` | Authenticated text-only intermediate Intent trial submission, result, halt reason and evidence inspection |
+ | `components/ChatPanel` | `chat-panel` | 主聊天面板;输入区;消息渲染;欢迎页/历史加载 |
+ | `components/CronPanel` | `cron` | 定时任务面板;任务抽屉;表达式编辑器;时间选择器;模型/模式选择;状态徽标;确认对话框 |
+ | `components/ArtifactsPanel` | `artifact` | 产物列表面板;文件预览;产物集合与解析模型 |
+diff --git a/jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json b/jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json
+index 3d18caacf..c98fcf9e7 100644
+--- a/jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json
++++ b/jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json
+@@ -4359,5 +4359,29 @@
+     "budgetPlaceholder": "Enter number",
+     "budgetActualHint": "Configured limit: {{count}} tokens",
+     "workflowList": "Workflow List"
++  },
++  "intentTrial": {
++    "title": "AI4Research Intent trial",
++    "description": "Submit a text objective and inspect accepted intermediate Intent or the recorded halt reason.",
++    "session": "Local application session token",
++    "connect": "Connect and inspect",
++    "ready": "Ready",
++    "blocked": "Model, authentication or protected execution is unavailable.",
++    "failed": "Request failed",
++    "login": "Sign in to the model account",
++    "openLogin": "Open model sign-in",
++    "objective": "Research objective",
++    "submit": "Submit new request",
++    "reconcile": "Retrieve pending request",
++    "rejected": "Submission was rejected. Correct the input or session and submit a new request.",
++    "pending": "An unconfirmed request is being tracked. Retrieval does not repeat server work.",
++    "reconcileUnavailable": "The pending request could not be retrieved. You can keep retrieving or explicitly prepare fresh corrected work.",
++    "fresh": "Prepare fresh corrected submission",
++    "freshPrepared": "Fresh submission prepared. Edit the objective and submit a new request. Existing server work and evidence are preserved; a known selected run remains its predecessor.",
++    "uncertain": "Submission may be unconfirmed. Connect to reconcile the same request; no replay is attempted.",
++    "history": "Recorded runs",
++    "mock": "Development fixture wiring only; no real model acceptance claim.",
++    "cancel": "Cancel run",
++    "bundle": "Download evidence bundle"
+   }
+ }
+diff --git a/jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json b/jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json
+index 76dc76d1c..480f885ed 100644
+--- a/jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json
++++ b/jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json
+@@ -4343,5 +4343,29 @@
+     "budgetPlaceholder": "输入数字",
+     "budgetActualHint": "本次配置上限：{{count}} tokens",
+     "workflowList": "工作流列表"
++  },
++  "intentTrial": {
++    "title": "AI4Research Intent trial",
++    "description": "Submit a text objective and inspect accepted intermediate Intent or the recorded halt reason.",
++    "session": "Local application session token",
++    "connect": "Connect and inspect",
++    "ready": "Ready",
++    "blocked": "Model, authentication or protected execution is unavailable.",
++    "failed": "Request failed",
++    "login": "Sign in to the model account",
++    "openLogin": "Open model sign-in",
++    "objective": "Research objective",
++    "submit": "Submit new request",
++    "reconcile": "Retrieve pending request",
++    "rejected": "Submission was rejected. Correct the input or session and submit a new request.",
++    "pending": "An unconfirmed request is being tracked. Retrieval does not repeat server work.",
++    "reconcileUnavailable": "The pending request could not be retrieved. You can keep retrieving or explicitly prepare fresh corrected work.",
++    "fresh": "Prepare fresh corrected submission",
++    "freshPrepared": "Fresh submission prepared. Edit the objective and submit a new request. Existing server work and evidence are preserved; a known selected run remains its predecessor.",
++    "uncertain": "Submission may be unconfirmed. Connect to reconcile the same request; no replay is attempted.",
++    "history": "Recorded runs",
++    "mock": "Development fixture wiring only; no real model acceptance claim.",
++    "cancel": "Cancel run",
++    "bundle": "Download evidence bundle"
+   }
+ }
+diff --git a/jiuwenswarm/channels/web/frontend/src/main.tsx b/jiuwenswarm/channels/web/frontend/src/main.tsx
+index 5d105e7b5..42b05a47e 100644
+--- a/jiuwenswarm/channels/web/frontend/src/main.tsx
++++ b/jiuwenswarm/channels/web/frontend/src/main.tsx
+@@ -4,6 +4,7 @@ import { A2UIProvider } from '@a2ui/react';
+ import type { A2UIClientEventMessage } from '@a2ui/react';
+ import { injectStyles } from '@a2ui/react/styles';
+ import App from './App.tsx'
++import { IntentTrialPage } from './features/intentTrial/IntentTrialPage'
+ import { ShareImageExportRunner } from './features/shareImageExport'
+ import { openSourceSettingsPageDefinition } from './features/settings/registry/openSourceDefinition'
+ import type { SettingsRequest } from './features/settings/services/settingsContract'
+@@ -51,7 +52,9 @@ const runnerJobId = window.location.pathname === '/share-export-runner'
+ 
+ ReactDOM.createRoot(document.getElementById('root')!).render(
+   <A2UIProvider onAction={handleA2UIAction}>
+-    {runnerJobId ? (
++    {window.location.pathname === '/intent-trial' ? (
++      <IntentTrialPage />
++    ) : runnerJobId ? (
+       <ShareImageExportRunner jobId={runnerJobId} />
+     ) : (
+       <App
+diff --git a/pyproject.toml b/pyproject.toml
+index b387c18e5..68d31aef7 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -144,6 +144,8 @@ jiuwenswarm-init = "jiuwenswarm.init_workspace:main"
+ jiuwenswarm-desktop = "jiuwenswarm.channels.desktop.desktop_app:main"
+ jiuwenswarm-acp = "jiuwenswarm.gateway.channel_manager.protocol.acp.acp_connect:main"
+ jiuwenswarm-acp-chat = "jiuwenswarm.acp.cli:main"
++ai4research-intent-trial = "jiuwenswarm.ai4research.service:main"
++ai4research-intent-client = "jiuwenswarm.ai4research.headless:main"
+ jiuwenbox = "jiuwenbox.cli.jiuwenbox:main"
+ jiuwenbox-server = "jiuwenbox.server.launcher:main"
+ 
+@@ -177,6 +179,9 @@ jiuwenswarm = [
+     "extensions/**/*.yaml",
+     "extensions/**/*.yml",
+     "extensions/**/*.md",
++    "ai4research/**/*.json",
++    "ai4research/**/*.md",
++    "ai4research/verification/upstream/LICENSE",
+ ]
+ jiuwenbox = [
+     "configs/**/*",

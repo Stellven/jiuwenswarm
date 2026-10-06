@@ -1,0 +1,11 @@
+{
+  "command": [
+    "D:\\research\\ai_for_research\\jiuwenswarm\\.venv\\Scripts\\python.exe",
+    "-c",
+    "from setuptools.build_meta import build_wheel; print(build_wheel('.codex-tmp/intent-wheel-final'))"
+  ],
+  "working_directory": "D:\\research\\ai_for_research\\jiuwenswarm",
+  "exit_code": 0,
+  "expected_exit": 0,
+  "result": "PASS"
+}

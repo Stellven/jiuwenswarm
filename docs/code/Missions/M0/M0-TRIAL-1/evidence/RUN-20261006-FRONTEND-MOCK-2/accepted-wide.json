@@ -1,0 +1,40 @@
+{
+  "case": "accepted-wide",
+  "scope": "Actual native built browser/local HTTP/durable plumbing with ScriptedBridge; mock provider only",
+  "real_model_acceptance": "NOT_RUN",
+  "secured_ipc_os_custody": "NOT_ESTABLISHED",
+  "browser": "154.0.8037.95",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "geometry": {
+    "viewport": 1440,
+    "document": 1440,
+    "content": 900
+  },
+  "page_errors": [],
+  "native_entry_sha256": "ec068fef1d8e8360112279a204a06f8b081a59f99a40315a746b8521badaa452",
+  "screenshot_sha256": "0bef2a9e83d8fa429c354758b3658e5e97bb4a67d81bee5b55079b4159490dca",
+  "scripted_invocations": 2,
+  "roles": [
+    "compiler",
+    "verifier"
+  ],
+  "server_runs": 1,
+  "credential_in_browser_storage": false,
+  "outcomes": {
+    "accepted_ref": {
+      "artifact_id": "cae8ce71a25e4e868fd467440ae19e76",
+      "interface_revision": "M0-IF-005@r2",
+      "locator": "objects/03c238b5337349bca04bb66483faaa90d6d1e89bcbb72c5657e0e0d0a5fe9f5e/cae8ce71a25e4e868fd467440ae19e76.bin",
+      "run_id": "063fa4b8bf4042dba0d4acb249f57336",
+      "schema_revision": "intent-r2",
+      "sha256": "80a4d3109858aab570f4a46afbad1eaefddd15c2087bb2948e5cf614f5bb768e",
+      "type": "intent_candidate"
+    },
+    "exact_output": true,
+    "exact_bundle": true,
+    "history": "ACCEPTED"
+  }
+}

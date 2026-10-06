@@ -1,0 +1,4732 @@
+{
+  "revision": "r1",
+  "primary_prd_sha256": "897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036",
+  "clauses": [
+    {
+      "id": "1.1",
+      "title": "Product Overview",
+      "start": 42,
+      "end": 67,
+      "sha256": "87b9b2a6d351300dee3fe1c5199daddc8a9e0fbf7a73288c4483baedc8aaaab4",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.2",
+      "title": "M1 Product Goal",
+      "start": 68,
+      "end": 86,
+      "sha256": "d2b4bcaf381b7388e54c9eb95eb47527101ada1d2e15d613c2c5a3be9d731d6f",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.3",
+      "title": "M1 Delivery Phase Model",
+      "start": 87,
+      "end": 210,
+      "sha256": "cefceb5ef7bd8fcc91359b0c74340a754e76cdb952f57b208b5374b9eb9bcfef",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.4",
+      "title": "Core Product Invariants",
+      "start": 211,
+      "end": 261,
+      "sha256": "efe3d8f55e5553782e98131dc55b83c629532d7620c542109f1167e473b2dfcb",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.5",
+      "title": "M1 Definition of Done",
+      "start": 262,
+      "end": 286,
+      "sha256": "51e4b272ae42eb98cb76ce81316161e442a09376873c8a542473138fabb9bfd1",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.6",
+      "title": "PRD and Architecture Ownership Boundary",
+      "start": 287,
+      "end": 311,
+      "sha256": "e92646bfeda89954855dc6d3335e46e41d27294974a923d2313b245998772c14",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.7",
+      "title": "Requirement Authority & Conflict Resolution",
+      "start": 312,
+      "end": 355,
+      "sha256": "12fde32032879a8bd324b7f3b960dc689a0767f76610fde767de0447a64e53be",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.8",
+      "title": "M1 Scope Label Convention",
+      "start": 356,
+      "end": 391,
+      "sha256": "9905d50c04e4eb08ce5d45abdd6248e8d43ae469915b581d1a750066851a8f8e",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "1.9",
+      "title": "M1 Feature Freeze & Delivery Target",
+      "start": 392,
+      "end": 415,
+      "sha256": "8df24ed959ae4956fe92ac4897c6a318a3bdd2e8f48525328a4fba82ba18437c",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.1",
+      "title": "Purpose",
+      "start": 416,
+      "end": 422,
+      "sha256": "c5312848b5d90802139eeab023b39cf0d1c4a713a90b0af75eb1cbdbd16daafd",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.2",
+      "title": "M1 Domain Boundary",
+      "start": 423,
+      "end": 441,
+      "sha256": "4c76d0e7af726710d813720cf18535bea206b636245f03578ce2e56a93019d83",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-008"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.3",
+      "title": "User and Deployment Boundary",
+      "start": 442,
+      "end": 466,
+      "sha256": "843558821b6586874fcfdb70ce3aab42adde2fa0870133648896e528429ec2da",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-002",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.4",
+      "title": "Input and External Evidence Policy",
+      "start": 467,
+      "end": 485,
+      "sha256": "b19fbdd7f9f3a262db86ec02631ba3f3870c00eeba0136cf863c32a2d1e1736f",
+      "owners": [
+        {
+          "task": "M0-008",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.5",
+      "title": "Scientific Integrity Policy",
+      "start": 486,
+      "end": 515,
+      "sha256": "ef92234f4716b3237a5615db9c6f913e5f1a07e1e5e274d0bc4aa5d6b2e23cff",
+      "owners": [
+        {
+          "task": "M0-012",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-012",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.6",
+      "title": "Capability and Agent Boundary",
+      "start": 516,
+      "end": 533,
+      "sha256": "b6fbf75b182a314159263573749003ee872c593490fdd3dcf0f5d1b4b41e4363",
+      "owners": [
+        {
+          "task": "M0-004",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.7",
+      "title": "Workflow Autonomy Boundary",
+      "start": 534,
+      "end": 550,
+      "sha256": "d7247d75213bb1f16bfcbe705a4f41875ee911b7c620e0a9967167edddd3b614",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.8",
+      "title": "Evaluation and Evidence Policy",
+      "start": 551,
+      "end": 566,
+      "sha256": "96b48011ffd0e51e2687c4ccee590b73cd5806593d7094bd09bfc712bce76c59",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.9",
+      "title": "Execution and Security Boundary",
+      "start": 567,
+      "end": 582,
+      "sha256": "3ba7404fd96d8c7a14a53a52c4223abca7eed964b3aa865cdba2e4ba9347dca4",
+      "owners": [
+        {
+          "task": "M0-004",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.10",
+      "title": "Data and Traceability Boundary",
+      "start": 583,
+      "end": 593,
+      "sha256": "a1a2ba429722cfd1745eec587ff002a5ff7ee962ae4207a42578c13813caef51",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.11",
+      "title": "RSI Boundary",
+      "start": 594,
+      "end": 619,
+      "sha256": "e3ea1a67e9cef7c4f00ef36e194916575a3f16c396f21c030665383ec5880e51",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-013"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-010"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "2.12",
+      "title": "M1 Global Non-Goals",
+      "start": 620,
+      "end": 640,
+      "sha256": "18a037eae99834f46102299ffb44d1bb13fea7606f1a7eb10d7cd5bb5aadbb12",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.0",
+      "title": "Codex CLI Integration (Priority Unblocker)",
+      "start": 641,
+      "end": 644,
+      "sha256": "ab594de5c77210e081d58371134b085fb122d13022edce5b9afa73860e2fab31",
+      "owners": [
+        {
+          "task": "M0-001",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.0.1",
+      "title": "Existing Implementation Verification & Refactor",
+      "start": 645,
+      "end": 658,
+      "sha256": "dc9f62cbf11eaac9b2e6b43711494221e53eec61ae98f17de40fcc302d44e13e",
+      "owners": [
+        {
+          "task": "M0-001",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.0.2",
+      "title": "Abstraction for \"Endpoint of Last Resort\"",
+      "start": 659,
+      "end": 670,
+      "sha256": "a4098c00bbda757187b3ac9806ed070bf3510b7699cb8c7c3f0fcce319438afa",
+      "owners": [
+        {
+          "task": "M0-001",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.1",
+      "title": "Ingestion",
+      "start": 671,
+      "end": 674,
+      "sha256": "599fffbffc77a91430559f4cc1d9fe9db08154b3e68490fdeb29818c599d8d80",
+      "owners": [
+        {
+          "task": "M0-008",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.1.1",
+      "title": "Request Capture & Channel Signal Intake",
+      "start": 675,
+      "end": 686,
+      "sha256": "b919f16c91e584e3bd7dc4fb204842baf6819c2874729567f8913b0b19e89acd",
+      "owners": [
+        {
+          "task": "M0-008",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.1.2",
+      "title": "User-Supplied Material & Execution Asset Import",
+      "start": 687,
+      "end": 709,
+      "sha256": "7eb2af270825990ea8a97b1f1bfc42335103121dd56c604c379b96d2e8873915",
+      "owners": [
+        {
+          "task": "M0-008",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.1.3",
+      "title": "Intake Context Binding",
+      "start": 710,
+      "end": 720,
+      "sha256": "4ce193455031cf8eb7bc3ce96b1675c2c8c0e879751e27efcc7351e88db95385",
+      "owners": [
+        {
+          "task": "M0-008",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.1.4",
+      "title": "Real-Time Deduplication & Provenance Registration",
+      "start": 721,
+      "end": 731,
+      "sha256": "625b2f12369e4eab206d9eadd79a298358ab2cbb119253367fd0c578c44b6e98",
+      "owners": [
+        {
+          "task": "M0-008",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.1.5",
+      "title": "Intake Qualification",
+      "start": 732,
+      "end": 745,
+      "sha256": "46ec71588f8d59a1624ad6c1a613afdf0294444326d40ce3f259810ac7875100",
+      "owners": [
+        {
+          "task": "M0-008",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2",
+      "title": "Requirement Compilation",
+      "start": 746,
+      "end": 751,
+      "sha256": "808464bd838deebfcecef850c8642cc8bcc732a2aa507f29f4b0e94ec92b931a",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2.1",
+      "title": "Intent Interpretation",
+      "start": 752,
+      "end": 760,
+      "sha256": "852d1b7dbb1467edb60266f47f3ce963eade2ab337c290c03a086e46d871126d",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2.2",
+      "title": "Context Scoping",
+      "start": 761,
+      "end": 769,
+      "sha256": "c17bf86e447edb44f42d0d58a2a5ce735a2cb1059202a09ae0a289fa7592fbc6",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2.3",
+      "title": "Ambiguity Resolution",
+      "start": 770,
+      "end": 776,
+      "sha256": "de1a30ac46175264b75afd822d47d621a7e3b624dcea7c6620675cb0e76d2e54",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2.4",
+      "title": "Constraint Resolution",
+      "start": 777,
+      "end": 783,
+      "sha256": "40bc58c0a9eb3f0392ef8be635fc351ea62ec4f4c6209847dfd54b187a877905",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2.5",
+      "title": "Requirement Prioritization",
+      "start": 784,
+      "end": 788,
+      "sha256": "e879f5a8022e4b605bb7686e122f31ce1e987edfd4b8bdfe771ea9908510944f",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2.6",
+      "title": "Acceptance Definition",
+      "start": 789,
+      "end": 796,
+      "sha256": "2b3296fdcf6fe2a2357b2e30bb29d746461e449e9b1121119cbab859771d1f41",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.2.7",
+      "title": "Requirement Contract Confirmation",
+      "start": 797,
+      "end": 809,
+      "sha256": "d48e1d5a80ebb19c2745b99ae65a2fb578b03cd8590ab36cb7bf2ad9ce660c26",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.3",
+      "title": "Search & Ideation",
+      "start": 810,
+      "end": 813,
+      "sha256": "00e71fc015ad2d84eda51f5f5fe53fc114dc2bc31ddbc8540225bc07243261d0",
+      "owners": [
+        {
+          "task": "M0-010",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.3.1",
+      "title": "Search Strategy Formation",
+      "start": 814,
+      "end": 822,
+      "sha256": "038c090a051f6147b60e09a8a5b63e1ee18b07e75dba05625410b3900a80cc41",
+      "owners": [
+        {
+          "task": "M0-010",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.3.2",
+      "title": "Multi-Source Signal Discovery (Hybrid Retrieval)",
+      "start": 823,
+      "end": 834,
+      "sha256": "044cc333b9236731ba79e1956d54abeb67e58d2f8d346337f6cd7c547e573ebc",
+      "owners": [
+        {
+          "task": "M0-010",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.3.3",
+      "title": "Source Qualification & Technical Signal Extraction",
+      "start": 835,
+      "end": 841,
+      "sha256": "b6cbd7b240ee0f67ad0d31870561633165fa0a0d842e618ec01a257f4b759fae",
+      "owners": [
+        {
+          "task": "M0-010",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.3.4",
+      "title": "Signal Organization & Trend Analysis",
+      "start": 842,
+      "end": 848,
+      "sha256": "b372034f4c6e22c33a8d8e6270b9c3e4e1290a62890114ad9aa7ab598a7702ef",
+      "owners": [
+        {
+          "task": "M0-010",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.3.5",
+      "title": "Idea Generation",
+      "start": 849,
+      "end": 856,
+      "sha256": "4c38152a8a1110432f6fc4d9d54907dcac5f9241e32568404847c683252aaf3d",
+      "owners": [
+        {
+          "task": "M0-010",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.3.6",
+      "title": "Search Coverage Review & Result Compilation",
+      "start": 857,
+      "end": 867,
+      "sha256": "a440fa9df370a54b59de8cd5e871d764fb199eb0646507a15f8d33b989a14d32",
+      "owners": [
+        {
+          "task": "M0-010",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4",
+      "title": "Idea Identification / Screening / Opportunity Selection",
+      "start": 868,
+      "end": 873,
+      "sha256": "1fa5dc65efb80e58857d9ff4c05dfb4714f337e5ec47880ede39944d3678f1fa",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4.1",
+      "title": "Candidate Consolidation",
+      "start": 874,
+      "end": 883,
+      "sha256": "7a4dc69e194adcfab2d3ef8741c8a3f866e308bb2c2a58df9d9a9172f1ae74d4",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4.2",
+      "title": "Idea Identification",
+      "start": 884,
+      "end": 890,
+      "sha256": "9c51d8654c9d8db39b57c57f368577b1de770e1d8fb3a08a83f10fa394b84711",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4.3",
+      "title": "Idea Card Formation",
+      "start": 891,
+      "end": 897,
+      "sha256": "c3a66bedd2a502cacad38cd03e379f794ea9c2c0e373a8c1777aedec8f066905",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4.4",
+      "title": "Opportunity Definition",
+      "start": 898,
+      "end": 904,
+      "sha256": "b6f7f16e2646933ea58da2fef43173eb6e8c28d930589ceb36cf21025c2acbd7",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4.5",
+      "title": "Technical Opportunity Screening (Fixed-Rubric LLM Evaluation)",
+      "start": 905,
+      "end": 916,
+      "sha256": "6d692053d7169cfa49e335ed91ede44473447678de2b8a9eebb693f3db529d43",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4.6",
+      "title": "Strategic Opportunity Screening",
+      "start": 917,
+      "end": 923,
+      "sha256": "42e4f08020b3c9dd33f91692d8ed92bbdd9a8f2dd50f58a5b9b10ab248082e16",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.4.7",
+      "title": "Opportunity Portfolio Prioritization",
+      "start": 924,
+      "end": 937,
+      "sha256": "7c2096eecda79c08c0851e0cb3724562ea081163612586b139fc0899cd6639e6",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.5",
+      "title": "Generate Technical Claims & Hypothesis",
+      "start": 938,
+      "end": 941,
+      "sha256": "a3efc1933f8dcd2bc69178b62486c1607309f599c2db921cffe02daab958f797",
+      "owners": [
+        {
+          "task": "M0-012",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.5.1",
+      "title": "Research Question & Technical Claim Formation",
+      "start": 942,
+      "end": 950,
+      "sha256": "613bc7434a9a3c7d7fb0b272c073a36846efa9869a0eddec1ba4e33dfe2d80b8",
+      "owners": [
+        {
+          "task": "M0-012",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.5.2",
+      "title": "Claim, Evidence, Data & Method Modeling (Benchmark Definition)",
+      "start": 951,
+      "end": 959,
+      "sha256": "fc1baa72fcd3a0c7a3106389bd1cc973c85b7f8d51a84a94b77644392055f09b",
+      "owners": [
+        {
+          "task": "M0-012",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.5.3",
+      "title": "Hypothesis Pool & Mechanism Formation",
+      "start": 960,
+      "end": 966,
+      "sha256": "81fe492252a7bb4f3e8b245e7cc48840d40cc5166f5cc9c6b0ec141d5613f476",
+      "owners": [
+        {
+          "task": "M0-012",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.5.4",
+      "title": "Falsifiability Screening & Hypothesis Contracting (Anti-Overfitting Contract)",
+      "start": 967,
+      "end": 974,
+      "sha256": "a10a01af1d219b336a3ddacd80093d8fd786424a9bb88568d0c955606411464e",
+      "owners": [
+        {
+          "task": "M0-012",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-012",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.5.5",
+      "title": "Verification-Ready POC Design",
+      "start": 975,
+      "end": 985,
+      "sha256": "e03ef8c42e47cd10b499d791cde88bfc3e9371e4d39ac728bf74fff614745262",
+      "owners": [
+        {
+          "task": "M0-012",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-012",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.6",
+      "title": "POC Implementation",
+      "start": 986,
+      "end": 991,
+      "sha256": "65caac0bbe25e4afee9045b1253d62d78060d37ed87b4131fd9c13169e336a4d",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.6.1",
+      "title": "POC Implementation Environment Preparation",
+      "start": 992,
+      "end": 1001,
+      "sha256": "ec3cae050cd37b32c2a111a30655a0d2db409a942596b6722656121036363d09",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.6.2",
+      "title": "POC Construction (Code Generation)",
+      "start": 1002,
+      "end": 1010,
+      "sha256": "67c5cf5de5f43972a802ff7fd7038c6a400ad18d6d8e1d74140f6e319ce0bb10",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.6.3",
+      "title": "POC Component Integration & Configuration",
+      "start": 1011,
+      "end": 1017,
+      "sha256": "9d7520436c68e7f2f49c90cdf1d0ab8e8f6a52c5855989351e51e02805372ed2",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.6.4",
+      "title": "POC Functional Readiness Validation",
+      "start": 1018,
+      "end": 1025,
+      "sha256": "0b1acb367e83455410db1c5094407e8d13b1b4df540afb5b20409cd1bdcef74b",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.6.5",
+      "title": "Testable POC Artifact Consolidation & Benchmark Handoff",
+      "start": 1026,
+      "end": 1037,
+      "sha256": "516b35759c37f4dd911bcdfc3a0041285854cb9f68458f61aadf77379fdfa810",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.7",
+      "title": "Scientific Benchmarking (POC Execution)",
+      "start": 1038,
+      "end": 1043,
+      "sha256": "d3a7063b55b0120bb90703167d399b97ee27ac89a4077b8ecb9d05379f8c0930",
+      "owners": [
+        {
+          "task": "M0-014",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.7.1",
+      "title": "Runtime Provisioning & Artifact Unpacking",
+      "start": 1044,
+      "end": 1054,
+      "sha256": "c0271b358e3eda43e5c3de8af06e2d12b4462793f74785c7771ce2efbed6d6e9",
+      "owners": [
+        {
+          "task": "M0-014",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.7.2",
+      "title": "Delta Execution (Baseline vs. Treatment)",
+      "start": 1055,
+      "end": 1063,
+      "sha256": "4fec27941adc9b906cf1acd026aa86471dd40fbc5a3b1257a5c2993f807c982e",
+      "owners": [
+        {
+          "task": "M0-014",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.7.3",
+      "title": "Empirical Data Collection",
+      "start": 1064,
+      "end": 1072,
+      "sha256": "dc15be60a68a9746296531b38820435acc9be6716ff2b38c0acf8d8d05709dc9",
+      "owners": [
+        {
+          "task": "M0-014",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.7.4",
+      "title": "Results Consolidation & Handoff",
+      "start": 1073,
+      "end": 1084,
+      "sha256": "a399c8262f7f8c78880fbda614b816996149f74acd52ec9385126b7c7abfc8e8",
+      "owners": [
+        {
+          "task": "M0-014",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.8",
+      "title": "Scientific Evaluation",
+      "start": 1085,
+      "end": 1090,
+      "sha256": "7d6f6dade524745284366142dfd8102f3566f0e88fa3b9b64d1b3b3fb687600e",
+      "owners": [
+        {
+          "task": "M0-015",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.8.1",
+      "title": "Evaluation Scope & Evidence Assembly",
+      "start": 1091,
+      "end": 1099,
+      "sha256": "425672ecd97861c9397fc65d2a37e45f9dc566064f12d1524dc78bbbab559fbe",
+      "owners": [
+        {
+          "task": "M0-015",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.8.2",
+      "title": "Evidence Completeness & Provenance Review",
+      "start": 1100,
+      "end": 1107,
+      "sha256": "9aa107c7cd91a6d8346378899e88906a0c336267de3a67b29afc5033bb4ba0a9",
+      "owners": [
+        {
+          "task": "M0-015",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.8.3",
+      "title": "Experimental, Reasoning & External Validity Review",
+      "start": 1108,
+      "end": 1114,
+      "sha256": "1e6e34bd6abb344eb31c018166b1a4175b9aeaa64dcd549e980ee17f35eb2b81",
+      "owners": [
+        {
+          "task": "M0-015",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.8.4",
+      "title": "Claim & Acceptance-Criteria Comparison",
+      "start": 1115,
+      "end": 1121,
+      "sha256": "716ff1f8276dded8e4aa1386222c0b7e2efa44f32f637c6b2b5a872d36f90c80",
+      "owners": [
+        {
+          "task": "M0-015",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.8.5",
+      "title": "Verdict, Blocker & Residual-Risk Classification",
+      "start": 1122,
+      "end": 1135,
+      "sha256": "b9e0ce987064eb64ff51881eeea4c503da63814c2da328966aa7faa73f1b91fb",
+      "owners": [
+        {
+          "task": "M0-015",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.8.6",
+      "title": "Refinement & Follow-Up Recording",
+      "start": 1136,
+      "end": 1145,
+      "sha256": "23814e3749935d5aea7c60bf967b8eb6037ae21093674d7a97196945ff771c58",
+      "owners": [
+        {
+          "task": "M0-015",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.9",
+      "title": "Delivery (Report Generation)",
+      "start": 1146,
+      "end": 1151,
+      "sha256": "6f9fafbb4ebcd633a255774892ac67abc20838fb5a0f1b07c84e3712770615aa",
+      "owners": [
+        {
+          "task": "M0-016",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.9.1",
+      "title": "Delivery Planning & Evidence Handoff",
+      "start": 1152,
+      "end": 1159,
+      "sha256": "4b155f962f48a6ae050835c70c0c632fb1611b3cdb264ed96b263a70738a808a",
+      "owners": [
+        {
+          "task": "M0-016",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.9.2",
+      "title": "User-Facing Deliverable Generation",
+      "start": 1160,
+      "end": 1167,
+      "sha256": "fb3c4e2a14ce48826d12b80bb58a5f546a55563c7c084c478c57b18d6c93467d",
+      "owners": [
+        {
+          "task": "M0-016",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.9.3",
+      "title": "Deliverable, Reusable Asset & Knowledge Packaging",
+      "start": 1168,
+      "end": 1174,
+      "sha256": "673e5919d7fac296fc7eb4848f7ff528ef397473e5f15d2f56480957ebfbbf7f",
+      "owners": [
+        {
+          "task": "M0-016",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "3.9.4",
+      "title": "Authorized Distribution, Knowledge Transfer & Lifecycle Closure",
+      "start": 1175,
+      "end": 1189,
+      "sha256": "ce5635e670ba0cd88d252c51d0a14d907ed0eeb2cd72afa0846f0e38c74356a2",
+      "owners": [
+        {
+          "task": "M0-016",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.1",
+      "title": "Capability Capsules",
+      "start": 1190,
+      "end": 1206,
+      "sha256": "69d1cd7690a27c4e8dd4fb03c7c8c997d7e7b05803a926a02a765be69b2c0273",
+      "owners": [
+        {
+          "task": "M0-003",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.1.1",
+      "title": "Capability Declaration & Assembly",
+      "start": 1207,
+      "end": 1224,
+      "sha256": "099917a205d7c528bc0de5a476cce2f2423bfae5bf91cc93cf5a85b432e41f56",
+      "owners": [
+        {
+          "task": "M0-003",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-003",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-003",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-003",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.1.2",
+      "title": "Governance, Admission, Versioning & Registry Management",
+      "start": 1225,
+      "end": 1243,
+      "sha256": "ae5e8593431fdad319b71bdb3524dcd6aedd3d18fcb2fcf65f413e31ee55a9b1",
+      "owners": [
+        {
+          "task": "M0-003",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-003",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-003",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.1.3",
+      "title": "Node Capability Binding & Runtime Contract Assembly",
+      "start": 1244,
+      "end": 1265,
+      "sha256": "30f701789b8c419bc62eb6069208af8f2553d0ae5f79da37b1b6072836a3c5e5",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.1.4",
+      "title": "Invocation & Composition",
+      "start": 1266,
+      "end": 1283,
+      "sha256": "d8f2517c90f45cafa0af042415fd4018bc36b362ddaaa37d113bfbcf713afaa1",
+      "owners": [
+        {
+          "task": "M0-004",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.1.5",
+      "title": "Capability Evolution (RSI Boundaries)",
+      "start": 1284,
+      "end": 1304,
+      "sha256": "462816eabb120feadb13f9d7e979a84aea0b01f30d7d226419764ee375d17d65",
+      "owners": [
+        {
+          "task": "M0-003",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2",
+      "title": "Evaluator Gate & Verifier",
+      "start": 1305,
+      "end": 1313,
+      "sha256": "3e01062edd4b3e01d0579193a006bed0c21ff61d0204dbf63ca8f2491c3abcf0",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.1",
+      "title": "Evaluation Evidence Envelope & Two-Tier Gate Execution",
+      "start": 1314,
+      "end": 1354,
+      "sha256": "e15e8dd44298613bcda8417f48edaeec461e2f63aafe70023a46e360353b2143",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-012",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.2",
+      "title": "Contract, Schema & Artifact Conformance Evaluator",
+      "start": 1355,
+      "end": 1383,
+      "sha256": "5e16897751b07eff0865c3df7b24919dd5e0cc3198b9c231c83710764f8064a0",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.3",
+      "title": "Engineering Correctness & Code Quality Evaluator",
+      "start": 1384,
+      "end": 1414,
+      "sha256": "f343a1fec5cea5dd8014dfb508737acd82598c49072ba8e14fa6789391789f9b",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.4",
+      "title": "Performance, Cost & Benchmark Evaluator",
+      "start": 1415,
+      "end": 1447,
+      "sha256": "199237802d49704b1a40451fc474f46bdff5a5bb06562545a0c21038cbce70cb",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.5",
+      "title": "Security, Privacy, Compliance & IP Evaluator",
+      "start": 1448,
+      "end": 1482,
+      "sha256": "b17a0cb94ae3737e210d6b44da3d6244931f2dc59489a490f2cffa56c7b5fd2e",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.6",
+      "title": "Evidence, Factuality & Scientific Validity Evaluator",
+      "start": 1483,
+      "end": 1513,
+      "sha256": "fa0ce71c43e09d2600fe60d110fb817fb0210e9f54205475b1b684d2301a5a95",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-008",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-012",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.7",
+      "title": "Lifecycle, Parity & Human Review Evaluator",
+      "start": 1514,
+      "end": 1541,
+      "sha256": "721e01815b1a3b5a42388a9dd2ad3337abda8387e7857dda5545d3de9b32b89c",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.8",
+      "title": "Verdict Aggregation & Orchestration Gate Policy",
+      "start": 1542,
+      "end": 1627,
+      "sha256": "b6ac1fe00d73f7046fe5861702ab44439b35506c8093d3c8f5266960097feae4",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.9",
+      "title": "M1 Evaluator Acceptance & Failure-Injection Tests",
+      "start": 1628,
+      "end": 1698,
+      "sha256": "efb8da7e30826d3b9fc3008a29fbd0fe1a45dbb2a314a90f1cdf0066b8769217",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.2.10",
+      "title": "Future State \u2014 Autonomous Multi-Faceted Evaluation via Auto Harness",
+      "start": 1699,
+      "end": 1722,
+      "sha256": "ae2dc82ceba224e77446bdafa86e076cce86d7e700dba7501c98ade42ed2e91b",
+      "owners": [
+        {
+          "task": "M0-007",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Excluded runtime scope; owning AC enforces documented exclusion/compatibility."
+    },
+    {
+      "id": "4.3",
+      "title": "Foundational Models & Routing",
+      "start": 1723,
+      "end": 1728,
+      "sha256": "e1f2f67d49e232b4bd9767fd57d47b7d978f108f1a10826d7a8a52e2e14018ec",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.3.1",
+      "title": "Model Capability Registry",
+      "start": 1729,
+      "end": 1741,
+      "sha256": "cfbcef23d902010377a4b5018401ca68641352b3fa448179145058820fde2660",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.3.2",
+      "title": "Model Routing & Selection",
+      "start": 1742,
+      "end": 1755,
+      "sha256": "cf80e38ae623dbabb078261b5b63e0ab26dc49131aac7827a6f1cdbdd4416b9e",
+      "owners": [
+        {
+          "task": "M0-001",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.3.3",
+      "title": "Model Usage Auditing",
+      "start": 1756,
+      "end": 1778,
+      "sha256": "ed8dc7435f6814f95d36bf6d61ddc10023a83346959f419a0c6e988c5c356de1",
+      "owners": [
+        {
+          "task": "M0-001",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.3.4",
+      "title": "AI Reviewer Agent (Routing Integration)",
+      "start": 1779,
+      "end": 1796,
+      "sha256": "927fbc0af8cfe27d2ff5b2d4c9e85e4de952bb8431b22291cd8d059154973d79",
+      "owners": [
+        {
+          "task": "M0-001",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4",
+      "title": "RSI (Recursive Self-Improvement) Integration",
+      "start": 1797,
+      "end": 1807,
+      "sha256": "7b0cb48b99976cf315c069d3250db66202e24b6a68976f1adbffe3ffd78756f0",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.1",
+      "title": "Text-Based Artifacts (GEPA / MIProV2 / TextGrad)",
+      "start": 1808,
+      "end": 1828,
+      "sha256": "16ff48d2fd594f47b4ca29fef571875eedc0c6a1921eb8f4d9c29d55faf4f3ce",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.2",
+      "title": "Runtime and Resource Routing (Bayesian Optimization / Bandits / Cost-Aware RL)",
+      "start": 1829,
+      "end": 1836,
+      "sha256": "0e67015783d5156a2f8fca33e939e890fd13d9ac1cb08eedf5bff1ca193aba52",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-014"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.3",
+      "title": "Capability Capsules and Physical Operators (Trajectory Mining / Code Evolution / CEGIS)",
+      "start": 1837,
+      "end": 1858,
+      "sha256": "1607ba94a6c082e263923c3716f65aecc3e99afe6d9bad9c7a0a291deaaacb10",
+      "owners": [
+        {
+          "task": "M0-011",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.4",
+      "title": "DAG and Agent Organization (AFlow / MCTS / ADAS)",
+      "start": 1859,
+      "end": 1866,
+      "sha256": "231b8eedbb2109eea69392be31231ca93016125cc945c54ae5294b06f3d37808",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.5",
+      "title": "Evaluator, Reward, Contract, and Governance",
+      "start": 1867,
+      "end": 1886,
+      "sha256": "62785049f843161e1fe48c240eef0a33ecaf554d82bd7914a0f52ba1c14bed86",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.6",
+      "title": "Memory, Retrieval, and Evidence (Memory Learning / Self-RAG / Reranker Training)",
+      "start": 1887,
+      "end": 1894,
+      "sha256": "bb13fcd2eff50739e8e7c0a9b0d0d0f265b4393afb7b4826de67559a2c077fa5",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-008"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.7",
+      "title": "Model Policies and Weights (SFT / LoRA / DPO / GRPO / Agent RL)",
+      "start": 1895,
+      "end": 1912,
+      "sha256": "baf83c2e81abe9431000da88d7f3140f31f2322ea67125a96b570880f1229c16",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.8",
+      "title": "Data, Benchmarks, Curriculum, and Observability (Active Learning / Hard-Case Mining / Credit Assignment)",
+      "start": 1913,
+      "end": 1934,
+      "sha256": "386220bde2283365a63d7eebac2f56ad628778f6eab45cdecedb883c1f8b74ca",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-013"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-014"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.9",
+      "title": "Local-Isolated RSI Sandbox & Hidden-Evaluation Isolation",
+      "start": 1935,
+      "end": 1964,
+      "sha256": "6cea003a06f81e81d600616876c2a8e7f390b632cb52b574f44e22e9244f31eb",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-013"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-014"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.4.10",
+      "title": "RSI Security Guardrails & Adversarial Validation",
+      "start": 1965,
+      "end": 1997,
+      "sha256": "08f3fb227cacb8bbc9e5b21be63e077ca0b672e386dcbe48931078fb6836ea7f",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-014"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.5",
+      "title": "Data Foundations",
+      "start": 1998,
+      "end": 2001,
+      "sha256": "79661ac8512d7886fd66bba5c5882ff31e3f042abe28f12fdb50234f1770a01d",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.5.1",
+      "title": "Persistent Memory & Context Retrieval (Agent Memory)",
+      "start": 2002,
+      "end": 2008,
+      "sha256": "2e365fd3c97825e913be10bf3f16d1a2dabafff3345f229ff077f937cc48af36",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.5.2",
+      "title": "TaskGraph Persistence & Run Bundles (System Memory)",
+      "start": 2009,
+      "end": 2018,
+      "sha256": "2c73fa5d0362679cb4918f54c8f3e9003e2cb5bd4eb40edae5ea08940fd7aacd",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-005",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.5.3",
+      "title": "Contract & Capability Conformance Observability",
+      "start": 2019,
+      "end": 2026,
+      "sha256": "bcd418ec6ee559790dd81b09d7221bb49ceafbd695307dbd61fabaad2e1136e8",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.5.4",
+      "title": "Sample Run Exports (Scaffolding for RSI Handoff)",
+      "start": 2027,
+      "end": 2034,
+      "sha256": "67e5f22d0e5c9c2dcbb83b82f42926244387c130c3e5576b179af41621e1c5ab",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.5.5",
+      "title": "Extended Graph Management (Future State Only)",
+      "start": 2035,
+      "end": 2047,
+      "sha256": "3f98f0c8d059ed3c0f59318b08bc17344466cec9a1371f9059bb86f117a068ba",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Excluded runtime scope; owning AC enforces documented exclusion/compatibility."
+    },
+    {
+      "id": "4.6",
+      "title": "Harness Core",
+      "start": 2048,
+      "end": 2051,
+      "sha256": "c3ffacf965ca6fef00f26627f2ad2600062de5c1daab77d35499672a2507abed",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.6.1",
+      "title": "Runtime Control Loop & Run Lifecycle Management",
+      "start": 2052,
+      "end": 2059,
+      "sha256": "58ea730f4773927fcf0b18cb9c4fb855e3ae2fe112b670ef48469de84650b431",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-010"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.6.2",
+      "title": "DAG Scheduler & Operator Binding",
+      "start": 2060,
+      "end": 2069,
+      "sha256": "c6b348fe6493c1c270f5e7fe83c59558ab2cc674a6cc48c05960a3c4938e383e",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.6.3",
+      "title": "Main Loop Dispatch & Runtime Supervision",
+      "start": 2070,
+      "end": 2078,
+      "sha256": "2fb0141eef3ba67f6192e565aca2b818d4e4f115ff5967485ff94f8d26a04f27",
+      "owners": [
+        {
+          "task": "M0-004",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-008"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.6.4",
+      "title": "Failure Recovery & Resumability",
+      "start": 2079,
+      "end": 2087,
+      "sha256": "4d40224ede72a1ec56a5ee89e954ee025d6a40b690a068820e7a8085effd4f52",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-006",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-010"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.6.5",
+      "title": "Distributed Infrastructure & Concurrency (Future State Only)",
+      "start": 2088,
+      "end": 2097,
+      "sha256": "d63c1f49edcea0c6f0919143eacac2fa8387150aa382310530180e4bd5d26cf7",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Excluded runtime scope; owning AC enforces documented exclusion/compatibility."
+    },
+    {
+      "id": "4.7",
+      "title": "Intention Compilers",
+      "start": 2098,
+      "end": 2107,
+      "sha256": "c54c0f34f22279d0712f49011dea48ed63a7746082745b4ceebe0d85537824cf",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.7.1",
+      "title": "Intent Classification & Compilation Variant Selection",
+      "start": 2108,
+      "end": 2117,
+      "sha256": "1524d3840fa06e20265531e4741bb0914067ea2cbe49e7e7abc8a5d222bfc29a",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.7.2",
+      "title": "Goal, Scope and Context Normalization",
+      "start": 2118,
+      "end": 2127,
+      "sha256": "756abc1ca99d7bece09f00868e92f071e713bec1c07de4befe72701953e9d65a",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.7.3",
+      "title": "Ambiguity Resolution & Readiness",
+      "start": 2128,
+      "end": 2137,
+      "sha256": "d21ca5244eac8263a70288414f5b0d81e7d50009d296bb8194fe3113cc2f095c",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.7.4",
+      "title": "Constraint Compilation",
+      "start": 2138,
+      "end": 2147,
+      "sha256": "0efb9a6e4c82608998707fba6bb9e313a345aaac76edca87eab8145ab0697f49",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.7.5",
+      "title": "Task Contract & Acceptance Compilation",
+      "start": 2148,
+      "end": 2160,
+      "sha256": "4a81867d7014e81dd7e7d50627b5b423da539e5d66b763feee8f8d096d128097",
+      "owners": [
+        {
+          "task": "M0-009",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.8",
+      "title": "Planner",
+      "start": 2161,
+      "end": 2164,
+      "sha256": "c9ae59afe92cb2f13d622ce7038675b26d400620793e3634a132ffd0fef8b973",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-010"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.8.1",
+      "title": "Task Contract Decomposition",
+      "start": 2165,
+      "end": 2173,
+      "sha256": "4775e7579e0ab6bd0db0285976708639e417ceebca1e71cb13338f03b1afa4b6",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.8.2",
+      "title": "TaskGraph Construction",
+      "start": 2174,
+      "end": 2183,
+      "sha256": "3c5788778c970a256cc760cf1f3bce855581429180c5c4866d4dd5eaee64e527",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-004"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.8.3",
+      "title": "TaskGraph Validation & Feasibility Analysis",
+      "start": 2184,
+      "end": 2194,
+      "sha256": "23896e9c4379a3c57dd359b40a23bc73aaae7c1211fc921321e8a37bfa633a37",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-010"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.9",
+      "title": "Builder",
+      "start": 2195,
+      "end": 2201,
+      "sha256": "55d923a34208c9173ad0f0599da0f9f6ecb73cffcb27713030acfb12ba721b14",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.9.1",
+      "title": "Build Contract Interpretation & Preparation (Sub-features 1 & 2)",
+      "start": 2202,
+      "end": 2211,
+      "sha256": "e64092ffb7d58bdd09322351150e43aae1745dacf7293a59e17a8988d33591be",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.9.2",
+      "title": "Code & Experimental Asset Construction (Sub-features 3, 5, 6, & 7)",
+      "start": 2212,
+      "end": 2222,
+      "sha256": "5478036c5b541345604f184d6c6e19685f390dafcdb602475e6a39e8fa1d3094",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.9.3",
+      "title": "Analytical Deliverable Boundary",
+      "start": 2223,
+      "end": 2236,
+      "sha256": "ccd318dc640ed9a05fe24aebe772273dcc1e71ac5498d0ed320a2a5f0c4a0a9f",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.9.4",
+      "title": "Prototype Assembly & Build Evidence Generation (Sub-features 9 & 12)",
+      "start": 2237,
+      "end": 2244,
+      "sha256": "a62aa414e2883d317b568cf070cafe701e7b4863d5241d68eed19babbd65e2d3",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "4.9.5",
+      "title": "Excluded Capabilities & Advanced Lifecycle Features (Sub-features 4, 10, 11, & 14)",
+      "start": 2245,
+      "end": 2265,
+      "sha256": "ea48b33bd647748b2eb496e0d6bef464a7e6c9e6fdef39324b1eccf01adc814a",
+      "owners": [
+        {
+          "task": "M0-013",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.1",
+      "title": "Visibility & Statistics (Telemetry)",
+      "start": 2266,
+      "end": 2269,
+      "sha256": "a5f0b63ce402c800a22607614b16cfb503a9962c699eb003b0815d0e8fa401ca",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.1.1",
+      "title": "Workflow & Platform Status Visibility",
+      "start": 2270,
+      "end": 2277,
+      "sha256": "328e3b94c0691d18c9fc88e789449f671b2a3c8ee5c6a9e93a6021af88a0014a",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.1.2",
+      "title": "Execution Trace Search & Inspection",
+      "start": 2278,
+      "end": 2285,
+      "sha256": "1e13ccce50c670ed7376043c32a0c87bc713b80779fecaa808aa50576f57d695",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.1.3",
+      "title": "Resource Usage, Cost & Capacity Management",
+      "start": 2286,
+      "end": 2294,
+      "sha256": "9293f0f78aee31411630f9343c39a0d7e88cd377df708884177fbb5131cec680",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.1.4",
+      "title": "Runtime Status Visibility",
+      "start": 2295,
+      "end": 2305,
+      "sha256": "59497e0e5126764d32e6da8130d2fb5e7270bda488ff9fa28eeb60d5e9e2c935",
+      "owners": [
+        {
+          "task": "M0-005",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.2",
+      "title": "Installer & CLI & Webapp",
+      "start": 2306,
+      "end": 2309,
+      "sha256": "1e76ec068e44d0ee9e7f44a238d65aa180f0e3306a65f147127a8b974e28a0b2",
+      "owners": [
+        {
+          "task": "M0-003",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-012",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.2.1",
+      "title": "CLI Installation & Workstation Initialization (MacOS & Linux - Sub-features 3 & 4)",
+      "start": 2310,
+      "end": 2327,
+      "sha256": "3a3445cc33f819490c6e1cc42ffbeeb15ddcdb34e44f8267c839aff8e491c872",
+      "owners": [
+        {
+          "task": "M0-003",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-007",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-010",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-011",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-012",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-013",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-014",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-015",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-016",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.2.2",
+      "title": "Web Application & Status Service (Sub-feature 5)",
+      "start": 2328,
+      "end": 2336,
+      "sha256": "0c4c8934a3b8a0cb11cada22d172c0ca66cb635f914484672c2ee3e59068dabb",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.2.3",
+      "title": "Native Desktop Applications (Windows & MacOS - Sub-features 1 & 2)",
+      "start": 2337,
+      "end": 2345,
+      "sha256": "1fdbd64bac8dabf6a2a84e2604c5315ed0e4f5ed4b9a582dabc659eb7bc6d7dd",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Excluded runtime scope; owning AC enforces documented exclusion/compatibility."
+    },
+    {
+      "id": "5.3",
+      "title": "UI",
+      "start": 2346,
+      "end": 2349,
+      "sha256": "fe864765a5bc7c69908044f5f1677d0be92cabed45b0e0d78976bae30f5f09a2",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.3.1",
+      "title": "Command-Line Interface (CLI)",
+      "start": 2350,
+      "end": 2359,
+      "sha256": "e8c7daefaca000c41b84ec66d8d2dafd357193ea4e31ecc89cdddc912eb90959",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.3.2",
+      "title": "Web Graphical User Interface (GUI)",
+      "start": 2360,
+      "end": 2370,
+      "sha256": "1bf99c07103591935439320ea9bf74dfe1ec7076aab68d9cd377e238202300cf",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.3.3",
+      "title": "Terminal User Interface (TUI)",
+      "start": 2371,
+      "end": 2380,
+      "sha256": "b8c0a99bf7d4b5f3e4195f204c0ecbe646c4766b35794ce673c1cb3de1dd8891",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.4",
+      "title": "Account Management & Local Security Controls",
+      "start": 2381,
+      "end": 2387,
+      "sha256": "8ea12448c1b1b4969149fde4b21dbcfa82aec45dbc285a13abd004fa1444d87f",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-002",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-004",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-002",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.4.1",
+      "title": "Account Registration & User Profile Management (Sub-features 1 & 3)",
+      "start": 2388,
+      "end": 2401,
+      "sha256": "14d2ade06aba1de8eecf7dcf2b1ba12615438e0e4bba256891d5ea0cd3d13e7c",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.4.2",
+      "title": "Authentication & Local Web Security (Sub-feature 2)",
+      "start": 2402,
+      "end": 2409,
+      "sha256": "708d842afb8a7a15bd0d7c0298c7b451373f127a2fffdce9a9748f31d4a3a517",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.4.3",
+      "title": "Runtime Sandboxing & Process Isolation (Security Boundary)",
+      "start": 2410,
+      "end": 2418,
+      "sha256": "6eb2d39ba3084231879471c3f2166cf6951ca7372ba56fc110748ab10a74b342",
+      "owners": [
+        {
+          "task": "M0-004",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.4.4",
+      "title": "Privacy & Personal Data Controls (Sub-feature 4)",
+      "start": 2419,
+      "end": 2432,
+      "sha256": "5efb4c1961a0692979908cb92d3ba4e579e5bdcaa9e08d3426bb881e6f271187",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.5",
+      "title": "Message Channels",
+      "start": 2433,
+      "end": 2439,
+      "sha256": "3c77374363882f7293fc967f7a098f5cd0ea3ba95e8f227285c7e14ddc30f864",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.5.1",
+      "title": "TMUX Session & Terminal Surface Management (Sub-feature 3)",
+      "start": 2440,
+      "end": 2447,
+      "sha256": "16bb58a0348239386e25770f02ef0ed9f2352a655722ac03c8d309857c960c32",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.5.2",
+      "title": "External Messaging Integrations: WeChat & Discord (Sub-features 1 & 2)",
+      "start": 2448,
+      "end": 2457,
+      "sha256": "c875394cc21656e33834b72093ef1ca49b474cf81b98e576ae183e842e99fac6",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Excluded runtime scope; owning AC enforces documented exclusion/compatibility."
+    },
+    {
+      "id": "5.6",
+      "title": "System Configurations (`config.yaml`)",
+      "start": 2458,
+      "end": 2464,
+      "sha256": "0cfd6a82c4284b7731fd71dfac18c21942f514eedab9aecedc35b48330931db5",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-002",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-002",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.6.1",
+      "title": "LLM Configuration (Sub-feature 1)",
+      "start": 2465,
+      "end": 2473,
+      "sha256": "62424c00a56f0e77a8b2976db0d8cd186a4b41d6174da34dcdd86c5cea2dae3f",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-002",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.6.2",
+      "title": "User Settings (Sub-feature 2)",
+      "start": 2474,
+      "end": 2481,
+      "sha256": "279054a7e60d55a432cee77575e85f9da6c89326340eebfb63c4c323d19abcb7",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-003"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.6.3",
+      "title": "Cost & Budget Settings (Sub-feature 3)",
+      "start": 2482,
+      "end": 2489,
+      "sha256": "2068442e3b92cf5dea1058b5686f970ed18fff418b4a5c87c4086bc6f14cc2c0",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-008"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.6.4",
+      "title": "Cluster Settings (Sub-feature 4)",
+      "start": 2490,
+      "end": 2497,
+      "sha256": "4e566e6e74583f29a2e0f340fd75fc196470a0bf5de22b31d250c3218bcf1520",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "5.6.5",
+      "title": "Development & Evaluation Run Configuration",
+      "start": 2498,
+      "end": 2518,
+      "sha256": "25eab9c06da89289c2d0890d0202ecf4622606a9bac049632eb5cd39ed568c8f",
+      "owners": [
+        {
+          "task": "M0-002",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.1",
+      "title": "Purpose",
+      "start": 2519,
+      "end": 2533,
+      "sha256": "3dbe7ea6911f0bb31de487d6465cf4e6503c197ac5c97b7a4bd8f8fc36fffb10",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.2",
+      "title": "Implementation Principle",
+      "start": 2534,
+      "end": 2552,
+      "sha256": "5e3a7747f5fcad2ea018f0d084caa038d0c34c99f9cc52f785e440e0b6e0a160",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.3",
+      "title": "Implementation Stage 0 \u2014 Runtime Unblocker & Local Configuration",
+      "start": 2553,
+      "end": 2571,
+      "sha256": "c5a0ea304baef7cf0f440d57c8d17bbb8dbe4dcaadd02939c9272100d25e1aff",
+      "owners": [
+        {
+          "task": "M0-001",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-001",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.4",
+      "title": "Implementation Stage 1 \u2014 Core Governed Execution Backbone",
+      "start": 2572,
+      "end": 2606,
+      "sha256": "4567f297977fcd7650ed1311c75d0cda77a463f3555bbaf02eac7ab515a251ba",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-017",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.5",
+      "title": "Implementation Stage 2 \u2014 Intake, Requirement Contract & Static DAG",
+      "start": 2607,
+      "end": 2626,
+      "sha256": "71ef87e0762fe1776ca15f8306f9f4ddb9a8673c522ea62accf2748c85339120",
+      "owners": [
+        {
+          "task": "M0-006",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-009",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-TRIAL-1",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.6",
+      "title": "Implementation Stage 3 \u2014 Evidence-to-Hypothesis Research Path",
+      "start": 2627,
+      "end": 2648,
+      "sha256": "fc36ed1e5de8e7a26f8d6e35bb8083dccde10d29df2b7b4d36ede2ddb4852851",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-005"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.7",
+      "title": "Implementation Stage 4 \u2014 Builder & POC Assembly",
+      "start": 2649,
+      "end": 2670,
+      "sha256": "9da4144c8c86e69740b332ea696d9608a873a8a72f4a31baa909eb5129604aaf",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-006"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.8",
+      "title": "Implementation Stage 5 \u2014 Benchmarking & Scientific Evaluation",
+      "start": 2671,
+      "end": 2699,
+      "sha256": "c3d2b159d329397e17aff50d9e586257b534750d38b781826b3a66696e31fcda",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-007"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.9",
+      "title": "Implementation Stage 6 \u2014 Delivery & End-to-End Research Run",
+      "start": 2700,
+      "end": 2717,
+      "sha256": "f9e903de40a470785d25435984e35062a9aa0237432c6ad952c00913f87cb37c",
+      "owners": [
+        {
+          "task": "M0-016",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-008"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.10",
+      "title": "Implementation Stage 7 \u2014 Operational Shell & Workstation Integration",
+      "start": 2718,
+      "end": 2738,
+      "sha256": "4f531b9e3aa2dc8a03ac0f29d1c976f8f80cf5dc0261923c5653f473d3a5668a",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-009"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.11",
+      "title": "Implementation Stage 8 \u2014 Local-Isolated RSI Integration",
+      "start": 2739,
+      "end": 2762,
+      "sha256": "4e18a3cd5fadf9555acdf40c58b9b48c1a9f6ac5effe906aebd5cb7547fb7622",
+      "owners": [
+        {
+          "task": "M0-018",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-011"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-018",
+          "ac": "AC-014"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-010"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.12",
+      "title": "M1 Delivery Phase 3 \u2014 Dynamic System Integration",
+      "start": 2763,
+      "end": 2829,
+      "sha256": "dfee0fc98417bcbaff121bd988797c7c10cc598c6dc8d5affb216f6c4d8a817b",
+      "owners": [
+        {
+          "task": "M0-019",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-002"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-003"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-004"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-005"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-006"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-007"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-008"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-011"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.13",
+      "title": "Architecture Handoff Boundary",
+      "start": 2830,
+      "end": 2852,
+      "sha256": "a8cb7d8899351eed3cce9f8a0ecf06a5cf893c7a6a149a25ec44a3993fb0d76f",
+      "owners": [
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-001"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    },
+    {
+      "id": "6.14",
+      "title": "M1 Implementation Completion & Core Demo Rule",
+      "start": 2853,
+      "end": 2879,
+      "sha256": "6c84b73d2b1b1e02762c382e0532af8df440d9d658fb3901c05ead3eea6333d2",
+      "owners": [
+        {
+          "task": "M0-017",
+          "ac": "AC-012"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-001"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-009"
+        },
+        {
+          "task": "M0-019",
+          "ac": "AC-010"
+        },
+        {
+          "task": "M0-SYSTEM",
+          "ac": "AC-012"
+        }
+      ],
+      "disposition": "Allocated; read full exact segment including whitelist, conditional, blacklist and global constraints. Parent descriptions include linked child allocations."
+    }
+  ],
+  "architecture": [
+    {
+      "path": "source/build-package/authority-index.md",
+      "sha256": "d05c5749fb1408790466db1129fcfbc101750ad9f07b3e1049826cf2c7ec52f3",
+      "owners": [
+        "M0-SYSTEM"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/automation.md",
+      "sha256": "4102d1344c6b8d448e3e9562c290d55f393879d997e06b6f2d46043b2d2eddb0",
+      "owners": [
+        "M0-002",
+        "M0-005",
+        "M0-017",
+        "M0-019",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/capsule/authoring.md",
+      "sha256": "e993418f781ad814f4232bcfe40149801c26765128f9cfa86c9fd5a5d6b98bec",
+      "owners": [
+        "M0-003",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/capsule/declaration.md",
+      "sha256": "e8df51c67a8f7a199ac8384adfb40de696db6da48f0308c0697117bdbe9bf0e3",
+      "owners": [
+        "M0-003",
+        "M0-007",
+        "M0-018",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/capsules.md",
+      "sha256": "e5c5b8952646ef62d2842d2b05de7c9e71fd77a376674e3771afa60928d267ab",
+      "owners": [
+        "M0-003",
+        "M0-004",
+        "M0-006",
+        "M0-007",
+        "M0-010",
+        "M0-013",
+        "M0-018",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/contracts-and-native-reuse.md",
+      "sha256": "106d5989a9ac0e63794caf0c4931454aa4431f32323a96a6c443869bc4ea82f7",
+      "owners": [
+        "M0-001",
+        "M0-008",
+        "M0-009",
+        "M0-010",
+        "M0-011",
+        "M0-012",
+        "M0-013",
+        "M0-014",
+        "M0-015",
+        "M0-016",
+        "M0-019",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/coverage-allocation.md",
+      "sha256": "2b568d75d096071b5297933e602a89ab63c145863caf269d4bef1b4f92217620",
+      "owners": [
+        "M0-SYSTEM"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/coverage.md",
+      "sha256": "dac375bb28dca200f7064c18daec0729438b20c8907f6f564c923bc31e61a9de",
+      "owners": [
+        "M0-SYSTEM"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/delivery-phases.md",
+      "sha256": "308fd64054283b28db8301f0e6f6adafdab53412e0cef06d6a7ad9a471516b94",
+      "owners": [
+        "M0-006",
+        "M0-017",
+        "M0-018",
+        "M0-019",
+        "M0-SYSTEM",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/diagrams/README.md",
+      "sha256": "c8cb7efede430def27d5277e65105d2108afc1ea9ba5a74f81067fd7dda17bbe",
+      "owners": [
+        "M0-SYSTEM"
+      ],
+      "status": "Supporting view/source/history; no independent runtime authority"
+    },
+    {
+      "path": "source/build-package/failure-and-human.md",
+      "sha256": "b762635cd8ba1e712410dcaf47514b36ba1ab2e108b53d1df39730f882a060e6",
+      "owners": [
+        "M0-007",
+        "M0-008",
+        "M0-009",
+        "M0-010",
+        "M0-011",
+        "M0-012",
+        "M0-013",
+        "M0-014",
+        "M0-015",
+        "M0-016",
+        "M0-017",
+        "M0-018",
+        "M0-019",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/glossary.md",
+      "sha256": "7f168fa2c20bec6b01b22041989e110054ac32220eec828ea8c45fd066594f16",
+      "owners": [
+        "M0-001",
+        "M0-002",
+        "M0-003",
+        "M0-004",
+        "M0-005",
+        "M0-006",
+        "M0-007",
+        "M0-008",
+        "M0-009",
+        "M0-010",
+        "M0-011",
+        "M0-012",
+        "M0-013",
+        "M0-014",
+        "M0-015",
+        "M0-016",
+        "M0-017",
+        "M0-018",
+        "M0-019",
+        "M0-SYSTEM",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/guard-design.md",
+      "sha256": "9b04552a46a4b798e5ae783adfcc66671f21a546310b560f11fd1e4084278da7",
+      "owners": [
+        "M0-002",
+        "M0-004",
+        "M0-005",
+        "M0-006",
+        "M0-007",
+        "M0-008",
+        "M0-009",
+        "M0-010",
+        "M0-011",
+        "M0-012",
+        "M0-013",
+        "M0-014",
+        "M0-015",
+        "M0-016",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/handoff.md",
+      "sha256": "48bc557d2fd5fd4738f5e65fd27a770a0e870cbc5e0107d98d01941bb0d57f32",
+      "owners": [
+        "M0-SYSTEM",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/history.md",
+      "sha256": "ac8f2a066191e28ec4a41b88daabb4b4b30d98d6a4e99d433e85730eae994e6c",
+      "owners": [
+        "M0-SYSTEM"
+      ],
+      "status": "Supporting view/source/history; no independent runtime authority"
+    },
+    {
+      "path": "source/build-package/immediate-plan.md",
+      "sha256": "0a7c21c2933c0be3b07e67cedaa91d2bd1706ca4382c364eb474ae616b919ec3",
+      "owners": [
+        "M0-001",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/m1-design.md",
+      "sha256": "98f601deaa66fba92de3dafcc5ecf3483554f37b607337744df3be361513df8e",
+      "owners": [
+        "M0-002",
+        "M0-005",
+        "M0-006",
+        "M0-008",
+        "M0-009",
+        "M0-010",
+        "M0-011",
+        "M0-012",
+        "M0-013",
+        "M0-014",
+        "M0-015",
+        "M0-016",
+        "M0-017",
+        "M0-019"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/offline-rsi.md",
+      "sha256": "c906826da84710bc40dc19158fd8a8fc43776b196e9a541efbced6ddccb3db15",
+      "owners": [
+        "M0-011",
+        "M0-018"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/placement.md",
+      "sha256": "aa00cec894131602f8dcec03c8acbcd6910aa6b6b98b31246da83b09c597f274",
+      "owners": [
+        "M0-001",
+        "M0-002",
+        "M0-004",
+        "M0-005",
+        "M0-008",
+        "M0-009",
+        "M0-010",
+        "M0-011",
+        "M0-012",
+        "M0-013",
+        "M0-014",
+        "M0-015",
+        "M0-016",
+        "M0-017",
+        "M0-018",
+        "M0-019",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/principles.md",
+      "sha256": "bda2892efcaca11d3c67e181a63e57d6cf59c2600fe3d7a8590a7b47db71149a",
+      "owners": [
+        "M0-001",
+        "M0-002",
+        "M0-003",
+        "M0-005",
+        "M0-006",
+        "M0-007",
+        "M0-009",
+        "M0-017",
+        "M0-018",
+        "M0-019",
+        "M0-SYSTEM",
+        "M0-TRIAL-1"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/README.md",
+      "sha256": "3e7f93e818bc7c6015a4a87a33312597a103f360286da282689f65ab13f50124",
+      "owners": [
+        "M0-SYSTEM"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/sources/capsule-semantic-v2.10b.md",
+      "sha256": "30b02e874dda0a9acd4c06e5fadd8c855cd3024d6aaca58c7c937aed161d00b9",
+      "owners": [
+        "M0-003"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/sources/capsule.schema.json",
+      "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd",
+      "owners": [
+        "M0-003"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/sources/native-reuse-evidence.json",
+      "sha256": "9c4125f625819735f90ee9a7f34afc15ea5226b9dd047ce1a2cfac5a8c1fc732",
+      "owners": [
+        "M0-003",
+        "M0-SYSTEM"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/sources/policy-m1.json",
+      "sha256": "43305e008f72d480b24269e06285225617b969944b771fd181e911b988d4c011",
+      "owners": [
+        "M0-003"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/sources/product/prd-m1-current-2026-10-06.txt",
+      "sha256": "6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839",
+      "owners": [
+        "M0-003",
+        "M0-SYSTEM"
+      ],
+      "status": "Supporting view/source/history; no independent runtime authority"
+    },
+    {
+      "path": "source/build-package/sources/product/README.md",
+      "sha256": "2e21531fff54a98ddff3166a47e536dede814103a2e4cccc36edd929484d35d3",
+      "owners": [
+        "M0-003",
+        "M0-SYSTEM"
+      ],
+      "status": "Supporting view/source/history; no independent runtime authority"
+    },
+    {
+      "path": "source/build-package/usage-scenarios.md",
+      "sha256": "3cb242fcc99c368ffc6c0ea1570a6960ee268a103dc22b3ac8155b482f265b4a",
+      "owners": [
+        "M0-017",
+        "M0-SYSTEM"
+      ],
+      "status": "Normative design input"
+    },
+    {
+      "path": "source/build-package/workflow.md",
+      "sha256": "4b96fbd1947e939d7fe5ca7efb490088d7c7d0932c943f1bf10230ebf0462768",
+      "owners": [
+        "M0-004",
+        "M0-006",
+        "M0-008",
+        "M0-009",
+        "M0-010",
+        "M0-011",
+        "M0-012",
+        "M0-013",
+        "M0-014",
+        "M0-015",
+        "M0-016",
+        "M0-019"
+      ],
+      "status": "Normative design input"
+    }
+  ]
+}

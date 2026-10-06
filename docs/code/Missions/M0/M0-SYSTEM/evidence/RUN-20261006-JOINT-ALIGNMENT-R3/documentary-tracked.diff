@@ -1,0 +1,43 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index e0ab69d81..86b6d4958 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -3,12 +3,12 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
+ 
+ ## Entry points
+ - [Code SOP v2](docs/code/Code_SOP.md)
+-- [Future M1 TASKS](docs/code/Missions/M1/TASKS.md)
++- [M0 joint Phase 1 / TRIAL-1 TASKS](docs/code/Missions/M0/TASKS.md)
+ - [Spec Kit workflow](docs/code/SPEC_KIT_WORKFLOW.md)
+ - [Verification method](docs/code/VERIFICATION.md)
+ - [Constitution](.specify/memory/constitution.md)
+ - Historical environment facts: docs/governance/ENVIRONMENT.md.
+-- Historical task: docs/code/Missions/AI4R-001/TASK.md; it is not the future-M1 register.
++- Historical task: docs/code/Missions/AI4R-001/TASK.md; current product work is registered under M0.
+ 
+ ## Working rules
+ 1. Follow TASKS -> TASK -> one registered Spec Kit directory per TASK. Read applicable AGENTS, the exact source clauses, agreements, native spec/plan/tasks and existing callers/tests before implementation.
+diff --git a/docs/code/CATALOG.md b/docs/code/CATALOG.md
+index 1123725b8..b00453423 100644
+--- a/docs/code/CATALOG.md
++++ b/docs/code/CATALOG.md
+@@ -27,5 +27,4 @@
+ 
+ ## Tools and actual work
+ 
+-[Spec Kit plugin](../../plugins/spec-kit/README.md) owns the reusable tool resources. [.specify](../../.specify/README.md) owns this project's rules/settings. Real work starts at the [M1 register](Missions/M1/TASKS.md) or [developer-tools register](Missions/DEVTOOLS/TASKS.md); the two have separate scope.
+-
++[Spec Kit plugin](../../plugins/spec-kit/README.md) owns the reusable tool resources. [.specify](../../.specify/README.md) owns this project's rules/settings. Current product work starts at the [M0 joint Phase 1 / TRIAL-1 register](Missions/M0/TASKS.md). Archived full-M1 records are planning context; active Phase 1 work is allocated by M0; [developer-tool maintenance](Missions/DEVTOOLS/TASKS.md) has separate scope.
+diff --git a/docs/code/README.en.md b/docs/code/README.en.md
+index 0273accf3..6fc357cd2 100644
+--- a/docs/code/README.en.md
++++ b/docs/code/README.en.md
+@@ -2,7 +2,7 @@
+ 
+ This directory contains development guides and their subordinate Missions/ tree. Follow **TASKS -> TASK -> one Spec Kit feature directory per TASK**, with block, boundary and whole-system verification.
+ 
+-Start with the [SOP](Code_SOP.md) and [catalog](CATALOG.md), then the [M1 register](Missions/M1/TASKS.md). Current task and feature records determine source readiness and progress.
++Start with the [SOP](Code_SOP.md) and [catalog](CATALOG.md), then the [M0 joint Phase 1 / TRIAL-1 register](Missions/M0/TASKS.md). PRD Phase 1 and the corresponding TRIAL-1 immediate plan jointly govern M0; the live records distinguish implemented Intent contributions from active Phase 1 gaps. Other delivery phases and archived full-M1 records provide context.
+ 
+ ## Content locations
+ 

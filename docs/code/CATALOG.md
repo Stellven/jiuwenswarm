@@ -27,5 +27,4 @@
 
 ## Tools and actual work
 
-[Spec Kit plugin](../../plugins/spec-kit/README.md) owns the reusable tool resources. [.specify](../../.specify/README.md) owns this project's rules/settings. Real work starts at the [M1 register](Missions/M1/TASKS.md) or [developer-tools register](Missions/DEVTOOLS/TASKS.md); the two have separate scope.
-
+[Spec Kit plugin](../../plugins/spec-kit/README.md) owns the reusable tool resources. [.specify](../../.specify/README.md) owns this project's rules/settings. Current product work starts at the [M0 joint Phase 1 / TRIAL-1 register](Missions/M0/TASKS.md). Archived full-M1 records are planning context; active Phase 1 work is allocated by M0; [developer-tool maintenance](Missions/DEVTOOLS/TASKS.md) has separate scope.

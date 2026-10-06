@@ -1,0 +1,28 @@
+{
+  "source_files": 68,
+  "changed_sources": [],
+  "execution_inputs": 316,
+  "changed_execution_inputs": [],
+  "unchanged_runtime_snapshot": "1a2510b1dff775a97d00a8ef9254027ec84c0bd427facb633ec19025fcbe4d85",
+  "documentary_files_unchanged_during_final_checks": true,
+  "source_copy_identity": [
+    {
+      "main": "docs/architecture/build-package/capsules.md",
+      "copy": "docs/code/Missions/M0/source/build-package/capsules.md",
+      "sha256": "e5c5b8952646ef62d2842d2b05de7c9e71fd77a376674e3771afa60928d267ab",
+      "byte_identical": true
+    },
+    {
+      "main": "docs/architecture/build-package/glossary.md",
+      "copy": "docs/code/Missions/M0/source/build-package/glossary.md",
+      "sha256": "7f168fa2c20bec6b01b22041989e110054ac32220eec828ea8c45fd066594f16",
+      "byte_identical": true
+    },
+    {
+      "main": "docs/architecture/build-package/guard-design.md",
+      "copy": "docs/code/Missions/M0/source/build-package/guard-design.md",
+      "sha256": "9b04552a46a4b798e5ae783adfcc66671f21a546310b560f11fd1e4084278da7",
+      "byte_identical": true
+    }
+  ]
+}

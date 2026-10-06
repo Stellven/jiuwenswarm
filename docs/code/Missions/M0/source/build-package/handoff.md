@@ -1,0 +1,13 @@
+# From architecture to specification
+
+Read [the PRD](sources/product/prd-m1-current-2026-10-06.txt), [decisions](principles.md#decisions-and-source-amendments), [TRIAL-1 design](immediate-plan.md), [CC fields](capsule/declaration.md), [guard boundaries](guard-design.md), [failure routing](failure-and-human.md), and [placement](placement.md). The full [clause map](coverage-allocation.md) and [stage exits](delivery-phases.md) identify later responsibilities.
+
+This build package supplies architecture and the PRD. It does not register coding tasks, generate native artifacts, or modify Spec Kit. Before generation, the coding owner must register TRIAL-1 distinctly under the live development workflow, preserving existing coding identities where applicable. Use a colocated `docs/code/Missions/M1/TRIAL-1/` feature under the live [Code SOP](../../code/Code_SOP.md), [Spec Kit workflow](../../code/SPEC_KIT_WORKFLOW.md), and [constitution](../../../.specify/memory/constitution.md).
+
+Architecture fixes responsibilities, approximate payload meaning, authority, trust/lifecycle boundaries, naming and compatibility. The owning TASK supplies versioned IF agreements; native spec/plan/tasks supply acceptance criteria, detailed realization, work and evidence. Spec Kit and the coding agents register this current PRD and architecture and create or reconcile the owning native task records before dependent implementation. Existing task records may refer to older sources; they are not the current build specification. Preserve source clauses and unresolved decisions rather than inventing requirements or claiming runtime acceptance.
+
+TRIAL-1 ends at checked intermediate intent. Later tasks cover the complete Brief, research journey, operational shell, independent offline RSI and applicable Phase 3 efforts. Register interface owners and dependencies before implementation; integrated M1 evidence belongs to its system task. No native artifacts or runtime evidence are claimed by this design.
+
+## Optional existing ownership references
+
+The [existing M1 register](../../code/Missions/M1/TASKS.md) helps avoid reusing occupied TASK/AC/IF identities. Its older source allocation does not override this package. Spec Kit and coding agents own task registration and native artifact generation; this package adds no coding records.

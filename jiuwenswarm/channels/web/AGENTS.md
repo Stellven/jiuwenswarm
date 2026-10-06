@@ -96,6 +96,7 @@
 
 | 组件目录(相对 `src/`) | 模块前缀 | 功能特性 |
 |---|---|---|
+| `features/intentTrial` | `intent-trial` | Authenticated text-only intermediate Intent trial submission, result, halt reason and evidence inspection |
 | `components/ChatPanel` | `chat-panel` | 主聊天面板;输入区;消息渲染;欢迎页/历史加载 |
 | `components/CronPanel` | `cron` | 定时任务面板;任务抽屉;表达式编辑器;时间选择器;模型/模式选择;状态徽标;确认对话框 |
 | `components/ArtifactsPanel` | `artifact` | 产物列表面板;文件预览;产物集合与解析模型 |

@@ -4359,5 +4359,29 @@
     "budgetPlaceholder": "Enter number",
     "budgetActualHint": "Configured limit: {{count}} tokens",
     "workflowList": "Workflow List"
+  },
+  "intentTrial": {
+    "title": "AI4Research Intent trial",
+    "description": "Submit a text objective and inspect accepted intermediate Intent or the recorded halt reason.",
+    "session": "Local application session token",
+    "connect": "Connect and inspect",
+    "ready": "Ready",
+    "blocked": "Model, authentication or protected execution is unavailable.",
+    "failed": "Request failed",
+    "login": "Sign in to the model account",
+    "openLogin": "Open model sign-in",
+    "objective": "Research objective",
+    "submit": "Submit new request",
+    "reconcile": "Retrieve pending request",
+    "rejected": "Submission was rejected. Correct the input or session and submit a new request.",
+    "pending": "An unconfirmed request is being tracked. Retrieval does not repeat server work.",
+    "reconcileUnavailable": "The pending request could not be retrieved. You can keep retrieving or explicitly prepare fresh corrected work.",
+    "fresh": "Prepare fresh corrected submission",
+    "freshPrepared": "Fresh submission prepared. Edit the objective and submit a new request. Existing server work and evidence are preserved; a known selected run remains its predecessor.",
+    "uncertain": "Submission may be unconfirmed. Connect to reconcile the same request; no replay is attempted.",
+    "history": "Recorded runs",
+    "mock": "Development fixture wiring only; no real model acceptance claim.",
+    "cancel": "Cancel run",
+    "bundle": "Download evidence bundle"
   }
 }

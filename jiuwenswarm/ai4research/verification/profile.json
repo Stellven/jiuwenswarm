@@ -1,0 +1,16 @@
+{
+  "interface_revision": "M0-IF-007@r2",
+  "profile_id": "intent-fidelity-r2",
+  "checks": [
+    {"id": "F1", "obligation": "material completeness", "mandatory": true},
+    {"id": "F2", "obligation": "source support and no unsupported additions", "mandatory": true},
+    {"id": "F3", "obligation": "relevance and scope fidelity", "mandatory": true},
+    {"id": "F4", "obligation": "attributable ambiguity and conflict handling", "mandatory": true},
+    {"id": "F5", "obligation": "exact evidence identity and adequate support", "mandatory": true},
+    {"id": "F6", "obligation": "read-only instruction-resistant assessment", "mandatory": true}
+  ],
+  "advancement_policy": "All mandatory deterministic and semantic findings PASS; uncertainty blocks. Only protected durable host commit releases exact subject.",
+  "scientific_conclusion_owner": "Future Stage 3.8; no scientific conclusion in this trial",
+  "upstream_adaptation": "upstream-adaptation.json",
+  "limitations": ["Compiler and verifier can share a provider; errors may be correlated.", "No calibrated universal truth or reliability guarantee."]
+}

@@ -1,0 +1,157 @@
+{
+  "platform": "Actual Windows source service; required POSIX protected real IPC unavailable",
+  "result": "PASS for environment refusal only; connected acceptance BLOCKED",
+  "readiness": {
+    "scope": "TRIAL-1",
+    "model": {
+      "ready": false,
+      "security_ready": false,
+      "authentication": "not_checked",
+      "models": [],
+      "runtime": "not_checked",
+      "ipc": "unavailable",
+      "is_mock": false
+    },
+    "storage": {
+      "ready": true,
+      "reason": "ready",
+      "database": {
+        "ready": true,
+        "reason": "ready",
+        "timeout_seconds": 0.25
+      },
+      "artifacts": {
+        "ready": true,
+        "reason": "ready",
+        "file_fsync": true,
+        "directory_fsync": null
+      },
+      "security": "Storage capability probe only; ACL and runtime isolation readiness are separate."
+    },
+    "identity_security": {
+      "ready": false,
+      "reason": "Windows protected-directory/file ACL evidence is not established by this module.",
+      "session_storage": "sha256_only"
+    },
+    "definitions": "environment_blocked",
+    "definition_admission": {
+      "ready": false,
+      "reason": "admission_evidence_missing"
+    },
+    "ready": false,
+    "mock": false,
+    "acceptance": "Actual connected acceptance requires recorded runs"
+  },
+  "projection": {
+    "run_id": "7cb2d358e7ec481a8cfa8c128345bf0d",
+    "status": "ENVIRONMENT_BLOCKED",
+    "client_request_id": "actual-windows-readiness-no-fallback",
+    "predecessor_run_id": null,
+    "accepted_ref": null,
+    "decision": {
+      "checks": [
+        {
+          "check_id": "halt",
+          "reason": "environment_unavailable",
+          "status": "ENVIRONMENT_BLOCKED"
+        }
+      ],
+      "contract_sha256": "05327b864365b531db25cf3237cae30981d875520d681844fd7fe2364400a7cd",
+      "evidence_refs": [
+        {
+          "artifact_id": "1f4277c7982742bf92e07dfe5fd1388e",
+          "interface_revision": "M0-IF-005@r2",
+          "locator": "objects/8fadc8913e091bc892e705c038ce11a050eafa39bd2c4845cde29ed3d0898558/1f4277c7982742bf92e07dfe5fd1388e.bin",
+          "run_id": "7cb2d358e7ec481a8cfa8c128345bf0d",
+          "schema_revision": "r2",
+          "sha256": "3dbe6f3a215e88c7f2f1cda2d223cea70c4fc8c1dea2edff309814d9d3a2d2f8",
+          "type": "original_request"
+        }
+      ],
+      "mandatory_pass": false,
+      "profile_sha256": "613bfc40ef756b154c8376a8947e8341872168ce185c124edd1b1a3b75e90071",
+      "reasons": [
+        "environment_unavailable"
+      ],
+      "subject_ref": null,
+      "verdict": "ENVIRONMENT_BLOCKED"
+    },
+    "attention": [
+      {
+        "action": "Inspect evidence and submit fresh corrected work.",
+        "attention_id": "ad53c7e6c6f0a8d7dd701dd637e6316b462d4bc54ca1d5ee2973fa9ae9a99ffd",
+        "mode": "web",
+        "override_allowed": false,
+        "reason": [
+          "environment_unavailable"
+        ],
+        "run_id": "7cb2d358e7ec481a8cfa8c128345bf0d"
+      }
+    ],
+    "not_run": [
+      {
+        "check_id": "compiler_dispatch",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "deterministic_validation",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "verifier_dispatch",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "semantic:F1",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "semantic:F2",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "semantic:F3",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "semantic:F4",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "semantic:F5",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_id": "semantic:F6",
+        "reason": "environment_unavailable",
+        "status": "NOT_RUN"
+      }
+    ],
+    "bundle_url": "/api/intent-trial/runs/7cb2d358e7ec481a8cfa8c128345bf0d/bundle",
+    "mock": false,
+    "scope": "TRIAL-1 intermediate Intent; full stages/M1 incomplete"
+  },
+  "attempts": [],
+  "real_provider_calls": 0,
+  "model_authentication": "Not probed because required secure IPC is unavailable.",
+  "characterization": {
+    "status": "ENVIRONMENT_BLOCKED",
+    "observations": 27,
+    "all_not_run": true,
+    "provider_calls": 0,
+    "production_release": false
+  },
+  "limitations": [
+    "Windows ACL and protected IPC acceptance unestablished.",
+    "No real account or provider/model fidelity measurement.",
+    "Docker CLI absent from PATH and inspected standard installation paths; WSL Ubuntu has no detected docker/python3."
+  ]
+}
