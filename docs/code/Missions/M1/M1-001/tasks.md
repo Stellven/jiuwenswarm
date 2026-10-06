@@ -1,7 +1,4 @@
 ---
-
-**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
-
 description: "Work items, success conditions, and saved check results for M1-001"
 ---
 # Tasks: M1-001 - Connect JiuwenSwarm to Codex
@@ -74,15 +71,15 @@ The software has not been tested yet. NOT_RUN is not a pass. "None / NOT_BUILT" 
 
 | AC ID / spec link | Work group / agreement | Code work ID | Required check ID / work that runs it | Current result | Saved run result / tested system version | Why a result can or cannot be reused |
 | --- | --- | --- | --- | --- | --- | --- |
-| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-001@r0 | T002 | V01 / T003 | NOT_RUN | None / NOT_BUILT | Based on current PRD. The design, runnable test inputs, and exact test version still need to be set. |
+| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-001@r0 | T002 | V01 / T003 | NOT_RUN | None / NOT_BUILT | Based on PRD r2. The design, runnable test inputs, and exact test version still need to be set. |
 | [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-001@r0 with real connected parts | T002 | V90 / T008 | NOT_RUN | None / NOT_BUILT | The real connection has not been checked. There is no earlier run result. |
-| [AC-002](spec.md#measurable-outcomes) | B02; M1-IF-001@r0 | T004 | V02 / T005 | NOT_RUN | None / NOT_BUILT | Based on current PRD. The design, runnable test inputs, and exact test version still need to be set. |
+| [AC-002](spec.md#measurable-outcomes) | B02; M1-IF-001@r0 | T004 | V02 / T005 | NOT_RUN | None / NOT_BUILT | Based on PRD r2. The design, runnable test inputs, and exact test version still need to be set. |
 | [AC-002](spec.md#measurable-outcomes) | B02; M1-IF-001@r0 with real connected parts | T004 | V90 / T008 | NOT_RUN | None / NOT_BUILT | The real connection has not been checked. There is no earlier run result. |
-| [AC-003](spec.md#measurable-outcomes) | B03; M1-IF-001@r0 | T006 | V03 / T007 | NOT_RUN | None / NOT_BUILT | Based on current PRD. The design, runnable test inputs, and exact test version still need to be set. |
+| [AC-003](spec.md#measurable-outcomes) | B03; M1-IF-001@r0 | T006 | V03 / T007 | NOT_RUN | None / NOT_BUILT | Based on PRD r2. The design, runnable test inputs, and exact test version still need to be set. |
 | [AC-003](spec.md#measurable-outcomes) | B03; M1-IF-001@r0 with real connected parts | T006 | V90 / T008 | NOT_RUN | None / NOT_BUILT | The real connection has not been checked. There is no earlier run result. |
-| [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-001@r0 | T002 | V04 / T003 | NOT_RUN | None / NOT_BUILT | Based on current PRD. The design, runnable test inputs, and exact test version still need to be set. |
+| [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-001@r0 | T002 | V04 / T003 | NOT_RUN | None / NOT_BUILT | Based on PRD r2. The design, runnable test inputs, and exact test version still need to be set. |
 | [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-001@r0 with real connected parts | T002 | V90 / T008 | NOT_RUN | None / NOT_BUILT | The real connection has not been checked. There is no earlier run result. |
-| [AC-005](spec.md#measurable-outcomes) | B04; M1-IF-001@r0 | T010 | V05 / T011 | NOT_RUN | None / NOT_BUILT | Based on current PRD. The design, runnable test inputs, and exact test version still need to be set. |
+| [AC-005](spec.md#measurable-outcomes) | B04; M1-IF-001@r0 | T010 | V05 / T011 | NOT_RUN | None / NOT_BUILT | Based on PRD r2. The design, runnable test inputs, and exact test version still need to be set. |
 | [AC-005](spec.md#measurable-outcomes) | B04; M1-IF-001@r0 with real connected parts | T010 | V90 / T008 | NOT_RUN | None / NOT_BUILT | The real connection has not been checked. There is no earlier run result. |
 
 ## Dependency Order and Execution Notes

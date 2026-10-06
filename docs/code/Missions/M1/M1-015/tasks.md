@@ -1,7 +1,4 @@
 ---
-
-**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
-
 description: "TASK-native work and acceptance/evidence correspondence"
 ---
 # Tasks: M1-015 - Scientific evidence evaluation and verdict
@@ -44,14 +41,14 @@ This is the only future implementation work list. The current request prepares d
 
 | AC ID / spec link | Block / IF references | Implementation work IDs | Required V IDs / verification work IDs | Current result | Current run evidence / candidate | Reuse or invalidation basis |
 | --- | --- | --- | --- | --- | --- | --- |
-| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-015@r0 | T003 | V01 / T004 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-002](spec.md#measurable-outcomes) | B01; M1-IF-015@r0 | T003 | V02 / T004 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-003](spec.md#measurable-outcomes) | B02; M1-IF-015@r0 | T005 | V03 / T006 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-004](spec.md#measurable-outcomes) | B02; M1-IF-015@r0 | T005 | V04 / T006 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-015@r0 | T003 | V01 / T004 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-002](spec.md#measurable-outcomes) | B01; M1-IF-015@r0 | T003 | V02 / T004 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-003](spec.md#measurable-outcomes) | B02; M1-IF-015@r0 | T005 | V03 / T006 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-004](spec.md#measurable-outcomes) | B02; M1-IF-015@r0 | T005 | V04 / T006 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-004](spec.md#measurable-outcomes) | B02; M1-IF-015@r0 with actual participants | T005 | V90 / T009 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-005](spec.md#measurable-outcomes) | B03; M1-IF-015@r0 | T007 | V05 / T008 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-005](spec.md#measurable-outcomes) | B03; M1-IF-015@r0 | T007 | V05 / T008 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-005](spec.md#measurable-outcomes) | B03; M1-IF-015@r0 with actual participants | T007 | V90 / T009 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-006](spec.md#measurable-outcomes) | B03; M1-IF-015@r0 | T007 | V06 / T008 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-006](spec.md#measurable-outcomes) | B03; M1-IF-015@r0 | T007 | V06 / T008 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 
 ## Dependency Order and Execution Notes
 

@@ -1,8 +1,5 @@
 # Tasks: M1-017 - Installable local workstation and operational surfaces
 
-**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
-
-
 **TASK**: [TASK](TASK.md) | **Spec / Plan revisions**: r2 / r2
 **Feature directory**: `docs/code/Missions/M1/M1-017/`
 
@@ -52,36 +49,36 @@
 
 ### System contribution
 
-- [ ] T200 [US1] Supply this task's exact component/configuration/IF revisions and valid check evidence to M1-SYSTEM; optional Phase 3 work remains non-blocking.
+- [ ] T200 [US1] Supply this task's exact component/configuration/IF revisions and valid check evidence to M1-SYSTEM; optional Phase 2 work remains non-blocking.
 
 ## Acceptance and Evidence Matrix
 
 | AC ID / spec link | Block / IF references | Implementation work IDs | Required V IDs / verification work IDs | Current result | Current run evidence / candidate | Reuse or invalidation basis |
 | --- | --- | --- | --- | --- | --- | --- |
-| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V01 / T101 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V01 / T101 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 with actual participants | T010 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-002](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V02 / T102 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-002](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V02 / T102 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-002](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 with actual participants | T010 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-003](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V03 / T103 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-003](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V03 / T103 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-003](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 with actual participants | T010 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V04 / T104 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 | T010 | V04 / T104 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-017@r0 with actual participants | T010 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-005](spec.md#measurable-outcomes) | B02; M1-IF-017@r0 | T011 | V05 / T105 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-005](spec.md#measurable-outcomes) | B02; M1-IF-017@r0 | T011 | V05 / T105 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-005](spec.md#measurable-outcomes) | B02; M1-IF-017@r0 with actual participants | T011 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-006](spec.md#measurable-outcomes) | B02; M1-IF-017@r0 | T011 | V06 / T106 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-006](spec.md#measurable-outcomes) | B02; M1-IF-017@r0 | T011 | V06 / T106 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-006](spec.md#measurable-outcomes) | B02; M1-IF-017@r0 with actual participants | T011 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-007](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V07 / T107 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-007](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V07 / T107 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-007](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 with actual participants | T012 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-008](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V08 / T108 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-008](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V08 / T108 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-008](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 with actual participants | T012 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-009](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V09 / T109 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-009](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V09 / T109 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-009](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 with actual participants | T012 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-010](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V10 / T110 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-010](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V10 / T110 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-010](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 with actual participants | T012 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-011](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V11 / T111 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-011](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 | T012 | V11 / T111 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-011](spec.md#measurable-outcomes) | B03; M1-IF-017@r0 with actual participants | T012 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-012](spec.md#measurable-outcomes) | B04; M1-IF-017@r0 | T013 | V12 / T112 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-013](spec.md#measurable-outcomes) | B05; M1-IF-017@r0 | T201 | V13 / T202 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-012](spec.md#measurable-outcomes) | B04; M1-IF-017@r0 | T013 | V12 / T112 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-013](spec.md#measurable-outcomes) | B05; M1-IF-017@r0 | T201 | V13 / T202 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-013](spec.md#measurable-outcomes) | B05; M1-IF-017@r0 with actual participants | T201 | V90 / T190 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
 
 ## Dependency Order and Execution Notes
@@ -101,5 +98,3 @@ Existing work IDs are preserved; new IDs are appended and ordered by behavior/de
 ## Evidence Invalidation
 
 No prior runtime evidence exists for this new task. Changes to relevant PRD/architecture/IF behavior, prompts, code, tests, configuration or fixtures require impact assessment and rerun of affected feature/boundary/system checks. Keep old records and mark affected rows STALE; reuse requires recorded equivalence.
-
-Current D6/D12 alignment: one local Docker/Compose application service is supported, with loopback authentication, protected model IPC and persistent state outside the replaceable image. Stable product-user identity and durable profiles are separate from execution identity and workspace deletion. Coding agents choose the actual configuration and confinement mechanisms; packaging alone is not POC isolation.

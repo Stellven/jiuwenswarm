@@ -1,7 +1,4 @@
 ---
-
-**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
-
 description: "TASK-native work and acceptance/evidence correspondence"
 ---
 # Tasks: M1-004 - Static model routing and reviewer provisioning
@@ -48,15 +45,15 @@ This is the only implementation work list. Current scope is documentation prepar
 
 | AC ID / spec link | Block / IF references | Implementation work IDs | Required V IDs / verification work IDs | Current result | Current run evidence / candidate | Reuse or invalidation basis |
 | --- | --- | --- | --- | --- | --- | --- |
-| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-004@r0 | T002 | V01 / T003 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-004@r0 | T002 | V01 / T003 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-001](spec.md#measurable-outcomes) | B01; M1-IF-004@r0 with actual participants | T002 | V90 / T008 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-002](spec.md#measurable-outcomes) | B02; M1-IF-004@r0 | T004 | V02 / T005 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-002](spec.md#measurable-outcomes) | B02; M1-IF-004@r0 | T004 | V02 / T005 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-002](spec.md#measurable-outcomes) | B02; M1-IF-004@r0 with actual participants | T004 | V90 / T008 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-003](spec.md#measurable-outcomes) | B03; M1-IF-004@r0 | T006 | V03 / T007 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-003](spec.md#measurable-outcomes) | B03; M1-IF-004@r0 | T006 | V03 / T007 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-003](spec.md#measurable-outcomes) | B03; M1-IF-004@r0 with actual participants | T006 | V90 / T008 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-004@r0 | T002 | V04 / T003 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-004@r0 | T002 | V04 / T003 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-004](spec.md#measurable-outcomes) | B01; M1-IF-004@r0 with actual participants | T002 | V90 / T008 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
-| [AC-005](spec.md#measurable-outcomes) | B04; M1-IF-004@r0 | T010 | V05 / T011 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-005](spec.md#measurable-outcomes) | B04; M1-IF-004@r0 | T010 | V05 / T011 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 | [AC-005](spec.md#measurable-outcomes) | B04; M1-IF-004@r0 with actual participants | T010 | V90 / T008 | NOT_RUN | None / NOT_BUILT | Real boundary not executed; no prior runtime evidence. |
 
 ## Dependency Order and Execution Notes

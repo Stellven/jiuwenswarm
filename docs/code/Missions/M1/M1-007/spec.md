@@ -1,12 +1,9 @@
 # Feature Specification: M1-007 - Evaluator Gate and independent Verifier
-
-**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
-
 **TASK**: [M1-007](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r3 / 2026-10-06
+**Revision / date**: r2 / 2026-10-02
 **Feature Branch**: ai4r_xiaoyang (existing checkout; no task branch created)
-**Input**: [current PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt), §4.2, §4.2.1–§4.2.9; §4.2.10 explicitly excluded; consumed §4.3.3–§4.3.4; sequencing §6.4; global §1.3–§1.6 and §2.1–§2.12. Architecture: [current design](../../../../architecture/build-package/README.md); detailed realization belongs to the coding agent.
+**Input**: [PRD r2](../sources/PRD-Full.r2.txt), §4.2, §4.2.1–§4.2.9; §4.2.10 explicitly excluded; consumed §4.3.3–§4.3.4; sequencing §6.4; global §1.3–§1.6 and §2.1–§2.12. Architecture PENDING_SOURCE.
 **Status**: Preparing; product requirements populated, architecture-dependent design pending; not a runtime result.
 
 ## User Scenarios & Testing
@@ -18,7 +15,7 @@ A local scientific-workflow executor or connected component obtains attributable
 **Acceptance Scenarios**:
 1. Given admissible inputs and required services, when the bounded behavior executes, then its output and evidence satisfy all normal-case ACs below.
 2. Given each applicable invalid, stale, unavailable or over-budget fixture, when the behavior executes, then the stated failure/limitation occurs and forbidden downstream effects do not occur.
-3. Given an excluded or isolated Phase 3 behavior, when inspecting Phase 1 bindings, then it does not silently expand production behavior.
+3. Given an excluded or isolated Phase 2 behavior, when inspecting Phase 1 bindings, then it does not silently expand production behavior.
 
 ### Edge Cases
 - AC-001: Complete/missing evidence, reviewer call counter on failed Tier 1 and policy-mutation attempt.
@@ -103,7 +100,7 @@ Numerical time/resource limits come from registered active capsule/task configur
 - Global constraints: scientific lane; local single user; fixed sequential Phase 1; permitted evidence only; contract-bound tools/effects; frozen scientific protocol; independent read-only verification; durable gate before release; preserved failures and explicit human handling; native working memory distinct from system evidence; offline RSI with manual activation. Apply §2.1–§2.12 to owned behavior; peer TASKs own their mechanisms.
 - Consumed agreements: [M1-IF-003@r0](../M1-003/TASK.md#4-embedded-cross-module-agreements); [M1-IF-004@r0](../M1-004/TASK.md#4-embedded-cross-module-agreements); [M1-IF-005@r0](../M1-005/TASK.md#4-embedded-cross-module-agreements); [M1-IF-006@r0](../M1-006/TASK.md#4-embedded-cross-module-agreements); [M1-IF-013@r0](../M1-013/TASK.md#4-embedded-cross-module-agreements); [M1-IF-014@r0](../M1-014/TASK.md#4-embedded-cross-module-agreements); [M1-IF-015@r0](../M1-015/TASK.md#4-embedded-cross-module-agreements).
 - Permitted models: sole active Codex CLI endpoint for Phase 1, including Reviewer. No underlying model ID is prescribed; observe actual identity/version during verification. No locally hosted weights or earlier design-document model pool is imported into this PRD allocation.
-- Unresolved inputs: Architecture binds envelope/result types, aggregation and Gate bootstrap without changing supplied vocabulary. Exact time limits, per-node fixed reviewer rubrics and supplied test entries must come from registered configuration/capsule sources; no thresholds are invented. Architecture: [current design](../../../../architecture/build-package/README.md); detailed realization belongs to the coding agent constrains technical realization only. Complete source clauses and exclusions remain authoritative.
+- Unresolved inputs: Architecture binds envelope/result types, aggregation and Gate bootstrap without changing supplied vocabulary. Exact time limits, per-node fixed reviewer rubrics and supplied test entries must come from registered configuration/capsule sources; no thresholds are invented. Architecture PENDING_SOURCE constrains technical realization only. Complete source clauses and exclusions remain authoritative.
 - System task: [M1-SYSTEM](../M1-SYSTEM/TASK.md) owns complete research journeys/candidate acceptance; this task supplies source-level block/boundary evidence. A minimal A/Gate/B run is not full M1 completion.
 
 This is the AC authority. TASK owns interfaces; plan.md owns design/check procedures; tasks.md owns work and evidence mapping.

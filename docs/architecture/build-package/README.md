@@ -137,3 +137,7 @@ Intake transport, simple input qualification, scheduling, integrity checks, gate
 The [latest user-supplied PRD](sources/product/prd-m1-current-2026-10-06.txt) remains verbatim. [Delivery phases](delivery-phases.md) distinguishes core demo acceptance from accounting for all M1 dynamic integration work. [Decisions](principles.md#decisions-and-source-amendments) record intentional exceptions. The [coding entry](handoff.md) identifies the live allocation authorities.
 
 Give coding agents exact clauses and the relevant architecture pages through [TASKS → TASK → Spec Kit](handoff.md). The first intent pair is a limited trial. Complete M1 includes all three delivery phases, with every applicable Phase 3 effort attempted and reported. It also requires CLI/headless execution, native web UI and TUI, installation/startup diagnostics, local terminal sessions, security/configuration (PRD 5.1–5.6), evidence exports, and offline RSI validation.
+
+## Exact build inputs
+
+This folder is the current architecture + verbatim PRD package for building. Begin with this overview, the PRD in sources/product/, and handoff.md. Spec Kit and coding agents create or reconcile TASKS/TASK/spec/plan/tasks from these inputs; existing coding records are historical or provisional until reconciled. Detailed APIs, schemas, mechanisms, code locations and verification procedures belong to that coding workflow.

@@ -1,8 +1,5 @@
 # Tasks: M1-SYSTEM - Integrated M1 governed research and workstation verification
 
-**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
-
-
 **TASK**: [TASK](TASK.md) | **Spec / Plan revisions**: r2 / r2
 **Feature directory**: `docs/code/Missions/M1/M1-SYSTEM/`
 
@@ -70,19 +67,19 @@
 
 | AC ID / spec link | Block / IF references | Implementation work IDs | Required V IDs / verification work IDs | Current result | Current run evidence / candidate | Reuse or invalidation basis |
 | --- | --- | --- | --- | --- | --- | --- |
-| [AC-001](spec.md#measurable-outcomes) | B01; participating canonical IFs | T010 | V01 / T101 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-002](spec.md#measurable-outcomes) | B01; participating canonical IFs | T010 | V02 / T102 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-003](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V03 / T103 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-004](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V04 / T104 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-005](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V05 / T105 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-006](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V06 / T106 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-007](spec.md#measurable-outcomes) | B03; participating canonical IFs | T012 | V07 / T107 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-008](spec.md#measurable-outcomes) | B04; participating canonical IFs | T013 | V08 / T108 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-009](spec.md#measurable-outcomes) | B05; participating canonical IFs | T014 | V09 / T109 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-010](spec.md#measurable-outcomes) | B06; participating canonical IFs | T015 | V10 / T110 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-011](spec.md#measurable-outcomes) | B07; participating canonical IFs | T016 | V11 / T111 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-012](spec.md#measurable-outcomes) | B08; participating canonical IFs | T201 | V12 / T202 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
-| [AC-013](spec.md#measurable-outcomes) | B09; participating canonical IFs | T203 | V13 / T204 | NOT_RUN | None / NOT_BUILT | current PRD preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-001](spec.md#measurable-outcomes) | B01; participating canonical IFs | T010 | V01 / T101 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-002](spec.md#measurable-outcomes) | B01; participating canonical IFs | T010 | V02 / T102 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-003](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V03 / T103 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-004](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V04 / T104 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-005](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V05 / T105 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-006](spec.md#measurable-outcomes) | B02; participating canonical IFs | T011 | V06 / T106 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-007](spec.md#measurable-outcomes) | B03; participating canonical IFs | T012 | V07 / T107 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-008](spec.md#measurable-outcomes) | B04; participating canonical IFs | T013 | V08 / T108 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-009](spec.md#measurable-outcomes) | B05; participating canonical IFs | T014 | V09 / T109 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-010](spec.md#measurable-outcomes) | B06; participating canonical IFs | T015 | V10 / T110 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-011](spec.md#measurable-outcomes) | B07; participating canonical IFs | T016 | V11 / T111 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-012](spec.md#measurable-outcomes) | B08; participating canonical IFs | T201 | V12 / T202 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
+| [AC-013](spec.md#measurable-outcomes) | B09; participating canonical IFs | T203 | V13 / T204 | NOT_RUN | None / NOT_BUILT | PRD r2 preparation; Architecture, executable fixtures and candidate not bound. |
 
 ## Dependency Order and Execution Notes
 

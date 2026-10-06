@@ -1,18 +1,15 @@
 # TASK: M1-015 - Scientific evidence evaluation and verdict
-
-**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
-
 PRD-derived preparation. This task records the requested initial document breakdown; it does not authorize or claim an implemented runtime. Read the complete registered source, not this extraction alone.
 
 ## 1. Identity
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-015 / r3 / 2026-10-06 |
+| TASK ID / revision / date | M1-015 / r2 / 2026-10-02 |
 | Parent TASKS | [M1](../TASKS.md) |
 | Executor / collaborators | Implementation executor UNASSIGNED; document preparation by Codex |
 | Requested outcome and instruction/source | User request dated 2026-10-02: update existing TASK and Spec Kit documents from the latest attached PRD under Code SOP v2, filling source-supported content while reserving architecture decisions. Bounded product outcome: A researcher receives an evidence-grounded scientific conclusion, including a rejected hypothesis when execution was correct. |
 | Included scope / exclusions | Read-only scientific evaluation of admitted benchmark evidence against the frozen hypothesis; produce verdict, constraints and follow-ups. Distinct from the infrastructure verifier. Excludes live external evidence fetching, cryptographic provenance system, counterfactual runs, threshold changes, debate, repairs and reruns. |
-| PRD clause and architecture node references | [Current PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt): §3.8 (all); sequencing §6.8; shared §§1–2. Baseline r3 / 2026-10-06 / 232489 bytes / SHA256 6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839. Architecture supplied in the current build package; detailed task bindings remain coding-agent work. Also §3.5.4 supplies frozen outcome boundaries and the default between-boundary INCONCLUSIVE classification. |
+| PRD clause and architecture node references | [PRD-Full.r2](../sources/PRD-Full.r2.txt): §3.8 (all); sequencing §6.8; shared §§1–2. Baseline r2 / 2026-10-02 / 200082 bytes / SHA256 44928035205BDEBAE205D2B458BD438C2C6E0103E4EB2D834C6A93E1CFA37294. Architecture source/node IDs: PENDING_SOURCE. Also §3.5.4 (lines 761-768) supplies frozen outcome boundaries and the default between-boundary INCONCLUSIVE classification. |
 | Working checkout / branch / base | D:/research/ai_for_research/jiuwenswarm / ai4r_xiaoyang / d9fe483ea64c273ef831886bfa83819f6d5bb21c observed for document preparation; dirty-tree status is not an executable candidate identity |
 | Affected code/document paths | This TASK and docs/code/Missions/M1/M1-015/{spec.md,plan.md,tasks.md}; actual implementation/test/configuration paths PENDING_DESIGN |
 
@@ -45,34 +42,34 @@ Definition-time agreements are needed before dependent design; runtime provider/
 
 ## 4. Embedded cross-module agreements
 
-All seven [minimum architecture inputs](../ARCHITECTURE_MINIMUM_INPUTS.txt) remain reserved for task-level coding design. Source acceptance stays in spec.md; this section records provisional document allocation and leaves technical design unfilled.
+All seven [minimum architecture inputs](../ARCHITECTURE_MINIMUM_INPUTS.txt) remain reserved for Architecture. Source acceptance stays in spec.md; this section records provisional document allocation and leaves technical design unfilled.
 
 ### M1-IF-015 at r0
-This is a **preliminary PRD semantic agreement**, not a finalized schema, API or architecture contract. Architecture supplied; task-level realization remains with the coding agent; representation and implementation are PENDING_DESIGN. Advancing the IF revision must update affected consumers.
+This is a **preliminary PRD semantic agreement**, not a finalized schema, API or architecture contract. Architecture source is PENDING_SOURCE; representation and implementation are PENDING_DESIGN. Advancing the IF revision must update affected consumers.
 
 | Property | Definition |
 | --- | --- |
 | Provider and consumer TASK IDs | Provisional document allocation: provider M1-015; consumers M1-007, M1-016, M1-SYSTEM. Actual module/process/API topology is PENDING_DESIGN (minimum inputs 1–2). |
 | Purpose / source requirement | §3.8 (all); sequencing §6.8; shared §§1–2; bounded scientific evidence evaluation and verdict handoff |
-| Inputs: fields, types, units, required/optional, validation | PENDING_DESIGN — The coding agent defines payloads, types, validation, units and API/IPC handoff (minimum inputs 1–2). Product input obligations remain in spec.md. |
-| Outputs: fields, types, units, semantics, guarantees | PENDING_DESIGN — The coding agent defines concrete outputs and technical guarantees (minimum inputs 2 and 4). Source-defined observable results remain in spec.md. |
-| States and invariants | PENDING_DESIGN — The coding agent defines runtime state, transitions and coordination (minimum inputs 1–3). Product invariants remain in spec.md. |
-| Errors, timeout, retry, cancellation | PENDING_DESIGN — The coding agent defines error structures, propagation, timeout/cancellation and duplicate handling (minimum inputs 2–3). Source failure/restart rules remain in spec.md. |
-| Side effects and idempotency | PENDING_DESIGN — The coding agent defines effect enforcement, writes, partial-write recovery and repeated-call mechanics (minimum inputs 2–5). Source effect restrictions remain in spec.md. |
-| Compatibility and migration | Provisional r0 identity retained. PENDING_DESIGN — The coding agent defines compatibility/migration representation (minimum inputs 1–2). Source acceptance is unchanged by realization choices; update consumers and invalidate affected evidence on material revision. |
+| Inputs: fields, types, units, required/optional, validation | PENDING_DESIGN — Architecture owns payloads, types, validation, units and API/IPC handoff (minimum inputs 1–2). Product input obligations remain in spec.md. |
+| Outputs: fields, types, units, semantics, guarantees | PENDING_DESIGN — Architecture owns concrete outputs and technical guarantees (minimum inputs 2 and 4). Source-defined observable results remain in spec.md. |
+| States and invariants | PENDING_DESIGN — Architecture owns runtime state, transitions and coordination (minimum inputs 1–3). Product invariants remain in spec.md. |
+| Errors, timeout, retry, cancellation | PENDING_DESIGN — Architecture owns error structures, propagation, timeout/cancellation and duplicate handling (minimum inputs 2–3). Source failure/restart rules remain in spec.md. |
+| Side effects and idempotency | PENDING_DESIGN — Architecture owns effect enforcement, writes, partial-write recovery and repeated-call mechanics (minimum inputs 2–5). Source effect restrictions remain in spec.md. |
+| Compatibility and migration | Provisional r0 identity retained. PENDING_DESIGN — Architecture owns compatibility/migration representation (minimum inputs 1–2). Source acceptance is unchanged by realization choices; update consumers and invalidate affected evidence on material revision. |
 | Machine-readable schema / source path | PENDING_DESIGN — No schema or application path is supplied. Architecture binds locations, schemas and environments (minimum inputs 1–2 and 6). |
-| Provider/consumer verification responsibilities | PENDING_DESIGN — The coding agent defines actual check entry points and fault-injection seams (minimum input 7). Required behavioral AC/V intent and evidence mapping remain in native plan.md/tasks.md; no executed result is claimed. |
+| Provider/consumer verification responsibilities | PENDING_DESIGN — Architecture owns actual check entry points and fault-injection seams (minimum input 7). Required behavioral AC/V intent and evidence mapping remain in native plan.md/tasks.md; no executed result is claimed. |
 | Open agreement questions | M1-015-Q01, M1-015-Q02 in section 5; field-level schema/API/code paths remain explicitly pending. |
 
 Consumed agreements: [M1-IF-014@r0](../M1-014/TASK.md#4-embedded-cross-module-agreements); [M1-IF-012@r0](../M1-012/TASK.md#4-embedded-cross-module-agreements); [M1-IF-009@r0](../M1-009/TASK.md#4-embedded-cross-module-agreements); [M1-IF-003@r0](../M1-003/TASK.md#4-embedded-cross-module-agreements); [M1-IF-004@r0](../M1-004/TASK.md#4-embedded-cross-module-agreements); [M1-IF-005@r0](../M1-005/TASK.md#4-embedded-cross-module-agreements); [M1-IF-006@r0](../M1-006/TASK.md#4-embedded-cross-module-agreements); [M1-IF-007@r0](../M1-007/TASK.md#4-embedded-cross-module-agreements). Registry admission/manual activation and shared infrastructure policies stay with their owning tasks.
 
-Architecture reservation: [minimum inputs](../ARCHITECTURE_MINIMUM_INPUTS.txt), items 1-7, owns actual modules/code/processes, typed payload/API/error contracts, runtime coordination, storage/durability, security isolation, configuration realization and executable test entry points. These remain PENDING_DESIGN; no implementation mechanism is selected by this current PRD update.
+Architecture reservation: [minimum inputs](../ARCHITECTURE_MINIMUM_INPUTS.txt), items 1-7, owns actual modules/code/processes, typed payload/API/error contracts, runtime coordination, storage/durability, security isolation, configuration realization and executable test entry points. These remain PENDING_DESIGN; no implementation mechanism is selected by this PRD r2 update.
 
 ## 5. Changes and unresolved decisions
 | ID / date | Change or question and source | Affected spec/plan/work/IF references | Dependent work and evidence to invalidate | Executor / resolution condition |
 | --- | --- | --- | --- | --- |
-| M1-015-Q01 / 2026-10-01 | Architecture is supplied in [the current design](../../../../architecture/build-package/README.md); exact schema, model-bound execution, source paths, provenance binding and classifier integration are PENDING_DESIGN. | All blocks/checks and M1-IF-015 | Only affected bindings/implementation/checks; any changed source/IF invalidates affected rows and downstream evidence | UNASSIGNED; Register architecture and bind implementation/fixture details; preserve source-defined artifact meanings. |
-| M1-015-Q02 / 2026-10-01 | PARTIALLY RESOLVED: current PRD §3.5.4 defines between-boundary INCONCLUSIVE unless another permitted classification was preregistered; additional conditional criteria remain source-dependent and cannot be added post-execution. Scientific and infrastructure verdicts remain distinct. | AC-005/V05, B03, M1-IF-015 classification semantics | Only affected bindings/implementation/checks; any changed source/IF invalidates affected rows and downstream evidence | UNASSIGNED; Bind run-specific boundaries and any conditional rubric before execution; prepare PASS/FAIL/default between-boundary INCONCLUSIVE/read-only cases independently. |
-| PRD-R2 / 2026-10-02 | §3.5.4 with §3.8.4/§3.8.5. Supplies default between-boundary INCONCLUSIVE; additional conditional criteria remain pending source. | AC-004, AC-005; native plan/tasks correspondence; M1-IF-015@r0 | Invalidate affected earlier evidence if any; current candidate NOT_BUILT and runtime NOT_RUN. | UNASSIGNED; complete Implementation-dependent definitions before affected implementation. |
+| M1-015-Q01 / 2026-10-01 | Architecture is PENDING_SOURCE; exact schema, model-bound execution, source paths, provenance binding and classifier integration are PENDING_DESIGN. | All blocks/checks and M1-IF-015 | Only affected bindings/implementation/checks; any changed source/IF invalidates affected rows and downstream evidence | UNASSIGNED; Register architecture and bind implementation/fixture details; preserve source-defined artifact meanings. |
+| M1-015-Q02 / 2026-10-01 | PARTIALLY RESOLVED: PRD r2 §3.5.4 defines between-boundary INCONCLUSIVE unless another permitted classification was preregistered; additional conditional criteria remain source-dependent and cannot be added post-execution. Scientific and infrastructure verdicts remain distinct. | AC-005/V05, B03, M1-IF-015 classification semantics | Only affected bindings/implementation/checks; any changed source/IF invalidates affected rows and downstream evidence | UNASSIGNED; Bind run-specific boundaries and any conditional rubric before execution; prepare PASS/FAIL/default between-boundary INCONCLUSIVE/read-only cases independently. |
+| PRD-R2 / 2026-10-02 | §3.5.4 with §3.8.4/§3.8.5. Supplies default between-boundary INCONCLUSIVE; additional conditional criteria remain pending source. | AC-004, AC-005; native plan/tasks correspondence; M1-IF-015@r0 | Invalidate affected earlier evidence if any; current candidate NOT_BUILT and runtime NOT_RUN. | UNASSIGNED; complete Architecture-dependent definitions before affected implementation. |
 
 Progress belongs in native tasks.md. Register material source/IF changes in the parent allocation/index and affected native artifacts; there is currently no runtime evidence to invalidate.
