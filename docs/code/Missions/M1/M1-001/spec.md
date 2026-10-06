@@ -1,11 +1,14 @@
 # Feature Specification: M1-001 - Connect JiuwenSwarm to Codex
+
+**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
+
 **TASK**: [M1-001](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r2 / 2026-10-02
+**Revision / date**: r3 / 2026-10-06
 **Language update**: 2026-10-05. Easier English; the requirements and IDs stay the same.
 **Feature Branch**: ai4r_xiaoyang. This is the existing branch. No new task branch has been made.
-**Input**: [PRD r2](../sources/PRD-Full.r2.txt), §3.0, §3.0.1, §3.0.2; use the model-call rules from §4.3.3; follow the work order in §6.3. The whole-project rules in §1.3–§1.6 and §2.1–§2.12 also apply. Architecture: PENDING_SOURCE, which means the design source has not been supplied yet.
-**Status**: Preparing. The required behavior is written below. Some code design details still need the architecture. The software has not been tested in this document update.
+**Input**: [current PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt), §3.0, §3.0.1, §3.0.2; use the model-call rules from §4.3.3; follow the work order in §6.3. The whole-project rules in §1.3–§1.6 and §2.1–§2.12 also apply. Architecture: [current design](../../../../architecture/build-package/README.md); detailed realization belongs to the coding agent, which means the design source has not been supplied yet.
+**Status**: Preparing. The required behavior is written below. Detailed realization belongs to the coding agent. The software has not been tested in this document update.
 
 ## What this file is for
 
@@ -34,7 +37,7 @@ The work is to inspect and improve the existing connection code, keep the curren
 **Acceptance Scenarios**:
 1. Given valid inputs and working services, when JiuwenSwarm asks Codex for an answer within the allowed limits, then the answer and saved results meet the normal success conditions below.
 2. Given a relevant bad input, old input, missing service, or input that exceeds an allowed limit, when the code handles it, then it reports the failure required by the PRD. It must not allow later steps to do something the rules forbid.
-3. Given a feature that is outside Phase 1 or belongs only to a separate Phase 2 test, when checking the Phase 1 setup, then that feature has not been turned on as part of the normal Phase 1 run.
+3. Given a feature that is outside Phase 1 or belongs only to a separate Phase 3 test, when checking the Phase 1 setup, then that feature has not been turned on as part of the normal Phase 1 run.
 
 ### Edge Cases
 
@@ -129,7 +132,7 @@ Phase 1 uses only the active Codex CLI connection, including for the Reviewer ag
 
 Find the existing connection code, the code that calls it, and its tests before deciding what to change. The architecture must define the request and reply conversion, the local connection method, how session secrets are created and removed, how timeout and cancellation work, and where failure records are written. The Codex account has not been tested yet.
 
-Architecture is PENDING_SOURCE. This holds up work that needs its design details. It does not stop work that can be prepared from the PRD alone. The full PRD sections and their exclusions still apply.
+Architecture is supplied in [the current design](../../../../architecture/build-package/README.md). This holds up work that needs its design details. It does not stop work that can be prepared from the PRD alone. The full PRD sections and their exclusions still apply.
 
 **Whole-system task**:
 

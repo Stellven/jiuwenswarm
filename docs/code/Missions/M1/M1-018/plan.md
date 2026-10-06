@@ -1,7 +1,10 @@
 # Implementation Plan: M1-018 - Required offline capsule improvement and security validation
+
+**Current baseline (2026-10-06):** [Latest verbatim PRD](../../../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt) and [architecture decisions D1–D15](../../../../architecture/build-package/principles.md#decisions-and-source-amendments) apply to this task. Preserve existing AC/IF/work IDs; coding agents choose detailed schemas, APIs, code paths and checks in the native records. Delivery Phase 1 is the research baseline, Phase 2 is required offline RSI, and Phase 3 is expected dynamic integration: attempt available capabilities and record BLOCKED/INCOMPLETE dependencies; core-demo success does not complete all M1 work. Account identity/profile lifetime is distinct from local execution/workspace lifetime. Runtime evidence remains NOT_RUN.
+
 **TASK**: [M1-018](TASK.md) | **Spec**: [r2](spec.md)
-**Revision / date**: r2 / 2026-10-02 | **Branch**: ai4r_xiaoyang (documents only)
-**Input sources**: PRD-Full.r2, §4.4 introduction/§§4.4.1–4.4.10, §§2.11–2.12, 4.1.4–4.1.5, 6.11; applicable §§1.3–1.6/global §§1–2; consumed §§5.2.1/5.4.3. Architecture PENDING_SOURCE; agreements preliminary r0.
+**Revision / date**: r3 / 2026-10-06 | **Branch**: ai4r_xiaoyang (documents only)
+**Input sources**: Current PRD, §4.4 introduction/§§4.4.1–4.4.10, §§2.11–2.12, 4.1.4–4.1.5, 6.11; applicable §§1.3–1.6/global §§1–2; consumed §§5.2.1/5.4.3. Architecture: [current design](../../../../architecture/build-package/README.md); detailed realization belongs to the coding agent; agreements preliminary r0.
 
 Source-backed behavior/verification scaffold. Architecture realization is unfilled; prepared work items do not authorize implementation or runtime execution.
 
@@ -14,7 +17,7 @@ A fixed target-independent offline loop and declared profiles propose/evaluate t
 - Models/runtime: approved declared route/relevant runtime same across paired evaluations (§4.4.7), available identity metadata retained; no invented training/model configuration. Target 2 availability Q05.
 - Command entry points/workspace: repository D:/research/ai_for_research/jiuwenswarm; runtime/check paths/commands PENDING_DESIGN. No generator/model/application command run.
 - Performance/quality/resource policies: [spec AC-002, AC-005, AC-008, AC-009](spec.md). Approved scoring/minimum fixtures/headroom/cap/terminal point PENDING_SOURCE (Q04); no r1 defaults.
-- Capture r2: 200082 bytes, SHA256 44928035205BDEBAE205D2B458BD438C2C6E0103E4EB2D834C6A93E1CFA37294.
+- Capture r2: 232489 bytes, SHA256 6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839.
 
 ## Constitution Check
 TASKS allocation -> TASK scope/preliminary IF -> spec ACs -> plan blocks/check intent -> tasks unchecked work/NOT_RUN evidence. All ACs mapped; Target 2 conditional. No parallel cards/reviewer gate. Product-required human clearance/activation is runtime behavior, not a document approval gate. Architecture realization remains pending.
@@ -45,7 +48,7 @@ B01/B02/B07 definition and independent fixture work can proceed separately. Requ
 - Schemas/data model/storage, API/IPC, accounts/ownership/privileges/key custody/launcher/network, configuration precedence/runtime objects, refusal/error enums/retry/idempotency/cancellation/atomic write/recovery mechanics PENDING_DESIGN. Source-required halt/evidence/isolation/inactive candidate/rollback semantics remain specified.
 - Core/profile separation is a product invariant, not a chosen class/module/file format. Representation/location PENDING_DESIGN.
 - Policy values PENDING_SOURCE (Q04); no former constants or required training-export filename.
-- Architecture owns technical choices (§1.6); product behavior changes require explicit source decision.
+- The coding agent defines technical choices (§1.6); product behavior changes require explicit source decision.
 - Actual comparison evidence records parent/child/core/profile/model/runtime/source/referee/fixture identities, declared policy and available seeds/repetitions/raw observations. Different runtime/model or protected leakage cannot be labelled comparable improvement.
 
 ## Verification Design
@@ -71,7 +74,7 @@ Independent fixtures/expected outcomes fixed before runs. No required security c
 [M1-SYSTEM](../M1-SYSTEM/TASK.md) owns full candidate/final journeys. Supply actual component/configuration/source/IF/core/profile/fixture versions and applicable evidence for required Target 1, independent referee/contract, protected bounded evaluation, intentional violations, halt/clearance, reconciliation and human adoption/rollback. Track 2 is required for closure and separate from live Phase 1. Record conditional Target 2 execution/deferral. No runtime candidate built.
 
 ## Unresolved Decisions and Impact
-- Q01: Architecture PENDING_SOURCE; implementation/check entry points PENDING_DESIGN, constraining affected work only.
+- Q01: Architecture: [current design](../../../../architecture/build-package/README.md); detailed realization belongs to the coding agent; implementation/check entry points PENDING_DESIGN, constraining affected work only.
 - Q04: Approved scoring/minimum seeds/headroom/cap/terminal policy PENDING_SOURCE; no former defaults; dependent acceptance cannot pass.
 - Q05: Actual headless availability determines conditional text execution or non-blocking M2 deferral.
 - Q06: Retained Oracle/POSIX/startup provisions reconciled with rewritten §4.4.9; no invented mechanism or silently removed constraint.

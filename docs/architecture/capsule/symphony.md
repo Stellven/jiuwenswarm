@@ -1,6 +1,6 @@
 # Superseded architecture entry
 
-Read [the current design](../contracts-and-native-reuse.md). This compatibility entry preserves incoming links; its earlier requirements are historical and do not govern implementation.
+Read [the current design](../build-package/contracts-and-native-reuse.md). This compatibility entry preserves incoming links; its earlier requirements are historical and do not govern implementation.
 
 ## Symphony and CC
 

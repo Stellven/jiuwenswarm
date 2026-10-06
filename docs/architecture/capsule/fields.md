@@ -1,6 +1,6 @@
 # Superseded architecture entry
 
-Read [the current design](declaration.md). This compatibility entry preserves incoming links; its earlier requirements are historical and do not govern implementation.
+Read [the current design](../build-package/capsule/declaration.md). This compatibility entry preserves incoming links; its earlier requirements are historical and do not govern implementation.
 
 ## Declaration · `cc.declaration.v1`
 

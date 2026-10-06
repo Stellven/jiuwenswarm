@@ -1,6 +1,6 @@
 # Superseded architecture entry
 
-Read [the current design](../offline-rsi.md). This compatibility entry preserves incoming links; its earlier requirements are historical and do not govern implementation.
+Read [the current design](../build-package/offline-rsi.md). This compatibility entry preserves incoming links; its earlier requirements are historical and do not govern implementation.
 
 ## RSI: improving and building capsules
 
