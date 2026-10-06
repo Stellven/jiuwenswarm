@@ -1,50 +1,47 @@
 # Principles and decisions
 
-## Design priorities
+## Design intent
 
-First make the research pipeline run. Then make its results trustworthy and the deployment reproducible. Reuse existing systems and keep the design reviewable. Extend it when a demonstrated need justifies the cost.
+Preserve the user's research objective. Make evidence and failure reasons inspectable. Bound agent autonomy through declared capabilities, scoped execution, independent verification, and durable gate control. Reuse native components when they satisfy those responsibilities.
 
-Principles are intended to guide judgment. The design explains the objective and boundaries; coding agents choose implementation details within them.
+The architecture should prevent an agent from omitting a critical feature while believing it followed the design. It should not prescribe private classes, temporary payload schemas, or a test catalog simply to appear complete. The three [requirement labels](README.md#intent-and-reading-boundary) distinguish current behavior, future compatibility, and research directions.
 
-## Product principles
+## Decisions and source amendments
 
-- **Preserve intent.** Compilers clarify and constrain the request rather than quietly changing its objective.
-- **The planner owns tasks.** Tasks may use as many nodes as needed within run limits. Each node invokes one CC; internal CC calls keep the parent's scope.
-- **Process in the container.** Keep the control plane and substantive workflow processing inside; outside code handles user interaction and finished transfers.
-- **Verify meaningful boundaries.** Assign checks to the risk and decision. Do not require a separate verifier after every capability or allow unchecked dependencies to pass a required gate.
-- **Freeze before planned execution.** Record the chosen graph and checking responsibilities. Make material changes visible.
-- **Keep evidence distinct from claims.** A producer's success message does not prove correctness; a model judgment does not replace measurement.
-- **A negative research result is useful.** Valid evidence can reject a hypothesis and still produce a successful delivery.
-- **Bound autonomy.** Model/tool loops and correction are limited by the assigned task and run policy. Do not hide retries or repeat consequential effects silently.
-- **Keep state durable and understandable.** Preserve accepted outputs, attempts, and failure reasons; pause interrupted execution after restart.
-- **Reuse before building.** Wrap a native feature when it fits. Build only the missing behavior and explain why.
-- **Protect authored interfaces.** CC meanings should remain stable; avoid multiplying shared schemas for private intermediates.
+The following decisions implement the authorized October 6 direction. They supersede conflicting October 5 architecture defaults and the listed frozen PRD assumptions. Received source files remain unchanged. Other PRD domain restrictions and product obligations still apply.
+
+| ID | Decision and reason | Source disposition |
+|---|---|---|
+| D1 | Select admitted CCs directly into a typed, verified, frozen graph. One execution representation is easier to inspect; defer a separate logical-operator layer. | Amend static-only planning/selection in PRD 1.3, 2.7, 2.12, 4.1.3, 4.8, 6.5. Retain the fixed graph as an evaluation reference; no live restructuring. |
+| D2 | Every work invocation has deterministic checks followed by a verifier CC and a protected gate. Pin the checking assignment; never trust producer self-certification. | Retain PRD 1.4 and 4.2. Replace the October 5 optional-verifier path. Verification assessments terminate without recursive semantic checking. |
+| D3 | Gate assessments may be CC work; protected host code owns release. Freeze referee assets against RSI. | Retain PRD 2.11, 4.1.5, 4.2.8, 4.4.5 and independent evidence custody. |
+| D4 | Default to zero automatic repair/replay and halt new dispatch after a blocking result. Failures remain evidence. | Retain PRD 1.4, 4.6.4; replace October 5 bounded-correction default. Future repair needs a separate decision. |
+| D5 | Separate accepted intent from the Research Brief. Preserve material uncertainty rather than silently inventing constraints. First build ends at intent. | Amend one-shot/default compilation assumptions in 3.2 and 4.7 where they conflict. Keep the downstream Research Brief responsibility. No interactive compiler is required by the first trial. |
+| D6 | Keep one Docker application service, Python, TypeScript, SQLite run authority, and artifact files. Distinguish application packaging from POC confinement. | Retain local security in 5.4; amend container-deferral assumptions in 4.1.4 and persistence realization in supplementary Data Foundation. |
+| D7 | Preserve the authored CC field list and meaning; let Spec Kit define serialization and active enforcement. Metadata does not promise executable support. | Retain PRD 4.1.1 contracts, pins, and mutation boundaries. Reconcile existing schema/prose version differences explicitly. |
+| D8 | Offline RSI remains a required separate M1 track. Define its interfaces before planner completion; first trial excludes its execution. | Retain PRD 1.3, 1.5, 4.4, 6.11; replace blanket RSI deferral in the October 5 architecture. |
+| D9 | Required release evidence fails closed; optional diagnostics may be unavailable. | Master PRD 1.4, 4.2, 4.5, 6.4 takes precedence over best-effort capture wording in the supplementary data source. |
+
+Task specifications must cite these amendments alongside original clauses. Do not claim unchanged PRD compliance for amended behavior. The [M1 register](../tasks/M1/TASKS.md) owns complete source disposition and coding-task allocation.
+
+## What remains required
+
+**Required now.** Retain scientific-research scope, supplied baseline and validation resources, bounded permitted academic retrieval, one selected opportunity and hypothesis, pre-registered immutable experiment criteria, restricted generated-code execution, baseline/treatment comparison, and delivery of valid negative findings. Preserve all workflow responsibilities in the [inventory](README.md#complete-capability-inventory).
+
+Complete M1 also includes attributable model calls, time/call limits, run bundles, conformance and scorecard views, exports, local security/configuration, supported native workstation surfaces, and independent offline RSI validation. The first intent pair does not waive these obligations. Alternate model routes remain isolated from the baseline; no model training, distributed deployment, external publication, or automatic candidate activation is introduced.
+
+**Required compatibility.** Preserve composite declarations, pinned dependency closure, verification coverage, lineage, and effect/lifecycle meaning. **Future direction:** fusion, interaction-screening MCTS, mid-run installation and compensation, multiple planning epochs, richer routing, and distributed execution. Do not implement these solely because a field can represent them.
 
 ## Architecture and Spec Kit
 
-Architecture owns the system intent, major components, placement, dependencies, and shared CC authoring concepts. The PRD supplies product behavior and domain requirements. Exact source clauses must accompany relevant architecture slices when given to a coding agent.
+Architecture owns intent, major responsibilities, trust boundaries, placement, critical connections, the required CC fields, and the decisions above. Spec Kit owns detailed interfaces, formats, algorithms, prompts, fixture design, development acceptance criteria, tests, and build order under the [constitution](../../.specify/memory/constitution.md).
 
-Spec Kit owns task-level specifications, detailed interfaces, algorithms, fixtures, tests, acceptance conditions, and evidence under the [existing constitution](../../.specify/memory/constitution.md). Keep those authorities; do not duplicate them here. Runtime experiment criteria belong to the research protocol and must be established before measurement, even though development acceptance procedures are delegated to Spec Kit.
+Do not confuse development acceptance criteria with runtime scientific criteria. Experimental success/falsification boundaries belong to the accepted protocol before execution; coding agents cannot revise them in response to results. Separate verifier characterization from a claim of truth or statistical independence.
 
-The system must be testable across capabilities, connected boundaries, and the integrated pipeline. Spec Kit owns concrete procedures and must respect the PRD's phase order or explain departures. Development tests alone do not establish scientific benchmark or verifier quality; those need owner-defined criteria and evidence.
+Follow [TASKS → TASK → one feature directory](../code/code_sop/SPEC_KIT_WORKFLOW.md). Cross-module agreements have one owning TASK; consumers reference it. Register exact clauses and global constraints, then let coding agents decompose work and generate spec/plan/tasks. Use project overrides and direct native commands; vendor workflow approval steps do not add gates to this coding process. Runtime research gates and human RSI activation are product requirements, not coding-review gates.
 
-## Changes from the previous design
+## Review and evidence
 
-| Previous default | Current direction and reason |
-|---|---|
-| Fixed, model-free research planner | Model-assisted composition of available CCs, with ordinary plan checking |
-| Gate/verifier after every dispatch | Applicable verification with fixed-pipeline profiles and planned DAG assignments |
-| Zero automatic correction | Bounded correction followed by rechecking; continue on acceptance, otherwise pause when unresolved; consequential effects still require care |
-| Extensive schemas and acceptance seeds | Shared CC contract explanations; detailed payloads and acceptance work owned by coding tasks |
-| RSI and model-routing design mixed into the baseline | Deferred so the first pipeline can be implemented promptly |
-| Separate host control plane and Docker worker considered | One application container, including served web UI, control plane, and background execution |
+The architecture review uses source reconciliation, an end-to-end walkthrough, Luna technical attacks, and a separate presentation attack. Findings are resolved in these pages and the register, not another implementation checklist. Supporting sources are the [historical architecture](old/README.md), [capsule source notes](old/a3aa887be/docs/architecture/prd/capability-capsule-design-notes.md), and cited research on the relevant pages.
 
-These October 5 directions supersede conflicting archived defaults. Keep PRD sources verbatim and record remaining product conflicts in owning tasks. Do not claim full M1 delivery.
-
-## Freedom and later work
-
-Agents choose internal APIs, algorithms, concurrency, private formats, and adapters. Reconcile changes to product behavior, capability meanings, verification, trust boundaries, or scope with the design and PRD.
-
-Domain owners supply rubrics and thresholds; naming settles with the PRD. Missing input constrains only affected work. Do not fabricate requirements.
-
-Defer RSI, routing, remote access, multiple workers, and expanded DevOps. Retain configuration, versions, inputs, outputs, and evidence to diagnose and reproduce runs; identical stochastic model output is not promised.
+Implementation must later produce block, connected-boundary, and integrated-system evidence. Record the actual candidate, configuration, fixtures, observed failures, unavailable measurements, and verifier limitations in native Spec Kit artifacts. Documentation checks and agent agreement establish neither runtime correctness nor scientific quality.

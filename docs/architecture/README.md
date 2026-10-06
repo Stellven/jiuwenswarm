@@ -1,118 +1,127 @@
 # AI4Research architecture
 
-Tentative design plan for review, 2026-10-05. Not implemented yet. Names are provisional until reconciled with the product requirements document (PRD).
+Architecture baseline, 2026-10-06. This describes intended behavior; runtime implementation is not established by these documents.
 
-## Design intent
+## Intent and reading boundary
 
-Run a bounded research journey: take a user's objective and baseline, find an opportunity, build a proof of concept (POC), measure it, and return evidence-backed results. The server keeps working after the browser closes.
+Turn a research objective and supplied baseline into an evidence-grounded opportunity, a falsifiable hypothesis, a bounded proof of concept (POC), measured results, and a traceable report. Keep the server working after the browser closes. Prefer existing JiuwenSwarm and OpenJiuwen components where they preserve these boundaries.
 
-Reuse JiuwenSwarm and OpenJiuwen wherever they fit. Spend development effort on capability capsules, the research workflow, and useful verification. Keep deployment reproducible and the architecture small enough for a person to review in under an hour.
+Three labels distinguish implementation obligations:
 
-Architecture defines responsibilities, connections, placement, and important authoring contracts. It also explains why they exist. A coding agent should follow that intent and exercise judgment within it. Detailed algorithms, temporary message formats, test procedures, and acceptance conditions belong to Spec Kit and the owning coding tasks.
+- **Required now:** behavior required for full M1, except where the [first build](immediate-plan.md) explicitly narrows its slice.
+- **Required compatibility:** contract meaning and extension boundaries that must survive the first implementation; runtime support may come later.
+- **Future direction:** an approach to investigate, not permission to implement or a claim that it works.
 
-## Vocabulary and naming
+Architecture fixes intent, responsibilities, placement, connections, and important decisions. The PRD supplies product behavior. Spec Kit supplies detailed APIs, serialization, algorithms, acceptance criteria, tests, and build order. The complete [CC field reference](capsule/declaration.md) is a requirement; temporary payload schemas are left to coding agents.
 
-| Term | Meaning in this design |
+| Read | Question answered |
 |---|---|
-| Run | One submitted workflow and its recorded execution |
-| Task | Planner-defined work that may use any number of nodes within run limits |
-| Coding task | Spec Kit development work; distinct from a planner's workflow task |
-| Phase | A PRD implementation milestone |
-| Stage | A recognizable step in the running pipeline |
-| Capability capsule (CC) | An authored, reusable capability definition and referenced implementation; distinct from a run's requirements contract |
-| Node | A workflow-graph entry that binds one CC invocation, inputs, and dependencies |
-| Pipeline | The complete route from intake to delivery, including fixed stages and planned nodes |
-| Fixed pipeline | Intake, intent compilation, and requirement compilation, with stable verification assignments |
-| Planned DAG | The directed acyclic graph of work and verification selected by the planner |
-| Freeze | Recording the accepted planned DAG, capability versions, and verification assignments before execution |
-| Verifier CC | A capability that checks particular results or evidence |
-| Gate | The decision to release results, request correction, or pause based on applicable checks |
-| Control plane | Inside-container infrastructure for UI communication and run lifecycle control |
-| Scheduler | Infrastructure that dispatches dependency-ready nodes |
-| CC runner | Infrastructure that invokes a capability with its bound execution context |
-| CC library | Versioned declarations and implementation references shared by planner and runner |
-| Run-state module | Internal storage interface for authoritative run progress, attempts, and accepted results |
-| Artifact | A stored input, output, log, or evidence item referenced by a run |
-| Web UI | The built TypeScript UI served by the application container; its pages execute in the user's browser |
+| This overview | What is the system and what must it contain? |
+| [Workflow](workflow.md) | How does planning become execution? |
+| [Capsules and verification](capsules.md) | How are results assessed and released? |
+| [Placement and reuse](placement.md) | What runs where and what is reused? |
+| [Principles and decisions](principles.md) | Why these choices, and which PRD assumptions changed? |
+| [First build](immediate-plan.md) | What is the first connected implementation? |
+| [Declaration](capsule/declaration.md) / [authoring](capsule/authoring.md) | Which fields must survive, and how is a CC published? |
 
-Use these terms consistently. A node invokes a CC; its node identifier is distinct from the reusable capability identifier. Use descriptive stage names such as "Intent compiler CC" and "Scientific evaluation CC" across diagrams and prose. Final machine identifiers will be reconciled with the PRD before release; do not reuse old B/V identifiers as new task IDs.
+The core reading target is approximately 6,000 prose words. Historical details are supporting sources, not another required specification.
 
-Diagram colors have one meaning throughout: blue for CC work, purple for verification, amber for infrastructure, green for data/artifacts, and gray for outside components. Neutral group borders identify a container, task, or other grouping; they do not add a component type. Each diagram includes a legend. Solid arrows show the main handoff or communication; dotted arrows show supporting relationships or labeled exception paths. Labels retain the meaning for readers who cannot distinguish colors.
+## Glossary
 
-## Read this set
-
-| Page | Question it answers |
+| Term | Meaning |
 |---|---|
-| This overview | What are we building, and why? |
-| [Immediate plan](immediate-plan.md) | What small slice should we give a coding agent first? |
-| [Workflow](workflow.md) | What runs, in what order, and what happens on failure? |
-| [Placement and reuse](placement.md) | What runs where, what stores data, and what do we reuse? |
-| [Capsules and verification](capsules.md) | What is a node, how do agents run, and where do checks belong? |
-| [Principles and decisions](principles.md) | What must be preserved, and what can implementers decide? |
-
-Capsule authors also have two short references: [declaration](capsule/declaration.md) and [authoring](capsule/authoring.md). They explain the shared CC authoring interface rather than every stage's payload. The reading goal is under an hour; clarity determines the length, not a hard word count.
+| CC | Reusable capability declaration and referenced implementation |
+| Node | One CC invocation with bound inputs and dependencies |
+| Task | Logical objective grouping one or more nodes; distinct from a coding TASK |
+| Run | One request and its recorded workflow execution |
+| Stage | Recognizable responsibility in the research journey |
+| Freeze | Durable acceptance of a graph, version pins, verification assignments, policy, and limits |
+| Verifier CC | Read-only assessment of a declared question using supplied evidence |
+| Gate | Protected decision that releases a result or blocks advancement |
+| Library | Admitted declarations and implementations, version history, and active-version references |
+| Artifact | Stored input, output, or evidence with attributable identity |
+| Declaration | Authored capability contract; distinct from its code and a particular invocation |
+| Admission | Recorded eligibility of an immutable version for supported use |
+| Activation | Human-controlled selection of an admitted version for future runs |
+| Suspension | Revocation of eligibility to start or release affected work; no automatic replacement |
+| Evidence | Attributable observations and artifacts supporting a check or conclusion |
+| Assessment | Verifier findings and reasons; distinct from the authoritative gate decision |
+| Research Brief | Accepted research requirements consumed by planning; more complete than intermediate intent |
+| Protocol | Pre-registered experimental procedure and scientific decision criteria |
+| Composite CC | Capability with pinned member CCs, internal DAG, and boundary wiring |
+| RSI | Offline recursive self-improvement of explicitly eligible implementation parts |
+| TASK / TASKS | Coding-task entry point / program source and allocation register |
+| Spec Kit feature | One TASK's native spec, plan, work list, and implementation evidence |
 
 ## System picture
 
+**Required now.** These are logical modules within one application deployment, not independent network services.
+
 ```mermaid
 flowchart TB
-    Browser[Browser: renders the served web UI]
-    subgraph Container[One JiuwenSwarm application container]
-        Web[Web UI assets and web server]
-        CP[Control plane: UI communication and run control]
-        Runtime[Scheduler, CC runner, gate mechanism]
+    Browser[Browser]
+    subgraph App[One application container]
+        UI[Existing web UI and control plane]
+        Prep[Intent and requirement CCs with verification]
+        Plan[Planner CC]
+        Freeze[Plan verification and freeze]
+        Runtime[Scheduler and CC runner]
+        Work[Research CC nodes]
+        Verify[Verifier CCs: assessments]
+        Gate[Protected gate host: release or halt]
         Library[(Versioned CC library)]
-        StateModule[Shared run-state module]
-        subgraph Pipeline[Workflow execution]
-            Fixed[Fixed pipeline: intake, intent, requirements]
-            Planner[Planner CC: define tasks and nodes]
-            Freeze[Check and freeze the planned DAG]
-            DAG[Planned CC nodes before delivery: work and verification]
-            Delivery[Terminal planned Delivery CC: prepare final artifacts]
-            Fixed --> Planner --> Freeze --> DAG --> Delivery
-        end
-        Web <--> CP
-        CP <-->|Start, pause, progress, finished results| Pipeline
-        Runtime -.->|Execute and release| Pipeline
-        Library -.->|Available capabilities| Planner
-        Library -.->|Resolve selected CCs| Runtime
-        CP <--> StateModule
-        Runtime <--> StateModule
+        State[Authoritative run-state module]
+        UI --> Prep --> Plan --> Freeze --> Runtime --> Work
+        Work --> Verify --> Gate
+        Gate -->|Accepted results and readiness| Runtime
+        Library -.->|Eligible declarations| Plan
+        Library -.->|Pinned implementations| Runtime
+        Runtime --> State
+        Verify --> State
+        Gate --> State
+        UI <--> State
     end
-    Browser <-->|Published web endpoint| Web
-    StateModule <--> Data[(Persistent run state and artifacts)]
+    Browser <-->|Local authenticated endpoint| UI
+    State <--> Data[(Persistent state and artifacts)]
     subgraph Legend[Legend]
-        LKey["Blue: CC work<br/>Amber: infrastructure<br/>Green: data / artifacts<br/>Gray: outside components"]
+        Key[Blue: CC work; purple: verification; amber: infrastructure; green: data; gray: outside]
     end
-    Data ~~~ Legend
     classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
+    classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
     classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
     classDef outside fill:#F1F5F9,stroke:#475569,color:#0F172A
-    class Fixed,Planner,DAG,Delivery work
-    class Web,CP,Freeze,Runtime,StateModule control
+    class Prep,Plan,Work work
+    class Verify verify
+    class UI,Freeze,Runtime,State,Gate control
     class Library,Data data
     class Browser outside
-    style Container fill:#F8FAFC,stroke:#64748B
-    style Pipeline fill:#FFFFFF,stroke:#94A3B8
-    style Legend fill:#F8FAFC,stroke:#94A3B8
-    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
 ```
 
-This overview groups work and verification into larger boxes; the workflow page shows individual nodes and checks. Delivery is the terminal part of the planned DAG, drawn separately to show the endpoint. Model-provider connections appear in the placement diagram. Infrastructure is not a node. Intake and final transfer may be ordinary boundary handling; scheduled processing uses a CC.
+Every work CC, including the planner and delivery, has verification. The diagram groups preparation and plan checking; it does not authorize the planner to freeze its own proposal. The runtime loop shows dispatch control, not a cycle in the frozen task DAG. The control plane exposes only gate-released results. [Placement](placement.md) shows model access and generated-code isolation.
 
-The container serves the web UI through one published endpoint. The browser renders it; the control plane connects it to execution. Substantive processing stays inside, mostly in nodes. No separate host UI server is needed.
+## Complete capability inventory
 
-## First working journey
+**Required now.** Retain each responsibility below even when a coding agent combines private helpers. Each work capability needs semantic verification suited to its output, alongside deterministic checks.
 
-The first journey covers intake, intent, requirements, search, screening, hypothesis, POC construction, benchmarking, evaluation, and delivery. The planner defines tasks and as many CC nodes as needed within scope and run limits. Tasks, stages, and nodes need not map one-to-one.
+| Capability | Responsibility and downstream result |
+|---|---|
+| Intent compiler | Preserve the requested objective, scope, constraints, and unresolved information |
+| Requirement compiler | Form the accepted Research Brief used for planning |
+| Planner | Propose bounded tasks, CC selections, connections, and verification assignments |
+| Search and ideation | Retrieve permitted evidence and produce cited candidate ideas |
+| Screening | Score and select one feasible opportunity; retain the pure ranking helper needed by offline RSI |
+| Hypothesis | Establish the claim, baseline, data, measurement, and frozen experimental protocol |
+| POC builder | Construct and package the bounded intervention and benchmark harness |
+| Benchmark | Execute baseline then treatment under that protocol and capture measurements |
+| Scientific evaluation | Apply the pre-registered criteria to accepted measurement evidence |
+| Delivery | Produce the report, supporting artifacts, and disclosed limitations |
+| Verifier CCs | Assess intent, requirements, plan coverage, grounding, feasibility, protocol, build, measurements, evaluation, and delivery through pinned profiles |
 
-Use Python, the existing TypeScript UI, SQLite, and artifact files in one local application container. A remote workstation can later run the application with suitable access and resources.
+Intake transport, simple input qualification, scheduling, integrity checks, gate application, and final transfer are infrastructure. Scheduled substantive intake transformations use CCs. Offline RSI is a separate required M1 path described in [placement](placement.md#offline-rsi); it is not a research DAG stage.
 
-RSI, model routing, distributed workers, autoscaling, and expanded DevOps design are later stages. A configured model endpoint is sufficient now. The wider PRD remains a source, but this first implementation does not claim its entire M1 scope.
+## Sources and handoff
 
-## Sources and history
+The [frozen master PRD](../product/prd-m1-full-2026-10-02.txt) remains verbatim. [Decisions](principles.md#decisions-and-source-amendments) record authorized changes rather than silently treating the October 5 draft as PRD compliance. [Old snapshots](old/README.md) retain detailed rationale and prior approaches. The [M1 register](../tasks/M1/TASKS.md) owns source versions and allocation.
 
-Read the relevant [PRD clauses](../product/prd-m1-full-2026-10-02.txt) and [October 5 meeting notes](../product/meeting-notes-2026-10-05.txt). Preserve owner sources verbatim. Later user decisions are summarized in [principles](principles.md#changes-from-the-previous-design).
-
-The former library is [archived background](../archive/README.md), not an active specification. Earlier commit snapshots and a guide to their most important pages are under [old](old/README.md). Follow the [Spec Kit workflow](../code/code_sop/SPEC_KIT_WORKFLOW.md) and [coding constitution](../../.specify/memory/constitution.md).
+Give coding agents exact clauses and the relevant architecture pages through [TASKS → TASK → Spec Kit](../code/code_sop/SPEC_KIT_WORKFLOW.md). The first intent pair is a limited trial. Complete M1 also requires CLI/headless execution, native web UI and TUI, installation/startup diagnostics, local terminal sessions, security/configuration (PRD 5.1–5.6), evidence exports, and offline RSI validation.

@@ -1,49 +1,40 @@
-# CC declaration: the shared authoring format
+# Capability capsule declaration
 
-## Intent and status
+## Purpose and authority
 
-Describe one capability once for use in many nodes. Runner changes should not require reauthoring capsules. This conceptual authoring interface precedes a released machine-readable format.
+A capability capsule (CC) is a reusable declaration for a capability and the implementation that performs it. It does not describe a particular task or invocation. Run objectives, node bindings, verifier assignments, permissions, and runtime policy belong to the requirement contract, frozen graph, and run records.
 
-Retain the previous declaration's useful group names. Its archived JSON schema includes deferred mechanisms and is not active. The owning CC task publishes a versioned format following these boundaries.
+The inventory combines every field in `tundle/code/capsule-openjiuwen/merged/capsule.schema.json` (SHA-256 `2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd`) and every authored field in the v2.10b semantic description. The machine schema's requiredness is separate from product requirements: its only top-level required fields are `schema_version` and `identity`, and `identity` requires `name` and `kind`. Within present objects, required keys are carrier `ref`/`sha256`, body `path`/`sha256`, remote `endpoint`/`version`, port `name`, external dependency `ref`, predicate `check`, effect `scope`, check `id`/`kind`, member `role`/`decl_hash`, structure edge `source`/`target`, and wire `from`/`to`.
 
-## What an author declares
+The status labels describe product intent, not JSON requiredness: **Required now** is an M1 behavior; **Required compatibility** is a contract or extension boundary that declarations must preserve; **Future direction** is a research idea with no implied runtime support. Fields are optional when they do not apply, unless the M1 profile requires them.
 
-| Group | Meaning to preserve |
-|---|---|
-| `schema_version` | Which released authoring format the declaration uses |
-| `identity` | Stable capability identity, version, provenance, execution form, and implementation reference |
-| `summary` | What the capability does, in plain language, independently of a particular workflow |
-| `ports` | Named inputs and outputs, their meaning, and references to their data contracts |
-| `needs` | Preconditions, dependencies, tools, packages, resources, and requested access |
-| `changes` | What state or resources the capability may modify, and whether repetition is safe |
-| `guarantees` | Promises callers may rely on, with checking hooks where useful |
+## Complete field inventory
 
-Distinguish known-code tools from model/skill-backed capabilities using the existing harness. Implementation references identify actual code or skills; runs record exact versions. Compute hashes and other bookkeeping rather than making authors fill them in.
+| Group and field names | Meaning and applicability | M1 status |
+|---|---|---|
+| `schema_version`; `identity.name`, `identity.version_label`, `identity.kind` | Schema identity; stable capability name; human/importer version label; implementation kind. Machine kinds include tools, skills, MCP/A2A, agent forms, prompt sections, bundles, and composites. | **Required now:** schema version, name, kind. **Required compatibility:** version label. |
+| `identity.carrier.{ref,sha256}`; `identity.body[] {path,sha256}`; `identity.remote.{endpoint,version,interface_version_range}` | A leaf points to code and pins its hash. Body entries pin files. Remote identity pins endpoint and version, with an optional interface range; remote metadata is not evidence. A composite uses `members`, not `carrier`. | **Required now** for implementation identity and hash checking; remote fields apply only to remote CCs. |
+| `identity.summary`; `identity.load_mode`; `identity.overlays[] {kind,ref,sha256,source}` | Task-independent selection description, at most 400 characters in the companion; when/how it is loaded; additional experience/guidance/package layers, each with source and content hash. | **Required now:** summary for planner selection. **Required compatibility:** load mode. **Future direction:** overlays until format and reader are reconciled. |
+| `identity.lineage.{parent,co_parents,relation,builder,build_trigger,context_capsules,diagnosis_inputs,builder_ref,provenance}`; `provenance.{generating_model,prompt_ref,trajectory_ref}` | Parent/co-parent hashes; relationship; builder and trigger; builder context and diagnosis inputs; builder record reference; model, prompt, and trajectory provenance. | **Required now for RSI:** parent, relation, builder, build trigger, and candidate provenance. Other lineage fields are **Required compatibility**. |
+| `ports.inputs[] {name,artifact_type,required,schema_ref}`; `ports.outputs[] {name,artifact_type,schema_ref,check_id}`; machine `type`, `description`, `required`, output `check` | Declared typed data boundary and schema reference; output check ID connects the port to a check. | **Required now** for typed producer/consumer binding and output checks. |
+| `needs.when[] {id,check.{path,operator,value},state_source,evaluable_at,max_age_s,on_unknown,on_unavailable,parity_check}`; machine `check,path,op,value,evaluable_at,on_unknown,description` | Preconditions; source and freshness of state; when it can be evaluated; unknown/unavailable handling; parity check ensures planning and dispatch evaluation agree. | **Required now** when preconditions apply; empty must be justified. Unknown state never silently passes. |
+| `needs.external[] {kind,pin,floating.{purpose,role,contracts[]}}`; machine fields `needs.external[].ref`, `.decl_hash`, `.pinned`, `.unpinned_purpose` | Dependencies may be packages, data, models, services, capsules, or secrets. Pin by `sha256`, `{provider,model_id,version}`, `{endpoint,version}`, or capsule hash; floating dependencies state purpose and role and may name contracts. | **Required now** for dependency/effect boundaries. |
+| `needs.network`; `needs.resources[] {resource_key,mode}`; `needs.injects[] {service_key,interface_version_range}`; prose `needs.model.{tool_calling,min_context,modalities}`; machine `needs.model.{min_context,families,excludes}` | Network is none, allowlist, or open. Resource mode is read/write/exclusive. Injects identify needed services. Model fields constrain a route; they never select one. | **Required now:** network boundary and applicable resources. **Required compatibility:** typed pins and inject/interface requirements. Model constraints are optional. |
+| `changes.effect_class`; prose `changes.effects[] {id,resource_key,op,scope,idempotent,reversibility,undo,risk.{severity,blast_radius,irreversibility},assurance}`; machine fields `changes.effects[].scope`, `.resource_key`, `.idempotent`, `.reversibility`, `.undo` | Overall effect class; per-effect operation, scope, repeat safety, undo/reversibility, risk, and assurance. | **Required now** for effects and repeat-safety. **Required compatibility:** preserve full effect semantics where machine shape differs. |
+| `changes.provides[] {service_key,interface_version,commutative}`; `changes.invariants[] {id,statement,check_id}`; machine string arrays | Services a CC provides and invariants it claims, with the check for each invariant. | **Required compatibility** when a CC provides a service or claims an invariant. |
+| `guarantees.checks[] {id,kind,target,runner.{ref,sha256},anchor,over,author,written_before_body,held_out,signal_source,owner,assurance}`; machine `guarantees.checks[].{id,kind,target,runner,runner_hash,anchor,over,author,written_before_body,held_out,signal_source,owner,assurance}`; `guarantees.acceptance`; `guarantees.evals[] {suite_ref,sha256,metric,threshold,held_out}`; `guarantees.unanchored` | Check identity, question, runner, evidence anchor/scope, authorship, independence, signal source, and strength; admission check IDs; evaluation suite/metric/threshold; output claims no check covers. | **Required now:** applicable declaration checks and explicit output coverage. Invocation criteria are assigned separately by protected configuration or frozen graph. |
+| `guarantees.quality.{criterion,judge,target_rate,window,min_observations}`; `guarantees.exempt {reason:generalist}`; machine boolean `exempt` | Quality rate over a window and its sample minimum; generalist exemption from library checks, never run gates. | **Required compatibility:** quality below minimum is unmeasured. Exemption remains policy-controlled, never author-granted. |
+| `budget.per_call.{tokens,wall_s,cost,tool_calls,iterations}`; `budget.enforcement.{dimension:hard|between_calls|post_hoc}`; `budget.on_exhaust {fail|return_partial}`; machine `budget.{tokens,time_s,money,concurrency}`; computed `context_cost_tokens` | Resource ceilings, enforcement mode, exhaustion behavior, and context-size estimate. | **Required now** for applicable invocation limits and runner enforcement. **Required compatibility:** retain distinct dimensions and do not claim unavailable measurements. |
+| `members[] {role,decl_hash}`; `structure.{type,direction,nodes,edges[],loop_guards}`; `wiring[] {from,to}` | Composite members are hash-pinned and named by role. Structure orders the internal DAG; `structure.edges[] {source,target,relation}` identify source, target, and optional relation; loop guards constrain loops. Wiring connects member ports and the composite's own inputs/outputs. Members may repeat by role; nested composites are allowed. | **Required compatibility** for composites. Internal members, effects, and required checks remain traceable. |
+| `evolution.frozen[]`; `evolution.notes_for_builder[]` | Frozen contract paths define what a capsule promises not to change; notes are advisory only and never evidence. The allowlist covers ports, needs, changes/effects, guarantees/checks, and budget. | **Required now for RSI:** server-enforced target allowlist and frozen contract, including the transitive protected dependency closure. Notes remain advisory. |
+| `coverage.undeclared_notes[]` | Deliberate omissions and their reasons. | **Future direction** until its reader and policy are defined. |
 
-Ports establish shared input/output meanings and reference task-owned data formats. Explain stable public interfaces; let the owning agents define temporary formats between private steps. Do not embed every schema in the declaration.
+The schema and semantic description differ in requiredness, several nested shapes, and enum values. Examples include summary/load mode, port type/check names, predicate structure, verifier check representation, and budget representation. Machine network values describe direction (`none/egress/ingress/both`); the companion describes authorization (`none/allowlist/open`). Neither alone establishes confinement. Machine resources/injects are string arrays where the companion uses structured objects. Machine effect classes include `read_only`; preserve its read-only meaning when reconciling the companion classes. Preserve all concepts above; the capsule Spec Kit task chooses a versioned serialization and migration rule. Computed `decl_hash`, `contract_hash`, flags (`exposure`, `parallel_safe`, `stateless`, `idempotent`), and composite-derived needs/effects are records or derived values, not author-entered fields. The schema rejects unknown properties even though the companion describes forward-compatible minor versions; resolve that mismatch in the machine-format task.
 
-Needs include dependencies on internally called CCs. Those calls use the CC runner within the parent's scope. Run policy grants access and limits; declarations cannot grant permission. Changes make effects explicit so orchestration can judge whether correction or resumption may safely repeat them.
+## Runtime verification and RSI boundary
 
-Guarantees describe the capability's responsibility. A checking hook does not imply a separate verifier CC must run after every invocation. Distinguish checks useful when developing a capsule from checks required for a live result. Verification selection for an invocation belongs to fixed-stage configuration or the frozen plan.
+Every M1 work-node invocation is followed by its assigned verifier gate. Deterministic checks run first; the verifier receives immutable evidence and protected criteria and returns an assessment. The gate host alone records the verdict and releases successors. No verifier can edit its producer's output, choose its own criteria, or release work; there is no verifier-of-verifier chain.
 
-## What belongs elsewhere
+Declarations never grant permission. The runner enforces access, budgets, and effects. RSI mutation authority is enforced server-side against an explicit target allowlist; gates, verifiers, check runners, their policies, hidden evaluation controls, security/resource boundaries, and their transitive behavioral dependencies are protected. `evolution.frozen` records the contract promise but is not the enforcement boundary. RSI candidates remain inactive until admission and explicit human activation. Runs pin exact declaration and implementation hashes.
 
-| Fact | Owner |
-|---|---|
-| This run's objective and constraints | Accepted requirements contract |
-| Node dependencies, concrete inputs, verification attachments | Fixed pipeline configuration or frozen DAG |
-| Allowed permissions, execution limits, repair policy | Run configuration and orchestration |
-| Attempt status, model calls, outputs, verification results | Runtime records |
-| Detailed acceptance conditions and test procedures | Owning Spec Kit artifacts |
-
-Keep provider credentials and model-routing policy out of declarations. Do not require RSI metadata for this stage. Do not turn the declaration into a copy of task state or the whole plan.
-
-## Example in words
-
-A POC builder takes an accepted hypothesis, baseline code, and constraints. It produces intervention artifacts using scoped tools. It may change the POC workspace, not the hypothesis. The workflow assigns verification before benchmarking.
-
-A benchmark executes baseline and treatment and produces measurement evidence. Its declaration makes repeat execution visible as an effect. A successful process exit does not prove the hypothesis.
-
-## Compatibility
-
-Keep released meanings stable. Compatible extensions should not require reauthoring; breaking changes need a version and migration. Explain unsupported declarations rather than silently reinterpreting them. The owning task decides validation and serialization and reconciles field names with the PRD before release.
+Composition pins member versions and preserves their trace and check obligations. Fusion is a future optimization that requires separate evidence that boundary behavior, effects, provenance, and required verification remain equivalent. Spatiotemporal library changes apply to future freezes; a running plan does not silently acquire new versions.

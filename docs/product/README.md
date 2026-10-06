@@ -2,7 +2,7 @@
 
 Supplementary discussion: [October 5 intern meeting notes](meeting-notes-2026-10-05.txt), written by Ramika De Silva and supplied by the user. Preserved verbatim; SHA-256 `4a82837c0fdf90248c829250ef79d49d239afbac4de2ccdf39f1d8ba69cf1fa8`. These notes are not a replacement frozen PRD. The user subsequently confirmed one CC per DAG node; that CC may call other CCs internally. The current architecture uses that convention.
 
-October 5 navigation update: the prior architecture and its reviews are archived. Read the [current architecture](../architecture/README.md) for the staged POC pipeline and subsequent user decisions. Historical source manifests retain their original paths and hashes; architecture files formerly under `docs/architecture/` now live under `docs/archive/architecture-2026-10-05/`. Owner source contents are unchanged.
+October 6 implementation entry: use the [M1 source register](../tasks/M1/TASKS.md) and [first TASK](../tasks/M1/M1-001/TASK.md) to begin the intent compiler/verifier slice through Spec Kit. The [current architecture and glossary](../architecture/README.md) describe the full system; [decisions D1–D9](../architecture/principles.md#decisions-and-source-amendments) record amendments to the frozen PRD. Historical architecture and reviews remain in `docs/archive/architecture-2026-10-05/`. Source PRDs remain verbatim.
 
 The PRD and owner contributions are gathered here as verbatim source material. The [frozen source set](SOURCE_FREEZE.md) and its [hash manifest](source-freeze-2026-10-02.json) define the active baseline. The frozen master PRD sets scope; owner files supply compatible domain detail; adopted architecture defines shared interfaces. Later owner revisions enter a proposed-change queue.
 

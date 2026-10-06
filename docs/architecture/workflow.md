@@ -1,162 +1,94 @@
-# Workflow: from intake to delivery
+# Workflow: planning and execution
 
-## Intent
+## Establish intent before planning
 
-Make the container understandable as a pipeline. The fixed pipeline establishes what the user wants. A planner then builds the work graph. Execution produces evidence and delivery returns it. Infrastructure supports that pipeline without becoming a second competing workflow. Terms are defined in the [overview vocabulary](README.md#vocabulary-and-naming).
+**Required now.** Ordinary intake binds the original request and permitted documents, project assets, and validation data to a run. Reject empty or unreadable required input. Do not fetch undeclared datasets, clone arbitrary repositories, or turn missing evidence into observed facts.
 
-## Fixed pipeline and planned work
+Run the Intent compiler and its verifier, then the Requirement compiler and its verifier. The accepted Research Brief states objectives, scope, constraints, deliverables, and evidence obligations. Preserve ambiguity; a material unresolved requirement blocks readiness. Detailed fields and conservative defaults belong to the owning Spec Kit task. These fixed verification assignments cannot be removed by the planner.
 
 ```mermaid
 flowchart TB
-    Intake[Intake: objective, baseline, materials]
-    Intent[Intent compiler CC]
-    IntentCheck[Intent verifier CC: fixed assignment]
-    IntentGate[Intent gate]
-    Requirements[Requirement compiler CC]
-    RequirementCheck[Requirement verifier CC: fixed assignment]
-    RequirementGate[Requirement gate]
-    Contract[Accepted requirements contract]
-    Planner[Planner CC: tasks and nodes]
-    Freeze[Check and freeze the planned DAG]
-    Run[Planned CC nodes before delivery: work and verification]
-    Finish[Terminal planned Delivery CC: prepare final artifacts]
-    Out[Control plane: return finished output]
-    Intake --> Intent --> IntentCheck --> IntentGate --> Requirements
-    Requirements --> RequirementCheck --> RequirementGate --> Contract --> Planner --> Freeze --> Run
-    FinalGate[Delivery gate: applicable checks accepted]
-    Run --> Finish --> FinalGate --> Out
-    IntentGate -.->|Need clarification or correction| Repair[Record reason: correction or pause]
-    RequirementGate -.->|Need clarification or correction| Repair
-    Freeze -.->|Invalid plan| Repair
-    Run -.->|Execution or verification failure| Repair
-    Finish -.->|Invalid delivery| Repair
-    FinalGate -.->|Failed required check| Repair
+    Intake[Intake] --> Intent[Intent compiler CC]
+    Intent --> IV[Intent verifier and gate]
+    IV --> Req[Requirement compiler CC]
+    Req --> RV[Requirement verifier and gate]
+    RV --> Plan[Planner CC]
+    Plan --> PV[Plan verifier and gate]
+    PV --> Freeze[Freeze accepted graph]
+    Freeze --> Run[Execute research DAG]
+    Run --> Out[Expose verified delivery]
     subgraph Legend[Legend]
-        LKey["Blue: CC work<br/>Purple: verification<br/>Amber: infrastructure<br/>Green: data / artifacts"]
+        Key[Blue: CC work; purple: verification; amber: infrastructure]
     end
-    Repair ~~~ Legend
+    classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
+    classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
+    classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
+    class Intent,Req,Plan,Run work
+    class IV,RV,PV verify
+    class Intake,Freeze,Out control
+```
+
+Verification boxes include deterministic checks, a separate verifier invocation, and protected gate application, as specified in [capsules](capsules.md). A clarification or blocking result is recorded through the control plane; headless evaluation returns a blocking status without waiting for interactive input.
+
+## Planner choice and limits
+
+**Required now.** Use direct typed CC selection and graph construction. Inputs are accepted requirements, an admitted library snapshot, permitted resources, effective policy, and limits. Output is a captured candidate graph with objective-to-result coverage, input bindings, dependencies, and checking assignments. The planner cannot execute generated plan code, grant access, change active library versions, or waive required verification.
+
+Generate a bounded set of candidates. Deterministic validation rejects missing or ineligible capabilities, incompatible port meanings, cycles, unbound inputs, denied effects, conflicting shared writes, absent verification, and exceeded limits. Semantic plan verification checks that the chosen work addresses the accepted objective; graph shape alone cannot prove coverage. No available capability means infeasible planning, not an invitation to invent one.
+
+Rank feasible candidates first by comparable evidence of successful outcomes, then execution time and available cost. Keep sample counts and uncertainty visible. Unknown reliability remains unmeasured, and unknown cost is not zero. Spec Kit defines the bounded search, comparison rule, conservative defaults, and ties. Preserve a fixed reference graph for regression and matched comparisons. A single feasible candidate provides no evidence of optimization.
+
+This is the best candidate found within a declared search budget, not globally optimal planning. A separate logical-operator layer would add binding flexibility but also another representation to reconcile; direct CC graphs give M1 one inspectable execution boundary. Retain objective mappings so later logical planning can lower into that same boundary. [LLMCompiler](https://arxiv.org/abs/2312.04511) supports the feasibility of separating graph proposal, dependency dispatch, and execution; it does not establish optimality or safety for this system.
+
+## Freeze and unknown future values
+
+**Required now.** Freeze the accepted topology, exact CC and dependency versions, verification profiles, policy, limits, and input references before planned execution. Future producer outputs are typed references, not already-known values. Freeze does not claim that a hypothesis or measurement exists before its producer runs.
+
+Choose capabilities whose declared input range covers the supported M1 research domain. Use one opportunity and one hypothesis path. The Hypothesis CC establishes and freezes the baseline, validation resource, measurement definitions, success/falsification boundaries, and protocol before POC generation or empirical execution. Downstream work may apply that protocol but cannot edit it after seeing results.
+
+Evaluate preconditions with the same semantics at planning and dispatch. Known false conditions reject a plan; value-dependent conditions remain explicit dispatch obligations. An unsupported hypothesis, missing resource, or false dispatch precondition blocks the run. Do not silently choose another capsule, alter the graph, or create a new protocol. Multiple planning epochs remain a future possibility, not M1 behavior.
+
+## Tasks, nodes, and verification
+
+**Required now.** A task groups an objective; each node invokes one CC. This example shows part of one frozen graph, with verification after each work invocation.
+
+```mermaid
+flowchart TB
+    H[(Accepted hypothesis and protocol)]
+    subgraph Task[Task: construct and measure the intervention]
+        Build[POC builder CC] --> BV[Build verifier CC]
+        BV --> BG[Protected build gate]
+        BG --> Measure[Benchmark CC]
+        Measure --> MV[Measurement verifier CC]
+        MV --> MG[Protected measurement gate]
+    end
+    H --> Build
+    MG --> Eval[Scientific evaluation CC]
+    Eval --> EV[Evaluation verifier and gate]
+    EV --> Report[Delivery CC]
+    Report --> DV[Delivery verifier and gate]
+    DV --> O[(Released report and evidence)]
+    subgraph Legend[Legend]
+        Key[Blue: CC work; purple: verification; amber: infrastructure; green: artifacts]
+    end
     classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
     classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
     classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
-    class Intent,Requirements,Planner,Run,Finish work
-    class IntentCheck,RequirementCheck verify
-    class Intake,IntentGate,RequirementGate,Freeze,FinalGate,Out,Repair control
-    class Contract data
-    style Legend fill:#F8FAFC,stroke:#94A3B8
-    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
+    class Build,Measure,Eval,Report work
+    class BV,MV,EV,DV verify
+    class BG,MG control
+    class H,O data
 ```
 
-The planned work and terminal delivery boxes are two parts of the same planned DAG. Delivery is drawn separately to make the endpoint visible; it is not another CC invocation after the DAG finishes. The planner includes the needed delivery nodes and checks. The final control-plane transfer is infrastructure, not a second delivery task.
+Deterministic checks preceding each verifier are omitted here for readability. Dependency arrows mean runner-mediated handoffs of accepted artifacts, not direct calls that bypass gates. A verifier may be a scheduled node or a recorded runner assignment; both require the same release boundary. Verifiers do not recursively require semantic verifiers.
 
-Intake captures the request and imported resources. If qualification or transformation is scheduled as a node, it is an intake CC. Simple request transport and upload handling belong to the control plane.
+## Scheduling and failure
 
-The intent compiler interprets the objective without quietly choosing a different problem. The requirement compiler establishes scope, constraints, expected deliverables, and relevant research requirements. Their verification profiles are fixed because these stages are fixed; the planner cannot remove or replace them.
+**Required now.** Dispatch dependency-ready nodes only after their required predecessor gates have durably advanced. Reuse an equivalent native topological scheduler. Begin with one active research run; independent nodes may execute only where effects, resources, and policy permit.
 
-Clarification goes through the control plane to the UI and back to the waiting stage. No worker needs a terminal attached to the user's laptop.
+A blocking execution, verification, security, budget, or persistence failure stops new work dispatch for the whole run. Preserve in-flight outcomes and attempt evidence; cancellation does not undo effects already performed. Default to zero automatic repair or replay. A human correction creates attributable new work and must pass verification; a changed graph or objective needs a new plan and freeze. Never overwrite a failed attempt.
 
-The accepted requirements contract supplies the planner's objective and constraints. Its detailed fields belong to the owning Spec Kit task.
+Browser disconnection does not cancel execution. Restart preserves accepted results and marks interrupted attempts paused for inspection. No native cache entry can replace an authoritative gate decision or justify repeating an uncertain effect. The first build starts a fresh run rather than resuming in place.
 
-## Tasks become a DAG of nodes
-
-The complete journey still includes search, screening, hypothesis, POC, benchmarking, scientific evaluation, and delivery. A task is the planner's unit of work, not a predefined number of nodes. This diagram shows a slice after an accepted hypothesis and protocol are available. One task uses three CC nodes; another uses one. Two checks branch and join before experiment execution.
-
-```mermaid
-flowchart TB
-    Hypothesis[(Accepted hypothesis and protocol)]
-    subgraph POCTask[Task: prepare a valid POC]
-        POC[Node: POC builder CC]
-        Format[Node: POC format verifier CC]
-        Alignment[Node: POC alignment verifier CC]
-        Join[POC gate: both checks accepted]
-        POC --> Format --> Join
-        POC --> Alignment --> Join
-    end
-    subgraph ExperimentTask[Task: measure the intervention]
-        Benchmark[Node: Benchmark CC - baseline then treatment]
-    end
-    subgraph FindingsTask[Task: interpret and deliver findings]
-        Evaluate[Node: Scientific evaluation CC]
-        Report[Node: Delivery CC]
-        DeliveryCheck([Attached delivery verification])
-        Evaluate --> Report --> DeliveryCheck
-    end
-    Hypothesis --> POC
-    Join --> Benchmark --> Evidence[(Measurement evidence)]
-    Evidence --> Evaluate
-    DeliveryCheck --> Output[(Finished artifacts)]
-    subgraph Legend[Legend]
-        LKey["Blue: CC work<br/>Purple: verification<br/>Amber: infrastructure<br/>Green: data / artifacts"]
-    end
-    Output ~~~ Legend
-    classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
-    classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
-    classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
-    classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
-    class POC,Benchmark,Evaluate,Report work
-    class Format,Alignment,DeliveryCheck verify
-    class Join control
-    class Hypothesis,Evidence,Output data
-    style POCTask fill:#F8FAFC,stroke:#94A3B8
-    style ExperimentTask fill:#F8FAFC,stroke:#94A3B8
-    style FindingsTask fill:#F8FAFC,stroke:#94A3B8
-    style Legend fill:#F8FAFC,stroke:#94A3B8
-    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
-```
-
-This is an example, not a capsule inventory or a prescribed task breakdown. The planner may expand a task, reuse the same CC at several nodes, or choose different supported capabilities. This example selects two explicit verifier nodes and an attached delivery check; it does not insert a verifier after every CC. All selected required checks feed the shared gate mechanism, including attached checks whose gate is omitted here for readability.
-
-An attached verifier CC still uses the CC runner, with its assignment recorded in the freeze; it need not be a separately scheduled DAG node. An ordinary deterministic check can also be attached. Different drawings distinguish explicit nodes from attached checks so implementers do not mistake the attachment for another work node.
-
-Hypothesis formation establishes the experimental protocol before measurement. POC construction produces the bounded intervention. Benchmarking runs baseline and treatment and captures evidence. Scientific evaluation interprets that evidence. A negative or inconclusive scientific finding is a valid deliverable; it is different from an execution failure.
-
-## Planning and freeze
-
-The planner derives tasks from requirements and chooses as many CC nodes as each needs. It connects inputs, dependencies, and verification without a fixed node count or one-task/one-node rule. It proposes a plan; it does not authorize that plan.
-
-Ordinary code checks the proposal against the accepted scope, run limits, available capabilities, valid connections, acyclic dependencies, and required verification coverage. Required obligations come from fixed-stage profiles, selected CC runtime requirements, the accepted requirements, and run policy. The planner may add useful checks but cannot waive those obligations. A structurally valid graph that exceeds its budget or omits a required check is refused. On failure, request bounded correction, then pause if unresolved.
-
-Freeze records the accepted graph, capability versions including declared internal CC dependencies, input references, configured checks, verification assignments, and applicable run configuration. Fixed stages have their bindings before they run; they do not depend on the later planner. The generated experimental protocol is separately accepted before measurement. Neither the frozen plan nor that protocol can quietly change in response to results.
-
-Repair creates a recorded new attempt within the node's assigned scope and allowed budget. It preserves the capability version and the original evidence; only newly accepted outputs replace a downstream dependency. Changing the objective, required checks, or graph requires a visible revised plan and a new freeze. Reuse completed results only when they remain valid for those revised inputs.
-
-Detailed plan serialization and the freeze implementation belong to coding tasks.
-
-## Scheduling, data, and checks
-
-Follow the requested Kahn-style dependency readiness: dispatch a node once its predecessors and required checks are accepted. Reuse an equivalent native topological scheduler rather than writing a custom implementation solely for the algorithm's name. A verifier may be an explicit node or an attached check; either way, required verification blocks affected successors.
-
-The CC runner supplies bound inputs and a scoped workspace. Outputs and logs persist. Nodes receive required data or artifact references, not unrestricted shared state. Execution and the control plane use one shared run-state module for authoritative DAG progress, attempts, decisions, and accepted references. The browser's progress display is a view of those records.
-
-No external message broker is required. Durable run and DAG state are the authority; a local ready queue is only a dispatch mechanism. Start with one active workflow and use native concurrency controls where independent nodes can safely run.
-
-## Failures and delivery
-
-For invalid data, execution failure, or failed required verification, record the reason and preserve evidence. Correction is allowed only within the accepted scope and remaining budget. Recheck the corrected result: acceptance lets the affected workflow continue; unresolved failure or a needed user decision pauses it. Never skip a required check. Unrelated branches may proceed when their dependencies allow it; affected downstream work waits.
-
-```mermaid
-flowchart TB
-    Failure[Failed or unclear boundary] --> Allowed{Correction allowed within scope and remaining budget?}
-    Allowed -->|No, or user input needed| Pause[Pause through the control plane]
-    Allowed -->|Yes| Attempt[Recorded correction attempt]
-    Attempt --> Recheck[Repeat the affected required checks]
-    Recheck --> Accepted{Accepted?}
-    Accepted -->|Yes| Continue[Continue the affected workflow]
-    Accepted -->|No| Allowed
-    subgraph Legend[Legend]
-        LKey["Purple: verification<br/>Amber: infrastructure"]
-    end
-    Pause ~~~ Legend
-    classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
-    classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
-    class Failure,Allowed,Pause,Attempt,Accepted,Continue control
-    class Recheck verify
-    style Legend fill:#F8FAFC,stroke:#94A3B8
-    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
-```
-
-This loop represents policy, not a new service. Each attempt consumes the allowed budget. Planner correction returns through plan checking and freeze; node correction returns through its assigned checks. A question about the user's intent is answered through the UI before continuing.
-
-Browser disconnection leaves the server running. An application restart restores the run view and pauses interrupted work for explicit resumption. Preserve accepted results and inspect interrupted attempts before repeating them, especially experiments or other consequential effects. Resumption is not permission to blindly replay every node.
-
-Report generation, packaging, and any model-assisted delivery preparation happen inside the container. If scheduled as nodes, these are CCs. After the relevant delivery checks, the control plane makes the finished artifacts available to the UI. The client does no further model processing.
+Scientific rejection or inconclusive measurement is different from infrastructure failure. Valid evidence and correctly applied criteria can advance to Delivery, which discloses the result and its limitations. All report preparation happens inside the application; the control plane transfers the accepted artifacts.

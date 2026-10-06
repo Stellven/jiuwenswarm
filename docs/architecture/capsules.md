@@ -1,75 +1,69 @@
-# Capsules, nodes, agents, and verification
+# Capsules, verification, and library
 
-## Intent
+## Invocation and authority
 
-Make a capability reusable across workflows without confusing its definition with a particular invocation. Keep agent autonomy inside assigned boundaries and place verification where it protects useful decisions. Terms are introduced in the [overview vocabulary](README.md#vocabulary-and-naming).
+**Required now.** A CC describes a reusable capability; a node binds one invocation. The [field reference](capsule/declaration.md) preserves its authored contract. The runner resolves the pinned implementation, binds accepted inputs and scoped context, enforces permissions and limits, executes known code or a bounded native agent loop, and captures actual outcomes.
 
-## Definitions and invocations
+An agent loop may call permitted tools and declared internal CCs. It cannot rewrite the outer graph, upstream requirements, checking criteria, permissions, or accepted artifacts. Internal CC calls also pass through the runner and verification boundary. Ordinary private helpers are not automatically separate CCs; their behavior remains the invoking capsule's responsibility.
 
-A planner-defined task may span many nodes. Each node invokes one CC, which may call other CCs internally. Internal calls do not create outer nodes; the parent completes when its CC finishes. CCs may serve different nodes. Intake and final transfer may remain boundary operations; scheduled processing uses CCs.
+## Exact verification boundary
 
-## How a node runs internally
+**Required now.** Every work invocation, including planning and delivery, has a pinned verification assignment. Protected configuration establishes mandatory checks from the selected CC, accepted requirements, artifact type, and run policy. The planner may add checks but cannot remove obligations. Missing supported verification blocks readiness.
 
 ```mermaid
 flowchart TB
-    Scheduler[Scheduler: ready node and bound inputs] --> Runner[CC runner]
-    Definition[Versioned CC declaration] --> Runner
-    Runner --> Context[Scoped inputs, workspace, permissions, limits]
-    Context --> Tool[Tool CC: execute known code]
-    Context --> Agent[Agent-backed CC: bounded model/tool loop]
-    Agent --> Model[Configured model client]
-    Model --> Agent
-    Agent --> Tools[Permitted tools and internal CC calls]
-    Tools --> Agent
-    Tool --> Outcome{Execution and data integrity OK?}
-    Agent --> Outcome
-    Outcome -->|No| Control[Bounded repair or pause through control plane]
-    Outcome -->|Yes| Result[Result, artifact references, and execution evidence]
-    Result -->|Additional checks assigned| Checks[Applicable verification]
-    Checks --> Gate[Gate decision]
-    Gate -->|Accepted| Release[Release to dependent nodes]
-    Result -->|No additional checks assigned| Release
-    Gate -->|Failed or unclear| Control
+    Work[Work CC invocation] --> Capture[Capture exact result and runtime evidence]
+    Capture --> T1{Deterministic checks pass?}
+    T1 -->|No| Halt[Record blocking outcome; stop new dispatch]
+    T1 -->|Yes| Verifier[Read-only verifier CC]
+    Verifier --> Validate[Validate assessment and evidence references]
+    Validate --> Gate{Protected gate policy}
+    Gate -->|Blocking or uncertain| Halt
+    Gate -->|All mandatory obligations pass| Commit[Commit decision and accepted artifact identity]
+    Commit --> Next[Release result to dependent work]
     subgraph Legend[Legend]
-        LKey["Blue: CC work<br/>Purple: verification<br/>Amber: infrastructure<br/>Green: data / artifacts"]
+        Key[Blue: CC work; purple: verification; amber: infrastructure]
     end
-    Control ~~~ Legend
     classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
     classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
-    classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
-    class Tool,Agent work
-    class Checks verify
-    class Scheduler,Runner,Context,Model,Tools,Outcome,Gate,Release,Control control
-    class Definition,Result data
-    style Legend fill:#F8FAFC,stroke:#94A3B8
-    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
+    class Work work
+    class Verifier verify
+    class Capture,T1,Halt,Validate,Gate,Commit,Next control
 ```
 
-The checking path applies where verification is assigned. A node without a separate verifier still goes through ordinary execution, permission, and data-integrity handling; it does not need an invented verifier CC merely to fit this drawing.
+Trusted code constructs the review context from the original accepted input, declaration and guarantees, applicable rubric, exact produced artifacts, upstream accepted evidence, and observed execution. It identifies the subject and source of each item. The producer cannot choose a favorable checking policy or substitute its own success assertion for evidence.
 
-A bounded agent loop may make multiple model and tool calls to finish its capability. It cannot grant itself permissions, rewrite the outer DAG, change accepted requirements, or decide that a required gate passed. Reuse the native harness rather than implementing another general agent framework. Multi-agent teams inside CCs are not required for the first pipeline.
+Tier 1 handles mechanically decidable questions: contract and format conformance, identity and version binding, required evidence, execution completion, duration, declared tools, and enforced access boundaries. Mandatory failure prevents Tier 2. An unavailable required environment is blocked, not evidence that the artifact is wrong or correct.
 
-Required runner responsibilities are small: resolve the CC, bind inputs, execute a tool or agent-backed implementation, capture outputs and failure, and report back to orchestration. Generated-program execution has a separate restricted boundary; the generic CC runner is not itself a sandbox. Exact process arrangements remain implementation decisions.
+Tier 2 receives only the context needed for its question, with bounded read access to referenced evidence when needed. It has separate instructions and conversation state from the producer. Artifact content is data, including text asking the reviewer to ignore its rules. It cannot edit the reviewed result or access hidden RSI evaluation material.
 
-## Verification is specific to the work
+The assessment gives findings against required obligations, reasons, and evidence references. The host validates their structure, scope, and subject binding. Missing references, insufficient context, malformed output, timeout, unsupported conclusions, or unresolved ambiguity cannot advance. Preserve both the raw assessment and the final decision. Use the PRD verdict meanings: `PASS`, `PASS_WITH_KNOWN_LIMITATIONS`, `FAIL`, `ENVIRONMENT_BLOCKED`, and `INCONCLUSIVE`; only the first two advance when every mandatory obligation passes.
 
-Use different verifier capabilities for different questions. Mechanical checks inspect formats, code, and execution evidence. Semantic checks compare interpretation or output with the accepted request. Scientific evaluation interprets experimental evidence. A model opinion is not a substitute for a benchmark measurement.
+Bind the decision to run, node, attempt, input/output identities, capsule implementation and dependency pins, verifier, checks, policy, and relevant configuration. Publish only those exact immutable accepted artifacts. Producer mutation after review, cross-run substitution, retry, or policy changes cannot reuse an earlier pass. Artifact and decision persistence must succeed before downstream readiness is exposed.
 
-Three places can supply checks:
+## Gate CCs and referee protection
 
-- The CC declaration describes reusable guarantees and suitable checking hooks.
-- A fixed stage configures its stable verification profile, especially intake qualification, intent, and requirements.
-- The planner attaches suitable additional verification to the planned nodes and records it in the freeze.
+**Required now.** A verifier may perform gate assessment: “this result violates the contract; stop.” Protected runtime code owns application of that assessment, durable release, and scheduler readiness. A CC-supplied boolean or free-text instruction never unlocks work directly.
 
-Verification varies both by capability and by invocation. A reusable capability need not always have the same separate verifier. Runtime obligations come from its selected use, fixed-stage profiles, accepted requirements, and run policy. Development-only checks do not automatically become live gates. Ordinary plan checking enforces the applicable obligations; the planner cannot remove them. A check may be an ordinary deterministic function; it is a verifier CC when run as a capability.
+Verification CCs end the semantic checking branch. Mechanically validate their response; do not generate an endless verifier-of-verifier chain. Pin and test them through separate development evaluation. Sharing a provider gives process separation, not independent model failure modes or a truth guarantee. Use protected labeled challenge cases to characterize omissions, unsupported claims, ambiguity, and instruction injection; record observed errors and limitations. Spec Kit determines cases, metrics, and thresholds before measuring the candidate.
 
-The gate combines applicable results into the release decision. Verification can be attached to a node, expressed as a verification node, or cover a meaningful group of outputs. Specify the coverage and what waits for the result. Do not add a separate verifier after every CC, or create an endless verifier-of-verifier chain.
+Any CC or dependency supplying the checking assessment for a mandatory gate is outside RSI's mutation scope. Protection includes its prompts and rubrics, deterministic checks and runners, policy, hidden fixtures, permission enforcement, library activation, and authoritative evidence storage. Capsule-local evolution metadata cannot expand that scope. Screening's explicitly mutable ranking helper is a work implementation, not permission to alter its verifier or gate criteria.
 
-The producer cannot certify success by assertion. A verifier can share the runner and provider but receives a separate checking task and evidence. Protect its criteria. Scientific evaluation remains distinct from hypothesis generation and implementation.
+Scientific evaluation owns the hypothesis conclusion. Its verifier checks evidence and correct application of the pre-registered protocol. A scientific negative result can receive infrastructure acceptance; neither the gate nor the evaluator may move the thresholds to make it positive.
 
-## CC authoring gets more attention
+## Library lifecycle
 
-The CC declaration is a shared authoring interface, distinct from a runtime requirements contract. Read [declaration](capsule/declaration.md) and [authoring](capsule/authoring.md). Keep its concepts stable; coding tasks define stage-local payloads and runtime records.
+**Required now.** Publish declarations and referenced implementation closure together as immutable versions. Admission validates the supported contract, pinned dependencies, permissions, and supplied verification evidence. Provisional admission means limited evidence, not guaranteed correctness. Retain historical admitted versions and decisions.
 
-Declaring a capability is different from proving its implementation works. The architecture defines the promises and boundaries; Spec Kit supplies detailed checks, fixtures, acceptance conditions, and evidence for implementation. Runtime scientific protocols remain research inputs established before measurement.
+Admission and activation are distinct. New runs resolve the human-activated admitted default or an explicit historical pin. Existing frozen runs retain their pins. Suspension blocks new starts of the affected version even in a frozen run; preserve in-flight evidence and recheck eligibility before release. Do not silently substitute another version. Retain evidence and allow explicit rollback. Hand-authored versions follow admission too; RSI is not required to author or use the library.
+
+## Composition and optimization
+
+**Required compatibility.** A composite declares pinned members and wiring as an internal DAG with its own boundary ports. Resolve its complete dependency closure and preserve scoped member calls, required verification, effects, and attributable evidence. An outer verifier does not erase member checks. Detect recursive dependencies; nesting must not bypass limits or grant additional authority.
+
+**Future direction.** Fusion replaces an admitted member graph with a separately admitted implementation after comparative evidence establishes the same contract meaning, effects, required verification, and traceability. Retain the unfused reference and member-to-fused provenance. Do not remove checking boundaries merely because the combined output looks correct. NVIDIA's [TensorRT fusion](https://docs.nvidia.com/deeplearning/tensorrt/latest/performance/optimization.html) is an optimization analogy, not a safety argument for agent programs.
+
+**Required compatibility.** Interaction findings bind to versions, context, and evidence; record whether risk was predicted or execution-confirmed. **Future direction:** use contracts, effect overlap, invariant conflicts, and bounded MCTS to prioritize interaction analysis. [SkillFuzz](https://arxiv.org/html/2607.02345v1) studies skill co-activation and pre-execution plan drift; applying it to isolated CC DAGs needs evaluation. Predicted risk cannot certify safety or replace live verification.
+
+**Required compatibility.** Preserve dependency, effect, idempotency, reversibility, and lifecycle declarations for spatiotemporal composition. **Future direction:** install, drain, replace, and compensate capabilities during long runs through a separate lifecycle mechanism. M1 changes take effect between runs. Removal from routing must never delete historical evidence or pretend external emissions were undone.

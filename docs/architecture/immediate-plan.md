@@ -1,110 +1,85 @@
-# Immediate plan: two-capsule intent trial
+# First build: the intent pair
 
-Tentative implementation slice for review, 2026-10-05. Read terms in the [overview](README.md#vocabulary-and-naming). This page bounds a coding attempt; Spec Kit supplies its detailed design and acceptance conditions.
+Architecture slice, 2026-10-06. **Required now for this slice:** implement the connected Intent compiler CC → Intent verifier CC path and its supporting runtime. The remaining full-M1 responsibilities stay in the [overview](README.md).
 
-## Intent
+## Intended result
 
-Find out whether a small architecture description plus the relevant PRD is enough for a coding agent to build the behavior we intended in one implementation attempt. Start with a real connected slice, not the entire research workflow. Keep the resulting runner and capsule authoring interface useful for the next slice.
+A user submits a text objective through the existing local web UI. Ordinary intake rejects empty input and binds the original text to a new run. The compiler extracts the objective, desired outcome, explicit scope, and stated constraints without choosing a solution or adding unsupported requirements. Preserve omissions, conflicts, and missing information visibly.
 
-Use two CCs: **Intent compiler CC** and **Intent verifier CC**. A compiler alone would show generation but would not exercise independent checking or gate-controlled release. This pair demonstrates the beginning of the fixed pipeline without needing a planner, experiments, or a scientific rubric.
+The verifier receives the original request, exact compiler output, declared responsibility, and protected fidelity rubric in a separate invocation. It assesses material omissions, unsupported additions, scope drift, and unresolved ambiguity. The producer cannot edit this rubric or the verifier context. A semantically faithful result becomes an accepted intermediate intent artifact; a blocking or unclear result leaves a visible reason and no accepted artifact.
 
-The trial ends at an accepted intent artifact. It does not produce the requirements contract or claim completion of PRD section 3.2. The later requirement compiler consumes this intermediate artifact when that stage is implemented.
+This is not the complete Research Brief. The later Requirement compiler consumes accepted intent and produces that contract.
 
-## The small journey
+## Connected boundary
 
 ```mermaid
 flowchart TB
     Browser[Browser: submit objective]
-    subgraph App[One JiuwenSwarm application container]
-        CP[Control plane: intake and start run]
-        Compiler[Node: Intent compiler CC]
-        Integrity[Integrity-check declared data format]
-        Verifier[Node: Intent verifier CC]
-        Gate{Intent gate: checks accepted?}
-        Accepted[(Accepted intent artifact)]
-        Stop[Record reason and stop affected run]
-        Transfer[Control plane: expose result or reason]
-        Runner[Shared CC runner and native agent harness]
-        Records[(Run state, attempts, and evidence)]
-        CP --> Compiler --> Integrity
-        Integrity -->|Valid| Verifier --> Gate
-        Integrity -->|Invalid| Stop
-        Gate -->|Yes| Accepted --> Transfer
-        Gate -->|No or unclear| Stop --> Transfer
-        Runner -.->|Invoke| Compiler
-        Runner -.->|Invoke| Verifier
-        Runner --> Records
-        CP -.->|Run context| Records
-        Records -.->|Progress and outcome| Transfer
+    subgraph App[One application container]
+        Intake[Control plane: capture input and start run]
+        Compiler[Intent compiler CC]
+        Capture[Persist candidate and execution evidence]
+        T1{Deterministic checks pass?}
+        Verifier[Intent verifier CC]
+        Gate{Protected gate validates and applies assessment}
+        Commit[Commit accepted intent and decision]
+        Halt[Record blocking reason]
+        View[Control plane: result or reason]
+        Intake --> Compiler --> Capture --> T1
+        T1 -->|Yes| Verifier --> Gate
+        T1 -->|No| Halt
+        Gate -->|All mandatory checks pass| Commit --> View
+        Gate -->|Failed or unclear| Halt --> View
     end
-    Browser --> CP
-    Transfer --> View[Browser: inspect run and retrieve output]
+    Browser --> Intake
+    View --> Browser
     subgraph Legend[Legend]
-        LKey["Blue: CC work<br/>Purple: verification<br/>Amber: infrastructure<br/>Green: data / artifacts<br/>Gray: outside components"]
+        Key[Blue: CC work; purple: verification; amber: infrastructure]
     end
-    Records ~~~ Legend
     classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
     classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
-    classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
-    classDef outside fill:#F1F5F9,stroke:#475569,color:#0F172A
     class Compiler work
     class Verifier verify
-    class CP,Integrity,Gate,Stop,Transfer,Runner control
-    class Accepted,Records data
-    class Browser,View outside
-    style App fill:#F8FAFC,stroke:#94A3B8
-    style Legend fill:#F8FAFC,stroke:#94A3B8
-    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
+    class Intake,Capture,T1,Gate,Commit,Halt,View control
 ```
 
-The web server and UI assets are inside the container as described in [placement](placement.md); this drawing groups them with the control plane. The two control-plane boxes and browser boxes show different responsibilities of the same components. The runner invokes both nodes. The arrows between nodes express dependencies, not direct capsule-to-capsule calls that bypass the runner. Gates and ordinary integrity checks are infrastructure, so this remains exactly two authored CCs.
-
-The user submits a text objective in the existing web UI. Ordinary intake handling rejects empty input and binds the original text to the run. The compiler extracts the objective, desired outcome, explicit scope, and stated constraints without inventing a solution or unsupported requirements. Preserve missing or conflicting information visibly.
-
-The verifier receives both the original input and compiler output. It checks fidelity to the request and identifies unsupported additions, omissions, or unresolved ambiguity. It is a separate invocation with its own instructions; the producer cannot edit its checking policy. Sharing the configured model integration does not mean sharing the producer's conversation or treating agreement as proof.
-
-Integrity-check both CC outputs against their declared formats. The gate accepts only a mechanically valid artifact with an accepted verifier result. A timeout, invalid output, failed check, or unresolved ambiguity leaves a visible reason and no accepted artifact. For this first trial, configure zero automatic correction attempts; a user can submit a fresh run. This is a small policy setting within the broader bounded-correction design.
+The shared runner invokes both CCs. Integrity checks and gate application are ordinary protected infrastructure, so the slice has exactly two authored CCs. Malformed or timed-out verifier output blocks acceptance; the verifier has no recursive semantic verifier. Apply the subject-binding and durable-release rules in [capsules](capsules.md#exact-verification-boundary).
 
 ## Minimum supporting system
 
-| Component | Responsibility in this trial |
+| Component | Slice responsibility |
 |---|---|
-| CC declarations and small library | Package two versioned definitions with their implementation references; use the [shared authoring concepts](capsule/declaration.md), validate supported definitions, and pin what each run invokes |
-| CC runner | Resolve a CC, bind inputs and a scoped context, invoke the native model/skill adapter, enforce an execution time limit, and record the outcome |
-| Fixed orchestration and gate | Run the two dependencies in order and release only accepted output; use a native workflow mechanism where it fits |
-| Control plane and existing UI | Submit a run, show status and failure reasons, and retrieve its result without keeping the browser connected |
-| Shared run-state module | Persist authoritative progress and attempt/result references in SQLite; store artifacts and logs in files |
-| Basic observability | Correlate run, node, attempt, and CC version; show start/end, duration, check decisions, errors, and artifact references |
+| Declaration and library | Package, admit, activate, and pin two definitions with their implementation closure; preserve the [required field reference](capsule/declaration.md) without implementing deferred mechanisms |
+| CC runner | Bind scoped inputs, invoke native model/skill integration, enforce time/call limits, and capture outcomes |
+| Fixed orchestration and protected gate | Execute dependencies, validate both outputs, and expose only the exact accepted artifact |
+| Existing UI and control plane | Submit, inspect status and failure reasons, and retrieve intermediate output |
+| Run-state module and files | Persist input, attempts, candidate output, raw assessment, decisions, configuration, and accepted references |
+| Observability | Correlate run, node, attempt, CC/verifier versions, duration, available model-call information, and artifact references |
 
-Reuse Python, the TypeScript UI, native transport, Symphony agent/harness components, and compatible SwarmFlow execution. Keep modules distinct without making them separate services. Use one application container with persistent data mounts and externally supplied model configuration; follow the existing image/startup path. Publish the host endpoint only on loopback and preserve local session authentication for UI/API access. Add only missing adapters. The model integration must actually work in the chosen environment; a mock can help development but cannot demonstrate the connected model-backed trial.
+Use the [placement defaults](placement.md): one local application container, existing Python/TypeScript stack, SQLite, files, protected model integration, loopback exposure, and session authentication. A mock can aid development; it cannot establish the connected model-backed trial. Keep credentials out of evidence.
 
-Observability should let a developer answer: where did this run stop, which definition ran, what went into it, what came out, and why was it accepted or refused? Keep credentials out of evidence. Report available model-call information honestly; do not fabricate token or cost measurements. A full telemetry platform is unnecessary.
+Closing the browser does not cancel work. Restart preserves accepted output and marks interrupted work paused without automatic replay. For this trial, in-place resumption and automatic correction are excluded. A corrected submission starts a fresh run with a new identity and retains previous failure evidence.
 
-Closing the browser must not cancel the run. After an application restart, preserve accepted output and show interrupted attempts as paused rather than replaying them automatically. For this slice, the user can inspect that state and submit a fresh run; in-place resumption is later work.
+## Sources and exclusions
 
-## Scope to give the coding agent
+Give the coding agent original clauses from the [master PRD](../product/prd-m1-full-2026-10-02.txt) plus [D1–D9](principles.md#decisions-and-source-amendments), this page, the CC field reference, verification boundary, and placement guidance.
 
-Provide this page, the overview vocabulary, [capsule declaration](capsule/declaration.md), and the relevant [placement/reuse](placement.md) guidance alongside exact clauses from the [frozen PRD](../product/prd-m1-full-2026-10-02.txt). Keep the rest of the architecture available as context, not as an instruction to implement every stage.
-
-| PRD source | Allocation for this slice |
+| Clauses | Portion exercised by this slice |
 |---|---|
-| 3.1.1, 3.1.3, 3.1.5 | Text submission, local run context, and empty-input qualification; material imports are deferred |
-| 3.2.1, 3.2.2, 3.2.4 | Intent interpretation, explicit scope, and stated constraints; this intermediate output is not the complete Research Brief |
-| 4.1.1–4.1.4 | The applicable authoring, version binding, eligibility, and single-runner responsibilities for two packaged CCs; broader registry/routing/RSI behavior is outside this slice |
-| 4.2.1, 4.2.2, 4.2.8 | Evidence, mechanical conformance, intent-fidelity review, and gate decisions; no automatic repair loop, scientific evaluation, code-execution review, or benchmark checks |
-| 4.5.2, 4.5.3 | Persistent records, effective configuration, and observable outcomes for these two CCs; defer scorecards, cross-run analysis, and RSI exports |
-| 5.1.1, 5.1.2, 5.2.2 | Local submission, progress, per-run trace inspection, and intermediate output access using the native UI; defer global trace search, host-health dashboards, and final research-report views |
-| 5.4.2 | Host loopback exposure and local session authentication; no public access, remote deployment, or enterprise identity system |
+| 3.0.1–3.0.2, 4.3.3–4.3.4 | Working baseline model integration, attribution, and independent verifier provisioning |
+| 3.1.1, 3.1.3, 3.1.5; 3.2.1, 3.2.2, 3.2.4; 4.7.2–4.7.3 | Text input and faithful intermediate intent; no complete requirement contract |
+| 4.1.1–4.1.4; 4.2.1–4.2.2, 4.2.6–4.2.9 | Two admitted pinned CCs, actual evidence, two-tier verification, protected release, and failure behavior |
+| 4.5.2–4.5.3; 4.6.1–4.6.4; 5.1.1–5.1.2; 5.2.2; 5.3.2; 5.4.2; 5.6 | Durable run control, UI inspection, local access, and relevant effective configuration |
 
-The registered coding task must allocate exact subclauses and relevant global requirements, recording exclusions and conflicts rather than claiming all listed sections are implemented. In particular, the PRD combines intent and requirements compilation; this design separates them. Its blanket two-tier gating and wider routing/RSI program do not expand this trial. Follow the [current principles](principles.md) where later user decisions supersede archived architecture defaults. Preserve PRD sources verbatim.
+Allocate exact subclauses in the registered TASK; these rows do not claim entire sections are satisfied. Apply 4.2.9 to intent validity, swapped/stale outputs, timeouts, environment failures, uncertainty, and gate locking; scientific-negative and POC-specific cases remain full-M1 work. Global scope, security, evidence, and referee boundaries apply. Include headless halt behavior for automated evaluation without adding another user-facing application.
 
-Do not add a model-assisted planner, requirement compiler, search, POC execution, benchmarks, delivery CC, internal CC composition, or routing/RSI for this attempt. Final transfer of this intermediate artifact is ordinary control-plane handling. The runner's public boundary should accommodate later capabilities, but implementing every future execution form now would defeat the trial.
+Exclude planner, Requirement compiler, search, POC execution, benchmarking, scientific evaluation, Delivery CC, internal composition, dynamic routing, and RSI execution. Final transfer is ordinary control-plane handling. Their declaration concepts and future compatibility remain intact.
 
-## Coding and learning from the attempt
+## Coding-agent responsibility
 
-Use the existing [TASKS → TASK → Spec Kit workflow](../code/code_sop/SPEC_KIT_WORKFLOW.md). Register the slice and its sources before implementation. The coding agent owns schemas, APIs, prompts, file structure, fixtures, tests, acceptance conditions, and verification of the connected system. Keep that work in the native spec/plan/tasks artifacts rather than adding another architecture checklist or handoff card.
+Start at [M1-001](../tasks/M1/M1-001/TASK.md) under [TASKS → TASK → Spec Kit](../code/code_sop/SPEC_KIT_WORKFLOW.md). The agent defines detailed formats, APIs, prompts, implementation order, acceptance criteria, fixtures, and verification in the registered native artifacts.
 
-Ask the agent to carry one scoped attempt through specification, implementation, and verification. It may ask about genuinely missing product decisions; “one-shot” is not permission to fabricate them. Demonstrate a real accepted run and visible refusal/failure behavior, with the evidence and limitations recorded in the task's native artifacts. Exact test cases and pass conditions remain Spec Kit's work.
+Require real connected acceptance/refusal evidence and a fixed labeled challenge set characterizing verifier fidelity and instruction resistance. Keep that set separate from live inputs and outside RSI. Preserve per-case outcomes and same-provider limitations; a separate model invocation does not guarantee independent errors. Spec Kit selects concrete cases and thresholds before measuring the implementation.
 
-Then compare the working behavior with this intent. If it matches, expand the workflow using the same authoring and runner boundary. If it misses, distinguish a missing requirement or unclear architecture boundary from an implementation defect, unavailable dependency, or weak verifier. Add the smallest missing guidance and retry; neither a failed attempt nor a happy-path demonstration alone proves how much architecture is needed.
+Compare observed behavior with this intent. Distinguish unclear requirements from implementation faults, unavailable services, and weak verification. Expand only after recording what the slice actually demonstrated; no happy-path result alone establishes complete M1 or verifier reliability.

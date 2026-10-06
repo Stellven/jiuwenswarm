@@ -1,32 +1,23 @@
-# Authoring a capability capsule
+# Authoring and publishing a capability capsule
 
-## Intent
+## Lifecycle
 
-Make the smallest reusable capability that explains what it does and what callers can trust. Prefer wrapping working JiuwenSwarm/OpenJiuwen code to rebuilding it.
+1. **Declare.** State purpose, kind, typed ports, preconditions, dependencies, effects, guarantees, checks, and applicable limits. Keep objectives, node IDs, permissions, verifier assignment, and run policy outside.
+2. **Choose form.** A leaf points to implementation by locator and hash. A composite pins members and describes its internal graph and wiring. Do not promise unsupported fusion.
+3. **Build.** Keep code separate and pin covered files. Preserve the declaration's meaning. Each graph node binds one CC; its internal calls stay inside it. A CC assesses; the gate decides and releases.
+4. **Verify.** Run applicable tests and characterization checks; retain outputs, check results, and evidence references against the exact declaration and implementation hashes. A passing self-test alone is not admission.
+5. **Admit.** A trusted path checks declaration, hashes, dependencies, and effects. M1 runs deterministic checks before an independent verifier reviews the evidence. The gate host records the decision; unsupported obligations block admission or binding. Spec Kit owns detailed policy.
+6. **Publish.** Store an immutable version with references, hashes, and admission record. New versions do not change existing runs.
+7. **Activate.** A human-controlled pointer selects admitted versions for future plans. RSI candidates remain inactive until admission and human activation. Reversion changes the pointer, not prior records.
 
-## Authoring route
+## Authoring rules
 
-1. State the capability's purpose without tying it to one node or run. If it performs unrelated jobs, separate them.
-2. Choose a tool or model/skill-backed execution form. Reference the existing implementation or the smallest new wrapper.
-3. Describe named inputs and outputs using the [declaration format](declaration.md). Reuse an existing compatible data contract; let the owning task define a missing one.
-4. Explain dependencies, requested access, and effects. Keep access scoped to the capability's job, particularly for generated code.
-5. State useful guarantees and relevant checking hooks. Explain important failure behavior without copying the runner's standard error catalog.
-6. Use Spec Kit to implement and verify the capsule and its connected boundaries. Publish its declaration and implementation together as a versioned capability.
+Prefer wrapping a working JiuwenSwarm/OpenJiuwen capability. Keep the summary task-independent. Declare effects and repeat safety; prose grants no permission. Type and check outputs. A composite pins members by hash and exposes only a boundary it can guarantee.
 
-Keep the declaration independent of provider, concrete request, UI, and test suite.
+The companion description and schema disagree on requiredness, shapes, and enums. Use [the declaration inventory](declaration.md); Spec Kit must reconcile and version the format before implementation. Do not invent keys.
 
-## Calling a capsule
+Protected configuration or the frozen graph assigns runtime criteria. Keep verifiers, gates, check runners, hidden fixtures, and their behavioral dependency closure outside RSI mutation. Declared checks do not grant release authority.
 
-The planner may use many nodes for a task. Each binds one CC and its inputs. The runner supplies context and records internal calls; orchestration applies assigned checks.
+## Change rules
 
-Internals may change while preserving the authored interface. Changes to input meaning, guarantees, or effects need a compatible extension or new version. For example, executing experiments instead of only writing code changes the effects callers must expect.
-
-## Verifier capsules
-
-A verifier author describes what question it can check, which evidence it needs, and what result it returns. Reuse deterministic tooling for mechanical questions. Use semantic or scientific review where it adds information.
-
-The verifier does not choose whether its own result is sufficient to release a node. Fixed-stage configuration or the frozen plan assigns that role; the gate mechanism applies the decision. Keep verification criteria separate from the producing agent's editable workspace.
-
-## Implementation freedom
-
-Authors choose algorithms, internal helpers, prompt details, and private data formats through their coding tasks. They must preserve the declaration's meaning and run boundaries. Propose a change when the contract prevents a substantially simpler implementation; do not silently weaken it.
+Preserve each version's meaning. Changes to ports, guarantees, effects, or compatibility require a new version and admission. Record lineage where supported. Library changes apply to future freezes; active runs keep pinned versions and checks.

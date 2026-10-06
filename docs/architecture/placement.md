@@ -1,101 +1,114 @@
-# Placement, stack, and reuse
+# Placement, evidence, and reuse
 
-## Intent
+## Deployment and boundaries
 
-Use one reproducible application deployment. Preserve clear internal responsibilities without adding a network service for each responsibility. The server is a research workstation that runs long jobs, not initially a distributed cloud platform. Terms are defined in the [overview vocabulary](README.md#vocabulary-and-naming).
-
-## One container
+**Required now.** Use one local, single-user application deployment: Python services, the existing TypeScript web UI, SQLite authoritative run state, and filesystem artifacts. Keep internal modules distinct without making them separate services. One container may contain several native processes.
 
 ```mermaid
 flowchart TB
-    Browser[Browser: renders the served web UI]
-    subgraph App[One JiuwenSwarm application container]
-        Web[Web UI assets and web server]
-        CP[Control plane: web gateway and run control]
-        Worker[Background workflow execution]
-        Scheduler[Scheduler and gate mechanism]
-        Runner[CC runner]
-        Nodes[Fixed and planned CC nodes]
-        Harness[Bounded agent and tool execution]
-        Restricted[Restricted generated POC process]
-        ModelClient[Model provider integration]
-        StateModule[Shared run-state module]
-        Library[(Versioned CC library)]
-        CP --> Worker --> Scheduler --> Runner --> Nodes
-        Nodes --> Harness
-        Harness --> ModelClient
-        Harness --> Restricted
-        Scheduler -->|Status and decisions| CP
-        Web <--> CP
-        CP <--> StateModule
-        Scheduler <--> StateModule
-        Library -->|Available CCs and versions| Nodes
-        Library -->|Resolve selected CCs| Runner
+    Browser[Browser]
+    subgraph App[One application container]
+        Web[Web assets and control plane]
+        Planner[Planner CC]
+        Scheduler[Scheduler]
+        Runner[CC runner and native harness]
+        Verify[Verifier CCs: assessments]
+        Gate[Protected gate host]
+        Library[(CC library)]
+        Bridge[Audited model bridge]
+        State[Run-state module]
+        POC[Restricted POC execution boundary]
+        Web --> Planner
+        Planner --> Verify --> Gate
+        Gate -->|Validated and frozen plan| Scheduler
+        Scheduler --> Runner
+        Runner -->|Work result and evidence| Verify
+        Gate -->|Committed release or halt| Scheduler
+        Runner --> Bridge
+        Runner --> POC
+        Library -.-> Planner
+        Library -.-> Runner
+        Scheduler <--> State
+        Verify --> State
+        Gate --> State
+        Web <--> State
     end
-    Browser <-->|Published web endpoint| Web
-    StateModule <--> State[(Mounted SQLite run and DAG state)]
-    Worker <--> Files[(Mounted inputs, logs, and artifacts)]
-    ModelClient <-->|Configured endpoint| Models[Model provider]
+    Browser <-->|Authenticated local endpoint| Web
+    Bridge <-->|Provider request| Model[Configured model endpoint]
+    State <--> DB[(Mounted SQLite state)]
+    Runner --> Files[(Mounted artifacts and raw evidence)]
+    POC -->|Scoped workspace only| Workspace[(POC workspace)]
     subgraph Legend[Legend]
-        LKey["Blue: CC work<br/>Amber: infrastructure<br/>Green: data / artifacts<br/>Gray: outside components"]
+        Key[Blue: CC work; purple: verification; amber: infrastructure; green: data; gray: outside]
     end
-    Models ~~~ Legend
     classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
+    classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
     classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
     classDef outside fill:#F1F5F9,stroke:#475569,color:#0F172A
-    class Nodes work
-    class Web,CP,Worker,Scheduler,Runner,Harness,Restricted,ModelClient,StateModule control
-    class State,Files,Library data
-    class Browser,Models outside
-    style App fill:#F8FAFC,stroke:#94A3B8
-    style Legend fill:#F8FAFC,stroke:#94A3B8
-    style LKey fill:#FFFFFF,stroke:#94A3B8,color:#0F172A
+    class Planner work
+    class Verify verify
+    class Web,Scheduler,Runner,Bridge,State,POC,Gate control
+    class Library,DB,Files,Workspace data
+    class Browser,Model outside
 ```
 
-These are logical modules. Preserve useful native process boundaries; one container does not mean one process.
+The planner is invoked through the same runner; its separate box shows responsibility. The model bridge and restricted execution boundary are infrastructure, not CCs.
 
-| Location | Responsibility |
-|---|---|
-| Browser | Render the container-served UI; display runs; submit objectives and files; answer clarification; retrieve outputs |
-| Container web server | Serve the built TypeScript UI and proxy the existing application connections through the published endpoint |
-| Container control plane | Accept requests; manage run identity and user decisions; communicate with UI and expose artifacts |
-| Container execution | Compile intent and requirements; plan; run CCs and checks; build and measure POCs; prepare delivery |
-| Shared run-state module | Store the authoritative run/DAG progress, attempts, decisions, and accepted artifact references used by both control plane and execution |
-| CC library | Hold versioned declarations and implementation references used by planning and the CC runner |
-| Persistent mounts | Keep run state, imported resources, logs, and accepted artifacts across container replacement |
-| External model endpoint | Serve configured model requests; routing algorithms are deferred |
+Build and serve the UI in the application image, starting from the existing [Dockerfile](../../Dockerfile.claw) and [startup](../../pyproject.toml). Publish one host endpoint on loopback, retaining local session authentication. Listening on a container interface does not authorize LAN exposure. Persist data separately from the replaceable image; supply credentials through protected configuration, not declarations or output artifacts.
 
-Docker is packaging and an outer boundary. Generated code still needs a restricted process/workspace inside it. It must not inherit model credentials, unrestricted network access, or the application's control privileges. Reuse a suitable native isolation mechanism; never expose the Docker socket to generated code.
+Use the existing Codex integration as the baseline model route. Preserve protected local IPC and owned execution context. Keep alternate routing isolated until separately enabled. Every supported model call crosses the audited bridge; local run/capsule correlation stays in local telemetry rather than being added to provider prompts solely for attribution. Record time and calls; absent reliable token/cost telemetry remains unavailable.
 
-If the required isolation is unavailable, pause the affected execution with a clear reason rather than running generated code unrestricted. The coding task selects and verifies the native mechanism; a Docker image alone does not establish that boundary.
+Generated POC code is untrusted. Docker packaging and a Python virtual environment do not prove confinement. Enforce scoped filesystem access, restricted identity, denied undeclared network/tools, resource limits, and separation from credentials, control state, library activation, and hidden fixtures. Do not expose the Docker socket. The owning task selects and verifies the available mechanism; if a mandatory boundary cannot be enforced, block execution. Prompt blacklists or import scanning complement confinement but cannot replace it.
 
-The run-state module coordinates durable storage updates. The control plane supplies requests and user decisions; execution supplies attempts, check results, and release decisions. The UI and scheduler read the same authoritative facts. This is an internal module backed by SQLite, not another deployed service or a second queue database.
+## Data foundation
 
-The CC library is packaged or configured versioned declarations plus their code/skills. Both planner and runner resolve from it. Freeze pins the selected capabilities and declared internal dependencies. Later library changes affect future plans, not the meaning of an already frozen run. Authoring and publishing this library do not require RSI.
+**Required now.** The run-state module owns durable lifecycle, frozen graph, attempts, decisions, and accepted artifact references. The scheduler and control plane use that authority. Native queues, journals, caches, and UI traces are projections or dispatch aids.
 
-## Stack and operational defaults
+Store exact inputs, implementation/configuration identities, produced artifacts, runtime evidence, raw verifier assessments, and gate decisions with run/node/attempt correlation. Keep declared behavior distinct from observed behavior. Tool-call logs alone do not prove absence of hidden filesystem or network effects; an unobserved mandatory condition cannot be treated as passed.
 
-Keep the existing Python server and TypeScript web stack. Build and serve the UI inside the application image, as JiuwenSwarm already does; users only need a browser. Publish the existing web endpoint, initially bound to localhost (for example `http://localhost:5173`). Backend connections use the native web proxy rather than requiring users to configure another endpoint. Use SQLite for workflow state and references, and filesystem storage for large inputs, evidence, and deliverables. Do not replace unrelated native stores merely to make all persistence uniform.
+Release-essential artifacts and decisions must commit before advancing. Storage failure blocks release. Optional diagnostics may fail without changing execution, but their absence is explicit. This reconciles the supplementary data-source's best-effort capture hooks with the master PRD's durable gate boundary.
 
-Use one Compose application service, based on the existing [Dockerfile](../../Dockerfile.claw), with persistent data and separately supplied configuration/credentials. Retain [JiuwenSwarm startup](../../pyproject.toml) where suitable. Pin the application and dependency versions needed to reproduce a run. Image availability and actual startup still require implementation validation.
+Preserve raw evidence before workspace cleanup or native retention deletes it. Derived run records, conformance views, scorecards, and exports can be rebuilt from that evidence. Separate agent working context from authoritative records. Keep credentials out of capture; raw prompts and supplied data remain locally protected. Any export must respect its permitted audience and hidden-fixture boundary.
 
-Local access comes first. Remote deployment retains this structure but needs suitable access control, durable storage, and hardware.
+Scientific benchmarking executes the user's baseline/treatment protocol. Platform benchmarking compares system variants on matched inputs and frozen effective configurations. Both use the same attribution foundation, but their measurements and conclusions are distinct. Exports record what actually ran, seeds where supported, component versions, gate evidence, and unavailable measurements. Gate-disabled ablations are evaluation runs, not valid product runs or admission evidence.
 
-## Reuse map
+## Offline RSI
 
-| Area | Starting point | Adaptation intent |
-|---|---|---|
-| Client and server connection | [Existing web frontend and proxy](../../jiuwenswarm/channels/web/app_web.py) | Add workflow submission, status, clarification, and delivery using existing transport |
-| Application startup and Docker | Existing JiuwenSwarm image and entry point | Add the pipeline and its dependencies without another server framework |
-| Background execution and recovery | [Native worker](../../jiuwenswarm/agents/harness/common/rsi/worker.py) and [recovery pattern](../../jiuwenswarm/agents/harness/common/rsi/recovery.py) | Reuse compatible machinery or its small pattern; do not enable RSI or import its product semantics into research runs |
-| Scheduling and progress | OpenJiuwen SwarmFlow workflow engine | Wrap suitable scheduling, concurrency, and progress features; preserve gate-controlled readiness |
-| Planner and agent internals | OpenJiuwen Symphony team/agent and harness components | Reuse model/tool execution and configuration; restrict planner output to supported CC graphs |
-| Human interaction | Native run controls and human-session support | Carry questions, pause, resume, and cancellation through the UI |
-| Storage and diagnostics | Native state/artifact and logging facilities where suitable | Add only the durable workflow records and views that are missing |
+**Required now for full M1; outside the first build.** Prepare the independent interface early so offline work need not wait for planner implementation. The initial required target is the pure `rank_opportunities` helper inside the Screening CC. Keep its input/output meaning, required dimensions, Top-1 behavior, and effect boundary fixed. Candidate mutations operate on a sandbox copy; production remains unchanged.
 
-Symphony and SwarmFlow are distinct building blocks. Their dependency is pinned in [pyproject.toml](../../pyproject.toml). The [archived source audit](../archive/architecture-2026-10-05/system/reuse-audit.md) is optional background; its old policies are superseded.
+```mermaid
+flowchart TB
+    Library[(Admitted parent version)] --> Copy[Eligible target copy and visible development fixtures]
+    Copy --> Proposer[Fixed offline improver]
+    Proposer --> Candidate[Inactive candidate and lineage]
+    Candidate --> Referee[Protected independent referee]
+    Hidden[(Hidden loop and final fixtures)] --> Referee
+    Referee --> Evidence[(Bounded results and audit evidence)]
+    Evidence --> Proposer
+    Candidate --> Admission[Admission and compatibility checks]
+    Evidence --> Admission
+    Admission --> Human[Human activation or refusal]
+    Human --> Library
+    subgraph Legend[Legend]
+        Key[Blue: improvement work; purple: verification; amber: infrastructure; green: data]
+    end
+    classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
+    classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
+    classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
+    classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
+    class Proposer,Candidate work
+    class Referee verify
+    class Copy,Admission,Human control
+    class Library,Hidden,Evidence data
+```
 
-Verify native behavior at the installed version. These are reuse candidates, not proven integrations. Adapters must prevent retries, caches, or exception handling from releasing unchecked results or repeating effects silently.
+The feedback arrow returns only the approved bounded loop information. Hidden fixture content, expected outputs, per-case hidden results, and final-evaluation feedback remain outside the proposer and candidate. Separate development, hidden-loop, hidden-final, and milestone data. Reserve final evaluation for terminal assessment; freeze scoring and evaluation identities before the session. Compare parent and child under the same relevant configuration and enforce the declared query/resource limits.
 
-Add missing CC declarations, node bindings, freeze, and verification integration as application modules. Spec Kit defines their APIs and files.
+RSI may change only explicitly eligible implementation parts. It cannot change contracts, gate/verifier/check assets, security or mutation permissions, evidence stores, fixture custody, model weights, or activation controls. Enforce restrictions outside the mutable target. Preserve attempts, lineage, scoring, and violation evidence. Admission and human activation are separate from a better score; retain rollback. Target 2 mutates explicitly permitted Screening implementation text only when bounded headless model execution is available (PRD 4.4.1); otherwise defer it to M2 without blocking required Target 1 or M1 completion.
+
+## Native reuse
+
+**Required now.** Start from native UI/transport, SwarmFlow scheduling, Symphony agent/harness components, existing model integration, storage, and diagnostics. The [pinned integration audit](../archive/architecture-2026-10-05/system/reuse-audit.md) supplies symbol-level leads, not proven integrations or current policy.
+
+At the installed dependency version, verify adapter behavior for swallowed exceptions, hidden retries, journal/cache replay, duplicate effects, cancellation, and background lifecycle. In particular, a native cached result cannot establish a committed CC gate pass. Keep model-process ownership separate from unrelated interactive chats. Add only missing adapters and capsule/runtime behavior; Spec Kit chooses files and APIs.
