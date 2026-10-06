@@ -54,6 +54,6 @@ Follow [TASKS → TASK → one feature directory](handoff.md). Cross-module agre
 
 ## Review and evidence
 
-This revision uses source reconciliation, local native-code inspection, an end-to-end walkthrough and explicit disposition of the user-supplied Luna review. Findings are resolved in these pages and the trial register; no coding-review gate is added. [Coverage and SWOT](coverage.md) state what was reviewed and what remains unverified. Earlier review statements are historical, not proof of this revision.
+This revision uses source reconciliation, local native-code inspection, an end-to-end walkthrough and explicit disposition of the user-supplied Luna review. Findings are resolved in these pages and the trial design; no coding-review gate is added. [Coverage and SWOT](coverage.md) state what was reviewed and what remains unverified. Earlier review statements are historical, not proof of this revision.
 
 Implementation must later produce block, connected-boundary, and integrated-system evidence. Record the actual candidate, configuration, fixtures, observed failures, unavailable measurements, and verifier limitations in native Spec Kit artifacts. Documentation checks and agent agreement establish neither runtime correctness nor scientific quality.
