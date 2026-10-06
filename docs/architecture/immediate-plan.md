@@ -92,7 +92,7 @@ Startup seeds/validates the two pinned definitions, initializes persistent state
 
 ## Sources and exclusions
 
-Give the coding agent original clauses from the [current master draft](sources/product/prd-m1-current-2026-10-06.txt) plus [D1–D14](principles.md#decisions-and-source-amendments), this page, the CC field reference, verification boundary, human-callback policy, automation and placement guidance.
+Give the coding agent original clauses from the [current master draft](sources/product/prd-m1-current-2026-10-06.txt) plus [D1–D15](principles.md#decisions-and-source-amendments), this page, the CC field reference, verification boundary, human-callback policy, automation and placement guidance.
 
 | Clauses | Portion exercised by this slice |
 |---|---|
