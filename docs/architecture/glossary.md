@@ -31,7 +31,7 @@ Use this page when moving between the PRD, architecture, owner contributions, an
 
 | Term | Rule |
 |---|---|
-| TRIAL-1 / TRIAL-1 | TRIAL-1 names the intent pair and its local coding TASK. Main M1-001 remains the Codex adapter. The conflicting former local M1-001 trial identity and branch-local trial location are retired; main uses colocated native files in docs/code/Missions/M1/TRIAL-1/. |
+| TRIAL-1 / TRIAL-1 | TRIAL-1 names the intent pair and reserves a distinct future coding TASK. Main M1-001 remains the Codex adapter. The conflicting former local M1-001 trial identity and branch-local trial location are retired; register colocated native files in docs/code/Missions/M1/TRIAL-1/ before specification. |
 | Stage / task / node / attempt | Delivery Phase names baseline/RSI/dynamic integration. Implementation Stage names integration milestones 0–8. A research responsibility is a workflow role; task groups objectives; node is an objective instance with a Node Execution Contract; attempt is an execution of that node; invocation identifies each subordinate CC call. A coding TASK and native SwarmFlow runtime phase are separate identities. |
 | Declaration name / version / hash | Stable capability name, display version, and exact immutable identity are distinct. Never use a display label as a content pin. |
 | Node Execution Contract (§4.1.3–4) | Protected run-specific objective, accepted port bindings, output/check/evidence obligations, exact participating CC pins and effective limits; it may narrow admission but never widen it. [Shapes](contracts-and-native-reuse.md). |

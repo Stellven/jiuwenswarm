@@ -1,6 +1,6 @@
 # TRIAL-1: the intent compiler and Verifier
 
-Architecture slice, 2026-10-06. **Required now for this slice:** implement the connected Intent compiler CC → intent Verifier (Evaluator Gate) path and its supporting runtime. TRIAL-1 is a distinct task identity; main M1-001 remains the Codex adapter. The remaining full-M1 responsibilities stay in the [overview](README.md) and [complete phase/stage account](delivery-phases.md).
+Architecture slice, 2026-10-06. **Required now for this slice:** implement the connected Intent compiler CC → intent Verifier (Evaluator Gate) path and its supporting runtime. TRIAL-1 reserves a distinct task identity; main M1-001 remains the Codex adapter. The remaining full-M1 responsibilities stay in the [overview](README.md) and [complete phase/stage account](delivery-phases.md).
 
 ## Intended result
 
@@ -101,13 +101,13 @@ Give the coding agent original clauses from the [current master draft](sources/p
 | 4.1.1–4.1.4; 4.2.1–4.2.2, 4.2.6–4.2.9 | Two admitted pinned CCs, actual evidence, two-tier verification, protected release, and failure behavior |
 | 4.5.2–4.5.3; 4.6.1–4.6.4; 5.1.1–5.1.2; 5.2.2; 5.3.2; 5.4.2; 5.6 | Durable run control, UI inspection, local access, and relevant effective configuration |
 
-Allocate exact subclauses in the registered TASK; these rows do not claim entire sections are satisfied. Apply 4.2.9 to intent validity, swapped/stale outputs, timeouts, environment failures, uncertainty, and gate locking; scientific-negative and POC-specific cases remain full-M1 work. Global scope, security, evidence, and referee boundaries apply. Include headless halt behavior for automated evaluation without adding another user-facing application.
+Register the distinct TASK and allocate exact subclauses before native generation; these rows do not claim entire sections are satisfied. Apply 4.2.9 to intent validity, swapped/stale outputs, timeouts, environment failures, uncertainty, and gate locking; scientific-negative and POC-specific cases remain full-M1 work. Global scope, security, evidence, and referee boundaries apply. Include headless halt behavior for automated evaluation without adding another user-facing application.
 
 Exclude planner, Requirement compiler, search, POC execution, benchmarking, scientific evaluation, Delivery CC, internal composition, dynamic routing, and RSI execution. Final transfer is ordinary control-plane handling. Their declaration concepts and future compatibility remain intact.
 
 ## Coding-agent responsibility
 
-Start at [TRIAL-1 coding entry](handoff.md) under [TASKS → TASK → Spec Kit](handoff.md). The agent defines detailed formats, APIs, prompts, implementation order, acceptance criteria, fixtures, and verification in the registered native artifacts.
+Start at [TRIAL-1 coding entry](handoff.md) under [TASKS → TASK → Spec Kit](handoff.md). The agent defines detailed formats, APIs, prompts, implementation order, acceptance criteria, fixtures, and verification in the owning native artifacts after registration.
 
 Require real connected acceptance/refusal evidence and a fixed labeled challenge set characterizing verifier fidelity and instruction resistance. Keep that set separate from live inputs and outside RSI. Preserve per-case outcomes and same-provider limitations; a separate model invocation does not guarantee independent errors. Spec Kit selects concrete cases and thresholds before measuring the implementation.
 
