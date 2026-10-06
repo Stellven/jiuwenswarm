@@ -1,0 +1,37 @@
+### 3.V Evaluator Gate & Benchmarking
+
+#### 3.V.1 Contract, Schema & Artifact Conformance Evaluator
+*   **Definition & Expectation:** Verifies input/output contracts, schemas, scopes, required artifacts, proof obligations, structural completeness, and admissibility of submitted evidence[cite: 9]. 
+*   **Whitelist (M1 Scope):** [Fill in - e.g., Tier 1 Programmatic Python assertions]
+*   **Blacklist (Excluded from M1):** [Fill in]
+*   **Dependencies:** [Fill in]
+
+#### 3.V.2 Engineering Correctness & Code Quality Evaluator
+*   **Definition & Expectation:** Combines automated unit, integration, regression, smoke, and end-to-end testing with static analysis, type checking, linting, maintainability checks, and architecture-boundary validation[cite: 9].
+*   **Whitelist (M1 Scope):** [Fill in]
+*   **Blacklist (Excluded from M1):** [Fill in]
+*   **Dependencies:** [Fill in]
+
+#### 3.V.3 Performance, Cost & Benchmark Evaluator
+*   **Definition & Expectation:** Measures quality, latency, throughput, resource usage, scalability, and cost, and compares results against defined baselines and regression thresholds[cite: 9].
+*   **Whitelist (M1 Scope):** [Fill in - e.g., The 3-phase benchmarking strategy and runtime metrics]
+*   **Blacklist (Excluded from M1):** [Fill in]
+*   **Dependencies:** [Fill in]
+
+#### 3.V.4 Security, Privacy, Compliance & IP Evaluator
+*   **Definition & Expectation:** Checks vulnerabilities, secrets, permissions, unsafe effects, sensitive-data exposure, regulatory and organizational policies, licenses, copyright, attribution, and permitted data use[cite: 9].
+*   **Whitelist (M1 Scope):** [Fill in]
+*   **Blacklist (Excluded from M1):** [Fill in]
+*   **Dependencies:** [Fill in]
+
+#### 3.V.5 Evidence, Factuality & Scientific Validity Evaluator
+*   **Definition & Expectation:** Evaluates claim-to-evidence support, citation and source quality, reasoning consistency, reproducibility, experimental validity, uncertainty, and external plausibility[cite: 9].
+*   **Whitelist (M1 Scope):** [Fill in - e.g., Tier 2 Semantic LLM judge]
+*   **Blacklist (Excluded from M1):** [Fill in]
+*   **Dependencies:** [Fill in]
+
+#### 3.V.6 Lifecycle, Parity & Human Review Evaluator
+*   **Definition & Expectation:** Verifies real execution, workflow completion, required gates, side effects, and feature or semantic parity; aggregates results and invokes attributable HITL review for high-risk, ambiguous, or policy-required decisions[cite: 9].
+*   **Whitelist (M1 Scope):** [Fill in - e.g., Outputting the 5 explicit branch verdicts and falling back to human_session]
+*   **Blacklist (Excluded from M1):** [Fill in]
+*   **Dependencies:** [Fill in]

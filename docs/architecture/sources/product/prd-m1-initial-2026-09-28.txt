@@ -1,0 +1,194 @@
+# Product Requirements Document: AI4Research
+
+## 1. Overview & M1 Objectives
+AI4Research is an agentic scientific R&D workstation that automates the research lifecycle from literature retrieval and hypothesis generation to proof-of-concept implementation and empirical benchmarking. Built on a fork of `openJiuwen-ai/jiuwenswarm`, the platform couples deterministic Swarmflow execution with whitelisted tool operators from `openJiuwen-ai/deepsearch` and domain research skill logic ported from `openJiuwen-ai/sciencediscovery`.
+
+The primary objective of M1 is to establish the core architecture and restricted domain functionality. While this document outlines the comprehensive feature set (including test report requirements and ongoing AI research tracks), M1 strictly bounds implementation to foundational scaffolding, whitelisted operators, and default deterministic states to ensure a rapid initial iteration. That being said, all functionality in the current AI4Research project will be either implemented, created but not wired in, or taken into consideration in the design to integrate in future milestone stages.
+
+
+## 2. Domain Policy & Restrictions (M1)
+To maintain velocity for next week's kickoff, the following policies govern M1 development:
+*   **Static Defaults Over Dynamic Orchestration:** Complex components—specifically the Dynamic Planner Agent, RSI integration, and full dynamic Model Routing—are designated as **parallel development tracks**. They will not be coupled directly to the primary end-to-end execution path for M1 at the start so that we can debug and build a working workflow first.
+*   **Decoupled Interface via Sample Artifacts:** 
+    *   **Planner:** M1 uses a deterministic, hardcoded Default DAG. The Planner Agent will be developed concurrently against offline execution scenarios.
+    *   **RSI:** Unblocked by operating on static sample DAG fixtures rather than live pipeline outputs.
+    *   **Model Routing:** Restricted to a deterministic fallback/single-path router (via the Codex CLI adapter) while multi-model routing logic matures.
+*   **Integration Gate:** No experimental autonomous behavior (dynamic replanning, self-reflection RSI loops) will be merged into the main release branch until baseline deterministic execution achieves stability in M1.
+
+## 3. Feature List & Milestone Mapping
+
+### Workflow Features (WebLink Test Report)
+*   **Codex CLI Integration to OpenJiuwen (FIRST STEP TO IMPLEMENT)**
+    *   *M1 State:* Establish connection to OpenJiuwen via the Codex CLI, routing application requests through the active subscription to bypass API access limitations.
+    *   *Future State:* Fully implemented in M1. Future iterations limited to maintenance, error handling, or transitioning to direct API integration if access becomes available.
+
+*   **Ingestion**
+    *   *M1 State:* **Local Prompt & Document Loading.** Ingests user research topics via CLI arguments or the Web UI prompt box, along with local reference documents (`.txt`, `.md`, and `.pdf`) placed in a designated workspace input directory.
+    *   *Future State:* Advanced multi-source ingestion supporting live arXiv URLs, GitHub repository links, patent databases, and automated unstructured document chunking.
+
+*   **Requirement Compilation**
+    *   *M1 State:* **Structured Research Brief Generation.** An agentic prompt parser that transforms raw natural-language requests into a standardized, schema-bound **Research Brief** specifying the core research question, domain boundaries, hardware/compute constraints, and target evaluation metrics.
+    *   *Future State:* Dynamic, source-linked requirement inventory generation with automated ambiguity detection and interactive clarification dialogues.
+
+*   **Search & Ideation**
+    *   *M1 State:* **Local Document & Literature Retrieval.** Indexes and searches user-provided reference documents and local research papers to synthesize initial candidate ideas and technical directions (powered by Jiuwen `deepsearch` local mode).
+    *   *Future State:* **Autonomous Multi-Source Deep Research.** Dynamic literature discovery across external sources (arXiv, GitHub repositories, patents, and web) with automated trend analysis, white-space identification, and citation-backed candidate idea generation.
+
+*   **Idea Identification / Screening / Opportunity Selection**
+    *   *M1 State:* **Deterministic Rubric Gate.** Stage node in Swarmflow that filters candidate ideas from Search & Ideation against multi-dimensional expert scoring rubrics adapted from `sciencediscovery/assessment-screening` (measuring feasibility, scientific novelty, and compute alignment) before advancing to hypothesis formulation, verified via the Evaluator gate.
+    *   *Future State:* Multi-agent consensus scoring, dynamic peer-review simulations, and automated falsifiability ranking.
+
+*   **Generate Technical Claims & Hypothesis**
+    *   *M1 State:* **Structured Hypothesis Synthesis.** Generates falsifiable technical hypotheses and baseline experiment parameters using prompt structures adapted from `sciencediscovery/evolve-design`, defining explicit dependent/independent variables, expected performance metrics, and failure criteria.
+    *   *Future State:* Dynamic, context-aware hypothesis generation with automated counter-evidence probing and iterative parameter evolution.
+
+*   **POC Implementation**
+    *   *M1 State:* **Bounded Script & Prototype Generation.** Generates reproducible proof-of-concept scripts and minimal test harnesses in an isolated workspace, utilizing the `CodeSearch` operator to pinpoint repository touchpoints and functions.
+    *   *Future State:* Autonomous multi-file implementation, automated defect-repair loops, and containerized runtime prototype assembly via JiuwenSwarm Code Mode.
+
+*   **Benchmarking**
+    *   *M1 State:* Basic runtime metrics collection.
+    *   *Future State:* Comprehensive autonomous benchmarking suites.
+
+*   **Evaluation**
+    *   *M1 State:* **Stage-Gate Verification.** Integrated directly into workflow handoffs via the two-tier synchronous Evaluator Gate (programmatic schema checks + LLM semantic judge), routing to native JiuwenSwarm HITL (`human_session`) upon failure. (See Foundation Features and Section 4.3).
+    *   *Future State:* Autonomous multi-faceted peer review and continuous harness benchmarking.
+
+*   **Delivery**
+    *   *M1 State:* **Standardized Research Report Delivery.** Synthesizes findings, experimental results, and verified citations into structured markdown reports based on `sciencediscovery/report-writer` templates (including methodology, benchmark analysis, and documented limitations).
+    *   *Future State:* Multi-format, integrated delivery pipeline generating publication-ready LaTeX manuscripts, executive slide summaries, and interactive HTML dashboards.
+
+
+### Foundation & AI Routing Features (Intern Team & Core)
+*   **Capability Capsule**
+    *   *M1 State:* Baseline capsule execution (testing performance with and without `make_capsule.md` to determine if manual schemas are required).
+    *   *Future State:* Fully autonomous capsule generation and registry management.
+
+*   **RSI Integration**
+    *   *M1 State:* Concurrent Development — execution via Sample DAG to unblock testing.
+    *   *Future State:* Full live RSI pipeline integration.
+
+*   **Planner (DAG Selection & Routing)**
+    *   *M1 State (Two-Phase Execution):* 
+        1.  **Phase 1 (Deterministic Baseline):** **Hardcoded Default DAG** using Swarmflow to guarantee stable execution and immediately generate sample data for concurrent parallel tracks (RSI, Verifier).
+        2.  **Phase 2 (Concurrent Testing):** Begin exploratory testing of JiuwenSwarm's native **Cluster Mode** planner. This runs in parallel to evaluate its out-of-the-box dynamic routing capabilities against the Swarmflow baseline without blocking the core application.
+    *   *Future State:* Full transition to the dynamic Cluster Mode planner as the default orchestration layer, replacing the hardcoded Phase 1 Swarmflow script.
+
+*   **Evaluator (Verifier Module)**
+    *   *M1 State:* **Node-Level Synchronous Review Gate (Two-Tier Verification in Swarmflow).**
+        *   *Input Evidence:* Inspects a standardized node payload containing task deliverables, capsule contract criteria (`make_capsule.md`), and runtime telemetry against allocated token budgets.
+        *   *Two-Tier Verification:* Sequentially executes (1) deterministic programmatic assertions (schema compliance, non-empty bounds, budget ceilings) with zero LLM overhead for immediate fast-failure, followed by (2) a semantic verifier agent utilizing evaluation prompts adapted from `sciencediscovery/result-evaluator` and `citation-reviewer` to verify claim-to-evidence integrity and logical validity.
+        *   *Orchestration Gate:* Emits a structured verdict (`PASS`, `FAIL`, `BLOCKED`). `PASS` advances Swarmflow to the next node; `FAIL` or `BLOCKED` halts execution, records failure traces to the run tree, and routes to JiuwenSwarm's native HITL (`human_session`) for developer triage. (See Section 4.3 for full specification).
+    *   *Future State:* **Autonomous Multi-Faceted Evaluation via Auto Harness.** Expansion into specialized parallel evaluator sub-agents (Factuality, Engineering Correctness, Security) with automated defect repair loops and continuous harness self-evolution.
+
+*   **Operators**
+    *   *M1 State:* **Static Whitelist of Core Tool Operators.** Pre-register deterministic, sandboxed tool functions under JiuwenSwarm's native permission layer:
+        *   *Literature Retrieval Operator:* Local document search powered by `deepsearch`.
+        *   *Code Inspection Operator:* Repository navigation and file/line localization powered by `CodeSearch`.
+        *   *Workspace I/O Handlers:* Sandboxed filesystem read/write operations restricted to project workspace boundaries.
+    *   *Future State:* Dynamic operator registry supporting autonomous tool discovery, runtime permission escalation, and evaluator-driven operator evolution.
+
+*   **Foundational Models**
+    *   *M1 State:* Fixed single-model baseline. Requests are statically bound to the primary model endpoint via the Codex CLI adapter without runtime model switching.
+    *   *Future State:* Multi-model dynamic routing (leveraging the intern routing module) to switch between local on-device SLMs and frontier cloud LLMs based on cost, context window, and task complexity.
+
+*   **Data Foundations**
+    *   *M1 State:* Utilize JiuwenSwarm's native **Task Memory** and **Coding Memory** modules for baseline durable context, eliminating the need for custom database schema and vector scaffolding in the initial milestone.
+    *   *Future State:* Extended persistent graph management (Concept, Code, and Trace graphs) integrated into a highly scalable, distributed data foundation.
+
+*   **Harness Core**
+    *   *M1 State:* Leverage the native JiuwenSwarm runtime engine as the foundational harness. It natively provides the main control loop, task scheduling, and state persistence required to execute the Swarmflow DAG.
+    *   *Future State:* Integration with advanced automated evaluation harnesses (Auto Harness) and durable task queues for enterprise-scale concurrent execution.
+
+*   **Intention Compilers**
+    *   *M1 State (Two-Phase Execution):*
+        1.  **Phase 1 (Swarmflow Baseline):** Template-based mapping. Natural language inputs are parsed into strict, static variables required to trigger the predefined Swarmflow Python script.
+        2.  **Phase 2 (Cluster Mode Test):** Engage JiuwenSwarm's native **Leader Agent** to test autonomous intention compilation—allowing the Leader to dynamically decompose vague natural language into structured task contracts before routing.
+    *   *Future State:* Full transition to the Leader Agent as the primary intent resolution layer, deprecating static template mapping.
+
+*   **Builder**
+    *   *M1 State (Two-Phase Execution):*
+        1.  **Phase 1 (Swarmflow Baseline):** Static artifact generation. Produces restricted, standardized text/markdown deliverables using basic agent prompt templates.
+        2.  **Phase 2 (Code Mode Test):** Experiment with JiuwenSwarm's new **Code Mode** (workspace isolation, diff generation) and specialized sub-agents to test autonomous, iterative code and artifact construction.
+    *   *Future State:* Full integration of Code Mode and multi-agent builder swarms for complex implementations, defect repair, and iterative refinement.
+
+### Vertical Features (WebLink Test Report)
+*(Note: M1 satisfies vertical platform requirements via OpenJiuwen's native toolchain, bypassing the need for custom frontend and packaging builds)*
+
+*   **Visibility / Statistics**
+    *   *M1 State:* Utilize JiuwenSwarm's native `/swarmflows` run-tree monitoring, team token budgeting, and tool invocation security logs for baseline execution observability.
+    *   *Future State:* Custom persistent telemetry dashboards, multi-run aggregate reporting, and host-level resource tracking (CPU/GPU utilization).
+
+*   **Installer & CLI & Webapp**
+    *   *M1 State:* Standardized on `pip install jiuwenswarm` and `jiuwenswarm-start` for CLI and web service initialization, using native configuration files (`config.yaml`).
+    *   *Future State:* Custom enterprise desktop builds and automated multi-platform update channels.
+
+*   **UI**
+    *   *M1 State:* Deploy JiuwenSwarm's native web workbench (`localhost:5173` with Work and Code spaces), interactive terminal interface (`jiuwenswarm-tui`), and scriptable CLI out of the box.
+    *   *Future State:* Branded, dedicated user interface tailored specifically to complex multi-step research workflows.
+
+*   **Account Management**
+    *   *M1 State:* **Single-User Local Context with Built-in Permission Gates.** Runs under local system user permissions, utilizing JiuwenSwarm's native Tool Permissions & Security whitelist to intercept sensitive file actions and tool calls without custom auth databases.
+    *   *Future State:* Multi-tenant authentication, enterprise SSO/RBAC, and user-level isolation profiles.
+
+*   **Message Channels**
+    *   *M1 State:* **Native Workbench & Terminal Interfaces.** Execution and feedback are restricted to the local Web UI (`localhost:5173`) and interactive TUI (`jiuwenswarm-tui`). External channel adapters remain disabled during initial baseline verification.
+    *   *Future State:* Enable JiuwenSwarm's pre-built channel modules (Discord, WeChat, Feishu, Slack) via `config.yaml` for external signal intake and mobile approval notifications.
+
+*   **System Configurations**
+    *   *M1 State:* **JiuwenSwarm Declarative Configuration (`config.yaml`).** LLM providers, model endpoints (via Codex CLI adapter), workspace directories, and team token budgets are managed through the native hot-reloading `~/.jiuwenswarm/config/config.yaml`.
+    *   *Future State:* Dynamic remote configuration syncing, multi-host distributed cluster topology declarations, and automated per-project budget enforcement.
+
+
+## 4. Component Details & Open Questions
+
+### 4.1 Capsule Specification & Skill Sourcing
+To accelerate M1 development and ensure high-quality domain execution, capability capsules are divided between ported domain blueprints and core pipeline scaffolding:
+
+*   **Workflow Stage Capsules (Main Pipeline):**
+    *   `requirement_capsule.md` *(Custom)*: Transforms natural language into structured JSON Research Briefs (objective, constraints, metrics).
+    *   `search_capsule.md` *(Ported from `idea-tree-team`)*: Formulates research search strategies and clusters candidate directions, invoking the `deepsearch` local retrieval tool.
+    *   `screening_capsule.md` *(Ported from `assessment-screening`)*: Multi-dimensional rubric scoring to filter candidate ideas.
+    *   `hypothesis_capsule.md` *(Ported from `evolve-design`)*: Falsifiable hypothesis formulation and baseline experiment parameter setup.
+    *   `poc_capsule.md` *(Custom)*: Bounded code-generation contract utilizing `CodeSearch` to output minimal test harnesses.
+    *   `report_capsule.md` *(Ported from `report-writer`)*: Structured research report and delivery synthesis.
+
+*   **Evaluator Gate Capsule (Transition Verification):**
+    *   `verifier_capsule.md` *(Ported from `result-evaluator` & `citation-reviewer`)*: Powers the Tier 2 Semantic Verifier Agent within the Evaluator Gate, inspecting stage evidence bundles for claim-to-evidence integrity, schema conformance, and logical validity.
+
+*   **Contract Standardization (`make_capsule.md`):** All capsules—whether executing workflow stages or gate verification—are wrapped inside standardized input/output schemas to enforce deterministic JSON payloads, bounded workspace paths, and review gate compatibility.
+
+
+### 4.2 Agent Architecture
+*   **Reference:** See `Agent.md` for complete agent state machine definitions and schemas.
+*   **Owner:** Xiaoyang
+
+
+### 4.3 Evaluator Gate Architecture & Payload Specification
+The Evaluator acts as a synchronous transition gate between Swarmflow nodes before stage handoff:
+*   **Stage Evidence Bundle:** Packaged upon stage completion containing:
+    1.  *Artifacts:* Generated text deliverables, structured JSON payloads, or code scripts.
+    2.  *Capsule Contract:* Defined input/output schemas and acceptance rules (`make_capsule.md`).
+    3.  *Telemetry Data:* Runtime metrics including token consumption against budget and exit status.
+*   **Two-Tier Verification Pipeline:**
+    *   *Step 1 (Deterministic Assertion Layer):* Programmatic Python checks validating JSON schema compliance, file presence, non-empty bounds, and token budget ceilings with zero LLM token overhead.
+    *   *Step 2 (Semantic Verifier Agent):* Assesses qualitative alignment against capsule acceptance criteria (task relevance, logical coherence, deliverable completeness) and returns a structured JSON verdict (`PASS`, `FAIL`, `BLOCKED`).
+*   **Gate Orchestration:**
+    *   `PASS`: Advances Swarmflow execution to the subsequent stage node.
+    *   `FAIL` / `BLOCKED`: Halts execution, records failure traces to the run tree, and invokes JiuwenSwarm's native HITL (`human_session`) prompt for developer triage.
+
+### 4.4 Tool & Operator Architecture (`deepsearch`)
+The platform decouples agent reasoning (Capsules) from concrete tool execution (Operators):
+*   **Capsules as Contracts:** Capability capsules specify when and why an action is needed based on task state.
+*   **Operators as Execution Tools:** Concrete actions are executed via whitelisted operators backed by the `openJiuwen-ai/deepsearch` suite:
+    *   `DeepSearch`: Provides local document search and verified citations for research workflows.
+    *   `CodeSearch`: Provides syntax-aware repository chunking and line-level code navigation for implementation workflows.
+*   **Sandboxing & Security:** All operator invocations are mediated by JiuwenSwarm's native tool permission system, enforcing workspace isolation.
+
+
+
+## 5. PRD Governance & Feature Requests
+This PRD is a living document. To request feature additions or modifications:
+1.  **Submission:** Draft a brief proposal outlining the feature, its dependency on the current DAG, and requested milestone.
+2.  **Review:** Reach out to the current product engineer [or specific contact] via [WeLink/Discord/In-person] for triage.
+3.  **Approval:** Features will only be merged into the active milestone if they do not violate the M1 Domain Policy outlined in Section 2.

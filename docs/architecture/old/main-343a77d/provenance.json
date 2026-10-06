@@ -1,0 +1,206 @@
+{
+  "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+  "status": "superseded target-main architecture; excluded from active reading and navigation checks",
+  "files": [
+    {
+      "path": "old/main-343a77d/1.md",
+      "origin": "docs/architecture/1.md",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "old/main-343a77d/OVERVIEW.md",
+      "origin": "docs/architecture/OVERVIEW.md",
+      "sha256": "a9cd41fbfd245246167b2295f2ac088ce1f6b07de1340f9ab34ed72345c2956f"
+    },
+    {
+      "path": "old/main-343a77d/README.md",
+      "origin": "docs/architecture/README.md",
+      "sha256": "d3f8c76f694507dc6a0002e242e5d317e496d8583ba0ce88e2fff03113a93fac"
+    },
+    {
+      "path": "old/main-343a77d/architecture.md",
+      "origin": "docs/architecture/architecture.md",
+      "sha256": "9a379859e06305fcdeabc9526ecd2e20ab57cc74fa7944f80c2eb7d6e802f75e"
+    },
+    {
+      "path": "old/main-343a77d/b1-design.md",
+      "origin": "docs/architecture/b1-design.md",
+      "sha256": "8b8b0b8cfb153a67a7cff5ce7cc0a8cd503f2d8495ecda7997aabc2afe754a07"
+    },
+    {
+      "path": "old/main-343a77d/background/terms.md",
+      "origin": "docs/architecture/background/terms.md",
+      "sha256": "530d546c03a55a13d4554dd5d8691fd8254e822dfba1afc83680664623b699cc"
+    },
+    {
+      "path": "old/main-343a77d/big-picture.md",
+      "origin": "docs/architecture/big-picture.md",
+      "sha256": "b639c31bae1915614e8494e174ea98857ac804de4dd9af9a1fd51b37b8110dc6"
+    },
+    {
+      "path": "old/main-343a77d/capsule/authoring.md",
+      "origin": "docs/architecture/capsule/authoring.md",
+      "sha256": "6e58138c71878f6a1ff6a1002826e1aafb862bef285d8e4a564e809bfc6dcfb2"
+    },
+    {
+      "path": "old/main-343a77d/capsule/capsule.md",
+      "origin": "docs/architecture/capsule/capsule.md",
+      "sha256": "1e8348010361f0e3335f07a5071c9cba66e14513c98058e3ec87707aa4fee4ec"
+    },
+    {
+      "path": "old/main-343a77d/capsule/composition.md",
+      "origin": "docs/architecture/capsule/composition.md",
+      "sha256": "7eae3f68858f65e17b51d60fe1a454ef4c4345c333240cf79809515632aa0ec9"
+    },
+    {
+      "path": "old/main-343a77d/capsule/example-compile-intent.md",
+      "origin": "docs/architecture/capsule/example-compile-intent.md",
+      "sha256": "3102e5a2311f46497f4d3173e9cb12ac6f2ee9a80fa7cec2e7c32a61e386d572"
+    },
+    {
+      "path": "old/main-343a77d/capsule/example-generalist.md",
+      "origin": "docs/architecture/capsule/example-generalist.md",
+      "sha256": "2229ecade26d56dd1c8feb26b6edddb5b4e677cf6bbe49d5601159ffa6b7124f"
+    },
+    {
+      "path": "old/main-343a77d/capsule/fields.md",
+      "origin": "docs/architecture/capsule/fields.md",
+      "sha256": "a38b1b51241b50b16a04582a4422d1b68412f0747e65cd70c9ae0ce591fed892"
+    },
+    {
+      "path": "old/main-343a77d/capsule/generalist.md",
+      "origin": "docs/architecture/capsule/generalist.md",
+      "sha256": "4aa73a648c838e22c50f381feaf8e97c54f56f04dd7be34957840a3e4cafa93f"
+    },
+    {
+      "path": "old/main-343a77d/capsule/library.md",
+      "origin": "docs/architecture/capsule/library.md",
+      "sha256": "8a4233391ea5ee93a2d81b3350a014d0ba70e2d3caf08159b13f4de13d0a7e0e"
+    },
+    {
+      "path": "old/main-343a77d/capsule/observability.md",
+      "origin": "docs/architecture/capsule/observability.md",
+      "sha256": "e78e885ac94ae9f2c85a8529844a46bb7f3f17fad054ba17713598dbdb1a8f1a"
+    },
+    {
+      "path": "old/main-343a77d/capsule/permissions.md",
+      "origin": "docs/architecture/capsule/permissions.md",
+      "sha256": "f3a3f813c0d088409d5b7b17460ec3f4c0385904713d7e099359cff40659011b"
+    },
+    {
+      "path": "old/main-343a77d/capsule/references.md",
+      "origin": "docs/architecture/capsule/references.md",
+      "sha256": "9fcfaef527b3fb8e6bd020112696b01327e95b947bffa459693fef50ca1509cf"
+    },
+    {
+      "path": "old/main-343a77d/capsule/rsi.md",
+      "origin": "docs/architecture/capsule/rsi.md",
+      "sha256": "757453256bd9e462dd4d94f06caab9dacff024e9bceab60b0a0372ffacabf813"
+    },
+    {
+      "path": "old/main-343a77d/capsule/stages.md",
+      "origin": "docs/architecture/capsule/stages.md",
+      "sha256": "1dfaf3130ee34090d42f449b949ef956818e8fda2265570f246a238524c09a27"
+    },
+    {
+      "path": "old/main-343a77d/capsule/symphony.md",
+      "origin": "docs/architecture/capsule/symphony.md",
+      "sha256": "d899ecaae7b2b1334fc3052069e6bcb8d680f09cbb26b07ec730cff419b4acbf"
+    },
+    {
+      "path": "old/main-343a77d/capsule/tools.md",
+      "origin": "docs/architecture/capsule/tools.md",
+      "sha256": "ffd2b7b75fee35f6f4ee37587966c56f9c5bfa643e1f02d6d3ff5a1d2fd1d218"
+    },
+    {
+      "path": "old/main-343a77d/capsule/trust.md",
+      "origin": "docs/architecture/capsule/trust.md",
+      "sha256": "24e8aaaa5bc74daa073f4970b9729629d411817654245beccb352f8893615efc"
+    },
+    {
+      "path": "old/main-343a77d/capsule/why.md",
+      "origin": "docs/architecture/capsule/why.md",
+      "sha256": "73ee332120d5bd34cc5a8f7895dd73daa8830a3531d9bb348930679275fce9f7"
+    },
+    {
+      "path": "old/main-343a77d/m1-design.md",
+      "origin": "docs/architecture/m1-design.md",
+      "sha256": "f794dc6e2fae3fda1a93851c862cd35a0495c9ef788253470c87ba1f966b52ad"
+    },
+    {
+      "path": "old/main-343a77d/m1.md",
+      "origin": "docs/architecture/m1.md",
+      "sha256": "be6a60fef14435e23680f80dfcc4e60f5a2b074d7594d8460a811ceef761f9ca"
+    },
+    {
+      "path": "old/main-343a77d/schemas/artifact.md",
+      "origin": "docs/architecture/schemas/artifact.md",
+      "sha256": "6a5935ca1d21fa0aa64ad97fce907fcef18e7f3e16f52e27a4c4439ac660844a"
+    },
+    {
+      "path": "old/main-343a77d/schemas/binding.md",
+      "origin": "docs/architecture/schemas/binding.md",
+      "sha256": "14d3a431bc8e0ab59600e0a607287c7eb09c61a07348866f3fb71a77f111ac6c"
+    },
+    {
+      "path": "old/main-343a77d/schemas/candidate.md",
+      "origin": "docs/architecture/schemas/candidate.md",
+      "sha256": "15203c396250d552ae9cc68e147096cc178f90c0af795a371c551b13fef693e9"
+    },
+    {
+      "path": "old/main-343a77d/schemas/checks.md",
+      "origin": "docs/architecture/schemas/checks.md",
+      "sha256": "49231c9fe2e6821b335e9e593388b4040cea9b803303b00bda6d213dc6cc81e5"
+    },
+    {
+      "path": "old/main-343a77d/schemas/common.md",
+      "origin": "docs/architecture/schemas/common.md",
+      "sha256": "624522b6296f6188e24a0e7355e258701f0ccb70b35b206ab53301c74518cb36"
+    },
+    {
+      "path": "old/main-343a77d/schemas/finding.md",
+      "origin": "docs/architecture/schemas/finding.md",
+      "sha256": "9752e90477d97b0fd3644c55abca447a2f9ceb77d9f77b8d209b62fb9c38fffa"
+    },
+    {
+      "path": "old/main-343a77d/schemas/invariants.md",
+      "origin": "docs/architecture/schemas/invariants.md",
+      "sha256": "c3a0051a339ef70721113edab56118935d8ca10a67f142aa9c60400dfce839fe"
+    },
+    {
+      "path": "old/main-343a77d/schemas/observation.md",
+      "origin": "docs/architecture/schemas/observation.md",
+      "sha256": "c942f9a80dfbe15e6f211a6be069cd1175761cb1f9474150b88cd5ff6467fdd6"
+    },
+    {
+      "path": "old/main-343a77d/schemas/policy.md",
+      "origin": "docs/architecture/schemas/policy.md",
+      "sha256": "dc4a9e1269d189cc6264086e1d3fbbeea373cb13c74161446647ebc53c225bfb"
+    },
+    {
+      "path": "old/main-343a77d/schemas/port-types.md",
+      "origin": "docs/architecture/schemas/port-types.md",
+      "sha256": "735add6312991fe0e0e3afd695dc15b455464915ba252b0183c573a3b922b41a"
+    },
+    {
+      "path": "old/main-343a77d/schemas/schemas.md",
+      "origin": "docs/architecture/schemas/schemas.md",
+      "sha256": "931b69c56f895e92a015c2600187e02420cfc7973308d2f4789918ad56e06f4f"
+    },
+    {
+      "path": "old/main-343a77d/schemas/standing.md",
+      "origin": "docs/architecture/schemas/standing.md",
+      "sha256": "762de021c713fa9c4994e6f1d4b266288107be64010dd2262216deaeffc63160"
+    },
+    {
+      "path": "old/main-343a77d/schemas/verdict.md",
+      "origin": "docs/architecture/schemas/verdict.md",
+      "sha256": "1e617d8b2415bedf3624e4c88d2ead9f5b6b9c5ea41e2afe49209a303e6527ff"
+    },
+    {
+      "path": "old/main-343a77d/schemas/verification-record.md",
+      "origin": "docs/architecture/schemas/verification-record.md",
+      "sha256": "2e2548b94c2fffaa4f46b5f6a74f92e1a1e3c11d545486ad4a543162d3d525dd"
+    }
+  ]
+}

@@ -1,0 +1,244 @@
+Huawei Intern Meeting Notes - Monday, October 5th
+Written by: Ramika De Silva
+Saurav - Benchmark:
+- Issues:
+- Focus on the features / scenarios
+- Also focus on the other scenario of long-horizion tasks
+- Find test cases to test the reliability and the quality of the longer-horizion
+(2,4,10 hour etc) - see the tests, is it drifting,
+- Need to design and understand those testcases to judge the long-horizion
+test cases
+- We need the benchmark to measure progress - we aren’t trying to benchmark on
+everything, focus on the points
+- Also for verifier:
+- How to judge the verifier - quality of it?
+- Same thing with model routing
+- Present the metrics - why are you scoring this model/run this way? How can the
+model/run improve and where is it failing?
+- We don’t need too many test cases
+- Can start from 10
+- For each of them:
+- What are the metrics - has to be clear
+- For rsi:
+- How does it decide when to make a change? Improvement?
+- How does the RSI figure out that the function or tool should be
+improved/changed?
+- Three decisions to answer:
+- How do you decide to make a change?
+- What is the change?
+- How do you evaluate the change?
+- For rsi we need two loop:
+- Runtime - make progress for each run
+- Offline - make progress outside of runtime on things such as cc
+- For m2:
+- RSI will start improving its ownself
+- Define requirements and what will be done for the RSI PRD
+- We know we will improve capability capsule
+- Make descriptions of the RSI PRD more readable :
+- ex) 3.Y.2
+- Make it readable to human + ai
+- AI understanding of description tested via Xiaoyang\
+- inputting it to the coding agent, comparing expectations to
+output of ai agent
+- Feedback from stellven
+- Benchmark not clear
+- RSI
+- PRD for RSI is not clear - descriptions, contents, fields structure
+etc make it more clear for humans and agent - make sure that you
+can understand
+- Question stellven asked regarding Spec Kit and benchmarking:
+- Do you think that the tests that the Spec Kit generates are good enough?
+For testing and verification but also benchmarking?
+- How would you change them in terms of their design of testing if not up to
+par?
+- Review the V model in SWE:
+- When you finish the high level design, the high level testing should
+be done, as you go down a level, the appropriate testing should
+also be done - clarify with Stellven
+- Make sure you are covering line coverage + logic coverage
+- We need system level test after all the coding is finished, it will happen as that
+end, but we need the plane ready at the prd level. Should it be a separate
+document, should it be the same document as PRD?
+- User stories:
+- Should we let the AI generate the expected behaviors?
+- Approach:
+- Saurav - Develop user stories predefined by you - give a user
+story for each major feature that is visible to the user
+- Doesn't matter granularity, but more whether if its user
+visible
+Ramika:
+- Verifier :
+- Will be like a rules key - is the functionality behaving
+- why is the project described as local in overview 1.0? It has local parts but cloud account
+persistence in target goal.
+- rsi might go to the public repo and read benchmarks
+- local for RSI so that capsule improvements are useful to each user and
+reproducable.
+- structure makes it easier for research and makes sure the users get
+customization
+- Example is muse -> is different and customized for each user, but the implementation is
+deployed in the cloud.
+- For 3 phases:
+- Assign them specific details - also define why we need them + rules and tests we
+need to pass before moving onto next stage
+- Giving exact dates - not sure since we are one-shotting so might not be needed
+- Key thing is that M1 is done before Oct 31st
+- In section 6:
+- Define what stages are and how they related to tracks/phases - are they
+just subsets within a phase, define which fall into phase 1, 2, 3
+- Track and phase are used to refer to the same 3 things - be consistent, go with
+one for whole document unless they actually are different things
+- This feedback is so that codex does not get lazy - maybe a good idea would be
+to generate some sort of report or log at each phase and the final log for the
+whole project to help for debugging purposes
+- Team-updates
+- on 2026-10-01 we decided today 2026-10-05 will be the last day to make feature
+changes.
+- CC vs contract:
+- Current description of CC says its a contract - that is not true
+- Contract - something that is defined at runtime to a specific instance, say runtime
+#1’s contract for citing node capsules I think?
+- CC - A pre-defined schema to use at a class-wide level, not instance level - has
+declaration and provenance
+- Nodes are where CC’s are applied to work in the DAG
+- Current definition of CC is wrong too:
+- Where I think I went wrong: I assumed one node = one capsule, but a
+node is simply an objective and task, that is defined at runtime, and we
+simply grab the capsules to achieve that node - sort of like building a
+house, we need to know how to build a door, wall etc. which are CC’s but
+the big picture is using them all for the common objective
+- Blacklist vs Whitelist:
+- Blacklist are features that are not implemented in M1, but are important to
+mention for future context and defining of the ‘target’
+- Whitelist are features that are implemented in M1
+- For M1, we need to implement everything in Test report AI4Research +
+additonal stuff
+- Clarification regarding Intention compiler:
+- Intern’s progress for it is hard to say, make sure PRD accounts for a
+fallback so we are not bottlenecked - I think it does so this is good
+- Clarification in auditing Codex CLI 4.33:
+- What information can you get from the Codex Subscritpion
+- Token usage, time limit etc.
+- What are things we can’t currently measure since we are using
+subscription but can in the future with APIS - what can we measure with
+both states?
+- User stories:
+- Should we let the AI generate the expected behaviors?
+- Approach:
+- Develop user stories predefined by you - give a user story for each major
+feature that is visible to the user
+- Doesn't matter granularity, but more whether if its user visible
+- Get user stories from saurav - meet with him to choose features that are
+visible and need user story
+- Then add them to prd as he defines them
+Xiaoyang:
+- Code document - translate PRD and other documents into plan and other md files to
+write complicated code
+- Using Spec Kit (very popular open-source software) to achieve above objective
+- Used by many big companies (the same intuition behind it)
+- Each task has properties such as requirements, dependencies etc provided by Spec Kit
+- Each task has its own spec.md that dives more detail
+- Other fields included are user stories and scenarios, edge cases and
+success conditions
+- Questions to ask:
+- Spec Kit makes its own tasks and order
+- How can we verify that either it respects our M1 3 phase breakdown - or
+communicates changes ?
+- Task: verify that the spec kit breakdown is aligned with what the PRD
+outlines in terms of implementation order - sync with Ramika
+- For the test run, did you get input from the design or just the PRD?
+- Only with the PRD since design doc is not done yet - test run is
+incomplete
+- How is the output?
+- Answer this: Do we need the design doc based on the output just
+with the PRD - is the PRD good enough?
+- Xiaoyang: thinks we need architecture doc - requesting that
+- Can’t compare results with or without design doc since we
+don’t have the design doc
+- How was the implemented Codex CLI with current SOP?
+- Works but not perfect - ugly output
+- How does the Spec Kit connect the design of a system at a high level to the more
+granular design of each feature?
+- How does the Spec Kit make sure that the functional implementations are
+connected to the PRD level feature requests?
+- Is the feature specification and breakdown its own feature break-down or uses
+the strict feature break-down provided by PRD?
+- Does Spec Kit generate test cases for its implementation as well?
+- It has acceptance conditions but is that test cases / required to move on?
+- How is it checked?
+- Does it ceate test cases for each acceptance condition it makes? How
+does it verify that the accepted condition is passed or not?
+- Are test cases defined based on acceptance criteria or user
+stories? If user stories, how are acceptance criteria checked -
+what tests are there for it?
+- Xiaoyang:
+- Believes that it will generate test cases, implemented Codex CLI
+integration without using Spec Kit
+- What is the scope of a task?
+- Is one task one sub feature? Feature? A whole module? Etc.
+- What is the granularity?
+- Is there a doc/place to show how all the tasks come together - system level
+- Yes : its in TASKS.md
+- Contains all the tasks - for the test run, its only for M1 scope
+- How many documents will be generated for our project?
+- In the test run - 20 task document sets and 60 core documents
+- A set = one spec, plan, task.md + evidence - every set has 3 documents
+- Note:
+- This test run didn’t have design doc as input and not fully
+completed, may be more for actual run
+- If someone wants to change something in spec.md of a specific task, how do you
+do that if we are only allowed as humans to change the PRD or design doc?
+- If we expect humans to review those md files within a Task, that means
+they have to review each one, defeating the AI Efficiency purpose?
+- Question:
+- If we find an issue in a specific spec.md , should we change just
+that directly or change the PRD / Design doc to account for that
+error - serve as our source of truth?
+- User Workflow end to end of Spec Kit Coding (described by Xiaoyang):
+- Install Spec Kit to repo - installs a bunch of skill.md files - its a markdown project
+- Put PRD and other docs into repo - copy the path to them
+- Enter prompt :
+- “Based on ‘path to PRD’, ‘Path to design doc’, etc. and ‘source of spec kit
+repo” build up a spec system”
+- Then sets are generated
+- Code is made from these sets
+- EXPECTATION OF SPEC KIT:
+- Right now the prd is a 7/10 in terms of quality, not bad but not perfect
+- Some mistakes are there / not clear in current PRD but the Spec Kit can
+correct those issues - AI is smart enough to find those errors (don’t need
+a human to review to find issues, saves money and time from a human
+worker)
+- Law of marginal returns - to get it to 9 or even 10/10, we will need 100+ hours -
+we don’t have that time for this
+- Goal of Spec Kit: fill in the gaps so that we can reach 9.5/10 with Codex + Spec
+Kit with the “7” PRD
+- In this case, this tool is valuable as it gave us a higher rating with less human
+time hours !!
+Muk:
+- Design document not finished yet - the PRD its based on was finalized on Friday
+- Will continue working on it
+- Design document status:
+- Enough of it is implemented that we can run a test run potentially with PRD
+- Main question to ask:
+- How granular do you have to be in terms of specifics? How much detail should a
+human write (time-consuming) versus letting codex figure it out (more efficient
+but make sure its not straying)
+- Task - Experiment:
+- See how high you can stay in details without codex straying for one model, and
+use that as a reference for how granular you go for the rest of the system
+Discussion about account usage:
+- Xiaoyang proposed creating a separate account for coding role - 20x plan for that
+account, keep 5x for everyone else
+- Issue is on who gets the receipt and who gets reimbursed
+- Proposed solution:
+- register 4 5x accounts for the core team lead (since they are mainly dev)
+- Other people: some have 5x, others have standard based on their roles +
+reported usage
+Xiaoyang requested ‘remote control’ to be enabled:
+- In case his prompt doesn’t finish at 6PM, he wants to be able to remote control from
+outside of work to monitor the system and its outputs
+First test run:
+- To get a test run out, we will feed the following into codex to see its output:
+- Prd - implement up to phase 1 (get working end to end workflow)
+- Design doc - only use the CC part of it to start
+- Spec kit to handle the plan + implementation
