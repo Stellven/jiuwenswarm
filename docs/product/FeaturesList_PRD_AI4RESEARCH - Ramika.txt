@@ -1,2 +1,135 @@
-Product source moved: docs/architecture/sources/product/FeaturesList_PRD_AI4RESEARCH - Ramika.txt
-Current precedence: docs/architecture/sources/product/README.md
+# Product Requirements Document: [Insert Project Name]
+
+## 1. Overview & M1 Objectives
+[Brief 2-3 sentence summary of the product]. 
+The primary objective of M1 is to establish the core architecture and restricted domain functionality. While this document outlines the comprehensive feature set (including test report requirements and ongoing AI research tracks), M1 strictly bounds implementation to foundational scaffolding and default states to ensure a rapid initial iteration. That being said, all functionality in the current AI4Research project will be either implemented, created but not wired in, or taken into consideration in the design to integrate in future milestone stages.
+
+## 2. Domain Policy & Restrictions (M1)
+To maintain velocity for next week's kickoff, the following rules govern M1 development:
+*   **Default Over Dynamic:** Complex orchestration will rely on static defaults (e.g., default DAG selection) at first to initially debug and build workflow, once past that stage within M1, the autonomous agents that are developed in parallel to plan DAGs will be integrated.
+*   **Concurrent Unblocking:** Parallel tracks (like RSI or model routing) will be tested against static sample data (Sample DAGs) built during static default DAG stage to avoid integration bottlenecks until they are verified to integrate.
+
+## 3. Feature List & Milestone Mapping
+
+### Workflow Features (WebLink Test Report)
+*   **Codex CLI Integration to OpenJiuwen (FIRST STEP TO IMPLEMENT)**
+    *   *M1 State:* Establish connection to OpenJiuwen via the Codex CLI, routing application requests through the active subscription to bypass API access limitations.
+    *   *Future State:* Fully implemented in M1. Future iterations limited to maintenance, error handling, or transitioning to direct API integration if access becomes available.
+
+*   **Ingestion**
+    *   *M1 State:* Baseline ingestion of natural-language requests and specific document types.
+    *   *Future State:* Advanced unstructured input parsing across all file types.
+
+*   **Requirement Compilation**
+    *   *M1 State:* Hardcoded requirement templates for the restricted M1 domain.
+    *   *Future State:* Dynamic, source-linked raw requirement inventory generation.
+
+*   **Search & Ideation**
+    *   *M1 State:* Basic semantic search against initial domain data.
+    *   *Future State:* Full exploratory ideation pipeline.
+
+*   **Idea Identification / Screening / Opportunity Selection**
+    *   *M1 State:* Manual or threshold-based screening.
+    *   *Future State:* Autonomous scoring and selection.
+
+*   **Generate Technical Claims & Hypothesis**
+    *   *M1 State:* Static generation templates.
+    *   *Future State:* Context-aware, dynamic technical claims generation.
+
+*   **POC Implementation**
+    *   *M1 State:* Restricted proof-of-concept output generation.
+    *   *Future State:* Full automated implementation.
+
+*   **Benchmarking**
+    *   *M1 State:* Basic runtime metrics collection.
+    *   *Future State:* Comprehensive autonomous benchmarking suites.
+
+*   **Evaluation**
+    *   *M1 State:* Human-in-the-loop or static threshold evaluation if needed at verification stage, agent-first approach to evaluation.
+    *   *Future State:* Fully autonomous continuous evaluation.
+
+*   **Delivery**
+    *   *M1 State:* Standardized markdown/text delivery.
+    *   *Future State:* Multi-format, integrated pipeline delivery to output various file types for different needs.
+
+
+### Foundation & AI Routing Features (Intern Team & Core)
+*   **Capability Capsule**
+    *   *M1 State:* Baseline capsule execution (testing performance with and without `make_capsule.md` to determine if manual schemas are required).
+    *   *Future State:* Fully autonomous capsule generation and registry management.
+
+*   **RSI Integration**
+    *   *M1 State:* Concurrent Development — execution via Sample DAG to unblock testing.
+    *   *Future State:* Full live RSI pipeline integration.
+
+*   **Planner (DAG Selection & Routing)**
+    *   *M1 State:* **Hardcoded Default DAG** using Swarmflow and basic on-device model routing, Planner Agent mode also implemented to create basic DAG from given capability capsules.
+    *   *Future State:* Default Dynamic Planner Agent handling live orchestration.
+
+*   **Evaluator (Verifier Module)**
+    *   *M1 State:* Baseline verification scaffolding and deterministic checks.
+    *   *Future State:* Advanced, multi-step heuristic verification.
+
+*   **Operators**
+    *   *M1 State:* Core essential operators for M1 domain execution.
+    *   *Future State:* Extended operator library and autonomous discovery.
+*   **Foundational Models**
+    *   *M1 State:* Initial integration with specified core models.
+    *   *Future State:* Agnostic, context-aware model switching.
+
+*   **Data Foundations**
+    *   *M1 State:* Core database setup and vector scaffolding.
+    *   *Future State:* Scalable, distributed data foundations.
+
+*   **Harness Core**
+    *   *M1 State:* Basic harness orchestration.
+    *   *Future State:* Fully featured evaluation harness built with RSI.
+
+*   **Intention Compilers**
+    *   *M1 State:* Template-based intention matching.
+    *   *Future State:* Nuanced, semantic intention compilation.
+
+*   **Builder**
+    *   *M1 State:* Static build sequences.
+    *   *Future State:* Autonomous, iterative building agents.
+
+### Vertical Features (WebLink Test Report)
+*   **Visibility / Statistics**
+    *   *M1 State:* Basic terminal/logging output.
+    *   *Future State:* Comprehensive telemetry dashboards.
+
+*   **Installer & CLI & Webapp**
+    *   *M1 State:* Core CLI functionality for M1 execution.
+    *   *Future State:* Unified full-stack web application interface.
+
+*   **UI**
+    *   *M1 State:* Minimal viable frontend components (or none if CLI only).
+    *   *Future State:* Rich, interactive agent UI.
+
+*   **Account Management**
+    *   *M1 State:* Local/single-user authentication.
+    *   *Future State:* Full RBAC (Role-Based Access Control) multi-tenant systems.
+
+*   **Message Channels**
+    *   *M1 State:* Local standard input/output.
+    *   *Future State:* Slack, email, and internal-tool channel integrations.
+
+*   **System Configurations**
+    *   *M1 State:* Static `.env` and configuration files.
+    *   *Future State:* Dynamic, remote configuration syncing.
+
+## 4. Component Details & Open Questions
+
+### 4.1 Capsules & Skill Files
+*   **Schema Generation:** Initially rely on manual/human-generated skill files for schema formatting. These will serve as ground-truth references for autonomous agents in future milestones.
+*   **Testing Requirement:** Evaluate agent performance with and without `make_capsule.md`. *Decision needed:* Can the agent create a high-quality capsule without this skill file? If yes, deprecate the file.
+
+### 4.2 Agent Architecture
+*   **Reference:** See `Agent.md` for complete agent state machine definitions and schemas.
+*   **Owner:** Xiaoyang
+
+## 5. PRD Governance & Feature Requests
+This PRD is a living document. To request feature additions or modifications:
+1.  **Submission:** Draft a brief proposal outlining the feature, its dependency on the current DAG, and requested milestone.
+2.  **Review:** Reach out to the current product engineer [or specific contact] via [WeLink/Discord/In-person] for triage.
+3.  **Approval:** Features will only be merged into the active milestone if they do not violate the M1 Domain Policy outlined in Section 2.

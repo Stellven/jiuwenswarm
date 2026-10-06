@@ -10,7 +10,7 @@ The verifier receives the original request, exact compiler output, declared resp
 
 This is not the complete Research Brief. The later Requirement compiler consumes accepted intent and produces that contract.
 
-The trial retains a bounded, non-interactive compiler pass and adds a separately checked intermediate boundary under D5. It does not depend on the external advanced Intention Compiler, introduce dynamic clarification, or satisfy the PRD Stage 2 Research Brief exit. [Luna resolution](review-resolution.md) explains this deliberate decomposition and the current source identity.
+The trial retains a bounded, non-interactive compiler pass and adds a separately checked intermediate boundary under D5. It does not depend on the external advanced Intention Compiler, introduce dynamic clarification, or satisfy the PRD Stage 2 Research Brief exit. [Decision D5](principles.md#decisions-and-source-amendments) records this deliberate decomposition; the [source index](sources/product/README.md) identifies the current PRD.
 
 ## Connected boundary
 

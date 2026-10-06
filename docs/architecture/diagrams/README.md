@@ -5,7 +5,7 @@ Generated views of the embedded Mermaid sources. The Markdown pages own meaning;
 | View | Owning source | Rendered view |
 |---|---|---|
 | System picture | [README.md](../README.md#system-picture) | [SVG](README-1.svg) / [PNG](README-1.png) |
-| Read this package, then use the live coding authorities | [authority-index.md](../authority-index.md#read-this-package-then-use-the-live-coding-authorities) | [SVG](authority-index-1.svg) / [PNG](authority-index-1.png) |
+| Architecture inputs and coding authorities | [authority-index.md](../authority-index.md#architecture-inputs-and-coding-authorities) | [SVG](authority-index-1.svg) / [PNG](authority-index-1.png) |
 | Local Compose topology | [automation.md](../automation.md#local-compose-topology) | [SVG](automation-1.svg) / [PNG](automation-1.png) |
 | Exact verification boundary | [capsules.md](../capsules.md#exact-verification-boundary) | [SVG](capsules-1.svg) / [PNG](capsules-1.png) |
 | Node, contract and participating capsules | [contracts-and-native-reuse.md](../contracts-and-native-reuse.md#node-contract-and-participating-capsules) | [SVG](contracts-and-native-reuse-1.svg) / [PNG](contracts-and-native-reuse-1.png) |

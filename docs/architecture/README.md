@@ -2,7 +2,7 @@
 
 Architecture baseline, 2026-10-06. This describes intended behavior; runtime implementation is not established by these documents.
 
-**Start with [TRIAL-1](immediate-plan.md).** Use the [authority index](authority-index.md) for the complete portable reading set and live coding entrypoints. For product alignment read [coverage](coverage.md), [PRD translation](glossary.md), and [Luna review resolution](review-resolution.md). The complete design and received sources are together in this folder.
+**Start with [TRIAL-1](immediate-plan.md).** Use the [authority index](authority-index.md) for the current design reading set and live coding entrypoints. For product alignment read [coverage](coverage.md), [PRD translation](glossary.md). The current design and required source inputs are together in this folder; existing coding authorities remain in their repository locations.
 
 ## Intent and reading boundary
 
@@ -36,7 +36,7 @@ Architecture fixes intent, responsibilities, placement, connections, and importa
 | [Coverage and glossary](coverage.md) / [translation](glossary.md) | How does this map to the PRD? |
 | [Declaration](capsule/declaration.md) / [authoring](capsule/authoring.md) | Which fields must survive, and how is a CC published? |
 
-The short core pages give orientation; the M1, callback and automation views supply essential connections. Historical snapshots are not current requirements.
+The short core pages give orientation; the M1, callback and automation views supply essential connections. Existing historical task records do not override current requirements.
 
 ## Glossary
 
@@ -134,6 +134,6 @@ Intake transport, simple input qualification, scheduling, integrity checks, gate
 
 ## Sources and handoff
 
-The [latest user-supplied PRD](sources/product/prd-m1-current-2026-10-06.txt) and earlier October 5/October 2 sources remain verbatim. [Delivery phases](delivery-phases.md) distinguishes core demo acceptance from accounting for all M1 dynamic integration work. [Decisions](principles.md#decisions-and-source-amendments) record intentional exceptions; [review resolution](review-resolution.md) reconciles main identity and source differences. Historical snapshots under `old/` are outside the active reading graph. The [coding entry](handoff.md) identifies the live allocation authorities.
+The [latest user-supplied PRD](sources/product/prd-m1-current-2026-10-06.txt) remains verbatim. [Delivery phases](delivery-phases.md) distinguishes core demo acceptance from accounting for all M1 dynamic integration work. [Decisions](principles.md#decisions-and-source-amendments) record intentional exceptions. The [coding entry](handoff.md) identifies the live allocation authorities.
 
 Give coding agents exact clauses and the relevant architecture pages through [TASKS → TASK → Spec Kit](handoff.md). The first intent pair is a limited trial. Complete M1 includes all three delivery phases, with every applicable Phase 3 effort attempted and reported. It also requires CLI/headless execution, native web UI and TUI, installation/startup diagnostics, local terminal sessions, security/configuration (PRD 5.1–5.6), evidence exports, and offline RSI validation.

@@ -34,7 +34,7 @@ D12 preserves the new product/execution identity split; D13 preserves node/CC/co
 
 Task specifications must cite these amendments alongside original clauses. Do not claim unchanged PRD compliance for amended behavior. The [coding entry](handoff.md) owns complete source disposition and coding-task allocation.
 
-The current working source is the [latest received PRD](sources/product/prd-m1-current-2026-10-06.txt). Its §1.7 authority and §6.14 completion rules apply. D1 is now phase-aligned; D5/D6 remain explicit user-authorized realization/amendments. [Source corrections](delivery-phases.md#source-corrections-and-boundaries) resolve contradictory labels without editing received bytes. [Luna resolution](review-resolution.md) records the source and ID reconciliation.
+The current working source is the [latest received PRD](sources/product/prd-m1-current-2026-10-06.txt). Its §1.7 authority and §6.14 completion rules apply. D1 is now phase-aligned; D5/D6 remain explicit user-authorized realization/amendments. [Source corrections](delivery-phases.md#source-corrections-and-boundaries) resolve contradictory labels without editing received bytes. TRIAL-1 retains a distinct identity; main M1-001 remains the Codex adapter.
 
 ## What remains required
 
@@ -46,7 +46,7 @@ Complete M1 also includes attributable model calls, time/call limits, run bundle
 
 ## Architecture and Spec Kit
 
-Architecture owns intent, major responsibilities, trust boundaries, placement, critical connections, the required CC fields, and the decisions above. Spec Kit owns detailed interfaces, formats, algorithms, prompts, fixture design, development acceptance criteria, tests, and build order under the [constitution snapshot](sources/constitution.md).
+Architecture owns intent, major responsibilities, trust boundaries, placement, critical connections, the required CC fields, and the decisions above. Spec Kit owns detailed interfaces, formats, algorithms, prompts, fixture design, development acceptance criteria, tests, and build order under the [live constitution](../../.specify/memory/constitution.md).
 
 Do not confuse development acceptance criteria with runtime scientific criteria. Experimental success/falsification boundaries belong to the accepted protocol before execution; coding agents cannot revise them in response to results. Separate verifier characterization from a claim of truth or statistical independence.
 

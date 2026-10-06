@@ -114,6 +114,6 @@ Every related mandatory guard is admitted independently and has separate develop
 - [CC contracts and runtime verification](capsules.md)
 - [CC declaration fields](capsule/declaration.md)
 - [Planning, freeze, and execution](workflow.md)
-- [M1-003 admission task](sources/main-baseline/docs/code/Missions/M1/M1-003/TASK.md)
-- [M1-007 guard ownership task](sources/main-baseline/docs/code/Missions/M1/M1-007/TASK.md)
+- [M1-003 admission task](../code/Missions/M1/M1-003/TASK.md)
+- [M1-007 guard ownership task](../code/Missions/M1/M1-007/TASK.md)
 - [PRD §4.2 Evaluator Gate](sources/product/prd-m1-current-2026-10-06.txt)

@@ -3,9 +3,7 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 
 ## Entry points
 - [Code SOP v2](docs/code/Code_SOP.md)
-- [M1 TASKS](docs/code/Missions/M1/TASKS.md)
-- [TRIAL-1](docs/code/Missions/M1/TRIAL-1/TASK.md)
-- [Current architecture](docs/architecture/README.md)
+- [Future M1 TASKS](docs/code/Missions/M1/TASKS.md)
 - [Spec Kit workflow](docs/code/SPEC_KIT_WORKFLOW.md)
 - [Verification method](docs/code/VERIFICATION.md)
 - [Constitution](.specify/memory/constitution.md)
