@@ -1,8 +1,10 @@
 # AI4Research 开发文档入口 v2
 
+M1 product/design inputs are maintained in [build-package](../architecture/build-package/README.md). Use the live SOP and [M1 coding registration entrypoint](../tasks/M1/TASKS.md) with that package. The combined handbook, ZIP and delivery hashes below describe an earlier workflow-document delivery, not the current PRD/architecture baseline.
+
 本体系采用 **TASKS → TASK → 每个 TASK 一套 Spec Kit**，按“逐块验证 → 跨块连接验证 → 整个系统验证”推进开发。
 
-建议先阅读 [开发 SOP](Code_SOP.md)，再查看 [完整文档目录](code_sop/README.md) 和 [M1 总任务入口](../tasks/M1/TASKS.md)。目前正在为完整 M1 提前铺设流程，最终 PRD 与架构仍待补齐；文档准备完成不代表 M1 已实现或通过验证。
+建议先阅读 [开发 SOP](Code_SOP.md)，再查看 [完整文档目录](code_sop/README.md) 和 [M1 总任务入口](../tasks/M1/TASKS.md)。目前正在为完整 M1 提前铺设流程，当前 PRD 与架构已纳入 build-package，编码记录仍需按现行流程生成或协调；文档准备完成不代表 M1 已实现或通过验证。
 
 ## 常用入口
 

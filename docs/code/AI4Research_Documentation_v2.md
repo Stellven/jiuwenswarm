@@ -2,6 +2,8 @@
 
 English documentation with a Chinese entry guide.
 
+Current M1 product/design input: [build-package](../architecture/build-package/README.md). This generated handbook contains historical instruction snapshots; use live [AGENTS](../../AGENTS.md) and the [M1 registration entrypoint](../tasks/M1/TASKS.md) for current routing. Embedded older source paths and trial registration guidance do not override the maintained package or live workflow.
+
 TASKS -> TASK -> one Spec Kit per TASK.
 
 This handbook includes all source guides, templates, examples, instructions and the future-M1 skeleton. Original files remain authoritative; regenerate this snapshot after source edits. It contains no claim of M1 runtime readiness.

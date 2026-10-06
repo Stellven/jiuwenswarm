@@ -1,1 +1,0 @@
-{"schema_version":"cc.declaration.v1","identity":{"name":"system.rsi_submit_api_derivation","kind":"api_fixture"},"ports":{"inputs":[{"name":"session_id","type":"id","required":true},{"name":"attempt_id","type":"id","required":true},{"name":"request_id","type":"string","required":true}],"outputs":[{"name":"candidate_ref","type":"Ref(Candidate)"}]}}

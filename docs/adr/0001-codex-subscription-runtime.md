@@ -1,6 +1,6 @@
 # ADR-0001: Native Codex runtime with Jiuwen-owned application coordination
 
-Template: [ADR_TEMPLATE](../code/code_sop/templates/ADR_TEMPLATE.md).
+Historical template: [ADR_TEMPLATE at its original revision](https://github.com/Stellven/jiuwenswarm/blob/918df5e4081ed35d53257dfccd33119a7b639c57/docs/code/code_sop/templates/ADR_TEMPLATE.md).
 
 ## 1. Decision control
 
@@ -60,6 +60,6 @@ The user selects Codex App Server with personal local subscription login, fresh 
 
 ## 8. Related material
 
-- [Architecture](../architecture/OVERVIEW.md).
+- [Historical architecture for this ADR](https://github.com/Stellven/jiuwenswarm/blob/343a77dbd5e6dcd18de2e57794cc992d36c2f35c/docs/architecture/OVERVIEW.md). Use [build-package](../architecture/build-package/README.md) for current M1 design.
 - [Draft runtime contract](../../specs/AI4R-001-codex-subscription/contracts/runtime.md).
 - [Research and protocol evidence](../../specs/AI4R-001-codex-subscription/research.md); no live model proof performed.

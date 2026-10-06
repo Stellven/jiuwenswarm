@@ -8,7 +8,7 @@ This branch adopts the reviewed build package from [integration commit dba538ffd
 
 The first build now uses **M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)**. The adjacent former name preserves recognition; its bounded scope remains unchanged and does not represent completion of the whole delivery phase. Component descriptions separate semantic assessment, protected gate decisions, and durable release authority.
 
-Older architecture files outside this package remain branch history or drafts and do not override these inputs. Existing task identities remain intact; coding agents reconcile their coding records through the current repository workflow. This update documents design inputs and does not establish runtime acceptance.
+Superseded architecture drafts were removed from active directories and preserved in the optional [pinned muk history](history.md#muk-cleanup-checkpoint); they do not override these inputs. Existing task identities remain intact; coding agents reconcile their coding records through the current repository workflow. This update documents design inputs and does not establish runtime acceptance.
 
 ## Required reading order
 

@@ -4,13 +4,20 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 ## Entry points
 - [Code SOP v2](docs/code/Code_SOP.md)
 - [M1 TASKS](docs/tasks/M1/TASKS.md)
-- [First M1 task](docs/tasks/M1/M1-001/TASK.md)
-- [Architecture and glossary](docs/architecture/README.md)
+- [Current PRD and architecture reading package](docs/architecture/build-package/README.md)
+- [First connected slice design, formerly TRIAL-1](docs/architecture/build-package/immediate-plan.md)
+- [Canonical vocabulary and PRD crosswalk](docs/architecture/build-package/glossary.md)
 - [Spec Kit workflow](docs/code/code_sop/SPEC_KIT_WORKFLOW.md)
 - [Verification method](docs/code/code_sop/VERIFICATION.md)
 - [Constitution](.specify/memory/constitution.md)
 - Historical environment facts: docs/governance/ENVIRONMENT.md.
 - Historical task: docs/tasks/AI4R-001/TASK.md; it is not the future-M1 register.
+
+## Product and design authority
+
+For M1 work, read only `docs/architecture/build-package/` as maintained product/design input, starting with its verbatim PRD, overview and decisions, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Historical Git versions and `docs/archive/` provide optional context only; do not scan them during routine build preparation or infer current requirements from them.
+
+M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1) remains a bounded first build. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
 
 ## Working rules
 1. Follow TASKS -> TASK -> one registered Spec Kit directory per TASK. Read applicable AGENTS, the exact source clauses, agreements, native spec/plan/tasks and existing callers/tests before implementation.

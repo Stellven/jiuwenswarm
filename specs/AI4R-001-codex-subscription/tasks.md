@@ -1,5 +1,7 @@
 # Tasks: Personal Codex Subscription Runtime
 
+Historical source note: T030 retains its original architecture path and recorded scope. Its [original architecture reference](https://github.com/Stellven/jiuwenswarm/blob/343a77dbd5e6dcd18de2e57794cc992d36c2f35c/docs/architecture/OVERVIEW.md) is historical; current M1 product/design input starts at [build-package](../../docs/architecture/build-package/README.md). This routing note does not change task identities, progress or evidence.
+
 **Version**: 0.3, M1 authorized; production tasks remain proposed; bounded verification status is recorded below.
 **Input**: [plan v0.3](plan.md), [spec v0.2](spec.md), research.md, data-model.md, contracts/runtime.md and quickstart.md.
 **Prerequisites**: write_code v0.9 authorizes M001-M006 following the presented product milestone. Broader T001-T033 still depend on their applicable G1–G4 gates; task generation does not close them.
