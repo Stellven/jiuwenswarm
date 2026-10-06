@@ -1,3 +1,3 @@
 # Architecture
 
-The exact current PRD and architecture build inputs are isolated in [build-package/](build-package/README.md). Start there for specification and coding. Other files here are compatibility or historical material.
+Use [build-package](build-package/README.md) for the sole maintained PRD and architecture inputs to TRIAL-1 and later builds. Superseded design is available through its optional [historical reference index](build-package/history.md).

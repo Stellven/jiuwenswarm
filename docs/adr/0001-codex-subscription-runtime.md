@@ -60,6 +60,6 @@ The user selects Codex App Server with personal local subscription login, fresh 
 
 ## 8. Related material
 
-- [Architecture](../architecture/OVERVIEW.md).
+- [Architecture](../architecture/build-package/README.md).
 - [Draft runtime contract](../code/Missions/AI4R-001/contracts/runtime.md).
 - [Research and protocol evidence](../code/Missions/AI4R-001/research.md); no live model proof performed.

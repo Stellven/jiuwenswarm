@@ -2,7 +2,14 @@
 
 Architecture baseline, 2026-10-06. This describes intended behavior; runtime implementation is not established by these documents.
 
-**Start with [TRIAL-1](immediate-plan.md).** Use the [authority index](authority-index.md) for the current design reading set and live coding entrypoints. For product alignment read [coverage](coverage.md), [PRD translation](glossary.md). The current design and required source inputs are together in this folder; existing coding authorities remain in their repository locations.
+## Required reading order
+
+1. Read the [latest verbatim PRD](sources/product/prd-m1-current-2026-10-06.txt) for product obligations.
+2. Read this overview and [decisions D1–D15](principles.md#decisions-and-source-amendments) for the adopted architecture and explicit amendments.
+3. Read [TRIAL-1](immediate-plan.md) for the first connected slice, then [the coding handoff](handoff.md).
+4. Use the relevant architecture pages below and [clause map](coverage-allocation.md) for the assigned responsibility.
+
+This is the sole maintained product/design package. Spec Kit and coding agents create or reconcile coding records from these inputs and choose detailed realization. Existing task records are optional identity/history references, not a competing specification. Repository code, installed tooling and live development instructions remain execution prerequisites. [Historical references](history.md) are optional.
 
 ## Intent and reading boundary
 
@@ -137,7 +144,3 @@ Intake transport, simple input qualification, scheduling, integrity checks, gate
 The [latest user-supplied PRD](sources/product/prd-m1-current-2026-10-06.txt) remains verbatim. [Delivery phases](delivery-phases.md) distinguishes core demo acceptance from accounting for all M1 dynamic integration work. [Decisions](principles.md#decisions-and-source-amendments) record intentional exceptions. The [coding entry](handoff.md) identifies the live allocation authorities.
 
 Give coding agents exact clauses and the relevant architecture pages through [TASKS → TASK → Spec Kit](handoff.md). The first intent pair is a limited trial. Complete M1 includes all three delivery phases, with every applicable Phase 3 effort attempted and reported. It also requires CLI/headless execution, native web UI and TUI, installation/startup diagnostics, local terminal sessions, security/configuration (PRD 5.1–5.6), evidence exports, and offline RSI validation.
-
-## Exact build inputs
-
-This folder is the current architecture + verbatim PRD package for building. Begin with this overview, the PRD in sources/product/, and handoff.md. Spec Kit and coding agents create or reconcile TASKS/TASK/spec/plan/tasks from these inputs; existing coding records are historical or provisional until reconciled. Detailed APIs, schemas, mechanisms, code locations and verification procedures belong to that coding workflow.

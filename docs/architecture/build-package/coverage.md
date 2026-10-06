@@ -6,12 +6,12 @@
 
 | Need | Read |
 |---|---|
-| Product whitelist, blacklist, scientific outputs and acceptance intent | [Latest supplied PRD](sources/product/prd-m1-current-2026-10-06.txt); owner inputs in [source index](sources/product/README.md) |
+| Product whitelist, blacklist, scientific outputs and acceptance intent | [Latest supplied PRD](sources/product/prd-m1-current-2026-10-06.txt); source identity in [source index](sources/product/README.md) |
 | Architecture orientation and responsibility inventory | [Overview](README.md) |
 | Same concept under a different name | [PRD translation and naming](glossary.md) |
 | First implementable connected slice | [TRIAL-1](immediate-plan.md), [human callback](failure-and-human.md), then [coding entry](handoff.md) |
 | Every delivery phase, implementation stage and TRIAL-1 exit | [Phase/stage account](delivery-phases.md) |
-| Approximate payload meaning, Pydantic and Symphony reuse | [Contract shapes](contracts-and-native-reuse.md) |
+| Illustrative handoff meaning and optional native reuse | [Contract shapes](contracts-and-native-reuse.md) |
 | Full research stages, inputs, outputs, checks and operational shell | [M1 design](m1-design.md) |
 | Planning, freeze, readiness and scheduling | [Workflow](workflow.md) |
 | Verifier (Evaluator Gate), capsule authority, admission and composition | [Capsules](capsules.md), [declaration](capsule/declaration.md), [authoring](capsule/authoring.md) |
@@ -21,7 +21,7 @@
 
 ## Actual coverage, not heading-count compliance
 
-The coding register lists all numbered headings in master §§1–6. A mapped heading only identifies responsibility; it does not prove that all whitelist bullets have been specified or implemented. This review adds the semantic connections absent from the short inventory. The full original clauses remain mandatory inputs to each owning TASK.
+The [clause map](coverage-allocation.md) lists all numbered headings in the current PRD §§1–6. A mapped heading only identifies responsibility; it does not prove that all whitelist bullets have been specified or implemented. This review adds the semantic connections absent from the short inventory. The full original clauses remain mandatory inputs to each owning TASK.
 
 | PRD area | Architectural coverage and disposition | What remains to specify or verify |
 |---|---|---|

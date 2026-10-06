@@ -101,15 +101,13 @@ Each invocation gets only its own admitted permissions restricted by the node co
 
 No data validator alone proves that a citation supports a claim, an artifact is authentic, a workload obeyed its resource limits, or a result meets the scientific protocol. A contract can narrow admitted permissions; it cannot widen them. Token budgets remain recorded constraints on the Codex baseline unless reliable endpoint telemetry supports mechanical blocking; time and invocation-count limits remain enforceable under PRD §4.7.4.
 
-## Pydantic recommendation
+## Boundary-model reference
 
-Use **Pydantic v2 for Python boundary models**, with versioned JSON/JSON Schema as the interoperable artifact contract. This follows actual dependencies and patterns: `pyproject.toml` explicitly declares `pydantic>=2.0,<3.0`; `jiuwenswarm/common/model_selection.py` already defines `ModelSelection`, `ResolvedModel` and `ResolvedRoute` using `BaseModel` and validators. JiuwenSwarm's Symphony configuration also uses frozen dataclasses in `jiuwenswarm/symphony/config.py`, so an internal helper need not become a Pydantic model merely for consistency.
-
-Pydantic is suitable for parsing untrusted boundary data, cross-field checks and schema generation. Dataclasses or typed dictionaries are sufficient for already validated internal records; JSON Schema is useful when a non-Python producer or consumer validates persisted artifacts. Select one authoritative contract definition and derive or check its other representations. Avoid independent handwritten Python and JSON definitions that drift.
-
-The detailed TASK must choose coercion, unknown-field handling, revision migration, and immutability deliberately. Security-relevant fields should fail closed on unsupported input. Frozen Python objects alone do not supply durable freezing, integrity, deep immutability or authorization. Those properties require protected runtime records and hashes. This recommendation adds no new dependency and does not finalize any capsule or Research Brief schema.
+Optional source observation: the repository already depends on Pydantic v2 and uses both boundary models and internal dataclasses. Coding agents select concrete boundary representations and validation policy; these observations prescribe no private implementation structure or new schema. Keep one authoritative versioned interface definition and preserve protected integrity, durability and authorization independently of in-memory representation.
 
 ## What Symphony already offers
+
+Optional implementation reference: the source paths below help the coding agent investigate reuse; they are not required architecture reading or a prescribed module layout.
 
 These observations come from local source inspection, not an AI4Research acceptance run. Paths beginning `jiuwenswarm/` below are relative to this repository; `../openjiuwen/agent-core/` identifies the sibling upstream checkout. Code paths are evidence locations, not document links.
 
