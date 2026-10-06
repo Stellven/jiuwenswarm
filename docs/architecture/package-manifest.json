@@ -1,0 +1,3036 @@
+{
+  "revision": "r2026-10-06.5",
+  "scope": "Complete active design reading set and locally navigable read-only context; old/ is historical, unchanged and excluded.",
+  "current_prd": {
+    "path": "sources/product/prd-m1-current-2026-10-06.txt",
+    "sha256": "897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036",
+    "bytes": 232081,
+    "origin": "User-supplied attachment 7ee1c393-9903-425b-92e8-a22eae56c50e, received 2026-10-06; author date not inferred"
+  },
+  "target_main": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+  "snapshots": [
+    {
+      "path": "sources/main-baseline/.specify/memory/constitution.md",
+      "origin": ".specify/memory/constitution.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "7896606709ba2d97a837997d3ae531748e37966bb53edf55d0d3c28203dc9389",
+      "source_sha256": "7896606709ba2d97a837997d3ae531748e37966bb53edf55d0d3c28203dc9389"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/VERIFICATION.md",
+      "origin": "docs/code/VERIFICATION.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ca07ac4f9dcbca6a28a6cdc1dbcbc74e07046d6cffaf2289f829ffa3cc57b6f3",
+      "source_sha256": "ca07ac4f9dcbca6a28a6cdc1dbcbc74e07046d6cffaf2289f829ffa3cc57b6f3"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/EVIDENCE_TEMPLATE.md",
+      "origin": "plugins/spec-kit/templates/EVIDENCE_TEMPLATE.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c3edccc587a5d299a5cd0cd585d5bfaa0c4727f23d6c699a1efb6ff10f976832",
+      "source_sha256": "c3edccc587a5d299a5cd0cd585d5bfaa0c4727f23d6c699a1efb6ff10f976832"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/SPEC_KIT_WORKFLOW.md",
+      "origin": "docs/code/SPEC_KIT_WORKFLOW.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "f97cf23cdb313bc629215e6935a1a53c7c92f669bc3290d01dc10cdf2dc44362",
+      "source_sha256": "f97cf23cdb313bc629215e6935a1a53c7c92f669bc3290d01dc10cdf2dc44362"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/README.md",
+      "origin": "plugins/spec-kit/README.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1b15093586af036882e906f5921cdc1754c6b4f207a6bce6f6c4b74b9f3f019a",
+      "source_sha256": "1b15093586af036882e906f5921cdc1754c6b4f207a6bce6f6c4b74b9f3f019a"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/workflows/task-governance.md",
+      "origin": "plugins/spec-kit/workflows/task-governance.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "b4dada72bc37ff3adacb3fdccca75b34f89438742942ad5c7dd29bfde532e983",
+      "source_sha256": "b4dada72bc37ff3adacb3fdccca75b34f89438742942ad5c7dd29bfde532e983"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Code_SOP.md",
+      "origin": "docs/code/Code_SOP.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6b8fdfce7918ff7b6c2f4e6cd3e2565172c865ac095ce5f4da1bca9020e6d4c2",
+      "source_sha256": "6b8fdfce7918ff7b6c2f4e6cd3e2565172c865ac095ce5f4da1bca9020e6d4c2"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/GIT_WORKFLOW.md",
+      "origin": "docs/code/GIT_WORKFLOW.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "971ab56929e67d706c7ef0f9cb3766bb1d75fb39b60d0cef52bc837fc26d9071",
+      "source_sha256": "971ab56929e67d706c7ef0f9cb3766bb1d75fb39b60d0cef52bc837fc26d9071"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/CATALOG.md",
+      "origin": "docs/code/CATALOG.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "5003ddc2e4b7bc37ff9f0ac2d83ff74681a8f9c0f74570acc3dc0f4d72963874",
+      "source_sha256": "5003ddc2e4b7bc37ff9f0ac2d83ff74681a8f9c0f74570acc3dc0f4d72963874"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/TASKS.md",
+      "origin": "docs/code/Missions/DEVTOOLS/TASKS.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c2f4900f8ed8686792206f8ad9ca26bb2e3ec6028712d48bbb4dc877e35c5b11",
+      "source_sha256": "c2f4900f8ed8686792206f8ad9ca26bb2e3ec6028712d48bbb4dc877e35c5b11"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/tasks.md",
+      "origin": "docs/code/Missions/DEVTOOLS/DEVTOOLS-001/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ac2affd312d61116d831a9095a09393b45e0289e243d2477cd5083b2c7034542",
+      "source_sha256": "ac2affd312d61116d831a9095a09393b45e0289e243d2477cd5083b2c7034542"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/evidence/RUN-20261005-03.md",
+      "origin": "docs/code/Missions/DEVTOOLS/DEVTOOLS-001/evidence/RUN-20261005-03.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "fc242f46b02d47bcfa120b7709fd5c790900d23ab6722b9b55ec96d04143315e",
+      "source_sha256": "fc242f46b02d47bcfa120b7709fd5c790900d23ab6722b9b55ec96d04143315e"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/spec.md",
+      "origin": "docs/code/Missions/DEVTOOLS/DEVTOOLS-001/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "848ef5564c27deeb518e78de93ff22dc17deb86f47bce547747dbe72be29bdc7",
+      "source_sha256": "848ef5564c27deeb518e78de93ff22dc17deb86f47bce547747dbe72be29bdc7"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/TASK.md",
+      "origin": "docs/code/Missions/DEVTOOLS/DEVTOOLS-001/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "82e82a9b9027dd13fad917a52a2de5886b961822f92a34b939fbb2830e6d45e1",
+      "source_sha256": "82e82a9b9027dd13fad917a52a2de5886b961822f92a34b939fbb2830e6d45e1"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/plan.md",
+      "origin": "docs/code/Missions/DEVTOOLS/DEVTOOLS-001/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c840ebaaeffb98cfd2bc01040b77e275cff2c27956998e281d7948904f9448fb",
+      "source_sha256": "c840ebaaeffb98cfd2bc01040b77e275cff2c27956998e281d7948904f9448fb"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/TASKS.md",
+      "origin": "docs/code/Missions/M1/TASKS.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "59c3231c0fc7fa436944c36fe3bf1095e69d44ca8aa1482a985dd696b68fb4cf",
+      "source_sha256": "59c3231c0fc7fa436944c36fe3bf1095e69d44ca8aa1482a985dd696b68fb4cf"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-SYSTEM/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "817970708e1deceb23b5d0c26a580d7e5c32453e420a349c65a0be38111f6cfb",
+      "source_sha256": "817970708e1deceb23b5d0c26a580d7e5c32453e420a349c65a0be38111f6cfb"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/spec.md",
+      "origin": "docs/code/Missions/M1/M1-SYSTEM/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "3e1e7c145f437dd18e9c4ce97a019b226d96fed5b2c5bf9124b9c6086fea872d",
+      "source_sha256": "3e1e7c145f437dd18e9c4ce97a019b226d96fed5b2c5bf9124b9c6086fea872d"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-018/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "44c87c16c481ad66b6da3bb165c97ea55464bb2759e2de59f4aa394aff45fd9f",
+      "source_sha256": "44c87c16c481ad66b6da3bb165c97ea55464bb2759e2de59f4aa394aff45fd9f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/ARCHITECTURE_MINIMUM_INPUTS.txt",
+      "origin": "docs/code/Missions/M1/ARCHITECTURE_MINIMUM_INPUTS.txt",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "33c37ce6f62f24e26846503ad7ef646ee9d49c49cb370591545abd70719a8f24",
+      "source_sha256": "33c37ce6f62f24e26846503ad7ef646ee9d49c49cb370591545abd70719a8f24"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-SYSTEM/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "8eedebc5ac9d6ab5601eb23049b4986a1448460fa5d95a6feed9a7f902d2badb",
+      "source_sha256": "8eedebc5ac9d6ab5601eb23049b4986a1448460fa5d95a6feed9a7f902d2badb"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-017/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ae8827231a856e86890c547464fe720b2df33a8c4330dfd59a5798147eb1bdb0",
+      "source_sha256": "ae8827231a856e86890c547464fe720b2df33a8c4330dfd59a5798147eb1bdb0"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-016/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6da4a1b9cca873a5b7860d9346dfaf5ef8532194f11823d44e2569fffbea94ca",
+      "source_sha256": "6da4a1b9cca873a5b7860d9346dfaf5ef8532194f11823d44e2569fffbea94ca"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-007/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "d998b9a69a2224de99c4d9d81d66fe792212b83973be2819f8cbafc9644cd2eb",
+      "source_sha256": "d998b9a69a2224de99c4d9d81d66fe792212b83973be2819f8cbafc9644cd2eb"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-015/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "7a60dfffbb5d83918374ea60ee56316757ff5a4fbfb1e7f8b01fcd6202b7bcf5",
+      "source_sha256": "7a60dfffbb5d83918374ea60ee56316757ff5a4fbfb1e7f8b01fcd6202b7bcf5"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-006/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "4c9dd46c58aa56d7938da91622a124eebf08117e8ef517c31969e6673234abc5",
+      "source_sha256": "4c9dd46c58aa56d7938da91622a124eebf08117e8ef517c31969e6673234abc5"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-002/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "8ed044418ce477ec7f9ab3fa4a35d770ddc1833ef35f735c1c0ccdc75ab29bfc",
+      "source_sha256": "8ed044418ce477ec7f9ab3fa4a35d770ddc1833ef35f735c1c0ccdc75ab29bfc"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-005/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "df13bd46c1004eaa1b268940cf7721cf4b89ac68f4187e40a87fa6cc3362ad74",
+      "source_sha256": "df13bd46c1004eaa1b268940cf7721cf4b89ac68f4187e40a87fa6cc3362ad74"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-004/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "93cf4be40891fe5fb7eb037249de1c88233bf47c953cb51bc2a8fdca2e244c7c",
+      "source_sha256": "93cf4be40891fe5fb7eb037249de1c88233bf47c953cb51bc2a8fdca2e244c7c"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-003/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "d4cb2dd11dd3cfdf00545707d3976f365c41257e5948ad5e59ee4bbebacf747f",
+      "source_sha256": "d4cb2dd11dd3cfdf00545707d3976f365c41257e5948ad5e59ee4bbebacf747f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-003/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "af0a1c32910f9676e6dcac14344d9506927fbfc6793e5bab6c8a5b072c2a9b9e",
+      "source_sha256": "af0a1c32910f9676e6dcac14344d9506927fbfc6793e5bab6c8a5b072c2a9b9e"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/spec.md",
+      "origin": "docs/code/Missions/M1/M1-003/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1dabba7636ed4a8aeecbfa029ccd3a22a31010449f651e6d7e340f2eaf5eaceb",
+      "source_sha256": "1dabba7636ed4a8aeecbfa029ccd3a22a31010449f651e6d7e340f2eaf5eaceb"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/sources/PRD-Full.r2.txt",
+      "origin": "docs/code/Missions/M1/sources/PRD-Full.r2.txt",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294",
+      "source_sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/plan.md",
+      "origin": "docs/code/Missions/M1/M1-003/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "40c0e93bb211d7ed8bbf0b8bbd3afe6260021038081a1389a5203c3742c89019",
+      "source_sha256": "40c0e93bb211d7ed8bbf0b8bbd3afe6260021038081a1389a5203c3742c89019"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-001/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ca1a8eead8ce41438332a97de88b47d816c8df43eb4f5a297180f3ab6575572f",
+      "source_sha256": "ca1a8eead8ce41438332a97de88b47d816c8df43eb4f5a297180f3ab6575572f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-001/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "0fc0cf0ba58b9d7c769a8a89e94e21d068d6afac82c54ba59a22784048d5e9c1",
+      "source_sha256": "0fc0cf0ba58b9d7c769a8a89e94e21d068d6afac82c54ba59a22784048d5e9c1"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/spec.md",
+      "origin": "docs/code/Missions/M1/M1-001/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "dd28f5ed49762afd78a4120c4554cdb54b29982498820f9124e7f6b768997cb0",
+      "source_sha256": "dd28f5ed49762afd78a4120c4554cdb54b29982498820f9124e7f6b768997cb0"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/plan.md",
+      "origin": "docs/code/Missions/M1/M1-001/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "f825959a805613eb2d12f845d2af62963261ca407792cbd83bdabc7f8281b505",
+      "source_sha256": "f825959a805613eb2d12f845d2af62963261ca407792cbd83bdabc7f8281b505"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-004/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "b0b3e0ade37174ea556ceb1841f37d23e10b923500ba8629ef5cf945a55eb93e",
+      "source_sha256": "b0b3e0ade37174ea556ceb1841f37d23e10b923500ba8629ef5cf945a55eb93e"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/spec.md",
+      "origin": "docs/code/Missions/M1/M1-004/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "e60b38dda49829a6f13106faf905a9f6b19d1db670a92fe8bc7cc581199ed76c",
+      "source_sha256": "e60b38dda49829a6f13106faf905a9f6b19d1db670a92fe8bc7cc581199ed76c"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/plan.md",
+      "origin": "docs/code/Missions/M1/M1-004/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6b4f9210ef69a8d70f3c33eddfe9a0531ba8022623c3e1241ea356af393e13b9",
+      "source_sha256": "6b4f9210ef69a8d70f3c33eddfe9a0531ba8022623c3e1241ea356af393e13b9"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-005/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "edcb294cd98128aab057b3e29762e387271cf739247c89003fe4a2dde90023aa",
+      "source_sha256": "edcb294cd98128aab057b3e29762e387271cf739247c89003fe4a2dde90023aa"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/spec.md",
+      "origin": "docs/code/Missions/M1/M1-005/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "a735ce4a07dbaf8ef472e9d8e1d992e1ebe303b4e3ed0d6e33edc18cdceb45d4",
+      "source_sha256": "a735ce4a07dbaf8ef472e9d8e1d992e1ebe303b4e3ed0d6e33edc18cdceb45d4"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/plan.md",
+      "origin": "docs/code/Missions/M1/M1-005/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6c13efa16b06ecea7bff53cd6d450b82ca96aa682c195f35804f258d1bce399e",
+      "source_sha256": "6c13efa16b06ecea7bff53cd6d450b82ca96aa682c195f35804f258d1bce399e"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-002/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "df561d69742d49ff1216461bb8a1d728deae8eb6763190be19729b13da9bb299",
+      "source_sha256": "df561d69742d49ff1216461bb8a1d728deae8eb6763190be19729b13da9bb299"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/spec.md",
+      "origin": "docs/code/Missions/M1/M1-002/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2dbf33e93af87c3980309db2766340782456e0bc5af13bf74752f78789d7269b",
+      "source_sha256": "2dbf33e93af87c3980309db2766340782456e0bc5af13bf74752f78789d7269b"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/plan.md",
+      "origin": "docs/code/Missions/M1/M1-002/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "3f9996822f97f35bc885b12172bc8270a2cb6d3367e52c8194c63b38f9ae351e",
+      "source_sha256": "3f9996822f97f35bc885b12172bc8270a2cb6d3367e52c8194c63b38f9ae351e"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-009/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "5542b59f62e3df45f37e89d4adaed3e65cb552924156543a697c7ae7eabfd069",
+      "source_sha256": "5542b59f62e3df45f37e89d4adaed3e65cb552924156543a697c7ae7eabfd069"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-009/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "178dd3c51fcdd7de8de6e334d438310d61026d5fc761a4ee3681bcc3cf36d9fd",
+      "source_sha256": "178dd3c51fcdd7de8de6e334d438310d61026d5fc761a4ee3681bcc3cf36d9fd"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/spec.md",
+      "origin": "docs/code/Missions/M1/M1-009/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "baf4c200ea65663465d4ba455709e03e093a0ecab5cd79c1b3eabfd55f62c6ac",
+      "source_sha256": "baf4c200ea65663465d4ba455709e03e093a0ecab5cd79c1b3eabfd55f62c6ac"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-008/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "166250a9df91e4c7a74876acff41da387cc9d9fe9c7fe218f973cc2713f7a0d7",
+      "source_sha256": "166250a9df91e4c7a74876acff41da387cc9d9fe9c7fe218f973cc2713f7a0d7"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-008/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "4a0cf1727f3f93c636b01ed1732f36c726eb9e5e87a4a7daafc7e0f5f969d63b",
+      "source_sha256": "4a0cf1727f3f93c636b01ed1732f36c726eb9e5e87a4a7daafc7e0f5f969d63b"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/spec.md",
+      "origin": "docs/code/Missions/M1/M1-008/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "91b2bf64ca5c6e6c2709d286aaf925ee22f83b319491a17bc0547be7d651ebe3",
+      "source_sha256": "91b2bf64ca5c6e6c2709d286aaf925ee22f83b319491a17bc0547be7d651ebe3"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-019/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "31309cc9fdb52b5ed50c045119e558008c8dfa6f246dfe9c05111d0b7fa01dba",
+      "source_sha256": "31309cc9fdb52b5ed50c045119e558008c8dfa6f246dfe9c05111d0b7fa01dba"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-019/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "3250ea397de21901741cd714919fc8c8386efbb13b890c43a751dcd416a4782a",
+      "source_sha256": "3250ea397de21901741cd714919fc8c8386efbb13b890c43a751dcd416a4782a"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/spec.md",
+      "origin": "docs/code/Missions/M1/M1-019/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "16ade2fa6e4bd7b54064fb2682e87e126ad4f4d0b0b225764d9e02ec5144f3f9",
+      "source_sha256": "16ade2fa6e4bd7b54064fb2682e87e126ad4f4d0b0b225764d9e02ec5144f3f9"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/plan.md",
+      "origin": "docs/code/Missions/M1/M1-019/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "acc5e008b0044a132d79c14cf4a6a89f966828d6fdc385d9661a39ea8b9df1bf",
+      "source_sha256": "acc5e008b0044a132d79c14cf4a6a89f966828d6fdc385d9661a39ea8b9df1bf"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-014/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "e7584c8180472d387fb5bdd34f8cd5ef88df7d62fd8d0c173936b5e3acd3f27b",
+      "source_sha256": "e7584c8180472d387fb5bdd34f8cd5ef88df7d62fd8d0c173936b5e3acd3f27b"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-012/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "a7f2ad5b7c666f18bf28583dd30a9b46153ed0487fc01f269ae64bd1e2441453",
+      "source_sha256": "a7f2ad5b7c666f18bf28583dd30a9b46153ed0487fc01f269ae64bd1e2441453"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-012/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1fa5d5e44600c073ab9ecc76cd9701a04f5ef0416c8d51e165d46930b52e934c",
+      "source_sha256": "1fa5d5e44600c073ab9ecc76cd9701a04f5ef0416c8d51e165d46930b52e934c"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/spec.md",
+      "origin": "docs/code/Missions/M1/M1-012/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "a4c669f5b24268d8eafaaa0abf85feabb6aa0aa0dfa468683d52d15c2d2171e3",
+      "source_sha256": "a4c669f5b24268d8eafaaa0abf85feabb6aa0aa0dfa468683d52d15c2d2171e3"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-011/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "987ec32447480bc7032386d3bcf80b85b19c7fbfc33cf51bee8fc73e736e2c68",
+      "source_sha256": "987ec32447480bc7032386d3bcf80b85b19c7fbfc33cf51bee8fc73e736e2c68"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-011/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "9756f88cc6b23a8aaa00c47bfd88653315a6708973b605304eccdcf2b0387620",
+      "source_sha256": "9756f88cc6b23a8aaa00c47bfd88653315a6708973b605304eccdcf2b0387620"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/spec.md",
+      "origin": "docs/code/Missions/M1/M1-011/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "5914a0c85488dff19717f673b297f6cb3753cf59ba8d51812441e1d75d14973e",
+      "source_sha256": "5914a0c85488dff19717f673b297f6cb3753cf59ba8d51812441e1d75d14973e"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-010/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6b9c9ffe58496c7aaa2c4b91964f93672e8a1c2c6828028ecd413c22e84ed792",
+      "source_sha256": "6b9c9ffe58496c7aaa2c4b91964f93672e8a1c2c6828028ecd413c22e84ed792"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-010/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "3da6dcb91e0e5b09afc2c1ae32fdd34626f5a18d0f18cc42d106435c239eb48b",
+      "source_sha256": "3da6dcb91e0e5b09afc2c1ae32fdd34626f5a18d0f18cc42d106435c239eb48b"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/spec.md",
+      "origin": "docs/code/Missions/M1/M1-010/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "07bf7511d53d828644b73c1017b66b2228c6f6ac215a6631f897d94d6b99dd0f",
+      "source_sha256": "07bf7511d53d828644b73c1017b66b2228c6f6ac215a6631f897d94d6b99dd0f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/plan.md",
+      "origin": "docs/code/Missions/M1/M1-010/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2de601ad72b62e36a0c431b3de512c207889f63b8d8a2baca2f8b57adc1a444f",
+      "source_sha256": "2de601ad72b62e36a0c431b3de512c207889f63b8d8a2baca2f8b57adc1a444f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/plan.md",
+      "origin": "docs/code/Missions/M1/M1-011/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "fc34cd804c7ededff3cde56480f66feb690f20b627e5dc4dd622c89ca08c4702",
+      "source_sha256": "fc34cd804c7ededff3cde56480f66feb690f20b627e5dc4dd622c89ca08c4702"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/TASK.md",
+      "origin": "docs/code/Missions/M1/M1-013/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "49ea1a29cd801136690567d7dbf3b2c3a26319ee7301e659e184a47650cd455a",
+      "source_sha256": "49ea1a29cd801136690567d7dbf3b2c3a26319ee7301e659e184a47650cd455a"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-013/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ad886724ab273d31acee1d66648529a0134352ac9ecba176b22466391fa24c0f",
+      "source_sha256": "ad886724ab273d31acee1d66648529a0134352ac9ecba176b22466391fa24c0f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/spec.md",
+      "origin": "docs/code/Missions/M1/M1-013/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "763ae3251e475ec1e7fc4b80b7043920124bdd5db043842b2f383c19cc08d8cc",
+      "source_sha256": "763ae3251e475ec1e7fc4b80b7043920124bdd5db043842b2f383c19cc08d8cc"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/plan.md",
+      "origin": "docs/code/Missions/M1/M1-013/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "daca0ac428f9552517c75d7b81493726fcce463e68dd584fe24c23ea64b0c28d",
+      "source_sha256": "daca0ac428f9552517c75d7b81493726fcce463e68dd584fe24c23ea64b0c28d"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/plan.md",
+      "origin": "docs/code/Missions/M1/M1-012/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2f71d5d326e57ffb971365fedcc6e8ab248306db06992f46be2c5e3f45303538",
+      "source_sha256": "2f71d5d326e57ffb971365fedcc6e8ab248306db06992f46be2c5e3f45303538"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-014/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "87dfe9b324bfb2754c08594648a41d38444ec9b23ed8fbfd2db4e388dd3c10cc",
+      "source_sha256": "87dfe9b324bfb2754c08594648a41d38444ec9b23ed8fbfd2db4e388dd3c10cc"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/spec.md",
+      "origin": "docs/code/Missions/M1/M1-014/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "738be72d31ebdfa650c65eab5ee3415f2e7ca6ab166849cfb425e9534345acea",
+      "source_sha256": "738be72d31ebdfa650c65eab5ee3415f2e7ca6ab166849cfb425e9534345acea"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/plan.md",
+      "origin": "docs/code/Missions/M1/M1-014/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "8d338101996b318522af060d8c0e9995b17dd5f75368ef0d9dca6d264e658383",
+      "source_sha256": "8d338101996b318522af060d8c0e9995b17dd5f75368ef0d9dca6d264e658383"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/plan.md",
+      "origin": "docs/code/Missions/M1/M1-008/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ec543e4154cc3497dc8103371cd947eb1c861aa2823fcfa8eae365450b58fd1c",
+      "source_sha256": "ec543e4154cc3497dc8103371cd947eb1c861aa2823fcfa8eae365450b58fd1c"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/plan.md",
+      "origin": "docs/code/Missions/M1/M1-009/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1db7ba1c717b685fbc446090208a6a5071df65057247c88dc29b1df34fcb31a8",
+      "source_sha256": "1db7ba1c717b685fbc446090208a6a5071df65057247c88dc29b1df34fcb31a8"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-006/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "5e6c55babe3a2cd7399088a734cd9f68aed6ca79b1ad8e1b1ce9f3f2594d1110",
+      "source_sha256": "5e6c55babe3a2cd7399088a734cd9f68aed6ca79b1ad8e1b1ce9f3f2594d1110"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/spec.md",
+      "origin": "docs/code/Missions/M1/M1-006/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "98a68fa915ff2aa7cba4e1ca225d013b1f27b4dfcc2e5448bfbb11f1bfdce97d",
+      "source_sha256": "98a68fa915ff2aa7cba4e1ca225d013b1f27b4dfcc2e5448bfbb11f1bfdce97d"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/plan.md",
+      "origin": "docs/code/Missions/M1/M1-006/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "975d8108b99e076d41ac0992145c2765c6cb7dc94d16e764a2e9b9d7698795bd",
+      "source_sha256": "975d8108b99e076d41ac0992145c2765c6cb7dc94d16e764a2e9b9d7698795bd"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-015/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ad1412daf529ec83977c14f3b5b2ad61d95190b4c18f33111a9198e4ed08eb61",
+      "source_sha256": "ad1412daf529ec83977c14f3b5b2ad61d95190b4c18f33111a9198e4ed08eb61"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/spec.md",
+      "origin": "docs/code/Missions/M1/M1-015/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c227a14157e5ac2aaaa773312e3d4414cc820f5338a91242408a52433ed3b688",
+      "source_sha256": "c227a14157e5ac2aaaa773312e3d4414cc820f5338a91242408a52433ed3b688"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/plan.md",
+      "origin": "docs/code/Missions/M1/M1-015/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "481a783d2a0b6359cf4fab583c474397dd1418eb6dea432d6d45f9b59fb412e1",
+      "source_sha256": "481a783d2a0b6359cf4fab583c474397dd1418eb6dea432d6d45f9b59fb412e1"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-007/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "5c46c915b0af86b6215de1320eecd99795933cf962927283a303b4e79265ab72",
+      "source_sha256": "5c46c915b0af86b6215de1320eecd99795933cf962927283a303b4e79265ab72"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/spec.md",
+      "origin": "docs/code/Missions/M1/M1-007/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "60ae9bb2b7541bbc53a2c63460ba0183f55ab62fa587cdf0e685417ae5058fc9",
+      "source_sha256": "60ae9bb2b7541bbc53a2c63460ba0183f55ab62fa587cdf0e685417ae5058fc9"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/plan.md",
+      "origin": "docs/code/Missions/M1/M1-007/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "a6346cdfa58b86526c4ab8bf931b29016cb2eb9138bb618098817c83cd8a4d0f",
+      "source_sha256": "a6346cdfa58b86526c4ab8bf931b29016cb2eb9138bb618098817c83cd8a4d0f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-016/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c7d5b9af2c927d18768222353d553d2755fe76451b6bb78640a8374c2ee56782",
+      "source_sha256": "c7d5b9af2c927d18768222353d553d2755fe76451b6bb78640a8374c2ee56782"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/spec.md",
+      "origin": "docs/code/Missions/M1/M1-016/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "328cc2a6efc91b1cbc2a0f78bed672f4ad352edb69a0a33c0b726bd371e3f3f0",
+      "source_sha256": "328cc2a6efc91b1cbc2a0f78bed672f4ad352edb69a0a33c0b726bd371e3f3f0"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/plan.md",
+      "origin": "docs/code/Missions/M1/M1-016/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "de195e7fa5bc65141650a2f931a33cdaf4d87255391f34e258b6857539b77038",
+      "source_sha256": "de195e7fa5bc65141650a2f931a33cdaf4d87255391f34e258b6857539b77038"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-017/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "e576906f3c539aecef575f24ce2fa601b29a51e960737562b431ef79317c87b2",
+      "source_sha256": "e576906f3c539aecef575f24ce2fa601b29a51e960737562b431ef79317c87b2"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/spec.md",
+      "origin": "docs/code/Missions/M1/M1-017/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c274146084772dd758ab1bafb2b8c3513ec7f74ba498689ae68d82dd231f101a",
+      "source_sha256": "c274146084772dd758ab1bafb2b8c3513ec7f74ba498689ae68d82dd231f101a"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/plan.md",
+      "origin": "docs/code/Missions/M1/M1-017/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "82815502469448ef4fb3f1aef547b4d7b939658f6ac6965eef0191045feabbfe",
+      "source_sha256": "82815502469448ef4fb3f1aef547b4d7b939658f6ac6965eef0191045feabbfe"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/plan.md",
+      "origin": "docs/code/Missions/M1/M1-SYSTEM/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "017f2dda6dddf4a8c023c6d85819637d9029d95b4baabfc66722077faff3e076",
+      "source_sha256": "017f2dda6dddf4a8c023c6d85819637d9029d95b4baabfc66722077faff3e076"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/tasks.md",
+      "origin": "docs/code/Missions/M1/M1-018/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "7dfdce15db883848cf7724756a5f209d8562bf77d23a77aae17ad60291085488",
+      "source_sha256": "7dfdce15db883848cf7724756a5f209d8562bf77d23a77aae17ad60291085488"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/spec.md",
+      "origin": "docs/code/Missions/M1/M1-018/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "0c44c228d9f65a57ba84c4159a020a5e56fc0ec4f340760ef9b0269b70e4954f",
+      "source_sha256": "0c44c228d9f65a57ba84c4159a020a5e56fc0ec4f340760ef9b0269b70e4954f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/plan.md",
+      "origin": "docs/code/Missions/M1/M1-018/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "5d24e3edd6724b5d91d5b51220f4b478e92c164c4afe7a8ad0f756a034156df8",
+      "source_sha256": "5d24e3edd6724b5d91d5b51220f4b478e92c164c4afe7a8ad0f756a034156df8"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/sources/PRD-Full.r1.txt",
+      "origin": "docs/code/Missions/M1/sources/PRD-Full.r1.txt",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2f689644ef9517378f5cf16b28fa372f011811b9f9095aa0ca6996a6a10b13d9",
+      "source_sha256": "2f689644ef9517378f5cf16b28fa372f011811b9f9095aa0ca6996a6a10b13d9"
+    },
+    {
+      "path": "sources/main-baseline/.specify/README.md",
+      "origin": ".specify/README.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "a342dc47c356c6814d4ddb21849037a7fdcba2bff98ad2321501c4513e1706ae",
+      "source_sha256": "a342dc47c356c6814d4ddb21849037a7fdcba2bff98ad2321501c4513e1706ae"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/tasks-template.md",
+      "origin": "plugins/spec-kit/templates/tasks-template.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "07a68bd567fa3f5504935dad53a987fd63a0fbab8287a128863d59de753f364e",
+      "source_sha256": "07a68bd567fa3f5504935dad53a987fd63a0fbab8287a128863d59de753f364e"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/plan-template.md",
+      "origin": "plugins/spec-kit/templates/plan-template.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "d8d9379e1687c3144b6c7cac6efbc63e6fbe9507ef61865492fa6caf670bc27d",
+      "source_sha256": "d8d9379e1687c3144b6c7cac6efbc63e6fbe9507ef61865492fa6caf670bc27d"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/spec-template.md",
+      "origin": "plugins/spec-kit/templates/spec-template.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "78855fa69c49b0a598a779744f77b7bc84848c7c398c39ac5fe05afd7da05db5",
+      "source_sha256": "78855fa69c49b0a598a779744f77b7bc84848c7c398c39ac5fe05afd7da05db5"
+    },
+    {
+      "path": "sources/main-baseline/AGENTS.md",
+      "origin": "AGENTS.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "e867492a44e940e7bb2c939e5e29fcfb58d455771ad97e69d64f66ea901f3238",
+      "source_sha256": "e867492a44e940e7bb2c939e5e29fcfb58d455771ad97e69d64f66ea901f3238"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/AGENTS_local.md",
+      "origin": "plugins/spec-kit/templates/AGENTS_local.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "b76c421b44426f17e6f8fae829636e71240ee56ff4287987d31dccbd7274ea0e",
+      "source_sha256": "b76c421b44426f17e6f8fae829636e71240ee56ff4287987d31dccbd7274ea0e"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/AGENTS_global.md",
+      "origin": "plugins/spec-kit/templates/AGENTS_global.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "f32508240e850524bacc803bb4a2bf3fd0cda979a247da5c8aca9ff3a5a5e357",
+      "source_sha256": "f32508240e850524bacc803bb4a2bf3fd0cda979a247da5c8aca9ff3a5a5e357"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/TASK_TEMPLATE.md",
+      "origin": "plugins/spec-kit/templates/TASK_TEMPLATE.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "8b18e868e3bc40b939c12b89a411e8d876b54a00e4a59d10d3a3275a7e1a3ab6",
+      "source_sha256": "8b18e868e3bc40b939c12b89a411e8d876b54a00e4a59d10d3a3275a7e1a3ab6"
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/TASKS_TEMPLATE.md",
+      "origin": "plugins/spec-kit/templates/TASKS_TEMPLATE.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "827b2251763c80bc201d2d3fe78f29359fce4a9dd606e5d61e45ad055f7ff0d7",
+      "source_sha256": "827b2251763c80bc201d2d3fe78f29359fce4a9dd606e5d61e45ad055f7ff0d7"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/MIGRATION.md",
+      "origin": "docs/code/MIGRATION.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2b2e039dc4d5ce855d1aed21b0004853f7e9b1ec068b71ca7e8e629de012251a",
+      "source_sha256": "2b2e039dc4d5ce855d1aed21b0004853f7e9b1ec068b71ca7e8e629de012251a"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/README.md",
+      "origin": "docs/code/README.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2d0837344735b2ba4190f523445730f542a93558deb92d99b3309670f72a9113",
+      "source_sha256": "2d0837344735b2ba4190f523445730f542a93558deb92d99b3309670f72a9113"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/README.en.md",
+      "origin": "docs/code/README.en.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "e9e644c61fa104ab89370c3c102cbeeac10f98122ed75f21170816017775126e",
+      "source_sha256": "e9e644c61fa104ab89370c3c102cbeeac10f98122ed75f21170816017775126e"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/CODEX_DEMO.md",
+      "origin": "docs/code/Missions/AI4R-001/CODEX_DEMO.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "4819d31d5c28552de4a6235c3baa0acb1ba067a8e3fd0455abe991b7b82d64ee",
+      "source_sha256": "4819d31d5c28552de4a6235c3baa0acb1ba067a8e3fd0455abe991b7b82d64ee"
+    },
+    {
+      "path": "sources/main-baseline/docs/governance/CURRENT_STATUS.md",
+      "origin": "docs/governance/CURRENT_STATUS.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "b43d694034e07a62813186a7b716feb16b451f78e6733bc3f82a2842e556df16",
+      "source_sha256": "b43d694034e07a62813186a7b716feb16b451f78e6733bc3f82a2842e556df16"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/HANDOFF.md",
+      "origin": "docs/code/Missions/AI4R-001/HANDOFF.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "b50db0a9c7c9490ce763607534873d2b3891ddb393608a4b70abd1ddb80c0e18",
+      "source_sha256": "b50db0a9c7c9490ce763607534873d2b3891ddb393608a4b70abd1ddb80c0e18"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/IMPLEMENTATION_CHECKLIST.md",
+      "origin": "docs/code/Missions/AI4R-001/IMPLEMENTATION_CHECKLIST.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1be1da8f7005722c9ebd066e5e039954fd55d2b6edcd061b2e72cc8d9770b351",
+      "source_sha256": "1be1da8f7005722c9ebd066e5e039954fd55d2b6edcd061b2e72cc8d9770b351"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/review.md",
+      "origin": "docs/code/Missions/AI4R-001/review.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "3a6f3c5715588b23b81f15500368dd257a98732b73d14baba5e434ddd6a475e2",
+      "source_sha256": "3a6f3c5715588b23b81f15500368dd257a98732b73d14baba5e434ddd6a475e2"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/FILE_MAP.md",
+      "origin": "docs/code/Missions/AI4R-001/FILE_MAP.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "cc5df15f9389d349df97987de5966eed29fc82f879b918de66596f159fc14050",
+      "source_sha256": "cc5df15f9389d349df97987de5966eed29fc82f879b918de66596f159fc14050"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/tasks.md",
+      "origin": "docs/code/Missions/AI4R-001/tasks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2877184aacdb5c6af1f9dbcb2e58219b320a5ac02e2fead6faf06e5b3a82c6b5",
+      "source_sha256": "2877184aacdb5c6af1f9dbcb2e58219b320a5ac02e2fead6faf06e5b3a82c6b5"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/spec.md",
+      "origin": "docs/code/Missions/AI4R-001/spec.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1e908e0e020854a60ced631a56da32e859bc7ccc1ee6ad85e4e51cf27b8e358f",
+      "source_sha256": "1e908e0e020854a60ced631a56da32e859bc7ccc1ee6ad85e4e51cf27b8e358f"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/CHANGE_REQUEST-01.md",
+      "origin": "docs/code/Missions/AI4R-001/CHANGE_REQUEST-01.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "12b14845ec0e6fc99075012b496840e798e1689b28b6d1a6fc6df25c23332726",
+      "source_sha256": "12b14845ec0e6fc99075012b496840e798e1689b28b6d1a6fc6df25c23332726"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/plan.md",
+      "origin": "docs/code/Missions/AI4R-001/plan.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "987b2f6b385ac351191c8cfef779db7eb70cc138d072702c61a49bf6956e2ad4",
+      "source_sha256": "987b2f6b385ac351191c8cfef779db7eb70cc138d072702c61a49bf6956e2ad4"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/TEST_REPORT.md",
+      "origin": "docs/code/Missions/AI4R-001/TEST_REPORT.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "32a798329616b126338ff059528adcf1b06a1f8f974418010c861c93c3a362c1",
+      "source_sha256": "32a798329616b126338ff059528adcf1b06a1f8f974418010c861c93c3a362c1"
+    },
+    {
+      "path": "sources/main-baseline/docs/governance/SPEC_KIT_SETUP.json",
+      "origin": "docs/governance/SPEC_KIT_SETUP.json",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "690c7ac428bc5d6b28a534f264e2371ec0d988a24f31567b1a4c5e517d6bdbea",
+      "source_sha256": "690c7ac428bc5d6b28a534f264e2371ec0d988a24f31567b1a4c5e517d6bdbea"
+    },
+    {
+      "path": "sources/main-baseline/docs/governance/ENVIRONMENT.md",
+      "origin": "docs/governance/ENVIRONMENT.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "99fed51dd6e5c0236cc8c5e3cd3d01b42ea89bfa8a44e5d81a482c5dbd2e56c9",
+      "source_sha256": "99fed51dd6e5c0236cc8c5e3cd3d01b42ea89bfa8a44e5d81a482c5dbd2e56c9"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/write_code.md",
+      "origin": "docs/code/Missions/AI4R-001/write_code.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "7b878cb586f293e918620c58b80c1ee8eedcc58ee3bc3e369c2295a20e2157db",
+      "source_sha256": "7b878cb586f293e918620c58b80c1ee8eedcc58ee3bc3e369c2295a20e2157db"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/research.md",
+      "origin": "docs/code/Missions/AI4R-001/research.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6000dcd4ceb09b3a33609e78e6d52e7b93734717215bcee3c476c0c24961d27a",
+      "source_sha256": "6000dcd4ceb09b3a33609e78e6d52e7b93734717215bcee3c476c0c24961d27a"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/TASK.md",
+      "origin": "docs/code/Missions/AI4R-001/TASK.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "8098df0610f265bfd2d9e0bc28a30cbab4ce9411c95770f607eaace5d153dc16",
+      "source_sha256": "8098df0610f265bfd2d9e0bc28a30cbab4ce9411c95770f607eaace5d153dc16"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/checklists/requirements.md",
+      "origin": "docs/code/Missions/AI4R-001/checklists/requirements.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "7b50f539a26d1b635943fdf5a829612113fa10fd910a515cf2ff74c1b764e5bd",
+      "source_sha256": "7b50f539a26d1b635943fdf5a829612113fa10fd910a515cf2ff74c1b764e5bd"
+    },
+    {
+      "path": "sources/main-baseline/jiuwenswarm/channels/web/frontend/AGENTS.md",
+      "origin": "jiuwenswarm/channels/web/frontend/AGENTS.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "387ccb686b60abce1f1009ab2e299d652fa9a4ea65db08ec089e9678f4c8ea9c",
+      "source_sha256": "387ccb686b60abce1f1009ab2e299d652fa9a4ea65db08ec089e9678f4c8ea9c"
+    },
+    {
+      "path": "sources/main-baseline/jiuwenswarm/channels/web/AGENTS.md",
+      "origin": "jiuwenswarm/channels/web/AGENTS.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "71020fa14bc64366b82c2356cf53334093a68fab14629e9430f6a30cc65727c7",
+      "source_sha256": "71020fa14bc64366b82c2356cf53334093a68fab14629e9430f6a30cc65727c7"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/quickstart.md",
+      "origin": "docs/code/Missions/AI4R-001/quickstart.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2c9ec5436d145393e8ac2dbc1bc215061e870cdf8cbb9d101ab16b1f8370e69d",
+      "source_sha256": "2c9ec5436d145393e8ac2dbc1bc215061e870cdf8cbb9d101ab16b1f8370e69d"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/data-model.md",
+      "origin": "docs/code/Missions/AI4R-001/data-model.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "67f3573f429c0ffc361783b44a55d14bc536e826cd11da8e804eb4fadd2ef6ab",
+      "source_sha256": "67f3573f429c0ffc361783b44a55d14bc536e826cd11da8e804eb4fadd2ef6ab"
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/contracts/runtime.md",
+      "origin": "docs/code/Missions/AI4R-001/contracts/runtime.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "5ed6d7606bfdc16363e398c39ecdc802865f7f2e70eeacff53cfe053bd445d40",
+      "source_sha256": "5ed6d7606bfdc16363e398c39ecdc802865f7f2e70eeacff53cfe053bd445d40"
+    },
+    {
+      "path": "sources/main-baseline/docs/adr/0001-codex-subscription-runtime.md",
+      "origin": "docs/adr/0001-codex-subscription-runtime.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "d71bf9ef6d2020ca84e6f21830ab280917fa5bc2a26efaca81f32d3515aec953",
+      "source_sha256": "d71bf9ef6d2020ca84e6f21830ab280917fa5bc2a26efaca81f32d3515aec953"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/OVERVIEW.md",
+      "origin": "docs/architecture/OVERVIEW.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "a9cd41fbfd245246167b2295f2ac088ce1f6b07de1340f9ab34ed72345c2956f",
+      "source_sha256": "a9cd41fbfd245246167b2295f2ac088ce1f6b07de1340f9ab34ed72345c2956f"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/m1.md",
+      "origin": "docs/architecture/m1.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "be6a60fef14435e23680f80dfcc4e60f5a2b074d7594d8460a811ceef761f9ca",
+      "source_sha256": "be6a60fef14435e23680f80dfcc4e60f5a2b074d7594d8460a811ceef761f9ca"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/big-picture.md",
+      "origin": "docs/architecture/big-picture.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "b639c31bae1915614e8494e174ea98857ac804de4dd9af9a1fd51b37b8110dc6",
+      "source_sha256": "b639c31bae1915614e8494e174ea98857ac804de4dd9af9a1fd51b37b8110dc6"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/composition.md",
+      "origin": "docs/architecture/capsule/composition.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "7eae3f68858f65e17b51d60fe1a454ef4c4345c333240cf79809515632aa0ec9",
+      "source_sha256": "7eae3f68858f65e17b51d60fe1a454ef4c4345c333240cf79809515632aa0ec9"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/library.md",
+      "origin": "docs/architecture/capsule/library.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "8a4233391ea5ee93a2d81b3350a014d0ba70e2d3caf08159b13f4de13d0a7e0e",
+      "source_sha256": "8a4233391ea5ee93a2d81b3350a014d0ba70e2d3caf08159b13f4de13d0a7e0e"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/observability.md",
+      "origin": "docs/architecture/capsule/observability.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "e78e885ac94ae9f2c85a8529844a46bb7f3f17fad054ba17713598dbdb1a8f1a",
+      "source_sha256": "e78e885ac94ae9f2c85a8529844a46bb7f3f17fad054ba17713598dbdb1a8f1a"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/trust.md",
+      "origin": "docs/architecture/capsule/trust.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "24e8aaaa5bc74daa073f4970b9729629d411817654245beccb352f8893615efc",
+      "source_sha256": "24e8aaaa5bc74daa073f4970b9729629d411817654245beccb352f8893615efc"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/permissions.md",
+      "origin": "docs/architecture/capsule/permissions.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "f3a3f813c0d088409d5b7b17460ec3f4c0385904713d7e099359cff40659011b",
+      "source_sha256": "f3a3f813c0d088409d5b7b17460ec3f4c0385904713d7e099359cff40659011b"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/tools.md",
+      "origin": "docs/architecture/capsule/tools.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "ffd2b7b75fee35f6f4ee37587966c56f9c5bfa643e1f02d6d3ff5a1d2fd1d218",
+      "source_sha256": "ffd2b7b75fee35f6f4ee37587966c56f9c5bfa643e1f02d6d3ff5a1d2fd1d218"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/finding.md",
+      "origin": "docs/architecture/schemas/finding.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "9752e90477d97b0fd3644c55abca447a2f9ceb77d9f77b8d209b62fb9c38fffa",
+      "source_sha256": "9752e90477d97b0fd3644c55abca447a2f9ceb77d9f77b8d209b62fb9c38fffa"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/common.md",
+      "origin": "docs/architecture/schemas/common.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "624522b6296f6188e24a0e7355e258701f0ccb70b35b206ab53301c74518cb36",
+      "source_sha256": "624522b6296f6188e24a0e7355e258701f0ccb70b35b206ab53301c74518cb36"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/stages.md",
+      "origin": "docs/architecture/capsule/stages.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1dfaf3130ee34090d42f449b949ef956818e8fda2265570f246a238524c09a27",
+      "source_sha256": "1dfaf3130ee34090d42f449b949ef956818e8fda2265570f246a238524c09a27"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/policy.md",
+      "origin": "docs/architecture/schemas/policy.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "dc4a9e1269d189cc6264086e1d3fbbeea373cb13c74161446647ebc53c225bfb",
+      "source_sha256": "dc4a9e1269d189cc6264086e1d3fbbeea373cb13c74161446647ebc53c225bfb"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/candidate.md",
+      "origin": "docs/architecture/schemas/candidate.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "15203c396250d552ae9cc68e147096cc178f90c0af795a371c551b13fef693e9",
+      "source_sha256": "15203c396250d552ae9cc68e147096cc178f90c0af795a371c551b13fef693e9"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/schemas.md",
+      "origin": "docs/architecture/schemas/schemas.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "931b69c56f895e92a015c2600187e02420cfc7973308d2f4789918ad56e06f4f",
+      "source_sha256": "931b69c56f895e92a015c2600187e02420cfc7973308d2f4789918ad56e06f4f"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/standing.md",
+      "origin": "docs/architecture/schemas/standing.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "762de021c713fa9c4994e6f1d4b266288107be64010dd2262216deaeffc63160",
+      "source_sha256": "762de021c713fa9c4994e6f1d4b266288107be64010dd2262216deaeffc63160"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/artifact.md",
+      "origin": "docs/architecture/schemas/artifact.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6a5935ca1d21fa0aa64ad97fce907fcef18e7f3e16f52e27a4c4439ac660844a",
+      "source_sha256": "6a5935ca1d21fa0aa64ad97fce907fcef18e7f3e16f52e27a4c4439ac660844a"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/port-types.md",
+      "origin": "docs/architecture/schemas/port-types.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "735add6312991fe0e0e3afd695dc15b455464915ba252b0183c573a3b922b41a",
+      "source_sha256": "735add6312991fe0e0e3afd695dc15b455464915ba252b0183c573a3b922b41a"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/binding.md",
+      "origin": "docs/architecture/schemas/binding.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "14d3a431bc8e0ab59600e0a607287c7eb09c61a07348866f3fb71a77f111ac6c",
+      "source_sha256": "14d3a431bc8e0ab59600e0a607287c7eb09c61a07348866f3fb71a77f111ac6c"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/checks.md",
+      "origin": "docs/architecture/schemas/checks.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "49231c9fe2e6821b335e9e593388b4040cea9b803303b00bda6d213dc6cc81e5",
+      "source_sha256": "49231c9fe2e6821b335e9e593388b4040cea9b803303b00bda6d213dc6cc81e5"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/fields.md",
+      "origin": "docs/architecture/capsule/fields.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "a38b1b51241b50b16a04582a4422d1b68412f0747e65cd70c9ae0ce591fed892",
+      "source_sha256": "a38b1b51241b50b16a04582a4422d1b68412f0747e65cd70c9ae0ce591fed892"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/example-compile-intent.md",
+      "origin": "docs/architecture/capsule/example-compile-intent.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "3102e5a2311f46497f4d3173e9cb12ac6f2ee9a80fa7cec2e7c32a61e386d572",
+      "source_sha256": "3102e5a2311f46497f4d3173e9cb12ac6f2ee9a80fa7cec2e7c32a61e386d572"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/b1-design.md",
+      "origin": "docs/architecture/b1-design.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "8b8b0b8cfb153a67a7cff5ce7cc0a8cd503f2d8495ecda7997aabc2afe754a07",
+      "source_sha256": "8b8b0b8cfb153a67a7cff5ce7cc0a8cd503f2d8495ecda7997aabc2afe754a07"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/verification-record.md",
+      "origin": "docs/architecture/schemas/verification-record.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2e2548b94c2fffaa4f46b5f6a74f92e1a1e3c11d545486ad4a543162d3d525dd",
+      "source_sha256": "2e2548b94c2fffaa4f46b5f6a74f92e1a1e3c11d545486ad4a543162d3d525dd"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/verdict.md",
+      "origin": "docs/architecture/schemas/verdict.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1e617d8b2415bedf3624e4c88d2ead9f5b6b9c5ea41e2afe49209a303e6527ff",
+      "source_sha256": "1e617d8b2415bedf3624e4c88d2ead9f5b6b9c5ea41e2afe49209a303e6527ff"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/observation.md",
+      "origin": "docs/architecture/schemas/observation.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c942f9a80dfbe15e6f211a6be069cd1175761cb1f9474150b88cd5ff6467fdd6",
+      "source_sha256": "c942f9a80dfbe15e6f211a6be069cd1175761cb1f9474150b88cd5ff6467fdd6"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/architecture.md",
+      "origin": "docs/architecture/architecture.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "9a379859e06305fcdeabc9526ecd2e20ab57cc74fa7944f80c2eb7d6e802f75e",
+      "source_sha256": "9a379859e06305fcdeabc9526ecd2e20ab57cc74fa7944f80c2eb7d6e802f75e"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/capsule.md",
+      "origin": "docs/architecture/capsule/capsule.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "1e8348010361f0e3335f07a5071c9cba66e14513c98058e3ec87707aa4fee4ec",
+      "source_sha256": "1e8348010361f0e3335f07a5071c9cba66e14513c98058e3ec87707aa4fee4ec"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/symphony.md",
+      "origin": "docs/architecture/capsule/symphony.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "d899ecaae7b2b1334fc3052069e6bcb8d680f09cbb26b07ec730cff419b4acbf",
+      "source_sha256": "d899ecaae7b2b1334fc3052069e6bcb8d680f09cbb26b07ec730cff419b4acbf"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/invariants.md",
+      "origin": "docs/architecture/schemas/invariants.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "c3a0051a339ef70721113edab56118935d8ca10a67f142aa9c60400dfce839fe",
+      "source_sha256": "c3a0051a339ef70721113edab56118935d8ca10a67f142aa9c60400dfce839fe"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/rsi.md",
+      "origin": "docs/architecture/capsule/rsi.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "757453256bd9e462dd4d94f06caab9dacff024e9bceab60b0a0372ffacabf813",
+      "source_sha256": "757453256bd9e462dd4d94f06caab9dacff024e9bceab60b0a0372ffacabf813"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/why.md",
+      "origin": "docs/architecture/capsule/why.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "73ee332120d5bd34cc5a8f7895dd73daa8830a3531d9bb348930679275fce9f7",
+      "source_sha256": "73ee332120d5bd34cc5a8f7895dd73daa8830a3531d9bb348930679275fce9f7"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/generalist.md",
+      "origin": "docs/architecture/capsule/generalist.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "4aa73a648c838e22c50f381feaf8e97c54f56f04dd7be34957840a3e4cafa93f",
+      "source_sha256": "4aa73a648c838e22c50f381feaf8e97c54f56f04dd7be34957840a3e4cafa93f"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/example-generalist.md",
+      "origin": "docs/architecture/capsule/example-generalist.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "2229ecade26d56dd1c8feb26b6edddb5b4e677cf6bbe49d5601159ffa6b7124f",
+      "source_sha256": "2229ecade26d56dd1c8feb26b6edddb5b4e677cf6bbe49d5601159ffa6b7124f"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/references.md",
+      "origin": "docs/architecture/capsule/references.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "9fcfaef527b3fb8e6bd020112696b01327e95b947bffa459693fef50ca1509cf",
+      "source_sha256": "9fcfaef527b3fb8e6bd020112696b01327e95b947bffa459693fef50ca1509cf"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/authoring.md",
+      "origin": "docs/architecture/capsule/authoring.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "6e58138c71878f6a1ff6a1002826e1aafb862bef285d8e4a564e809bfc6dcfb2",
+      "source_sha256": "6e58138c71878f6a1ff6a1002826e1aafb862bef285d8e4a564e809bfc6dcfb2"
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/m1-design.md",
+      "origin": "docs/architecture/m1-design.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "f794dc6e2fae3fda1a93851c862cd35a0495c9ef788253470c87ba1f966b52ad",
+      "source_sha256": "f794dc6e2fae3fda1a93851c862cd35a0495c9ef788253470c87ba1f966b52ad"
+    },
+    {
+      "path": "sources/constitution.md",
+      "origin": ".specify/memory/constitution.md",
+      "repository": "target-main",
+      "commit": "343a77dbd5e6dcd18de2e57794cc992d36c2f35c",
+      "sha256": "7896606709ba2d97a837997d3ae531748e37966bb53edf55d0d3c28203dc9389",
+      "source_sha256": "7896606709ba2d97a837997d3ae531748e37966bb53edf55d0d3c28203dc9389"
+    }
+  ],
+  "live_projections": [
+    {
+      "path": "sources/live-program/TASKS.md",
+      "sha256": "2a5e4557add0c8c006215181c4f45bde831cf3749416aafdfc5361297141b906",
+      "bytes": 114300,
+      "origin": "docs/code/Missions/M1/TASKS.md",
+      "source_sha256": "9671419f90b8259b015b5f47ae6d70d48a7bc379b7986da10db0bb4be6a51653"
+    },
+    {
+      "path": "sources/live-program/TRIAL-1/TASK.md",
+      "sha256": "e0a0e4f0821cd561a0171806dcc639edb050660f2faabe86d404c1712cf2a122",
+      "bytes": 14031,
+      "origin": "docs/code/Missions/M1/TRIAL-1/TASK.md",
+      "source_sha256": "1289931787ede0bd787a345f3122f76617a8737399bf28816379fd563e671145"
+    }
+  ],
+  "live_authorities": [
+    {
+      "path": "docs/code/Missions/M1/TASKS.md"
+    },
+    {
+      "path": "docs/code/Missions/M1/TRIAL-1/TASK.md"
+    },
+    {
+      "path": "docs/code/Code_SOP.md"
+    },
+    {
+      "path": "docs/code/SPEC_KIT_WORKFLOW.md"
+    },
+    {
+      "path": "docs/code/VERIFICATION.md"
+    },
+    {
+      "path": ".specify/memory/constitution.md"
+    },
+    {
+      "path": "plugins/spec-kit/README.md"
+    }
+  ],
+  "source_baseline": {
+    "path": "source-baseline.json",
+    "sha256": "faf462b771c043c2d0f2ee3be65e201eaf37a0549e3c6e3cabd266dab446c417",
+    "bytes": 8346,
+    "architecture_aggregate_sha256": "64b717cec08a7d837ce6c502bb4f23bf2acc99409428c2195eaa616c4f395941"
+  },
+  "validation": {
+    "standalone": "_tools/check_package.py",
+    "checkout": "_tools/check_package.py --repo CHECKOUT",
+    "runtime_validation": "NOT_RUN"
+  },
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "5453aa960a9a168a352e6a0b43b29f15a12ab07211107cc1f5285895c9da6156",
+      "bytes": 81
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "2b78ca28b3b8fee75879a2e6e4b3c5b97508e0416a7489111ca1efed3e41531d",
+      "bytes": 11
+    },
+    {
+      "path": "1.md",
+      "sha256": "08f659a4f45ece52ab097327c010f40c4d371d1bfb179964988d31cc43d8e7c3",
+      "bytes": 196
+    },
+    {
+      "path": "_tools/check_package.py",
+      "sha256": "e56db588e59f6ac3722fc8b63933d20dccfd0ad88270f71ffe87480b97d758e8",
+      "bytes": 24196
+    },
+    {
+      "path": "_tools/refresh_manifest.py",
+      "sha256": "b0107d60aac4c611c7ba78e98339dc85636a124375e109f6e0bceaccb3e6ec21",
+      "bytes": 4536
+    },
+    {
+      "path": "_tools/snapshot-inputs.json",
+      "sha256": "0260f5ff5f7b7a9472babf8d619e57aa51e5d08f93914e8cfbd1a676353e7b2b",
+      "bytes": 71577
+    },
+    {
+      "path": "_tools/test_package_checker.py",
+      "sha256": "a4d651ddc09acf6baba7ccccfd832be1740b111e212ef1df9f27c1b9c7c7dd58",
+      "bytes": 10078
+    },
+    {
+      "path": "architecture.md",
+      "sha256": "29a3fc89905969942af6ee7383189537996f8ab7071478dc331c11ee35796f84",
+      "bytes": 509
+    },
+    {
+      "path": "authority-index.md",
+      "sha256": "0f0d50ecb83df5c340cc4e6612b2f57ad8270c19e6d67fe86c8cdd10a172238c",
+      "bytes": 4872
+    },
+    {
+      "path": "automation.md",
+      "sha256": "43195fffa5c09f8ab3f719d793c4dbe1c44a8120df29864782431981a69bee88",
+      "bytes": 7233
+    },
+    {
+      "path": "b1-design.md",
+      "sha256": "cee11fcfc5afa92db17cf1304c72dc3465b8b6dbd2c1590289a1ce974ea3c3e1",
+      "bytes": 1072
+    },
+    {
+      "path": "background/terms.md",
+      "sha256": "2dae06a0f135b44e73a6d445ee1b11e5a0dd3baa5b811f341e8c31a1baa1c6a5",
+      "bytes": 316
+    },
+    {
+      "path": "big-picture.md",
+      "sha256": "6e0cd83abd6f0597b6f9d7ae12eb855d41262a089ef1fa023baebdcacf9ccf6f",
+      "bytes": 586
+    },
+    {
+      "path": "capsule/authoring.md",
+      "sha256": "e993418f781ad814f4232bcfe40149801c26765128f9cfa86c9fd5a5d6b98bec",
+      "bytes": 2600
+    },
+    {
+      "path": "capsule/capsule.md",
+      "sha256": "aa184570d7f7a93f3468a8700f46b7d4ef9cdf5c48f9fa783b974fab60ac62b0",
+      "bytes": 636
+    },
+    {
+      "path": "capsule/composition.md",
+      "sha256": "d9772402f852cc5ef70d4ea9128093b7c9f6aaa69529b41fe298567a4f3ff696",
+      "bytes": 566
+    },
+    {
+      "path": "capsule/declaration.md",
+      "sha256": "e8df51c67a8f7a199ac8384adfb40de696db6da48f0308c0697117bdbe9bf0e3",
+      "bytes": 11318
+    },
+    {
+      "path": "capsule/example-compile-intent.md",
+      "sha256": "fe69c8e0fe9e1cf0a3068e5a65dea5117bae4c51fdac7c162f1abbd8e8d6cc0d",
+      "bytes": 679
+    },
+    {
+      "path": "capsule/example-generalist.md",
+      "sha256": "14c15df7e9f5911e5d468c71f1ca7fa42446508673435a84094538f9dba32a11",
+      "bytes": 656
+    },
+    {
+      "path": "capsule/fields.md",
+      "sha256": "339f20fbb1ebe028328417deac4d54807474ef152a33a181420e910ee5dc596c",
+      "bytes": 1105
+    },
+    {
+      "path": "capsule/generalist.md",
+      "sha256": "faabd4bfe8c3bfba14e34dc249e9ef2c55c9f54eaf318be1d3d7e7010f16129e",
+      "bytes": 610
+    },
+    {
+      "path": "capsule/library.md",
+      "sha256": "73833c95bf1ed3b4e31cc3418a026ea63bb97f6beafa868306842f58fb9d63d0",
+      "bytes": 755
+    },
+    {
+      "path": "capsule/observability.md",
+      "sha256": "ab6c989e30c5546931a51404e0184afb3905c4780e3f9b931e23dcfd30778b1e",
+      "bytes": 509
+    },
+    {
+      "path": "capsule/permissions.md",
+      "sha256": "b8db9cab022230d9cebf776e685d0318f6cc0fb267c9b82c8b9f2f0736250569",
+      "bytes": 508
+    },
+    {
+      "path": "capsule/references.md",
+      "sha256": "374756cdd4547715094af907d79b0dbde0b8fc6ced999c5efa8e776f1f86623f",
+      "bytes": 344
+    },
+    {
+      "path": "capsule/rsi.md",
+      "sha256": "9fceb82492c9471a03f9fd9e7643a773b27e4e62f27ccf5cfaa76737a522a4b0",
+      "bytes": 656
+    },
+    {
+      "path": "capsule/stages.md",
+      "sha256": "823d8a1f74bb38b15b4501145745dd771f8a72b0dac2394e898228e6b0b19b3f",
+      "bytes": 332
+    },
+    {
+      "path": "capsule/symphony.md",
+      "sha256": "28ab7ea7228f26708eea0043899590d17c2a402be5645cd5953e73e818ddf8e1",
+      "bytes": 560
+    },
+    {
+      "path": "capsule/tools.md",
+      "sha256": "535d6a52931a775d8013be293de6995cd88a27b93b7646b979b45d46aa8f6e18",
+      "bytes": 552
+    },
+    {
+      "path": "capsule/trust.md",
+      "sha256": "727935b5efb16a8114aa6c30488ff7e598eb5a2143d3680114b586abadd25243",
+      "bytes": 610
+    },
+    {
+      "path": "capsule/why.md",
+      "sha256": "4abc40883d10d1cf63919c5ae77a30c946da468c5d84e1d49cd9a59ad7df2870",
+      "bytes": 577
+    },
+    {
+      "path": "capsules.md",
+      "sha256": "82173b295042a39146eac6673d2dba3757a4352cff0c2fc1d6cf9b87e1e51368",
+      "bytes": 10423
+    },
+    {
+      "path": "contracts-and-native-reuse.md",
+      "sha256": "b8183c88a2d932bf7af5d351a39e685de538dad7231328827b71157a2042a7be",
+      "bytes": 15288
+    },
+    {
+      "path": "coverage-allocation.md",
+      "sha256": "ec020dc88165358bfa1a086f23e99509a43bf1b01c501062dc2d9c8b417fbe50",
+      "bytes": 79601
+    },
+    {
+      "path": "coverage.md",
+      "sha256": "975e8b1abf88f2feeee936ad12fe0b44f428a869f14c207530fc79a564017616",
+      "bytes": 13443
+    },
+    {
+      "path": "delivery-phases.md",
+      "sha256": "308fd64054283b28db8301f0e6f6adafdab53412e0cef06d6a7ad9a471516b94",
+      "bytes": 13775
+    },
+    {
+      "path": "diagrams/authority-index-1.png",
+      "sha256": "0b55185bab547cc2ebea429c8faa22f1d01833c41f7c478781c90a0dd45bef0c",
+      "bytes": 20627
+    },
+    {
+      "path": "diagrams/authority-index-1.svg",
+      "sha256": "e8eb8968e8e8aca64119bc8504279708115a49dec3663fe69b39a0289223f9da",
+      "bytes": 17242
+    },
+    {
+      "path": "diagrams/automation-1.png",
+      "sha256": "68adb7ddc8b69b28c41a77f497b7bc958a7d370038216bc7879dc6b3a40f3263",
+      "bytes": 30245
+    },
+    {
+      "path": "diagrams/automation-1.svg",
+      "sha256": "e83fa05c13c281ace4dfb8867290dcb1501da3ed5a569c2a1b8c8da687c17e8e",
+      "bytes": 18638
+    },
+    {
+      "path": "diagrams/capsules-1.png",
+      "sha256": "fb3c47ea93f97f03ca79db64cb2e2202605c07cfb47f167ffed1fb6cc807d0c4",
+      "bytes": 44276
+    },
+    {
+      "path": "diagrams/capsules-1.svg",
+      "sha256": "75ac684586b46715fca7652df86b658a4f3380a3a286a3f445fe2936dfa20a7c",
+      "bytes": 27603
+    },
+    {
+      "path": "diagrams/contracts-and-native-reuse-1.png",
+      "sha256": "78e629da30b2b15a4254b1812dd717e07401bd9b7ae529ab3e29de068d71f2b4",
+      "bytes": 36662
+    },
+    {
+      "path": "diagrams/contracts-and-native-reuse-1.svg",
+      "sha256": "025b3d7232f7a021cd573c5183693ae5fc671bea706c8fbee0cb760ddf829766",
+      "bytes": 29156
+    },
+    {
+      "path": "diagrams/delivery-phases-1.png",
+      "sha256": "511ca6b6612788f3badc85d74a9b4c984b9240f2b8520f20daccb76d95698a0f",
+      "bytes": 30859
+    },
+    {
+      "path": "diagrams/delivery-phases-1.svg",
+      "sha256": "167af62042bef13c9b4c1708e798c0f8fe61db6ed4c7a213af5e09ce8383365f",
+      "bytes": 21710
+    },
+    {
+      "path": "diagrams/failure-and-human-1.png",
+      "sha256": "3ec778d1bdd76735af574d85478ee07c75193a8c0d8f2f5e6290d925105533e9",
+      "bytes": 57724
+    },
+    {
+      "path": "diagrams/failure-and-human-1.svg",
+      "sha256": "fc94c552b1fcecfcf4a7d2e84222f34ba9de7928140b58ab962c2cc3758e2cb4",
+      "bytes": 31613
+    },
+    {
+      "path": "diagrams/failure-and-human-2.png",
+      "sha256": "fbe8bbb36a757ee2931c410268a64989357aa26f6866c4aec3a3f4ce12d16349",
+      "bytes": 39423
+    },
+    {
+      "path": "diagrams/failure-and-human-2.svg",
+      "sha256": "51c8721d2b1cffb0d37f400db3c53ff06603589a7d7edd5a44e2e938c65c76bf",
+      "bytes": 28649
+    },
+    {
+      "path": "diagrams/guard-design-1.png",
+      "sha256": "c8fcd8ba637257427bbe0a631f3c79946eac2b147ed26ace1ee8e5a35dee00b4",
+      "bytes": 18202
+    },
+    {
+      "path": "diagrams/guard-design-1.svg",
+      "sha256": "8104ec4c81944655975500c7f10018f93e6118c22262914ba36a852b2d8252f9",
+      "bytes": 19988
+    },
+    {
+      "path": "diagrams/guard-design-2.png",
+      "sha256": "f7aedb178a1cb6000cb035ad53e0e4fd2385f71f661e323f54bd08bac636d737",
+      "bytes": 27058
+    },
+    {
+      "path": "diagrams/guard-design-2.svg",
+      "sha256": "885135c4bf041b40621a4fe73ca4d74d2ec8c79e08193059107c6e94f304bb01",
+      "bytes": 22602
+    },
+    {
+      "path": "diagrams/guard-design-3.png",
+      "sha256": "098681ba6f38755fa5b7f778bcd2e0b08540428d5618e41b5c4e6b3e4e2042e6",
+      "bytes": 35451
+    },
+    {
+      "path": "diagrams/guard-design-3.svg",
+      "sha256": "1732a5393921c7195db2f87cd82d6072b15237399ea8e67813e821bde0db5740",
+      "bytes": 22975
+    },
+    {
+      "path": "diagrams/immediate-plan-1.png",
+      "sha256": "4cc8ee6f2636524c7636c4484abb1224d2f037d57217124e22bf7ad4a243affe",
+      "bytes": 50443
+    },
+    {
+      "path": "diagrams/immediate-plan-1.svg",
+      "sha256": "d8bba81ecfa8a22bc068a33e37458cba077941ee069eda42a2f5d384e9b9b7af",
+      "bytes": 32754
+    },
+    {
+      "path": "diagrams/m1-design-1.png",
+      "sha256": "0d6007ac277ca93d874e5a0e8b219d18cb1b1938d0f3f0eeec8ea9841b8ce24d",
+      "bytes": 38162
+    },
+    {
+      "path": "diagrams/m1-design-1.svg",
+      "sha256": "42024b5531d1ecac0f30ac6f899e10b9942bd20286efa068e6d9dcae1c207f33",
+      "bytes": 31634
+    },
+    {
+      "path": "diagrams/m1-design-2.png",
+      "sha256": "493de56e14e7730b8c0cab8d339d13f6572ad3daa133346932afa6104ee21e4c",
+      "bytes": 45154
+    },
+    {
+      "path": "diagrams/m1-design-2.svg",
+      "sha256": "9ae75c175792828458253541e9f9725a6da6f9d05dd44205734868e00a9caef6",
+      "bytes": 30549
+    },
+    {
+      "path": "diagrams/placement-1.png",
+      "sha256": "396a1f7cd52ca615ed00a6bc5d1f11a06a621bf88a418e8dda534f26f5fc4b73",
+      "bytes": 104448
+    },
+    {
+      "path": "diagrams/placement-1.svg",
+      "sha256": "d6a2ed3f9da10cfb8041aa775c6f0017d3d6a55bd9fe640efb7db646b7e76cfc",
+      "bytes": 56942
+    },
+    {
+      "path": "diagrams/placement-2.png",
+      "sha256": "6d3cdbb2700362b558e4f04ddd0ea24d4a7b6367e3d5c0be252f9afff233ef88",
+      "bytes": 42019
+    },
+    {
+      "path": "diagrams/placement-2.svg",
+      "sha256": "1e7d113dea03176adef5f23c7ba7d9b3a9fbb6472e8134c99d7e2eaf4b4c4201",
+      "bytes": 31890
+    },
+    {
+      "path": "diagrams/README-1.png",
+      "sha256": "04f36869b3f329b47630e68c74cfe9fbf5d2a968b059c5fa7fec8ce3cb234cbb",
+      "bytes": 54614
+    },
+    {
+      "path": "diagrams/README-1.svg",
+      "sha256": "61c386df65c38956ed72195fec0984de9ef2a713023e1da1912cadf1c47f869e",
+      "bytes": 37494
+    },
+    {
+      "path": "diagrams/README.md",
+      "sha256": "739a6ed850e8031885efdabac9b8ba38312fdfb2194d636754c1bc7a55655ecc",
+      "bytes": 3543
+    },
+    {
+      "path": "diagrams/results.json",
+      "sha256": "6e2c884b225769936548cc58b3049d5a1ff55328b0224e4a846c4b1ff98a57f8",
+      "bytes": 2260
+    },
+    {
+      "path": "diagrams/workflow-1.png",
+      "sha256": "1f37cd7825b3e4aa9404cb5adb85c0d3e9bde6dd8c2ca26e645148f28cc408de",
+      "bytes": 35475
+    },
+    {
+      "path": "diagrams/workflow-1.svg",
+      "sha256": "27e060a3d074ad7ad9a5b214d8f6177d48658e49650394ddb6b5fb9c99d669a6",
+      "bytes": 29698
+    },
+    {
+      "path": "diagrams/workflow-2.png",
+      "sha256": "08be33fcff76d5bfc42d94eb110e274b33cf40e46643d85af8778dc4000af8f5",
+      "bytes": 40626
+    },
+    {
+      "path": "diagrams/workflow-2.svg",
+      "sha256": "b5f5016ba362e4a01c9ec46f812a08ecaf39ccbb726e7b6f0bc7a469de098080",
+      "bytes": 30854
+    },
+    {
+      "path": "failure-and-human.md",
+      "sha256": "f1f903b66afe6a732a6bede9d3e6641fd870107e492989e18f7a7bcfea7e67ec",
+      "bytes": 11160
+    },
+    {
+      "path": "glossary.md",
+      "sha256": "2fdce2d33af050c7a14417545eccfe06559363f84c14eab3cf0c056bf3561f25",
+      "bytes": 9369
+    },
+    {
+      "path": "guard-design.md",
+      "sha256": "30db0e08dc3f291d9b20efcd4155228d9e3bc17b9f8d91f2e49dbb7dfbc8760c",
+      "bytes": 15323
+    },
+    {
+      "path": "handoff.md",
+      "sha256": "36e8ffbc9e96db7a91ffd7c176cd8f7a176cafe15e771c91c7bd8b243f0c1b2d",
+      "bytes": 3138
+    },
+    {
+      "path": "immediate-plan.md",
+      "sha256": "8779f1cc1de90f8487b3026e56e3ea686bc966c39793544b28ff2c980cb68085",
+      "bytes": 14283
+    },
+    {
+      "path": "m1-design.md",
+      "sha256": "33411616ab9120d2da37befabf30f1422c3387821212ee7c1c36cde904fdab93",
+      "bytes": 17636
+    },
+    {
+      "path": "m1.md",
+      "sha256": "2deb6be6d906cc6f048841d0d371617daa7f82cc5db01a0d93bc7c65f8bc6d6f",
+      "bytes": 344
+    },
+    {
+      "path": "offline-rsi.md",
+      "sha256": "672d8e78c27501f731c7fd77088744dac7e3466c16170c449d45572d1e741f4a",
+      "bytes": 7085
+    },
+    {
+      "path": "OVERVIEW.md",
+      "sha256": "e9065db20f6de33f97511b1ee1baeb09dc17766b0874e94ffb81a8e9fbcaa677",
+      "bytes": 1068
+    },
+    {
+      "path": "placement.md",
+      "sha256": "aa00cec894131602f8dcec03c8acbcd6910aa6b6b98b31246da83b09c597f274",
+      "bytes": 12454
+    },
+    {
+      "path": "principles.md",
+      "sha256": "3879bf522dbbe14d5c1f137be1fa03aa3e0ac4bd140063e1fcebf869dc7e2656",
+      "bytes": 10361
+    },
+    {
+      "path": "README.md",
+      "sha256": "e3146edf6ee13646ac561d4cd67cc54484ba8deb66fb9ef0fb2ae3424d00ee1a",
+      "bytes": 11650
+    },
+    {
+      "path": "review-resolution.md",
+      "sha256": "19faf9d541d813584329706fc7cf3523cfb2120b0fc34e966d5ea1163c949edb",
+      "bytes": 5747
+    },
+    {
+      "path": "schemas/artifact.md",
+      "sha256": "d0fcce3c066d75a2d5e0335bd33eaf65da953d01f74f270a74282adbc96d8df3",
+      "bytes": 422
+    },
+    {
+      "path": "schemas/binding.md",
+      "sha256": "39c22a0283b70652763549846bfe4c70f8b325e677c27daf510afaca12fb57bd",
+      "bytes": 364
+    },
+    {
+      "path": "schemas/candidate.md",
+      "sha256": "ecdc6a7baf5f7383242bf14077970762694d0dc554814fa5832957e6a0aa8369",
+      "bytes": 413
+    },
+    {
+      "path": "schemas/checks.md",
+      "sha256": "d2f1b6b7a8c2138e4e372af6f2d0ae631a1a1945b503dc14effbab38656bdc07",
+      "bytes": 431
+    },
+    {
+      "path": "schemas/common.md",
+      "sha256": "24a22298940497a0cba6ba673a3fbb23ac42ceedf17b3df44ecc185f19e35f00",
+      "bytes": 390
+    },
+    {
+      "path": "schemas/finding.md",
+      "sha256": "20ffd285bf5762f24d5d3651721ee0f542af52b42d8d9ca4fc2f2abba619d1f7",
+      "bytes": 409
+    },
+    {
+      "path": "schemas/invariants.md",
+      "sha256": "67a398c1360e485c4bbaf0bd243b76529185c4ae52067322594be7ffc9f7d666",
+      "bytes": 408
+    },
+    {
+      "path": "schemas/observation.md",
+      "sha256": "c5f6d2fbb5d8482a37a190dec8936956f8fa445d59863b035ac1a6c0f0c06f43",
+      "bytes": 435
+    },
+    {
+      "path": "schemas/policy.md",
+      "sha256": "66f16f5c929c0a155bdc7031df6bdbcd931d7668d87eef341a4f6d355f5e3280",
+      "bytes": 561
+    },
+    {
+      "path": "schemas/port-types.md",
+      "sha256": "6c53c1b7a94d5fb5032bacd98f63f27697d3b847bc31b76b0dccb325453c0437",
+      "bytes": 425
+    },
+    {
+      "path": "schemas/schemas.md",
+      "sha256": "2bb8d786d3a5eef635b143cf3dc022008c09757248ea1ad761ee2802edd948c2",
+      "bytes": 695
+    },
+    {
+      "path": "schemas/standing.md",
+      "sha256": "f082cadba8f151ccbf0b82067f5f354e4a13679b6b3c253d09e28a711b0bf481",
+      "bytes": 411
+    },
+    {
+      "path": "schemas/verdict.md",
+      "sha256": "f77bbcb160f3390d33e015b960d0944786d44bd18d26e95e0ee1df7dc801d753",
+      "bytes": 409
+    },
+    {
+      "path": "schemas/verification-record.md",
+      "sha256": "fee70a59a5ae471dfa2fb335398a0d5914adf511ec8d6923964c4b701bd41f0e",
+      "bytes": 419
+    },
+    {
+      "path": "source-baseline.json",
+      "sha256": "faf462b771c043c2d0f2ee3be65e201eaf37a0549e3c6e3cabd266dab446c417",
+      "bytes": 8346
+    },
+    {
+      "path": "sources/capsule-semantic-v2.10b.md",
+      "sha256": "30b02e874dda0a9acd4c06e5fadd8c855cd3024d6aaca58c7c937aed161d00b9",
+      "bytes": 174011
+    },
+    {
+      "path": "sources/capsule.schema.json",
+      "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd",
+      "bytes": 22040
+    },
+    {
+      "path": "sources/constitution.md",
+      "sha256": "7896606709ba2d97a837997d3ae531748e37966bb53edf55d0d3c28203dc9389",
+      "bytes": 2396
+    },
+    {
+      "path": "sources/live-program/TASKS.md",
+      "sha256": "2a5e4557add0c8c006215181c4f45bde831cf3749416aafdfc5361297141b906",
+      "bytes": 114300
+    },
+    {
+      "path": "sources/live-program/TRIAL-1/TASK.md",
+      "sha256": "e0a0e4f0821cd561a0171806dcc639edb050660f2faabe86d404c1712cf2a122",
+      "bytes": 14031
+    },
+    {
+      "path": "sources/main-baseline/.specify/memory/constitution.md",
+      "sha256": "7896606709ba2d97a837997d3ae531748e37966bb53edf55d0d3c28203dc9389",
+      "bytes": 2396
+    },
+    {
+      "path": "sources/main-baseline/.specify/README.md",
+      "sha256": "a342dc47c356c6814d4ddb21849037a7fdcba2bff98ad2321501c4513e1706ae",
+      "bytes": 1107
+    },
+    {
+      "path": "sources/main-baseline/AGENTS.md",
+      "sha256": "e867492a44e940e7bb2c939e5e29fcfb58d455771ad97e69d64f66ea901f3238",
+      "bytes": 3868
+    },
+    {
+      "path": "sources/main-baseline/docs/adr/0001-codex-subscription-runtime.md",
+      "sha256": "d71bf9ef6d2020ca84e6f21830ab280917fa5bc2a26efaca81f32d3515aec953",
+      "bytes": 4484
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/architecture.md",
+      "sha256": "9a379859e06305fcdeabc9526ecd2e20ab57cc74fa7944f80c2eb7d6e802f75e",
+      "bytes": 2898
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/b1-design.md",
+      "sha256": "8b8b0b8cfb153a67a7cff5ce7cc0a8cd503f2d8495ecda7997aabc2afe754a07",
+      "bytes": 39804
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/big-picture.md",
+      "sha256": "b639c31bae1915614e8494e174ea98857ac804de4dd9af9a1fd51b37b8110dc6",
+      "bytes": 11303
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/authoring.md",
+      "sha256": "6e58138c71878f6a1ff6a1002826e1aafb862bef285d8e4a564e809bfc6dcfb2",
+      "bytes": 4081
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/capsule.md",
+      "sha256": "1e8348010361f0e3335f07a5071c9cba66e14513c98058e3ec87707aa4fee4ec",
+      "bytes": 12281
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/composition.md",
+      "sha256": "7eae3f68858f65e17b51d60fe1a454ef4c4345c333240cf79809515632aa0ec9",
+      "bytes": 6921
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/example-compile-intent.md",
+      "sha256": "3102e5a2311f46497f4d3173e9cb12ac6f2ee9a80fa7cec2e7c32a61e386d572",
+      "bytes": 11643
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/example-generalist.md",
+      "sha256": "2229ecade26d56dd1c8feb26b6edddb5b4e677cf6bbe49d5601159ffa6b7124f",
+      "bytes": 6564
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/fields.md",
+      "sha256": "a38b1b51241b50b16a04582a4422d1b68412f0747e65cd70c9ae0ce591fed892",
+      "bytes": 26553
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/generalist.md",
+      "sha256": "4aa73a648c838e22c50f381feaf8e97c54f56f04dd7be34957840a3e4cafa93f",
+      "bytes": 4325
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/library.md",
+      "sha256": "8a4233391ea5ee93a2d81b3350a014d0ba70e2d3caf08159b13f4de13d0a7e0e",
+      "bytes": 10034
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/observability.md",
+      "sha256": "e78e885ac94ae9f2c85a8529844a46bb7f3f17fad054ba17713598dbdb1a8f1a",
+      "bytes": 4389
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/permissions.md",
+      "sha256": "f3a3f813c0d088409d5b7b17460ec3f4c0385904713d7e099359cff40659011b",
+      "bytes": 5904
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/references.md",
+      "sha256": "9fcfaef527b3fb8e6bd020112696b01327e95b947bffa459693fef50ca1509cf",
+      "bytes": 7073
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/rsi.md",
+      "sha256": "757453256bd9e462dd4d94f06caab9dacff024e9bceab60b0a0372ffacabf813",
+      "bytes": 7510
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/stages.md",
+      "sha256": "1dfaf3130ee34090d42f449b949ef956818e8fda2265570f246a238524c09a27",
+      "bytes": 3557
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/symphony.md",
+      "sha256": "d899ecaae7b2b1334fc3052069e6bcb8d680f09cbb26b07ec730cff419b4acbf",
+      "bytes": 4589
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/tools.md",
+      "sha256": "ffd2b7b75fee35f6f4ee37587966c56f9c5bfa643e1f02d6d3ff5a1d2fd1d218",
+      "bytes": 13565
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/trust.md",
+      "sha256": "24e8aaaa5bc74daa073f4970b9729629d411817654245beccb352f8893615efc",
+      "bytes": 4601
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/capsule/why.md",
+      "sha256": "73ee332120d5bd34cc5a8f7895dd73daa8830a3531d9bb348930679275fce9f7",
+      "bytes": 5630
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/m1-architecture.md",
+      "sha256": "66d9b84e898bc838e62a77a1a091fe5da4e88b3b8c7993643e2d2d2e2312e126",
+      "bytes": 231
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/m1-design.md",
+      "sha256": "f794dc6e2fae3fda1a93851c862cd35a0495c9ef788253470c87ba1f966b52ad",
+      "bytes": 28176
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/m1.md",
+      "sha256": "be6a60fef14435e23680f80dfcc4e60f5a2b074d7594d8460a811ceef761f9ca",
+      "bytes": 20993
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/OVERVIEW.md",
+      "sha256": "a9cd41fbfd245246167b2295f2ac088ce1f6b07de1340f9ab34ed72345c2956f",
+      "bytes": 9087
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/artifact.md",
+      "sha256": "6a5935ca1d21fa0aa64ad97fce907fcef18e7f3e16f52e27a4c4439ac660844a",
+      "bytes": 4141
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/binding.md",
+      "sha256": "14d3a431bc8e0ab59600e0a607287c7eb09c61a07348866f3fb71a77f111ac6c",
+      "bytes": 5814
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/candidate.md",
+      "sha256": "15203c396250d552ae9cc68e147096cc178f90c0af795a371c551b13fef693e9",
+      "bytes": 4940
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/checks.md",
+      "sha256": "49231c9fe2e6821b335e9e593388b4040cea9b803303b00bda6d213dc6cc81e5",
+      "bytes": 4389
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/common.md",
+      "sha256": "624522b6296f6188e24a0e7355e258701f0ccb70b35b206ab53301c74518cb36",
+      "bytes": 4639
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/finding.md",
+      "sha256": "9752e90477d97b0fd3644c55abca447a2f9ceb77d9f77b8d209b62fb9c38fffa",
+      "bytes": 4233
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/invariants.md",
+      "sha256": "c3a0051a339ef70721113edab56118935d8ca10a67f142aa9c60400dfce839fe",
+      "bytes": 7417
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/observation.md",
+      "sha256": "c942f9a80dfbe15e6f211a6be069cd1175761cb1f9474150b88cd5ff6467fdd6",
+      "bytes": 5790
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/policy.md",
+      "sha256": "dc4a9e1269d189cc6264086e1d3fbbeea373cb13c74161446647ebc53c225bfb",
+      "bytes": 13311
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/port-types.md",
+      "sha256": "735add6312991fe0e0e3afd695dc15b455464915ba252b0183c573a3b922b41a",
+      "bytes": 3356
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/schemas.md",
+      "sha256": "931b69c56f895e92a015c2600187e02420cfc7973308d2f4789918ad56e06f4f",
+      "bytes": 9217
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/standing.md",
+      "sha256": "762de021c713fa9c4994e6f1d4b266288107be64010dd2262216deaeffc63160",
+      "bytes": 3646
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/verdict.md",
+      "sha256": "1e617d8b2415bedf3624e4c88d2ead9f5b6b9c5ea41e2afe49209a303e6527ff",
+      "bytes": 4606
+    },
+    {
+      "path": "sources/main-baseline/docs/architecture/schemas/verification-record.md",
+      "sha256": "2e2548b94c2fffaa4f46b5f6a74f92e1a1e3c11d545486ad4a543162d3d525dd",
+      "bytes": 3073
+    },
+    {
+      "path": "sources/main-baseline/docs/code/CATALOG.md",
+      "sha256": "5003ddc2e4b7bc37ff9f0ac2d83ff74681a8f9c0f74570acc3dc0f4d72963874",
+      "bytes": 2109
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/ADR_TEMPLATE.md",
+      "sha256": "1a9efe227809b15f64d01eb7ea4d7198c5d687d1d486b04c75e0dc80155362b8",
+      "bytes": 241
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/ARCHITECTURE_TEMPLATE.md",
+      "sha256": "c305fa26c16b8e0f1aa26692171cfdb248bb6eae3fc7cb10363d1925c5567e0a",
+      "bytes": 237
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/CHANGE_REQUEST_TEMPLATE.md",
+      "sha256": "a9ba95bbc75c5856458fe6e59ef534a20abe9ea0f5e9d06bdc21fade070f71ce",
+      "bytes": 265
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/CONTRACT_TEMPLATE.md",
+      "sha256": "a9ba95bbc75c5856458fe6e59ef534a20abe9ea0f5e9d06bdc21fade070f71ce",
+      "bytes": 265
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/FILE_MAP_TEMPLATE.md",
+      "sha256": "7de3d5c9b18b3bb76bbf1b44b4f591b5b24a1fbb68408d46b1a15e030a1a8a95",
+      "bytes": 265
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/HANDOFF_TEMPLATE.md",
+      "sha256": "7f4b9370eac717eecf17951ca4c6ff46d23bd99c007debf8d07bfc601fdbd88f",
+      "bytes": 246
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/IMPLEMENTATION_CHECKLIST_TEMPLATE.md",
+      "sha256": "177d14990a6b5659fabb00b7161527c6b06c996c826dce41ff5b6d2ce74f9f9e",
+      "bytes": 266
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/REVIEW_TEMPLATE.md",
+      "sha256": "177d14990a6b5659fabb00b7161527c6b06c996c826dce41ff5b6d2ce74f9f9e",
+      "bytes": 266
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/TEST_REPORT_TEMPLATE.md",
+      "sha256": "ad831beaa0b3f4a0d658222864016f17d37f29978dc209f0f81d45b85a123ceb",
+      "bytes": 269
+    },
+    {
+      "path": "sources/main-baseline/docs/code/code_sop/templates/WRITE_CODE_TEMPLATE.md",
+      "sha256": "177d14990a6b5659fabb00b7161527c6b06c996c826dce41ff5b6d2ce74f9f9e",
+      "bytes": 266
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Code_SOP.md",
+      "sha256": "6b8fdfce7918ff7b6c2f4e6cd3e2565172c865ac095ce5f4da1bca9020e6d4c2",
+      "bytes": 8471
+    },
+    {
+      "path": "sources/main-baseline/docs/code/GIT_WORKFLOW.md",
+      "sha256": "971ab56929e67d706c7ef0f9cb3766bb1d75fb39b60d0cef52bc837fc26d9071",
+      "bytes": 2016
+    },
+    {
+      "path": "sources/main-baseline/docs/code/MIGRATION.md",
+      "sha256": "2b2e039dc4d5ce855d1aed21b0004853f7e9b1ec068b71ca7e8e629de012251a",
+      "bytes": 4627
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/CHANGE_REQUEST-01.md",
+      "sha256": "12b14845ec0e6fc99075012b496840e798e1689b28b6d1a6fc6df25c23332726",
+      "bytes": 6135
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/checklists/requirements.md",
+      "sha256": "7b50f539a26d1b635943fdf5a829612113fa10fd910a515cf2ff74c1b764e5bd",
+      "bytes": 2145
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/CODEX_DEMO.md",
+      "sha256": "4819d31d5c28552de4a6235c3baa0acb1ba067a8e3fd0455abe991b7b82d64ee",
+      "bytes": 5281
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/contracts/runtime.md",
+      "sha256": "5ed6d7606bfdc16363e398c39ecdc802865f7f2e70eeacff53cfe053bd445d40",
+      "bytes": 15086
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/data-model.md",
+      "sha256": "67f3573f429c0ffc361783b44a55d14bc536e826cd11da8e804eb4fadd2ef6ab",
+      "bytes": 4092
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/FILE_MAP.md",
+      "sha256": "cc5df15f9389d349df97987de5966eed29fc82f879b918de66596f159fc14050",
+      "bytes": 112654
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/HANDOFF.md",
+      "sha256": "b50db0a9c7c9490ce763607534873d2b3891ddb393608a4b70abd1ddb80c0e18",
+      "bytes": 9429
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/IMPLEMENTATION_CHECKLIST.md",
+      "sha256": "1be1da8f7005722c9ebd066e5e039954fd55d2b6edcd061b2e72cc8d9770b351",
+      "bytes": 7339
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/plan.md",
+      "sha256": "987b2f6b385ac351191c8cfef779db7eb70cc138d072702c61a49bf6956e2ad4",
+      "bytes": 37618
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/quickstart.md",
+      "sha256": "2c9ec5436d145393e8ac2dbc1bc215061e870cdf8cbb9d101ab16b1f8370e69d",
+      "bytes": 9598
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/research.md",
+      "sha256": "6000dcd4ceb09b3a33609e78e6d52e7b93734717215bcee3c476c0c24961d27a",
+      "bytes": 16826
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/review.md",
+      "sha256": "3a6f3c5715588b23b81f15500368dd257a98732b73d14baba5e434ddd6a475e2",
+      "bytes": 13344
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/spec.md",
+      "sha256": "1e908e0e020854a60ced631a56da32e859bc7ccc1ee6ad85e4e51cf27b8e358f",
+      "bytes": 10926
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/TASK.md",
+      "sha256": "8098df0610f265bfd2d9e0bc28a30cbab4ce9411c95770f607eaace5d153dc16",
+      "bytes": 14014
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/tasks.md",
+      "sha256": "2877184aacdb5c6af1f9dbcb2e58219b320a5ac02e2fead6faf06e5b3a82c6b5",
+      "bytes": 22081
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/TEST_REPORT.md",
+      "sha256": "32a798329616b126338ff059528adcf1b06a1f8f974418010c861c93c3a362c1",
+      "bytes": 41155
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/AI4R-001/write_code.md",
+      "sha256": "7b878cb586f293e918620c58b80c1ee8eedcc58ee3bc3e369c2295a20e2157db",
+      "bytes": 13819
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/evidence/RUN-20261005-03.md",
+      "sha256": "fc242f46b02d47bcfa120b7709fd5c790900d23ab6722b9b55ec96d04143315e",
+      "bytes": 5111
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/plan.md",
+      "sha256": "c840ebaaeffb98cfd2bc01040b77e275cff2c27956998e281d7948904f9448fb",
+      "bytes": 5304
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/spec.md",
+      "sha256": "848ef5564c27deeb518e78de93ff22dc17deb86f47bce547747dbe72be29bdc7",
+      "bytes": 4181
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/TASK.md",
+      "sha256": "82e82a9b9027dd13fad917a52a2de5886b961822f92a34b939fbb2830e6d45e1",
+      "bytes": 3879
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/DEVTOOLS-001/tasks.md",
+      "sha256": "ac2affd312d61116d831a9095a09393b45e0289e243d2477cd5083b2c7034542",
+      "bytes": 6170
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/DEVTOOLS/TASKS.md",
+      "sha256": "c2f4900f8ed8686792206f8ad9ca26bb2e3ec6028712d48bbb4dc877e35c5b11",
+      "bytes": 4123
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/ARCHITECTURE_MINIMUM_INPUTS.txt",
+      "sha256": "33c37ce6f62f24e26846503ad7ef646ee9d49c49cb370591545abd70719a8f24",
+      "bytes": 3490
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/plan.md",
+      "sha256": "f825959a805613eb2d12f845d2af62963261ca407792cbd83bdabc7f8281b505",
+      "bytes": 16705
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/spec.md",
+      "sha256": "dd28f5ed49762afd78a4120c4554cdb54b29982498820f9124e7f6b768997cb0",
+      "bytes": 14381
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/TASK.md",
+      "sha256": "ca1a8eead8ce41438332a97de88b47d816c8df43eb4f5a297180f3ab6575572f",
+      "bytes": 9763
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-001/tasks.md",
+      "sha256": "0fc0cf0ba58b9d7c769a8a89e94e21d068d6afac82c54ba59a22784048d5e9c1",
+      "bytes": 11711
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/plan.md",
+      "sha256": "3f9996822f97f35bc885b12172bc8270a2cb6d3367e52c8194c63b38f9ae351e",
+      "bytes": 19069
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/spec.md",
+      "sha256": "2dbf33e93af87c3980309db2766340782456e0bc5af13bf74752f78789d7269b",
+      "bytes": 14929
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/TASK.md",
+      "sha256": "8ed044418ce477ec7f9ab3fa4a35d770ddc1833ef35f735c1c0ccdc75ab29bfc",
+      "bytes": 12386
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-002/tasks.md",
+      "sha256": "df561d69742d49ff1216461bb8a1d728deae8eb6763190be19729b13da9bb299",
+      "bytes": 8974
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/plan.md",
+      "sha256": "40c0e93bb211d7ed8bbf0b8bbd3afe6260021038081a1389a5203c3742c89019",
+      "bytes": 16951
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/spec.md",
+      "sha256": "1dabba7636ed4a8aeecbfa029ccd3a22a31010449f651e6d7e340f2eaf5eaceb",
+      "bytes": 13493
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/TASK.md",
+      "sha256": "d4cb2dd11dd3cfdf00545707d3976f365c41257e5948ad5e59ee4bbebacf747f",
+      "bytes": 11316
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-003/tasks.md",
+      "sha256": "af0a1c32910f9676e6dcac14344d9506927fbfc6793e5bab6c8a5b072c2a9b9e",
+      "bytes": 9150
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/plan.md",
+      "sha256": "6b4f9210ef69a8d70f3c33eddfe9a0531ba8022623c3e1241ea356af393e13b9",
+      "bytes": 13324
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/spec.md",
+      "sha256": "e60b38dda49829a6f13106faf905a9f6b19d1db670a92fe8bc7cc581199ed76c",
+      "bytes": 9782
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/TASK.md",
+      "sha256": "93cf4be40891fe5fb7eb037249de1c88233bf47c953cb51bc2a8fdca2e244c7c",
+      "bytes": 10265
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-004/tasks.md",
+      "sha256": "b0b3e0ade37174ea556ceb1841f37d23e10b923500ba8629ef5cf945a55eb93e",
+      "bytes": 7034
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/plan.md",
+      "sha256": "6c13efa16b06ecea7bff53cd6d450b82ca96aa682c195f35804f258d1bce399e",
+      "bytes": 15490
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/spec.md",
+      "sha256": "a735ce4a07dbaf8ef472e9d8e1d992e1ebe303b4e3ed0d6e33edc18cdceb45d4",
+      "bytes": 11656
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/TASK.md",
+      "sha256": "df13bd46c1004eaa1b268940cf7721cf4b89ac68f4187e40a87fa6cc3362ad74",
+      "bytes": 11030
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-005/tasks.md",
+      "sha256": "edcb294cd98128aab057b3e29762e387271cf739247c89003fe4a2dde90023aa",
+      "bytes": 8277
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/plan.md",
+      "sha256": "975d8108b99e076d41ac0992145c2765c6cb7dc94d16e764a2e9b9d7698795bd",
+      "bytes": 16860
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/spec.md",
+      "sha256": "98a68fa915ff2aa7cba4e1ca225d013b1f27b4dfcc2e5448bfbb11f1bfdce97d",
+      "bytes": 11788
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/TASK.md",
+      "sha256": "4c9dd46c58aa56d7938da91622a124eebf08117e8ef517c31969e6673234abc5",
+      "bytes": 10980
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-006/tasks.md",
+      "sha256": "5e6c55babe3a2cd7399088a734cd9f68aed6ca79b1ad8e1b1ce9f3f2594d1110",
+      "bytes": 9143
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/plan.md",
+      "sha256": "a6346cdfa58b86526c4ab8bf931b29016cb2eb9138bb618098817c83cd8a4d0f",
+      "bytes": 28346
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/spec.md",
+      "sha256": "60ae9bb2b7541bbc53a2c63460ba0183f55ab62fa587cdf0e685417ae5058fc9",
+      "bytes": 18417
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/TASK.md",
+      "sha256": "d998b9a69a2224de99c4d9d81d66fe792212b83973be2819f8cbafc9644cd2eb",
+      "bytes": 11266
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-007/tasks.md",
+      "sha256": "5c46c915b0af86b6215de1320eecd99795933cf962927283a303b4e79265ab72",
+      "bytes": 14357
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/plan.md",
+      "sha256": "ec543e4154cc3497dc8103371cd947eb1c861aa2823fcfa8eae365450b58fd1c",
+      "bytes": 15719
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/spec.md",
+      "sha256": "91b2bf64ca5c6e6c2709d286aaf925ee22f83b319491a17bc0547be7d651ebe3",
+      "bytes": 8314
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/TASK.md",
+      "sha256": "166250a9df91e4c7a74876acff41da387cc9d9fe9c7fe218f973cc2713f7a0d7",
+      "bytes": 10922
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-008/tasks.md",
+      "sha256": "4a0cf1727f3f93c636b01ed1732f36c726eb9e5e87a4a7daafc7e0f5f969d63b",
+      "bytes": 7687
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/plan.md",
+      "sha256": "1db7ba1c717b685fbc446090208a6a5071df65057247c88dc29b1df34fcb31a8",
+      "bytes": 17913
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/spec.md",
+      "sha256": "baf4c200ea65663465d4ba455709e03e093a0ecab5cd79c1b3eabfd55f62c6ac",
+      "bytes": 10398
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/TASK.md",
+      "sha256": "5542b59f62e3df45f37e89d4adaed3e65cb552924156543a697c7ae7eabfd069",
+      "bytes": 10798
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-009/tasks.md",
+      "sha256": "178dd3c51fcdd7de8de6e334d438310d61026d5fc761a4ee3681bcc3cf36d9fd",
+      "bytes": 8825
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/plan.md",
+      "sha256": "2de601ad72b62e36a0c431b3de512c207889f63b8d8a2baca2f8b57adc1a444f",
+      "bytes": 16632
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/spec.md",
+      "sha256": "07bf7511d53d828644b73c1017b66b2228c6f6ac215a6631f897d94d6b99dd0f",
+      "bytes": 8781
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/TASK.md",
+      "sha256": "6b9c9ffe58496c7aaa2c4b91964f93672e8a1c2c6828028ecd413c22e84ed792",
+      "bytes": 10736
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-010/tasks.md",
+      "sha256": "3da6dcb91e0e5b09afc2c1ae32fdd34626f5a18d0f18cc42d106435c239eb48b",
+      "bytes": 8260
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/plan.md",
+      "sha256": "fc34cd804c7ededff3cde56480f66feb690f20b627e5dc4dd622c89ca08c4702",
+      "bytes": 17590
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/spec.md",
+      "sha256": "5914a0c85488dff19717f673b297f6cb3753cf59ba8d51812441e1d75d14973e",
+      "bytes": 9620
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/TASK.md",
+      "sha256": "987ec32447480bc7032386d3bcf80b85b19c7fbfc33cf51bee8fc73e736e2c68",
+      "bytes": 10668
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-011/tasks.md",
+      "sha256": "9756f88cc6b23a8aaa00c47bfd88653315a6708973b605304eccdcf2b0387620",
+      "bytes": 8845
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/plan.md",
+      "sha256": "2f71d5d326e57ffb971365fedcc6e8ab248306db06992f46be2c5e3f45303538",
+      "bytes": 15615
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/spec.md",
+      "sha256": "a4c669f5b24268d8eafaaa0abf85feabb6aa0aa0dfa468683d52d15c2d2171e3",
+      "bytes": 9906
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/TASK.md",
+      "sha256": "a7f2ad5b7c666f18bf28583dd30a9b46153ed0487fc01f269ae64bd1e2441453",
+      "bytes": 11146
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-012/tasks.md",
+      "sha256": "1fa5d5e44600c073ab9ecc76cd9701a04f5ef0416c8d51e165d46930b52e934c",
+      "bytes": 7733
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/plan.md",
+      "sha256": "daca0ac428f9552517c75d7b81493726fcce463e68dd584fe24c23ea64b0c28d",
+      "bytes": 15660
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/spec.md",
+      "sha256": "763ae3251e475ec1e7fc4b80b7043920124bdd5db043842b2f383c19cc08d8cc",
+      "bytes": 12302
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/TASK.md",
+      "sha256": "49ea1a29cd801136690567d7dbf3b2c3a26319ee7301e659e184a47650cd455a",
+      "bytes": 12812
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-013/tasks.md",
+      "sha256": "ad886724ab273d31acee1d66648529a0134352ac9ecba176b22466391fa24c0f",
+      "bytes": 7106
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/plan.md",
+      "sha256": "8d338101996b318522af060d8c0e9995b17dd5f75368ef0d9dca6d264e658383",
+      "bytes": 12857
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/spec.md",
+      "sha256": "738be72d31ebdfa650c65eab5ee3415f2e7ca6ab166849cfb425e9534345acea",
+      "bytes": 9706
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/TASK.md",
+      "sha256": "e7584c8180472d387fb5bdd34f8cd5ef88df7d62fd8d0c173936b5e3acd3f27b",
+      "bytes": 11894
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-014/tasks.md",
+      "sha256": "87dfe9b324bfb2754c08594648a41d38444ec9b23ed8fbfd2db4e388dd3c10cc",
+      "bytes": 6152
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/plan.md",
+      "sha256": "481a783d2a0b6359cf4fab583c474397dd1418eb6dea432d6d45f9b59fb412e1",
+      "bytes": 15021
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/spec.md",
+      "sha256": "c227a14157e5ac2aaaa773312e3d4414cc820f5338a91242408a52433ed3b688",
+      "bytes": 11587
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/TASK.md",
+      "sha256": "7a60dfffbb5d83918374ea60ee56316757ff5a4fbfb1e7f8b01fcd6202b7bcf5",
+      "bytes": 12316
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-015/tasks.md",
+      "sha256": "ad1412daf529ec83977c14f3b5b2ad61d95190b4c18f33111a9198e4ed08eb61",
+      "bytes": 6527
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/plan.md",
+      "sha256": "de195e7fa5bc65141650a2f931a33cdaf4d87255391f34e258b6857539b77038",
+      "bytes": 12923
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/spec.md",
+      "sha256": "328cc2a6efc91b1cbc2a0f78bed672f4ad352edb69a0a33c0b726bd371e3f3f0",
+      "bytes": 9629
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/TASK.md",
+      "sha256": "6da4a1b9cca873a5b7860d9346dfaf5ef8532194f11823d44e2569fffbea94ca",
+      "bytes": 11871
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-016/tasks.md",
+      "sha256": "c7d5b9af2c927d18768222353d553d2755fe76451b6bb78640a8374c2ee56782",
+      "bytes": 5942
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/plan.md",
+      "sha256": "82815502469448ef4fb3f1aef547b4d7b939658f6ac6965eef0191045feabbfe",
+      "bytes": 21551
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/spec.md",
+      "sha256": "c274146084772dd758ab1bafb2b8c3513ec7f74ba498689ae68d82dd231f101a",
+      "bytes": 16848
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/TASK.md",
+      "sha256": "ae8827231a856e86890c547464fe720b2df33a8c4330dfd59a5798147eb1bdb0",
+      "bytes": 12865
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-017/tasks.md",
+      "sha256": "e576906f3c539aecef575f24ce2fa601b29a51e960737562b431ef79317c87b2",
+      "bytes": 10731
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/plan.md",
+      "sha256": "5d24e3edd6724b5d91d5b51220f4b478e92c164c4afe7a8ad0f756a034156df8",
+      "bytes": 15200
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/spec.md",
+      "sha256": "0c44c228d9f65a57ba84c4159a020a5e56fc0ec4f340760ef9b0269b70e4954f",
+      "bytes": 14759
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/TASK.md",
+      "sha256": "44c87c16c481ad66b6da3bb165c97ea55464bb2759e2de59f4aa394aff45fd9f",
+      "bytes": 12698
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-018/tasks.md",
+      "sha256": "7dfdce15db883848cf7724756a5f209d8562bf77d23a77aae17ad60291085488",
+      "bytes": 9511
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/plan.md",
+      "sha256": "acc5e008b0044a132d79c14cf4a6a89f966828d6fdc385d9661a39ea8b9df1bf",
+      "bytes": 15357
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/spec.md",
+      "sha256": "16ade2fa6e4bd7b54064fb2682e87e126ad4f4d0b0b225764d9e02ec5144f3f9",
+      "bytes": 13429
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/TASK.md",
+      "sha256": "31309cc9fdb52b5ed50c045119e558008c8dfa6f246dfe9c05111d0b7fa01dba",
+      "bytes": 13228
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-019/tasks.md",
+      "sha256": "3250ea397de21901741cd714919fc8c8386efbb13b890c43a751dcd416a4782a",
+      "bytes": 7132
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/plan.md",
+      "sha256": "017f2dda6dddf4a8c023c6d85819637d9029d95b4baabfc66722077faff3e076",
+      "bytes": 23338
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/spec.md",
+      "sha256": "3e1e7c145f437dd18e9c4ce97a019b226d96fed5b2c5bf9124b9c6086fea872d",
+      "bytes": 21357
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/TASK.md",
+      "sha256": "8eedebc5ac9d6ab5601eb23049b4986a1448460fa5d95a6feed9a7f902d2badb",
+      "bytes": 14761
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/M1-SYSTEM/tasks.md",
+      "sha256": "817970708e1deceb23b5d0c26a580d7e5c32453e420a349c65a0be38111f6cfb",
+      "bytes": 9230
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/sources/PRD-Full.r1.txt",
+      "sha256": "2f689644ef9517378f5cf16b28fa372f011811b9f9095aa0ca6996a6a10b13d9",
+      "bytes": 177840
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/sources/PRD-Full.r2.txt",
+      "sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294",
+      "bytes": 200082
+    },
+    {
+      "path": "sources/main-baseline/docs/code/Missions/M1/TASKS.md",
+      "sha256": "59c3231c0fc7fa436944c36fe3bf1095e69d44ca8aa1482a985dd696b68fb4cf",
+      "bytes": 92889
+    },
+    {
+      "path": "sources/main-baseline/docs/code/README.en.md",
+      "sha256": "e9e644c61fa104ab89370c3c102cbeeac10f98122ed75f21170816017775126e",
+      "bytes": 1515
+    },
+    {
+      "path": "sources/main-baseline/docs/code/README.md",
+      "sha256": "2d0837344735b2ba4190f523445730f542a93558deb92d99b3309670f72a9113",
+      "bytes": 1685
+    },
+    {
+      "path": "sources/main-baseline/docs/code/SPEC_KIT_WORKFLOW.md",
+      "sha256": "f97cf23cdb313bc629215e6935a1a53c7c92f669bc3290d01dc10cdf2dc44362",
+      "bytes": 6986
+    },
+    {
+      "path": "sources/main-baseline/docs/code/VERIFICATION.md",
+      "sha256": "ca07ac4f9dcbca6a28a6cdc1dbcbc74e07046d6cffaf2289f829ffa3cc57b6f3",
+      "bytes": 7101
+    },
+    {
+      "path": "sources/main-baseline/docs/governance/CURRENT_STATUS.md",
+      "sha256": "b43d694034e07a62813186a7b716feb16b451f78e6733bc3f82a2842e556df16",
+      "bytes": 1325
+    },
+    {
+      "path": "sources/main-baseline/docs/governance/ENVIRONMENT.md",
+      "sha256": "99fed51dd6e5c0236cc8c5e3cd3d01b42ea89bfa8a44e5d81a482c5dbd2e56c9",
+      "bytes": 7195
+    },
+    {
+      "path": "sources/main-baseline/docs/governance/SPEC_KIT_SETUP.json",
+      "sha256": "690c7ac428bc5d6b28a534f264e2371ec0d988a24f31567b1a4c5e517d6bdbea",
+      "bytes": 7046
+    },
+    {
+      "path": "sources/main-baseline/jiuwenswarm/channels/web/AGENTS.md",
+      "sha256": "71020fa14bc64366b82c2356cf53334093a68fab14629e9430f6a30cc65727c7",
+      "bytes": 11325
+    },
+    {
+      "path": "sources/main-baseline/jiuwenswarm/channels/web/frontend/AGENTS.md",
+      "sha256": "387ccb686b60abce1f1009ab2e299d652fa9a4ea65db08ec089e9678f4c8ea9c",
+      "bytes": 4843
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/README.md",
+      "sha256": "1b15093586af036882e906f5921cdc1754c6b4f207a6bce6f6c4b74b9f3f019a",
+      "bytes": 3657
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/AGENTS_global.md",
+      "sha256": "f32508240e850524bacc803bb4a2bf3fd0cda979a247da5c8aca9ff3a5a5e357",
+      "bytes": 2195
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/AGENTS_local.md",
+      "sha256": "b76c421b44426f17e6f8fae829636e71240ee56ff4287987d31dccbd7274ea0e",
+      "bytes": 1339
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/EVIDENCE_TEMPLATE.md",
+      "sha256": "c3edccc587a5d299a5cd0cd585d5bfaa0c4727f23d6c699a1efb6ff10f976832",
+      "bytes": 2098
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/plan-template.md",
+      "sha256": "d8d9379e1687c3144b6c7cac6efbc63e6fbe9507ef61865492fa6caf670bc27d",
+      "bytes": 2910
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/spec-template.md",
+      "sha256": "78855fa69c49b0a598a779744f77b7bc84848c7c398c39ac5fe05afd7da05db5",
+      "bytes": 2257
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/TASK_TEMPLATE.md",
+      "sha256": "8b18e868e3bc40b939c12b89a411e8d876b54a00e4a59d10d3a3275a7e1a3ab6",
+      "bytes": 3487
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/tasks-template.md",
+      "sha256": "07a68bd567fa3f5504935dad53a987fd63a0fbab8287a128863d59de753f364e",
+      "bytes": 2880
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/templates/TASKS_TEMPLATE.md",
+      "sha256": "827b2251763c80bc201d2d3fe78f29359fce4a9dd606e5d61e45ad055f7ff0d7",
+      "bytes": 3365
+    },
+    {
+      "path": "sources/main-baseline/plugins/spec-kit/workflows/task-governance.md",
+      "sha256": "b4dada72bc37ff3adacb3fdccca75b34f89438742942ad5c7dd29bfde532e983",
+      "bytes": 2785
+    },
+    {
+      "path": "sources/main-source-provenance.json",
+      "sha256": "34ce49c571dfd8311894c29df780090891087dd17bdf1395582a8ba6c6556f09",
+      "bytes": 18739
+    },
+    {
+      "path": "sources/native-reuse-evidence.json",
+      "sha256": "9c4125f625819735f90ee9a7f34afc15ea5226b9dd047ce1a2cfac5a8c1fc732",
+      "bytes": 7302
+    },
+    {
+      "path": "sources/policy-m1.json",
+      "sha256": "43305e008f72d480b24269e06285225617b969944b771fd181e911b988d4c011",
+      "bytes": 3225
+    },
+    {
+      "path": "sources/product/1.md",
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "bytes": 3
+    },
+    {
+      "path": "sources/product/benchmark-experiment-design-v5-2026-10-02.md",
+      "sha256": "78e34a576c79b240d3a9df8a6f07dfaef9a83be899ab50892b4ff44bc7104a9b",
+      "bytes": 49253
+    },
+    {
+      "path": "sources/product/benchmark-guide-2026-10-02.md",
+      "sha256": "8c412eb3800cc9d5f6e182dcbd5f1077a30bb5ee6580dc3dd876d00228ba7488",
+      "bytes": 30570
+    },
+    {
+      "path": "sources/product/coder-architecture-requirements-2026-10-02.txt",
+      "sha256": "33c37ce6f62f24e26846503ad7ef646ee9d49c49cb370591545abd70719a8f24",
+      "bytes": 3490
+    },
+    {
+      "path": "sources/product/FeaturesList_PRD_AI4RESEARCH - Ramika.txt",
+      "sha256": "4ab7964bc472bb05da95bfefa3315cd2494d6ee92b7ed7e0d9bbb307978d5e04",
+      "bytes": 7577
+    },
+    {
+      "path": "sources/product/meeting-notes-2026-10-05.txt",
+      "sha256": "4a82837c0fdf90248c829250ef79d49d239afbac4de2ccdf39f1d8ba69cf1fa8",
+      "bytes": 12351
+    },
+    {
+      "path": "sources/product/prd-kickoff-messages.md",
+      "sha256": "a4c4c3b16db426c29a9b11a251b06f3634996d132629cbf416288f6d1fb504a4",
+      "bytes": 8185
+    },
+    {
+      "path": "sources/product/prd-m1-current-2026-10-06.txt",
+      "sha256": "897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036",
+      "bytes": 232081
+    },
+    {
+      "path": "sources/product/prd-m1-data-foundation.md",
+      "sha256": "1ab47063dce5406438d5b899fac3d923667c69b2b88fe090e4f9f1a03eeed7c1",
+      "bytes": 18513
+    },
+    {
+      "path": "sources/product/prd-m1-full-2026-10-01.txt",
+      "sha256": "2f689644ef9517378f5cf16b28fa372f011811b9f9095aa0ca6996a6a10b13d9",
+      "bytes": 177840
+    },
+    {
+      "path": "sources/product/prd-m1-full-2026-10-02.txt",
+      "sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294",
+      "bytes": 200082
+    },
+    {
+      "path": "sources/product/prd-m1-full-2026-10-05.txt",
+      "sha256": "31f17c7b0b752940170bc750fce27d741a3db9e99992527db575166b55859ad7",
+      "bytes": 207603
+    },
+    {
+      "path": "sources/product/prd-m1-initial-2026-09-28.txt",
+      "sha256": "2197322f262d5f9e235433b0e4c147a5c2ca645956067bc0a01c3959789c4eb3",
+      "bytes": 19736
+    },
+    {
+      "path": "sources/product/prd-m1-model-routing.txt",
+      "sha256": "a8698b7ad08c6b5f8f177aee5b27d10f2e431792aaa273e0a1edb594ddb32f24",
+      "bytes": 3930
+    },
+    {
+      "path": "sources/product/prd-m1-rsi-full-2026-09-29.md",
+      "sha256": "731b14548c67eadc62277d26167d95cf7463b2bcdaf92b7990fef5c329cd184f",
+      "bytes": 98650
+    },
+    {
+      "path": "sources/product/prd-m1-rsi-full.md",
+      "sha256": "0e1f6430c26496b9693ff63a34feee91027ed648ffc4ce12ea33d17094bd103f",
+      "bytes": 126344
+    },
+    {
+      "path": "sources/product/prd-m1-rsi.txt",
+      "sha256": "e75e86777a3abf217be891bc543c6920a1e1d107c32f5ca9890d2ef33916c4ce",
+      "bytes": 28290
+    },
+    {
+      "path": "sources/product/prd-m1-section3.md",
+      "sha256": "51f58a067be565921465561ea479a4eb5918f946e3976821a15a2887be3f2ad9",
+      "bytes": 47972
+    },
+    {
+      "path": "sources/product/prd-m1-verifier.txt",
+      "sha256": "403463c1f40b067c8a76a582967ed8b29672ea5c8d6f5d7e0e510958fb9ba9bb",
+      "bytes": 2663
+    },
+    {
+      "path": "sources/product/README.md",
+      "sha256": "e6ec7f5e66adb5b32e7fa20aa352cff64e52673ea4af7bc77ba257e29fc971e0",
+      "bytes": 3543
+    },
+    {
+      "path": "sources/product/report-writer-upstream-2026-10-01.md",
+      "sha256": "2133bb68a29f78179e9395ff39d03f94edad3a9bda2863be4bc0a36ef6b6aa04",
+      "bytes": 14336
+    },
+    {
+      "path": "sources/product/source-freeze-2026-10-02.json",
+      "sha256": "eec8da6ffbda2f4576178ca460375bd7af0337b3a20ef5c39dbddf49827d6cf9",
+      "bytes": 14400
+    },
+    {
+      "path": "sources/product/SOURCE_FREEZE.md",
+      "sha256": "22e7ea1adb36557a53c51f6cc51bc6894d4599a53957d49c1f1635f637c0cab3",
+      "bytes": 1413
+    },
+    {
+      "path": "sources/product/verifier-model-selection-proposal-2026-10-02.md",
+      "sha256": "618eedda4e3511f7e6b709db7eee7dc37ed19ccc941e80eeeb50128354c8e652",
+      "bytes": 8775
+    },
+    {
+      "path": "sources/spec-kit-workflow.md",
+      "sha256": "27e6febee7bee518d590ee8456a2c148d5af9090a0d82ab4a0dd383757dd6d57",
+      "bytes": 208
+    },
+    {
+      "path": "usage-scenarios.md",
+      "sha256": "9290b1a636bd173257efc919d90595e9cbbc17aede600834a7afc56c4147ca8d",
+      "bytes": 7124
+    },
+    {
+      "path": "workflow.md",
+      "sha256": "4b96fbd1947e939d7fe5ca7efb490088d7c7d0932c943f1bf10230ebf0462768",
+      "bytes": 11151
+    }
+  ]
+}

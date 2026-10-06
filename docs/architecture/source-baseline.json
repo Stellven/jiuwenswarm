@@ -1,0 +1,249 @@
+{
+  "revision": "r2026-10-06.5",
+  "purpose": "Current high-level design identity; snapshots and native evidence remain separately labelled.",
+  "aggregate_method": "SHA256 of UTF-8 canonical JSON architecture [{path,sha256}] sorted by path, keys sorted, separators comma/colon; exact bytes per file.",
+  "architecture_aggregate_sha256": "64b717cec08a7d837ce6c502bb4f23bf2acc99409428c2195eaa616c4f395941",
+  "architecture": [
+    {
+      "path": "1.md",
+      "sha256": "08f659a4f45ece52ab097327c010f40c4d371d1bfb179964988d31cc43d8e7c3"
+    },
+    {
+      "path": "architecture.md",
+      "sha256": "29a3fc89905969942af6ee7383189537996f8ab7071478dc331c11ee35796f84"
+    },
+    {
+      "path": "authority-index.md",
+      "sha256": "0f0d50ecb83df5c340cc4e6612b2f57ad8270c19e6d67fe86c8cdd10a172238c"
+    },
+    {
+      "path": "automation.md",
+      "sha256": "43195fffa5c09f8ab3f719d793c4dbe1c44a8120df29864782431981a69bee88"
+    },
+    {
+      "path": "b1-design.md",
+      "sha256": "cee11fcfc5afa92db17cf1304c72dc3465b8b6dbd2c1590289a1ce974ea3c3e1"
+    },
+    {
+      "path": "background/terms.md",
+      "sha256": "2dae06a0f135b44e73a6d445ee1b11e5a0dd3baa5b811f341e8c31a1baa1c6a5"
+    },
+    {
+      "path": "big-picture.md",
+      "sha256": "6e0cd83abd6f0597b6f9d7ae12eb855d41262a089ef1fa023baebdcacf9ccf6f"
+    },
+    {
+      "path": "capsule/authoring.md",
+      "sha256": "e993418f781ad814f4232bcfe40149801c26765128f9cfa86c9fd5a5d6b98bec"
+    },
+    {
+      "path": "capsule/capsule.md",
+      "sha256": "aa184570d7f7a93f3468a8700f46b7d4ef9cdf5c48f9fa783b974fab60ac62b0"
+    },
+    {
+      "path": "capsule/composition.md",
+      "sha256": "d9772402f852cc5ef70d4ea9128093b7c9f6aaa69529b41fe298567a4f3ff696"
+    },
+    {
+      "path": "capsule/declaration.md",
+      "sha256": "e8df51c67a8f7a199ac8384adfb40de696db6da48f0308c0697117bdbe9bf0e3"
+    },
+    {
+      "path": "capsule/example-compile-intent.md",
+      "sha256": "fe69c8e0fe9e1cf0a3068e5a65dea5117bae4c51fdac7c162f1abbd8e8d6cc0d"
+    },
+    {
+      "path": "capsule/example-generalist.md",
+      "sha256": "14c15df7e9f5911e5d468c71f1ca7fa42446508673435a84094538f9dba32a11"
+    },
+    {
+      "path": "capsule/fields.md",
+      "sha256": "339f20fbb1ebe028328417deac4d54807474ef152a33a181420e910ee5dc596c"
+    },
+    {
+      "path": "capsule/generalist.md",
+      "sha256": "faabd4bfe8c3bfba14e34dc249e9ef2c55c9f54eaf318be1d3d7e7010f16129e"
+    },
+    {
+      "path": "capsule/library.md",
+      "sha256": "73833c95bf1ed3b4e31cc3418a026ea63bb97f6beafa868306842f58fb9d63d0"
+    },
+    {
+      "path": "capsule/observability.md",
+      "sha256": "ab6c989e30c5546931a51404e0184afb3905c4780e3f9b931e23dcfd30778b1e"
+    },
+    {
+      "path": "capsule/permissions.md",
+      "sha256": "b8db9cab022230d9cebf776e685d0318f6cc0fb267c9b82c8b9f2f0736250569"
+    },
+    {
+      "path": "capsule/references.md",
+      "sha256": "374756cdd4547715094af907d79b0dbde0b8fc6ced999c5efa8e776f1f86623f"
+    },
+    {
+      "path": "capsule/rsi.md",
+      "sha256": "9fceb82492c9471a03f9fd9e7643a773b27e4e62f27ccf5cfaa76737a522a4b0"
+    },
+    {
+      "path": "capsule/stages.md",
+      "sha256": "823d8a1f74bb38b15b4501145745dd771f8a72b0dac2394e898228e6b0b19b3f"
+    },
+    {
+      "path": "capsule/symphony.md",
+      "sha256": "28ab7ea7228f26708eea0043899590d17c2a402be5645cd5953e73e818ddf8e1"
+    },
+    {
+      "path": "capsule/tools.md",
+      "sha256": "535d6a52931a775d8013be293de6995cd88a27b93b7646b979b45d46aa8f6e18"
+    },
+    {
+      "path": "capsule/trust.md",
+      "sha256": "727935b5efb16a8114aa6c30488ff7e598eb5a2143d3680114b586abadd25243"
+    },
+    {
+      "path": "capsule/why.md",
+      "sha256": "4abc40883d10d1cf63919c5ae77a30c946da468c5d84e1d49cd9a59ad7df2870"
+    },
+    {
+      "path": "capsules.md",
+      "sha256": "82173b295042a39146eac6673d2dba3757a4352cff0c2fc1d6cf9b87e1e51368"
+    },
+    {
+      "path": "contracts-and-native-reuse.md",
+      "sha256": "b8183c88a2d932bf7af5d351a39e685de538dad7231328827b71157a2042a7be"
+    },
+    {
+      "path": "coverage-allocation.md",
+      "sha256": "ec020dc88165358bfa1a086f23e99509a43bf1b01c501062dc2d9c8b417fbe50"
+    },
+    {
+      "path": "coverage.md",
+      "sha256": "975e8b1abf88f2feeee936ad12fe0b44f428a869f14c207530fc79a564017616"
+    },
+    {
+      "path": "delivery-phases.md",
+      "sha256": "308fd64054283b28db8301f0e6f6adafdab53412e0cef06d6a7ad9a471516b94"
+    },
+    {
+      "path": "diagrams/README.md",
+      "sha256": "739a6ed850e8031885efdabac9b8ba38312fdfb2194d636754c1bc7a55655ecc"
+    },
+    {
+      "path": "failure-and-human.md",
+      "sha256": "f1f903b66afe6a732a6bede9d3e6641fd870107e492989e18f7a7bcfea7e67ec"
+    },
+    {
+      "path": "glossary.md",
+      "sha256": "2fdce2d33af050c7a14417545eccfe06559363f84c14eab3cf0c056bf3561f25"
+    },
+    {
+      "path": "guard-design.md",
+      "sha256": "30db0e08dc3f291d9b20efcd4155228d9e3bc17b9f8d91f2e49dbb7dfbc8760c"
+    },
+    {
+      "path": "handoff.md",
+      "sha256": "36e8ffbc9e96db7a91ffd7c176cd8f7a176cafe15e771c91c7bd8b243f0c1b2d"
+    },
+    {
+      "path": "immediate-plan.md",
+      "sha256": "8779f1cc1de90f8487b3026e56e3ea686bc966c39793544b28ff2c980cb68085"
+    },
+    {
+      "path": "m1-design.md",
+      "sha256": "33411616ab9120d2da37befabf30f1422c3387821212ee7c1c36cde904fdab93"
+    },
+    {
+      "path": "m1.md",
+      "sha256": "2deb6be6d906cc6f048841d0d371617daa7f82cc5db01a0d93bc7c65f8bc6d6f"
+    },
+    {
+      "path": "offline-rsi.md",
+      "sha256": "672d8e78c27501f731c7fd77088744dac7e3466c16170c449d45572d1e741f4a"
+    },
+    {
+      "path": "OVERVIEW.md",
+      "sha256": "e9065db20f6de33f97511b1ee1baeb09dc17766b0874e94ffb81a8e9fbcaa677"
+    },
+    {
+      "path": "placement.md",
+      "sha256": "aa00cec894131602f8dcec03c8acbcd6910aa6b6b98b31246da83b09c597f274"
+    },
+    {
+      "path": "principles.md",
+      "sha256": "3879bf522dbbe14d5c1f137be1fa03aa3e0ac4bd140063e1fcebf869dc7e2656"
+    },
+    {
+      "path": "README.md",
+      "sha256": "e3146edf6ee13646ac561d4cd67cc54484ba8deb66fb9ef0fb2ae3424d00ee1a"
+    },
+    {
+      "path": "review-resolution.md",
+      "sha256": "19faf9d541d813584329706fc7cf3523cfb2120b0fc34e966d5ea1163c949edb"
+    },
+    {
+      "path": "schemas/artifact.md",
+      "sha256": "d0fcce3c066d75a2d5e0335bd33eaf65da953d01f74f270a74282adbc96d8df3"
+    },
+    {
+      "path": "schemas/binding.md",
+      "sha256": "39c22a0283b70652763549846bfe4c70f8b325e677c27daf510afaca12fb57bd"
+    },
+    {
+      "path": "schemas/candidate.md",
+      "sha256": "ecdc6a7baf5f7383242bf14077970762694d0dc554814fa5832957e6a0aa8369"
+    },
+    {
+      "path": "schemas/checks.md",
+      "sha256": "d2f1b6b7a8c2138e4e372af6f2d0ae631a1a1945b503dc14effbab38656bdc07"
+    },
+    {
+      "path": "schemas/common.md",
+      "sha256": "24a22298940497a0cba6ba673a3fbb23ac42ceedf17b3df44ecc185f19e35f00"
+    },
+    {
+      "path": "schemas/finding.md",
+      "sha256": "20ffd285bf5762f24d5d3651721ee0f542af52b42d8d9ca4fc2f2abba619d1f7"
+    },
+    {
+      "path": "schemas/invariants.md",
+      "sha256": "67a398c1360e485c4bbaf0bd243b76529185c4ae52067322594be7ffc9f7d666"
+    },
+    {
+      "path": "schemas/observation.md",
+      "sha256": "c5f6d2fbb5d8482a37a190dec8936956f8fa445d59863b035ac1a6c0f0c06f43"
+    },
+    {
+      "path": "schemas/policy.md",
+      "sha256": "66f16f5c929c0a155bdc7031df6bdbcd931d7668d87eef341a4f6d355f5e3280"
+    },
+    {
+      "path": "schemas/port-types.md",
+      "sha256": "6c53c1b7a94d5fb5032bacd98f63f27697d3b847bc31b76b0dccb325453c0437"
+    },
+    {
+      "path": "schemas/schemas.md",
+      "sha256": "2bb8d786d3a5eef635b143cf3dc022008c09757248ea1ad761ee2802edd948c2"
+    },
+    {
+      "path": "schemas/standing.md",
+      "sha256": "f082cadba8f151ccbf0b82067f5f354e4a13679b6b3c253d09e28a711b0bf481"
+    },
+    {
+      "path": "schemas/verdict.md",
+      "sha256": "f77bbcb160f3390d33e015b960d0944786d44bd18d26e95e0ee1df7dc801d753"
+    },
+    {
+      "path": "schemas/verification-record.md",
+      "sha256": "fee70a59a5ae471dfa2fb335398a0d5914adf511ec8d6923964c4b701bd41f0e"
+    },
+    {
+      "path": "usage-scenarios.md",
+      "sha256": "9290b1a636bd173257efc919d90595e9cbbc17aede600834a7afc56c4147ca8d"
+    },
+    {
+      "path": "workflow.md",
+      "sha256": "4b96fbd1947e939d7fe5ca7efb490088d7c7d0932c943f1bf10230ebf0462768"
+    }
+  ],
+  "runtime_validation": "NOT_RUN"
+}

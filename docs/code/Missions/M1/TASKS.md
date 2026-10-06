@@ -1,21 +1,31 @@
 # TASKS: M1
 
-Latest-PRD-derived breakdown under Code SOP v2. All documents are English. This revision updates the complete registered document system from PRD capture r2; historical AI4R-001 work remains separate.
+Canonical M1 program register under the unchanged target-main Code SOP/plugin. The latest [PRD and architecture](../../../architecture/README.md) supersede historical capture r2 for new specification. Existing M1 task/AC/IF identities are retained. Their native detail/evidence must be reconciled with the current source before affected implementation; archived context is not a current acceptance claim.
 
 ## 1. Identity and source baselines
 
 | Field | Value |
 | --- | --- |
-| Program ID and objective | M1: the local, single-user governed research workstation; required static Track 1 baseline plus independently required offline RSI Track 2, with isolated non-blocking Phase 2 Track 3 experiments. |
-| Register revision/date | r3 / 2026-10-02; prior register r2 dated 2026-10-01; original r1 preparation skeleton dated 2026-09-29. |
+| Program ID and objective | M1 user-scoped product with one authorized local execution host; Delivery Phase 1 baseline, required Phase 2 RSI, expected Phase 3 attempts/accounting; TRIAL-1 is first connected intent boundary. |
+| Register revision/date | r5 / 2026-10-06; prior r3 and capture r2 retained as historical context. |
 | Program coordinator | UNASSIGNED; document preparation does not require an executor assignment or approval stage. |
-| Full PRD path / revision / SHA256 / bytes | [PRD-Full.r2.txt](sources/PRD-Full.r2.txt); active capture baseline r2 (2026-10-02), not an invented author version; SHA256 44928035205BDEBAE205D2B458BD438C2C6E0103E4EB2D834C6A93E1CFA37294; 200082 bytes. Supplied attachment: D:/chrome_download/PRD - Full (1).txt; exact byte-for-byte snapshot. [r1](sources/PRD-Full.r1.txt) is retained solely as the immutable historical source baseline. |
-| Architecture source and rendered views / revision / SHA256 | PENDING_SOURCE. [Minimum architecture inputs](ARCHITECTURE_MINIMUM_INPUTS.txt) describes the information needed to complete planning. No architecture document, diagram IDs or technical contracts have been fabricated. |
-| Scope inclusions and exclusions | PRD sections 1-6: Phase 1 required scope assigned to M1-001..018 and M1-SYSTEM. Required offline RSI code Target 1 belongs to M1-018, independent of the fixed live baseline; conditional text Target 2 may defer under §4.4. Phase 2 experiments are assigned to M1-019, non-blocking per sections 1.3/6.12. Each feature retains its source exclusions. |
+| Full PRD path / revision / SHA256 / bytes | [Current received PRD](../../../architecture/sources/product/prd-m1-current-2026-10-06.txt), received October 6; 232081 bytes; SHA256 897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036. Historical r2 remains unchanged. |
+| Architecture source and rendered views / revision / SHA256 | [Current architecture](../../../architecture/README.md), [rendered views](../../../architecture/diagrams/README.md), revision r2026-10-06.5; exact per-file and aggregate identities in [source baseline](../../../architecture/source-baseline.json). Historical minimum-input records are superseded; detailed native contracts remain owning-task work. |
+| Scope inclusions and exclusions | Current PRD sections 1–6: core Delivery Phases 1–2 and stages 0–8 retain M1-001..018 and M1-SYSTEM ownership. Required offline RSI Target 1 remains M1-018; conditional text Target 2 may defer under §4.4. M1-019 owns applicable expected Phase 3 efforts and accounting with existing capability owners. TRIAL-1 is a bounded first slice, not M1 completion. Historical phase labels below must be translated before specification. |
 | System-verification TASK | [M1-SYSTEM](M1-SYSTEM/TASK.md) |
 | Integrated candidate | NOT_BUILT for this program. Documentation checkout base d9fe483ea64c273ef831886bfa83819f6d5bb21c on ai4r_xiaoyang is not proof of an M1 runtime candidate. |
 
-The source snapshot is authoritative for this breakdown. Conversation examples and older week3 router/model studies are not additional M1 requirements. PRD instructions are product requirements to allocate, not authorization to execute code, install software or refactor the repository during this documentation task.
+The current registered source and recorded architecture decisions govern new specification. Historical capture r2 establishes the provenance of the retained ownership tables below; it does not override current scope. Conversation examples and older week3 router/model studies are not additional M1 requirements. PRD instructions are product requirements to allocate, not authorization to execute code, install software or refactor the repository during this documentation task.
+
+## Current architecture adoption and trial
+
+Read the [current clause allocation](../../../architecture/coverage-allocation.md), [phase/stage exits](../../../architecture/delivery-phases.md), [source decisions](../../../architecture/principles.md#decisions-and-source-amendments) and [source identity](../../../architecture/source-baseline.json). The old clause/AC tables below are retained ownership records from capture r2; new source behavior wins, and affected native specs/plans/tasks must be reconciled before implementation. This source adoption does not fabricate updated ACs or runtime results.
+
+| TASK | Outcome / dependencies | Registered native feature | Status |
+|---|---|---|---|
+| [TRIAL-1](TRIAL-1/TASK.md) | Text intent compiler → independent verifier → protected release/halt; shared definitions from M1-001–007; runtime prerequisites verified before model-backed execution | `docs/code/Missions/M1/TRIAL-1/` | TASK registered; spec/plan/tasks NOT_GENERATED; runtime NOT_RUN |
+
+M1-019 now owns applicable expected Delivery Phase 3 efforts with existing capability owners; it is not blanket future/M2 deferral. D5 records two bounded compiler invocations for full Brief compilation, while TRIAL-1 stops after intent. D12/D13 introduce distinct account/profile authority and multi-CC Node Execution Contracts. Preserve source-linked existing AC/IF IDs while revising their owning native meanings and evidence.
 
 ## 2. Task register and dependency graph
 

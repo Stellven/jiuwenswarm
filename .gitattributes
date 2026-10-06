@@ -1,2 +1,6 @@
 *.mp4 filter=lfs diff=lfs merge=lfs -text
 jiuwenswarm/server/runtime/agent_adapter/browser_runtime_network_guard.js text eol=lf
+
+# Canonical live inputs to the byte-hashed portable architecture projections.
+docs/code/Missions/M1/TASKS.md text eol=lf
+docs/code/Missions/M1/TRIAL-1/** text eol=lf

@@ -1,0 +1,402 @@
+{
+  "manifest_version": "m1.sources.2026-10-02",
+  "frozen_at": "2026-10-02",
+  "master_prd": "docs/product/prd-m1-full-2026-10-02.txt",
+  "master_sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294",
+  "precedence": [
+    "master_prd",
+    "owner_detail_within_master_scope",
+    "adopted_architecture_interfaces"
+  ],
+  "files": [
+    {
+      "path": "docs/product/benchmark-experiment-design-v5-2026-10-02.md",
+      "sha256": "78e34a576c79b240d3a9df8a6f07dfaef9a83be899ab50892b4ff44bc7104a9b",
+      "bytes": 49253
+    },
+    {
+      "path": "docs/product/benchmark-guide-2026-10-02.md",
+      "sha256": "8c412eb3800cc9d5f6e182dcbd5f1077a30bb5ee6580dc3dd876d00228ba7488",
+      "bytes": 30570
+    },
+    {
+      "path": "docs/product/coder-architecture-requirements-2026-10-02.txt",
+      "sha256": "33c37ce6f62f24e26846503ad7ef646ee9d49c49cb370591545abd70719a8f24",
+      "bytes": 3490
+    },
+    {
+      "path": "docs/product/FeaturesList_PRD_AI4RESEARCH - Ramika.txt",
+      "sha256": "4ab7964bc472bb05da95bfefa3315cd2494d6ee92b7ed7e0d9bbb307978d5e04",
+      "bytes": 7577
+    },
+    {
+      "path": "docs/product/prd-kickoff-messages.md",
+      "sha256": "a4c4c3b16db426c29a9b11a251b06f3634996d132629cbf416288f6d1fb504a4",
+      "bytes": 8185
+    },
+    {
+      "path": "docs/product/prd-m1-data-foundation.md",
+      "sha256": "1ab47063dce5406438d5b899fac3d923667c69b2b88fe090e4f9f1a03eeed7c1",
+      "bytes": 18513
+    },
+    {
+      "path": "docs/product/prd-m1-full-2026-10-01.txt",
+      "sha256": "2f689644ef9517378f5cf16b28fa372f011811b9f9095aa0ca6996a6a10b13d9",
+      "bytes": 177840
+    },
+    {
+      "path": "docs/product/prd-m1-full-2026-10-02.txt",
+      "sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294",
+      "bytes": 200082
+    },
+    {
+      "path": "docs/product/prd-m1-initial-2026-09-28.txt",
+      "sha256": "2197322f262d5f9e235433b0e4c147a5c2ca645956067bc0a01c3959789c4eb3",
+      "bytes": 19736
+    },
+    {
+      "path": "docs/product/prd-m1-model-routing.txt",
+      "sha256": "a8698b7ad08c6b5f8f177aee5b27d10f2e431792aaa273e0a1edb594ddb32f24",
+      "bytes": 3930
+    },
+    {
+      "path": "docs/product/prd-m1-rsi-full-2026-09-29.md",
+      "sha256": "731b14548c67eadc62277d26167d95cf7463b2bcdaf92b7990fef5c329cd184f",
+      "bytes": 98650
+    },
+    {
+      "path": "docs/product/prd-m1-rsi-full.md",
+      "sha256": "0e1f6430c26496b9693ff63a34feee91027ed648ffc4ce12ea33d17094bd103f",
+      "bytes": 126344
+    },
+    {
+      "path": "docs/product/prd-m1-rsi.txt",
+      "sha256": "e75e86777a3abf217be891bc543c6920a1e1d107c32f5ca9890d2ef33916c4ce",
+      "bytes": 28290
+    },
+    {
+      "path": "docs/product/prd-m1-section3.md",
+      "sha256": "51f58a067be565921465561ea479a4eb5918f946e3976821a15a2887be3f2ad9",
+      "bytes": 47972
+    },
+    {
+      "path": "docs/product/prd-m1-verifier.txt",
+      "sha256": "403463c1f40b067c8a76a582967ed8b29672ea5c8d6f5d7e0e510958fb9ba9bb",
+      "bytes": 2663
+    },
+    {
+      "path": "docs/product/report-writer-upstream-2026-10-01.md",
+      "sha256": "2133bb68a29f78179e9395ff39d03f94edad3a9bda2863be4bc0a36ef6b6aa04",
+      "bytes": 14336
+    },
+    {
+      "path": "docs/product/verifier-model-selection-proposal-2026-10-02.md",
+      "sha256": "618eedda4e3511f7e6b709db7eee7dc37ed19ccc941e80eeeb50128354c8e652",
+      "bytes": 8775
+    },
+    {
+      "path": "docs/architecture/model_router_design_en.md",
+      "sha256": "7e0a3a20cf70760757b8b138cea7f2ff6ad6b9d10b6c36219ef08caefd3e61ad",
+      "bytes": 165356
+    },
+    {
+      "path": "docs/architecture/data-foundation/capsule-run-records.md",
+      "sha256": "7b8effa75928ebe32aa7692b3cb47f3635f95b5b59ecf0afa8988357a4689df6",
+      "bytes": 26962
+    },
+    {
+      "path": "docs/architecture/prd/capsule-3w-full.md",
+      "sha256": "7c400095820416d2fe5b7ce5e26f45e53742591ce0eb3223412b82287c109469",
+      "bytes": 20905
+    }
+  ],
+  "downloads": [
+    {
+      "received_name": "ARCHITECTURE_MINIMUM_INPUTS (1).txt",
+      "sha256": "33c37ce6f62f24e26846503ad7ef646ee9d49c49cb370591545abd70719a8f24",
+      "bytes": 3490,
+      "canonical_paths": [
+        "docs/product/coder-architecture-requirements-2026-10-02.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "ARCHITECTURE_MINIMUM_INPUTS.txt",
+      "sha256": "33c37ce6f62f24e26846503ad7ef646ee9d49c49cb370591545abd70719a8f24",
+      "bytes": 3490,
+      "canonical_paths": [
+        "docs/product/coder-architecture-requirements-2026-10-02.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "Benchmark Summary (1).md",
+      "sha256": "8c412eb3800cc9d5f6e182dcbd5f1077a30bb5ee6580dc3dd876d00228ba7488",
+      "bytes": 30570,
+      "canonical_paths": [
+        "docs/product/benchmark-guide-2026-10-02.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "Benchmark Summary (2).md",
+      "sha256": "8c412eb3800cc9d5f6e182dcbd5f1077a30bb5ee6580dc3dd876d00228ba7488",
+      "bytes": 30570,
+      "canonical_paths": [
+        "docs/product/benchmark-guide-2026-10-02.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "Benchmark Summary.md",
+      "sha256": "8c412eb3800cc9d5f6e182dcbd5f1077a30bb5ee6580dc3dd876d00228ba7488",
+      "bytes": 30570,
+      "canonical_paths": [
+        "docs/product/benchmark-guide-2026-10-02.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "capsule-3w-full.md",
+      "sha256": "7c400095820416d2fe5b7ce5e26f45e53742591ce0eb3223412b82287c109469",
+      "bytes": 20905,
+      "canonical_paths": [
+        "docs/architecture/prd/capsule-3w-full.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "Experiment design v5 (1).md",
+      "sha256": "78e34a576c79b240d3a9df8a6f07dfaef9a83be899ab50892b4ff44bc7104a9b",
+      "bytes": 49253,
+      "canonical_paths": [
+        "docs/product/benchmark-experiment-design-v5-2026-10-02.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "Experiment design v5 (2).md",
+      "sha256": "78e34a576c79b240d3a9df8a6f07dfaef9a83be899ab50892b4ff44bc7104a9b",
+      "bytes": 49253,
+      "canonical_paths": [
+        "docs/product/benchmark-experiment-design-v5-2026-10-02.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "Experiment design v5.md",
+      "sha256": "78e34a576c79b240d3a9df8a6f07dfaef9a83be899ab50892b4ff44bc7104a9b",
+      "bytes": 49253,
+      "canonical_paths": [
+        "docs/product/benchmark-experiment-design-v5-2026-10-02.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "FeaturesList_PRD_AI4RESEARCH - Ramika (1).txt",
+      "sha256": "eb31d99ee85a0c5ebd5365acf139edb7c25084c649194ec926f683c32d93d336",
+      "bytes": 19543,
+      "canonical_paths": [],
+      "disposition": "historical_unselected_input"
+    },
+    {
+      "received_name": "FeaturesList_PRD_AI4RESEARCH - Ramika.txt",
+      "sha256": "eb31d99ee85a0c5ebd5365acf139edb7c25084c649194ec926f683c32d93d336",
+      "bytes": 19543,
+      "canonical_paths": [],
+      "disposition": "historical_unselected_input"
+    },
+    {
+      "received_name": "M1-PRD.md",
+      "sha256": "618eedda4e3511f7e6b709db7eee7dc37ed19ccc941e80eeeb50128354c8e652",
+      "bytes": 8775,
+      "canonical_paths": [
+        "docs/product/verifier-model-selection-proposal-2026-10-02.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "M1-technical-design-capsule-run-records (1).md",
+      "sha256": "7b8effa75928ebe32aa7692b3cb47f3635f95b5b59ecf0afa8988357a4689df6",
+      "bytes": 26962,
+      "canonical_paths": [
+        "docs/architecture/data-foundation/capsule-run-records.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "M1-technical-design-capsule-run-records.md",
+      "sha256": "7b8effa75928ebe32aa7692b3cb47f3635f95b5b59ecf0afa8988357a4689df6",
+      "bytes": 26962,
+      "canonical_paths": [
+        "docs/architecture/data-foundation/capsule-run-records.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "model_router_design_en (1).md",
+      "sha256": "7e0a3a20cf70760757b8b138cea7f2ff6ad6b9d10b6c36219ef08caefd3e61ad",
+      "bytes": 165356,
+      "canonical_paths": [
+        "docs/architecture/model_router_design_en.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "model_router_design_en.md",
+      "sha256": "7e0a3a20cf70760757b8b138cea7f2ff6ad6b9d10b6c36219ef08caefd3e61ad",
+      "bytes": 165356,
+      "canonical_paths": [
+        "docs/architecture/model_router_design_en.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Full (1).txt",
+      "sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294",
+      "bytes": 200082,
+      "canonical_paths": [
+        "docs/product/prd-m1-full-2026-10-02.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Full (2).txt",
+      "sha256": "44928035205bdebae205d2b458bd438c2c6e0103e4eb2d834c6a93e1cfa37294",
+      "bytes": 200082,
+      "canonical_paths": [
+        "docs/product/prd-m1-full-2026-10-02.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Full (3).txt",
+      "sha256": "2f689644ef9517378f5cf16b28fa372f011811b9f9095aa0ca6996a6a10b13d9",
+      "bytes": 177840,
+      "canonical_paths": [
+        "docs/product/prd-m1-full-2026-10-01.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Full.txt",
+      "sha256": "2f689644ef9517378f5cf16b28fa372f011811b9f9095aa0ca6996a6a10b13d9",
+      "bytes": 177840,
+      "canonical_paths": [
+        "docs/product/prd-m1-full-2026-10-01.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - M1 Data Foundation (1).md",
+      "sha256": "1ab47063dce5406438d5b899fac3d923667c69b2b88fe090e4f9f1a03eeed7c1",
+      "bytes": 18513,
+      "canonical_paths": [
+        "docs/product/prd-m1-data-foundation.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - M1 Data Foundation (2).md",
+      "sha256": "1ab47063dce5406438d5b899fac3d923667c69b2b88fe090e4f9f1a03eeed7c1",
+      "bytes": 18513,
+      "canonical_paths": [
+        "docs/product/prd-m1-data-foundation.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - M1 Data Foundation.md",
+      "sha256": "1ab47063dce5406438d5b899fac3d923667c69b2b88fe090e4f9f1a03eeed7c1",
+      "bytes": 18513,
+      "canonical_paths": [
+        "docs/product/prd-m1-data-foundation.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Model Routing_completed (1).txt",
+      "sha256": "a8698b7ad08c6b5f8f177aee5b27d10f2e431792aaa273e0a1edb594ddb32f24",
+      "bytes": 3930,
+      "canonical_paths": [
+        "docs/product/prd-m1-model-routing.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Model Routing_completed.txt",
+      "sha256": "a8698b7ad08c6b5f8f177aee5b27d10f2e431792aaa273e0a1edb594ddb32f24",
+      "bytes": 3930,
+      "canonical_paths": [
+        "docs/product/prd-m1-model-routing.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Model Routing.txt",
+      "sha256": "fc301dbb5ab65763909271f974645ad852f63e5af5efbc22ce551bc74fba82fc",
+      "bytes": 1706,
+      "canonical_paths": [],
+      "disposition": "historical_unselected_input"
+    },
+    {
+      "received_name": "PRD - RSI_completed.txt",
+      "sha256": "e75e86777a3abf217be891bc543c6920a1e1d107c32f5ca9890d2ef33916c4ce",
+      "bytes": 28290,
+      "canonical_paths": [
+        "docs/product/prd-m1-rsi.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Verifier.txt",
+      "sha256": "403463c1f40b067c8a76a582967ed8b29672ea5c8d6f5d7e0e510958fb9ba9bb",
+      "bytes": 2663,
+      "canonical_paths": [
+        "docs/product/prd-m1-verifier.txt"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "PRD - Workflow (No Vertical + Foundational Model) (1).txt",
+      "sha256": "2808344e53764eacd78fae06b086a95a332134e7dde0b2c6a2cc1c2f96b7cd20",
+      "bytes": 44787,
+      "canonical_paths": [],
+      "disposition": "historical_unselected_input"
+    },
+    {
+      "received_name": "PRD - Workflow (No Vertical + Foundational Model).txt",
+      "sha256": "2808344e53764eacd78fae06b086a95a332134e7dde0b2c6a2cc1c2f96b7cd20",
+      "bytes": 44787,
+      "canonical_paths": [],
+      "disposition": "historical_unselected_input"
+    },
+    {
+      "received_name": "rsi-3y-full (1).md",
+      "sha256": "0e1f6430c26496b9693ff63a34feee91027ed648ffc4ce12ea33d17094bd103f",
+      "bytes": 126344,
+      "canonical_paths": [
+        "docs/product/prd-m1-rsi-full.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "rsi-3y-full (2).md",
+      "sha256": "0e1f6430c26496b9693ff63a34feee91027ed648ffc4ce12ea33d17094bd103f",
+      "bytes": 126344,
+      "canonical_paths": [
+        "docs/product/prd-m1-rsi-full.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    },
+    {
+      "received_name": "rsi-3y-full.md",
+      "sha256": "731b14548c67eadc62277d26167d95cf7463b2bcdaf92b7990fef5c329cd184f",
+      "bytes": 98650,
+      "canonical_paths": [
+        "docs/product/prd-m1-rsi-full-2026-09-29.md"
+      ],
+      "disposition": "represented_by_exact_copy"
+    }
+  ]
+}
