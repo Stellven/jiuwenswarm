@@ -1,8 +1,8 @@
 {
-  "revision": "r2026-10-06.4",
+  "revision": "r2026-10-06.5",
   "purpose": "Current high-level design identity; snapshots and native evidence remain separately labelled.",
   "aggregate_method": "SHA256 of UTF-8 canonical JSON architecture [{path,sha256}] sorted by path, keys sorted, separators comma/colon; exact bytes per file.",
-  "architecture_aggregate_sha256": "e4d43a181c91ffd43e054f40c0f32b4e6ded7895799d299a6bc9186b085a0f5e",
+  "architecture_aggregate_sha256": "64b717cec08a7d837ce6c502bb4f23bf2acc99409428c2195eaa616c4f395941",
   "architecture": [
     {
       "path": "1.md",
@@ -106,7 +106,7 @@
     },
     {
       "path": "capsules.md",
-      "sha256": "c9a449a2e406b6e528d027e5db1e93fe7983012ce82b19a3e1ae0abf9b7868cc"
+      "sha256": "82173b295042a39146eac6673d2dba3757a4352cff0c2fc1d6cf9b87e1e51368"
     },
     {
       "path": "contracts-and-native-reuse.md",
@@ -138,7 +138,7 @@
     },
     {
       "path": "guard-design.md",
-      "sha256": "5b3a18baadd308d134900f763cb76a34064c97f25e2d2e343d29dace50728b79"
+      "sha256": "30db0e08dc3f291d9b20efcd4155228d9e3bc17b9f8d91f2e49dbb7dfbc8760c"
     },
     {
       "path": "handoff.md",

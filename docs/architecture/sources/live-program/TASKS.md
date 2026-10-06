@@ -8,10 +8,10 @@ Canonical M1 program register under the unchanged target-main Code SOP/plugin. T
 | Field | Value |
 | --- | --- |
 | Program ID and objective | M1 user-scoped product with one authorized local execution host; Delivery Phase 1 baseline, required Phase 2 RSI, expected Phase 3 attempts/accounting; TRIAL-1 is first connected intent boundary. |
-| Register revision/date | r4 / 2026-10-06; prior r3 and capture r2 retained as historical context. |
+| Register revision/date | r5 / 2026-10-06; prior r3 and capture r2 retained as historical context. |
 | Program coordinator | UNASSIGNED; document preparation does not require an executor assignment or approval stage. |
 | Full PRD path / revision / SHA256 / bytes | [Current received PRD](../product/prd-m1-current-2026-10-06.txt), received October 6; 232081 bytes; SHA256 897af8427e2cf4e2427a2097b9b9e8a5a427a7de53b89f4e541d2cc437594036. Historical r2 remains unchanged. |
-| Architecture source and rendered views / revision / SHA256 | [Current architecture](../../README.md), [rendered views](../../diagrams/README.md), revision r2026-10-06.4; exact per-file and aggregate identities in [source baseline](../../source-baseline.json). Historical minimum-input records are superseded; detailed native contracts remain owning-task work. |
+| Architecture source and rendered views / revision / SHA256 | [Current architecture](../../README.md), [rendered views](../../diagrams/README.md), revision r2026-10-06.5; exact per-file and aggregate identities in [source baseline](../../source-baseline.json). Historical minimum-input records are superseded; detailed native contracts remain owning-task work. |
 | Scope inclusions and exclusions | Current PRD sections 1–6: core Delivery Phases 1–2 and stages 0–8 retain M1-001..018 and M1-SYSTEM ownership. Required offline RSI Target 1 remains M1-018; conditional text Target 2 may defer under §4.4. M1-019 owns applicable expected Phase 3 efforts and accounting with existing capability owners. TRIAL-1 is a bounded first slice, not M1 completion. Historical phase labels below must be translated before specification. |
 | System-verification TASK | [M1-SYSTEM](../main-baseline/docs/code/Missions/M1/M1-SYSTEM/TASK.md) |
 | Integrated candidate | NOT_BUILT for this program. Documentation checkout base d9fe483ea64c273ef831886bfa83819f6d5bb21c on ai4r_xiaoyang is not proof of an M1 runtime candidate. |

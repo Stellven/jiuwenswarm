@@ -1,5 +1,5 @@
 {
-  "revision": "r2026-10-06.4",
+  "revision": "r2026-10-06.5",
   "scope": "Complete active design reading set and locally navigable read-only context; old/ is historical, unchanged and excluded.",
   "current_prd": {
     "path": "sources/product/prd-m1-current-2026-10-06.txt",
@@ -1389,17 +1389,17 @@
   "live_projections": [
     {
       "path": "sources/live-program/TASKS.md",
-      "sha256": "1ecddd0f63ea5ebb38af4cbed1e2bd1e1ac2c81962da7cf52890eb36540a12a6",
+      "sha256": "2a5e4557add0c8c006215181c4f45bde831cf3749416aafdfc5361297141b906",
       "bytes": 114300,
       "origin": "docs/code/Missions/M1/TASKS.md",
-      "source_sha256": "e9692a308f0ffc442e029e85ac20266a4e896af46e64788c9034ae2994183870"
+      "source_sha256": "9671419f90b8259b015b5f47ae6d70d48a7bc379b7986da10db0bb4be6a51653"
     },
     {
       "path": "sources/live-program/TRIAL-1/TASK.md",
-      "sha256": "ed75c7b097c76b784f73e51fa6448e9c45c7b2b5a93a18315010e5bb1499ebc2",
+      "sha256": "e0a0e4f0821cd561a0171806dcc639edb050660f2faabe86d404c1712cf2a122",
       "bytes": 14031,
       "origin": "docs/code/Missions/M1/TRIAL-1/TASK.md",
-      "source_sha256": "b7898d091007d2361172aaaa12cf39ee9eb8adaa58b1aea6216929c70bf3d35e"
+      "source_sha256": "1289931787ede0bd787a345f3122f76617a8737399bf28816379fd563e671145"
     }
   ],
   "live_authorities": [
@@ -1427,9 +1427,9 @@
   ],
   "source_baseline": {
     "path": "source-baseline.json",
-    "sha256": "05063b1774c0c2d25fdea8451a9f399584e93bcd2a102fde9389ae320104cba2",
+    "sha256": "faf462b771c043c2d0f2ee3be65e201eaf37a0549e3c6e3cabd266dab446c417",
     "bytes": 8346,
-    "architecture_aggregate_sha256": "e4d43a181c91ffd43e054f40c0f32b4e6ded7895799d299a6bc9186b085a0f5e"
+    "architecture_aggregate_sha256": "64b717cec08a7d837ce6c502bb4f23bf2acc99409428c2195eaa616c4f395941"
   },
   "validation": {
     "standalone": "_tools/check_package.py",
@@ -1459,7 +1459,7 @@
     },
     {
       "path": "_tools/refresh_manifest.py",
-      "sha256": "38fb856119a569a0dd1305cb86324a8087dd01bf7b701c6473aaf061c155229b",
+      "sha256": "b0107d60aac4c611c7ba78e98339dc85636a124375e109f6e0bceaccb3e6ec21",
       "bytes": 4536
     },
     {
@@ -1594,8 +1594,8 @@
     },
     {
       "path": "capsules.md",
-      "sha256": "c9a449a2e406b6e528d027e5db1e93fe7983012ce82b19a3e1ae0abf9b7868cc",
-      "bytes": 10249
+      "sha256": "82173b295042a39146eac6673d2dba3757a4352cff0c2fc1d6cf9b87e1e51368",
+      "bytes": 10423
     },
     {
       "path": "contracts-and-native-reuse.md",
@@ -1819,8 +1819,8 @@
     },
     {
       "path": "guard-design.md",
-      "sha256": "5b3a18baadd308d134900f763cb76a34064c97f25e2d2e343d29dace50728b79",
-      "bytes": 14976
+      "sha256": "30db0e08dc3f291d9b20efcd4155228d9e3bc17b9f8d91f2e49dbb7dfbc8760c",
+      "bytes": 15323
     },
     {
       "path": "handoff.md",
@@ -1944,7 +1944,7 @@
     },
     {
       "path": "source-baseline.json",
-      "sha256": "05063b1774c0c2d25fdea8451a9f399584e93bcd2a102fde9389ae320104cba2",
+      "sha256": "faf462b771c043c2d0f2ee3be65e201eaf37a0549e3c6e3cabd266dab446c417",
       "bytes": 8346
     },
     {
@@ -1964,12 +1964,12 @@
     },
     {
       "path": "sources/live-program/TASKS.md",
-      "sha256": "1ecddd0f63ea5ebb38af4cbed1e2bd1e1ac2c81962da7cf52890eb36540a12a6",
+      "sha256": "2a5e4557add0c8c006215181c4f45bde831cf3749416aafdfc5361297141b906",
       "bytes": 114300
     },
     {
       "path": "sources/live-program/TRIAL-1/TASK.md",
-      "sha256": "ed75c7b097c76b784f73e51fa6448e9c45c7b2b5a93a18315010e5bb1499ebc2",
+      "sha256": "e0a0e4f0821cd561a0171806dcc639edb050660f2faabe86d404c1712cf2a122",
       "bytes": 14031
     },
     {
