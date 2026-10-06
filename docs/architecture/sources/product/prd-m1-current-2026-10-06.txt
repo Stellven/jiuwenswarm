@@ -653,7 +653,7 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
     *   Building a custom local proxy server from scratch (leverage the existing CLI adapter code).
     *   Handling complex multi-turn conversational streaming (stick to synchronous, single-turn completion requests for the DAG).
 *   **Dependencies:**
-    *   *Requires Input from:* Any Swarmflow node requesting LLM generation.
+    *   *Requires Input from:* Any SwarmFlow node requesting LLM generation.
     *   *Provides Output to:* The active DAG execution context.
 
 #### 3.0.2 Abstraction for "Endpoint of Last Resort"
@@ -705,16 +705,16 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
 
 *   **Dependencies:**
     *   *Requires Input from:* Local filesystem and user-supplied workspace resources.
-    *   *Provides Output to:* 3.1.5 Intake Qualification, with project assets and validation resources additionally bound to the active Swarmflow run for downstream use.
+    *   *Provides Output to:* 3.1.5 Intake Qualification, with project assets and validation resources additionally bound to the active SwarmFlow run for downstream use.
 
 #### 3.1.3 Intake Context Binding
 *   **Definition & Expectation:** Binds the intake materials to the authorized user, session, and workspace.
 *   **Whitelist (M1 Scope):**
-    *   Bind execution to the local single-user system profile defined in `config.yaml`.
-    *   Map file ingestion strictly to the active Swarmflow run-ID.
+    *   Bind the active user/account identity to the authorized local execution profile, workspace, and current `run_id`.
+    *   Map run-specific file ingestion strictly to the active SwarmFlow run and workspace.
 *   **Blacklist (Excluded from M1):**
     *   Multi-tenant enterprise SSO (Single Sign-On) authentication.
-    *   Cross-session user state persistence.
+    *   Implicit reuse of run-bound intake materials, execution state, or workspace artifacts across separate research runs without explicit user/account and workspace binding.
 *   **Dependencies:**
     *   *Requires Input from:* `jiuwenswarm` runtime environment.
 
@@ -722,7 +722,7 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
 *   **Definition & Expectation:** Filters malformed content, canonicalizes inputs, and records origin metadata (timestamp, access path) for the run tree.
 *   **Whitelist (M1 Scope):**
     *   Programmatic file size limits (e.g., reject files $>50\text{MB}$).
-    *   Record local file paths, file sizes, and ingest timestamps into the Swarmflow telemetry log.
+    *   Record local file paths, file sizes, and ingest timestamps into the SwarmFlow telemetry log.
 *   **Blacklist (Excluded from M1):**
     *   LLM-based semantic deduplication of overlapping documents.
     *   Cryptographic hashing/signing of intake documents.
@@ -798,7 +798,7 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
 *   **Definition & Expectation:** Assembles a versioned contract with executable task semantics and records user confirmation or authorized assumptions.
 *   **Whitelist (M1 Phase 1 Scope - Static Baseline):**
     *   Package all extracted fields (Intent, Scope, Constraints, Metrics) into a final standard `Research Brief` JSON payload.
-    *   Pass this static JSON file explicitly to the deterministic Swarmflow script to trigger the next DAG node.
+    *   Pass this static JSON file explicitly to the deterministic SwarmFlow script to trigger the next DAG node.
 *   **Whitelist (M1 Delivery Phase 3 Scope - Dynamic System Integration):**
     *   Pass the compiled `Research Brief` contract directly to the JiuwenSwarm Leader Agent to test dynamic intent resolution and autonomous task routing.
 *   **Blacklist (Excluded from M1 Entirely):**
@@ -925,7 +925,7 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
 *   **Definition & Expectation:** Ranks and selects a bounded, diverse opportunity portfolio using transparent criteria, recording reasons for deferred or rejected directions.
 *   **Whitelist (M1 Scope):**
     *   Calculate a composite score: $Score = Novelty + Feasibility + ComputeAlignment$.
-    *   Rank all cards and select the Top-1 highest-scoring opportunity card to advance down the deterministic Swarmflow pipeline.
+    *   Rank all cards and select the Top-1 highest-scoring opportunity card to advance down the deterministic SwarmFlow pipeline.
     *   Append rejection/deferral rationales for all lower-ranked candidates into the output metadata.
     *   Package the winning card into `Opportunity_Card.json`.
 *   **Blacklist (Excluded from M1):**
@@ -1029,7 +1029,7 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
     *   Package `requirements.txt`, `poc_patch.py`, `run_benchmark.py`, and the environment configuration into a standardized `POC_Artifact_Bundle.zip` payload.
     *   This package is fully prepared for execution, but execution itself is deferred. Once passed through the Evaluator Gate, it is handed off to **Stage 3.7 Benchmarking** where the script will actually run and record empirical data.
 *   **Blacklist (Excluded from M1):**
-    *   Deploying the containerized runtime prototype to external cloud clusters. (M1 benchmarking occurs strictly within the local Swarmflow execution context).
+    *   Deploying the containerized runtime prototype to external cloud clusters. (M1 benchmarking occurs strictly within the local SwarmFlow execution context).
 *   **Dependencies:**
     *   *Provides Output to:* 4.2 Evaluator Gate (for script bounds checking prior to passing to 3.7 Benchmarking).
 
@@ -1037,7 +1037,7 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
 
 ### 3.7 Scientific Benchmarking (POC Execution)
 
-> **Architectural Note (The Core User Loop):** This node represents the scientific execution of the user's specific POC script within the Swarmflow DAG. It executes the core value proposition of the platform: *"I have this baseline (uploaded in 3.1), how can I make it better (hypothesized in 3.5 and coded in 3.6), so let's run them side-by-side and compare the results."* This is distinct from the overarching "Phased System Validation" project goal (which measures the AI4Research platform's overall performance). 
+> **Architectural Note (The Core User Loop):** This node represents the scientific execution of the user's specific POC script within the SwarmFlow DAG. It executes the core value proposition of the platform: *"I have this baseline (uploaded in 3.1), how can I make it better (hypothesized in 3.5 and coded in 3.6), so let's run them side-by-side and compare the results."* This is distinct from the overarching "Phased System Validation" project goal (which measures the AI4Research platform's overall performance). 
 
 **Description:** The empirical validation node. This stage unpacks the `POC_Artifact_Bundle.zip` created in Stage 3.6 and executes the code in a sandboxed runtime environment. It strictly executes the protocol defined in the `Hypothesis_Blueprint.json` to collect metrics on the independent/dependent variables, comparing the baseline against the generated patch. `benchmark_capsule.md` provides the primary benchmarking capability used by this node. The node executes under its run-specific Node Execution Contract, which binds the benchmark protocol, required evidence, applicable limits, and any additional admitted supporting capabilities.
 
@@ -1177,7 +1177,7 @@ The following behaviors are outside the M1 Delivery Phase 1 deterministic baseli
 *   **Whitelist (M1 Scope):**
     *   Transfer the final artifacts strictly to the sandboxed user workspace.
     *   Display the final report within the native Web UI (`localhost:5173`) or TUI interface.
-    *   Log the completed execution trace to the native `/swarmflows` run-tree monitoring to formally close the Swarmflow lifecycle.
+    *   Log the completed execution trace to the native `/swarmflows` run-tree monitoring to formally close the SwarmFlow lifecycle.
 *   **Blacklist (Excluded from M1):**
     *   Sending automated notifications or attachments through external message channels (like Slack, WeChat, or Discord) during the M1 baseline.
 
@@ -1309,7 +1309,7 @@ A Capability Capsule is **not** a run-specific execution contract and is **not**
 >
 > This is distinct from **Stage 3.8 Scientific Evaluation**, which performs the dedicated scientific judgment of whether the experimental hypothesis is supported, rejected, inconclusive, or conditionally acceptable. A scientifically valid negative result is therefore **not** treated as an infrastructure failure. If Stage 3.8 correctly produces a schema-valid `Evaluation_Verdict.json` containing a scientific `FAIL`, the Evaluator Gate may still return infrastructure `PASS` and allow the result to proceed to Stage 3.9 Delivery.
 
-**Description:** The synchronous node-level verification and execution-control layer of the AI4Research workstation. Every governed Swarmflow node submits a standardized **Stage Evidence Bundle** to the Evaluator Gate before downstream execution is released. The Evaluator performs a two-tier verification process: **Tier 1 deterministic programmatic checks** provide zero-LLM fast failure for objective contract, schema, budget, security, and runtime violations; **Tier 2 semantic verification** invokes an independent read-only Verifier Agent using `verifier_capsule.md` and evaluation logic adapted from `sciencediscovery/result-evaluator` and `citation-reviewer`. The combined result is emitted as a structured, auditable gate decision consumed directly by the Harness Core and Swarmflow scheduler.
+**Description:** The synchronous node-level verification and execution-control layer of the AI4Research workstation. Every governed SwarmFlow node submits a standardized **Stage Evidence Bundle** to the Evaluator Gate before downstream execution is released. The Evaluator performs a two-tier verification process: **Tier 1 deterministic programmatic checks** provide zero-LLM fast failure for objective contract, schema, budget, security, and runtime violations; **Tier 2 semantic verification** invokes an independent read-only Verifier Agent using `verifier_capsule.md` and evaluation logic adapted from `sciencediscovery/result-evaluator` and `citation-reviewer`. The combined result is emitted as a structured, auditable gate decision consumed directly by the Harness Core and SwarmFlow scheduler.
 
 #### 4.2.1 Evaluation Evidence Envelope & Two-Tier Gate Execution
 
@@ -1348,7 +1348,7 @@ A Capability Capsule is **not** a run-specific execution contract and is **not**
     *   *Requires Input from:* The active Node Execution Contract, the declarations/versions of participating Capability Capsules defined through Section 4.1, and the 4.6 Harness Core Stage Evidence Bundle.
     *   *Requires Services from:* 4.3.4 AI Reviewer Agent for Tier-2 model provisioning.
     *   *Writes Evidence to:* 4.5 Data Foundations.
-    *   *Provides Output to:* 4.6 Harness Core / Swarmflow DAG Scheduler.
+    *   *Provides Output to:* 4.6 Harness Core / SwarmFlow DAG Scheduler.
 
 ---
 
@@ -1522,7 +1522,7 @@ A Capability Capsule is **not** a run-specific execution contract and is **not**
         *   `Evaluating`
         *   `Completed` or `Failed`
     *   Verify that required upstream nodes and gates completed before the current node began.
-    *   Verify that the next Swarmflow node has **not** started before the current gate releases it.
+    *   Verify that the next SwarmFlow node has **not** started before the current gate releases it.
     *   Validate real execution evidence rather than accepting self-reported agent claims that an action or test occurred.
     *   Compare declared side effects against observed execution traces.
     *   Compare the capsule's promised behavior against observed runtime behavior to detect feature or semantic parity failures.
@@ -1541,17 +1541,17 @@ A Capability Capsule is **not** a run-specific execution contract and is **not**
 
 #### 4.2.8 Verdict Aggregation & Orchestration Gate Policy
 
-*   **Definition & Expectation:** Aggregates Tier-1 and Tier-2 evaluation results into a stable machine-readable decision that determines whether Swarmflow may release the next node.
+*   **Definition & Expectation:** Aggregates Tier-1 and Tier-2 evaluation results into a stable machine-readable decision that determines whether SwarmFlow may release the next node.
 
 *   **M1 Gate Verdicts:**
     *   `PASS`
         *   All mandatory checks passed.
         *   The artifact is admissible.
-        *   Swarmflow may advance to the next node.
+        *   SwarmFlow may advance to the next node.
     *   `PASS_WITH_KNOWN_LIMITATIONS`
         *   All mandatory checks passed.
         *   Non-blocking limitations or warnings were identified and recorded.
-        *   Swarmflow may advance, carrying the warnings forward in the run evidence.
+        *   SwarmFlow may advance, carrying the warnings forward in the run evidence.
     *   `FAIL`
         *   A mandatory contract, engineering, security, evidence, or gate-policy condition failed.
         *   Autonomous workflow advancement is halted.
@@ -1581,7 +1581,7 @@ A Capability Capsule is **not** a run-specific execution contract and is **not**
     2.  If a mandatory Tier-1 check fails, emit the corresponding blocking verdict and **do not invoke Tier 2**.
     3.  If Tier 1 passes, invoke Tier 2.
     4.  Aggregate mandatory Tier-2 findings using the node's fixed acceptance profile.
-    5.  Persist the final gate artifact before releasing or halting the Swarmflow node transition.
+    5.  Persist the final gate artifact before releasing or halting the SwarmFlow node transition.
 
 *   **Mandatory Scientific-Failure Routing Rule:**
     *   A `FAIL` contained **inside** `Evaluation_Verdict.json` from Stage 3.8 represents a scientific conclusion that the tested hypothesis was rejected.
@@ -1635,13 +1635,13 @@ A Capability Capsule is **not** a run-specific execution contract and is **not**
         *   Tier 1 passes.
         *   Tier 2 passes.
         *   Gate emits `PASS`.
-        *   The next Swarmflow node starts.
+        *   The next SwarmFlow node starts.
 
     2.  **Schema Failure — Tier-1 Fast Failure**
         *   Remove a mandatory field or submit an invalid field type.
         *   Tier 1 emits `FAIL`.
         *   Tier 2 is recorded as `NOT_RUN`.
-        *   The next Swarmflow node does not start.
+        *   The next SwarmFlow node does not start.
 
     3.  **Swapped/Stale Artifact Failure**
         *   Submit an otherwise valid artifact belonging to a different node, run, capsule version, or interface hash.
@@ -1692,7 +1692,7 @@ A Capability Capsule is **not** a run-specific execution contract and is **not**
         *   Assert that no downstream node begins execution until an advancing gate verdict has been durably recorded.
 
 *   **M1 Demonstration Invariant:**
-    > **No governed Swarmflow node may advance solely because its producing agent claims success. Advancement requires an independently recorded Evaluator Gate decision backed by admissible execution evidence.**
+    > **No governed SwarmFlow node may advance solely because its producing agent claims success. Advancement requires an independently recorded Evaluator Gate decision backed by admissible execution evidence.**
 
 ---
 
@@ -1742,7 +1742,7 @@ Non-Codex, heterogeneous, or alternate-model routing belongs to M1 Delivery Phas
 #### 4.3.2 Model Routing & Selection
 *   **Definition & Expectation:** Match and select a model route using task needs, capability, quality, cost, policy, quota, and current health. 
 *   **M1 Phase 1 Scope (Static Baseline):**
-    *   **Delegated Capsule Selection:** The Router does *not* select the capability capsule. It receives the designated capsule and task execution role directly from the Swarmflow DAG or Planner.
+    *   **Delegated Capsule Selection:** The Router does *not* select the capability capsule. It receives the designated capsule and task execution role directly from the SwarmFlow DAG or Planner.
     *   **Single-Model Fallback Path:** Model selection is statically routed to the Codex CLI adapter (the endpoint of last resort) to guarantee pipeline execution. 
 *   **M1 Delivery Phase 3 Scope (Dynamic Model Routing):**
     *   Develop the dynamic two-stage routing logic in an isolated development/evaluation environment where the Router receives the DAG-provided capsule and evaluates compatible model candidates.
@@ -1796,7 +1796,7 @@ Non-Codex, heterogeneous, or alternate-model routing belongs to M1 Delivery Phas
 
 ### 4.4 RSI (Recursive Self-Improvement) Integration
 
-**Description:** The local-isolated capsule self-improvement subsystem that proposes bounded implementation changes to eligible Capability Capsules and evaluates those candidates against fixed, independent evidence before human-controlled admission or activation. In M1, the improver itself remains fixed: M1 demonstrates governed capsule-level self-improvement and establishes the records, observability, isolation, and interface seams required for later recursive improvement of the improver. RSI remains strictly decoupled from the live Swarmflow DAG.
+**Description:** The local-isolated capsule self-improvement subsystem that proposes bounded implementation changes to eligible Capability Capsules and evaluates those candidates against fixed, independent evidence before human-controlled admission or activation. In M1, the improver itself remains fixed: M1 demonstrates governed capsule-level self-improvement and establishes the records, observability, isolation, and interface seams required for later recursive improvement of the improver. RSI remains strictly decoupled from the live SwarmFlow DAG.
 
 The M1 engine is expected to generalize across eligible capsule targets through a shared loop core and target-specific profiles rather than through target-specific logic embedded in the optimization engine. The initial M1 targets exercise bounded code and text mutation while preserving fixed capsule interfaces and an independent referee.
 
@@ -1814,7 +1814,7 @@ The M1 engine is expected to generalize across eligible capsule targets through 
     * Mutation may change wording, instructions, examples, scales, thresholds, or weights only where those fields are explicitly listed as mutable by the target capsule.
     * The required scoring dimensions and downstream interface remain fixed.
     * Validate candidate text changes using offline paired parent-versus-child evaluation on the same permitted fixtures.
-    * A candidate must preserve the parent capsule's required tests and contract before it can be considered an improvement.
+    * A candidate must preserve the parent Capability Capsule's required tests, admitted declaration, interface, and compatibility requirements before it can be considered an improvement.
     * **Rubric Boundary:** This permission applies only to implementation-level rubric material belonging to the target work capsule. Evaluator, Verifier, gate, check, policy, and other referee-owned rubrics remain immutable to RSI.
     * Target 2 depends on an available bounded headless model-execution path. If that dependency is unavailable for M1, Target 2 is deferred without blocking the Target 1 code-mutation commitment.
 
@@ -1836,7 +1836,7 @@ The M1 engine is expected to generalize across eligible capsule targets through 
 
 #### 4.4.3 Capability Capsules and Physical Operators (Trajectory Mining / Code Evolution / CEGIS)
 
-* **Definition & Expectation:** Demonstrates bounded implementation-level code evolution while preserving the target capsule's production contract, interface, checks, and effect boundaries.
+* **Definition & Expectation:** Demonstrates bounded implementation-level code evolution while preserving the target Capability Capsule's admitted declaration, interface, required checks, and effect boundaries.
 
 * **M1 State (Whitelist):**
     * **Target 1 — M1 Commitment:** Apply code mutation to the pure `rank_opportunities` helper associated with Stage 3.4.7 Opportunity Prioritization inside `screening_capsule`.
@@ -1937,7 +1937,7 @@ Separate future model-training or Verifier-calibration work, if approved, remain
 * **Definition & Expectation:** Provides a local-isolated execution boundary in which RSI may propose and evaluate bounded candidate changes without gaining direct access to production state, referee assets, or protected hidden evaluation material. The isolation boundary may permit explicitly approved, bounded read-only retrieval of public benchmark or repository material without granting general network authority.
 
 * **M1 State (Whitelist):**
-    * RSI execution remains physically and logically separate from the live Swarmflow workflow.
+    * RSI execution remains physically and logically separate from the live SwarmFlow workflow.
     * **Approved Public Benchmark Retrieval:** Where required by an approved RSI target, the local RSI environment may retrieve explicitly allowlisted public benchmark or public repository material through a bounded read-only retrieval pathway.
     * **Reproducible External Inputs:** Public benchmark or repository material used by RSI must be pinned or snapshotted sufficiently to identify the exact version, revision, commit, or content used during candidate evaluation.
     * **No External Write Authority:** Permission to read an approved public source does not permit RSI to publish changes, push repository modifications, modify upstream benchmarks, or perform arbitrary network activity.
@@ -2052,7 +2052,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 #### 4.6.1 Runtime Control Loop & Run Lifecycle Management
 *   **Definition & Expectation:** Initializes run identity and session configuration, drives the central state machine loop, maintains durable node execution states, and safely concludes runs when all required nodes and gates are satisfied.
 *   **M1 State (Whitelist):**
-    *   **Native Swarmflow Engine:** Leverage the native OpenJiuwen execution loop to initialize, step through, and terminate local research runs.
+    *   **JiuwenSwarm SwarmFlow Execution:** Leverage JiuwenSwarm's SwarmFlow execution pathway to initialize, step through, and terminate deterministic Phase 1 research runs.
     *   **Node-Level State Transitions:** Maintain deterministic state progressions (`Pending` $\rightarrow$ `Running` $\rightarrow$ `Evaluating` $\rightarrow$ `Completed` / `Failed`) in memory, writing state snapshots directly to the local run log.
 *   **Future State (Blacklist for M1):**
     *   Integration with autonomous evaluation harnesses (Auto Harness) that dynamically spawn recursive sub-runs to self-evaluate pipeline orchestration.
@@ -2060,7 +2060,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 #### 4.6.2 DAG Scheduler & Operator Binding
 *   **Definition & Expectation:** Validates TaskGraph dependencies, determines step readiness based on prior outputs and gate verdicts, and binds execution parameters to the target node.
 *   **M1 Phase 1 Scope (Static Baseline):**
-    *   **Deterministic Sequential Scheduling:** Use the native Swarmflow scheduler to execute the hardcoded Phase 1 Default DAG (Stages 3.1 through 3.9) in an immutable linear sequence.
+    *   **Deterministic Sequential Scheduling:** Use JiuwenSwarm's SwarmFlow scheduling pathway to execute the hardcoded Phase 1 Default DAG (Stages 3.1 through 3.9) in an immutable linear sequence.
     *   **Gate-Locked Advancement:** Downstream nodes remain strictly locked until an explicit `PASS` or `PASS_WITH_KNOWN_LIMITATIONS` signal is received from the 4.2 Evaluator Gate.
 *   **M1 Delivery Phase 3 Scope (Dynamic System Integration):**
     *   **Agent Team / Cluster Mode Integration:** Evaluate and integrate JiuwenSwarm Agent Team / Cluster Mode for dynamic planning, task decomposition, capability resolution, dependency management, and conditional execution against the deterministic Phase 1 baseline. The deterministic SwarmFlow pathway remains available as the release-critical fallback.
@@ -2099,7 +2099,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 
 > **Architectural Note & External Dependency Strategy (Ontario Integration Handoff):**
 > Advanced intention compilation is an external dependency currently being developed by a cross-office intern in Ontario. To prevent this external dependency from blocking M1 development, the AI4Research platform adopts the same dual-path strategy used for the Codex CLI:
-> * **Phase 1 Fixed-Flow Baseline (Immediate Build):** We implement a self-contained, one-shot intention compiler that uses a single bounded LLM pass to transform raw intake text into the rigid `Research Brief` JSON schema required by the Swarmflow Default DAG. The prompt, schema, defaults, and execution path are fixed: there is no interactive clarification, autonomous replanning, or dynamic workflow selection.
+> * **Phase 1 Fixed-Flow Baseline (Immediate Build):** We implement a self-contained, one-shot intention compiler that uses a single bounded LLM pass to transform raw intake text into the rigid `Research Brief` JSON schema required by the SwarmFlow Default DAG. The prompt, schema, defaults, and execution path are fixed: there is no interactive clarification, autonomous replanning, or dynamic workflow selection.
 > * **M1 Delivery Phase 3 Modular Integration (Standardized Target Interface):** The sub-features below define the standardized contract and output envelope expected from the Ontario intern's module. When completed, their dynamic/interactive intention compiler will plug directly into the M1 Delivery Phase 3 Agent Team / Cluster Mode integration pathway without requiring downstream workflow nodes to change their input contract.
 > * **Permanent Fixed-Flow Fallback:** The Phase 1 one-shot compiler will remain available as a stable fallback pathway after the dynamic compiler is introduced. It preserves the fixed `Research Brief` interface and bounded one-pass behavior, but still requires the configured M1 model endpoint for semantic extraction.
 
@@ -2149,7 +2149,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 *   **Definition & Expectation:** Produce a stable, versioned task contract containing normalized inputs and outputs, objectives, constraints, acceptance criteria, and required evidence.
 *   **M1 Phase 1 Scope (Static Baseline):**
     *   **The Research Brief Contract:** Package all extracted objectives, scope limits, constraints, user-level target metrics, and acceptance expectations into a standardized, schema-bound `Research Brief` JSON payload.
-    *   Pass this static JSON payload explicitly to the deterministic Swarmflow script to trigger downstream nodes.
+    *   Pass this static JSON payload explicitly to the deterministic SwarmFlow script to trigger downstream nodes.
 *   **M1 Delivery Phase 3 Scope (Dynamic Intention Compiler Integration):**
     *   Compile the task contract into executable task semantics directly consumable by the Cluster Mode Planner / Leader Agent for dynamic routing.
 *   **Future State (Blacklist for M1):**
@@ -2160,13 +2160,13 @@ The Architecture Design and RSI implementation specifications own the exact oper
 
 ### 4.8 Planner
 
-**Description:** The orchestration layer responsible for translating the compiled intention contract into an executable workflow graph. Consistent with the platform's M1 risk-mitigation strategy, the Planner operates on a strict two-phase release schedule. Phase 1 completely bypasses autonomous planning in favor of a static, hardcoded Swarmflow script to guarantee reliable end-to-end execution. Phase 2 introduces OpenJiuwen's native Leader Agent on an isolated test track to evaluate dynamic, autonomous TaskGraph generation.
+**Description:** The orchestration layer responsible for translating the compiled intention contract into an executable workflow graph. M1 uses a staged integration strategy: M1 Delivery Phase 1 establishes the deterministic SwarmFlow fallback with autonomous planning disabled, while M1 Delivery Phase 3 integrates JiuwenSwarm Agent Team / Cluster Mode and its Leader Agent for dynamic task decomposition, TaskGraph generation, dependency management, and capability binding. Dynamic planning extends the M1 system but must preserve the validated deterministic fallback.
 
 #### 4.8.1 Task Contract Decomposition
 *   **Definition & Expectation:** Interpret the validated task contract, select an appropriate planning pattern, and split the goal into bounded work units with explicit objectives, inputs, outputs, and completion conditions. Generate planning artifacts for RSI optimization.
 *   **M1 Phase 1 Scope (Static Baseline):**
-    *   **Bypassed by Design:** Autonomous decomposition is disabled. The work units are permanently pre-defined as the sequential stages of the Swarmflow Default DAG (Ingestion through Delivery).
-*   **M1 Phase 2 Scope (Dynamic Test Track):**
+    *   **Bypassed by Design:** Autonomous decomposition is disabled. The work units are permanently pre-defined as the sequential stages of the SwarmFlow Default DAG (Ingestion through Delivery).
+*   **M1 Delivery Phase 3 Scope (Dynamic Planning):**
     *   **Leader Agent Decomposition:** The native Cluster Mode Leader Agent receives the `Research_Brief.json` from the Intention Compiler and dynamically attempts to break the core objective down into discrete, bounded research sub-tasks.
 *   **Future State (Blacklist for M1):**
     *   Dynamic mid-flight re-decomposition (scrapping and rewriting the sub-tasks if a workflow step fails) or complex sub-agent delegation trees.
@@ -2174,9 +2174,9 @@ The Architecture Design and RSI implementation specifications own the exact oper
 #### 4.8.2 TaskGraph Construction
 *   **Definition & Expectation:** Compile the work units into a logical TaskGraph (DAG), defining dependencies, parent-child relationships, ordering, parallelizable branches, and critical paths.
 *   **M1 Phase 1 Scope (Static Baseline):**
-    *   **Immutable Python Graph:** The TaskGraph is statically constructed as a hardcoded Swarmflow Python script. Node dependencies are manually wired, ensuring execution flows in a strict, linear progression.
+    *   **Immutable Python Graph:** The TaskGraph is statically constructed as a hardcoded SwarmFlow Python script. Node dependencies are manually wired, ensuring execution flows in a strict, linear progression.
     *   **User-Specific Parameter Injection:** While the node sequence is fixed, the script programmatically reads the `Research_Brief.json` and injects the user's specific variables (core objective, hardware constraints, metrics) directly into the hardcoded nodes. This guarantees the predetermined sequence still executes a highly personalized, user-specific run.
-*   **M1 Phase 2 Scope (Dynamic Test Track):**
+*   **M1 Delivery Phase 3 Scope (Dynamic Planning):**
     *   **Dynamic Graph Generation:** The Leader Agent dynamically maps the inputs and outputs of its decomposed work units, establishing ad-hoc parent-child relationships and ordering before passing the graph to the Harness Core.
 *   **Future State (Blacklist for M1):**
     *   Generating massive parallelizable branches (e.g., designing an execution graph that tests 50 hypotheses simultaneously across a distributed compute cluster) or generating execution loops.
@@ -2185,7 +2185,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 *   **Definition & Expectation:** Validate schema completeness, missing dependencies, execution cycles, requirement coverage, and capability feasibility. Block invalid plans or return them for clarification.
 *   **M1 Phase 1 Scope (Static Baseline):**
     *   **Programmatic Pre-Checks:** Validation is handled via standard Python syntax checking and pre-run startup assertions. Infinite execution cycles are mathematically impossible due to the linear, unidirectional nature of the Default DAG.
-*   **M1 Phase 2 Scope (Dynamic Test Track):**
+*   **M1 Delivery Phase 3 Scope (Dynamic Planning):**
     *   **Pre-Dispatch Evaluation:** The Leader Agent evaluates its own dynamically generated graph to detect disconnected nodes, missing data dependencies, or capability mismatches. If the graph is infeasible, it routes back to the Intention Compiler for replanning.
 *   **Future State (Blacklist for M1):**
     *   Autonomous multi-agent peer review of the proposed execution plan (e.g., a "Red Team" agent actively trying to find flaws in the generated TaskGraph prior to execution).
@@ -2315,8 +2315,8 @@ The Architecture Design and RSI implementation specifications own the exact oper
         *   `./workspace/input/` for raw user reference materials and document ingestion (Stage 3.1).
         *   `./workspace/poc/` for sandboxed proof-of-concept script generation and harness execution (Stages 3.6 and 3.7).
         *   `records/runs/`, `records/bundles/`, and `records/exports/` for durable append-only run logging, stage evidence capture, and offline export bundles (Section 4.5 Data Foundations).
-    *   **RSI & Benchmark Fixture Scaffolding:** Automated provisioning of the lightweight Local-Isolated RSI workspace (`.jiuwenswarm/rsi/tasks/`) and the local Secure Fixture Oracle directory outside the public Git repository. Configure the directory ownership and POSIX permissions required by the Fixture Oracle design in Section 4.4.9, while ensuring that the restricted Swarmflow execution identity used for untrusted capsule/POC execution cannot directly read the hidden fixture contents. Seed the initial manually authored benchmark sets defined in Sections 4.4.8 and 4.4.9.
-    *   **Capsule Registry Seeding:** Automated deployment of the version-locked capability capsule contracts and prompts (`search_capsule.md` through `report_capsule.md`, alongside their corresponding `capsule.json` contracts and interface hashes) into the local registry (Section 4.1).
+    *   **RSI & Benchmark Fixture Scaffolding:** Automated provisioning of the lightweight Local-Isolated RSI workspace (`.jiuwenswarm/rsi/tasks/`) and the local Secure Fixture Oracle directory outside the public Git repository. Configure the directory ownership and POSIX permissions required by the Fixture Oracle design in Section 4.4.9, while ensuring that the restricted SwarmFlow execution identity used for untrusted capsule/POC execution cannot directly read the hidden fixture contents. Seed the initial manually authored benchmark sets defined in Sections 4.4.8 and 4.4.9.
+    *   **Capsule Registry Seeding:** Automated deployment of the version-locked Capability Capsule implementation resources and prompts (`search_capsule.md` through `report_capsule.md`), alongside their corresponding `capsule.json` declarations and interface hashes, into the local registry (Section 4.1).
     *   **Workstation System Configuration & Doctor Pre-Checks:** 
         *   Bind local system variables, single-user profile parameters, and hardware defaults via `config.yaml` (Section 5.6).
         *   Configure platform telemetry flags required by the Data Foundation (enabling the lossless trajectory store, raising the trace truncation limit, and enabling the sandbox activity log).
@@ -2350,7 +2350,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 #### 5.3.1 Command-Line Interface (CLI)
 *   **Definition & Expectation:** Provide a scriptable command-response interface for submitting work, inspecting status, managing lifecycle and configuration, and retrieving logs, artifacts, and evidence, with stable exit codes and human-readable or structured JSON output.
 *   **M1 State (Whitelist):**
-    *   **Pipeline Entry:** Expose standard `jiuwenswarm` CLI arguments to pass the user's research string directly to the Phase 1 static Swarmflow DAG (e.g., `jiuwenswarm run default_dag.py --topic "..."`).
+    *   **Pipeline Entry:** Expose standard `jiuwenswarm` CLI arguments to pass the user's research string directly to the Phase 1 static SwarmFlow DAG (e.g., `jiuwenswarm run default_dag.py --topic "..."`).
     *   **Headless Development/Evaluation Entry:** Support an explicit non-interactive execution mode for automated testing and platform benchmarking. A headless run must accept the task input, an explicit run configuration, and a reproducibility seed where supported; execute without interactive prompts; and return machine-readable completion information including the `run_id` and a reference to the resulting Run Bundle. The requested and effective seed must be recorded in run evidence. M1 does not claim deterministic model output where the active model endpoint does not provide deterministic seed control.
     *   **Synchronous Monitoring:** Return human-readable standard output (`stdout`) to the terminal, detailing DAG node transitions, tool invocations, and Tier-1 Evaluator Gate fault flags.
     *   **Stable Completion Status:** Emit stable process exit codes and structured terminal status for successful completion, infrastructure/gate failure, environment blocking, and other required terminal conditions. In headless mode, these statuses must be sufficient for an automated benchmark harness to determine whether the run completed or halted without requiring interactive inspection.
@@ -2412,7 +2412,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 *   **M1 State (Whitelist):**
     *   **Unprivileged Privilege Dropping:** When the Builder executes AI-generated POC code in Stage 3.7 Benchmarking, the runner must dynamically drop its OS privileges to a restricted `jiuwen-runner` temporary user or `nobody` group. This ensures the AI script strictly only has read/write access to `./workspace/poc/` and cannot access the user's host files or `~/.ssh` keys.
     *   **Secure IPC Codex Bridge:** The Codex CLI adapter (Section 3.0) must communicate with the OpenJiuwen runner via secure Unix Domain Sockets (or named pipes) secured with strict `chmod 600` permissions. Open TCP ports for the adapter are blacklisted to prevent local malware from hijacking the active LLM session.
-    *   **POSIX Fixture Isolation:** The installer configures strict POSIX permissions for the RSI Secure Fixture Oracle folder. The Harness Core runs an automated pre-check on boot asserting that the active Swarmflow runner cannot read the hidden folder, halting execution immediately if the security boundaries have degraded.
+    *   **POSIX Fixture Isolation:** The installer configures strict POSIX permissions for the RSI Secure Fixture Oracle folder. The Harness Core runs an automated pre-check on boot asserting that the active SwarmFlow runner cannot read the hidden folder, halting execution immediately if the security boundaries have degraded.
 *   **Future State (Blacklist for M1):**
     *   Heavy Docker/Kubernetes container orchestration layers, hypervisor-level Virtual Machine (VM) sandboxing, or eBPF kernel-level syscall filtering.
 
@@ -2440,7 +2440,7 @@ The Architecture Design and RSI implementation specifications own the exact oper
 #### 5.5.1 TMUX Session & Terminal Surface Management (Sub-feature 3)
 *   **Definition & Expectation:** Register and operate tmux sessions and panes as controlled terminal and runtime surfaces, including ownership, attach and detach, pane-state and log inspection, notifications, recovery, and isolation between runs.
 *   **M1 State (Whitelist):**
-    *   **Local Process Isolation:** Utilize local `tmux` sessions and panes to manage background execution of the Swarmflow DAG and local services (`jiuwenswarm-start`).
+    *   **Local Process Isolation:** Utilize local `tmux` sessions and panes to manage background execution of the SwarmFlow DAG and local services (`jiuwenswarm-start`).
     *   **State Inspection:** Allow developers to attach/detach from active terminal panes to review live execution logs, check resource states, and inspect fault traces during workflow execution.
 *   **Future State (Blacklist for M1):**
     *   Automated multi-node remote terminal synchronization or distributed terminal session forwarding.
@@ -2616,12 +2616,12 @@ Required capabilities:
 *   Bind permitted local documents, project assets, and validation resources.
 *   Produce a schema-bound `Research_Brief.json`.
 *   Apply the fixed Phase 1 intention-compilation behavior and defaults.
-*   Load the Research Brief into the hardcoded Swarmflow Default DAG.
+*   Load the Research Brief into the hardcoded SwarmFlow Default DAG.
 *   Validate the static graph and required capsule bindings.
 *   Pass the resulting workflow artifacts through the Evaluator Gate.
 
 **Stage Exit Condition:**  
-A user request can enter through the supported local interface, become a validated `Research_Brief.json`, and initialize the fixed M1 Swarmflow DAG without autonomous planning.
+A user request can enter through the supported local interface, become a validated `Research_Brief.json`, and initialize the fixed M1 SwarmFlow DAG without autonomous planning.
 
 
 ### 6.6 Implementation Stage 3 — Evidence-to-Hypothesis Research Path
@@ -2709,7 +2709,7 @@ Required capabilities:
 *   Produce the standardized Markdown research report.
 *   Package the relevant research artifacts and evidence.
 *   Expose the final result through the supported local interface.
-*   Close the Swarmflow lifecycle and persist the completed run record.
+*   Close the SwarmFlow lifecycle and persist the completed run record.
 
 **Stage Exit Condition:**  
 A single user request can travel from Stage 3.1 through Stage 3.9 with every governed transition represented in the run evidence and controlled by the Evaluator Gate.
@@ -2744,7 +2744,7 @@ RSI should be integrated only after the baseline Capability Capsule, evaluation,
 
 Required capabilities:
 
-* Maintain RSI execution outside the live Swarmflow DAG.
+* Maintain RSI execution outside the live SwarmFlow DAG.
 * Establish the approved M1 target profile and bounded mutation surface.
 * Seed, separate, and protect the required development, hidden-loop, and hidden-final evaluation sets.
 * Permit only explicitly authorized implementation-level mutation.
@@ -2757,7 +2757,7 @@ Required capabilities:
 * Preserve security findings and discovered sandbox vulnerabilities as M1 verification evidence.
 
 **Stage Exit Condition:**  
-The Local-Isolated RSI path can propose and evaluate the approved bounded M1 child-capsule target under a fixed and independent referee; protected hidden evaluation material remains inaccessible to the proposer and candidate except through the approved bounded evaluation channel; required adversarial guardrail tests are blocked and recorded; evaluation and audit evidence is reconcilable; and no candidate modifies the live workflow, referee policy, capsule interface contract, or active production version without explicit human action.
+The Local-Isolated RSI path can propose and evaluate the approved bounded M1 child-capsule target under a fixed and independent referee; protected hidden evaluation material remains inaccessible to the proposer and candidate except through the approved bounded evaluation channel; required adversarial guardrail tests are blocked and recorded; evaluation and audit evidence is reconcilable; and no candidate modifies the live workflow, referee policy, Capability Capsule interface declaration, or active production version without explicit human action.
 
 
 ### 6.12 M1 Delivery Phase 3 — Dynamic System Integration
