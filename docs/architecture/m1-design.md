@@ -1,414 +1,127 @@
----
-type: design
-status: past
-tags: [design, past, m1]
----
+# Full M1: responsibilities and data handoffs
 
-# M1: the research pipeline (past design)
+M1 contains a local research journey and operational shell in Delivery Phase 1, independent local-isolated RSI Target 1 in Phase 2, and expected bounded dynamic integration work in Phase 3. [Every phase and stage](delivery-phases.md) has an explicit dependency/exit mapping. [TRIAL-1](immediate-plan.md) implements its first connected boundary. This page plans the remaining system shape; detailed contracts and implementation decomposition belong to Spec Kit. Read the [PRD translation](glossary.md) and [source disposition](coverage.md) alongside it.
 
-> **Past design, no longer current. Do not build from it.** Kept as a record of the M1 design proposed on 2026-09-28. It is replaced by [M1 architecture](m1-architecture.md).
+## Research path and ports
 
-> **As first written:** M1 is the PRD's first milestone. It grows [B1](b1-design.md) into the full research pipeline: the same general stages, the same CC runner, and the same straight line. Dispatch now runs the fixed research DAG, and every handoff has a two-tier gate. M1 also adds operators and admission. RSI, the multi-model router and the dynamic planner are built beside the main path as parallel tracks.
+The table names **semantic ports**, not final wire fields. Each work output is a candidate until deterministic checks, its assigned verifier, and the protected gate accept the exact artifact. Downstream nodes receive accepted references through the runner. Original requests, resources, and the Research Brief remain available where the declared responsibility needs them; the pipeline is not a chain of lossy text summaries.
 
-**What M1 is:**
-
-- **Every feature of the earlier AI4Research,** rebuilt on three openJiuwen repos. The Test Report lists the features; [the nodes](#the-nodes) maps each one to where it lives. The stack:
-
-  | Repo | What M1 takes from it |
-  |---|---|
-  | jiuwenswarm | the runtime: Swarmflow runs the pipeline, plus the web UI, sessions, `human_session` and the permission engine |
-  | deepsearch | the operators: DeepSearch (document search) and CodeSearch (code navigation) |
-  | sciencediscovery | the domain logic and grading rubrics, ported into the capsules |
-
-- **A fixed pipeline first, parallel tracks beside it.** The main branch runs a hardcoded Swarmflow DAG: the stable fallback and the release path. RSI, the router and the dynamic planner are [parallel tracks](#parallel-tracks).
-- **The same components as B1:** intake, intent compilation, requirement compilation, planner-binder, freeze, dispatch and delivery. Planner-binder and freeze are still **pass-throughs**. Dispatch now runs the research stages in order instead of one task-specific capsule.
-- **A two-tier gate at every handoff,** where B1 had one deterministic tier; see [the two-tier gate](#inside-a-capsule-and-its-two-tier-gate).
-- **Six core capsules** in the `make_capsule.md` contract (the Declaration): five workflow capsules and one verifier. Their rubrics are ported from sciencediscovery, and every payload is strict JSON. The two general capsules from B1, `compile_intent` and `compile_requirement`, carry over.
-- **Admission, but no library search;** see [How capsules get into M1](#how-capsules-get-into-m1).
-- **Models are not in the capsule layer** (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)).
-
-## The pipeline
+| Responsibility / source | Needed inputs | Output and next consumer | Important bounds |
+|---|---|---|---|
+| Intake / §3.1 | Original objective, local profile, permitted document paths, supplied project and validation resources | Qualified intake to Intent; separate resource bindings to requirements, Hypothesis, Builder, Benchmark | `.txt`, `.md`, `.pdf` extraction; readability/size qualification and origin metadata. No repository cloning, dataset downloading, or ingestion web search. Identity binding for release is distinct from intake signing. |
+| Intent / §3.2.1–4, §4.7, D5 | Original objective and qualified context | Accepted intent to Requirement compiler | Preserve omissions, conflicts, constraints, and scope without choosing a solution. TRIAL-1 accepts text only. |
+| Requirements / §3.2, §4.7, D5 | Accepted intent, original context, supplied resource references, fixed policy/defaults | `Research_Brief.json` to Planner and all research responsibilities | Mandatory outcomes vs preferences, scope, constraints, metrics, evidence obligations, explicit authorized assumptions. Material uncertainty blocks readiness; defaults are marked as defaults, never attributed to the user. |
+| Static binder / §6.5; Phase 3 planner / §4.8, D1 | Accepted Brief, eligible library snapshot, resource bindings, policy and limits | Checked candidate graph, then frozen graph to Scheduler | Baseline binds the fixed sequence without autonomous planning; Phase 3 may propose compatible nodes. Both preserve responsibilities/coverage and Node Execution Contracts; no live restructuring. Future port values stay references. |
+| Search and ideation / §3.3 | Brief, local extracted documents, permitted academic connectors | `Candidate_Set.json` to Screening; cited source evidence retained for later consumers | Fixed query strategy; bounded local and designated academic retrieval, grouped exact source excerpts, 1–3 grounded ideas. No open-web crawler, search swarm, or iterative query repair. |
+| Screening / §3.4 | Accepted candidates and citations, Brief constraints | `Opportunity_Card.json` to Hypothesis; rejected/deferred reasons and scoring evidence retained | One-pass consolidation; novelty, feasibility, compute alignment on 1–5 scales with reasons; forbidden dependencies filtered. Baseline sum and Top-1 are retained. Tie/missing-score policy is fixed before use. Pure `rank_opportunities` helper is the independent RSI target; candidate improvement does not rewrite incoming dimensions or verifier criteria. |
+| Hypothesis / §3.5 | Accepted opportunity, Brief, supplied baseline and validation resource, cited assumptions | `Hypothesis_Blueprint.json` with frozen protocol to Builder, Benchmark and Evaluation | One claim, mechanism, independent/dependent variables, baseline, fixed measurement functions, success/falsification thresholds and middle-region classification. No invented validation data or actual build code. |
+| POC builder / §3.6, §4.9 | Accepted blueprint/protocol, Brief, scoped supplied project assets | `POC_Artifact_Bundle.zip` to Benchmark; build evidence to verifier | Bounded `poc_patch.py`, `run_benchmark.py`, declared `requirements.txt`, environment description. Permitted local CodeSearch; mechanical syntax/readiness only. No dependency installation, scientific trial, large refactor, or repair loop during build. Apply §3.6.2 forbidden-module use/import checks before release; [confinement](placement.md#deployment-and-boundaries) is a separate required boundary. |
+| Scientific benchmark / §3.7 | Accepted package, frozen protocol, baseline, fixed validation resource and dependencies | `Benchmark_Payload.json`, empirical results, stdout/stderr and execution evidence to Evaluation | Protected provisioning installs only frozen declarations under restricted identity. Baseline first then treatment, same hardware/data/configuration/seed policy. No threshold changes, dependency-set mutation, or interpretation. Missing environment blocks. |
+| Scientific evaluation / §3.8 | Accepted measurements and raw logs, frozen Blueprint, Brief | `Evaluation_Verdict.json` to Delivery | Check empirical origin, complete metrics, validity and pre-registered criteria. No new live leaderboard query, experiment rerun, or post-result threshold change. Record conclusions, residual risks and proposed follow-ups. |
+| Delivery / §3.9 | Accepted evaluation, Brief, citations, Blueprint, package and benchmark evidence | Standard Markdown report and evidence package to control plane, then user | Preserve claims, methods, measured delta, scientific verdict, warnings, limits and follow-ups. Use the PRD's standard report structure. No publication or knowledge write-back; valid negative findings are delivered. |
 
 ```mermaid
 flowchart TB
-    H>"researcher: request text + documents in the input folder"]:::ext --> IN["intake: record what came in"]:::ctrl
-    IN -->|"RawIntent"| C1(["compile_intent"]):::cc
-    C1 -->|"IntentIR"| G1{{"intent gate"}}:::gate
-    G1 -->|"accepted IntentIR"| C2(["compile_requirement"]):::cc
-    C2 -->|"Research Brief"| G2{{"requirement gate"}}:::gate
-    G2 -->|"accepted Brief"| PB["planner-binder: pass-through, the fixed DAG"]:::thin
-    PB -->|"plan: 6 steps, bind, yields"| FR["freeze: writes the Bindings"]:::thin
-    ST[("capsule folder: admitted Declarations, Verdicts")]:::rec -.->|"Declarations, hashes, Verdicts"| FR
-    FR ==>|"Bindings: each node runs one capsule, pinned by hash"| DISPATCH
-    subgraph DISPATCH["dispatch: the dynamic stage. Set at runtime by the plan. The fixed research DAG in M1"]
-        S1(["search"]):::cc -->|"ideas"| G3{{"gate"}}:::gate
-        G3 --> S2(["screen"]):::cc
-        S2 -->|"scored ideas"| G4{{"gate"}}:::gate
-        G4 --> S3(["hypothesise"]):::cc
-        S3 -->|"hypothesis"| G5{{"gate"}}:::gate
-        G5 --> S4(["build_poc"]):::cc
-        S4 -->|"POC bundle"| G6{{"gate"}}:::gate
-        G6 --> S5(["run_benchmark: code, no model"]):::cc
-        S5 -->|"metrics"| G7{{"gate"}}:::gate
-        G7 --> S6(["write_report"]):::cc
-        S6 -->|"report"| G8{{"gate"}}:::gate
+    subgraph Prep[Prepare and freeze]
+        direction LR
+        I[Qualified intake] --> C[Intent and requirements] --> B[Research Brief] --> P[Plan and freeze]
     end
-    IN -.->|"documents, via bind"| S1
-    G8 -->|"checked report"| DL["delivery: hand back the report"]:::ctrl
-    DL --> OUT>"researcher reads the report"]:::ext
-    G1 -.->|"pass, but a blocking ambiguity"| CL>"run ends: the question goes back"]:::ext
-    G1 & G2 -.->|"halt"| HS>"run halts: human_session"]:::ext
-    DISPATCH -.->|"any gate halts"| HS
-    CODE[("capsule code: files kept by sha256")]:::code
-    C1 & C2 -.->|"points to its code by hash"| CODE
-    DISPATCH -.->|"every capsule points to its code by hash"| CODE
-
-    classDef cc fill:#F2A007,stroke:#8A4B00,stroke-width:3px,color:#1a1208,font-weight:bold
-    classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
-    classDef ctrl fill:#ffffff,stroke:#5B1F86,stroke-width:2.5px,color:#1a1208,font-weight:bold
-    classDef thin fill:#FFFFFF,stroke:#B86E00,stroke-width:2px,stroke-dasharray:3 3,color:#555555,font-weight:bold
-    classDef rec fill:#E6CFB6,stroke:#6E3F12,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef ext fill:#ffffff,stroke:#3b3b3b,stroke-width:2px,color:#111111,font-weight:bold
-    classDef code fill:#FFF8E6,stroke:#8A4B00,stroke-width:1.5px,stroke-dasharray:2 2,color:#5a3a00
-    style DISPATCH fill:#FFF4DC,stroke:#B86E00,stroke-width:3px
+    subgraph Research[Evidence to registered experiment]
+        direction LR
+        S[Search and ideation] --> O[One screened opportunity] --> H[Hypothesis and frozen protocol]
+    end
+    subgraph Execution[Build and measure]
+        direction LR
+        K[Bounded POC] --> M[Baseline then treatment]
+    end
+    subgraph Conclusion[Interpret and deliver]
+        direction LR
+        E[Scientific evaluation] --> D[Verified Delivery]
+    end
+    Prep --> Research --> Execution --> Conclusion
+    R[(Supplied assets and validation data)] -.-> Prep
+    R -.-> Execution
+    Research -.->|Registered protocol| Conclusion
 ```
 
-Key as in [B1](b1-design.md#the-pipeline). Here an amber capsule may or may not use a model, the purple hexagon is a two-tier gate, and a dotted "halt" line is a gate's `FAIL`, `ENVIRONMENT_BLOCKED` or `ESCALATE_TO_HUMAN` outcome. The gate itself records `pass`, `fail` or `blocked`; how the PRD's five outcomes map onto those is Open 1.
+The Phase 1 operational graph keeps this sequence and supplies the reversible fallback. Phase 3 D1 permits selecting compatible admitted implementations before freeze; it does not authorize removing these obligations, multiple competing hypotheses, or parallel experimental arms. Each stage may organize private helpers, but a helper does not acquire a new workflow role or broader permissions.
 
-As in B1: [the two kinds of stage, and how a Binding makes a capsule a node](b1-design.md#the-pipeline). In M1 the plan is the fixed research DAG, and the dynamic planner, built on its own track, may later fill the dispatch box at runtime.
+## Checking responsibilities
 
-Every gate has the same two tiers, drawn once below. Gates are drawn as separate nodes because they are separate modules. Tier 1 runs inside the CC backend, as in B1.
+PRD §4.2 groups six evaluation facets; these are profiles/check obligations, not six mandatory services. Tier 1 handles decidable claims; Tier 2 handles the remaining semantic questions using supplied evidence. The protected host aggregates and releases. The [verification boundary](capsules.md#exact-verification-boundary) applies uniformly.
 
-## Inside a capsule and its two-tier gate
-
-```mermaid
-flowchart LR
-    IN["input object"]:::rec --> RN["runner: checks hashes and needs.when, then calls"]:::ctrl
-    subgraph CAP["capability capsule: makes the object, decides nothing"]
-        M["the work: a model call with the output schema, or plain code"]:::cc --> POST["post-checks: deterministic, only add issues"]:::cc
-    end
-    RN --> M
-    POST --> OBJ["output object + Observation"]:::rec
-    OBJ --> T1{{"tier 1: Python assertions. Schema, files, non-empty, budget"}}:::gate
-    T1 -->|"passes"| T2(["tier 2: verifier capsule. LLM semantic judge"]):::cc
-    T2 -->|"assessment"| V{{"gate: fold to one outcome"}}:::gate
-    T1 -->|"fails"| V
-    V -->|"PASS, PASS_WITH_KNOWN_LIMITATIONS"| NEXT["next node"]:::ctrl
-    V -->|"FAIL, ENVIRONMENT_BLOCKED, ESCALATE_TO_HUMAN"| HS>"run halts: human_session"]:::ext
-
-    classDef cc fill:#F2A007,stroke:#8A4B00,stroke-width:3px,color:#1a1208,font-weight:bold
-    classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
-    classDef ctrl fill:#ffffff,stroke:#5B1F86,stroke-width:2.5px,color:#1a1208,font-weight:bold
-    classDef rec fill:#E6CFB6,stroke:#6E3F12,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef ext fill:#ffffff,stroke:#3b3b3b,stroke-width:2px,color:#111111,font-weight:bold
-```
-
-- **The capsule** makes the object and decides nothing, as in B1.
-- **Tier 1** runs the Binding's deterministic and reference checks, then the gate's fixed checks on the call (it ended ok, it stayed within budget). It needs no model. If tier 1 already decides, tier 2 does not run (policy `gates`).
-- **Tier 2** runs the Binding's judged checks with the verifier capsule, pinned in the Binding's `verifier` like any other capsule. It judges the output against the capsule's acceptance rules: task relevance, logical coherence, completeness, and claim-to-evidence integrity. It only writes an assessment. The gate, which is code, emits the outcome.
-- **The Stage Evidence Bundle** the PRD names is the output Artifacts (the deliverables), the capsule's Declaration (the contract and its acceptance rules), and the Observation (outcome and cost against the budget).
-- **The PRD's five gate outcomes.** Two continue and three halt. The meanings are proposed:
-
-  | Outcome | Meaning | The run |
-  |---|---|---|
-  | `PASS` | every check passed | continues |
-  | `PASS_WITH_KNOWN_LIMITATIONS` | passed, with caveats carried forward | continues |
-  | `FAIL` | a check failed on the output | halts |
-  | `ENVIRONMENT_BLOCKED` | the call could not run: runtime down, timeout | halts |
-  | `ESCALATE_TO_HUMAN` | the judge could not decide | halts |
-
-  How they map to the schema's three is [Open](#open) 1.
-
-## How capsules get into M1
-
-The same three loops as B1: the hot path, the RSI cold path and the library cold path. **M1 adds an admission gate between them.** There is still no library search, selector or planner on the main path.
-
-```mermaid
-flowchart LR
-    subgraph HOT["hot path: the research pipeline. Main branch"]
-        RQ>"request"]:::ext --> PIPE["intake to delivery, fixed DAG, two-tier gates"]:::ctrl --> ANS>"report"]:::ext
-    end
-    subgraph RSI["cold path: RSI. Offline sandbox"]
-        BUILD["mutate a capsule against its Declaration and hidden fixtures"]:::agent --> CAND[("Candidate: Declaration, code, tests, results")]:::rec
-    end
-    subgraph LIBP["cold path: library. Admission only in M1"]
-        ADM{{"admission gate: hashes, rules, tests"}}:::gate
-        LIB[("library search and Standing moves")]:::off
-        SEL["selector and dynamic planner"]:::off
-    end
-    CAND --> ADM
-    ADM -->|"admitted, and a person approves the merge"| FOLDER[("capsule folder")]:::rec
-    FOLDER -->|"read by freeze"| PIPE
-    PIPE -.->|"sample runs become fixtures"| RSI
-    ADM -.-> LIB -.-> SEL
-
-    classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
-    classDef ctrl fill:#ffffff,stroke:#5B1F86,stroke-width:2.5px,color:#1a1208,font-weight:bold
-    classDef rec fill:#E6CFB6,stroke:#6E3F12,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef ext fill:#ffffff,stroke:#3b3b3b,stroke-width:2px,color:#111111,font-weight:bold
-    classDef agent fill:#CFE3F7,stroke:#1F5A96,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef off fill:#F2F2F2,stroke:#A0A0A0,stroke-width:1.5px,stroke-dasharray:4 4,color:#8a8a8a
-```
-
-Key as in [B1](b1-design.md#the-pipeline). Grey dashed here = not on the M1 main path.
-
-- **Admission** checks a Candidate's Declaration against the policy, hashes every file, runs its tests, and writes a Verdict and an `admitted` Standing entry. M1 admits capsules at the `provisional` level.
-- **A person still approves the merge.** Nothing autonomous reaches the main branch until the fixed pipeline is stable.
-- **The fixed DAG names its capsules,** so freeze needs no selector. It pins each admitted capsule by `decl_hash` and `code_sha256`, with its Verdict.
-
-### The RSI tree in M1: an offline sandbox
-
-RSI is decoupled from the live pipeline. It works on static capsule contracts and sample runs, so it never waits for a live DAG.
-
-```mermaid
-flowchart TB
-    DEC[("Declaration: the make_capsule.md contract")]:::rec --> MUT["mutate the capsule: prompt, code, rubric"]:::agent
-    FIX[("sample runs from the fixed pipeline")]:::rec --> MUT
-    MUT --> NEW[("new version")]:::rec
-    NEW --> RUNT["run the visible tests"]:::ctrl
-    HID[("hidden test fixtures: RSI sees only pass or fail")]:::rec --> SEAL["run the sealed suite"]:::ctrl
-    NEW --> SEAL
-    RUNT --> OK{{"better than the parent, and passes both?"}}:::gate
-    SEAL --> OK
-    OK -->|"no"| MUT
-    OK -->|"yes"| CAND[("Candidate with lineage.parent_hash")]:::rec
-    CAND --> ADM{{"admission gate"}}:::gate
-
-    classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
-    classDef ctrl fill:#ffffff,stroke:#5B1F86,stroke-width:2.5px,color:#1a1208,font-weight:bold
-    classDef rec fill:#E6CFB6,stroke:#6E3F12,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef agent fill:#CFE3F7,stroke:#1F5A96,stroke-width:2px,color:#1a1208,font-weight:bold
-```
-
-- **Hidden fixtures prevent overfitting to the prompt.** They map to the schema's sealed test suites: RSI gets only pass or fail, never the cases. Test suite `access` is unchecked in M1 (Unlocks: certification).
-- **A mutation is a child version.** It carries `lineage.parent_hash`, and it must pass its parent's suites when the interface is unchanged (rule `parent_suites_pass`). Both are unchecked in M1 and unlocked by RSI, which shares the schema.
-- **Two supporting tracks feed RSI:** a data foundation that supplies capsule data and fixtures, and fine-tuning of the model used as the verifier.
-
-## The nodes
-
-| Node | Kind | In | Out | Tier 1 passes when |
-|---|---|---|---|---|
-| intake | control code | the request text, from the web UI or the CLI; `.txt`, `.md` or `.pdf` documents from the workspace input directory | RawIntent, and each document as an Artifact | (no gate) |
-| `compile_intent` | CC, model | RawIntent | IntentIR | as in B1 |
-| `compile_requirement` | CC, model | accepted IntentIR | Research Brief (the semantic contract): the question, scope, compute limits, metrics, deliverables | it matches its schema; every IntentIR goal appears in some requirement's `source_refs` |
-| planner-binder | control code, pass-through | accepted Brief | plan: the fixed six steps, with `bind` and `yields` | (no gate) |
-| freeze | control code, pass-through | plan | run contract (the Bindings), each with its Verdict | (no gate; it refuses a capsule with no admitted Verdict) |
-| `search` | CC, model; calls DeepSearch | Brief; intake's documents, through `bind` | candidate ideas, each with sources | at least one idea; every source resolves |
-| `screen` | CC, model | ideas | ideas scored on the rubric, one chosen | scores use the rubric's dimensions; exactly one is chosen |
-| `hypothesise` | CC, model | chosen idea | hypothesis and experiment setup | it names a measurable metric and a baseline |
-| `build_poc` | CC, model; calls CodeSearch and workspace I/O | hypothesis | POC bundle: code and a test harness | the files exist inside the workspace; the harness entry point is present |
-| `run_benchmark` | CC, code, no model | POC bundle | metrics | it finished within its time budget; every metric the hypothesis named is reported |
-| `write_report` | CC, model | all earlier outputs, through `bind` | report | every required section is present; citations resolve to the idea sources |
-| delivery | control code | checked report | the report shown to the researcher | (no gate) |
-
-Tier 2 runs on every gated output with the verifier capsule.
-
-**Where the capsules come from.** The five workflow capsules drawn here are a working choice; which five is open.
-
-| Capsule | Ported from |
+| Facet | Architectural obligation |
 |---|---|
-| `compile_requirement` | B1's capsule, as the PRD's requirement capsule |
-| `search` | sciencediscovery `idea-tree-team` |
-| `screen` | sciencediscovery `assessment-screening` |
-| `hypothesise` | sciencediscovery `evolve-design` |
-| `build_poc` | new |
-| `run_benchmark` | new; a tool capsule, not one of the six |
-| `write_report` | sciencediscovery `report-writer` |
-| `verifier_capsule` | sciencediscovery `result-evaluator`, `citation-reviewer` |
+| Contract/schema/artifact conformance (§4.2.2) | Validate port meaning, completeness, scope, subject binding and required evidence. |
+| Engineering/code quality (§4.2.3) | Check the bounded build and applicable tests/readiness without converting the verifier into a repair agent. Preserve actual test outputs. |
+| Performance/cost/benchmark (§4.2.4) | Check comparable protocol execution and declared limits; token/cost absence stays unavailable. Distinguish platform evaluation from scientific measurement. |
+| Security/privacy/IP (§4.2.5) | Enforce scoped effects and restricted execution; check secrets, allowed tools/dependencies, licensing and attribution within M1's supported checks. No fabricated comprehensive legal certification. |
+| Evidence/factuality/science (§4.2.6) | Check grounding, measured provenance and correct application of registered scientific criteria. Scientific interpretation remains the Evaluation CC's responsibility. |
+| Lifecycle/parity/human review (§4.2.7–8) | Verify real execution, complete transitions, unchanged accepted subjects and durable decisions. Route blocking states to triage or headless halt; a human edit creates new attributable work and cannot override a failed mandatory check. |
 
-**Where each Test Report feature lives:**
+PRD §4.2.9 requires intentional failures as well as advancing examples: malformed artifacts, stale/swapped evidence, unavailable environment, timeout, security/effect violation, uncertainty, gate locking, and valid scientific-negative delivery. Spec Kit owns the concrete cases and measured acceptance thresholds. A happy path and a structurally valid graph do not establish the full boundary.
 
-| Feature | In M1 |
-|---|---|
-| Codex CLI integration | the model adapter over the Codex subscription runtime, as in B1 |
-| Ingestion | intake |
-| Requirement compilation | `compile_intent`, `compile_requirement` |
-| Search and ideation | `search`, with DeepSearch |
-| Screening | `screen` |
-| Hypothesis | `hypothesise` |
-| POC implementation | `build_poc`, with CodeSearch and workspace I/O |
-| Benchmarking | `run_benchmark` |
-| Evaluation | the two-tier gate after every node |
-| Delivery | `write_report`, then delivery |
-| Visibility, installer, UI, accounts, message channels, configuration | jiuwenswarm as it ships, as the PRD says. The CC run adds its run tree and its records |
+## Data and state ownership
 
-## The CC runner in M1
-
-The same runner as [B1](b1-design.md#the-cc-runner-how-capsules-plug-into-jiuwenswarm): system code, not a capsule, and the only way a capsule runs inside jiuwenswarm. It is the Swarmflow engine's `AgentBackend`. Per call it pins, calls through the handler for the capsule's `kind`, records, and gates. M1 extends it:
-
-```mermaid
-flowchart TB
-    subgraph JS["jiuwenswarm and agent-core: exists"]
-        ENG["Swarmflow engine: one agent call per node"]:::js
-        CX["Codex subscription runtime: text turns"]:::js
-        PERM["PermissionEngine, built standalone"]:::js
-    end
-    subgraph RUN["CC runner: new system code"]
-        PIN["1. pin: Binding, re-hash, needs.when"]:::ctrl
-        CALL["2. call the capsule by its kind"]:::ctrl
-        MA["model adapter: JSON from text"]:::ctrl
-        OPS["operator clients for needs.external"]:::ctrl
-        REC["3. record: Artifact, Observation"]:::ctrl
-        T1{{"4. gate tier 1: deterministic checks"}}:::gate
-        FOLD{{"gate: fold to one outcome"}}:::gate
-    end
-    CAP(["capsule code"]):::cc
-    VER(["verifier capsule: tier 2 judge"]):::cc
-    subgraph EXT["deepsearch repo: own keys"]
-        OPSV["DeepSearch library, CodeSearch service"]:::js
-    end
-    ENG -->|"each agent call"| PIN --> CALL
-    CALL -->|"skill: a model call"| MA --> CX
-    CALL -->|"tool: Python call"| CAP
-    CALL -->|"needs.external"| OPS -->|"check first"| PERM
-    OPS --> OPSV
-    CALL --> REC --> T1
-    T1 -->|"passes: call the pinned verifier"| VER
-    VER -->|"a model call"| MA
-    VER -->|"assessment"| FOLD
-    T1 -->|"fails"| FOLD
-    FOLD -->|"envelope: value and outcome"| ENG
-    classDef js fill:#EEEEEE,stroke:#777777,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef ctrl fill:#ffffff,stroke:#5B1F86,stroke-width:2.5px,color:#1a1208,font-weight:bold
-    classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
-    classDef cc fill:#F2A007,stroke:#8A4B00,stroke-width:3px,color:#1a1208,font-weight:bold
-```
-
-Key as in [B1](b1-design.md#the-pipeline). Grey here also covers the deepsearch repo.
-
-**What M1 adds to the B1 runner:**
-
-- **Tier 2.** After tier 1 passes, the gate calls the verifier pinned in the Binding, as a call with `caller: gate`. The judge is one more Codex text turn through the same model adapter. The gate folds tier 1 and the assessment into one of the PRD's five gate outcomes. The diagram draws tier 2 inside the runner (see [Open](#open) 5).
-- **No model router in the runner.** Models are not in the capsule layer (see [needs](capsule/fields.md#needs-what-must-hold-and-what-it-uses)). A `skill` capsule's model call goes through the model adapter to the one Codex model, and the runner records that model in the Observation's `model`.
-- **Operators.** The model cannot call tools on this runtime, so the runner calls DeepSearch, CodeSearch and workspace I/O for a capsule, and only those in its `needs.external`. Neither operator is a jiuwenswarm tool: DeepSearch is the pip library `openjiuwen-deepsearch`, run as a subprocess, and CodeSearch is an SDK or HTTP service over a Milvus index. The runner needs one client per operator, and checks each call first with a standalone `PermissionEngine`, built without a DeepAgent, the way jiuwenswarm's `agents/harness/common/rails/permissions/owner_scopes.py:161-169` builds one. **[pin]** Its constructor is read at agent-core `e23806c1`, not the pin `9e339019`. There is no approval UI outside the permission rail, so CC must decide what an `ASK` result means.
-- **Admitted capsules.** The capsule folder loader also reads each capsule's Verdict.
-- **Kinds.** `skill` and `tool`, as in B1. `prompt_section` may be needed for shared rubric text.
-
-**The modules M1 adds.** Each is one issue, with fixed inputs and outputs:
-
-| Module | In | Out |
+| Information | Writer / authority | Readers and compatibility obligation |
 |---|---|---|
-| admission | a Candidate, the policy | a Verdict, a Standing entry, and the capsule's files in the folder |
-| tier 2 caller | an output, the Binding's judged checks and its `verifier` | an assessment Artifact |
-| outcome fold | tier 1 results, the assessment | one of the PRD's five gate outcomes |
-| operator clients | a capsule's `needs.external`, an operator request | the operator's result, from its own library or service, after a standalone `PermissionEngine` check |
-| six core capsules, and `run_benchmark` | each capsule's Declaration | its code and tests, admitted |
+| Product account and durable profile | Account/profile adapter under authenticated user authority | Stable user ID distinct from OS identity, persistent defaults outside run/workspace lifetime; optional cloud-backed store never owns local release state. |
+| Node Execution Contract and bindings | Protected binder from accepted requirements, admitted pins and policy | Runner and Verifier; node-specific immutable authority, participating invocation IDs and artifact bindings are exported with evidence. |
+| Original request and resource registration | Intake under run-state authority | Compilers and authorized work/verifiers; preserve raw content and origin before normalization. Required mutable local assets need a captured snapshot or validated identity before consumption. |
+| Effective configuration and graph freeze | Configuration resolver and protected freeze path | Runner, scheduler, model bridge, verifiers and exports; record requested vs effective state. Changes affect future runs. |
+| Attempt evidence and artifacts | Runner captures observations; artifact store retains immutable content | Gate, downstream accepted consumers, record builders, user inspection. Failed/pre-gate attempts remain attributable; candidate data is inspectable as unaccepted, never advertised as a released result. |
+| Check results, raw assessment, final gate decision | Protected check runner, verifier invocation, protected gate host respectively | Run-state commits release or halt; scheduler consumes committed readiness. Files are persisted before accepted references become visible; orphan files after failed commits grant no readiness. |
+| Raw run evidence / Run Bundle | Capture infrastructure | Local inspection and permitted exports; retain prompts, tool calls, build/measurement logs, versions and static host facts once at run start. Redact credentials and maintain fixture custody. |
+| Capsule Run Record / conformance / scorecard | Derived record builders after execution | Offline analysis and planners where comparisons are appropriate; include schema version, source identities, missing observations and sample counts. Regeneration never rewrites historical decisions. |
+| Export and RSI development handoff | Export builder under explicit audience policy | Benchmarker or offline proposer gets only its allowed data. Keep protected evaluation data out of exports, prompts and general-purpose volumes. |
+| Library version, lineage, admission, activation | Publishing/admission infrastructure; human controls activation | Plans use eligible snapshots; frozen runs pin versions. Suspension is checked at start/release. Rollback changes future selection, preserving old evidence. |
 
-## Through jiuwenswarm: the deep view
+Store authoritative release state in SQLite and retain PRD-compatible append-only records, per-run files, bundles, static scorecards and exports. This is the explicit D6 persistence realization, not permission to replace portable evidence with a database-only product. Native memory contains compact reasoning summaries/references and is never the gate's authority.
 
-The common path is the same as B1's: chat, gateway, agent server, engine, CC backend, model adapter, Codex child. See [B1's deep view](b1-design.md#through-jiuwenswarm-the-deep-view). This diagram shows only what M1 adds on top of it. Paths are as in B1: jiuwenswarm files under `jiuwenswarm/jiuwenswarm/` at `6d8c89e12`, and agent-core at `e23806c1`.
+## Commit before successor release
 
 ```mermaid
-flowchart TB
-    subgraph AS["agent server process"]
-        ENG["run_workflow: agent per node"]:::js
-        BK["CC backend: pin, call by kind"]:::ctrl
-        C(["research capsule"]):::cc
-        T1{{"tier 1 gate"}}:::gate
-        T2(["tier 2: verifier capsule"]):::cc
-        V{{"outcome fold"}}:::gate
-        MA["model adapter"]:::ctrl
-        SVC["SubscriptionService.stream"]:::js
-        PE["PermissionEngine: standalone"]:::js
-        OPC["operator clients"]:::ctrl
+sequenceDiagram
+    participant R as Runner
+    participant F as Artifact store
+    participant V as Verifier
+    participant S as Durable run-state
+    participant H as Scheduler
+    R->>F: Capture immutable candidate and observations
+    F-->>R: Exact attributable references
+    R->>V: Node contract, participating calls and captured evidence
+    V->>V: Deterministic checks then scoped semantic assessment
+    alt All mandatory obligations satisfied and persistence available
+        V->>S: Commit decision and exact accepted references
+        S-->>H: Committed readiness
+        H->>R: Dispatch eligible successor
+    else Blocking check or persistence failure
+        V-->>S: Halt reason where safely persistable
+        V-->>H: Non-advancing outcome
+        H->>H: Stop new dispatch - orphan files grant no readiness
     end
-    subgraph CX["codex app-server child"]
-        APP["turn/start"]:::js
-    end
-    subgraph DS["DeepSearch: pip library, subprocess"]
-        DSL["deepsearch agent loop"]:::js
-    end
-    subgraph CS["CodeSearch: SDK or HTTP service"]
-        CSS["codesearch backend"]:::js
-        MIL[("Milvus index")]:::rec
-    end
-    subgraph KEYS["outside APIs: own keys"]
-        LLM["LLM API"]:::js
-        WSE["web search API"]:::js
-    end
-    HS>"human_session: no reply path yet"]:::ext
-
-    ENG --> BK --> C
-    C -->|"model capsule"| MA
-    C --> T1 -->|"passes"| T2 -->|"one more model call"| MA
-    T1 -->|"fails"| V
-    T2 -->|"assessment"| V
-    V -->|"outcome"| ENG
-    V -.->|"halt"| HS
-    MA --> SVC <--> APP
-    BK -->|"needs.external"| PE -->|"allow"| OPC
-    OPC --> DSL --> LLM & WSE
-    OPC --> CSS --> MIL
-    CSS --> LLM
-
-    classDef js fill:#EEEEEE,stroke:#777777,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef ctrl fill:#ffffff,stroke:#5B1F86,stroke-width:2.5px,color:#1a1208,font-weight:bold
-    classDef gate fill:#C9A8E0,stroke:#5B1F86,stroke-width:2.5px,stroke-dasharray:6 3,color:#1a1208,font-weight:bold
-    classDef cc fill:#F2A007,stroke:#8A4B00,stroke-width:3px,color:#1a1208,font-weight:bold
-    classDef rec fill:#E6CFB6,stroke:#6E3F12,stroke-width:2px,color:#1a1208,font-weight:bold
-    classDef ext fill:#ffffff,stroke:#3b3b3b,stroke-width:2px,color:#111111,font-weight:bold
 ```
 
-Key as in [B1](b1-design.md#the-pipeline). Grey here also covers the deepsearch repo and outside APIs.
+Candidate files may survive a failed commit for diagnosis, but they are not accepted references. Transaction/write-order implementation and crash tests belong to the data/gate owners.
 
-**What each addition needs:**
+## Operational shell
 
-- **Tier 2** is one more model call through the same model adapter and Codex child. Every judge call adds one more permanent entry to `subscription/bindings.json`. A judge turn carries B1's [shared Codex child risk](b1-design.md#open) (question 6).
-- **Operators and the permission check:** see [the runner](#the-cc-runner-in-m1), and [Open](#open) 6 and 7 for keys and run time.
-- **`human_session`** is where the PRD sends a halted run. On this runtime nothing can take the person's reply: only the team backend has `human` sessions, and the Codex adapter refuses a Swarmflow reply (`interface_codex.py:67-70`). See [Open](#open) 3.
-- **The research nodes** change nothing on the path. They are more `agent()` calls on the same backend.
+**Required for full M1 (§5.1–5.6).** Adapt native CLI, web and TUI to the same control plane. CLI submits research, observes transitions and returns human-readable or structured completion; web captures objectives and renders status/report; TUI supplies native inspection and interactive triage. Headless execution never waits on `human_session`. Browser closure leaves the engine running. Restart preserves accepted artifacts, marks interrupted work paused, and does not automatically replay uncertain effects.
 
-## Observability and traces
+Startup automates workspace scaffolding, version-locked capsule seeding, protected state/configuration locations, provider readiness and health diagnostics. Keep `pip install jiuwenswarm` / `jiuwenswarm-start` as the native workstation entry points; D6 adds a packaged Compose entry with equivalent behavior, documented by the implementation task. Docker tooling does not become a second workflow implementation. Doctor distinguishes authenticated model readiness, storage readiness and mandatory isolation from basic HTTP liveness. Full offline RSI also checks fixture isolation before evaluation.
 
-The same two layers as [B1](b1-design.md#observability-and-traces): CC records are the source of truth, and traces are for debugging, joined by `run_id` and `obs_id`. M1 adds:
+Use stable product-account attribution and durable profile defaults, machine-local execution overrides, project-over-global precedence, protected local token, loopback endpoint and protected model IPC. Profile deletion is separate from workspace/run deletion and requires explicit user action. Keep status tokens and provider credentials out of logs and exported bundles. Local terminal/tmux sessions are inspection/control surfaces, not extra agents or execution authorities. Privacy separates approved account/profile persistence from local project assets, prompts, traces and hidden data; deletion is explicit, never an automatic repair operation. Capture static hardware facts, not continuous host-resource dashboards. No desktop binaries, external chat channels, remote worker deployment or custom workflow editor are added. Cluster Mode is local agent orchestration; optional cloud account/profile storage does not imply cloud research-data synchronization.
 
-- **More calls observed.** Every tier 2 judge call gets its own Observation, with `caller: gate`. An operator call runs inside a capsule's call, so its time is in that capsule's Observation; what it touched goes in `effects_observed`, which is unchecked in M1.
-- **The Stage Evidence Bundle is built from records:** the Artifacts, the Declaration and the Observation.
-- **Failure traces** go to the run tree when a gate halts, so the person who triages the run sees why.
-- **The tracks read the records, not the traces.** Sample runs from the fixed pipeline become fixtures for RSI and benchmarking.
+## Extension boundaries beyond the first build
 
-## Parallel tracks
-
-Capability Capsule and Verifier build the main path. RSI, the multi-model router and the dynamic planner are parallel tracks: built off the main branch, and merged only after the fixed pipeline is stable (the PRD's integration gate). What each workstream builds in M1 is in [the big picture's workstream table](big-picture.md#how-the-workstreams-fit-together).
-
-## How M1 fits jiuwenswarm
-
-| M1 piece | In jiuwenswarm or agent-core | Status |
+| Extension capability | Boundary to preserve now | Current effort or deferred execution |
 |---|---|---|
-| Run entry | the CC-run branch on the `chat.send` stream, as in B1 | as in B1 |
-| The pipeline | a Swarmflow script run by `run_workflow(path, backend=...)`, one `agent()` call per node | as in B1 |
-| Capsule calls, gates | the CC runner as the engine's `AgentBackend`. Tier 1 runs inside it; tier 2 is [Open](#open) 5 | new, extends B1 |
-| The model | the Codex subscription runtime (the PRD's Codex CLI adapter): text turns, with JSON parsed from the reply. Every model call goes to it | works now as text turns |
-| Budget | time only; see [Open](#open) 9 | runner only, as in B1 |
-| Operators | not jiuwenswarm tools; see [the runner](#the-cc-runner-in-m1) | new: a client per operator, and a CC rule for an `ASK` result |
-| Halting to a person | `human_session`, with no reply path yet; see [Open](#open) 3 | open |
-| Records | files under the profile folder, beside jiuwenswarm's own logs | as in B1 |
+| Advanced compiler | Accepted Brief meaning, attribution, versioned adapter and verification | Expected Phase 3 attempt, not blanket deferral; later richer modes need explicit supported scope. Retain bounded baseline fallback. |
+| Composite CCs and fusion | Typed boundary ports, pinned closure, member evidence/checks, effects and lineage | Composite execution only when supported; fusion separately admitted against unfused reference. No opaque unchecked internal work. |
+| Better planning / interaction analysis | Objective mapping, typed graph, library snapshot, evidence uncertainty, effect/precondition parity | Logical lowering, MCTS risk analysis, multiple epochs and richer search remain future decisions. |
+| Additional model routes | Audited bridge, role/profile identity, actual effective route and capability constraints | Approved heterogeneous routing and alternate verifier are Phase 3 efforts; later routes reuse the seam. No silent model/context changes. |
+| Broader RSI targets | Target allowlist, frozen contract and protected transitive closure, bounded evaluation/feedback, inactive lineage | Fixed improver can later be replaceable through a versioned interface; changing the referee or activation boundary is excluded. |
+| Mid-run installation/removal or remote workers | Invocation/attempt identity, dependency closure, scoped resource/effect semantics, durable readiness | Separate lifecycle/lease and compensation design; removal never erases history or claims effects were undone. |
+| Larger benchmark campaigns | Ordinary headless client protocol, profile pins, export versions and audience restrictions | Larger datasets, concurrency and alternate suites must respect domain/access gates and resource budgets. |
 
-## What M1 uses from the schemas
-
-| Schema | Used in M1 for |
-|---|---|
-| [Declaration](capsule/fields.md) | every capsule's `make_capsule.md` contract: ports, checks, acceptance rules, operators, effects |
-| [Candidate](schemas/candidate.md), [Verdict](schemas/verdict.md) | admitting capsules, including RSI's new versions |
-| [Standing](schemas/standing.md) | the `admitted` entry admission writes; nothing on the main path reads or moves it |
-| [Check](schemas/checks.md) | both tiers' checks; the visible tests and the hidden (sealed) suites |
-| [Policy](schemas/policy.md) | the gates' fold, the budgets, the mappings |
-| [Port types](schemas/port-types.md) | the typed JSON passed from node to node |
-| [Binding](schemas/binding.md) | each node's pin, and its verifier's |
-| [Observation](schemas/observation.md) | every capsule call and every judge call |
-| [Artifact](schemas/artifact.md) | every node's output, the Brief, the report |
-| [Verification](schemas/verification-record.md) | each gate's decision |
-
-**Not used on the main path:** Finding (RSI and a librarian would use it, off the main branch).
-
-## Open
-
-1. **The PRD's five gate outcomes versus the schema's three.** The schema's Verification has three outcomes (`pass`, `fail`, `blocked`). How the five map to them is open.
-2. **Which five workflow capsules.** The fuller PRD lists six workflow capsules; the newest summary counts five. This page draws a working choice.
-3. **`human_session` needs a reply path on the Codex runtime** (see [the deep view](#through-jiuwenswarm-the-deep-view)).
-4. **Where POC and benchmark code run.** Today's Codex runtime is read-only, with no shell.
-5. **Tier 2 as its own `agent()` call or inside the runner.**
-6. **The operators need their own API keys.** DeepSearch needs its own LLM and web search keys, and CodeSearch its own LLM key. Neither runs on the Codex subscription.
-7. **Operator calls are long jobs.** A DeepSearch run takes about 15 minutes and sends no progress. The runner's time budget and the run view must allow for it.
-8. **Hidden fixtures.** How sealed suites reach admission is a known gap in the schemas.
-9. **Token budgets.** The PRD's tier 1 checks token ceilings, and the Codex runtime reports no tokens, so the budget is time only (see [B1's model usage](b1-design.md#observability-and-traces)).
+These seams preserve meaning; they do not promise support for a serialized but unimplemented feature. Unsupported required behavior blocks binding explicitly. M1 does not need a speculative broker, plugin platform, or distributed control plane to keep these options available.
