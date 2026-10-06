@@ -2,14 +2,14 @@
 
 **Decision:** every blocking product failure stops new dispatch and creates an attributable human-action request after available evidence is preserved. Interactive sessions use native `human_session` / interaction prompts for triage. Headless sessions return a terminal status immediately and never wait for a reply. Human triage cannot turn failed mandatory checks into an advancing verdict.
 
-The **Verifier (Evaluator Gate)** is one logical checking component. Deterministic checks, the verifier CC's semantic assessment, and protected decision/release are its internal responsibilities. The harness applies its recorded routing action; neither a producer nor a model-generated “pass” controls scheduling. See [vocabulary](glossary.md) and [verification](capsules.md).
+The **Evaluator Gate** contains deterministic checks, a runtime verifier CC semantic assessment, and protected host decision/release responsibilities. The harness applies its recorded routing action; neither a producer nor a model-generated “pass” controls scheduling. See [vocabulary](glossary.md) and [verification](capsules.md).
 
 ## When to call the human
 
 | Event | Autonomous behavior | Human callback |
 |---|---|---|
 | Empty/unreadable intake; unsupported domain or mandatory input | Reject before work dispatch, retain rejection reason | Show actionable input correction at the submitting surface. It does not start a semantic clarification dialogue. |
-| Material intent/requirement ambiguity or conflicting constraints in TRIAL-1/Phase 1, or after Phase 3 clarification is exhausted | Verifier returns non-advancing result; halt | Ask the user to correct the source objective or supply the missing permitted input. New submission creates a new run. |
+| Material intent/requirement ambiguity or conflicting constraints in Intent Compilation and Verification Slice (formerly TRIAL-1)/Delivery Phase 1, or after Delivery Phase 3 clarification is exhausted | Evaluator Gate records a non-advancing result; halt | Ask the user to correct the source objective or supply the missing permitted input. New submission creates a new run. |
 | Work execution fault, invalid artifact, mandatory semantic failure | Record `FAIL`, stop new dispatch | Triage request with failed obligation, exact subject, available evidence and permitted next action. |
 | Unauthenticated/unavailable model, missing dataset/dependency, timeout preventing valid evaluation | Record `ENVIRONMENT_BLOCKED` where dependency failure prevents a valid judgment; halt | Request the specific environment repair. A demonstrated implementation defect remains `FAIL`; uncertainty stays explicit. |
 | Insufficient evidence or unresolved verifier judgment | Record `INCONCLUSIVE`, halt | Request inspection/additional evidence. Human opinion alone cannot satisfy a mechanically or scientifically required observation. |
@@ -21,7 +21,7 @@ The **Verifier (Evaluator Gate)** is one logical checking component. Determinist
 | Browser disconnect | Continue server-owned execution | No callback solely for disconnection. A later failure remains visible on reconnection. |
 | Engine restart interrupts unfinished work | Preserve accepted artifacts, mark interrupted attempts paused; no replay | Show interruption and evidence to the human. Recovery is inspection and a fresh run in M1, not automatic in-place resumption. |
 
-Phase 3 advanced compilation may use a **pre-acceptance clarification state** under PRD §4.7.3. Freeze its bounded turn/time/call policy and interactive mode at entry; ask only for missing or conflicting research requirements through the local native surface, record each question/reply with product-user/source attribution, and then independently verify the candidate intent/Brief. This is declared compilation work before accepted requirements and graph freeze, not failure-driven repair or permission to change an accepted contract. Exhausted dialogue, unresolved material ambiguity or an infrastructure/security failure halts under this table. Headless mode never waits: use supplied answers only or return the non-advancing outcome. TRIAL-1 and Phase 1 remain non-interactive compilers.
+Delivery Phase 3 advanced compilation may use a **pre-acceptance clarification state** under PRD §4.7.3. Freeze its bounded turn/time/call policy and interactive mode at entry; ask only for missing or conflicting research requirements through the local native surface, record each question/reply with product-user/source attribution, and then independently verify the candidate intent/Brief. This is declared compilation work before accepted requirements and graph freeze, not failure-driven repair or permission to change an accepted contract. Exhausted dialogue, unresolved material ambiguity or an infrastructure/security failure halts under this table. Headless mode never waits: use supplied answers only or return the non-advancing outcome. Intent Compilation and Verification Slice and Delivery Phase 1 remain non-interactive compilers.
 
 Freeze interaction mode and originating session with effective run configuration. The same gate policy applies in every mode:
 
@@ -29,7 +29,7 @@ Freeze interaction mode and originating session with effective run configuration
 sequenceDiagram
     participant C as User or headless client
     participant H as Harness
-    participant V as Verifier - Evaluator Gate
+    participant V as Evaluator Gate - Evaluator Gate
     participant S as Run-state authority
     H->>V: Exact candidate, evidence and protected profile
     V->>V: Deterministic checks, then semantic assessment if allowed
@@ -55,9 +55,9 @@ If the durable write fails, release remains blocked and the client receives a st
 
 | Mode | Delivery of a blocking callback | Waiting and replies |
 |---|---|---|
-| Web / TRIAL-1 | Existing run status and native interaction surface, with reason and evidence references | Server releases execution resources after halt. An unattended request remains durable and visible when the user reconnects. No detached terminal is spawned. |
+| Web / Intent Compilation and Verification Slice | Existing run status and native interaction surface, with reason and evidence references | Server releases execution resources after halt. An unattended request remains durable and visible when the user reconnects. No detached terminal is spawned. |
 | Interactive CLI/TUI / full M1 | Native `human_session` triage through the current authenticated session | The interaction may wait for inspection/acknowledgment, but the research run is already halted. Disconnecting or dismissing does not resume it. |
-| Headless development/evaluation / TRIAL-1 and full M1 | Stable machine-readable non-success, detailed verdict/reason, `run_id` and bundle reference when available | Never invoke an input prompt or wait on `human_session`. Record human action needed for later inspection; benchmarker continues its campaign policy. |
+| Headless development/evaluation / Intent Compilation and Verification Slice and full M1 | Stable machine-readable non-success, detailed verdict/reason, `run_id` and bundle reference when available | Never invoke an input prompt or wait on `human_session`. Record human action needed for later inspection; benchmarker continues its campaign policy. |
 
 The callback identifies run, node/attempt (where one exists), verdict and routing action, failed obligations, known effects, evidence references, and required correction. Avoid hidden fixtures, credentials, and unchecked candidate text becoming trusted instructions. Multiple faults in the same halted attempt attach to one correlated request; reconnecting does not create duplicate questions. A reply targets that exact request and is rejected if stale or from another session/run.
 
@@ -67,14 +67,14 @@ Inspect or acknowledge the halt, abort the triage session, repair the environmen
 
 This resolves PRD §4.6.4's “manually correcting the run” as **a new linked run**, consistent with D4 and the absence of partial-DAG rewind in M1. Human triage is a product runtime feature. It introduces no coding approval cards, reviewer assignments or completion gates under Constitution v2.
 
-## Phase 3 clarification before acceptance
+## Delivery Phase 3 clarification before acceptance
 
 ```mermaid
 sequenceDiagram
     participant U as Local interactive user
     participant C as Advanced compiler
     participant H as Protected run control
-    participant V as Verifier
+    participant V as Evaluator Gate
     H->>C: Original request and frozen clarification budget
     C-->>H: Material missing or conflicting requirement
     alt Interactive and budget available
@@ -100,4 +100,4 @@ Successful evaluation produces an inactive candidate and admission evidence. A h
 
 Use the existing **correlated human interaction pattern**: halt/record first, project attention to the current surface, bind a reply to the run and correlation ID. Combine it with the protected decision/release pattern already required by the PRD. This avoids inventing an agent that owns both evaluation and workflow authority.
 
-Local source inspection at JiuwenSwarm `cc29cb0cc5d42b55235d276d23f0a7836dfdcc70` found `_detect_human_waiting_prompts` in `jiuwenswarm/server/runtime/agent_adapter/team_helpers.py`, which projects native waiting states into `chat.ask_user_question`, and `SwarmflowReplyParams` in `jiuwenswarm/common/schema/swarmflow_reply.py`, which carries session, run and correlation IDs. `WorkflowProgress` in `jiuwenswarm/agents/harness/team/handlers/workflow_state.py` separates human nodes and records replies. These are inspected reuse leads, not proven integration. Spec Kit must adapt and verify them so a native reply never automatically resumes rejected research work. Verify these source leads against the implementation checkout before selecting an adapter.
+Local source inspection at JiuwenSwarm `cc29cb0cc5d42b55235d276d23f0a7836dfdcc70` found `_detect_human_waiting_prompts` in `jiuwenswarm/server/runtime/agent_adapter/team_helpers.py`, which projects native waiting states into `chat.ask_user_question`, and `SwarmFlowReplyParams` in `jiuwenswarm/common/schema/swarmflow_reply.py`, which carries session, run and correlation IDs. `WorkflowProgress` in `jiuwenswarm/agents/harness/team/handlers/workflow_state.py` separates human nodes and records replies. These are inspected reuse leads, not proven integration. Spec Kit must adapt and verify them so a native reply never automatically resumes rejected research work. Verify these source leads against the implementation checkout before selecting an adapter.

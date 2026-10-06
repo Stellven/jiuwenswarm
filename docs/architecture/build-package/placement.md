@@ -9,7 +9,7 @@ flowchart TB
     Browser[Browser]
     subgraph App[One application container]
         Web[Web assets and control plane]
-        Planner[Optional Phase 3 planner CC]
+        Planner[Delivery Phase 3 planner CC]
         Binder[Protected contract and guard binder]
         Scheduler[Scheduler]
         Runner[CC runner and native harness]
@@ -90,7 +90,7 @@ Scientific benchmarking executes the user's baseline/treatment protocol. Platfor
 
 ## Offline RSI
 
-The [human-callback policy](failure-and-human.md#offline-rsi-is-a-separate-callback-policy) distinguishes ordinary candidate feedback, session faults and explicit activation. Runtime Verifier (Evaluator Gate), offline referee and fixture oracle are different roles, defined in [the glossary](glossary.md).
+The [human-callback policy](failure-and-human.md#offline-rsi-is-a-separate-callback-policy) distinguishes ordinary candidate feedback, session faults and explicit activation. Runtime Evaluator Gate, offline referee and fixture oracle are different roles, defined in [the glossary](glossary.md).
 
 **Required now for full M1; outside the first build.** Prepare the independent interface early so offline work need not wait for planner implementation. The initial required target is the pure `rank_opportunities` helper inside the Screening CC. Keep its input/output meaning, required dimensions, Top-1 behavior, and effect boundary fixed. Candidate mutations operate on a sandbox copy; production remains unchanged.
 

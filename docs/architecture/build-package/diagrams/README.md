@@ -9,9 +9,9 @@ Generated views of the embedded Mermaid sources. The Markdown pages own meaning;
 | Local Compose topology | [automation.md](../automation.md#local-compose-topology) | [SVG](automation-1.svg) / [PNG](automation-1.png) |
 | Exact verification boundary | [capsules.md](../capsules.md#exact-verification-boundary) | [SVG](capsules-1.svg) / [PNG](capsules-1.png) |
 | Node, contract and participating capsules | [contracts-and-native-reuse.md](../contracts-and-native-reuse.md#node-contract-and-participating-capsules) | [SVG](contracts-and-native-reuse-1.svg) / [PNG](contracts-and-native-reuse-1.png) |
-| Phase 3 is accounted M1 work | [delivery-phases.md](../delivery-phases.md#phase-3-is-accounted-m1-work) | [SVG](delivery-phases-1.svg) / [PNG](delivery-phases-1.png) |
+| Delivery Phase 3 integration accounting | [delivery-phases.md](../delivery-phases.md#delivery-phase-3-integration-accounting) | [SVG](delivery-phases-1.svg) / [PNG](delivery-phases-1.png) |
 | When to call the human | [failure-and-human.md](../failure-and-human.md#when-to-call-the-human) | [SVG](failure-and-human-1.svg) / [PNG](failure-and-human-1.png) |
-| Phase 3 clarification before acceptance | [failure-and-human.md](../failure-and-human.md#phase-3-clarification-before-acceptance) | [SVG](failure-and-human-2.svg) / [PNG](failure-and-human-2.png) |
+| Delivery Phase 3 clarification before acceptance | [failure-and-human.md](../failure-and-human.md#delivery-phase-3-clarification-before-acceptance) | [SVG](failure-and-human-2.svg) / [PNG](failure-and-human-2.png) |
 | Purpose and boundary | [guard-design.md](../guard-design.md#purpose-and-boundary) | [SVG](guard-design-1.svg) / [PNG](guard-design-1.png) |
 | Assignments and check plans | [guard-design.md](../guard-design.md#assignments-and-check-plans) | [SVG](guard-design-2.svg) / [PNG](guard-design-2.png) |
 | Output-led review and controlled disclosure | [guard-design.md](../guard-design.md#output-led-review-and-controlled-disclosure) | [SVG](guard-design-3.svg) / [PNG](guard-design-3.png) |

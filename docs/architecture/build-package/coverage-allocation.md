@@ -2,7 +2,7 @@
 
 Reading map for all 184 numbered feature clauses in the [latest PRD](sources/product/prd-m1-current-2026-10-06.txt). Top-level sections and global restrictions apply across the design. Read exact source bullets and exclusions; a mapped heading is neither an acceptance criterion nor implementation evidence.
 
-[Decisions D1–D15](principles.md#decisions-and-source-amendments) record adopted amendments. [Delivery phases](delivery-phases.md) distinguishes required Phase 1 baseline, required Phase 2 RSI, expected Phase 3 effort/outcome accounting, and the narrower TRIAL-1 slice. Coding agents allocate concrete ACs and interface owners in native records; this table does not duplicate their register.
+[Decisions D1–D15](principles.md#decisions-and-source-amendments) record adopted amendments. [Delivery phases](delivery-phases.md) distinguishes required Delivery Phase 1 baseline, required Delivery Phase 2 RSI, expected Delivery Phase 3 effort/outcome accounting, and the narrower Intent Compilation and Verification Slice (formerly TRIAL-1) slice. Coding agents allocate concrete ACs and interface owners in native records; this table does not duplicate their register.
 
 | PRD clause / exact heading | Architecture responsibility |
 |---|---|

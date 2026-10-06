@@ -4,18 +4,18 @@
 
 **Required now.** Ordinary intake binds the original request and permitted documents, project assets, and validation data to a run. Reject empty or unreadable required input. Do not fetch undeclared datasets, clone arbitrary repositories, or turn missing evidence into observed facts.
 
-D5 separates Intent and Requirement compilation, with independent verification at each boundary. The Phase 1 product entry remains bounded and non-interactive: one orchestration request produces the complete Brief without autonomous solution design. This intentionally permits two bounded compiler invocations rather than the PRD literal one-generation fallback; their combined time/call limits are frozen. TRIAL-1 exercises only the first. The accepted Research Brief states objectives, scope, constraints, deliverables, and evidence obligations. Preserve ambiguity; a material unresolved requirement blocks readiness. Detailed fields and conservative defaults belong to the owning Spec Kit task. These fixed verification assignments cannot be removed by the planner.
+D5 separates Intent and Requirement compilation, with independent verification at each boundary. The Delivery Phase 1 product entry remains bounded and non-interactive: one orchestration request produces the complete Brief without autonomous solution design. This intentionally permits two bounded compiler invocations rather than the PRD literal one-generation fallback; their combined time/call limits are frozen. Intent Compilation and Verification Slice (formerly TRIAL-1) exercises only the first. The accepted Research Brief states objectives, scope, constraints, deliverables, and evidence obligations. Preserve ambiguity; a material unresolved requirement blocks readiness. Detailed fields and conservative defaults belong to the owning Spec Kit task. These fixed verification assignments cannot be removed by the planner.
 
 ```mermaid
 flowchart TB
     Intake[Intake] --> Intent[Intent compiler CC]
-    Intent --> IV[Intent verifier and gate]
+    Intent --> IV[Intent Evaluator Gate]
     IV --> Req[Requirement compiler CC]
-    Req --> RV[Requirement verifier and gate]
-    RV -->|Phase 1 fixed template| Bind[Protected binder and guard assignment]
-    RV -->|Phase 3| Plan[Bounded planner CC]
+    Req --> RV[Requirement Evaluator Gate]
+    RV -->|Delivery Phase 1 fixed template| Bind[Protected binder and guard assignment]
+    RV -->|Delivery Phase 3| Plan[Bounded planner CC]
     Plan --> Bind
-    Bind --> PV[Independent plan verifier and gate]
+    Bind --> PV[Plan Evaluator Gate]
     PV --> Freeze[Freeze accepted graph]
     Freeze --> Run[Execute research DAG]
     Run --> Out[Expose verified delivery]
@@ -32,21 +32,21 @@ flowchart TB
 
 Verification boxes include deterministic checks, a separate verifier invocation, and protected gate application, as specified in [capsules](capsules.md). A clarification or blocking result is recorded through the control plane; headless evaluation returns a blocking status without waiting for interactive input.
 
-Preparation is a protected fixed sequence established by the run-state module before the research graph exists. It gives Intent, Requirements, Planner and their Verifier invocations distinct node/attempt identities, admitted pins, input references, policy and budgets. The same runner and release boundary apply; a pre-freeze invocation is not permission to execute a proposed graph. Freeze authorizes only the later research DAG. This prevents a circular dependency in which the planner would need its own finished graph before it could run.
+Preparation is a protected fixed sequence established by the run-state module before the research graph exists. It gives Intent, Requirements, Planner and their runtime verifier CC invocations distinct node/attempt identities, admitted pins, input references, policy and budgets. The same runner and release boundary apply; a pre-freeze invocation is not permission to execute a proposed graph. Freeze authorizes only the later research DAG. This prevents a circular dependency in which the planner would need its own finished graph before it could run.
 
 The [guard design](guard-design.md) defines shared profile resolution for fixed preparation and planned work. The protected binder remains present in both phases; a planner supplies a proposal, never a replacement for binding or independent guard assignment. Preparation templates are bound and checked before dispatch just as later contract templates are; research graph freeze is the later aggregate authorization.
 
 ## Planner choice and limits
 
-**Phase 1 required baseline:** bind the hardcoded sequential SwarmFlow research graph and its admitted versions without autonomous planning. Check and freeze its contracts exactly as for any graph. It remains an operational fallback, not merely a comparison fixture.
+**Delivery Phase 1 required baseline:** bind the hardcoded sequential SwarmFlow research graph and its admitted versions without autonomous planning. Check and freeze its contracts exactly as for any graph. It remains an operational fallback, not merely a comparison fixture.
 
-**Phase 3 expected M1 integration:** use bounded direct typed CC selection and graph construction under D1. Inputs are accepted requirements, an admitted library snapshot, permitted resources, effective policy, and limits. Output is a captured candidate graph with objective-to-result coverage, input bindings, dependencies, and checking assignments. The planner cannot execute generated plan code, grant access, change active library versions, or waive required verification.
+**Delivery Phase 3 expected M1 integration:** use bounded direct typed CC selection and graph construction under D1. Inputs are accepted requirements, an admitted library snapshot, permitted resources, effective policy, and limits. Output is a captured candidate graph with objective-to-result coverage, input bindings, dependencies, and checking assignments. The planner cannot execute generated plan code, grant access, change active library versions, or waive required verification.
 
 Generate a bounded set of candidates. Deterministic validation rejects missing or ineligible capabilities, incompatible port meanings, cycles, unbound inputs, denied effects, conflicting shared writes, absent verification, and exceeded limits. Semantic plan verification checks that the chosen work addresses the accepted objective; graph shape alone cannot prove coverage. No available capability means infeasible planning, not an invitation to invent one.
 
 Rank feasible candidates first by comparable evidence of successful outcomes, then execution time and available cost. Keep sample counts and uncertainty visible. Unknown reliability remains unmeasured, and unknown cost is not zero. Spec Kit defines the bounded search, comparison rule, conservative defaults, and ties. Preserve a fixed reference graph for regression and matched comparisons. A single feasible candidate provides no evidence of optimization.
 
-This is the best candidate found within a declared search budget, not globally optimal planning. A separate logical-operator layer would add binding flexibility but also another representation to reconcile; direct CC bindings give the Phase 3 path one inspectable execution boundary shared with the static baseline. Retain objective mappings so later logical planning can lower into that same boundary. Separating graph proposal, dependency dispatch and execution makes their evidence and authority independently inspectable.
+This is the best candidate found within a declared search budget, not globally optimal planning. A separate logical-operator layer would add binding flexibility but also another representation to reconcile; direct CC bindings give the Delivery Phase 3 path one inspectable execution boundary shared with the static baseline. Retain objective mappings so later logical planning can lower into that same boundary. Separating graph proposal, dependency dispatch and execution makes their evidence and authority independently inspectable.
 
 ## Freeze and unknown future values
 
@@ -72,9 +72,9 @@ flowchart TB
     end
     H --> Build
     MG --> Eval[Scientific evaluation CC]
-    Eval --> EV[Evaluation verifier and gate]
+    Eval --> EV[Scientific-output Evaluator Gate]
     EV --> Report[Delivery CC]
-    Report --> DV[Delivery verifier and gate]
+    Report --> DV[Delivery Evaluator Gate]
     DV --> O[(Released report and evidence)]
     subgraph Legend[Legend]
         Key[Blue: CC work; purple: verification; amber: infrastructure; green: artifacts]

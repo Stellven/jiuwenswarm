@@ -1,6 +1,6 @@
 # Automated development and platform benchmarking
 
-**Required shape:** a benchmarker drives the workflow exactly as an authenticated user client does. It submits bounded work, observes status, retrieves permitted artifacts, and records terminal outcomes. It cannot write authoritative run state, insert accepted outputs, bypass the Verifier (Evaluator Gate), or mount the hidden RSI fixture store. Detailed commands, APIs and fixtures belong to Spec Kit.
+**Required shape:** a benchmarker drives the workflow exactly as an authenticated user client does. It submits bounded work, observes status, retrieves permitted artifacts, and records terminal outcomes. It cannot write authoritative run state, insert accepted outputs, bypass the Evaluator Gate, or mount the hidden RSI fixture store. Detailed commands, APIs and fixtures belong to Spec Kit.
 
 ## Local Compose topology
 
@@ -37,7 +37,7 @@ The workflow owns its state/artifact volumes; the benchmarker owns campaign outp
 | Finish/retrieve | Structured terminal status, detailed verdict/reason, accepted result references and allowed Run Bundle. Headless failures never wait for a human. |
 | Cancel | Explicit authenticated control action; preserve work already performed and cancellation evidence. It cannot undo external effects. |
 
-The submission contract must support client request identity and reconciliation after uncertain delivery, so automation can discover whether a run was created before retrying. Spec Kit chooses the concrete mechanism. Separate client transport recovery from forbidden automatic capsule retries. For TRIAL-1, allow one active run and sequential campaign cases; no concurrent-run orchestration is needed.
+The submission contract must support client request identity and reconciliation after uncertain delivery, so automation can discover whether a run was created before retrying. Spec Kit chooses the concrete mechanism. Separate client transport recovery from forbidden automatic capsule retries. For Intent Compilation and Verification Slice (formerly TRIAL-1), allow one active run and sequential campaign cases; no concurrent-run orchestration is needed.
 
 Provide a simple documented launch/run/retrieve path and a smoke mode using labeled mocks. A model-backed mode exercises the actual bridge, compiler, verifier and durable release. Both use the same runner and client adapter. A Compose campaign command should return non-success when required cases or prerequisites fail, preserve per-case records, and allow cleanup of replaceable containers without deleting evidence. Exact CLI syntax and Compose service definitions are implementation work, not executable promises in this design.
 
@@ -45,7 +45,7 @@ Campaigns freeze the task set, expected outcomes, profiles, component pins and a
 
 ## Development capabilities worth establishing early
 
-Use shared invocation, output validation, trusted evidence-context assembly, Verifier execution, release persistence and export builders across the trial and full M1. Native UI, CLI and benchmark adapters should call one application use-case boundary rather than reimplementing workflow decisions. Supply inspectable effective configuration and fixture-based mock adapters; protect real runtime paths from test-only verdict injection. Deliberately exercise loss of model access, artifact substitution, storage failure, malformed verifier output and browser/client disconnect through the same boundary.
+Use shared invocation, output validation, trusted evidence-context assembly, runtime verifier CC assessment, protected gate decision, release persistence and export builders across the slice and full M1. Native UI, CLI and benchmark adapters should call one application use-case boundary rather than reimplementing workflow decisions. Supply inspectable effective configuration and fixture-based mock adapters; protect real runtime paths from test-only verdict injection. Deliberately exercise loss of model access, artifact substitution, storage failure, malformed verifier output and browser/client disconnect through the same boundary.
 
 Keep admission tooling capable of validating/pinning the two trial CCs now and additional capabilities later. Preserve exact dependency identities and per-attempt evidence. A port/type compatibility check and a frozen reference graph will be useful for both planner integration and RSI comparison. These capabilities are architectural needs; Spec Kit selects private APIs, diagnostics, thresholds and test mechanisms.
 

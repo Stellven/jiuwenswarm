@@ -1,6 +1,6 @@
 # Full M1: responsibilities and data handoffs
 
-M1 contains a local research journey and operational shell in Delivery Phase 1, independent local-isolated RSI Target 1 in Phase 2, and expected bounded dynamic integration work in Phase 3. [Every phase and stage](delivery-phases.md) has an explicit dependency/exit mapping. [TRIAL-1](immediate-plan.md) implements its first connected boundary. This page plans the remaining system shape; detailed contracts and implementation decomposition belong to Spec Kit. Read the [PRD translation](glossary.md) and [source disposition](coverage.md) alongside it.
+M1 contains a local research journey and operational shell in Delivery Phase 1, independent local-isolated RSI Target 1 in Delivery Phase 2, and expected bounded dynamic integration work in Delivery Phase 3. [Every phase and stage](delivery-phases.md) has an explicit dependency/exit mapping. [Intent Compilation and Verification Slice (formerly TRIAL-1)](immediate-plan.md) implements its first connected boundary. This page plans the remaining system shape; detailed contracts and implementation decomposition belong to Spec Kit. Read the [PRD translation](glossary.md) and [source disposition](coverage.md) alongside it.
 
 ## Research path and ports
 
@@ -9,9 +9,9 @@ The table names **semantic ports**, not final wire fields. Each work output is a
 | Responsibility / source | Needed inputs | Output and next consumer | Important bounds |
 |---|---|---|---|
 | Intake / §3.1 | Original objective, local profile, permitted document paths, supplied project and validation resources | Qualified intake to Intent; separate resource bindings to requirements, Hypothesis, Builder, Benchmark | `.txt`, `.md`, `.pdf` extraction; readability/size qualification and origin metadata. No repository cloning, dataset downloading, or ingestion web search. Identity binding for release is distinct from intake signing. |
-| Intent / §3.2.1–4, §4.7, D5 | Original objective and qualified context | Accepted intent to Requirement compiler | Preserve omissions, conflicts, constraints, and scope without choosing a solution. TRIAL-1 accepts text only. |
+| Intent / §3.2.1–4, §4.7, D5 | Original objective and qualified context | Accepted intent to Requirement compiler | Preserve omissions, conflicts, constraints, and scope without choosing a solution. Intent Compilation and Verification Slice accepts text only. |
 | Requirements / §3.2, §4.7, D5 | Accepted intent, original context, supplied resource references, fixed policy/defaults | `Research_Brief.json` to Planner and all research responsibilities | Mandatory outcomes vs preferences, scope, constraints, metrics, evidence obligations, explicit authorized assumptions. Material uncertainty blocks readiness; defaults are marked as defaults, never attributed to the user. |
-| Static binder / §6.5; Phase 3 planner / §4.8, D1 | Accepted Brief, eligible library snapshot, resource bindings, policy and limits | Checked candidate graph, then frozen graph to Scheduler | Baseline binds the fixed sequence without autonomous planning; Phase 3 may propose compatible nodes. Both preserve responsibilities/coverage and Node Execution Contracts; no live restructuring. Future port values stay references. |
+| Static binder / §6.5; Delivery Phase 3 planner / §4.8, D1 | Accepted Brief, eligible library snapshot, resource bindings, policy and limits | Checked candidate graph, then frozen graph to Scheduler | Baseline binds the fixed sequence without autonomous planning; Delivery Phase 3 may propose compatible nodes. Both preserve responsibilities/coverage and Node Execution Contracts; no live restructuring. Future port values stay references. |
 | Search and ideation / §3.3 | Brief, local extracted documents, permitted academic connectors | `Candidate_Set.json` to Screening; cited source evidence retained for later consumers | Fixed query strategy; bounded local and designated academic retrieval, grouped exact source excerpts, 1–3 grounded ideas. No open-web crawler, search swarm, or iterative query repair. |
 | Screening / §3.4 | Accepted candidates and citations, Brief constraints | `Opportunity_Card.json` to Hypothesis; rejected/deferred reasons and scoring evidence retained | One-pass consolidation; novelty, feasibility, compute alignment on 1–5 scales with reasons; forbidden dependencies filtered. Baseline sum and Top-1 are retained. Tie/missing-score policy is fixed before use. Pure `rank_opportunities` helper is the independent RSI target; candidate improvement does not rewrite incoming dimensions or verifier criteria. |
 | Hypothesis / §3.5 | Accepted opportunity, Brief, supplied baseline and validation resource, cited assumptions | `Hypothesis_Blueprint.json` with frozen protocol to Builder, Benchmark and Evaluation | One claim, mechanism, independent/dependent variables, baseline, fixed measurement functions, success/falsification thresholds and middle-region classification. No invented validation data or actual build code. |
@@ -44,7 +44,7 @@ flowchart TB
     Research -.->|Registered protocol| Conclusion
 ```
 
-The Phase 1 operational graph keeps this sequence and supplies the reversible fallback. Phase 3 D1 permits selecting compatible admitted implementations before freeze; it does not authorize removing these obligations, multiple competing hypotheses, or parallel experimental arms. Each stage may organize private helpers, but a helper does not acquire a new workflow role or broader permissions.
+The Delivery Phase 1 operational graph keeps this sequence and supplies the reversible fallback. Delivery Phase 3 D1 permits selecting compatible admitted implementations before freeze; it does not authorize removing these obligations, multiple competing hypotheses, or parallel experimental arms. Each stage may organize private helpers, but a helper does not acquire a new workflow role or broader permissions.
 
 ## Checking responsibilities
 
@@ -66,7 +66,7 @@ PRD §4.2.9 requires intentional failures as well as advancing examples: malform
 | Information | Writer / authority | Readers and compatibility obligation |
 |---|---|---|
 | Product account and durable profile | Account/profile adapter under authenticated user authority | Stable user ID distinct from OS identity, persistent defaults outside run/workspace lifetime; optional cloud-backed store never owns local release state. |
-| Node Execution Contract and bindings | Protected binder from accepted requirements, admitted pins and policy | Runner and Verifier; node-specific immutable authority, participating invocation IDs and artifact bindings are exported with evidence. |
+| Node Execution Contract and bindings | Protected binder from accepted requirements, admitted pins and policy | CC runner and Evaluator Gate; node-specific immutable authority, participating invocation IDs and artifact bindings are exported with evidence. |
 | Original request and resource registration | Intake under run-state authority | Compilers and authorized work/verifiers; preserve raw content and origin before normalization. Required mutable local assets need a captured snapshot or validated identity before consumption. |
 | Effective configuration and graph freeze | Configuration resolver and protected freeze path | Runner, scheduler, model bridge, verifiers and exports; record requested vs effective state. Changes affect future runs. |
 | Attempt evidence and artifacts | Runner captures observations; artifact store retains immutable content | Gate, downstream accepted consumers, record builders, user inspection. Failed/pre-gate attempts remain attributable; candidate data is inspectable as unaccepted, never advertised as a released result. |
@@ -84,7 +84,7 @@ Store authoritative release state in SQLite and retain PRD-compatible append-onl
 sequenceDiagram
     participant R as Runner
     participant F as Artifact store
-    participant V as Verifier
+    participant V as Evaluator Gate
     participant S as Durable run-state
     participant H as Scheduler
     R->>F: Capture immutable candidate and observations
@@ -116,10 +116,10 @@ Use stable product-account attribution and durable profile defaults, machine-loc
 
 | Extension capability | Boundary to preserve now | Current effort or deferred execution |
 |---|---|---|
-| Advanced compiler | Accepted Brief meaning, attribution, versioned adapter and verification | Expected Phase 3 attempt, not blanket deferral; later richer modes need explicit supported scope. Retain bounded baseline fallback. |
+| Advanced compiler | Accepted Brief meaning, attribution, versioned adapter and verification | Expected Delivery Phase 3 attempt, not blanket deferral; later richer modes need explicit supported scope. Retain bounded baseline fallback. |
 | Composite CCs and fusion | Typed boundary ports, pinned closure, member evidence/checks, effects and lineage | Composite execution only when supported; fusion separately admitted against unfused reference. No opaque unchecked internal work. |
 | Better planning / interaction analysis | Objective mapping, typed graph, library snapshot, evidence uncertainty, effect/precondition parity | Logical lowering, MCTS risk analysis, multiple epochs and richer search remain future decisions. |
-| Additional model routes | Audited bridge, role/profile identity, actual effective route and capability constraints | Approved heterogeneous routing and alternate verifier are Phase 3 efforts; later routes reuse the seam. No silent model/context changes. |
+| Additional model routes | Audited bridge, role/profile identity, actual effective route and capability constraints | Approved heterogeneous routing and alternate verifier are Delivery Phase 3 efforts; later routes reuse the seam. No silent model/context changes. |
 | Broader RSI targets | Target allowlist, frozen contract and protected transitive closure, bounded evaluation/feedback, inactive lineage | Fixed improver can later be replaceable through a versioned interface; changing the referee or activation boundary is excluded. |
 | Mid-run installation/removal or remote workers | Invocation/attempt identity, dependency closure, scoped resource/effect semantics, durable readiness | Separate lifecycle/lease and compensation design; removal never erases history or claims effects were undone. |
 | Larger benchmark campaigns | Ordinary headless client protocol, profile pins, export versions and audience restrictions | Larger datasets, concurrency and alternate suites must respect domain/access gates and resource budgets. |

@@ -16,7 +16,7 @@
 
 No dependency on a finished planner is needed to define these interfaces. The pure helper, fixed parent contract and meaningful fixtures are runtime prerequisites for actual optimization. Native headless calls and existing RSI components are reuse leads; they must cross the shared audited model/evidence boundary rather than create another unaudited model client.
 
-Target 2 may mutate explicitly permitted Screening implementation prompt/rubric text, including approved numerical work-rubric content, while required dimensions and downstream interface remain fixed. A **work scoring rubric** is distinct from a **Verifier/referee rubric**. The latter is always frozen. If bounded headless model execution is unavailable, defer Target 2 to M2 without waiving Target 1.
+Target 2 may mutate explicitly permitted Screening implementation prompt/rubric text, including approved numerical work-rubric content, while required dimensions and downstream interface remain fixed. A **work scoring rubric** is distinct from a **runtime verifier CC / RSI referee rubric**. The latter is always frozen. If bounded headless model execution is unavailable, defer Target 2 to M2 without waiving Target 1.
 
 ## Data needed from day one
 

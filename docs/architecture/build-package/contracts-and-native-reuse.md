@@ -81,7 +81,7 @@ flowchart LR
     Runner --> C2[Supporting CC invocation]
     C1 --> Evidence[(Per-invocation evidence and candidate outputs)]
     C2 --> Evidence
-    Evidence --> Gate[Aggregate node Verifier and protected commit]
+    Evidence --> Gate[Aggregate node Evaluator Gate and protected commit]
     Contract --> Gate
     Gate --> Result[(Exact accepted node outputs)]
 ```
@@ -116,7 +116,7 @@ These observations come from local source inspection, not an AI4Research accepta
 | `CapabilityIO`, `CapabilityDescriptor`, `SourceSnapshot` in `../openjiuwen/agent-core/openjiuwen/symphony/models/capability.py` | Project admitted declarations into a normalized read-only discovery catalogue | Full artifact schema references, effect/resource authority, admission standing and pinned runtime bindings |
 | `CapabilityFingerprint` and `FingerprintArtifact` in upstream `symphony/models/fingerprint.py` | Reuse semantic description, version/hash metadata and reproducible catalogue snapshots for candidate matching | Treat extracted fingerprints as derived metadata; an LLM extraction cannot replace the authored declaration or grant permissions |
 | `CapabilityProvider` and `AtomicCapabilityProvider` in upstream `symphony/interfaces/capability.py`; `ScanResultCapabilityProvider` and `FingerprintArtifactCapabilityProvider` in `jiuwenswarm/symphony/adapter.py` | Add an admitted-library provider through the existing provider seam; capture inventory and identity consistently | Filter eligible versions, preserve canonical identities and schema/check references, and prevent stale catalogue data from authorizing execution |
-| `SkillFolderScanner`, `FingerprintService` and `SymphonyRuntime` imports in `jiuwenswarm/symphony/build.py` | Reuse existing catalogue build and graph-artifact infrastructure where compatible | Folder presence is not admission; static Phase 1 bindings must not depend on live semantic search |
+| `SkillFolderScanner`, `FingerprintService` and `SymphonyRuntime` imports in `jiuwenswarm/symphony/build.py` | Reuse existing catalogue build and graph-artifact infrastructure where compatible | Folder presence is not admission; static Delivery Phase 1 bindings must not depend on live semantic search |
 | `OrchestrationService.plan` in upstream `symphony/orchestration/service.py`; `SymphonyGraphEngine` in upstream `symphony/graph_engine.py` | Evaluate bounded planning and graph lifecycle support for the dynamic path | Accepted Research Brief adapter, deterministic feasibility checks, node-contract assembly, freeze, gate-controlled dispatch and fallback |
 | `SwarmSymphonyService` in `jiuwenswarm/symphony/service.py` and upstream `SymphonyRuntime` in `symphony/runtime.py` | Reuse existing application adapters and capture seams rather than inventing an independent Symphony integration | Prove run/attempt identity, evidence completeness, admission and gate semantics at the connected boundary |
 
@@ -132,4 +132,4 @@ This repository pins OpenJiuwen agent-core revision `9e3390195a9ea15235b2b5f7412
 
 The inspected shell's Python reported Pydantic `2.13.5`; resolving `openjiuwen` found the sibling namespace directory, not an installed agent-core package. No AI4Research/Symphony runtime compatibility test was performed, and no dependency pin was changed. An implementation TASK must first establish its actual environment, confirm the installed dependency matches the recorded pin, and then test the admitted-library adapter and one connected governed invocation before claiming native integration.
 
-The accepted architecture responsibilities and unresolved source decisions belong in [workflow](workflow.md), [capsules](capsules.md), [placement](placement.md) and [principles](principles.md). Exact schemas, APIs and tests remain the owning Spec Kit feature's work. Source §4.8 retains older Phase 2/dynamic-test wording while §§1.3 and 6.12 place dynamic integration in M1 Delivery Phase 3; reconcile that source discrepancy explicitly rather than treating it as implementation authority.
+The accepted architecture responsibilities and unresolved source decisions belong in [workflow](workflow.md), [capsules](capsules.md), [placement](placement.md) and [principles](principles.md). Exact schemas, APIs and tests remain the owning Spec Kit feature's work. Source §§1.3, 4.8 and 6.12 place dynamic integration in M1 Delivery Phase 3. The Leader's preliminary proposal checks remain separate from protected plan acceptance under D14.

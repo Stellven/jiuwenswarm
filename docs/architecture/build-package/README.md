@@ -6,7 +6,7 @@ Architecture baseline, 2026-10-06. This describes intended behavior; runtime imp
 
 1. Read the [latest verbatim PRD](sources/product/prd-m1-current-2026-10-06.txt) for product obligations.
 2. Read this overview and [decisions D1–D15](principles.md#decisions-and-source-amendments) for the adopted architecture and explicit amendments.
-3. Read [TRIAL-1](immediate-plan.md) for the first connected slice, then [the coding handoff](handoff.md).
+3. Read [Intent Compilation and Verification Slice (formerly TRIAL-1)](immediate-plan.md) for the first connected slice, then [the coding handoff](handoff.md).
 4. Use the relevant architecture pages below and [clause map](coverage-allocation.md) for the assigned responsibility.
 
 This is the sole maintained product/design package. Spec Kit and coding agents create or reconcile coding records from these inputs and choose detailed realization. Existing task records are optional identity/history references, not a competing specification. Repository code, installed tooling and live development instructions remain execution prerequisites. [Historical references](history.md) are optional.
@@ -18,7 +18,7 @@ Turn a research objective and supplied baseline into an evidence-grounded opport
 Labels distinguish implementation obligations; use the delivery-phase qualifier wherever behavior differs:
 
 - **Required now:** behavior required for full M1, except where the [first build](immediate-plan.md) explicitly narrows its slice.
-- **Expected M1 Phase 3:** applicable integration must be attempted and evidenced; a documented gap is not automatically a core-demo blocker.
+- **Expected M1 Delivery Phase 3:** applicable integration must be attempted and evidenced; a documented gap is not automatically a core-demo blocker.
 - **Required compatibility:** contract meaning and extension boundaries that must survive the first implementation; runtime support may come later.
 - **Future direction:** an approach to investigate, not permission to implement or a claim that it works.
 
@@ -32,9 +32,9 @@ Architecture fixes intent, responsibilities, placement, connections, and importa
 | [Guard design](guard-design.md) | Who assigns reusable checks, what is frozen, and how does output-led review avoid leaks and self-certification? |
 | [Placement and reuse](placement.md) | What runs where and what is reused? |
 | [Principles and decisions](principles.md) | Why these choices, and which PRD assumptions changed? |
-| [TRIAL-1](immediate-plan.md) | What is the first connected implementation? |
-| [Delivery phases and stages](delivery-phases.md) | What must every M1 phase/stage demonstrate, and how does TRIAL-1 contribute? |
-| [Contract shapes and native reuse](contracts-and-native-reuse.md) | What do intent, requirements and node contracts contain; what can Pydantic and Symphony supply? |
+| [Intent Compilation and Verification Slice](immediate-plan.md) | What is the first connected implementation? |
+| [Delivery phases and stages](delivery-phases.md) | What must every M1 phase/stage demonstrate, and how does Intent Compilation and Verification Slice contribute? |
+| [Contract shapes and native reuse](contracts-and-native-reuse.md) | What do intent, requirements and node contracts contain; which native components may be reused? |
 | [Usage challenges](usage-scenarios.md) | Which varied scenarios were accounted for, and what remains unrun? |
 | [M1 handoffs](m1-design.md) | What does every stage need and produce? |
 | [Human callbacks](failure-and-human.md) | When does failure request human action, and what may a reply do? |
@@ -45,57 +45,26 @@ Architecture fixes intent, responsibilities, placement, connections, and importa
 
 The short core pages give orientation; the M1, callback and automation views supply essential connections. Existing historical task records do not override current requirements.
 
-## Glossary
+## Vocabulary and PRD crosswalk
 
-| Term | Meaning |
-|---|---|
-| CC | Reusable capability declaration and referenced implementation |
-| Node | Runtime objective instance governed by a Node Execution Contract; may invoke one or more CCs |
-| Node Execution Contract | Run-specific objective, bound ports, checks, evidence, limits and exact admitted CC versions |
-| Invocation | One attributable call beneath a node/attempt; distinct from the node |
-| Task | Logical objective grouping one or more nodes; distinct from a coding TASK |
-| Run | One request and its recorded workflow execution |
-| Delivery Phase | M1 baseline (1), local-isolated RSI (2), or dynamic integration (3) |
-| Implementation Stage | Engineering integration milestone 0–8; distinct from research responsibilities and native runtime phases |
-| Freeze | Durable acceptance of a graph, version pins, verification assignments, policy, and limits |
-| Verifier (Evaluator Gate) | One logical checking/release boundary, with deterministic checks, semantic assessment and protected decision/release |
-| Guard profile / check plan | Independently approved reusable recipe / its immutable assignment to a governed invocation |
-| Protected binder | Assembles contracts and mandatory guard assignments; a planner never assigns its own trusted policy |
-| Runtime verifier CC | Read-only semantic assessment inside that boundary |
-| Protected gate host | Authoritative decision/release responsibility inside the Verifier; never an independent agent |
-| Library | Admitted declarations and implementations, version history, and active-version references |
-| Artifact | Stored input, output, or evidence with attributable identity |
-| Declaration | Authored capability contract; distinct from its code and a particular invocation |
-| Admission | Recorded eligibility of an immutable version for supported use |
-| Activation | Human-controlled selection of an admitted version for future runs |
-| Suspension | Revocation of eligibility to start or release affected work; no automatic replacement |
-| Evidence | Attributable observations and artifacts supporting a check or conclusion |
-| Assessment | Verifier findings and reasons; distinct from the authoritative gate decision |
-| Research Brief | Accepted research requirements consumed by planning; more complete than intermediate intent |
-| Protocol | Pre-registered experimental procedure and scientific decision criteria |
-| Composite CC | Capability with pinned member CCs, internal DAG, and boundary wiring |
-| RSI | Offline recursive self-improvement of explicitly eligible implementation parts |
-| TASK / TASKS | Coding-task entry point / program source and allocation register |
-| Spec Kit feature | One TASK's native spec, plan, work list, and implementation evidence |
-
-The [full PRD translation](glossary.md) defines runtime verifier profiles, scientific evaluator, RSI referee, fixture oracle, identities, outcome mappings and naming/schema principles.
+Use the [canonical vocabulary and PRD crosswalk](glossary.md) for component responsibilities, delivery phases, implementation stages, research steps and source aliases. This page owns navigation; the glossary owns terminology definitions.
 
 ## System picture
 
-**Required now.** These are logical modules on one authorized local execution host. Durable product identity/profile state is separate from workspace state and may later use a cloud-backed store. The Phase 1 fixed workflow and Phase 3 planner share the same governed execution boundary.
+**Required now.** These are logical modules on one authorized local execution host. Durable product identity/profile state is separate from workspace state and may later use a cloud-backed store. The Delivery Phase 1 fixed workflow and Delivery Phase 3 planner share the same governed execution boundary.
 
 ```mermaid
 flowchart LR
     Client[User or benchmark client] --> UI[Local control plane]
     subgraph Preparation[Preparation through shared runner and checks]
         Prep[Intent and requirements CCs]
-        Planner[Phase 3 planner CC]
+        Planner[Delivery Phase 3 planner CC]
         Binder[Protected binder]
         Prep -->|Static template| Binder
         Prep -->|Dynamic proposal| Planner --> Binder
     end
     UI --> Prep
-    Binder --> Freeze[Independent plan gate and freeze]
+    Binder --> Freeze[Plan Evaluator Gate and freeze]
     Freeze --> Runner[Scheduler and governed CC runner]
     Runner --> Work[Research work CCs]
     Work --> Guard[Deterministic checks then read-only verifier CC]
@@ -125,7 +94,7 @@ Every work CC, including the planner and delivery, has verification. The diagram
 |---|---|
 | Intent compiler | Preserve the requested objective, scope, constraints, and unresolved information |
 | Requirement compiler | Form the accepted Research Brief used for planning |
-| Static graph binding / Phase 3 planner | Baseline binds the fixed research graph; isolated dynamic path proposes bounded objectives, CC selections, connections and checks |
+| Static graph binding / Delivery Phase 3 planner | Baseline binds the fixed research graph; isolated dynamic path proposes bounded objectives, CC selections, connections and checks |
 | Search and ideation | Retrieve permitted evidence and produce cited candidate ideas |
 | Screening | Score and select one feasible opportunity; retain the pure ranking helper needed by offline RSI |
 | Hypothesis | Establish the claim, baseline, data, measurement, and frozen experimental protocol |
@@ -143,4 +112,4 @@ Intake transport, simple input qualification, scheduling, integrity checks, gate
 
 The [latest user-supplied PRD](sources/product/prd-m1-current-2026-10-06.txt) remains verbatim. [Delivery phases](delivery-phases.md) distinguishes core demo acceptance from accounting for all M1 dynamic integration work. [Decisions](principles.md#decisions-and-source-amendments) record intentional exceptions. The [coding entry](handoff.md) identifies the live allocation authorities.
 
-Give coding agents exact clauses and the relevant architecture pages through [TASKS → TASK → Spec Kit](handoff.md). The first intent pair is a limited trial. Complete M1 includes all three delivery phases, with every applicable Phase 3 effort attempted and reported. It also requires CLI/headless execution, native web UI and TUI, installation/startup diagnostics, local terminal sessions, security/configuration (PRD 5.1–5.6), evidence exports, and offline RSI validation.
+Give coding agents exact clauses and the relevant architecture pages through [TASKS → TASK → Spec Kit](handoff.md). The first intent pair is a limited trial. Complete M1 includes all three delivery phases, with every applicable Delivery Phase 3 effort attempted and reported. It also requires CLI/headless execution, native web UI and TUI, installation/startup diagnostics, local terminal sessions, security/configuration (PRD 5.1–5.6), evidence exports, and offline RSI validation.
