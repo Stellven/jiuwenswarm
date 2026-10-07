@@ -1,4 +1,4 @@
-# AI4Research test runner sidecar draft
+# AI4Research sidecar: client-validation runner
 
 ```mermaid
 flowchart TB
@@ -24,7 +24,7 @@ The proposed Docker Compose arrangement gives the team a common way to run bound
 
 ## Scope and authority
 
-Draft for discussion, 2026-10-06. This is optional development tooling external to the AI4Research workflow. This subtree is excluded from the product architecture reading set and automatic M1 task or Spec Kit allocation. It adds no AI4Research implementation obligations. Future implementation needs a separate tooling scope and specification.
+Client-validation role within the [development sidecar](../sidecar/README.md), originally drafted 2026-10-06. This is optional development tooling external to the AI4Research workflow. The broader sidecar supports registered container diagnostics through a separate host executor; this client runner retains the narrower permissions below. Sidecar availability never blocks product delivery. This subtree is excluded from the product architecture reading set and automatic M1 task or Spec Kit allocation. It adds no AI4Research implementation obligations. Future implementation needs a separate tooling scope and specification.
 
 The existing [automation boundary](../../automation.md) supplies the compatibility principle: use the same governed client contract as other clients. Described seams are intended architecture, not proof of implemented endpoints. Missing seams are reported as dependencies. Any application interface change follows the existing product change process separately.
 

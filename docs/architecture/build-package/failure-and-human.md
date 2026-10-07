@@ -2,7 +2,7 @@
 
 **Decision:** every blocking product failure stops new dispatch and creates an attributable human-action request after available evidence is preserved. Interactive sessions use native `human_session` / interaction prompts for triage. Headless sessions return a terminal status immediately and never wait for a reply. Human triage cannot turn failed mandatory checks into an advancing verdict.
 
-The **Evaluator Gate** contains deterministic checks, a runtime verifier CC semantic assessment, and protected host decision/release responsibilities. The harness applies its recorded routing action; neither a producer nor a model-generated “pass” controls scheduling. See [vocabulary](glossary.md) and [verification](capsules.md).
+The **Evaluator Gate boundary** composes deterministic checks, a runtime verifier CC assessment and protected host decision/release. Verifier capsules are CCs; gates are protected infrastructure. The verifier reports an assessment verdict about the bound subject, while the gate validates/interprets that verdict under policy and controls advancement through durable run-state and scheduler readiness. The harness applies its recorded routing action; neither a producer nor a model-generated “pass” controls scheduling. See [vocabulary](glossary.md) and [verification](capsules.md).
 
 ## When to call the human
 
@@ -29,7 +29,7 @@ Freeze interaction mode and originating session with effective run configuration
 sequenceDiagram
     participant C as User or headless client
     participant H as Harness
-    participant V as Evaluator Gate - Evaluator Gate
+    participant V as Protected Evaluator Gate boundary
     participant S as Run-state authority
     H->>V: Exact candidate, evidence and protected profile
     V->>V: Deterministic checks, then semantic assessment if allowed

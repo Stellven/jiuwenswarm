@@ -5,6 +5,7 @@ Generated views of the embedded Mermaid sources. The Markdown pages own meaning;
 | View | Owning source | Rendered view |
 |---|---|---|
 | System picture | [README.md](../README.md#system-picture) | [SVG](README-1.svg) / [PNG](README-1.png) |
+| Composition and authority | [README.md](../README.md#composition-and-authority) | [SVG](README-2.svg) / [PNG](README-2.png) |
 | Architecture inputs and coding authorities | [authority-index.md](../authority-index.md#architecture-inputs-and-coding-authorities) | [SVG](authority-index-1.svg) / [PNG](authority-index-1.png) |
 | Local Compose topology | [automation.md](../automation.md#local-compose-topology) | [SVG](automation-1.svg) / [PNG](automation-1.png) |
 | Exact verification boundary | [capsules.md](../capsules.md#exact-verification-boundary) | [SVG](capsules-1.svg) / [PNG](capsules-1.png) |
@@ -23,4 +24,4 @@ Generated views of the embedded Mermaid sources. The Markdown pages own meaning;
 | Establish intent before planning | [workflow.md](../workflow.md#establish-intent-before-planning) | [SVG](workflow-1.svg) / [PNG](workflow-1.png) |
 | Tasks, nodes, and verification | [workflow.md](../workflow.md#tasks-nodes-and-verification) | [SVG](workflow-2.svg) / [PNG](workflow-2.png) |
 
-All 18 current diagrams parsed and rendered successfully. Views include guard reuse/binding, scoped evidence disclosure, plan authority, multi-CC verification, durable release, clarification and human callbacks. Rendering validates document syntax and presentation, not runtime behavior. Historical diagrams are excluded.
+All 19 current diagrams parsed and rendered successfully. Views include guard reuse/binding, scoped evidence disclosure, plan authority, multi-CC verification, durable release, clarification and human callbacks. Rendering validates document syntax and presentation, not runtime behavior. Historical diagrams are excluded.

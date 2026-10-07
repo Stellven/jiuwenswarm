@@ -30,7 +30,7 @@ Turn a supplied research objective and baseline into grounded opportunity, falsi
 
 Maintain a small architectural core. Add detail here only when its omission could change a module's responsibility, consumer, authority, failure outcome or extension seam. Put schemas, algorithms, prompt wording, numerical tuning and concrete tests in the owning specification. PRD amendments belong in decisions; product feature detail stays in the PRD. New detail should replace duplication or expand a targeted deeper page, rather than enlarge every reader's route.
 
-Optional [test-runner tooling](development-tools/test-runner/README.md) is outside product/design inputs and automatic M1 allocation. [Historical sources](history.md) are provenance only. The separate [very condensed design](../very-condensed-design.md) covers the same full M1 scope and architectural intent with far less detail. Either design, accompanied by the PRD, is intended to guide an M1 build. Only the current comparison experiment is limited to the Intent Compilation and Verification Slice; reduced detail does not reduce product scope. The condensed file remains an experimental projection of this maintained baseline.
+The separate [development sidecar](development-tools/sidecar/README.md) defines reusable diagnostics and validation tooling, including the [client test runner](development-tools/test-runner/README.md). It is outside product inputs and automatic M1 allocation; its implementation does not block product delivery. [Historical sources](history.md) are provenance only. The separate [very condensed design](../very-condensed-design.md) covers the same full M1 scope and architectural intent with far less detail. Either design, accompanied by the PRD, is intended to guide an M1 build. Only the current comparison experiment is limited to the Intent Compilation and Verification Slice; reduced detail does not reduce product scope. The condensed file remains an experimental projection of this maintained baseline.
 
 ## System picture
 
@@ -68,6 +68,43 @@ flowchart LR
 ```
 
 Arrows represent governed handoffs, not calls that bypass checks. The runtime feedback edge releases dependency-ready work; the frozen research graph remains acyclic. The planner proposes and the binder assigns; neither producer nor assessor owns release. [Placement](placement.md) shows model and generated-code isolation. Use [scalable diagram views](diagrams/README.md) for larger system views.
+
+## Composition and authority
+
+**A verifier is a kind of capability capsule. A gate is a protected control component that uses checking results; it is not a kind of capsule.** Capsule authors define implementations and may propose checks. They do not own the policy that accepts their work or releases successor nodes.
+
+Let `C` be admitted capability capsule versions, `V` runtime verifier capsule versions, and `G` protected gate components. These are logical role categories, not directories or deployment processes.
+
+| Relation | Exact meaning |
+|---|---|
+| `V ⊆ C` | Every runtime verifier is a CC; not every CC is a verifier. |
+| `G ∩ C = ∅` | Gate authority is outside capsule execution. A gate may invoke a verifier without becoming that verifier. |
+| `i_verify ≠ i_produce` | Reviewing and producing use separate invocations, protected contexts and scoped permissions. Shared implementation/provider does not grant self-release. |
+| `Advance ⇒ MandatoryPass ∧ AcceptedAssessment ∧ EligiblePins ∧ DurableCommit` | Positive assessment alone cannot advance work. Protected policy and durable release are necessary. |
+
+Here `Advance` means releasing governed work; `MandatoryPass` means required deterministic/evidence obligations pass; `AcceptedAssessment` means the gate accepts the semantic findings under policy; `EligiblePins` means versions remain eligible; `DurableCommit` means the exact decision and references have persisted.
+
+A verifier's inputs are the **review package**: the exact subject artifact/output, accepted source inputs, obligations and relevant evidence. It returns an **assessment verdict** about whether that subject satisfies those obligations, with reasons and uncertainty. This is a recommendation, not a scheduling command. The gate validates and interprets that verdict together with deterministic checks and protected policy, then issues the authoritative gate decision. Run-state commits it; the scheduler applies committed readiness to control flow. Missing or malformed assessment grants no advancement.
+
+```mermaid
+flowchart TB
+    subgraph Capsules[Capability capsules C]
+        Producer[Producer capsule]
+        subgraph Verifiers[Verifier capsules V: subset of C]
+            Verifier[Read-only verifier capsule]
+        end
+    end
+    Producer -->|Exact output and evidence| Review[Protected review package]
+    Review --> Verifier
+    Review --> Checks[Deterministic checks]
+    Verifier -->|Assessment verdict: no control authority| Gate[Protected gate: interpret under policy]
+    Checks -->|Check results| Gate
+    Policy[Bound obligations and policy] --> Gate
+    Gate -->|Authoritative decision| State[Durable run-state commit]
+    State -->|Committed readiness| Scheduler[Scheduler: advance or halt]
+```
+
+The capsule box denotes type membership; arrows denote data use and authority handoff, not parallel execution. Mandatory deterministic checks pass before semantic assessment runs. The gate/check/state/scheduler boxes are protected infrastructure roles, not subclasses of CC. A check's implementation may itself be an admitted CC; its packaging never supplies gate authority. The [glossary](glossary.md#composition-notation) defines the remaining instance, binding and permission relations.
 
 ## Complete capability inventory
 

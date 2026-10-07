@@ -2,6 +2,8 @@
 
 ## Invocation and authority
 
+`V ⊆ C`: runtime verifier capsules are a subset of capability capsules. `G ∩ C = ∅`: protected gates are separate infrastructure roles. The [composition notation](glossary.md#composition-notation) distinguishes subtype, dependency, binding and permission intersection. A gate uses a verifier assessment; it does not inherit capsule identity or delegate release authority to the capsule author.
+
 **Required now.** A CC describes a reusable capability; a node is a runtime objective with a separate Node Execution Contract and one or more pinned CC bindings. The [field reference](capsule/declaration.md) preserves its authored contract. The runner resolves the pinned implementation, binds accepted inputs and scoped context, enforces permissions and limits, executes known code or a bounded native agent loop, and captures actual outcomes.
 
 A node contract restricts each CC independently: effective authority is the intersection of that CC’s admission, the node contract and run policy. Permissions from another bound CC are never transferred or unioned into its authority. Node-wide budgets cover every invocation, and each invocation also obeys its own limits. A finite declared invocation/dependency arrangement is required before dispatch; unsupported composition blocks binding.
@@ -18,11 +20,11 @@ Reusable guard definitions, full-context check-plan binding, independent profile
 flowchart TB
     Work[Work CC invocation] --> Capture[Capture exact result and runtime evidence]
     Capture --> T1{Deterministic checks pass?}
-    T1 -->|No| Halt[Record blocking outcome; stop new dispatch]
+    T1 -->|No: assessment not run| Gate
     T1 -->|Yes| Verifier[Read-only verifier CC]
-    Verifier --> Validate[Validate assessment and evidence references]
-    Validate --> Gate{Protected gate policy}
-    Gate -->|Blocking or uncertain| Halt
+    Verifier -->|Assessment verdict| Validate[Validate assessment and evidence references]
+    Validate --> Gate{Protected gate interprets checks and assessment}
+    Gate -->|Authoritative blocking decision| Halt[Record blocking outcome; stop new dispatch]
     Gate -->|All mandatory obligations pass| Commit[Commit decision and accepted artifact identity]
     Commit --> Next[Release result to dependent work]
     subgraph Legend[Legend]
@@ -48,7 +50,7 @@ Bind the decision to run, node, attempt, Node Execution Contract identity/hash/r
 
 ## Evaluator Gate internals and referee protection
 
-**Required now.** The Evaluator Gate contains deterministic checks, runtime verifier CC semantic assessment, and protected host decision/release responsibilities. A runtime verifier CC supplies the semantic part: “this result violates the contract; stop.” Protected runtime code owns application of that assessment, durable release, and scheduler readiness. A CC-supplied boolean or free-text instruction never unlocks work directly. The protected host applies the gate decision and owns durable release; the runtime verifier CC supplies assessment only. [Human callbacks](failure-and-human.md) define every non-advancing outcome and mode-specific routing.
+**Required now.** The Evaluator Gate boundary composes deterministic checking, a runtime verifier CC assessment and protected decision/release infrastructure. The verifier returns an **assessment verdict**: for example, “the submitted result violates this obligation,” with evidence and uncertainty. It reports conformance of the exact subject against accepted inputs and obligations, not an instruction to stop or advance. The protected gate interprets that assessment with mandatory check results and bound policy, then issues the **authoritative gate verdict**. Run-state must durably commit that decision before the scheduler advances. The capsule author, producer and verifier have no successor-dispatch or acceptance-policy authority; a supplied boolean or free-text command never changes outer control flow directly. [Human callbacks](failure-and-human.md) define every non-advancing outcome and mode-specific routing.
 
 Verification CCs end the semantic checking branch. Mechanically validate their response; do not generate an endless verifier-of-verifier chain. Pin and test them through separate development evaluation. Sharing a provider gives process separation, not independent model failure modes or a truth guarantee. Use protected labeled challenge cases to characterize omissions, unsupported claims, ambiguity, and instruction injection; record observed errors and limitations. Spec Kit determines cases, metrics, and thresholds before measuring the candidate.
 
