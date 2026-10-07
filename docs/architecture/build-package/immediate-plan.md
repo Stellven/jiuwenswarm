@@ -6,6 +6,8 @@ Architecture slice, 2026-10-06. **Required now for this slice:** implement the c
 
 ## Intended result
 
+Apply the overview's [readiness meanings](README.md#module-readiness-and-output-quality): this slice is connected when original text becomes faithfully checked, durably accepted intermediate intent or a visible non-advancing outcome. A later Requirement compiler is the intended consumer, but its complete Brief is outside this slice. Concrete tests and thresholds belong to the native specification; this design does not claim downstream or full-stage acceptance.
+
 A user submits a text objective through the existing local web UI. Ordinary intake rejects empty input and binds the original text to a new run. The compiler extracts the objective, desired outcome, explicit scope, and stated constraints without choosing a solution or adding unsupported requirements. Preserve omissions, conflicts, and missing information visibly.
 
 The verifier receives the original request, exact compiler output, declared responsibility, and protected fidelity rubric in a separate invocation. It assesses material omissions, unsupported additions, scope drift, and unresolved ambiguity. The producer cannot edit this rubric or the verifier context. A semantically faithful result becomes an accepted intermediate intent artifact; a blocking or unclear result leaves a visible reason and no accepted artifact.

@@ -46,6 +46,8 @@ Complete M1 also includes attributable model calls, time/call limits, run bundle
 
 ## Architecture and Spec Kit
 
+The overview owns the breadth-first human review route and module readiness meanings. Review responsibility, connections, authority and extension intent here; deepen only where a consequential ambiguity remains. The PRD travels alongside the design. Detailed native records expand this last whole-system design layer for implementation rather than requiring humans to review every generated detail.
+
 Architecture owns intent, major responsibilities, trust boundaries, placement, critical connections, the required CC fields, and the decisions above. Spec Kit owns detailed interfaces, formats, algorithms, prompts, fixture design, development acceptance criteria, tests, and build order under the [live constitution](../../../.specify/memory/constitution.md).
 
 Do not confuse development acceptance criteria with runtime scientific criteria. Experimental success/falsification boundaries belong to the accepted protocol before execution; coding agents cannot revise them in response to results. Separate verifier characterization from a claim of truth or statistical independence.

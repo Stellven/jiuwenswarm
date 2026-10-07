@@ -1,5 +1,7 @@
 # From architecture to specification
 
+Start with the [module map and readiness guidance](README.md#module-readiness-and-output-quality). Architecture fixes when a module is usable at its boundary; coding records define how to demonstrate that with concrete acceptance, fixtures, thresholds and connected evidence. Product requirements stay in the accompanying PRD.
+
 Read [the PRD](sources/product/prd-m1-current-2026-10-06.txt), [decisions](principles.md#decisions-and-source-amendments), [Intent Compilation and Verification Slice (formerly TRIAL-1) design](immediate-plan.md), [CC fields](capsule/declaration.md), [guard boundaries](guard-design.md), [failure routing](failure-and-human.md), and [placement](placement.md). The full [clause map](coverage-allocation.md) and [stage exits](delivery-phases.md) identify later responsibilities.
 
 This build package supplies architecture and the PRD. It does not register coding tasks, generate native artifacts, or modify Spec Kit. Before generation, the coding owner must register Intent Compilation and Verification Slice distinctly under the live development workflow, preserving existing coding identities where applicable. Choose the registered TASK identifier and colocated feature directory under the live [Code SOP](../../code/Code_SOP.md), [Spec Kit workflow](../../code/code_sop/SPEC_KIT_WORKFLOW.md), and [constitution](../../../.specify/memory/constitution.md).

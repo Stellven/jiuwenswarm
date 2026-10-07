@@ -1,68 +1,40 @@
 # AI4Research M1 Design Package — Current Architecture
 
-**Current as of October 7, 2026 · PRD received October 6 · branch `ai4r_muk`.** This folder is the sole maintained project architecture and product/design reading package. **Design-package** and **build-package** name this same package; the canonical folder remains `docs/architecture/build-package/`.
+**October 7, 2026 · PRD received October 6 · branch `ai4r_muk`.** Design-package and build-package name this same maintained architecture at `docs/architecture/build-package/`. Send the PRD alongside it.
+
+This is the last whole-system design layer intended for complete human review before agents expand it into detailed specifications and implementation. It explains which modules exist, why, how they connect, who has authority, and what readiness means. The PRD owns product behavior, exclusions and acceptance; this design does not repeat its feature catalogue. Recorded amendments remain explicit. Detailed realization and evidence belong to native coding records.
 
 | State | Meaning |
 |---|---|
-| Design | Architecture baseline adopted; first slice ready for detailed specification under the recorded decisions. |
-| First build | **Intent Compilation and Verification Slice (formerly TRIAL-1)**, within M1 Delivery Phase 1. Ends at accepted intermediate intent or durable halt; the complete Research Brief and research run come later. |
-| Coding | Current TASK/IF registration and source reconciliation are pending in [M1 TASKS](../../tasks/M1/TASKS.md). Agents generate detailed native specifications and plans before dependent implementation. |
-| Validation | This package establishes design intent. Runtime implementation and M1 acceptance are not established by these documents. |
-
-Superseded architecture trees, draft handoffs and task-local architecture proposals have been removed from `docs`. Exact preservation and pinned historical references are recorded in [history](history.md); they supply no current requirements.
+| Design | Adopted baseline; first slice ready for detailed specification under the recorded decisions. |
+| First build | Intent Compilation and Verification Slice (formerly TRIAL-1), within Delivery Phase 1; accepted intermediate intent or durable halt. |
+| Coding | Registration/source reconciliation pending in [M1 TASKS](../../tasks/M1/TASKS.md). |
+| Evidence | No runtime or M1 acceptance is established by this package. |
 
 ## Required reading order
 
-1. Read this status and the [latest verbatim PRD](sources/product/prd-m1-current-2026-10-06.txt) for product obligations.
-2. Use the short [PRD responsibility crosswalk](glossary.md#components-and-responsibilities), then read the system picture below and [decisions D1–D15](principles.md#decisions-and-source-amendments) for the adopted architecture and explicit amendments.
-3. Read [Intent Compilation and Verification Slice (formerly TRIAL-1)](immediate-plan.md) for the first connected slice, then [the coding handoff](handoff.md).
-4. Use the relevant architecture pages below and [clause map](coverage-allocation.md) for the assigned responsibility.
+Review breadth before depth. Humans start with this page's system picture, module map and readiness guidance, then [decisions D1–D15](principles.md#decisions-and-source-amendments). Consult the accompanying [PRD](sources/product/prd-m1-current-2026-10-06.txt) for product obligations. Review only the deeper page relevant to a disputed boundary or assigned module; the complete reading graph is agent reference, not a mandatory cover-to-cover human review.
 
-For human orientation, use this overview, the [crosswalk](glossary.md) and the [first slice](immediate-plan.md). Coding agents read the exact assigned PRD clauses, amendments and linked responsibility pages, then register TASK/IF ownership and generate native spec/plan/tasks under the [coding handoff](handoff.md). Existing records preserve identities and evidence; current registrations govern implementation. Repository code, tooling and development instructions remain execution prerequisites.
+| Deeper question | Read when needed |
+|---|---|
+| How do source responsibilities elaborate into modules? | [Crosswalk](glossary.md), [research handoffs](m1-design.md) |
+| How are preparation, planning and execution connected? | [Workflow](workflow.md), [rough contracts/reuse](contracts-and-native-reuse.md) |
+| Who may check, release, persist or disclose? | [Capsules](capsules.md), [guard design](guard-design.md), [placement](placement.md) |
+| What does the first connected build demonstrate? | [First slice](immediate-plan.md), then [coding handoff](handoff.md) |
+| What must later integration preserve? | [Phase/stage boundaries](delivery-phases.md), [offline RSI](offline-rsi.md), [failure/human routing](failure-and-human.md), [automation](automation.md) |
+| Which exact source clauses and fields are allocated? | [Clause index](coverage-allocation.md), [CC declaration](capsule/declaration.md) and [authoring](capsule/authoring.md); detailed reference for agents |
 
 ## Intent and reading boundary
 
-[Test runner sidecar draft](development-tools/test-runner/README.md) describes optional external development tooling. The `development-tools/` subtree is excluded from this product/design reading set and automatic M1 task or Spec Kit allocation; it adds no AI4Research implementation obligations.
+Turn a supplied research objective and baseline into grounded opportunity, falsifiable hypothesis, bounded POC, comparable measurements and a traceable report. Keep scientific conclusions separate from infrastructure acceptance and keep server-owned execution alive after browser closure. Reuse native JiuwenSwarm/OpenJiuwen components while retaining protected authority boundaries.
 
-Turn a research objective and supplied baseline into an evidence-grounded opportunity, a falsifiable hypothesis, a bounded proof of concept (POC), measured results, and a traceable report. Keep the server working after the browser closes. Prefer existing JiuwenSwarm and OpenJiuwen components where they preserve these boundaries.
+Maintain a small architectural core. Add detail here only when its omission could change a module's responsibility, consumer, authority, failure outcome or extension seam. Put schemas, algorithms, prompt wording, numerical tuning and concrete tests in the owning specification. PRD amendments belong in decisions; product feature detail stays in the PRD. New detail should replace duplication or expand a targeted deeper page, rather than enlarge every reader's route.
 
-Labels distinguish implementation obligations; use the delivery-phase qualifier wherever behavior differs:
-
-- **Required now:** behavior required for full M1, except where the [first build](immediate-plan.md) explicitly narrows its slice.
-- **Expected M1 Delivery Phase 3:** applicable integration must be attempted and evidenced; a documented gap is not automatically a core-demo blocker.
-- **Required compatibility:** contract meaning and extension boundaries that must survive the first implementation; runtime support may come later.
-- **Future direction:** an approach to investigate, not permission to implement or a claim that it works.
-
-Architecture fixes intent, responsibilities, placement, connections, and important decisions. The PRD supplies product behavior. Spec Kit supplies detailed APIs, serialization, algorithms, acceptance criteria, tests, and build order. The complete [CC field reference](capsule/declaration.md) is a requirement; temporary payload schemas are left to coding agents.
-
-| Read | Question answered |
-|---|---|
-| This overview | What is the system and what must it contain? |
-| [Workflow](workflow.md) | How does planning become execution? |
-| [Capsules and verification](capsules.md) | How are results assessed and released? |
-| [Guard design](guard-design.md) | Who assigns reusable checks, what is frozen, and how does output-led review avoid leaks and self-certification? |
-| [Placement and reuse](placement.md) | What runs where and what is reused? |
-| [Principles and decisions](principles.md) | Why these choices, and which PRD assumptions changed? |
-| [Intent Compilation and Verification Slice](immediate-plan.md) | What is the first connected implementation? |
-| [Delivery phases and stages](delivery-phases.md) | What must every M1 phase/stage demonstrate, and how does Intent Compilation and Verification Slice contribute? |
-| [Contract shapes and native reuse](contracts-and-native-reuse.md) | What do intent, requirements and node contracts contain; which native components may be reused? |
-| [Usage challenges](usage-scenarios.md) | Which varied scenarios were accounted for, and what remains unrun? |
-| [M1 handoffs](m1-design.md) | What does every stage need and produce? |
-| [Human callbacks](failure-and-human.md) | When does failure request human action, and what may a reply do? |
-| [Offline RSI](offline-rsi.md) | How do improver, target profile, referee, oracle and library connect? |
-| [Automation](automation.md) | How does a benchmarker drive the same workflow as a user? |
-| [Coverage and glossary](coverage.md) / [translation](glossary.md) | How does this map to the PRD? |
-| [Declaration](capsule/declaration.md) / [authoring](capsule/authoring.md) | Which fields must survive, and how is a CC published? |
-
-The short core pages give orientation; the M1, callback and automation views supply essential connections. Existing historical task records do not override current requirements.
-
-## Vocabulary and PRD crosswalk
-
-Use the [canonical vocabulary and PRD crosswalk](glossary.md) for component responsibilities, delivery phases, implementation stages, research steps and source aliases. This page owns navigation; the glossary owns terminology definitions.
+Optional [test-runner tooling](development-tools/test-runner/README.md) is outside product/design inputs and automatic M1 allocation. [Historical sources](history.md) are provenance only. The separate [very condensed design](../very-condensed-design.md) covers the same full M1 scope and architectural intent with far less detail. Either design, accompanied by the PRD, is intended to guide an M1 build. Only the current comparison experiment is limited to the Intent Compilation and Verification Slice; reduced detail does not reduce product scope. The condensed file remains an experimental projection of this maintained baseline.
 
 ## System picture
 
-**Required now.** These are logical modules on one authorized local execution host. Durable product identity/profile state is separate from workspace state and may later use a cloud-backed store. The Delivery Phase 1 fixed workflow and Delivery Phase 3 planner share the same governed execution boundary.
+Logical modules share one authorized local execution host. Durable product account/profile state is separate from workspace/run state and may later use approved cloud persistence. Fixed preparation, the baseline graph and later dynamic planning share the governed runner and release boundary.
 
 ```mermaid
 flowchart LR
@@ -95,32 +67,39 @@ flowchart LR
     class Library,State data
 ```
 
-Every work CC, including the planner and delivery, has verification. The diagram groups preparation and plan checking; it does not authorize the planner to freeze its own proposal. The runtime loop shows dispatch control, not a cycle in the frozen task DAG. The control plane exposes only gate-released results. [Placement](placement.md) shows model access and generated-code isolation.
+Arrows represent governed handoffs, not calls that bypass checks. The runtime feedback edge releases dependency-ready work; the frozen research graph remains acyclic. The planner proposes and the binder assigns; neither producer nor assessor owns release. [Placement](placement.md) shows model and generated-code isolation. Use [scalable diagram views](diagrams/README.md) for larger system views.
 
 ## Complete capability inventory
 
-**Required now.** Retain each responsibility below even when a coding agent combines private helpers. Each work capability needs semantic verification suited to its output, alongside deterministic checks.
+These are logical responsibilities, not required services or coding TASK identities. Retain them even when private helpers are combined. “Ready to connect” below means demonstrated use by the intended consumer under the applicable PRD obligations, not an implemented file or schema alone.
 
-| Capability | Responsibility and downstream result |
-|---|---|
-| Intent compiler | Preserve the requested objective, scope, constraints, and unresolved information |
-| Requirement compiler | Form the accepted Research Brief used for planning |
-| Static graph binding / Delivery Phase 3 planner | Baseline binds the fixed research graph; isolated dynamic path proposes bounded objectives, CC selections, connections and checks |
-| Search & Ideation (§3.3) | Retrieve permitted evidence and produce cited candidate ideas |
-| Idea Screening (§3.4) | Score and select one feasible opportunity; retain the pure ranking helper needed by offline RSI |
-| Hypothesis Generation (§3.5) | Establish the claim, baseline, data, measurement, and frozen experimental protocol |
-| POC Implementation / Builder (§3.6, §4.9) | Construct and package the bounded intervention and benchmark harness |
-| Scientific Benchmarking (§3.7) | Execute baseline then treatment under that protocol and capture measurements |
-| Scientific Evaluation (§3.8) | Apply the pre-registered criteria to accepted measurement evidence |
-| Delivery / Report Generation (§3.9) | Produce the report, supporting artifacts, and disclosed limitations |
-| Verifier CCs | Assess intent, requirements, plan coverage, grounding, feasibility, protocol, build, measurements, evaluation, and delivery through pinned profiles |
+| Module / design intent | Connection and authority | Ready-to-connect meaning | Seam to preserve beyond M1 |
+|---|---|---|---|
+| Intake and compilation: preserve what the user means | Original input/assets → checked intent → checked Research Brief; compilers do not invent solutions | Consumer receives attributed meaning, constraints and explicit unknowns; material uncertainty cannot silently advance | Richer/interactive compilers keep the same Brief meaning and verification boundary |
+| Planning and binding: turn accepted requirements into bounded work | Brief + eligible library → fixed graph or proposal → protected contracts, checks and freeze | Dispatchable bindings cover the objective, accepted inputs, versions, effects and obligations; unsupported work blocks | Dynamic discovery/logical planning lower into the same contracts and freeze |
+| Scheduler, runner and model bridge: execute governed work | Committed readiness → scoped CC calls through native harness/audited model access | Real work receives only accepted predecessors; execution/failure and effective model/resource observations remain attributable | Additional routes or concurrency preserve identity, budgets, effects and durable readiness |
+| Research capabilities: produce and test one claim | Search & Ideation → Idea Screening → Hypothesis → POC Builder → Scientific Benchmarking → Scientific Evaluation → Delivery | Next responsibility can use the exact accepted output; protocol is frozen before measurement; valid negative science reaches truthful delivery | Alternate admitted implementations preserve ports, scientific protocol and evidence meaning |
+| Evaluator Gate and guards: authorize advancement | Independently bound deterministic checks → read-only semantic assessment → protected decision | Real candidate is assessed against obligations; deficient results block; exact acceptance commits before successor release | Reusable profiles and alternate assessors retain policy ownership, evidence scope and nonrecursive checking |
+| Run-state and evidence: make decisions reconstructable | Captured inputs/artifacts/observations → immutable files and SQLite release authority → scoped records/exports | Consumer can identify what actually ran and was accepted; missing essential persistence grants no readiness | Derived views, richer memory and export adapters never replace authoritative decisions |
+| Library and offline RSI: evolve eligible capabilities safely | Admitted pins → sandbox candidate → independent referee/oracle → lineage/admission; human activation is separate | Fixed contract and protected evaluation survive mutation; paired evidence identifies candidate and limits without altering production | Composite/fused CCs and new targets retain dependency closure, member checks, effects and protected scoring |
+| Control plane, identity and platform shell: expose usable product state | Authenticated Web/CLI/TUI or benchmark client ↔ server-owned workflow; profiles separate from execution state | Submission, observation, retrieval and mode-specific halt work through the same authority; headless never waits | Cloud profile adapters, larger campaigns and future clients preserve audience and local execution boundaries |
 
-Intake transport, simple input qualification, scheduling, integrity checks, gate application, and final transfer are infrastructure. Scheduled substantive intake transformations use CCs. Offline RSI is a separate required M1 path described in [placement](placement.md#offline-rsi); it is not a research DAG stage.
+## Module readiness and output quality
 
-[Open scalable diagram views](diagrams/README.md) when an embedded diagram is too small.
+Architecture defines these meanings; the coder selects concrete ACs, fixtures, thresholds and procedures in native records.
+
+- **Ready to specify:** purpose, producer/consumer, input/output meaning, authority, essential limits and failure outcome are clear. A missing product decision constrains affected work; routine implementation choices remain agent-owned.
+- **Ready to connect:** actual output satisfies its assigned obligations and is usable by its intended consumer. Required execution/security/evidence observations and applicable verification are demonstrated, including both tiers for governed CC work. A compiling implementation, schema-valid payload or mock consumer alone does not establish this.
+- **Ready for the milestone:** connected modules demonstrate the assigned PRD stage/phase exit, including required failure behavior. Isolated readiness does not imply system readiness; a narrow slice does not complete M1.
+
+At a runtime boundary, advance only when the output is mechanically conformant, materially faithful to accepted input/protocol, and supported enough for its next consumer. Missing mandatory meaning, evidence, security or persistence blocks. Nonessential polish, presentation and optimization may remain disclosed limitations when every mandatory obligation passes. More elegant output is not a new mandatory gate merely because a reviewer prefers it.
+
+Use the system to judge quality: follow a realistic input through the connected boundary, inspect the actual output and its next consumer's use, and see whether deficient output is stopped. Varied contexts and repeated use expose limits; one working case supports only a narrow conclusion. Architecture supplies this direction, not a growing checklist. Exact campaigns, debugging commands, regression cases and evidence accounting are coding work. Debugging must preserve attributable failures and cannot become undeclared automatic runtime repair.
+
+## Vocabulary and PRD crosswalk
+
+The [glossary](glossary.md) elaborates source responsibilities into cooperating parts. CC declaration, node contract, invocation, assessment and release remain distinct. Phase 1 is the fixed baseline; Phase 2 is required isolated RSI; Phase 3 attempts applicable dynamic integration while retaining the baseline. Future-compatible seams do not grant unimplemented capability or promote future behavior into M1.
 
 ## Sources and handoff
 
-The [latest user-supplied PRD](sources/product/prd-m1-current-2026-10-06.txt) remains verbatim. [Delivery phases](delivery-phases.md) distinguishes core demo acceptance from accounting for all M1 dynamic integration work. [Decisions](principles.md#decisions-and-source-amendments) record intentional exceptions. The [coding entry](handoff.md) identifies the live allocation authorities.
-
-Give coding agents exact clauses and the relevant architecture pages through [TASKS → TASK → Spec Kit](handoff.md). The first intent pair is a limited trial. Complete M1 includes all three delivery phases, with every applicable Delivery Phase 3 effort attempted and reported. It also requires CLI/headless execution, native web UI and TUI, installation/startup diagnostics, local terminal sessions, security/configuration (PRD 5.1–5.6), evidence exports, and offline RSI validation.
+The [PRD](sources/product/prd-m1-current-2026-10-06.txt) remains verbatim; [decisions](principles.md#decisions-and-source-amendments) record intentional differences. [Phase/stage accounting](delivery-phases.md) preserves the product's completion boundaries. [TASKS → TASK → Spec Kit](handoff.md) allocates ownership and expands this design into implementation. Preserve identities and recorded evidence. Human design review focuses on intent, connections, readiness and material decisions; agent-derived detail must remain traceable to them.
