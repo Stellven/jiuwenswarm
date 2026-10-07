@@ -1,6 +1,8 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # Review record: AI4R-001
 
-Version: 0.2. Template: [REVIEW_TEMPLATE](../../code/code_sop/templates/REVIEW_TEMPLATE.md). This is a bounded M1 AI self-review. The dated publication decision below records subsequent user acceptance and direct-push authority; earlier pending states are historical.
+Version: 0.2. Template: [REVIEW_TEMPLATE](https://github.com/Stellven/jiuwenswarm/blob/918df5e4081ed35d53257dfccd33119a7b639c57/docs/code/code_sop/templates/REVIEW_TEMPLATE.md). This is a bounded M1 AI self-review. The dated publication decision below records subsequent user acceptance and direct-push authority; earlier pending states are historical.
 
 ## 1. Review target — required
 

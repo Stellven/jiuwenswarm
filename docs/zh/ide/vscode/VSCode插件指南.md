@@ -262,12 +262,13 @@ Always use async/await. No blocking calls. Follow PEP 8.
 **发送选中内容**（`Ctrl+Shift+E` / `⌘⇧E` 或右键 → **将选中内容发送到 JiuwenSwarm**）——
 打开面板并预填选中的代码：
 
-```
+````
 [File: handler.py]
 ```
 def handle_request(req):
     ...
 ```
+````
 
 补充你的问题并按 Enter。
 
@@ -285,7 +286,7 @@ VS Code 会在有错误或警告的行旁显示灯泡 💡。JiuwenSwarm 注册�
 3. 选择**用 JiuwenSwarm 修复**。
 4. 聊天面板打开，预填错误消息和周围 ±7 行代码：
 
-```
+````
 Fix this error in handler.py:
 
 Error:
@@ -296,7 +297,7 @@ def handle_request(req):
     result = blocking_call(req)
     return result
 ```
-```
+````
 
 5. 按 Enter 发送。
 

@@ -106,3 +106,9 @@ report/index.html
 /sub_agents/
 /context/
 /.plans/
+
+# Local Obsidian pane/session state; shared vault settings remain tracked.
+**/.obsidian/workspace*.json
+
+# Local Obsidian working notes and intent context; never part of main delivery.
+/docs/architecture/notes/

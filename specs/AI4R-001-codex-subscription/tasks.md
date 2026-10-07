@@ -1,3 +1,5 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # Tasks: Personal Codex Subscription Runtime
 
 Historical source note: T030 retains its original architecture path and recorded scope. Its [original architecture reference](https://github.com/Stellven/jiuwenswarm/blob/343a77dbd5e6dcd18de2e57794cc992d36c2f35c/docs/architecture/OVERVIEW.md) is historical; current M1 product/design input starts at [build-package](../../docs/architecture/build-package/README.md). This routing note does not change task identities, progress or evidence.

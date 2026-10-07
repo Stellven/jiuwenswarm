@@ -1,5 +1,9 @@
-# Architecture
+# Architecture entry
 
-Use the [design-package / build-package](build-package/README.md) for the sole maintained PRD and architecture inputs to M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1), and later builds. The [vocabulary crosswalk](build-package/glossary.md) defines current display names and source relationships. Superseded design is available through the optional [historical reference index](build-package/history.md).
+The [design-package / build-package](build-package/README.md) is the maintained project architecture. Read its overview for module intent, connections, readiness and future seams, with the PRD alongside it.
 
-Muk cleanup, 2026-10-07: duplicate pages, source captures, nested snapshots and draft handoffs were removed from this active directory after exact Git preservation. This keeps the review and coding reading boundary small. The remaining superseded archive and task-local architecture proposals were also removed from `docs`; historical context is opt-in; coding records and runtime evidence remain governed by the repository workflow.
+The [very condensed design](very-condensed-design.md) is a minimal experimental projection with the same full M1 scope. Either design plus the PRD is intended to guide M1; the current comparison builds only the Intent Compilation and Verification Slice (formerly TRIAL-1).
+
+Product requirements belong to the PRD; detailed realization and evidence belong to TASKS/TASK/Spec Kit. Superseded architecture and generated snapshots are retained only as optional [pinned history](build-package/history.md). Local editor workspace state is not a project document.
+
+Extra intent and evolving context may be kept in the Git-ignored local `notes/` folder as Obsidian-compatible Markdown. Notes are outside the review package and main delivery; material decisions must be reflected in the maintained design. Shared vault settings remain versioned, while pane/session state stays local.

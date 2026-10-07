@@ -1,3 +1,5 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # AI4R-001 — Run JiuwenSwarm through a personal Codex subscription
 
 Version: 0.8 | Updated: 2026-09-28 | Maintainer: Xiaoyang
@@ -91,7 +93,7 @@ See [TEST_REPORT.md v0.8](TEST_REPORT.md) for tested implementation C, team base
 
 ## 7. Review and delivery entry points — required
 
-- AI and human review: [M1 self-review](review.md) records findings and pending final gates, following [REVIEW_TEMPLATE](../../code/code_sop/templates/REVIEW_TEMPLATE.md). No review approval is implied.
+- AI and human review: [M1 self-review](review.md) records findings and pending final gates, following [REVIEW_TEMPLATE](https://github.com/Stellven/jiuwenswarm/blob/918df5e4081ed35d53257dfccd33119a7b639c57/docs/code/code_sop/templates/REVIEW_TEMPLATE.md). No review approval is implied.
 - PR: not created; intended base: `ai4r_main_branch`.
 - Handoff: [HANDOFF](HANDOFF.md) records the accepted demo, publication evidence, recipients and remaining work.
 - Post-merge verification and state update: no merge SHA or post-merge evidence exists. The CURRENT_STATUS row remains authoritative; do not mark Done before required review, integration checks, and handoff.

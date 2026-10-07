@@ -1,4 +1,4 @@
-> **AI4Research on `ai4r_muk`:** [Current M1 build-package](docs/architecture/build-package/README.md) is the sole maintained project architecture and PRD reading route. The JiuwenSwarm documentation below describes the underlying platform.
+> **AI4Research on `ai4r_muk`:** [Current M1 build-package](docs/architecture/build-package/README.md) is the sole maintained project architecture and PRD reading route. The [very condensed design](docs/architecture/very-condensed-design.md) covers the same M1 scope with reduced detail; its current test builds only the intent slice. The JiuwenSwarm documentation below describes the underlying platform.
 
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />
@@ -36,7 +36,6 @@
   <img src="https://img.shields.io/badge/os-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20HarmonyOS-lightgrey.svg" alt="OS Support" />
 </p>
 
-[JiuwenSwarm_Introduction.mp4](docs/assets/videos/JiuwenSwarm_Introduction.mp4)
 
 **JiuwenSwarm** is an Agent system that makes multi-agent collaboration truly work. Designed for developers and teams who need to automate complex tasks, it helps users drive multi-agent collaboration, Skill self-evolution, and tool invocation through natural language — delivering end-to-end from intent to result. It runs on a single machine or across a cluster, and you can reach it from a browser, a terminal, or the chat apps you already use.
 
@@ -67,7 +66,7 @@ One-click install, no environment setup — the quickest way to try JiuwenSwarm.
 
 Download and follow the installer prompts to get started.
 
-On Linux, install via [Command Line](#pip) or [from source](#from-source) below. 
+On Linux, install via [Command Line](#command-line) or [from source](#from-source) below.
 
 ### Command Line
 

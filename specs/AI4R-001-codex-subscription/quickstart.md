@@ -1,3 +1,5 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # AI4R-001 Validation Guide
 
 Version: 0.1 | Draft, not executed subscription acceptance.

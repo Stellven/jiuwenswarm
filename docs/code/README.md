@@ -1,6 +1,6 @@
 # AI4Research 开发文档入口 v2
 
-M1 product/design inputs are maintained in [build-package](../architecture/build-package/README.md). Use the live SOP and [M1 coding registration entrypoint](../tasks/M1/TASKS.md) with that package. The combined handbook, ZIP and delivery hashes below describe an earlier workflow-document delivery, not the current PRD/architecture baseline.
+M1 product/design inputs are maintained in [build-package](../architecture/build-package/README.md). Use the live SOP and [M1 coding registration entrypoint](../tasks/M1/TASKS.md) with that package. 旧合订本、ZIP 与交付哈希已从当前目录移除；现行工作使用下面的流程源文档。
 
 本体系采用 **TASKS → TASK → 每个 TASK 一套 Spec Kit**，按“逐块验证 → 跨块连接验证 → 整个系统验证”推进开发。
 
@@ -16,11 +16,6 @@ M1 product/design inputs are maintained in [build-package](../architecture/build
 
 本入口使用中文，其余流程文档、模板和示例保持英文。新体系已替换独立的开工授权、实施清单、审查和交接卡；历史任务证据仍然保留。旧的 CODEX_DEMO.md 属于历史功能文档，不属于本流程包。
 
-完整 ZIP 包含流程指南、全部模板、示例、仓库指令、Spec Kit 模板覆盖文件、constitution 和 M1 骨架。文件清单记录各文件的内容哈希。阅读和使用这套文档不要求创建 commit。
+## 历史交付
 
-## 完整交付
-
-- [完整合订本（中文入口，其余英文）](AI4Research_Documentation_v2.md)
-- [完整文档 ZIP](AI4Research_Documentation_v2.zip)
-- [文件与哈希清单](DELIVERY_MANIFEST.json)
-- [文档检查记录](DOCUMENTATION_CHECKS.md)
+旧合订本、ZIP 与哈希清单可从 [固定 Git 历史](../architecture/build-package/history.md#final-branch-cleanup--october-7-2026) 查看，不是当前流程或设计输入。[历史文档检查记录](DOCUMENTATION_CHECKS.md) 保留当时结果，不代表现行 M1 验证。

@@ -745,7 +745,7 @@ jiuwenswarm-tui --session "$(printf 'a%.0s' {1..200})"  # 超 128 → 长度超�
 | 文件路径不在允许范围 | 使用 `/workspace add` 将仓库根或子目录加入可信列表 |
 | 连接失败 | 检查 Gateway 是否监听、`--url` 是否正确、防火墙 |
 | 未安装 `rg` | 安装 ripgrep 以改善搜索体验（欢迎屏提示） |
-| Cron 通知出现在所有 TUI 窗口 | 预期行为：`targets=tui` 的定时任务会广播到所有已连接终端，详见 [定时任务](定时任务.md#5-推送到-tui-频道) |
+| Cron 通知出现在所有 TUI 窗口 | 预期行为：`targets=tui` 的定时任务会广播到所有已连接终端，详见 [定时任务](定时任务.md#推送到-tui-频道) |
 | 多窗口之间聊天/流式输出串台 | 请确认 Gateway 为 multi-tui 版本；各窗口应使用不同 `session_id`，事件按 session 精确路由 |
 
 ---

@@ -1,6 +1,8 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # Implementation checklist: AI4R-001 - Subscription login/basic-chat milestone
 
-Version: 0.3. Template: [IMPLEMENTATION_CHECKLIST_TEMPLATE](../../code/code_sop/templates/IMPLEMENTATION_CHECKLIST_TEMPLATE.md). This records research and the authorized M1 product stage, not whole-project completion.
+Version: 0.3. Template: [IMPLEMENTATION_CHECKLIST_TEMPLATE](https://github.com/Stellven/jiuwenswarm/blob/918df5e4081ed35d53257dfccd33119a7b639c57/docs/code/code_sop/templates/IMPLEMENTATION_CHECKLIST_TEMPLATE.md). This records research and the authorized M1 product stage, not whole-project completion.
 
 ## 1. Identity, scope, and versions — required
 

@@ -1,4 +1,4 @@
-> **AI4Research on `ai4r_muk`:** [Current M1 build-package](architecture/build-package/README.md) is the sole maintained project architecture and PRD reading route. The JiuwenSwarm documentation below describes the underlying platform.
+> **AI4Research on `ai4r_muk`:** [Current M1 build-package](architecture/build-package/README.md) is the sole maintained project architecture and PRD reading route. The [very condensed design](architecture/very-condensed-design.md) covers the same M1 scope with reduced detail; its current test builds only the intent slice. The JiuwenSwarm documentation below describes the underlying platform.
 
 <h1 align="center">JiuwenSwarm Docs</h1>
 

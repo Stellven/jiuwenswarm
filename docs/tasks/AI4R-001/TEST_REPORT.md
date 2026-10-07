@@ -1,6 +1,8 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # Test and Acceptance Report: AI4R-001
 
-Version: 0.8 | Recorded: 2026-09-28 | Template: [TEST_REPORT_TEMPLATE](../../code/code_sop/templates/TEST_REPORT_TEMPLATE.md).
+Version: 0.8 | Recorded: 2026-09-28 | Template: [TEST_REPORT_TEMPLATE](https://github.com/Stellven/jiuwenswarm/blob/918df5e4081ed35d53257dfccd33119a7b639c57/docs/code/code_sop/templates/TEST_REPORT_TEMPLATE.md).
 Scope: historical preparation/R001-R004 and the user-accepted M1 browser demo. Xiaoyang accepted localhost:5173 and explicitly requested direct publication on 2026-09-28. Detailed personal-account case traces were not supplied; fixture evidence and human acceptance remain separately identified. The publication rows below supersede earlier pending-demo-acceptance statements; full-project acceptance remains incomplete.
 
 ## 1. Verification target and acceptance basis (required)

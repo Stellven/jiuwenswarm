@@ -1,3 +1,5 @@
+> **Historical delivery check:** this September 29 record preserves its original observations. The generated handbook, ZIP and manifest have been retired to pinned Git history. Current instructions and source allocation use live SOP/AGENTS, M1 TASKS and the design-package; the PENDING_SOURCE statements below describe that earlier delivery.
+
 # Documentation verification record
 Date: 2026-09-29. Scope: SOP v2 documentation, not application/runtime acceptance.
 

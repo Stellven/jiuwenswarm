@@ -52,9 +52,6 @@ Overrides are canonical. Do not maintain duplicate copies under this catalog's t
 
 No example runtime result is reported as passed. Actual future runs use the evidence template.
 
-## Delivery
-The complete bundle is generated from this package, the active root instructions, constitution, native overrides and future-M1 register. Delivery includes a file manifest and documentation-check record. The repository's older CODEX_DEMO.md describes historical feature work and is not part of this process package.
+## Source delivery and historical snapshots
 
-The previous kickoff ZIP and obsolete authorization/review/checklist/testing templates are removed to prevent accidental reuse.
-
-Download the [complete ZIP](../AI4Research_Documentation_v2.zip), read the [single-file handbook](../AI4Research_Documentation_v2.md), or inspect the [manifest](../DELIVERY_MANIFEST.json) and [documentation checks](../DOCUMENTATION_CHECKS.md). These are generated delivery snapshots; edit the source files listed above.
+Use the live guides, templates and repository authorities above. The obsolete combined handbook, ZIP and manifest have been removed; their exact original versions are retained through the [pinned history index](../../architecture/build-package/history.md#final-branch-cleanup--october-7-2026). [Documentation checks](../DOCUMENTATION_CHECKS.md) record the earlier delivery, not current M1 readiness.

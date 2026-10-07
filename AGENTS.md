@@ -15,13 +15,15 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 
 ## Product and design authority
 
-“Design-package” and “build-package” refer to the same sole maintained architecture package at `docs/architecture/build-package/`; retain that canonical path and do not create a parallel design set.
+“Design-package” and “build-package” refer to the same sole maintained architecture package at `docs/architecture/build-package/`; retain that canonical path and do not create a parallel maintained design set. The experimental `docs/architecture/very-condensed-design.md` covers the same M1 scope with reduced detail. When the user selects that experiment, use that file alongside the PRD as design input; the assigned test builds only the Intent Compilation and Verification Slice. Do not expand the test scope or consult the full package unless authorized by the experiment instruction.
 
 The `docs/architecture/build-package/development-tools/` subtree contains optional external tooling drafts. It is excluded from M1 product/design input and automatic TASKS or Spec Kit allocation. Tooling implementation requires a separate explicit scope; AI4Research interface changes follow the existing product change process.
 
 For M1 work, read only `docs/architecture/build-package/` as maintained product/design input, starting with its verbatim PRD, overview and decisions, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
 
 M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1) remains a bounded first build. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
+
+Local Obsidian-compatible working notes may live in `docs/architecture/notes/`, which is Git-ignored and excluded from main delivery. Notes retain context and open ideas, not implementation authority; promote material architecture decisions into the maintained design. Keep personal pane/session state local while retaining shared vault settings.
 
 ## Working rules
 1. Follow TASKS -> TASK -> one registered Spec Kit directory per TASK. Read applicable AGENTS, the exact source clauses, agreements, native spec/plan/tasks and existing callers/tests before implementation.

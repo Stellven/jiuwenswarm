@@ -1,7 +1,9 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # write_code.md — AI4R-001: Personal Codex subscription runtime
 
 Maintainer and issuer: Xiaoyang, Code Team Lead. Drafted by Codex assistant from existing user instructions.
-Template: [WRITE_CODE_TEMPLATE](../../code/code_sop/templates/WRITE_CODE_TEMPLATE.md).
+Template: [WRITE_CODE_TEMPLATE](https://github.com/Stellven/jiuwenswarm/blob/918df5e4081ed35d53257dfccd33119a7b639c57/docs/code/code_sop/templates/WRITE_CODE_TEMPLATE.md).
 Revision 0.9 authorizes the presented M1 product milestone: managed subscription login and ordinary chat in the existing frontend/backend. Earlier research authority remains historical. Whole-project acceptance and final delivery remain open.
 
 ## 1. Issue and authorization

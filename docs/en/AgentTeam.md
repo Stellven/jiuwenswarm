@@ -282,7 +282,7 @@ In Agent Team mode, each team has two-layer memory: each member's own **personal
 | Personal memory | Exclusive to the member | The member itself (via memory tool calls in session) |
 | Team memory | Read-only to all members | Leader writes via extractor agent at the end of each round |
 
-For the full storage layout, extraction categories (`[decision]` / `[lesson]` / `[member]` / `[context]`), and cross-team / cross-member isolation, see [Memory → Agent Team Memory](Memory.md#advanced-agent-swarm-team-memory).
+For the full storage layout, extraction categories (`[decision]` / `[lesson]` / `[member]` / `[context]`), and cross-team / cross-member isolation, see [Memory → Agent Team Memory](Memory.md#agent-team-memory).
 
 ### 2.6 Pausing and resuming SwarmFlow workflows
 

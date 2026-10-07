@@ -1,7 +1,9 @@
+> **Historical AI4R-001 record:** identities, decisions and observations below retain their original scope. Current M1 design and registration use the repository design-package and M1 TASKS; old review/approval cards do not govern new v2 work.
+
 # AI4R Subscription Runtime Contract
 
 Version: 0.3 | M1 subset implemented in the uncommitted personal-branch tree; broader interfaces below remain proposed.
-Template: [CONTRACT_TEMPLATE](../../../docs/code/code_sop/templates/CONTRACT_TEMPLATE.md).
+Template: [CONTRACT_TEMPLATE](https://github.com/Stellven/jiuwenswarm/blob/918df5e4081ed35d53257dfccd33119a7b639c57/docs/code/code_sop/templates/CONTRACT_TEMPLATE.md).
 
 ## 1. Contract control (required)
 
