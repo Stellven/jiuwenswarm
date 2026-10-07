@@ -1,4 +1,4 @@
-# M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)
+# Intent Compilation and Verification Slice (formerly TRIAL-1)
 
 This name replaces TRIAL-1 in maintained design prose; it describes a bounded slice within M1 Delivery Phase 1, not a new delivery phase or full phase completion. Earlier conversations and historical coding references may retain TRIAL-1. The file path remains stable.
 

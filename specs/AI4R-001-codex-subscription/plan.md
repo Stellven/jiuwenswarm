@@ -53,7 +53,7 @@ specs/AI4R-001-codex-subscription/
   tasks.md                # sole ordered work/progress record
 ```
 
-Shared context: [architecture overview](../../docs/tasks/AI4R-001/OVERVIEW.md), [proposed ADR](../../docs/adr/0001-codex-subscription-runtime.md), [TASK](../../docs/tasks/AI4R-001/TASK.md). Existing aspirational Capsule/M1 diagrams remain separate planning material; this change does not declare them implemented.
+Shared context: [historical architecture overview](https://github.com/Stellven/jiuwenswarm/blob/f600f00a8a4d1f2cc2224ba68a6abeec69395ffa/docs/tasks/AI4R-001/OVERVIEW.md), [historical proposed ADR](https://github.com/Stellven/jiuwenswarm/blob/f600f00a8a4d1f2cc2224ba68a6abeec69395ffa/docs/adr/0001-codex-subscription-runtime.md), [TASK](../../docs/tasks/AI4R-001/TASK.md). Existing aspirational Capsule/M1 diagrams remain separate planning material; this change does not declare them implemented.
 
 ### Source Code (repository root)
 

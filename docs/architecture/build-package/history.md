@@ -23,3 +23,11 @@ git show b710bed752e66a21c993e77d90fa588598140924:docs/product/prd-m1-full-2026-
 ```
 
 The snapshot branch is local until explicitly published. Preserve that ref when transferring the cleanup to another checkout. No snapshot supplies missing current requirements; use the [maintained reading route](README.md#required-reading-order).
+
+## Final docs cleanup — October 7, 2026
+
+Removed the superseded `docs/archive/` tree, proposed `docs/adr/0001-codex-subscription-runtime.md`, and task-local `docs/tasks/AI4R-001/OVERVIEW.md`. Native coding records and historical execution results remain; incoming design links now point to pinned versions. These documents add no current architecture requirements.
+
+Tracked originals are preserved at `f600f00a8a4d1f2cc2224ba68a6abeec69395ffa` on `ai4r_muk`: [retired architecture archive](https://github.com/Stellven/jiuwenswarm/tree/f600f00a8a4d1f2cc2224ba68a6abeec69395ffa/docs/archive), [proposed ADR](https://github.com/Stellven/jiuwenswarm/blob/f600f00a8a4d1f2cc2224ba68a6abeec69395ffa/docs/adr/0001-codex-subscription-runtime.md), [task overview](https://github.com/Stellven/jiuwenswarm/blob/f600f00a8a4d1f2cc2224ba68a6abeec69395ffa/docs/tasks/AI4R-001/OVERVIEW.md). Before editing or removal, exact local bytes were copied and SHA256-verified outside the checkout at `architecture-checks-2026-10-07/muk-before-final-docs-cleanup/`; `preservation.json` records the checkpoint, paths, sizes and hashes. Keep that local preservation folder when transferring uncommitted work.
+
+The [current status](README.md) distinguishes adopted design, pending coding registration and unestablished runtime acceptance. PRD and CC source bytes are unchanged. Local history and backups are optional provenance, never fallback requirements.

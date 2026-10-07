@@ -1,25 +1,28 @@
-# AI4Research architecture
+# AI4Research M1 Design Package — Current Architecture
 
-Architecture baseline, 2026-10-06. This describes intended behavior; runtime implementation is not established by these documents.
+**Current as of October 7, 2026 · PRD received October 6 · branch `ai4r_muk`.** This folder is the sole maintained project architecture and product/design reading package. **Design-package** and **build-package** name this same package; the canonical folder remains `docs/architecture/build-package/`.
 
-## Update reason - 2026-10-06
+| State | Meaning |
+|---|---|
+| Design | Architecture baseline adopted; first slice ready for detailed specification under the recorded decisions. |
+| First build | **Intent Compilation and Verification Slice (formerly TRIAL-1)**, within M1 Delivery Phase 1. Ends at accepted intermediate intent or durable halt; the complete Research Brief and research run come later. |
+| Coding | Current TASK/IF registration and source reconciliation are pending in [M1 TASKS](../../tasks/M1/TASKS.md). Agents generate detailed native specifications and plans before dependent implementation. |
+| Validation | This package establishes design intent. Runtime implementation and M1 acceptance are not established by these documents. |
 
-This branch adopts the reviewed build package from [integration commit dba538ffd](https://github.com/Stellven/jiuwenswarm/commit/dba538ffd19f4572f2c3edb5124cce7c80fa8065) so coding agents share one current PRD and architecture reading route. The package preserves the received PRD and CC source bytes, consolidates product/design inputs, and provides the [terminology crosswalk](glossary.md).
-
-The first build now uses **M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)**. The adjacent former name preserves recognition; its bounded scope remains unchanged and does not represent completion of the whole delivery phase. Component descriptions separate semantic assessment, protected gate decisions, and durable release authority.
-
-Superseded architecture drafts were removed from active directories and preserved in the optional [pinned muk history](history.md#muk-cleanup-checkpoint); they do not override these inputs. Existing task identities remain intact; coding agents reconcile their coding records through the current repository workflow. This update documents design inputs and does not establish runtime acceptance.
+Superseded architecture trees, draft handoffs and task-local architecture proposals have been removed from `docs`. Exact preservation and pinned historical references are recorded in [history](history.md); they supply no current requirements.
 
 ## Required reading order
 
-1. Read the [latest verbatim PRD](sources/product/prd-m1-current-2026-10-06.txt) for product obligations.
-2. Read this overview and [decisions D1–D15](principles.md#decisions-and-source-amendments) for the adopted architecture and explicit amendments.
+1. Read this status and the [latest verbatim PRD](sources/product/prd-m1-current-2026-10-06.txt) for product obligations.
+2. Use the short [PRD responsibility crosswalk](glossary.md#components-and-responsibilities), then read the system picture below and [decisions D1–D15](principles.md#decisions-and-source-amendments) for the adopted architecture and explicit amendments.
 3. Read [Intent Compilation and Verification Slice (formerly TRIAL-1)](immediate-plan.md) for the first connected slice, then [the coding handoff](handoff.md).
 4. Use the relevant architecture pages below and [clause map](coverage-allocation.md) for the assigned responsibility.
 
-This is the sole maintained product/design package. Spec Kit and coding agents create or reconcile coding records from these inputs and choose detailed realization. Existing task records are optional identity/history references, not a competing specification. Repository code, installed tooling and live development instructions remain execution prerequisites. [Historical references](history.md) are optional.
+For human orientation, use this overview, the [crosswalk](glossary.md) and the [first slice](immediate-plan.md). Coding agents read the exact assigned PRD clauses, amendments and linked responsibility pages, then register TASK/IF ownership and generate native spec/plan/tasks under the [coding handoff](handoff.md). Existing records preserve identities and evidence; current registrations govern implementation. Repository code, tooling and development instructions remain execution prerequisites.
 
 ## Intent and reading boundary
+
+[Test runner sidecar draft](development-tools/test-runner/README.md) describes optional external development tooling. The `development-tools/` subtree is excluded from this product/design reading set and automatic M1 task or Spec Kit allocation; it adds no AI4Research implementation obligations.
 
 Turn a research objective and supplied baseline into an evidence-grounded opportunity, a falsifiable hypothesis, a bounded proof of concept (POC), measured results, and a traceable report. Keep the server working after the browser closes. Prefer existing JiuwenSwarm and OpenJiuwen components where they preserve these boundaries.
 
@@ -103,13 +106,13 @@ Every work CC, including the planner and delivery, has verification. The diagram
 | Intent compiler | Preserve the requested objective, scope, constraints, and unresolved information |
 | Requirement compiler | Form the accepted Research Brief used for planning |
 | Static graph binding / Delivery Phase 3 planner | Baseline binds the fixed research graph; isolated dynamic path proposes bounded objectives, CC selections, connections and checks |
-| Search and ideation | Retrieve permitted evidence and produce cited candidate ideas |
-| Screening | Score and select one feasible opportunity; retain the pure ranking helper needed by offline RSI |
-| Hypothesis | Establish the claim, baseline, data, measurement, and frozen experimental protocol |
-| POC builder | Construct and package the bounded intervention and benchmark harness |
-| Benchmark | Execute baseline then treatment under that protocol and capture measurements |
-| Scientific evaluation | Apply the pre-registered criteria to accepted measurement evidence |
-| Delivery | Produce the report, supporting artifacts, and disclosed limitations |
+| Search & Ideation (§3.3) | Retrieve permitted evidence and produce cited candidate ideas |
+| Idea Screening (§3.4) | Score and select one feasible opportunity; retain the pure ranking helper needed by offline RSI |
+| Hypothesis Generation (§3.5) | Establish the claim, baseline, data, measurement, and frozen experimental protocol |
+| POC Implementation / Builder (§3.6, §4.9) | Construct and package the bounded intervention and benchmark harness |
+| Scientific Benchmarking (§3.7) | Execute baseline then treatment under that protocol and capture measurements |
+| Scientific Evaluation (§3.8) | Apply the pre-registered criteria to accepted measurement evidence |
+| Delivery / Report Generation (§3.9) | Produce the report, supporting artifacts, and disclosed limitations |
 | Verifier CCs | Assess intent, requirements, plan coverage, grounding, feasibility, protocol, build, measurements, evaluation, and delivery through pinned profiles |
 
 Intake transport, simple input qualification, scheduling, integrity checks, gate application, and final transfer are infrastructure. Scheduled substantive intake transformations use CCs. Offline RSI is a separate required M1 path described in [placement](placement.md#offline-rsi); it is not a research DAG stage.

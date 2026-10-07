@@ -1,6 +1,6 @@
 # PRD coverage and architecture review
 
-**Result of this review:** the design preserves the complete M1 research journey and required offline RSI. It now defines stage handoffs, state/data ownership, human callbacks, a user-equivalent benchmark client, and future extension boundaries. It is ready for detailed specification of Intent Compilation and Verification Slice (formerly TRIAL-1). Main already has a behavioral task/AC allocation. It needs architecture/source reconciliation; versioned wire agreements, concrete realization, measured thresholds and implementation evidence remain native Spec Kit work.
+**Result of this review:** the design preserves the complete M1 research journey and required offline RSI. It now defines stage handoffs, state/data ownership, human callbacks, a user-equivalent benchmark client, and future extension boundaries. It is ready for detailed specification of Intent Compilation and Verification Slice (formerly TRIAL-1). Current coding registration and source reconciliation are pending in the [M1 register](../../tasks/M1/TASKS.md); versioned wire agreements, concrete realization, measured thresholds and implementation evidence remain native Spec Kit work.
 
 ## Which document to read
 
@@ -8,7 +8,7 @@
 |---|---|
 | Product whitelist, blacklist, scientific outputs and acceptance intent | [Latest supplied PRD](sources/product/prd-m1-current-2026-10-06.txt); source identity in [source index](sources/product/README.md) |
 | Architecture orientation and responsibility inventory | [Overview](README.md) |
-| Same concept under a different name | [PRD translation and naming](glossary.md) |
+| How a PRD responsibility breaks down into components and handoffs | [PRD crosswalk and naming](glossary.md) |
 | First implementable connected slice | [Intent Compilation and Verification Slice](immediate-plan.md), [human callback](failure-and-human.md), then [coding entry](handoff.md) |
 | Every delivery phase, implementation stage and Intent Compilation and Verification Slice exit | [Phase/stage account](delivery-phases.md) |
 | Illustrative handoff meaning and optional native reuse | [Contract shapes](contracts-and-native-reuse.md) |

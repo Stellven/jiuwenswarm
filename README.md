@@ -1,3 +1,5 @@
+> **AI4Research on `ai4r_muk`:** [Current M1 build-package](docs/architecture/build-package/README.md) is the sole maintained project architecture and PRD reading route. The JiuwenSwarm documentation below describes the underlying platform.
+
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />
 </p>

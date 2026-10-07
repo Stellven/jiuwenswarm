@@ -15,7 +15,11 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 
 ## Product and design authority
 
-For M1 work, read only `docs/architecture/build-package/` as maintained product/design input, starting with its verbatim PRD, overview and decisions, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Historical Git versions and `docs/archive/` provide optional context only; do not scan them during routine build preparation or infer current requirements from them.
+“Design-package” and “build-package” refer to the same sole maintained architecture package at `docs/architecture/build-package/`; retain that canonical path and do not create a parallel design set.
+
+The `docs/architecture/build-package/development-tools/` subtree contains optional external tooling drafts. It is excluded from M1 product/design input and automatic TASKS or Spec Kit allocation. Tooling implementation requires a separate explicit scope; AI4Research interface changes follow the existing product change process.
+
+For M1 work, read only `docs/architecture/build-package/` as maintained product/design input, starting with its verbatim PRD, overview and decisions, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
 
 M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1) remains a bounded first build. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
 
