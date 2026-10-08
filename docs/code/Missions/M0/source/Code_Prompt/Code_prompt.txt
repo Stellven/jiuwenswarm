@@ -9,11 +9,13 @@ D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit
 D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_context\PRD_context.md
 
 3. Architecture Design Main Body (primary technical design)
-<PATH_TO_ARCHITECTURE_DESIGN_MAIN_BODY>
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_main_body\Architecture_main_body.md
 
 4. Architecture Design Context (supporting technical context)
-<PATH_TO_ARCHITECTURE_DESIGN_CONTEXT>
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_context\Architecture_context.md
 
+
+Architecture Main defines the complete Intention Compiler node; Architecture Context contains the compact supporting design, field contracts, schemas and examples—follow its required links.
 
 IMPLEMENTATION INSTRUCTIONS
 
