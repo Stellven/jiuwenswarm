@@ -1,1 +1,3 @@
-<span style="color: red; font-size: 48px;">SK; FULL</span>
+# Experiment condition
+
+full architecture; Spec Kit preparation. Follow Code_prompt.txt.
