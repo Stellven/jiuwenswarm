@@ -1,1 +1,0 @@
-<span style="color: red; font-size: 48px;">NO SK; CUT</span>
