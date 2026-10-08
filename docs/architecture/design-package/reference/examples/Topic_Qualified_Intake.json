@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "id": "intake:topic",
+  "request_ref": {
+    "id": "Request_Topic_Only.txt",
+    "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+  },
+  "source_refs": [],
+  "offset_basis": "Unicode code points",
+  "resource_refs": [],
+  "rejected_inputs": []
+}

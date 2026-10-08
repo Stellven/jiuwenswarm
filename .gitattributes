@@ -14,3 +14,26 @@ docs/architecture/**/*.json text eol=lf
 
 # PDF artifacts contain structured binary streams; never normalize or text-diff them.
 output/pdf/*.pdf binary
+
+# Preserve received architecture source bytes across checkout.
+docs/architecture/design-package/sources/product/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+docs/architecture/design-package/sources/capsule.schema.json -text
+docs/architecture/design-package/sources/policy-m1.json -text
+docs/architecture/design-package/sources/capsule-semantic-v2.10b.md -text
+
+# Preserve frozen compression experiment input bytes, including content-hash examples
+docs/architecture/experiments/m1-cut-down/** -text
+
+# Architecture manifests pin exact input/projection bytes for portable comparisons.
+docs/architecture/design-package/** -text
+
+# Preserve paired compact design bytes and exact reference identities.
+docs/architecture/design-package-compact/** -text
+
+# Received PRDs preserve intentional Markdown spacing and exact frozen bytes.
+docs/architecture/**/sources/product/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+# Frozen field catalogs retain original formatting as comparison evidence.
+docs/architecture/experiments/**/reference/field-catalog.md whitespace=cr-at-eol,-blank-at-eof
+
+# Experimental receipts/manifests also pin exact pre-change bytes.
+docs/architecture/experiments/** -text

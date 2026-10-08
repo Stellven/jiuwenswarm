@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "id": "RSI_Evidence_Export",
+  "attempt_ref": {
+    "id": "RSI_Attempt_01.json",
+    "sha256": "b0e8e05c7c40a5e52835b172e57c548a6a64fe2e02e1eba7095cdecaa8149afb"
+  },
+  "referee_ref": {
+    "id": "RSI_Referee_Evidence.json",
+    "sha256": "2b854ca94334520e88e16570347b3ea41f606c755b3242e2cd85757212568543"
+  },
+  "parent_ref": {
+    "id": "Ranking_Parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "child_ref": {
+    "id": "Ranking_Child.txt",
+    "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+  },
+  "summary": "Synthetic 20/20 versus 20/20; paired medians 0.100s versus 0.080s illustrate secondary timing improvement only. No measured result.",
+  "redactions": [
+    "Hidden cases/identities/answers/scoring implementation excluded"
+  ],
+  "violations": [],
+  "ext": {
+    "example.synthetic": true
+  }
+}

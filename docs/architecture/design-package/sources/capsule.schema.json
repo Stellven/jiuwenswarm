@@ -1,0 +1,782 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://openjiuwen/capability-capsule/capsule.schema.json",
+ "title": "Capability Capsule Declaration (能力胶囊)",
+ "description": "The contract a capability declares. SHAPE ONLY: this file says what a field means and what type it has. It deliberately marks almost nothing as required, because required-ness lives in the gate's policy epoch, not in the schema (Protocol Buffers removed `required` for the same reason: a required field can never be taken back). Apply a profile from policy-*.json alongside this file to enforce a milestone. Schema version 2.9, 2026-09-23.",
+ "type": "object",
+ "required": [
+  "schema_version",
+  "identity"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "schema_version": {
+   "description": "The version of THIS schema the declaration is written against. Readers must accept an unknown minor and ignore fields they do not know.",
+   "type": "string",
+   "pattern": "^2\\.[0-9]+$"
+  },
+  "identity": {
+   "description": "Who this capability is, and how the runtime loads it. The code is never inside a Declaration.",
+   "type": "object",
+   "required": [
+    "name",
+    "kind"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "name": {
+     "description": "A stable, human-readable name. Mutable for people; the hash is what the gate binds. (Docker keeps a moving tag over an immutable digest for the same reason.)",
+     "type": "string",
+     "minLength": 1
+    },
+    "kind": {
+     "$ref": "#/$defs/kind"
+    },
+    "carrier": {
+     "description": "WHERE THE CODE IS. The id of the thing that performs what this capsule guarantees, and the hash that id must resolve to. A capsule never contains code: it points, and the hash is how a changed head is noticed. The id is opaque here on purpose - what sort of thing it is, an MCP tool or a skill or a function, is `identity.kind`, and whatever resolves the id already knows. A capsule carries this OR `members[]`, never both: a leaf points at code, a composite holds a DAG.",
+     "type": "object",
+     "required": [
+      "ref",
+      "sha256"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "ref": {
+       "description": "The id: an MCP tool id, a tool name, a module path, a package coordinate. Resolved by whatever loads it, not by CC.",
+       "type": "string",
+       "minLength": 1
+      },
+      "sha256": {
+       "description": "What that id must hash to at load. A mismatch aborts the load.",
+       "$ref": "#/$defs/sha256"
+      }
+     }
+    },
+    "summary": {
+     "description": "One line. At selection the chooser model sees this and ports, nothing more.",
+     "type": "string"
+    },
+    "body": {
+     "description": "Every file of the capability, each with its SHA-256, so the thing checked is the thing that runs. A remote service uses `remote` instead.",
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "path",
+       "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "path": {
+        "type": "string"
+       },
+       "sha256": {
+        "$ref": "#/$defs/sha256"
+       }
+      }
+     }
+    },
+    "remote": {
+     "description": "For an MCP server or A2A agent that is not local: pinned by endpoint and version. A card is metadata, never evidence.",
+     "type": "object",
+     "required": [
+      "endpoint",
+      "version"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "endpoint": {
+       "type": "string"
+      },
+      "version": {
+       "type": "string"
+      },
+      "interface_version_range": {
+       "type": "string"
+      }
+     }
+    },
+    "load_mode": {
+     "enum": [
+      "eager",
+      "on_demand"
+     ]
+    },
+    "overlays": {
+     "description": "Experience or prompt layers pinned per sprint. Absent means none are loaded.",
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "lineage": {
+     "$ref": "#/$defs/lineage"
+    }
+   }
+  },
+  "ports": {
+   "description": "What it takes and returns, by declared type. This is what makes deterministic filtering possible, and what a merged block's boundary is derived from.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "inputs": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/port"
+     }
+    },
+    "outputs": {
+     "type": "array",
+     "items": {
+      "allOf": [
+       {
+        "$ref": "#/$defs/port"
+       }
+      ],
+      "properties": {
+       "check": {
+        "description": "The id of the check in guarantees.checks[] that validates this output. An output with no named check cannot be gated.",
+        "type": "string"
+       }
+      }
+     }
+    }
+   }
+  },
+  "needs": {
+   "description": "What must hold before it runs, and what it depends on.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "when": {
+     "description": "Declared preconditions, as evaluable predicates. ONE evaluator runs these at planning and again at dispatch (predicate parity). This is the field M1 exists to deliver: today's manifests carry a name and a sentence of prose that nothing evaluates.",
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/predicate"
+     }
+    },
+    "external": {
+     "description": "Capabilities, services or capsules it needs. Pinned by hash unless unpinned with a written purpose, which costs trust.",
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "ref"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "ref": {
+        "type": "string"
+       },
+       "decl_hash": {
+        "$ref": "#/$defs/sha256"
+       },
+       "pinned": {
+        "type": "boolean",
+        "default": true
+       },
+       "unpinned_purpose": {
+        "description": "Required when pinned is false. An unpinned dependency without a stated purpose is rejected.",
+        "type": "string"
+       }
+      }
+     }
+    },
+    "network": {
+     "enum": [
+      "none",
+      "egress",
+      "ingress",
+      "both"
+     ]
+    },
+    "resources": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "injects": {
+     "description": "Keys it needs another admitted capsule to provide. Cycles across injects/provides are rejected.",
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "model": {
+     "description": "Model limits. Read by model routing (M3); today no router reads anything about the capability.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "min_context": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "families": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "excludes": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     }
+    }
+   }
+  },
+  "changes": {
+   "description": "What it does to the world. The author answers for this; the gate checks the declaration against what is observed.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "effect_class": {
+     "$ref": "#/$defs/effect_class"
+    },
+    "effects": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "scope"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "scope": {
+        "type": "string"
+       },
+       "resource_key": {
+        "type": "string"
+       },
+       "idempotent": {
+        "type": "boolean"
+       },
+       "reversibility": {
+        "$ref": "#/$defs/reversibility"
+       },
+       "undo": {
+        "description": "How it is undone, or an explicit statement that it cannot be. Registrations come back out; emissions and external state do not.",
+        "type": "string"
+       }
+      }
+     }
+    },
+    "provides": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "invariants": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "guarantees": {
+   "description": "What it claims, and how each claim is checked. Every check has a target because the declaration gives it one.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "checks": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "id",
+       "kind"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "kind": {
+        "enum": [
+         "deterministic",
+         "reference",
+         "judge",
+         "negative_control"
+        ]
+       },
+       "target": {
+        "description": "The port or invariant this check is about.",
+        "type": "string"
+       },
+       "runner": {
+        "type": "string"
+       },
+       "runner_hash": {
+        "$ref": "#/$defs/sha256"
+       },
+       "anchor": {
+        "description": "What the check is anchored to.",
+        "enum": [
+         "deterministic",
+         "reference",
+         "judged"
+        ]
+       },
+       "over": {
+        "description": "What it ranges over.",
+        "enum": [
+         "each_call",
+         "outputs",
+         "inputs_and_outputs"
+        ]
+       },
+       "author": {
+        "description": "Who wrote the check. Never the builder, for a certified capsule.",
+        "type": "string"
+       },
+       "written_before_body": {
+        "description": "True when the check existed before the body it tests, which is what binds a suite to the contract.",
+        "type": "boolean"
+       },
+       "held_out": {
+        "description": "True when the check is held out of what the builder could see.",
+        "type": "boolean"
+       },
+       "signal_source": {
+        "description": "Where the pass or fail signal comes from. A capsule-sourced signal is never admission evidence.",
+        "enum": [
+         "harness",
+         "capsule"
+        ]
+       },
+       "owner": {
+        "description": "Self-owned checks are permitted, but are never evidence (SCHEMA.md 4.4).",
+        "enum": [
+         "external",
+         "self"
+        ]
+       },
+       "assurance": {
+        "description": "How strongly the check is backed: enforced > tested > audited > declared.",
+        "enum": [
+         "enforced",
+         "tested",
+         "audited",
+         "declared"
+        ]
+       }
+      }
+     }
+    },
+    "acceptance": {
+     "type": "string"
+    },
+    "evals": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "quality": {
+     "description": "Quality is a RATE OVER A WINDOW, never a verdict. Below min_observations the claim is `unmeasured`, and unmeasured is never silently treated as passing (Envoy computes no verdict below its request volume; SonarQube waives coverage under 20 new lines; Kayenta gives no-data its own class).",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "criterion": {
+       "type": "string"
+      },
+      "judge": {
+       "description": "A judge is never itself a capsule.",
+       "type": "string"
+      },
+      "target_rate": {
+       "type": "number",
+       "minimum": 0,
+       "maximum": 1
+      },
+      "window": {
+       "type": "string"
+      },
+      "min_observations": {
+       "type": "integer",
+       "minimum": 1
+      }
+     }
+    },
+    "exempt": {
+     "description": "Exempts a capsule from the library's verification policies. Generalists only, and more than one generalist may exist.",
+     "type": "boolean",
+     "default": false
+    }
+   }
+  },
+  "budget": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "tokens": {
+     "type": "integer",
+     "minimum": 0
+    },
+    "time_s": {
+     "type": "number",
+     "minimum": 0
+    },
+    "money": {
+     "type": "number",
+     "minimum": 0
+    },
+    "concurrency": {
+     "type": "integer",
+     "minimum": 1
+    }
+   }
+  },
+  "members": {
+   "description": "THE SET CASE. A capsule holds a set of capabilities; n = 1 is the degenerate case and omits this field. Members are pinned by hash, so a block's internals cannot move under it. Composition runs its members in order, UNCHANGED: it buys placement grain and a block-level quality record, not execution saving.",
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "required": [
+     "role",
+     "decl_hash"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "role": {
+      "type": "string"
+     },
+     "decl_hash": {
+      "$ref": "#/$defs/sha256"
+     }
+    }
+   }
+  },
+  "structure": {
+   "description": "The internal DAG of a composite, in the shape symphony/flow already uses for a distilled recipe.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "type": {
+     "type": "string"
+    },
+    "direction": {
+     "type": "string"
+    },
+    "nodes": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "object"
+     }
+    },
+    "edges": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": [
+       "source",
+       "target"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "source": {
+        "type": "string"
+       },
+       "target": {
+        "type": "string"
+       },
+       "relation": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "loop_guards": {
+     "type": "object"
+    }
+   }
+  },
+  "wiring": {
+   "description": "COMPOSITES ONLY. How the members are put together, one wire per connection. SCHEMA.md 3.x specifies `wiring[] {from, to}`, and the gate checks that wires connect compatible types (4.10), so the field has to exist here or a conforming composite is rejected. An endpoint is `<role>.<port>` for a member's port, or `inputs.<port>` / `outputs.<port>` for the composite's own boundary, which is what makes one capsule usable INSIDE another: the outer ports are wired to inner ones rather than redeclared.",
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "from",
+     "to"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "from": {
+      "description": "`inputs.<port>` of this capsule, or `<role>.<port>` of a member that produces it.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+\\.[A-Za-z0-9_-]+$"
+     },
+     "to": {
+      "description": "`outputs.<port>` of this capsule, or `<role>.<port>` of a member that consumes it.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+\\.[A-Za-z0-9_-]+$"
+     }
+    }
+   }
+  },
+  "evolution": {
+   "description": "WHAT THIS CAPSULE PROMISES TO KEEP STABLE, and what the author wants a reviser to know. Framed as a promise rather than as a permission, because that is what the rest of this schema does: the capsule states what it will hold to, and RSI reads its search space off that. Nothing here forbids an edit. `contract_hash` already makes every edit visible, and a body submitted against a changed contract voids the suite written for it.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "frozen": {
+     "description": "Parts of the contract this capsule promises not to move. Changing one is declaring a NEW capability, not a better version of this one, so a revision that moves a frozen part takes `relation: supersedes` and a new name rather than replacing this one in place. Inside `contract_hash`, because changing the promise changes the contract.",
+     "type": "array",
+     "uniqueItems": true,
+     "items": {
+      "enum": [
+       "ports",
+       "ports.inputs",
+       "ports.outputs",
+       "needs",
+       "needs.when",
+       "changes",
+       "changes.effect_class",
+       "changes.effects",
+       "changes.invariants",
+       "changes.provides",
+       "guarantees",
+       "guarantees.checks",
+       "guarantees.acceptance",
+       "budget"
+      ]
+     }
+    },
+    "notes_for_builder": {
+     "description": "ADVISORY ONLY, from the author to whoever revises this, RSI included. Never evidence, never gating, and read by no check. Outside `contract_hash`, so editing a note does not void a suite. Anything that must hold belongs in `needs`, `changes` or `guarantees`, where something can check it.",
+     "type": "array",
+     "items": {
+      "type": "string",
+      "minLength": 1
+     }
+    }
+   }
+  },
+  "coverage": {
+   "description": "What the builder knowingly leaves out. Specified in SCHEMA.md 3.1 from v2.3 and never implemented here, so a declaration written to spec was rejected. Outside `contract_hash`.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "undeclared_notes": {
+     "description": "What is deliberately not declared, and why. The screener treats a capsule that says so differently from one that simply omits it.",
+     "type": "array",
+     "items": {
+      "type": "string",
+      "minLength": 1
+     }
+    }
+   }
+  }
+ },
+ "$defs": {
+  "sha256": {
+   "description": "Lowercase hex SHA-256. Identity is the hash of the artifact, never of the derivation.",
+   "type": "string",
+   "pattern": "^[a-f0-9]{64}$"
+  },
+  "kind": {
+   "enum": [
+    "tool",
+    "skill",
+    "mcp",
+    "a2a",
+    "subagent",
+    "agent_template",
+    "prompt_section",
+    "bundle",
+    "composite"
+   ]
+  },
+  "effect_class": {
+   "description": "Composition keys off this: pure and idempotent compose freely, compensable compose with the undo path tracked, irreversible or undeclared are gated.",
+   "enum": [
+    "pure",
+    "read_only",
+    "idempotent",
+    "compensable",
+    "irreversible"
+   ]
+  },
+  "reversibility": {
+   "enum": [
+    "none",
+    "compensable",
+    "reversible"
+   ]
+  },
+  "lineage": {
+   "description": "Where it came from. CC stores and exposes this; RSI chooses what to branch from. Joined to RSI's own tree by builder_ref.",
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "parent": {
+     "oneOf": [
+      {
+       "$ref": "#/$defs/sha256"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "co_parents": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/sha256"
+     }
+    },
+    "relation": {
+     "$ref": "#/$defs/relation"
+    },
+    "builder": {
+     "type": "string"
+    },
+    "build_trigger": {
+     "type": "string"
+    },
+    "context_capsules": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/sha256"
+     }
+    },
+    "diagnosis_inputs": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "builder_ref": {
+     "type": "string"
+    },
+    "provenance": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "generating_model": {
+       "type": "string"
+      },
+      "prompt_ref": {
+       "type": "string"
+      },
+      "trajectory_ref": {
+       "type": "string"
+      }
+     }
+    }
+   }
+  },
+  "relation": {
+   "description": "How this capsule relates to its parent. `composes` is a block built from members that run UNCHANGED. `fuses` is reserved for a future operation that rewrites a block's internals so its members run in one pass; it is NOT implemented, and nothing in 2.9 depends on it.",
+   "enum": [
+    "supersedes",
+    "specialises",
+    "rollback_of",
+    "migrated_from",
+    "composes",
+    "fuses"
+   ]
+  },
+  "port": {
+   "type": "object",
+   "required": [
+    "name"
+   ],
+   "properties": {
+    "name": {
+     "type": "string"
+    },
+    "type": {
+     "type": "string"
+    },
+    "description": {
+     "type": "string"
+    },
+    "required": {
+     "type": "boolean",
+     "default": true
+    }
+   }
+  },
+  "predicate": {
+   "description": "An evaluable precondition. `check` names it; `path`, `op` and `value` make it runnable by the shared evaluator. A predicate with only `check` and `description` is prose, which is exactly what exists today and what M1 replaces.",
+   "type": "object",
+   "required": [
+    "check"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "check": {
+     "type": "string"
+    },
+    "path": {
+     "type": "string"
+    },
+    "op": {
+     "enum": [
+      "present",
+      "absent",
+      "eq",
+      "ne",
+      "gt",
+      "gte",
+      "lt",
+      "lte",
+      "in",
+      "not_in",
+      "matches"
+     ]
+    },
+    "value": {},
+    "evaluable_at": {
+     "description": "planning: the filter can read it. dispatch: only fresh state can answer it. both: parity is testable.",
+     "enum": [
+      "planning",
+      "dispatch",
+      "both"
+     ]
+    },
+    "on_unknown": {
+     "description": "Fail closed by default: unknown defers or blocks, never passes.",
+     "enum": [
+      "defer",
+      "block"
+     ],
+     "default": "defer"
+    },
+    "description": {
+     "type": "string"
+    }
+   }
+  }
+ },
+ "allOf": [
+  {
+   "title": "A capsule is either a leaf or a composite, never both",
+   "if": {
+    "required": [
+     "members"
+    ]
+   },
+   "then": {
+    "properties": {
+     "identity": {
+      "not": {
+       "required": [
+        "carrier"
+       ]
+      }
+     }
+    }
+   },
+   "$comment": "members[] means the work is a DAG of other capsules. identity.carrier means the work is done by code this capsule points at. Both at once has no meaning."
+  }
+ ]
+}

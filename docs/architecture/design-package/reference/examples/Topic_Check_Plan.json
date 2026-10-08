@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "check-plan:topic",
+  "contract_ref": {
+    "id": "Topic_Node_Contract.json",
+    "sha256": "d223d3ce529b49b045ed969a4cab2c002cfbd22f8067823a9a2de5a17157e2c1"
+  },
+  "input_refs": [
+    {
+      "id": "Topic_Qualified_Intake.json",
+      "sha256": "6a723488e66eaee9e799e9111d181c15c5cb00e6063008156f0bc82856218842"
+    }
+  ],
+  "profile_ref": {
+    "id": "Topic_Guard_Profile.json",
+    "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+  },
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+  },
+  "mandatory_deterministic": [
+    "structure",
+    "source_spans",
+    "exact_identity"
+  ],
+  "mandatory_semantic": [
+    "fidelity",
+    "consistency",
+    "requirements_usability"
+  ],
+  "runner_refs": [
+    {
+      "id": "Intent_Implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    }
+  ]
+}

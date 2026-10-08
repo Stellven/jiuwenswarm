@@ -112,3 +112,27 @@ report/index.html
 
 # Local Obsidian working notes and intent context; never part of main delivery.
 /docs/architecture/notes/
+
+# Canonical architecture references are maintained design inputs.
+!docs/architecture/design-package/reference/
+!docs/architecture/design-package/reference/**
+
+# Portable contracts in the pinned full-M1 compression experiment
+!docs/architecture/experiments/m1-cut-down/reference/
+!docs/architecture/experiments/m1-cut-down/reference/**
+
+# Versioned architecture experiment contract input
+!docs/architecture/experiments/m1-full-baseline/reference/
+!docs/architecture/experiments/m1-full-baseline/reference/**
+
+# Versioned architecture experiment contract input
+!docs/architecture/experiments/m1-contract-review-2026-10-08/full/reference/
+!docs/architecture/experiments/m1-contract-review-2026-10-08/full/reference/**
+
+# Versioned architecture experiment contract input
+!docs/architecture/experiments/m1-contract-review-2026-10-08/compact/reference/
+!docs/architecture/experiments/m1-contract-review-2026-10-08/compact/reference/**
+
+# Matched compact design contracts
+!docs/architecture/design-package-compact/reference/
+!docs/architecture/design-package-compact/reference/**

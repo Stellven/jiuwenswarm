@@ -1,0 +1,35 @@
+{
+  "id": "review:science",
+  "subject_ref": {
+    "id": "Evaluation_Verdict.json",
+    "sha256": "67ea10755f508dd594e2f1ed8a0ef488c6cb8cb22a302af5cf73cfeb3e821d91"
+  },
+  "criteria": [
+    "registered_rule_applied"
+  ],
+  "synthetic": true,
+  "input_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+    }
+  ],
+  "contract_ref": {
+    "id": "Science_Node_Contract.json",
+    "sha256": "2efb748f87130d2f9e70921671be90c47c5d51d8aee8db02bc6e32eb5b9d719b"
+  },
+  "check_plan_ref": {
+    "id": "Science_Check_Plan.json",
+    "sha256": "d34b991c71b243e43a0b304b1b10158468443b2f7f83d80b879453f294c55bde"
+  },
+  "deterministic_result_ref": {
+    "id": "Science_Checks.json",
+    "sha256": "464001b151599a6bb718ce2ab13022909f6d9b31e010785254e63a4589a7c88c"
+  },
+  "observations": [
+    {
+      "id": "Science_Observation.json",
+      "sha256": "abcb6ac828592318031978808a2fa956a9daede77aa2e5bab64e70888b6a633f"
+    }
+  ]
+}

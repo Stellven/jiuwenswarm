@@ -1,0 +1,14 @@
+{
+  "id": "invocation:science",
+  "contract_ref": {
+    "id": "Science_Node_Contract.json",
+    "sha256": "2efb748f87130d2f9e70921671be90c47c5d51d8aee8db02bc6e32eb5b9d719b"
+  },
+  "outputs": [
+    {
+      "id": "Evaluation_Verdict.json",
+      "sha256": "67ea10755f508dd594e2f1ed8a0ef488c6cb8cb22a302af5cf73cfeb3e821d91"
+    }
+  ],
+  "observed_runtime": false
+}

@@ -1,6 +1,6 @@
 # AI4Research 开发文档入口 v2
 
-M1 product/design inputs are maintained in [build-package](../architecture/build-package/README.md). Use the live SOP and [M1 coding registration entrypoint](../tasks/M1/TASKS.md) with that package. 旧合订本、ZIP 与交付哈希已从当前目录移除；现行工作使用下面的流程源文档。
+M1 product/design inputs are maintained in [design package](../architecture/design-package/README.md). Use the live SOP and [M1 coding registration entrypoint](../tasks/M1/TASKS.md) with that package. 旧合订本、ZIP 与交付哈希已从当前目录移除；现行工作使用下面的流程源文档。
 
 本体系采用 **TASKS → TASK → 每个 TASK 一套 Spec Kit**，按“逐块验证 → 跨块连接验证 → 整个系统验证”推进开发。
 
@@ -18,4 +18,4 @@ M1 product/design inputs are maintained in [build-package](../architecture/build
 
 ## 历史交付
 
-旧合订本、ZIP 与哈希清单可从 [固定 Git 历史](../architecture/build-package/history.md#final-branch-cleanup--october-7-2026) 查看，不是当前流程或设计输入。[历史文档检查记录](DOCUMENTATION_CHECKS.md) 保留当时结果，不代表现行 M1 验证。
+旧合订本、ZIP 与哈希清单可从 [固定 Git 历史](../architecture/design-package/history.md#final-branch-cleanup--october-7-2026) 查看，不是当前流程或设计输入。[历史文档检查记录](DOCUMENTATION_CHECKS.md) 保留当时结果，不代表现行 M1 验证。

@@ -1,0 +1,113 @@
+{
+  "id": "node-contract:intent",
+  "run_id": "run:example",
+  "node_id": "intent",
+  "attempt_id": "attempt:1",
+  "objective": "Produce faithful and usable Intent",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "803af45be2692f94ea466619d9ccf7983cbed032f3e322583c847f1a61c94384"
+    }
+  ],
+  "required_outputs": [
+    "intent-ir"
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+  },
+  "schema_version": "1.0.0",
+  "revision": 1,
+  "requirement_ids": [
+    "fixed:intent.compiler"
+  ],
+  "bindings": [
+    {
+      "id": "binding:intent.compiler",
+      "role": "intent.compiler",
+      "declaration_ref": {
+        "id": "Capsule_Declaration.json",
+        "sha256": "301d01422adaf31f1b02e412f678a9d4dca4c41a375fb2f3bbe4ed66e9d33c1a"
+      },
+      "implementation_refs": [
+        {
+          "id": "Intent_Implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        }
+      ],
+      "dependency_refs": [],
+      "admission_ref": {
+        "id": "Synthetic_Admission.json",
+        "sha256": "ad6b207f1e9419c4f7605c16cd8ce4baa659546259aa3bbe56a2789c669c99ff"
+      },
+      "effective_authority": {
+        "network": "none",
+        "network_allowlist": [],
+        "resource_reads": [
+          {
+            "id": "Qualified_Intake.json",
+            "sha256": "803af45be2692f94ea466619d9ccf7983cbed032f3e322583c847f1a61c94384"
+          }
+        ],
+        "write_roots": [
+          "candidate-output"
+        ],
+        "tools": [
+          "audited-model-bridge"
+        ]
+      },
+      "limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 512
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "contract_id": "qualified-intake:field-contract:1",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "803af45be2692f94ea466619d9ccf7983cbed032f3e322583c847f1a61c94384"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "intent",
+      "contract_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+      "version": "1.0.0",
+      "required": true
+    }
+  ],
+  "evidence_obligations": [
+    "captured_input_and_output",
+    "invocation_observation",
+    "mandatory_checks",
+    "semantic_assessment",
+    "independently_budgeted_guard_observation"
+  ],
+  "node_limits": {
+    "time_s": 180,
+    "model_calls": 2,
+    "memory_mb": 512
+  },
+  "guard_profile_ref": {
+    "id": "Guard_Profile.json",
+    "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+  },
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+  },
+  "template_ref": {
+    "id": "Node_Template.json",
+    "sha256": "12008fa853a7fa11a6eead356ad3ee423dc02b255176f955e3bae73c7f9337ed"
+  }
+}

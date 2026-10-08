@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "id": "invocation:science",
+  "contract_ref": {
+    "id": "Science_Node_Contract.json",
+    "sha256": "1ecfe66dfdf25b616e98eb2cbd9d5ff591193e793d7a02cced2bdd65f96900c5"
+  },
+  "binding_id": "binding:scientific.evaluation",
+  "input_refs": [
+    {
+      "id": "Lifecycle_Research_Brief.json",
+      "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+    },
+    {
+      "id": "Hypothesis_Blueprint.json",
+      "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+    },
+    {
+      "id": "Benchmark_Payload.json",
+      "sha256": "302f881151d8c63086d2f3f4af487b89c525ac81f9aecea6d1855ef573344676"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "Evaluation_Verdict.json",
+      "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+    }
+  ],
+  "model_identity": {
+    "requested": "synthetic teaching endpoint",
+    "effective": null,
+    "basis": "unobserved example"
+  },
+  "started_at": null,
+  "ended_at": null,
+  "outcome": "synthetic_example",
+  "effects": [],
+  "duration_s": null,
+  "model_calls": null,
+  "trace_refs": [],
+  "unavailable_reasons": [
+    "No runtime execution or observed effects are claimed"
+  ],
+  "observed_runtime": false,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic illustration; no tokens or attributable cost were observed"
+    ]
+  }
+}

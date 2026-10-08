@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+  },
+  "review_context_ref": {
+    "id": "Requirements_Review_Context.json",
+    "sha256": "29e5dcab44489aa3e3f6ea9e9d3f110d637d789a3791725ce6b337098a2d51ee"
+  },
+  "verdict": "PASS",
+  "findings": [
+    {
+      "criterion_id": "intent_preservation",
+      "outcome": "PASS",
+      "reason": "Purpose, report, single-GPU constraint and quality target are preserved without adding validation assets",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Default_Policy.json",
+          "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+        }
+      ]
+    },
+    {
+      "criterion_id": "default_authority",
+      "outcome": "PASS",
+      "reason": "Illustrative repetition default is separately attributed to permitted policy, not user intent",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Default_Policy.json",
+          "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+        }
+      ]
+    },
+    {
+      "criterion_id": "planning_usability",
+      "outcome": "PASS",
+      "reason": "Mandatory requirements, deliverable, acceptance and evidence obligations can be mapped to the fixed workflow; empirical resources must still bind before execution",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Default_Policy.json",
+          "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+        }
+      ]
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Synthetic teaching example, not calibrated model evidence"
+  ],
+  "required_correction": null
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "id": "decision:requirements",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:example",
+  "node_id": "requirements",
+  "attempt_id": "attempt:1",
+  "contract_ref": {
+    "id": "Requirements_Node_Contract.json",
+    "sha256": "5504d034e47276b13284e88c4067fde54bf2668d6454bc3843a84ba10fdb3d18"
+  },
+  "invocation_refs": [
+    {
+      "id": "Requirements_Invocation_Observation.json",
+      "sha256": "29eb6a63494af07dd2bf1ac038bd357f09243aa6f9d7996a5a8afa36618d26a9"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+  },
+  "check_plan_ref": {
+    "id": "Requirements_Check_Plan.json",
+    "sha256": "cad3f27038417bb9d5c483bfb7fa0850b35a9de563ee606d9ed627335bc3072d"
+  },
+  "input_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "Requirements_Checks.json",
+    "sha256": "2b00e12bb71f9ef37ab11a6e5f23b6b18eb4446f80ed37bb439c253d83924e31"
+  },
+  "assessment_ref": {
+    "id": "Requirements_Assessment.json",
+    "sha256": "fbc7db5fb420b1a0d8a7f9e7f05f25094b5c69d444f86f3e3176ef982459c92a"
+  },
+  "verdict": "PASS",
+  "reasons": [
+    {
+      "code": "REQUIREMENTS_USABLE",
+      "message": "Illustrative planning acceptance; not an empirical readiness or database commit claim",
+      "criterion_ids": [
+        "intent_preservation",
+        "default_authority",
+        "planning_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Requirements_Assessment.json",
+          "sha256": "fbc7db5fb420b1a0d8a7f9e7f05f25094b5c69d444f86f3e3176ef982459c92a"
+        }
+      ]
+    }
+  ],
+  "action": "advance",
+  "accepted_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+    }
+  ]
+}

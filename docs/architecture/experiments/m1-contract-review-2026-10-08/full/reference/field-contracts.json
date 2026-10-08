@@ -1,0 +1,2870 @@
+{
+  "version": "1.0.0",
+  "types": {
+    "Ref": {
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable manifest identity"
+        },
+        "sha256": {
+          "type": "sha256",
+          "required": true,
+          "meaning": "Exact-byte digest"
+        }
+      }
+    },
+    "Citation": {
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Stable citation ID"
+        },
+        "source_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Captured readable source"
+        },
+        "locator": {
+          "type": "string",
+          "required": true,
+          "meaning": "Original origin and exact location"
+        },
+        "excerpt": {
+          "type": "string",
+          "required": true,
+          "meaning": "Relevant source quotation"
+        }
+      }
+    },
+    "Idea": {
+      "fields": {
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique immutable ID"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "meaning": "Short title"
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "meaning": "Grounded mechanism"
+        },
+        "citation_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Supporting citations"
+        },
+        "assumptions": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unproven premises"
+        },
+        "risks": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Known concerns"
+        }
+      }
+    },
+    "IdeaScore": {
+      "fields": {
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Existing candidate"
+        },
+        "novelty": {
+          "type": "integer",
+          "required": true,
+          "meaning": "1–5"
+        },
+        "feasibility": {
+          "type": "integer",
+          "required": true,
+          "meaning": "1–5"
+        },
+        "compute_alignment": {
+          "type": "integer",
+          "required": true,
+          "meaning": "1–5"
+        },
+        "reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Evidence-linked scoring rationale"
+        },
+        "citation_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Score support"
+        },
+        "eligible": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Meets declared resource constraints"
+        },
+        "disposition": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exclusion or eligibility reason"
+        }
+      }
+    },
+    "Ranking": {
+      "fields": {
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Eligible candidate"
+        },
+        "total": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Sum of three scores"
+        }
+      }
+    },
+    "MetricRule": {
+      "fields": {
+        "metric_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique measurement ID"
+        },
+        "unit": {
+          "type": "string",
+          "required": true,
+          "meaning": "Measurement unit"
+        },
+        "measurement": {
+          "type": "string",
+          "required": true,
+          "meaning": "Deterministic extraction definition"
+        },
+        "aggregation": {
+          "type": "string",
+          "required": true,
+          "meaning": "Frozen aggregation"
+        },
+        "success": {
+          "type": "ComparisonRule",
+          "required": true,
+          "meaning": "Predeclared success rule"
+        },
+        "falsification": {
+          "type": "ComparisonRule",
+          "required": true,
+          "meaning": "Predeclared negative rule"
+        },
+        "middle": {
+          "type": "string",
+          "required": true,
+          "meaning": "Predeclared residual classification"
+        }
+      }
+    },
+    "MetricObservation": {
+      "fields": {
+        "metric_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Blueprint metric"
+        },
+        "unit": {
+          "type": "string",
+          "required": true,
+          "meaning": "Same protocol unit"
+        },
+        "baseline": {
+          "type": "number[]",
+          "required": true,
+          "meaning": "Raw baseline repeats"
+        },
+        "treatment": {
+          "type": "number[]",
+          "required": true,
+          "meaning": "Raw treatment repeats"
+        },
+        "baseline_value": {
+          "type": "number",
+          "required": true,
+          "meaning": "Registered aggregate"
+        },
+        "treatment_value": {
+          "type": "number",
+          "required": true,
+          "meaning": "Registered aggregate"
+        },
+        "delta": {
+          "type": "number",
+          "required": true,
+          "meaning": "Treatment minus baseline"
+        }
+      }
+    },
+    "MetricFinding": {
+      "fields": {
+        "metric_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Registered metric"
+        },
+        "classification": {
+          "type": "string",
+          "required": true,
+          "meaning": "Scientific classification"
+        },
+        "rationale": {
+          "type": "string",
+          "required": true,
+          "meaning": "Measurement-to-rule explanation"
+        }
+      }
+    },
+    "NamedFile": {
+      "fields": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "meaning": "Confined descriptive relative path"
+        },
+        "artifact_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact content identity"
+        },
+        "media_type": {
+          "type": "string",
+          "required": true,
+          "meaning": "Readable or binary format"
+        },
+        "audience": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authorized readership"
+        }
+      }
+    },
+    "MissingEvidence": {
+      "fields": {
+        "obligation_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Expected item"
+        },
+        "reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unavailable or not-yet-produced reason"
+        },
+        "blocking": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Whether absence prevents release"
+        }
+      }
+    },
+    "FutureInput": {
+      "fields": {
+        "producer_node": {
+          "type": "string",
+          "required": true,
+          "meaning": "Predecessor node"
+        },
+        "port": {
+          "type": "string",
+          "required": true,
+          "meaning": "Named output port"
+        },
+        "contract_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Catalog contract"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact version"
+        }
+      }
+    },
+    "PlanNode": {
+      "fields": {
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique graph node"
+        },
+        "objective": {
+          "type": "string",
+          "required": true,
+          "meaning": "Assigned purpose"
+        },
+        "requirement_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Brief coverage"
+        },
+        "capsule_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Exactly one proposed admitted work declaration for M1"
+        },
+        "predecessors": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Dependency IDs"
+        },
+        "inputs": {
+          "type": "PlanInput[]",
+          "required": true,
+          "meaning": "Named concrete or future-bound inputs"
+        },
+        "outputs": {
+          "type": "PlanOutput[]",
+          "required": true,
+          "meaning": "Named typed outputs"
+        }
+      }
+    },
+    "Limits": {
+      "fields": {
+        "time_s": {
+          "type": "number",
+          "required": true,
+          "meaning": "Positive elapsed cap"
+        },
+        "model_calls": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Nonnegative call cap"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Positive memory cap"
+        }
+      }
+    },
+    "ModelIdentity": {
+      "fields": {
+        "requested": {
+          "type": "string",
+          "required": true,
+          "meaning": "Configured identity"
+        },
+        "effective": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Reported actual identity or unavailable"
+        },
+        "basis": {
+          "type": "string",
+          "required": true,
+          "meaning": "How effective identity was established"
+        }
+      }
+    },
+    "RSIPair": {
+      "fields": {
+        "split": {
+          "type": "string",
+          "required": true,
+          "meaning": "loop or final partition identity, not case IDs"
+        },
+        "parent_passed": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Aggregate count"
+        },
+        "child_passed": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Aggregate count"
+        },
+        "total": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Same case count"
+        },
+        "parent_time_s": {
+          "type": "number[]",
+          "required": true,
+          "meaning": "Paired batch durations"
+        },
+        "child_time_s": {
+          "type": "number[]",
+          "required": true,
+          "meaning": "Paired batch durations"
+        }
+      }
+    },
+    "RSIScore": {
+      "fields": {
+        "primary": {
+          "type": "string",
+          "required": true,
+          "meaning": "passed_test_count"
+        },
+        "secondary": {
+          "type": "string",
+          "required": true,
+          "meaning": "paired_time_at_equal_counts"
+        },
+        "warmup_batches": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Frozen warm-ups"
+        },
+        "paired_rounds": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Frozen round count"
+        },
+        "min_relative_gain": {
+          "type": "number",
+          "required": true,
+          "meaning": "Frozen minimum gain"
+        },
+        "noise_multiplier": {
+          "type": "number",
+          "required": true,
+          "meaning": "Frozen calibrated-noise multiple"
+        },
+        "batch_iterations": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Fixed equal helper batch workload"
+        },
+        "calibrated_relative_noise": {
+          "type": "number",
+          "required": true,
+          "meaning": "Protected pre-session timing-noise estimate"
+        }
+      }
+    },
+    "SplitIdentities": {
+      "fields": {
+        "development": {
+          "type": "string",
+          "required": true,
+          "meaning": "Visible partition identity"
+        },
+        "hidden_loop": {
+          "type": "string",
+          "required": true,
+          "meaning": "Custodian-only identity"
+        },
+        "hidden_final": {
+          "type": "string",
+          "required": true,
+          "meaning": "Custodian-only identity"
+        },
+        "platform": {
+          "type": "string",
+          "required": true,
+          "meaning": "Outside-loop evaluation identity"
+        }
+      }
+    },
+    "ComparisonRule": {
+      "fields": {
+        "operand": {
+          "type": "string",
+          "required": true,
+          "meaning": "Registered treatment aggregate"
+        },
+        "comparator": {
+          "type": "string",
+          "required": true,
+          "meaning": "One of lt, le, eq, ge, gt"
+        },
+        "reference": {
+          "type": "string",
+          "required": true,
+          "meaning": "baseline aggregate or constant"
+        },
+        "factor": {
+          "type": "number",
+          "required": true,
+          "meaning": "Multiply baseline; zero for constant"
+        },
+        "offset": {
+          "type": "number",
+          "required": true,
+          "meaning": "Add threshold in the registered unit"
+        }
+      }
+    },
+    "Prerequisite": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Storage/auth/model/isolation prerequisite"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "meaning": "ready, unavailable or failed"
+        },
+        "reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "Actionable observed basis; no secret values"
+        }
+      }
+    },
+    "Usage": {
+      "fields": {
+        "input_tokens": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Observed input tokens, or unavailable"
+        },
+        "output_tokens": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Observed output tokens, or unavailable"
+        },
+        "cost_amount": {
+          "type": "nullable-number",
+          "required": true,
+          "meaning": "Reported attributable cost, or unavailable; no fabricated estimate"
+        },
+        "currency": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Reported cost unit, or unavailable"
+        },
+        "unavailable_reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unsupported or unobserved fields and basis"
+        }
+      }
+    },
+    "PlanInput": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique consumer input port"
+        },
+        "contract_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Catalog contract"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact contract version"
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Mandatory input"
+        },
+        "artifact_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Concrete accepted inputs; empty when future-bound"
+        },
+        "future_bindings": {
+          "type": "FutureInput[]",
+          "required": true,
+          "meaning": "Named predecessor outputs; empty when concrete"
+        }
+      }
+    },
+    "PlanOutput": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique producer output port"
+        },
+        "contract_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Catalog contract"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact contract version"
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Mandatory output"
+        }
+      }
+    }
+  },
+  "interfaces": [
+    {
+      "id": "qualified-intake:field-contract:1",
+      "name": "qualified-intake",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected intake",
+      "consumers": [
+        "Intent CC",
+        "Requirements CC"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "request_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact original text"
+        },
+        "source_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Permitted extracted text"
+        },
+        "offset_basis": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unicode code points"
+        },
+        "resource_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Qualified supplied assets"
+        },
+        "rejected_inputs": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Rejected/skipped items and reasons"
+        }
+      },
+      "failure": "Reject missing required source or undecodable text; do not silently treat a rejected resource as available."
+    },
+    {
+      "id": "resource-snapshot:field-contract:1",
+      "name": "resource-snapshot",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected resolver",
+      "consumers": [
+        "Hypothesis",
+        "Builder",
+        "Benchmark"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "kind": {
+          "type": "string",
+          "required": true,
+          "meaning": "Resource kind"
+        },
+        "origin": {
+          "type": "string",
+          "required": true,
+          "meaning": "Original locator"
+        },
+        "revision": {
+          "type": "string",
+          "required": true,
+          "meaning": "Captured immutable revision"
+        },
+        "files": {
+          "type": "NamedFile[]",
+          "required": true,
+          "meaning": "Captured contents"
+        },
+        "access": {
+          "type": "string",
+          "required": true,
+          "meaning": "Permitted use"
+        },
+        "license": {
+          "type": "string",
+          "required": true,
+          "meaning": "Known license or explicit unknown"
+        },
+        "availability": {
+          "type": "string",
+          "required": true,
+          "meaning": "available or unavailable"
+        },
+        "environment_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Prepared compatible environment lock"
+        }
+      },
+      "failure": "Unavailable mandatory data blocks; mutable locator alone is not a reproducible identity."
+    },
+    {
+      "id": "environment-lock:field-contract:1",
+      "name": "environment-lock",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected environment preparation",
+      "consumers": [
+        "Hypothesis",
+        "Builder",
+        "provisioner"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "platform": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact supported environment"
+        },
+        "requirements_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Complete direct/transitive pinned declaration"
+        },
+        "package_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Reviewed immutable package bytes"
+        },
+        "approval_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected preparation decision"
+        }
+      },
+      "failure": "Reject unpinned/unavailable packages, incompatible platform or altered lock; no dynamic resolution."
+    },
+    {
+      "id": "plan-proposal:field-contract:1",
+      "name": "plan-proposal",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "static template or bounded planner",
+      "consumers": [
+        "binder",
+        "plan checking"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted governing Brief"
+        },
+        "library_snapshot_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Eligible version snapshot"
+        },
+        "mode": {
+          "type": "string",
+          "required": true,
+          "meaning": "static or bounded planning"
+        },
+        "nodes": {
+          "type": "PlanNode[]",
+          "required": true,
+          "meaning": "Proposed bounded graph"
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Aggregate proposed bounds"
+        },
+        "additional_checks": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Extra checks, never waiver"
+        }
+      },
+      "failure": "Reject cycles, missing Brief coverage, incompatible ports or denied effects; proposal grants no authority."
+    },
+    {
+      "id": "frozen-graph:field-contract:1",
+      "name": "frozen-graph",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected freeze",
+      "consumers": [
+        "scheduler",
+        "binder"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "proposal_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Checked plan"
+        },
+        "decision_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Committed acceptance"
+        },
+        "node_template_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Pinned node templates"
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Effective policy"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen run configuration"
+        },
+        "library_snapshot_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned eligible versions"
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Aggregate limits"
+        }
+      },
+      "failure": "Missing commit/pins/compatibility blocks dispatch; template future values are not observed artifacts."
+    },
+    {
+      "id": "bound-check-plan:field-contract:1",
+      "name": "bound-check-plan",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected guard resolver",
+      "consumers": [
+        "checks",
+        "review builder",
+        "gate"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Final concrete node contract"
+        },
+        "input_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Exact bound inputs"
+        },
+        "profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Independently owned guard profile"
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen policy"
+        },
+        "mandatory_deterministic": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unique mandatory check IDs"
+        },
+        "mandatory_semantic": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unique mandatory criterion IDs"
+        },
+        "runner_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Pinned check and verifier implementations"
+        }
+      },
+      "failure": "Reject missing assignments, mutable runner identities or hash cycles. Producer suggestions cannot replace mandatory criteria."
+    },
+    {
+      "id": "candidate-set:field-contract:1",
+      "name": "candidate-set",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Search and Ideation CC",
+      "consumers": [
+        "Screening",
+        "checking"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Governing accepted requirements"
+        },
+        "queries": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Fixed retrieval queries"
+        },
+        "citations": {
+          "type": "Citation[]",
+          "required": true,
+          "meaning": "Captured source evidence"
+        },
+        "ideas": {
+          "type": "Idea[]",
+          "required": true,
+          "meaning": "One to three grounded candidates"
+        }
+      },
+      "failure": "Missing grounding, unresolved citation or unsupported claims block; bounded retrieval cannot repair itself."
+    },
+    {
+      "id": "screening-result:field-contract:1",
+      "name": "screening-result",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Screening CC and deterministic helper",
+      "consumers": [
+        "selection",
+        "checking",
+        "RSI"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "candidate_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact candidate set"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted requirements"
+        },
+        "rubric_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen work scoring policy"
+        },
+        "scores": {
+          "type": "IdeaScore[]",
+          "required": true,
+          "meaning": "One assessment per idea"
+        },
+        "ranking": {
+          "type": "Ranking[]",
+          "required": true,
+          "meaning": "Eligible sum order with stable ID ties"
+        },
+        "selected_idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exactly one Top-1"
+        }
+      },
+      "failure": "Missing/duplicate/out-of-range scores or no eligible idea block; do not impute or invent an alternative."
+    },
+    {
+      "id": "opportunity-card:field-contract:1",
+      "name": "opportunity-card",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Screening CC",
+      "consumers": [
+        "Hypothesis",
+        "checking"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "candidate_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Grounded set"
+        },
+        "screening_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Checked scoring/ranking"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "User obligations"
+        },
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Existing selected ID"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "meaning": "Readable title"
+        },
+        "opportunity_statement": {
+          "type": "string",
+          "required": true,
+          "meaning": "Bottleneck and mechanism"
+        },
+        "citation_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Supporting citations"
+        },
+        "constraints": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Applicable requirements"
+        },
+        "assumptions": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unproven premises"
+        },
+        "risks": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Known concerns"
+        }
+      },
+      "failure": "Selected ID must equal ranking Top-1 and exist in candidates; unsupported mechanism or lost constraints blocks."
+    },
+    {
+      "id": "hypothesis-blueprint:field-contract:1",
+      "name": "hypothesis-blueprint",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Hypothesis CC",
+      "consumers": [
+        "Builder",
+        "Benchmark",
+        "Evaluation",
+        "checking"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted requirements"
+        },
+        "opportunity_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted opportunity"
+        },
+        "claim": {
+          "type": "string",
+          "required": true,
+          "meaning": "One testable claim"
+        },
+        "mechanism": {
+          "type": "string",
+          "required": true,
+          "meaning": "Proposed causal mechanism"
+        },
+        "independent_variable": {
+          "type": "string",
+          "required": true,
+          "meaning": "Treatment intervention"
+        },
+        "dependent_variables": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Registered measurements"
+        },
+        "resource_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Captured baseline/data"
+        },
+        "environment_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Selected prepared lock"
+        },
+        "metrics": {
+          "type": "MetricRule[]",
+          "required": true,
+          "meaning": "Success/negative/middle rules fixed before results"
+        },
+        "repeat_count": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Positive repetitions"
+        },
+        "seed": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Registered seed"
+        },
+        "implementation_scope": {
+          "type": "string",
+          "required": true,
+          "meaning": "Bounded allowed change"
+        },
+        "constraints": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Preserved requirements"
+        },
+        "verification_plan": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Required evidence checks"
+        }
+      },
+      "failure": "Missing resources, lock, measurable rules or full classification blocks Builder. Protocol cannot change after measurements."
+    },
+    {
+      "id": "poc-manifest:field-contract:1",
+      "name": "poc-manifest",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Builder CC with trusted capture",
+      "consumers": [
+        "Benchmark",
+        "checking",
+        "Delivery"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "blueprint_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen protocol"
+        },
+        "environment_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact unchanged prepared lock"
+        },
+        "archive_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Separate executable bundle"
+        },
+        "files": {
+          "type": "NamedFile[]",
+          "required": true,
+          "meaning": "Required scripts/declaration"
+        },
+        "mechanical_evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Syntax/forbidden-module/package checks"
+        }
+      },
+      "failure": "No scientific trial/install in Builder. Missing script, traversal, lock mutation or undeclared dependency blocks."
+    },
+    {
+      "id": "benchmark-payload:field-contract:1",
+      "name": "benchmark-payload",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Benchmark with protected provisioner/executor",
+      "consumers": [
+        "Evaluation",
+        "checking",
+        "Delivery"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "blueprint_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen criteria"
+        },
+        "poc_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Checked package"
+        },
+        "resource_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Exact baseline/data"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Observed fixed hardware/runtime"
+        },
+        "baseline_execution_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Unmodified baseline first"
+        },
+        "treatment_execution_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Matched treatment second"
+        },
+        "metrics": {
+          "type": "MetricObservation[]",
+          "required": true,
+          "meaning": "All registered raw and aggregate values"
+        },
+        "raw_evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Empirical repeats/stdout/stderr"
+        },
+        "provisioning_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact lock installation and limits"
+        },
+        "missing_evidence": {
+          "type": "MissingEvidence[]",
+          "required": true,
+          "meaning": "Unmeasured/error reasons"
+        }
+      },
+      "failure": "Incomplete mandatory metric, changed baseline or unmatched settings blocks scientific evaluation; no fabricated values."
+    },
+    {
+      "id": "evaluation-verdict:field-contract:1",
+      "name": "evaluation-verdict",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Scientific Evaluation CC",
+      "consumers": [
+        "Delivery",
+        "checking"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Preserved objective"
+        },
+        "blueprint_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Predeclared rules"
+        },
+        "benchmark_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact measurements"
+        },
+        "classification": {
+          "type": "string",
+          "required": true,
+          "meaning": "PASS/FAIL/INCONCLUSIVE/CONDITIONALLY_ACCEPTABLE"
+        },
+        "findings": {
+          "type": "MetricFinding[]",
+          "required": true,
+          "meaning": "Every registered metric rationale"
+        },
+        "limitations": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Interpretive limits"
+        },
+        "blockers": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Missing scientific basis"
+        },
+        "followups": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Recommendations, not reruns"
+        }
+      },
+      "failure": "Apply registered rules; scientific FAIL is valid when supported. Conditional acceptance requires preregistration. No control-flow action field."
+    },
+    {
+      "id": "delivery-manifest:field-contract:1",
+      "name": "delivery-manifest",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Delivery CC with trusted export",
+      "consumers": [
+        "user",
+        "checking",
+        "client"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Objective"
+        },
+        "verdict_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted scientific classification"
+        },
+        "report_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Readable narrative report"
+        },
+        "artifact_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Reproducible lifecycle records"
+        },
+        "files": {
+          "type": "NamedFile[]",
+          "required": true,
+          "meaning": "Exact exported content and audience"
+        },
+        "missing_evidence": {
+          "type": "MissingEvidence[]",
+          "required": true,
+          "meaning": "Omissions/redactions"
+        }
+      },
+      "failure": "Contradiction with verdict, missing mandatory content or unauthorized disclosure blocks release/export."
+    },
+    {
+      "id": "artifact-envelope:field-contract:1",
+      "name": "artifact-envelope",
+      "version": "1.0.0",
+      "topic": "manifest-and-runtime-records",
+      "producer": "trusted capture",
+      "consumers": [
+        "checking",
+        "export",
+        "runner"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "contract_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Catalog payload contract"
+        },
+        "payload_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact body"
+        },
+        "media_type": {
+          "type": "string",
+          "required": true,
+          "meaning": "Readable descriptive format"
+        },
+        "run_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Trusted run scope"
+        },
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Trusted node scope"
+        },
+        "attempt_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Trusted attempt"
+        },
+        "invocation_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Observed producer"
+        },
+        "source_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Original/accepted source chain"
+        },
+        "audience": {
+          "type": "string",
+          "required": true,
+          "meaning": "Allowed readers"
+        }
+      },
+      "failure": "CC-authored metadata is untrusted; mismatched type/hash/scope blocks. Envelope does not establish acceptance."
+    },
+    {
+      "id": "invocation-observation:field-contract:1",
+      "name": "invocation-observation",
+      "version": "1.0.0",
+      "topic": "manifest-and-runtime-records",
+      "producer": "protected runner",
+      "consumers": [
+        "gate",
+        "review",
+        "Run Bundle"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Concrete node"
+        },
+        "binding_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Participating binding"
+        },
+        "input_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Exact supplied inputs"
+        },
+        "output_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Captured candidates"
+        },
+        "model_identity": {
+          "type": "ModelIdentity",
+          "required": true,
+          "meaning": "Requested/effective routing"
+        },
+        "started_at": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Observed timestamp"
+        },
+        "ended_at": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Observed timestamp"
+        },
+        "outcome": {
+          "type": "string",
+          "required": true,
+          "meaning": "Observed completion/failure, or synthetic illustration"
+        },
+        "effects": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Observed effects/tools"
+        },
+        "duration_s": {
+          "type": "nullable-number",
+          "required": true,
+          "meaning": "Actual time or unavailable"
+        },
+        "model_calls": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Actual calls or unavailable"
+        },
+        "trace_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Raw evidence"
+        },
+        "unavailable_reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unsupported telemetry"
+        },
+        "observed_runtime": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "False only in synthetic teaching examples"
+        },
+        "usage": {
+          "type": "Usage",
+          "required": true,
+          "meaning": "Available token/cost telemetry, explicit nulls and unavailability reasons"
+        }
+      },
+      "failure": "Missing mandatory observations block release; optional telemetry stays unavailable. Synthetic illustrations cannot certify runtime work."
+    },
+    {
+      "id": "review-context:field-contract:1",
+      "name": "review-context",
+      "version": "1.0.0",
+      "topic": "manifest-and-runtime-records",
+      "producer": "protected context builder",
+      "consumers": [
+        "read-only verifier"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "subject_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact candidate"
+        },
+        "contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Work obligations"
+        },
+        "check_plan_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Bound independent assignment"
+        },
+        "input_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Accepted/original evidence"
+        },
+        "deterministic_result_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Passed structural checks"
+        },
+        "criteria": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Mandatory semantic obligations"
+        },
+        "observations": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Runner evidence"
+        },
+        "evidence_classes": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Protected policy/accepted input/observed evidence/untrusted producer"
+        }
+      },
+      "failure": "Incomplete/stale context blocks assessment/release; artifact instructions remain untrusted data."
+    },
+    {
+      "id": "accepted-output:field-contract:1",
+      "name": "accepted-output",
+      "version": "1.0.0",
+      "topic": "manifest-and-runtime-records",
+      "producer": "protected durable state",
+      "consumers": [
+        "scheduler",
+        "client"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "run_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Run scope"
+        },
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Node scope"
+        },
+        "attempt_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Attempt scope"
+        },
+        "gate_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Committed protected decision"
+        },
+        "contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Same concrete contract"
+        },
+        "output_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Exact accepted bytes"
+        },
+        "commit_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Durable transaction identity"
+        }
+      },
+      "failure": "Created only after artifact/decision persistence. File presence or verifier PASS cannot create acceptance."
+    },
+    {
+      "id": "run-bundle:field-contract:1",
+      "name": "run-bundle",
+      "version": "1.0.0",
+      "topic": "manifest-and-runtime-records",
+      "producer": "protected evidence builder",
+      "consumers": [
+        "inspection",
+        "authorized export"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "run_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Run scope"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "meaning": "In-progress/completed/halted/paused"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Requested/effective pins"
+        },
+        "artifact_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Candidate/accepted records"
+        },
+        "decision_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Protected decisions"
+        },
+        "observation_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Actual execution evidence"
+        },
+        "missing_evidence": {
+          "type": "MissingEvidence[]",
+          "required": true,
+          "meaning": "Not-produced or unavailable items"
+        },
+        "redactions": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Audience omissions"
+        }
+      },
+      "failure": "Incomplete export cannot claim completion. Derived bundle never replaces durable state."
+    },
+    {
+      "id": "scorecard:field-contract:1",
+      "name": "scorecard",
+      "version": "1.0.0",
+      "topic": "manifest-and-runtime-records",
+      "producer": "derived observation builder",
+      "consumers": [
+        "analysis",
+        "planner"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "capsule_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact admitted version"
+        },
+        "observation_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Source samples"
+        },
+        "sample_count": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Observed sample size"
+        },
+        "window": {
+          "type": "string",
+          "required": true,
+          "meaning": "Sample time/scope"
+        },
+        "outcomes": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Measured outcomes/failure counts"
+        },
+        "unavailable_reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unmeasured quality/cost"
+        }
+      },
+      "failure": "No samples means unavailable quality. Regeneration does not change gate history."
+    },
+    {
+      "id": "client-readiness:field-contract:1",
+      "name": "client-readiness",
+      "version": "1.0.0",
+      "topic": "client-and-model-boundaries",
+      "producer": "application",
+      "consumers": [
+        "browser",
+        "CLI",
+        "benchmarker",
+        "sidecar"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "client_contract_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Negotiated interface"
+        },
+        "instance_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Target instance"
+        },
+        "build_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Application build"
+        },
+        "operations": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Supported actions"
+        },
+        "prerequisites": {
+          "type": "Prerequisite[]",
+          "required": true,
+          "meaning": "Storage/auth/model/isolation state with reason"
+        },
+        "ready": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Required prerequisites available"
+        }
+      },
+      "failure": "Wrong target/version or mandatory unavailable prerequisite blocks submission; liveness alone is insufficient."
+    },
+    {
+      "id": "client-submission:field-contract:1",
+      "name": "client-submission",
+      "version": "1.0.0",
+      "topic": "client-and-model-boundaries",
+      "producer": "scoped client",
+      "consumers": [
+        "control plane"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "client_request_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Idempotent submission identity"
+        },
+        "workspace_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authorized scope"
+        },
+        "account_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authenticated actor"
+        },
+        "intake_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Qualified request/resources"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Approved profile/mode/seed"
+        }
+      },
+      "failure": "Reconcile uncertain delivery by request identity before resubmission. Do not replay capsule work."
+    },
+    {
+      "id": "client-status:field-contract:1",
+      "name": "client-status",
+      "version": "1.0.0",
+      "topic": "client-and-model-boundaries",
+      "producer": "control plane",
+      "consumers": [
+        "clients"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "client_request_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Reconciliation identity"
+        },
+        "run_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Allocated run or unavailable"
+        },
+        "revision": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Monotonic state revision"
+        },
+        "stage": {
+          "type": "string",
+          "required": true,
+          "meaning": "Current phase/stage"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "meaning": "Completion/halt/cancel/pause/in-progress"
+        },
+        "candidate_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Unaccepted outputs"
+        },
+        "accepted_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Committed accepted outputs"
+        },
+        "decision_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Last decision"
+        },
+        "reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Visible explanation"
+        },
+        "bundle_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Available export"
+        }
+      },
+      "failure": "Disconnection does not cancel; malformed or stale status is unavailable, not accepted completion."
+    },
+    {
+      "id": "client-retrieval:field-contract:1",
+      "name": "client-retrieval",
+      "version": "1.0.0",
+      "topic": "client-and-model-boundaries",
+      "producer": "scoped client and application",
+      "consumers": [
+        "inspection",
+        "export"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "run_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authorized run"
+        },
+        "artifact_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Requested/returned identities"
+        },
+        "audience": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authorized intended readers"
+        },
+        "files": {
+          "type": "NamedFile[]",
+          "required": true,
+          "meaning": "Returned descriptive content"
+        },
+        "redactions": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Withheld evidence"
+        }
+      },
+      "failure": "No direct database/volume access; path escape or forbidden audience is rejected."
+    },
+    {
+      "id": "client-cancellation:field-contract:1",
+      "name": "client-cancellation",
+      "version": "1.0.0",
+      "topic": "client-and-model-boundaries",
+      "producer": "client and protected controller",
+      "consumers": [
+        "runner",
+        "client"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "request_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Cancellation identity"
+        },
+        "run_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Target"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "meaning": "requested/acknowledged/terminal"
+        },
+        "preserved_effects": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Known effects that cannot be undone"
+        }
+      },
+      "failure": "Stop new dispatch, contain active work, preserve uncertainty/evidence; cancellation is not rollback."
+    },
+    {
+      "id": "client-error:field-contract:1",
+      "name": "client-error",
+      "version": "1.0.0",
+      "topic": "client-and-model-boundaries",
+      "producer": "application",
+      "consumers": [
+        "clients"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "category": {
+          "type": "string",
+          "required": true,
+          "meaning": "Stable reason family"
+        },
+        "message": {
+          "type": "string",
+          "required": true,
+          "meaning": "Actionable human explanation"
+        },
+        "request_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Known request"
+        },
+        "run_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Known run"
+        },
+        "evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Authorized diagnosis"
+        },
+        "correction": {
+          "type": "string",
+          "required": true,
+          "meaning": "Allowed user action"
+        }
+      },
+      "failure": "Never include credentials/hidden fixtures or suggest implicit work retry."
+    },
+    {
+      "id": "model-route:field-contract:1",
+      "name": "model-route",
+      "version": "1.0.0",
+      "topic": "client-and-model-boundaries",
+      "producer": "protected router",
+      "consumers": [
+        "audited bridge",
+        "observations"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "invocation_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Attempt call"
+        },
+        "role": {
+          "type": "string",
+          "required": true,
+          "meaning": "Approved CC role"
+        },
+        "profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen selection policy"
+        },
+        "eligible_endpoints": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Approved candidates"
+        },
+        "excluded_reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Capability/access failures"
+        },
+        "selected_endpoint": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Eligible endpoint or unavailable"
+        },
+        "identity": {
+          "type": "ModelIdentity",
+          "required": true,
+          "meaning": "Requested/effective identity"
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Frozen call bounds"
+        }
+      },
+      "failure": "No eligible endpoint blocks. Router cannot replace CC or switch a started invocation."
+    },
+    {
+      "id": "rsi-target-profile:field-contract:1",
+      "name": "rsi-target-profile",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "protected target owner",
+      "consumers": [
+        "controller",
+        "guard",
+        "referee"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "parent_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Eligible exact sandbox parent"
+        },
+        "frozen_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Unchanged interface"
+        },
+        "required_test_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Mandatory parent tests"
+        },
+        "mutable_paths": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Only allowed helper path"
+        },
+        "protected_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Immutable dependency/referee closure"
+        },
+        "splits": {
+          "type": "SplitIdentities",
+          "required": true,
+          "meaning": "Disjoint partition identities"
+        },
+        "scoring": {
+          "type": "RSIScore",
+          "required": true,
+          "meaning": "Passed-tests-first timing tie rule"
+        },
+        "calibration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Good/bad children and measured headroom"
+        },
+        "session_query_limit": {
+          "type": "integer",
+          "required": true,
+          "meaning": "30"
+        },
+        "lifetime_query_limit": {
+          "type": "integer",
+          "required": true,
+          "meaning": "90"
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Frozen session bounds"
+        },
+        "scoring_adapter_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen independent scoring adapter"
+        },
+        "improver_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Fixed proposer policy/implementation"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen model/host/runtime configuration"
+        }
+      },
+      "failure": "No calibrated headroom, overlap or mutable referee blocks session. Never edit profile in response to candidate results."
+    },
+    {
+      "id": "rsi-attempt:field-contract:1",
+      "name": "rsi-attempt",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "protected RSI controller",
+      "consumers": [
+        "guard",
+        "referee",
+        "evidence"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Bounded session"
+        },
+        "sequence": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Ordered positive attempt"
+        },
+        "previous_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Previous exact attempt or null first"
+        },
+        "target_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen profile"
+        },
+        "parent_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Same eligible parent"
+        },
+        "child_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact proposed child"
+        },
+        "diff_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Allowed implementation delta"
+        },
+        "rationale": {
+          "type": "string",
+          "required": true,
+          "meaning": "Proposer explanation, not proof"
+        },
+        "visible_evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Visible tests"
+        },
+        "queries_used": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Actual protected count"
+        },
+        "violations": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Observed violations"
+        },
+        "stop_reason": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Terminal reason or null"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Same frozen target context"
+        },
+        "observation_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Protected model/time/call traces"
+        },
+        "time_s": {
+          "type": "nullable-number",
+          "required": true,
+          "meaning": "Observed session elapsed time or unavailable"
+        },
+        "model_calls": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Observed proposal calls or unavailable"
+        },
+        "unavailable_reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Explicit unobserved telemetry"
+        },
+        "hash_profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned serialization/hash profile"
+        },
+        "chain_root_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected pre-attempt session genesis; never first-attempt self-reference"
+        }
+      },
+      "failure": "Broken chain/lineage, unauthorized mutation or security violation halts and retains evidence; clearance needed before a new autonomous session."
+    },
+    {
+      "id": "rsi-loop-feedback:field-contract:1",
+      "name": "rsi-loop-feedback",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "custodian",
+      "consumers": [
+        "proposer"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "passed": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Aggregate hidden passed count"
+        },
+        "total": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Hidden case count"
+        },
+        "queries_left": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Remaining bounded allowance"
+        }
+      },
+      "failure": "Counts only; no case IDs/content/timing/expected answers or final feedback enter proposal context."
+    },
+    {
+      "id": "rsi-referee-evidence:field-contract:1",
+      "name": "rsi-referee-evidence",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "protected independent referee",
+      "consumers": [
+        "restricted admission",
+        "evidence builder"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "attempt_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact assessed attempt"
+        },
+        "target_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen scorer/splits"
+        },
+        "parent_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Same parent"
+        },
+        "child_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Same candidate"
+        },
+        "pairs": {
+          "type": "RSIPair[]",
+          "required": true,
+          "meaning": "Comparable repeated aggregate loop/final results"
+        },
+        "mandatory_parent_tests_passed": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Compatibility prerequisite"
+        },
+        "integrity_passed": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Custody/mutation/effect checks"
+        },
+        "final_evaluations": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Exactly one terminal evaluation"
+        },
+        "violations": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Protected security results"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Comparable exact parent/child evaluation context"
+        }
+      },
+      "failure": "Wrong parent, fewer mandatory passes, changed configuration, final reuse or tampering blocks certification."
+    },
+    {
+      "id": "rsi-evidence-export:field-contract:1",
+      "name": "rsi-evidence-export",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "trusted audience-filtered builder",
+      "consumers": [
+        "authorized human",
+        "library"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "attempt_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Terminal child attempt"
+        },
+        "referee_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Restricted evidence identity"
+        },
+        "parent_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact parent"
+        },
+        "child_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact child"
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "meaning": "Allowed paired aggregate comparison"
+        },
+        "redactions": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Hidden cases/scoring details withheld"
+        },
+        "violations": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Allowed security outcomes"
+        }
+      },
+      "failure": "Final export never feeds the loop; withheld contents remain custodian-only. Hash identity does not grant read permission."
+    },
+    {
+      "id": "library-admission:field-contract:1",
+      "name": "library-admission",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "protected library admission",
+      "consumers": [
+        "eligibility",
+        "human"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "candidate_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact declaration/body package"
+        },
+        "parent_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Lineage"
+        },
+        "evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Independent allowed-change/contract/test/effect checks"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "meaning": "admitted/rejected/blocked"
+        },
+        "standing": {
+          "type": "string",
+          "required": true,
+          "meaning": "inactive/active/suspended/revoked"
+        },
+        "reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Disposition rationale"
+        }
+      },
+      "failure": "Only protected admission authors standing. RSI score or producer declaration grants no eligibility."
+    },
+    {
+      "id": "activation-record:field-contract:1",
+      "name": "activation-record",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "authorized human through protected library",
+      "consumers": [
+        "future selection",
+        "audit"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "actor": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authenticated human"
+        },
+        "recorded_at": {
+          "type": "string",
+          "required": true,
+          "meaning": "UTC timestamp"
+        },
+        "from_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Prior admitted version"
+        },
+        "to_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Selected admitted version"
+        },
+        "admission_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Eligibility basis"
+        },
+        "reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "Activation or rollback rationale"
+        },
+        "effect_scope": {
+          "type": "string",
+          "required": true,
+          "meaning": "future sandbox selection only in Target 1 M1"
+        }
+      },
+      "failure": "Cannot affect frozen runs or automatically adopt production child. Rollback records reverse selection without erasing history."
+    },
+    {
+      "id": "candidate-provenance:field-contract:1",
+      "name": "candidate-provenance",
+      "version": "1.0.0",
+      "topic": "offline-rsi-records",
+      "producer": "candidate builder with protected capture",
+      "consumers": [
+        "library admission",
+        "human",
+        "RSI"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable candidate identity"
+        },
+        "declaration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact unchanged interface declaration"
+        },
+        "implementation_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Complete exact body files"
+        },
+        "parent_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Exact prior implementation/version lineage"
+        },
+        "builder_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Attributable builder or protected RSI attempt"
+        },
+        "evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Independent compatibility/security/provenance support"
+        }
+      },
+      "failure": "Missing declaration/body closure, unknown lineage or mismatched evidence blocks admission; candidate package grants no standing."
+    },
+    {
+      "id": "security-clearance:field-contract:1",
+      "name": "security-clearance",
+      "version": "1.0.0",
+      "topic": "Runtime and RSI protected records",
+      "producer": "authorized security human through protected RSI controller",
+      "consumers": [
+        "new-session eligibility",
+        "audit"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "actor_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authorized security reviewer"
+        },
+        "recorded_at": {
+          "type": "string",
+          "required": true,
+          "meaning": "UTC clearance time"
+        },
+        "halted_session_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact violated session"
+        },
+        "violation_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Protected incident evidence"
+        },
+        "remediation_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact remediation"
+        },
+        "guardrail_evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Independent validated guardrail evidence"
+        },
+        "decision": {
+          "type": "string",
+          "required": true,
+          "meaning": "cleared or denied"
+        },
+        "effect_scope": {
+          "type": "string",
+          "required": true,
+          "meaning": "new_rsi_session_only"
+        }
+      },
+      "failure": "Missing incident, authorized actor or validated remediation blocks new-session eligibility. Clearance never resumes the halted session or activates a child."
+    }
+  ]
+}

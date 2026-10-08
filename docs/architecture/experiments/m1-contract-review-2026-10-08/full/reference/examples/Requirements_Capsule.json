@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "requirements.compiler",
+    "version_label": "example-1",
+    "kind": "agent",
+    "summary": "Synthetic declaration illustrating requirements.compiler",
+    "carrier": {
+      "ref": "Intent_Implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "Intent_Implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "intent",
+        "artifact_type": "intent_ir",
+        "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+        "required": true,
+        "description": "Exact qualified request and permitted context",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "brief",
+        "artifact_type": "research-brief",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+        "required": true,
+        "description": "Attributed interpretation, not Requirements",
+        "check_ids": [
+          "intent_schema"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [
+      {
+        "resource_key": "original_request",
+        "mode": "read"
+      }
+    ],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "intent_schema",
+        "kind": "deterministic",
+        "target": "outputs.intent",
+        "runner": {
+          "ref": "Intent_Implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      }
+    ],
+    "acceptance": [
+      "intent_schema"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Semantic fidelity/usability require independently assigned runtime verification"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 60,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "frozen": [
+      "/ports",
+      "/needs",
+      "/changes",
+      "/guarantees",
+      "/budget"
+    ],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+    ]
+  }
+}

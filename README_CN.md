@@ -1,4 +1,4 @@
-> **AI4Research / `ai4r_muk`：** 当前项目架构与 PRD 入口为 [design-package / build-package](docs/architecture/build-package/README.md)。[Very condensed design](docs/architecture/very-condensed-design.md) 保持相同 M1 范围，仅压缩设计细节；当前实验只构建意图编译与验证切片。下文是底层 JiuwenSwarm 平台使用文档。
+> **AI4Research / `ai4r_muk`：** 当前项目架构与 PRD 入口为 [完整 design-package](docs/architecture/design-package/README.md)。[Very condensed design](docs/architecture/very-condensed-design.md) 保持相同 M1 范围，仅压缩设计细节；当前实验只构建意图编译与验证切片。下文是底层 JiuwenSwarm 平台使用文档。
 
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />

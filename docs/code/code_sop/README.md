@@ -54,4 +54,4 @@ No example runtime result is reported as passed. Actual future runs use the evid
 
 ## Source delivery and historical snapshots
 
-Use the live guides, templates and repository authorities above. The obsolete combined handbook, ZIP and manifest have been removed; their exact original versions are retained through the [pinned history index](../../architecture/build-package/history.md#final-branch-cleanup--october-7-2026). [Documentation checks](../DOCUMENTATION_CHECKS.md) record the earlier delivery, not current M1 readiness.
+Use the live guides, templates and repository authorities above. The obsolete combined handbook, ZIP and manifest have been removed; their exact original versions are retained through the [pinned history index](../../architecture/design-package/history.md#final-branch-cleanup--october-7-2026). [Documentation checks](../DOCUMENTATION_CHECKS.md) record the earlier delivery, not current M1 readiness.

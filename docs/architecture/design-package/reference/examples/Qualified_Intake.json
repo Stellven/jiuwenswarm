@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "id": "intake:example",
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+  },
+  "source_refs": [],
+  "offset_basis": "Unicode code points",
+  "resource_refs": [],
+  "rejected_inputs": []
+}

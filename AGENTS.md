@@ -4,9 +4,9 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 ## Entry points
 - [Code SOP v2](docs/code/Code_SOP.md)
 - [M1 TASKS](docs/tasks/M1/TASKS.md)
-- [Current PRD and architecture reading package](docs/architecture/build-package/README.md)
-- [First connected slice design, formerly TRIAL-1](docs/architecture/build-package/immediate-plan.md)
-- [Canonical vocabulary and PRD crosswalk](docs/architecture/build-package/glossary.md)
+- [Current PRD and architecture reading package](docs/architecture/design-package/README.md)
+- [First connected slice design, formerly TRIAL-1](docs/architecture/design-package/immediate-plan.md)
+- [Canonical vocabulary and PRD crosswalk](docs/architecture/design-package/glossary.md)
 - [Spec Kit workflow](docs/code/code_sop/SPEC_KIT_WORKFLOW.md)
 - [Verification method](docs/code/code_sop/VERIFICATION.md)
 - [Constitution](.specify/memory/constitution.md)
@@ -15,11 +15,13 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 
 ## Product and design authority
 
-“Design-package” and “build-package” refer to the same sole maintained architecture package at `docs/architecture/build-package/`; retain that canonical path and do not create a parallel maintained design set. The experimental `docs/architecture/very-condensed-design.md` covers the same M1 scope with reduced detail. When the user selects that experiment, use that file alongside the PRD as design input; the assigned test builds only the Intent Compilation and Verification Slice. Do not expand the test scope or consult the full package unless authorized by the experiment instruction.
+The sole maintained full architecture is `docs/architecture/design-package/`. The matched reduced-explanation version is `docs/architecture/design-package-compact/`; it retains identical authoritative contracts, source decisions and M1 scope. These user-selected names replace the former build-package path. Maintain architectural decisions in the full package and synchronize the compact version. In a paired trial, use only the assigned package; no parallel architecture authority is created. Versioned full-M1 compression experiments are registered in `docs/architecture/experiments/README.md`; use only the assigned frozen input. The October 8 pair is `m1-contract-review-2026-10-08/{full,compact}/`. The original `m1-full-baseline/` and `m1-cut-down/` pair remains frozen under its original protocol. Use it only when assigned; it is not a second maintained architecture. Paired participants must use only their assigned snapshot and cannot consult other architecture. The experimental `docs/architecture/very-condensed-design.md` is a preserved pre-revision comparison input; it does not contain the current restored shared contracts. When the user selects that experiment, use that file alongside the PRD as design input; the assigned test builds only the Intent Compilation and Verification Slice. Do not expand the test scope or consult the full package unless authorized by the experiment instruction.
 
-The `docs/architecture/build-package/development-tools/` subtree contains separately scoped development tooling design. Start with `development-tools/sidecar/README.md` for reusable diagnostics and validation; the test runner is its narrower client-validation role. Product startup and milestone exits must not depend on sidecar implementation. Development tools and credentials are unavailable to product agents and CCs. It is excluded from M1 product/design input and automatic TASKS or Spec Kit allocation. Tooling implementation requires a separate explicit scope; AI4Research interface changes follow the existing product change process.
+The `docs/architecture/design-package/development-tools/` subtree contains separately scoped development tooling design. Start with `development-tools/sidecar/README.md` for reusable diagnostics and validation; the test runner is its narrower client-validation role. Product startup and milestone exits must not depend on sidecar implementation. Development tools and credentials are unavailable to product agents and CCs. It is excluded from M1 product/design input and automatic TASKS or Spec Kit allocation. Tooling implementation requires a separate explicit scope; AI4Research interface changes follow the existing product change process.
 
-For M1 work, read only `docs/architecture/build-package/` as maintained product/design input, starting with its verbatim PRD, overview and decisions, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
+The PRD owns overall product requirements and outcomes. The maintained design interprets them and owns architecture and implementation-facing details; prefer the current design when implementation guidance conflicts. Product-obligation changes require recorded authorized decisions.
+
+For M1 work, read only `docs/architecture/design-package/` as maintained product/design input, starting with its verbatim PRD, overview and decisions, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
 
 M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1) remains a bounded first build. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
 

@@ -2,7 +2,7 @@
 
 ## Current inputs
 
-Use the [build-package reading order](../../architecture/build-package/README.md#required-reading-order), [verbatim PRD](../../architecture/build-package/sources/product/prd-m1-current-2026-10-06.txt), [decisions](../../architecture/build-package/principles.md#decisions-and-source-amendments), and [coding handoff](../../architecture/build-package/handoff.md). This register maintains no parallel architecture or PRD.
+Use the [design reading routes](../../architecture/design-package/README.md#human-super-important-read-understand-the-whole-system), [verbatim PRD](../../architecture/design-package/sources/product/prd-m1-current-2026-10-07.txt), [decisions](../../architecture/design-package/principles.md#decisions-and-source-amendments), [architecture phases](../../architecture/design-package/delivery-phases.md) and [critical contracts](../../architecture/design-package/reference/README.md). This register maintains no parallel architecture or PRD.
 
 The first connected design contains **M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)**. This display name describes bounded scope, not a new TASK identifier or full-phase completion.
 
@@ -14,4 +14,8 @@ Preserve existing TASK, AC, IF and feature identities where applicable; an empty
 
 ## Optional prior records
 
-The former local M1 supplement, first trial draft and source-baseline hash record were superseded by the package and preserved in the [pinned muk snapshot](../../architecture/build-package/history.md#muk-cleanup-checkpoint). Their old paths, hashes, allocations and instructions are historical. Runtime records elsewhere retain their recorded results.
+The former local M1 supplement, first trial draft and source-baseline hash record were superseded by the package and preserved in the [pinned muk snapshot](../../architecture/design-package/history.md#muk-cleanup-checkpoint). Their old paths, hashes, allocations and instructions are historical. Runtime records elsewhere retain their recorded results.
+
+## October 7 architecture source update
+
+The three-level architecture uses the verbatim October 7 PRD and architecture-owned critical field contracts. Prior implementation/interface evidence must be reconciled with those sources before dependent work is treated as current. Registration remains pending; this update allocates no new TASK, AC or IF identity. Product-required PRD change/validation summaries are separate from prohibited duplicate workflow cards.

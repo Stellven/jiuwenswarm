@@ -1,6 +1,6 @@
 # AI4Research Historical Task Status
 
-These September 28 records retain their original results and scope. Current M1 design/build status is in [build-package](../architecture/build-package/README.md); current coding registration belongs to [M1 TASKS](../tasks/M1/TASKS.md).
+These September 28 records retain their original results and scope. Current M1 design/build status is in [design package](../architecture/design-package/README.md); current coding registration belongs to [M1 TASKS](../tasks/M1/TASKS.md).
 
 Maintainer: Xiaoyang. This file preserves the earlier task-state snapshot. Individual work-item progress belongs in the registered native `tasks.md` for tasks that have it.
 

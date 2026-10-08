@@ -1,0 +1,264 @@
+{
+  "version": "1.0.0",
+  "dialect": "https://json-schema.org/draft/2020-12/schema",
+  "shared_definitions": {
+    "schema": "schemas/common.schema.json",
+    "schema_id": "urn:jiuwenswarm:m1-design:common:1.0.0"
+  },
+  "contracts": [
+    {
+      "name": "intent-ir",
+      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+      "schema": "schemas/intent-ir.schema.json",
+      "version": "1.0.0",
+      "producer": "Intent CC",
+      "consumers": [
+        "deterministic checks",
+        "Intent verifier",
+        "Requirements after acceptance"
+      ],
+      "required_fields": [
+        "schema_version",
+        "request_ref",
+        "interpretation",
+        "context",
+        "in_scope",
+        "out_of_scope",
+        "constraints",
+        "preferences",
+        "user_targets",
+        "context_refs",
+        "uncertainties",
+        "readiness"
+      ],
+      "examples": [
+        "Intent_IR.json",
+        "Intent_Topic_Only.json",
+        "Intent_Contradictory.json"
+      ],
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "name": "research-brief",
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+      "schema": "schemas/research-brief.schema.json",
+      "version": "1.0.0",
+      "producer": "Requirements CC",
+      "consumers": [
+        "Requirements verification",
+        "static binder/planner",
+        "research CCs"
+      ],
+      "required_fields": [
+        "schema_version",
+        "intent_ref",
+        "objective",
+        "in_scope",
+        "out_of_scope",
+        "mandatory_requirements",
+        "optional_preferences",
+        "constraints",
+        "target_metrics",
+        "deliverables",
+        "acceptance_expectations",
+        "evidence_obligations",
+        "assumptions",
+        "unresolved_items",
+        "resource_refs",
+        "confirmation"
+      ],
+      "examples": [
+        "Research_Brief.json"
+      ],
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "name": "deterministic-check-result",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0",
+      "schema": "schemas/deterministic-check-result.schema.json",
+      "version": "1.0.0",
+      "producer": "protected check runner",
+      "consumers": [
+        "review-context builder",
+        "protected gate"
+      ],
+      "required_fields": [
+        "schema_version",
+        "subject_ref",
+        "check_plan_ref",
+        "results"
+      ],
+      "examples": [
+        "Intent_Checks.json",
+        "Topic_Checks.json",
+        "Science_Checks.json",
+        "Requirements_Checks.json"
+      ],
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3"
+      ]
+    },
+    {
+      "name": "verifier-assessment",
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+      "schema": "schemas/verifier-assessment.schema.json",
+      "version": "1.0.0",
+      "producer": "assigned read-only verifier CC",
+      "consumers": [
+        "protected gate"
+      ],
+      "required_fields": [
+        "schema_version",
+        "subject_ref",
+        "review_context_ref",
+        "verdict",
+        "findings",
+        "uncertainties",
+        "limitations",
+        "required_correction"
+      ],
+      "examples": [
+        "Intent_Assessment.json",
+        "Topic_Assessment.json",
+        "Science_Assessment.json",
+        "Requirements_Assessment.json"
+      ],
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3"
+      ]
+    },
+    {
+      "name": "gate-decision",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0",
+      "schema": "schemas/gate-decision.schema.json",
+      "version": "1.0.0",
+      "producer": "protected gate host",
+      "consumers": [
+        "durable run-state",
+        "scheduler",
+        "inspection"
+      ],
+      "required_fields": [
+        "schema_version",
+        "id",
+        "recorded_at",
+        "run_id",
+        "node_id",
+        "attempt_id",
+        "contract_ref",
+        "invocation_refs",
+        "policy_ref",
+        "check_plan_ref",
+        "input_refs",
+        "output_refs",
+        "deterministic_result_ref",
+        "assessment_ref",
+        "verdict",
+        "reasons",
+        "action",
+        "accepted_refs"
+      ],
+      "examples": [
+        "Gate_Decision.json",
+        "Gate_Topic_Halt.json",
+        "Gate_Science_Pass.json",
+        "Gate_Requirements_Pass.json"
+      ],
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3"
+      ]
+    },
+    {
+      "name": "capsule-declaration",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "schema": "schemas/capsule-declaration.schema.json",
+      "version": "1.0.0",
+      "producer": "CC author/importer",
+      "consumers": [
+        "admission",
+        "discovery/binder",
+        "runner",
+        "RSI"
+      ],
+      "required_fields": [
+        "schema_version",
+        "identity",
+        "ports",
+        "needs",
+        "changes",
+        "guarantees",
+        "budget",
+        "evolution",
+        "coverage"
+      ],
+      "examples": [
+        "Capsule_Declaration.json"
+      ],
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3"
+      ]
+    }
+  ],
+  "field_contracts": [
+    {
+      "topic": "planning and node contracts",
+      "document": "other-contracts.md#planning-and-node-contracts",
+      "version": "1.0.0",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "topic": "research artifacts",
+      "document": "other-contracts.md#research-artifacts",
+      "version": "1.0.0",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "topic": "manifest and runtime records",
+      "document": "other-contracts.md#manifest-and-runtime-records",
+      "version": "1.0.0",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3"
+      ]
+    },
+    {
+      "topic": "shared clients and model access",
+      "document": "other-contracts.md#client-and-model-boundaries",
+      "version": "1.0.0",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3"
+      ]
+    },
+    {
+      "topic": "offline RSI records",
+      "document": "other-contracts.md#offline-rsi-records",
+      "version": "1.0.0",
+      "applicable_phases": [
+        "Phase 2"
+      ]
+    }
+  ]
+}

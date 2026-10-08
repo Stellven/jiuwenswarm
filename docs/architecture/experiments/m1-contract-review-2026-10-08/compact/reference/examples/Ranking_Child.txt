@@ -1,0 +1,1 @@
+Synthetic child helper identity preserving dimensions, sum, stable ID ties and Top-1 interface. No improvement was measured.

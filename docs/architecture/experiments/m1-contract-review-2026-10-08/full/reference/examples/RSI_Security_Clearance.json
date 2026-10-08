@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "id": "clearance:synthetic:denied",
+  "actor_id": "security-reviewer:example",
+  "recorded_at": "2026-10-08T12:00:00Z",
+  "halted_session_id": "rsi:synthetic:violated",
+  "violation_refs": [
+    {
+      "id": "RSI_Security_Remediation.txt",
+      "sha256": "4a8a90ebbcb54d4b9600f0c62138351eac246cd636aace19d8d3773ec43fd2c2"
+    }
+  ],
+  "remediation_ref": {
+    "id": "RSI_Security_Remediation.txt",
+    "sha256": "4a8a90ebbcb54d4b9600f0c62138351eac246cd636aace19d8d3773ec43fd2c2"
+  },
+  "guardrail_evidence_refs": [
+    {
+      "id": "RSI_Security_Remediation.txt",
+      "sha256": "4a8a90ebbcb54d4b9600f0c62138351eac246cd636aace19d8d3773ec43fd2c2"
+    }
+  ],
+  "decision": "denied",
+  "effect_scope": "new_rsi_session_only",
+  "ext": {
+    "example.synthetic": true
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "id": "POC_Manifest",
+  "blueprint_ref": {
+    "id": "Hypothesis_Blueprint.json",
+    "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+  },
+  "environment_ref": {
+    "id": "Environment_Lock.json",
+    "sha256": "555a6e2f528de31102e0345ac64bcc209337427dec73455bbc6b57ccc6ca60a1"
+  },
+  "archive_ref": {
+    "id": "POC_Artifact_Bundle.zip",
+    "sha256": "cc9f4685f792cd9a081fc346914b42d25c9af9505e195ce48b2e144cb79b55f0"
+  },
+  "files": [
+    {
+      "path": "requirements.txt",
+      "artifact_ref": {
+        "id": "Approved_requirements.txt",
+        "sha256": "b42023ae72eefd65f5091c3b051a46c4a5efee9aaaad7d1aed5ef159a767ed5f"
+      },
+      "media_type": "text/plain",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "poc_patch.py",
+      "artifact_ref": {
+        "id": "poc_patch.py",
+        "sha256": "cd23c5ffc4a30a1b5debad70de934c1763e74debeb586672568583177a878ec0"
+      },
+      "media_type": "text/x-python",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "run_benchmark.py",
+      "artifact_ref": {
+        "id": "run_benchmark.py",
+        "sha256": "e4c0c389409ac19b457b3fa48fad893487ed45eebcc7d29d25f36f3e7d40ff65"
+      },
+      "media_type": "text/x-python",
+      "audience": "authorized researcher"
+    }
+  ],
+  "mechanical_evidence_refs": [
+    {
+      "id": "Mechanical_Example.txt",
+      "sha256": "0d423fff9a87bc02439b770ade6d1ab728590cd86b879dea03087a5a2a56a321"
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

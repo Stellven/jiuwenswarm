@@ -1,0 +1,18 @@
+{
+  "id": "science:negative",
+  "classification": "FAIL",
+  "blueprint": {
+    "metric": "latency_ms",
+    "success_lte": 90,
+    "falsification_gte": 100,
+    "middle": "INCONCLUSIVE",
+    "registered_before_execution": true
+  },
+  "measurements": {
+    "baseline": 100,
+    "treatment": 105,
+    "delta": 5
+  },
+  "rationale": "Treatment latency 105ms meets registered falsification >=100ms; hypothesis rejected.",
+  "synthetic": true
+}
