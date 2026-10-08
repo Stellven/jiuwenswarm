@@ -1,0 +1,12 @@
+{
+  "id": "profile:node-finalization",
+  "schema_version": "2.0.0",
+  "mandatory_deterministic": [
+    "internal_acceptance",
+    "external_output",
+    "aggregate_limits"
+  ],
+  "semantic_assessment_reuse": "accepted_requirements",
+  "additional_model_calls": 0,
+  "synthetic": true
+}

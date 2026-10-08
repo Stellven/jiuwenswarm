@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5"
+  },
+  "check_plan_ref": {
+    "id": "Requirements_Check_Plan.json",
+    "sha256": "d81acc594ffc2b07962ddbbf064f4c18f125d5b6db75dc289602155c6963199b"
+  },
+  "results": [
+    {
+      "check_id": "structure",
+      "outcome": "PASS",
+      "reason": "Illustrative schema/identity/ID checks; not executed infrastructure",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Default_Policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ]
+    },
+    {
+      "check_id": "source_identity",
+      "outcome": "PASS",
+      "reason": "Illustrative schema/identity/ID checks; not executed infrastructure",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Default_Policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ]
+    },
+    {
+      "check_id": "requirement_coverage",
+      "outcome": "PASS",
+      "reason": "Illustrative schema/identity/ID checks; not executed infrastructure",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Default_Policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ]
+    }
+  ]
+}

@@ -67,3 +67,8 @@ Human review and paired agent trials have not been run. These are prepared input
 ## Renamed full and compact delivery
 
 The user-selected [full design-package](../design-package/README.md) and [design-package-compact](../design-package-compact/README.md) are matched sibling outputs. The [delivery receipt and checks](design-package-delivery-2026-10-08/README.md) record current schema/navigation/authority refinements. Earlier frozen inputs are unchanged; do not mix versions in trials.
+
+
+## Complete Intention Compiler: four matched conditions
+
+The [October 8 compiler comparison](intention-compiler-depth-2026-10-08/README.md) pins full and cut-detail inputs with and without Spec Kit on four branches using identical file locations. Contracts, product inputs and component scope match. Forty evaluator cases and separate preparation/implementation telemetry support comparison. Use identical starting scaffolding/tooling and isolated inputs; source-branch application histories are not matched bases. Prompts remain owned by the coding experiment owner. No coding trial has run.

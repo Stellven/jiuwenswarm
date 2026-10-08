@@ -1,0 +1,1 @@
+Pure helper; required parent tests and fixed dimension/sum/tie/Top-1 behavior. No effects.
