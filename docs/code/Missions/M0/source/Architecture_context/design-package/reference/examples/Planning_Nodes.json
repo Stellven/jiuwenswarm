@@ -1,0 +1,120 @@
+{
+  "nodes": [
+    {
+      "node_id": "discovery",
+      "objective": "Discover grounded candidates",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "predecessors": [],
+      "inputs": [
+        {
+          "name": "brief",
+          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "version": "2.0.0",
+          "required": true,
+          "artifact_refs": [
+            {
+              "id": "Lifecycle_Research_Brief.json",
+              "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+            }
+          ],
+          "future_bindings": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "candidates",
+          "contract_id": "candidate-set:field-contract:1",
+          "version": "1.0.0",
+          "required": true
+        }
+      ],
+      "subnodes": [
+        {
+          "subnode_id": "work",
+          "role": "work",
+          "capsule_ref": {
+            "id": "Discovery_Capsule.json",
+            "sha256": "0652948523d47f6d9feb70f65840d8a0ecc4e9168c87052cbb25e94dc6370e2e"
+          },
+          "template_ref": {
+            "id": "Node_Template.json",
+            "sha256": "2e9063b7ce3166f16b27dacc0fbcbd3dbeb00c0fada80dda71b5079a880a4320"
+          },
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "node_id": "screening",
+      "objective": "Screen candidates",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "predecessors": [
+        "discovery"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "version": "2.0.0",
+          "required": true,
+          "artifact_refs": [
+            {
+              "id": "Lifecycle_Research_Brief.json",
+              "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+            }
+          ],
+          "future_bindings": []
+        },
+        {
+          "name": "candidates",
+          "contract_id": "candidate-set:field-contract:1",
+          "version": "1.0.0",
+          "required": true,
+          "artifact_refs": [],
+          "future_bindings": [
+            {
+              "producer_node": "discovery",
+              "port": "candidates",
+              "contract_id": "candidate-set:field-contract:1",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "screening",
+          "contract_id": "screening-result:field-contract:1",
+          "version": "1.0.0",
+          "required": true
+        }
+      ],
+      "subnodes": [
+        {
+          "subnode_id": "work",
+          "role": "work",
+          "capsule_ref": {
+            "id": "Screening_Capsule.json",
+            "sha256": "0d3b437619bc014a9db1dfa206b3632f337fbd19140325e5a7d7612cccca0887"
+          },
+          "template_ref": {
+            "id": "Node_Template.json",
+            "sha256": "2e9063b7ce3166f16b27dacc0fbcbd3dbeb00c0fada80dda71b5079a880a4320"
+          },
+          "depends_on": []
+        }
+      ]
+    }
+  ],
+  "synthetic": true,
+  "brief_ref": {
+    "id": "Lifecycle_Research_Brief.json",
+    "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+  }
+}
