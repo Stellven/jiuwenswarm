@@ -6,15 +6,15 @@
 
 | Read | What the implementer must take from it |
 |---|---|
-| [Package overview](design-package-compact/README.md), [system architecture](design-package-compact/m1-design.md), [principles](design-package-compact/principles.md) | Full M1 purpose, authority, deployment and future boundaries; compiler is one node in a larger research system |
-| [Compiler behavior](design-package-compact/intent-design.md), [Immediate Plan](design-package-compact/immediate-plan.md) | Full producer → checks → verifier → gate sequence; current build ends at Brief |
-| [Intent/Brief fields](design-package-compact/reference/intent-and-requirements.md) | Required information, why consumers need it, missing/default behavior and exact critical schemas |
-| [Node/subnode contracts](design-package-compact/reference/node-execution.md), [field catalog](design-package-compact/reference/field-catalog.md) | Enclosing objectives versus one-CC assignments, ports, authority and evidence scope |
-| [CC declaration](design-package-compact/capsule/declaration.md), [execution and verification](design-package-compact/capsules.md), [guard assignment](design-package-compact/guard-design.md) | Capsule fields/styles, fixed admission pins, independent criteria, protected review context and terminal verifier checks |
-| [Checking records](design-package-compact/reference/checking.md), [failure policy](design-package-compact/failure-and-human.md) | Complete findings, exact subjects, durable acceptance, no-output halt, correction/cancellation/restart |
-| [Placement](design-package-compact/placement.md), [model routing](design-package-compact/model-routing.md) | Bundled frontend/runtime, protected credentials/IPC, static model access, aggregate limits |
-| [Inspection](design-package-compact/artifact-inspection.md), [client boundary](design-package-compact/automation.md), [runtime fields](design-package-compact/reference/other-contracts.md#manifest-and-runtime-records) | Readable records, authenticated observation/export and durable evidence ownership |
-| [Worked examples](design-package-compact/reference/examples/README.md), [verification obligations](design-package-compact/reference/compiler-verification.md) | Positive/negative expectations, reference relationships and component test intent |
+| [Package overview](design-package/README.md), [system architecture](design-package/m1-design.md), [principles](design-package/principles.md) | Full M1 purpose, authority, deployment and future boundaries; compiler is one node in a larger research system |
+| [Compiler behavior](design-package/intent-design.md), [Immediate Plan](design-package/immediate-plan.md) | Full producer → checks → verifier → gate sequence; current build ends at Brief |
+| [Intent/Brief fields](design-package/reference/intent-and-requirements.md) | Required information, why consumers need it, missing/default behavior and exact critical schemas |
+| [Node/subnode contracts](design-package/reference/node-execution.md), [field catalog](design-package/reference/field-catalog.md) | Enclosing objectives versus one-CC assignments, ports, authority and evidence scope |
+| [CC declaration](design-package/capsule/declaration.md), [execution and verification](design-package/capsules.md), [guard assignment](design-package/guard-design.md) | Capsule fields/styles, fixed admission pins, independent criteria, protected review context and terminal verifier checks |
+| [Checking records](design-package/reference/checking.md), [failure policy](design-package/failure-and-human.md) | Complete findings, exact subjects, durable acceptance, no-output halt, correction/cancellation/restart |
+| [Placement](design-package/placement.md), [model routing](design-package/model-routing.md) | Bundled frontend/runtime, protected credentials/IPC, static model access, aggregate limits |
+| [Inspection](design-package/artifact-inspection.md), [client boundary](design-package/automation.md), [runtime fields](design-package/reference/other-contracts.md#manifest-and-runtime-records) | Readable records, authenticated observation/export and durable evidence ownership |
+| [Worked examples](design-package/reference/examples/README.md), [verification obligations](design-package/reference/compiler-verification.md) | Positive/negative expectations, reference relationships and component test intent |
 
 Follow the listed documents' relevant schema/field links. Field tables are the normal design contract: required information, meaning, producer/consumer and failure behavior. Exact JSON is reserved for critical compatibility/authority boundaries. Agents choose private classes, helper types, routes and storage details within these obligations. They must not silently invent competing shared fields.
 
@@ -22,9 +22,9 @@ Follow the listed documents' relevant schema/field links. Field tables are the n
 
 | Context | Use now / exclusion |
 |---|---|
-| [Research responsibilities](design-package-compact/research-design.md) and [workflow](design-package-compact/workflow.md) | Understand what the Brief must support; do not build downstream research stages |
-| [Delivery phases](design-package-compact/delivery-phases.md) and [stage exits](design-package-compact/phase-details.md) | Separate component completion from Stage 2 graph initialization/full M1; Phase 3 is an integration seam |
-| [Offline RSI](design-package-compact/offline-rsi.md) | Preserve immutable contract/check ownership and future eligible implementation boundaries; no RSI execution in this build |
+| [Research responsibilities](design-package/research-design.md) and [workflow](design-package/workflow.md) | Understand what the Brief must support; do not build downstream research stages |
+| [Delivery phases](design-package/delivery-phases.md) and [stage exits](design-package/phase-details.md) | Separate component completion from Stage 2 graph initialization/full M1; Phase 3 is an integration seam |
+| [Offline RSI](design-package/offline-rsi.md) | Preserve immutable contract/check ownership and future eligible implementation boundaries; no RSI execution in this build |
 | Scientific execution confinement in placement | Preserve credential/control boundaries; no experiment executor is needed for compilation-only work |
 | Sidecar/development tools | Optional ordinary-client compatibility context only; not a build/startup dependency |
 | Historical source documents | Provenance only when resolving a cited decision; not competing current schemas |

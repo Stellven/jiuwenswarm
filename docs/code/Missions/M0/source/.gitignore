@@ -1,3 +1,3 @@
-# The supplied architecture reference is part of this experiment input.
-!Architecture_context/design-package-compact/reference/
-!Architecture_context/design-package-compact/reference/**
+# Keep portable contracts in the assigned architecture input.
+!Architecture_context/design-package/reference/
+!Architecture_context/design-package/reference/**
