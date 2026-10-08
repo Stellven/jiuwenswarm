@@ -22,7 +22,6 @@
 *   4.4 RSI Integration
 *   4.5 Data Foundations
 *   4.6 Harness Core
-*   4.7 Intention Compilers
 *   4.8 Planner 
 *   4.9 Builder
 
