@@ -18,7 +18,7 @@ D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit
 
 5. Verification Docs (Testing and Validation Requirements)
 <PATH_TO_VERIFICATION_DOCS>
-
+Implement and test the benchmark interfaces defined in docs/code/Missions/M0/source/Verification/INTENT_COMPILER_BENCHMARK_INTERFACES.md, and document working client commands or API calls. 
 
 IMPLEMENTATION INSTRUCTIONS
 
