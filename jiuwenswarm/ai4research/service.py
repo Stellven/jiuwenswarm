@@ -264,6 +264,7 @@ async def _bootstrap_owned(lease, workspace, *, origin, model, service_type, adm
                                          "interface_revision": "M0-IF-007@r2"},
                 "runtime_identity": runtime_identity,
                 "timeout_seconds": 180, "max_calls": 2, "mode": "web"}
+    application.prepare_submission = refresh
     try:
         await refresh()
     except BaseException:

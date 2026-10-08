@@ -20,9 +20,11 @@ TERMINAL = {"ACCEPTED", "FAILED", "ENVIRONMENT_BLOCKED", "INCONCLUSIVE", "CANCEL
 class IntentTrialApplication:
     """Clients can submit/inspect/cancel. They never receive gate authority."""
 
-    def __init__(self, *, identity, library, store, bridge, baseline, gate_authority, pins):
+    def __init__(self, *, identity, library, store, bridge, baseline, gate_authority, pins,
+                 prepare_submission=None):
         self.identity, self.library, self.store, self.bridge = identity, library, store, bridge
         self.baseline, self._gate_authority, self.pins = baseline, gate_authority, pins
+        self.prepare_submission = prepare_submission
         self.runner = TrialRunner(bridge, library, store)
         self.tasks = {}
         self.volatile_faults = {}
@@ -70,6 +72,10 @@ class IntentTrialApplication:
                 raise GovernanceError("model_busy", "One trial run is already active; inspect it before submitting fresh work.")
             if predecessor_run_id:
                 self._owned_run(ctx, predecessor_run_id)
+            # Refresh host-owned prerequisites before freezing new work. An
+            # existing request reconciles above without provider work or replay.
+            if self.prepare_submission is not None:
+                await self.prepare_submission()
             run_id = uuid.uuid4().hex
             pin_records = {role: pin.to_dict() if hasattr(pin, "to_dict") else pin for role, pin in self.pins.items()}
             if self.baseline:

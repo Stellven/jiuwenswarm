@@ -1,1 +1,0 @@
-﻿{"phase":"capture initialization","result":"FAIL","reason":"PackageNotFoundError for wheel distribution metadata; no tests ran. Module import works through setuptools vendor support. Metadata now records unavailable without inference."}

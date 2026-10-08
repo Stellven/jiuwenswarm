@@ -1,0 +1,52 @@
+{
+  "revision_date": "2026-10-07",
+  "sources": [
+    {
+      "path": "sources/capsule.schema.json",
+      "bytes": 22040,
+      "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd"
+    },
+    {
+      "path": "sources/capsule-semantic-v2.10b.md",
+      "bytes": 174011,
+      "sha256": "30b02e874dda0a9acd4c06e5fadd8c855cd3024d6aaca58c7c937aed161d00b9"
+    },
+    {
+      "path": "sources/policy-m1.json",
+      "bytes": 3225,
+      "sha256": "43305e008f72d480b24269e06285225617b969944b771fd181e911b988d4c011"
+    }
+  ],
+  "observed_archives": [
+    {
+      "filename": "intent-output-1.zip",
+      "sha256": "b686600e5701fe45a08189d9322c39c5e6c892246869b8a953305f8603b3cb71",
+      "status": "ACCEPTED",
+      "accepted_ir": true,
+      "note": "Raw archives are optional audit evidence outside the portable package"
+    },
+    {
+      "filename": "intent-output-2.zip",
+      "sha256": "7ccbbc5050f4fd8499fb279fde4d3d7a5166c13332ad0d0f82751dfd84193c6d",
+      "status": "COMPILING",
+      "accepted_ir": false,
+      "note": "Raw archives are optional audit evidence outside the portable package"
+    }
+  ],
+  "snapshot": "C:/Users/m50066326/huawei/architecture-checks-2026-10-07/three-tier-before",
+  "critical_contract_policy": "Field charts first; selected critical schemas; node/subnode scope revision; external PRD bodies; no runtime evidence",
+  "external_product_sources": [
+    {
+      "filename": "prd-m1-current-2026-10-06.txt",
+      "bytes": 232489,
+      "sha256": "6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839",
+      "repository_path": "docs/product/received-prds/prd-m1-current-2026-10-06.txt"
+    },
+    {
+      "filename": "prd-m1-current-2026-10-07.txt",
+      "bytes": 254883,
+      "sha256": "10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc",
+      "repository_path": "docs/product/received-prds/prd-m1-current-2026-10-07.txt"
+    }
+  ]
+}

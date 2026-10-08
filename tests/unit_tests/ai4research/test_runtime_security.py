@@ -119,6 +119,7 @@ async def test_actual_bootstrap_recovers_only_under_lifetime_lease(tmp_path, mon
     try:
         assert observed == ["lease-before-recovery"]
         assert token_path.is_file() and application.baseline is None
+        assert application.prepare_submission is refresh
         assert native.transport.process is None
         assert (await application.readiness())["ready"] is False
         await refresh()

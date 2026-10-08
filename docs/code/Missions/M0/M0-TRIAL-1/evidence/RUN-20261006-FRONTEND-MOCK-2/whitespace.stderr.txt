@@ -1,2 +1,0 @@
-warning: in the working copy of 'jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json', LF will be replaced by CRLF the next time Git touches it

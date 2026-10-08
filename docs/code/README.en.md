@@ -2,7 +2,7 @@
 
 This directory contains development guides and their subordinate Missions/ tree. Follow **TASKS -> TASK -> one Spec Kit feature directory per TASK**, with block, boundary and whole-system verification.
 
-Start with the [SOP](Code_SOP.md) and [catalog](CATALOG.md), then the [M0 joint Phase 1 / TRIAL-1 register](Missions/M0/TASKS.md). PRD Phase 1 and the corresponding TRIAL-1 immediate plan jointly govern M0; the live records distinguish implemented Intent contributions from active Phase 1 gaps. Other delivery phases and archived full-M1 records provide context.
+Start with the [SOP](Code_SOP.md) and [catalog](CATALOG.md), then the [M1 register](Missions/M1/TASKS.md). Current task and feature records determine source readiness and progress.
 
 ## Content locations
 

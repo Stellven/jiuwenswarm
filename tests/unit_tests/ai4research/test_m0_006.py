@@ -76,3 +76,59 @@ async def test_m0_006_b04_account_generation_change_after_verifier_blocks_releas
     assert result["status"] == "FAILED" and result["accepted_ref"] is None
     assert result["decision"]["reasons"] == ["account_changed"]
     assert len(trial.bridge.calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_m0_006_b03_submission_refreshes_before_freezing_stale_baseline(tmp_path):
+    trial = make_trial(tmp_path)
+    current_baseline = trial.application.baseline
+    trial.application.baseline = None
+    refreshes = []
+
+    async def prepare():
+        refreshes.append("prepared-before-freeze")
+        trial.application.baseline = current_baseline
+
+    trial.application.prepare_submission = prepare
+    async with trial.client() as client:
+        reply = await client.post("/api/intent-trial/runs", json={
+            "original_text": OBJECTIVE, "client_request_id": "stale-baseline", "options": {"mode": "web"}})
+    assert reply.status_code == 202
+    result = await trial.finish(reply.json()["run_id"])
+    frozen = trial.application.store.get_run(result["run_id"], caller_id=trial.context.user_id)
+    assert refreshes == ["prepared-before-freeze"]
+    assert frozen["configuration"]["effective"]["model_roles"] == current_baseline["model_roles"]
+    assert result["status"] == "ACCEPTED" and len(trial.bridge.calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_m0_006_b03_duplicate_reconciles_without_refresh_or_replay(tmp_path):
+    trial = make_trial(tmp_path)
+    run = await trial.application.submit(trial.context, original_text=OBJECTIVE, client_request_id="existing")
+    await trial.finish(run["run_id"])
+
+    async def unavailable_refresh():
+        raise AssertionError("Existing requests must reconcile without refreshing the environment")
+
+    trial.application.prepare_submission = unavailable_refresh
+    repeated = await trial.application.submit(trial.context, original_text=OBJECTIVE, client_request_id="existing")
+    assert repeated["run_id"] == run["run_id"] and repeated["status"] == "ACCEPTED"
+    assert len(trial.bridge.calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_m0_006_b03_refresh_still_refuses_actually_unavailable_runtime(tmp_path):
+    trial = make_trial(tmp_path)
+    refreshes = []
+
+    async def prepare():
+        refreshes.append("observed-unavailable")
+        trial.application.baseline = None
+        trial.bridge.available = False
+
+    trial.application.prepare_submission = prepare
+    run = await trial.application.submit(trial.context, original_text=OBJECTIVE, client_request_id="unavailable")
+    result = await trial.finish(run["run_id"])
+    assert refreshes == ["observed-unavailable"]
+    assert result["status"] == "ENVIRONMENT_BLOCKED" and result["accepted_ref"] is None
+    assert trial.bridge.calls == []
