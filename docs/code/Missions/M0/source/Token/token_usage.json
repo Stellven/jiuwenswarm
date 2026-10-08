@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "task": "M0 Intent Compiler",
+  "experiment_arm": "without_spec_kit_cut_detail",
+  "usage_source": null,
+  "models_used": [],
+  "currency": null,
+  "implementation": {
+    "model_calls": null,
+    "input_tokens": null,
+    "cached_input_tokens": null,
+    "uncached_input_tokens": null,
+    "output_tokens": null,
+    "reasoning_tokens": null,
+    "total_tokens": null,
+    "actual_api_cost": null
+  },
+  "preparation": {
+    "status": "pending_verification",
+    "model_calls": null,
+    "input_tokens": null,
+    "cached_input_tokens": null,
+    "uncached_input_tokens": null,
+    "output_tokens": null,
+    "reasoning_tokens": null,
+    "total_tokens": null,
+    "actual_api_cost": null
+  },
+  "end_to_end": {
+    "total_tokens": null,
+    "actual_api_cost": null
+  },
+  "measurement_notes": [],
+  "accounting_rules": {
+    "total_tokens": "input_tokens + output_tokens (summed across model calls)",
+    "uncached_input_tokens": "input_tokens - cached_input_tokens",
+    "cached_input_tokens": "Already included in input_tokens; do not add twice",
+    "reasoning_tokens": "If exposed, already included in output_tokens; do not add twice",
+    "preparation_status": "Use not_applicable only when verified no preparation took place; set usage to 0 in that case",
+    "end_to_end": "Sum preparation and implementation totals only when both are known",
+    "null_values": "Unavailable / not yet measured; never replace with invented exact figures",
+    "actual_api_cost": "Use billed cost if accessible; do not label an estimate as actual"
+  }
+}

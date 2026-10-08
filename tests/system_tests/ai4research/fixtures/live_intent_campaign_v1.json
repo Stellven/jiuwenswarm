@@ -1,0 +1,98 @@
+{
+  "fixture_version": "1",
+  "interface": "M1-IF-INTENT@r1",
+  "scope": "Frozen nine-case sample; no population reliability or performance claim",
+  "normal_cases": [
+    {
+      "id": "N01-fixed-data-comparison",
+      "input": "Compare baseline linear regression with ridge regression on supplied dataset D. Use the existing train and validation partitions without changing the data. Report mean squared error for both methods with the supporting measurements. No external data or network access is allowed.",
+      "expected_state": "ACCEPTED",
+      "expected_verdicts": ["PASS", "PASS_WITH_KNOWN_LIMITATIONS"],
+      "required_quotes": {"constraints": ["without changing the data", "network"], "evidence_obligations": ["supporting measurements"]}
+    },
+    {
+      "id": "N02-explicit-bounds",
+      "input": "Compare baseline B and treatment T on supplied dataset D using validation error. CPU only; do not use a GPU or network. The runtime limit is 30 seconds, the invocation limit is 2 model calls, and the token limit is 1000 tokens. Report the measured validation error for both methods.",
+      "expected_state": "ACCEPTED",
+      "expected_verdicts": ["PASS", "PASS_WITH_KNOWN_LIMITATIONS"],
+      "required_quotes": {"constraints": ["CPU", "GPU", "network", "30 seconds", "2 model calls", "1000 tokens"]}
+    },
+    {
+      "id": "N03-priorities-and-targets",
+      "input": "Compare baseline A with method B on supplied dataset D. Accuracy of at least 0.90 is mandatory. Lower latency is only an optional preference and must not replace the accuracy requirement. Report accuracy and latency for both methods. Do not use external data.",
+      "expected_state": "ACCEPTED",
+      "expected_verdicts": ["PASS", "PASS_WITH_KNOWN_LIMITATIONS"],
+      "required_quotes": {"mandatory_requirements": ["0.90"], "preferences": ["Lower latency"], "constraints": ["external data"]}
+    },
+    {
+      "id": "N04-explicit-scope",
+      "input": "Study noise robustness of supplied baseline C versus method D on supplied dataset E. In scope: compare validation accuracy at noise levels 0 and 0.1. Out of scope: production deployment and training new models. Keep the baseline implementation unchanged. Deliver the comparison table and evidence references.",
+      "expected_state": "ACCEPTED",
+      "expected_verdicts": ["PASS", "PASS_WITH_KNOWN_LIMITATIONS"],
+      "required_quotes": {"in_scope": ["noise levels"], "out_of_scope": ["production deployment", "training new models"], "constraints": ["unchanged"], "evidence_obligations": ["evidence references"]}
+    },
+    {
+      "id": "N05-multilingual",
+      "input": "比较已提供数据集D上的基线A与方法B的准确率。必须保持基线和验证数据不变。禁止网络访问和GPU使用。速度仅为可选偏好。输出两种方法的准确率及其测量证据。",
+      "expected_state": "ACCEPTED",
+      "expected_verdicts": ["PASS", "PASS_WITH_KNOWN_LIMITATIONS"],
+      "required_quotes": {"constraints": ["不变", "网络", "GPU"], "preferences": ["速度"], "evidence_obligations": ["测量证据"]}
+    },
+    {
+      "id": "N06-material-dataset-ambiguity",
+      "input": "Compare baseline A with treatment B on exactly one of the supplied datasets. Two datasets D1 and D2 are available, and I have not chosen either. Do not choose a dataset on my behalf. This dataset choice must be resolved before any downstream work.",
+      "expected_state": "HALTED",
+      "expected_verdicts": ["INCONCLUSIVE"],
+      "required_quotes": {}
+    }
+  ],
+  "deficient_cases": [
+    {
+      "id": "D01-omitted-network-prohibition",
+      "input": "Compare baseline A with method B on supplied dataset D. Do not use network. Report validation accuracy for both methods.",
+      "defect": "The candidate omits the explicit prohibition on network use.",
+      "expected_state": "HALTED",
+      "expected_verdicts": ["FAIL", "INCONCLUSIVE"],
+      "candidate": {
+        "schema_version": "1", "run_id": "__RUN_ID__", "input_sha256": "__INPUT_SHA256__", "lane": "scientific_research",
+        "objective": {"text": "Compare baseline A and method B on supplied dataset D", "source_quote": "Compare baseline A with method B on supplied dataset D."},
+        "in_scope": [{"text": "Supplied dataset D", "source_quote": "supplied dataset D"}],
+        "out_of_scope": [], "mandatory_requirements": [], "preferences": [], "constraints": [], "targets": [],
+        "evidence_obligations": [{"text": "Report validation accuracy", "source_quote": "Report validation accuracy for both methods."}],
+        "ambiguities": [], "defaults": {"lane": "scientific_research", "scope": "unspecified", "resources": "unspecified"}
+      }
+    },
+    {
+      "id": "D02-invented-target",
+      "input": "Compare baseline A with method B on supplied dataset D. Do not use network. Report validation accuracy for both methods.",
+      "defect": "The candidate invents a mandatory accuracy target of 99 percent unsupported by the original request.",
+      "expected_state": "HALTED",
+      "expected_verdicts": ["FAIL", "INCONCLUSIVE"],
+      "candidate": {
+        "schema_version": "1", "run_id": "__RUN_ID__", "input_sha256": "__INPUT_SHA256__", "lane": "scientific_research",
+        "objective": {"text": "Compare baseline A and method B on supplied dataset D", "source_quote": "Compare baseline A with method B on supplied dataset D."},
+        "in_scope": [{"text": "Supplied dataset D", "source_quote": "supplied dataset D"}], "out_of_scope": [],
+        "mandatory_requirements": [{"text": "Achieve at least 99 percent accuracy", "source_quote": "Report validation accuracy for both methods."}],
+        "preferences": [], "constraints": [{"text": "No network use", "source_quote": "Do not use network."}],
+        "targets": [{"text": "Accuracy at least 99 percent", "source_quote": "Report validation accuracy for both methods."}],
+        "evidence_obligations": [{"text": "Report validation accuracy", "source_quote": "Report validation accuracy for both methods."}],
+        "ambiguities": [], "defaults": {"lane": "scientific_research", "scope": "unspecified", "resources": "unspecified"}
+      }
+    },
+    {
+      "id": "D03-baseline-scope-drift",
+      "input": "Compare baseline A with method B on supplied dataset D. Do not use network. Report validation accuracy for both methods.",
+      "defect": "The candidate replaces the supplied baseline A with unrelated baseline C.",
+      "expected_state": "HALTED",
+      "expected_verdicts": ["FAIL", "INCONCLUSIVE"],
+      "candidate": {
+        "schema_version": "1", "run_id": "__RUN_ID__", "input_sha256": "__INPUT_SHA256__", "lane": "scientific_research",
+        "objective": {"text": "Compare baseline C and method B on supplied dataset D", "source_quote": "Compare baseline A with method B on supplied dataset D."},
+        "in_scope": [{"text": "Supplied dataset D", "source_quote": "supplied dataset D"}], "out_of_scope": [], "mandatory_requirements": [], "preferences": [],
+        "constraints": [{"text": "No network use", "source_quote": "Do not use network."}], "targets": [],
+        "evidence_obligations": [{"text": "Report validation accuracy", "source_quote": "Report validation accuracy for both methods."}],
+        "ambiguities": [], "defaults": {"lane": "scientific_research", "scope": "unspecified", "resources": "unspecified"}
+      }
+    }
+  ]
+}

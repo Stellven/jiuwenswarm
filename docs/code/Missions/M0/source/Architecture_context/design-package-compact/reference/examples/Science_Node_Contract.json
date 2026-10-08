@@ -1,0 +1,179 @@
+{
+  "schema_version": "2.0.0",
+  "id": "node-contract:scientific.evaluation",
+  "run_id": "run:science",
+  "node_id": "scientific.evaluation",
+  "attempt_id": "attempt:science",
+  "revision": 1,
+  "objective": "Apply registered scientific criteria",
+  "requirement_ids": [
+    "requirement:latency",
+    "requirement:quality"
+  ],
+  "inputs": [
+    {
+      "name": "brief",
+      "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+      "version": "2.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Lifecycle_Research_Brief.json",
+          "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+        }
+      ]
+    },
+    {
+      "name": "blueprint",
+      "contract_id": "hypothesis-blueprint:field-contract:1",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Hypothesis_Blueprint.json",
+          "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
+        }
+      ]
+    },
+    {
+      "name": "measurements",
+      "contract_id": "benchmark-payload:field-contract:1",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Benchmark_Payload.json",
+          "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "verdict",
+      "contract_id": "evaluation-verdict:field-contract:1",
+      "version": "1.0.0",
+      "required": true
+    }
+  ],
+  "input_refs": [
+    {
+      "id": "Lifecycle_Research_Brief.json",
+      "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+    },
+    {
+      "id": "Hypothesis_Blueprint.json",
+      "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
+    },
+    {
+      "id": "Benchmark_Payload.json",
+      "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
+    }
+  ],
+  "required_outputs": [
+    "evaluation-verdict"
+  ],
+  "evidence_obligations": [
+    "captured_input_and_output",
+    "invocation_observation",
+    "mandatory_checks",
+    "semantic_assessment",
+    "independently_budgeted_guard_observation"
+  ],
+  "guard_profile_ref": {
+    "id": "Science_Guard_Profile.json",
+    "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+  },
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+  },
+  "template_ref": {
+    "id": "Science_Node_Template.json",
+    "sha256": "df394a7c25cadf3a3ffb1b3985c97325741b3435a60acdc47cef6c218cad9f53"
+  },
+  "node_limits": {
+    "time_s": 180,
+    "model_calls": 2,
+    "memory_mb": 1024
+  },
+  "authority_ceiling": {
+    "network": "none",
+    "network_allowlist": [],
+    "resource_reads": [
+      {
+        "id": "Lifecycle_Research_Brief.json",
+        "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+      },
+      {
+        "id": "Hypothesis_Blueprint.json",
+        "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
+      },
+      {
+        "id": "Benchmark_Payload.json",
+        "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
+      }
+    ],
+    "write_roots": [
+      "candidate-output",
+      "assessment-output"
+    ],
+    "tools": [
+      "audited-model-bridge"
+    ]
+  },
+  "subnodes": [
+    {
+      "subnode_id": "evaluation",
+      "role": "work",
+      "template_ref": {
+        "id": "Science_Subnode_Template.json",
+        "sha256": "41cea9632444b17fc92d05631d2c07d5041d7cfe0f349da3fc92976706be5908"
+      },
+      "capsule_ref": {
+        "id": "Evaluation_Capsule.json",
+        "sha256": "b0129b66020c317f90090283864517f17de12477698c26b32a9e72047d58fec6"
+      },
+      "depends_on": [],
+      "required": true
+    },
+    {
+      "subnode_id": "evaluation.verifier",
+      "role": "verifier",
+      "template_ref": {
+        "id": "Verifier_Subnode_Template.json",
+        "sha256": "11d76aa1dbf7256e420a7ccbb2dff958895f994e22e752a5806dea31135b654c"
+      },
+      "capsule_ref": {
+        "id": "Verifier_Capsule.json",
+        "sha256": "a05db8992de81e489df516e28112e047a2b50a7d1876a99a64b7b8a931d8a649"
+      },
+      "depends_on": [
+        "evaluation"
+      ],
+      "required": true
+    }
+  ],
+  "gate_assignments": [
+    {
+      "gate_id": "gate:evaluation",
+      "subject_subnode_id": "evaluation",
+      "profile_ref": {
+        "id": "Science_Guard_Profile.json",
+        "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+      }
+    },
+    {
+      "gate_id": "gate:node",
+      "subject_subnode_id": "evaluation",
+      "profile_ref": {
+        "id": "Science_Guard_Profile.json",
+        "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+      }
+    }
+  ]
+}

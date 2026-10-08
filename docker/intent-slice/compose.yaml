@@ -1,0 +1,18 @@
+services:
+  intent:
+    build:
+      context: ../..
+      dockerfile: docker/intent-slice/Dockerfile
+    # The PRD local-only endpoint binds loopback inside its single application
+    # service. Host networking is supported for this Linux-local recipe; no LAN
+    # port publication silently bypasses that requirement.
+    network_mode: host
+    environment:
+      JIUWENSWARM_DESKTOP_TOKEN: ${JIUWENSWARM_DESKTOP_TOKEN:?Set a fresh random local session credential}
+      FRONTEND_PORT: "5173"
+      WEB_PORT: "19000"
+    volumes:
+      - intent_profile:/root/.jiuwenswarm-ai4r
+    restart: "no"
+volumes:
+  intent_profile:
