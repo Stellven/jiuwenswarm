@@ -4,7 +4,7 @@
     "depth": "full",
     "coding_method": "spec_kit",
     "prior_commit": "09c84914acb4a45e8cde7ae4d570fb15f152c868",
-    "delivery_commit": "09c84914acb4a45e8cde7ae4d570fb15f152c868",
+    "delivery_commit": "49ab3782af701bb59146f814cc805303efbe22e6",
     "source_files": {
       ".gitattributes": "0df14a381f2052704c34e8cfd1b32c117de5527415c88658b0396f7c62edf364",
       ".gitignore": "b81976727b34772995b996d89a3c579db38a4f44f6530b884921bd2c94668437",
@@ -267,8 +267,6 @@
       "Architecture_context/design-package/workflow.md": "7739715d2b523e1f7ec5659bfac81d8ab67cf4411a3c0fd5bea7bb1a7555cab5",
       "Architecture_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "Architecture_main_body/Architecture_main_body.md": "dc2f46b112e789f2597334d95cc86af116fb0ed00f84612001aeaf38745bc122",
-      "Code_Prompt/Code_prompt.txt": "0f1246960cb610a4fdcfc0d1c15b30bb48797e1affa6905bb8c5b631778483ce",
-      "Code_Prompt/sign.md": "2b5c90fe9ab94da5a780239e3fd34829126300734279ba9cae4cfb782620218f",
       "PRD_context/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "PRD_context/PRD_context.md": "bad9c0bb64b092f4b84c7b609153f1b6278b498c98731331ba3390137d80d12f",
       "PRD_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -537,18 +535,14 @@
       "usage-scenarios.md": "2339beaf8f70af3388615606840ac3830083c24e3c5ba4154b98ec5d7a9f99bf",
       "workflow.md": "7739715d2b523e1f7ec5659bfac81d8ab67cf4411a3c0fd5bea7bb1a7555cab5"
     },
-    "coder_owned_files": {
-      "Code_Prompt/Code_prompt.txt": "0f1246960cb610a4fdcfc0d1c15b30bb48797e1affa6905bb8c5b631778483ce",
-      "Code_Prompt/sign.md": "2b5c90fe9ab94da5a780239e3fd34829126300734279ba9cae4cfb782620218f",
-      "Token/token_usage.json": "5fefd7959b0634ba45b421b9b8a5d821968eacfb3f442f3086d7e346732f1ca6"
-    }
+    "prompt_files": "Removed from participant source; prompt remains with its owner."
   },
   {
     "branch": "ai4r_test_without_spec_kit",
     "depth": "full",
     "coding_method": "direct",
     "prior_commit": "c7c916aa44f864d878a2c6eddef193962d2b7186",
-    "delivery_commit": "e5fd2853afb1248c878ab815b78bb96fc5b120e7",
+    "delivery_commit": "284d9becf87b1948708177bbd71235e521eae3f3",
     "source_files": {
       ".gitattributes": "0df14a381f2052704c34e8cfd1b32c117de5527415c88658b0396f7c62edf364",
       ".gitignore": "b81976727b34772995b996d89a3c579db38a4f44f6530b884921bd2c94668437",
@@ -811,8 +805,6 @@
       "Architecture_context/design-package/workflow.md": "7739715d2b523e1f7ec5659bfac81d8ab67cf4411a3c0fd5bea7bb1a7555cab5",
       "Architecture_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "Architecture_main_body/Architecture_main_body.md": "dc2f46b112e789f2597334d95cc86af116fb0ed00f84612001aeaf38745bc122",
-      "Code_Prompt/Code_prompt.txt": "6b91e73189f2206a789d69d2975fbb7c49da8fa58f54ccf4d4bff94bc58223a6",
-      "Code_Prompt/sign.md": "48379463cccdc208abbfdb98deba7930bfbf9c228972f8f64abb63ac5be86589",
       "PRD_context/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "PRD_context/PRD_context.md": "224c86338d45d0c1dcb83e873e6b4a80a3108595800267b561e74f230c226fac",
       "PRD_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1081,18 +1073,14 @@
       "usage-scenarios.md": "2339beaf8f70af3388615606840ac3830083c24e3c5ba4154b98ec5d7a9f99bf",
       "workflow.md": "7739715d2b523e1f7ec5659bfac81d8ab67cf4411a3c0fd5bea7bb1a7555cab5"
     },
-    "coder_owned_files": {
-      "Code_Prompt/Code_prompt.txt": "6b91e73189f2206a789d69d2975fbb7c49da8fa58f54ccf4d4bff94bc58223a6",
-      "Code_Prompt/sign.md": "48379463cccdc208abbfdb98deba7930bfbf9c228972f8f64abb63ac5be86589",
-      "Token/token_usage.json": "5fefd7959b0634ba45b421b9b8a5d821968eacfb3f442f3086d7e346732f1ca6"
-    }
+    "prompt_files": "Removed from participant source; prompt remains with its owner."
   },
   {
     "branch": "ai4r_test_with_spec_kit_cut_detail",
     "depth": "cut-detail",
     "coding_method": "spec_kit",
     "prior_commit": "e5882699043e1c7d84b4c0c402287961dd7987ab",
-    "delivery_commit": "76209f2ef03a3be87532c3b700430290602b8b59",
+    "delivery_commit": "fdb9cb4730a16593752fff49779f307f6ab3c125",
     "source_files": {
       ".gitattributes": "0df14a381f2052704c34e8cfd1b32c117de5527415c88658b0396f7c62edf364",
       ".gitignore": "b81976727b34772995b996d89a3c579db38a4f44f6530b884921bd2c94668437",
@@ -1323,8 +1311,6 @@
       "Architecture_context/design-package/workflow.md": "a27eaf72a02d3fe312ed92a5cad71c516d4b0d2ce58b38052e5311049ed90cbf",
       "Architecture_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "Architecture_main_body/Architecture_main_body.md": "dc2f46b112e789f2597334d95cc86af116fb0ed00f84612001aeaf38745bc122",
-      "Code_Prompt/Code_prompt.txt": "0f1246960cb610a4fdcfc0d1c15b30bb48797e1affa6905bb8c5b631778483ce",
-      "Code_Prompt/sign.md": "b5655d8140e12707661b7263dc008929afd39acc4c1797b6d5a3ef2aaeaa59f9",
       "PRD_context/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "PRD_context/PRD_context.md": "bad9c0bb64b092f4b84c7b609153f1b6278b498c98731331ba3390137d80d12f",
       "PRD_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1560,17 +1546,13 @@
       "usage-scenarios.md": "2339beaf8f70af3388615606840ac3830083c24e3c5ba4154b98ec5d7a9f99bf",
       "workflow.md": "a27eaf72a02d3fe312ed92a5cad71c516d4b0d2ce58b38052e5311049ed90cbf"
     },
-    "coder_owned_files": {
-      "Code_Prompt/Code_prompt.txt": "0f1246960cb610a4fdcfc0d1c15b30bb48797e1affa6905bb8c5b631778483ce",
-      "Code_Prompt/sign.md": "b5655d8140e12707661b7263dc008929afd39acc4c1797b6d5a3ef2aaeaa59f9",
-      "Token/token_usage.json": "5fefd7959b0634ba45b421b9b8a5d821968eacfb3f442f3086d7e346732f1ca6"
-    }
+    "prompt_files": "Removed from participant source; prompt remains with its owner."
   },
   {
     "branch": "ai4r_test_without_spec_kit_cut_detail",
     "depth": "cut-detail",
     "coding_method": "direct",
-    "delivery_commit": "4986650b3c0ba83e8c1ee044a410e82bdeaf54e0",
+    "delivery_commit": "0c2665a73b80109fbc2badded5e771caa26dea99",
     "source_files": {
       ".gitattributes": "0df14a381f2052704c34e8cfd1b32c117de5527415c88658b0396f7c62edf364",
       ".gitignore": "b81976727b34772995b996d89a3c579db38a4f44f6530b884921bd2c94668437",
@@ -1801,8 +1783,6 @@
       "Architecture_context/design-package/workflow.md": "a27eaf72a02d3fe312ed92a5cad71c516d4b0d2ce58b38052e5311049ed90cbf",
       "Architecture_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "Architecture_main_body/Architecture_main_body.md": "dc2f46b112e789f2597334d95cc86af116fb0ed00f84612001aeaf38745bc122",
-      "Code_Prompt/Code_prompt.txt": "0f1246960cb610a4fdcfc0d1c15b30bb48797e1affa6905bb8c5b631778483ce",
-      "Code_Prompt/sign.md": "ee79b66faab90c748e5497ef02ef04f7a6e3493a41e029d9171a8f1b813f752c",
       "PRD_context/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "PRD_context/PRD_context.md": "bad9c0bb64b092f4b84c7b609153f1b6278b498c98731331ba3390137d80d12f",
       "PRD_main_body/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -2038,10 +2018,6 @@
       "usage-scenarios.md": "2339beaf8f70af3388615606840ac3830083c24e3c5ba4154b98ec5d7a9f99bf",
       "workflow.md": "a27eaf72a02d3fe312ed92a5cad71c516d4b0d2ce58b38052e5311049ed90cbf"
     },
-    "coder_owned_files": {
-      "Code_Prompt/Code_prompt.txt": "0f1246960cb610a4fdcfc0d1c15b30bb48797e1affa6905bb8c5b631778483ce",
-      "Code_Prompt/sign.md": "ee79b66faab90c748e5497ef02ef04f7a6e3493a41e029d9171a8f1b813f752c",
-      "Token/token_usage.json": "5fefd7959b0634ba45b421b9b8a5d821968eacfb3f442f3086d7e346732f1ca6"
-    }
+    "prompt_files": "Removed from participant source; prompt remains with its owner."
   }
 ]
