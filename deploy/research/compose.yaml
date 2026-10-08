@@ -1,0 +1,40 @@
+services:
+  workflow:
+    build:
+      context: ../..
+      dockerfile: deploy/research/Dockerfile
+    environment:
+      AI4RESEARCH_TOKEN: ${AI4RESEARCH_TOKEN:?Provide a locally generated session credential}
+      AI4R_ACCOUNT_HOME: /var/lib/ai4research/account
+    command: ["serve", "--host", "0.0.0.0", "--port", "5173", "--state-dir", "/var/lib/ai4research/state", "--container-private-network", "--profile", "${AI4R_PROFILE:-codex}"]
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - research-state:/var/lib/ai4research/state
+      - research-account:/var/lib/ai4research/account
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    networks: [research-private]
+  benchmarker:
+    profiles: [benchmark]
+    build:
+      context: ../..
+      dockerfile: deploy/research/Dockerfile
+    environment:
+      AI4RESEARCH_TOKEN: ${AI4RESEARCH_TOKEN:?Provide a locally generated session credential}
+    command: ["--base", "http://workflow:5173", "--container-workflow-host", "workflow", "smoke", "--output", "/campaign/smoke.json"]
+    volumes:
+      - research-campaign:/campaign
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    depends_on: [workflow]
+    networks: [research-private]
+volumes:
+  research-state:
+  research-account:
+  research-campaign:
+networks:
+  research-private:
+    driver: bridge

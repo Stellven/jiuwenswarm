@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "id": "Evaluation_Verdict",
+  "brief_ref": {
+    "id": "Lifecycle_Research_Brief.json",
+    "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+  },
+  "blueprint_ref": {
+    "id": "Hypothesis_Blueprint.json",
+    "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
+  },
+  "benchmark_ref": {
+    "id": "Benchmark_Payload.json",
+    "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
+  },
+  "classification": "FAIL",
+  "findings": [
+    {
+      "metric_id": "latency_ms",
+      "classification": "FAIL",
+      "rationale": "105 >= 100 meets frozen falsification rule"
+    },
+    {
+      "metric_id": "quality",
+      "classification": "PASS",
+      "rationale": "0.9 equals baseline; preserved quality"
+    }
+  ],
+  "limitations": [
+    "Synthetic linked illustration only; no measured experiment"
+  ],
+  "blockers": [],
+  "followups": [
+    "Investigate why index maintenance offsets retrieval savings in a separately authorized new experiment"
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

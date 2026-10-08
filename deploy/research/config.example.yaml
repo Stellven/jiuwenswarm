@@ -1,0 +1,8 @@
+# Explicit operator configuration; per-run clients cannot replace these settings.
+research:
+  profile: codex
+  compiler_model: null
+  verifier_model: null
+  timeout_seconds: 60
+  product_user_id: null
+  workspace_id: null

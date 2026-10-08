@@ -1,0 +1,38 @@
+DO NOT USE SPEC KIT, THIS MESSAGE IS FIRST PRIORITY INFORMATION
+
+Implement the Intent Compiler as a standalone component using the following four documents.
+
+SOURCE DOCUMENTS
+
+1. PRD Main Body (primary functional requirements)
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_main_body\PRD_main_body.md
+
+2. PRD Context (supporting functional context)
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_context\PRD_context.md
+
+3. Architecture Design Main Body (primary technical design)
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_main_body
+
+4. Architecture Design Context (supporting technical context)
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_context
+
+5. Verification Docs
+
+
+IMPLEMENTATION INSTRUCTIONS
+
+- Use the PRD Main Body to determine functional requirements and acceptance criteria.
+- Use the Architecture Design Main Body for component boundaries, interfaces, data flow, dependencies, and implementation structure.
+- Read both Context documents, but apply only information specifically relevant to the Intent Compiler.
+- Use the Verification Docs to identify required test cases, validation procedures, expected outputs, and pass/fail criteria. 
+  Implement and execute the relevant verification tests against the completed Intent Compiler.
+- Implement and test ONLY the Intent Compiler component. Do not implement unrelated components or expand the scope. 
+- Do not build based on existing codebase / web
+- Explicitly report missing information or contradictions instead of silently inventing requirements. Document unavoidable assumptions.
+- Include all required tests, debugging, bug fixes, and retries in the measured coding task.
+
+
+MANDATORY TOKEN USAGE AND COST REPORTING
+Check before starting, record accordingly during running and fill in after finishing the json template in D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Token\token_usage.json
+
+DO NOT ASK ANY QUESTION TO ME, ONE-SHOT BASED ON GIVEN INFORMATION ABOVE
