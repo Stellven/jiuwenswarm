@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "task": "M0 Intent Compiler",
-  "experiment_arm": "with_spec_kit",
+  "experiment_arm": "without_spec_kit_cut_detail",
   "usage_source": null,
   "models_used": [],
   "currency": null,

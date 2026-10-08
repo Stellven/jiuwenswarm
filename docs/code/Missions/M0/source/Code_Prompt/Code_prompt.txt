@@ -1,25 +1,23 @@
-SPEC KIT CONDITION: prepare the relevant specification, plan and tasks with Spec Kit, then implement and verify the assigned component. Count that preparation separately; the component scope is unchanged.
+DO NOT USE SPEC KIT, THIS MESSAGE IS FIRST PRIORITY INFORMATION
 
 Implement the Intent Compiler as a standalone component using the following four documents.
 
 SOURCE DOCUMENTS
 
 1. PRD Main Body (primary functional requirements)
-docs/code/Missions/M0/source/PRD_main_body/PRD_main_body.md.md
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_main_body\PRD_main_body.md
 
 2. PRD Context (supporting functional context)
-docs/code/Missions/M0/source/PRD_context/PRD_context.md.md
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_context\PRD_context.md
 
 3. Architecture Design Main Body (primary technical design)
-docs/code/Missions/M0/source/Architecture_main_body/Architecture_main_body.md
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_main_body
 
 4. Architecture Design Context (supporting technical context)
-docs/code/Missions/M0/source/Architecture_context/Architecture_context.md
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_context
 
 5. Verification Docs
-docs/code/Missions/M0/source/Verification/README.md
 
-Architecture Main bounds the whole Intention Compiler; Context links its required foundations, field contracts and examples in the assigned design-package folder. Paths are relative to the jiuwenswarm repository root.
 
 IMPLEMENTATION INSTRUCTIONS
 
@@ -35,8 +33,6 @@ IMPLEMENTATION INSTRUCTIONS
 
 
 MANDATORY TOKEN USAGE AND COST REPORTING
-Check before starting, record during the run, and complete the JSON template at docs/code/Missions/M0/source/Token/token_usage.json
+Check before starting, record accordingly during running and fill in after finishing the json template in D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Token\token_usage.json
 
-Use only the assigned source documents and relevant tooling instructions; do not consult alternative architecture, other experiment branches, prior implementations or evaluator material.
-Do not ask the operator questions during this one-shot run; report missing information and contradictions.
-Measure Preparation (Spec Kit artifacts, if used) and Implementation separately through the final response, including all tests, fixes and retries. Total tokens = input + output; cached input and reasoning subsets are already included. Record inaccessible telemetry/cost as Unavailable; never invent exact counts. Preparation is zero only when its absence is verified. End-to-End sums both phases only when known. Report model/provider, call count, measurement source and billing currency.
+DO NOT ASK ANY QUESTION TO ME, ONE-SHOT BASED ON GIVEN INFORMATION ABOVE
