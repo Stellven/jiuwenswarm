@@ -16,7 +16,7 @@ Read these three documents for M1 responsibilities, authority, placement, phases
 
 ## For design authors and human reviewers
 
-[Design method and architectural integrity](design-method.md) explains the role and depth of architecture, tiered human review, change propagation and integrity checks. Read it when authoring or reviewing changes. [Decision review](decision-review.md) gives alternatives, pros, cons and implications for the latest repairs.
+[Design method and architectural integrity](design-method.md) explains the role and depth of architecture, project decision handoffs, change propagation and integrity checks. Read it when authoring or reviewing changes. [Decision review](decision-review.md) gives alternatives, pros, cons and implications for the latest repairs.
 
 **PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
 

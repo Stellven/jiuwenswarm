@@ -10,7 +10,7 @@ Read this README → [system](m1-design.md) → [principles](principles.md). Thi
 
 ## For design authors and human reviewers
 
-[Design method](design-method.md) defines architectural depth, tiered review and change propagation. [Decision review](decision-review.md) preserves identical decisions, source exceptions and pros/cons. Documentation checks do not mean human approval or runtime success.
+[Design method](design-method.md) defines architectural depth, project decision handoffs, tiered review and change propagation. [Decision review](decision-review.md) preserves identical decisions, source exceptions and pros/cons. Documentation checks do not mean human approval or runtime success.
 
 **PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
 

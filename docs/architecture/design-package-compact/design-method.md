@@ -72,6 +72,37 @@ Use plain technical English and one canonical term per component. Every sentence
 
 Use current canonical behavior rather than requiring readers to reconstruct history. Existing TASKS/TASK/native specifications retain their authority; create no parallel handoff or change-card system.
 
+## Team decisions and implementation handoff
+
+There is no PM. The team makes cross-component decisions with affected owners. Ownership means responsibility for expertise and evidence, not unilateral authority. We adopt change-impact review and recorded decisions because NASA uses these practices to preserve traceability and catch effects across requirements, design, interfaces, risk and schedule. We are not a production or safety-critical team, so we use a lightweight team review rather than a formal board. We still need to know what changed, who depends on it and what evidence must be repeated.
+
+- **PRD owner:** PRD and CC verifiers.
+- **Architecture and capability-capsule owner:** end-to-end workflow and coherent design.
+- **Verification owner:** code evidence and RSI.
+- **Model-routing owner:** model routes, codebase constraints and code acceptance.
+
+People may hold more than one role. An owner can decide within an agreed component boundary and must tell affected owners. Changes to PRD outcomes, shared interfaces, authority, phase exits, verification evidence or team commitments need review by affected owners and a team decision. The PRD owner updates product obligations; the architecture owner updates design; implementation owners update affected tasks and evidence.
+
+For a material decision, state the question and why it matters. Compare options against product outcome, technical risk, schedule, affected interfaces and evidence. Record the choice, reason, owner and follow-up in the existing design decision and linked work records. Keep old decisions and mark them superseded when replaced. Do not create a second change log. Scale review to impact: a local, reversible choice needs little review; a change to a shared contract or M1 exit needs all affected owners. If the team has not resolved a cross-component choice, record it as open and continue independent work; pause only work that depends on the answer.
+
+Design states dependency order, phase gates and required evidence. Put the agreed target dates, current forecast and estimate assumptions in the active plan and task records. Keep the target and forecast distinct. When a date slips, show the affected dependencies and options: resequence work, defer scope by team decision, add available capacity, or move the target. The team reviews the impact before changing a commitment. Do not quietly change outcomes or acceptance evidence to meet a date. Update design only when obligations, boundaries or phase exits change. At M1 close, carry accepted evidence, unfinished work and open decisions into the M2 baseline before planning dependent work.
+
+**Example — model access misses the M1 target.** The model-routing owner reports that provider credentials will arrive late. The alternate route has only mock results, while the static route still works. The team checks which phase and acceptance conditions depend on real provider access. It keeps the static route as the baseline, records the alternate route as blocked or incomplete, and updates the forecast and task evidence. It does not call the mock a real integration or weaken the exit criteria. This preserves a usable baseline and truthful evidence; the team can then choose to resequence work or move the target. If the PRD allows the blocked Phase 3 effort, it need not block the core M1 exit.
+
+A design defect changes the authoritative design and invalidates affected evidence. Code that differs from an agreed design is recorded in task/PR evidence, corrected and verified. Logs help diagnose the mismatch but do not replace that record.
+
+We are an AI-native research project with no active users. We choose fast learning and novel methods over production-level stability. We accept failed prototypes and frequent changes when they are reversible and isolated. Use AI to explore, implement, test and challenge ideas in short experiments with a clear question, success measure and stop condition. Keep the operational baseline and research evidence protected. Measure time to verified result, rework and defects; do not assume AI makes every task faster. AI review helps find issues but is not independent evidence. Promote an experiment into the maintained design only after its result and cross-component impact are clear.
+
+Use the Git-tracked full-package [glossary](glossary.md) as the naming source. The compact glossary mirrors it. Any team member can propose edits in Git; affected owners check meaning and affected uses. Use the canonical terms in design, tasks, specifications and agent instructions. Keep stable machine identifiers in the contract and task registries. This gives people and agents one shared reference. Definitions and examples still matter; matching names alone do not prove shared understanding.
+
+Keep detail at the level needed to decide boundaries, shared contracts, authority, failure behavior and phase exits; leave private algorithms to implementation plans. Full versus compact remains an open question. Use the project’s matched experiment protocol to compare consequential ambiguity, compatibility defects, clarification and correction effort at equal scope, not document size alone.
+
+Keeping both packages current adds a second edit and review pass and creates drift risk. In the October 8 delivery snapshot, compact has 36% fewer explanatory words (15,961 vs. 25,066) and 10 diagram views (full: 26), with shared contracts preserved. If only one remains, full costs more reading and diagram upkeep; compact costs less, but may need more clarification if its shorter rationale leaves gaps. No paired implementation results yet show that compact performs as well. Use the experiment before choosing one; then make one package authoritative and freeze the other as historical evidence instead of maintaining two live copies.
+
+## Mechanical document checks
+
+Keep deterministic checks beside the design: the portable package validator already checks schemas, examples, local links/anchors, the orientation word target and diagram projections; experiment checkers pin paired inputs, compare shared content and count words. Extend these before adding a parallel tool. Structure/link failures and file/word drift are good script targets. Token counts vary by tokenizer and model, so report them only with the tokenizer/version used and never treat them as design quality. Scripts cannot judge whether rationale is sufficient, decisions are sound or the workflow is understandable; retain owner review and matched implementation evidence.
+
 ## Integrity review
 
 | Pass | Required evidence of design integrity |

@@ -1,6 +1,6 @@
 # Canonical vocabulary and PRD crosswalk
 
-This page owns the short PRD-to-architecture responsibility crosswalk and terminology for maintained prose and diagram labels. The received PRD remains verbatim; its words and clause numbers remain source references. The crosswalk explains responsibilities and relationships rather than declaring unlike components interchangeable. The [coverage map](coverage.md) and [decisions](principles.md#decisions-and-source-amendments) retain actual amendments; vocabulary edits do not change product scope.
+This Git-tracked page is the shared naming register and PRD-to-architecture crosswalk for maintained terms, prose and diagrams. The full package is authoritative; the compact package mirrors this content. Any team member can propose edits; affected owners check meaning and use. Use canonical terms in design, tasks, specifications and agent instructions. Stable machine identifiers remain in their contract and task registries. The received PRD remains verbatim; its words and clause numbers remain source references. The crosswalk explains responsibilities and relationships rather than declaring unlike components interchangeable. The [coverage map](coverage.md) and [decisions](principles.md#decisions-and-source-amendments) retain actual amendments; vocabulary edits do not change product scope. Definitions and examples still matter; matching labels alone do not ensure shared understanding.
 
 ## Package naming
 

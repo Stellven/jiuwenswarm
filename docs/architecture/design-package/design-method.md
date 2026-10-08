@@ -72,6 +72,30 @@ Use plain technical English and one canonical term per component. Every sentence
 
 Use current canonical behavior rather than requiring readers to reconstruct history. Existing TASKS/TASK/native specifications retain their authority; create no parallel handoff or change-card system.
 
+## Team decisions and implementation handoff
+
+**Architecture connects product intent to implementable work.** The PRD sets outcomes; code tasks are too detailed to own the system picture. Architecture is the level where contributors can see component boundaries, dependencies, shared contracts and why a choice was made. Clear instructions help coding agents and human contributors for the same reason: both need unambiguous inputs, outputs and constraints.
+
+- **Review material changes with affected owners.** Check impacts on components, contracts, authority, phase exits, evidence and schedule. Record the decision, reason, owner and follow-up in the existing design and linked work records. Keep superseded decisions for context; do not create a parallel change log.
+- **Maintain high-level design CI.** Architecture owns lightweight scripts and reusable agent skills/workers that review changes to system design and its documentation. Check structure, links, names, versions and references mechanically. For English and Chinese documents, check that required counterparts exist and that shared identifiers, contracts and links agree; use agents to flag possible meaning drift for owner review. Report findings and notify affected owners. Do not let agents silently rewrite, translate or approve consequential changes.
+- **Reuse the sidecar where it fits.** Run checks as bounded jobs with attributable inputs and retained results. Keep this review lane separate from product gates; start with useful checks and extend it when experience shows a need.
+- **Make rotation safe.** Keep current decisions, rationale, open questions, accepted state and evidence links in Git beside the authoritative design. New owners should be able to understand and modify it without private handoff context. Component responsibility persists even when a person changes roles.
+- **Keep plans honest.** Track target dates separately from forecasts and assumptions. When dates move, show affected dependencies and choices; change scope or commitments by team decision. At a phase boundary, carry accepted evidence, unfinished work and open decisions into the next baseline.
+
+**Example — model access is late.** Keep the working static path, mark real model integration blocked, and update dependent tasks and forecast. Do not count mock results as integration evidence or weaken the exit. This preserves progress and makes the schedule decision visible.
+
+Fix a design defect in the authoritative design and refresh affected evidence. Fix code that diverges from correct design in implementation work; logs help diagnose it but are not the decision record.
+
+Use the Git-tracked full-package [glossary](glossary.md) as the naming source. The compact glossary mirrors it. Any team member can propose edits in Git; affected owners check meaning and affected uses. Use the canonical terms in design, tasks, specifications and agent instructions. Keep stable machine identifiers in the contract and task registries. This gives people and agents one shared reference. Definitions and examples still matter; matching names alone do not prove shared understanding.
+
+Keep detail at the level needed to decide boundaries, shared contracts, authority, failure behavior and phase exits; leave private algorithms to implementation plans. Full versus compact remains an open question. Use the project’s matched experiment protocol to compare consequential ambiguity, compatibility defects, clarification and correction effort at equal scope, not document size alone.
+
+Keeping both packages current adds a second edit and review pass and creates drift risk. In the October 8 delivery snapshot, compact has 36% fewer explanatory words (15,961 vs. 25,066) and 10 diagram views (full: 26), with shared contracts preserved. If only one remains, full costs more reading and diagram upkeep; compact costs less, but may need more clarification if its shorter rationale leaves gaps. No paired implementation results yet show that compact performs as well. Use the experiment before choosing one; then make one package authoritative and freeze the other as historical evidence instead of maintaining two live copies.
+
+## Mechanical document checks
+
+Keep deterministic checks beside the design: the portable package validator already checks schemas, examples, local links/anchors, the orientation word target and diagram projections; experiment checkers pin paired inputs, compare shared content and count words. Extend these before adding a parallel tool. Structure/link failures and file/word drift are good script targets. Token counts vary by tokenizer and model, so report them only with the tokenizer/version used and never treat them as design quality. Scripts cannot judge whether rationale is sufficient, decisions are sound or the workflow is understandable; retain owner review and matched implementation evidence.
+
 ## Integrity review
 
 | Pass | Required evidence of design integrity |

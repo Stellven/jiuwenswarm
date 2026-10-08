@@ -14,21 +14,78 @@ The result is an interpretation usable by a downstream compiler. A topic label a
 
 ```mermaid
 flowchart TB
-    Request[Exact qualified request] --> Compile[Intention CC: attributed interpretation]
-    Compile --> IR[Candidate Intent IR]
-    IR --> D{Protected deterministic checks}
-    D -->|schema, spans and identities valid| Context[Protected review context]
-    D -->|invalid or unavailable| Gate[Protected Intent gate: control decision]
-    Request --> Context
-    Profile[Predefined independently owned obligations] --> D
-    Profile --> Context
-    Context --> V[Intent verifier CC: judge submitted IR]
-    V --> A[Typed assessment verdict and reasons]
-    A --> Validate[Mechanical assessment and subject validation]
-    Validate --> Gate
-    Gate -->|usable and all mandatory checks pass| Commit[Commit exact accepted Intent]
-    Gate -->|not usable or failed or unclear| Halt[Visible reason and retained candidate]
-    Commit --> R[Requirements CC]
+    Request[/Input: exact qualified request and permitted context/]
+    Profile[/Protected profile: schema, criteria, policy and limits/]
+    Request --> WorkCC
+
+    subgraph Compiler[Intention Compiler node — governed CC workflow]
+        direction TB
+        subgraph IntentSubnode[Intent subnode]
+            direction TB
+            subgraph Work[Work subnode]
+                direction TB
+                WorkCC[Intention CC capsule<br/>Interpret request; preserve scope, constraints and uncertainty]
+            end
+            WorkCC --> Candidate[/Candidate Intent_IR.json/]
+            Candidate --> Checks{Deterministic checks<br/>schema, spans, sources and identities}
+            Checks -->|valid| CheckResults[/Check results/]
+            Checks -->|invalid or unavailable| CheckFail[/Failed check result and reason/]
+            CheckResults --> ContextBuilder[Protected context builder<br/>bind exact subject and review evidence]
+            Candidate --> ContextBuilder
+            Profile --> Checks
+            Profile --> ContextBuilder
+            Request --> ContextBuilder
+            ContextBuilder --> Context[/Protected review context record<br/>candidate + accepted input + criteria/policy + checks + observations/]
+            subgraph Verify[Verifier subnode]
+                direction TB
+                VerifierCC[Intent verifier CC<br/>Assess fidelity, coverage, scope, uncertainty and usability; do not edit or accept]
+            end
+            Context --> VerifierCC
+            VerifierCC --> Assessment[/Typed assessment record<br/>verdict + findings/reasons + evidence + uncertainty/]
+            Assessment --> Validate[[Mechanical validation<br/>schema + required findings + exact subject identity]]
+            Validate --> ValidAssessment[/Validated assessment/]
+            CheckResults --> Gate
+            CheckFail --> Gate
+            Candidate --> Gate
+            ValidAssessment --> Gate
+            Profile --> Gate
+            Gate{{Protected Intent gate<br/>apply mandatory checks and policy; commit or halt}}
+        end
+        Gate -->|accept: commit exact candidate| Accepted[/Accepted Intent_IR.json/]
+        Gate -->|reject or block| Halt[/Terminal halt reason; candidate and evidence retained/]
+        Accepted --> Requirements
+        subgraph RequirementsSubnode[Requirements work subnode]
+            Requirements[Requirements CC capsule<br/>Consumes accepted Intent IR; produces candidate Research Brief]
+        end
+    end
+
+    classDef input fill:#E2F0D9,stroke:#548235,color:#1f2937
+    classDef work fill:#DDEBF7,stroke:#4472C4,color:#1f2937
+    classDef verifier fill:#E4DFEC,stroke:#7030A0,color:#1f2937
+    classDef check fill:#FCE4D6,stroke:#C55A11,color:#1f2937
+    classDef checkResult fill:#FCE5CD,stroke:#E69138,color:#1f2937
+    classDef context fill:#E7E6E6,stroke:#7F7F7F,color:#1f2937
+    classDef assembly fill:#D9E2F3,stroke:#5B6573,color:#1f2937
+    classDef assessment fill:#CCFFFF,stroke:#008C95,color:#102A43
+    classDef validated fill:#C9DAF8,stroke:#1155CC,color:#1f2937
+    classDef control fill:#FFF2CC,stroke:#BF9000,color:#1f2937
+    classDef halt fill:#F4CCCC,stroke:#A61C00,color:#1f2937
+    class Request,Profile,Candidate,Accepted input
+    class CheckResults,CheckFail checkResult
+    class ValidAssessment validated
+    class WorkCC,Requirements work
+    class VerifierCC verifier
+    class Checks,Validate check
+    class ContextBuilder assembly
+    class Context context
+    class Assessment assessment
+    class Gate control
+    class Halt halt
+    style Compiler fill:#F8FAFC,stroke:#334155,stroke-width:2px,stroke-dasharray:6 4
+    style IntentSubnode fill:#F8FAFC,stroke:#64748B,stroke-dasharray:4 3
+    style Work fill:#EFF6FF,stroke:#4472C4,stroke-dasharray:4 3
+    style Verify fill:#F5F3FF,stroke:#7030A0,stroke-dasharray:4 3
+    style RequirementsSubnode fill:#EFF6FF,stroke:#4472C4,stroke-dasharray:4 3
 ```
 
 The fixed slice has a predefined schema and checking profile. Runtime binding still ties them to the exact request, candidate and invocation. Deterministic checks validate required fields/types, schema version, span ranges and permitted source references, identity/pins, observed completion and supported limits/effects. They do not establish that a paraphrase is correct, that a topic is actionable, or that a contradiction is harmless. Their pass authorizes review only.

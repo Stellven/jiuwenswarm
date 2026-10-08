@@ -54,14 +54,14 @@ The exact launcher/Compose arrangement, service alias, API paths, schemas, crede
 
 ## Responsibilities and connections
 
-| Part | Intent and connection | Authority and readiness meaning |
-|---|---|---|
-| Job entry | Operator supplies target, candidate identity, tool/version, parameters, purpose, allowed effects and finite budget | Establish caller scope and explicit target; reject ambiguous or unauthorized requests before execution |
-| Tool registry | Reusable definitions describe input/output meaning, target kinds, prerequisites, effects and cancellation behavior | Register adapters deliberately; job parameters cannot invent tools or escalate permissions |
-| Sidecar runner | Resolve a definition, validate the request, execute under limits and collect the result | Own development-job lifecycle only; every attempt has attributable success, failure or incompleteness |
-| Product-client adapter | Submit, observe, retrieve and optionally cancel its own test runs through supported interfaces | Use ordinary scoped authentication; never insert accepted outputs or bypass product gates |
-| Diagnostic adapter and host executor | Inspect the selected container or execute a registered bounded diagnostic operation | Executor enforces target, argument/effect scope and resource ownership; unavailable access is reported, not replaced by broader access |
-| Evidence output | Return observations, tool identity, candidate/environment pins, timing, exit outcome and retained references | Preserve failures and limitations; reports inform humans or CI and never become authoritative product state |
+| Part                                 | Intent and connection                                                                                              | Authority and readiness meaning                                                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Job entry                            | Operator supplies target, candidate identity, tool/version, parameters, purpose, allowed effects and finite budget | Establish caller scope and explicit target; reject ambiguous or unauthorized requests before execution                                 |
+| Tool registry                        | Reusable definitions describe input/output meaning, target kinds, prerequisites, effects and cancellation behavior | Register adapters deliberately; job parameters cannot invent tools or escalate permissions                                             |
+| Sidecar runner                       | Resolve a definition, validate the request, execute under limits and collect the result                            | Own development-job lifecycle only; every attempt has attributable success, failure or incompleteness                                  |
+| Product-client adapter               | Submit, observe, retrieve and optionally cancel its own test runs through supported interfaces                     | Use ordinary scoped authentication; never insert accepted outputs or bypass product gates                                              |
+| Diagnostic adapter and host executor | Inspect the selected container or execute a registered bounded diagnostic operation                                | Executor enforces target, argument/effect scope and resource ownership; unavailable access is reported, not replaced by broader access |
+| Evidence output                      | Return observations, tool identity, candidate/environment pins, timing, exit outcome and retained references       | Preserve failures and limitations; reports inform humans or CI and never become authoritative product state                            |
 
 Minimum reusable tools cover readiness inspection, scoped logs, relevant configuration/version observations with secrets removed, a registered in-container diagnostic command, and a bounded validation case. Read-only inspection is the default. A tool that writes files, rebuilds or restarts declares those effects and requires caller authority for the selected development environment. Production mutation is outside the initial scope.
 
