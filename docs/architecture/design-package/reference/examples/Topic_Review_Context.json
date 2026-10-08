@@ -6,21 +6,21 @@
   },
   "input_refs": [
     {
-      "id": "Request_Topic_Only.txt",
-      "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+      "id": "Topic_Qualified_Intake.json",
+      "sha256": "7b1a06e09dc2c1c6148662415255c0d9f7a75e5eaa2abc178cc90d44c6d6877c"
     }
   ],
   "contract_ref": {
-    "id": "Topic_Node_Contract.json",
-    "sha256": "d223d3ce529b49b045ed969a4cab2c002cfbd22f8067823a9a2de5a17157e2c1"
+    "id": "Topic_Subnode_Contract.json",
+    "sha256": "2a3f30412cd586fdf3ade8cfa88f6b1076552967abed875904596631d06d7ba7"
   },
   "check_plan_ref": {
     "id": "Topic_Check_Plan.json",
-    "sha256": "e974bab1a8a5f1d63c1ee036a5c039b34dcd78baf21e2d566d2cfe9b37833ab7"
+    "sha256": "a5a36bb16e05d02b426f994a6fa303863aa7a1327bf2b91ab35bc1460b47da29"
   },
   "deterministic_result_ref": {
     "id": "Topic_Checks.json",
-    "sha256": "3f5df1e0c957f98567dd424c5292db35639780d3ea22cb03137cec7321c4f2eb"
+    "sha256": "8fef6226c10dd65caacddf95f2d5fbdf3c10ec1af32cff469a4fcfe5e66b534a"
   },
   "criteria": [
     "fidelity",
@@ -30,14 +30,19 @@
   "observations": [
     {
       "id": "Topic_Observation.json",
-      "sha256": "139601961ec7f1834d47d3922b02e001d4eb528ab0df1d59ea9044643f0e2b82"
+      "sha256": "5e4b20ae7e8b28547315140c979df6a1a914deb7ca7f2b69e4fb68c5b79d449d"
     }
   ],
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "evidence_classes": [
     "protected policy",
     "accepted input",
     "observed evidence",
     "untrusted producer content"
-  ]
+  ],
+  "node_contract_ref": {
+    "id": "Topic_Node_Contract.json",
+    "sha256": "52b16442148fbc306fa86f122fd5159d0c144cac17fdce1264bfe6176bcedbc6"
+  },
+  "subnode_id": "intention"
 }

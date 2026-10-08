@@ -1,14 +1,22 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "id": "check-plan:requirements",
   "contract_ref": {
-    "id": "Requirements_Node_Contract.json",
-    "sha256": "5504d034e47276b13284e88c4067fde54bf2668d6454bc3843a84ba10fdb3d18"
+    "id": "Requirements_Subnode_Contract.json",
+    "sha256": "1af87696bff0191462585d1d3d0ed55b2287234b81d075a0bc661481c1f7761e"
   },
   "input_refs": [
     {
       "id": "Intent_IR.json",
       "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
     }
   ],
   "profile_ref": {
@@ -17,7 +25,7 @@
   },
   "policy_ref": {
     "id": "Default_Policy.json",
-    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
   },
   "mandatory_deterministic": [
     "structure",
@@ -34,5 +42,10 @@
       "id": "Intent_Implementation.txt",
       "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
     }
-  ]
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "a7efc03ae33441be12a38fcfba0741935f5c4c3ad50be138c98545b0f22f52d4"
+  },
+  "subnode_id": "requirements"
 }

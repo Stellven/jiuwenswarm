@@ -7,23 +7,17 @@
         "requirement:latency",
         "requirement:quality"
       ],
-      "capsule_refs": [
-        {
-          "id": "Discovery_Capsule.json",
-          "sha256": "da7e2dc4df56d3f09bcc9db4e04d2ada68aee6f6713de50cf18febf79d273a9f"
-        }
-      ],
       "predecessors": [],
       "inputs": [
         {
           "name": "brief",
-          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
-          "version": "1.0.0",
+          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "version": "2.0.0",
           "required": true,
           "artifact_refs": [
             {
               "id": "Lifecycle_Research_Brief.json",
-              "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+              "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
             }
           ],
           "future_bindings": []
@@ -36,6 +30,21 @@
           "version": "1.0.0",
           "required": true
         }
+      ],
+      "subnodes": [
+        {
+          "subnode_id": "work",
+          "role": "work",
+          "capsule_ref": {
+            "id": "Discovery_Capsule.json",
+            "sha256": "0652948523d47f6d9feb70f65840d8a0ecc4e9168c87052cbb25e94dc6370e2e"
+          },
+          "template_ref": {
+            "id": "Node_Template.json",
+            "sha256": "2e9063b7ce3166f16b27dacc0fbcbd3dbeb00c0fada80dda71b5079a880a4320"
+          },
+          "depends_on": []
+        }
       ]
     },
     {
@@ -45,25 +54,19 @@
         "requirement:latency",
         "requirement:quality"
       ],
-      "capsule_refs": [
-        {
-          "id": "Screening_Capsule.json",
-          "sha256": "cc277a7deaaef2e4e7de7594de80902047556689ae1ce260691861d6768d5999"
-        }
-      ],
       "predecessors": [
         "discovery"
       ],
       "inputs": [
         {
           "name": "brief",
-          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
-          "version": "1.0.0",
+          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "version": "2.0.0",
           "required": true,
           "artifact_refs": [
             {
               "id": "Lifecycle_Research_Brief.json",
-              "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+              "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
             }
           ],
           "future_bindings": []
@@ -91,12 +94,27 @@
           "version": "1.0.0",
           "required": true
         }
+      ],
+      "subnodes": [
+        {
+          "subnode_id": "work",
+          "role": "work",
+          "capsule_ref": {
+            "id": "Screening_Capsule.json",
+            "sha256": "0d3b437619bc014a9db1dfa206b3632f337fbd19140325e5a7d7612cccca0887"
+          },
+          "template_ref": {
+            "id": "Node_Template.json",
+            "sha256": "2e9063b7ce3166f16b27dacc0fbcbd3dbeb00c0fada80dda71b5079a880a4320"
+          },
+          "depends_on": []
+        }
       ]
     }
   ],
   "synthetic": true,
   "brief_ref": {
     "id": "Lifecycle_Research_Brief.json",
-    "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+    "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
   }
 }

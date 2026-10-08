@@ -1,6 +1,6 @@
 # Diagram views
 
-The embedded Mermaid blocks in the owning Markdown documents define meaning. These SVG/PNG views are generated projections of those blocks. Use SVG for zooming. Where a palette is used, blue is work, purple verification, amber protected infrastructure, and green records. Optional development-tool diagrams describe a separate lane.
+Start at the [system view](../m1-design.md); follow its component/field routes. Mermaid in each owning document defines meaning; SVG/PNG are checked projections. Use SVG to zoom. Work, verifier and protected gate roles remain distinct.
 
 | View | Owning source | Rendered view |
 |---|---|---|
@@ -31,4 +31,4 @@ The embedded Mermaid blocks in the owning Markdown documents define meaning. The
 | Establish intent before planning | [workflow.md](../workflow.md#establish-intent-before-planning) | [SVG](../diagrams/workflow-1.svg) / [PNG](../diagrams/workflow-1.png) |
 | Tasks, nodes, and verification | [workflow.md](../workflow.md#tasks-nodes-and-verification) | [SVG](../diagrams/workflow-2.svg) / [PNG](../diagrams/workflow-2.png) |
 
-All 26 maintained diagrams parse and render with Mermaid CLI 12.0.0. [Projection hashes](manifest.json) bind each view to its source block. Rendering establishes syntax and presentation, not runtime behavior. Historical diagrams are excluded.
+All 26 maintained views have matching [source/projection hashes](manifest.json). Rendering proves syntax/presentation, not runtime behavior.

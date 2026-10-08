@@ -20,8 +20,8 @@
     "inputs": [
       {
         "name": "brief",
-        "artifact_type": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
-        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+        "artifact_type": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
         "required": true,
         "description": "Bound typed artifact",
         "check_ids": []

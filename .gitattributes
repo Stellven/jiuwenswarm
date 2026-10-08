@@ -37,3 +37,6 @@ docs/architecture/experiments/**/reference/field-catalog.md whitespace=cr-at-eol
 
 # Experimental receipts/manifests also pin exact pre-change bytes.
 docs/architecture/experiments/** -text
+
+# Received PRDs live outside architecture packages; preserve their original bytes.
+docs/product/received-prds/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof

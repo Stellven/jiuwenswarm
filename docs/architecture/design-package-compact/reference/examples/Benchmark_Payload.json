@@ -3,11 +3,11 @@
   "id": "Benchmark_Payload",
   "blueprint_ref": {
     "id": "Hypothesis_Blueprint.json",
-    "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+    "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
   },
   "poc_ref": {
     "id": "POC_Manifest.json",
-    "sha256": "0df41c5d8c3291fe4ff322a70ef7330a394129b7cd63e270ae39011b5eb01e50"
+    "sha256": "1d51f872cc40a4f35408b269a260771a0da8be7dbc6f482e75d2c89a399102be"
   },
   "resource_refs": [
     {

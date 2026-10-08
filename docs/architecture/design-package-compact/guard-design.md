@@ -8,7 +8,7 @@ A guard is a reusable, admitted checking capability assigned to a governed work 
 
 ## Assignments and check plans
 
-Protected configuration derives the mandatory check plan from the applicable accepted obligations, Node Execution Contract, every participating CC and transitive dependency pin, guard profile and version, policy and scope, protocol references, limits, evidence obligations, and relevant runtime rules. Before a Research Brief exists, fixed preparation templates supply the product obligations and the qualified original request supplies the input meaning; no compiler depends on its own accepted output or a later Brief to establish its guard assignment. After Brief acceptance, planned research contracts use those accepted requirements. Hashes identify these inputs. The plan is invariant for the same complete binding; a CC hash alone, or a CC plus input hash, is not a sufficient reuse key. Observed time and environment are fresh evidence on every attempt and are not frozen as predicted facts.
+Protected configuration derives the mandatory check plan from the applicable accepted obligations, Node and applicable Subnode Execution Contracts, every participating CC and transitive dependency pin, guard profile and version, policy and scope, protocol references, limits, evidence obligations, and relevant runtime rules. Before a Research Brief exists, fixed preparation templates supply the product obligations and the qualified original request supplies the input meaning; no compiler depends on its own accepted output or a later Brief to establish its guard assignment. After Brief acceptance, planned research contracts use those accepted requirements. Hashes identify these inputs. The plan is invariant for the same complete binding; a CC hash alone, or a CC plus input hash, is not a sufficient reuse key. Observed time and environment are fresh evidence on every attempt and are not frozen as predicted facts.
 
 | Reusable item | What stays fixed | What changes per governed invocation |
 |---|---|---|
@@ -61,7 +61,7 @@ Every related mandatory guard is admitted independently and has separate develop
 - [Planning, freeze, and execution](workflow.md)
 - Optional historical identity reference: [M1-003 admission task](https://github.com/Stellven/jiuwenswarm/blob/45c0566aeaff1f7b8a5063c46397afa2d8084f94/docs/code/Missions/M1/M1-003/TASK.md); reconcile its older source assumptions.
 - Optional historical identity reference: [M1-007 guard ownership task](https://github.com/Stellven/jiuwenswarm/blob/45c0566aeaff1f7b8a5063c46397afa2d8084f94/docs/code/Missions/M1/M1-007/TASK.md); reconcile its older source assumptions.
-- [PRD §4.2 Evaluator Gate](sources/product/prd-m1-current-2026-10-07.txt)
+- [PRD §4.2 Evaluator Gate](sources/product/README.md)
 
 ## Connected behavior summary
 

@@ -1,21 +1,29 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "id": "invocation:requirements",
   "contract_ref": {
-    "id": "Requirements_Node_Contract.json",
-    "sha256": "5504d034e47276b13284e88c4067fde54bf2668d6454bc3843a84ba10fdb3d18"
+    "id": "Requirements_Subnode_Contract.json",
+    "sha256": "1af87696bff0191462585d1d3d0ed55b2287234b81d075a0bc661481c1f7761e"
   },
   "binding_id": "binding:requirements.compiler",
   "input_refs": [
     {
       "id": "Intent_IR.json",
       "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
     }
   ],
   "output_refs": [
     {
       "id": "Research_Brief.json",
-      "sha256": "cfdeeac604f9557bc854a2cc2e0e86afa68ba850ac62b61432f6b2640f989e56"
+      "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5"
     }
   ],
   "model_identity": {
@@ -42,5 +50,10 @@
     "unavailable_reasons": [
       "Synthetic illustration; no tokens or attributable cost were observed"
     ]
-  }
+  },
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "a7efc03ae33441be12a38fcfba0741935f5c4c3ad50be138c98545b0f22f52d4"
+  },
+  "subnode_id": "requirements"
 }

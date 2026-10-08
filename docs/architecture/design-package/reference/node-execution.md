@@ -1,24 +1,36 @@
-# Node Execution Contract
+# Node and Subnode Execution Contracts
 
-**AI reference.** Protected binder → governed runner, check-plan builder and gate. This is the finalized dispatch record, not a reusable CC declaration, planning template or invocation observation. [Exact schema](schemas/node-execution-contract.schema.json) is authoritative.
+**AI reference.** Field tables are the main design interface. The enclosing [Node Execution Contract field table](field-catalog.md#node-execution-contract) specifies information and ownership; implementation agents realize its interoperable representation. The [Subnode critical schema](schemas/subnode-execution-contract.schema.json) retains exact authority/dispatch fields because omissions or competing scope meanings affect trusted execution.
 
-| Required fields | Meaning / consumer obligation |
+## Enclosing node
+
+A node is a PRD workflow responsibility, such as Intention Compiler. Its protected contract binds external inputs/outputs, objective, requirement coverage, admitted internal CC assignments, fixed dependencies/checking profiles, maximum authority and aggregate limits. It may contain multiple work and verifier subnodes and protected gates. Fixed grouping does not synthesize a new CC.
+
+Required information: `schema_version`, `id`, `run_id`, `node_id`, `attempt_id`, `revision`, `objective`, `requirement_ids`, `inputs`, `outputs`, `input_refs`, `required_outputs`, `evidence_obligations`, `node_limits`, `authority_ceiling`, `subnodes`, `gate_assignments`, `guard_profile_ref`, `policy_ref`, `configuration_ref`, `template_ref`. [Field meanings and consumers](field-catalog.md#node-execution-contract) are authoritative.
+
+Subnode assignments identify role, exactly one declaration, template, prerequisites and requiredness. Templates name ports, pins and checking responsibilities before execution; internal outputs become concrete refs only after protected acceptance. The parent pins templates, not future concrete children. Child contracts point to the parent, avoiding reciprocal content-hash cycles. Frozen templates preserve future compatibility without pretending future artifacts already exist.
+
+The node gate aggregates required internal acceptance, observed work/review, external output coverage, effective effects and combined budgets. A final metadata check does not perform another semantic interpretation. Failed internal acceptance, missing evidence or persistence failure blocks successor nodes.
+
+## Concrete subnode
+
+Protected binder → runner, check-plan builder and gate. One subnode binds exactly one CC; verifier assignments also have their own subnode contracts and restricted read-only authority. Work outputs receive deterministic then semantic checking; verifier output ends with mechanical validation, with no recursive verifier chain.
+
+| Required fields | Meaning / why needed |
 |---|---|
-| `schema_version`, `id`, `run_id`, `node_id`, `attempt_id`, `revision` | Versioned immutable contract within one run/node/attempt; changes require a new identity/revision and invalidated decisions |
-| `objective`, `requirement_ids` | Assigned work and accepted Brief obligations; fixed preparation uses predefined profile obligation IDs |
-| `bindings` | Each binding: `id`, `role`, exact `declaration_ref`, `implementation_refs`, `dependency_refs`, protected `admission_ref`, `effective_authority`, `limits` |
-| `inputs`, `outputs` | Named ports: `name`, catalog `contract_id`, `version`, `required`; inputs additionally have exact `artifact_refs`. Finalized contracts contain concrete accepted refs, never future placeholders |
-| `input_refs`, `required_outputs` | Compatibility inventories derived from port entries, not independently authored alternate bindings |
-| `evidence_obligations` | Named required observation/check/evidence obligations; absence blocks release |
-| `node_limits` | Aggregate `time_s`, `model_calls`, `memory_mb`, including reserved checking spend; binding limits constrain each work invocation and the pinned guard profile reserves verifier spend as well |
-| `guard_profile_ref`, `policy_ref`, `configuration_ref`, `template_ref` | Exact independently owned frozen guard/profile, effective policy/configuration and originating template |
+| `schema_version`, `id`, `run_id`, `node_id`, `subnode_id`, `attempt_id`, `revision`, `node_contract_ref` | Exact child identity and enclosing authority; reject swapped parent/run/attempt |
+| `objective`, `requirement_ids` | Assigned obligation; fixed work uses predefined profile IDs |
+| `bindings` | Exactly one admitted declaration/body/dependency/admission pin, role, effective authority and invocation limits |
+| `inputs`, `outputs` | Named contract/version/required ports; concrete accepted input references |
+| `input_refs`, `required_outputs` | Derived inventories matching ports, not independently authored alternatives |
+| `evidence_obligations` | Required observations and checking evidence; absence blocks |
+| `subnode_limits` | Bounds this CC assignment; the parent reserves separate verifier spend |
+| `guard_profile_ref`, `policy_ref`, `configuration_ref`, `template_ref` | Independently owned frozen checking/authority/configuration/template identities |
 
-Effective authority names `network`, `network_allowlist`, `resource_reads`, `write_roots`, `tools`. It is an enforced intersection of admission, contract and run policy. Empty lists grant no access. `network: none` requires an empty allowlist. Scope/resource IDs resolve through protected manifests; no union across bindings. Verifier authority is read-only for its subject/evidence and cannot write gate state.
+Authority names `network`, `network_allowlist`, `resource_reads`, `write_roots`, `tools`. Effective authority is the intersection of admission, parent node, subnode and run policy. Empty lists grant nothing; `network: none` requires an empty allowlist. No permission pooling. Unsupported composite/merged CC dispatch remains rejected.
 
-Optional `ext` is namespaced diagnostic data, not permission or release policy. Deterministic checks additionally establish unique binding/port IDs, catalog resolution, exact input inventory, output inventory, limit containment, admission eligibility, input scope and referenced artifact type. Schema validity alone cannot establish trusted authorship or allowed effects.
+Bound check plans reference concrete contracts and exact inputs; contracts pin guard profiles. Runtime records identify parent and subject/producing subnode; node-level records explicitly use null subnode scope. A schema-valid CC-authored contract still has no binding authority. Implementers choose private classes, algorithms and transport routes within these constraints.
 
-Contracts pin reusable guard profiles. Bound check plans reference the finalized contract and exact inputs; observations/context/decisions reference both. There is no contract↔bound-plan hashing cycle. Failure to bind accepted inputs, policy or evidence obligations blocks dispatch. A stale or mismatched subject/scope blocks release even if a verifier says PASS. [Complete examples](examples/README.md) illustrate this boundary without claiming runtime admission.
+## Verification scope and version migration
 
-## M1 execution scope
-
-M1 binds exactly one work CC per execution node. Additional work CCs occupy separate gated nodes with named typed dependencies. Verifier CCs are separate protected checking assignments; private helpers remain the owning CC's implementation. The declaration and node port names/types must match; no implicit aliases or internal CC calls are supported. Composite creation/execution, internal member graphs, fusion and merging remain later work. The PRD permits broader admitted capability sets, but does not require this bounded realization to use them. Unsupported forms block admission/binding; schema recognition of future metadata does not grant execution support.
+The old `node-execution-contract:1.0.0` described a CC-sized assignment; it is retired from maintained examples and becomes `subnode-execution-contract:1.0.0` with explicit parent scope. The enclosing Node Execution Contract is the `2.0.0` field contract. Gate decisions and affected public field contracts use `2.0.0`; unchanged critical artifact/assessment schemas retain `1.0.0`. Resolve versions per catalog entry, never by one global assumption. Historical snapshots remain unchanged and must not be mixed with current inputs.

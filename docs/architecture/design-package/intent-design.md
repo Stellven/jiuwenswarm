@@ -1,22 +1,24 @@
-# Intent and Requirements: interpretation, checking and release
+# Intention Compiler node: interpretation, requirements and release
 
 **Reading level: human potential.** Question: what does the compiler need to understand, what must its verifier establish, and why does Requirements wait? [Immediate Plan](immediate-plan.md) selects the first build; [field contracts](reference/intent-and-requirements.md) define its interoperable data.
 
-## Intent CC responsibility
+## Intention CC responsibility
 
-The compiler takes the exact qualified original request and permitted context. In a bounded generative pass it extracts the problem/research purpose, desired change, requested result, affected entities, scope, exclusions, constraints, preferences and stated targets. It preserves source attribution and separates absent information from stated values. It produces **Intent IR**, not a Research Brief or proposed scientific solution.
+The Intention Compiler is the enclosing node. This section describes its first work subnode; accepted Intent IR is intermediate. The Requirements subnode and both verification/gate paths are also mandatory. [Current build](builds/intention-compiler/README.md) reaches the Research Brief.
 
-The result is an interpretation usable by a downstream compiler. A topic label alone is insufficient when no purpose or requested result can be discerned. The compiler must represent that uncertainty, not invent a benchmark, report type, algorithm or desired change. Missing optional hardware/method/threshold fields are different from not knowing what work the user wants. Requirements may apply authorized parameter defaults; Hypothesis later registers empirical criteria. No browsing, host profiling, research or autonomous clarification is needed to fabricate missing intent.
+The Intention CC takes the exact qualified original request and permitted context. In a bounded generative pass it extracts the problem/research purpose, desired change, requested result, affected entities, scope, exclusions, constraints, preferences and stated targets. It preserves source attribution and separates absent information from stated values. It produces **Intent IR**, not a Research Brief or proposed scientific solution.
+
+The result is an interpretation usable by a downstream compiler. A topic label alone is insufficient when no purpose or requested result can be discerned. The Intention CC must represent that uncertainty, not invent a benchmark, report type, algorithm or desired change. Missing optional hardware/method/threshold fields are different from not knowing what work the user wants. Requirements may apply authorized parameter defaults; Hypothesis later registers empirical criteria. No browsing, host profiling, research or autonomous clarification is needed to fabricate missing intent.
 
 ## Deterministic boundary
 
 ```mermaid
 flowchart TB
-    Request[Exact qualified request] --> Compile[Intent CC: attributed interpretation]
+    Request[Exact qualified request] --> Compile[Intention CC: attributed interpretation]
     Compile --> IR[Candidate Intent IR]
     IR --> D{Protected deterministic checks}
     D -->|schema, spans and identities valid| Context[Protected review context]
-    D -->|invalid or unavailable| Gate[Protected host: halt decision]
+    D -->|invalid or unavailable| Gate[Protected Intent gate: control decision]
     Request --> Context
     Profile[Predefined independently owned obligations] --> D
     Profile --> Context
@@ -60,7 +62,9 @@ flowchart TB
     I --> V
     Policy --> V
     V -->|verdict, findings and reasons| G
-    G -->|durably accepted| P[Static binder or Phase 3 planner must fulfil contract]
+    G -->|internally accepted| NG[Protected node finalization: aggregate evidence]
+    NG -->|durably released Brief| P[Static binder or Phase 3 planner must fulfil contract]
+    NG -->|incomplete or failed commit| H
     G -->|failed or unclear| H[Visible halt; do not plan]
 ```
 
@@ -70,4 +74,8 @@ The binder/planner consumes the accepted contract. Coverage maps required outcom
 
 ## Source and build boundaries
 
-D5 explicitly permits two compiler generations instead of the unchanged PRD's literal single bounded generation. Combined limits are frozen; each compilation remains bounded/non-interactive in the baseline. Verifier calls are separate checking work. The Immediate Plan builds only Intent and its boundary. Complete Stage 2 includes qualified documents/resources, accepted Brief and initialized baseline graph; the Intent verifier is not downstream work Node B.
+D5 permits the selected fixed multi-pass sequence instead of the unchanged PRD's literal single bounded generation. Combined limits are frozen; each compilation remains bounded/non-interactive in the baseline. Verifier calls are separate checking work. The current Immediate Plan builds the whole compiler through accepted Research Brief. Complete Stage 2 includes qualified documents/resources, accepted Brief and initialized baseline graph; the Intent verifier is not downstream work Node B.
+
+## Connections and reference route
+
+The whole node receives qualified intake and protected defaults, exposes accepted Research Brief, and connects to later static binding or Phase 3 Leader integration. Intent IR stays the verified intermediate between its work subnodes. [Fields and purpose](reference/intent-and-requirements.md), [node/subnode ownership](reference/node-execution.md), [verification cases](reference/compiler-verification.md) and [build scope](builds/intention-compiler/README.md) define the connected boundary.

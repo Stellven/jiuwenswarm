@@ -1,13 +1,21 @@
 {
-  "id": "node-contract:requirements",
+  "id": "subnode-contract:requirements",
   "run_id": "run:example",
-  "node_id": "requirements",
+  "node_id": "intention.compiler",
   "attempt_id": "attempt:1",
   "objective": "Produce a planning contract preserving accepted Intent",
   "input_refs": [
     {
       "id": "Intent_IR.json",
       "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
     }
   ],
   "required_outputs": [
@@ -15,7 +23,7 @@
   ],
   "policy_ref": {
     "id": "Default_Policy.json",
-    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
   },
   "schema_version": "1.0.0",
   "revision": 1,
@@ -28,7 +36,7 @@
       "role": "requirements.compiler",
       "declaration_ref": {
         "id": "Requirements_Capsule.json",
-        "sha256": "dec861804b4d1839a1f8ccec910113614f96ab1339e217bca868244871acc8d0"
+        "sha256": "a6253479932152b0559d4997be83871326c921ac4488f3ff388948c1eb766987"
       },
       "implementation_refs": [
         {
@@ -48,6 +56,14 @@
           {
             "id": "Intent_IR.json",
             "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+          },
+          {
+            "id": "Qualified_Intake.json",
+            "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+          },
+          {
+            "id": "Default_Policy.json",
+            "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
           }
         ],
         "write_roots": [
@@ -76,13 +92,37 @@
           "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
         }
       ]
+    },
+    {
+      "name": "intake",
+      "contract_id": "qualified-intake:field-contract:2",
+      "version": "2.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+        }
+      ]
+    },
+    {
+      "name": "defaults",
+      "contract_id": "default-policy:field-contract:1",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ]
     }
   ],
   "outputs": [
     {
       "name": "brief",
-      "contract_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
-      "version": "1.0.0",
+      "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+      "version": "2.0.0",
       "required": true
     }
   ],
@@ -93,11 +133,6 @@
     "semantic_assessment",
     "independently_budgeted_guard_observation"
   ],
-  "node_limits": {
-    "time_s": 180,
-    "model_calls": 2,
-    "memory_mb": 512
-  },
   "guard_profile_ref": {
     "id": "Requirements_Guard_Profile.json",
     "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6"
@@ -107,7 +142,17 @@
     "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
   },
   "template_ref": {
-    "id": "Node_Template.json",
-    "sha256": "12008fa853a7fa11a6eead356ad3ee423dc02b255176f955e3bae73c7f9337ed"
+    "id": "Requirements_Subnode_Template.json",
+    "sha256": "978805da93a3f9f8db4a4144330397aa712d798b582cd4ce9b9d9bf1d06a37a6"
+  },
+  "subnode_id": "requirements",
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "a7efc03ae33441be12a38fcfba0741935f5c4c3ad50be138c98545b0f22f52d4"
+  },
+  "subnode_limits": {
+    "time_s": 120,
+    "model_calls": 1,
+    "memory_mb": 512
   }
 }

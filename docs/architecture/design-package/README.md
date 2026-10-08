@@ -1,12 +1,12 @@
 # AI4Research M1 design package
 
-**Reading level: human immediate · October 8, 2026 · branch `ai4r_muk`.** This folder is the sole maintained architecture. Start here. The [current PRD](sources/product/prd-m1-current-2026-10-07.txt) defines product requirements; this package explains the system that realizes them. The [source index](sources/product/README.md) preserves receipt identities and explicit local exceptions.
+**Reading level: human immediate · October 8, 2026 · branch `ai4r_muk`.** This folder is the sole maintained architecture. Start here. The [current PRD receipt](sources/product/README.md) defines product requirements; this package explains the system that realizes them. The [source index](sources/product/README.md) preserves receipt identities and explicit local exceptions.
 
 **PRD and design authority:** The PRD owns overall requirements and required outcomes. Design interprets the PRD and owns architecture and implementation-facing details that achieve those outcomes. If implementation guidance conflicts, follow the current design. Product obligations remain binding; a conflict that changes an obligation needs an explicitly recorded authorized decision.
 
 ## Human super-important read: understand the whole system
 
-Read these three documents. They cover the complete M1 architecture, authority, placement, phase commitments and next build without requiring field review.
+Read these three documents for M1 responsibilities, authority, placement, phases and the next build.
 
 | Order | Read | Review outcome |
 |---|---|---|
@@ -18,9 +18,15 @@ Read these three documents. They cover the complete M1 architecture, authority, 
 
 [Design method and architectural integrity](design-method.md) explains the role and depth of architecture, tiered human review, change propagation and integrity checks. Read it when authoring or reviewing changes. [Decision review](decision-review.md) gives alternatives, pros, cons and implications for the latest repairs.
 
+**PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
+
+## Build a specific component
+
+For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. Success reaches accepted `Research_Brief.json`; accepted Intent IR alone is incomplete.
+
 ## Human should read: review the affected responsibility
 
-These documents preserve consequential detail for authors and reviewers. They explain purpose, inputs/consumers, broad approach, passing/blocking behavior, authority and rationale. They are not another mandatory cover-to-cover route.
+Select the affected responsibility. These pages explain purpose, connections, behavior, authority, failures and rationale.
 
 | Question | Detailed design |
 |---|---|
@@ -48,7 +54,7 @@ AI4Research turns a supplied research purpose and local assets into a grounded o
 ```mermaid
 flowchart TB
     User[Browser or supported local client] --> Control[Authenticated control plane]
-    Control --> Prep[Intent and Requirements through governed runner]
+    Control --> Prep[Intention Compiler node: verified Intent and Research Brief]
     Prep --> Plan[Static binding or bounded Phase 3 planning]
     Plan --> Freeze[Protected plan checking and freeze]
     Freeze --> Runner[Scheduler and governed CC runner]
@@ -90,10 +96,10 @@ CC authors produce work or assessments; protected infrastructure releases it. In
 
 One workflow application container bundles the frontend, web/control service and runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`; the image entrypoint starts the application. No external UI helper is required. Internal model access is protected; generated scientific code has a separate confinement boundary. The optional [development sidecar](development-tools/sidecar/README.md) is an ordinary authenticated client on the private container network, outside product agents and M1 delivery dependencies.
 
-Full M1 includes the baseline research journey/workstation, independent isolated RSI, and the applicable bounded dynamic integration efforts. The immediate slice ends at accepted Intent or a visible halt. Composite/merged CCs, remote workers and live self-modification are compatibility/research directions, not implied implementations.
+Full M1 includes the baseline research journey/workstation, independent isolated RSI, and the applicable bounded dynamic integration efforts. The current compiler build ends at accepted Research Brief or a visible halt; its foundational dependencies are included. Composite/merged CCs, remote workers and live self-modification are compatibility/research directions, not implied implementations.
 
 ## Review and evidence
 
 [Design review](coverage.md) traces source obligations, compatibility, challenge cases and limitations. Documentation checks do not establish runtime acceptance.
 
-The PRD stays verbatim. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures, especially D5's two compiler generations and D6's packaging realization; literal zero differences are not claimed. Historical material is optional provenance. The separate very-condensed experiment is a historical comparison input and is not a substitute for this revised three-level package.
+Received PRD bodies remain unchanged outside this package and are supplied separately. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures, especially D5's fixed bounded multi-pass compiler and D6's packaging realization; literal zero differences are not claimed. Historical material is optional provenance. The separate very-condensed experiment is a historical comparison input and is not a substitute for this revised three-level package.

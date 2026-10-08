@@ -5,7 +5,7 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 - [Code SOP v2](docs/code/Code_SOP.md)
 - [M1 TASKS](docs/tasks/M1/TASKS.md)
 - [Current PRD and architecture reading package](docs/architecture/design-package/README.md)
-- [First connected slice design, formerly TRIAL-1](docs/architecture/design-package/immediate-plan.md)
+- [Current complete Intention Compiler build](docs/architecture/design-package/immediate-plan.md)
 - [Canonical vocabulary and PRD crosswalk](docs/architecture/design-package/glossary.md)
 - [Spec Kit workflow](docs/code/code_sop/SPEC_KIT_WORKFLOW.md)
 - [Verification method](docs/code/code_sop/VERIFICATION.md)
@@ -21,9 +21,9 @@ The `docs/architecture/design-package/development-tools/` subtree contains separ
 
 The PRD owns overall product requirements and outcomes. The maintained design interprets them and owns architecture and implementation-facing details; prefer the current design when implementation guidance conflicts. Product-obligation changes require recorded authorized decisions.
 
-For M1 work, read only `docs/architecture/design-package/` as maintained product/design input, starting with its verbatim PRD, overview and decisions, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
+For M1 work, read only `docs/architecture/design-package/` as maintained product/design input, starting with its overview and decisions plus the separately supplied PRD, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
 
-M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1) remains a bounded first build. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
+The current bounded build is the complete Intention Compiler node through accepted Research Brief, including required foundations. The earlier Intent Compilation and Verification Slice (formerly TRIAL-1) remains historical in frozen inputs. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
 
 Local Obsidian-compatible working notes may live in `docs/architecture/notes/`, which is Git-ignored and excluded from main delivery. Notes retain context and open ideas, not implementation authority; promote material architecture decisions into the maintained design. Keep personal pane/session state local while retaining shared vault settings.
 

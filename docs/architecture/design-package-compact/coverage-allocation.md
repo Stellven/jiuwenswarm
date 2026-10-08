@@ -2,7 +2,7 @@
 
 **Reading level: AI reference.** Every numbered heading in the current verbatim PRD has an architectural responsibility below. A mapping is a reading route, not proof that every bullet is implemented. The source whitelist/blacklist and global invariants still apply. [Design review](coverage.md) checks consequential changes and US01–US20; [decisions](principles.md#decisions-and-source-amendments) identify explicit local exceptions.
 
-Current source: [October 7 PRD](sources/product/prd-m1-current-2026-10-07.txt), 188 numbered headings.
+Current source receipt: [October 7 PRD](sources/product/README.md), 188 numbered headings.
 
 | Exact PRD heading | Architectural responsibility |
 |---|---|

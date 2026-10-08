@@ -16,3 +16,7 @@ Extra intent and evolving context may be kept in the Git-ignored local `notes/` 
 ## Current design-depth experiment
 
 The [experiment registry and original protocol](experiments/README.md) preserve the first pair. The [October 8 comparison](experiments/m1-contract-review-2026-10-08/README.md) freezes the repaired full design and a stronger compact input with identical contracts, examples and source decisions. It is an experimental input, not maintained architecture. The older very-condensed design remains unchanged. Design authors use [design method](design-package/design-method.md) for depth, tiered human review and change impact.
+
+## Current complete compiler assignment
+
+Use the [Intention Compiler Main entrypoint](design-package/builds/intention-compiler/README.md) and its Context. The component includes required foundations and ends at accepted Research Brief or an attributable halt. Earlier Intent-only scope is historical; coding registration remains pending. Preserve TASK/AC/IF identities and reconcile changed contracts before relying on earlier evidence.

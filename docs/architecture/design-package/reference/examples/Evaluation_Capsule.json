@@ -20,7 +20,7 @@
     "inputs": [
       {
         "name": "brief",
-        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
         "required": true,
         "artifact_type": "brief",
         "description": "Typed submitted artifact; synthetic teaching declaration",

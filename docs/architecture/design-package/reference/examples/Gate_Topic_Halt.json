@@ -1,32 +1,36 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "id": "decision:topic",
   "recorded_at": "2026-10-07T12:00:00Z",
   "run_id": "run:topic",
-  "node_id": "intent",
+  "node_id": "intention.compiler",
   "attempt_id": "attempt:topic",
   "contract_ref": {
-    "id": "Topic_Node_Contract.json",
-    "sha256": "d223d3ce529b49b045ed969a4cab2c002cfbd22f8067823a9a2de5a17157e2c1"
+    "id": "Topic_Subnode_Contract.json",
+    "sha256": "2a3f30412cd586fdf3ade8cfa88f6b1076552967abed875904596631d06d7ba7"
   },
   "invocation_refs": [
     {
       "id": "Topic_Observation.json",
-      "sha256": "139601961ec7f1834d47d3922b02e001d4eb528ab0df1d59ea9044643f0e2b82"
+      "sha256": "5e4b20ae7e8b28547315140c979df6a1a914deb7ca7f2b69e4fb68c5b79d449d"
+    },
+    {
+      "id": "Topic_Verifier_Observation.json",
+      "sha256": "99365b886d799559b2a67afbcbff2059cab3023322d9eed1d5c240b0fc686f56"
     }
   ],
   "policy_ref": {
     "id": "Default_Policy.json",
-    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
   },
   "check_plan_ref": {
     "id": "Topic_Check_Plan.json",
-    "sha256": "e974bab1a8a5f1d63c1ee036a5c039b34dcd78baf21e2d566d2cfe9b37833ab7"
+    "sha256": "a5a36bb16e05d02b426f994a6fa303863aa7a1327bf2b91ab35bc1460b47da29"
   },
   "input_refs": [
     {
       "id": "Topic_Qualified_Intake.json",
-      "sha256": "6a723488e66eaee9e799e9111d181c15c5cb00e6063008156f0bc82856218842"
+      "sha256": "7b1a06e09dc2c1c6148662415255c0d9f7a75e5eaa2abc178cc90d44c6d6877c"
     }
   ],
   "output_refs": [
@@ -37,11 +41,11 @@
   ],
   "deterministic_result_ref": {
     "id": "Topic_Checks.json",
-    "sha256": "3f5df1e0c957f98567dd424c5292db35639780d3ea22cb03137cec7321c4f2eb"
+    "sha256": "8fef6226c10dd65caacddf95f2d5fbdf3c10ec1af32cff469a4fcfe5e66b534a"
   },
   "assessment_ref": {
     "id": "Topic_Assessment.json",
-    "sha256": "09f472499cba0d1e9dab32b83f04a0ee0a74d1ed3eb46c8871168f0a512d55f7"
+    "sha256": "04b3fea1fde570363d5f66ec2eadaa5238798cd2b97c1eb6e35b99d28b8e9c2d"
   },
   "verdict": "INCONCLUSIVE",
   "reasons": [
@@ -54,11 +58,18 @@
       "evidence_refs": [
         {
           "id": "Topic_Assessment.json",
-          "sha256": "09f472499cba0d1e9dab32b83f04a0ee0a74d1ed3eb46c8871168f0a512d55f7"
+          "sha256": "04b3fea1fde570363d5f66ec2eadaa5238798cd2b97c1eb6e35b99d28b8e9c2d"
         }
       ]
     }
   ],
   "action": "halt",
-  "accepted_refs": []
+  "accepted_refs": [],
+  "node_contract_ref": {
+    "id": "Topic_Node_Contract.json",
+    "sha256": "52b16442148fbc306fa86f122fd5159d0c144cac17fdce1264bfe6176bcedbc6"
+  },
+  "subnode_id": "intention",
+  "scope_kind": "subnode",
+  "internal_decision_refs": []
 }

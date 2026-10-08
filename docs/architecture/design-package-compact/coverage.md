@@ -203,7 +203,7 @@ The final tier/context crosscheck corrected design-method to the three-document 
 
 ### Final independent review dispositions
 
-The independent reviewer identified named planning-port gaps, ambiguous multi-CC execution, optional-port checking, RSI custody/clearance fields and newline-normalized source-span checks. R9 records remedies and tradeoffs. User clarified composition/merging is later work: M1 uses one work CC per node and separate gated nodes for additional work, resolving the member-wiring gap by deferral. Named planning fields, security-clearance and attempt genesis/profile pins close existing boundaries. Checker regressions cover concrete/future inputs, named ports, optional omissions, missing work observations, unsupported member composition, custody omissions and exact CRLF/non-BMP spans. This is documentation verification, not observed execution.
+The independent reviewer identified named planning-port gaps, ambiguous multi-CC execution, optional-port checking, RSI custody/clearance fields and newline-normalized source-span checks. R9 records remedies and tradeoffs. User clarified composition/merging is later work: M1 uses one work CC per subnode and separate gated nodes for additional work, resolving the member-wiring gap by deferral. Named planning fields, security-clearance and attempt genesis/profile pins close existing boundaries. Checker regressions cover concrete/future inputs, named ports, optional omissions, missing work observations, unsupported member composition, custody omissions and exact CRLF/non-BMP spans. This is documentation verification, not observed execution.
 
 ### Final independent review and verified package receipt
 
@@ -212,7 +212,7 @@ The independent reviewer examined the actual PRD, full design, shared contracts 
 | Finding | Disposition |
 |---|---|
 | Planning could not represent concrete inputs or named outputs | PlanInput/PlanOutput and separate connected research-node example; future bindings resolve predecessor port/type/version |
-| Multi-CC nodes lacked internal wiring | User confirmed one work CC per M1 node; additional work uses separate gated nodes. Composite/merged CCs and member graphs remain later work; no new composition machinery retained |
+| Multi-CC nodes lacked internal wiring | User confirmed one work CC per M1 subnode; additional work uses separate gated nodes. Composite/merged CCs and member graphs remain later work; no new composition machinery retained |
 | Optional ports treated as mandatory | Required-only inventories; validate present optional ports; positive optional omission/output checks |
 | RSI chain custody and security clearance lacked fields | Exact hash-profile/genesis pins plus independent security-clearance record; clearance cannot activate a child or resume a violated session |
 | Source-span offsets checked on normalized newlines | Decode exact bytes; CRLF/non-BMP fixture verifies positions and slices |
@@ -243,3 +243,28 @@ These are appropriate current M1 standardization choices, not proven optimal for
 The final top-tier pass reads README → system architecture → principles independently in both versions. It preserves the complete research journey, verifier/gate distinction, routing, RSI, deployment, one-work-CC scope, full-M1 phases and bounded next build. PRD/design implementation precedence is now explicit at the entrypoint, with product-obligation departures still authorized and recorded. Diagrams retain their audited sources/projections; this pass changes prose only.
 
 Current documentation checks: seven Draft 2020-12 schemas plus common, 36 field contracts, 68 indexed records, 35 negative cases, nested type/section checks, exact reference/source hashes and local links pass. Full has 26 maintained diagram views; compact nine. Three-document routes: **3,053 full / 2,414 compact words**. The same 20 explanatory files: **24,696 / 15,299**, **38.05% reduction**. Reference/source/decisions/principles remain identical. This delivery comparison is recorded separately from the frozen October 8 trial pair; no agent implementation trial or application test was run.
+
+## Current compiler-node revision: PRD reconciliation
+
+Earlier check receipts above refer to earlier inputs. The current assignment reaches accepted Research Brief, not Intent IR alone. R11 records user-authorized node/subnode terminology, fixed multi-pass fallback and field-chart-first detail. Verification outcomes for this revision are recorded below after checks complete.
+
+| Source | Current architectural disposition |
+|---|---|
+| §§3.1.1–3.1.5 | Qualified local text/documents and separately registered assets; account/profile/workspace/directory references; no unsupported acquisition or semantic intake judgment |
+| §§3.2.1–3.2.7 | Intention and Requirements subnodes preserve purpose, scope, priorities, limits, targets and confirmation; output accepted Research Brief. D5 explicitly differs from literal single-generation wording |
+| §§4.1.3–4.1.4 | Enclosing Node Execution Contract binds predefined admitted work/verifier subnodes; each subnode binds one CC; observation/authority scoped separately; composite/merged creation remains deferred |
+| §§4.2.1–4.2.2 | Deterministic fast-fail, complete independent assessment, protected internal acceptance and aggregate node release; no recursive semantic checks or fabricated no-output artifacts |
+| §§4.7.1–4.7.5 | Fixed scientific lane, supplied-context normalization, authorized parameter defaults, typed constraints and stable Brief; no baseline interaction or host profiling; advanced integration retains published output obligations |
+| §§5.3, 6.3–6.5 | Bundled browser/container foundations, readable inspection and bounded headless behavior; component exit is Brief, not complete research graph/M1 |
+
+
+### Current compiler-node revision: checked delivery
+
+The complete Intention Compiler now ends at protected release of `Research_Brief.json`, with checked/verified Intent as its intermediate. Two identical architecture entrypoints identify necessary foundations, downstream exclusions and the supplied coding prompt's two path substitutions. README and system navigation link responsibilities to their purpose, ports, fields and examples. The final immediate-route review repaired a stale compact Intent-only completion statement and added a regression check.
+
+- Seven critical Draft 2020-12 schemas plus common definitions, 38 named field contracts, 99 indexed synthetic records and 50 negative cases pass. Exact references, source spans, complete verifier findings, node/subnode relationships, defaults and no-output/aggregate release examples are checked.
+- The separately supplied current PRD matches its exact source hash and 188 clause headings; US01–US20 and clause dispositions remain mapped. PRD bodies are absent from both packages. Received originals are preserved outside them; receipts are portable.
+- Local links/fragments, schema/catalog versions, field inventories and all 26 full/10 compact diagram source/projection hash sets pass. Changed compiler, system, workflow and phase views were rendered and visually inspected for connections, grouping, labels and failure paths.
+- Immediate routes: **3,388 full / 2,842 compact words**. The same 20 explanatory files: **25,066 / 15,961**, **36.32% reduction**. Identical contracts, principles, decisions and build entrypoints are retained. This is an explanatory-word measurement, not total input-token savings or a performance result.
+
+Human review remains required for D5's bounded multi-pass departure, node/subnode authority/aggregate limits, the normalized Brief/default semantics and the complete build boundary. These are selected decisions with rationale in R11, not unresolved architectural placeholders. Documentation checks do not prove semantic model quality, operational authentication/confinement, transactional release or empirical results. No runtime implementation, paired agent trial, commit or push is included. Historical independent-review conclusions above apply to their earlier inputs; this revision received author and mechanical review, not a new independent review.

@@ -1,10 +1,10 @@
-# M1 delivery phases, stage exits and Intent Compilation and Verification Slice (formerly TRIAL-1)
+# M1 delivery phases, stage exits and complete Intention Compiler node
 
 **Reading level: human potential.** Question answered: What prerequisites and exits distinguish the full M1 stages and delivery phases?
 
 **M1 has three delivery phases.** Delivery Phase 1 contains the governed deterministic research baseline; Delivery Phase 2 contains required local-isolated RSI validation; Delivery Phase 3 contains expected dynamic integration efforts. Core demonstration requires Delivery Phases 1–2 and Implementation Stages 0–8. Every applicable Delivery Phase 3 capability must still be attempted and recorded. A documented advanced-feature gap does not automatically invalidate the core demo. This is a design allocation, not a claim that any exit has passed.
 
-Use the [latest received PRD](sources/product/prd-m1-current-2026-10-07.txt), especially §§1.3–1.9 and 6.1–6.14, for exact scope and acceptance. Read [research responsibilities](research-design.md) for every workflow responsibility and [Intent Compilation and Verification Slice](immediate-plan.md) for the first connected build. A delivery phase, implementation stage, scientific workflow responsibility and native SwarmFlow runtime phase are different concepts.
+Use the [latest received PRD](sources/product/README.md), especially §§1.3–1.9 and 6.1–6.14, for exact scope and acceptance. Read [research responsibilities](research-design.md) for every workflow responsibility and [Intention Compiler](immediate-plan.md) for the first connected build. A delivery phase, implementation stage, scientific workflow responsibility and native SwarmFlow runtime phase are different concepts.
 
 ## Every implementation stage
 
@@ -24,11 +24,11 @@ The predecessor exits govern integration/completion; independent preparation may
 
 Implementation Stage 1 foundation obligations also apply to every later node. Implementation Stages 3–6 preserve original requests, accepted Brief, source references and protocol where needed; they do not consume only the immediately preceding text summary. Implementation Stage 7 does not delay basic secure startup/headless evidence needed for earlier testing. Implementation Stage 8 independent fixture/target preparation may begin early; accepted integration requires meaningful baseline evidence.
 
-## Intent Compilation and Verification Slice: bounded first build
+## Complete Intention Compiler: current bounded build
 
-Intent Compilation and Verification Slice implements text intake → Intent compiler → intent Evaluator Gate → protected accepted reference or durable halt. The [slice walkthrough](immediate-plan.md) states actors, data, model/readiness, challenge categories and callbacks. It supplies useful Implementation Stage 0/1 foundation evidence and part of Implementation Stage 2 preparation.
+The [current build entrypoint](builds/intention-compiler/README.md) includes qualified local intake → verified Intent IR → verified Research Brief → protected enclosing-node release, plus governed runtime/model, evidence/state and bundled browser/container foundations. The earlier complete Intention Compiler node ended at accepted Intent; that scope is historical, preserved in frozen inputs.
 
-It does not prove Implementation Stage 1's downstream work consumer merely by calling a semantic reviewer. It does not produce the Implementation Stage 2 Research Brief or complete document/assets intake. It does not prove Implementation Stages 3–8 or Delivery Phase 3. A later bounded demonstration consumer can establish the Implementation Stage 1 progression without prematurely implementing the whole research path. Full M1 still assembles the Brief and fixed graph under the recorded D5 compiler-budget amendment.
+This build proves the compiler boundary only when a real supported request reaches accepted Brief with required evidence. Halt scenarios need separate failure evidence. It contributes Stage 0/1 foundations and Stage 2 compilation, but does not initialize the fixed research DAG or complete Stages 3–8/Phase 3. A bounded test consumer checks Brief compatibility without implementing research stages. Existing task/interface identities are reconciled under native coding records, not renamed by this design.
 
 ## Delivery Phase 3 integration accounting
 
@@ -47,7 +47,7 @@ Disable an experimental configuration to restore the operational baseline. Autom
 
 ```mermaid
 flowchart TB
-    Slice["Intent Compilation and Verification Slice<br/>(formerly TRIAL-1)"] -.-> P1[Delivery Phase 1: Implementation Stages 0 through 7]
+    Slice["Complete Intention Compiler node<br/>Accepted Research Brief or halt"] -.-> P1[Delivery Phase 1: Implementation Stages 0 through 7]
     P1 --> P2[Delivery Phase 2: Implementation Stage 8 local-isolated RSI]
     P1 -.->|Relevant baseline allows isolated preparation| P3[Delivery Phase 3: six dynamic integration efforts]
     P2 -->|Continue applicable implementation| P3

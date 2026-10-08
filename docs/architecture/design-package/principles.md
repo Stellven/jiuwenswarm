@@ -1,6 +1,6 @@
 # Architecture principles
 
-**Reading level: human immediate.** These rules explain why the connections in the [system architecture](m1-design.md) exist. The [PRD](sources/product/prd-m1-current-2026-10-07.txt) travels with this design; exact fields live in the reference layer.
+**Reading level: human immediate.** These rules explain why the connections in the [system architecture](m1-design.md) exist. The separately supplied PRD defines product obligations; its [receipt](sources/product/README.md) identifies the reviewed source; exact fields live in the reference layer.
 
 ## Research integrity and early stopping
 
@@ -8,7 +8,7 @@ AI4Research supports reproducible, evidence-backed investigation. Long-running a
 
 ## Capabilities perform work; infrastructure controls it
 
-A capability capsule is a reusable capability declaration plus a pinned implementation. M1 supports executable code, bounded agents/prompts and supported service adapters. A workflow node has its own objective and Node Execution Contract with one work CC. Additional work CCs use separate gated nodes; composite/merged CCs and internal member graphs remain later work. Private helpers remain the containing capability's responsibility.
+A capability capsule is a reusable capability declaration plus a pinned implementation. M1 supports executable code, bounded agents/prompts and supported service adapters. A workflow node encapsulates a product responsibility and its bounded internal subnodes/checks/gates. Each subnode binds one CC under both node and subnode contracts. The Intention Compiler node contains Intention and Requirements work plus separate verifier subnodes. Composite/merged CC creation and arbitrary composition remain later work. Private helpers remain the owning capability's responsibility.
 
 A verifier is a CC whose work is to assess a submitted artifact. A gate is protected non-CC infrastructure that uses checking results to decide whether work may advance. A verifier issues a verdict with reasons and evidence; it cannot stop the scheduler, accept artifacts, waive checks, change policy or write replacement work. A producer's assertion of readiness is likewise data, never release authority.
 
@@ -34,7 +34,7 @@ Define required information, field meaning, types, attribution, uncertainty and 
 
 ## Freeze authority and preserve evidence
 
-Effective authority is the intersection of each CC's admission, node contract and run policy. Additional work CCs use separate M1 nodes; no permission pooling. Freeze topology, versions, checking profiles and limits; instantiate future input references only from accepted predecessors. Observe and enforce effects before they occur; retrospective verification cannot undo disclosure.
+Effective authority is the intersection of each CC's admission, node/subnode contracts and run policy. Additional work CCs use separate subnodes within their declared node; no permission pooling. Freeze topology, versions, checking profiles and limits; instantiate future input references only from accepted predecessors. Observe and enforce effects before they occur; retrospective verification cannot undo disclosure.
 
 Default to zero automatic repair/replay. Blocking failures halt new dispatch, preserve the attempt and show actionable reasons. Phase 1 requests a clearer submission when intent is unusable; it does not run a clarification conversation. Headless execution never waits. Human corrections create linked new work, not a rewritten pass or changed failed attempt.
 
@@ -46,7 +46,7 @@ RSI operates separately from live research. It changes only allowed implementati
 
 ## Decisions and source amendments
 
-[Decision history and review reasoning](decision-review.md) retain D1–D18 and the new contract/reading choices. D5 authorizes two bounded compiler generations; D6 authorizes the bundled Docker/SQLite realization. Both differ from literal received PRD clauses. They are visible exceptions, not silently claimed compliance.
+[Decision history and review reasoning](decision-review.md) retain D1–D18 and the new contract/reading choices. D5 authorizes the fixed bounded multi-pass compiler sequence; D6 authorizes the bundled Docker/SQLite realization. Both differ from literal received PRD clauses. They are visible exceptions, not silently claimed compliance.
 
 ## Required now and later
 

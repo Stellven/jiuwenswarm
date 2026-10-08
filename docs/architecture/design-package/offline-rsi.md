@@ -2,7 +2,7 @@
 
 **Reading level: human potential.** Question answered: How can implementations improve outside the live research DAG?
 
-**M1 commitment:** improve a sandbox copy of Screening's pure `rank_opportunities` helper with a fixed improver, retain comparable evidence, and leave live production unchanged. This demonstrates governed capsule self-improvement, not an already self-improving improver. The [master §4.4](sources/product/prd-m1-current-2026-10-07.txt) and the architectural requirements below define this boundary; [placement](placement.md#offline-rsi) defines isolation.
+**M1 commitment:** improve a sandbox copy of Screening's pure `rank_opportunities` helper with a fixed improver, retain comparable evidence, and leave live production unchanged. This demonstrates governed capsule self-improvement, not an already self-improving improver. The [master §4.4](sources/product/README.md) and the architectural requirements below define this boundary; [placement](placement.md#offline-rsi) defines isolation.
 
 ## Responsibilities and semantic connections
 

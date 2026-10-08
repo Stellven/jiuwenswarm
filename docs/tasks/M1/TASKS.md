@@ -2,7 +2,7 @@
 
 ## Current inputs
 
-Use the [design reading routes](../../architecture/design-package/README.md#human-super-important-read-understand-the-whole-system), [verbatim PRD](../../architecture/design-package/sources/product/prd-m1-current-2026-10-07.txt), [decisions](../../architecture/design-package/principles.md#decisions-and-source-amendments), [architecture phases](../../architecture/design-package/delivery-phases.md) and [critical contracts](../../architecture/design-package/reference/README.md). This register maintains no parallel architecture or PRD.
+Use the [design reading routes](../../architecture/design-package/README.md#human-super-important-read-understand-the-whole-system), [verbatim PRD](../../product/received-prds/prd-m1-current-2026-10-07.txt), [decisions](../../architecture/design-package/principles.md#decisions-and-source-amendments), [architecture phases](../../architecture/design-package/delivery-phases.md) and [critical contracts](../../architecture/design-package/reference/README.md). This register maintains no parallel architecture or PRD.
 
 The first connected design contains **M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)**. This display name describes bounded scope, not a new TASK identifier or full-phase completion.
 
@@ -19,3 +19,7 @@ The former local M1 supplement, first trial draft and source-baseline hash recor
 ## October 7 architecture source update
 
 The three-level architecture uses the verbatim October 7 PRD and architecture-owned critical field contracts. Prior implementation/interface evidence must be reconciled with those sources before dependent work is treated as current. Registration remains pending; this update allocates no new TASK, AC or IF identity. Product-required PRD change/validation summaries are separate from prohibited duplicate workflow cards.
+
+## Current complete compiler assignment
+
+Use the [Intention Compiler Main entrypoint](../../architecture/design-package/builds/intention-compiler/README.md) and its Context. The component includes required foundations and ends at accepted Research Brief or an attributable halt. Earlier Intent-only scope is historical; coding registration remains pending. Preserve TASK/AC/IF identities and reconcile changed contracts before relying on earlier evidence.

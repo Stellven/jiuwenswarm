@@ -69,7 +69,7 @@ field_documents = {
     'verifier-assessment': ROOT / 'reference/checking.md',
     'gate-decision': ROOT / 'reference/checking.md',
     'capsule-declaration': ROOT / 'capsule/declaration.md',
-    'node-execution-contract': REF / 'node-execution.md',
+    'subnode-execution-contract': REF / 'node-execution.md',
 }
 for item in catalog['contracts']:
     summary = field_documents[item['name']].read_text(encoding='utf-8')
@@ -107,22 +107,24 @@ def gate_issues(gate):
     result = []
     checks = resolved(gate['deterministic_result_ref'])
     subject = checks['subject_ref']
-    if subject not in gate['output_refs']:
+    if gate['action']=='advance' and subject not in gate['output_refs']:
         result.append('wrong deterministic subject')
     plan = resolved(gate['check_plan_ref'])
     if {x['check_id'] for x in checks['results']} != set(plan['mandatory_deterministic']) or len(checks['results']) != len(plan['mandatory_deterministic']):
         result.append('missing or duplicate deterministic obligations')
     contract = resolved(gate['contract_ref'])
+    if gate['scope_kind']!='subnode' or contract['node_contract_ref']!=gate['node_contract_ref']:result.append('wrong parent/child scope')
     if plan['contract_ref'] != gate['contract_ref'] or plan['input_refs'] != contract['input_refs'] or gate['input_refs'] != contract['input_refs']:
         result.append('wrong concrete contract or bound input inventory')
-    for key in ('run_id', 'node_id', 'attempt_id'):
+    for key in ('run_id', 'node_id', 'subnode_id', 'attempt_id'):
         if contract[key] != gate[key]:
             result.append('wrong contract scope')
     if gate['check_plan_ref'] != checks['check_plan_ref']:
         result.append('wrong check plan')
     for invocation in gate['invocation_refs']:
-        if resolved(invocation)['contract_ref'] != gate['contract_ref']:
-            result.append('wrong invocation contract')
+        observed=resolved(invocation); executed=resolved(observed['contract_ref'])
+        if executed['node_contract_ref']!=gate['node_contract_ref'] or executed['run_id']!=gate['run_id']:
+            result.append('wrong invocation parent scope')
     if gate['assessment_ref']:
         assessment = resolved(gate['assessment_ref'])
         context = resolved(assessment['review_context_ref'])
@@ -143,7 +145,9 @@ def gate_issues(gate):
     elif gate['action'] == 'advance':
         result.append('missing required assessment')
     if gate['action'] == 'advance':
-        observations=[resolved(r) for r in gate['invocation_refs']]
+        observations=[resolved(r) for r in gate['invocation_refs'] if resolved(r)['contract_ref']==gate['contract_ref']]
+        reviewer_observations=[resolved(r) for r in gate['invocation_refs'] if resolved(r)['contract_ref']!=gate['contract_ref']]
+        if not gate['assessment_ref'] or not reviewer_observations or any(o['input_refs']!=[assessment['review_context_ref']] for o in reviewer_observations):result.append('missing/mismatched verifier execution')
         expected={b['id'] for b in contract['bindings']}
         if {o['binding_id'] for o in observations}!=expected or len(observations)!=len(expected):result.append('incomplete/duplicate work binding observations')
         if any(o['outcome']!='success' and o.get('observed_runtime',True) for o in observations):result.append('failed/pending work invocation')
@@ -172,7 +176,9 @@ def node_issues(value):
         if len({p['name'] for p in ports})!=len(ports):result.append('duplicate port')
         if any(p['contract_id'] not in known for p in ports):result.append('unknown contract')
     for b in bindings:
-        if any(b['limits'][k]>value['node_limits'][k] for k in b['limits']):result.append('binding exceeds node limit')
+        if any(b['limits'][k]>value['subnode_limits'][k] for k in b['limits']):result.append('binding exceeds subnode limit')
+        parent=resolved(value['node_contract_ref'])
+        if value['node_id']!=parent['node_id'] or value['run_id']!=parent['run_id'] or any(value['subnode_limits'][k]>parent['node_limits'][k] for k in value['subnode_limits']):result.append('wrong/exceeded parent scope or limit')
         authority=b['effective_authority']
         if authority['network']=='none' and authority['network_allowlist']:result.append('denied network allowlist')
         decl=resolved(b['declaration_ref'])
@@ -195,10 +201,10 @@ def plan_issues(nodes, allowed_requirements=None):
     known=set(schemas)|{x['id'] for x in catalog['interfaces']}
     for n in nodes:
         if allowed_requirements is not None and (not n['requirement_ids'] or not set(n['requirement_ids'])<=allowed_requirements):result.append('unknown planning obligation')
-        if len(n['capsule_refs'])!=1:result.append('M1 plan needs one work declaration')
+        if not n['subnodes'] or len({s['subnode_id'] for s in n['subnodes']})!=len(n['subnodes']):result.append('missing/duplicate internal subnodes')
         for ports in (n['inputs'],n['outputs']):
             if len({p['name'] for p in ports})!=len(ports):result.append('duplicate planning port')
-            if any(p['contract_id'] not in known or p['version']!='1.0.0' for p in ports):result.append('unknown planning contract')
+            if any(p['contract_id'] not in known or p['version']!=next((i['version'] for i in catalog['contracts'] if i['schema_id']==p['contract_id']),next((i['version'] for i in catalog['interfaces'] if i['id']==p['contract_id']),None)) for p in ports):result.append('unknown planning contract')
         for p in n['inputs']:
             if bool(p['artifact_refs'])==bool(p['future_bindings']):result.append('ambiguous/missing planning source')
             for src in p['future_bindings']:
@@ -275,7 +281,7 @@ def field_errors(value, fields, prefix=''):
     result = []
     if not isinstance(value, dict):
         return [prefix + ': expected object']
-    if 'schema_version' in fields and value.get('schema_version') != '1.0.0':
+    if 'schema_version' in fields and value.get('schema_version') != re.search(r'\d+\.\d+\.\d+', fields['schema_version']['meaning']).group():
         result.append(prefix + ': incompatible version')
     for key in set(value) - set(fields) - {'ext'}:
         result.append(prefix + ': unknown core field ' + key)
@@ -319,7 +325,7 @@ for item in index:
     if item['schema_id'] and ':capsule-declaration:' in item['schema_id']:
         for port in value['ports']['inputs'] + value['ports']['outputs']:
             require(port['schema_ref'] in known_contracts, 'Unresolved CC port contract ' + port['schema_ref'])
-    if item['schema_id'] and ':node-execution-contract:' in item['schema_id']:
+    if item['schema_id'] and ':subnode-execution-contract:' in item['schema_id']:
         require(not node_issues(value), 'Invalid concrete binding: ' + item['path'] + ': ' + str(node_issues(value)))
 
 def research_issues():
@@ -389,13 +395,13 @@ require(child['identity']['body'][0]['sha256']==candidate['implementation_refs']
 require(load(EX/'RSI_Rollback.json')['admission_ref']==ref_for('RSI_Parent_Admission.json'), 'Rollback lacks prior-version admission')
 
 for mode in ('missing_binding','unknown_contract','input_inventory','oversized_limit','port_name'):
-    bad=copy.deepcopy(load(EX/'Node_Contract.json'))
+    bad=copy.deepcopy(load(EX/'Intention_Subnode_Contract.json'))
     if mode=='missing_binding':bad['bindings']=[]
     elif mode=='unknown_contract':bad['outputs'][0]['contract_id']='invented:contract'
     elif mode=='input_inventory':bad['input_refs']=[]
     elif mode=='oversized_limit':bad['bindings'][0]['limits']['model_calls']=999
     else:bad['inputs'][0]['name']='invented-port'
-    require(bool(node_issues(bad)) or not validators['urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0'].is_valid(bad), 'Node negative accepted: '+mode)
+    require(bool(node_issues(bad)) or not validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(bad), 'Node negative accepted: '+mode)
     negative_count += 1
 for mode in ('missing','type','extension'):
     bad=copy.deepcopy(load(EX/'Opportunity_Card.json'))
@@ -432,9 +438,9 @@ def resolved(r):
         d['ports']['inputs'].append(dict(d['ports']['inputs'][0],name='optional-context',required=False))
         d['ports']['outputs'].append(dict(d['ports']['outputs'][0],name='optional-intent',required=False))
     return d
-require(not node_issues(load(EX/'Node_Contract.json')), 'Optional declaration port incorrectly mandatory')
-optional=copy.deepcopy(load(EX/'Node_Contract.json'));optional['outputs'].append(dict(optional['outputs'][0],name='optional-intent',required=False))
-require(not node_issues(optional) and validators['urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0'].is_valid(optional), 'Optional output incorrectly required')
+require(not node_issues(load(EX/'Intention_Subnode_Contract.json')), 'Optional declaration port incorrectly mandatory')
+optional=copy.deepcopy(load(EX/'Intention_Subnode_Contract.json'));optional['outputs'].append(dict(optional['outputs'][0],name='optional-intent',required=False))
+require(not node_issues(optional) and validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(optional), 'Optional output incorrectly required')
 resolved=old_resolved
 bad=copy.deepcopy(load(EX/'Gate_Decision.json'));bad['invocation_refs']=[]
 require('incomplete/duplicate work binding observations' in gate_issues(bad), 'Missing binding observation accepted');negative_count+=1
@@ -453,8 +459,8 @@ require(clearance['decision']=='denied' and clearance['effect_scope']=='new_rsi_
 bad=copy.deepcopy(clearance);bad.pop('guardrail_evidence_refs')
 require(bool(field_errors(bad,interfaces['security-clearance:field-contract:1']['fields'])), 'Missing clearance evidence accepted');negative_count+=1
 
-bad=copy.deepcopy(load(EX/'Node_Contract.json'));bad['bindings'].append(copy.deepcopy(bad['bindings'][0]))
-require(bool(node_issues(bad)) and not validators['urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0'].is_valid(bad), 'Unsupported M1 member composition accepted');negative_count+=1
+bad=copy.deepcopy(load(EX/'Intention_Subnode_Contract.json'));bad['bindings'].append(copy.deepcopy(bad['bindings'][0]))
+require(bool(node_issues(bad)) and not validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(bad), 'Unsupported M1 member composition accepted');negative_count+=1
 
 # Field/summary appropriateness: closed types, meaningful fields and local-section matching.
 sections={}
@@ -484,8 +490,106 @@ def resolved(r):
     d=old_resolved(r)
     if r['id']=='Capsule_Declaration.json':d['identity']['kind']='composite'
     return d
-require('composite dispatch unsupported in M1' in node_issues(load(EX/'Node_Contract.json')), 'Future composite form dispatched in M1');negative_count+=1
+require('composite dispatch unsupported in M1' in node_issues(load(EX/'Intention_Subnode_Contract.json')), 'Future composite form dispatched in M1');negative_count+=1
 resolved=old_resolved
+
+
+
+def brief_issues(b):
+    result=[]
+    q=resolved(b['intake_ref']); ir=resolved(b['intent_ref'])
+    if q['request_ref']!=ir['request_ref']:result.append('wrong intake/intent request')
+    ids=[s['id'] for s in b['mandatory_requirements']+b['optional_preferences']]
+    if len(ids)!=len(set(ids)):result.append('duplicate requirement ID')
+    for row in b['acceptance_expectations']+b['evidence_obligations']+b['target_metrics']:
+        if not set(row['requirement_ids'])<=set(ids):result.append('unresolved obligation')
+    bindings=[p['resource_ref'] for p in b['input_bindings']]
+    if bindings!=b['resource_refs'] or any(r not in q['resource_refs'] for r in bindings):result.append('wrong supplied input inventory')
+    for assumption in b['assumptions']:
+        policy=resolved(assumption['authority_ref'])
+        for pointer in assumption['affected_fields']:
+            value=b
+            try:
+                for token in pointer.strip('/').split('/'):
+                    value=value[int(token)] if isinstance(value,list) else value[token.replace('~1','/').replace('~0','~')]
+            except (KeyError,ValueError,IndexError,TypeError):result.append('nonexistent assumption field');continue
+            if not isinstance(value,dict) or value.get('origin')!='system_default' or value.get('normalized_value')!=policy.get('hardware_profile') or assumption['authority_ref'] not in value['source_refs']:result.append('unsupported default attribution')
+    return result
+
+def aggregate_issues(g):
+    result=[]; parent=resolved(g['node_contract_ref']); checks=resolved(g['deterministic_result_ref']);plan=resolved(g['check_plan_ref'])
+    if g['scope_kind']!='node' or g['subnode_id'] is not None or g['contract_ref']!=g['node_contract_ref']:result.append('wrong aggregate scope')
+    if any(g[k]!=parent[k] for k in ('run_id','node_id','attempt_id')):result.append('wrong aggregate identity')
+    if plan['contract_ref']!=g['contract_ref'] or plan['input_refs']!=parent['input_refs'] or checks['check_plan_ref']!=g['check_plan_ref']:result.append('wrong aggregate check binding')
+    if {r['check_id'] for r in checks['results']}!=set(plan['mandatory_deterministic']) or len(checks['results'])!=len(plan['mandatory_deterministic']) or any(r['outcome']!='PASS' for r in checks['results']):result.append('incomplete aggregate checks')
+    decisions=[resolved(r) for r in g['internal_decision_refs']]
+    required={s['subnode_id'] for s in parent['subnodes'] if s['role']=='work' and s['required']}
+    if {d['subnode_id'] for d in decisions}!=required or len(decisions)!=len(required):result.append('missing internal decisions')
+    if any(d['action']!='advance' or d['node_contract_ref']!=g['node_contract_ref'] or gate_issues(d) for d in decisions):result.append('invalid internal acceptance')
+    observed=[resolved(r) for r in g['invocation_refs']];expected={s['subnode_id'] for s in parent['subnodes'] if s['required']}
+    if {o['subnode_id'] for o in observed}!=expected or len(observed)!=len(expected):result.append('missing aggregate invocation')
+    if any(resolved(o['contract_ref'])['node_contract_ref']!=g['node_contract_ref'] for o in observed):result.append('wrong aggregate observation parent')
+    finals=[d for d in decisions if g['accepted_refs'] and all(r in d['accepted_refs'] for r in g['accepted_refs'])]
+    if len(finals)!=1 or finals[0]['assessment_ref']!=g['assessment_ref'] or g['accepted_refs']!=g['output_refs'] or checks['subject_ref'] not in g['output_refs']:result.append('unaccepted aggregate output')
+    return result
+
+for n in ('Research_Brief.json','Lifecycle_Research_Brief.json','Research_Brief_Defaults.json'):
+    errors.extend(n+': '+i for i in brief_issues(load(EX/n)))
+errors.extend(aggregate_issues(load(EX/'Gate_Intention_Compiler_Pass.json')))
+require(not gate_issues(load(EX/'Gate_Compiler_No_Output.json')), 'No-output halt needs no fabricated subject output')
+brief_key=next(k for k in schemas if ':research-brief:' in k)
+for mode in ('missing_context','wrong_unit','invented_default_pointer','lost_input','wrong_request'):
+    bad=copy.deepcopy(load(EX/'Research_Brief_Defaults.json'))
+    if mode=='missing_context':bad.pop('context_refs')
+    elif mode=='wrong_unit':bad['constraints'][0].update(operator='le',normalized_value=1,unit=None)
+    elif mode=='invented_default_pointer':bad['assumptions'][0]['affected_fields']=['/future_protocol/repeat_count']
+    elif mode=='lost_input':bad['input_bindings']=[dict(id='invented',role='project_asset',resource_ref=bad['intent_ref'])]
+    else:bad['intake_ref']=ref_for('Qualified_Intake.json')
+    require(not validators[brief_key].is_valid(bad) or bool(brief_issues(bad)), 'Brief regression accepted: '+mode);negative_count+=1
+for mode in ('missing_stage','missing_review','wrong_scope','unaccepted_output'):
+    bad=copy.deepcopy(load(EX/'Gate_Intention_Compiler_Pass.json'))
+    if mode=='missing_stage':bad['internal_decision_refs']=bad['internal_decision_refs'][:1]
+    elif mode=='missing_review':bad['invocation_refs']=bad['invocation_refs'][:1]
+    elif mode=='wrong_scope':bad['subnode_id']='intention'
+    else:bad['accepted_refs']=[ref_for('Intent_IR.json')]
+    require(bool(aggregate_issues(bad)) or not validators[gate_key].is_valid(bad), 'Aggregate regression accepted: '+mode);negative_count+=1
+for mode in ('missing_finding','duplicate_finding','wrong_review_subject'):
+    saved=resolved
+    def resolved(r):
+        value=saved(r)
+        if r['id']=='Intent_Assessment.json':
+            if mode=='missing_finding':value['findings']=value['findings'][:-1]
+            elif mode=='duplicate_finding':value['findings'].append(value['findings'][0])
+            else:value['subject_ref']=ref_for('Intent_Topic_Only.json')
+        return value
+    require(bool(gate_issues(load(EX/'Gate_Decision.json'))), 'Verification coverage regression accepted: '+mode);negative_count+=1
+    resolved=saved
+
+
+def enclosing_issues(n):
+    out=[];assignments=n['subnodes']; ids=[s['subnode_id'] for s in assignments]
+    if not ids or len(ids)!=len(set(ids)):out.append('missing/duplicate subnode')
+    pending=set(ids);done=set()
+    while pending:
+        ready={s['subnode_id'] for s in assignments if s['subnode_id'] in pending and set(s['depends_on'])<=done}
+        if not ready:out.append('cyclic/unresolved internal dependency');break
+        done|=ready;pending-=ready
+    if n['input_refs']!=[r for p in n['inputs'] for r in p['artifact_refs']]:out.append('wrong external input inventory')
+    if any(s['role'] not in ('work','verifier') for s in assignments):out.append('unsupported subnode role')
+    if any(g['subject_subnode_id'] not in ids for g in n['gate_assignments']):out.append('unbound gate subject')
+    for s in assignments:
+        template=resolved(s['template_ref'])
+        if template['capsule_ref']!=s['capsule_ref']:out.append('wrong declaration/template pin')
+    return out
+
+for n in ('Intention_Node_Contract.json','Topic_Node_Contract.json','Science_Node_Contract.json'):
+    errors.extend(n+': '+i for i in enclosing_issues(load(EX/n)))
+for mode in ('cycle','missing_subnode','missing_gate_subject'):
+    bad=copy.deepcopy(load(EX/'Intention_Node_Contract.json'))
+    if mode=='cycle':bad['subnodes'][0]['depends_on']=['requirements']
+    elif mode=='missing_subnode':bad['subnodes']=[]
+    else:bad['gate_assignments'][0]['subject_subnode_id']='unknown'
+    require(bool(enclosing_issues(bad)),'Enclosing-node regression accepted: '+mode);negative_count+=1
 
 # Source byte preservation is portable: receipt manifest uses package paths.
 for source in load(REF / 'provenance.json')['sources']:
@@ -538,8 +642,15 @@ for path in documents:
         if target.is_file() and parsed.fragment and target.suffix.lower() in ('.md', '.txt'):
             require(unquote(parsed.fragment) in anchors(target), f'Missing anchor: {path.relative_to(ROOT)} -> {destination}')
 
-prd = (ROOT / 'sources/product/prd-m1-current-2026-10-07.txt').read_text(encoding='utf-8-sig')
-headings = re.findall(r'^#{2,5}\s+(\d+\.\d+(?:\.\d+)?)\s+(.+)$', prd, flags=re.M)
+clause_index = load(REF / 'prd-clause-index.json')
+headings = [(c['number'],c['title']) for c in clause_index['clauses']]
+require(len(headings)==188 and len(set(n for n,_ in headings))==188, 'Incomplete/duplicate PRD clause index')
+require(not list((ROOT/'sources/product').glob('*.txt')), 'PRD body must be supplied separately')
+if len(sys.argv)>2:
+    supplied=Path(sys.argv[2]).resolve()
+    require(hashlib.sha256(supplied.read_bytes()).hexdigest()==clause_index['source_sha256'], 'External PRD source differs from audited receipt')
+    actual_headings=re.findall(r'^#{2,5}\s+(\d+\.\d+(?:\.\d+)?)\s+(.+)$',supplied.read_text(encoding='utf-8-sig'),re.M)
+    require(actual_headings==headings,'External PRD clause crosswalk drift')
 coverage = (ROOT / 'coverage-allocation.md').read_text(encoding='utf-8')
 for number, title in headings:
     require(f'| §{number} {title} |' in coverage, 'Missing current source heading ' + number)
@@ -551,6 +662,16 @@ top = ['README.md', 'principles.md', 'm1-design.md']
 words = sum(len((ROOT / name).read_text(encoding='utf-8').split()) for name in top)
 require(words <= 3400, 'Three-document orientation exceeds conservative editing target: ' + str(words))
 require(not (ROOT / 'handoff.md').exists(), 'Obsolete coding handoff still present')
+
+# Required current build/navigation must not regress to the historical Intent-only slice.
+for name in ('README.md','immediate-plan.md','m1-design.md','builds/intention-compiler/README.md','builds/intention-compiler/context.md'):
+    current=(ROOT/name).read_text(encoding='utf-8')
+    require('Research Brief' in current or 'Research_Brief.json' in current, 'Current build missing Brief boundary: '+name)
+    require('ends at accepted Intent or visible halt' not in current, 'Obsolete Intent-only completion: '+name)
+require(not (REF/'schemas/node-execution-contract.schema.json').exists(), 'Retired CC-sized node schema remains current')
+for entry in catalog['interfaces']:
+    require(bool(entry.get('applicable_phases')) and bool(entry.get('producer')) and bool(entry.get('consumers')), 'Contract missing lifecycle/owner: '+entry['name'])
+
 for path in ROOT.rglob('*.md'):
     if 'sources' not in path.relative_to(ROOT).parts:
         require('handoff.md' not in path.read_text(encoding='utf-8'), 'Stale handoff link: ' + str(path))
@@ -582,8 +703,8 @@ require(not blocks, 'Unrendered maintained Mermaid blocks')
 if errors:
     print('\n'.join('FAIL: ' + error for error in errors))
     raise SystemExit(1)
-print(f'PASS: 7 critical schemas + common; {len(index)} indexed examples/context records; {negative_count} negative cases; exact references/spans and gate relationships')
-print(f'PASS: {len(headings)} PRD headings, US01–US20, source hashes, {link_count} local links/fragments; three-document route {words} words')
+print(f'PASS: {len(schemas)-1} critical schemas + common; {len(index)} indexed examples/context records; {negative_count} negative cases; exact references/spans and gate relationships')
+print(f'PASS: {len(headings)} PRD headings, US01–US20, retained source hashes/external PRD receipt, {link_count} local links/fragments; three-document route {words} words')
 print(f'PASS: {len(interfaces)} named field contracts; linked research and RSI identities/selected relationships')
 print(f'PASS: {len(manifest)} diagram source/projection hash sets and required field-summary inventories')
 print('LIMIT: structural/document checks and selected semantic example checks, not model quality, exhaustive field-proof, transport authentication or runtime acceptance')

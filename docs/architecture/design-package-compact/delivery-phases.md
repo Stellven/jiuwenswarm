@@ -1,10 +1,10 @@
 # Delivery phases and build direction
 
-**Reading level: human potential.** Delivery phases, implementation stages and runtime research steps are different concepts. This page selects scope; [phase details](phase-details.md) retain exact stage exits and source dispositions. The [PRD](sources/product/prd-m1-current-2026-10-07.txt) owns acceptance requirements.
+**Reading level: human potential.** Delivery phases, implementation stages and runtime research steps are different concepts. This page selects scope; [phase details](phase-details.md) retain exact stage exits and source dispositions. The [PRD](sources/product/README.md) owns acceptance requirements.
 
 ## Immediate build
 
-[Intent Compilation and Verification Slice (formerly TRIAL-1)](immediate-plan.md) is the first connected boundary inside Delivery Phase 1. It builds text intake, Intent compilation, deterministic checking, an independent verifier, protected decision/persistence and a visible accepted result or halt. It does not build Requirements, the research graph or RSI. A semantic verifier is not a downstream research-work consumer and cannot alone establish the PRD Stage 1 progression exit.
+The [complete Intention Compiler node](builds/intention-compiler/README.md) is the current bounded build inside Delivery Phase 1: qualified intake, verified Intent, Requirements, verified Brief and node release, including supporting runtime/browser/container foundations. It supplies the Brief boundary, not full research graph initialization or M1 completion.
 
 ## Full M1 phases
 

@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0",
+  "$id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0",
   "title": "Protected gate decision",
   "description": "Only authorized host code may author and commit this record. Schema validity alone never grants release authority.",
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "1.0.0"
+      "const": "2.0.0"
     },
     "id": {
       "type": "string",
@@ -36,7 +36,7 @@
       "items": {
         "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
       },
-      "minItems": 1
+      "minItems": 0
     },
     "policy_ref": {
       "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
@@ -49,14 +49,14 @@
       "items": {
         "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
       },
-      "minItems": 1
+      "minItems": 0
     },
     "output_refs": {
       "type": "array",
       "items": {
         "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
       },
-      "minItems": 1
+      "minItems": 0
     },
     "deterministic_result_ref": {
       "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
@@ -109,6 +109,33 @@
       },
       "additionalProperties": true,
       "description": "Namespaced diagnostic data; does not modify required meaning, permissions or acceptance."
+    },
+    "scope_kind": {
+      "enum": [
+        "node",
+        "subnode"
+      ]
+    },
+    "subnode_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "node_contract_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "internal_decision_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+      },
+      "minItems": 0
     }
   },
   "required": [
@@ -129,7 +156,11 @@
     "verdict",
     "reasons",
     "action",
-    "accepted_refs"
+    "accepted_refs",
+    "scope_kind",
+    "subnode_id",
+    "node_contract_ref",
+    "internal_decision_refs"
   ],
   "additionalProperties": false,
   "allOf": [
@@ -159,6 +190,20 @@
               "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
             },
             "minItems": 1
+          },
+          "invocation_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+            },
+            "minItems": 1
+          },
+          "output_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+            },
+            "minItems": 1
           }
         }
       },
@@ -174,6 +219,30 @@
           },
           "accepted_refs": {
             "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "scope_kind": {
+            "const": "subnode"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "subnode_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "subnode_id": {
+            "type": "null"
           }
         }
       }

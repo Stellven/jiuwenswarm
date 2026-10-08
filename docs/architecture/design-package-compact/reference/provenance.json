@@ -2,16 +2,6 @@
   "revision_date": "2026-10-07",
   "sources": [
     {
-      "path": "sources/product/prd-m1-current-2026-10-07.txt",
-      "bytes": 254883,
-      "sha256": "10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc"
-    },
-    {
-      "path": "sources/product/prd-m1-current-2026-10-06.txt",
-      "bytes": 232489,
-      "sha256": "6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839"
-    },
-    {
       "path": "sources/capsule.schema.json",
       "bytes": 22040,
       "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd"
@@ -44,5 +34,19 @@
     }
   ],
   "snapshot": "C:/Users/m50066326/huawei/architecture-checks-2026-10-07/three-tier-before",
-  "critical_contract_policy": "six selected schemas; other major field contracts; no runtime evidence"
+  "critical_contract_policy": "Field charts first; selected critical schemas; node/subnode scope revision; external PRD bodies; no runtime evidence",
+  "external_product_sources": [
+    {
+      "filename": "prd-m1-current-2026-10-06.txt",
+      "bytes": 232489,
+      "sha256": "6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839",
+      "repository_path": "docs/product/received-prds/prd-m1-current-2026-10-06.txt"
+    },
+    {
+      "filename": "prd-m1-current-2026-10-07.txt",
+      "bytes": 254883,
+      "sha256": "10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc",
+      "repository_path": "docs/product/received-prds/prd-m1-current-2026-10-07.txt"
+    }
+  ]
 }

@@ -6,7 +6,7 @@
 
 1. **Declare.** State purpose, kind, typed ports, preconditions, dependencies, effects, guarantees, checks, and applicable limits. Keep objectives, node IDs, permissions, verifier assignment, and run policy outside.
 2. **Choose form.** A leaf points to implementation by locator and hash. Composite creation/execution and merging remain later work; do not author them for M1.
-3. **Build.** Keep code separate and pin covered files. Preserve the declaration's meaning. An M1 node binds one admitted work CC under a Node Execution Contract. Additional work CCs use separate gated nodes; verifier invocations remain separate checking assignments. A CC assesses; the gate decides and releases.
+3. **Build.** Keep code separate and pin covered files. Preserve the declaration's meaning. An M1 subnode binds one admitted CC under its Subnode Execution Contract. Additional work CCs use separate gated subnodes within their declared node; verifier invocations remain separate checking assignments. A CC assesses; the gate decides and releases.
 4. **Verify.** Run applicable tests and characterization checks; retain outputs, check results, and evidence references against the exact declaration and implementation hashes. A passing self-test alone is not admission.
 5. **Admit.** A trusted path checks declaration, hashes, dependencies, and effects. M1 runs deterministic checks before an independent verifier reviews the evidence. The gate host records the decision; unsupported obligations block admission or binding. Protected admission configuration owns the concrete policy.
 6. **Publish.** Store an immutable version with references, hashes, and admission record. New versions do not change existing runs.

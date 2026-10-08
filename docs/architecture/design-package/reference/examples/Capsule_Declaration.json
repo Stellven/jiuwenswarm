@@ -21,7 +21,7 @@
       {
         "name": "request",
         "artifact_type": "qualified_intake",
-        "schema_ref": "qualified-intake:field-contract:1",
+        "schema_ref": "qualified-intake:field-contract:2",
         "required": true,
         "description": "Exact qualified request and permitted context",
         "check_ids": []

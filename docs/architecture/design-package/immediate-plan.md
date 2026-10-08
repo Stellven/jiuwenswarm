@@ -1,49 +1,51 @@
-# Immediate Plan: Intent Compilation and Verification Slice
+# Immediate Plan: complete Intention Compiler node
 
-**Reading level: human potential.** Formerly TRIAL-1, this is the bounded first build inside M1 Delivery Phase 1. The name does not rename task/interface identities. [Intent design](intent-design.md) explains the boundary in depth; [Intent fields](reference/intent-and-requirements.md) standardize its outputs.
+**Human potential.** Current next build: the whole Intention Compiler, not the earlier Intent Compilation and Verification Slice (formerly TRIAL-1). That smaller assignment is historical and remains preserved in frozen experiment inputs; task/interface identities are not renamed. Use the [Main build entrypoint](builds/intention-compiler/README.md) and [supporting Context](builds/intention-compiler/context.md).
 
 ## What to build
 
-A user submits text through the existing local web surface. Intake captures the exact request and starts a server-owned run. The Intent CC produces a structured interpretation of problem/purpose, desired change, requested result, context, scope and constraints, preserving omissions and contradictions. It does not conduct research, select a method or invent user goals.
+Qualified local intake, attributed interpretation, accepted Intent IR, compiled requirements, verified `Research_Brief.json` and protected enclosing-node release. Include the governed execution/evidence/control foundations, bundled frontend/service/runtime image, browser inspection and local headless interface. Private implementation details belong to implementers; shared fields and authority do not.
 
 ```mermaid
 flowchart TB
-    Browser[Browser: submit objective] --> Intake[Capture exact input and run identity]
-    subgraph App[One application container]
-        Intake --> Compiler[Intent compiler CC: Intent IR]
-        Compiler --> Capture[Persist candidate and observed execution]
-        Capture --> T1{Deterministic structure and identity checks}
-        T1 -->|valid| Verifier[Intent verifier CC: submitted IR fidelity and usability]
-        T1 -->|invalid or unavailable| Gate[Protected host gate]
-        Verifier -->|typed verdict, findings and reasons| Validate[Validate assessment and exact subject]
-        Validate --> Gate
-        Gate -->|mandatory obligations pass| Commit[Durably commit accepted Intent and decision]
-        Gate -->|failed, unclear or unusable| Halt[Record halt and actionable reason]
-        Commit --> View[Readable IR, verdict and status]
-        Halt --> View
+    Input[Qualified intake and protected default policy] --> IC
+    subgraph Node[Intention Compiler node]
+        IC[Intention work subnode: one CC] --> IR[Candidate Intent IR]
+        IR --> D1{Deterministic checks}
+        D1 -->|valid| V1[Intent verifier subnode: assessment only]
+        D1 -->|invalid or unavailable| G1[Protected Intent gate]
+        V1 --> G1
+        G1 -->|committed acceptance| RC[Requirements work subnode: one CC]
+        RC --> B[Candidate Research Brief]
+        B --> D2{Deterministic checks}
+        D2 -->|valid| V2[Requirements verifier subnode: assessment only]
+        D2 -->|invalid or unavailable| G2[Protected Requirements gate]
+        V2 --> G2
+        G2 -->|committed acceptance| NG[Protected node finalization: aggregate evidence]
+        G1 -->|halt| H[Visible halt and retained evidence]
+        G2 -->|halt| H
+        NG -->|durable release| Out[Accepted Research_Brief.json]
+        NG -->|incomplete or persistence failure| H
     end
-    View --> Browser
-    Commit -.-> Later[Later build: Requirements CC; excluded from this slice]
+    Out -.-> Consumer[Later static workflow or Phase 3 Leader]
 ```
-
-The diagram's gate is protected infrastructure. The verifier's verdict is data; only the gate and durable run-state authorize progression. The checker is not a curly-brace test: it validates the declared schema, reference identities, required structures and source-span bounds. Passing those checks permits semantic review, not automatic acceptance.
 
 ## What acceptance means
 
-The submitted IR must preserve the user's meaning **and** provide a coherent purpose/result that Requirements can use. The verifier evaluates that exact artifact against protected criteria and original input evidence. It does not solve the request or provide a replacement interpretation.
+Intent IR must preserve meaning and provide a coherent purpose/result usable by Requirements. A topic alone cannot pass merely because omissions are honestly recorded. Missing optional hardware/method/thresholds need not block; permitted defaults are separate attributed decisions. The verifier assesses the submitted IR against original evidence and protected criteria, not a second interpretation.
 
-“Research on data lake retrieval algorithm” with no discernible purpose or requested result must not pass just because the compiler repeats the topic and lists omissions. Preserve that output as a candidate, explain what is missing and halt. Missing optional hardware or experimental details do not automatically make intent unusable; authorized defaults and experiment registration belong to later responsibilities. Contradictory, invented or materially incomplete meaning blocks even when the JSON is valid.
+Requirements consumes only accepted Intent and outputs the PRD Research Brief. Its verifier checks preservation, default authority, constraints, output/evidence completeness and downstream usability. Hypothesis later registers experimental criteria. Passing Intent verification is an internal milestone, not compiler completion.
 
-Malformed output blocks before semantic review. Failed/unclear semantic assessment, unavailable model, timeout, stale evidence and persistence failure cannot release an accepted reference. Show the exact candidate, checking results and actionable reason where available. A clearer submission starts linked new work; there is no autonomous clarification/repair loop. Headless execution returns non-success without waiting.
+Node finalization checks the exact accepted Brief, internal decisions, observed invocations and combined limits without another semantic-review call. Only durable protected release makes the Brief available externally. A failed/no-output invocation, missing finding, stale subject, timeout or failed commit halts and retains real evidence; no fake output reference or automatic repair is permitted.
 
 ## Minimum supporting system
 
-The slice includes the governed runner and audited fixed model bridge, two pinned CC definitions (compiler and read-only verifier), protected check/profile assignment, immutable artifact capture, durable gate state, scoped authentication/readiness, existing UI inspection and audience-scoped export. Effective call/time budgets cover both invocations. Unknown token/cost telemetry is unavailable, not zero.
+Use pinned work/verifier declarations, fixed admitted versions, protected model bridge, independently owned check profiles and node/subnode contracts, immutable artifacts and durable state. Separate bounded work generations and verifier calls share frozen time/call budgets; the baseline does not require one LLM call. Unknown token/cost telemetry is unavailable.
 
-Use descriptive `Intent_IR.json`, `Intent_Assessment.json` and `Gate_Decision.json` with a view of the same records. The image bundles/serves the frontend and starts through its entrypoint; the browser uses the loopback port. Browser closure does not cancel the run. Restart preserves accepted state and pauses interrupted work without replay.
+The image entrypoint starts the bundled UI/API/runtime; browser access uses loopback port publication. Inspect descriptive `Intent_IR.json`, `Research_Brief.json`, assessments, checking results and decisions, with raw evidence separate. Browser closure does not cancel; restart pauses interrupted work without replay. Headless halts never wait for approval.
 
 ## Build boundary and proof
 
-Requirements, planner, search, POC execution, scientific measurement/evaluation, Delivery and RSI execution are excluded. Field contracts for their later connections remain present in the reference. The full Brief and initialized research graph are Stage 2 outcomes that this slice does not establish.
+Demonstrate a real supported request reaching accepted Brief, then exercise the [component verification matrix](reference/compiler-verification.md). A bounded test consumer validates the released Brief contract, not a research workflow. Planning, Search, Hypothesis, Builder, scientific execution, Delivery, RSI, advanced compiler and sidecar implementation are excluded.
 
-Demonstrate accepted actionable intent and blocked malformed, unusable, contradictory, invented and instruction-bearing candidates. Also challenge missing constraints, stale/swapped subjects, verifier timeout, storage failure, browser disconnect, restart and headless behavior. Expected labels must reflect usability as well as fidelity. A model returning JSON or a collection of happy-path passes does not establish verifier quality; retain false acceptances/refusals and shared-provider limitations.
+This build contributes Stage 0/1 foundations and the Stage 2 Brief boundary. It does not complete Stage 2's fixed graph initialization or full M1. The entrypoint identifies which shared foundations must be built so “only the compiler” cannot be interpreted as a naked prompt wrapper.

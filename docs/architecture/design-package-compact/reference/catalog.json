@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "dialect": "https://json-schema.org/draft/2020-12/schema",
   "shared_definitions": {
     "schema": "schemas/common.schema.json",
@@ -43,9 +43,9 @@
     },
     {
       "name": "research-brief",
-      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
       "schema": "schemas/research-brief.schema.json",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "Requirements CC",
       "consumers": [
         "Requirements verification",
@@ -68,10 +68,16 @@
         "assumptions",
         "unresolved_items",
         "resource_refs",
-        "confirmation"
+        "confirmation",
+        "intake_ref",
+        "context_refs",
+        "domain_lane",
+        "input_bindings"
       ],
       "examples": [
-        "Research_Brief.json"
+        "Research_Brief.json",
+        "Research_Brief_Defaults.json",
+        "Lifecycle_Research_Brief.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -139,9 +145,9 @@
     },
     {
       "name": "gate-decision",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0",
       "schema": "schemas/gate-decision.schema.json",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "protected gate host",
       "consumers": [
         "durable run-state",
@@ -166,13 +172,19 @@
         "verdict",
         "reasons",
         "action",
-        "accepted_refs"
+        "accepted_refs",
+        "scope_kind",
+        "subnode_id",
+        "node_contract_ref",
+        "internal_decision_refs"
       ],
       "examples": [
         "Gate_Decision.json",
         "Gate_Topic_Halt.json",
         "Gate_Science_Pass.json",
-        "Gate_Requirements_Pass.json"
+        "Gate_Requirements_Pass.json",
+        "Gate_Intention_Compiler_Pass.json",
+        "Gate_Compiler_No_Output.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -213,9 +225,9 @@
       ]
     },
     {
-      "name": "node-execution-contract",
-      "schema_id": "urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0",
-      "schema": "schemas/node-execution-contract.schema.json",
+      "name": "subnode-execution-contract",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0",
+      "schema": "schemas/subnode-execution-contract.schema.json",
       "version": "1.0.0",
       "producer": "protected binder",
       "consumers": [
@@ -238,17 +250,19 @@
         "input_refs",
         "required_outputs",
         "evidence_obligations",
-        "node_limits",
+        "subnode_limits",
         "guard_profile_ref",
         "policy_ref",
         "configuration_ref",
-        "template_ref"
+        "template_ref",
+        "subnode_id",
+        "node_contract_ref"
       ],
       "examples": [
-        "Node_Contract.json",
-        "Requirements_Node_Contract.json",
-        "Topic_Node_Contract.json",
-        "Science_Node_Contract.json"
+        "Intention_Subnode_Contract.json",
+        "Requirements_Subnode_Contract.json",
+        "Topic_Subnode_Contract.json",
+        "Science_Subnode_Contract.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -261,7 +275,7 @@
     {
       "topic": "planning and node contracts",
       "document": "other-contracts.md#planning-and-node-contracts",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
         "Phase 3"
@@ -270,7 +284,7 @@
     {
       "topic": "research artifacts",
       "document": "other-contracts.md#research-artifacts",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
         "Phase 3"
@@ -279,7 +293,7 @@
     {
       "topic": "manifest and runtime records",
       "document": "other-contracts.md#manifest-and-runtime-records",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
         "Phase 2",
@@ -289,7 +303,7 @@
     {
       "topic": "shared clients and model access",
       "document": "other-contracts.md#client-and-model-boundaries",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
         "Phase 2",
@@ -299,7 +313,7 @@
     {
       "topic": "offline RSI records",
       "document": "other-contracts.md#offline-rsi-records",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "applicable_phases": [
         "Phase 2"
       ]
@@ -307,9 +321,9 @@
   ],
   "interfaces": [
     {
-      "id": "qualified-intake:field-contract:1",
+      "id": "qualified-intake:field-contract:2",
       "name": "qualified-intake",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "protected intake",
       "consumers": [
         "Intent CC",
@@ -357,9 +371,9 @@
       ]
     },
     {
-      "id": "plan-proposal:field-contract:1",
+      "id": "plan-proposal:field-contract:2",
       "name": "plan-proposal",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "static template or bounded planner",
       "consumers": [
         "binder",
@@ -373,9 +387,9 @@
       ]
     },
     {
-      "id": "frozen-graph:field-contract:1",
+      "id": "frozen-graph:field-contract:2",
       "name": "frozen-graph",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "protected freeze",
       "consumers": [
         "scheduler",
@@ -389,9 +403,9 @@
       ]
     },
     {
-      "id": "bound-check-plan:field-contract:1",
+      "id": "bound-check-plan:field-contract:2",
       "name": "bound-check-plan",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "protected guard resolver",
       "consumers": [
         "checks",
@@ -540,9 +554,9 @@
       ]
     },
     {
-      "id": "artifact-envelope:field-contract:1",
+      "id": "artifact-envelope:field-contract:2",
       "name": "artifact-envelope",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "trusted capture",
       "consumers": [
         "checking",
@@ -557,9 +571,9 @@
       ]
     },
     {
-      "id": "invocation-observation:field-contract:1",
+      "id": "invocation-observation:field-contract:2",
       "name": "invocation-observation",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "protected runner",
       "consumers": [
         "gate",
@@ -574,9 +588,9 @@
       ]
     },
     {
-      "id": "review-context:field-contract:1",
+      "id": "review-context:field-contract:2",
       "name": "review-context",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "protected context builder",
       "consumers": [
         "read-only verifier"
@@ -589,9 +603,9 @@
       ]
     },
     {
-      "id": "accepted-output:field-contract:1",
+      "id": "accepted-output:field-contract:2",
       "name": "accepted-output",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "protected durable state",
       "consumers": [
         "scheduler",
@@ -884,6 +898,40 @@
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 2"
+      ]
+    },
+    {
+      "id": "default-policy:field-contract:1",
+      "name": "default-policy",
+      "version": "1.0.0",
+      "document": "field-catalog.md#default-policy",
+      "producer": "protected configuration owner",
+      "consumers": [
+        "Requirements CC",
+        "Requirements verifier"
+      ],
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "node-execution-contract:field-contract:2",
+      "name": "node-execution-contract",
+      "version": "2.0.0",
+      "document": "field-catalog.md#node-execution-contract",
+      "producer": "protected node binder",
+      "consumers": [
+        "subnode binder",
+        "runner",
+        "node gate",
+        "inspection"
+      ],
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
       ]
     }
   ]

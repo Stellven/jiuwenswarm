@@ -1,0 +1,7 @@
+{
+  "id": "input-directory:example",
+  "path": "workspace/input/docs",
+  "qualification": "readable",
+  "empty_allowed": true,
+  "synthetic": true
+}

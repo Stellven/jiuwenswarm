@@ -4,7 +4,7 @@
 
 | Input | Current use |
 |---|---|
-| [Latest PRD and receipt identity](sources/product/README.md) | Verbatim October 7 download; prior receipt retained |
+| [Latest PRD and receipt identity](sources/product/README.md) | October 7 source identity; PRD supplied separately, prior receipt retained |
 | [Principles/decisions](principles.md#decisions-and-source-amendments) | Current architectural choices; D5/D6 exceptions remain explicit |
 | [Critical contracts and field references](reference/README.md) | Current shared representation and consumer obligations |
 | [Historical CC semantic description](sources/capsule-semantic-v2.10b.md), [machine schema](sources/capsule.schema.json), [profile](sources/policy-m1.json) | Immutable provenance; original shapes/maturity labels are reconciled in the current [CC reference](capsule/declaration.md) |

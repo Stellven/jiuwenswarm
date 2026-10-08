@@ -89,7 +89,7 @@ Ready to specify means no unresolved material behavior or shared-contract questi
 
 ## Measuring sufficient detail
 
-A cut-down experiment carries the same full M1 scope, PRD, decisions and authoritative contracts. Reduce explanatory depth and examples, never silently weaken obligations. Pin both input snapshots, isolate agent contexts and use matched assignments/evaluation. Measure invented interfaces, clarification, omitted responsibilities, compatibility, failure handling and evidence quality alongside input length. An Intent-only trial measures only that boundary; it cannot establish full-M1 sufficiency. Results inform later design depth; no size target proves effectiveness.
+A cut-down experiment carries the same full M1 scope, separately supplied PRD receipt, decisions and authoritative contracts. Reduce explanatory depth and examples, never silently weaken obligations. Pin both input snapshots, isolate agent contexts and use matched assignments/evaluation. Measure invented interfaces, clarification, omitted responsibilities, compatibility, failure handling and evidence quality alongside input length. An Intent-only trial measures only that boundary; it cannot establish full-M1 sufficiency. Results inform later design depth; no size target proves effectiveness.
 
 ## Focused human review questions
 

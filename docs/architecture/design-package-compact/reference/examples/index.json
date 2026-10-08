@@ -14,25 +14,26 @@
     },
     {
       "path": "Default_Policy.json",
-      "schema_id": null
+      "schema_id": null,
+      "field_contract_id": "default-policy:field-contract:1"
     },
     {
       "path": "Research_Brief.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0"
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
     },
     {
       "path": "Check_Plan.json",
       "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:1"
+      "field_contract_id": "bound-check-plan:field-contract:2"
     },
     {
-      "path": "Node_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0"
+      "path": "Intention_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
     },
     {
       "path": "Invocation_Observation.json",
       "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:1"
+      "field_contract_id": "invocation-observation:field-contract:2"
     },
     {
       "path": "Intent_Checks.json",
@@ -41,7 +42,7 @@
     {
       "path": "Review_Context.json",
       "schema_id": null,
-      "field_contract_id": "review-context:field-contract:1"
+      "field_contract_id": "review-context:field-contract:2"
     },
     {
       "path": "Intent_Assessment.json",
@@ -49,16 +50,16 @@
     },
     {
       "path": "Gate_Decision.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
-      "path": "Topic_Node_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0"
+      "path": "Topic_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
     },
     {
       "path": "Topic_Observation.json",
       "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:1"
+      "field_contract_id": "invocation-observation:field-contract:2"
     },
     {
       "path": "Topic_Checks.json",
@@ -67,7 +68,7 @@
     {
       "path": "Topic_Review_Context.json",
       "schema_id": null,
-      "field_contract_id": "review-context:field-contract:1"
+      "field_contract_id": "review-context:field-contract:2"
     },
     {
       "path": "Topic_Assessment.json",
@@ -75,7 +76,7 @@
     },
     {
       "path": "Gate_Topic_Halt.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
       "path": "Evaluation_Verdict.json",
@@ -85,7 +86,7 @@
     {
       "path": "Science_Review_Context.json",
       "schema_id": null,
-      "field_contract_id": "review-context:field-contract:1"
+      "field_contract_id": "review-context:field-contract:2"
     },
     {
       "path": "Science_Assessment.json",
@@ -96,17 +97,17 @@
       "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
     },
     {
-      "path": "Science_Node_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0"
+      "path": "Science_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
     },
     {
       "path": "Science_Observation.json",
       "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:1"
+      "field_contract_id": "invocation-observation:field-contract:2"
     },
     {
       "path": "Gate_Science_Pass.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
       "path": "Capsule_Declaration.json",
@@ -115,21 +116,21 @@
     {
       "path": "Requirements_Check_Plan.json",
       "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:1"
+      "field_contract_id": "bound-check-plan:field-contract:2"
     },
     {
-      "path": "Requirements_Node_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:node-execution-contract:1.0.0"
+      "path": "Requirements_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
     },
     {
       "path": "Requirements_Invocation_Observation.json",
       "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:1"
+      "field_contract_id": "invocation-observation:field-contract:2"
     },
     {
       "path": "Requirements_Review_Context.json",
       "schema_id": null,
-      "field_contract_id": "review-context:field-contract:1"
+      "field_contract_id": "review-context:field-contract:2"
     },
     {
       "path": "Requirements_Checks.json",
@@ -141,17 +142,17 @@
     },
     {
       "path": "Gate_Requirements_Pass.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
       "path": "Science_Check_Plan.json",
       "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:1"
+      "field_contract_id": "bound-check-plan:field-contract:2"
     },
     {
       "path": "Qualified_Intake.json",
       "schema_id": null,
-      "field_contract_id": "qualified-intake:field-contract:1"
+      "field_contract_id": "qualified-intake:field-contract:2"
     },
     {
       "path": "Requirements_Capsule.json",
@@ -253,17 +254,17 @@
     },
     {
       "path": "Lifecycle_Research_Brief.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0"
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
     },
     {
       "path": "Topic_Check_Plan.json",
       "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:1"
+      "field_contract_id": "bound-check-plan:field-contract:2"
     },
     {
       "path": "Topic_Qualified_Intake.json",
       "schema_id": null,
-      "field_contract_id": "qualified-intake:field-contract:1"
+      "field_contract_id": "qualified-intake:field-contract:2"
     },
     {
       "path": "Ranking_Declaration.json",
@@ -306,6 +307,139 @@
     },
     {
       "path": "Source_Spans_CRLF.json",
+      "schema_id": null
+    },
+    {
+      "path": "Local_Profile.json",
+      "schema_id": null
+    },
+    {
+      "path": "Workspace.json",
+      "schema_id": null
+    },
+    {
+      "path": "Qualified_Input_Directory.json",
+      "schema_id": null
+    },
+    {
+      "path": "Intent_Permissible_Omissions.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+    },
+    {
+      "path": "Research_Brief_Defaults.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
+    },
+    {
+      "path": "Verifier_Capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "Intention_Subnode_Template.json",
+      "schema_id": null
+    },
+    {
+      "path": "Requirements_Subnode_Template.json",
+      "schema_id": null
+    },
+    {
+      "path": "Topic_Subnode_Template.json",
+      "schema_id": null
+    },
+    {
+      "path": "Science_Subnode_Template.json",
+      "schema_id": null
+    },
+    {
+      "path": "Intention_Node_Contract.json",
+      "schema_id": null,
+      "field_contract_id": "node-execution-contract:field-contract:2"
+    },
+    {
+      "path": "Topic_Node_Contract.json",
+      "schema_id": null,
+      "field_contract_id": "node-execution-contract:field-contract:2"
+    },
+    {
+      "path": "Science_Node_Contract.json",
+      "schema_id": null,
+      "field_contract_id": "node-execution-contract:field-contract:2"
+    },
+    {
+      "path": "Verifier_Subnode_Template.json",
+      "schema_id": null
+    },
+    {
+      "path": "Gate_Intention_Compiler_Pass.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
+    },
+    {
+      "path": "Compiler_Failure_Receipt.json",
+      "schema_id": null
+    },
+    {
+      "path": "Compiler_No_Output_Checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "Gate_Compiler_No_Output.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
+    },
+    {
+      "path": "Intent_Verifier_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "Intent_Verifier_Observation.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:2"
+    },
+    {
+      "path": "Requirements_Verifier_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "Requirements_Verifier_Observation.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:2"
+    },
+    {
+      "path": "Topic_Verifier_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "Topic_Verifier_Observation.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:2"
+    },
+    {
+      "path": "Science_Verifier_Subnode_Contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "Science_Verifier_Observation.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:2"
+    },
+    {
+      "path": "Intention_Node_Check_Plan.json",
+      "schema_id": null,
+      "field_contract_id": "bound-check-plan:field-contract:2"
+    },
+    {
+      "path": "Intention_Node_Checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "Permissible_Qualified_Intake.json",
+      "schema_id": null,
+      "field_contract_id": "qualified-intake:field-contract:2"
+    },
+    {
+      "path": "Science_Node_Template.json",
+      "schema_id": null
+    },
+    {
+      "path": "Node_Finalization_Profile.json",
       "schema_id": null
     }
   ]

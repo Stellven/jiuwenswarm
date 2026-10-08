@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "subject_ref": {
     "id": "Evaluation_Verdict.json",
-    "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+    "sha256": "1940c2f7dd631360cb2cdadf11cec6c71e69ff33742b60adcb83456f3d51f3cc"
   },
   "check_plan_ref": {
     "id": "Science_Check_Plan.json",
-    "sha256": "9fdfa5520be0e5a5241c2c19115c2e0ffbcdc125fcde283e6adfce899ed6872b"
+    "sha256": "26282cc89d6d35f132ed12e9cb2b7a68d65466074819e5671c20833506d57e70"
   },
   "results": [
     {
@@ -16,7 +16,7 @@
       "evidence_refs": [
         {
           "id": "Evaluation_Verdict.json",
-          "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+          "sha256": "1940c2f7dd631360cb2cdadf11cec6c71e69ff33742b60adcb83456f3d51f3cc"
         }
       ]
     }

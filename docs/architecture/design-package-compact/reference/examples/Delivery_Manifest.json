@@ -3,11 +3,11 @@
   "id": "Delivery_Manifest",
   "brief_ref": {
     "id": "Lifecycle_Research_Brief.json",
-    "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+    "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
   },
   "verdict_ref": {
     "id": "Evaluation_Verdict.json",
-    "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+    "sha256": "1940c2f7dd631360cb2cdadf11cec6c71e69ff33742b60adcb83456f3d51f3cc"
   },
   "report_ref": {
     "id": "Research_Report.md",
@@ -16,31 +16,31 @@
   "artifact_refs": [
     {
       "id": "Candidate_Set.json",
-      "sha256": "03e889c59cead09b6cf963a039a51f8e69e29ca340db9f370cd4679f24fec8e0"
+      "sha256": "413e13a0787827b271f46234b3eeba67d85e0905a0b14d8f8e2dded493688970"
     },
     {
       "id": "Screening_Result.json",
-      "sha256": "329b321724ac4563cd2e4001b5697041a74dee724d01bbf3fdf2789c72792e92"
+      "sha256": "0a908c1a145e8b9f958378a780b2b9aa178014a17768ca22772ecf5aab2a081b"
     },
     {
       "id": "Opportunity_Card.json",
-      "sha256": "29c960ac3abc31d38fd8b50df676881cd10611d8104e3b89c65db67f685391f7"
+      "sha256": "7226c32731eabd2f6ee65632f7598f65b2091e171e96d6eafec4090ab1ed1602"
     },
     {
       "id": "Hypothesis_Blueprint.json",
-      "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+      "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
     },
     {
       "id": "POC_Manifest.json",
-      "sha256": "0df41c5d8c3291fe4ff322a70ef7330a394129b7cd63e270ae39011b5eb01e50"
+      "sha256": "1d51f872cc40a4f35408b269a260771a0da8be7dbc6f482e75d2c89a399102be"
     },
     {
       "id": "Benchmark_Payload.json",
-      "sha256": "302f881151d8c63086d2f3f4af487b89c525ac81f9aecea6d1855ef573344676"
+      "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
     },
     {
       "id": "Evaluation_Verdict.json",
-      "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+      "sha256": "1940c2f7dd631360cb2cdadf11cec6c71e69ff33742b60adcb83456f3d51f3cc"
     }
   ],
   "files": [
@@ -57,7 +57,7 @@
       "path": "Evaluation_Verdict.json",
       "artifact_ref": {
         "id": "Evaluation_Verdict.json",
-        "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+        "sha256": "1940c2f7dd631360cb2cdadf11cec6c71e69ff33742b60adcb83456f3d51f3cc"
       },
       "media_type": "application/json",
       "audience": "authorized researcher"
@@ -66,7 +66,7 @@
       "path": "Hypothesis_Blueprint.json",
       "artifact_ref": {
         "id": "Hypothesis_Blueprint.json",
-        "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+        "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
       },
       "media_type": "application/json",
       "audience": "authorized researcher"
@@ -75,7 +75,7 @@
       "path": "Benchmark_Payload.json",
       "artifact_ref": {
         "id": "Benchmark_Payload.json",
-        "sha256": "302f881151d8c63086d2f3f4af487b89c525ac81f9aecea6d1855ef573344676"
+        "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
       },
       "media_type": "application/json",
       "audience": "authorized researcher"

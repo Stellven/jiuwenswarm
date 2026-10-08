@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "types": {
     "Ref": {
       "fields": {
@@ -312,11 +312,6 @@
           "required": true,
           "meaning": "Brief coverage"
         },
-        "capsule_refs": {
-          "type": "Ref[]",
-          "required": true,
-          "meaning": "Exactly one proposed admitted work declaration for M1"
-        },
         "predecessors": {
           "type": "string[]",
           "required": true,
@@ -331,6 +326,11 @@
           "type": "PlanOutput[]",
           "required": true,
           "meaning": "Named typed outputs"
+        },
+        "subnodes": {
+          "type": "PlannedSubnode[]",
+          "required": true,
+          "meaning": "Bounded internal CC roles, dependencies and pinned templates; not merged CCs"
         }
       }
     },
@@ -608,13 +608,177 @@
           "meaning": "Mandatory output"
         }
       }
+    },
+    "PlannedSubnode": {
+      "fields": {
+        "subnode_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique identity within node"
+        },
+        "role": {
+          "type": "string",
+          "required": true,
+          "meaning": "work or verifier"
+        },
+        "capsule_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exactly one admitted CC declaration"
+        },
+        "template_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen internal port/check template"
+        },
+        "depends_on": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Earlier internal subnode IDs; protected gates mediate work dependencies"
+        }
+      }
+    },
+    "BoundNodeInput": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Named external input"
+        },
+        "contract_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Catalog contract"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Supported contract version"
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Required for dispatch"
+        },
+        "artifact_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Exact accepted inputs"
+        }
+      }
+    },
+    "BoundNodeOutput": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Named external output"
+        },
+        "contract_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Catalog contract"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Supported contract version"
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Required for release"
+        }
+      }
+    },
+    "NodeSubnodeAssignment": {
+      "fields": {
+        "subnode_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique child identity"
+        },
+        "role": {
+          "type": "string",
+          "required": true,
+          "meaning": "work or verifier"
+        },
+        "template_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen internal port and checking template"
+        },
+        "capsule_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "One admitted declaration"
+        },
+        "depends_on": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Internal prerequisites mediated by gates"
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Required for node completion"
+        }
+      }
+    },
+    "NodeGateAssignment": {
+      "fields": {
+        "gate_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected gate identity"
+        },
+        "subject_subnode_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Submitted work subject; final assignment aggregates node obligations"
+        },
+        "profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Independently owned criteria and checking profile"
+        }
+      }
+    },
+    "AuthorityCeiling": {
+      "fields": {
+        "network": {
+          "type": "string",
+          "required": true,
+          "meaning": "none or allowlist"
+        },
+        "network_allowlist": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Maximum authorized endpoints"
+        },
+        "resource_reads": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Maximum permitted read scope"
+        },
+        "write_roots": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Maximum permitted writes"
+        },
+        "tools": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Maximum admitted tools"
+        }
+      }
     }
   },
   "interfaces": [
     {
-      "id": "qualified-intake:field-contract:1",
+      "id": "qualified-intake:field-contract:2",
       "name": "qualified-intake",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "planning-and-node-contracts",
       "producer": "protected intake",
       "consumers": [
@@ -625,7 +789,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -656,6 +820,26 @@
           "type": "string[]",
           "required": true,
           "meaning": "Rejected/skipped items and reasons"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authorized product account"
+        },
+        "profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected local execution profile"
+        },
+        "workspace_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Authorized run workspace"
+        },
+        "input_directory_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Qualified configured input directory, including an empty authorized default directory"
         }
       },
       "failure": "Reject missing required source or undecodable text; do not silently treat a rejected resource as available."
@@ -771,9 +955,9 @@
       "failure": "Reject unpinned/unavailable packages, incompatible platform or altered lock; no dynamic resolution."
     },
     {
-      "id": "plan-proposal:field-contract:1",
+      "id": "plan-proposal:field-contract:2",
       "name": "plan-proposal",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "planning-and-node-contracts",
       "producer": "static template or bounded planner",
       "consumers": [
@@ -784,7 +968,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -825,9 +1009,9 @@
       "failure": "Reject cycles, missing Brief coverage, incompatible ports or denied effects; proposal grants no authority."
     },
     {
-      "id": "frozen-graph:field-contract:1",
+      "id": "frozen-graph:field-contract:2",
       "name": "frozen-graph",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "planning-and-node-contracts",
       "producer": "protected freeze",
       "consumers": [
@@ -838,7 +1022,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -884,9 +1068,9 @@
       "failure": "Missing commit/pins/compatibility blocks dispatch; template future values are not observed artifacts."
     },
     {
-      "id": "bound-check-plan:field-contract:1",
+      "id": "bound-check-plan:field-contract:2",
       "name": "bound-check-plan",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "planning-and-node-contracts",
       "producer": "protected guard resolver",
       "consumers": [
@@ -898,7 +1082,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -908,7 +1092,7 @@
         "contract_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "Final concrete node contract"
+          "meaning": "Exact checked node or subnode execution contract; scope is explicit"
         },
         "input_refs": {
           "type": "Ref[]",
@@ -939,6 +1123,16 @@
           "type": "Ref[]",
           "required": true,
           "meaning": "Pinned check and verifier implementations"
+        },
+        "node_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Owning enclosing Node Execution Contract"
+        },
+        "subnode_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Subject/producing subnode; null for node aggregate records"
         }
       },
       "failure": "Reject missing assignments, mutable runner identities or hash cycles. Producer suggestions cannot replace mandatory criteria."
@@ -1457,9 +1651,9 @@
       "failure": "Contradiction with verdict, missing mandatory content or unauthorized disclosure blocks release/export."
     },
     {
-      "id": "artifact-envelope:field-contract:1",
+      "id": "artifact-envelope:field-contract:2",
       "name": "artifact-envelope",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "manifest-and-runtime-records",
       "producer": "trusted capture",
       "consumers": [
@@ -1471,7 +1665,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -1522,14 +1716,24 @@
           "type": "string",
           "required": true,
           "meaning": "Allowed readers"
+        },
+        "node_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Owning enclosing Node Execution Contract"
+        },
+        "subnode_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Subject/producing subnode; null for node aggregate records"
         }
       },
       "failure": "CC-authored metadata is untrusted; mismatched type/hash/scope blocks. Envelope does not establish acceptance."
     },
     {
-      "id": "invocation-observation:field-contract:1",
+      "id": "invocation-observation:field-contract:2",
       "name": "invocation-observation",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "manifest-and-runtime-records",
       "producer": "protected runner",
       "consumers": [
@@ -1541,7 +1745,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -1551,7 +1755,7 @@
         "contract_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "Concrete node"
+          "meaning": "Exact checked node or subnode execution contract; scope is explicit"
         },
         "binding_id": {
           "type": "string",
@@ -1622,14 +1826,24 @@
           "type": "Usage",
           "required": true,
           "meaning": "Available token/cost telemetry, explicit nulls and unavailability reasons"
+        },
+        "node_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Owning enclosing Node Execution Contract"
+        },
+        "subnode_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Subject/producing subnode; null for node aggregate records"
         }
       },
       "failure": "Missing mandatory observations block release; optional telemetry stays unavailable. Synthetic illustrations cannot certify runtime work."
     },
     {
-      "id": "review-context:field-contract:1",
+      "id": "review-context:field-contract:2",
       "name": "review-context",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "manifest-and-runtime-records",
       "producer": "protected context builder",
       "consumers": [
@@ -1639,7 +1853,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -1654,7 +1868,7 @@
         "contract_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "Work obligations"
+          "meaning": "Exact checked node or subnode execution contract; scope is explicit"
         },
         "check_plan_ref": {
           "type": "Ref",
@@ -1685,14 +1899,24 @@
           "type": "string[]",
           "required": true,
           "meaning": "Protected policy/accepted input/observed evidence/untrusted producer"
+        },
+        "node_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Owning enclosing Node Execution Contract"
+        },
+        "subnode_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Subject/producing subnode; null for node aggregate records"
         }
       },
       "failure": "Incomplete/stale context blocks assessment/release; artifact instructions remain untrusted data."
     },
     {
-      "id": "accepted-output:field-contract:1",
+      "id": "accepted-output:field-contract:2",
       "name": "accepted-output",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "manifest-and-runtime-records",
       "producer": "protected durable state",
       "consumers": [
@@ -1703,7 +1927,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0"
+          "meaning": "Format version 2.0.0"
         },
         "id": {
           "type": "string",
@@ -1733,7 +1957,7 @@
         "contract_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "Same concrete contract"
+          "meaning": "Exact checked node or subnode execution contract; scope is explicit"
         },
         "output_refs": {
           "type": "Ref[]",
@@ -1744,6 +1968,16 @@
           "type": "string",
           "required": true,
           "meaning": "Durable transaction identity"
+        },
+        "node_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Owning enclosing Node Execution Contract"
+        },
+        "subnode_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Subject/producing subnode; null for node aggregate records"
         }
       },
       "failure": "Created only after artifact/decision persistence. File presence or verifier PASS cannot create acceptance."
@@ -2865,6 +3099,161 @@
         }
       },
       "failure": "Missing incident, authorized actor or validated remediation blocks new-session eligibility. Clearance never resumes the halted session or activates a child."
+    },
+    {
+      "id": "node-execution-contract:field-contract:2",
+      "name": "node-execution-contract",
+      "version": "2.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected node binder",
+      "consumers": [
+        "subnode binder",
+        "runner",
+        "node gate",
+        "inspection"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 2.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected contract identity; changed bindings require new identity/revision"
+        },
+        "run_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Run ownership; prohibit cross-run substitution"
+        },
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Enclosing PRD responsibility instance"
+        },
+        "attempt_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Node attempt lineage; preserve failures"
+        },
+        "revision": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Contract revision pinned before execution"
+        },
+        "objective": {
+          "type": "string",
+          "required": true,
+          "meaning": "Assigned product outcome, not a private CC task"
+        },
+        "requirement_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Accepted Brief or fixed-profile obligations this node must cover"
+        },
+        "inputs": {
+          "type": "BoundNodeInput[]",
+          "required": true,
+          "meaning": "Named external contract/version/requiredness and exact accepted references"
+        },
+        "outputs": {
+          "type": "BoundNodeOutput[]",
+          "required": true,
+          "meaning": "Required external artifact meanings; compiler output is Research Brief"
+        },
+        "input_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Derived external input inventory, identical to named ports"
+        },
+        "required_outputs": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Derived required output-type inventory"
+        },
+        "evidence_obligations": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Required observation/check/release evidence; missing data blocks"
+        },
+        "guard_profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen independently owned node checking profile"
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected governing policy, not a producer readiness claim"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact effective configuration for reproducibility"
+        },
+        "template_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen node template; no hash dependency on future child contracts"
+        },
+        "node_limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Aggregate elapsed time/call/memory ceilings including separate verifier work"
+        },
+        "authority_ceiling": {
+          "type": "AuthorityCeiling",
+          "required": true,
+          "meaning": "Maximum admitted read/write/tool/network effects; own future output reads follow frozen internal ports"
+        },
+        "subnodes": {
+          "type": "NodeSubnodeAssignment[]",
+          "required": true,
+          "meaning": "Pinned one-CC work/verifier assignments and prerequisites; no arbitrary composition"
+        },
+        "gate_assignments": {
+          "type": "NodeGateAssignment[]",
+          "required": true,
+          "meaning": "Independent profiles for work boundaries and final aggregate acceptance"
+        }
+      },
+      "failure": "Unbound external inputs, cyclic internal dependencies, missing required subnodes/checks, excess authority or incomplete durable acceptance block node release."
+    },
+    {
+      "id": "default-policy:field-contract:1",
+      "name": "default-policy",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected configuration owner",
+      "consumers": [
+        "Requirements CC",
+        "Requirements verifier"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable policy identity"
+        },
+        "hardware_profile": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authorized conservative default single_gpu; not observed hardware"
+        },
+        "automatic_retries": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Zero automatic compiler repair/replay"
+        }
+      },
+      "failure": "Unknown, unavailable or unsupported default authority blocks the affected requirement; policy cannot invent purpose or claim hardware availability."
     }
   ]
 }

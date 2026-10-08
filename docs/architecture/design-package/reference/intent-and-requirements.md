@@ -4,7 +4,7 @@
 
 ## Intent IR
 
-Producer: Intent CC. Consumers: deterministic checker, Intent verifier, then Requirements **only after acceptance**. [Schema](schemas/intent-ir.schema.json).
+Producer: Intention CC. Consumers: deterministic checker, Intent verifier, then Requirements **only after acceptance**. [Schema](schemas/intent-ir.schema.json).
 
 | Required field | Meaning / type | Why the consumer needs it |
 |---|---|---|
@@ -30,29 +30,35 @@ An honest `needs_clarification` artifact is structurally valid, retained candida
 
 ## Research Brief / Requirements IR
 
-Producer: Requirements CC. Consumers: Requirements checker/verifier, static binder/planner, research CCs and later checking. [Schema](schemas/research-brief.schema.json). It remains the PRD's `Research_Brief.json`, not another competing requirements format.
+Producer: Requirements CC within the Intention Compiler node. Consumers: deterministic checks, Requirements verifier, node gate, then static binder/planner and research CCs **after node release**. [Critical schema](schemas/research-brief.schema.json), version `2.0.0`. The external name remains `Research_Brief.json`; Requirements IR is a descriptive alias, not a second format.
 
-| Required field | Meaning / type | Consumer obligation |
+| Required field | Required meaning / information | Why consumers need it |
 |---|---|---|
-| `schema_version`, `intent_ref` | Format and exact accepted interpretation | Bind the contract to accepted meaning |
-| `objective` | Requirement statement | Establish what the program must achieve |
-| `in_scope`, `out_of_scope` | Requirement statements | Preserve context boundaries |
-| `mandatory_requirements`, `optional_preferences` | ID, text, origin, source references | Planner covers required outcomes; preferences cannot waive them |
-| `constraints` | ID, text, category, origin, source references | Binder/runner apply applicable resource/effect restrictions |
-| `target_metrics` | ID, metric, target text, source references | Hypothesis derives registered experimental criteria later |
-| `deliverables` | ID, name, description, artifact type | Bind observable requested results to work/output coverage |
-| `acceptance_expectations` | ID, covered requirement IDs, description | State user-level completion expectations |
-| `evidence_obligations` | ID, covered requirement IDs, description | Establish evidence needed to substantiate completion |
-| `assumptions` | ID, text, authority reference, affected fields | Show authorized defaults separately from user values |
-| `unresolved_items` | Same uncertainty structure as Intent | Prevent silent completion of unusable requirements |
-| `resource_refs` | Supplied/qualified resource references | Hypothesis/Builder/Benchmark use declared assets |
-| `confirmation` | User-request or authorized-assumption basis and sources | Record authority without asynchronous approval waiting |
+| `schema_version` | Explicit current version | Reject incompatible representations |
+| `intake_ref`, `intent_ref`, `context_refs` | Exact qualified intake, accepted meaning and relevant permitted context | Preserve source identity and supplied context without copying every document |
+| `domain_lane` | Fixed `scientific_research` baseline | Prevent unintended multi-lane dispatch; later variants need explicit compatibility |
+| `objective` | Attributed requirement statement | Define what the research program is asked to achieve |
+| `in_scope`, `out_of_scope` | Attributed boundary statements | Constrain search, planning and implementation |
+| `mandatory_requirements`, `optional_preferences` | Stable IDs, readable statements, origin and source references | Cover mandatory outcomes without silently promoting/waiving preferences |
+| `input_bindings`, `resource_refs` | Named input identity/role/resource reference, plus consistent inventory | Separate reference documents, project assets and validation data; preserve supplied resources |
+| `constraints` | ID, readable meaning, category, origin, sources, applicable `scope`, `normalized_value`, `unit`, `operator` | Bind operational/scientific restrictions without downstream text guessing |
+| `target_metrics` | ID, metric, target text, origin, sources, linked `requirement_ids`, nullable unit/comparison | Preserve concrete and qualitative user goals; Hypothesis later defines measurement and scientific verdict rules |
+| `deliverables` | IDs, names, description and artifact type | Define observable requested outputs |
+| `acceptance_expectations` | ID, linked requirements and observable completion meaning | Check that the workflow addresses the user's requested result |
+| `evidence_obligations` | ID, linked requirements and evidence meaning | Establish what must substantiate completion |
+| `assumptions` | ID, text, protected `authority_ref`, actual affected-field JSON pointers | Make every applied default visible and attributable |
+| `unresolved_items` | Missing/ambiguous/conflicting information and blocking disposition | Block material uncertainty instead of manufacturing requirements |
+| `confirmation` | User-request or authorized-assumption basis with sources | Record permission to proceed without asynchronous approval waiting |
 
-Requirement statements contain `id`, `text`, `origin` (`user`, `system_default`, `derived`) and nonempty `source_refs`. Defaults need permitted policy evidence plus a corresponding assumption. Derived requirements must follow accepted Intent; they cannot introduce a new objective, method or experimental conclusion. Acceptance/evidence requirement IDs must resolve; local IDs are unique.
+Requirement statements contain `id`, `text`, `origin` (`user`, `system_default`, `derived`) and source references. Local IDs are unique. Acceptance/evidence/metric requirement IDs resolve. Derived requirements follow accepted meaning; they cannot introduce a new objective or chosen scientific solution.
 
-**Deterministic checks:** exact schema/version, reference/type/scope checks, ID coverage, defaults with authority, expected outputs and supported limits. **Semantic checks:** preservation of accepted Intent, coherent mandatory/preference split, no unsupported widening, deliverables/acceptance/evidence completeness and usable planning obligations. Blocking unresolved items prevent acceptance even when the JSON validates.
+Quantitative constraints preserve the stated value, unit and comparison (`lt/le/eq/ge/gt`), plus compiler/run/scientific-execution scope. Categorical equality preserves a named value, such as `single_gpu`. Qualitative restrictions use null normalized value/unit and `qualitative`; no fake numeric bound. Unsupported mandatory enforcement blocks the affected work; a compiler does not grant tools/permissions or claim enforcement. Effective enforcement belongs to trusted binding/observations.
 
-Planner/static binder maps every mandatory requirement and deliverable to compatible work/output contracts. The protected binder adds all required checking/effect limits; a planner cannot waive them. Requirements is not a final experimental protocol. Hypothesis supplies measurement definitions, success/falsification and any pre-registered conditional classification before code or empirical execution.
+Metric comparison records use `comparator`, `reference` (`baseline` or `constant`) and `value`: baseline-relative thresholds are factors, constants are absolute thresholds in the stated unit. A qualitative target has null comparison, never an invented percentage. This expresses user intent, not a registered empirical measurement procedure. Missing optional metrics may remain absent.
+
+Protected default policy supplies conservative missing parameters, currently `single_gpu` for omitted hardware. Each actual default needs policy evidence, a `system_default` field and an assumption pointing at an existing field. It does not prove hardware availability. Repetition/protocol defaults belong to Hypothesis unless explicitly requested. Defaults cannot supply unknown purpose or resolve conflicting mandatory instructions silently.
+
+**Producer → deterministic checks → semantic verification:** supply attributable complete obligations; mechanically establish schema/version, IDs, source/input relationships, normalized limits and authorized-default links; independently establish preservation, coherence, permitted defaults, deliverable/evidence completeness and downstream usability. Blocking unresolved items prevent acceptance even when JSON validates. Node finalization releases the Brief only after both work boundaries and aggregate obligations pass.
 
 ## Unsupported confident interpretation
 

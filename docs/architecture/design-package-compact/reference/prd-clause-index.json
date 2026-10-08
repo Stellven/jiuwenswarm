@@ -1,0 +1,757 @@
+{
+  "source_sha256": "10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc",
+  "clauses": [
+    {
+      "number": "1.1",
+      "title": "Product Overview"
+    },
+    {
+      "number": "1.2",
+      "title": "M1 Product Goal"
+    },
+    {
+      "number": "1.3",
+      "title": "M1 Delivery Phase Model"
+    },
+    {
+      "number": "1.4",
+      "title": "Core Product Invariants"
+    },
+    {
+      "number": "1.5",
+      "title": "M1 Definition of Done"
+    },
+    {
+      "number": "1.6",
+      "title": "PRD and Architecture Ownership Boundary"
+    },
+    {
+      "number": "1.7",
+      "title": "Requirement Authority & Conflict Resolution"
+    },
+    {
+      "number": "1.8",
+      "title": "M1 Scope Label Convention"
+    },
+    {
+      "number": "1.9",
+      "title": "M1 Feature Freeze & Delivery Target"
+    },
+    {
+      "number": "1.10",
+      "title": "M1 Incremental Change & Canonical Documentation Control"
+    },
+    {
+      "number": "1.11",
+      "title": "M1 User Story Traceability"
+    },
+    {
+      "number": "2.1",
+      "title": "Purpose"
+    },
+    {
+      "number": "2.2",
+      "title": "M1 Domain Boundary"
+    },
+    {
+      "number": "2.3",
+      "title": "User and Deployment Boundary"
+    },
+    {
+      "number": "2.4",
+      "title": "Input and External Evidence Policy"
+    },
+    {
+      "number": "2.5",
+      "title": "Scientific Integrity Policy"
+    },
+    {
+      "number": "2.6",
+      "title": "Capability and Agent Boundary"
+    },
+    {
+      "number": "2.7",
+      "title": "Workflow Autonomy Boundary"
+    },
+    {
+      "number": "2.8",
+      "title": "Evaluation and Evidence Policy"
+    },
+    {
+      "number": "2.9",
+      "title": "Execution and Security Boundary"
+    },
+    {
+      "number": "2.10",
+      "title": "Data and Traceability Boundary"
+    },
+    {
+      "number": "2.11",
+      "title": "RSI Boundary"
+    },
+    {
+      "number": "2.12",
+      "title": "M1 Global Non-Goals"
+    },
+    {
+      "number": "3.0",
+      "title": "Codex CLI Integration (Priority Unblocker)"
+    },
+    {
+      "number": "3.0.1",
+      "title": "Existing Implementation Verification & Refactor"
+    },
+    {
+      "number": "3.0.2",
+      "title": "Abstraction for \"Endpoint of Last Resort\""
+    },
+    {
+      "number": "3.1",
+      "title": "Ingestion"
+    },
+    {
+      "number": "3.1.1",
+      "title": "Request Capture & Channel Signal Intake"
+    },
+    {
+      "number": "3.1.2",
+      "title": "User-Supplied Material & Execution Asset Import"
+    },
+    {
+      "number": "3.1.3",
+      "title": "Intake Context Binding"
+    },
+    {
+      "number": "3.1.4",
+      "title": "Real-Time Deduplication & Provenance Registration"
+    },
+    {
+      "number": "3.1.5",
+      "title": "Intake Qualification"
+    },
+    {
+      "number": "3.2",
+      "title": "Requirement Compilation"
+    },
+    {
+      "number": "3.2.1",
+      "title": "Intent Interpretation"
+    },
+    {
+      "number": "3.2.2",
+      "title": "Context Scoping"
+    },
+    {
+      "number": "3.2.3",
+      "title": "Ambiguity Resolution"
+    },
+    {
+      "number": "3.2.4",
+      "title": "Constraint Resolution"
+    },
+    {
+      "number": "3.2.5",
+      "title": "Requirement Prioritization"
+    },
+    {
+      "number": "3.2.6",
+      "title": "Acceptance Definition"
+    },
+    {
+      "number": "3.2.7",
+      "title": "Requirement Contract Confirmation"
+    },
+    {
+      "number": "3.3",
+      "title": "Search & Ideation"
+    },
+    {
+      "number": "3.3.1",
+      "title": "Search Strategy Formation"
+    },
+    {
+      "number": "3.3.2",
+      "title": "Multi-Source Signal Discovery (Hybrid Retrieval)"
+    },
+    {
+      "number": "3.3.3",
+      "title": "Source Qualification & Technical Signal Extraction"
+    },
+    {
+      "number": "3.3.4",
+      "title": "Signal Organization & Trend Analysis"
+    },
+    {
+      "number": "3.3.5",
+      "title": "Idea Generation"
+    },
+    {
+      "number": "3.3.6",
+      "title": "Search Coverage Review & Result Compilation"
+    },
+    {
+      "number": "3.4",
+      "title": "Idea Identification / Screening / Opportunity Selection"
+    },
+    {
+      "number": "3.4.1",
+      "title": "Candidate Consolidation"
+    },
+    {
+      "number": "3.4.2",
+      "title": "Idea Identification"
+    },
+    {
+      "number": "3.4.3",
+      "title": "Idea Card Formation"
+    },
+    {
+      "number": "3.4.4",
+      "title": "Opportunity Definition"
+    },
+    {
+      "number": "3.4.5",
+      "title": "Technical Opportunity Screening (Fixed-Rubric LLM Evaluation)"
+    },
+    {
+      "number": "3.4.6",
+      "title": "Strategic Opportunity Screening"
+    },
+    {
+      "number": "3.4.7",
+      "title": "Opportunity Portfolio Prioritization"
+    },
+    {
+      "number": "3.5",
+      "title": "Generate Technical Claims & Hypothesis"
+    },
+    {
+      "number": "3.5.1",
+      "title": "Research Question & Technical Claim Formation"
+    },
+    {
+      "number": "3.5.2",
+      "title": "Claim, Evidence, Data & Method Modeling (Benchmark Definition)"
+    },
+    {
+      "number": "3.5.3",
+      "title": "Hypothesis Pool & Mechanism Formation"
+    },
+    {
+      "number": "3.5.4",
+      "title": "Falsifiability Screening & Hypothesis Contracting (Anti-Overfitting Contract)"
+    },
+    {
+      "number": "3.5.5",
+      "title": "Verification-Ready POC Design"
+    },
+    {
+      "number": "3.6",
+      "title": "POC Implementation"
+    },
+    {
+      "number": "3.6.1",
+      "title": "POC Implementation Environment Preparation"
+    },
+    {
+      "number": "3.6.2",
+      "title": "POC Construction (Code Generation)"
+    },
+    {
+      "number": "3.6.3",
+      "title": "POC Component Integration & Configuration"
+    },
+    {
+      "number": "3.6.4",
+      "title": "POC Functional Readiness Validation"
+    },
+    {
+      "number": "3.6.5",
+      "title": "Testable POC Artifact Consolidation & Benchmark Handoff"
+    },
+    {
+      "number": "3.7",
+      "title": "Scientific Benchmarking (POC Execution)"
+    },
+    {
+      "number": "3.7.1",
+      "title": "Runtime Provisioning & Artifact Unpacking"
+    },
+    {
+      "number": "3.7.2",
+      "title": "Delta Execution (Baseline vs. Treatment)"
+    },
+    {
+      "number": "3.7.3",
+      "title": "Empirical Data Collection"
+    },
+    {
+      "number": "3.7.4",
+      "title": "Results Consolidation & Handoff"
+    },
+    {
+      "number": "3.8",
+      "title": "Scientific Evaluation"
+    },
+    {
+      "number": "3.8.1",
+      "title": "Evaluation Scope & Evidence Assembly"
+    },
+    {
+      "number": "3.8.2",
+      "title": "Evidence Completeness & Provenance Review"
+    },
+    {
+      "number": "3.8.3",
+      "title": "Experimental, Reasoning & External Validity Review"
+    },
+    {
+      "number": "3.8.4",
+      "title": "Claim & Acceptance-Criteria Comparison"
+    },
+    {
+      "number": "3.8.5",
+      "title": "Verdict, Blocker & Residual-Risk Classification"
+    },
+    {
+      "number": "3.8.6",
+      "title": "Refinement & Follow-Up Recording"
+    },
+    {
+      "number": "3.9",
+      "title": "Delivery (Report Generation)"
+    },
+    {
+      "number": "3.9.1",
+      "title": "Delivery Planning & Evidence Handoff"
+    },
+    {
+      "number": "3.9.2",
+      "title": "User-Facing Deliverable Generation"
+    },
+    {
+      "number": "3.9.3",
+      "title": "Deliverable, Reusable Asset & Knowledge Packaging"
+    },
+    {
+      "number": "3.9.4",
+      "title": "Authorized Distribution, Knowledge Transfer & Lifecycle Closure"
+    },
+    {
+      "number": "4.1",
+      "title": "Capability Capsules"
+    },
+    {
+      "number": "4.1.1",
+      "title": "Capability Declaration & Assembly"
+    },
+    {
+      "number": "4.1.2",
+      "title": "Governance, Admission, Versioning & Registry Management"
+    },
+    {
+      "number": "4.1.3",
+      "title": "Node Capability Binding & Runtime Contract Assembly"
+    },
+    {
+      "number": "4.1.4",
+      "title": "Invocation & Composition"
+    },
+    {
+      "number": "4.1.5",
+      "title": "Capability Evolution (RSI Boundaries)"
+    },
+    {
+      "number": "4.2",
+      "title": "Evaluator Gate & Verifier"
+    },
+    {
+      "number": "4.2.1",
+      "title": "Evaluation Evidence Envelope & Two-Tier Gate Execution"
+    },
+    {
+      "number": "4.2.2",
+      "title": "Contract, Schema & Artifact Conformance Evaluator"
+    },
+    {
+      "number": "4.2.3",
+      "title": "Engineering Correctness & Code Quality Evaluator"
+    },
+    {
+      "number": "4.2.4",
+      "title": "Performance, Cost & Benchmark Evaluator"
+    },
+    {
+      "number": "4.2.5",
+      "title": "Security, Privacy, Compliance & IP Evaluator"
+    },
+    {
+      "number": "4.2.6",
+      "title": "Evidence, Factuality & Scientific Validity Evaluator"
+    },
+    {
+      "number": "4.2.7",
+      "title": "Lifecycle, Parity & Human Review Evaluator"
+    },
+    {
+      "number": "4.2.8",
+      "title": "Verdict Aggregation & Orchestration Gate Policy"
+    },
+    {
+      "number": "4.2.9",
+      "title": "M1 Evaluator Acceptance & Failure-Injection Tests"
+    },
+    {
+      "number": "4.2.10",
+      "title": "Future State — Autonomous Multi-Faceted Evaluation via Auto Harness"
+    },
+    {
+      "number": "4.3",
+      "title": "Foundational Models & Routing"
+    },
+    {
+      "number": "4.3.1",
+      "title": "Model Capability Registry"
+    },
+    {
+      "number": "4.3.2",
+      "title": "Model Routing & Selection"
+    },
+    {
+      "number": "4.3.3",
+      "title": "Model Usage Auditing"
+    },
+    {
+      "number": "4.3.4",
+      "title": "AI Reviewer Agent (Routing Integration)"
+    },
+    {
+      "number": "4.4",
+      "title": "RSI (Recursive Self-Improvement) Integration"
+    },
+    {
+      "number": "4.4.1",
+      "title": "Text-Based Artifacts (GEPA / MIProV2 / TextGrad)"
+    },
+    {
+      "number": "4.4.2",
+      "title": "Runtime and Resource Routing (Bayesian Optimization / Bandits / Cost-Aware RL)"
+    },
+    {
+      "number": "4.4.3",
+      "title": "Capability Capsules and Physical Operators (Trajectory Mining / Code Evolution / CEGIS)"
+    },
+    {
+      "number": "4.4.4",
+      "title": "DAG and Agent Organization (AFlow / MCTS / ADAS)"
+    },
+    {
+      "number": "4.4.5",
+      "title": "Evaluator, Reward, Contract, and Governance"
+    },
+    {
+      "number": "4.4.6",
+      "title": "Memory, Retrieval, and Evidence (Memory Learning / Self-RAG / Reranker Training)"
+    },
+    {
+      "number": "4.4.7",
+      "title": "Model Policies and Weights (SFT / LoRA / DPO / GRPO / Agent RL)"
+    },
+    {
+      "number": "4.4.8",
+      "title": "Data, Benchmarks, Curriculum, and Observability (Active Learning / Hard-Case Mining / Credit Assignment)"
+    },
+    {
+      "number": "4.4.9",
+      "title": "Local-Isolated RSI Sandbox & Hidden-Evaluation Isolation"
+    },
+    {
+      "number": "4.4.10",
+      "title": "RSI Security Guardrails & Adversarial Validation"
+    },
+    {
+      "number": "4.5",
+      "title": "Data Foundations"
+    },
+    {
+      "number": "4.5.1",
+      "title": "Persistent Memory & Context Retrieval (Agent Memory)"
+    },
+    {
+      "number": "4.5.2",
+      "title": "TaskGraph Persistence & Run Bundles (System Memory)"
+    },
+    {
+      "number": "4.5.3",
+      "title": "Contract & Capability Conformance Observability"
+    },
+    {
+      "number": "4.5.4",
+      "title": "Sample Run Exports (Scaffolding for RSI Handoff)"
+    },
+    {
+      "number": "4.5.5",
+      "title": "Extended Graph Management (Future State Only)"
+    },
+    {
+      "number": "4.6",
+      "title": "Harness Core"
+    },
+    {
+      "number": "4.6.1",
+      "title": "Runtime Control Loop & Run Lifecycle Management"
+    },
+    {
+      "number": "4.6.2",
+      "title": "DAG Scheduler & Operator Binding"
+    },
+    {
+      "number": "4.6.3",
+      "title": "Main Loop Dispatch & Runtime Supervision"
+    },
+    {
+      "number": "4.6.4",
+      "title": "Failure Recovery & Resumability"
+    },
+    {
+      "number": "4.6.5",
+      "title": "Distributed Infrastructure & Concurrency (Future State Only)"
+    },
+    {
+      "number": "4.7",
+      "title": "Intention Compilers"
+    },
+    {
+      "number": "4.7.1",
+      "title": "Intent Classification & Compilation Variant Selection"
+    },
+    {
+      "number": "4.7.2",
+      "title": "Goal, Scope and Context Normalization"
+    },
+    {
+      "number": "4.7.3",
+      "title": "Ambiguity Resolution & Readiness"
+    },
+    {
+      "number": "4.7.4",
+      "title": "Constraint Compilation"
+    },
+    {
+      "number": "4.7.5",
+      "title": "Task Contract & Acceptance Compilation"
+    },
+    {
+      "number": "4.8",
+      "title": "Planner"
+    },
+    {
+      "number": "4.8.1",
+      "title": "Task Contract Decomposition"
+    },
+    {
+      "number": "4.8.2",
+      "title": "TaskGraph Construction"
+    },
+    {
+      "number": "4.8.3",
+      "title": "TaskGraph Validation & Feasibility Analysis"
+    },
+    {
+      "number": "4.9",
+      "title": "Builder"
+    },
+    {
+      "number": "4.9.1",
+      "title": "Build Contract Interpretation & Preparation (Sub-features 1 & 2)"
+    },
+    {
+      "number": "4.9.2",
+      "title": "Code & Experimental Asset Construction (Sub-features 3, 5, 6, & 7)"
+    },
+    {
+      "number": "4.9.3",
+      "title": "Analytical Deliverable Boundary"
+    },
+    {
+      "number": "4.9.4",
+      "title": "Prototype Assembly & Build Evidence Generation (Sub-features 9 & 12)"
+    },
+    {
+      "number": "4.9.5",
+      "title": "Excluded Capabilities & Advanced Lifecycle Features (Sub-features 4, 10, 11, & 14)"
+    },
+    {
+      "number": "5.1",
+      "title": "Visibility & Statistics (Telemetry)"
+    },
+    {
+      "number": "5.1.1",
+      "title": "Workflow & Platform Status Visibility"
+    },
+    {
+      "number": "5.1.2",
+      "title": "Execution Trace Search & Inspection"
+    },
+    {
+      "number": "5.1.3",
+      "title": "Resource Usage, Cost & Capacity Management"
+    },
+    {
+      "number": "5.1.4",
+      "title": "Runtime Status Visibility"
+    },
+    {
+      "number": "5.2",
+      "title": "Installer & CLI & Webapp"
+    },
+    {
+      "number": "5.2.1",
+      "title": "CLI Installation & Workstation Initialization (MacOS & Linux - Sub-features 3 & 4)"
+    },
+    {
+      "number": "5.2.2",
+      "title": "Web Application & Status Service (Sub-feature 5)"
+    },
+    {
+      "number": "5.2.3",
+      "title": "Native Desktop Applications (Windows & MacOS - Sub-features 1 & 2)"
+    },
+    {
+      "number": "5.3",
+      "title": "UI"
+    },
+    {
+      "number": "5.3.1",
+      "title": "Command-Line Interface (CLI)"
+    },
+    {
+      "number": "5.3.2",
+      "title": "Web Graphical User Interface (GUI)"
+    },
+    {
+      "number": "5.3.3",
+      "title": "Terminal User Interface (TUI)"
+    },
+    {
+      "number": "5.4",
+      "title": "Account Management & Local Security Controls"
+    },
+    {
+      "number": "5.4.1",
+      "title": "Account Registration & User Profile Management (Sub-features 1 & 3)"
+    },
+    {
+      "number": "5.4.2",
+      "title": "Authentication & Local Web Security (Sub-feature 2)"
+    },
+    {
+      "number": "5.4.3",
+      "title": "Runtime Sandboxing & Process Isolation (Security Boundary)"
+    },
+    {
+      "number": "5.4.4",
+      "title": "Privacy & Personal Data Controls (Sub-feature 4)"
+    },
+    {
+      "number": "5.5",
+      "title": "Message Channels"
+    },
+    {
+      "number": "5.5.1",
+      "title": "TMUX Session & Terminal Surface Management (Sub-feature 3)"
+    },
+    {
+      "number": "5.5.2",
+      "title": "External Messaging Integrations: WeChat & Discord (Sub-features 1 & 2)"
+    },
+    {
+      "number": "5.6",
+      "title": "System Configurations (`config.yaml`)"
+    },
+    {
+      "number": "5.6.1",
+      "title": "LLM Configuration (Sub-feature 1)"
+    },
+    {
+      "number": "5.6.2",
+      "title": "User Settings (Sub-feature 2)"
+    },
+    {
+      "number": "5.6.3",
+      "title": "Cost & Budget Settings (Sub-feature 3)"
+    },
+    {
+      "number": "5.6.4",
+      "title": "Cluster Settings (Sub-feature 4)"
+    },
+    {
+      "number": "5.6.5",
+      "title": "Development & Evaluation Run Configuration"
+    },
+    {
+      "number": "6.1",
+      "title": "Purpose"
+    },
+    {
+      "number": "6.2",
+      "title": "Implementation Principle"
+    },
+    {
+      "number": "6.2.1",
+      "title": "M1 Validation & Verification Governance"
+    },
+    {
+      "number": "6.2.2",
+      "title": "Incremental Change Implementation Protocol"
+    },
+    {
+      "number": "6.3",
+      "title": "Implementation Stage 0 — Runtime Unblocker & Local Configuration"
+    },
+    {
+      "number": "6.4",
+      "title": "Implementation Stage 1 — Core Governed Execution Backbone"
+    },
+    {
+      "number": "6.5",
+      "title": "Implementation Stage 2 — Intake, Requirement Contract & Static DAG"
+    },
+    {
+      "number": "6.6",
+      "title": "Implementation Stage 3 — Evidence-to-Hypothesis Research Path"
+    },
+    {
+      "number": "6.7",
+      "title": "Implementation Stage 4 — Builder & POC Assembly"
+    },
+    {
+      "number": "6.8",
+      "title": "Implementation Stage 5 — Benchmarking & Scientific Evaluation"
+    },
+    {
+      "number": "6.9",
+      "title": "Implementation Stage 6 — Delivery & End-to-End Research Run"
+    },
+    {
+      "number": "6.10",
+      "title": "Implementation Stage 7 — Operational Shell & Workstation Integration"
+    },
+    {
+      "number": "6.11",
+      "title": "Implementation Stage 8 — Local-Isolated RSI Integration"
+    },
+    {
+      "number": "6.12",
+      "title": "M1 Delivery Phase 3 — Dynamic System Integration"
+    },
+    {
+      "number": "6.13",
+      "title": "Architecture Handoff Boundary"
+    },
+    {
+      "number": "6.14",
+      "title": "M1 Implementation Completion & Core Demo Rule"
+    }
+  ]
+}

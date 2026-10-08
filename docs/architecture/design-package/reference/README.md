@@ -7,7 +7,7 @@
 | [Intent and Requirements](intent-and-requirements.md) | Distinct intermediates, required information, checking and consumer rules |
 | [Checking and gate records](checking.md) | Mechanical results, semantic verdicts and protected control decisions |
 | [CC fields](../capsule/declaration.md) | Current complete reusable declaration; supported execution styles and source reconciliation |
-| [Node Execution Contract](node-execution.md) | Exact protected bindings, authority, limits and dispatch identity |
+| [Node/subnode contracts](node-execution.md) | Enclosing field contract and critical protected subnode bindings, authority, limits and dispatch identity |
 | [Named field catalog](field-catalog.md) | Required field names/types and resolvable public contract IDs |
 | [Other major contracts](other-contracts.md) | Plan/node, research, manifests/runtime, model/client and RSI fields; no exhaustive schema library |
 | [Catalog](catalog.json) | Versioned schema identities, producer/consumer and examples |
@@ -27,7 +27,7 @@
 
 ## Current critical schemas
 
-The catalog contains CC declaration, Intent IR, Research Brief, deterministic check result, verifier assessment, gate decision and Node Execution Contract, plus shared definitions. Other major types have field contracts rather than exact machine schemas. This deliberately replaces the interrupted 60-contract draft. Internal algorithms, adapters, transport routes and classes remain implementation choices.
+The catalog contains CC declaration, Intent IR, Research Brief, deterministic check result, verifier assessment, gate decision and Subnode Execution Contract, plus shared definitions. Other major types have field contracts rather than exact machine schemas. This deliberately replaces the interrupted 60-contract draft. Internal algorithms, adapters, transport routes and classes remain implementation choices.
 
 The examples are synthetic teaching data, not observed runtime evidence. [Design review](../coverage.md) records actual downloaded ZIP observations separately. No historical schema, source maturity label or example grants executable support for future composition/RSI features.
 
@@ -37,3 +37,9 @@ October 7 design-integrity review clarifies field-contract requirements for oppo
 
 
 October 8 contract review adds the previously prose-only Node Execution Contract at version 1.0.0, complete bindings/examples and named field contracts. The six existing schema bodies remain unchanged. Newly standardized shared field representations are not asserted compatible with prior agent implementations. Native agreements must reconcile them; referenced example byte identities change and previous example evidence becomes stale. [Decision reasoning](../decision-review.md) records alternatives and consequences.
+
+## Field tables first
+
+Required information, meaning, consumer, ownership and failure behavior belong in concise tables. Exact schemas are reserved for critical cross-agent serialization and authority: Intent IR, Research Brief, declaration and execution/verification records. Do not generate a schema for every datatype. Implementation agents select private representations and types within the shared contract; changing consequential interchange requires one reconciled interface agreement.
+
+October 8 node/subnode revision: Research Brief and gate schemas are `2.0.0`; the old CC-sized node schema is replaced by the explicit Subnode Execution Contract `1.0.0`. The enclosing node is a field contract, not another large JSON schema. Other public fields are versioned individually. Earlier receipts above describe earlier inputs and do not claim compatibility with this revision.

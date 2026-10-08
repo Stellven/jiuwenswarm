@@ -3,11 +3,11 @@
   "id": "Hypothesis_Blueprint",
   "brief_ref": {
     "id": "Lifecycle_Research_Brief.json",
-    "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+    "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
   },
   "opportunity_ref": {
     "id": "Opportunity_Card.json",
-    "sha256": "29c960ac3abc31d38fd8b50df676881cd10611d8104e3b89c65db67f685391f7"
+    "sha256": "7226c32731eabd2f6ee65632f7598f65b2091e171e96d6eafec4090ab1ed1602"
   },
   "claim": "Indexing lowers retrieval latency by at least 10% with no answer-quality loss",
   "mechanism": "Avoid repeated lookup work",

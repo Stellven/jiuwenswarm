@@ -25,13 +25,35 @@
         "required": true,
         "description": "Exact qualified request and permitted context",
         "check_ids": []
+      },
+      {
+        "name": "intake",
+        "schema_ref": "qualified-intake:field-contract:2",
+        "required": true,
+        "artifact_type": "intake",
+        "description": "Accepted qualified context or protected default policy for Requirements",
+        "check_ids": [
+          "exact_identity",
+          "structure"
+        ]
+      },
+      {
+        "name": "defaults",
+        "schema_ref": "default-policy:field-contract:1",
+        "required": true,
+        "artifact_type": "defaults",
+        "description": "Accepted qualified context or protected default policy for Requirements",
+        "check_ids": [
+          "exact_identity",
+          "structure"
+        ]
       }
     ],
     "outputs": [
       {
         "name": "brief",
         "artifact_type": "research-brief",
-        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
         "required": true,
         "description": "Attributed interpretation, not Requirements",
         "check_ids": [

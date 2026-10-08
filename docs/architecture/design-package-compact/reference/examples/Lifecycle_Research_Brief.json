@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "intent_ref": {
     "id": "Intent_IR.json",
     "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
@@ -65,7 +65,11 @@
           "id": "Intent_IR.json",
           "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
         }
-      ]
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": 1,
+      "unit": "gpu",
+      "operator": "le"
     }
   ],
   "target_metrics": [
@@ -78,7 +82,13 @@
           "id": "Intent_IR.json",
           "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
         }
-      ]
+      ],
+      "origin": "user",
+      "requirement_ids": [
+        "requirement:quality"
+      ],
+      "unit": null,
+      "comparison": null
     }
   ],
   "deliverables": [
@@ -109,19 +119,7 @@
       "description": "Registered protocol, raw execution evidence and baseline/treatment values"
     }
   ],
-  "assumptions": [
-    {
-      "id": "assumption:repeat",
-      "text": "Use three repetitions under the illustrative permitted default policy",
-      "authority_ref": {
-        "id": "Default_Policy.json",
-        "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
-      },
-      "affected_fields": [
-        "future_protocol.repeat_count"
-      ]
-    }
-  ],
+  "assumptions": [],
   "unresolved_items": [],
   "resource_refs": [
     {
@@ -142,8 +140,32 @@
       },
       {
         "id": "Default_Policy.json",
-        "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+        "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
       }
     ]
-  }
+  },
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+  },
+  "context_refs": [],
+  "domain_lane": "scientific_research",
+  "input_bindings": [
+    {
+      "id": "input:Baseline_Resource.json",
+      "role": "project_asset",
+      "resource_ref": {
+        "id": "Baseline_Resource.json",
+        "sha256": "2b6d4163b9d6691c52d3efeaf1efef14eac069b363d20816038d350f3bceb0fb"
+      }
+    },
+    {
+      "id": "input:Validation_Resource.json",
+      "role": "validation_data",
+      "resource_ref": {
+        "id": "Validation_Resource.json",
+        "sha256": "1d62ec86c4ed555a9d15caa8e886d8bdce2971c6c9f87a2cb184682baddc4406"
+      }
+    }
+  ]
 }

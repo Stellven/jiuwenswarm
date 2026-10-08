@@ -116,12 +116,12 @@ These are review questions about selected decisions, not unresolved behavior or 
 
 ## R9 — Resolve the independent review within M1 scope
 
-**Decision:** use named PlanInput/PlanOutput fields for concrete accepted inputs or future predecessor ports. M1 uses one work CC per execution node; additional work CCs occupy separate gated nodes. Verifiers remain protected checking assignments. Composite creation/execution, internal member graphs, fusion and merging remain later work.
+**Decision:** use named PlanInput/PlanOutput fields for concrete accepted inputs or future predecessor ports. M1 uses one work CC per execution subnode; additional work CCs occupy separate gated subnodes within their declared node. Verifiers remain protected checking assignments. Composite creation/execution, arbitrary capsule member graphs, fusion and merging remain later work.
 
 | Alternative | Benefit | Cost / disposition |
 |---|---|---|
 | Infer planning ports from unnamed contract inventories | Smaller fields | Cannot represent concrete inputs or resolve future named ports; rejected |
-| Named planning ports and one work CC per node — selected | Compatible boundaries; directly uses existing checks/gates | More external nodes for additional work; PRD's broader permitted sets unused |
+| Named planning ports and one work CC per subnode — selected | Compatible boundaries; directly uses existing checks/gates | More external nodes for additional work; PRD's broader permitted sets unused |
 | Internal multi-CC member graph/release contracts | Expresses intra-node composition | Adds deferred composition machinery; rejected for M1 after user scope clarification |
 
 The PRD §§4.1.3–4.1.4 permits one or more admitted CCs per node. This is a bounded realization of the permitted single-CC option, not removal of product obligations or a claim that a new exception was needed. Private helpers remain within the owning CC. The independent review's member-wiring gap is resolved by explicit deferral, not implementation of member graphs.
@@ -143,3 +143,22 @@ Pre-implementation format version remains 1.0.0. The unused experimental revisio
 This pre-implementation schema clarification preserves version 1.0.0 and the declared budget dimensions; it is not asserted compatible with already generated implementations. Native agreements must reconcile it. A schema can recognize future composite metadata while current admission/binding rejects its execution. The renamed full and compact folders share all current authoritative reference content; frozen historical comparison inputs are unchanged.
 
 **Authority clarification authorized by the user:** the PRD defines requirements as a whole; design interprets them and controls implementation-facing details. Prefer design for implementation conflicts. This does not silently waive product obligations: D5/D6 and any later product departure remain explicit authorized decisions. Both package READMEs state the rule before the reading route.
+
+## R11 — Complete compiler node, subnode vocabulary and Brief compatibility
+
+**User-authorized revision:** Intention Compiler is the whole PRD node; its Intention and Requirements work plus checking/gates cooperate inside it. Success reaches Research_Brief.json. Earlier one-work-CC “nodes” are now subnodes. M1 still defers composite/merged CC creation and arbitrary composition; predefined node structure is allowed.
+
+| Choice | Advantages | Costs / disposition |
+|---|---|---|
+| Keep Intent-only entrypoint | Smaller build | Repeats the observed missing-Brief failure; rejected as current assignment |
+| Whole node with explicit foundations — selected | Matches PRD output and makes required infrastructure discoverable | Larger bounded build; does not claim full Stage 2/M1 completion |
+| Only rename diagrams | Small diff | Leaves competing runtime scope and acceptance contracts; rejected |
+| Versioned node/subnode scope — selected | Parent obligations and one-CC permissions remain distinct | Breaks earlier generated interfaces; affected evidence requires reconciliation |
+| Exact schema for every type | Maximum serialization detail | Adds bloat/private implementation prescription; rejected |
+| Field charts, selected critical schemas — selected | Shared meaning and consumers stay precise; agents choose private realization | Requires compatibility checks at implemented public boundaries |
+
+D5 now permits a fixed bounded sequence rather than requiring exactly one generative pass. The selected baseline retains separate Intention/Requirements generations and their independently assigned verifiers; combined budgets are frozen. This is explicitly different from literal §§3.2.1/4.7 one-pass wording. No automatic retry, autonomous clarification or dynamic workflow selection follows from it.
+
+Research Brief 2.0 adds qualified-intake/context/input bindings, fixed research lane and attributed normalized constraints/targets. Protocol defaults remain in Hypothesis. Gate 2.0 names node/subnode scope and permits no-output halt evidence. Subnode Execution Contract 1.0 replaces the old CC-sized Node Execution Contract 1.0; the enclosing node uses a 2.0 field chart. Exact JSON remains limited to critical shared boundaries. Versions are per contract; no implicit compatibility or migration is claimed.
+
+**Review questions:** Does the Brief preserve every product obligation without selecting the scientific solution? Can a faithful but unusable IR block before Requirements? Can a component implementer locate all required foundations and prove Brief release? Does final node acceptance aggregate evidence without giving CCs release authority?

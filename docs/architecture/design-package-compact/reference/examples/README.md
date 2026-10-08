@@ -4,9 +4,9 @@ Every record here is teaching data. None establishes actual execution, scientifi
 
 ## Intent and Requirements
 
-Start with `Request.txt`, `Qualified_Intake.json`, `Intent_IR.json` and `Research_Brief.json`. The Brief preserves accepted intent and attributed repeat defaults; it omits resource availability only for this compilation illustration. `Intent_Topic_Only.json` is structurally valid but unusable and halts. `Intent_Contradictory.json` preserves contradictory constraints requiring clarification. Descriptive files and `Topic_Inspection.md` illustrate readable inspection.
+Start with `Request.txt`, `Qualified_Intake.json`, `Intent_IR.json` and `Research_Brief.json`. The Brief preserves accepted intent and attributed compilation defaults; it omits resource availability only for this compilation illustration. `Intent_Topic_Only.json` is structurally valid but unusable and halts. `Intent_Contradictory.json` preserves contradictory constraints requiring clarification. Descriptive files and `Topic_Inspection.md` illustrate readable inspection.
 
-Each of the four `*Node_Contract.json` records now includes concrete bindings, authority, budgets, typed ports, guard/policy/configuration/template refs and evidence obligations. Bound plans, observations, contexts, checks, assessments and gates show separate responsibilities. `observed_runtime: false` and null telemetry prevent illustrative observations from claiming measured execution.
+The Intention, Requirements, topic-only and scientific work `*_Subnode_Contract.json` records now includes concrete bindings, authority, budgets, typed ports, guard/policy/configuration/template refs and evidence obligations. Bound plans, observations, contexts, checks, assessments and gates show separate responsibilities. `observed_runtime: false` and null telemetry prevent illustrative observations from claiming measured execution.
 
 ## Linked research path
 
@@ -24,4 +24,10 @@ The reference validator checks selected structural and relational invariants, in
 
 ## Named planning connections
 
-`Planning_Nodes.json` shows concrete accepted Brief inputs and a future candidate-output connection between separate Search & Ideation and Screening nodes. Each node has one work CC and its own protected gate. Declarations and pins are synthetic examples, not admission or observed execution.
+`Planning_Nodes.json` shows concrete accepted Brief inputs and a future candidate-output connection between separate Search & Ideation and Screening nodes. Each node explicitly assigns internal CC subnodes and protected gates. Declarations and pins are synthetic examples, not admission or observed execution.
+
+## Complete compiler and defaults
+
+`Intention_Node_Contract.json` contains Intention/Requirements work plus separately governed verifier assignments. `Intention_Subnode_Contract.json` and `Requirements_Subnode_Contract.json` bind concrete work. `Gate_Decision.json` accepts intermediate Intent; `Gate_Requirements_Pass.json` accepts the Brief; `Gate_Intention_Compiler_Pass.json` aggregates node acceptance. No synthetic observation establishes measured execution.
+
+`Intent_Permissible_Omissions.json` and `Research_Brief_Defaults.json` illustrate usable purpose/result with missing hardware: only authorized `single_gpu` is applied, attributed to actual `/constraints/0`, with no invented empirical target. Protocol repetition remains in the later Blueprint. `Compiler_Failure_Receipt.json`, `Compiler_No_Output_Checks.json` and `Gate_Compiler_No_Output.json` show a halt without fabricated output references.

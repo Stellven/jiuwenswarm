@@ -6,16 +6,20 @@
 
 **Required now.** Ordinary intake binds the original request and permitted documents, project assets, and validation data to a run. Reject empty or unreadable required input. Do not fetch undeclared datasets, clone arbitrary repositories, or turn missing evidence into observed facts.
 
-D5 separates Intent and Requirement compilation, with independent verification at each boundary. The Delivery Phase 1 product entry remains bounded and non-interactive: one orchestration request produces the complete Brief without autonomous solution design. This intentionally permits two bounded compiler invocations rather than the PRD literal one-generation fallback; their combined time/call limits are frozen. Intent Compilation and Verification Slice (formerly TRIAL-1) exercises only the first. The accepted Research Brief states objectives, scope, constraints, deliverables, and evidence obligations. Preserve ambiguity; a material unresolved requirement blocks readiness. The [Intent/Requirements field contract](reference/intent-and-requirements.md) fixes shared information; protected default policy supplies only authorized missing parameters. A topic with no workable purpose/result halts rather than receiving invented intent. These fixed verification assignments cannot be removed by the planner.
+D5 separates Intent and Requirement compilation, with independent verification at each boundary. The Delivery Phase 1 product entry remains bounded and non-interactive: one orchestration request produces the complete Brief without autonomous solution design. This intentionally permits two bounded compiler invocations rather than necessarily the PRD literal one-generation fallback; their combined time/call limits are frozen. The earlier complete Intention Compiler node exercised only the first; the current complete compiler build must reach accepted Brief. The accepted Research Brief states objectives, scope, constraints, deliverables, and evidence obligations. Preserve ambiguity; a material unresolved requirement blocks readiness. The [Intent/Requirements field contract](reference/intent-and-requirements.md) fixes shared information; protected default policy supplies only authorized missing parameters. A topic with no workable purpose/result halts rather than receiving invented intent. These fixed verification assignments cannot be removed by the planner.
 
 ```mermaid
 flowchart TB
-    Intake[Intake] --> Intent[Intent compiler CC]
-    Intent --> IV[Intent Evaluator Gate]
-    IV --> Req[Requirement compiler CC]
-    Req --> RV[Requirement Evaluator Gate]
-    RV -->|Delivery Phase 1 fixed template| Bind[Protected binder and guard assignment]
-    RV -->|Delivery Phase 3| Plan[Bounded planner CC]
+    Intake[Intake] --> Intent
+    subgraph Compiler[Intention Compiler node]
+        Intent[Intention work subnode]
+    Intent --> IV[Intent checks, verifier subnode and protected gate]
+    IV --> Req[Requirements work subnode]
+    Req --> RV[Requirements checks, verifier subnode and protected gate]
+    RV --> NG[Protected node finalization]
+    end
+    NG -->|Delivery Phase 1 fixed template| Bind[Protected binder and guard assignment]
+    NG -->|Delivery Phase 3| Plan[Bounded planner CC]
     Plan --> Bind
     Bind --> PV[Plan Evaluator Gate]
     PV --> Freeze[Freeze accepted graph]
@@ -29,12 +33,12 @@ flowchart TB
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
     class Intent,Req,Plan,Run work
     class IV,RV,PV verify
-    class Intake,Bind,Freeze,Out control
+    class Intake,Bind,Freeze,Out,NG control
 ```
 
 Verification boxes include deterministic checks, a separate verifier invocation, and protected gate application, as specified in [capsules](capsules.md). A clarification or blocking result is recorded through the control plane; headless evaluation returns a blocking status without waiting for interactive input.
 
-Preparation is a protected fixed sequence established by the run-state module before the research graph exists. It gives Intent, Requirements, Planner and their runtime verifier CC invocations distinct node/attempt identities, admitted pins, input references, policy and budgets. The same runner and release boundary apply; a pre-freeze invocation is not permission to execute a proposed graph. Freeze authorizes only the later research DAG. This prevents a circular dependency in which the planner would need its own finished graph before it could run.
+Preparation is a protected fixed sequence established by the run-state module before the research graph exists. It gives each enclosing preparation node and its work/verifier subnodes distinct node/subnode/attempt identities, admitted pins, input references, policy and budgets. The same runner and release boundary apply; a pre-freeze invocation is not permission to execute a proposed graph. Freeze authorizes only the later research DAG. This prevents a circular dependency in which the planner would need its own finished graph before it could run.
 
 The [guard design](guard-design.md) defines shared profile resolution for fixed preparation and planned work. The protected binder remains present in both phases; a planner supplies a proposal, never a replacement for binding or independent guard assignment. Preparation templates are bound and checked before dispatch just as later contract templates are; research graph freeze is the later aggregate authorization.
 
@@ -52,7 +56,7 @@ This is the best candidate found within a declared search budget, not globally o
 
 ## Freeze and unknown future values
 
-**Required now.** Freeze the accepted topology, exact CC and dependency versions, verification profiles, policy, limits, and input references before planned execution. Store Node Execution Contract templates and hashes at freeze; instantiate concrete future-input references against that captured snapshot as predecessor results become accepted. Record the final contract identity before dispatch. No active-library change can alter an existing run, and no post-start contract edit is permitted. Future producer outputs are typed references, not already-known values. Freeze does not claim that a hypothesis or measurement exists before its producer runs.
+**Required now.** Freeze the accepted topology, exact CC and dependency versions, verification profiles, policy, limits, and input references before planned execution. Store Node/subnode contract templates and hashes at freeze; instantiate concrete future-input references against that captured snapshot as predecessor results become accepted. Record the final contract identity before dispatch. No active-library change can alter an existing run, and no post-start contract edit is permitted. Future producer outputs are typed references, not already-known values. Freeze does not claim that a hypothesis or measurement exists before its producer runs.
 
 Choose capabilities whose declared input range covers the supported M1 research domain. Use one opportunity and one hypothesis path. The Hypothesis CC establishes and freezes the baseline, validation resource, measurement definitions, success/falsification boundaries, and protocol before POC generation or empirical execution. Downstream work may apply that protocol but cannot edit it after seeing results.
 
@@ -60,7 +64,7 @@ Evaluate preconditions with the same semantics at planning and dispatch. Known f
 
 ## Tasks, nodes, and verification
 
-**Required now.** A task groups objectives; a node is a governed objective instance, not a CC call. Protected runtime assembly creates its Node Execution Contract from accepted requirements, fixed or approved planned bindings, admission metadata and policy. It binds input/output meaning, acceptance/proof obligations, resource/effect limits and exact CC versions. M1 binds one work CC per node; additional work CCs use separate gated nodes. Verifier calls are separately governed checking assignments. The PRD permits broader capability sets, but internal member graphs and composite/merged CCs remain later work. Required invocation checks remain, and node-level aggregate verification authorizes successor nodes.
+**Required now.** A task groups objectives; a node is a governed objective instance, not a CC call. Protected runtime assembly creates its Node Execution Contract from accepted requirements, fixed or approved planned bindings, admission metadata and policy. It binds input/output meaning, acceptance/proof obligations, resource/effect limits and exact CC versions. M1 binds one work CC per subnode; additional work CCs use separate gated subnodes within their declared node. Verifier calls are separately governed checking assignments. The PRD permits broader capability sets, but arbitrary capsule member graphs and composite/merged CCs remain later work. Required invocation checks remain, and node-level aggregate verification authorizes successor nodes.
 
 ```mermaid
 flowchart TB
@@ -99,7 +103,7 @@ flowchart TB
     class H,O data
 ```
 
-Build and measurement show their deterministic checks explicitly; combined scientific-output and Delivery Evaluator Gate boxes include deterministic checks, read-only assessment and protected decisions. Dependency arrows mean runner-mediated transfer of accepted artifacts, not direct calls that bypass gates. A verifier assessment is a separately recorded runner assignment or explicit verification node; neither is the downstream work Node B. All participating invocation evidence is aggregated against the node contract. Only committed node acceptance releases successor nodes. Verifiers do not recursively require semantic verifiers.
+Build and measurement show their deterministic checks explicitly; combined scientific-output and Delivery Evaluator Gate boxes include deterministic checks, read-only assessment and protected decisions. Dependency arrows mean runner-mediated transfer of accepted artifacts, not direct calls that bypass gates. A verifier assessment comes from a separately governed verifier subnode; neither is the downstream work Node B. All participating invocation evidence is aggregated against the node contract. Only committed node acceptance releases successor nodes. Verifiers do not recursively require semantic verifiers.
 
 ## Scheduling and failure
 
@@ -116,4 +120,4 @@ Scientific rejection or inconclusive measurement is different from infrastructur
 
 ## Concrete execution boundary
 
-Protected binding creates the exact [Node Execution Contract](reference/node-execution.md) before dispatch. Participating bindings name admitted declaration/body/dependency pins, role, effective authority and per-call limits; node limits bound their aggregate. Inputs carry named typed ports and exact refs, outputs name catalog contracts/versions and evidence obligations. The guard profile is pinned in the contract; the bound check plan references that finalized contract without a hash cycle. Missing input or unsupported authority blocks dispatch, never becomes a placeholder observed artifact.
+Protected binding creates the enclosing node contract and exact [Subnode Execution Contract](reference/node-execution.md) before dispatch. Participating bindings name admitted declaration/body/dependency pins, role, effective authority and per-call limits; parent node limits bound their aggregate; subnode limits narrow each assignment. Inputs carry named typed ports and exact refs, outputs name catalog contracts/versions and evidence obligations. The guard profile is pinned in the contract; the bound check plan references that finalized contract without a hash cycle. Missing input or unsupported authority blocks dispatch, never becomes a placeholder observed artifact.

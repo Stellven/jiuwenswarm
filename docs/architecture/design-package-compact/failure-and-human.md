@@ -7,7 +7,7 @@
 | Event | Autonomous behavior | Human callback |
 |---|---|---|
 | Empty/unreadable intake; unsupported domain or mandatory input | Reject before work dispatch, retain rejection reason | Show actionable input correction at the submitting surface. It does not start a semantic clarification dialogue. |
-| Material intent/requirement ambiguity or conflicting constraints in Intent Compilation and Verification Slice (formerly TRIAL-1)/Delivery Phase 1, or after Delivery Phase 3 clarification is exhausted | Evaluator Gate records a non-advancing result; halt | Ask the user to correct the source objective or supply the missing permitted input. New submission creates a new run. |
+| Material intent/requirement ambiguity or conflicting constraints in complete Intention Compiler node/Delivery Phase 1, or after Delivery Phase 3 clarification is exhausted | Evaluator Gate records a non-advancing result; halt | Ask the user to correct the source objective or supply the missing permitted input. New submission creates a new run. |
 | Work execution fault, invalid artifact, mandatory semantic failure | Record `FAIL`, stop new dispatch | Triage request with failed obligation, exact subject, available evidence and permitted next action. |
 | Unauthenticated/unavailable model, missing dataset/dependency, timeout preventing valid evaluation | Record `ENVIRONMENT_BLOCKED` where dependency failure prevents a valid judgment; halt | Request the specific environment repair. A demonstrated implementation defect remains `FAIL`; uncertainty stays explicit. |
 | Insufficient evidence or unresolved verifier judgment | Record `INCONCLUSIVE`, halt | Request inspection/additional evidence. Human opinion alone cannot satisfy a mechanically or scientifically required observation. |
@@ -21,9 +21,9 @@
 
 | Mode | Delivery of a blocking callback | Waiting and replies |
 |---|---|---|
-| Web / Intent Compilation and Verification Slice | Existing run status and native interaction surface, with reason and evidence references | Server releases execution resources after halt. An unattended request remains durable and visible when the user reconnects. No detached terminal is spawned. |
+| Web / Intention Compiler | Existing run status and native interaction surface, with reason and evidence references | Server releases execution resources after halt. An unattended request remains durable and visible when the user reconnects. No detached terminal is spawned. |
 | Interactive CLI/TUI / full M1 | Native `human_session` triage through the current authenticated session | The interaction may wait for inspection/acknowledgment, but the research run is already halted. Disconnecting or dismissing does not resume it. |
-| Headless development/evaluation / Intent Compilation and Verification Slice and full M1 | Stable machine-readable non-success, detailed verdict/reason, `run_id` and bundle reference when available | Never invoke an input prompt or wait on `human_session`. Record human action needed for later inspection; benchmarker continues its campaign policy. |
+| Headless development/evaluation / Intention Compiler and full M1 | Stable machine-readable non-success, detailed verdict/reason, `run_id` and bundle reference when available | Never invoke an input prompt or wait on `human_session`. Record human action needed for later inspection; benchmarker continues its campaign policy. |
 
 ## What a human may do
 

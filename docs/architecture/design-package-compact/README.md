@@ -1,6 +1,6 @@
 # AI4Research M1: compact design input
 
-**Compact design package, full M1 scope.** The [verbatim PRD](sources/product/prd-m1-current-2026-10-07.txt) defines product obligations. This architecture defines components, contracts and authority. It is independently readable; consult only the assigned input during a paired trial. The full design-package owns architectural changes; this matched version compresses explanations and preserves authoritative contracts.
+**Compact design package, full M1 scope.** The separately supplied PRD defines product obligations; its [source receipt](sources/product/README.md) identifies the reviewed input. This architecture defines components, contracts and authority. It is independently readable; consult only the assigned input during a paired trial. The full design-package owns architectural changes; this matched version compresses explanations and preserves authoritative contracts.
 
 **PRD and design authority:** The PRD owns overall requirements and required outcomes. Design interprets the PRD and owns architecture and implementation-facing details that achieve those outcomes. If implementation guidance conflicts, follow the current design. Product obligations remain binding; a conflict that changes an obligation needs an explicitly recorded authorized decision.
 
@@ -11,6 +11,12 @@ Read this README → [system](m1-design.md) → [principles](principles.md). Thi
 ## For design authors and human reviewers
 
 [Design method](design-method.md) defines architectural depth, tiered review and change propagation. [Decision review](decision-review.md) preserves identical decisions, source exceptions and pros/cons. Documentation checks do not mean human approval or runtime success.
+
+**PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
+
+## Build a specific component
+
+For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. Success reaches accepted `Research_Brief.json`; accepted Intent IR alone is incomplete.
 
 ## Human should read: review the affected responsibility
 
@@ -40,7 +46,7 @@ AI4Research turns a supplied research purpose/resources into grounded opportunit
 ```mermaid
 flowchart TB
     User[Browser or supported local client] --> Control[Authenticated control plane]
-    Control --> Prep[Intent and Requirements through governed runner]
+    Control --> Prep[Intention Compiler node: verified Intent and Research Brief]
     Prep --> Plan[Static binding or bounded Phase 3 planning]
     Plan --> Freeze[Protected plan checking and freeze]
     Freeze --> Runner[Scheduler and governed CC runner]
@@ -80,7 +86,7 @@ Preparation and planning use the same checking pattern. The release edge is depe
 
 One app image bundles frontend/service/runtime. Entrypoint starts the product; browser uses host-loopback `http://127.0.0.1:5173` through `127.0.0.1:5173:5173`. Private sidecar clients use service DNS, compatibility/readiness handshake and scoped authentication, outside M1 prerequisites. Model IPC, persistent account/state/evidence and restricted scientific execution have distinct authority/access. Restart pauses without replay; browser disconnect does not cancel.
 
-Full M1 covers baseline research/workstation, required isolated RSI and every applicable bounded integration effort. The first build ends at accepted Intent or visible halt; it does not establish completed research or M1. Future remote workers, fusion and recursive improvement remain context, not implemented scope.
+Full M1 covers baseline research/workstation, required isolated RSI and every applicable bounded integration effort. The current build produces an accepted Research Brief or visible halt, including compiler foundations; it does not complete downstream research or M1. Future remote workers, fusion and recursive improvement remain context, not implemented scope.
 
 ## Review and evidence
 

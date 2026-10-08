@@ -16,7 +16,7 @@ Required fields: `schema_version`, exact `subject_ref`, `review_context_ref`, `v
 
 Assessment verdicts use the PRD outcome vocabulary: `PASS`, `PASS_WITH_KNOWN_LIMITATIONS`, `FAIL`, `ENVIRONMENT_BLOCKED`, `INCONCLUSIVE`. They are checking data, not control actions. Mandatory failure or unresolved uncertainty cannot accompany an advancing assessment. Known limitations can advance only when no mandatory obligation is unsatisfied. Missing required evidence means unavailable/inconclusive, not inferred success.
 
-The protected review context binds subject, original/accepted inputs, node contract, CC/dependency pins, assigned criteria/profile, policy, deterministic results, observations and allowed evidence audience. Producer narratives are untrusted diagnostics. The verifier does not obtain hidden RSI data or mutate outputs. For Intent it evaluates the submitted IR's usefulness and fidelity, not a second independently authored response to the prompt.
+The protected review context binds subject, original/accepted inputs, owning node and subject subnode contracts, CC/dependency pins, assigned criteria/profile, policy, deterministic results, observations and allowed evidence audience. Producer narratives are untrusted diagnostics. The verifier does not obtain hidden RSI data or mutate outputs. For Intent it evaluates the submitted IR's usefulness and fidelity, not a second independently authored response to the prompt.
 
 ## Gate decision
 
@@ -25,8 +25,8 @@ Producer: protected gate host. Consumers: durable run-state, scheduler and inspe
 | Required fields | Meaning |
 |---|---|
 | `schema_version`, `id`, `recorded_at` | Record identity and UTC timestamp |
-| `run_id`, `node_id`, `attempt_id` | Exact invocation/aggregate context |
-| `contract_ref`, `invocation_refs` | Node Execution Contract and all participating observed invocations |
+| `run_id`, `node_id`, `subnode_id`, `attempt_id`, `scope_kind` | Explicit node/subnode invocation or aggregate context |
+| `contract_ref`, `node_contract_ref`, `invocation_refs`, `internal_decision_refs` | Checked node/subnode contract, owning node, observed invocations and internal acceptance decisions |
 | `policy_ref`, `check_plan_ref` | Fixed authority/obligations; bound plan pins profile/check definitions and participating CC/dependencies |
 | `input_refs`, `output_refs` | Exact accepted inputs and captured reviewed subjects |
 | `deterministic_result_ref`, `assessment_ref` | Checking records; assessment is null when Tier 1 prevented review |
@@ -38,3 +38,9 @@ The host validates assessment structure, source/subject/context binding, criteri
 Accepted references must be the exact reviewed output subset fulfilling required node outputs. Persist immutable artifacts and decision before the accepted-output commit becomes scheduler readiness. A proposed decision file is not a successful database commit. Persistence failure keeps readiness blocked, even if an assessment passed. New attempts/policy/subjects need new decisions.
 
 Scientific `Evaluation_Verdict.json` has its own classification and measurement-to-criterion rationale. It is never copied into the gate verdict as an automatic halt. Valid scientific `FAIL` can be reviewed as conformant and yield infrastructure `PASS` for Delivery.
+
+## Subnode versus node release
+
+Gate `2.0.0` explicitly names `scope_kind` (`subnode` or `node`), owning `node_contract_ref` and nullable `subnode_id`. Subnode gates review work under a concrete Subnode Execution Contract; final node release reviews the external Brief and required internal acceptance. `internal_decision_refs` connects the two scopes. No second interpretation or extra semantic call is required for final aggregation. Trusted records bind the producing/subject scope; schemas alone cannot establish authorship.
+
+A halt may have empty output/invocation inventories when no output or dispatch occurred. Its deterministic subject is the protected failure receipt/checking manifest, with real reasons and evidence, not a fabricated candidate. Advancing decisions still need actual output, observations, complete checks/assessment and durable acceptance. A cancelled/missing verifier on a mandatory branch cannot release work.

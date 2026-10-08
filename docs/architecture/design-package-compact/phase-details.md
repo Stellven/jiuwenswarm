@@ -1,4 +1,4 @@
-# M1 delivery phases, stage exits and Intent Compilation and Verification Slice (formerly TRIAL-1)
+# M1 delivery phases, stage exits and complete Intention Compiler node
 
 **Reading level: human potential.** Question answered: What prerequisites and exits distinguish the full M1 stages and delivery phases?
 
@@ -18,9 +18,11 @@ The predecessor exits govern integration/completion; independent preparation may
 | Delivery Phase 1, Implementation Stage 7 (§6.10): workstation shell | Stable research path → installer/init/doctor, visibility, CLI/web/TUI, local terminal, identity/security/config | Developer installs, initializes, executes, observes, inspects and retrieves complete workflow through supported local interfaces. Browser closure, interactive callbacks and headless behavior preserve runtime policy | [Operational shell](research-design.md#operational-shell), [automation](automation.md)|
 | Delivery Phase 2, Implementation Stage 8 (§6.11): local-isolated RSI | Stable eligible ranking helper, fixed referee, protected fixtures, target allowlist and query limits | Bounded child evaluated outside live DAG; guardrail attacks are blocked/recorded; evidence/lineage reconcilable; no unauthorized contract/referee/live-version change. Human adoption/activation and rollback remain explicit; Target 1 sandbox delivery leaves production unchanged | [Offline RSI](offline-rsi.md), [RSI callbacks](failure-and-human.md#offline-rsi-is-a-separate-callback-policy)|
 
-## Intent Compilation and Verification Slice: bounded first build
+## Complete Intention Compiler: current bounded build
 
-Intent Compilation and Verification Slice implements text intake → Intent compiler → intent Evaluator Gate → protected accepted reference or durable halt. The [slice walkthrough](immediate-plan.md) states actors, data, model/readiness, challenge categories and callbacks. It supplies useful Implementation Stage 0/1 foundation evidence and part of Implementation Stage 2 preparation.
+The [current build entrypoint](builds/intention-compiler/README.md) includes qualified local intake → verified Intent IR → verified Research Brief → protected enclosing-node release, plus governed runtime/model, evidence/state and bundled browser/container foundations. The earlier complete Intention Compiler node ended at accepted Intent; that scope is historical, preserved in frozen inputs.
+
+This build proves the compiler boundary only when a real supported request reaches accepted Brief with required evidence. Halt scenarios need separate failure evidence. It contributes Stage 0/1 foundations and Stage 2 compilation, but does not initialize the fixed research DAG or complete Stages 3–8/Phase 3. A bounded test consumer checks Brief compatibility without implementing research stages. Existing task/interface identities are reconciled under native coding records, not renamed by this design.
 
 ## Delivery Phase 3 integration accounting
 

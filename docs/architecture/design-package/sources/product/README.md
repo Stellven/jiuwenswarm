@@ -1,9 +1,12 @@
-# Received product sources
+# PRD source receipt: supplied separately
 
-[Current received PRD](prd-m1-current-2026-10-07.txt): downloaded October 7 as `PRD - AI4Research (3).txt`; 254,883 bytes; SHA-256 `10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc`. Preserved verbatim. The receipt/download date is not an inferred author revision.
+Neither design package contains a PRD body. The coding prompt supplies PRD Main Body and PRD Context separately; use their relevant functional obligations alongside the assigned architecture package. This page identifies the source reviewed for this architecture, not a substitute PRD.
 
-[Prior received PRD](prd-m1-current-2026-10-06.txt): 232,489 bytes; SHA-256 `6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839`. Retained for provenance, not current input.
+| Received source | Bytes | SHA-256 |
+|---|---:|---|
+| prd-m1-current-2026-10-06.txt | 232489 | `6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839` |
+| prd-m1-current-2026-10-07.txt | 254883 | `10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc` |
 
-The new source adds §1.10 incremental/canonical change control, §1.11 US01–US20, §6.2.1 verification governance and §6.2.2 incremental implementation; strengthens explicit intake/default/readiness outcomes, inspection, measurements and scientific/report reasoning; and places output checks under Node Execution Contract plus applicable CC constraints. [Coverage](../../coverage.md) records design disposition.
+The October 7 download was received as `PRD - AI4Research (3).txt`; a receipt date does not establish author revision. The October 6 source is prior provenance, not current input. Repository originals live under `docs/product/received-prds/`, outside both architecture folders. Preserved frozen experiment inputs retain their historical source contents; they are not the current packages.
 
-[Decisions](../../principles.md#decisions-and-source-amendments) preserve explicit user-authorized local exceptions, including D5/D6. Historical [CC semantic](../capsule-semantic-v2.10b.md), [machine](../capsule.schema.json) and [profile](../policy-m1.json) bytes remain unchanged. The [current CC reference](../../capsule/declaration.md) and [critical schemas](../../reference/README.md) govern current field compatibility. Original source links are optional historical bibliography, not a required offline reading graph.
+[Clause crosswalk](../../coverage-allocation.md) maps obligations to responsibilities; [decisions](../../decision-review.md#r11--complete-compiler-node-subnode-vocabulary-and-brief-compatibility) record D5's bounded multi-pass exception and other retained decisions. If the separately supplied PRD changes product obligations, reconcile it explicitly; do not assume a filename proves source equality.

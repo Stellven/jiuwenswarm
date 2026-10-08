@@ -12,6 +12,8 @@ for name,root in roots.items():
     subprocess.run([sys.executable,str(root/'reference/validate.py')],check=True)
 assert m['shared_files'] and len(m['shared_files'])==len(set(m['shared_files']))
 for n in m['shared_files']:assert (roots['full']/n).read_bytes()==(roots['compact']/n).read_bytes(), n
+for name,root in roots.items():
+    assert sum(len((root/p).read_text(encoding='utf-8').split()) for p in ['builds/intention-compiler/README.md','builds/intention-compiler/context.md'])==m['entrypoint_words'][name]
 assert round(100*(1-m['words']['compact']/m['words']['full']),2)==m['reduction_percent']
 print('PASS matched delivery inventories, shared contracts/sources/decisions, reading counts and both portable validators')
 print('LIMIT no paired agent outcomes or runtime acceptance')
