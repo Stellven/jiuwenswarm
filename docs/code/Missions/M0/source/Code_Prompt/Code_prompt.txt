@@ -1,3 +1,5 @@
+DO NOT USE SPEC KIT, THIS MESSAGE IS FIRST PRIORITY INFORMATION
+
 Implement the Intent Compiler as a standalone component using the following four documents.
 
 SOURCE DOCUMENTS
@@ -9,93 +11,24 @@ D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit
 D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_context\PRD_context.md
 
 3. Architecture Design Main Body (primary technical design)
-D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_main_body\Architecture_main_body.md
+<PATH_TO_ARCHITECTURE_DESIGN_MAIN_BODY>
 
 4. Architecture Design Context (supporting technical context)
-D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_context\Architecture_context.md
+<PATH_TO_ARCHITECTURE_DESIGN_CONTEXT>
 
-
-Architecture Main defines the complete Intention Compiler node; Architecture Context contains the compact supporting design, field contracts, schemas and examples—follow its required links.
 
 IMPLEMENTATION INSTRUCTIONS
 
 - Use the PRD Main Body to determine functional requirements and acceptance criteria.
 - Use the Architecture Design Main Body for component boundaries, interfaces, data flow, dependencies, and implementation structure.
 - Read both Context documents, but apply only information specifically relevant to the Intent Compiler.
-- Implement and test ONLY the Intent Compiler component. Do not implement unrelated components or expand the scope.
+- Implement and test ONLY the Intent Compiler component. Do not implement unrelated components or expand the scope. 
+- Do not build based on existing codebase / web
 - Explicitly report missing information or contradictions instead of silently inventing requirements. Document unavoidable assumptions.
 - Include all required tests, debugging, bug fixes, and retries in the measured coding task.
 
 
 MANDATORY TOKEN USAGE AND COST REPORTING
+Check before starting, record accordingly during running and fill in after finishing the json template in D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Token\token_usage.json
 
-Record all model calls attributable to this coding task, including document reading, planning, code generation, tool-use turns, testing, debugging, revisions, retries, and the final response.
-
-Report THREE metrics:
-
-1. TOTAL TOKENS (PRIMARY)
-   Total Tokens = Input Tokens + Output Tokens, summed over all model calls in the phase.
-   Cached input tokens are ALREADY included in Input Tokens.
-   Reasoning tokens, when reported as a subset of Output Tokens, are ALREADY included in Output Tokens.
-   Never double-count these subsets.
-
-2. TOKEN BREAKDOWN (SECONDARY)
-   Record:
-   - Total Input Tokens
-   - Cached Input Tokens
-   - Uncached Input Tokens = Total Input Tokens - Cached Input Tokens
-   - Total Output Tokens
-   - Reasoning Tokens (if separately available)
-   Use provider/runtime telemetry. Mark unavailable fields "Unavailable" rather than assuming they are zero.
-
-3. ACTUAL API COST (SECONDARY)
-   Record the actual billed cost in the provider's billing currency, using available billing or accurate usage records and the applicable rates for cached input, uncached input, and output.
-   If actual cost is unavailable, write "Unavailable". An estimate may be included only if explicitly labeled "Estimated Cost", with its pricing assumptions.
-
-REPORTING BOUNDARIES
-
-- Implementation Phase: all model calls from the start of this coding run through its completion, including failed attempts and retries.
-- Preparation Phase: model usage for preparing Spec Kit artifacts, if applicable. Enter 0 only when it is verified that no such preparation occurred; otherwise mark "Not applicable" or "Unavailable" as appropriate.
-- End-to-End: Preparation + Implementation, for both Total Tokens and API Cost, if the underlying figures are known. Otherwise mark "Unavailable".
-- Never count a model call in more than one phase.
-- Report model/provider, model call count, currency, and the source of usage measurements.
-- Use exact runtime/API telemetry whenever accessible. Do NOT invent or present estimates as exact counts.
-
-
-MANDATORY OUTPUT FILE
-
-Save a UTF-8 plain-text usage report at:
-D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Token\token_usage.txt
-
-Create the Token directory if it does not exist.
-
-Use this report template:
-
-TOKEN USAGE REPORT
-Model / Provider:
-Measurement Source:
-Number of Model Calls:
-Billing Currency:
-
-[Implementation Phase]
-Total Input Tokens:
-Cached Input Tokens:
-Uncached Input Tokens:
-Total Output Tokens:
-Reasoning Tokens (if available):
-Total Tokens:
-Actual API Cost:
-
-[Preparation Phase]
-Total Tokens:
-Actual API Cost:
-
-[End-to-End]
-Total Tokens:
-Actual API Cost:
-
-Notes / Missing Telemetry / Pricing Assumptions:
-
-If token usage or cost cannot be accessed, record "Unavailable" explicitly for affected fields. Never infer exact token counts from code length, context-window size, or estimates.
-
-At completion, report the implementation/test results and confirm whether the token_usage.txt file was written successfully.
+DO NOT ASK ANY QUESTION TO ME, ONE-SHOT
