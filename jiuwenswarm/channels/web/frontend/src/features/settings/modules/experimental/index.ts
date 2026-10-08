@@ -1,1 +1,0 @@
-export { experimentalModule } from './definition';

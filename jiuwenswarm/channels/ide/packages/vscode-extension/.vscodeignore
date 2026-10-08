@@ -1,8 +1,0 @@
-../../**/*
-../jetbrains-plugin/**
-../shared-webview/**
-src/**
-tsconfig.json
-esbuild.js
-.vscode/**
-*.ts
