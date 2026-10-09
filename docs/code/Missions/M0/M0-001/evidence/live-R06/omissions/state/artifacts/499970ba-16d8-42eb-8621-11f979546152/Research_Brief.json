@@ -1,0 +1,291 @@
+{
+  "acceptance_expectations": [
+    {
+      "description": "The report addresses latency reduction and preservation of retrieval quality relative to the baseline, and supports its conclusions with evidence without asserting an unsubstantiated empirical improvement.",
+      "id": "acceptance-1",
+      "requirement_ids": [
+        "requirement-1",
+        "requirement-2",
+        "requirement-3"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "affected_fields": [
+        "/constraints/2"
+      ],
+      "authority_ref": {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      },
+      "id": "assumption-1",
+      "text": "Because hardware was not chosen, apply the protected policy's single_gpu hardware profile as a planning default, without claiming hardware availability."
+    }
+  ],
+  "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+      },
+      {
+        "id": "Intent_IR.json",
+        "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+      },
+      {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      }
+    ]
+  },
+  "constraints": [
+    {
+      "category": "quality_preservation",
+      "id": "constraint-1",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "text": "Do not lower retrieval quality.",
+      "unit": null
+    },
+    {
+      "category": "evidence",
+      "id": "constraint-2",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "research_run",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "text": "Ground the report in evidence.",
+      "unit": null
+    },
+    {
+      "category": "hardware_profile",
+      "id": "constraint-3",
+      "normalized_value": "single_gpu",
+      "operator": "eq",
+      "origin": "system_default",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        }
+      ],
+      "text": "Use the policy default hardware profile single_gpu because hardware was not chosen. This is a planning assumption and does not establish hardware availability.",
+      "unit": null
+    },
+    {
+      "category": "automatic_retries",
+      "id": "constraint-4",
+      "normalized_value": 0,
+      "operator": "eq",
+      "origin": "system_default",
+      "scope": "compiler",
+      "source_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        }
+      ],
+      "text": "The protected compiler policy permits zero automatic retries.",
+      "unit": "retries"
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "deliverables": [
+    {
+      "artifact_type": "report",
+      "description": "Report on reducing document retrieval baseline latency while preserving retrieval quality, grounding conclusions in available evidence.",
+      "id": "deliverable-1",
+      "name": "Evidence-grounded report"
+    }
+  ],
+  "domain_lane": "scientific_research",
+  "evidence_obligations": [
+    {
+      "description": "Support any claimed latency reduction and preservation of retrieval quality with evidence relative to the baseline; identify limitations where evidence is insufficient.",
+      "id": "evidence-1",
+      "requirement_ids": [
+        "requirement-1",
+        "requirement-2"
+      ]
+    },
+    {
+      "description": "Make report claims traceable to evidence and acknowledge that the supplied reference contains no empirical measurements.",
+      "id": "evidence-2",
+      "requirement_ids": [
+        "requirement-3"
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-1",
+      "origin": "derived",
+      "source_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+        },
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "text": "Study how to reduce latency of the document retrieval baseline while preserving retrieval quality."
+    }
+  ],
+  "input_bindings": [
+    {
+      "id": "input0",
+      "resource_ref": {
+        "id": "Resource_Document_0.json",
+        "sha256": "9eed348247ffaeab17740e20d37201bc50e3b16bc25f54262e90d5905bb83fc4"
+      },
+      "role": "reference_document"
+    }
+  ],
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "9cec4e0d75ffe47baf4a3f198baea595ec866b4ed7e767ed410c2640f4cfc016"
+  },
+  "intent_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+  },
+  "mandatory_requirements": [
+    {
+      "id": "requirement-1",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "text": "Study how to reduce latency of the existing document retrieval baseline."
+    },
+    {
+      "id": "requirement-2",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "text": "Preserve retrieval quality without lowering it relative to the baseline."
+    },
+    {
+      "id": "requirement-3",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "text": "Return an evidence-grounded report."
+    }
+  ],
+  "objective": {
+    "id": "objective-1",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+      }
+    ],
+    "text": "Study latency reduction for a document retrieval baseline while preserving retrieval quality."
+  },
+  "optional_preferences": [],
+  "out_of_scope": [],
+  "resource_refs": [
+    {
+      "id": "Resource_Document_0.json",
+      "sha256": "9eed348247ffaeab17740e20d37201bc50e3b16bc25f54262e90d5905bb83fc4"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "target_metrics": [
+    {
+      "comparison": null,
+      "id": "target-1",
+      "metric": "Latency",
+      "origin": "user",
+      "requirement_ids": [
+        "requirement-1"
+      ],
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "target_text": "Reduce latency relative to the document retrieval baseline; no numeric improvement threshold was chosen.",
+      "unit": null
+    },
+    {
+      "comparison": null,
+      "id": "target-2",
+      "metric": "Retrieval quality",
+      "origin": "user",
+      "requirement_ids": [
+        "requirement-2"
+      ],
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+        }
+      ],
+      "target_text": "Do not lower retrieval quality relative to the document retrieval baseline.",
+      "unit": null
+    }
+  ],
+  "unresolved_items": [
+    {
+      "affected_fields": [
+        "/in_scope/0",
+        "/target_metrics/0"
+      ],
+      "blocking": false,
+      "clarification": "No clarification is required to begin the study; no method or numeric improvement threshold is prescribed by this brief.",
+      "description": "The user has not chosen a method or numeric latency improvement threshold.",
+      "id": "unresolved-1",
+      "kind": "missing"
+    },
+    {
+      "affected_fields": [
+        "/evidence_obligations/0",
+        "/evidence_obligations/1"
+      ],
+      "blocking": false,
+      "clarification": "No clarification is required to begin the study; supplied evidence does not establish an empirical improvement.",
+      "description": "The supplied reference contains no empirical measurements.",
+      "id": "unresolved-2",
+      "kind": "missing"
+    }
+  ]
+}

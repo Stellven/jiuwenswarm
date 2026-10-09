@@ -1,0 +1,20 @@
+{
+  "automatic_retries": 0,
+  "criterion_meanings": "Compile Research Brief 2.0.0 from exact accepted Intent, qualified source/resource identities and protected default policy. Preserve every mandatory outcome/exclusion/constraint and keep optional preferences separate. Attribute all user/derived/default fields. Use a nonempty derived in_scope based on accepted objective when no narrower boundary stated. Link acceptance/evidence/metrics to actual requirement IDs. Preserve numeric value/unit/operator and qualitative targets without invented percentages. Only absent hardware may default single_gpu, origin system_default, policy source and assumption pointer to actual constraint. Assumption affected_fields MUST use RFC6901 JSON Pointers with actual zero-based array indices, e.g. /constraints/0 when the default is at index 0; never ID selectors such as constraints[id=x]. This is no hardware-availability claim. Do not default unknown purpose or conflicting requirements; no experiment protocol, methods or repetitions invented. Return only schema artifact.",
+  "definition_before_output": true,
+  "id": "profile:requirements",
+  "mandatory_deterministic": [
+    "schema_and_relationships",
+    "binding_integrity",
+    "invocation_complete",
+    "limits_and_effects"
+  ],
+  "mandatory_semantic": [
+    "intent_preservation",
+    "default_authority",
+    "coverage",
+    "planning_usability"
+  ],
+  "owner": "protected host",
+  "schema_version": "1.0.0"
+}

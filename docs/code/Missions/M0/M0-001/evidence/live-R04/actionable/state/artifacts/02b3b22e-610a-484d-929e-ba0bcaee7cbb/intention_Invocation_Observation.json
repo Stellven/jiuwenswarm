@@ -1,0 +1,61 @@
+{
+  "binding_id": "binding:intention",
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "138b7cd72485e8544cc187ce1575afb2d1e3c29131e414c2177c856fbe2eb8e1"
+  },
+  "duration_s": 0.0766020999981265,
+  "effects": [
+    "approved_model_disclosure"
+  ],
+  "ended_at": "2026-10-08T18:41:33.565204+00:00",
+  "id": "invocation:a8dc5da40cbe47caae5c1c7da6728d97",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "64785afa76b8717a571bda1b5f6c28f6fea501b183ebc2486e07a67f5419cae3"
+    }
+  ],
+  "model_calls": 1,
+  "model_identity": {
+    "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+    "effective": null,
+    "requested": "approved native Codex default"
+  },
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "25b96a0b7c41c8b7355f6aae38100ff105dd0f4ddc8d16f87516c93ef8f1fa0f"
+  },
+  "observed_runtime": true,
+  "outcome": "failed",
+  "output_refs": [],
+  "schema_version": "2.0.0",
+  "started_at": "2026-10-08T18:41:33.488590+00:00",
+  "subnode_id": "intention",
+  "trace_refs": [
+    {
+      "id": "intention_Disclosed_Input.json",
+      "sha256": "dc97d341dd69540c4e819feb722137a7050178fff14ddf6113830de763b6089d"
+    },
+    {
+      "id": "intention_Raw_Response.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "intention_Stderr.txt",
+      "sha256": "4cf1ac52b2ecccadc6d5d889db31c8a4437cfb3fe107f20ef93f17fe86cb27f0"
+    }
+  ],
+  "unavailable_reasons": [
+    "Provider exposes no attributable billing telemetry"
+  ],
+  "usage": {
+    "cost_amount": null,
+    "currency": null,
+    "input_tokens": null,
+    "output_tokens": null,
+    "unavailable_reasons": [
+      "Provider exposes no attributable billing telemetry"
+    ]
+  }
+}

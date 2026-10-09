@@ -1,0 +1,15 @@
+{
+  "case": "resources-only-reference-document",
+  "candidate": "sha256:4b33bcb6df44328b27be2fb24b819eb7a879c4715c757a5ae51297d72f484bad",
+  "expected": "completed",
+  "result": "FAIL",
+  "run_id": "2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "actual": "completed",
+  "reasons": [
+    "Durably released exact Research Brief"
+  ],
+  "model_calls": 4,
+  "reason": "KeyError: 'invalid_for_product'",
+  "export": "captured",
+  "elapsed_s": 181.74779359999957
+}

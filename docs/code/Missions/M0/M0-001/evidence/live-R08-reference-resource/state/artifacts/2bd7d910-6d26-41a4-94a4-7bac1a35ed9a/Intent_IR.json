@@ -1,0 +1,237 @@
+{
+  "constraints": [
+    {
+      "category": "execution",
+      "id": "constraint:1",
+      "source_spans": [
+        {
+          "end": 51,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+          },
+          "start": 31
+        }
+      ],
+      "text": "Keep all work local."
+    },
+    {
+      "category": "training",
+      "id": "constraint:2",
+      "source_spans": [
+        {
+          "end": 83,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+          },
+          "start": 52
+        }
+      ],
+      "text": "No cloud training is permitted."
+    },
+    {
+      "category": "data",
+      "id": "constraint:3",
+      "source_spans": [
+        {
+          "end": 112,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+          },
+          "start": 84
+        }
+      ],
+      "text": "No new datasets may be used."
+    },
+    {
+      "category": "reference_compliance",
+      "id": "constraint:4",
+      "source_spans": [
+        {
+          "end": 231,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+          },
+          "start": 163
+        }
+      ],
+      "text": "Follow all mandatory constraints in the supplied reference document."
+    }
+  ],
+  "context": [
+    {
+      "id": "context:1",
+      "name": "Existing document retrieval baseline",
+      "role": "Subject of investigation; latency and retrieval quality are relevant metrics.",
+      "source_spans": [
+        {
+          "end": 209,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+          },
+          "start": 113
+        }
+      ]
+    },
+    {
+      "id": "context:2",
+      "name": "Supplied reference document",
+      "role": "Source of mandatory project constraints.",
+      "source_spans": [
+        {
+          "end": 231,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+          },
+          "start": 163
+        }
+      ]
+    },
+    {
+      "id": "context:3",
+      "name": "Empirical evidence availability",
+      "role": "No empirical measurements are supplied.",
+      "source_spans": [
+        {
+          "end": 249,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+          },
+          "start": 210
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope:1",
+      "source_spans": [
+        {
+          "end": 114,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigating ways to reduce baseline retrieval latency while preserving retrieval quality."
+    }
+  ],
+  "interpretation": {
+    "desired_change": {
+      "id": "desired_change:1",
+      "source_spans": [
+        {
+          "end": 114,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate ways to reduce latency of the supplied document retrieval baseline while preserving retrieval quality."
+    },
+    "problem": null,
+    "requested_result": {
+      "id": "requested_result:1",
+      "source_spans": [
+        {
+          "end": 158,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+          },
+          "start": 115
+        }
+      ],
+      "text": "An evidence-grounded research report."
+    }
+  },
+  "out_of_scope": [
+    {
+      "id": "exclusion:1",
+      "source_spans": [
+        {
+          "end": 83,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+          },
+          "start": 52
+        }
+      ],
+      "text": "Cloud training."
+    },
+    {
+      "id": "exclusion:2",
+      "source_spans": [
+        {
+          "end": 112,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+          },
+          "start": 84
+        }
+      ],
+      "text": "Using new datasets."
+    }
+  ],
+  "preferences": [],
+  "readiness": {
+    "reason": "The request specifies an investigation purpose, an evidence-grounded research report, qualitative latency and retrieval-quality targets, and mandatory local-work, training, and dataset constraints. The reference explicitly states that no empirical measurements are supplied.",
+    "status": "ready"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [],
+  "user_targets": [
+    {
+      "id": "target:1",
+      "metric": "latency",
+      "source_spans": [
+        {
+          "end": 78,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+          },
+          "start": 20
+        }
+      ],
+      "target_text": "Reduce latency of the supplied document retrieval baseline."
+    },
+    {
+      "id": "target:2",
+      "metric": "retrieval quality",
+      "source_spans": [
+        {
+          "end": 113,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+          },
+          "start": 85
+        }
+      ],
+      "target_text": "Preserve retrieval quality."
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "run_id": "b03-02",
+  "recorded_at": "2026-10-08T18:15:51.584757+00:00",
+  "head": "5787575ac145386809ccde868cdc21ade224d9f4",
+  "tracked_diff_sha256": "aa0dd61b24ef1257014c02add2ca536424d6b9ce4a0accdad9af89adcd37f525",
+  "python": "3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]",
+  "dependencies": {
+    "jsonschema": "4.25.1",
+    "referencing": "0.37.0",
+    "pytest": "8.4.2"
+  },
+  "files": [
+    {
+      "path": "docs/code/Missions/M0/M0-001/plan.md",
+      "sha256": "b6d174ef6e85b487399ca4f4f9e421951573964035d08ac392dec1f439cf6240",
+      "bytes": 17586
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/source-baseline.json",
+      "sha256": "ff1fd7df7210eb2d9a320a176c56a873fb74542fcb13e0f373f5edd7038b1e40",
+      "bytes": 76782
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/spec.md",
+      "sha256": "11e44a6ec07ca6d9663d0e25de70a4fabb7bb39c96a93f5d35d7573b2d1c469b",
+      "bytes": 30581
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/TASK.md",
+      "sha256": "06968dc2fb6324b442cb38b5045f740d73ec4284bcc00aa97f9b0cae0cbef27a",
+      "bytes": 19094
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/tasks.md",
+      "sha256": "7f08ebe14165f32edda967b1d076c87f55d3c9e1b42c6e0c0784df02fc995c38",
+      "bytes": 7564
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/checks.py",
+      "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231",
+      "bytes": 15813
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/capsule-declaration.schema.json",
+      "sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6",
+      "bytes": 34304
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/catalog.json",
+      "sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7",
+      "bytes": 24674
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/common.schema.json",
+      "sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880",
+      "bytes": 6982
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/deterministic-check-result.schema.json",
+      "sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017",
+      "bytes": 1917
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/field-contracts.json",
+      "sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6",
+      "bytes": 96027
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/gate-decision.schema.json",
+      "sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd",
+      "bytes": 5606
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/intent-ir.schema.json",
+      "sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262",
+      "bytes": 5615
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/provenance.json",
+      "sha256": "741790b2eb2224cf3dc63fdc2b967b4f5d2ffb3ee7b377a58fa3f67134388834",
+      "bytes": 1686
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/research-brief.schema.json",
+      "sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2",
+      "bytes": 12826
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/subnode-execution-contract.schema.json",
+      "sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede",
+      "bytes": 8290
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/verifier-assessment.schema.json",
+      "sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e",
+      "bytes": 2684
+    },
+    {
+      "path": "standalone/intent_compiler/pytest.ini",
+      "sha256": "e4df4b73dcacd0ff6117ad884bdce7f661f2faa456ca6a41b8cc929f7d5cb36a",
+      "bytes": 69
+    },
+    {
+      "path": "standalone/intent_compiler/requirements.lock",
+      "sha256": "0f7bff60e71282d43272a27b68f51b030e56ff99b2e2631734fe67a2d622ec30",
+      "bytes": 529
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Capsule_Declaration.json",
+      "sha256": "402e70710244fdff27e4488f41036bb250a4e31ecb0eafa99bfb418649aae1ec",
+      "bytes": 3803
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/CRLF_Source.txt",
+      "sha256": "72b8d6b2e76cbda092009b743e42a1d167187e4572dffa5a23cbf9bfea235924",
+      "bytes": 8
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Default_Policy.json",
+      "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6",
+      "bytes": 126
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Gate_Compiler_No_Output.json",
+      "sha256": "41da29f0c6f10d22da69a5dda139b1f624b6caf404de79ddd7972f3470ca475a",
+      "bytes": 1797
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Gate_Decision.json",
+      "sha256": "56ed01c17c898741100ccb511323b86214ee83183a0b6d5aeadf70088c3c4895",
+      "bytes": 2478
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Gate_Intention_Compiler_Pass.json",
+      "sha256": "23334938127c544539220bc6b5079777da55da7ab7249d7563950390e5736522",
+      "bytes": 3343
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Assessment.json",
+      "sha256": "6d938f1bbcd7f1cb9965b9b0d95c79fbfea78d709372719b260e02e7d490cc2a",
+      "bytes": 1972
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Checks.json",
+      "sha256": "890a504d249f29e677f50fc905747d2bb193dff8071eaefdec585d4558e7322e",
+      "bytes": 1701
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Contradictory.json",
+      "sha256": "ceae195abc744ef96b9908857e52913d79ad6d184754250a4c888a84b62c6aed",
+      "bytes": 2473
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_IR.json",
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0",
+      "bytes": 3215
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Permissible_Omissions.json",
+      "sha256": "b88ea0a258ca8ba8ca7c46e474b96cde7f2bc88a6877766052b2c7c040090dd4",
+      "bytes": 1734
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Topic_Only.json",
+      "sha256": "7384d9670be771ca289fda070156180b33eeb2eaa0772e95fcc7324b6472ec1a",
+      "bytes": 1423
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intention_Subnode_Contract.json",
+      "sha256": "da6242e2d7818e4f0da5373e9977e278f3a2740c709a3d9d1b7e829a2e8d5aa8",
+      "bytes": 3336
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf",
+      "bytes": 144
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request_Contradictory.txt",
+      "sha256": "8560e901086080e64044759f58d51ccc22f825848fbf6b19fc2b94299f00b0f9",
+      "bytes": 104
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request_Permissible_Omissions.txt",
+      "sha256": "dc8f1655124edd64adb899ffd907e3cc359ae4a947f0f32f84b7991ac662706b",
+      "bytes": 100
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request_Topic_Only.txt",
+      "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb",
+      "bytes": 41
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Research_Brief.json",
+      "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5",
+      "bytes": 3973
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Research_Brief_Defaults.json",
+      "sha256": "33be4d18cc37cf19fa67629fd285bc35fcb6f4cb1515ac1e522b901023833a9e",
+      "bytes": 3684
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Source_Spans_CRLF.json",
+      "sha256": "fc560d1848c4be43be55873b2483d768e5ecc0cd44dc128b3ce4add5df913615",
+      "bytes": 487
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_checks.py",
+      "sha256": "507d11cfbb3bc0a6c2ccbe5301aeed5cfc46abd2a32097c4bd8d7c5762db2314",
+      "bytes": 13103
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "reason": "[Errno 2] No such file or directory: 'D:\\\\research\\\\ai_for_research\\\\tests_whether_we_need_spec_kit\\\\test_with_spec_kit\\\\docs\\\\code\\\\Missions\\\\M0\\\\M0-001\\\\evidence\\\\live-R03\\\\actionable\\\\state\\\\artifacts\\\\451349ec-1e3e-48ab-8e49-1ea599b4efec\\\\requirements_verifier_Dependency_deterministic-check-result.schema.json'",
+  "recorded_at": "2026-10-08T18:40:20.300784+00:00",
+  "type": "FileNotFoundError"
+}

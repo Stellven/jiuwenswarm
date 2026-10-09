@@ -1,0 +1,82 @@
+{
+  "accepted_refs": [],
+  "action": "halt",
+  "assessment_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "3e9dd9782caad122b1ced8b3636499fea1d1397d9f362bc6b64623d0c62e031e"
+  },
+  "attempt_id": "attempt:1",
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "61de92e82154ea6c7fbf64f215af39f85e8dc6c32bb3275b2716889204ed7a05"
+  },
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "5c991814572952f368ecd65e5bba48ed5b1e164e356956c1ffe0792e9481dc18"
+  },
+  "deterministic_result_ref": {
+    "id": "Intention_Checks.json",
+    "sha256": "015818bd1faecfec40eeadd6b70c33ab45fe30c9e41f51ca8d1cdcee404fd1b3"
+  },
+  "id": "gate:intention:b22a4295-f2e2-4fc3-a4f9-aeb9d18d7321",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "368f409456f38375466824ff525cc9522bb9190be42e3bb86b79ea3956db7293"
+    }
+  ],
+  "internal_decision_refs": [],
+  "invocation_refs": [
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "87f22adfc2213b49631e3e458219d3229757ecb185625834b3af0578b30eb41a"
+    },
+    {
+      "id": "intention_verifier_Invocation_Observation.json",
+      "sha256": "a84e411ff22115ac9c198707f3e972d6d22c364fe7b6cc420bb47a0c3419093c"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "563cc8fa9a0afc63df1c89d1ca76c53b79267c453b1fb4a816b6c3684b3fb130"
+  },
+  "node_id": "intention.compiler",
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "fbb8e8360b07d7a7029580264c7ab358a3c26cab70b7b29597a52c98b4d522a9"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "reasons": [
+    {
+      "code": "mandatory_blocked",
+      "criterion_ids": [
+        "fidelity",
+        "coverage",
+        "consistency",
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Intention_Checks.json",
+          "sha256": "015818bd1faecfec40eeadd6b70c33ab45fe30c9e41f51ca8d1cdcee404fd1b3"
+        },
+        {
+          "id": "Intent_Assessment.json",
+          "sha256": "3e9dd9782caad122b1ced8b3636499fea1d1397d9f362bc6b64623d0c62e031e"
+        }
+      ],
+      "message": "Producer retained blocking purpose/result/constraint uncertainty"
+    }
+  ],
+  "recorded_at": "2026-10-08T19:11:57.067607+00:00",
+  "run_id": "b22a4295-f2e2-4fc3-a4f9-aeb9d18d7321",
+  "schema_version": "2.0.0",
+  "scope_kind": "subnode",
+  "subnode_id": "intention",
+  "verdict": "FAIL"
+}

@@ -1,0 +1,4 @@
+Investigate whether small language models (under 8B parameters) can match the performance of larger models on scientific reasoning tasks.
+
+
+  Constraints:

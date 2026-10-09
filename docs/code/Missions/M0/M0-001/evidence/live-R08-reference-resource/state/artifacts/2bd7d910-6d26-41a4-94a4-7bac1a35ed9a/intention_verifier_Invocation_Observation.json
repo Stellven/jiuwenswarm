@@ -1,0 +1,82 @@
+{
+  "binding_id": "binding:intention.verifier",
+  "contract_ref": {
+    "id": "intention_verifier_Subnode_Contract.json",
+    "sha256": "b12d09af3123adf53ff4d855b11b7e114ba019c0cdc560564fb4b8a3252aa2a6"
+  },
+  "duration_s": 22.98555810000107,
+  "effects": [
+    "approved_model_disclosure"
+  ],
+  "ended_at": "2026-10-08T19:24:35.896323+00:00",
+  "id": "invocation:5251e73a26fe4e668a8ef4c50f5d3f37",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "01aaacb2dd584262120a88d99fc6fd8e43957de9d2c9e3728d5cd37b8626a423"
+    },
+    {
+      "id": "Intent_IR.json",
+      "sha256": "c450216722d902b3359021a52644a690cdbf06d3fa0cf9a7763ec9be3eb423b2"
+    },
+    {
+      "id": "Intention_Review_Context.json",
+      "sha256": "f865e34a164a2c77e3da4a79cd2f5775ee2e19606153e11839f5194371b3bf0b"
+    },
+    {
+      "id": "Intention_Checks.json",
+      "sha256": "c96fd8f5e5db3a5d2539d1b195aca0b37df76027d8c8023705a3f06499d7645b"
+    },
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "99f71f08c89da499325b70be832923dc8bafd4f1b6264063417eeee082d6056e"
+    }
+  ],
+  "model_calls": 1,
+  "model_identity": {
+    "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+    "effective": null,
+    "requested": "approved native Codex default"
+  },
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "f321ec82908208806649ca548c506c8c896ad0a09dc9605bded8b158a0ac4e18"
+  },
+  "observed_runtime": true,
+  "outcome": "completed",
+  "output_refs": [
+    {
+      "id": "Intent_Assessment.json",
+      "sha256": "2dfbbff9dd4a8a916ddf38c8ff7d16ac6a072d15a45643f54c0e4896e53f0c28"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "started_at": "2026-10-08T19:24:12.910746+00:00",
+  "subnode_id": "intention.verifier",
+  "trace_refs": [
+    {
+      "id": "intention_verifier_Disclosed_Input.json",
+      "sha256": "26d2d874322dede4ea55b233d47fe89df1d550d73dae4d49b0398f0dd35ee0f1"
+    },
+    {
+      "id": "intention_verifier_Raw_Response.txt",
+      "sha256": "3fd75c8bda818e4408f07a1a4192af6201d8f648f09b678d48d3198ea2101136"
+    },
+    {
+      "id": "intention_verifier_Stderr.txt",
+      "sha256": "c1756f763abad2e9cbeb4e549e7db9f743ae0ecea4b68c39b68a151d1b4eae44"
+    }
+  ],
+  "unavailable_reasons": [
+    "Attributable cost/currency not supplied by native CLI"
+  ],
+  "usage": {
+    "cost_amount": null,
+    "currency": null,
+    "input_tokens": 15642,
+    "output_tokens": 792,
+    "unavailable_reasons": [
+      "Attributable cost/currency not supplied by native CLI"
+    ]
+  }
+}

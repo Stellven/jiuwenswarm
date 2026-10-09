@@ -1,0 +1,1 @@
+Investigate retrieval latency and return an evidence-grounded report. No cloud training is permitted and no new datasets may be used.

@@ -1,0 +1,53 @@
+{
+  "attempt_id": "attempt:1",
+  "audience": "authorized_run_owner",
+  "contract_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+  "id": "envelope:Requirements_Assessment.json",
+  "invocation_ref": {
+    "id": "requirements_verifier_Invocation_Observation.json",
+    "sha256": "4e2da14e84e78fe810d5176bae0ece6dbe58d87c80723d35ce0955f6a3fd1b11"
+  },
+  "media_type": "application/json",
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "8589cb06abeac83bff1901d519ac1d1f8d9c3f6bc03d886a74f48702d11590fe"
+  },
+  "node_id": "intention.compiler",
+  "payload_ref": {
+    "id": "Requirements_Assessment.json",
+    "sha256": "5fe80b41573c11ad5e1fae20f07c79f873b079582c268874f0f4baca020a46b4"
+  },
+  "run_id": "55729771-e096-4b02-ae77-9e4a8a19f27b",
+  "schema_version": "2.0.0",
+  "source_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "37a5931133341cbcbf8fd684b97fe7339b15484885a63d47177d72ddba08a075"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "929272c79efdce215ff1712b3221416aa2d5b4a2fdcfe76310d390513c3ea00b"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+    },
+    {
+      "id": "Research_Brief.json",
+      "sha256": "1b05647ddbbd7f034551faf5a877c9894a7398deb805fcdc9586bbde7371a8b1"
+    },
+    {
+      "id": "Requirements_Review_Context.json",
+      "sha256": "492d4dc74e3297c5e38f6c911cf07f73b376cf6aacf0768587ad95a3cf0dd42f"
+    },
+    {
+      "id": "Requirements_Checks.json",
+      "sha256": "3d6d5b3bc8d94f7fbf97686f3b2ee5405da9ec8c648e64d14e6034c1d2e5fbe7"
+    },
+    {
+      "id": "requirements_Invocation_Observation.json",
+      "sha256": "0be09d042f62a180b2ad883387b316c195b80b15a1e6a3a2efb96c5a21c37f5b"
+    }
+  ],
+  "subnode_id": "requirements.verifier"
+}

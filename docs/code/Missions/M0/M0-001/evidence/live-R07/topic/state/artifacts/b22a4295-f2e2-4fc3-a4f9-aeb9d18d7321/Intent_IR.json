@@ -1,0 +1,88 @@
+{
+  "constraints": [],
+  "context": [
+    {
+      "id": "context:topic",
+      "name": "Document retrieval",
+      "role": "User-specified topic; purpose and requested result are unknown.",
+      "source_spans": [
+        {
+          "end": 19,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "c0f108aa8a0da3a5cb1ae183ef42020b2be44a60f91312b315c29da04116d345"
+          },
+          "start": 0
+        }
+      ]
+    },
+    {
+      "id": "context:baseline",
+      "name": "The existing document retrieval baseline has latency and retrieval quality as its relevant metrics.",
+      "role": "Reference context",
+      "source_spans": [
+        {
+          "end": 124,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 25
+        }
+      ]
+    },
+    {
+      "id": "context:measurements",
+      "name": "No empirical measurements are supplied.",
+      "role": "Reference limitation",
+      "source_spans": [
+        {
+          "end": 164,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 125
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "in_scope": [],
+  "interpretation": {
+    "desired_change": null,
+    "problem": null,
+    "requested_result": null
+  },
+  "out_of_scope": [],
+  "preferences": [],
+  "readiness": {
+    "reason": "A topic and baseline metrics do not establish the user's intended purpose or requested result.",
+    "status": "needs_clarification"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "c0f108aa8a0da3a5cb1ae183ef42020b2be44a60f91312b315c29da04116d345"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [
+    {
+      "affected_fields": [
+        "interpretation.problem",
+        "interpretation.desired_change",
+        "interpretation.requested_result"
+      ],
+      "blocking": true,
+      "clarification": "What work should be performed on document retrieval, and what result is wanted?",
+      "description": "The request specifies only the topic of document retrieval. Its purpose, intended change, and requested result are unspecified; the reference supplies metrics but no requested action or targets.",
+      "id": "uncertainty:purpose-result",
+      "kind": "missing"
+    }
+  ],
+  "user_targets": []
+}

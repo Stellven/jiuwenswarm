@@ -1,0 +1,14 @@
+{
+  "case": "lost_constraint",
+  "original_campaign_result": "FAIL",
+  "original_semantic_challenge": "not_dispatched",
+  "retrieval_only": true,
+  "model_calls": 0,
+  "export": "captured",
+  "result": "PASS",
+  "meaning": "Available evidence retrieval verified; original failed campaign result unchanged",
+  "run_id": "5b10a488-59b2-4b0b-beed-c90a7488be9e",
+  "original_terminal_status": "halted",
+  "node_accepted": false,
+  "model_dispatch_calls": 0
+}

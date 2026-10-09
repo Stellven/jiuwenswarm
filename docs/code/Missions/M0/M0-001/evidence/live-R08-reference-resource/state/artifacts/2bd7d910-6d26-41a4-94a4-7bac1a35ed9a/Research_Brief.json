@@ -1,0 +1,361 @@
+{
+  "acceptance_expectations": [
+    {
+      "description": "The report addresses latency-reduction possibilities and preservation of retrieval quality, with conclusions grounded in identified evidence.",
+      "id": "acceptance:1",
+      "requirement_ids": [
+        "requirement:1",
+        "requirement:2",
+        "requirement:3"
+      ]
+    },
+    {
+      "description": "All research work remains local, uses no cloud training or new datasets, and follows the supplied reference document's mandatory constraints.",
+      "id": "acceptance:2",
+      "requirement_ids": [
+        "requirement:4",
+        "requirement:5",
+        "requirement:6",
+        "requirement:7"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "affected_fields": [
+        "/constraints/4"
+      ],
+      "authority_ref": {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      },
+      "id": "assumption:hardware",
+      "text": "Hardware is unspecified in the accepted Intent. Apply the authorized policy default single_gpu as a scientific-execution constraint; this does not establish hardware availability."
+    }
+  ],
+  "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+      },
+      {
+        "id": "Intent_IR.json",
+        "sha256": "c450216722d902b3359021a52644a690cdbf06d3fa0cf9a7763ec9be3eb423b2"
+      },
+      {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      }
+    ]
+  },
+  "constraints": [
+    {
+      "category": "execution",
+      "id": "constraint:1",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "research_run",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "Keep all work local.",
+      "unit": null
+    },
+    {
+      "category": "training",
+      "id": "constraint:2",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "No cloud training is permitted.",
+      "unit": null
+    },
+    {
+      "category": "data",
+      "id": "constraint:3",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "research_run",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "No new datasets may be used.",
+      "unit": null
+    },
+    {
+      "category": "reference_compliance",
+      "id": "constraint:4",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "research_run",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "text": "Follow all mandatory constraints in the supplied reference document.",
+      "unit": null
+    },
+    {
+      "category": "hardware",
+      "id": "constraint:hardware",
+      "normalized_value": "single_gpu",
+      "operator": "eq",
+      "origin": "system_default",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        }
+      ],
+      "text": "Use the policy-default single_gpu hardware profile for scientific execution; hardware availability is not established.",
+      "unit": null
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+    }
+  ],
+  "deliverables": [
+    {
+      "artifact_type": "research_report",
+      "description": "Report investigating ways to reduce the supplied document retrieval baseline's latency while preserving retrieval quality and following all mandatory project constraints.",
+      "id": "requested_result:1",
+      "name": "Evidence-grounded research report"
+    }
+  ],
+  "domain_lane": "scientific_research",
+  "evidence_obligations": [
+    {
+      "description": "Identify evidence supporting latency and retrieval-quality claims, distinguish supported findings from unverified possibilities, and acknowledge that no empirical measurements were supplied.",
+      "id": "evidence:1",
+      "requirement_ids": [
+        "requirement:1",
+        "requirement:2",
+        "requirement:3"
+      ]
+    },
+    {
+      "description": "Provide an account of compliance with local-work, cloud-training, dataset, and reference-document requirements.",
+      "id": "evidence:2",
+      "requirement_ids": [
+        "requirement:4",
+        "requirement:5",
+        "requirement:6",
+        "requirement:7"
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope:1",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "text": "Investigating ways to reduce baseline retrieval latency while preserving retrieval quality."
+    }
+  ],
+  "input_bindings": [
+    {
+      "id": "input0",
+      "resource_ref": {
+        "id": "Resource_Document_0.json",
+        "sha256": "41c9c6292fbd85553678302420c1f168358d71a20df5d3f7d0ccd99a062ab609"
+      },
+      "role": "reference_document"
+    }
+  ],
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "01aaacb2dd584262120a88d99fc6fd8e43957de9d2c9e3728d5cd37b8626a423"
+  },
+  "intent_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "c450216722d902b3359021a52644a690cdbf06d3fa0cf9a7763ec9be3eb423b2"
+  },
+  "mandatory_requirements": [
+    {
+      "id": "requirement:1",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "text": "Investigate ways to reduce latency of the supplied document retrieval baseline."
+    },
+    {
+      "id": "requirement:2",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "text": "Preserve retrieval quality."
+    },
+    {
+      "id": "requirement:3",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "text": "Return an evidence-grounded research report."
+    },
+    {
+      "id": "requirement:4",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "Keep all work local."
+    },
+    {
+      "id": "requirement:5",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "No cloud training is permitted."
+    },
+    {
+      "id": "requirement:6",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "No new datasets may be used."
+    },
+    {
+      "id": "requirement:7",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "text": "Follow all mandatory constraints in the supplied reference document."
+    }
+  ],
+  "objective": {
+    "id": "desired_change:1",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+      }
+    ],
+    "text": "Investigate ways to reduce latency of the supplied document retrieval baseline while preserving retrieval quality."
+  },
+  "optional_preferences": [],
+  "out_of_scope": [
+    {
+      "id": "exclusion:1",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "Cloud training."
+    },
+    {
+      "id": "exclusion:2",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "inputs/document-0.extracted.txt",
+          "sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4"
+        }
+      ],
+      "text": "Using new datasets."
+    }
+  ],
+  "resource_refs": [
+    {
+      "id": "Resource_Document_0.json",
+      "sha256": "41c9c6292fbd85553678302420c1f168358d71a20df5d3f7d0ccd99a062ab609"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "target_metrics": [
+    {
+      "comparison": null,
+      "id": "target:1",
+      "metric": "latency",
+      "origin": "user",
+      "requirement_ids": [
+        "requirement:1"
+      ],
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "target_text": "Reduce latency of the supplied document retrieval baseline.",
+      "unit": null
+    },
+    {
+      "comparison": null,
+      "id": "target:2",
+      "metric": "retrieval quality",
+      "origin": "user",
+      "requirement_ids": [
+        "requirement:2"
+      ],
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2907a0c4966502530021e0a2f8407f7517709b15d3c31d0bd46e5e5accf49ddb"
+        }
+      ],
+      "target_text": "Preserve retrieval quality.",
+      "unit": null
+    }
+  ],
+  "unresolved_items": []
+}

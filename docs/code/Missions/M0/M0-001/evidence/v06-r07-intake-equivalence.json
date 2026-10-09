@@ -1,0 +1,177 @@
+{
+  "verification": "V06 R07 scoped qualification/context equivalence after T028",
+  "tested_candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+  "current_intake_sha256": "8acbd5754b60465a6ba91e3d197bba43bcfe104adbc287535a53e70833c6727e",
+  "command": ".venv-intent/Scripts/python.exe docs/code/Missions/M0/M0-001/evidence/v06-r07-intake-equivalence.py",
+  "working_directory": "D:\\research\\ai_for_research\\tests_whether_we_need_spec_kit\\test_with_spec_kit",
+  "dependency_mode": "Prior terminal SQLite/artifacts read-only; new independent temporary qualification store; no original-run writes/model calls/workflow replay",
+  "expected": "All six original exact inputs without explicit resource role produce byte-identical qualified intake and all18 disclosed model payloads under current qualifier",
+  "cases": [
+    {
+      "case": "actionable",
+      "run_id": "10183eab-9aae-44b9-8323-9a1b433ab2e6",
+      "result": "PASS",
+      "qualified_dictionary_exact": true,
+      "qualified_capture_sha256": "fe67f22340de7e402f4e77c0bb6893fad9ed193176547eb9bf7a0c51900b3112",
+      "disclosed_payloads": [
+        {
+          "name": "intention_Disclosed_Input.json",
+          "observed_sha256": "b36296c59bb9ad2293701a33442839a5e2e9453a85251de41f0ab578fb7ba567",
+          "current_regenerated_sha256": "b36296c59bb9ad2293701a33442839a5e2e9453a85251de41f0ab578fb7ba567",
+          "result": "PASS"
+        },
+        {
+          "name": "intention_verifier_Disclosed_Input.json",
+          "observed_sha256": "0f09bb6444036be0e9b9ad77d2117dbfb35e9dcb0ead206a9493d3e3fe6d8568",
+          "current_regenerated_sha256": "0f09bb6444036be0e9b9ad77d2117dbfb35e9dcb0ead206a9493d3e3fe6d8568",
+          "result": "PASS"
+        },
+        {
+          "name": "requirements_Disclosed_Input.json",
+          "observed_sha256": "45585ed8623437d12ed06bf6c69a2fe55262c8ccf48ebcb1bcc88f59ad4e037c",
+          "current_regenerated_sha256": "45585ed8623437d12ed06bf6c69a2fe55262c8ccf48ebcb1bcc88f59ad4e037c",
+          "result": "PASS"
+        },
+        {
+          "name": "requirements_verifier_Disclosed_Input.json",
+          "observed_sha256": "28925d58a8d79f3270580e8d8570da27e7350fa0633cc99913aadd80c47ad583",
+          "current_regenerated_sha256": "28925d58a8d79f3270580e8d8570da27e7350fa0633cc99913aadd80c47ad583",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "case": "omissions",
+      "run_id": "0a1cac16-11c8-4fb3-8eee-5735044737af",
+      "result": "PASS",
+      "qualified_dictionary_exact": true,
+      "qualified_capture_sha256": "52f94c89105b355fb53dd9166efc40272e6caebcee0ec70c6e267950213bd043",
+      "disclosed_payloads": [
+        {
+          "name": "intention_Disclosed_Input.json",
+          "observed_sha256": "31d569bfc7b4f24c0e85a784dc2682874c1716fa8e167ed12a84bbabafe12258",
+          "current_regenerated_sha256": "31d569bfc7b4f24c0e85a784dc2682874c1716fa8e167ed12a84bbabafe12258",
+          "result": "PASS"
+        },
+        {
+          "name": "intention_verifier_Disclosed_Input.json",
+          "observed_sha256": "a23a0c3a71f3e78e15880618146b51db4982973ff71bc6727d6c02199e33d4f1",
+          "current_regenerated_sha256": "a23a0c3a71f3e78e15880618146b51db4982973ff71bc6727d6c02199e33d4f1",
+          "result": "PASS"
+        },
+        {
+          "name": "requirements_Disclosed_Input.json",
+          "observed_sha256": "9ab15de51ce9b8dce13b42ae89bca04b1f01581468e76e565649d9e091d2b60c",
+          "current_regenerated_sha256": "9ab15de51ce9b8dce13b42ae89bca04b1f01581468e76e565649d9e091d2b60c",
+          "result": "PASS"
+        },
+        {
+          "name": "requirements_verifier_Disclosed_Input.json",
+          "observed_sha256": "84607f7f3248fb5a3d3d67e29c8aab3675e8be3b828b69c4281df48ddb4ccaad",
+          "current_regenerated_sha256": "84607f7f3248fb5a3d3d67e29c8aab3675e8be3b828b69c4281df48ddb4ccaad",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "case": "topic",
+      "run_id": "b22a4295-f2e2-4fc3-a4f9-aeb9d18d7321",
+      "result": "PASS",
+      "qualified_dictionary_exact": true,
+      "qualified_capture_sha256": "368f409456f38375466824ff525cc9522bb9190be42e3bb86b79ea3956db7293",
+      "disclosed_payloads": [
+        {
+          "name": "intention_Disclosed_Input.json",
+          "observed_sha256": "ea9215ce5122655705b73b99a7b764f58b334ac19af68bb962db167c53b906ef",
+          "current_regenerated_sha256": "ea9215ce5122655705b73b99a7b764f58b334ac19af68bb962db167c53b906ef",
+          "result": "PASS"
+        },
+        {
+          "name": "intention_verifier_Disclosed_Input.json",
+          "observed_sha256": "cc2424041d884fba7af38f0f4fbb7b171f83015ee9751fc1fcb3ef91055726f8",
+          "current_regenerated_sha256": "cc2424041d884fba7af38f0f4fbb7b171f83015ee9751fc1fcb3ef91055726f8",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "case": "contradiction",
+      "run_id": "4f26ffd3-e2b5-43a8-b9fa-e7d6678f2800",
+      "result": "PASS",
+      "qualified_dictionary_exact": true,
+      "qualified_capture_sha256": "7d2a48268831f1430cd8c08a126d6216af2191a7e67072cc89e0ea279f24de56",
+      "disclosed_payloads": [
+        {
+          "name": "intention_Disclosed_Input.json",
+          "observed_sha256": "0ce62abfed488c294cd85393f871be20087384fb1060fe1f9523aaac50cc8c30",
+          "current_regenerated_sha256": "0ce62abfed488c294cd85393f871be20087384fb1060fe1f9523aaac50cc8c30",
+          "result": "PASS"
+        },
+        {
+          "name": "intention_verifier_Disclosed_Input.json",
+          "observed_sha256": "1adad169cc8ffa1bb3d8c49df0600d7835a657c1cf81202741a13dca8c140357",
+          "current_regenerated_sha256": "1adad169cc8ffa1bb3d8c49df0600d7835a657c1cf81202741a13dca8c140357",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "case": "unsupported_interpretation",
+      "run_id": "860f5624-2576-4d78-bd13-44ecb827cfd7",
+      "result": "PASS",
+      "qualified_dictionary_exact": true,
+      "qualified_capture_sha256": "6814c3d5d8adc76a193b7255755e2a865e6ea8da9a46f92e999b05c30b3f92c7",
+      "disclosed_payloads": [
+        {
+          "name": "intention_Disclosed_Input.json",
+          "observed_sha256": "46663fda56ab6bc46efd1e547393fc0a5ffc55d30ee462ec30d1b056bbdf9d51",
+          "current_regenerated_sha256": "46663fda56ab6bc46efd1e547393fc0a5ffc55d30ee462ec30d1b056bbdf9d51",
+          "result": "PASS"
+        },
+        {
+          "name": "intention_verifier_Disclosed_Input.json",
+          "observed_sha256": "06d9b4d5ab922e9d11129339d4c4843da5da6e270e30a69f1a8a9605b7e29525",
+          "current_regenerated_sha256": "06d9b4d5ab922e9d11129339d4c4843da5da6e270e30a69f1a8a9605b7e29525",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "case": "lost_constraint",
+      "run_id": "73d5125b-f17c-4040-88b5-71337130eb1d",
+      "result": "PASS",
+      "qualified_dictionary_exact": true,
+      "qualified_capture_sha256": "eea913f04fa06c782a8a2ac1d1005a54eca6969e66ba6e3e36feef8996affc6b",
+      "disclosed_payloads": [
+        {
+          "name": "intention_Disclosed_Input.json",
+          "observed_sha256": "8f86b2534c89de16b89cae814a9e071ab7dd63f00f671a756ed0dfdbb875f45c",
+          "current_regenerated_sha256": "8f86b2534c89de16b89cae814a9e071ab7dd63f00f671a756ed0dfdbb875f45c",
+          "result": "PASS"
+        },
+        {
+          "name": "intention_verifier_Disclosed_Input.json",
+          "observed_sha256": "5c698982fa37c0c0d7bf1dab35b4f614f403256ccf6b808c708f6273af2bf638",
+          "current_regenerated_sha256": "5c698982fa37c0c0d7bf1dab35b4f614f403256ccf6b808c708f6273af2bf638",
+          "result": "PASS"
+        },
+        {
+          "name": "requirements_Disclosed_Input.json",
+          "observed_sha256": "472eb7ed0706772468d1bcce63f9d4d313bff0feecf9507b0abd7bfe702295ee",
+          "current_regenerated_sha256": "472eb7ed0706772468d1bcce63f9d4d313bff0feecf9507b0abd7bfe702295ee",
+          "result": "PASS"
+        },
+        {
+          "name": "requirements_verifier_Disclosed_Input.json",
+          "observed_sha256": "8debdcd9bbff50101f0554fed00d69435e7de4f3e0bfd31dab38cdec7aa6b82b",
+          "current_regenerated_sha256": "8debdcd9bbff50101f0554fed00d69435e7de4f3e0bfd31dab38cdec7aa6b82b",
+          "result": "PASS"
+        }
+      ]
+    }
+  ],
+  "result": "PASS",
+  "limitations": [
+    "Equivalence applies only to the six actual R07 inputs (none used explicit reference_document resources). New role behavior is separately verified by B01/API regressions; no live sample of that changed route is claimed. Other unchanged model outputs/observations in copied context are not regenerated."
+  ]
+}

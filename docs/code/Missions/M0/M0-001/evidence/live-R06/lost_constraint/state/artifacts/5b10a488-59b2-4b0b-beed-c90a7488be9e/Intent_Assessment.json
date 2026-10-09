@@ -1,0 +1,81 @@
+{
+  "findings": [
+    {
+      "criterion_id": "fidelity",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "78b0d3de1cf130af0608a37ac422f1f8aac4aad6fbf4648d3c5caab366e64488"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "3d0b1d38a02bd1bdd8bf70f9e12aecc2546ba118248dd90eb8700c50e0108f09"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The Intent faithfully preserves the requested retrieval latency investigation and evidence-grounded report, both prohibitions, and the reference's baseline metrics and absence of empirical measurements. It invents no method, target, or desired change."
+    },
+    {
+      "criterion_id": "coverage",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "78b0d3de1cf130af0608a37ac422f1f8aac4aad6fbf4648d3c5caab366e64488"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "3d0b1d38a02bd1bdd8bf70f9e12aecc2546ba118248dd90eb8700c50e0108f09"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "All material source content is represented: investigation scope, requested report, evidence requirement, cloud-training prohibition, new-dataset prohibition, existing baseline, relevant metrics, and missing empirical measurements."
+    },
+    {
+      "criterion_id": "consistency",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "78b0d3de1cf130af0608a37ac422f1f8aac4aad6fbf4648d3c5caab366e64488"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "3d0b1d38a02bd1bdd8bf70f9e12aecc2546ba118248dd90eb8700c50e0108f09"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Scope, result, context, exclusions, and constraints agree. The Intent neither permits prohibited activities nor treats absent measurements as available evidence. Retrieval quality remains baseline context without becoming an invented mandatory target."
+    },
+    {
+      "criterion_id": "requirements_usability",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "78b0d3de1cf130af0608a37ac422f1f8aac4aad6fbf4648d3c5caab366e64488"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "3d0b1d38a02bd1bdd8bf70f9e12aecc2546ba118248dd90eb8700c50e0108f09"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The Intent specifies an actionable investigation and a concrete report deliverable with explicit evidence and activity constraints. Missing measurements limit empirical conclusions but do not make the purpose unknown or require inventing a method."
+    }
+  ],
+  "limitations": [
+    "No empirical measurements are supplied; acceptance of the Intent does not establish measured latency, retrieval quality, or causal findings."
+  ],
+  "required_correction": null,
+  "review_context_ref": {
+    "id": "Intention_Review_Context.json",
+    "sha256": "3d0b1d38a02bd1bdd8bf70f9e12aecc2546ba118248dd90eb8700c50e0108f09"
+  },
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "78b0d3de1cf130af0608a37ac422f1f8aac4aad6fbf4648d3c5caab366e64488"
+  },
+  "uncertainties": [
+    "Whether existing empirical measurements are available beyond the supplied reference is unknown."
+  ],
+  "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+}

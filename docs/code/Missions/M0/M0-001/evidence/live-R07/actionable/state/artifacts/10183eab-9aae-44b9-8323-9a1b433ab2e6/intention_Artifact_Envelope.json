@@ -1,0 +1,29 @@
+{
+  "attempt_id": "attempt:1",
+  "audience": "authorized_run_owner",
+  "contract_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+  "id": "envelope:Intent_IR.json",
+  "invocation_ref": {
+    "id": "intention_Invocation_Observation.json",
+    "sha256": "7396735a25da178f43bea2378dbd38395b31d18e942181c35426ddafcae272b6"
+  },
+  "media_type": "application/json",
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "3b9546e3b98e50bd4b493a7c8e2dad3d173badc8e617ff13e06dd3869be56c1e"
+  },
+  "node_id": "intention.compiler",
+  "payload_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "534b21488d83ada6f1824708da845eb460b8149cfb075eb4ecbde433ad116fac"
+  },
+  "run_id": "10183eab-9aae-44b9-8323-9a1b433ab2e6",
+  "schema_version": "2.0.0",
+  "source_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "fe67f22340de7e402f4e77c0bb6893fad9ed193176547eb9bf7a0c51900b3112"
+    }
+  ],
+  "subnode_id": "intention"
+}

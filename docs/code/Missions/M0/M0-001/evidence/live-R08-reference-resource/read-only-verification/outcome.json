@@ -1,0 +1,31 @@
+{
+  "case": "resources-only-reference-document",
+  "candidate": "sha256:4b33bcb6df44328b27be2fb24b819eb7a879c4715c757a5ae51297d72f484bad",
+  "run_id": "2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "result": "PASS",
+  "purpose": "Correct evidence-helper field lookup through ordinary authenticated reads; no replay",
+  "original_outcome_path": "D:\\research\\ai_for_research\\tests_whether_we_need_spec_kit\\test_with_spec_kit\\docs\\code\\Missions\\M0\\M0-001\\evidence\\live-R08-reference-resource\\outcome.json",
+  "original_outcome_sha256": "5de6c5ffdbb01a3541ad0ecf3561254ef39bda9c4f0a4ac9a6cf0c2a853cc132",
+  "original_harness_failure": "KeyError: 'invalid_for_product'",
+  "new_model_calls": 0,
+  "actual": "completed",
+  "model_calls": 4,
+  "source_bytes_verified": true,
+  "license_verified": true,
+  "protected_source_disclosure_verified": true,
+  "attributed_constraint_spans_verified": true,
+  "brief_constraints_preserved": true,
+  "enclosing_node_durably_accepted": true,
+  "product_profile_verified": true,
+  "no_replay_verified": true,
+  "node_acceptance_ref": {
+    "id": "Accepted_node.json",
+    "sha256": "907c1214bdc1ea24be557a804ec6f8b1bb3b7a97d805f2267dd06c649eaf2427"
+  },
+  "brief_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "e1b0ba61a5a5912775aee5dce350f10909b0fbf31d7a000538a2c3b31fbbab1c"
+  },
+  "export": "captured",
+  "model_dispatches": 0
+}

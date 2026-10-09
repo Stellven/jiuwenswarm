@@ -1,0 +1,1 @@
+Investigate reducing retrieval latency and return a report. All research must use only a single GPU, and all research must use exactly four GPUs at the same time. Both requirements are mandatory.

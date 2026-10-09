@@ -1,0 +1,1 @@
+2026-10-08T19:16:27.757446Z ERROR codex_core::session::session: failed to load skill C:\Users\17982\.agents\skills\codex-polish\SKILL.md: missing YAML frontmatter delimited by ---

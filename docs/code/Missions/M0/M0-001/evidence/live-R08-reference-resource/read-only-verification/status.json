@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:2bd7d910-6d26-41a4-94a4-7bac1a35ed9a:16",
+  "client_request_id": "reference-resource-037e0445609b4ce4a7ecaa031c8ac685",
+  "run_id": "2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "revision": 16,
+  "stage": "released",
+  "status": "completed",
+  "candidate_refs": [],
+  "accepted_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "e1b0ba61a5a5912775aee5dce350f10909b0fbf31d7a000538a2c3b31fbbab1c"
+    }
+  ],
+  "decision_ref": {
+    "id": "Gate_Node.json",
+    "sha256": "4738baab8e1a3c1487f5fe8ff124302e93d0b6e1a762f5345c52f1cee3e686e6"
+  },
+  "reasons": [
+    "Durably released exact Research Brief"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-only",
+      "invalid_for_product": false,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "511a4f0253b6c15e0b84065f9f9e9981a25f3ea31e981283817a64c1c3cf34f7"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "01aaacb2dd584262120a88d99fc6fd8e43957de9d2c9e3728d5cd37b8626a423"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+      }
+    }
+  }
+}

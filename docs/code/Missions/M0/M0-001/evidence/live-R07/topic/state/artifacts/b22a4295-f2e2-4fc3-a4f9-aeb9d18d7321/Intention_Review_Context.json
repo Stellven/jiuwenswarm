@@ -1,0 +1,49 @@
+{
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "61de92e82154ea6c7fbf64f215af39f85e8dc6c32bb3275b2716889204ed7a05"
+  },
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "5c991814572952f368ecd65e5bba48ed5b1e164e356956c1ffe0792e9481dc18"
+  },
+  "criteria": [
+    "fidelity",
+    "coverage",
+    "consistency",
+    "requirements_usability"
+  ],
+  "deterministic_result_ref": {
+    "id": "Intention_Checks.json",
+    "sha256": "015818bd1faecfec40eeadd6b70c33ab45fe30c9e41f51ca8d1cdcee404fd1b3"
+  },
+  "evidence_classes": [
+    "protected_policy",
+    "accepted_input",
+    "observed_evidence",
+    "untrusted_producer_content"
+  ],
+  "id": "review:intention",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "368f409456f38375466824ff525cc9522bb9190be42e3bb86b79ea3956db7293"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "563cc8fa9a0afc63df1c89d1ca76c53b79267c453b1fb4a816b6c3684b3fb130"
+  },
+  "observations": [
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "87f22adfc2213b49631e3e458219d3229757ecb185625834b3af0578b30eb41a"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "fbb8e8360b07d7a7029580264c7ab358a3c26cab70b7b29597a52c98b4d522a9"
+  },
+  "subnode_id": "intention"
+}

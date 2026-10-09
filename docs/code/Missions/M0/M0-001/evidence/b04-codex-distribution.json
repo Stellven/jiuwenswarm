@@ -1,0 +1,39 @@
+{
+  "registry_url": "https://registry.npmjs.org/@openai%2Fcodex/0.162.0-alpha.2",
+  "name": "@openai/codex",
+  "version": "0.162.0-alpha.2",
+  "bin": {
+    "codex": "bin/codex.js"
+  },
+  "optionalDependencies": {
+    "@openai/codex-linux-x64": "npm:@openai/codex@0.162.0-alpha.2-linux-x64",
+    "@openai/codex-win32-x64": "npm:@openai/codex@0.162.0-alpha.2-win32-x64",
+    "@openai/codex-darwin-x64": "npm:@openai/codex@0.162.0-alpha.2-darwin-x64",
+    "@openai/codex-linux-arm64": "npm:@openai/codex@0.162.0-alpha.2-linux-arm64",
+    "@openai/codex-win32-arm64": "npm:@openai/codex@0.162.0-alpha.2-win32-arm64",
+    "@openai/codex-darwin-arm64": "npm:@openai/codex@0.162.0-alpha.2-darwin-arm64"
+  },
+  "dist": {
+    "shasum": "ef04d74426985a6cdb16768b29f27fe4c9876601",
+    "tarball": "https://registry.npmjs.org/@openai/codex/-/codex-0.162.0-alpha.2.tgz",
+    "fileCount": 3,
+    "integrity": "sha512-DytbqeFgQ5VP+ioOo5RXxnXCKTXJAXeA0VTEG/ECrrsZubaWHSRFYuLAyuliavLD/I92ykCunXL4JHe3eb1pyA==",
+    "signatures": [
+      {
+        "sig": "MEUCIGI7kzuHcwTf4maGabzsdJ1drHHR8E4tiogR1Pbmc6ukAiEAtZcanTVVCWmt+B7hAteZjtBDadanjAJDy0+tn46RWh0=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEYCIQCzlSuThjdWL0IRNacKo9o6nMVG2B/XtqYA5FwlhLm5JwIhAKKRVOhIpsVMz18ryZah3sVKxxnQAufgjilWuqwFgM3E",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@openai%2fcodex@0.162.0-alpha.2",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 13262
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "intake:4bf1a357-cf58-4ad8-bcc7-a13a7c4304d6",
+  "input_directory_ref": {
+    "id": "Input_Directory.json",
+    "sha256": "31fd7f9ca781d87f1948aa4c273a1edbec31d7a379e60406d88fb766438c6264"
+  },
+  "offset_basis": "Unicode code points",
+  "profile_ref": {
+    "id": "Local_Profile.json",
+    "sha256": "9db0b9b7090dfd8984b5f03a28e65c4edf8645fdb0802d88ec5eb53847670786"
+  },
+  "rejected_inputs": [],
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+  },
+  "resource_refs": [
+    {
+      "id": "Resource_Document_0.json",
+      "sha256": "9eed348247ffaeab17740e20d37201bc50e3b16bc25f54262e90d5905bb83fc4"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "source_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "user_id": "local-user",
+  "workspace_ref": {
+    "id": "Workspace.json",
+    "sha256": "b627f99bdc7502c0d9895313b1dcdc846757c70f64010633b8c722e6f8d0858d"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "binding_id": "binding:requirements",
+  "contract_ref": {
+    "id": "requirements_Subnode_Contract.json",
+    "sha256": "2fe3afad8d92d58e81f249c0c2988da46cd42f68bfeddc6d57d79001ceb4d41b"
+  },
+  "duration_s": 77.4933054999965,
+  "effects": [
+    "approved_model_disclosure"
+  ],
+  "ended_at": "2026-10-08T18:45:42.893889+00:00",
+  "id": "invocation:ba92ba15c8d24a778b2770fa9289bc43",
+  "input_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "3446505be1f5365c5d7fe6c3fb7a2c35de183c75f31a3f95c203afc0d068ffe4"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "c77edf45f51a2d7dbe733f229634d2d3e0004cb3ebeb4c92533c0c22a4a9d579"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+    }
+  ],
+  "model_calls": 1,
+  "model_identity": {
+    "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+    "effective": null,
+    "requested": "approved native Codex default"
+  },
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "67ebc3a89d065a6fcc94a9f0d65a81c46cf55cd06da5b0d07a5505514d6a0bc8"
+  },
+  "observed_runtime": true,
+  "outcome": "completed",
+  "output_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "4a3810203c19a8e4f950b00eb6c399a1675c93b3e3814131757c0d77621faeb4"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "started_at": "2026-10-08T18:44:25.400573+00:00",
+  "subnode_id": "requirements",
+  "trace_refs": [
+    {
+      "id": "requirements_Disclosed_Input.json",
+      "sha256": "48d4f23bc5f22d93662755c4f48d1e39e6031877c8004fb4737a5d41c047c93f"
+    },
+    {
+      "id": "requirements_Raw_Response.txt",
+      "sha256": "94c220376224cebb840dc80e828aeb90afad7136ff16dc5f2adaf6c3e8afab9c"
+    },
+    {
+      "id": "requirements_Stderr.txt",
+      "sha256": "31ce03cf5cd31e94534e794c1ea69cfba0c9d816bf5630113890c21aeba5d30a"
+    }
+  ],
+  "unavailable_reasons": [
+    "Attributable cost/currency not supplied by native CLI"
+  ],
+  "usage": {
+    "cost_amount": null,
+    "currency": null,
+    "input_tokens": 14805,
+    "output_tokens": 3344,
+    "unavailable_reasons": [
+      "Attributable cost/currency not supplied by native CLI"
+    ]
+  }
+}

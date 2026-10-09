@@ -1,0 +1,74 @@
+{
+  "r07_candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+  "final_candidate": "sha256:4b33bcb6df44328b27be2fb24b819eb7a879c4715c757a5ae51297d72f484bad",
+  "after_read_only_candidate": "sha256:4b33bcb6df44328b27be2fb24b819eb7a879c4715c757a5ae51297d72f484bad",
+  "final_candidate_unchanged": true,
+  "r07_to_final_changed_files": [
+    {
+      "path": "standalone/intent_compiler/README.md",
+      "r07": {
+        "path": "standalone/intent_compiler/README.md",
+        "bytes": 9906,
+        "sha256": "3ee91dc6573cc38e85a53ea1cc08eb947ca0337d537e931ccf1a9aee5b4b0872"
+      },
+      "final": {
+        "path": "standalone/intent_compiler/README.md",
+        "bytes": 10393,
+        "sha256": "d64045524dbdcea4e59301d6e4a968e9914d38132820d73e04a164f41669e53d"
+      }
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/intake.py",
+      "r07": {
+        "path": "standalone/intent_compiler/intent_compiler/intake.py",
+        "bytes": 13527,
+        "sha256": "e3fe962489bb58373748ab9562c828d89bdbdb12c9e660c9f81970fdbd3c2b9d"
+      },
+      "final": {
+        "path": "standalone/intent_compiler/intent_compiler/intake.py",
+        "bytes": 14035,
+        "sha256": "8acbd5754b60465a6ba91e3d197bba43bcfe104adbc287535a53e70833c6727e"
+      }
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_api.py",
+      "r07": {
+        "path": "standalone/intent_compiler/tests/test_api.py",
+        "bytes": 18533,
+        "sha256": "4732de25aed9bb231b95edb216c0808abd8d6cb9e966e3df8cd15efea2f0aef1"
+      },
+      "final": {
+        "path": "standalone/intent_compiler/tests/test_api.py",
+        "bytes": 21902,
+        "sha256": "5585d0cd215e747353aa1e6f61956ce061b200d7086b8ffc4a6b23e9c25dd30e"
+      }
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_intake_store.py",
+      "r07": {
+        "path": "standalone/intent_compiler/tests/test_intake_store.py",
+        "bytes": 12251,
+        "sha256": "2cdd7411ac5985ebc0a40de639b02e8357b8512093b2eb87dfd6a607efc45a5f"
+      },
+      "final": {
+        "path": "standalone/intent_compiler/tests/test_intake_store.py",
+        "bytes": 15725,
+        "sha256": "cbd277e3f3dfc7c273462886e7904c58120f7041defe6110650ef51dd0d442fb"
+      }
+    },
+    {
+      "path": "standalone/intent_compiler/tools/live_verify.py",
+      "r07": {
+        "path": "standalone/intent_compiler/tools/live_verify.py",
+        "bytes": 11429,
+        "sha256": "46ac80381536bd1a86ae4cc2603072f530a169e6e961c2dfd07f4e625630f233"
+      },
+      "final": {
+        "path": "standalone/intent_compiler/tools/live_verify.py",
+        "bytes": 12500,
+        "sha256": "720b40970ca2aafb614fbf6256cbf27eaf74f519a5c639c52cf0165efbf53840"
+      }
+    }
+  ],
+  "equivalence_basis": "Core runtime/model/checks/schemas and all model prompts/role bodies unchanged; reference_document resource qualification changed only for explicit resources descriptors, absent from six R07 inputs. Independent shadow qualification/disclosed-input proof required for retained R07 coverage. tools/live_verify.py change only finally available-evidence export after terminal failure; no model dispatch semantics. Test/docs changes do not change role inputs. Separate R08 actual resources-only journey covers affected route."
+}

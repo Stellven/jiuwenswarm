@@ -1,0 +1,13 @@
+{
+  "authority": {
+    "network": "none",
+    "network_allowlist": [],
+    "resource_reads": [],
+    "tools": [
+      "audited-model-bridge"
+    ],
+    "write_roots": []
+  },
+  "schema_version": "1.0.0",
+  "typed_inputs": "Host-provided immutable values; grants no external resource-read capability"
+}

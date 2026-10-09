@@ -1,0 +1,9 @@
+{
+  "error": "Native process returned non-success",
+  "id": "failure:intention",
+  "observation_ref": {
+    "id": "intention_Invocation_Observation.json",
+    "sha256": "36a0c70e305784cd9762256bd8ae96f98e1ddba6f07e32da3af49568336cf88c"
+  },
+  "outputs": []
+}

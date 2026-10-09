@@ -1,0 +1,88 @@
+{
+  "authority": {
+    "network": "none",
+    "network_allowlist": [],
+    "resource_reads": [],
+    "tools": [
+      "audited-model-bridge"
+    ],
+    "write_roots": []
+  },
+  "declaration_ref": {
+    "id": "intention_Declaration.json",
+    "sha256": "3717c8715f0ef457f18375094d9c839f8cb779ae722da0bd52f27f898a7f16eb"
+  },
+  "dependency_refs": [
+    {
+      "id": "d0_model.py",
+      "sha256": "a9c0ab2d87c916ea61be1de925dad7639e85d651f89f79085cc33addfd053af1"
+    },
+    {
+      "id": "d0_runtime.py",
+      "sha256": "b1fc3d7555fdbab257b4d02033fa46c68424c383709aae23d3e0d01d8ac99a8d"
+    },
+    {
+      "id": "d0_checks.py",
+      "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+    },
+    {
+      "id": "d0_requirements.lock",
+      "sha256": "0f7bff60e71282d43272a27b68f51b030e56ff99b2e2631734fe67a2d622ec30"
+    },
+    {
+      "id": "d0_capsule-declaration.schema.json",
+      "sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6"
+    },
+    {
+      "id": "d0_catalog.json",
+      "sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7"
+    },
+    {
+      "id": "d0_common.schema.json",
+      "sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880"
+    },
+    {
+      "id": "d0_deterministic-check-result.schema.json",
+      "sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017"
+    },
+    {
+      "id": "d0_field-contracts.json",
+      "sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6"
+    },
+    {
+      "id": "d0_gate-decision.schema.json",
+      "sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd"
+    },
+    {
+      "id": "d0_intent-ir.schema.json",
+      "sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262"
+    },
+    {
+      "id": "d0_provenance.json",
+      "sha256": "741790b2eb2224cf3dc63fdc2b967b4f5d2ffb3ee7b377a58fa3f67134388834"
+    },
+    {
+      "id": "d0_research-brief.schema.json",
+      "sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2"
+    },
+    {
+      "id": "d0_subnode-execution-contract.schema.json",
+      "sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede"
+    },
+    {
+      "id": "d0_verifier-assessment.schema.json",
+      "sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e"
+    }
+  ],
+  "eligibility": "validated local agent schema, exact captured implementation/dependency closure, fixed tool-free supported style and role",
+  "id": "admission:intention",
+  "implementation_refs": [
+    {
+      "id": "intention_Implementation.txt",
+      "sha256": "e53bdefd3574a870a972c8c4c60c75507ef13347ab929c69356c94bfc8f7de97"
+    }
+  ],
+  "invalid_for_product": false,
+  "schema_version": "1.0.0",
+  "status": "active"
+}

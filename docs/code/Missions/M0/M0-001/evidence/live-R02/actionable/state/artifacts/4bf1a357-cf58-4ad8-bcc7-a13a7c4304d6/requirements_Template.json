@@ -1,0 +1,52 @@
+{
+  "authority": {
+    "network": "none",
+    "network_allowlist": [],
+    "tools": [
+      "audited-model-bridge"
+    ]
+  },
+  "declaration_ref": {
+    "id": "requirements_Declaration.json",
+    "sha256": "fca50144b2d34ba07c9d966916ed9081934334988fe6e5c86b4db2846e1e3475"
+  },
+  "id": "template:requirements",
+  "input_ports": [
+    {
+      "artifact_type": "intent-ir",
+      "check_ids": [],
+      "description": "Protected immutable intent",
+      "name": "intent",
+      "required": true,
+      "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+    },
+    {
+      "artifact_type": "qualified-intake",
+      "check_ids": [],
+      "description": "Protected immutable intake",
+      "name": "intake",
+      "required": true,
+      "schema_ref": "qualified-intake:field-contract:2"
+    },
+    {
+      "artifact_type": "default-policy",
+      "check_ids": [],
+      "description": "Protected immutable defaults",
+      "name": "defaults",
+      "required": true,
+      "schema_ref": "default-policy:field-contract:1"
+    }
+  ],
+  "limits": {
+    "memory_mb": 1024,
+    "model_calls": 1,
+    "time_s": 120.0
+  },
+  "output_contract": "research-brief",
+  "profile_ref": {
+    "id": "requirements_Profile.json",
+    "sha256": "5980f8a6ce3e5ef1c0a77786a975824f393c641f4b37d03569270f41b8e107ca"
+  },
+  "role": "requirements",
+  "schema_version": "1.0.0"
+}

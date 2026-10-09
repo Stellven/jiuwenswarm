@@ -1,0 +1,80 @@
+[
+  {
+    "registry_url": "https://registry.npmjs.org/@openai%2Fcodex/0.162.0-alpha.2-linux-x64",
+    "name": "@openai/codex",
+    "version": "0.162.0-alpha.2-linux-x64",
+    "os": [
+      "linux"
+    ],
+    "cpu": [
+      "x64"
+    ],
+    "dist": {
+      "shasum": "da54736ffe14dde7e410868b925d7edf96c07e1d",
+      "tarball": "https://registry.npmjs.org/@openai/codex/-/codex-0.162.0-alpha.2-linux-x64.tgz",
+      "fileCount": 46,
+      "integrity": "sha512-4jV9mlBWyHF2OyfFBKJg2xQupIoZHkkuRUdnX5RmS70atTkwX2CHwjAG/kg/I4Flm63lNjNSwFzz/3JZ6cQkpA==",
+      "signatures": [
+        {
+          "sig": "MEUCIQCju9xqIyfHKUnzs9sPu4mcbcpjH3ALrclUlyD6Ua1jqQIgd/Q+9XVxtGlpNVOyUUpurG04lU52jQsTH5K8MkOS0uk=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIETxGoS8RBJoPsjIGOnNIWrHef5hfGsoJqINI8r0ohSpAiEAgX4sz2j7UEU5tmnhLrUDrZ2m1eOZscUlDv8nnOi26xM=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@openai%2fcodex@0.162.0-alpha.2-linux-x64",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 450114546
+    },
+    "native_archive_path": "package/vendor/x86_64-unknown-linux-musl/bin/codex",
+    "native_file_size": 292067592,
+    "native_mode": "0o755",
+    "ELF_header_hex": "7f454c4602010100000000000000000003003e00010000007115c50000000000400000000000000008926811000000000000000040003800090040001c001b00",
+    "read_scope": "streamed archive metadata and first64nativebytes only; not executed on Windows"
+  },
+  {
+    "registry_url": "https://registry.npmjs.org/@openai%2Fcodex/0.162.0-alpha.2-linux-arm64",
+    "name": "@openai/codex",
+    "version": "0.162.0-alpha.2-linux-arm64",
+    "os": [
+      "linux"
+    ],
+    "cpu": [
+      "arm64"
+    ],
+    "dist": {
+      "shasum": "4fdf1938088788414646e53ae0a094f06abe89e1",
+      "tarball": "https://registry.npmjs.org/@openai/codex/-/codex-0.162.0-alpha.2-linux-arm64.tgz",
+      "fileCount": 46,
+      "integrity": "sha512-yJrQ5Mvf+EB8nmQTfwlhH2iMFaUp+dPeZwUwaHJ98MePFpFBHk0CISRnl0qMREeVMYbTbJ2ksgLtmy8v6xHLNQ==",
+      "signatures": [
+        {
+          "sig": "MEQCIB2tVuM4QkJrnSnTUICCcisH7STToVVfI7u3/tjl/8YGAiBOyGiWYFCZ3nKU6mSI+npP33iL9q1jyE4UcRdWYBOs/A==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQCpsk4tbBzWwDJTGN1sYKCvYQLyDxYfx0uhmMopofkphAIgVHDsbgKThuTJg+CxOABdpmf+tiXnVG4RCHEpn14Be4s=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@openai%2fcodex@0.162.0-alpha.2-linux-arm64",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 407103732
+    },
+    "native_archive_path": "package/vendor/aarch64-unknown-linux-musl/bin/codex",
+    "native_file_size": 253817032,
+    "native_mode": "0o755",
+    "ELF_header_hex": "7f454c460201010000000000000000000200b7000100000018df8e00000000004000000000000000c8eb200f0000000000000000400038000600400014001300",
+    "read_scope": "streamed archive metadata and first64nativebytes only; not executed on Windows"
+  }
+]

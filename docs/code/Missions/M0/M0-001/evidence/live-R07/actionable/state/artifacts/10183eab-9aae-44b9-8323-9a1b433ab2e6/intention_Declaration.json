@@ -1,0 +1,145 @@
+{
+  "budget": {
+    "enforcement": {
+      "invocations": "hard",
+      "tool_calls": "hard",
+      "wall_s": "hard"
+    },
+    "on_exhaust": "fail",
+    "per_call": {
+      "invocations": 1,
+      "tool_calls": 0,
+      "wall_s": 120
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "assurance": "protected tool-free bridge with hard time/memory and call limits",
+        "id": "model-disclosure",
+        "idempotent": false,
+        "op": "model_invoke",
+        "resource_key": "approved_model_bridge",
+        "reversibility": "none",
+        "risk": {
+          "blast_radius": "one assigned context",
+          "irreversibility": true,
+          "severity": "bounded"
+        },
+        "scope": "permitted bound context",
+        "undo": null
+      }
+    ],
+    "invariants": [],
+    "provides": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No arbitrary resource/tool authority; host deterministic readiness is prerequisite; synthetic adapters are labelled separately"
+    ]
+  },
+  "evolution": {
+    "frozen": [
+      "/ports",
+      "/needs",
+      "/changes",
+      "/guarantees",
+      "/budget"
+    ],
+    "notes_for_builder": []
+  },
+  "guarantees": {
+    "acceptance": [
+      "intent-ir_schema"
+    ],
+    "checks": [
+      {
+        "anchor": "exact output",
+        "assurance": "structure only",
+        "author": "protected schema owner",
+        "held_out": false,
+        "id": "intent-ir_schema",
+        "kind": "deterministic",
+        "over": [
+          "outputs"
+        ],
+        "owner": "protected profile",
+        "runner": {
+          "ref": "d0_checks.py",
+          "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+        },
+        "signal_source": "captured output",
+        "target": "outputs.result",
+        "written_before_body": true
+      }
+    ],
+    "evals": [],
+    "unanchored": [
+      "Semantic quality is independently checked; no reliability guarantee"
+    ]
+  },
+  "identity": {
+    "body": [
+      {
+        "path": "intention_Implementation.txt",
+        "sha256": "e53bdefd3574a870a972c8c4c60c75507ef13347ab929c69356c94bfc8f7de97"
+      }
+    ],
+    "carrier": {
+      "ref": "intention_Implementation.txt",
+      "sha256": "e53bdefd3574a870a972c8c4c60c75507ef13347ab929c69356c94bfc8f7de97"
+    },
+    "kind": "agent",
+    "name": "intention",
+    "summary": "Extract faithful user research meaning into Intent IR 1.0.0. Preserve requested purpose/result, scope, exclusions, constraints, preferences, entities and explicit targets. Every statement needs exact code-point spans into original source text. Do not select solutions, invent purpose/method/target, browse, profile host or clarify interactively. A to",
+    "version_label": "standalone-r1"
+  },
+  "needs": {
+    "external": [],
+    "injects": [
+      {
+        "interface_version_range": "1.x",
+        "service_key": "audited_model_bridge"
+      }
+    ],
+    "model": {
+      "modalities": [
+        "text"
+      ],
+      "tool_calling": false
+    },
+    "network": {
+      "allowlist": [],
+      "direction": "none",
+      "mode": "none"
+    },
+    "resources": [],
+    "when": []
+  },
+  "ports": {
+    "inputs": [
+      {
+        "artifact_type": "qualified-intake",
+        "check_ids": [],
+        "description": "Protected immutable intake",
+        "name": "intake",
+        "required": true,
+        "schema_ref": "qualified-intake:field-contract:2"
+      }
+    ],
+    "outputs": [
+      {
+        "artifact_type": "intent-ir",
+        "check_ids": [
+          "intent-ir_schema"
+        ],
+        "description": "Assigned content only, no release authority",
+        "name": "result",
+        "required": true,
+        "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+      }
+    ]
+  },
+  "schema_version": "1.0.0"
+}

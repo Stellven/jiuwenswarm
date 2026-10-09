@@ -1,0 +1,15 @@
+{
+  "account_id": "local-user",
+  "client_request_id": "verification-omissions-b942ecbf1bb2493dbb639866d3f85e45",
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+  },
+  "id": "submission-verification-omissions-b942ecbf1bb2493dbb639866d3f85e45",
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "9cec4e0d75ffe47baf4a3f198baea595ec866b4ed7e767ed410c2640f4cfc016"
+  },
+  "schema_version": "1.0.0",
+  "workspace_id": "local-workspace"
+}

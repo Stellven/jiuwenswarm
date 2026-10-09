@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:5b10a488-59b2-4b0b-beed-c90a7488be9e:8",
+  "client_request_id": "verification-lost_constraint-be697efcef5440c58564f24e9b7950d4",
+  "run_id": "5b10a488-59b2-4b0b-beed-c90a7488be9e",
+  "revision": 8,
+  "stage": "halted",
+  "status": "halted",
+  "candidate_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "78b0d3de1cf130af0608a37ac422f1f8aac4aad6fbf4648d3c5caab366e64488"
+    }
+  ],
+  "accepted_refs": [],
+  "decision_ref": {
+    "id": "Gate_Intention.json",
+    "sha256": "abf945f5e9346a67510604ba196ada3a7ed02dcea0371d47722c84760c30a2b2"
+  },
+  "reasons": [
+    "Advancing assessment contradicts mandatory findings, uncertainty or correction"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-evaluation",
+      "invalid_for_product": true,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "b84f86061303b5db7896e61997fdacb5500baf902bae9c1d3cb228b836f2c51d"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "3a486b451f71dc5691eccb5fb55cc2953df966107d9614a894d707733a218d30"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "4309831d493b97de1068023ce5eda7d7523bb35ee035cac21dc5d95f6756255e"
+      }
+    }
+  }
+}

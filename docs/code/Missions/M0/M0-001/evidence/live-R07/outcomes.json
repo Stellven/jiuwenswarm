@@ -1,0 +1,110 @@
+{
+  "candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+  "cases": [
+    {
+      "case": "actionable",
+      "expected": "completed",
+      "protected_challenge": false,
+      "candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+      "result": "PASS",
+      "actual": "completed",
+      "run_id": "10183eab-9aae-44b9-8323-9a1b433ab2e6",
+      "reasons": [
+        "Durably released exact Research Brief"
+      ],
+      "model_calls": 4,
+      "export": "captured",
+      "elapsed_s": 193.12928819999797
+    },
+    {
+      "case": "omissions",
+      "expected": "completed",
+      "protected_challenge": false,
+      "candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+      "result": "PASS",
+      "actual": "completed",
+      "run_id": "0a1cac16-11c8-4fb3-8eee-5735044737af",
+      "reasons": [
+        "Durably released exact Research Brief"
+      ],
+      "model_calls": 4,
+      "export": "captured",
+      "elapsed_s": 167.8098560000035
+    },
+    {
+      "case": "topic",
+      "expected": "halted",
+      "protected_challenge": false,
+      "candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+      "result": "PASS",
+      "actual": "halted",
+      "run_id": "b22a4295-f2e2-4fc3-a4f9-aeb9d18d7321",
+      "reasons": [
+        "Producer retained blocking purpose/result/constraint uncertainty"
+      ],
+      "model_calls": 2,
+      "export": "captured",
+      "elapsed_s": 53.32478280000214
+    },
+    {
+      "case": "contradiction",
+      "expected": "halted",
+      "protected_challenge": false,
+      "candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+      "result": "PASS",
+      "actual": "halted",
+      "run_id": "4f26ffd3-e2b5-43a8-b9fa-e7d6678f2800",
+      "reasons": [
+        "Producer retained blocking purpose/result/constraint uncertainty"
+      ],
+      "model_calls": 2,
+      "export": "captured",
+      "elapsed_s": 77.14292439999917
+    },
+    {
+      "case": "unsupported_interpretation",
+      "expected": "halted",
+      "protected_challenge": true,
+      "candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+      "result": "PASS",
+      "actual": "halted",
+      "run_id": "860f5624-2576-4d78-bd13-44ecb827cfd7",
+      "reasons": [
+        "FAIL"
+      ],
+      "model_calls": 2,
+      "challenge_injected": true,
+      "mechanical_checks_passed": true,
+      "semantic_verdict": "FAIL",
+      "semantic_negative_verified": true,
+      "export": "captured",
+      "elapsed_s": 62.20170830000279
+    },
+    {
+      "case": "lost_constraint",
+      "expected": "halted",
+      "protected_challenge": true,
+      "candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+      "result": "PASS",
+      "actual": "halted",
+      "run_id": "73d5125b-f17c-4040-88b5-71337130eb1d",
+      "reasons": [
+        "FAIL"
+      ],
+      "model_calls": 4,
+      "challenge_injected": true,
+      "mechanical_checks_passed": true,
+      "semantic_verdict": "FAIL",
+      "semantic_negative_verified": true,
+      "export": "captured",
+      "elapsed_s": 157.96464500000002
+    }
+  ],
+  "false_acceptances": 0,
+  "false_refusals": 0,
+  "limitations": [
+    "One repetition; uncontrolled provider variability",
+    "Billing and served model identity may be unavailable",
+    "Protected injected challenge outputs are invalid for product/admission"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "case": "resources-only-reference-document",
+  "request": "Investigate ways to reduce latency of the supplied document retrieval baseline while preserving retrieval quality. Return an evidence-grounded research report and follow all mandatory constraints in the supplied reference document.",
+  "documents": [],
+  "resources": [
+    {
+      "path": "reference-only.md",
+      "role": "reference_document",
+      "required": true,
+      "license": "internal-research"
+    }
+  ],
+  "source_bytes_sha256": "cfaf1bd14e1ee585015dfe98007d0f5b4150982d85e50ef23d5b7b4a402412d4",
+  "source_text": "Mandatory project constraints: keep all work local. No cloud training is permitted. No new datasets may be used.\nThe existing document retrieval baseline uses latency and retrieval quality as relevant metrics. No empirical measurements are supplied.\n",
+  "expected": "completed",
+  "expected_material_constraints": [
+    "local",
+    "cloud",
+    "datasets"
+  ],
+  "repetitions": 1,
+  "automatic_retries": 0,
+  "basis": "PRD Context 3.1.2: declared reference_document participates in original reasoning context; qualification and provenance same as document input",
+  "quality_threshold": null,
+  "limitation": "One labelled actual model sample; no reliability claim"
+}

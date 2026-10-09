@@ -1,0 +1,122 @@
+{
+  "verification": "V06 independent all-case published-output/export boundary",
+  "tested_candidate": "sha256:9227fcdb936e38b7261d39403e8f7d2daa487b3d8b54b7e0d136b2f96ed1e1a3",
+  "command": ".venv-intent/Scripts/python.exe docs/code/Missions/M0/M0-001/evidence/v06-r07-export-check.py",
+  "working_directory": "D:\\research\\ai_for_research\\tests_whether_we_need_spec_kit\\test_with_spec_kit",
+  "dependency_mode": "All actual completed R07 terminal SQLite opened read-only and exact captured ordinary client API ZIP/consumer outputs; no model calls/replay",
+  "expected": "Every named hash/ref/pin resolves; completed Brief equals exact durable node receipt and consumer; negatives publish no node, blocked Intent no Requirements; challenges mechanically valid and actually semantically rejected",
+  "cases": [
+    {
+      "case": "actionable",
+      "actual": "completed",
+      "run_id": "10183eab-9aae-44b9-8323-9a1b433ab2e6",
+      "campaign_result": "PASS",
+      "exact_durable_consumer_release": true,
+      "result": "PASS",
+      "named_exact_hash_files": 147,
+      "resolved_unique_refs": 147,
+      "durable_scopes": [
+        "intention",
+        "node",
+        "requirements"
+      ],
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier",
+        "requirements",
+        "requirements.verifier"
+      ]
+    },
+    {
+      "case": "omissions",
+      "actual": "completed",
+      "run_id": "0a1cac16-11c8-4fb3-8eee-5735044737af",
+      "campaign_result": "PASS",
+      "exact_durable_consumer_release": true,
+      "result": "PASS",
+      "named_exact_hash_files": 147,
+      "resolved_unique_refs": 147,
+      "durable_scopes": [
+        "intention",
+        "node",
+        "requirements"
+      ],
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier",
+        "requirements",
+        "requirements.verifier"
+      ]
+    },
+    {
+      "case": "topic",
+      "actual": "halted",
+      "run_id": "b22a4295-f2e2-4fc3-a4f9-aeb9d18d7321",
+      "campaign_result": "PASS",
+      "no_durable_node_or_receipt": true,
+      "result": "PASS",
+      "named_exact_hash_files": 120,
+      "resolved_unique_refs": 120,
+      "durable_scopes": [],
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier"
+      ]
+    },
+    {
+      "case": "contradiction",
+      "actual": "halted",
+      "run_id": "4f26ffd3-e2b5-43a8-b9fa-e7d6678f2800",
+      "campaign_result": "PASS",
+      "no_durable_node_or_receipt": true,
+      "result": "PASS",
+      "named_exact_hash_files": 120,
+      "resolved_unique_refs": 120,
+      "durable_scopes": [],
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier"
+      ]
+    },
+    {
+      "case": "unsupported_interpretation",
+      "actual": "halted",
+      "run_id": "860f5624-2576-4d78-bd13-44ecb827cfd7",
+      "campaign_result": "PASS",
+      "no_durable_node_or_receipt": true,
+      "actual_mechanical_pass_semantic_rejection": true,
+      "result": "PASS",
+      "named_exact_hash_files": 120,
+      "resolved_unique_refs": 120,
+      "durable_scopes": [],
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier"
+      ]
+    },
+    {
+      "case": "lost_constraint",
+      "actual": "halted",
+      "run_id": "73d5125b-f17c-4040-88b5-71337130eb1d",
+      "campaign_result": "PASS",
+      "no_durable_node_or_receipt": true,
+      "actual_mechanical_pass_semantic_rejection": true,
+      "result": "PASS",
+      "named_exact_hash_files": 142,
+      "resolved_unique_refs": 142,
+      "durable_scopes": [
+        "intention"
+      ],
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier",
+        "requirements",
+        "requirements.verifier"
+      ]
+    }
+  ],
+  "result": "PASS",
+  "limitations": [
+    "One observed sample per case, no semantic reliability/rate claim. Protected injected challenges remain invalid for product. R07 candidate is9227; later intake-only change applicability is separately established by v06-r07-intake-equivalence.json; browser/container prerequisites remain blocked."
+  ]
+}

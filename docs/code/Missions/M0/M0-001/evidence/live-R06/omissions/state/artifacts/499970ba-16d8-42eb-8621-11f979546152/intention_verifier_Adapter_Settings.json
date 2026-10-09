@@ -1,0 +1,38 @@
+{
+  "adapter": "codex-exec-stdin-v1",
+  "automatic_retries": 0,
+  "backend_count_limitation": "Native invocation is observed; provider-internal requests are not exposed",
+  "backend_model_request_count": null,
+  "child_home": "owned empty temporary directory",
+  "credential_custody": "existing native protected authentication directory; no copies",
+  "disabled_skill_count": 15,
+  "invocation_id": "invocation:c9f5181897c04b9d81561a9aad9f60b3",
+  "memory_enforcement": "Windows Job Object before resume",
+  "memory_mb": 1024,
+  "native_usage": {
+    "cache_write_input_tokens": 0,
+    "cached_input_tokens": 0,
+    "input_tokens": 15298,
+    "output_tokens": 716,
+    "reasoning_output_tokens": 0
+  },
+  "native_user_config": "ignored; existing authentication only",
+  "project_instructions_max_bytes": 0,
+  "raw_capture_bytes": {
+    "stderr": 180,
+    "stdout": 3022
+  },
+  "raw_evidence_truncated": false,
+  "raw_observed_bytes_at_least": {
+    "stderr": 180,
+    "stdout": 3022
+  },
+  "role": "intention.verifier",
+  "skill_enablement": "all discovered user/native skill folders explicitly disabled; owned child home has no skills",
+  "tools": [],
+  "transport_request_max_retries": 0,
+  "transport_schema_limitations": "Optional ext omitted; unsupported conditional rules enforced by authoritative host checks",
+  "transport_schema_sha256": "23a65535f26f8a97e960969a3fcbf623810879941b6388b9da75d8d5131199de",
+  "transport_stream_max_retries": 0,
+  "web_search": "disabled"
+}

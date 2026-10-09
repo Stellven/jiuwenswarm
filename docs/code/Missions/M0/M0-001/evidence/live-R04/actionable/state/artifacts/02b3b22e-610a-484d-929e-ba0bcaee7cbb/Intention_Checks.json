@@ -1,0 +1,89 @@
+{
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "63719f9d6d4a253e5d4e3b289c2f7e83f280eb64e9dbc253a8c1c376a7787d70"
+  },
+  "results": [
+    {
+      "check_id": "schema_and_relationships",
+      "evidence_refs": [
+        {
+          "id": "Intention_Failure_Receipt.json",
+          "sha256": "e3f1b2dbba137ff27a5adcc4052170654ccc81daf1a6fa82709340d3fda9c904"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "81281b9c672028abe91035093816134136fb80203e01c2e4990c7227b61d7f2d"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "138b7cd72485e8544cc187ce1575afb2d1e3c29131e414c2177c856fbe2eb8e1"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "Required work artifact absent or malformed"
+    },
+    {
+      "check_id": "binding_integrity",
+      "evidence_refs": [
+        {
+          "id": "Intention_Failure_Receipt.json",
+          "sha256": "e3f1b2dbba137ff27a5adcc4052170654ccc81daf1a6fa82709340d3fda9c904"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "81281b9c672028abe91035093816134136fb80203e01c2e4990c7227b61d7f2d"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "138b7cd72485e8544cc187ce1575afb2d1e3c29131e414c2177c856fbe2eb8e1"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "invocation_complete",
+      "evidence_refs": [
+        {
+          "id": "Intention_Failure_Receipt.json",
+          "sha256": "e3f1b2dbba137ff27a5adcc4052170654ccc81daf1a6fa82709340d3fda9c904"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "81281b9c672028abe91035093816134136fb80203e01c2e4990c7227b61d7f2d"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "138b7cd72485e8544cc187ce1575afb2d1e3c29131e414c2177c856fbe2eb8e1"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "Native process returned non-success"
+    },
+    {
+      "check_id": "limits_and_effects",
+      "evidence_refs": [
+        {
+          "id": "Intention_Failure_Receipt.json",
+          "sha256": "e3f1b2dbba137ff27a5adcc4052170654ccc81daf1a6fa82709340d3fda9c904"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "81281b9c672028abe91035093816134136fb80203e01c2e4990c7227b61d7f2d"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "138b7cd72485e8544cc187ce1575afb2d1e3c29131e414c2177c856fbe2eb8e1"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "Native process returned non-success"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intention_Failure_Receipt.json",
+    "sha256": "e3f1b2dbba137ff27a5adcc4052170654ccc81daf1a6fa82709340d3fda9c904"
+  }
+}

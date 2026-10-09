@@ -1,0 +1,375 @@
+{
+  "acceptance_expectations": [
+    {
+      "description": "The report addresses ways to reduce latency relative to the supplied baseline while preserving retrieval quality, without asserting unsupported improvements.",
+      "id": "acceptance-1",
+      "requirement_ids": [
+        "requirement-1",
+        "requirement-2"
+      ]
+    },
+    {
+      "description": "All work remains local, excludes cloud training, and introduces no new datasets.",
+      "id": "acceptance-2",
+      "requirement_ids": [
+        "requirement-3",
+        "requirement-4",
+        "requirement-5"
+      ]
+    },
+    {
+      "description": "An evidence-grounded research report describes the baseline comparison and limitations, including the absence of supplied empirical measurements.",
+      "id": "acceptance-3",
+      "requirement_ids": [
+        "requirement-6",
+        "requirement-7"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "affected_fields": [
+        "constraints[id=constraint-hardware]"
+      ],
+      "authority_ref": {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      },
+      "id": "assumption-hardware",
+      "text": "Unspecified hardware permits the protected policy's single_gpu planning default; actual hardware availability remains unknown."
+    }
+  ],
+  "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+      },
+      {
+        "id": "Intent_IR.json",
+        "sha256": "3446505be1f5365c5d7fe6c3fb7a2c35de183c75f31a3f95c203afc0d068ffe4"
+      },
+      {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      }
+    ]
+  },
+  "constraints": [
+    {
+      "category": "execution",
+      "id": "constraint-1",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "research_run",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Keep all work local.",
+      "unit": null
+    },
+    {
+      "category": "quality",
+      "id": "constraint-2",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Preserve retrieval quality while reducing latency.",
+      "unit": null
+    },
+    {
+      "category": "reporting",
+      "id": "constraint-3",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "research_run",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Ground the research report in evidence.",
+      "unit": null
+    },
+    {
+      "category": "hardware",
+      "id": "constraint-hardware",
+      "normalized_value": "single_gpu",
+      "operator": "eq",
+      "origin": "system_default",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        }
+      ],
+      "text": "Use single_gpu as the default hardware planning profile because hardware is unspecified; this is not a claim of hardware availability.",
+      "unit": null
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "deliverables": [
+    {
+      "artifact_type": "research_report",
+      "description": "Report investigating latency reduction while preserving retrieval quality, describing the supplied baseline comparison and limitations.",
+      "id": "deliverable-1",
+      "name": "Evidence-grounded research report"
+    }
+  ],
+  "domain_lane": "scientific_research",
+  "evidence_obligations": [
+    {
+      "description": "Trace comparison claims about latency and retrieval quality to available evidence; identify unsupported or unmeasured claims and explain how absent empirical measurements limit conclusions.",
+      "id": "evidence-1",
+      "requirement_ids": [
+        "requirement-1",
+        "requirement-2",
+        "requirement-6",
+        "requirement-7"
+      ]
+    },
+    {
+      "description": "Provide an account of execution location and data provenance sufficient to substantiate local work, exclusion of cloud training, and absence of new datasets.",
+      "id": "evidence-2",
+      "requirement_ids": [
+        "requirement-3",
+        "requirement-4",
+        "requirement-5"
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-1",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Investigate ways to reduce retrieval baseline latency while preserving retrieval quality."
+    },
+    {
+      "id": "scope-2",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Describe the baseline comparison and limitations in the research report."
+    }
+  ],
+  "input_bindings": [
+    {
+      "id": "input0",
+      "resource_ref": {
+        "id": "Resource_Document_0.json",
+        "sha256": "9eed348247ffaeab17740e20d37201bc50e3b16bc25f54262e90d5905bb83fc4"
+      },
+      "role": "reference_document"
+    }
+  ],
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "c77edf45f51a2d7dbe733f229634d2d3e0004cb3ebeb4c92533c0c22a4a9d579"
+  },
+  "intent_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "3446505be1f5365c5d7fe6c3fb7a2c35de183c75f31a3f95c203afc0d068ffe4"
+  },
+  "mandatory_requirements": [
+    {
+      "id": "requirement-1",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Investigate ways to reduce latency relative to the supplied retrieval baseline."
+    },
+    {
+      "id": "requirement-2",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Preserve retrieval quality while reducing latency."
+    },
+    {
+      "id": "requirement-3",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Keep all work local."
+    },
+    {
+      "id": "requirement-4",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Exclude cloud training."
+    },
+    {
+      "id": "requirement-5",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Exclude new datasets."
+    },
+    {
+      "id": "requirement-6",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Return an evidence-grounded research report."
+    },
+    {
+      "id": "requirement-7",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Describe the baseline comparison and limitations in the research report."
+    }
+  ],
+  "objective": {
+    "id": "objective-1",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+      }
+    ],
+    "text": "Investigate ways to reduce the supplied retrieval baseline's latency while preserving retrieval quality, and return an evidence-grounded research report describing the baseline comparison and limitations."
+  },
+  "optional_preferences": [],
+  "out_of_scope": [
+    {
+      "id": "exclusion-1",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "Cloud training."
+    },
+    {
+      "id": "exclusion-2",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "text": "New datasets."
+    }
+  ],
+  "resource_refs": [
+    {
+      "id": "Resource_Document_0.json",
+      "sha256": "9eed348247ffaeab17740e20d37201bc50e3b16bc25f54262e90d5905bb83fc4"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "target_metrics": [
+    {
+      "comparison": null,
+      "id": "target-1",
+      "metric": "Latency",
+      "origin": "user",
+      "requirement_ids": [
+        "requirement-1"
+      ],
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "target_text": "Reduce latency relative to the supplied retrieval baseline.",
+      "unit": null
+    },
+    {
+      "comparison": null,
+      "id": "target-2",
+      "metric": "Retrieval quality",
+      "origin": "user",
+      "requirement_ids": [
+        "requirement-2"
+      ],
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+        }
+      ],
+      "target_text": "Preserve retrieval quality.",
+      "unit": null
+    }
+  ],
+  "unresolved_items": [
+    {
+      "affected_fields": [
+        "deliverables[id=deliverable-1]",
+        "evidence_obligations[id=evidence-1]",
+        "acceptance_expectations[id=acceptance-3]"
+      ],
+      "blocking": false,
+      "clarification": "What empirical measurements, if any, are available for the existing baseline?",
+      "description": "No empirical measurements are supplied, limiting the available evidence for the baseline comparison.",
+      "id": "uncertainty-1",
+      "kind": "missing"
+    }
+  ]
+}

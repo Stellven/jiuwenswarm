@@ -1,0 +1,177 @@
+{
+  "budget": {
+    "enforcement": {
+      "invocations": "hard",
+      "tool_calls": "hard",
+      "wall_s": "hard"
+    },
+    "on_exhaust": "fail",
+    "per_call": {
+      "invocations": 1,
+      "tool_calls": 0,
+      "wall_s": 120
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "assurance": "protected tool-free bridge with hard time/memory and call limits",
+        "id": "model-disclosure",
+        "idempotent": false,
+        "op": "model_invoke",
+        "resource_key": "approved_model_bridge",
+        "reversibility": "none",
+        "risk": {
+          "blast_radius": "one assigned context",
+          "irreversibility": true,
+          "severity": "bounded"
+        },
+        "scope": "permitted bound context",
+        "undo": null
+      }
+    ],
+    "invariants": [],
+    "provides": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No arbitrary resource/tool authority; host deterministic readiness is prerequisite; synthetic adapters are labelled separately"
+    ]
+  },
+  "evolution": {
+    "frozen": [
+      "/ports",
+      "/needs",
+      "/changes",
+      "/guarantees",
+      "/budget"
+    ],
+    "notes_for_builder": []
+  },
+  "guarantees": {
+    "acceptance": [
+      "verifier-assessment_schema"
+    ],
+    "checks": [
+      {
+        "anchor": "exact output",
+        "assurance": "structure only",
+        "author": "protected schema owner",
+        "held_out": false,
+        "id": "verifier-assessment_schema",
+        "kind": "deterministic",
+        "over": [
+          "outputs"
+        ],
+        "owner": "protected profile",
+        "runner": {
+          "ref": "d1_checks.py",
+          "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+        },
+        "signal_source": "captured output",
+        "target": "outputs.result",
+        "written_before_body": true
+      }
+    ],
+    "evals": [],
+    "unanchored": [
+      "Semantic quality is independently checked; no reliability guarantee"
+    ]
+  },
+  "identity": {
+    "body": [
+      {
+        "path": "intention_verifier_Implementation.txt",
+        "sha256": "052f45c65061858e1a6cc739abe657d32fca36353474ea84de3661310eeea1ee"
+      }
+    ],
+    "carrier": {
+      "ref": "intention_verifier_Implementation.txt",
+      "sha256": "052f45c65061858e1a6cc739abe657d32fca36353474ea84de3661310eeea1ee"
+    },
+    "kind": "agent",
+    "name": "intention.verifier",
+    "summary": "You are an independent read-only verifier of the submitted Intent, not its replacement author. Judge this exact artifact against original sources and assigned protected criteria for source fidelity, complete material coverage, consistent constraints/entities and actionable purpose/result. Topic-only/unknown purpose, invented method/target or contra",
+    "version_label": "standalone-r1"
+  },
+  "needs": {
+    "external": [],
+    "injects": [
+      {
+        "interface_version_range": "1.x",
+        "service_key": "audited_model_bridge"
+      }
+    ],
+    "model": {
+      "modalities": [
+        "text"
+      ],
+      "tool_calling": false
+    },
+    "network": {
+      "allowlist": [],
+      "direction": "none",
+      "mode": "none"
+    },
+    "resources": [],
+    "when": []
+  },
+  "ports": {
+    "inputs": [
+      {
+        "artifact_type": "qualified-intake",
+        "check_ids": [],
+        "description": "Protected immutable intake",
+        "name": "intake",
+        "required": true,
+        "schema_ref": "qualified-intake:field-contract:2"
+      },
+      {
+        "artifact_type": "intent-ir",
+        "check_ids": [],
+        "description": "Protected immutable subject",
+        "name": "subject",
+        "required": true,
+        "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+      },
+      {
+        "artifact_type": "review-context",
+        "check_ids": [],
+        "description": "Protected immutable review_context",
+        "name": "review_context",
+        "required": true,
+        "schema_ref": "review-context:field-contract:2"
+      },
+      {
+        "artifact_type": "deterministic-check-result",
+        "check_ids": [],
+        "description": "Protected immutable checks",
+        "name": "checks",
+        "required": true,
+        "schema_ref": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+      },
+      {
+        "artifact_type": "invocation-observation",
+        "check_ids": [],
+        "description": "Protected immutable observation",
+        "name": "observation",
+        "required": true,
+        "schema_ref": "invocation-observation:field-contract:2"
+      }
+    ],
+    "outputs": [
+      {
+        "artifact_type": "verifier-assessment",
+        "check_ids": [
+          "verifier-assessment_schema"
+        ],
+        "description": "Assigned content only, no release authority",
+        "name": "result",
+        "required": true,
+        "schema_ref": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
+      }
+    ]
+  },
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,81 @@
+{
+  "findings": [
+    {
+      "criterion_id": "intent_preservation",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "534b21488d83ada6f1824708da845eb460b8149cfb075eb4ecbde433ad116fac"
+        },
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The Brief preserves the latency-reduction investigation, retrieval-quality preservation, evidence-grounded report, baseline comparison, and limitations. Local-only execution and exclusions of cloud training and new datasets remain mandatory. No objective, method, percentage, or promoted preference is invented."
+    },
+    {
+      "criterion_id": "default_authority",
+      "evidence_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        },
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The single_gpu profile matches the policy, is explicitly attributed as a system default, and does not assert hardware availability. The Brief introduces no unsupported default; omission of automatic_retries from the research requirements does not contradict the policy."
+    },
+    {
+      "criterion_id": "coverage",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "534b21488d83ada6f1824708da845eb460b8149cfb075eb4ecbde433ad116fac"
+        },
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "All six mandatory requirements are covered by acceptance expectations and evidence obligations. Targets link to the latency and quality requirements; the report deliverable includes the baseline comparison and evidence limitations. Resource and context bindings preserve the supplied input."
+    },
+    {
+      "criterion_id": "planning_usability",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "534b21488d83ada6f1824708da845eb460b8149cfb075eb4ecbde433ad116fac"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The Brief provides an actionable investigation goal, bound reference input, report deliverable, acceptance expectations, and evidence obligations for scientific conclusions and execution constraints. It explicitly requires distinguishing supported findings from unverified expectations. Absent measurements and unchosen methods or numeric thresholds do not block compilation."
+    }
+  ],
+  "limitations": [
+    "No empirical measurements are supplied; compilation acceptance does not establish latency improvement or retrieval-quality preservation.",
+    "Experimental methods and numeric thresholds remain unchosen.",
+    "The policy hardware profile does not establish local hardware availability."
+  ],
+  "required_correction": null,
+  "review_context_ref": {
+    "id": "Requirements_Review_Context.json",
+    "sha256": "9f1661ca8c90c9aa02597db27590a4027bf62f7b5124ef7cc18a7a0573f67885"
+  },
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+  },
+  "uncertainties": [],
+  "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+}

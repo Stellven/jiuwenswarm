@@ -1,0 +1,16 @@
+{
+  "verification": "V06 independent affected reference_document release/export boundary",
+  "command": ".venv-intent/Scripts/python.exe docs/code/Missions/M0/M0-001/evidence/v06-r08-export-check.py",
+  "candidate": "sha256:4b33bcb6df44328b27be2fb24b819eb7a879c4715c757a5ae51297d72f484bad",
+  "run_id": "2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "working_directory": "D:\\research\\ai_for_research\\tests_whether_we_need_spec_kit\\test_with_spec_kit",
+  "expected": "Four actual roles and three committed gates; exact Brief2 consumer/receipt/output; every named hash/reference resolves; original resource bytes/license/qualified source/disclosed constraint spans preserved",
+  "dependency_mode": "Original actual terminal SQLite opened read-only; fresh authenticated NoDispatch captured ZIP/consumer; no model invocation or replay",
+  "limitations": [
+    "One affected-role positive sample, no reliability threshold.",
+    "Browser/container prerequisites remain blocked.",
+    "Original evidence helper KeyError retained as CHECK_SCRIPT_FAILED despite product completed; later authenticated reads and this independent audit resolve verification only."
+  ],
+  "result": "FAIL",
+  "reason": "KeyError: 'resource_refs'"
+}

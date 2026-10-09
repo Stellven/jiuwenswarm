@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:8c6b9408-4339-4c86-b351-147e0ab18a3a:12",
+  "client_request_id": "verification-actionable-39752f6a837149d5a4e6ee4a51a78039",
+  "run_id": "8c6b9408-4339-4c86-b351-147e0ab18a3a",
+  "revision": 12,
+  "stage": "halted",
+  "status": "halted",
+  "candidate_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "4a3810203c19a8e4f950b00eb6c399a1675c93b3e3814131757c0d77621faeb4"
+    }
+  ],
+  "accepted_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "3446505be1f5365c5d7fe6c3fb7a2c35de183c75f31a3f95c203afc0d068ffe4"
+    }
+  ],
+  "decision_ref": {
+    "id": "Gate_Requirements.json",
+    "sha256": "a88914db9fc13524441ec879128b376959991ce63a264df06ee4e763278e63c8"
+  },
+  "reasons": [
+    "assumption-hardware: nonexistent affected field constraints[id=constraint-hardware]; Every applied system default requires an assumption pointing to its actual field"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-only",
+      "invalid_for_product": false,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "39da7b6157da83bbdb1c2cb56c2a5f7bf820f72d7f209fd400b973a2e113b9e3"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "c77edf45f51a2d7dbe733f229634d2d3e0004cb3ebeb4c92533c0c22a4a9d579"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+      }
+    }
+  }
+}

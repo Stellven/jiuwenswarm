@@ -1,0 +1,184 @@
+{
+  "run_id": "2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "candidate": "sha256:4b33bcb6df44328b27be2fb24b819eb7a879c4715c757a5ae51297d72f484bad",
+  "observed_bridge_invocations": 4,
+  "gates": [
+    {
+      "ref": {
+        "id": "Gate_Intention.json",
+        "sha256": "da1508c51ad6122fd4f54bc82402fda10999a0b70f86d465302fb04412c4d37f"
+      },
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+    },
+    {
+      "ref": {
+        "id": "Gate_Node.json",
+        "sha256": "4738baab8e1a3c1487f5fe8ff124302e93d0b6e1a762f5345c52f1cee3e686e6"
+      },
+      "verdict": "PASS"
+    },
+    {
+      "ref": {
+        "id": "Gate_Requirements.json",
+        "sha256": "2585c2d5b559d65a21eb10be8af8274857e54f605ac098e01bba7b807f100c94"
+      },
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+    }
+  ],
+  "calls": [
+    {
+      "role": "intention",
+      "observation_ref": {
+        "id": "intention_Invocation_Observation.json",
+        "sha256": "99f71f08c89da499325b70be832923dc8bafd4f1b6264063417eeee082d6056e"
+      },
+      "model_calls": 1,
+      "outcome": "completed",
+      "usage": {
+        "cost_amount": null,
+        "currency": null,
+        "input_tokens": 12667,
+        "output_tokens": 2537,
+        "unavailable_reasons": [
+          "Attributable cost/currency not supplied by native CLI"
+        ]
+      },
+      "model_identity": {
+        "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+        "effective": null,
+        "requested": "approved native Codex default"
+      },
+      "event_types": {
+        "thread.started": 1,
+        "turn.started": 1,
+        "item.completed": 1,
+        "turn.completed": 1
+      },
+      "item_types": {
+        "agent_message": 1
+      },
+      "malformed_event_lines": 0,
+      "adapter_settings_ref": {
+        "id": "intention_Adapter_Settings.json",
+        "sha256": "7490479e844a0783c77bcc14388a715c9e3ff95ab1da0c1e773d7c0f7d80f959"
+      }
+    },
+    {
+      "role": "intention_verifier",
+      "observation_ref": {
+        "id": "intention_verifier_Invocation_Observation.json",
+        "sha256": "e5185d44c65b1c1944b11c7994c26e6c5e11716e8bb1d627e0da2ca0ffafa15f"
+      },
+      "model_calls": 1,
+      "outcome": "completed",
+      "usage": {
+        "cost_amount": null,
+        "currency": null,
+        "input_tokens": 15642,
+        "output_tokens": 792,
+        "unavailable_reasons": [
+          "Attributable cost/currency not supplied by native CLI"
+        ]
+      },
+      "model_identity": {
+        "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+        "effective": null,
+        "requested": "approved native Codex default"
+      },
+      "event_types": {
+        "thread.started": 1,
+        "turn.started": 1,
+        "item.completed": 1,
+        "turn.completed": 1
+      },
+      "item_types": {
+        "agent_message": 1
+      },
+      "malformed_event_lines": 0,
+      "adapter_settings_ref": {
+        "id": "intention_verifier_Adapter_Settings.json",
+        "sha256": "5f435a2e4f13398a456802c217ce6a3ab47c79cac9a04125436ca26197fcf145"
+      }
+    },
+    {
+      "role": "requirements",
+      "observation_ref": {
+        "id": "requirements_Invocation_Observation.json",
+        "sha256": "fca10bd074e3c98d20a644d7338cdcd8b3dda272703e43bdd21dccaa3c8cd449"
+      },
+      "model_calls": 1,
+      "outcome": "completed",
+      "usage": {
+        "cost_amount": null,
+        "currency": null,
+        "input_tokens": 14899,
+        "output_tokens": 3269,
+        "unavailable_reasons": [
+          "Attributable cost/currency not supplied by native CLI"
+        ]
+      },
+      "model_identity": {
+        "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+        "effective": null,
+        "requested": "approved native Codex default"
+      },
+      "event_types": {
+        "thread.started": 1,
+        "turn.started": 1,
+        "item.completed": 1,
+        "turn.completed": 1
+      },
+      "item_types": {
+        "agent_message": 1
+      },
+      "malformed_event_lines": 0,
+      "adapter_settings_ref": {
+        "id": "requirements_Adapter_Settings.json",
+        "sha256": "d7a83fdf4c6158dd04247b2b3e33f36e3f443f4d6c0cc9658d7758594dad6f81"
+      }
+    },
+    {
+      "role": "requirements_verifier",
+      "observation_ref": {
+        "id": "requirements_verifier_Invocation_Observation.json",
+        "sha256": "0955d4bdd3e319d2e5c8fbef3b024cdd2c1ac8e89ab4630af66e39e13f53af9f"
+      },
+      "model_calls": 1,
+      "outcome": "completed",
+      "usage": {
+        "cost_amount": null,
+        "currency": null,
+        "input_tokens": 18836,
+        "output_tokens": 1064,
+        "unavailable_reasons": [
+          "Attributable cost/currency not supplied by native CLI"
+        ]
+      },
+      "model_identity": {
+        "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+        "effective": null,
+        "requested": "approved native Codex default"
+      },
+      "event_types": {
+        "thread.started": 1,
+        "turn.started": 1,
+        "item.completed": 1,
+        "turn.completed": 1
+      },
+      "item_types": {
+        "agent_message": 1
+      },
+      "malformed_event_lines": 0,
+      "adapter_settings_ref": {
+        "id": "requirements_verifier_Adapter_Settings.json",
+        "sha256": "6d73451a22c28c7bef4575bfeff43e93c49242552acb7fd8154fb9239b24bd2a"
+      }
+    }
+  ],
+  "no_model_replay": true,
+  "limitations": [
+    "One labelled actual sample, no reliability threshold claim",
+    "Native served model identity and backend HTTP request count unavailable; exact known native token counters retained",
+    "Native configuration disables known host skills; invalid SKILL.md is discovered/rejected before filtering, and full native bootstrap catalog is not independently exposed"
+  ]
+}

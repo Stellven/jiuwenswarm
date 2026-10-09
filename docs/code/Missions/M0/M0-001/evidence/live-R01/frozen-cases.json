@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "cases": {
+    "actionable": {
+      "request": "Investigate ways to reduce the latency of the supplied retrieval baseline while preserving retrieval quality. Keep all work local with no cloud training or new datasets. Return an evidence-grounded research report describing the baseline comparison and limitations.",
+      "expected": "completed"
+    }
+  },
+  "repetitions": 1,
+  "expected_source": "compiler-verification.md Cases and evidence; exact labelled inputs fixed before calls",
+  "quality_threshold": null,
+  "quality_limitation": "One sample per labelled case; no semantic reliability claim",
+  "automatic_retries": 0
+}

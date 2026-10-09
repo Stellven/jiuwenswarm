@@ -1,21 +1,23 @@
+Use Spec Kit to construct plan and conduct coding based on it and do things else mentioned below.
+
 Implement the Intent Compiler as a standalone component using the following four documents.
 
 SOURCE DOCUMENTS
 
 1. PRD Main Body (primary functional requirements)
-D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_main_body\PRD_main_body.md
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_with_spec_kit\docs\code\Missions\M0\source\PRD_main_body
 
 2. PRD Context (supporting functional context)
-D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\PRD_context\PRD_context.md
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_with_spec_kit\docs\code\Missions\M0\source\PRD_context
 
 3. Architecture Design Main Body (primary technical design)
-D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_main_body
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_with_spec_kit\docs\code\Missions\M0\source\Architecture_main_body
 
 4. Architecture Design Context (supporting technical context)
-D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Architecture_context
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_with_spec_kit\docs\code\Missions\M0\source\Architecture_context
 
 5. Verification Docs (Testing and Validation Requirements)
-<PATH_TO_VERIFICATION_DOCS>
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_with_spec_kit\docs\code\Missions\M0\source\Verification
 Implement and test the benchmark interfaces defined in docs/code/Missions/M0/source/Verification/INTENT_COMPILER_BENCHMARK_INTERFACES.md, and document working client commands or API calls.
 
 Run $speckit-analyze after generating spec.md, plan.md, and tasks.md.
@@ -42,6 +44,7 @@ IMPLEMENTATION INSTRUCTIONS
 
 
 MANDATORY TOKEN USAGE AND COST REPORTING
-Check before starting, record accordingly during running and fill in after finishing the json template in D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_without_spec_kit_cut_detail\docs\code\Missions\M0\source\Token\token_usage.json
+Check before starting, record accordingly during running and fill in after finishing the json template in 
+D:\research\ai_for_research\tests_whether_we_need_spec_kit\test_with_spec_kit\docs\code\Missions\M0\source\Token\token_usage.json
 
 DO NOT ASK ANY QUESTION TO ME, ONE-SHOT BASED ON GIVEN INFORMATION ABOVE

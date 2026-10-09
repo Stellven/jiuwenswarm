@@ -1,0 +1,89 @@
+{
+  "check_plan_ref": {
+    "id": "Requirements_Check_Plan.json",
+    "sha256": "d7cf8cf9c35ec4d3cf39d5b3d4fc06f0b8d49ba2bd5f5abc688b5d22e6db61ce"
+  },
+  "results": [
+    {
+      "check_id": "schema_and_relationships",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "83ca026cff2aa8da406df5bb7421beb286b58c6d30afa782814b7627cbe53710"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "d256ef45714fe72c6944b01f6b7f41d7504744787d4ad5f67c28db3eb02ed108"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "binding_integrity",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "83ca026cff2aa8da406df5bb7421beb286b58c6d30afa782814b7627cbe53710"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "d256ef45714fe72c6944b01f6b7f41d7504744787d4ad5f67c28db3eb02ed108"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "invocation_complete",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "83ca026cff2aa8da406df5bb7421beb286b58c6d30afa782814b7627cbe53710"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "d256ef45714fe72c6944b01f6b7f41d7504744787d4ad5f67c28db3eb02ed108"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "limits_and_effects",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "83ca026cff2aa8da406df5bb7421beb286b58c6d30afa782814b7627cbe53710"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "d256ef45714fe72c6944b01f6b7f41d7504744787d4ad5f67c28db3eb02ed108"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "b7aa7649d03a7b80274f3001094ce8786e8cd5f9fc4e7694949855bc662642b3"
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "constraints": [
+    {
+      "category": "execution",
+      "id": "constraint-1",
+      "source_spans": [
+        {
+          "end": 129,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 110
+        }
+      ],
+      "text": "Keep all work local."
+    },
+    {
+      "category": "quality",
+      "id": "constraint-2",
+      "source_spans": [
+        {
+          "end": 109,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 20
+        }
+      ],
+      "text": "Preserve retrieval quality while reducing latency."
+    },
+    {
+      "category": "reporting",
+      "id": "constraint-3",
+      "source_spans": [
+        {
+          "end": 213,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 170
+        }
+      ],
+      "text": "Ground the research report in evidence."
+    }
+  ],
+  "context": [
+    {
+      "id": "context-1",
+      "name": "Existing document retrieval baseline",
+      "role": "Local reference baseline with latency and retrieval quality as relevant metrics.",
+      "source_spans": [
+        {
+          "end": 124,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 0
+        }
+      ]
+    },
+    {
+      "id": "context-2",
+      "name": "Empirical evidence availability",
+      "role": "No empirical measurements are supplied.",
+      "source_spans": [
+        {
+          "end": 164,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 125
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-1",
+      "source_spans": [
+        {
+          "end": 109,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate ways to reduce retrieval baseline latency while preserving retrieval quality."
+    },
+    {
+      "id": "scope-2",
+      "source_spans": [
+        {
+          "end": 265,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 170
+        }
+      ],
+      "text": "Describe the baseline comparison and limitations in the research report."
+    }
+  ],
+  "interpretation": {
+    "desired_change": {
+      "id": "change-1",
+      "source_spans": [
+        {
+          "end": 109,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Reduce the supplied retrieval baseline's latency while preserving retrieval quality."
+    },
+    "problem": {
+      "id": "problem-1",
+      "source_spans": [
+        {
+          "end": 109,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate the latency of the supplied retrieval baseline while accounting for retrieval quality."
+    },
+    "requested_result": {
+      "id": "result-1",
+      "source_spans": [
+        {
+          "end": 265,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 170
+        }
+      ],
+      "text": "An evidence-grounded research report describing the baseline comparison and limitations."
+    }
+  },
+  "out_of_scope": [
+    {
+      "id": "exclusion-1",
+      "source_spans": [
+        {
+          "end": 152,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 135
+        }
+      ],
+      "text": "Cloud training."
+    },
+    {
+      "id": "exclusion-2",
+      "source_spans": [
+        {
+          "end": 169,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 135
+        }
+      ],
+      "text": "New datasets."
+    }
+  ],
+  "preferences": [],
+  "readiness": {
+    "reason": "The research purpose, requested report, scope, exclusions and qualitative targets are explicit. Missing empirical measurements limit the comparison but do not block investigation and reporting of limitations.",
+    "status": "ready"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [
+    {
+      "affected_fields": [
+        "interpretation.requested_result",
+        "context"
+      ],
+      "blocking": false,
+      "clarification": "What empirical measurements, if any, are available for the existing baseline?",
+      "description": "No empirical measurements are supplied, limiting the available evidence for the baseline comparison.",
+      "id": "uncertainty-1",
+      "kind": "missing"
+    }
+  ],
+  "user_targets": [
+    {
+      "id": "target-1",
+      "metric": "Latency",
+      "source_spans": [
+        {
+          "end": 73,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 20
+        }
+      ],
+      "target_text": "Reduce latency relative to the supplied retrieval baseline."
+    },
+    {
+      "id": "target-2",
+      "metric": "Retrieval quality",
+      "source_spans": [
+        {
+          "end": 108,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "2b18aca5d1f0705206c686fa68211ef62a14d895dc46e03b27f1d63b96bba712"
+          },
+          "start": 80
+        }
+      ],
+      "target_text": "Preserve retrieval quality."
+    }
+  ]
+}

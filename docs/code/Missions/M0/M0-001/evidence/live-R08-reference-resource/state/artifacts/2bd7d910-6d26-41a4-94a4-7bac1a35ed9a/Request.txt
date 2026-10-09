@@ -1,0 +1,1 @@
+Investigate ways to reduce latency of the supplied document retrieval baseline while preserving retrieval quality. Return an evidence-grounded research report and follow all mandatory constraints in the supplied reference document.

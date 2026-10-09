@@ -1,0 +1,82 @@
+{
+  "accepted_refs": [],
+  "action": "halt",
+  "assessment_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "e30fe71eabddfedfacfbfae483f156c44fa97657e098f52349713a854d1eede3"
+  },
+  "attempt_id": "attempt:1",
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "c41d2a8ebf4d4600224030edee544caad04a8f6875c1331f512d9d0ee0df5241"
+  },
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "ab43f5e2b2e1ba566002f73fd78822706523ea99feaac7c18d5078f6e24b8a34"
+  },
+  "deterministic_result_ref": {
+    "id": "Intention_Checks.json",
+    "sha256": "31a87ca5a5d5c8f1bbdc89c9e32f6bcdd62c35dc340762fb0f0d243c52b8292a"
+  },
+  "id": "gate:intention:37973071-bf91-44cc-8ac8-2c272cf0fd3c",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "c17ae018c548a20dc7dd79c37e403a968369627510bb511030a671333acff8ec"
+    }
+  ],
+  "internal_decision_refs": [],
+  "invocation_refs": [
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "86e7f20fa6f4b38a86e51b132d0e378122c368e2147a2375cc0507838b06e344"
+    },
+    {
+      "id": "intention_verifier_Invocation_Observation.json",
+      "sha256": "5fcc00660a4f93d8f7794643e084c534aee476918581e80255baf61e6504e109"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "f0c4a1e8f7a322f4f1a4fb84a6017ce867cdfad098f16ab08fd30ed89ed04025"
+  },
+  "node_id": "intention.compiler",
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "6f501d4d1057e4683c8d62ed831d56eda7d07520e4c1124cc23bdffb05007159"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "reasons": [
+    {
+      "code": "mandatory_blocked",
+      "criterion_ids": [
+        "fidelity",
+        "coverage",
+        "consistency",
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Intention_Checks.json",
+          "sha256": "31a87ca5a5d5c8f1bbdc89c9e32f6bcdd62c35dc340762fb0f0d243c52b8292a"
+        },
+        {
+          "id": "Intent_Assessment.json",
+          "sha256": "e30fe71eabddfedfacfbfae483f156c44fa97657e098f52349713a854d1eede3"
+        }
+      ],
+      "message": "FAIL"
+    }
+  ],
+  "recorded_at": "2026-10-08T18:59:21.443049+00:00",
+  "run_id": "37973071-bf91-44cc-8ac8-2c272cf0fd3c",
+  "schema_version": "2.0.0",
+  "scope_kind": "subnode",
+  "subnode_id": "intention",
+  "verdict": "FAIL"
+}

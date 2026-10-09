@@ -1,0 +1,118 @@
+{
+  "check_plan_ref": {
+    "id": "Intention_Node_Check_Plan.json",
+    "sha256": "8bd3725b056e7a5b3fb849eb4e24a32558d25ab86f1d41996fae8eac689132b7"
+  },
+  "results": [
+    {
+      "check_id": "internal_acceptance",
+      "evidence_refs": [
+        {
+          "id": "Gate_Intention.json",
+          "sha256": "a6879ec30b26e7628d5384cd2d9b613858f3173f4af1c6361e7f09d2790a43d5"
+        },
+        {
+          "id": "Gate_Requirements.json",
+          "sha256": "bb0a7131a7dca321ddc5837e1e24c1d8f6b6b2ecfb455a091c74c0550f115df8"
+        },
+        {
+          "id": "Research_Brief.json",
+          "sha256": "586e2925b3f3f06ba9c74391b832268e06e0bc508db33efe8b1713b8e759bdc4"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "0074bb1b66b7c0529f164d8710fc19e21d02addf7bb9386007de884cda64cdbc"
+        },
+        {
+          "id": "intention_verifier_Invocation_Observation.json",
+          "sha256": "c667ffa19b06657e7373249621b6b7b7bb7288a945e0627650f3d16c8f80364b"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "bc48ad902e6c1359e87fa041c3e009b4bdc6abd358f65b0eead2b611965813d0"
+        },
+        {
+          "id": "requirements_verifier_Invocation_Observation.json",
+          "sha256": "7d542807a8c0f7fccefac97e5d0c793d87766e1846753a648237ca60d7639ccd"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Exact internal acceptance, output and aggregate limit check passed"
+    },
+    {
+      "check_id": "external_output",
+      "evidence_refs": [
+        {
+          "id": "Gate_Intention.json",
+          "sha256": "a6879ec30b26e7628d5384cd2d9b613858f3173f4af1c6361e7f09d2790a43d5"
+        },
+        {
+          "id": "Gate_Requirements.json",
+          "sha256": "bb0a7131a7dca321ddc5837e1e24c1d8f6b6b2ecfb455a091c74c0550f115df8"
+        },
+        {
+          "id": "Research_Brief.json",
+          "sha256": "586e2925b3f3f06ba9c74391b832268e06e0bc508db33efe8b1713b8e759bdc4"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "0074bb1b66b7c0529f164d8710fc19e21d02addf7bb9386007de884cda64cdbc"
+        },
+        {
+          "id": "intention_verifier_Invocation_Observation.json",
+          "sha256": "c667ffa19b06657e7373249621b6b7b7bb7288a945e0627650f3d16c8f80364b"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "bc48ad902e6c1359e87fa041c3e009b4bdc6abd358f65b0eead2b611965813d0"
+        },
+        {
+          "id": "requirements_verifier_Invocation_Observation.json",
+          "sha256": "7d542807a8c0f7fccefac97e5d0c793d87766e1846753a648237ca60d7639ccd"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Exact internal acceptance, output and aggregate limit check passed"
+    },
+    {
+      "check_id": "aggregate_limits",
+      "evidence_refs": [
+        {
+          "id": "Gate_Intention.json",
+          "sha256": "a6879ec30b26e7628d5384cd2d9b613858f3173f4af1c6361e7f09d2790a43d5"
+        },
+        {
+          "id": "Gate_Requirements.json",
+          "sha256": "bb0a7131a7dca321ddc5837e1e24c1d8f6b6b2ecfb455a091c74c0550f115df8"
+        },
+        {
+          "id": "Research_Brief.json",
+          "sha256": "586e2925b3f3f06ba9c74391b832268e06e0bc508db33efe8b1713b8e759bdc4"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "0074bb1b66b7c0529f164d8710fc19e21d02addf7bb9386007de884cda64cdbc"
+        },
+        {
+          "id": "intention_verifier_Invocation_Observation.json",
+          "sha256": "c667ffa19b06657e7373249621b6b7b7bb7288a945e0627650f3d16c8f80364b"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "bc48ad902e6c1359e87fa041c3e009b4bdc6abd358f65b0eead2b611965813d0"
+        },
+        {
+          "id": "requirements_verifier_Invocation_Observation.json",
+          "sha256": "7d542807a8c0f7fccefac97e5d0c793d87766e1846753a648237ca60d7639ccd"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Exact internal acceptance, output and aggregate limit check passed"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "586e2925b3f3f06ba9c74391b832268e06e0bc508db33efe8b1713b8e759bdc4"
+  }
+}

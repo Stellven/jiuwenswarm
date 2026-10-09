@@ -1,0 +1,68 @@
+{
+  "authority": {
+    "network": "none",
+    "network_allowlist": [],
+    "tools": [
+      "audited-model-bridge"
+    ]
+  },
+  "declaration_ref": {
+    "id": "intention_verifier_Declaration.json",
+    "sha256": "246c050b74befcb09f95104d0372172a67b1bc3c6366adbd117f78bb500559bc"
+  },
+  "id": "template:intention.verifier",
+  "input_ports": [
+    {
+      "artifact_type": "qualified-intake",
+      "check_ids": [],
+      "description": "Protected immutable intake",
+      "name": "intake",
+      "required": true,
+      "schema_ref": "qualified-intake:field-contract:2"
+    },
+    {
+      "artifact_type": "intent-ir",
+      "check_ids": [],
+      "description": "Protected immutable subject",
+      "name": "subject",
+      "required": true,
+      "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+    },
+    {
+      "artifact_type": "review-context",
+      "check_ids": [],
+      "description": "Protected immutable review_context",
+      "name": "review_context",
+      "required": true,
+      "schema_ref": "review-context:field-contract:2"
+    },
+    {
+      "artifact_type": "deterministic-check-result",
+      "check_ids": [],
+      "description": "Protected immutable checks",
+      "name": "checks",
+      "required": true,
+      "schema_ref": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "artifact_type": "invocation-observation",
+      "check_ids": [],
+      "description": "Protected immutable observation",
+      "name": "observation",
+      "required": true,
+      "schema_ref": "invocation-observation:field-contract:2"
+    }
+  ],
+  "limits": {
+    "memory_mb": 1024,
+    "model_calls": 1,
+    "time_s": 120.0
+  },
+  "output_contract": "verifier-assessment",
+  "profile_ref": {
+    "id": "intention_verifier_Profile.json",
+    "sha256": "46658dc4b76aca54a14f8311825130c5c27f3efb317a6641d53b489c62c22705"
+  },
+  "role": "intention.verifier",
+  "schema_version": "1.0.0"
+}

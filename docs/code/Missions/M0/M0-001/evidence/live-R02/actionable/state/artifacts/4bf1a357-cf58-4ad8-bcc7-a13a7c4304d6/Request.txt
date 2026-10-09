@@ -1,0 +1,1 @@
+Investigate ways to reduce the latency of the supplied retrieval baseline while preserving retrieval quality. Keep all work local with no cloud training or new datasets. Return an evidence-grounded research report describing the baseline comparison and limitations.

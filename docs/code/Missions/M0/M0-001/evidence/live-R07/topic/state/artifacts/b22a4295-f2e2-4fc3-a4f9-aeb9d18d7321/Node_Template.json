@@ -1,0 +1,27 @@
+{
+  "id": "template:compiler",
+  "limits": {
+    "memory_mb": 1024,
+    "model_calls": 4,
+    "time_s": 480.0
+  },
+  "schema_version": "2.0.0",
+  "subnode_templates": {
+    "intention": {
+      "id": "intention_Template.json",
+      "sha256": "944fecae6cb557e3bd24b24c5dc7bc24b172853d436c6393ee8d97a9e0b24572"
+    },
+    "intention.verifier": {
+      "id": "intention_verifier_Template.json",
+      "sha256": "dfa80c6feefdc26965b21fbe7620ffd09faccfeb84897667224ed6cf053c44f6"
+    },
+    "requirements": {
+      "id": "requirements_Template.json",
+      "sha256": "fe062ef4340eb72300d1c113442da1860e085752a7d5dcca00830400da6543b1"
+    },
+    "requirements.verifier": {
+      "id": "requirements_verifier_Template.json",
+      "sha256": "3b6e01afff1e373d190e533646e6a37cd27e137789db2daa1c006b8362fa546a"
+    }
+  }
+}

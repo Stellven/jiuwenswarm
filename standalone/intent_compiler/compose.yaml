@@ -1,0 +1,54 @@
+services:
+  compiler:
+    build:
+      context: .
+      args:
+        CODEX_VERSION: ${INTENT_CODEX_VERSION:-0.162.0-alpha.2}
+    image: ai4research-intent-compiler:local-r1
+    ports:
+      - "127.0.0.1:${INTENT_PORT:-5173}:5173"
+    environment:
+      INTENT_AUTH_TOKEN_FILE: /run/secrets/control_token
+      INTENT_ACCOUNT_ID: ${INTENT_ACCOUNT_ID:-local-user}
+      INTENT_WORKSPACE_ID: ${INTENT_WORKSPACE_ID:-local-workspace}
+      INTENT_PROFILE_ID: compiler-only
+      INTENT_MODEL_MODE: codex
+      INTENT_MODEL_NAME: ${INTENT_MODEL_NAME:-}
+      INTENT_CALL_TIME_S: ${INTENT_CALL_TIME_S:-120}
+      INTENT_NODE_TIME_S: ${INTENT_NODE_TIME_S:-480}
+    volumes:
+      - compiler_state:/state
+      - compiler_model_home:/model-home
+      - type: bind
+        source: ${INTENT_INPUT_ROOT:?Set the prepared permitted input directory, including an existing docs directory}
+        target: /inputs
+        read_only: true
+    secrets:
+      - source: control_token
+        target: /run/secrets/control_token
+        mode: 0400
+        uid: "10001"
+      - source: codex_auth
+        target: /model-home/auth.json
+        mode: 0400
+        uid: "10001"
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 2g
+    stop_grace_period: 10s
+
+volumes:
+  compiler_state:
+  compiler_model_home:
+
+secrets:
+  control_token:
+    file: ${INTENT_AUTH_TOKEN_FILE:?Set a protected operator-token file}
+  codex_auth:
+    file: ${INTENT_CODEX_AUTH_FILE:?Set the approved native CLI auth.json file}

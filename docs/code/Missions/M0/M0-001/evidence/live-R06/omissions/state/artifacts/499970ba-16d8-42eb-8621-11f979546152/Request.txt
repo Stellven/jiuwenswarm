@@ -1,0 +1,1 @@
+Study how to reduce latency of a document retrieval baseline without lowering retrieval quality. Return an evidence-grounded report. I have not chosen a method, numeric improvement threshold or hardware.

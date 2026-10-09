@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "descriptor": {
+        "license": "internal-research",
+        "path": "reference-only.md",
+        "required": true,
+        "role": "reference_document"
+      },
+      "index": 0,
+      "original_descriptor_sha256": "bc1b75e20a4310fe3260cf8e42c079123b77060cda31b2d6b7bd7af6775a91dd",
+      "required": true,
+      "role": "reference_document"
+    }
+  ]
+}

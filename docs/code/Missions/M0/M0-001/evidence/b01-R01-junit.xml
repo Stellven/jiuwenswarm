@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="21" time="1.680" timestamp="2026-10-08T14:14:59.265428-04:00" hostname="LAPTOP-MFQ6O7IF"><testcase classname="tests.test_intake_store" name="test_intake_exact_request_unicode_crlf" time="0.071" /><testcase classname="tests.test_intake_store" name="test_intake_empty_rejection_keeps_reason[]" time="0.043" /><testcase classname="tests.test_intake_store" name="test_intake_empty_rejection_keeps_reason[ \r\n\t]" time="0.039" /><testcase classname="tests.test_intake_store" name="test_intake_documents_preserve_bytes_and_roles" time="0.140" /><testcase classname="tests.test_intake_store" name="test_intake_pdf_has_distinct_original_and_extracted_identity" time="0.208" /><testcase classname="tests.test_intake_store" name="test_intake_required_invalid_sources_reject[missing]" time="0.082" /><testcase classname="tests.test_intake_store" name="test_intake_required_invalid_sources_reject[unsupported]" time="0.066" /><testcase classname="tests.test_intake_store" name="test_intake_required_invalid_sources_reject[empty]" time="0.063" /><testcase classname="tests.test_intake_store" name="test_intake_required_invalid_sources_reject[oversize]" time="0.084" /><testcase classname="tests.test_intake_store" name="test_intake_required_invalid_sources_reject[invalid_utf8]" time="0.077" /><testcase classname="tests.test_intake_store" name="test_intake_required_invalid_sources_reject[bad_pdf]" time="0.079"><failure message="pypdf.errors.PdfStreamError: Stream has ended unexpectedly">setup = (Config(state_dir=WindowsPath('C:/Users/17982/AppData/Local/Temp/pytest-of-17982/pytest-201/test_intake_required_inval...token_budget=None), &lt;intent_compiler.store.Store object at 0x0000021660E92E40&gt;, '064adf1d-ca09-49b8-91eb-8aafa6f9e685')
+kind = 'bad_pdf'
+
+    @pytest.mark.parametrize("kind", ["missing", "unsupported", "empty", "oversize", "invalid_utf8", "bad_pdf", "traversal"])
+    def test_intake_required_invalid_sources_reject(setup, kind):
+        config, store, run_id = setup
+        if kind == "missing":
+            path = "missing.txt"
+        elif kind == "unsupported":
+            path = "data.docx"
+            (config.input_root / path).write_bytes(b"unsupported")
+        elif kind == "empty":
+            path = "empty.txt"
+            (config.input_root / path).write_bytes(b"")
+        elif kind == "oversize":
+            path = "big.txt"
+            (config.input_root / path).write_bytes(b"a" * (config.max_source_bytes + 1))
+        elif kind == "invalid_utf8":
+            path = "invalid.txt"
+            (config.input_root / path).write_bytes(b"\xff\xfe")
+        elif kind == "bad_pdf":
+            path = "bad.pdf"
+            (config.input_root / path).write_bytes(b"not a pdf")
+        else:
+            path = "../outside.txt"
+        with pytest.raises(IntakeError):
+&gt;           qualify(config, store, run_id, "Compare latency.", documents=[path])
+
+standalone\intent_compiler\tests\test_intake_store.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+standalone\intent_compiler\intent_compiler\intake.py:103: in qualify
+    reader = PdfReader(io.BytesIO(raw))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv-intent\Lib\site-packages\pypdf\_reader.py:131: in __init__
+    self._initialize_stream(stream)
+.venv-intent\Lib\site-packages\pypdf\_reader.py:153: in _initialize_stream
+    self.read(stream)
+.venv-intent\Lib\site-packages\pypdf\_reader.py:592: in read
+    self._find_eof_marker(stream)
+.venv-intent\Lib\site-packages\pypdf\_reader.py:698: in _find_eof_marker
+    line = read_previous_line(stream)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+stream = &lt;_io.BytesIO object at 0x0000021660EED9E0&gt;
+
+    def read_previous_line(stream: StreamType) -&gt; bytes:
+        """
+        Given a byte stream with current position X, return the previous line.
+    
+        All characters between the first CR/LF byte found before X
+        (or, the start of the file, if no such byte is found) and position X
+        After this call, the stream will be positioned one byte after the
+        first non-CRLF character found beyond the first CR/LF byte before X,
+        or, if no such byte is found, at the beginning of the stream.
+    
+        Args:
+            stream: StreamType:
+    
+        Returns:
+            The data which was read.
+    
+        """
+        line_content = []
+        found_crlf = False
+        if stream.tell() == 0:
+&gt;           raise PdfStreamError(STREAM_TRUNCATED_PREMATURELY)
+E           pypdf.errors.PdfStreamError: Stream has ended unexpectedly
+
+.venv-intent\Lib\site-packages\pypdf\_utils.py:316: PdfStreamError</failure></testcase><testcase classname="tests.test_intake_store" name="test_intake_required_invalid_sources_reject[traversal]" time="0.089" /><testcase classname="tests.test_intake_store" name="test_intake_optional_rejection_is_explicit" time="0.079" /><testcase classname="tests.test_intake_store" name="test_intake_specified_missing_directory_rejects" time="0.051" /><testcase classname="tests.test_intake_store" name="test_intake_confined_link_denied" time="0.082" /><testcase classname="tests.test_intake_store" name="test_immutable_store_rejects_overwrite_swap_and_escape" time="0.039" /><testcase classname="tests.test_intake_store" name="test_duplicate_submission_conflict_and_one_active_run" time="0.028" /><testcase classname="tests.test_intake_store" name="test_restart_pauses_and_keeps_identity_artifacts_account" time="0.084" /><testcase classname="tests.test_intake_store" name="test_cancel_is_persisted_and_no_completion_without_release" time="0.037" /><testcase classname="tests.test_intake_store" name="test_capture_failure_never_registers_absent_artifact" time="0.027" /><testcase classname="tests.test_intake_store" name="test_config_freeze_contains_no_token_or_host_paths" time="0.021" /></testsuite></testsuites>

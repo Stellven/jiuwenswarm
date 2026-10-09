@@ -1,0 +1,1 @@
+Initial V02 command failed before evidence capture: Tee-Object output directory did not exist (DirectoryNotFoundException). Exit -1. No PASS claimed. Created registered evidence directory and reran.

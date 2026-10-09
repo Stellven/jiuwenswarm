@@ -1,0 +1,43 @@
+{
+  "candidate": "sha256:82eb11b2091fca30c2343cff5718990455e583629320819bab26e228e2ac61ce",
+  "cases": [
+    {
+      "case": "actionable",
+      "expected": "completed",
+      "protected_challenge": false,
+      "candidate": "sha256:82eb11b2091fca30c2343cff5718990455e583629320819bab26e228e2ac61ce",
+      "result": "BLOCKED",
+      "reason": "Real model/enforcement/storage prerequisite unavailable",
+      "prerequisites": [
+        {
+          "name": "storage",
+          "status": "ready",
+          "reason": "A fresh file fsync and FULL SQLite metadata transaction succeeded."
+        },
+        {
+          "name": "authentication",
+          "status": "ready",
+          "reason": "The request was authenticated under the operator scope."
+        },
+        {
+          "name": "model",
+          "status": "ready",
+          "reason": "Native authenticated access probe passed"
+        },
+        {
+          "name": "required_enforcement",
+          "status": "unavailable",
+          "reason": "Mandatory owned-process enforcement unavailable"
+        }
+      ],
+      "elapsed_s": 0.11172970000188798
+    }
+  ],
+  "false_acceptances": 0,
+  "false_refusals": 0,
+  "limitations": [
+    "One repetition; uncontrolled provider variability",
+    "Billing and served model identity may be unavailable",
+    "Protected injected challenge outputs are invalid for product/admission"
+  ]
+}

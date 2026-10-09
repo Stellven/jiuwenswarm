@@ -1,0 +1,103 @@
+{
+  "constraints": [],
+  "context": [
+    {
+      "id": "context-1",
+      "name": "Existing document retrieval baseline",
+      "role": "Reference baseline",
+      "source_spans": [
+        {
+          "end": 65,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 25
+        }
+      ]
+    },
+    {
+      "id": "context-2",
+      "name": "Latency and retrieval quality",
+      "role": "Relevant metrics for the reference baseline",
+      "source_spans": [
+        {
+          "end": 124,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 25
+        }
+      ]
+    },
+    {
+      "id": "context-3",
+      "name": "No empirical measurements supplied",
+      "role": "Limitation of supplied reference information",
+      "source_spans": [
+        {
+          "end": 164,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 125
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-1",
+      "source_spans": [
+        {
+          "end": 19,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "c0f108aa8a0da3a5cb1ae183ef42020b2be44a60f91312b315c29da04116d345"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Document retrieval."
+    }
+  ],
+  "interpretation": {
+    "desired_change": null,
+    "problem": null,
+    "requested_result": null
+  },
+  "out_of_scope": [],
+  "preferences": [],
+  "readiness": {
+    "reason": "Only a topic is requested; the intended purpose and result are unspecified.",
+    "status": "needs_clarification"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "c0f108aa8a0da3a5cb1ae183ef42020b2be44a60f91312b315c29da04116d345"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [
+    {
+      "affected_fields": [
+        "interpretation.problem",
+        "interpretation.desired_change",
+        "interpretation.requested_result"
+      ],
+      "blocking": true,
+      "clarification": "Specify what you want to investigate or accomplish concerning document retrieval and what result you want.",
+      "description": "The request states only a topic. The intended problem, purpose, desired change, and requested result are unknown; the reference baseline and its metrics do not establish them.",
+      "id": "uncertainty-1",
+      "kind": "missing"
+    }
+  ],
+  "user_targets": []
+}

@@ -1,0 +1,74 @@
+{
+  "authority": {
+    "network": "none",
+    "network_allowlist": [],
+    "resource_reads": [],
+    "tools": [
+      "audited-model-bridge"
+    ],
+    "write_roots": []
+  },
+  "declaration_ref": {
+    "id": "intention_verifier_Declaration.json",
+    "sha256": "979403c74851c51cc2ff175cc326c1b86576107d4eadcce4eb97237a01d85bde"
+  },
+  "id": "template:intention.verifier",
+  "input_ports": [
+    {
+      "artifact_type": "qualified-intake",
+      "check_ids": [],
+      "description": "Protected immutable intake",
+      "name": "intake",
+      "required": true,
+      "schema_ref": "qualified-intake:field-contract:2"
+    },
+    {
+      "artifact_type": "intent-ir",
+      "check_ids": [],
+      "description": "Protected immutable subject",
+      "name": "subject",
+      "required": true,
+      "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+    },
+    {
+      "artifact_type": "review-context",
+      "check_ids": [],
+      "description": "Protected immutable review_context",
+      "name": "review_context",
+      "required": true,
+      "schema_ref": "review-context:field-contract:2"
+    },
+    {
+      "artifact_type": "deterministic-check-result",
+      "check_ids": [],
+      "description": "Protected immutable checks",
+      "name": "checks",
+      "required": true,
+      "schema_ref": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "artifact_type": "invocation-observation",
+      "check_ids": [],
+      "description": "Protected immutable observation",
+      "name": "observation",
+      "required": true,
+      "schema_ref": "invocation-observation:field-contract:2"
+    }
+  ],
+  "limits": {
+    "memory_mb": 1024,
+    "model_calls": 1,
+    "time_s": 120.0
+  },
+  "output_contract": "verifier-assessment",
+  "profile_ref": {
+    "id": "intention_verifier_Profile.json",
+    "sha256": "46658dc4b76aca54a14f8311825130c5c27f3efb317a6641d53b489c62c22705"
+  },
+  "role": "intention.verifier",
+  "run_authority_policy_ref": {
+    "id": "Run_Authority_Policy.json",
+    "sha256": "467cbbdd972f66ebbe36fded3551f8d91c4416ea3ead860a3f0aa8e801147d37"
+  },
+  "schema_version": "1.0.0"
+}

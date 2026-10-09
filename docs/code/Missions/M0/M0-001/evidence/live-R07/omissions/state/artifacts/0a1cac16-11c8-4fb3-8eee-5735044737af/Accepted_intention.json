@@ -1,0 +1,27 @@
+{
+  "attempt_id": "attempt:1",
+  "commit_id": "1f8214c3-d2ef-4f79-b193-3709d84b7146",
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "b3c7c473b754f6f0894e882e79dcf3cd9484b2258adedcd14838eb05990149bb"
+  },
+  "gate_ref": {
+    "id": "Gate_Intention.json",
+    "sha256": "a6879ec30b26e7628d5384cd2d9b613858f3173f4af1c6361e7f09d2790a43d5"
+  },
+  "id": "acceptance:38086c70-efcf-4e4a-8387-538ea09da161",
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "2bd7aee181b119068775f790095034118f3a8e50d6a4863b16454f0de57f8552"
+  },
+  "node_id": "intention.compiler",
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "243ea07f03a87d462ba9774532de21f8838187c03a36e0bd5e247e31bbb662a1"
+    }
+  ],
+  "run_id": "0a1cac16-11c8-4fb3-8eee-5735044737af",
+  "schema_version": "2.0.0",
+  "subnode_id": "intention"
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:73d5125b-f17c-4040-88b5-71337130eb1d:13",
+  "client_request_id": "verification-lost_constraint-8eb42c6d9f904c7f9827edf1fd6ed2e0",
+  "run_id": "73d5125b-f17c-4040-88b5-71337130eb1d",
+  "revision": 13,
+  "stage": "halted",
+  "status": "halted",
+  "candidate_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "7edee6ce1d6b4f57981025037c106d8437dfe455d49a9c037159e6ce16c99124"
+    }
+  ],
+  "accepted_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "54b15f16f5ccb8fc082ca5c8a4cf6fb6bc11fbf9d8f7a22da30eca5dad5f1029"
+    }
+  ],
+  "decision_ref": {
+    "id": "Gate_Requirements.json",
+    "sha256": "de62e2d6db6d1a0bdbb38cd5492348d101fed2a6e5e18dae18cc12b24b2a76d2"
+  },
+  "reasons": [
+    "FAIL"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-evaluation",
+      "invalid_for_product": true,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "832d40ab71329f0264a924963d84144db128502c102076765ce36a6131c69294"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "eea913f04fa06c782a8a2ac1d1005a54eca6969e66ba6e3e36feef8996affc6b"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "4309831d493b97de1068023ce5eda7d7523bb35ee035cac21dc5d95f6756255e"
+      }
+    }
+  }
+}

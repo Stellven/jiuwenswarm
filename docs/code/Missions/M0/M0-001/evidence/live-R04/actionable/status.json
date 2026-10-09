@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:02b3b22e-610a-484d-929e-ba0bcaee7cbb:6",
+  "client_request_id": "verification-actionable-8396894c0c3e4d92b665cf94da949131",
+  "run_id": "02b3b22e-610a-484d-929e-ba0bcaee7cbb",
+  "revision": 6,
+  "stage": "halted",
+  "status": "halted",
+  "candidate_refs": [],
+  "accepted_refs": [],
+  "decision_ref": {
+    "id": "Gate_Intention.json",
+    "sha256": "ce2b44eda13d652605500b432892d6516828eb30ac713ef2fb34d8c740bc71a2"
+  },
+  "reasons": [
+    "Required work artifact absent or malformed; Native process returned non-success"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-only",
+      "invalid_for_product": false,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "dafa06ecf0d8345af06ddd7bffd1cc09a7b3f6524490a393eab87274f6c5310c"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "64785afa76b8717a571bda1b5f6c28f6fea501b183ebc2486e07a67f5419cae3"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+      }
+    }
+  }
+}

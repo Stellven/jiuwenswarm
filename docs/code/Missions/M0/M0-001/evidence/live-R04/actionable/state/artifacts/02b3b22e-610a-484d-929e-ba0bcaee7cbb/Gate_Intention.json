@@ -1,0 +1,66 @@
+{
+  "accepted_refs": [],
+  "action": "halt",
+  "assessment_ref": null,
+  "attempt_id": "attempt:1",
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "63719f9d6d4a253e5d4e3b289c2f7e83f280eb64e9dbc253a8c1c376a7787d70"
+  },
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "138b7cd72485e8544cc187ce1575afb2d1e3c29131e414c2177c856fbe2eb8e1"
+  },
+  "deterministic_result_ref": {
+    "id": "Intention_Checks.json",
+    "sha256": "da48bb88414890e482e7032285aff1197e4830b639c9ec25bbe25977c61b8041"
+  },
+  "id": "gate:intention:02b3b22e-610a-484d-929e-ba0bcaee7cbb",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "64785afa76b8717a571bda1b5f6c28f6fea501b183ebc2486e07a67f5419cae3"
+    }
+  ],
+  "internal_decision_refs": [],
+  "invocation_refs": [
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "81281b9c672028abe91035093816134136fb80203e01c2e4990c7227b61d7f2d"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "25b96a0b7c41c8b7355f6aae38100ff105dd0f4ddc8d16f87516c93ef8f1fa0f"
+  },
+  "node_id": "intention.compiler",
+  "output_refs": [],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "reasons": [
+    {
+      "code": "mandatory_blocked",
+      "criterion_ids": [
+        "fidelity",
+        "coverage",
+        "consistency",
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Intention_Checks.json",
+          "sha256": "da48bb88414890e482e7032285aff1197e4830b639c9ec25bbe25977c61b8041"
+        }
+      ],
+      "message": "Required work artifact absent or malformed; Native process returned non-success"
+    }
+  ],
+  "recorded_at": "2026-10-08T18:41:33.609937+00:00",
+  "run_id": "02b3b22e-610a-484d-929e-ba0bcaee7cbb",
+  "schema_version": "2.0.0",
+  "scope_kind": "subnode",
+  "subnode_id": "intention",
+  "verdict": "FAIL"
+}

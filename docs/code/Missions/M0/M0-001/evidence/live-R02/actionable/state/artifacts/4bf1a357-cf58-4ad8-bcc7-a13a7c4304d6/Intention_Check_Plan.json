@@ -1,0 +1,61 @@
+{
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "7ebaae26627fa63a5374443de20e568f23276765361f927a21ac382124d20131"
+  },
+  "id": "check-plan:intention",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "2a4151c428eba44363ba404733c31636238aa6d449f6934976abb830670c43a2"
+    }
+  ],
+  "mandatory_deterministic": [
+    "schema_and_relationships",
+    "binding_integrity",
+    "invocation_complete",
+    "limits_and_effects"
+  ],
+  "mandatory_semantic": [
+    "fidelity",
+    "coverage",
+    "consistency",
+    "requirements_usability"
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "4bee907d029c9d57444fdcc3c31e97836a2f974050491ff8e6482b101b7ceed1"
+  },
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "profile_ref": {
+    "id": "intention_Profile.json",
+    "sha256": "ba741027c8a40c00055297f20c32fa81b0b37f96a0ab711a6ed667125ce6ddd2"
+  },
+  "runner_refs": [
+    {
+      "id": "intention_Dependency_model.py",
+      "sha256": "f289d2f27069a5a3e0408a880160fd97080ff79367697c6b07b568b2026447ad"
+    },
+    {
+      "id": "intention_Dependency_runtime.py",
+      "sha256": "3b3e97e9f3111619903545d9d19f494c33ddf77557de6944b0a3b64a92f62751"
+    },
+    {
+      "id": "intention_Dependency_checks.py",
+      "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+    },
+    {
+      "id": "intention_Dependency_requirements.lock",
+      "sha256": "0f7bff60e71282d43272a27b68f51b030e56ff99b2e2631734fe67a2d622ec30"
+    },
+    {
+      "id": "intention_verifier_Declaration.json",
+      "sha256": "246c050b74befcb09f95104d0372172a67b1bc3c6366adbd117f78bb500559bc"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "subnode_id": "intention"
+}

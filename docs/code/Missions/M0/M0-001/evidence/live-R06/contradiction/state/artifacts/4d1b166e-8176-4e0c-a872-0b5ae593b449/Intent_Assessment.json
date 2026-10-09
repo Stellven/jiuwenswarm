@@ -1,0 +1,71 @@
+{
+  "findings": [
+    {
+      "criterion_id": "fidelity",
+      "evidence_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "08699449b3127eb37b26f9aff2b9b8a3f9b0661726b8063024f55f4d9478056c"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "7448e6899f3f4ddc4e6f246c1570173bf5c72bc2192d9624eab1a7d37c2a023d"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The artifact faithfully preserves the investigation purpose, report deliverable, both mandatory GPU requirements, baseline metrics, and absence of empirical measurements without inventing methods or targets."
+    },
+    {
+      "criterion_id": "coverage",
+      "evidence_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "08699449b3127eb37b26f9aff2b9b8a3f9b0661726b8063024f55f4d9478056c"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "7448e6899f3f4ddc4e6f246c1570173bf5c72bc2192d9624eab1a7d37c2a023d"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "All material source requirements and reference context are represented, including the mandatory status of both hardware constraints and their blocking conflict."
+    },
+    {
+      "criterion_id": "consistency",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "7448e6899f3f4ddc4e6f246c1570173bf5c72bc2192d9624eab1a7d37c2a023d"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "All research is simultaneously required to use only one GPU and exactly four GPUs. These mandatory constraints cannot both hold; identifying the contradiction does not make the submitted requirements consistent."
+    },
+    {
+      "criterion_id": "requirements_usability",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "7448e6899f3f4ddc4e6f246c1570173bf5c72bc2192d9624eab1a7d37c2a023d"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "The investigation purpose and report result are explicit, but no research can satisfy both mandatory GPU counts. The artifact itself marks this conflict as blocking and needs clarification, so the requirements are not actionable as submitted."
+    }
+  ],
+  "limitations": [],
+  "required_correction": "The mandatory GPU-count requirements must be clarified into a mutually satisfiable constraint before consistency and requirements usability can pass.",
+  "review_context_ref": {
+    "id": "Intention_Review_Context.json",
+    "sha256": "9cd77a6f3e3497542d4835c347549975bd1bb49a8f1b3a9f6781be55993ee536"
+  },
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "7448e6899f3f4ddc4e6f246c1570173bf5c72bc2192d9624eab1a7d37c2a023d"
+  },
+  "uncertainties": [
+    "Which mandatory GPU-count requirement governs the research remains unresolved."
+  ],
+  "verdict": "FAIL"
+}

@@ -1,0 +1,15 @@
+{
+  "account_id": "local-user",
+  "client_request_id": "verification-topic-7739aadea4cd4d848911519511f8da49",
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+  },
+  "id": "submission-verification-topic-7739aadea4cd4d848911519511f8da49",
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "10d31a296eee1f5db3d75338c1ed09bee068b029d6ade60f1f66e1357f18fb3d"
+  },
+  "schema_version": "1.0.0",
+  "workspace_id": "local-workspace"
+}

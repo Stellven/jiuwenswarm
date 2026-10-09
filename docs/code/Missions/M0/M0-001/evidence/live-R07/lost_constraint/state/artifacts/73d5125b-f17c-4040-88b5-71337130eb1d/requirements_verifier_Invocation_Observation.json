@@ -1,0 +1,90 @@
+{
+  "binding_id": "binding:requirements.verifier",
+  "contract_ref": {
+    "id": "requirements_verifier_Subnode_Contract.json",
+    "sha256": "a9683db15ee50133af98cf7b6bc71bd6c6fb0ad4b6a3134f890b3a5f5a5b40c6"
+  },
+  "duration_s": 29.140569700000924,
+  "effects": [
+    "approved_model_disclosure"
+  ],
+  "ended_at": "2026-10-08T19:16:55.499168+00:00",
+  "id": "invocation:9068246dcc3e49da9ae14b108b86ddb8",
+  "input_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "54b15f16f5ccb8fc082ca5c8a4cf6fb6bc11fbf9d8f7a22da30eca5dad5f1029"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "eea913f04fa06c782a8a2ac1d1005a54eca6969e66ba6e3e36feef8996affc6b"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+    },
+    {
+      "id": "Research_Brief.json",
+      "sha256": "7edee6ce1d6b4f57981025037c106d8437dfe455d49a9c037159e6ce16c99124"
+    },
+    {
+      "id": "Requirements_Review_Context.json",
+      "sha256": "efdd03fd70f36ea8de8e13446be09e7dfeb5104f3d9a7824e2a707c461d7c952"
+    },
+    {
+      "id": "Requirements_Checks.json",
+      "sha256": "4098aaba87a5f6ae9a8faa5ba151fc8f6c5ef0f492d099036a1bba4d2dea1e4a"
+    },
+    {
+      "id": "requirements_Invocation_Observation.json",
+      "sha256": "087c4d3379ae613b7bc30feba97e04ae1e2e5fba65b7a3ee35339fd719cea53d"
+    }
+  ],
+  "model_calls": 1,
+  "model_identity": {
+    "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+    "effective": null,
+    "requested": "approved native Codex default"
+  },
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "618826d7cb7263e4a4a40c775fc404f70103f18756fdc383ef87ae7975bd45ed"
+  },
+  "observed_runtime": true,
+  "outcome": "completed",
+  "output_refs": [
+    {
+      "id": "Requirements_Assessment.json",
+      "sha256": "11abdf3284c39a36a4acf45989b73221b9f2d9c00f8fd18c8ea756108225a6d1"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "started_at": "2026-10-08T19:16:26.358589+00:00",
+  "subnode_id": "requirements.verifier",
+  "trace_refs": [
+    {
+      "id": "requirements_verifier_Disclosed_Input.json",
+      "sha256": "8debdcd9bbff50101f0554fed00d69435e7de4f3e0bfd31dab38cdec7aa6b82b"
+    },
+    {
+      "id": "requirements_verifier_Raw_Response.txt",
+      "sha256": "d82eda046f614e1d5f188f2c25b94c14a1fa66824226458474ab735e33100aa6"
+    },
+    {
+      "id": "requirements_verifier_Stderr.txt",
+      "sha256": "2968305fcc151c9b1f9add39a8c01c7be40fe54a2619ef697654f44d3c939e81"
+    }
+  ],
+  "unavailable_reasons": [
+    "Attributable cost/currency not supplied by native CLI"
+  ],
+  "usage": {
+    "cost_amount": null,
+    "currency": null,
+    "input_tokens": 17539,
+    "output_tokens": 1056,
+    "unavailable_reasons": [
+      "Attributable cost/currency not supplied by native CLI"
+    ]
+  }
+}

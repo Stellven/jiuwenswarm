@@ -1,0 +1,36 @@
+{
+  "authority": {
+    "network": "none",
+    "network_allowlist": [],
+    "tools": [
+      "audited-model-bridge"
+    ]
+  },
+  "declaration_ref": {
+    "id": "intention_Declaration.json",
+    "sha256": "f5e93abd0249b55445108e0673ca1503e4cbe03b9f2c9d4dad7690f4ccf0ba0a"
+  },
+  "id": "template:intention",
+  "input_ports": [
+    {
+      "artifact_type": "qualified-intake",
+      "check_ids": [],
+      "description": "Protected immutable intake",
+      "name": "intake",
+      "required": true,
+      "schema_ref": "qualified-intake:field-contract:2"
+    }
+  ],
+  "limits": {
+    "memory_mb": 1024,
+    "model_calls": 1,
+    "time_s": 120.0
+  },
+  "output_contract": "intent-ir",
+  "profile_ref": {
+    "id": "intention_Profile.json",
+    "sha256": "ba741027c8a40c00055297f20c32fa81b0b37f96a0ab711a6ed667125ce6ddd2"
+  },
+  "role": "intention",
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,7 @@
+{
+  "verification": "V06 independent release inspection, first attempt",
+  "expected": "Compare exported Brief with saved consumer response",
+  "observed": "KeyError: 'brief' in inspection script; the API wrapper field is research_brief",
+  "result": "CHECK_SCRIPT_FAILED",
+  "limitation": "Inspection did not finish. This was an incorrect field name in the independent check, not a compiler failure. Corrected check is retained as v06-release-check.py."
+}

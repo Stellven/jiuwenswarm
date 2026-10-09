@@ -1,0 +1,20 @@
+{
+  "automatic_retries": 0,
+  "criterion_meanings": "Extract faithful user research meaning into Intent IR 1.0.0. Preserve requested purpose/result, scope, exclusions, constraints, preferences, entities and explicit targets. Every statement needs exact code-point spans into original source text. Do not select solutions, invent purpose/method/target, browse, profile host or clarify interactively. A topic alone has unknown purpose/result and blocking uncertainty with needs_clarification. Optional hardware/method/numeric target omissions need not block actionable work. Return only the schema artifact.",
+  "definition_before_output": true,
+  "id": "profile:intention",
+  "mandatory_deterministic": [
+    "schema_and_relationships",
+    "binding_integrity",
+    "invocation_complete",
+    "limits_and_effects"
+  ],
+  "mandatory_semantic": [
+    "fidelity",
+    "coverage",
+    "consistency",
+    "requirements_usability"
+  ],
+  "owner": "protected host",
+  "schema_version": "1.0.0"
+}

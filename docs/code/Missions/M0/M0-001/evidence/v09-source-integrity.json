@@ -1,0 +1,95 @@
+{
+  "verification": "V09",
+  "recorded_at": "2026-10-08T18:51:31.570830+00:00",
+  "command": "SHA256 supplied catalog/field contracts and8critical schemas against shipped byte copies; git diff --exit-code -- AGENTS.md .specify/memory/constitution.md; git rev-parse HEAD",
+  "expected": "all10authoritative copies exact; protected files unchanged; no commits",
+  "files": [
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/capsule-declaration.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/capsule-declaration.schema.json",
+      "expected_sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6",
+      "observed_source_sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6",
+      "observed_copy_sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/catalog.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/catalog.json",
+      "expected_sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7",
+      "observed_source_sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7",
+      "observed_copy_sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/common.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/common.schema.json",
+      "expected_sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880",
+      "observed_source_sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880",
+      "observed_copy_sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/deterministic-check-result.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/deterministic-check-result.schema.json",
+      "expected_sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017",
+      "observed_source_sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017",
+      "observed_copy_sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/field-contracts.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/field-contracts.json",
+      "expected_sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6",
+      "observed_source_sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6",
+      "observed_copy_sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/gate-decision.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/gate-decision.schema.json",
+      "expected_sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd",
+      "observed_source_sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd",
+      "observed_copy_sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/intent-ir.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/intent-ir.schema.json",
+      "expected_sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262",
+      "observed_source_sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262",
+      "observed_copy_sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/research-brief.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/research-brief.schema.json",
+      "expected_sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2",
+      "observed_source_sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2",
+      "observed_copy_sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/subnode-execution-contract.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/subnode-execution-contract.schema.json",
+      "expected_sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede",
+      "observed_source_sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede",
+      "observed_copy_sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede",
+      "result": "PASS"
+    },
+    {
+      "source": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/verifier-assessment.schema.json",
+      "copy": "standalone/intent_compiler/intent_compiler/contracts/verifier-assessment.schema.json",
+      "expected_sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e",
+      "observed_source_sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e",
+      "observed_copy_sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e",
+      "result": "PASS"
+    }
+  ],
+  "protected_diff_exit_code": 0,
+  "head": "5787575ac145386809ccde868cdc21ade224d9f4",
+  "expected_head": "5787575ac145386809ccde868cdc21ade224d9f4",
+  "result": "PASS",
+  "limitations": [
+    "This static check is not behavioral or deployment acceptance."
+  ]
+}

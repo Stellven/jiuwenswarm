@@ -1,0 +1,52 @@
+{
+  "check_plan_ref": {
+    "id": "Requirements_Check_Plan.json",
+    "sha256": "e9a18033d2139c93b642b16a609e1aceefb765f765ce6681bc484b0c5667468a"
+  },
+  "results": [
+    {
+      "check_id": "assessment_complete_and_bound",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "243ea07f03a87d462ba9774532de21f8838187c03a36e0bd5e247e31bbb662a1"
+        },
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "52f94c89105b355fb53dd9166efc40272e6caebcee0ec70c6e267950213bd043"
+        },
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        },
+        {
+          "id": "Research_Brief.json",
+          "sha256": "586e2925b3f3f06ba9c74391b832268e06e0bc508db33efe8b1713b8e759bdc4"
+        },
+        {
+          "id": "Requirements_Review_Context.json",
+          "sha256": "49bc567c457d9816e4e212ba67c24a94f49f1172601d637df32b958af47e3c3a"
+        },
+        {
+          "id": "Requirements_Checks.json",
+          "sha256": "2ef3a436687c76329a6bf0abbb78d7a20fc47c88b0775dfa3658644e9dd0e177"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "bc48ad902e6c1359e87fa041c3e009b4bdc6abd358f65b0eead2b611965813d0"
+        },
+        {
+          "id": "requirements_verifier_Invocation_Observation.json",
+          "sha256": "7d542807a8c0f7fccefac97e5d0c793d87766e1846753a648237ca60d7639ccd"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Exact assessment/mechanical coverage and evidence validated"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Requirements_Assessment.json",
+    "sha256": "bfdd79cb42c0c724c063a7d020e7f7bd85f107c9a0e29c182091c984efe017eb"
+  }
+}

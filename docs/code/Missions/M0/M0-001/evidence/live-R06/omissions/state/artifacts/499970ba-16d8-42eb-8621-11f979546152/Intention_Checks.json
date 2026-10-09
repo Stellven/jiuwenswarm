@@ -1,0 +1,89 @@
+{
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "0bcf2a867227bb6361cd5afc27f6ce2742509eb99d22a597b9fada4f4cc2c596"
+  },
+  "results": [
+    {
+      "check_id": "schema_and_relationships",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "aa9f2ca046a3e44ac7959574428edeed3cebdd0b9cd0cab1c0874e05493f1891"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "2d6af2b967775ff301c1d372482758130e69a62564ada98ea427531a03cf6cf0"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "binding_integrity",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "aa9f2ca046a3e44ac7959574428edeed3cebdd0b9cd0cab1c0874e05493f1891"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "2d6af2b967775ff301c1d372482758130e69a62564ada98ea427531a03cf6cf0"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "invocation_complete",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "aa9f2ca046a3e44ac7959574428edeed3cebdd0b9cd0cab1c0874e05493f1891"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "2d6af2b967775ff301c1d372482758130e69a62564ada98ea427531a03cf6cf0"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "limits_and_effects",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "aa9f2ca046a3e44ac7959574428edeed3cebdd0b9cd0cab1c0874e05493f1891"
+        },
+        {
+          "id": "intention_Subnode_Contract.json",
+          "sha256": "2d6af2b967775ff301c1d372482758130e69a62564ada98ea427531a03cf6cf0"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+  }
+}

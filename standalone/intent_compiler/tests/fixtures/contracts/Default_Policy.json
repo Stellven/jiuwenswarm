@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "id": "policy:example",
+  "hardware_profile": "single_gpu",
+  "automatic_retries": 0
+}

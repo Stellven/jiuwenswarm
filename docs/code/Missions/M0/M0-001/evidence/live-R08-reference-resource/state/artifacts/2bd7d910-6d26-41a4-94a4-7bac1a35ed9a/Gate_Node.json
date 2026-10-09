@@ -1,0 +1,99 @@
+{
+  "accepted_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "e1b0ba61a5a5912775aee5dce350f10909b0fbf31d7a000538a2c3b31fbbab1c"
+    }
+  ],
+  "action": "advance",
+  "assessment_ref": {
+    "id": "Requirements_Assessment.json",
+    "sha256": "8fcdbbfbc14151a59fd6abb95492ea72a53648a244a31ce6a56ab2d4c71d4089"
+  },
+  "attempt_id": "attempt:1",
+  "check_plan_ref": {
+    "id": "Intention_Node_Check_Plan.json",
+    "sha256": "55777badb3f1fd470443fdba571e660109d0a408d6a55160260e3eb046d3a044"
+  },
+  "contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "f321ec82908208806649ca548c506c8c896ad0a09dc9605bded8b158a0ac4e18"
+  },
+  "deterministic_result_ref": {
+    "id": "Intention_Node_Checks.json",
+    "sha256": "fb86e4b823d98755561f5de95402d0b507cd288e711c82ca145a42469d4e4686"
+  },
+  "id": "gate:node:2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "01aaacb2dd584262120a88d99fc6fd8e43957de9d2c9e3728d5cd37b8626a423"
+    }
+  ],
+  "internal_decision_refs": [
+    {
+      "id": "Gate_Intention.json",
+      "sha256": "da1508c51ad6122fd4f54bc82402fda10999a0b70f86d465302fb04412c4d37f"
+    },
+    {
+      "id": "Gate_Requirements.json",
+      "sha256": "2585c2d5b559d65a21eb10be8af8274857e54f605ac098e01bba7b807f100c94"
+    }
+  ],
+  "invocation_refs": [
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "99f71f08c89da499325b70be832923dc8bafd4f1b6264063417eeee082d6056e"
+    },
+    {
+      "id": "intention_verifier_Invocation_Observation.json",
+      "sha256": "e5185d44c65b1c1944b11c7994c26e6c5e11716e8bb1d627e0da2ca0ffafa15f"
+    },
+    {
+      "id": "requirements_Invocation_Observation.json",
+      "sha256": "fca10bd074e3c98d20a644d7338cdcd8b3dda272703e43bdd21dccaa3c8cd449"
+    },
+    {
+      "id": "requirements_verifier_Invocation_Observation.json",
+      "sha256": "0955d4bdd3e319d2e5c8fbef3b024cdd2c1ac8e89ab4630af66e39e13f53af9f"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "f321ec82908208806649ca548c506c8c896ad0a09dc9605bded8b158a0ac4e18"
+  },
+  "node_id": "intention.compiler",
+  "output_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "e1b0ba61a5a5912775aee5dce350f10909b0fbf31d7a000538a2c3b31fbbab1c"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "reasons": [
+    {
+      "code": "all_mandatory_passed",
+      "criterion_ids": [],
+      "evidence_refs": [
+        {
+          "id": "Intention_Node_Checks.json",
+          "sha256": "fb86e4b823d98755561f5de95402d0b507cd288e711c82ca145a42469d4e4686"
+        },
+        {
+          "id": "Requirements_Assessment.json",
+          "sha256": "8fcdbbfbc14151a59fd6abb95492ea72a53648a244a31ce6a56ab2d4c71d4089"
+        }
+      ],
+      "message": "PASS"
+    }
+  ],
+  "recorded_at": "2026-10-08T19:26:13.031597+00:00",
+  "run_id": "2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "schema_version": "2.0.0",
+  "scope_kind": "node",
+  "subnode_id": null,
+  "verdict": "PASS"
+}

@@ -1,0 +1,87 @@
+{
+  "accepted_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "37a5931133341cbcbf8fd684b97fe7339b15484885a63d47177d72ddba08a075"
+    }
+  ],
+  "action": "advance",
+  "assessment_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "acfcd9faf90d436c9a2178afdd09eaa15f8b1b2dd90dba901baf98c31afd297c"
+  },
+  "attempt_id": "attempt:1",
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "a908c61c0bf67b2e2d06bd6d5bd331856559b72a023b3498dddbd295aeefaa6f"
+  },
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "d69e1dcbc3d52cdb9822f272da87dfb5be02c19e64b6c46d48af476b06c4b770"
+  },
+  "deterministic_result_ref": {
+    "id": "Intention_Checks.json",
+    "sha256": "53b2774a81568278176f6df46848b7da5aaede734af2c034c7e58f1dd5916b04"
+  },
+  "id": "gate:intention:55729771-e096-4b02-ae77-9e4a8a19f27b",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "929272c79efdce215ff1712b3221416aa2d5b4a2fdcfe76310d390513c3ea00b"
+    }
+  ],
+  "internal_decision_refs": [],
+  "invocation_refs": [
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "b2e169956e4ecf0565d28ad4df53a0c55d94dde37332658240c3b472bc9f01a5"
+    },
+    {
+      "id": "intention_verifier_Invocation_Observation.json",
+      "sha256": "7944d04f44e9e353243389de0dec3dab1b32f850420f27576f9e15b6bb33b419"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "8589cb06abeac83bff1901d519ac1d1f8d9c3f6bc03d886a74f48702d11590fe"
+  },
+  "node_id": "intention.compiler",
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "37a5931133341cbcbf8fd684b97fe7339b15484885a63d47177d72ddba08a075"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "reasons": [
+    {
+      "code": "all_mandatory_passed",
+      "criterion_ids": [
+        "fidelity",
+        "coverage",
+        "consistency",
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Intention_Checks.json",
+          "sha256": "53b2774a81568278176f6df46848b7da5aaede734af2c034c7e58f1dd5916b04"
+        },
+        {
+          "id": "Intent_Assessment.json",
+          "sha256": "acfcd9faf90d436c9a2178afdd09eaa15f8b1b2dd90dba901baf98c31afd297c"
+        }
+      ],
+      "message": "PASS"
+    }
+  ],
+  "recorded_at": "2026-10-08T18:51:55.906168+00:00",
+  "run_id": "55729771-e096-4b02-ae77-9e4a8a19f27b",
+  "schema_version": "2.0.0",
+  "scope_kind": "subnode",
+  "subnode_id": "intention",
+  "verdict": "PASS"
+}

@@ -1,0 +1,271 @@
+{
+  "acceptance_expectations": [
+    {
+      "description": "The delivered report addresses retrieval latency and grounds its findings in available evidence.",
+      "id": "acceptance-investigation",
+      "requirement_ids": [
+        "requirement-investigation",
+        "requirement-report"
+      ]
+    },
+    {
+      "description": "Document the report's limitations.",
+      "id": "acceptance-exclusions",
+      "requirement_ids": [
+        "requirement-no-cloud-training",
+        "requirement-no-new-datasets"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "affected_fields": [
+        "/constraints/3"
+      ],
+      "authority_ref": {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      },
+      "id": "assumption-hardware-default",
+      "text": "Hardware is unspecified in the accepted Intent, so the protected policy authorizes the single_gpu scientific-execution hardware default. Hardware availability remains unasserted."
+    }
+  ],
+  "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+      },
+      {
+        "id": "Intent_IR.json",
+        "sha256": "54b15f16f5ccb8fc082ca5c8a4cf6fb6bc11fbf9d8f7a22da30eca5dad5f1029"
+      },
+      {
+        "id": "Default_Policy.json",
+        "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+      }
+    ]
+  },
+  "constraints": [
+    {
+      "category": "evidence",
+      "id": "constraint-evidence",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "research_run",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "The report must be evidence-grounded.",
+      "unit": null
+    },
+    {
+      "category": "prohibition",
+      "id": "constraint-cloud-training",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Keep implementation choices unspecified until planning.",
+      "unit": null
+    },
+    {
+      "category": "data",
+      "id": "constraint-datasets",
+      "normalized_value": null,
+      "operator": "qualitative",
+      "origin": "user",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Keep implementation choices unspecified until planning.",
+      "unit": null
+    },
+    {
+      "category": "hardware",
+      "id": "constraint-hardware",
+      "normalized_value": "single_gpu",
+      "operator": "eq",
+      "origin": "system_default",
+      "scope": "scientific_execution",
+      "source_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        }
+      ],
+      "text": "Apply the single_gpu hardware profile as the authorized default for unspecified hardware; this does not assert hardware availability.",
+      "unit": null
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "deliverables": [
+    {
+      "artifact_type": "report",
+      "description": "Report the retrieval latency investigation with evidence supporting its findings and explicit limits arising from the absence of supplied empirical measurements.",
+      "id": "deliverable-report",
+      "name": "Evidence-grounded retrieval latency report"
+    }
+  ],
+  "domain_lane": "scientific_research",
+  "evidence_obligations": [
+    {
+      "description": "Identify supporting evidence for report findings and distinguish supported conclusions from unknowns. The local reference identifies latency and retrieval quality as relevant baseline metrics but supplies no empirical measurements; do not present that reference as measured performance evidence.",
+      "id": "evidence-report",
+      "requirement_ids": [
+        "requirement-investigation",
+        "requirement-report"
+      ]
+    },
+    {
+      "description": "Document the report's limitations.",
+      "id": "evidence-exclusions",
+      "requirement_ids": [
+        "requirement-no-cloud-training",
+        "requirement-no-new-datasets"
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-latency",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Investigation of retrieval latency."
+    }
+  ],
+  "input_bindings": [
+    {
+      "id": "input0",
+      "resource_ref": {
+        "id": "Resource_Document_0.json",
+        "sha256": "9eed348247ffaeab17740e20d37201bc50e3b16bc25f54262e90d5905bb83fc4"
+      },
+      "role": "reference_document"
+    }
+  ],
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "eea913f04fa06c782a8a2ac1d1005a54eca6969e66ba6e3e36feef8996affc6b"
+  },
+  "intent_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "54b15f16f5ccb8fc082ca5c8a4cf6fb6bc11fbf9d8f7a22da30eca5dad5f1029"
+  },
+  "mandatory_requirements": [
+    {
+      "id": "requirement-investigation",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Investigate retrieval latency."
+    },
+    {
+      "id": "requirement-report",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Return an evidence-grounded report."
+    },
+    {
+      "id": "requirement-no-cloud-training",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Keep implementation choices unspecified until planning."
+    },
+    {
+      "id": "requirement-no-new-datasets",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Keep implementation choices unspecified until planning."
+    }
+  ],
+  "objective": {
+    "id": "objective-investigation-report",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+      }
+    ],
+    "text": "Investigate retrieval latency and return an evidence-grounded report."
+  },
+  "optional_preferences": [],
+  "out_of_scope": [
+    {
+      "id": "exclusion-cloud-training",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Keep implementation choices unspecified until planning."
+    },
+    {
+      "id": "exclusion-new-datasets",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Request.txt",
+          "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+        }
+      ],
+      "text": "Keep implementation choices unspecified until planning."
+    }
+  ],
+  "resource_refs": [
+    {
+      "id": "Resource_Document_0.json",
+      "sha256": "9eed348247ffaeab17740e20d37201bc50e3b16bc25f54262e90d5905bb83fc4"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "target_metrics": [],
+  "unresolved_items": []
+}

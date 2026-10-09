@@ -1,0 +1,44 @@
+{
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "e231c48285e28f42ba1ec1dbd52617c3c84930febd9be8f2ca35b1ad936ba52d"
+  },
+  "results": [
+    {
+      "check_id": "assessment_complete_and_bound",
+      "evidence_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "7d2a48268831f1430cd8c08a126d6216af2191a7e67072cc89e0ea279f24de56"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2b2af7b9dbcd7861702195db4d91ef298f60ae24a78b965a3721970c8e2be5d4"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "cc24c71953d2f2d5fc40318f11aeac6d07a28b1edf3a195d0126b07002249491"
+        },
+        {
+          "id": "Intention_Checks.json",
+          "sha256": "4d512c8a7bdebe301a27b3b5b6d679a73e1e4fa049682d47163b4f5f3c6636bd"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "e17770db78acf573a98048446e9a7b56b4f45621f9100cd1fd86379844e7e9bb"
+        },
+        {
+          "id": "intention_verifier_Invocation_Observation.json",
+          "sha256": "cc10614b9e0b318d769095ad57215a8865acf5d5d837e13418cc8585b304b01d"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "Producer retained blocking purpose/result/constraint uncertainty"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "84200800d9553053a7bd855c46da2acb21792415c1b1ab4efd7f5a77d3cf566b"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "attempt_id": "attempt:1",
+  "audience": "authorized_run_owner",
+  "contract_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+  "id": "envelope:Intent_Assessment.json",
+  "invocation_ref": {
+    "id": "intention_verifier_Invocation_Observation.json",
+    "sha256": "858d00bc8914ad2ca610834c2e6b6da217adc6c64bafd50c5f647effca28bf31"
+  },
+  "media_type": "application/json",
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "92dfeb12fdc7cc81a3a70cd6be74d60996045cf53ed911331209520371978a08"
+  },
+  "node_id": "intention.compiler",
+  "payload_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "165c684763ad1959f2dbd0ca1a0fa623c815a9642d11b4257c0e86cc8b55cf25"
+  },
+  "run_id": "4d1b166e-8176-4e0c-a872-0b5ae593b449",
+  "schema_version": "2.0.0",
+  "source_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "08699449b3127eb37b26f9aff2b9b8a3f9b0661726b8063024f55f4d9478056c"
+    },
+    {
+      "id": "Intent_IR.json",
+      "sha256": "7448e6899f3f4ddc4e6f246c1570173bf5c72bc2192d9624eab1a7d37c2a023d"
+    },
+    {
+      "id": "Intention_Review_Context.json",
+      "sha256": "9cd77a6f3e3497542d4835c347549975bd1bb49a8f1b3a9f6781be55993ee536"
+    },
+    {
+      "id": "Intention_Checks.json",
+      "sha256": "90224042fbee4bc6b3cac8e3f4015af0e5a728597ac0e3cb81eea2761bbb7d7a"
+    },
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "2537128b93a7613e8811a461cef1eda4b5dc7013a016fe448970f79cf940f335"
+    }
+  ],
+  "subnode_id": "intention.verifier"
+}

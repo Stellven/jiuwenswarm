@@ -1,0 +1,16 @@
+{
+  "hardware_readiness": "unobserved; compiler default is declarative",
+  "invalid_for_product": true,
+  "prerequisites": [
+    {
+      "name": "model",
+      "reason": "Native authenticated access probe passed",
+      "status": "ready"
+    },
+    {
+      "name": "required_enforcement",
+      "reason": "Owned process hard memory/lifetime probe passed; adapter tools are disabled",
+      "status": "ready"
+    }
+  ]
+}

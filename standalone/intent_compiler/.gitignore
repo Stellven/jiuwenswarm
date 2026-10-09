@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+intent-state/
+intent-input/
+frontend/node_modules/
+frontend/dist/
+.env
+*.token

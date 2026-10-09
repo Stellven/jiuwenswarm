@@ -1,0 +1,414 @@
+{
+  "schema_version": "1.0.0",
+  "candidate": "sha256:82eb11b2091fca30c2343cff5718990455e583629320819bab26e228e2ac61ce",
+  "recorded_at": "2026-10-08T18:28:25.369036+00:00",
+  "head": "5787575ac145386809ccde868cdc21ade224d9f4",
+  "branch": "ai4r_test_with_spec_kit",
+  "relevant_tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "files": [
+    {
+      "path": ".specify/memory/constitution.md",
+      "bytes": 2424,
+      "sha256": "647875b49b54f103e1c01dcaa33a827f60dc58cc330c0db4b1aa60efabbe226a"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 3896,
+      "sha256": "165076812e77ae7c837ae408702e9f311d7a660df414fbbf0e44d970084e329b"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/plan.md",
+      "bytes": 17586,
+      "sha256": "b6d174ef6e85b487399ca4f4f9e421951573964035d08ac392dec1f439cf6240"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/source-baseline.json",
+      "bytes": 76782,
+      "sha256": "ff1fd7df7210eb2d9a320a176c56a873fb74542fcb13e0f373f5edd7038b1e40"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/spec.md",
+      "bytes": 30581,
+      "sha256": "11e44a6ec07ca6d9663d0e25de70a4fabb7bb39c96a93f5d35d7573b2d1c469b"
+    },
+    {
+      "path": "docs/code/Missions/M0/M0-001/TASK.md",
+      "bytes": 19094,
+      "sha256": "06968dc2fb6324b442cb38b5045f740d73ec4284bcc00aa97f9b0cae0cbef27a"
+    },
+    {
+      "path": "standalone/intent_compiler/.dockerignore",
+      "bytes": 145,
+      "sha256": "4784133cceaeec685d8b1bf90189daa5a216b6c8243f84b7f410f5da7b522e89"
+    },
+    {
+      "path": "standalone/intent_compiler/.gitignore",
+      "bytes": 113,
+      "sha256": "5cf70bd60332966b081ac9808f9e7feaab4a59506df3a5ceabe2cd8bce036ac5"
+    },
+    {
+      "path": "standalone/intent_compiler/compose.yaml",
+      "bytes": 1603,
+      "sha256": "d25961942f1bfae9c1f351d21d3fc8837c0d9714305dfe6d265b6f9dd99c005f"
+    },
+    {
+      "path": "standalone/intent_compiler/Dockerfile",
+      "bytes": 1153,
+      "sha256": "f33780845ba7945e3ffaa50fb40a341b761dfafb716f839a44fc6e807fe3243b"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/build.mjs",
+      "bytes": 188,
+      "sha256": "0f6448fb607c2eae507db5f7306e2321df8cb84c00cea30fb56e0ca98eef4087"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/dist/app.js",
+      "bytes": 9984,
+      "sha256": "cb6e832488cf47856641fcbacc5d8a39b272b1a23064b2c769ee79b9db14d310"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/dist/index.html",
+      "bytes": 4529,
+      "sha256": "34f4b805716cd6d47ebef5f07a586402c3d679fe1bfd17e9051efd9516701681"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/dist/style.css",
+      "bytes": 2856,
+      "sha256": "2d3a9625509afc24ffe89f8549f44b4bcfa13dd7314fcd41d6ee8408c37f73f2"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/dist/theme.css",
+      "bytes": 297,
+      "sha256": "f5ba3bf10b03c91cb65c9b387c2b784b2ba9f6f0945293b299647906ed9a3ba5"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/index.html",
+      "bytes": 4529,
+      "sha256": "34f4b805716cd6d47ebef5f07a586402c3d679fe1bfd17e9051efd9516701681"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/package-lock.json",
+      "bytes": 741,
+      "sha256": "7c3e854064d3624633c07d4ef7f85cce05624a51958610a98292acc19d4fbf2a"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/package.json",
+      "bytes": 182,
+      "sha256": "2947df713ee4daaff1391566cadd33896d3bec83f3edee9ff043ac889c2364fe"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/src/app.ts",
+      "bytes": 10425,
+      "sha256": "156ee33cf0a4d7aff974c900edafad8a31195ca79c74049d842f52ee5166269a"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/style.css",
+      "bytes": 2856,
+      "sha256": "2d3a9625509afc24ffe89f8549f44b4bcfa13dd7314fcd41d6ee8408c37f73f2"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/theme.css",
+      "bytes": 297,
+      "sha256": "f5ba3bf10b03c91cb65c9b387c2b784b2ba9f6f0945293b299647906ed9a3ba5"
+    },
+    {
+      "path": "standalone/intent_compiler/frontend/tsconfig.json",
+      "bytes": 209,
+      "sha256": "433196420daf905d09be947801bca94db978dce586bc8e3e5cd0015c19a5bd21"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/__init__.py",
+      "bytes": 97,
+      "sha256": "df026c198f749ed4c959629bf441aeb5e9f7453ce21f148cbfc0cca08ff9089c"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/__main__.py",
+      "bytes": 1078,
+      "sha256": "8a94e12a293d28426dcfd8b3db9022a406c723c6cd1d7062e322a33bb44510b4"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/api.py",
+      "bytes": 23870,
+      "sha256": "a23053a5d60bd940e179cc49bd1125a1e575a95db475c2cf10d73ac346a21f20"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/checks.py",
+      "bytes": 15813,
+      "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/client.py",
+      "bytes": 9830,
+      "sha256": "b35fb692071a94c19eea088f27243ef0570de2e7b4ee592c314adccf14eedc4e"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/config.py",
+      "bytes": 4928,
+      "sha256": "4e75f648da3c881444b2d6a69a6bd631e9870aaaea071d1f83ad6f56091ce3e3"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/capsule-declaration.schema.json",
+      "bytes": 34304,
+      "sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/catalog.json",
+      "bytes": 24674,
+      "sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/common.schema.json",
+      "bytes": 6982,
+      "sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/deterministic-check-result.schema.json",
+      "bytes": 1917,
+      "sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/field-contracts.json",
+      "bytes": 96027,
+      "sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/gate-decision.schema.json",
+      "bytes": 5606,
+      "sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/intent-ir.schema.json",
+      "bytes": 5615,
+      "sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/provenance.json",
+      "bytes": 1686,
+      "sha256": "741790b2eb2224cf3dc63fdc2b967b4f5d2ffb3ee7b377a58fa3f67134388834"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/research-brief.schema.json",
+      "bytes": 12826,
+      "sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/subnode-execution-contract.schema.json",
+      "bytes": 8290,
+      "sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/contracts/verifier-assessment.schema.json",
+      "bytes": 2684,
+      "sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/intake.py",
+      "bytes": 13527,
+      "sha256": "e3fe962489bb58373748ab9562c828d89bdbdb12c9e660c9f81970fdbd3c2b9d"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/model.py",
+      "bytes": 17201,
+      "sha256": "f564db6529379ff15ee1a9e5800c982d747b6c2d5085bdb36ed713eb258d794c"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/runtime.py",
+      "bytes": 44447,
+      "sha256": "3b3e97e9f3111619903545d9d19f494c33ddf77557de6944b0a3b64a92f62751"
+    },
+    {
+      "path": "standalone/intent_compiler/intent_compiler/store.py",
+      "bytes": 25349,
+      "sha256": "b1f0e0a5a346c5a665d2531e066317ae8c66dba52c6d62ecf98c21b0066e837f"
+    },
+    {
+      "path": "standalone/intent_compiler/pytest.ini",
+      "bytes": 69,
+      "sha256": "e4df4b73dcacd0ff6117ad884bdce7f661f2faa456ca6a41b8cc929f7d5cb36a"
+    },
+    {
+      "path": "standalone/intent_compiler/README.md",
+      "bytes": 9672,
+      "sha256": "61869cb3b15ecac03846e2a1ec97d40aa1550eff71793d6376e9fe7ccf3cde66"
+    },
+    {
+      "path": "standalone/intent_compiler/requirements.lock",
+      "bytes": 529,
+      "sha256": "0f7bff60e71282d43272a27b68f51b030e56ff99b2e2631734fe67a2d622ec30"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Capsule_Declaration.json",
+      "bytes": 3803,
+      "sha256": "402e70710244fdff27e4488f41036bb250a4e31ecb0eafa99bfb418649aae1ec"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/CRLF_Source.txt",
+      "bytes": 8,
+      "sha256": "72b8d6b2e76cbda092009b743e42a1d167187e4572dffa5a23cbf9bfea235924"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Default_Policy.json",
+      "bytes": 126,
+      "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Gate_Compiler_No_Output.json",
+      "bytes": 1797,
+      "sha256": "41da29f0c6f10d22da69a5dda139b1f624b6caf404de79ddd7972f3470ca475a"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Gate_Decision.json",
+      "bytes": 2478,
+      "sha256": "56ed01c17c898741100ccb511323b86214ee83183a0b6d5aeadf70088c3c4895"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Gate_Intention_Compiler_Pass.json",
+      "bytes": 3343,
+      "sha256": "23334938127c544539220bc6b5079777da55da7ab7249d7563950390e5736522"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Assessment.json",
+      "bytes": 1972,
+      "sha256": "6d938f1bbcd7f1cb9965b9b0d95c79fbfea78d709372719b260e02e7d490cc2a"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Checks.json",
+      "bytes": 1701,
+      "sha256": "890a504d249f29e677f50fc905747d2bb193dff8071eaefdec585d4558e7322e"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Contradictory.json",
+      "bytes": 2473,
+      "sha256": "ceae195abc744ef96b9908857e52913d79ad6d184754250a4c888a84b62c6aed"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_IR.json",
+      "bytes": 3215,
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Permissible_Omissions.json",
+      "bytes": 1734,
+      "sha256": "b88ea0a258ca8ba8ca7c46e474b96cde7f2bc88a6877766052b2c7c040090dd4"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intent_Topic_Only.json",
+      "bytes": 1423,
+      "sha256": "7384d9670be771ca289fda070156180b33eeb2eaa0772e95fcc7324b6472ec1a"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Intention_Subnode_Contract.json",
+      "bytes": 3336,
+      "sha256": "da6242e2d7818e4f0da5373e9977e278f3a2740c709a3d9d1b7e829a2e8d5aa8"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request.txt",
+      "bytes": 144,
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request_Contradictory.txt",
+      "bytes": 104,
+      "sha256": "8560e901086080e64044759f58d51ccc22f825848fbf6b19fc2b94299f00b0f9"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request_Permissible_Omissions.txt",
+      "bytes": 100,
+      "sha256": "dc8f1655124edd64adb899ffd907e3cc359ae4a947f0f32f84b7991ac662706b"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Request_Topic_Only.txt",
+      "bytes": 41,
+      "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Research_Brief.json",
+      "bytes": 3973,
+      "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Research_Brief_Defaults.json",
+      "bytes": 3684,
+      "sha256": "33be4d18cc37cf19fa67629fd285bc35fcb6f4cb1515ac1e522b901023833a9e"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/fixtures/contracts/Source_Spans_CRLF.json",
+      "bytes": 487,
+      "sha256": "fc560d1848c4be43be55873b2483d768e5ecc0cd44dc128b3ce4add5df913615"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_api.py",
+      "bytes": 14294,
+      "sha256": "5ec4dbd21dacb09b326d56e86fa825b43f1b27c82d13c2e0de26b7c0029818ca"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_checks.py",
+      "bytes": 13103,
+      "sha256": "507d11cfbb3bc0a6c2ccbe5301aeed5cfc46abd2a32097c4bd8d7c5762db2314"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_intake_store.py",
+      "bytes": 11668,
+      "sha256": "d4dacb90873b4479e4b1c30774022597fec72ba6256bed415e7f73c3e8d05a20"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_model.py",
+      "bytes": 3154,
+      "sha256": "7aca72b150886863a17646fc8a960476c4957aec84a7b179dbd598bd1a468104"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_runtime.py",
+      "bytes": 9632,
+      "sha256": "a84791eccc4f3f62703c002aad22df33cf8ddb2cfb5305ef87933c9d5ef384be"
+    },
+    {
+      "path": "standalone/intent_compiler/tests/test_store_acceptance.py",
+      "bytes": 8151,
+      "sha256": "54d8e9cd4728d3750fab4ec5b13d68e7843b2bf08eadc48ac316bc24f411c3b4"
+    },
+    {
+      "path": "standalone/intent_compiler/tools/live_verify.py",
+      "bytes": 9643,
+      "sha256": "b5be59ea3c9a9e0cadd6608055b9bc1c73a70658a175827ae5a61dcc7e5df7af"
+    },
+    {
+      "path": "standalone/intent_compiler/tools/record_candidate.py",
+      "bytes": 2615,
+      "sha256": "3a23b0adb96128cc6746fc2039df7bafb3a019d8f115f876f8c1145f49ef43b6"
+    }
+  ],
+  "platform": "Windows-11-10.0.22631-SP0",
+  "python": "3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]",
+  "dependencies": [
+    "Pygments==2.21.0",
+    "annotated-doc==0.0.5",
+    "annotated-types==0.8.0",
+    "anyio==4.15.1",
+    "attrs==26.1.0",
+    "certifi==2026.7.22",
+    "click==8.5.0",
+    "colorama==0.4.6",
+    "fastapi==0.127.0",
+    "h11==0.16.0",
+    "httpcore==1.0.9",
+    "httpx==0.28.1",
+    "idna==3.20",
+    "iniconfig==2.3.1",
+    "jsonschema-specifications==2025.9.1",
+    "jsonschema==4.25.1",
+    "packaging==26.3",
+    "pip==24.3.1",
+    "pluggy==1.6.0",
+    "pydantic==2.14.0",
+    "pydantic_core==2.50.0",
+    "pypdf==6.1.1",
+    "pytest==8.4.2",
+    "referencing==0.37.0",
+    "rpds-py==2026.9.1",
+    "starlette==0.50.0",
+    "typing-inspection==0.4.4",
+    "typing_extensions==4.16.0",
+    "uvicorn==0.40.0"
+  ],
+  "scope": "Execution code/tests/build assets/contracts/profiles/dependency and normative inputs; ordinary progress, raw evidence and changing usage counters excluded"
+}

@@ -1,0 +1,246 @@
+{
+  "constraints": [
+    {
+      "category": "scope",
+      "id": "constraint-model-size",
+      "source_spans": [
+        {
+          "end": 63,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 20
+        }
+      ],
+      "text": "The small language models investigated must 
+               have under 8B parameters."
+    },
+    {
+      "category": "budget",
+      "id": "constraint-budget",
+      "source_spans": [
+        {
+          "end": 594,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 563
+        }
+      ],
+      "text": "Maximum experiment budget: $50."
+    },
+    {
+      "category": "evidence",
+      "id": "constraint-claims",
+      "source_spans": [
+        {
+          "end": 642,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 599
+        }
+      ],
+      "text": "Do not make unsupported performance claims."
+    },
+    {
+      "category": "reporting",
+      "id": "constraint-limitations",
+      "source_spans": [
+        {
+          "end": 697,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 647
+        }
+      ],
+      "text": "Identify uncertainties and limitations explicitly."
+    }
+  ],
+  "context": [
+    {
+      "id": "context-small-models",
+      "name": "Small language models under 8B parameters",
+      "role": "Models being investigated",
+      "source_spans": [
+        {
+          "end": 63,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 20
+        }
+      ]
+    },
+    {
+      "id": "context-larger-models",
+      "name": "Larger models",
+      "role": "Performance comparison reference",
+      "source_spans": [
+        {
+          "end": 137,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 64
+        }
+      ]
+    },
+    {
+      "id": "context-tasks",
+      "name": "Scientific reasoning tasks",
+      "role": "Task domain for the investigation",
+      "source_spans": [
+        {
+          "end": 136,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 110
+        }
+      ]
+    }
+  ],
+  "context_refs": [],
+  "in_scope": [
+    {
+      "id": "scope-literature",
+      "source_spans": [
+        {
+          "end": 188,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 144
+        }
+      ],
+      "text": "Review relevant papers published since 2024."
+    },
+    {
+      "id": "scope-models",
+      "source_spans": [
+        {
+          "end": 238,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 194
+        }
+      ],
+      "text": "Identify three promising open-source models."
+    },
+    {
+      "id": "scope-comparison",
+      "source_spans": [
+        {
+          "end": 313,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 244
+        }
+      ],
+      "text": "Compare the models' performance, inference cost, and hardware requirements."
+    },
+    {
+      "id": "scope-experiment-proposal",
+      "source_spans": [
+        {
+          "end": 399,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 319
+        }
+      ],
+      "text": "If existing benchmarks are insufficient, propose an experiment to evaluate the models."
+    }
+  ],
+  "interpretation": {
+    "desired_change": {
+      "id": "intent-purpose",
+      "source_spans": [
+        {
+          "end": 137,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate whether small language models under 8B parameters can match larger models on scientific reasoning tasks."
+    },
+    "problem": null,
+    "requested_result": {
+      "id": "intent-result",
+      "source_spans": [
+        {
+          "end": 488,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 405
+        }
+      ],
+      "text": "Produce a research report with citations, a comparison table, and a recommendation."
+    }
+  },
+  "out_of_scope": [],
+  "preferences": [
+    {
+      "id": "preference-evidence",
+      "source_spans": [
+        {
+          "end": 558,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 509
+        }
+      ],
+      "text": "Prefer reproducible, publicly available evidence."
+    }
+  ],
+  "readiness": {
+    "reason": "The request explicitly specifies the investigation purpose, report deliverable, research scope, conditional experiment proposal, evidence preference, and budget and reporting constraints.",
+    "status": "ready"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [],
+  "user_targets": [
+    {
+      "id": "target-model-count",
+      "metric": "Number of promising open-source models identified",
+      "source_spans": [
+        {
+          "end": 238,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "18d351d85715e995dacdc7056fdbbc9c56f798ea9fcf09c06d822883c5a92233"
+          },
+          "start": 194
+        }
+      ],
+      "target_text": "Three"
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "constraints": [
+    {
+      "category": "evidence",
+      "id": "constraint-evidence",
+      "source_spans": [
+        {
+          "end": 69,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 34
+        }
+      ],
+      "text": "The report must be evidence-grounded."
+    },
+    {
+      "category": "prohibition",
+      "id": "constraint-cloud-training",
+      "source_spans": [
+        {
+          "end": 100,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 70
+        }
+      ],
+      "text": "No cloud training is permitted."
+    },
+    {
+      "category": "data",
+      "id": "constraint-datasets",
+      "source_spans": [
+        {
+          "end": 133,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 105
+        }
+      ],
+      "text": "No new datasets may be used."
+    }
+  ],
+  "context": [
+    {
+      "id": "context-baseline",
+      "name": "Existing document retrieval baseline",
+      "role": "Local reference identifying latency and retrieval quality as relevant metrics.",
+      "source_spans": [
+        {
+          "end": 124,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 0
+        }
+      ]
+    },
+    {
+      "id": "context-evidence",
+      "name": "Empirical measurements",
+      "role": "No empirical measurements are supplied.",
+      "source_spans": [
+        {
+          "end": 164,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 125
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-latency",
+      "source_spans": [
+        {
+          "end": 29,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigation of retrieval latency."
+    }
+  ],
+  "interpretation": {
+    "desired_change": {
+      "id": "intent-investigation",
+      "source_spans": [
+        {
+          "end": 29,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate retrieval latency."
+    },
+    "problem": null,
+    "requested_result": {
+      "id": "intent-report",
+      "source_spans": [
+        {
+          "end": 69,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 34
+        }
+      ],
+      "text": "Return an evidence-grounded report."
+    }
+  },
+  "out_of_scope": [
+    {
+      "id": "exclusion-cloud-training",
+      "source_spans": [
+        {
+          "end": 100,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 70
+        }
+      ],
+      "text": "Cloud training."
+    },
+    {
+      "id": "exclusion-new-datasets",
+      "source_spans": [
+        {
+          "end": 133,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+          },
+          "start": 105
+        }
+      ],
+      "text": "Use of new datasets."
+    }
+  ],
+  "preferences": [],
+  "readiness": {
+    "reason": "The request explicitly specifies an investigation and an evidence-grounded report, with clear prohibitions. The reference states that no empirical measurements are supplied; this limits available evidence without making the requested purpose or result unclear.",
+    "status": "ready"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "3dd81207a16c08566b12f190682ad6eaf54335778211533d3a11c99ea31541b9"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [],
+  "user_targets": []
+}

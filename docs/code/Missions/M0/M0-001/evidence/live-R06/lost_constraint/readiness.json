@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0.0",
+  "id": "readiness-8aee4ca367c34ff7bb85914581501e72",
+  "client_contract_version": "1.0.0",
+  "instance_id": "e8e355d4-d018-44b2-a770-6cd761c152e7",
+  "build_id": "sha256:0ecb2a65ee223fb7cd888edd5d1486179aedb45bae900f90967b0e26483ec977",
+  "operations": [
+    "readiness",
+    "submit",
+    "reconcile",
+    "status",
+    "cancel",
+    "retrieve",
+    "consume"
+  ],
+  "prerequisites": [
+    {
+      "name": "storage",
+      "status": "ready",
+      "reason": "A fresh file fsync and FULL SQLite metadata transaction succeeded."
+    },
+    {
+      "name": "authentication",
+      "status": "ready",
+      "reason": "The request was authenticated under the operator scope."
+    },
+    {
+      "name": "model",
+      "status": "ready",
+      "reason": "Native authenticated access probe passed"
+    },
+    {
+      "name": "required_enforcement",
+      "status": "ready",
+      "reason": "Owned process hard memory/lifetime probe passed; adapter tools are disabled"
+    }
+  ],
+  "ready": true,
+  "ext": {
+    "m0.intent": {
+      "profiles": [
+        "compiler-evaluation"
+      ],
+      "profile_id": "compiler-evaluation",
+      "invalid_for_product": true,
+      "schema_versions": {
+        "intent-ir": "1.0.0",
+        "research-brief": "2.0.0",
+        "gate-decision": "2.0.0",
+        "node-execution-contract": "2.0.0",
+        "subnode-execution-contract": "1.0.0"
+      },
+      "effective_configuration": {
+        "schema_version": "1.0.0",
+        "id": "configuration:compiler",
+        "profile_id": "compiler-evaluation",
+        "model_mode": "codex",
+        "requested_model": null,
+        "account_id": "local-user",
+        "workspace_id": "local-workspace",
+        "call_time_s": 120.0,
+        "node_time_s": 480.0,
+        "model_calls": 4,
+        "automatic_retries": 0,
+        "memory_mb": 1024,
+        "max_source_bytes": 4194304,
+        "max_resource_bytes": 33554432,
+        "max_output_bytes": 4194304,
+        "token_budget": null,
+        "requested_seed": null,
+        "effective_seed": null,
+        "seed_unavailable_reason": "Native route does not promise deterministic seed control",
+        "hardware_readiness": {
+          "profile": "single_gpu",
+          "available": null,
+          "reason": "Declarative default; compiler does not profile host hardware"
+        }
+      },
+      "account_id": "local-user",
+      "workspace_id": "local-workspace"
+    }
+  }
+}

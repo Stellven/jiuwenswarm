@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:499970ba-16d8-42eb-8621-11f979546152:12",
+  "client_request_id": "verification-omissions-b942ecbf1bb2493dbb639866d3f85e45",
+  "run_id": "499970ba-16d8-42eb-8621-11f979546152",
+  "revision": 12,
+  "stage": "halted",
+  "status": "halted",
+  "candidate_refs": [
+    {
+      "id": "Research_Brief.json",
+      "sha256": "3d6d7ce2fecae7185c56831b8b261475e8b934a898decb55e7ea8937f308362e"
+    }
+  ],
+  "accepted_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "6343a1faa861a5cafd5db003127c5f189f1c2330be72570c9ed53fba624779bd"
+    }
+  ],
+  "decision_ref": {
+    "id": "Gate_Requirements.json",
+    "sha256": "554b5431bb5304eecc65432231dddc9c15dd3dc7607557c6efac9e549050fd31"
+  },
+  "reasons": [
+    "constraint-3: unsupported system default; constraint-4: unsupported system default; Every applied system default requires an assumption pointing to its actual field"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-only",
+      "invalid_for_product": false,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "4cad403bfbfad6d3346b6ffb368dea838508880572f36cec9971bab5c7083110"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "9cec4e0d75ffe47baf4a3f198baea595ec866b4ed7e767ed410c2640f4cfc016"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+      }
+    }
+  }
+}

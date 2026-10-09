@@ -1,0 +1,77 @@
+{
+  "findings": [
+    {
+      "criterion_id": "fidelity",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "fbb8e8360b07d7a7029580264c7ab358a3c26cab70b7b29597a52c98b4d522a9"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "4158a1f451c1868c21b35f4c97591dd516450635cce80b1963f1261012d2bdc0"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The artifact faithfully preserves the topic, baseline metrics and absence of measurements without inventing a purpose, method or target."
+    },
+    {
+      "criterion_id": "coverage",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "fbb8e8360b07d7a7029580264c7ab358a3c26cab70b7b29597a52c98b4d522a9"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "4158a1f451c1868c21b35f4c97591dd516450635cce80b1963f1261012d2bdc0"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "All material supplied information is represented: document retrieval, its existing baseline, latency, retrieval quality and the lack of empirical measurements."
+    },
+    {
+      "criterion_id": "consistency",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "fbb8e8360b07d7a7029580264c7ab358a3c26cab70b7b29597a52c98b4d522a9"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The context, null interpretation fields, blocking uncertainty and needs_clarification status agree. No conflicting entities or mandatory constraints are introduced."
+    },
+    {
+      "criterion_id": "requirements_usability",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "fbb8e8360b07d7a7029580264c7ab358a3c26cab70b7b29597a52c98b4d522a9"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "4158a1f451c1868c21b35f4c97591dd516450635cce80b1963f1261012d2bdc0"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "The artifact contains only a topic and reference context. Problem, desired change and requested result are null, so no actionable purpose or result is established; correctly identifying this gap does not satisfy acceptance."
+    }
+  ],
+  "limitations": [
+    "No empirical baseline measurements are supplied."
+  ],
+  "required_correction": "An actionable purpose and requested result must be established from user-provided evidence and represented in the Intent.",
+  "review_context_ref": {
+    "id": "Intention_Review_Context.json",
+    "sha256": "4158a1f451c1868c21b35f4c97591dd516450635cce80b1963f1261012d2bdc0"
+  },
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "fbb8e8360b07d7a7029580264c7ab358a3c26cab70b7b29597a52c98b4d522a9"
+  },
+  "uncertainties": [
+    "The user's intended work and requested result for document retrieval are unspecified."
+  ],
+  "verdict": "FAIL"
+}

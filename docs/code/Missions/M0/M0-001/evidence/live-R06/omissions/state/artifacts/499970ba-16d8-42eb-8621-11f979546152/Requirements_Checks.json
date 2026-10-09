@@ -1,0 +1,89 @@
+{
+  "check_plan_ref": {
+    "id": "Requirements_Check_Plan.json",
+    "sha256": "488f0f75bbae26d0a076a2e00ba6d1fb5a66940dc82c17b01779afa578bb87f8"
+  },
+  "results": [
+    {
+      "check_id": "schema_and_relationships",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "3d6d7ce2fecae7185c56831b8b261475e8b934a898decb55e7ea8937f308362e"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "316f80be7b6994b779f96e04bc44690ed0afd5040b32e9c33f900c3463925009"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "fc7f67a50e31c42d0db22b20b7e4766e0808fea570944ec1fb7a0683520a666e"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "constraint-3: unsupported system default; constraint-4: unsupported system default; Every applied system default requires an assumption pointing to its actual field"
+    },
+    {
+      "check_id": "binding_integrity",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "3d6d7ce2fecae7185c56831b8b261475e8b934a898decb55e7ea8937f308362e"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "316f80be7b6994b779f96e04bc44690ed0afd5040b32e9c33f900c3463925009"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "fc7f67a50e31c42d0db22b20b7e4766e0808fea570944ec1fb7a0683520a666e"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "invocation_complete",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "3d6d7ce2fecae7185c56831b8b261475e8b934a898decb55e7ea8937f308362e"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "316f80be7b6994b779f96e04bc44690ed0afd5040b32e9c33f900c3463925009"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "fc7f67a50e31c42d0db22b20b7e4766e0808fea570944ec1fb7a0683520a666e"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    },
+    {
+      "check_id": "limits_and_effects",
+      "evidence_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "3d6d7ce2fecae7185c56831b8b261475e8b934a898decb55e7ea8937f308362e"
+        },
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "316f80be7b6994b779f96e04bc44690ed0afd5040b32e9c33f900c3463925009"
+        },
+        {
+          "id": "requirements_Subnode_Contract.json",
+          "sha256": "fc7f67a50e31c42d0db22b20b7e4766e0808fea570944ec1fb7a0683520a666e"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Protected current check executed and passed"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "3d6d7ce2fecae7185c56831b8b261475e8b934a898decb55e7ea8937f308362e"
+  }
+}

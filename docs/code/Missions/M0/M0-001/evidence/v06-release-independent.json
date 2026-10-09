@@ -1,0 +1,27 @@
+{
+  "verification": "V06 independent durable release/export observation",
+  "command": ".venv-intent/Scripts/python.exe docs/code/Missions/M0/M0-001/evidence/v06-release-check.py",
+  "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+  "run_id": "55729771-e096-4b02-ae77-9e4a8a19f27b",
+  "expected": "Three durable scope acceptances; four invocation observations; exact Brief2 consumer/export equality; all named export hashes verify",
+  "observed": {
+    "acceptance_scopes": [
+      "intention",
+      "node",
+      "requirements"
+    ],
+    "invocation_observations": 4,
+    "brief_ref": {
+      "id": "Research_Brief.json",
+      "sha256": "1b05647ddbbd7f034551faf5a877c9894a7398deb805fcdc9586bbde7371a8b1"
+    },
+    "status": "completed",
+    "stage": "released",
+    "named_export_files_verified": 147,
+    "consumer_matches_exact_captured_brief": true
+  },
+  "result": "PASS",
+  "limitations": [
+    "One actionable sample; no reliability threshold or browser/container acceptance."
+  ]
+}

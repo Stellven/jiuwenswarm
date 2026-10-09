@@ -1,0 +1,57 @@
+{
+  "check_plan_ref": {
+    "id": "Requirements_Check_Plan.json",
+    "sha256": "3255086b0fa9f69fa51fec1af935ec43de945b935c64c9b889f0f7c6f520ac4b"
+  },
+  "contract_ref": {
+    "id": "requirements_Subnode_Contract.json",
+    "sha256": "f4e1d61b20803d97fb9972d98867b6e0a3cc342c8f99997e8b61a150c9ee22ea"
+  },
+  "criteria": [
+    "intent_preservation",
+    "default_authority",
+    "coverage",
+    "planning_usability"
+  ],
+  "deterministic_result_ref": {
+    "id": "Requirements_Checks.json",
+    "sha256": "b086ef98ddb375fbbbb7d9624faef736021c7db56ee27b3912144ffe8e202617"
+  },
+  "evidence_classes": [
+    "protected_policy",
+    "accepted_input",
+    "observed_evidence",
+    "untrusted_producer_content"
+  ],
+  "id": "review:requirements",
+  "input_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "c450216722d902b3359021a52644a690cdbf06d3fa0cf9a7763ec9be3eb423b2"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "01aaacb2dd584262120a88d99fc6fd8e43957de9d2c9e3728d5cd37b8626a423"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "f321ec82908208806649ca548c506c8c896ad0a09dc9605bded8b158a0ac4e18"
+  },
+  "observations": [
+    {
+      "id": "requirements_Invocation_Observation.json",
+      "sha256": "fca10bd074e3c98d20a644d7338cdcd8b3dda272703e43bdd21dccaa3c8cd449"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "subject_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "e1b0ba61a5a5912775aee5dce350f10909b0fbf31d7a000538a2c3b31fbbab1c"
+  },
+  "subnode_id": "requirements"
+}

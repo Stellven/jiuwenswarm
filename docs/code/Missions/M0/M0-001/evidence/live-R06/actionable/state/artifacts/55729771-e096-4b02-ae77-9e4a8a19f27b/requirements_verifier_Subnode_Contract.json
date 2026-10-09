@@ -1,0 +1,266 @@
+{
+  "attempt_id": "attempt:1",
+  "bindings": [
+    {
+      "admission_ref": {
+        "id": "requirements_verifier_Admission.json",
+        "sha256": "ea71c81f0c2e7159943b886d3f57a5cfab040d5299c42ba47c0f041ae5ee9a11"
+      },
+      "declaration_ref": {
+        "id": "requirements_verifier_Declaration.json",
+        "sha256": "e795a44510046ee4a4bc36bf7f69af331b284caea167494d95118f688e152ea2"
+      },
+      "dependency_refs": [
+        {
+          "id": "d3_model.py",
+          "sha256": "a9c0ab2d87c916ea61be1de925dad7639e85d651f89f79085cc33addfd053af1"
+        },
+        {
+          "id": "d3_runtime.py",
+          "sha256": "b1fc3d7555fdbab257b4d02033fa46c68424c383709aae23d3e0d01d8ac99a8d"
+        },
+        {
+          "id": "d3_checks.py",
+          "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+        },
+        {
+          "id": "d3_requirements.lock",
+          "sha256": "0f7bff60e71282d43272a27b68f51b030e56ff99b2e2631734fe67a2d622ec30"
+        },
+        {
+          "id": "d3_capsule-declaration.schema.json",
+          "sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6"
+        },
+        {
+          "id": "d3_catalog.json",
+          "sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7"
+        },
+        {
+          "id": "d3_common.schema.json",
+          "sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880"
+        },
+        {
+          "id": "d3_deterministic-check-result.schema.json",
+          "sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017"
+        },
+        {
+          "id": "d3_field-contracts.json",
+          "sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6"
+        },
+        {
+          "id": "d3_gate-decision.schema.json",
+          "sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd"
+        },
+        {
+          "id": "d3_intent-ir.schema.json",
+          "sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262"
+        },
+        {
+          "id": "d3_provenance.json",
+          "sha256": "741790b2eb2224cf3dc63fdc2b967b4f5d2ffb3ee7b377a58fa3f67134388834"
+        },
+        {
+          "id": "d3_research-brief.schema.json",
+          "sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2"
+        },
+        {
+          "id": "d3_subnode-execution-contract.schema.json",
+          "sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede"
+        },
+        {
+          "id": "d3_verifier-assessment.schema.json",
+          "sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e"
+        }
+      ],
+      "effective_authority": {
+        "network": "none",
+        "network_allowlist": [],
+        "resource_reads": [],
+        "tools": [
+          "audited-model-bridge"
+        ],
+        "write_roots": []
+      },
+      "id": "binding:requirements.verifier",
+      "implementation_refs": [
+        {
+          "id": "requirements_verifier_Implementation.txt",
+          "sha256": "78af595e84a238d673e764587a83598c382fb50281fac035c8e90324c9a3b0c0"
+        }
+      ],
+      "limits": {
+        "memory_mb": 1024,
+        "model_calls": 1,
+        "time_s": 120.0
+      },
+      "role": "requirements.verifier"
+    }
+  ],
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+  },
+  "evidence_obligations": [
+    "observed_invocation",
+    "captured_output",
+    "complete_checks"
+  ],
+  "guard_profile_ref": {
+    "id": "requirements_verifier_Profile.json",
+    "sha256": "4fcb2c5352dfd60679a2cc31ebae0df9940691637acb5c339a55b96ec24794d2"
+  },
+  "id": "subnode-contract:requirements.verifier:55729771-e096-4b02-ae77-9e4a8a19f27b",
+  "input_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "37a5931133341cbcbf8fd684b97fe7339b15484885a63d47177d72ddba08a075"
+    },
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "929272c79efdce215ff1712b3221416aa2d5b4a2fdcfe76310d390513c3ea00b"
+    },
+    {
+      "id": "Default_Policy.json",
+      "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+    },
+    {
+      "id": "Research_Brief.json",
+      "sha256": "1b05647ddbbd7f034551faf5a877c9894a7398deb805fcdc9586bbde7371a8b1"
+    },
+    {
+      "id": "Requirements_Review_Context.json",
+      "sha256": "492d4dc74e3297c5e38f6c911cf07f73b376cf6aacf0768587ad95a3cf0dd42f"
+    },
+    {
+      "id": "Requirements_Checks.json",
+      "sha256": "3d6d5b3bc8d94f7fbf97686f3b2ee5405da9ec8c648e64d14e6034c1d2e5fbe7"
+    },
+    {
+      "id": "requirements_Invocation_Observation.json",
+      "sha256": "0be09d042f62a180b2ad883387b316c195b80b15a1e6a3a2efb96c5a21c37f5b"
+    }
+  ],
+  "inputs": [
+    {
+      "artifact_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "37a5931133341cbcbf8fd684b97fe7339b15484885a63d47177d72ddba08a075"
+        }
+      ],
+      "contract_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+      "name": "intent",
+      "required": true,
+      "version": "1.0.0"
+    },
+    {
+      "artifact_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "929272c79efdce215ff1712b3221416aa2d5b4a2fdcfe76310d390513c3ea00b"
+        }
+      ],
+      "contract_id": "qualified-intake:field-contract:2",
+      "name": "intake",
+      "required": true,
+      "version": "2.0.0"
+    },
+    {
+      "artifact_refs": [
+        {
+          "id": "Default_Policy.json",
+          "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+        }
+      ],
+      "contract_id": "default-policy:field-contract:1",
+      "name": "defaults",
+      "required": true,
+      "version": "1.0.0"
+    },
+    {
+      "artifact_refs": [
+        {
+          "id": "Research_Brief.json",
+          "sha256": "1b05647ddbbd7f034551faf5a877c9894a7398deb805fcdc9586bbde7371a8b1"
+        }
+      ],
+      "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+      "name": "subject",
+      "required": true,
+      "version": "2.0.0"
+    },
+    {
+      "artifact_refs": [
+        {
+          "id": "Requirements_Review_Context.json",
+          "sha256": "492d4dc74e3297c5e38f6c911cf07f73b376cf6aacf0768587ad95a3cf0dd42f"
+        }
+      ],
+      "contract_id": "review-context:field-contract:2",
+      "name": "review_context",
+      "required": true,
+      "version": "2.0.0"
+    },
+    {
+      "artifact_refs": [
+        {
+          "id": "Requirements_Checks.json",
+          "sha256": "3d6d5b3bc8d94f7fbf97686f3b2ee5405da9ec8c648e64d14e6034c1d2e5fbe7"
+        }
+      ],
+      "contract_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0",
+      "name": "checks",
+      "required": true,
+      "version": "1.0.0"
+    },
+    {
+      "artifact_refs": [
+        {
+          "id": "requirements_Invocation_Observation.json",
+          "sha256": "0be09d042f62a180b2ad883387b316c195b80b15a1e6a3a2efb96c5a21c37f5b"
+        }
+      ],
+      "contract_id": "invocation-observation:field-contract:2",
+      "name": "observation",
+      "required": true,
+      "version": "2.0.0"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "8589cb06abeac83bff1901d519ac1d1f8d9c3f6bc03d886a74f48702d11590fe"
+  },
+  "node_id": "intention.compiler",
+  "objective": "You are an independent read-only verifier of this submitted Research Brief, not a replacement compiler. Compare exact Brief with accepted Intent and original context/default policy. Judge preservation of mandatory outcomes/exclusions/constraints/preferences, policy-authorized attributed defaults, complete obligation relationships and usable inputs/deliverables/acceptance/eviden",
+  "outputs": [
+    {
+      "contract_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+      "name": "result",
+      "required": true,
+      "version": "1.0.0"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "required_outputs": [
+    "verifier-assessment"
+  ],
+  "requirement_ids": [
+    "fixed:requirements.verifier"
+  ],
+  "revision": 1,
+  "run_id": "55729771-e096-4b02-ae77-9e4a8a19f27b",
+  "schema_version": "1.0.0",
+  "subnode_id": "requirements.verifier",
+  "subnode_limits": {
+    "memory_mb": 1024,
+    "model_calls": 1,
+    "time_s": 120.0
+  },
+  "template_ref": {
+    "id": "requirements_verifier_Template.json",
+    "sha256": "5125a868dfd0ecf056f37ac1241ffb73e1386f02f37459016a8dcebd64c0800e"
+  }
+}

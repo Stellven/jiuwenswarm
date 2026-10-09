@@ -1,0 +1,42 @@
+{
+  "verification": "V06 independent affected reference_document release/export boundary",
+  "command": ".venv-intent/Scripts/python.exe docs/code/Missions/M0/M0-001/evidence/v06-r08-export-check.py",
+  "candidate": "sha256:4b33bcb6df44328b27be2fb24b819eb7a879c4715c757a5ae51297d72f484bad",
+  "run_id": "2bd7d910-6d26-41a4-94a4-7bac1a35ed9a",
+  "working_directory": "D:\\research\\ai_for_research\\tests_whether_we_need_spec_kit\\test_with_spec_kit",
+  "expected": "Four actual roles and three committed gates; exact Brief2 consumer/receipt/output; every named hash/reference resolves; original resource bytes/license/qualified source/disclosed constraint spans preserved",
+  "dependency_mode": "Original actual terminal SQLite opened read-only; fresh authenticated NoDispatch captured ZIP/consumer; no model invocation or replay",
+  "limitations": [
+    "One affected-role positive sample, no reliability threshold.",
+    "Browser/container prerequisites remain blocked.",
+    "Original evidence helper KeyError retained as CHECK_SCRIPT_FAILED despite product completed; later authenticated reads and this independent audit resolve verification only."
+  ],
+  "result": "PASS",
+  "named_exact_hash_files": 147,
+  "resolved_unique_refs": 147,
+  "durable_scopes": [
+    "intention",
+    "node",
+    "requirements"
+  ],
+  "dispatch_roles": [
+    "intention",
+    "intention.verifier",
+    "requirements",
+    "requirements.verifier"
+  ],
+  "exact_durable_consumer_release": true,
+  "exact_original_source_and_license": true,
+  "source_disclosure_and_attributed_spans": true,
+  "preserved_material_brief_constraints": true,
+  "original_helper_failure_preserved": true,
+  "fresh_export_member_bytes_identical": true,
+  "brief_ref": {
+    "id": "Research_Brief.json",
+    "sha256": "e1b0ba61a5a5912775aee5dce350f10909b0fbf31d7a000538a2c3b31fbbab1c"
+  },
+  "node_receipt_ref": {
+    "id": "Accepted_node.json",
+    "sha256": "907c1214bdc1ea24be557a804ec6f8b1bb3b7a97d805f2267dd06c649eaf2427"
+  }
+}

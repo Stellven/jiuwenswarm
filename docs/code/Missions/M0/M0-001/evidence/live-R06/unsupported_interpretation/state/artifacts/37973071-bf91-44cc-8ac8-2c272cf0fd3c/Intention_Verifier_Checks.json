@@ -1,0 +1,44 @@
+{
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "c41d2a8ebf4d4600224030edee544caad04a8f6875c1331f512d9d0ee0df5241"
+  },
+  "results": [
+    {
+      "check_id": "assessment_complete_and_bound",
+      "evidence_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "c17ae018c548a20dc7dd79c37e403a968369627510bb511030a671333acff8ec"
+        },
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6f501d4d1057e4683c8d62ed831d56eda7d07520e4c1124cc23bdffb05007159"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "aa5a551ad0042322ed56e46b28ef7abfc12929715298a3c404005f6dcdf26dc4"
+        },
+        {
+          "id": "Intention_Checks.json",
+          "sha256": "31a87ca5a5d5c8f1bbdc89c9e32f6bcdd62c35dc340762fb0f0d243c52b8292a"
+        },
+        {
+          "id": "intention_Invocation_Observation.json",
+          "sha256": "86e7f20fa6f4b38a86e51b132d0e378122c368e2147a2375cc0507838b06e344"
+        },
+        {
+          "id": "intention_verifier_Invocation_Observation.json",
+          "sha256": "5fcc00660a4f93d8f7794643e084c534aee476918581e80255baf61e6504e109"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "Exact assessment/mechanical coverage and evidence validated"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "e30fe71eabddfedfacfbfae483f156c44fa97657e098f52349713a854d1eede3"
+  }
+}

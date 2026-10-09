@@ -1,0 +1,48 @@
+{
+  "registrations": [
+    {
+      "access": "read-only-reference",
+      "availability": "available",
+      "environment_ref": null,
+      "ext": {
+        "m0.intake": {
+          "extracted_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "original_bytes": 166,
+          "qualification": "supported-readable-bounded"
+        }
+      },
+      "files": [
+        {
+          "artifact_ref": {
+            "id": "inputs/document-0.md",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "audience": "authorized-user",
+          "media_type": "text/plain",
+          "path": "inputs/document-0.md"
+        }
+      ],
+      "id": "resource:document-0",
+      "kind": "reference_document",
+      "license": "unknown",
+      "origin": "docs\\baseline.md",
+      "revision": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f",
+      "schema_version": "1.0.0"
+    }
+  ],
+  "rejected_inputs": [],
+  "source_refs": [
+    {
+      "id": "Request.txt",
+      "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+    },
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "status": "qualified"
+}

@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+  "title": "Intent IR",
+  "description": "Attributed user meaning, not Requirements or a scientific solution. Readiness is a producer claim that must be independently assessed.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "request_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "interpretation": {
+      "type": "object",
+      "properties": {
+        "problem": {
+          "anyOf": [
+            {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Statement"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "desired_change": {
+          "anyOf": [
+            {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Statement"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "requested_result": {
+          "anyOf": [
+            {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Statement"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "problem",
+        "desired_change",
+        "requested_result"
+      ],
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_spans": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Span"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "source_spans"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "in_scope": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Statement"
+      },
+      "minItems": 0
+    },
+    "out_of_scope": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Statement"
+      },
+      "minItems": 0
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_spans": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Span"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "category",
+          "source_spans"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "preferences": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Statement"
+      },
+      "minItems": 0
+    },
+    "user_targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_spans": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Span"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "metric",
+          "target_text",
+          "source_spans"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "context_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+      },
+      "minItems": 0
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Uncertainty"
+      },
+      "minItems": 0
+    },
+    "readiness": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "needs_clarification"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "status",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "ext": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+      },
+      "additionalProperties": true,
+      "description": "Namespaced diagnostic data; does not modify required meaning, permissions or acceptance."
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_ref",
+    "interpretation",
+    "context",
+    "in_scope",
+    "out_of_scope",
+    "constraints",
+    "preferences",
+    "user_targets",
+    "context_refs",
+    "uncertainties",
+    "readiness"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,22 @@
+{
+  "verification": "V07",
+  "environment": "Windows; native computer APIs disabled; CUA connected-browser inventory",
+  "attempts": [
+    {
+      "command": "await cua.createBrowserTab(\"iab\", \"http://127.0.0.1:5173\", {visible:true})",
+      "expected": "Connected browser opens built standalone UI for interaction and visual checks",
+      "observed": "Browser is not available: iab",
+      "result": "BLOCKED"
+    },
+    {
+      "command": "await cua.getState()",
+      "expected": "At least one available browser can be selected",
+      "observed": {"apps": [], "browsers": []},
+      "result": "BLOCKED"
+    }
+  ],
+  "limitations": [
+    "No visual, layout, browser disconnect or UI download checks were executed.",
+    "TypeScript build and HTTP asset retrieval are separate checks; neither establishes browser acceptance."
+  ]
+}

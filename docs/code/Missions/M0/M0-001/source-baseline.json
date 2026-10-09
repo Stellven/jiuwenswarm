@@ -1,0 +1,1619 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "M0-001",
+  "revision": "r1",
+  "captured_date": "2026-10-08",
+  "source_rule": "Exact supplied source bytes; source inventory is not acceptance evidence. Token report is mutable coding measurement output and excluded from product source closure.",
+  "file_count": 267,
+  "total_bytes": 9366097,
+  "files": [
+    {
+      "path": "docs/code/Missions/M0/source/PRD_main_body/.gitkeep",
+      "source_group": "PRD_main_body",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/code/Missions/M0/source/PRD_main_body/PRD_main_body.md",
+      "source_group": "PRD_main_body",
+      "sha256": "bee15aba97053c76f15679f9b75f81e1e52c5d5f83e4e13bf737f46093bc44d6",
+      "bytes": 7004
+    },
+    {
+      "path": "docs/code/Missions/M0/source/PRD_context/.gitkeep",
+      "source_group": "PRD_context",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/code/Missions/M0/source/PRD_context/PRD_context.md",
+      "source_group": "PRD_context",
+      "sha256": "224c86338d45d0c1dcb83e873e6b4a80a3108595800267b561e74f230c226fac",
+      "bytes": 248208
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_main_body/.gitkeep",
+      "source_group": "Architecture_main_body",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_main_body/Architecture_main_body.md",
+      "source_group": "Architecture_main_body",
+      "sha256": "dc2f46b112e789f2597334d95cc86af116fb0ed00f84612001aeaf38745bc122",
+      "bytes": 7286
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/.gitkeep",
+      "source_group": "Architecture_context",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/Architecture_context.md",
+      "source_group": "Architecture_context",
+      "sha256": "245fb41104f709f0c057d6cdfa9dc071334f1f144d3e3a7be9e3ffeeeae1c9b9",
+      "bytes": 5135
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/.gitattributes",
+      "source_group": "Architecture_context",
+      "sha256": "5453aa960a9a168a352e6a0b43b29f15a12ab07211107cc1f5285895c9da6156",
+      "bytes": 81
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/.gitignore",
+      "source_group": "Architecture_context",
+      "sha256": "2b78ca28b3b8fee75879a2e6e4b3c5b97508e0416a7489111ca1efed3e41531d",
+      "bytes": 11
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/artifact-inspection.md",
+      "source_group": "Architecture_context",
+      "sha256": "31dd41d4c06dc8320a7a931c0179edd1c6095a8e6fdd643dcd58a953a56f560e",
+      "bytes": 4088
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/authority-index.md",
+      "source_group": "Architecture_context",
+      "sha256": "cddbfd15b2ebcbf889c5d6a6e298fc9a18c65ca44f2a74470e3d9bf1dbfdac2b",
+      "bytes": 1974
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/automation.md",
+      "source_group": "Architecture_context",
+      "sha256": "59f78fbf119012128da3c7eb36ad92641c30c0afa6974ef1ea0f66755f6e0ffc",
+      "bytes": 9850
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/builds/intention-compiler/context.md",
+      "source_group": "Architecture_context",
+      "sha256": "284d3aca3dcaf9f0ca386a0d337b9e0c489a7997e091d37679982570d423784b",
+      "bytes": 4906
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/builds/intention-compiler/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "38ac26557f0f54167e5903fc000c4f0d109d976fabe8db7f1406acecad51985d",
+      "bytes": 7268
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/capsule/authoring.md",
+      "source_group": "Architecture_context",
+      "sha256": "2518f51d11f83c5a5b3a8b4df6a735558bc3a03752af8c4ceb0b48b06abe2e25",
+      "bytes": 3437
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/capsule/declaration.md",
+      "source_group": "Architecture_context",
+      "sha256": "a251af82eb733a8d75c9ac5cb20bfbaec2c09e413599cbf5c3a059aa31dde0aa",
+      "bytes": 8328
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/capsules.md",
+      "source_group": "Architecture_context",
+      "sha256": "12fa789865c02cabeaf4dd8532503cd0595fb70e32367ae0c2fd2f1f1bc1d559",
+      "bytes": 11837
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/contracts-and-native-reuse.md",
+      "source_group": "Architecture_context",
+      "sha256": "ad389d6ce178f2a2f9180c93a8e9484c5f74e6547b5b1fd33a086414fbcd3173",
+      "bytes": 5829
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/coverage-allocation.md",
+      "source_group": "Architecture_context",
+      "sha256": "41c43531d66a699093eb9ee6ac6b412c3b8f2088b10a35ad0ff21b9f81156596",
+      "bytes": 34671
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/coverage.md",
+      "source_group": "Architecture_context",
+      "sha256": "1758b0728cc6487191fa84579b0a418e517ce889a902a597856459b8f5e1c802",
+      "bytes": 41420
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/decision-review.md",
+      "source_group": "Architecture_context",
+      "sha256": "4c3394f345ad1c99b26f2f32bc9327940fde4eca54a328902be0de87446fa525",
+      "bytes": 20151
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/delivery-phases.md",
+      "source_group": "Architecture_context",
+      "sha256": "a82bd0651165ed5d9e2a05724d48feeb8148391626d7d71ac97d6462428fea71",
+      "bytes": 5040
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/design-method.md",
+      "source_group": "Architecture_context",
+      "sha256": "d0a8b94269f85baa1ebdeffe56cc5c8247bb7d956b4982dfb23a634202ae4aec",
+      "bytes": 12433
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/development-tools/sidecar/composition.png",
+      "source_group": "Architecture_context",
+      "sha256": "dcf67c4cabf0c6fae1cab189a291e1da16b46995b6e6b3d6f487d03a87acefff",
+      "bytes": 107817
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/development-tools/sidecar/composition.svg",
+      "source_group": "Architecture_context",
+      "sha256": "b43b841b5ad040e0149eaf6d9bbf0b9cc3d14ee2814b17fd141a787ead7c63cc",
+      "bytes": 217661
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/development-tools/sidecar/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "30f617bab61bc354fe026385041fe0aeae946ddf61ab55bdffe2455dfce9f019",
+      "bytes": 13386
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/development-tools/test-runner/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "5c287a3e82f81aadbe06c8974699aa918975566edc708b7dbf7e2a7c47bdd4c3",
+      "bytes": 10641
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/artifact-inspection-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "815c0b531f8dd09e19aae8456baa2d9dd8c47ce1b19e89f5e25602afabd537aa",
+      "bytes": 89865
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/artifact-inspection-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "368eb769d3d8415929a02732d7800c142a9d9f9d45d6ed9ed984766720ff8fcf",
+      "bytes": 204968
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/automation-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "84aaa81452c2b2856553fa21fc01f7f0f6cebb1cff2cd97b9828f217ded94bb1",
+      "bytes": 89755
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/automation-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "79c1af9eddb595a32992f195467b23bd03e097bd9f28d225782c8212e57c8a1f",
+      "bytes": 210792
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/capsules-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "071b5fae74c15206356104ffefd4538483189a56a24e37471c1486c5fb963df6",
+      "bytes": 80218
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/capsules-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "48f7bbd0b34a7d13d43a40311821701789b0b6077947295d621d529836753175",
+      "bytes": 211542
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/delivery-phases-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "fadd7f21a03efe80dd85122ae6e44c9c248d9daf186c9c2405c5fdd2f446b7a9",
+      "bytes": 93396
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/delivery-phases-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "b0bb7b6b039626f3dd1ce6c3093377a597cd574c5af6a41e04ba4bcd33857773",
+      "bytes": 203228
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/development-tools-test-runner-README-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "d32630e56a7d440651598968054cd5425637112a2dd6a715d6f34eaa2a01f638",
+      "bytes": 127576
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/development-tools-test-runner-README-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "7f847432429acae581b627c4ead3d69b7390ae3f857cc9fd8bce11df67b64093",
+      "bytes": 215830
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/failure-and-human-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "2dde490ac5c550cb0d0f0c2b5e953fbb8aa6a087af5fc3c1c2f4400455f1d7bb",
+      "bytes": 180262
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/failure-and-human-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "9886ebddae66d13a656a6d7ba58da20b2c0c6d4c2a3fa2c5691f0678394d0651",
+      "bytes": 198873
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/failure-and-human-2.png",
+      "source_group": "Architecture_context",
+      "sha256": "777d94a19b6d830a8e94fdbb76e7768622dbee5d18555dd2aa13e513fc719902",
+      "bytes": 129150
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/failure-and-human-2.svg",
+      "source_group": "Architecture_context",
+      "sha256": "2392b119f6be9815b448fb55489295eb56e881cae42f5c95ed429a48224086f6",
+      "bytes": 196028
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/guard-design-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "d9e92d6d5e5492665676adf081c6757a6089c8cd6ad233e8966afc51e943c04b",
+      "bytes": 42326
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/guard-design-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "4a3370de2d642ef73ee6b7f43f6b846346f03d0a4e67c6742ba5fe54b63333db",
+      "bytes": 205724
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/guard-design-2.png",
+      "source_group": "Architecture_context",
+      "sha256": "158476c9ba2899c9fd028d95b26dc55aeb6bd90bcf305f3bb63806fb77c8320d",
+      "bytes": 96039
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/guard-design-2.svg",
+      "source_group": "Architecture_context",
+      "sha256": "1845e9357a7352b562f4cbb1530fa14673b5cf464c43ba59e8895ca88fa43664",
+      "bytes": 205517
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/guard-design-3.png",
+      "source_group": "Architecture_context",
+      "sha256": "558a17c20e59cdbf2f5468453fb79f9560cb9f1b86b88cbbe6bb9fbbd17d20e1",
+      "bytes": 77729
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/guard-design-3.svg",
+      "source_group": "Architecture_context",
+      "sha256": "c9e3d6398fc3ea9e8dce49654085f6cc4ff6e4543dbe12091bdb3f2baf7eba9b",
+      "bytes": 207572
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/immediate-plan-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "18531d51aff29f6d2ac115fc8e49b13fb56b8517637d7a0a01c10792e212dee6",
+      "bytes": 64839
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/immediate-plan-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "f09ac708d95490a5aac40ba64419fa62567831800f17c6b8e0707d86cedadac9",
+      "bytes": 221340
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/intent-design-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "1adc7d6236a8dd6112eb0521ab4f9a2db2d579c5076e9495d845413180927ca0",
+      "bytes": 80893
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/intent-design-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "e97deb6cfabe2f34f2505db65f89cc815b083cb4da466ba296af54a906dad635",
+      "bytes": 213241
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/intent-design-2.png",
+      "source_group": "Architecture_context",
+      "sha256": "1288db63df2126acf4b5beccdc0d6e81a9aa72b59ede468cbf50d281972a01ef",
+      "bytes": 82894
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/intent-design-2.svg",
+      "source_group": "Architecture_context",
+      "sha256": "18411f1f60bd6e027b2ef44eaf5f3dfa6857bbefd4d9172113af803ab8c54352",
+      "bytes": 213689
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/m1-design-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "2c96e38bcf801010edc50fd60232a72cd10e40ad60c89ba3f2e09bdee1c346be",
+      "bytes": 52751
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/m1-design-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "30c264eaf50b7072bd24818dd3ccf0068970197964b2d096479bad53e1757fa7",
+      "bytes": 225788
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/m1-design-2.png",
+      "source_group": "Architecture_context",
+      "sha256": "4ae0c1db771bddd3327ba7e96f25b12fafb3a17afcec0a1de222ce780e593e6f",
+      "bytes": 44473
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/m1-design-2.svg",
+      "source_group": "Architecture_context",
+      "sha256": "6394ab2f9d470283b7306aed038bbf236223192cfb9a3d021cb304f86413d84c",
+      "bytes": 205384
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/m1-design-3.png",
+      "source_group": "Architecture_context",
+      "sha256": "e6fa81e0a748234d0f6c7b274d6d2358fc9e797469a539b2e768fbff187ae1e6",
+      "bytes": 55571
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/m1-design-3.svg",
+      "source_group": "Architecture_context",
+      "sha256": "e8f31abc283c51d4802538b056b322e04a4ac2f9a83c4b7b3089c4f6df0083c3",
+      "bytes": 206539
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/manifest.json",
+      "source_group": "Architecture_context",
+      "sha256": "ac2d5c65d66b791d0930b1422c05875389ddef71f4cfd72dfbfee0a3240f4afe",
+      "bytes": 13322
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/model-routing-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "0405adc57e14f90747129b1638e2b593b092bf28fbcedf83f0061bf6e5e6aa10",
+      "bytes": 104182
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/model-routing-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "6174f91e9a38f059d8e8edad1e257b2f619e40bb87a13693288349e4be9419b9",
+      "bytes": 205041
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/phase-details-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "f351a8bf15d74d5b56a2afeb7e0050315d09734c8c611f04833b894c73678076",
+      "bytes": 104044
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/phase-details-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "2c4bfa26f77d9627477365849a6ca886628b81e05f8cc9c6b6d4a42650832c06",
+      "bytes": 205273
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/placement-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "f3e5a8129b5f0ab0b9b27f91278a48c804f809048526d9c3509598daeb02a4ea",
+      "bytes": 111928
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/placement-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "7f679a42af9c5f4a86fceacdbe462fd8e48dda332482d916e52317c03737ccd3",
+      "bytes": 247919
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/placement-2.png",
+      "source_group": "Architecture_context",
+      "sha256": "119483025b13de7872165973cab56e9cc6584e632cdc6a8eb1114064ad63bf32",
+      "bytes": 85614
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/placement-2.svg",
+      "source_group": "Architecture_context",
+      "sha256": "adf9e12669f77cbbdd6ab444d1ab3e923a54ad7e10fdac6b0dbba6627d42640f",
+      "bytes": 213999
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/README-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "e664db1b0207649f978351515d5fd5f37b2fb47468e3be13e9c176571fa78797",
+      "bytes": 107250
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/README-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "bfb2eac27821f2a27beb87335faa66d219d6c62af0634e247e1143f180947e78",
+      "bytes": 219699
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "7ae2b6868bb705718fb4affb4e4bcce7ff64024ec1b14cf15917f7f07d65c52e",
+      "bytes": 5308
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/research-design-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "275bafa415b4f226b8321c2147525c0d38c3432b44f0a32bef2a1bb046dfb54e",
+      "bytes": 105304
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/research-design-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "a0fee890eb4518f37545de7ba891919890216baf29dffce213c58b0ab68ade0e",
+      "bytes": 217806
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/research-design-2.png",
+      "source_group": "Architecture_context",
+      "sha256": "7d1ea074518eed3dacb1767d46afa37f5365e4eba56f0ad8fd13c5c9c7a1800f",
+      "bytes": 133316
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/research-design-2.svg",
+      "source_group": "Architecture_context",
+      "sha256": "337f888cb358bb11b856d8a152d897a8f266cf65fdc8a127d364269e0687e819",
+      "bytes": 198055
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/workflow-1.png",
+      "source_group": "Architecture_context",
+      "sha256": "6c2c5e5e430d75bdfd8c98b8f8d2795454a2169cb32c429a9dee0446a34b9534",
+      "bytes": 72253
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/workflow-1.svg",
+      "source_group": "Architecture_context",
+      "sha256": "ea5c34ed38d7af1ff05d40e9fbff4c47be78038dae688368364faf36d39cf3d3",
+      "bytes": 212420
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/workflow-2.png",
+      "source_group": "Architecture_context",
+      "sha256": "35d40d909d429654792bb3c5cab13d646153436c2ff437ccdc74c229e9ff29de",
+      "bytes": 69378
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/diagrams/workflow-2.svg",
+      "source_group": "Architecture_context",
+      "sha256": "297550b1f410d0ef4d4733160626cfacb5b2a3ecce1fe825d8aa0760a6d1abee",
+      "bytes": 227226
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/failure-and-human.md",
+      "source_group": "Architecture_context",
+      "sha256": "2fb504a75b76dde4585d1c500cc18d40b19326f878262d2aeb8dac2e4d80d5c4",
+      "bytes": 11721
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/glossary.md",
+      "source_group": "Architecture_context",
+      "sha256": "d0fa5074d75287d06736fec046bb939c98de95908851bcf9a26bb2112337dfdc",
+      "bytes": 15876
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/guard-design.md",
+      "source_group": "Architecture_context",
+      "sha256": "a6f3dc15828b748e2e857704dd15baa78225ce2f46d40dfb7696d1f5e4666feb",
+      "bytes": 16461
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/history.md",
+      "source_group": "Architecture_context",
+      "sha256": "3aeafc5ad8717f1d575583c48a3e9d2d554612ceb6bbf757f93e17c1a54109ea",
+      "bytes": 5058
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/immediate-plan.md",
+      "source_group": "Architecture_context",
+      "sha256": "567ff0bdcd7c4ac7b4ef2711a7f7ec65936af0d6ce531df5ec5f65c9351b38a8",
+      "bytes": 4618
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/intent-design.md",
+      "source_group": "Architecture_context",
+      "sha256": "44086f6de4e96ec91dd0107b1deb2d182fc555447292ef819520e730103d2d06",
+      "bytes": 8720
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/m1-design.md",
+      "source_group": "Architecture_context",
+      "sha256": "06cb9b297a58f69ec0b07b327716a95165e1b41954f9fdbcd8eeeee421560d49",
+      "bytes": 11446
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/model-routing.md",
+      "source_group": "Architecture_context",
+      "sha256": "fc9d87363c3b86bcb78f77b9511d12d47bb94bf0a4b0222f39705f326fb5bb49",
+      "bytes": 4421
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/offline-rsi.md",
+      "source_group": "Architecture_context",
+      "sha256": "1968e2e248aba5a3d1360867cfdcca9dfa762984cff1b260f9d70092ec148ca3",
+      "bytes": 11549
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/phase-details.md",
+      "source_group": "Architecture_context",
+      "sha256": "2f33d909b421b1524411411a6b65b75ff5fd92d920193189f578b7bb58efe7bb",
+      "bytes": 13861
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/placement.md",
+      "source_group": "Architecture_context",
+      "sha256": "1c91f818ff6899f2c35749262ab11548f4b7e8e74244bc0ff1b86ab13b472456",
+      "bytes": 19551
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/principles.md",
+      "source_group": "Architecture_context",
+      "sha256": "b56027949937f4d90237143afe4700bd3011730623c8864d55ad33a2a1f09bf3",
+      "bytes": 6792
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "64a07789fce0b3f1bfb9d73c1d6e309a0a5565ca59d0c96a2437eddd5f44691f",
+      "bytes": 9151
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/catalog.json",
+      "source_group": "Architecture_context",
+      "sha256": "f8f0b6e21aa2f43b3e48a7e99ae3c49f61b2d15a56962badd4c14cf0dface9a7",
+      "bytes": 24674
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/checking.md",
+      "source_group": "Architecture_context",
+      "sha256": "384ed56e9c46e9930baefc0841a86a619d6e0d0f90d4193e31bf88102cfd8ea8",
+      "bytes": 5371
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/compiler-verification.md",
+      "source_group": "Architecture_context",
+      "sha256": "532d9ca40884f23a2d52f1ef8a54f140b929681d5ce15b9973a0ec8ca85ee700",
+      "bytes": 4660
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/contract-index.md",
+      "source_group": "Architecture_context",
+      "sha256": "c2b7134f1256b763f452c36836d0a29b0e48c60c48b765dc0d14f17b74e41599",
+      "bytes": 8305
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Academic_Source.txt",
+      "source_group": "Architecture_context",
+      "sha256": "da0a79d39f34aad640bd62b1f23b91887ad60f36c62f5f653e9df0889e031c2d",
+      "bytes": 112
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Approved_requirements.txt",
+      "source_group": "Architecture_context",
+      "sha256": "b42023ae72eefd65f5091c3b051a46c4a5efee9aaaad7d1aed5ef159a767ed5f",
+      "bytes": 90
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Baseline_Execution.txt",
+      "source_group": "Architecture_context",
+      "sha256": "7d7258cca1062c6b18845aad55ebb5d4d8a6e251f2f88932711f8032369e08cb",
+      "bytes": 90
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Baseline_Resource.json",
+      "source_group": "Architecture_context",
+      "sha256": "2b6d4163b9d6691c52d3efeaf1efef14eac069b363d20816038d350f3bceb0fb",
+      "bytes": 787
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Benchmark_Payload.json",
+      "source_group": "Architecture_context",
+      "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3",
+      "bytes": 2269
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Candidate_Set.json",
+      "source_group": "Architecture_context",
+      "sha256": "413e13a0787827b271f46234b3eeba67d85e0905a0b14d8f8e2dded493688970",
+      "bytes": 1089
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Capsule_Declaration.json",
+      "source_group": "Architecture_context",
+      "sha256": "402e70710244fdff27e4488f41036bb250a4e31ecb0eafa99bfb418649aae1ec",
+      "bytes": 3803
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Check_Plan.json",
+      "source_group": "Architecture_context",
+      "sha256": "1f45c9273b4e26d2863c04f9b94d679b19604661ea2bf0d0a835913e0acb745d",
+      "bytes": 1215
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Compiler_Failure_Receipt.json",
+      "source_group": "Architecture_context",
+      "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc",
+      "bytes": 243
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Compiler_No_Output_Checks.json",
+      "source_group": "Architecture_context",
+      "sha256": "0d67af5a85e89f843eeb8ecbd0f337ed2bdc18116f12e8c1752800f0790265de",
+      "bytes": 1392
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/CRLF_Source.txt",
+      "source_group": "Architecture_context",
+      "sha256": "72b8d6b2e76cbda092009b743e42a1d167187e4572dffa5a23cbf9bfea235924",
+      "bytes": 8
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Default_Policy.json",
+      "source_group": "Architecture_context",
+      "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6",
+      "bytes": 126
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Delivery_Manifest.json",
+      "source_group": "Architecture_context",
+      "sha256": "caea0067c38e774540a980549c19f33f6d7d3a66b4804e9e2d32ae9b97fd7385",
+      "bytes": 3090
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Discovery_Capsule.json",
+      "source_group": "Architecture_context",
+      "sha256": "0652948523d47f6d9feb70f65840d8a0ecc4e9168c87052cbb25e94dc6370e2e",
+      "bytes": 3809
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Environment_Approval.txt",
+      "source_group": "Architecture_context",
+      "sha256": "036a5e2c0c7aadafa43aee121e4882516960fe375c86412335ae0dd16cf98bf6",
+      "bytes": 91
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Environment_Lock.json",
+      "source_group": "Architecture_context",
+      "sha256": "555a6e2f528de31102e0345ac64bcc209337427dec73455bbc6b57ccc6ca60a1",
+      "bytes": 494
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Evaluation_Capsule.json",
+      "source_group": "Architecture_context",
+      "sha256": "b0129b66020c317f90090283864517f17de12477698c26b32a9e72047d58fec6",
+      "bytes": 4493
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Evaluation_Verdict.json",
+      "source_group": "Architecture_context",
+      "sha256": "1940c2f7dd631360cb2cdadf11cec6c71e69ff33742b60adcb83456f3d51f3cc",
+      "bytes": 1144
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Example_Baseline.txt",
+      "source_group": "Architecture_context",
+      "sha256": "bfa814fe7c937e0351c2f4b8ba85527b0e55e37eb4efa84997628623b6423f6d",
+      "bytes": 102
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Example_Data.txt",
+      "source_group": "Architecture_context",
+      "sha256": "afea8e2428f79aadc732a59df07198b24a22f99675b60ab656630878dab9a9e1",
+      "bytes": 85
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Gate_Compiler_No_Output.json",
+      "source_group": "Architecture_context",
+      "sha256": "41da29f0c6f10d22da69a5dda139b1f624b6caf404de79ddd7972f3470ca475a",
+      "bytes": 1797
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Gate_Decision.json",
+      "source_group": "Architecture_context",
+      "sha256": "56ed01c17c898741100ccb511323b86214ee83183a0b6d5aeadf70088c3c4895",
+      "bytes": 2478
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Gate_Intention_Compiler_Pass.json",
+      "source_group": "Architecture_context",
+      "sha256": "23334938127c544539220bc6b5079777da55da7ab7249d7563950390e5736522",
+      "bytes": 3343
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Gate_Requirements_Pass.json",
+      "source_group": "Architecture_context",
+      "sha256": "ea0df2a9102fc19edef969be23e4f4227849e8f8c4e5eabade62e4c25e99dbdc",
+      "bytes": 2859
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Gate_Science_Pass.json",
+      "source_group": "Architecture_context",
+      "sha256": "820614b60a4cd9307edcb81bfec05aa7b63853aae314e4b9f660472ee730da1b",
+      "bytes": 2761
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Gate_Topic_Halt.json",
+      "source_group": "Architecture_context",
+      "sha256": "74ce4d77ea57948c55481da53c94f232c0d392c1a379a9ef09bdad40d5d1da61",
+      "bytes": 2326
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Guard_Profile.json",
+      "source_group": "Architecture_context",
+      "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d",
+      "bytes": 274
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Hypothesis_Blueprint.json",
+      "source_group": "Architecture_context",
+      "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d",
+      "bytes": 2588
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/index.json",
+      "source_group": "Architecture_context",
+      "sha256": "0078b2c209cb7df6e4fd5768a0ad795ea36103184c292d48744e5c9906e98e33",
+      "bytes": 13350
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Assessment.json",
+      "source_group": "Architecture_context",
+      "sha256": "6d938f1bbcd7f1cb9965b9b0d95c79fbfea78d709372719b260e02e7d490cc2a",
+      "bytes": 1972
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Checks.json",
+      "source_group": "Architecture_context",
+      "sha256": "890a504d249f29e677f50fc905747d2bb193dff8071eaefdec585d4558e7322e",
+      "bytes": 1701
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Contradictory.json",
+      "source_group": "Architecture_context",
+      "sha256": "ceae195abc744ef96b9908857e52913d79ad6d184754250a4c888a84b62c6aed",
+      "bytes": 2473
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Implementation.txt",
+      "source_group": "Architecture_context",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d",
+      "bytes": 56
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_IR.json",
+      "source_group": "Architecture_context",
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0",
+      "bytes": 3215
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Permissible_Omissions.json",
+      "source_group": "Architecture_context",
+      "sha256": "b88ea0a258ca8ba8ca7c46e474b96cde7f2bc88a6877766052b2c7c040090dd4",
+      "bytes": 1734
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Topic_Only.json",
+      "source_group": "Architecture_context",
+      "sha256": "7384d9670be771ca289fda070156180b33eeb2eaa0772e95fcc7324b6472ec1a",
+      "bytes": 1423
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Verifier_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "cd1f9630a20277afbc86f1299041ed8851873c7e441bbff03740b3a3fefbb3bb",
+      "bytes": 1469
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intent_Verifier_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "fd121ea254f7da88e8849a6d5535d13e2b813f3ab8c771cc1cc5166614c3c458",
+      "bytes": 3329
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intention_Node_Check_Plan.json",
+      "source_group": "Architecture_context",
+      "sha256": "86ca4dc38e40e900a730371b2ef53376cb70f2cf80c4265db4677b66e8a9f01f",
+      "bytes": 1172
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intention_Node_Checks.json",
+      "source_group": "Architecture_context",
+      "sha256": "e479dfee4423f5ea7ed5537e1be7f5169f9f2ece2a078a34f64293460a81c22e",
+      "bytes": 1922
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intention_Node_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "a7efc03ae33441be12a38fcfba0741935f5c4c3ad50be138c98545b0f22f52d4",
+      "bytes": 5261
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intention_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "da6242e2d7818e4f0da5373e9977e278f3a2740c709a3d9d1b7e829a2e8d5aa8",
+      "bytes": 3336
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Intention_Subnode_Template.json",
+      "source_group": "Architecture_context",
+      "sha256": "2f889cbbdf1bd72b622d44f9ac3f240bd772eb6aa392687cb5da05b0ab01ebc5",
+      "bytes": 522
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Invocation_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "f0b0da1e8bcc8b01fe6b2fc5c381af96689d08a6cb45515f10ad06aa040a7fad",
+      "bytes": 1432
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Lifecycle_Research_Brief.json",
+      "source_group": "Architecture_context",
+      "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c",
+      "bytes": 4769
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Local_Profile.json",
+      "source_group": "Architecture_context",
+      "sha256": "c000f23e9d5e6fdeeca31b63a2bcd0897eae47d61bc352604544ea96c296a57c",
+      "bytes": 123
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Mechanical_Example.txt",
+      "source_group": "Architecture_context",
+      "sha256": "0d423fff9a87bc02439b770ade6d1ab728590cd86b879dea03087a5a2a56a321",
+      "bytes": 116
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Node_Finalization_Profile.json",
+      "source_group": "Architecture_context",
+      "sha256": "e5c7f4b93a4d3d91d1b33ee44a97abb52b9d72fd2dcb7d0023537a81222fca91",
+      "bytes": 298
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Node_Template.json",
+      "source_group": "Architecture_context",
+      "sha256": "2e9063b7ce3166f16b27dacc0fbcbd3dbeb00c0fada80dda71b5079a880a4320",
+      "bytes": 313
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Opportunity_Card.json",
+      "source_group": "Architecture_context",
+      "sha256": "7226c32731eabd2f6ee65632f7598f65b2091e171e96d6eafec4090ab1ed1602",
+      "bytes": 996
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Permissible_Qualified_Intake.json",
+      "source_group": "Architecture_context",
+      "sha256": "15cf9cd8bdc58651f402db517d15f6d767e17f58c4070ed0dbe2797afa36efc9",
+      "bytes": 1098
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Planning_Nodes.json",
+      "source_group": "Architecture_context",
+      "sha256": "3a61c16d47c18593d02a5d34eb9c288d56f198cba230a884ec3f5e35f85e7c08",
+      "bytes": 3457
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/POC_Artifact_Bundle.zip",
+      "source_group": "Architecture_context",
+      "sha256": "cc9f4685f792cd9a081fc346914b42d25c9af9505e195ce48b2e144cb79b55f0",
+      "bytes": 648
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/POC_Manifest.json",
+      "source_group": "Architecture_context",
+      "sha256": "1d51f872cc40a4f35408b269a260771a0da8be7dbc6f482e75d2c89a399102be",
+      "bytes": 1607
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/poc_patch.py",
+      "source_group": "Architecture_context",
+      "sha256": "cd23c5ffc4a30a1b5debad70de934c1763e74debeb586672568583177a878ec0",
+      "bytes": 109
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Provisioning_Example.txt",
+      "source_group": "Architecture_context",
+      "sha256": "4f03527cac922d7f53939f8d026a536e16909dc45c218b39f59140c4aa5b87b6",
+      "bytes": 126
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Qualified_Input_Directory.json",
+      "source_group": "Architecture_context",
+      "sha256": "85172dc64bf4fe8cae3dd3b4a0bd54b4ced83c9303a5c4b4a747c8feeea9b33d",
+      "bytes": 156
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Qualified_Intake.json",
+      "source_group": "Architecture_context",
+      "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880",
+      "bytes": 1062
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Ranking_Child.txt",
+      "source_group": "Architecture_context",
+      "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c",
+      "bytes": 126
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Ranking_Child_Declaration.json",
+      "source_group": "Architecture_context",
+      "sha256": "ee7ec68b3bc89200463500c28ec945a4c0a5628e563ea0474c836abe7b4abe06",
+      "bytes": 3806
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Ranking_Contract.txt",
+      "source_group": "Architecture_context",
+      "sha256": "8670cfe4a282f3597fff60bee52d18528eeadf3a2dd82f149218a50e48e7c4c9",
+      "bytes": 92
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Ranking_Declaration.json",
+      "source_group": "Architecture_context",
+      "sha256": "49b920a1b09141a6ce29d30c537a9de79d0ed038192dce38713cdd8b0099c206",
+      "bytes": 3799
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Ranking_Diff.txt",
+      "source_group": "Architecture_context",
+      "sha256": "a0f9f98a4cdb0196308af4a1f85c4a96f6aacbff3f8c84ab73b3a69db7735611",
+      "bytes": 75
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Ranking_Parent.txt",
+      "source_group": "Architecture_context",
+      "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191",
+      "bytes": 94
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Ranking_Visible_Tests.txt",
+      "source_group": "Architecture_context",
+      "sha256": "ea6f8e79e8ad9fff7dbfaf1f19cf4eb37c5345b0ce4db4dd1f55d201782a3b74",
+      "bytes": 95
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "31c59677883bef8052c0f8b018ec9214ba52b530a4a4748c04a0aea1d00beeac",
+      "bytes": 4586
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Request.txt",
+      "source_group": "Architecture_context",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf",
+      "bytes": 144
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Request_Contradictory.txt",
+      "source_group": "Architecture_context",
+      "sha256": "8560e901086080e64044759f58d51ccc22f825848fbf6b19fc2b94299f00b0f9",
+      "bytes": 104
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Request_Permissible_Omissions.txt",
+      "source_group": "Architecture_context",
+      "sha256": "dc8f1655124edd64adb899ffd907e3cc359ae4a947f0f32f84b7991ac662706b",
+      "bytes": 100
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Request_Topic_Only.txt",
+      "source_group": "Architecture_context",
+      "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb",
+      "bytes": 41
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Assessment.json",
+      "source_group": "Architecture_context",
+      "sha256": "0bd2feb72d702ca849f67d92a120b0c9a35b261d52247c6f651a914180d90404",
+      "bytes": 2692
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Capsule.json",
+      "source_group": "Architecture_context",
+      "sha256": "a6253479932152b0559d4997be83871326c921ac4488f3ff388948c1eb766987",
+      "bytes": 4521
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Check_Plan.json",
+      "source_group": "Architecture_context",
+      "sha256": "d81acc594ffc2b07962ddbbf064f4c18f125d5b6db75dc289602155c6963199b",
+      "bytes": 1527
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Checks.json",
+      "source_group": "Architecture_context",
+      "sha256": "c628a41e98757677eae3286edca8baba1d49d1967d7735f68260024bdafdeca1",
+      "bytes": 2298
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Guard_Profile.json",
+      "source_group": "Architecture_context",
+      "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6",
+      "bytes": 293
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Invocation_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "47b01dfcae3dda9cbd2aa193b9197e77e2559d1b31609a1b2337a77a3a1d028c",
+      "bytes": 1720
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Review_Context.json",
+      "source_group": "Architecture_context",
+      "sha256": "c76fefd0cc9819eb717b69863b59500169203425e6b23cbc11b0defc5a1b0720",
+      "bytes": 1721
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "1af87696bff0191462585d1d3d0ed55b2287234b81d075a0bc661481c1f7761e",
+      "bytes": 4658
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Subnode_Template.json",
+      "source_group": "Architecture_context",
+      "sha256": "978805da93a3f9f8db4a4144330397aa712d798b582cd4ce9b9d9bf1d06a37a6",
+      "bytes": 634
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Verifier_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "fbaf8d82f70619c15d4e178a3a8829f4b7de9eeacbc20c01bfabcf81c0686cf8",
+      "bytes": 1503
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Requirements_Verifier_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "97bb9d47b475349824b5c842a8b99dec5394d83336ff66d37995fbd403842d1e",
+      "bytes": 3396
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Research_Brief.json",
+      "source_group": "Architecture_context",
+      "sha256": "a3747cb3dea74b5de339d1a2330887ec03de637384e47cbb7e320e97a694d8a5",
+      "bytes": 3973
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Research_Brief_Defaults.json",
+      "source_group": "Architecture_context",
+      "sha256": "33be4d18cc37cf19fa67629fd285bc35fcb6f4cb1515ac1e522b901023833a9e",
+      "bytes": 3684
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Research_Report.md",
+      "source_group": "Architecture_context",
+      "sha256": "e3d6954bc8954ec6163f973fd167cd3bcbd50aef3ee929ef98a02b4698560a9d",
+      "bytes": 630
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Review_Context.json",
+      "source_group": "Architecture_context",
+      "sha256": "06acf185e66a7896dfc7aeffe6e62b283330f6d913d4b6623af469243b38fe1b",
+      "bytes": 1394
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Activation.json",
+      "source_group": "Architecture_context",
+      "sha256": "dbb7120a953e93c970683668c3de6fa96f11247fbdbab8f0914115d7d4074607",
+      "bytes": 724
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Admission.json",
+      "source_group": "Architecture_context",
+      "sha256": "27688a0760ca63cbaa69db50027e838f31550bcb307282eb0eac4893a025745f",
+      "bytes": 888
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Attempt_01.json",
+      "source_group": "Architecture_context",
+      "sha256": "b0e8e05c7c40a5e52835b172e57c548a6a64fe2e02e1eba7095cdecaa8149afb",
+      "bytes": 1857
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Calibration.txt",
+      "source_group": "Architecture_context",
+      "sha256": "f5a53318a4245294385f4c4cb057a1652ae0ada1a8a181d4e77379362ff06d10",
+      "bytes": 212
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Chain_Genesis.json",
+      "source_group": "Architecture_context",
+      "sha256": "818c9a512548d56cfa965e640972e79d5c1d0b00516b2aaf5310e102d6f91c10",
+      "bytes": 449
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Child_Candidate.json",
+      "source_group": "Architecture_context",
+      "sha256": "acef2179f64d7d46297517a775c9c0d444b28e20ed58adef4e08e38f7647ade0",
+      "bytes": 1029
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Evidence_Export.json",
+      "source_group": "Architecture_context",
+      "sha256": "104e1631c145f242503324a15fdee358f73337ccb1b107781985489d27af56d2",
+      "bytes": 950
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Hash_Profile.txt",
+      "source_group": "Architecture_context",
+      "sha256": "ee206cb900d8291ead27b92cdea4e12ec383b133698533aff3be585ee4eee99d",
+      "bytes": 222
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Improver_Policy.txt",
+      "source_group": "Architecture_context",
+      "sha256": "ee424d8b228b6415978175c4d53af1ffe8c8ea3f93e026402038e7c6b94d27aa",
+      "bytes": 126
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Loop_Feedback.json",
+      "source_group": "Architecture_context",
+      "sha256": "ca6d6c1362b6f9a2add179aeb55c7511cb5bb94a98d4f805f3e27cee5e2eac57",
+      "bytes": 170
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Parent_Admission.json",
+      "source_group": "Architecture_context",
+      "sha256": "7f48485944bf448b719a4a673b78d92a9301806489794cfbe0c127b35fc117d2",
+      "bytes": 613
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Proposal_Trace.txt",
+      "source_group": "Architecture_context",
+      "sha256": "3455519aaf3c6d33a4004327555806c1dd8ef478dd32f10d66bd5cf4d4fa82d1",
+      "bytes": 139
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Referee_Evidence.json",
+      "source_group": "Architecture_context",
+      "sha256": "2b854ca94334520e88e16570347b3ea41f606c755b3242e2cd85757212568543",
+      "bytes": 1792
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Rollback.json",
+      "source_group": "Architecture_context",
+      "sha256": "6b95a253b3fd4c845a09518d2737ad7b0d104546f4d1ae10f0ac44db1d675e66",
+      "bytes": 775
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Scoring_Adapter.txt",
+      "source_group": "Architecture_context",
+      "sha256": "7762160b24aff7441bb230fcbb98fc472ea44a085cdbfc857b2b3c50e059ad5c",
+      "bytes": 130
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Security_Clearance.json",
+      "source_group": "Architecture_context",
+      "sha256": "29ee3b4fa2e553974c61eb88974e1b8bb48ceecd1ae2714b65c035b4f1cb3c40",
+      "bytes": 835
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Security_Remediation.txt",
+      "source_group": "Architecture_context",
+      "sha256": "4a8a90ebbcb54d4b9600f0c62138351eac246cd636aace19d8d3773ec43fd2c2",
+      "bytes": 117
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/RSI_Target_Profile.json",
+      "source_group": "Architecture_context",
+      "sha256": "57f4c170390a29c4377a7cc5afcd7f91b41da56fc8082aec372bf105daf5234f",
+      "bytes": 2034
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/run_benchmark.py",
+      "source_group": "Architecture_context",
+      "sha256": "e4c0c389409ac19b457b3fa48fad893487ed45eebcc7d29d25f36f3e7d40ff65",
+      "bytes": 111
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Run_Configuration.json",
+      "source_group": "Architecture_context",
+      "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72",
+      "bytes": 149
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Assessment.json",
+      "source_group": "Architecture_context",
+      "sha256": "245e99bea310532f2c55ae91030f2a04dacedd6309f5978d1de5a38516d356d4",
+      "bytes": 968
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Check_Plan.json",
+      "source_group": "Architecture_context",
+      "sha256": "26282cc89d6d35f132ed12e9cb2b7a68d65466074819e5671c20833506d57e70",
+      "bytes": 1436
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Checks.json",
+      "source_group": "Architecture_context",
+      "sha256": "80af2759db25308fec03ff0d48e3b95e6eb76b3790d6ac08f57b1afe99796815",
+      "bytes": 676
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Guard_Profile.json",
+      "source_group": "Architecture_context",
+      "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434",
+      "bytes": 242
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Node_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "845d82285237640a19e535cb4f35d84a211b2bbdc42666f597cf67381a71f499",
+      "bytes": 5202
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Node_Template.json",
+      "source_group": "Architecture_context",
+      "sha256": "df394a7c25cadf3a3ffb1b3985c97325741b3435a60acdc47cef6c218cad9f53",
+      "bytes": 256
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "2f1ed40faf04083fbfab554fc86df82d6675cf77d9b3eb4330ec29a7f95c0b17",
+      "bytes": 1732
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Review_Context.json",
+      "source_group": "Architecture_context",
+      "sha256": "75f57b78c4a279e2785217a556704e4729bfedd4d455abbdaecc3950334027b0",
+      "bytes": 1658
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "c363aca9207652b1fea633b1d486c90699bf07a962560f680c76295f80ddb82e",
+      "bytes": 4730
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Subnode_Template.json",
+      "source_group": "Architecture_context",
+      "sha256": "41cea9632444b17fc92d05631d2c07d5041d7cfe0f349da3fc92976706be5908",
+      "bytes": 626
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Verifier_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "8a80d0a2bdbd918aa9b3a13a8544f23abf4ddbdad134df5fe395e02620371368",
+      "bytes": 1480
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Science_Verifier_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "4ab732f3c0aac8b76233d4c1b5724c668227ac795d1d2be280d233c3c706601b",
+      "bytes": 3397
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Screening_Capsule.json",
+      "source_group": "Architecture_context",
+      "sha256": "0d3b437619bc014a9db1dfa206b3632f337fbd19140325e5a7d7612cccca0887",
+      "bytes": 4074
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Screening_Result.json",
+      "source_group": "Architecture_context",
+      "sha256": "0a908c1a145e8b9f958378a780b2b9aa178014a17768ca22772ecf5aab2a081b",
+      "bytes": 1048
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Screening_Rubric.txt",
+      "source_group": "Architecture_context",
+      "sha256": "ed1201266d40ca261230992470442a6e2fa2d71b91a84663fc32c512337f73c9",
+      "bytes": 118
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Source_Spans_CRLF.json",
+      "source_group": "Architecture_context",
+      "sha256": "fc560d1848c4be43be55873b2483d768e5ecc0cd44dc128b3ce4add5df913615",
+      "bytes": 487
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Synthetic_Admission.json",
+      "source_group": "Architecture_context",
+      "sha256": "ad6b207f1e9419c4f7605c16cd8ce4baa659546259aa3bbe56a2789c669c99ff",
+      "bytes": 222
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Assessment.json",
+      "source_group": "Architecture_context",
+      "sha256": "04b3fea1fde570363d5f66ec2eadaa5238798cd2b97c1eb6e35b99d28b8e9c2d",
+      "bytes": 2004
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Check_Plan.json",
+      "source_group": "Architecture_context",
+      "sha256": "a5a36bb16e05d02b426f994a6fa303863aa7a1327bf2b91ab35bc1460b47da29",
+      "bytes": 1218
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Checks.json",
+      "source_group": "Architecture_context",
+      "sha256": "8fef6226c10dd65caacddf95f2d5fbdf3c10ec1af32cff469a4fcfe5e66b534a",
+      "bytes": 1835
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Guard_Profile.json",
+      "source_group": "Architecture_context",
+      "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d",
+      "bytes": 274
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Inspection.md",
+      "source_group": "Architecture_context",
+      "sha256": "5aab82171ea75151071feed46f6738e95bbd99d192094b9ba01d27b9722099c0",
+      "bytes": 704
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Node_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "52b16442148fbc306fa86f122fd5159d0c144cac17fdce1264bfe6176bcedbc6",
+      "bytes": 5281
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "5e4b20ae7e8b28547315140c979df6a1a914deb7ca7f2b69e4fb68c5b79d449d",
+      "bytes": 1437
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Qualified_Intake.json",
+      "source_group": "Architecture_context",
+      "sha256": "7b1a06e09dc2c1c6148662415255c0d9f7a75e5eaa2abc178cc90d44c6d6877c",
+      "bytes": 790
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Review_Context.json",
+      "source_group": "Architecture_context",
+      "sha256": "8c909f3339cb9577539a2618bdd607a43864ed4f9458bddf7e21b6a92d9f7355",
+      "bytes": 1399
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "2a3f30412cd586fdf3ade8cfa88f6b1076552967abed875904596631d06d7ba7",
+      "bytes": 3354
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Subnode_Template.json",
+      "source_group": "Architecture_context",
+      "sha256": "a21333f85d8197c4a670790922d5a02e774713110c417c14acad0841008caea1",
+      "bytes": 528
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Verifier_Observation.json",
+      "source_group": "Architecture_context",
+      "sha256": "99365b886d799559b2a67afbcbff2059cab3023322d9eed1d5c240b0fc686f56",
+      "bytes": 1469
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Topic_Verifier_Subnode_Contract.json",
+      "source_group": "Architecture_context",
+      "sha256": "5b1079ff2ce84422daf544f0cc1ec2f16dc7a1bed61b480a87d226012298c01f",
+      "bytes": 3351
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Treatment_Execution.txt",
+      "source_group": "Architecture_context",
+      "sha256": "132ee29c6a8dd9a7f82e0842390a927ecceefd987f0891c89bf96844212f62f4",
+      "bytes": 92
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Validation_Resource.json",
+      "source_group": "Architecture_context",
+      "sha256": "1d62ec86c4ed555a9d15caa8e886d8bdce2971c6c9f87a2cb184682baddc4406",
+      "bytes": 784
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Verifier_Capsule.json",
+      "source_group": "Architecture_context",
+      "sha256": "a05db8992de81e489df516e28112e047a2b50a7d1876a99a64b7b8a931d8a649",
+      "bytes": 3953
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Verifier_Implementation.txt",
+      "source_group": "Architecture_context",
+      "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc",
+      "bytes": 160
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Verifier_Subnode_Template.json",
+      "source_group": "Architecture_context",
+      "sha256": "11d76aa1dbf7256e420a7ccbb2dff958895f994e22e752a5806dea31135b654c",
+      "bytes": 396
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/examples/Workspace.json",
+      "source_group": "Architecture_context",
+      "sha256": "ef1126beeb8d8b872b0d756e148b7ce2fab7cfa6627c1991e64dafd8bd304eca",
+      "bytes": 122
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/field-catalog.md",
+      "source_group": "Architecture_context",
+      "sha256": "3e03433244f704f70bd8c425e6340eb30b9c87cc6dc2d9e4a1142d78647db20b",
+      "bytes": 46996
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/field-contracts.json",
+      "source_group": "Architecture_context",
+      "sha256": "f2921fba7d30bb3951517bcea3cf2441f08f88dc1f11de598a7680cf96e4a2b6",
+      "bytes": 96027
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/intent-and-requirements.md",
+      "source_group": "Architecture_context",
+      "sha256": "92cab30155d50d359169a2a59006adba9ba830f21c949068629bda9f326440f8",
+      "bytes": 8822
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/node-execution.md",
+      "source_group": "Architecture_context",
+      "sha256": "2b86aa42d23f34436ddbfa8c27e98b2a7e96518d1d92abb6dbc8a2d2698797e8",
+      "bytes": 4823
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/other-contracts.md",
+      "source_group": "Architecture_context",
+      "sha256": "eb5d503204aaf8171835610e5e90f1d677aaab3b46cfd8eba355c5150e39a967",
+      "bytes": 13976
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/prd-clause-index.json",
+      "source_group": "Architecture_context",
+      "sha256": "44efd8776f278a1f71a86904b6d3641bb93b830c865e210b3b751941690f0925",
+      "bytes": 18631
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/provenance.json",
+      "source_group": "Architecture_context",
+      "sha256": "1b47862a9d912718396a7eee88061a161ab1a57a3cf8366ea5d57feb84d8cbe0",
+      "bytes": 1975
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "86280c1128cafb5caf5a4aff939b6fcf63710d66937f9726ddac84de86e69eaa",
+      "bytes": 6430
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/capsule-declaration.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "bffa29b12b564aca81c6ea6784e608fa39c7573e4419ed16121d5c91a2fab0f6",
+      "bytes": 34304
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/common.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "2e40a008061d502e0f90a915f92fe8623f7f0af0f860fee1551ef1419818c880",
+      "bytes": 6982
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/deterministic-check-result.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "2641ee9ba2502815cedb170a9ba20d6e69e3b71fff7b328e2bfebb3adbc2c017",
+      "bytes": 1917
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/gate-decision.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "4bd63ff1c785f720a79c69db135ed944a63ed5e864e602699487061e500cdffd",
+      "bytes": 5606
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/intent-ir.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262",
+      "bytes": 5615
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/research-brief.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2",
+      "bytes": 12826
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/subnode-execution-contract.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "8d906fa6afa3659f986a48232cd1063bb001a033a66631e1382097cdf4484ede",
+      "bytes": 8290
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/schemas/verifier-assessment.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e",
+      "bytes": 2684
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/reference/validate.py",
+      "source_group": "Architecture_context",
+      "sha256": "ce1ee19fe6fc161aadc60175145f30b822b4fbb3cc1911bfec910a517492a9ec",
+      "bytes": 48236
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/research-design.md",
+      "source_group": "Architecture_context",
+      "sha256": "7ef591ef5e62a9e298950ebf5131c44826782671cecb91aca34c6968f72e1e19",
+      "bytes": 27516
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/sources/capsule-semantic-v2.10b.md",
+      "source_group": "Architecture_context",
+      "sha256": "30b02e874dda0a9acd4c06e5fadd8c855cd3024d6aaca58c7c937aed161d00b9",
+      "bytes": 174011
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/sources/capsule.schema.json",
+      "source_group": "Architecture_context",
+      "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd",
+      "bytes": 22040
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/sources/native-reuse-evidence.json",
+      "source_group": "Architecture_context",
+      "sha256": "9c4125f625819735f90ee9a7f34afc15ea5226b9dd047ce1a2cfac5a8c1fc732",
+      "bytes": 7302
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/sources/policy-m1.json",
+      "source_group": "Architecture_context",
+      "sha256": "43305e008f72d480b24269e06285225617b969944b771fd181e911b988d4c011",
+      "bytes": 3225
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/sources/product/README.md",
+      "source_group": "Architecture_context",
+      "sha256": "3a23b14509a9682ce1548a9e6f7e6c7b346ab90c707d4259d64b71ae66e53caa",
+      "bytes": 1411
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/usage-scenarios.md",
+      "source_group": "Architecture_context",
+      "sha256": "2339beaf8f70af3388615606840ac3830083c24e3c5ba4154b98ec5d7a9f99bf",
+      "bytes": 1894
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Architecture_context/design-package/workflow.md",
+      "source_group": "Architecture_context",
+      "sha256": "7739715d2b523e1f7ec5659bfac81d8ab67cf4411a3c0fd5bea7bb1a7555cab5",
+      "bytes": 13509
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Verification/.gitkeep",
+      "source_group": "Verification",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Verification/INTENT_COMPILER_BENCHMARK_INTERFACES.md",
+      "source_group": "Verification",
+      "sha256": "ce06cdec03040c1e0590575c98cf804edf849821aa3719cbf10b524a0aa850b5",
+      "bytes": 3086
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Code_Prompt/Code_prompt.txt",
+      "source_group": "Code_Prompt",
+      "sha256": "4b355b142eba4a60ccc4f85bb6fc76d9dd1082e3dc208675753c5abee0977669",
+      "bytes": 3344
+    },
+    {
+      "path": "docs/code/Missions/M0/source/Code_Prompt/sign.md",
+      "source_group": "Code_Prompt",
+      "sha256": "bd8bfdd1bbc12479c3569e1f8de46c6aaa4c8f58ce9ffe888a8637e475a00012",
+      "bytes": 59
+    }
+  ],
+  "missing_paths": [
+    {
+      "path": "docs/code/Missions/M0/source/Verification/README.md",
+      "reason": "IDE open-tab path not present; pre-existing deletion preserved."
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "verification": "V06 independent negative publication/export boundary",
+  "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+  "command": ".venv-intent/Scripts/python.exe docs/code/Missions/M0/M0-001/evidence/v06-negative-export-check.py",
+  "working_directory": "D:\\research\\ai_for_research\\tests_whether_we_need_spec_kit\\test_with_spec_kit",
+  "dependency_mode": "Actual completed live run SQLite in read-only mode and captured API ZIP exports; no model calls/replay",
+  "expected": "Every captured named hash/ref resolves; terminal negatives publish no durable node/receipt; blocked Intent dispatches zero Requirements calls",
+  "cases": [
+    {
+      "case": "omissions",
+      "expected": "completed",
+      "actual": "halted",
+      "run_id": "499970ba-16d8-42eb-8621-11f979546152",
+      "durable_scopes": [
+        "intention"
+      ],
+      "result": "PASS",
+      "named_files": 132,
+      "exact_hash_files": 132,
+      "resolved_unique_refs": 132,
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier",
+        "requirements"
+      ],
+      "node_receipt_absent": true
+    },
+    {
+      "case": "topic",
+      "expected": "halted",
+      "actual": "halted",
+      "run_id": "592d97cc-e696-44ae-ba1e-6de37d028df6",
+      "durable_scopes": [],
+      "result": "PASS",
+      "named_files": 120,
+      "exact_hash_files": 120,
+      "resolved_unique_refs": 120,
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier"
+      ],
+      "node_receipt_absent": true
+    },
+    {
+      "case": "contradiction",
+      "expected": "halted",
+      "actual": "halted",
+      "run_id": "4d1b166e-8176-4e0c-a872-0b5ae593b449",
+      "durable_scopes": [],
+      "result": "PASS",
+      "named_files": 120,
+      "exact_hash_files": 120,
+      "resolved_unique_refs": 120,
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier"
+      ],
+      "node_receipt_absent": true
+    },
+    {
+      "case": "unsupported_interpretation",
+      "expected": "halted",
+      "actual": "halted",
+      "run_id": "37973071-bf91-44cc-8ac8-2c272cf0fd3c",
+      "durable_scopes": [],
+      "result": "PASS",
+      "named_files": 120,
+      "exact_hash_files": 120,
+      "resolved_unique_refs": 120,
+      "dispatch_roles": [
+        "intention",
+        "intention.verifier"
+      ],
+      "node_receipt_absent": true,
+      "actual_semantic_negative": true
+    },
+    {
+      "case": "lost_constraint",
+      "expected": "halted",
+      "actual": "halted",
+      "run_id": "5b10a488-59b2-4b0b-beed-c90a7488be9e",
+      "durable_scopes": [],
+      "result": "FAIL",
+      "reason": "FileNotFoundError: [Errno 2] No such file or directory: 'docs\\\\code\\\\Missions\\\\M0\\\\M0-001\\\\evidence\\\\live-R06\\\\lost_constraint\\\\evidence.zip'"
+    }
+  ],
+  "result": "FAIL",
+  "limitations": [
+    "This establishes captured boundary facts, not semantic reliability. R06 omissions was a positive false refusal; R06 lost-constraint injection never ran. Positive exact node release is separately verified in v06-release-independent.json."
+  ]
+}

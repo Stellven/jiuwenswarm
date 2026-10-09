@@ -1,0 +1,36 @@
+{
+  "measured_at_utc": "2026-10-08T18:29:16.966424+00:00",
+  "check": "M0-001/V08",
+  "working_directory": "D:\\research\\ai_for_research\\tests_whether_we_need_spec_kit\\test_with_spec_kit",
+  "expected": "Actual image build/start, loopback authentication and persistent recreation require Docker executable/daemon and prepared protected model mounts.",
+  "docker_executable": null,
+  "commands": [
+    {
+      "command": "docker compose -f standalone/intent_compiler/compose.yaml build",
+      "executed": false,
+      "result": "BLOCKED",
+      "reason": "Docker executable unavailable"
+    },
+    {
+      "command": "docker compose -f standalone/intent_compiler/compose.yaml up -d",
+      "executed": false,
+      "result": "BLOCKED",
+      "reason": "Docker executable unavailable"
+    },
+    {
+      "command": "docker compose -f standalone/intent_compiler/compose.yaml restart",
+      "executed": false,
+      "result": "BLOCKED",
+      "reason": "Docker executable unavailable"
+    }
+  ],
+  "result": "BLOCKED",
+  "limitations": [
+    "No image build/start/recreation was executed; static Dockerfile/Compose preparation and frontend build do not pass V08."
+  ],
+  "probe": {
+    "command": "docker --version",
+    "observed": "FileNotFoundError: docker executable is absent from PATH",
+    "returncode": null
+  }
+}

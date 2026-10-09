@@ -1,0 +1,9 @@
+﻿{
+    "recorded_at_utc":  "2026-10-08T19:35:29.3773176Z",
+    "process_id":  39372,
+    "running":  true,
+    "command":  ".venv-intent/Scripts/python.exe docs/code/Missions/M0/source/Token/refresh_usage.py --wait-complete --timeout 600",
+    "purpose":  "Capture root final response and descendant final generations after root task_complete; preserve unavailable counters/cost as null",
+    "expected":  "Post-turn snapshot in token_usage.json, usage_records.jsonl and measurement_snapshots.jsonl",
+    "limitation":  "Completion cannot be observed before ending this root turn; bounded worker preserves running-snapshot truth on timeout"
+}

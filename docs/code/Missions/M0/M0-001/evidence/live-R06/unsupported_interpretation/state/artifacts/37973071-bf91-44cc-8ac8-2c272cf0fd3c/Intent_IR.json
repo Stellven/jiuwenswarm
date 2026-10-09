@@ -1,0 +1,174 @@
+{
+  "constraints": [
+    {
+      "category": "method_selection",
+      "id": "constraint-1",
+      "source_spans": [
+        {
+          "end": 96,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+          },
+          "start": 70
+        }
+      ],
+      "text": "Do not choose a method yet."
+    },
+    {
+      "category": "locality",
+      "id": "constraint-2",
+      "source_spans": [
+        {
+          "end": 121,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+          },
+          "start": 101
+        }
+      ],
+      "text": "Keep all work local."
+    },
+    {
+      "category": "evidence",
+      "id": "constraint-3",
+      "source_spans": [
+        {
+          "end": 69,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+          },
+          "start": 44
+        }
+      ],
+      "text": "The report must be evidence-grounded."
+    }
+  ],
+  "context": [
+    {
+      "id": "context-1",
+      "name": "Existing document retrieval baseline",
+      "role": "Local reference whose relevant metrics are latency and retrieval quality.",
+      "source_spans": [
+        {
+          "end": 124,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 0
+        }
+      ]
+    },
+    {
+      "id": "context-2",
+      "name": "Empirical measurements",
+      "role": "No empirical measurements are supplied.",
+      "source_spans": [
+        {
+          "end": 164,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 125
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-1",
+      "source_spans": [
+        {
+          "end": 29,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate retrieval latency."
+    }
+  ],
+  "interpretation": {
+    "desired_change": null,
+    "problem": {
+      "id": "problem-1",
+      "source_spans": [
+        {
+          "end": 29,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+          },
+          "start": 0
+        }
+      ],
+      "text": "The user requires a new neural retriever with cloud training and a 50 percent latency improvement."
+    },
+    "requested_result": {
+      "id": "result-1",
+      "source_spans": [
+        {
+          "end": 69,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate retrieval latency and return an evidence-grounded report."
+    }
+  },
+  "out_of_scope": [
+    {
+      "id": "exclusion-1",
+      "source_spans": [
+        {
+          "end": 96,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+          },
+          "start": 70
+        }
+      ],
+      "text": "Choosing a method at this stage."
+    }
+  ],
+  "preferences": [],
+  "readiness": {
+    "reason": "The investigation subject and requested report are explicit, with clear locality and method-selection constraints. Missing empirical measurements do not block intent interpretation.",
+    "status": "ready"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "9232d0b543aa184cf716854dee92809ed3c651bf238d7a18a9fe7e62385d28a5"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [
+    {
+      "affected_fields": [
+        "context",
+        "interpretation.requested_result"
+      ],
+      "blocking": false,
+      "clarification": "No clarification is required to interpret the request; the evidence available for the report remains to be assessed.",
+      "description": "The local reference explicitly supplies no empirical measurements.",
+      "id": "uncertainty-1",
+      "kind": "missing"
+    }
+  ],
+  "user_targets": []
+}

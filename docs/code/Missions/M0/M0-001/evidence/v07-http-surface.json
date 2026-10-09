@@ -1,0 +1,52 @@
+{
+  "verification": "V07 HTTP surface only",
+  "invalid_for_product": true,
+  "observations": [
+    {
+      "command": "GET http://127.0.0.1:5173/",
+      "expected": "200 and built html asset",
+      "observed_status": 200,
+      "observed_media_type": "text/html; charset=utf-8",
+      "bytes": 4529,
+      "sha256": "34f4b805716cd6d47ebef5f07a586402c3d679fe1bfd17e9051efd9516701681",
+      "result": "PASS"
+    },
+    {
+      "command": "GET http://127.0.0.1:5173/assets/app.js",
+      "expected": "200 and built javascript asset",
+      "observed_status": 200,
+      "observed_media_type": "application/javascript",
+      "bytes": 9984,
+      "sha256": "cb6e832488cf47856641fcbacc5d8a39b272b1a23064b2c769ee79b9db14d310",
+      "result": "PASS"
+    },
+    {
+      "command": "GET http://127.0.0.1:5173/assets/style.css",
+      "expected": "200 and built css asset",
+      "observed_status": 200,
+      "observed_media_type": "text/css; charset=utf-8",
+      "bytes": 2856,
+      "sha256": "2d3a9625509afc24ffe89f8549f44b4bcfa13dd7314fcd41d6ee8408c37f73f2",
+      "result": "PASS"
+    },
+    {
+      "command": "GET http://127.0.0.1:5173/assets/theme.css",
+      "expected": "200 and built css asset",
+      "observed_status": 200,
+      "observed_media_type": "text/css; charset=utf-8",
+      "bytes": 297,
+      "sha256": "f5ba3bf10b03c91cb65c9b387c2b784b2ba9f6f0945293b299647906ed9a3ba5",
+      "result": "PASS"
+    },
+    {
+      "command": "GET http://127.0.0.1:5173/api/v1/readiness without authorization",
+      "expected": 401,
+      "observed_status": 401,
+      "result": "PASS"
+    }
+  ],
+  "browser_result": "BLOCKED: CUA has no available browser",
+  "limitations": [
+    "HTTP checks do not execute browser JavaScript or validate visual layout."
+  ]
+}

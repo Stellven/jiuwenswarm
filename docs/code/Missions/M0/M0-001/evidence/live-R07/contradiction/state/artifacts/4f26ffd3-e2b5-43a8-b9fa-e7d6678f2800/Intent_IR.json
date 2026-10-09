@@ -1,0 +1,172 @@
+{
+  "constraints": [
+    {
+      "category": "hardware",
+      "id": "constraint-1",
+      "source_spans": [
+        {
+          "end": 100,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 60
+        },
+        {
+          "end": 195,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 163
+        }
+      ],
+      "text": "All research must use only a single GPU; this requirement is mandatory."
+    },
+    {
+      "category": "hardware",
+      "id": "constraint-2",
+      "source_spans": [
+        {
+          "end": 162,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 105
+        },
+        {
+          "end": 195,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 163
+        }
+      ],
+      "text": "All research must use exactly four GPUs at the same time; this requirement is mandatory."
+    }
+  ],
+  "context": [
+    {
+      "id": "context-1",
+      "name": "Existing document retrieval baseline",
+      "role": "Local reference identifying latency and retrieval quality as relevant metrics.",
+      "source_spans": [
+        {
+          "end": 124,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 0
+        }
+      ]
+    },
+    {
+      "id": "context-2",
+      "name": "Empirical measurements",
+      "role": "No empirical measurements are supplied.",
+      "source_spans": [
+        {
+          "end": 164,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 125
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-1",
+      "source_spans": [
+        {
+          "end": 38,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Investigate reducing retrieval latency."
+    }
+  ],
+  "interpretation": {
+    "desired_change": {
+      "id": "change-1",
+      "source_spans": [
+        {
+          "end": 38,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 12
+        }
+      ],
+      "text": "Reduce retrieval latency."
+    },
+    "problem": {
+      "id": "problem-1",
+      "source_spans": [
+        {
+          "end": 38,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Retrieval latency is the subject of investigation."
+    },
+    "requested_result": {
+      "id": "result-1",
+      "source_spans": [
+        {
+          "end": 59,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Return a report on the investigation into reducing retrieval latency."
+    }
+  },
+  "out_of_scope": [],
+  "preferences": [],
+  "readiness": {
+    "reason": "The requested investigation and report are clear, but the two mandatory GPU constraints cannot both be satisfied.",
+    "status": "needs_clarification"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "0d4ea619aa973d6e52600bc67ded71d46dbbfa8765ac6d00a54ddcd1a92b3d02"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [
+    {
+      "affected_fields": [
+        "constraints"
+      ],
+      "blocking": true,
+      "clarification": "Resolve which mandatory GPU requirement applies, or revise the requirements so they are compatible.",
+      "description": "The mandatory GPU constraints conflict: all research must use only one GPU and must also use exactly four GPUs simultaneously.",
+      "id": "uncertainty-1",
+      "kind": "conflicting"
+    }
+  ],
+  "user_targets": []
+}

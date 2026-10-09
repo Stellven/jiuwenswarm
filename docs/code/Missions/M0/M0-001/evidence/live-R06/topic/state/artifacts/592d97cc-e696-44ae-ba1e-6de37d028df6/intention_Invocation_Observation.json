@@ -1,0 +1,66 @@
+{
+  "binding_id": "binding:intention",
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "eaf4bfd3b5e3dbd533a8db7b61503b614144667b0e95235cdbc09a4e37622f76"
+  },
+  "duration_s": 28.909329900001467,
+  "effects": [
+    "approved_model_disclosure"
+  ],
+  "ended_at": "2026-10-08T18:56:36.248020+00:00",
+  "id": "invocation:48aaa29e3de44129b711fb3aa4d358ed",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "10d31a296eee1f5db3d75338c1ed09bee068b029d6ade60f1f66e1357f18fb3d"
+    }
+  ],
+  "model_calls": 1,
+  "model_identity": {
+    "basis": "operator-selected CLI identity; provider-served identity not independently exposed",
+    "effective": null,
+    "requested": "approved native Codex default"
+  },
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "9517b26d1861273bd181dc74e0c5573b0a5f55c67c683505beac045bafb72fc1"
+  },
+  "observed_runtime": true,
+  "outcome": "completed",
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "4b028e6b22be6e13938205a793a84ebac070ca2e472af785b28a5d42bbf83ff6"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "started_at": "2026-10-08T18:56:07.338681+00:00",
+  "subnode_id": "intention",
+  "trace_refs": [
+    {
+      "id": "intention_Disclosed_Input.json",
+      "sha256": "51d62c07ee0735d1c41bd634508eab23763b23e6c78638b02902c318353d0f56"
+    },
+    {
+      "id": "intention_Raw_Response.txt",
+      "sha256": "4633ee008ac8c54fdbf30f62e29a7a1528136c5b9975371b0d3da0085474260c"
+    },
+    {
+      "id": "intention_Stderr.txt",
+      "sha256": "5b47b9558df21c28983bde1c942d6e3f9e74900150d9d785b1f47d1d827b1fe6"
+    }
+  ],
+  "unavailable_reasons": [
+    "Attributable cost/currency not supplied by native CLI"
+  ],
+  "usage": {
+    "cost_amount": null,
+    "currency": null,
+    "input_tokens": 12609,
+    "output_tokens": 870,
+    "unavailable_reasons": [
+      "Attributable cost/currency not supplied by native CLI"
+    ]
+  }
+}

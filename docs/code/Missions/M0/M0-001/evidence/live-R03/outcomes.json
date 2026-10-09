@@ -1,0 +1,27 @@
+{
+  "candidate": "sha256:29b7d146f81a8d564757e63eead8a1643741998d8965a51e7e8a979319ce31cd",
+  "cases": [
+    {
+      "case": "actionable",
+      "expected": "completed",
+      "protected_challenge": false,
+      "candidate": "sha256:29b7d146f81a8d564757e63eead8a1643741998d8965a51e7e8a979319ce31cd",
+      "result": "FAIL",
+      "actual": "halted",
+      "run_id": "451349ec-1e3e-48ab-8e49-1ea599b4efec",
+      "reasons": [
+        "FileNotFoundError: [Errno 2] No such file or directory: 'D:\\\\research\\\\ai_for_research\\\\tests_whether_we_need_spec_kit\\\\test_with_spec_kit\\\\docs\\\\code\\\\Missions\\\\M0\\\\M0-001\\\\evidence\\\\live-R03\\\\actionable\\\\state\\\\artifacts\\\\451349ec-1e3e-48ab-8e49-1ea599b4efec\\\\requirements_verifier_Dependency_deterministic-check-result.schema.json'"
+      ],
+      "model_calls": 0,
+      "export": "captured",
+      "elapsed_s": 2.134936899998138
+    }
+  ],
+  "false_acceptances": 0,
+  "false_refusals": 1,
+  "limitations": [
+    "One repetition; uncontrolled provider variability",
+    "Billing and served model identity may be unavailable",
+    "Protected injected challenge outputs are invalid for product/admission"
+  ]
+}

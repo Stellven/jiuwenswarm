@@ -1,0 +1,1 @@
+Investigate retrieval latency and return an evidence-grounded report. Do not choose a method yet and keep all work local.

@@ -1,0 +1,27 @@
+{
+  "candidate": "sha256:7b5c969252c7598996b043ed74c0906cacb0b1a16a974822f199423e1b4fd084",
+  "cases": [
+    {
+      "case": "actionable",
+      "expected": "completed",
+      "protected_challenge": false,
+      "candidate": "sha256:7b5c969252c7598996b043ed74c0906cacb0b1a16a974822f199423e1b4fd084",
+      "result": "FAIL",
+      "actual": "halted",
+      "run_id": "8c6b9408-4339-4c86-b351-147e0ab18a3a",
+      "reasons": [
+        "assumption-hardware: nonexistent affected field constraints[id=constraint-hardware]; Every applied system default requires an assumption pointing to its actual field"
+      ],
+      "model_calls": 3,
+      "export": "captured",
+      "elapsed_s": 151.5702874000017
+    }
+  ],
+  "false_acceptances": 0,
+  "false_refusals": 1,
+  "limitations": [
+    "One repetition; uncontrolled provider variability",
+    "Billing and served model identity may be unavailable",
+    "Protected injected challenge outputs are invalid for product/admission"
+  ]
+}

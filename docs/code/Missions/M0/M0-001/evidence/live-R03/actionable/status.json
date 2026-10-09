@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:451349ec-1e3e-48ab-8e49-1ea599b4efec:4",
+  "client_request_id": "verification-actionable-b224f6d0fd004feeb8d2eccd5d3d53b5",
+  "run_id": "451349ec-1e3e-48ab-8e49-1ea599b4efec",
+  "revision": 4,
+  "stage": "infrastructure_failure",
+  "status": "halted",
+  "candidate_refs": [],
+  "accepted_refs": [],
+  "decision_ref": null,
+  "reasons": [
+    "FileNotFoundError: [Errno 2] No such file or directory: 'D:\\\\research\\\\ai_for_research\\\\tests_whether_we_need_spec_kit\\\\test_with_spec_kit\\\\docs\\\\code\\\\Missions\\\\M0\\\\M0-001\\\\evidence\\\\live-R03\\\\actionable\\\\state\\\\artifacts\\\\451349ec-1e3e-48ab-8e49-1ea599b4efec\\\\requirements_verifier_Dependency_deterministic-check-result.schema.json'"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-only",
+      "invalid_for_product": false,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "eb27c9461586de1e7970d85c2ff2e198bbf578d295ed242fb0f945c41ebd423b"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "4859480259288bdb3f348e2a9f1b1bd9e9e9f67a0aead532659c9def302b8fb5"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+      }
+    }
+  }
+}

@@ -1,12 +1,14 @@
 {
   "schema_version": "1.0",
   "task": "M0 Intent Compiler",
-  "experiment_arm": "without_spec_kit_cut_detail",
-  "usage_source": null,
-  "models_used": [],
+  "experiment_arm": "with_spec_kit_full",
+  "usage_source": "Codex local per-response token_usage_record plus native compiler runtime attempt ledger; unique response_id/call_id; source/Token/usage_records.jsonl",
+  "models_used": [
+    "gpt-6.1-sol"
+  ],
   "currency": null,
   "implementation": {
-    "model_calls": null,
+    "model_calls": 841,
     "input_tokens": null,
     "cached_input_tokens": null,
     "uncached_input_tokens": null,
@@ -30,7 +32,20 @@
     "total_tokens": null,
     "actual_api_cost": null
   },
-  "measurement_notes": [],
+  "measurement_notes": [
+    "Trial start/baseline: 2026-10-08T17:58:25.124Z; root session 01a11caa-99f3-7822-80a9-4c65e5c15873; root turn 01a11caa-bf7c-7161-9f18-b7c4ee8b4fc0. The first root turn_token_usage equals its per-response usage, establishing a zero prior-usage baseline for this new turn. All matching per-response records since this request are included; the first saved running snapshot was taken during source preparation before implementation.",
+    "Snapshot at 2026-10-08T19:37:05.626116+00:00; root turn complete observed: true. Post-turn observable snapshot.",
+    "Implementation means the entire requested coding trial: source reading, Spec Kit spec/plan/tasks/analyze/implement/converge, root and descendant planning, edits, testing, debugging, fixes, retries, and accounting work.",
+    "Raw evidence copies only usage metadata, models and log references/hashes; no credentials or conversation text. Summation uses usage rather than inherited cumulative event_msg.token_count values. Root and descendant records are filtered by session_id and root_turn_id.",
+    "Preparation for creating the supplied source documents before this request is unverified. Keep preparation.status=pending_verification and counters null; end_to_end remains null until that usage is known.",
+    "Compiler runtime API attempts, including failed dispatched calls from every trial campaign, are separate from Codex coding-agent generations. runtime_usage.jsonl supplies unique call_id, model, nullable measured counters and raw evidence. Synthetic model fixtures do not consume API tokens and are excluded. This snapshot includes 42 recorded native attempts; 2 have no exposed usage and 2 lack at least one category. The ledger is harvested again after each campaign; unharvested calls cannot yet be counted.",
+    "Mandatory implementation counters are null whenever any recorded call lacks that category. observed_usage provides exact measured subtotals, coding-agent-only totals and per-field known/unavailable call counts. Missing native reasoning/cache usage remains null; total is derived from exact input plus output only when both exist. A measured subtotal is not the full trial total. Recorded call count includes a dispatched failure even when all its counters are unavailable.",
+    "models_used contains only known model identifiers; the raw runtime placeholder unavailable-native-served-identity is preserved as evidence but excluded from that list. Native served identity is known for 0 recorded calls and unavailable for 42; the requested model/default route does not establish the provider-served identity.",
+    "No actual billed-cost or billing-currency data is exposed in local usage records. Cost remains null; subscription limits are not money and public pricing would produce an estimate, not an actual bill.",
+    "Observable counts are not a billing receipt and may be delayed or incomplete for failed calls without usage. The accounting scope is the named trial, excluding unrelated concurrent experiment arms and earlier sessions.",
+    "Token category interpretation verified against official OpenAI documentation: https://developers.openai.com/api/docs/guides/agents-api/observability (accessed 2026-10-08): cached input is included in input, reasoning is included in output, missing usage is not zero and best-effort usage is not the final bill.",
+    "Experiment arm corrected from without_spec_kit_cut_detail using Code_Prompt/sign.md (SK; FULL) and Code_prompt.txt requiring Spec Kit."
+  ],
   "accounting_rules": {
     "total_tokens": "input_tokens + output_tokens (summed across model calls)",
     "uncached_input_tokens": "input_tokens - cached_input_tokens",
@@ -40,5 +55,171 @@
     "end_to_end": "Sum preparation and implementation totals only when both are known",
     "null_values": "Unavailable / not yet measured; never replace with invented exact figures",
     "actual_api_cost": "Use billed cost if accessible; do not label an estimate as actual"
+  },
+  "observed_usage": {
+    "coding_agent": {
+      "recorded_model_calls": 799,
+      "calls_without_any_usage": 0,
+      "calls_with_unavailable_counters": 0,
+      "derived_total_call_count": 0,
+      "totals": {
+        "input_tokens": 95346545,
+        "cached_input_tokens": 93516416,
+        "output_tokens": 439912,
+        "reasoning_output_tokens": 134520,
+        "total_tokens": 95786457,
+        "uncached_input_tokens": 1830129
+      },
+      "observed_subtotals": {
+        "input_tokens": 95346545,
+        "cached_input_tokens": 93516416,
+        "output_tokens": 439912,
+        "reasoning_output_tokens": 134520,
+        "total_tokens": 95786457,
+        "uncached_input_tokens": 1830129
+      },
+      "field_completeness": {
+        "input_tokens": {
+          "known_call_count": 799,
+          "unavailable_call_count": 0,
+          "status": "complete"
+        },
+        "cached_input_tokens": {
+          "known_call_count": 799,
+          "unavailable_call_count": 0,
+          "status": "complete"
+        },
+        "output_tokens": {
+          "known_call_count": 799,
+          "unavailable_call_count": 0,
+          "status": "complete"
+        },
+        "reasoning_output_tokens": {
+          "known_call_count": 799,
+          "unavailable_call_count": 0,
+          "status": "complete"
+        },
+        "total_tokens": {
+          "known_call_count": 799,
+          "unavailable_call_count": 0,
+          "status": "complete"
+        },
+        "uncached_input_tokens": {
+          "known_call_count": 799,
+          "unavailable_call_count": 0,
+          "status": "complete"
+        }
+      }
+    },
+    "compiler_runtime": {
+      "recorded_model_calls": 42,
+      "calls_without_any_usage": 2,
+      "calls_with_unavailable_counters": 2,
+      "derived_total_call_count": 0,
+      "totals": {
+        "input_tokens": null,
+        "cached_input_tokens": null,
+        "output_tokens": null,
+        "reasoning_output_tokens": null,
+        "total_tokens": null,
+        "uncached_input_tokens": null
+      },
+      "observed_subtotals": {
+        "input_tokens": 584891,
+        "cached_input_tokens": 31360,
+        "output_tokens": 63504,
+        "reasoning_output_tokens": 6108,
+        "total_tokens": 648395,
+        "uncached_input_tokens": 553531
+      },
+      "field_completeness": {
+        "input_tokens": {
+          "known_call_count": 40,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "cached_input_tokens": {
+          "known_call_count": 40,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "output_tokens": {
+          "known_call_count": 40,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "reasoning_output_tokens": {
+          "known_call_count": 40,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "total_tokens": {
+          "known_call_count": 40,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "uncached_input_tokens": {
+          "known_call_count": 40,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        }
+      },
+      "known_served_identity_call_count": 0,
+      "unavailable_served_identity_call_count": 42
+    },
+    "all_recorded_calls": {
+      "recorded_model_calls": 841,
+      "calls_without_any_usage": 2,
+      "calls_with_unavailable_counters": 2,
+      "derived_total_call_count": 0,
+      "totals": {
+        "input_tokens": null,
+        "cached_input_tokens": null,
+        "output_tokens": null,
+        "reasoning_output_tokens": null,
+        "total_tokens": null,
+        "uncached_input_tokens": null
+      },
+      "observed_subtotals": {
+        "input_tokens": 95931436,
+        "cached_input_tokens": 93547776,
+        "output_tokens": 503416,
+        "reasoning_output_tokens": 140628,
+        "total_tokens": 96434852,
+        "uncached_input_tokens": 2383660
+      },
+      "field_completeness": {
+        "input_tokens": {
+          "known_call_count": 839,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "cached_input_tokens": {
+          "known_call_count": 839,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "output_tokens": {
+          "known_call_count": 839,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "reasoning_output_tokens": {
+          "known_call_count": 839,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "total_tokens": {
+          "known_call_count": 839,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        },
+        "uncached_input_tokens": {
+          "known_call_count": 839,
+          "unavailable_call_count": 2,
+          "status": "partial"
+        }
+      }
+    }
   }
 }

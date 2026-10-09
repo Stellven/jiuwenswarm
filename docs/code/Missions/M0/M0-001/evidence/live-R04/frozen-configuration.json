@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "id": "configuration:compiler",
+  "profile_id": "compiler-only",
+  "model_mode": "codex",
+  "requested_model": null,
+  "account_id": "local-user",
+  "workspace_id": "local-workspace",
+  "call_time_s": 120.0,
+  "node_time_s": 480.0,
+  "model_calls": 4,
+  "automatic_retries": 0,
+  "memory_mb": 1024,
+  "max_source_bytes": 4194304,
+  "max_resource_bytes": 33554432,
+  "max_output_bytes": 4194304,
+  "token_budget": null,
+  "requested_seed": null,
+  "effective_seed": null,
+  "seed_unavailable_reason": "Native route does not promise deterministic seed control",
+  "hardware_readiness": {
+    "profile": "single_gpu",
+    "available": null,
+    "reason": "Declarative default; compiler does not profile host hardware"
+  }
+}

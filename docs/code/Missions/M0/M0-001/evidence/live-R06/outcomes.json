@@ -1,0 +1,107 @@
+{
+  "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+  "cases": [
+    {
+      "case": "actionable",
+      "expected": "completed",
+      "protected_challenge": false,
+      "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+      "result": "PASS",
+      "actual": "completed",
+      "run_id": "55729771-e096-4b02-ae77-9e4a8a19f27b",
+      "reasons": [
+        "Durably released exact Research Brief"
+      ],
+      "model_calls": 4,
+      "export": "captured",
+      "elapsed_s": 190.16574050000054
+    },
+    {
+      "case": "omissions",
+      "expected": "completed",
+      "protected_challenge": false,
+      "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+      "result": "FAIL",
+      "actual": "halted",
+      "run_id": "499970ba-16d8-42eb-8621-11f979546152",
+      "reasons": [
+        "constraint-3: unsupported system default; constraint-4: unsupported system default; Every applied system default requires an assumption pointing to its actual field"
+      ],
+      "model_calls": 3,
+      "export": "captured",
+      "elapsed_s": 146.32573349999802
+    },
+    {
+      "case": "topic",
+      "expected": "halted",
+      "protected_challenge": false,
+      "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+      "result": "PASS",
+      "actual": "halted",
+      "run_id": "592d97cc-e696-44ae-ba1e-6de37d028df6",
+      "reasons": [
+        "Producer retained blocking purpose/result/constraint uncertainty"
+      ],
+      "model_calls": 2,
+      "export": "captured",
+      "elapsed_s": 53.63247360000241
+    },
+    {
+      "case": "contradiction",
+      "expected": "halted",
+      "protected_challenge": false,
+      "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+      "result": "PASS",
+      "actual": "halted",
+      "run_id": "4d1b166e-8176-4e0c-a872-0b5ae593b449",
+      "reasons": [
+        "Producer retained blocking purpose/result/constraint uncertainty"
+      ],
+      "model_calls": 2,
+      "export": "captured",
+      "elapsed_s": 65.58734959999856
+    },
+    {
+      "case": "unsupported_interpretation",
+      "expected": "halted",
+      "protected_challenge": true,
+      "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+      "result": "PASS",
+      "actual": "halted",
+      "run_id": "37973071-bf91-44cc-8ac8-2c272cf0fd3c",
+      "reasons": [
+        "FAIL"
+      ],
+      "model_calls": 2,
+      "challenge_injected": true,
+      "mechanical_checks_passed": true,
+      "semantic_verdict": "FAIL",
+      "semantic_negative_verified": true,
+      "export": "captured",
+      "elapsed_s": 75.81459539999923
+    },
+    {
+      "case": "lost_constraint",
+      "expected": "halted",
+      "protected_challenge": true,
+      "candidate": "sha256:2826fbd07c6b4cf333106fa1280c0edf12254be5663f81b7b66fb279ccbb319e",
+      "result": "FAIL",
+      "actual": "halted",
+      "run_id": "5b10a488-59b2-4b0b-beed-c90a7488be9e",
+      "reasons": [
+        "Advancing assessment contradicts mandatory findings, uncertainty or correction"
+      ],
+      "model_calls": 2,
+      "reason": "Unknown artifact",
+      "detail": null,
+      "elapsed_s": 80.1971463000009
+    }
+  ],
+  "false_acceptances": 0,
+  "false_refusals": 1,
+  "limitations": [
+    "One repetition; uncontrolled provider variability",
+    "Billing and served model identity may be unavailable",
+    "Protected injected challenge outputs are invalid for product/admission"
+  ]
+}

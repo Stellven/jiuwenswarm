@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "id": "status:4d1b166e-8176-4e0c-a872-0b5ae593b449:8",
+  "client_request_id": "verification-contradiction-4e0f765b4430466a8f615a8a5dc8f589",
+  "run_id": "4d1b166e-8176-4e0c-a872-0b5ae593b449",
+  "revision": 8,
+  "stage": "halted",
+  "status": "halted",
+  "candidate_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "7448e6899f3f4ddc4e6f246c1570173bf5c72bc2192d9624eab1a7d37c2a023d"
+    }
+  ],
+  "accepted_refs": [],
+  "decision_ref": {
+    "id": "Gate_Intention.json",
+    "sha256": "fd0ac5342fa998b59cf5d63a34727e0a4fd17a90875467e055bd7062d00ec5ac"
+  },
+  "reasons": [
+    "Producer retained blocking purpose/result/constraint uncertainty"
+  ],
+  "bundle_ref": null,
+  "ext": {
+    "m0.intent": {
+      "profile_id": "compiler-only",
+      "invalid_for_product": false,
+      "submission_ref": {
+        "id": "Client_Submission.json",
+        "sha256": "0dbb8dedf7105d3cb78f750895837196639891116415215c14713b4a56334261"
+      },
+      "intake_ref": {
+        "id": "Qualified_Intake.json",
+        "sha256": "08699449b3127eb37b26f9aff2b9b8a3f9b0661726b8063024f55f4d9478056c"
+      },
+      "configuration_ref": {
+        "id": "Run_Configuration.json",
+        "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+      }
+    }
+  }
+}

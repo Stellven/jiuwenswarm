@@ -1,0 +1,35 @@
+{
+  "declaration_ref": {
+    "id": "requirements_verifier_Declaration.json",
+    "sha256": "6b0c411bd71f4bec15239ad44076d49f4089aa560a7e70cb683d834ef5de86e4"
+  },
+  "dependency_refs": [
+    {
+      "id": "requirements_verifier_Dependency_model.py",
+      "sha256": "f289d2f27069a5a3e0408a880160fd97080ff79367697c6b07b568b2026447ad"
+    },
+    {
+      "id": "requirements_verifier_Dependency_runtime.py",
+      "sha256": "3b3e97e9f3111619903545d9d19f494c33ddf77557de6944b0a3b64a92f62751"
+    },
+    {
+      "id": "requirements_verifier_Dependency_checks.py",
+      "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+    },
+    {
+      "id": "requirements_verifier_Dependency_requirements.lock",
+      "sha256": "0f7bff60e71282d43272a27b68f51b030e56ff99b2e2631734fe67a2d622ec30"
+    }
+  ],
+  "eligibility": "validated local agent schema, exact captured implementation/dependency closure, fixed tool-free supported style and role",
+  "id": "admission:requirements.verifier",
+  "implementation_refs": [
+    {
+      "id": "requirements_verifier_Implementation.txt",
+      "sha256": "78af595e84a238d673e764587a83598c382fb50281fac035c8e90324c9a3b0c0"
+    }
+  ],
+  "invalid_for_product": false,
+  "schema_version": "1.0.0",
+  "status": "active"
+}

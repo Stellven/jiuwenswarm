@@ -1,0 +1,6 @@
+{
+  "automatic_retries": 0,
+  "hardware_profile": "single_gpu",
+  "id": "policy:compiler-defaults",
+  "schema_version": "1.0.0"
+}

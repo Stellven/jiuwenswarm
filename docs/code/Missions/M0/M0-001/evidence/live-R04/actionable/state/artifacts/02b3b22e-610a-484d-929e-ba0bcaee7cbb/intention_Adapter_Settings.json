@@ -1,0 +1,26 @@
+{
+  "adapter": "codex-exec-stdin-v1",
+  "automatic_retries": 0,
+  "backend_count_limitation": "Native invocation is observed; provider-internal requests are not exposed",
+  "backend_model_request_count": null,
+  "invocation_id": "invocation:a8dc5da40cbe47caae5c1c7da6728d97",
+  "memory_enforcement": "Windows Job Object before resume",
+  "memory_mb": 1024,
+  "native_user_config": "ignored; existing authentication only",
+  "raw_capture_bytes": {
+    "stderr": 217,
+    "stdout": 0
+  },
+  "raw_evidence_truncated": false,
+  "raw_observed_bytes_at_least": {
+    "stderr": 217,
+    "stdout": 0
+  },
+  "role": "intention",
+  "tools": [],
+  "transport_request_max_retries": 0,
+  "transport_schema_limitations": "Optional ext omitted; unsupported conditional rules enforced by authoritative host checks",
+  "transport_schema_sha256": "f083d8d73d271aac53559b39250e5be9f04fd3cd569e1bf4bdec9b22a27b604f",
+  "transport_stream_max_retries": 0,
+  "web_search": "disabled"
+}

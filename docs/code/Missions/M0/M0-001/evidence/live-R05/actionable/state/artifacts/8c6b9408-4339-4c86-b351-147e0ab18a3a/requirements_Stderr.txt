@@ -1,0 +1,2 @@
+2026-10-08T18:44:26.820937Z  WARN codex_core::shell_snapshot: Failed to create shell snapshot for powershell: Shell snapshot not supported yet for PowerShell
+2026-10-08T18:44:26.905705Z ERROR codex_core::session::session: failed to load skill C:\Users\17982\.agents\skills\codex-polish\SKILL.md: missing YAML frontmatter delimited by ---

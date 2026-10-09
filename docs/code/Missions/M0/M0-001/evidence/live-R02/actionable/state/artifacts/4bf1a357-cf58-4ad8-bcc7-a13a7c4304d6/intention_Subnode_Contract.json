@@ -1,0 +1,131 @@
+{
+  "attempt_id": "attempt:1",
+  "bindings": [
+    {
+      "admission_ref": {
+        "id": "intention_Admission.json",
+        "sha256": "2a41b9cb3e4e5f93eaf90b0c5676e79c8cd42cdf3f94207218627fa22a641351"
+      },
+      "declaration_ref": {
+        "id": "intention_Declaration.json",
+        "sha256": "f5e93abd0249b55445108e0673ca1503e4cbe03b9f2c9d4dad7690f4ccf0ba0a"
+      },
+      "dependency_refs": [
+        {
+          "id": "intention_Dependency_model.py",
+          "sha256": "f289d2f27069a5a3e0408a880160fd97080ff79367697c6b07b568b2026447ad"
+        },
+        {
+          "id": "intention_Dependency_runtime.py",
+          "sha256": "3b3e97e9f3111619903545d9d19f494c33ddf77557de6944b0a3b64a92f62751"
+        },
+        {
+          "id": "intention_Dependency_checks.py",
+          "sha256": "3ae72029f01acd84fa55c8266b1c916cfc9b3c08cd4e14eb90cb68d6a869a231"
+        },
+        {
+          "id": "intention_Dependency_requirements.lock",
+          "sha256": "0f7bff60e71282d43272a27b68f51b030e56ff99b2e2631734fe67a2d622ec30"
+        }
+      ],
+      "effective_authority": {
+        "network": "none",
+        "network_allowlist": [],
+        "resource_reads": [
+          {
+            "id": "Qualified_Intake.json",
+            "sha256": "2a4151c428eba44363ba404733c31636238aa6d449f6934976abb830670c43a2"
+          }
+        ],
+        "tools": [
+          "audited-model-bridge"
+        ],
+        "write_roots": []
+      },
+      "id": "binding:intention",
+      "implementation_refs": [
+        {
+          "id": "intention_Implementation.txt",
+          "sha256": "e53bdefd3574a870a972c8c4c60c75507ef13347ab929c69356c94bfc8f7de97"
+        }
+      ],
+      "limits": {
+        "memory_mb": 1024,
+        "model_calls": 1,
+        "time_s": 120.0
+      },
+      "role": "intention"
+    }
+  ],
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "2e0801783bde964926e3dabd2b7b7354b131a6adff0511322ea32777918c9e8e"
+  },
+  "evidence_obligations": [
+    "observed_invocation",
+    "captured_output",
+    "complete_checks"
+  ],
+  "guard_profile_ref": {
+    "id": "intention_Profile.json",
+    "sha256": "ba741027c8a40c00055297f20c32fa81b0b37f96a0ab711a6ed667125ce6ddd2"
+  },
+  "id": "subnode-contract:intention:4bf1a357-cf58-4ad8-bcc7-a13a7c4304d6",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "2a4151c428eba44363ba404733c31636238aa6d449f6934976abb830670c43a2"
+    }
+  ],
+  "inputs": [
+    {
+      "artifact_refs": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "2a4151c428eba44363ba404733c31636238aa6d449f6934976abb830670c43a2"
+        }
+      ],
+      "contract_id": "qualified-intake:field-contract:2",
+      "name": "intake",
+      "required": true,
+      "version": "2.0.0"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "4bee907d029c9d57444fdcc3c31e97836a2f974050491ff8e6482b101b7ceed1"
+  },
+  "node_id": "intention.compiler",
+  "objective": "Extract faithful user research meaning into Intent IR 1.0.0. Preserve requested purpose/result, scope, exclusions, constraints, preferences, entities and explicit targets. Every statement needs exact code-point spans into original source text. Do not select solutions, invent purpose/method/target, browse, profile host or clarify interactively. A topic alone has unknown purpose/",
+  "outputs": [
+    {
+      "contract_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+      "name": "result",
+      "required": true,
+      "version": "1.0.0"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "required_outputs": [
+    "intent-ir"
+  ],
+  "requirement_ids": [
+    "fixed:intention"
+  ],
+  "revision": 1,
+  "run_id": "4bf1a357-cf58-4ad8-bcc7-a13a7c4304d6",
+  "schema_version": "1.0.0",
+  "subnode_id": "intention",
+  "subnode_limits": {
+    "memory_mb": 1024,
+    "model_calls": 1,
+    "time_s": 120.0
+  },
+  "template_ref": {
+    "id": "intention_Template.json",
+    "sha256": "14ad727d737bde7331950b69ab90ee0adecee053a846914af6e13ba5b7f86e45"
+  }
+}

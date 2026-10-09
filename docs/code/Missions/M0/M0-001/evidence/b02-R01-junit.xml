@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="34" time="17.055" timestamp="2026-10-08T14:20:32.522666-04:00" hostname="LAPTOP-MFQ6O7IF"><testcase classname="tests.test_runtime" name="test_whole_node_four_calls_three_decisions_and_exact_consumer" time="1.891" /><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[invalid_json]" time="0.773" /><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[wrong_version]" time="0.601" /><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[bad_span]" time="0.644" /><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[unknown_ref]" time="0.570" /><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[duplicate_id]" time="0.560" /><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[no_output]" time="0.480"><failure message="AssertionError: assert [{'id': 'Inte...bdf6dcdf9fd'}] == []&#10;  &#10;  Left contains one more item: {'id': 'Intention_Failure_Receipt.json', 'sha256': '3ac8e738183d229fb1606fd43fc4f09c296bf198a65045a52fc8fbdf6dcdf9fd'}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/17982/AppData/Local/Temp/pytest-of-17982/pytest-212/test_bad_intent_avoids_verifie5')
+mode = 'no_output'
+
+    @pytest.mark.parametrize("mode", ["invalid_json", "wrong_version", "bad_span", "unknown_ref", "duplicate_id", "no_output", "timeout", "oversized"])
+    def test_bad_intent_avoids_verifier_and_requirements(tmp_path, mode):
+        config, store, run = prepared(tmp_path)
+        def mutation(result, _):
+            if mode == "invalid_json":
+                result.text = "{"
+            elif mode == "no_output":
+                result.text, result.outcome = None, "no_output"
+            elif mode == "timeout":
+                result.outcome, result.error = "timeout", "Frozen call timeout"
+            elif mode == "oversized":
+                result.text = "x" * (config.max_output_bytes + 1)
+            else:
+                def alter(payload):
+                    if mode == "wrong_version": payload["schema_version"] = "0.1"
+                    if mode == "bad_span": payload["in_scope"][0]["source_spans"][0]["end"] = 9999
+                    if mode == "unknown_ref": payload["request_ref"]["sha256"] = "0" * 64
+                    if mode == "duplicate_id": payload["in_scope"][0]["id"] = "problem"
+                changed(result, alter)
+            return result
+        bridge = MutatedBridge("intention", mutation)
+        status = Runtime(config, store, bridge).run(run)
+        assert status["status"] == "halted", status
+        assert bridge.calls == ["intention"]
+        assert store.accepted(run, "node") is None
+        gate = store.get_json(run, "Gate_Intention.json")
+        assert gate["assessment_ref"] is None and gate["action"] == "halt"
+        if mode in ("no_output", "oversized"):
+&gt;           assert gate["output_refs"] == []
+E           AssertionError: assert [{'id': 'Inte...bdf6dcdf9fd'}] == []
+E             
+E             Left contains one more item: {'id': 'Intention_Failure_Receipt.json', 'sha256': '3ac8e738183d229fb1606fd43fc4f09c296bf198a65045a52fc8fbdf6dcdf9fd'}
+E             Use -v to get more diff
+
+standalone\intent_compiler\tests\test_runtime.py:92: AssertionError</failure></testcase><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[timeout]" time="0.471" /><testcase classname="tests.test_runtime" name="test_bad_intent_avoids_verifier_and_requirements[oversized]" time="0.460"><failure message="AssertionError: assert [{'id': 'Inte...329405c3f87'}] == []&#10;  &#10;  Left contains one more item: {'id': 'Intention_Failure_Receipt.json', 'sha256': '8bcc9d81e9e128a717363a7edb95fde3368b6ca2d15463ad971ef329405c3f87'}&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/17982/AppData/Local/Temp/pytest-of-17982/pytest-212/test_bad_intent_avoids_verifie7')
+mode = 'oversized'
+
+    @pytest.mark.parametrize("mode", ["invalid_json", "wrong_version", "bad_span", "unknown_ref", "duplicate_id", "no_output", "timeout", "oversized"])
+    def test_bad_intent_avoids_verifier_and_requirements(tmp_path, mode):
+        config, store, run = prepared(tmp_path)
+        def mutation(result, _):
+            if mode == "invalid_json":
+                result.text = "{"
+            elif mode == "no_output":
+                result.text, result.outcome = None, "no_output"
+            elif mode == "timeout":
+                result.outcome, result.error = "timeout", "Frozen call timeout"
+            elif mode == "oversized":
+                result.text = "x" * (config.max_output_bytes + 1)
+            else:
+                def alter(payload):
+                    if mode == "wrong_version": payload["schema_version"] = "0.1"
+                    if mode == "bad_span": payload["in_scope"][0]["source_spans"][0]["end"] = 9999
+                    if mode == "unknown_ref": payload["request_ref"]["sha256"] = "0" * 64
+                    if mode == "duplicate_id": payload["in_scope"][0]["id"] = "problem"
+                changed(result, alter)
+            return result
+        bridge = MutatedBridge("intention", mutation)
+        status = Runtime(config, store, bridge).run(run)
+        assert status["status"] == "halted", status
+        assert bridge.calls == ["intention"]
+        assert store.accepted(run, "node") is None
+        gate = store.get_json(run, "Gate_Intention.json")
+        assert gate["assessment_ref"] is None and gate["action"] == "halt"
+        if mode in ("no_output", "oversized"):
+&gt;           assert gate["output_refs"] == []
+E           AssertionError: assert [{'id': 'Inte...329405c3f87'}] == []
+E             
+E             Left contains one more item: {'id': 'Intention_Failure_Receipt.json', 'sha256': '8bcc9d81e9e128a717363a7edb95fde3368b6ca2d15463ad971ef329405c3f87'}
+E             Use -v to get more diff
+
+standalone\intent_compiler\tests\test_runtime.py:92: AssertionError</failure></testcase><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[missing]" time="0.636" /><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[duplicate]" time="0.614" /><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[stale_subject]" time="0.639" /><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[stale_context]" time="0.941" /><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[unknown_evidence]" time="0.619" /><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[malformed]" time="0.584" /><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[semantic_fail]" time="0.618" /><testcase classname="tests.test_runtime" name="test_assessment_fail_closed_despite_overall_pass[inconclusive]" time="0.614" /><testcase classname="tests.test_runtime" name="test_topic_uncertainty_needs_semantic_review_then_halts" time="0.633" /><testcase classname="tests.test_runtime" name="test_requirement_semantic_loss_does_not_release" time="1.122" /><testcase classname="tests.test_runtime" name="test_storage_failure_after_pass_never_publishes" time="1.227" /><testcase classname="tests.test_runtime" name="test_cancel_during_work_stops_review_dispatch" time="0.401"><failure message="AssertionError: assert ('halted' == 'cancelled'&#10;  &#10;  - cancelled&#10;  + halted)">tmp_path = WindowsPath('C:/Users/17982/AppData/Local/Temp/pytest-of-17982/pytest-212/test_cancel_during_work_stops_0')
+
+    def test_cancel_during_work_stops_review_dispatch(tmp_path):
+        config, store, run = prepared(tmp_path)
+        def mutation(result, _):
+            store.cancel(run, "cancel1")
+            return result
+        bridge = MutatedBridge("intention", mutation)
+        status = Runtime(config, store, bridge).run(run)
+&gt;       assert status["status"] == "cancelled" and bridge.calls == ["intention"]
+E       AssertionError: assert ('halted' == 'cancelled'
+E         
+E         - cancelled
+E         + halted)
+
+standalone\intent_compiler\tests\test_runtime.py:165: AssertionError</failure></testcase><testcase classname="tests.test_runtime" name="test_observed_token_overrun_blocks_successor" time="0.450" /><testcase classname="tests.test_runtime" name="test_preserves_unknown_telemetry_and_actual_admission_dependency_pins" time="1.084" /><testcase classname="tests.test_runtime" name="test_restart_pauses_and_forbids_inplace_replay" time="0.071" /><testcase classname="tests.test_model" name="test_actual_native_event_telemetry_unknown_billing_preserved" time="0.000" /><testcase classname="tests.test_model" name="test_denies_any_noncontent_native_tool_event[command_execution]" time="0.000" /><testcase classname="tests.test_model" name="test_denies_any_noncontent_native_tool_event[mcp_tool_call]" time="0.000" /><testcase classname="tests.test_model" name="test_denies_any_noncontent_native_tool_event[web_search]" time="0.000" /><testcase classname="tests.test_model" name="test_denies_any_noncontent_native_tool_event[file_change]" time="0.000" /><testcase classname="tests.test_model" name="test_denies_any_noncontent_native_tool_event[unknown_future_tool]" time="0.000" /><testcase classname="tests.test_model" name="test_no_artifact_and_bad_events_are_not_passes" time="0.000" /><testcase classname="tests.test_model" name="test_native_executable_missing_explicit_no_dispatch" time="0.018" /><testcase classname="tests.test_model" name="test_actual_owned_process_memory_failure_is_enforced_before_resume" time="0.024" /><testcase classname="tests.test_model" name="test_owned_process_explicit_termination_is_finite" time="0.006" /></testsuite></testsuites>

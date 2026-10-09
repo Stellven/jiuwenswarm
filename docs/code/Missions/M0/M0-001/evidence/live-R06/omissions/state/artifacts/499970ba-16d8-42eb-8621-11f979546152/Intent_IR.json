@@ -1,0 +1,214 @@
+{
+  "constraints": [
+    {
+      "category": "quality_preservation",
+      "id": "constraint-1",
+      "source_spans": [
+        {
+          "end": 96,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 61
+        }
+      ],
+      "text": "Do not lower retrieval quality."
+    },
+    {
+      "category": "evidence",
+      "id": "constraint-2",
+      "source_spans": [
+        {
+          "end": 132,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 97
+        }
+      ],
+      "text": "Ground the report in evidence."
+    }
+  ],
+  "context": [
+    {
+      "id": "context-1",
+      "name": "Existing document retrieval baseline",
+      "role": "Reference baseline with latency and retrieval quality as relevant metrics.",
+      "source_spans": [
+        {
+          "end": 124,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 25
+        }
+      ]
+    },
+    {
+      "id": "context-2",
+      "name": "Empirical measurements",
+      "role": "No empirical measurements are supplied.",
+      "source_spans": [
+        {
+          "end": 164,
+          "source_ref": {
+            "id": "inputs/document-0.extracted.txt",
+            "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+          },
+          "start": 125
+        }
+      ]
+    },
+    {
+      "id": "context-3",
+      "name": "Unchosen research parameters",
+      "role": "The user has not chosen a method, numeric improvement threshold, or hardware.",
+      "source_spans": [
+        {
+          "end": 203,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 133
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "inputs/document-0.extracted.txt",
+      "sha256": "2ddc9fcb7b1df3b90f30c42db995aeffa368a312462c30c9a22dae6715f4122f"
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope-1",
+      "source_spans": [
+        {
+          "end": 96,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Study how to reduce latency of the document retrieval baseline while preserving retrieval quality."
+    }
+  ],
+  "interpretation": {
+    "desired_change": {
+      "id": "change-1",
+      "source_spans": [
+        {
+          "end": 96,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 13
+        }
+      ],
+      "text": "Reduce baseline latency without lowering retrieval quality."
+    },
+    "problem": {
+      "id": "problem-1",
+      "source_spans": [
+        {
+          "end": 96,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 0
+        }
+      ],
+      "text": "Study latency reduction for a document retrieval baseline while preserving retrieval quality."
+    },
+    "requested_result": {
+      "id": "result-1",
+      "source_spans": [
+        {
+          "end": 132,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 97
+        }
+      ],
+      "text": "An evidence-grounded report."
+    }
+  },
+  "out_of_scope": [],
+  "preferences": [],
+  "readiness": {
+    "reason": "The request specifies the research purpose, report result, and quality constraint. Unchosen method, numeric threshold, hardware, and absent supplied measurements do not block beginning the study.",
+    "status": "ready"
+  },
+  "request_ref": {
+    "id": "Request.txt",
+    "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+  },
+  "schema_version": "1.0.0",
+  "uncertainties": [
+    {
+      "affected_fields": [
+        "context",
+        "user_targets"
+      ],
+      "blocking": false,
+      "clarification": "No clarification is required to begin the requested study.",
+      "description": "Method, numeric improvement threshold, and hardware have not been chosen.",
+      "id": "uncertainty-1",
+      "kind": "missing"
+    },
+    {
+      "affected_fields": [
+        "context",
+        "interpretation.requested_result"
+      ],
+      "blocking": false,
+      "clarification": "No clarification is required to begin the study; supplied measurements do not establish an empirical improvement.",
+      "description": "The supplied reference contains no empirical measurements.",
+      "id": "uncertainty-2",
+      "kind": "missing"
+    }
+  ],
+  "user_targets": [
+    {
+      "id": "target-1",
+      "metric": "Latency",
+      "source_spans": [
+        {
+          "end": 27,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 13
+        }
+      ],
+      "target_text": "Reduce latency."
+    },
+    {
+      "id": "target-2",
+      "metric": "Retrieval quality",
+      "source_spans": [
+        {
+          "end": 96,
+          "source_ref": {
+            "id": "Request.txt",
+            "sha256": "42f18e8ef2cf6b06c07f04523c4aa34a1517e0fbe30850f18738a934fffd0062"
+          },
+          "start": 61
+        }
+      ],
+      "target_text": "Do not lower retrieval quality."
+    }
+  ]
+}

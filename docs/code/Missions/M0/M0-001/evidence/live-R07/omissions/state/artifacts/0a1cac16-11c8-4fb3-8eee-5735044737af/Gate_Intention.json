@@ -1,0 +1,87 @@
+{
+  "accepted_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "243ea07f03a87d462ba9774532de21f8838187c03a36e0bd5e247e31bbb662a1"
+    }
+  ],
+  "action": "advance",
+  "assessment_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "7a9eaa6eedee61c69f0aa42afef6f59c617474aacce85c2c8a53180bcc22848f"
+  },
+  "attempt_id": "attempt:1",
+  "check_plan_ref": {
+    "id": "Intention_Check_Plan.json",
+    "sha256": "eef912df46fe7959c20f70b98f8e9f3328ea48df0ff70f852be4810fa38426d1"
+  },
+  "contract_ref": {
+    "id": "intention_Subnode_Contract.json",
+    "sha256": "b3c7c473b754f6f0894e882e79dcf3cd9484b2258adedcd14838eb05990149bb"
+  },
+  "deterministic_result_ref": {
+    "id": "Intention_Checks.json",
+    "sha256": "cf5f9da70f600343e0d6f5126ff01c14cb4dc1f490650bdcf26d2ab6f3877d00"
+  },
+  "id": "gate:intention:0a1cac16-11c8-4fb3-8eee-5735044737af",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "52f94c89105b355fb53dd9166efc40272e6caebcee0ec70c6e267950213bd043"
+    }
+  ],
+  "internal_decision_refs": [],
+  "invocation_refs": [
+    {
+      "id": "intention_Invocation_Observation.json",
+      "sha256": "0074bb1b66b7c0529f164d8710fc19e21d02addf7bb9386007de884cda64cdbc"
+    },
+    {
+      "id": "intention_verifier_Invocation_Observation.json",
+      "sha256": "c667ffa19b06657e7373249621b6b7b7bb7288a945e0627650f3d16c8f80364b"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "2bd7aee181b119068775f790095034118f3a8e50d6a4863b16454f0de57f8552"
+  },
+  "node_id": "intention.compiler",
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "243ea07f03a87d462ba9774532de21f8838187c03a36e0bd5e247e31bbb662a1"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "33696e7ff4db03ef9561746e414701d1acc5d4e9f77fabf3c5c9afbee16f475d"
+  },
+  "reasons": [
+    {
+      "code": "all_mandatory_passed",
+      "criterion_ids": [
+        "fidelity",
+        "coverage",
+        "consistency",
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Intention_Checks.json",
+          "sha256": "cf5f9da70f600343e0d6f5126ff01c14cb4dc1f490650bdcf26d2ab6f3877d00"
+        },
+        {
+          "id": "Intent_Assessment.json",
+          "sha256": "7a9eaa6eedee61c69f0aa42afef6f59c617474aacce85c2c8a53180bcc22848f"
+        }
+      ],
+      "message": "PASS_WITH_KNOWN_LIMITATIONS"
+    }
+  ],
+  "recorded_at": "2026-10-08T19:09:31.350945+00:00",
+  "run_id": "0a1cac16-11c8-4fb3-8eee-5735044737af",
+  "schema_version": "2.0.0",
+  "scope_kind": "subnode",
+  "subnode_id": "intention",
+  "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+}

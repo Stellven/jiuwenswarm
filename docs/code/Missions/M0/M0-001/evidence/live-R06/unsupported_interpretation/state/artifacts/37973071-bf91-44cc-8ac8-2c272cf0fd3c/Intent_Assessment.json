@@ -1,0 +1,79 @@
+{
+  "findings": [
+    {
+      "criterion_id": "fidelity",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6f501d4d1057e4683c8d62ed831d56eda7d07520e4c1124cc23bdffb05007159"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "aa5a551ad0042322ed56e46b28ef7abfc12929715298a3c404005f6dcdf26dc4"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "The problem statement invents a new neural retriever, cloud training and a 50 percent latency target. The sources request a local investigation and evidence-grounded report, explicitly deferring method selection."
+    },
+    {
+      "criterion_id": "coverage",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6f501d4d1057e4683c8d62ed831d56eda7d07520e4c1124cc23bdffb05007159"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "aa5a551ad0042322ed56e46b28ef7abfc12929715298a3c404005f6dcdf26dc4"
+        }
+      ],
+      "outcome": "PASS",
+      "reason": "The artifact includes the requested investigation and report, deferred method selection, locality requirement, baseline latency and retrieval-quality metrics, and absence of empirical measurements."
+    },
+    {
+      "criterion_id": "consistency",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6f501d4d1057e4683c8d62ed831d56eda7d07520e4c1124cc23bdffb05007159"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "aa5a551ad0042322ed56e46b28ef7abfc12929715298a3c404005f6dcdf26dc4"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "Requiring a neural retriever contradicts the prohibition on choosing a method; requiring cloud training contradicts keeping all work local. The invented improvement target also conflicts with the source-grounded scope."
+    },
+    {
+      "criterion_id": "requirements_usability",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "6f501d4d1057e4683c8d62ed831d56eda7d07520e4c1124cc23bdffb05007159"
+        },
+        {
+          "id": "Intention_Review_Context.json",
+          "sha256": "aa5a551ad0042322ed56e46b28ef7abfc12929715298a3c404005f6dcdf26dc4"
+        }
+      ],
+      "outcome": "FAIL",
+      "reason": "Although the requested report has a clear purpose, the contradictory problem statement introduces an unauthorized implementation and quantitative target. The artifact cannot reliably guide execution within its mandatory constraints."
+    }
+  ],
+  "limitations": [
+    "No empirical measurements are supplied; actual retrieval performance cannot be assessed from these sources."
+  ],
+  "required_correction": "Remove the unsupported neural-retriever, cloud-training and 50 percent improvement requirements from the problem statement and align it with the local investigation and evidence-grounded report requested by the sources.",
+  "review_context_ref": {
+    "id": "Intention_Review_Context.json",
+    "sha256": "aa5a551ad0042322ed56e46b28ef7abfc12929715298a3c404005f6dcdf26dc4"
+  },
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "6f501d4d1057e4683c8d62ed831d56eda7d07520e4c1124cc23bdffb05007159"
+  },
+  "uncertainties": [],
+  "verdict": "FAIL"
+}
