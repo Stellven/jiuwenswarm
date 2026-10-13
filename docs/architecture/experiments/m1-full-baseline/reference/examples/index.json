@@ -1,0 +1,141 @@
+{
+  "synthetic": true,
+  "examples": [
+    {
+      "path": "Intent_IR.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+    },
+    {
+      "path": "Intent_Topic_Only.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+    },
+    {
+      "path": "Intent_Contradictory.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+    },
+    {
+      "path": "Default_Policy.json",
+      "schema_id": null
+    },
+    {
+      "path": "Research_Brief.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0"
+    },
+    {
+      "path": "Check_Plan.json",
+      "schema_id": null
+    },
+    {
+      "path": "Node_Contract.json",
+      "schema_id": null
+    },
+    {
+      "path": "Invocation_Observation.json",
+      "schema_id": null
+    },
+    {
+      "path": "Intent_Checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "Review_Context.json",
+      "schema_id": null
+    },
+    {
+      "path": "Intent_Assessment.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
+    },
+    {
+      "path": "Gate_Decision.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+    },
+    {
+      "path": "Topic_Node_Contract.json",
+      "schema_id": null
+    },
+    {
+      "path": "Topic_Observation.json",
+      "schema_id": null
+    },
+    {
+      "path": "Topic_Checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "Topic_Review_Context.json",
+      "schema_id": null
+    },
+    {
+      "path": "Topic_Assessment.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
+    },
+    {
+      "path": "Gate_Topic_Halt.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+    },
+    {
+      "path": "Evaluation_Verdict.json",
+      "schema_id": null
+    },
+    {
+      "path": "Science_Review_Context.json",
+      "schema_id": null
+    },
+    {
+      "path": "Science_Assessment.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
+    },
+    {
+      "path": "Science_Checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "Science_Node_Contract.json",
+      "schema_id": null
+    },
+    {
+      "path": "Science_Observation.json",
+      "schema_id": null
+    },
+    {
+      "path": "Gate_Science_Pass.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+    },
+    {
+      "path": "Capsule_Declaration.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "Requirements_Check_Plan.json",
+      "schema_id": null
+    },
+    {
+      "path": "Requirements_Node_Contract.json",
+      "schema_id": null
+    },
+    {
+      "path": "Requirements_Invocation_Observation.json",
+      "schema_id": null
+    },
+    {
+      "path": "Requirements_Review_Context.json",
+      "schema_id": null
+    },
+    {
+      "path": "Requirements_Checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "Requirements_Assessment.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
+    },
+    {
+      "path": "Gate_Requirements_Pass.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:1.0.0"
+    },
+    {
+      "path": "Science_Check_Plan.json",
+      "schema_id": null
+    }
+  ]
+}

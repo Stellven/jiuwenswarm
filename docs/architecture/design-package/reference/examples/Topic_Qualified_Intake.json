@@ -1,0 +1,25 @@
+{
+  "schema_version": "2.0.0",
+  "id": "intake:topic",
+  "request_ref": {
+    "id": "Request_Topic_Only.txt",
+    "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+  },
+  "source_refs": [],
+  "offset_basis": "Unicode code points",
+  "resource_refs": [],
+  "rejected_inputs": [],
+  "user_id": "user:example",
+  "profile_ref": {
+    "id": "Local_Profile.json",
+    "sha256": "c000f23e9d5e6fdeeca31b63a2bcd0897eae47d61bc352604544ea96c296a57c"
+  },
+  "workspace_ref": {
+    "id": "Workspace.json",
+    "sha256": "ef1126beeb8d8b872b0d756e148b7ce2fab7cfa6627c1991e64dafd8bd304eca"
+  },
+  "input_directory_ref": {
+    "id": "Qualified_Input_Directory.json",
+    "sha256": "85172dc64bf4fe8cae3dd3b4a0bd54b4ced83c9303a5c4b4a747c8feeea9b33d"
+  }
+}

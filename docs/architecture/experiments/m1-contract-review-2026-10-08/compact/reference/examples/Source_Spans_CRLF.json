@@ -1,0 +1,24 @@
+{
+  "source_spans": [
+    {
+      "source_ref": {
+        "id": "CRLF_Source.txt",
+        "sha256": "72b8d6b2e76cbda092009b743e42a1d167187e4572dffa5a23cbf9bfea235924"
+      },
+      "start": 3,
+      "end": 4
+    },
+    {
+      "source_ref": {
+        "id": "CRLF_Source.txt",
+        "sha256": "72b8d6b2e76cbda092009b743e42a1d167187e4572dffa5a23cbf9bfea235924"
+      },
+      "start": 4,
+      "end": 5
+    }
+  ],
+  "expected_text": [
+    "🧪",
+    "B"
+  ]
+}

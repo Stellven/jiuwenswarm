@@ -1,0 +1,137 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://openjiuwen/capability-capsule/policy-m1.json",
+ "title": "Enforcement profile: M1 (one node)",
+ "description": "What the gate REQUIRES at policy epoch m1-2026-09. Applied alongside capsule.schema.json, which carries shape only. Keeping required-ness here rather than in the schema is deliberate: a required field in a shared schema can never be taken back, so Protocol Buffers removed `required` and tells authors to document it instead. This profile is versioned, can be relaxed, and every Verdict records the epoch that admitted under it.",
+ "x-policy-epoch": "m1-2026-09",
+ "x-enforces": [
+  "identity.name",
+  "identity.kind",
+  "identity.carrier {ref, sha256}",
+  "identity.summary",
+  "identity.body[].sha256 (or identity.remote)",
+  "ports.inputs",
+  "ports.outputs",
+  "needs.when (at least one evaluable predicate)",
+  "changes.effect_class",
+  "guarantees.checks (at least one)"
+ ],
+ "x-inert-until": {
+  "identity.lineage": "M4, when RSI reads it",
+  "needs.model": "M3, when routing reads it",
+  "budget": "M3",
+  "guarantees.quality": "M3, when quality is measured as a rate",
+  "guarantees.acceptance": "M3",
+  "guarantees.evals": "M3",
+  "guarantees.exempt": "M3, when generalists are enrolled",
+  "changes.provides": "M2",
+  "changes.invariants": "M2",
+  "identity.overlays": "M3",
+  "identity.load_mode": "M3",
+  "members": "M4, when composition runs",
+  "structure": "M4",
+  "evolution.frozen": "M4, when RSI chooses where to branch",
+  "evolution.notes_for_builder": "M4, advisory only and never enforced",
+  "coverage.undeclared_notes": "M3, when the screener reads it"
+ },
+ "allOf": [
+  {
+   "$ref": "capsule.schema.json"
+  }
+ ],
+ "type": "object",
+ "required": [
+  "schema_version",
+  "identity",
+  "ports",
+  "needs",
+  "changes",
+  "guarantees"
+ ],
+ "properties": {
+  "identity": {
+   "type": "object",
+   "required": [
+    "name",
+    "kind",
+    "summary"
+   ],
+   "anyOf": [
+    {
+     "required": [
+      "carrier"
+     ]
+    },
+    {
+     "required": [
+      "body"
+     ],
+     "properties": {
+      "body": {
+       "minItems": 1
+      }
+     }
+    },
+    {
+     "required": [
+      "remote"
+     ]
+    }
+   ]
+  },
+  "ports": {
+   "type": "object",
+   "required": [
+    "inputs",
+    "outputs"
+   ],
+   "properties": {
+    "outputs": {
+     "minItems": 1,
+     "items": {
+      "required": [
+       "name",
+       "check"
+      ]
+     }
+    }
+   }
+  },
+  "needs": {
+   "type": "object",
+   "required": [
+    "when"
+   ],
+   "properties": {
+    "when": {
+     "minItems": 1,
+     "items": {
+      "description": "M1's whole point: a precondition the shared evaluator can actually run. `check` plus prose is what exists today and is not enough.",
+      "required": [
+       "check",
+       "op",
+       "evaluable_at"
+      ]
+     }
+    }
+   }
+  },
+  "changes": {
+   "type": "object",
+   "required": [
+    "effect_class"
+   ]
+  },
+  "guarantees": {
+   "type": "object",
+   "required": [
+    "checks"
+   ],
+   "properties": {
+    "checks": {
+     "minItems": 1
+    }
+   }
+  }
+ }
+}

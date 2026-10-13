@@ -1,0 +1,282 @@
+{
+  "kind": "read-only AST/source observations at actual pinned dependency; not execution",
+  "dependency_commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+  "files": [
+    {
+      "path": "openjiuwen/symphony/models/capability.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "3429ad1f8c8dbdfde58ec27a963ee9896e80131d58a060d2874c4b9682cdcc74",
+      "classes": [
+        {
+          "name": "CapabilityIO",
+          "line": 15,
+          "fields": [
+            "name",
+            "type",
+            "description",
+            "required",
+            "default",
+            "metadata"
+          ],
+          "methods": [
+            "_redact_sensitive_default"
+          ]
+        },
+        {
+          "name": "SemanticProfile",
+          "line": 46,
+          "fields": [
+            "summary",
+            "capabilities",
+            "use_cases",
+            "limitations",
+            "keywords"
+          ],
+          "methods": [
+            "_deduplicate_values"
+          ]
+        },
+        {
+          "name": "CapabilityDescriptor",
+          "line": 61,
+          "fields": [
+            "capability_id",
+            "capability_type",
+            "name",
+            "description",
+            "source",
+            "available",
+            "inputs",
+            "outputs",
+            "classification",
+            "tags",
+            "content_hash",
+            "semantic_content",
+            "metadata"
+          ],
+          "methods": [
+            "_deduplicate_tags"
+          ]
+        },
+        {
+          "name": "SourceSnapshot",
+          "line": 84,
+          "fields": [
+            "snapshot_id",
+            "source",
+            "content_hash",
+            "captured_at",
+            "capability_count",
+            "metadata"
+          ],
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/interfaces/capability.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "03f380ae13b2f484262c12ca3f74cc273234f330855b8b495101811106986621",
+      "classes": [
+        {
+          "name": "CapabilityProvider",
+          "line": 13,
+          "fields": [],
+          "methods": [
+            "capabilities",
+            "source_snapshot"
+          ]
+        },
+        {
+          "name": "AtomicCapabilityProvider",
+          "line": 28,
+          "fields": [],
+          "methods": [
+            "inventory_snapshot"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/orchestration/service.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "4647478f26b2f29a46bf138b95e3010611ced17b532a6238db8c602ea1b97ecb",
+      "classes": [
+        {
+          "name": "OrchestrationService",
+          "line": 83,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "status",
+            "read",
+            "build",
+            "apply_skill_graph_mutation",
+            "cancel_build",
+            "plan",
+            "_construct_graph_payload",
+            "_load_inventory",
+            "_sync_capabilities",
+            "_source_snapshot",
+            "_merge_build_identity",
+            "_matcher_identity",
+            "_create_matcher"
+          ]
+        },
+        {
+          "name": "_QueuedBuildProgress",
+          "line": 613,
+          "fields": [
+            "item",
+            "completion"
+          ],
+          "methods": []
+        },
+        {
+          "name": "_BuildProgressDispatcher",
+          "line": 618,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "start",
+            "enqueue",
+            "drain",
+            "emit",
+            "close",
+            "cancel",
+            "deliver",
+            "_run",
+            "_deliver"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/graph_engine.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "c8d5f8c045a411bfe8f5974d2d6d7f71e0ded8184504fcfeed2c0a1bfed7d1c7",
+      "classes": [
+        {
+          "name": "SymphonyGraphEngine",
+          "line": 27,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "status",
+            "read",
+            "add_skills",
+            "update_skills",
+            "delete_skills",
+            "build",
+            "cancel_build",
+            "plan",
+            "submit_observation",
+            "get_snapshot",
+            "flush_observations",
+            "close",
+            "_reproject_observations"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/models/_base.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "549550d7ed5a87571f720709dd057aa7c81df80470c5ee2aff0ebb75c3e0829e",
+      "classes": [
+        {
+          "name": "SymphonyModel",
+          "line": 19,
+          "fields": [],
+          "methods": [
+            "_redact_public_extensions",
+            "_redact_public_text"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/models/fingerprint.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "c1da058f793e21976cb8b63fc803fbfe077304eb9d9c29ee93a118fb0bbcb5c4",
+      "classes": [
+        {
+          "name": "CapabilityFingerprint",
+          "line": 29,
+          "fields": [
+            "version",
+            "static_data",
+            "semantic_profile",
+            "inputs",
+            "outputs",
+            "classification",
+            "tags",
+            "content_hash",
+            "semantic_content",
+            "quality",
+            "failures",
+            "evidence",
+            "suggestions"
+          ],
+          "methods": [
+            "_accept_graph_io_contracts",
+            "_deduplicate_tags",
+            "_redact_graph_extensions",
+            "_validate_quality_identity",
+            "id",
+            "type",
+            "to_dict",
+            "to_internal_dict",
+            "graph_identity_dict"
+          ]
+        },
+        {
+          "name": "FingerprintArtifact",
+          "line": 125,
+          "fields": [
+            "schema_version",
+            "generated_at",
+            "source_snapshot",
+            "fingerprints"
+          ],
+          "methods": [
+            "_serialize_public_fingerprints",
+            "_normalize_generated_at",
+            "_validate_schema_version",
+            "_validate_unique_fingerprints"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/runtime.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "283fca5fd3d5864fdf52107f2dc9a96bc92a27608047e350a0f50c2f770ca47e",
+      "classes": [
+        {
+          "name": "EvolutionSubmitResult",
+          "line": 36,
+          "fields": [
+            "graph_receipt",
+            "new_candidates"
+          ],
+          "methods": []
+        },
+        {
+          "name": "SymphonyRuntime",
+          "line": 43,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "submit_evolution",
+            "_build_graph_evolution_input",
+            "capture_graph_snapshot",
+            "close",
+            "aclose"
+          ]
+        }
+      ]
+    }
+  ],
+  "runtime_compatibility": "NOT_RUN"
+}

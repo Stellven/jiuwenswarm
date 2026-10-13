@@ -1,0 +1,36 @@
+{
+  "id": "review:intent",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+  },
+  "input_refs": [
+    {
+      "id": "Request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+    }
+  ],
+  "contract_ref": {
+    "id": "Node_Contract.json",
+    "sha256": "56cecd67bd3e1041517b0cdb9bbf15fa1743edb379a40fe2f5c56de86c5b5f64"
+  },
+  "check_plan_ref": {
+    "id": "Check_Plan.json",
+    "sha256": "09052f6b660ad6ca10c73b8b198bdc9716f33373a35307d22cd4305a3af032e6"
+  },
+  "deterministic_result_ref": {
+    "id": "Intent_Checks.json",
+    "sha256": "de108428e14ea09d0ea86c6895d407c685db71f71e25c13e49ccf8469692066f"
+  },
+  "criteria": [
+    "fidelity",
+    "consistency",
+    "requirements_usability"
+  ],
+  "observations": [
+    {
+      "id": "Invocation_Observation.json",
+      "sha256": "c9bb29151cb5450985a1b0abfce32677fe13e5ae7cd5cbcbe20e57ab22163b5e"
+    }
+  ]
+}

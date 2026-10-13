@@ -1,0 +1,1 @@
+Use only CPU execution for every experiment. Every experiment must use a GPU. Investigate lower retrieval latency and produce a research report.

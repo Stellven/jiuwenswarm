@@ -1,0 +1,21 @@
+{
+  "id": "template:evaluation",
+  "role": "work",
+  "capsule_ref": {
+    "id": "Evaluation_Capsule.json",
+    "sha256": "b0129b66020c317f90090283864517f17de12477698c26b32a9e72047d58fec6"
+  },
+  "input_contracts": [
+    "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+    "hypothesis-blueprint:field-contract:1",
+    "benchmark-payload:field-contract:1"
+  ],
+  "output_contracts": [
+    "evaluation-verdict:field-contract:1"
+  ],
+  "guard_profile_ref": {
+    "id": "Science_Guard_Profile.json",
+    "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+  },
+  "synthetic": true
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "id": "invocation:intent",
+  "contract_ref": {
+    "id": "Node_Contract.json",
+    "sha256": "f1a22cd942535b58820be4f10c5a4e600dc78955083158e4fd10ac02f6a60c1e"
+  },
+  "binding_id": "binding:intent.compiler",
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "803af45be2692f94ea466619d9ccf7983cbed032f3e322583c847f1a61c94384"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    }
+  ],
+  "model_identity": {
+    "requested": "synthetic teaching endpoint",
+    "effective": null,
+    "basis": "unobserved example"
+  },
+  "started_at": null,
+  "ended_at": null,
+  "outcome": "synthetic_example",
+  "effects": [],
+  "duration_s": null,
+  "model_calls": null,
+  "trace_refs": [],
+  "unavailable_reasons": [
+    "No runtime execution or observed effects are claimed"
+  ],
+  "observed_runtime": false,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic illustration; no tokens or attributable cost were observed"
+    ]
+  }
+}

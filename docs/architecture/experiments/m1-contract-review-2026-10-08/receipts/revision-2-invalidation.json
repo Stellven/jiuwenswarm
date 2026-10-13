@@ -1,0 +1,6 @@
+{
+  "status": "superseded-before-participant-trials",
+  "reason": "Final route/context crosscheck corrected the stale five-document label in design-method and made RSI adapter/improver/configuration pins and attempt observations explicit. Same updates in both inputs; no participant trials exist.",
+  "prior_manifest_sha256": "81f64bea20d075b2fa215a289c0574e88ac0a5627a15fa7954f7062a0160257a",
+  "replacement_revision": 3
+}

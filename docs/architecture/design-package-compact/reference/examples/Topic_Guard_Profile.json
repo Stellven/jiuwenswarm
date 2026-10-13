@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "id": "profile:intent",
+  "criteria": [
+    "fidelity",
+    "consistency",
+    "requirements_usability"
+  ],
+  "synthetic": true,
+  "work_model_calls": 1,
+  "verifier_model_calls": 1,
+  "model_call_limit": 2,
+  "time_s": 180
+}

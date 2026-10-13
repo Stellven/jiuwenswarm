@@ -1,0 +1,6 @@
+{
+  "status": "superseded-before-participant-trials",
+  "reason": "Author final cross-record check replaced shorthand planning requirement IDs with actual accepted Brief IDs and added governing Brief reference/foreign-requirement regression. Identical fixture/checker correction in both inputs; no participant trials exist.",
+  "prior_manifest_sha256": "10867a009ee9399d00962cf707ebb966c675025141f58a0141c32521f458a28d",
+  "replacement_revision": 6
+}

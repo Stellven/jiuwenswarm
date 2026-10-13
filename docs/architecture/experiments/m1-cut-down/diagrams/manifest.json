@@ -1,0 +1,25 @@
+{
+  "renderer": "mermaid-cli 12.0.0",
+  "diagrams": [
+    {
+      "source": "m1-design.md",
+      "title": "System connections",
+      "anchor": "system-connections",
+      "mermaid_sha256": "11efe946ab5ce09d058bedadd9375338dd9250fe3f1183bae9f9547285bf5134",
+      "svg": "diagrams/m1-design-1.svg",
+      "svg_sha256": "7d07e3558b4966da91a18d20aefaa89b3890dfb1925b1f1ca007e50f63bf9cb7",
+      "png": "diagrams/m1-design-1.png",
+      "png_sha256": "ade238fe667a8d0a546f045ba0d776b3c8c956c4371cac9e2a63cce9ee69975f"
+    },
+    {
+      "source": "placement.md",
+      "title": "Container access",
+      "anchor": "container-access",
+      "mermaid_sha256": "0d79ca94afc94d5dc3a51f499f871ed78c0120005c399c53be6060146b2b5ad9",
+      "svg": "diagrams/placement-1.svg",
+      "svg_sha256": "79c1af9eddb595a32992f195467b23bd03e097bd9f28d225782c8212e57c8a1f",
+      "png": "diagrams/placement-1.png",
+      "png_sha256": "84aaa81452c2b2856553fa21fc01f7f0f6cebb1cff2cd97b9828f217ded94bb1"
+    }
+  ]
+}

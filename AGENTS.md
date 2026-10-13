@@ -3,12 +3,29 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 
 ## Entry points
 - [Code SOP v2](docs/code/Code_SOP.md)
-- [Future M1 TASKS](docs/code/Missions/M1/TASKS.md)
+- M1 coding registration is pending on this branch: create or reconcile the task register under [Code SOP v2](docs/code/Code_SOP.md).
+- [Current PRD and architecture reading package](docs/architecture/design-package/README.md)
+- [Current complete Intention Compiler build](docs/architecture/design-package/immediate-plan.md)
+- [Canonical vocabulary and PRD crosswalk](docs/architecture/design-package/glossary.md)
 - [Spec Kit workflow](docs/code/SPEC_KIT_WORKFLOW.md)
 - [Verification method](docs/code/VERIFICATION.md)
 - [Constitution](.specify/memory/constitution.md)
 - Historical environment facts: docs/governance/ENVIRONMENT.md.
 - Historical task: docs/code/Missions/AI4R-001/TASK.md; it is not the future-M1 register.
+
+## Product and design authority
+
+The sole maintained full architecture is `docs/architecture/design-package/`. The matched reduced-explanation version is `docs/architecture/design-package-compact/`; it retains identical authoritative contracts, source decisions and M1 scope. These user-selected names replace the former build-package path. Maintain architectural decisions in the full package and synchronize the compact version. In a paired trial, use only the assigned package; no parallel architecture authority is created. Versioned full-M1 compression experiments are registered in `docs/architecture/experiments/README.md`; use only the assigned frozen input. The October 8 pair is `m1-contract-review-2026-10-08/{full,compact}/`. The original `m1-full-baseline/` and `m1-cut-down/` pair remains frozen under its original protocol. Use it only when assigned; it is not a second maintained architecture. Paired participants must use only their assigned snapshot and cannot consult other architecture.
+
+The `docs/architecture/design-package/development-tools/` subtree contains separately scoped development tooling design. Start with `development-tools/sidecar/README.md` for reusable diagnostics and validation; the test runner is its narrower client-validation role. Product startup and milestone exits must not depend on sidecar implementation. Development tools and credentials are unavailable to product agents and CCs. It is excluded from M1 product/design input and automatic TASKS or Spec Kit allocation. Tooling implementation requires a separate explicit scope; AI4Research interface changes follow the existing product change process.
+
+The PRD owns overall product requirements and outcomes. The maintained design interprets them and owns architecture and implementation-facing details; prefer the current design when implementation guidance conflicts. Product-obligation changes require recorded authorized decisions.
+
+For M1 work, read only `docs/architecture/design-package/` as maintained product/design input, starting with its overview and decisions plus the separately supplied PRD, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
+
+The current bounded build is the complete Intention Compiler node through accepted Research Brief, including required foundations. The earlier Intent Compilation and Verification Slice (formerly TRIAL-1) remains historical in frozen inputs. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
+
+Local Obsidian-compatible working notes may live in `docs/architecture/notes/`, which is Git-ignored and excluded from main delivery. Notes retain context and open ideas, not implementation authority; promote material architecture decisions into the maintained design. Keep personal pane/session state local while retaining shared vault settings.
 
 ## Working rules
 1. Follow TASKS -> TASK -> one registered Spec Kit directory per TASK. Read applicable AGENTS, the exact source clauses, agreements, native spec/plan/tasks and existing callers/tests before implementation.

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "RSI_Child_Candidate",
+  "declaration_ref": {
+    "id": "Ranking_Child_Declaration.json",
+    "sha256": "ee7ec68b3bc89200463500c28ec945a4c0a5628e563ea0474c836abe7b4abe06"
+  },
+  "implementation_refs": [
+    {
+      "id": "Ranking_Child.txt",
+      "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+    }
+  ],
+  "parent_ref": {
+    "id": "Ranking_Parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "builder_ref": {
+    "id": "RSI_Attempt_01.json",
+    "sha256": "b0e8e05c7c40a5e52835b172e57c548a6a64fe2e02e1eba7095cdecaa8149afb"
+  },
+  "evidence_refs": [
+    {
+      "id": "RSI_Referee_Evidence.json",
+      "sha256": "2b854ca94334520e88e16570347b3ea41f606c755b3242e2cd85757212568543"
+    },
+    {
+      "id": "RSI_Evidence_Export.json",
+      "sha256": "104e1631c145f242503324a15fdee358f73337ccb1b107781985489d27af56d2"
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

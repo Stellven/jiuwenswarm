@@ -1,0 +1,145 @@
+{
+  "schema_version": "2.0.0",
+  "intent_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+  },
+  "objective": {
+    "id": "objective:latency",
+    "text": "Investigate lower baseline retrieval latency while preserving answer quality",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "Intent_IR.json",
+        "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+      }
+    ]
+  },
+  "in_scope": [
+    {
+      "id": "scope:baseline",
+      "text": "Supplied data lake baseline",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        }
+      ]
+    }
+  ],
+  "out_of_scope": [],
+  "mandatory_requirements": [
+    {
+      "id": "requirement:latency",
+      "text": "Evaluate an intervention intended to reduce retrieval latency",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        }
+      ]
+    },
+    {
+      "id": "requirement:quality",
+      "text": "Preserve answer quality",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        }
+      ]
+    }
+  ],
+  "optional_preferences": [],
+  "constraints": [
+    {
+      "id": "constraint:gpu",
+      "text": "One GPU",
+      "category": "hardware",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        }
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": 1,
+      "unit": "gpu",
+      "operator": "le"
+    }
+  ],
+  "target_metrics": [
+    {
+      "id": "target:quality",
+      "metric": "answer quality",
+      "target_text": "preserve answer quality",
+      "source_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        }
+      ],
+      "origin": "user",
+      "requirement_ids": [
+        "requirement:quality"
+      ],
+      "unit": null,
+      "comparison": null
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "deliverable:report",
+      "name": "Research_Report.md",
+      "description": "Reproducible baseline/treatment comparison and outcome",
+      "artifact_type": "research_report"
+    }
+  ],
+  "acceptance_expectations": [
+    {
+      "id": "acceptance:comparison",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "description": "Report matched measurements and whether the registered experiment met the user objective"
+    }
+  ],
+  "evidence_obligations": [
+    {
+      "id": "evidence:comparison",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "description": "Registered protocol, raw execution evidence and baseline/treatment values"
+    }
+  ],
+  "assumptions": [],
+  "unresolved_items": [],
+  "resource_refs": [],
+  "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+      {
+        "id": "Request.txt",
+        "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+      },
+      {
+        "id": "Default_Policy.json",
+        "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+      }
+    ]
+  },
+  "intake_ref": {
+    "id": "Qualified_Intake.json",
+    "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+  },
+  "context_refs": [],
+  "domain_lane": "scientific_research",
+  "input_bindings": []
+}

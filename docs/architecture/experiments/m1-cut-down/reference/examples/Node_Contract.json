@@ -1,0 +1,21 @@
+{
+  "id": "node-contract:intent",
+  "run_id": "run:example",
+  "node_id": "intent",
+  "attempt_id": "attempt:1",
+  "objective": "Produce faithful and usable Intent",
+  "input_refs": [
+    {
+      "id": "Request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+    }
+  ],
+  "required_outputs": [
+    "intent-ir"
+  ],
+  "guard_profile": "intent-fidelity-and-usability",
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+  }
+}

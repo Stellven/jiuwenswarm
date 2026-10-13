@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "id": "decision:intent",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:example",
+  "node_id": "intent",
+  "attempt_id": "attempt:1",
+  "contract_ref": {
+    "id": "Node_Contract.json",
+    "sha256": "f1a22cd942535b58820be4f10c5a4e600dc78955083158e4fd10ac02f6a60c1e"
+  },
+  "invocation_refs": [
+    {
+      "id": "Invocation_Observation.json",
+      "sha256": "6bbe79f3e3515d84cd5e387f6c562209c0e049cd130db41c48a53ffddb09a00c"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+  },
+  "check_plan_ref": {
+    "id": "Check_Plan.json",
+    "sha256": "cd9bdf30a8e8d93953710dc5fdab56ae1ac349d58ddf3836fdad428ea27226c1"
+  },
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "803af45be2692f94ea466619d9ccf7983cbed032f3e322583c847f1a61c94384"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "Intent_Checks.json",
+    "sha256": "faa9b4c5c20bd7786a5168d212a42597a41dd8a002197bb13703333c4a4051a5"
+  },
+  "assessment_ref": {
+    "id": "Intent_Assessment.json",
+    "sha256": "59b9c76715700fce4513650d13ee529c885282161ed257f7c34d53b985f5e484"
+  },
+  "verdict": "PASS",
+  "reasons": [
+    {
+      "code": "INTENT_USABLE",
+      "message": "Synthetic usable meaning; all required example criteria pass",
+      "criterion_ids": [
+        "fidelity",
+        "consistency",
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Intent_Assessment.json",
+          "sha256": "59b9c76715700fce4513650d13ee529c885282161ed257f7c34d53b985f5e484"
+        }
+      ]
+    }
+  ],
+  "action": "advance",
+  "accepted_refs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    }
+  ]
+}

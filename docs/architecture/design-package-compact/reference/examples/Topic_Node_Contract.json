@@ -1,0 +1,181 @@
+{
+  "schema_version": "2.0.0",
+  "id": "node-contract:intention.compiler",
+  "run_id": "run:topic",
+  "node_id": "intention.compiler",
+  "attempt_id": "attempt:topic",
+  "revision": 1,
+  "objective": "Produce a faithful, usable accepted Research Brief from qualified intake",
+  "requirement_ids": [
+    "fixed:intention.compiler"
+  ],
+  "inputs": [
+    {
+      "name": "request",
+      "contract_id": "qualified-intake:field-contract:2",
+      "version": "2.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Topic_Qualified_Intake.json",
+          "sha256": "7b1a06e09dc2c1c6148662415255c0d9f7a75e5eaa2abc178cc90d44c6d6877c"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "brief",
+      "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+      "version": "2.0.0",
+      "required": true
+    }
+  ],
+  "input_refs": [
+    {
+      "id": "Topic_Qualified_Intake.json",
+      "sha256": "7b1a06e09dc2c1c6148662415255c0d9f7a75e5eaa2abc178cc90d44c6d6877c"
+    }
+  ],
+  "required_outputs": [
+    "research-brief"
+  ],
+  "evidence_obligations": [
+    "accepted_intent",
+    "accepted_requirements",
+    "complete_check_and_invocation_records"
+  ],
+  "guard_profile_ref": {
+    "id": "Node_Finalization_Profile.json",
+    "sha256": "e5c7f4b93a4d3d91d1b33ee44a97abb52b9d72fd2dcb7d0023537a81222fca91"
+  },
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+  },
+  "template_ref": {
+    "id": "Node_Template.json",
+    "sha256": "2e9063b7ce3166f16b27dacc0fbcbd3dbeb00c0fada80dda71b5079a880a4320"
+  },
+  "node_limits": {
+    "time_s": 360,
+    "model_calls": 4,
+    "memory_mb": 1024
+  },
+  "authority_ceiling": {
+    "network": "none",
+    "network_allowlist": [],
+    "resource_reads": [
+      {
+        "id": "Topic_Qualified_Intake.json",
+        "sha256": "7b1a06e09dc2c1c6148662415255c0d9f7a75e5eaa2abc178cc90d44c6d6877c"
+      },
+      {
+        "id": "Default_Policy.json",
+        "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+      }
+    ],
+    "write_roots": [
+      "candidate-output",
+      "assessment-output"
+    ],
+    "tools": [
+      "audited-model-bridge"
+    ]
+  },
+  "subnodes": [
+    {
+      "subnode_id": "intention",
+      "role": "work",
+      "template_ref": {
+        "id": "Intention_Subnode_Template.json",
+        "sha256": "2f889cbbdf1bd72b622d44f9ac3f240bd772eb6aa392687cb5da05b0ab01ebc5"
+      },
+      "capsule_ref": {
+        "id": "Capsule_Declaration.json",
+        "sha256": "402e70710244fdff27e4488f41036bb250a4e31ecb0eafa99bfb418649aae1ec"
+      },
+      "depends_on": [],
+      "required": true
+    },
+    {
+      "subnode_id": "intention.verifier",
+      "role": "verifier",
+      "template_ref": {
+        "id": "Verifier_Subnode_Template.json",
+        "sha256": "11d76aa1dbf7256e420a7ccbb2dff958895f994e22e752a5806dea31135b654c"
+      },
+      "capsule_ref": {
+        "id": "Verifier_Capsule.json",
+        "sha256": "a05db8992de81e489df516e28112e047a2b50a7d1876a99a64b7b8a931d8a649"
+      },
+      "depends_on": [
+        "intention"
+      ],
+      "required": true
+    },
+    {
+      "subnode_id": "requirements",
+      "role": "work",
+      "template_ref": {
+        "id": "Requirements_Subnode_Template.json",
+        "sha256": "978805da93a3f9f8db4a4144330397aa712d798b582cd4ce9b9d9bf1d06a37a6"
+      },
+      "capsule_ref": {
+        "id": "Requirements_Capsule.json",
+        "sha256": "a6253479932152b0559d4997be83871326c921ac4488f3ff388948c1eb766987"
+      },
+      "depends_on": [
+        "intention",
+        "intention.verifier"
+      ],
+      "required": true
+    },
+    {
+      "subnode_id": "requirements.verifier",
+      "role": "verifier",
+      "template_ref": {
+        "id": "Verifier_Subnode_Template.json",
+        "sha256": "11d76aa1dbf7256e420a7ccbb2dff958895f994e22e752a5806dea31135b654c"
+      },
+      "capsule_ref": {
+        "id": "Verifier_Capsule.json",
+        "sha256": "a05db8992de81e489df516e28112e047a2b50a7d1876a99a64b7b8a931d8a649"
+      },
+      "depends_on": [
+        "requirements"
+      ],
+      "required": true
+    }
+  ],
+  "gate_assignments": [
+    {
+      "gate_id": "gate:intention",
+      "subject_subnode_id": "intention",
+      "profile_ref": {
+        "id": "Guard_Profile.json",
+        "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+      }
+    },
+    {
+      "gate_id": "gate:requirements",
+      "subject_subnode_id": "requirements",
+      "profile_ref": {
+        "id": "Requirements_Guard_Profile.json",
+        "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6"
+      }
+    },
+    {
+      "gate_id": "gate:node",
+      "subject_subnode_id": "requirements",
+      "profile_ref": {
+        "id": "Node_Finalization_Profile.json",
+        "sha256": "e5c7f4b93a4d3d91d1b33ee44a97abb52b9d72fd2dcb7d0023537a81222fca91"
+      }
+    }
+  ]
+}

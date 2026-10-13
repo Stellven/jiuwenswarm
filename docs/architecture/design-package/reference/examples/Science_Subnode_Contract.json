@@ -1,0 +1,159 @@
+{
+  "id": "subnode-contract:evaluation",
+  "run_id": "run:science",
+  "node_id": "scientific.evaluation",
+  "attempt_id": "attempt:science",
+  "objective": "Apply registered scientific criteria",
+  "input_refs": [
+    {
+      "id": "Lifecycle_Research_Brief.json",
+      "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+    },
+    {
+      "id": "Hypothesis_Blueprint.json",
+      "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
+    },
+    {
+      "id": "Benchmark_Payload.json",
+      "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
+    }
+  ],
+  "required_outputs": [
+    "evaluation-verdict"
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "schema_version": "1.0.0",
+  "revision": 1,
+  "requirement_ids": [
+    "requirement:latency",
+    "requirement:quality"
+  ],
+  "bindings": [
+    {
+      "id": "binding:scientific.evaluation",
+      "role": "scientific.evaluation",
+      "declaration_ref": {
+        "id": "Evaluation_Capsule.json",
+        "sha256": "b0129b66020c317f90090283864517f17de12477698c26b32a9e72047d58fec6"
+      },
+      "implementation_refs": [
+        {
+          "id": "Intent_Implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        }
+      ],
+      "dependency_refs": [],
+      "admission_ref": {
+        "id": "Synthetic_Admission.json",
+        "sha256": "ad6b207f1e9419c4f7605c16cd8ce4baa659546259aa3bbe56a2789c669c99ff"
+      },
+      "effective_authority": {
+        "network": "none",
+        "network_allowlist": [],
+        "resource_reads": [
+          {
+            "id": "Lifecycle_Research_Brief.json",
+            "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+          },
+          {
+            "id": "Hypothesis_Blueprint.json",
+            "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
+          },
+          {
+            "id": "Benchmark_Payload.json",
+            "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
+          }
+        ],
+        "write_roots": [
+          "candidate-output"
+        ],
+        "tools": [
+          "audited-model-bridge"
+        ]
+      },
+      "limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 512
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "brief",
+      "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+      "version": "2.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Lifecycle_Research_Brief.json",
+          "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+        }
+      ]
+    },
+    {
+      "name": "blueprint",
+      "contract_id": "hypothesis-blueprint:field-contract:1",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Hypothesis_Blueprint.json",
+          "sha256": "e23de7199c64e3f9f733d60021b91312607158d3d69353965096ece47480072d"
+        }
+      ]
+    },
+    {
+      "name": "measurements",
+      "contract_id": "benchmark-payload:field-contract:1",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "Benchmark_Payload.json",
+          "sha256": "961253a078203cbdc4f63b18db4b264f9a1b3d84e01a255b404868cbcb7b02e3"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "verdict",
+      "contract_id": "evaluation-verdict:field-contract:1",
+      "version": "1.0.0",
+      "required": true
+    }
+  ],
+  "evidence_obligations": [
+    "captured_input_and_output",
+    "invocation_observation",
+    "mandatory_checks",
+    "semantic_assessment",
+    "independently_budgeted_guard_observation"
+  ],
+  "guard_profile_ref": {
+    "id": "Science_Guard_Profile.json",
+    "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+  },
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+  },
+  "template_ref": {
+    "id": "Science_Subnode_Template.json",
+    "sha256": "41cea9632444b17fc92d05631d2c07d5041d7cfe0f349da3fc92976706be5908"
+  },
+  "subnode_id": "evaluation",
+  "node_contract_ref": {
+    "id": "Science_Node_Contract.json",
+    "sha256": "845d82285237640a19e535cb4f35d84a211b2bbdc42666f597cf67381a71f499"
+  },
+  "subnode_limits": {
+    "time_s": 120,
+    "model_calls": 1,
+    "memory_mb": 512
+  }
+}

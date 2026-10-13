@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "id": "Delivery_Manifest",
+  "brief_ref": {
+    "id": "Lifecycle_Research_Brief.json",
+    "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+  },
+  "verdict_ref": {
+    "id": "Evaluation_Verdict.json",
+    "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+  },
+  "report_ref": {
+    "id": "Research_Report.md",
+    "sha256": "e3d6954bc8954ec6163f973fd167cd3bcbd50aef3ee929ef98a02b4698560a9d"
+  },
+  "artifact_refs": [
+    {
+      "id": "Candidate_Set.json",
+      "sha256": "03e889c59cead09b6cf963a039a51f8e69e29ca340db9f370cd4679f24fec8e0"
+    },
+    {
+      "id": "Screening_Result.json",
+      "sha256": "329b321724ac4563cd2e4001b5697041a74dee724d01bbf3fdf2789c72792e92"
+    },
+    {
+      "id": "Opportunity_Card.json",
+      "sha256": "29c960ac3abc31d38fd8b50df676881cd10611d8104e3b89c65db67f685391f7"
+    },
+    {
+      "id": "Hypothesis_Blueprint.json",
+      "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+    },
+    {
+      "id": "POC_Manifest.json",
+      "sha256": "0df41c5d8c3291fe4ff322a70ef7330a394129b7cd63e270ae39011b5eb01e50"
+    },
+    {
+      "id": "Benchmark_Payload.json",
+      "sha256": "302f881151d8c63086d2f3f4af487b89c525ac81f9aecea6d1855ef573344676"
+    },
+    {
+      "id": "Evaluation_Verdict.json",
+      "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+    }
+  ],
+  "files": [
+    {
+      "path": "Research_Report.md",
+      "artifact_ref": {
+        "id": "Research_Report.md",
+        "sha256": "e3d6954bc8954ec6163f973fd167cd3bcbd50aef3ee929ef98a02b4698560a9d"
+      },
+      "media_type": "text/markdown",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "Evaluation_Verdict.json",
+      "artifact_ref": {
+        "id": "Evaluation_Verdict.json",
+        "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+      },
+      "media_type": "application/json",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "Hypothesis_Blueprint.json",
+      "artifact_ref": {
+        "id": "Hypothesis_Blueprint.json",
+        "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+      },
+      "media_type": "application/json",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "Benchmark_Payload.json",
+      "artifact_ref": {
+        "id": "Benchmark_Payload.json",
+        "sha256": "302f881151d8c63086d2f3f4af487b89c525ac81f9aecea6d1855ef573344676"
+      },
+      "media_type": "application/json",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "POC_Artifact_Bundle.zip",
+      "artifact_ref": {
+        "id": "POC_Artifact_Bundle.zip",
+        "sha256": "cc9f4685f792cd9a081fc346914b42d25c9af9505e195ce48b2e144cb79b55f0"
+      },
+      "media_type": "application/zip",
+      "audience": "authorized researcher"
+    }
+  ],
+  "missing_evidence": [],
+  "ext": {
+    "example.synthetic": true
+  }
+}

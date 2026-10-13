@@ -1,0 +1,6 @@
+{
+  "status": "superseded-before-participant-trials",
+  "reason": "Final field/prose consistency check found token/cost usage information missing from the invocation observation field contract. Both input conditions receive the same fix. No trial outcomes exist for the earlier freeze.",
+  "prior_manifest_sha256": "ff107495d2b4c414354e695dde24c4978a5787232acc945aaee8fba2bab7fa65",
+  "replacement_revision": 2
+}

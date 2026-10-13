@@ -1,0 +1,34 @@
+{
+  "schema_version": "2.0.0",
+  "id": "intake:permissible-omissions",
+  "request_ref": {
+    "id": "Request_Permissible_Omissions.txt",
+    "sha256": "dc8f1655124edd64adb899ffd907e3cc359ae4a947f0f32f84b7991ac662706b"
+  },
+  "source_refs": [],
+  "offset_basis": "Unicode code points",
+  "resource_refs": [
+    {
+      "id": "Baseline_Resource.json",
+      "sha256": "2b6d4163b9d6691c52d3efeaf1efef14eac069b363d20816038d350f3bceb0fb"
+    },
+    {
+      "id": "Validation_Resource.json",
+      "sha256": "1d62ec86c4ed555a9d15caa8e886d8bdce2971c6c9f87a2cb184682baddc4406"
+    }
+  ],
+  "rejected_inputs": [],
+  "user_id": "user:example",
+  "profile_ref": {
+    "id": "Local_Profile.json",
+    "sha256": "c000f23e9d5e6fdeeca31b63a2bcd0897eae47d61bc352604544ea96c296a57c"
+  },
+  "workspace_ref": {
+    "id": "Workspace.json",
+    "sha256": "ef1126beeb8d8b872b0d756e148b7ce2fab7cfa6627c1991e64dafd8bd304eca"
+  },
+  "input_directory_ref": {
+    "id": "Qualified_Input_Directory.json",
+    "sha256": "85172dc64bf4fe8cae3dd3b4a0bd54b4ced83c9303a5c4b4a747c8feeea9b33d"
+  }
+}

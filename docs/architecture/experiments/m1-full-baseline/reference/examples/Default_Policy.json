@@ -1,0 +1,8 @@
+{
+  "id": "policy:example",
+  "version": "1.0.0",
+  "allowed_defaults": {
+    "repeat_count": 3
+  },
+  "automatic_retries": 0
+}

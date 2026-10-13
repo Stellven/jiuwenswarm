@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "Intent_IR.json",
+    "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+  },
+  "review_context_ref": {
+    "id": "Review_Context.json",
+    "sha256": "06acf185e66a7896dfc7aeffe6e62b283330f6d913d4b6623af469243b38fe1b"
+  },
+  "verdict": "PASS",
+  "findings": [
+    {
+      "criterion_id": "fidelity",
+      "outcome": "PASS",
+      "reason": "Preserves supplied purpose, resource scope and requested report",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Request.txt",
+          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+        }
+      ]
+    },
+    {
+      "criterion_id": "consistency",
+      "outcome": "PASS",
+      "reason": "No contradictory required obligations",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Request.txt",
+          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+        }
+      ]
+    },
+    {
+      "criterion_id": "requirements_usability",
+      "outcome": "PASS",
+      "reason": "Purpose and requested result are sufficient; experimental methods remain downstream",
+      "evidence_refs": [
+        {
+          "id": "Intent_IR.json",
+          "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+        },
+        {
+          "id": "Request.txt",
+          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+        }
+      ]
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Synthetic teaching example, not calibrated model evidence"
+  ],
+  "required_correction": null
+}

@@ -1,0 +1,6 @@
+{
+  "status": "superseded-before-participant-trials",
+  "reason": "Focused independent revalidation found one stale multi-CC sentence in immediate principles and stale immediate-route measurement metadata. Same scope correction in both conditions; updated audit receipt/counts and explicit immediate-word drift checking. All five substantive review findings resolved by repair or user-confirmed M1 deferral. No participant trials exist.",
+  "prior_manifest_sha256": "90c960d5394e1bee540f82b1f5fae5c8bf05bfa45a57d6232681c6856a6f214d",
+  "replacement_revision": 5
+}

@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0.0",
+  "id": "configuration:example",
+  "model": "synthetic teaching endpoint",
+  "seed": 42,
+  "synthetic": true
+}

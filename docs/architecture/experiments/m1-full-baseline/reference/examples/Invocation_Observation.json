@@ -1,0 +1,24 @@
+{
+  "id": "invocation:intent",
+  "contract_ref": {
+    "id": "Node_Contract.json",
+    "sha256": "56cecd67bd3e1041517b0cdb9bbf15fa1743edb379a40fe2f5c56de86c5b5f64"
+  },
+  "outcome": "synthetic_example",
+  "inputs": [
+    {
+      "id": "Request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "Intent_IR.json",
+      "sha256": "2ffb2b964591422f175467c6b6d5ed545f5cc2f9558adb3b4b4d51dc7fe763c0"
+    }
+  ],
+  "observed_runtime": false,
+  "limitations": [
+    "No runtime execution is claimed"
+  ]
+}

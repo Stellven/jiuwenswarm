@@ -1,0 +1,59 @@
+{
+  "schema_version": "2.0.0",
+  "id": "gate:no-output",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:example",
+  "node_id": "intention.compiler",
+  "attempt_id": "attempt:1",
+  "contract_ref": {
+    "id": "Intention_Subnode_Contract.json",
+    "sha256": "da6242e2d7818e4f0da5373e9977e278f3a2740c709a3d9d1b7e829a2e8d5aa8"
+  },
+  "invocation_refs": [],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "check_plan_ref": {
+    "id": "Check_Plan.json",
+    "sha256": "1f45c9273b4e26d2863c04f9b94d679b19604661ea2bf0d0a835913e0acb745d"
+  },
+  "input_refs": [
+    {
+      "id": "Qualified_Intake.json",
+      "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+    }
+  ],
+  "output_refs": [],
+  "deterministic_result_ref": {
+    "id": "Compiler_No_Output_Checks.json",
+    "sha256": "0d67af5a85e89f843eeb8ecbd0f337ed2bdc18116f12e8c1752800f0790265de"
+  },
+  "assessment_ref": null,
+  "verdict": "ENVIRONMENT_BLOCKED",
+  "reasons": [
+    {
+      "code": "COMPILER_NO_OUTPUT",
+      "message": "Compiler did not complete; halt before verifier dispatch",
+      "criterion_ids": [
+        "structure",
+        "exact_identity"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Compiler_Failure_Receipt.json",
+          "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+        }
+      ]
+    }
+  ],
+  "action": "halt",
+  "accepted_refs": [],
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "a7efc03ae33441be12a38fcfba0741935f5c4c3ad50be138c98545b0f22f52d4"
+  },
+  "subnode_id": "intention",
+  "scope_kind": "subnode",
+  "internal_decision_refs": []
+}
