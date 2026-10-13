@@ -17,6 +17,10 @@ The [Intention Compiler entrypoint](design-package/builds/intention-compiler/REA
 
 ## Experiments and evidence
 
-The [experiment registry](experiments/README.md) identifies dated inputs, protocols, delivery receipts and prepared benchmark designs. Use the [October 13 delivery receipt](experiments/design-package-delivery-2026-10-13/README.md) for the latest maintained pair. Frozen comparisons retain their recorded versions; later edits to the maintained packages do not update those inputs. Documentation checks establish package consistency, not agent quality or runtime acceptance.
+The [experiment registry](experiments/README.md) identifies dated inputs, protocols, delivery receipts and prepared benchmark designs. Use the [routing-integration delivery receipt](experiments/design-package-routing-integration-2026-10-13/README.md) for the latest maintained pair. Frozen comparisons retain their recorded versions; later edits to the maintained packages do not update those inputs. Documentation checks establish package consistency, not agent quality or runtime acceptance.
 
 Local notes are outside the shared review package. Promote material decisions into the maintained design. Optional provenance remains in [pinned history](design-package/history.md).
+
+## Model-routing owner integration
+
+The [routing overview](design-package/model-routing.md) connects the separate router design and catalog to one [shared Capsule–routing contract](design-package/reference/capsule-model-routing.md). Architecture owns binding, permissions and dispatch; the model-routing owner owns selection, provider integration and routing evidence. Phase 1 remains fixed Codex; APIs belong to Phase 3. The current product receipt identifies confirmed PRD (4).

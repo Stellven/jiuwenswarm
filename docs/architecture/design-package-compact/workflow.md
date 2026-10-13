@@ -37,3 +37,5 @@ Freeze exact library/dependency/guard/profile/policy/config pins and templates. 
 M1 uses one work CC per subnode; additional work CCs use separate gated subnodes within their declared node, and verifiers remain separate checking assignments. Composite CC execution, arbitrary intra-capsule dispatch and merging remain later work; fixed node subnodes are supported. Protected aggregate node acceptance releases successors. Scheduler uses durable readiness; native memory/cache/queue is not acceptance. Single active research run and one sequential scientific path; no automatic repair, replay, replan or runtime library substitution.
 
 Timeout/security/verification/persistence failure stops new dispatch and contains active work; preserve uncertainty/effects. Human correction starts linked fresh work with new freeze/checks. Scientific negative is not an infrastructure fault. [Contracts](reference/other-contracts.md) and [failure policy](failure-and-human.md) supply fields/outcomes.
+
+Current PRD (4) authorizes architecture-owned internal sequencing for the bounded non-interactive compiler. D5 is source-aligned; prior one-generation exceptions describe earlier inputs.

@@ -46,7 +46,7 @@ RSI operates separately from live research. It changes only allowed implementati
 
 ## Decisions and source amendments
 
-[Decision history and review reasoning](decision-review.md) retain D1–D18 and the new contract/reading choices. D5 authorizes the fixed, bounded multi-pass compiler sequence. D6 authorizes the bundled Docker/SQLite realization. Both differ from literal received PRD clauses. They are visible exceptions, not silently claimed compliance.
+[Decision history and review reasoning](decision-review.md) retain D1–D18 and the new contract/reading choices. D5 retains the fixed, bounded multi-pass compiler sequence, now aligned with the confirmed PRD (4). D6 retains the authorized bundled Docker/SQLite realization and its recorded source departure. Their source status and rationale remain visible.
 
 ## Required now and later
 

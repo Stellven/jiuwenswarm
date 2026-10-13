@@ -43,3 +43,7 @@ October 8 contract review adds the previously prose-only Node Execution Contract
 Required information, meaning, consumer, ownership and failure behavior belong in concise tables. Exact schemas are reserved for critical cross-agent serialization and authority: Intent IR, Research Brief, declaration and execution/verification records. Do not generate a schema for every datatype. Implementation agents select private representations and types within the shared contract; changing consequential interchange requires one reconciled interface agreement.
 
 October 8 node/subnode revision: Research Brief and gate schemas are `2.0.0`; the old CC-sized node schema is replaced by the explicit Subnode Execution Contract `1.0.0`. The enclosing node is a field contract, not another large JSON schema. Other public fields are versioned individually. Earlier receipts above describe earlier inputs and do not claim compatibility with this revision.
+
+## Capsule and model routing
+
+Use the [shared integration contract](capsule-model-routing.md) for trusted exports, protected profiles, frozen decisions and call provenance.

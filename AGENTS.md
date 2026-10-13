@@ -27,6 +27,8 @@ The current bounded build is the complete Intention Compiler node through accept
 
 Local Obsidian-compatible working notes may live in `docs/architecture/notes/`, which is Git-ignored and excluded from main delivery. Notes retain context and open ideas, not implementation authority; promote material architecture decisions into the maintained design. Keep personal pane/session state local while retaining shared vault settings.
 
+The [Capsule–model-routing agreement](docs/architecture/design-package/reference/capsule-model-routing.md) owns the protected selected-Capsule export, model-selection profile, frozen decision and call provenance. The routing owner maintains the separate component design/catalog; the architecture owner maintains shared authority and dispatch boundaries. Phase 1 stays fixed Codex; the API-only module is Phase 3. Current product input is the confirmed PRD (4), identified by [product navigation](docs/product/README.md). Declaration schema 1.0.0 is unchanged.
+
 ## Working rules
 1. Follow TASKS -> TASK -> one registered Spec Kit directory per TASK. Read applicable AGENTS, the exact source clauses, agreements, native spec/plan/tasks and existing callers/tests before implementation.
 2. TASKS owns source allocation and task dependencies. TASK owns identity, executor, scope and cross-module agreements. spec.md owns ACs; plan.md owns technical/block design and verification procedures; tasks.md owns work/progress and AC-to-evidence correspondence.

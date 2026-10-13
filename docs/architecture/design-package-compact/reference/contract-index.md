@@ -39,7 +39,7 @@ Find the shared fields and purpose here. [Compiler build](../builds/intention-co
 | hypothesis-blueprint | 1.0.0 | [Fields](field-catalog.md#hypothesis-blueprint) | Hypothesis CC → Builder, Benchmark, Evaluation, checking |
 | invocation-observation | 2.0.0 | [Fields](field-catalog.md#invocation-observation) | protected runner → gate, review, Run Bundle |
 | library-admission | 1.0.0 | [Fields](field-catalog.md#library-admission) | protected library admission → eligibility, human |
-| model-route | 1.0.0 | [Fields](field-catalog.md#model-route) | protected router → audited bridge, observations |
+| model-route | 2.0.0 | [Fields](capsule-model-routing.md#model-route) | protected router/static adapter → audited bridge, runner, observations | [Examples](examples/README.md) |
 | node-execution-contract | 2.0.0 | [Fields](field-catalog.md#node-execution-contract) | protected node binder → subnode binder, runner, node gate, inspection |
 | opportunity-card | 1.0.0 | [Fields](field-catalog.md#opportunity-card) | Screening CC → Hypothesis, checking |
 | plan-proposal | 2.0.0 | [Fields](field-catalog.md#plan-proposal) | static template or bounded planner → binder, plan checking |
@@ -56,3 +56,11 @@ Find the shared fields and purpose here. [Compiler build](../builds/intention-co
 | scorecard | 1.0.0 | [Fields](field-catalog.md#scorecard) | derived observation builder → analysis, planner |
 | screening-result | 1.0.0 | [Fields](field-catalog.md#screening-result) | Screening CC and deterministic helper → selection, checking, RSI |
 | security-clearance | 1.0.0 | [Fields](field-catalog.md#security-clearance) | authorized security human through protected RSI controller → new-session eligibility, audit |
+
+| selected-capsule-input | 1.0.0 | [Fields](capsule-model-routing.md#selected-capsule-input) | protected binder/runner → router/static adapter | [Examples](examples/README.md) |
+
+| model-selection-profile | 1.0.0 | [Fields](capsule-model-routing.md#model-selection-profile) | protected configuration owner → binder, router/static adapter, bridge | [Examples](examples/README.md) |
+
+| route-request | 1.0.0 | [Fields](capsule-model-routing.md#route-request) | protected upstream routing adapter → router/static adapter | [Examples](examples/README.md) |
+
+| model-call | 1.0.0 | [Fields](capsule-model-routing.md#model-call) | governed bridge/audit writer → observations, Run Bundle, authorized inspection | [Examples](examples/README.md) |

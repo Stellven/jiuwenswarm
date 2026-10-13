@@ -273,6 +273,15 @@ for mode in ('subject', 'scope', 'acceptance', 'missing_assessment'):
 field_catalog = load(REF / 'field-contracts.json')
 interfaces = {item['id']: item for item in field_catalog['interfaces']}
 types = field_catalog['types']
+interface_types = {item['type_name']: item for item in field_catalog['interfaces'] if item.get('type_name')}
+primitive_types = {'string','integer','number','boolean','sha256','object'}
+def contract_view(item):
+    mapping = next(x for x in catalog['interfaces'] if x['id'] == item['id'])
+    target = (REF / mapping['document'].split('#')[0]).resolve()
+    if not target.is_relative_to(REF.resolve()) or not target.is_file():
+        require(False, 'Missing/escaping authoritative contract view')
+        return ''
+    return target.read_text(encoding='utf-8')
 require(len(interfaces) == len(field_catalog['interfaces']), 'Duplicate field-contract ID')
 require(set(interfaces) == {x['id'] for x in catalog['interfaces']}, 'Catalog/field interface mismatch')
 known_contracts = set(schemas) | set(interfaces)
@@ -302,13 +311,16 @@ def type_errors(value, kind, prefix):
         return [] if value is None else type_errors(value, kind[9:], prefix)
     if kind.endswith('[]'):
         return sum((type_errors(x, kind[:-2], prefix + '[]') for x in value), []) if isinstance(value, list) else [prefix + ': expected array']
+    if kind in interface_types:
+        return field_errors(value, interface_types[kind]['fields'], prefix)
     if kind in types:
         return field_errors(value, types[kind]['fields'], prefix)
     valid = {'string': isinstance(value, str) and bool(value),
              'sha256': isinstance(value, str) and bool(re.fullmatch(r'[0-9a-f]{64}', value)),
              'integer': isinstance(value, int) and not isinstance(value, bool),
              'number': isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value),
-             'boolean': isinstance(value, bool)}
+             'boolean': isinstance(value, bool),
+             'object': isinstance(value, dict)}
     return [] if valid.get(kind, False) else [prefix + ': invalid ' + kind]
 
 for item in index:
@@ -318,7 +330,7 @@ for item in index:
         errors.extend(field_errors(load(EX / item['path']), contract['fields'], item['path']))
 for item in field_catalog['interfaces']:
     for info in item['fields'].values():
-        require(info['type'].removeprefix('nullable-').removesuffix('[]') in set(types) | {'string','integer','number','boolean','sha256'}, 'Unknown field type')
+        require(info['type'].removeprefix('nullable-').removesuffix('[]') in set(types) | set(interface_types) | primitive_types, 'Unknown field type')
     require(bool(item['failure']) and bool(item['producer']) and bool(item['consumers']), 'Incomplete field ownership/behavior')
 for item in index:
     value = load(EX / item['path'])
@@ -378,7 +390,7 @@ for rule in [rule for metric in load(EX/'Hypothesis_Blueprint.json')['metrics'] 
     require(rule['operand']=='treatment' and rule['comparator'] in ('lt','le','eq','ge','gt') and rule['reference'] in ('baseline','constant'), 'Unsupported comparison rule')
     require(rule['reference']!='constant' or rule['factor']==0, 'Constant rule has baseline factor')
 for item in field_catalog['interfaces']:
-    view=(REF/'field-catalog.md').read_text(encoding='utf-8')
+    view=contract_view(item)
     for name,info in item['fields'].items():
         require('| `'+name+'` | `'+info['type']+'` |' in view, 'Field view/type drift '+item['name']+'.'+name)
 errors.extend(research_issues())
@@ -463,17 +475,22 @@ bad=copy.deepcopy(load(EX/'Intention_Subnode_Contract.json'));bad['bindings'].ap
 require(bool(node_issues(bad)) and not validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(bad), 'Unsupported M1 member composition accepted');negative_count+=1
 
 # Field/summary appropriateness: closed types, meaningful fields and local-section matching.
-sections={}
-view=(REF/'field-catalog.md').read_text(encoding='utf-8')
-for m in re.finditer(r'^#{2,3} ([^\n]+)\n(.*?)(?=^#{2,3} |\Z)',view,re.M|re.S):
-    sections[re.sub(r'[^a-z0-9_-]','',m.group(1).lower().replace(' ','-'))]=m.group(2)
-all_fields=[(x['name'],x['fields']) for x in field_catalog['interfaces']]+[(n,x['fields']) for n,x in types.items()]
-for name,fields in all_fields:
-    rows=dict(re.findall(r'^\| `([^`]+)` \| `([^`]+)` \|',sections.get(name.lower(),''),re.M))
-    require(rows=={k:v['type'] for k,v in fields.items()}, 'Local field-summary drift: '+name)
+def local_field_rows(document):
+    name, fragment = document.split('#')
+    path = (REF/name).resolve()
+    if not path.is_relative_to(REF.resolve()) or not path.is_file():
+        require(False, 'Missing/escaping authoritative field document: '+document)
+        return {}
+    section_map={}
+    for match in re.finditer(r'^#{2,3} ([^\n]+)\n(.*?)(?=^#{2,3} |\Z)',path.read_text(encoding='utf-8'),re.M|re.S):
+        section_map[re.sub(r'[^a-z0-9_-]','',match.group(1).lower().replace(' ','-'))]=match.group(2)
+    return dict(re.findall(r'^\| `([^`]+)` \| `([^`]+)` \|',section_map.get(fragment,''),re.M))
+all_fields=[(x['name'],x['fields'],next(c['document'] for c in catalog['interfaces'] if c['id']==x['id'])) for x in field_catalog['interfaces']]+[(n,x['fields'],x.get('document','field-catalog.md#'+n.lower())) for n,x in types.items()]
+for name,fields,document in all_fields:
+    require(local_field_rows(document)=={k:v['type'] for k,v in fields.items()}, 'Local field-summary drift: '+name)
     for key,info in fields.items():
         require(isinstance(info['required'],bool) and bool(info['meaning'].strip()), 'Incomplete field meaning/requiredness: '+name+'.'+key)
-        require(info['type'].removeprefix('nullable-').removesuffix('[]') in set(types)|{'string','integer','number','boolean','sha256'}, 'Unknown nested field type: '+name+'.'+key)
+        require(info['type'].removeprefix('nullable-').removesuffix('[]') in set(types)|set(interface_types)|primitive_types, 'Unknown nested field type: '+name+'.'+key)
 contract_index=(REF/'contract-index.md').read_text(encoding='utf-8')
 for x in catalog['contracts']:
     require('('+x['schema']+')' in contract_index, 'Unindexed exact contract: '+x['name'])
@@ -703,6 +720,8 @@ for item in manifest:
         if path.exists():
             require(hashlib.sha256(path.read_bytes()).hexdigest() == item[extension + '_sha256'], 'Stale diagram view')
 require(not blocks, 'Unrendered maintained Mermaid blocks')
+
+exec(compile((REF/'routing_checks.py').read_text(encoding='utf-8'), str(REF/'routing_checks.py'), 'exec'))
 
 if errors:
     print('\n'.join('FAIL: ' + error for error in errors))

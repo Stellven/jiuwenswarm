@@ -1,40 +1,24 @@
-# Model routing and governed invocation
+# Governed model routing
 
-**Reading level: human potential.** Question: who requests a model, who selects it, and where are its effects/evidence controlled?
+**Human component overview.** The protected binder selects one admitted, pinned Capsule. Model routing selects an approved model for that same Capsule and bound task. The governed runner retains execution, permissions, checking and durable release. Routing cannot select another Capsule, widen authority or accept an output.
 
-## Purpose and connections
+## Ownership and reading
 
-The protected model boundary gives compiler, planner/research, verifier and eligible RSI proposer CCs one auditable route to configured model access. It prevents a capability from creating a private unaudited client, changing its own checking model, or bypassing execution/disclosure limits. The CC requests inference through its governed context; the runner attaches approved role/profile, scope and budgets before routing.
+The architecture owner owns the shared boundary and whole-system consistency. The model-routing owner owns registry qualification, filtering, selection, fallback, provider adapters and routing evidence. Independently owned guard profiles retain checking authority.
 
-```mermaid
-flowchart TB
-    C[Compiler, work or verifier CC] --> R[Governed runtime invocation]
-    P[Offline RSI proposer] --> R
-    Config[Protected effective role/profile and allowed endpoint] --> R
-    R --> Route[Model routing adapter]
-    Route --> Bridge[Audited native bridge]
-    Bridge --> Endpoint[Configured model endpoint]
-    Bridge --> Observe[Actual call, effective model and unavailable telemetry]
-    Observe --> Product[Product attempt evidence and gate]
-    Observe --> Offline[RSI session evidence; separate referee custody]
-```
-
-Product and RSI use the same boundary capability, not the same conversation, authority or evidence audience. Verifier invocation/context is separate from its producer. An independently owned profile selects its route; the producer cannot nominate favorable checking instructions or approve a different endpoint.
+- [Shared Capsule–routing contract](reference/capsule-model-routing.md): authoritative exported fields, identities, budgets and dispatch behavior.
+- [Router component design](model-routing/router-design.md): filtering, Judge, state transitions, provider integration and audit.
+- [Model catalog](model-routing/model-catalog.md): active executor requirements and staged scientific-tool inventory.
+- [Received source](sources/model-routing/README.md): exact owner draft, provenance and unavailable evidence.
 
 ## Approach and readiness
 
-Phase 1 selects the fixed approved native Codex route at run entry. Phase 3 can map roles to heterogeneous approved endpoints and test an alternate verifier through this adapter. Record requested versus effective provider/model/configuration, component pins, call identity, elapsed time, errors, observed usage when reliable and unavailable reasons otherwise. Native configuration identity is not independently verified served-model identity; label the distinction.
+Phase 1 keeps the fixed Codex CLI route selected at run entry. A static adapter projects the same protected input and decision/evidence contract per CC invocation; it uses no routing Judge or heterogeneous API catalog. Native configured identity remains distinct from independently observed served-model identity. Missing per-call usage remains unavailable.
 
-The declared budget applies across all permitted model/tool calls; each additional work CC has a separate M1 node. Tool/network/provider disclosure permissions are enforced before requests; a `network:none` capability can use only its specifically authorized injected bridge, not unrestricted socket access. Routing cannot widen permission or fabricate seed determinism/cost. Invocation-count and time limits remain enforceable when token telemetry is absent, consistent with PRD §4.7.4.
-
-## Passing and blocking
-
-Dispatch requires authenticated access, a supported route/profile, required model capabilities, bounded process/IPC ownership and permitted context disclosure. An unavailable mandatory connection or incompatible capability blocks readiness. A started call cannot silently switch model, retry or substitute cached output after failure. A newly chosen baseline is a separate attributable run. Label mocks and routing stubs; they prepare interfaces but establish no real model acceptance.
-
-Avoid taking ownership of unrelated interactive model sessions. The model bridge is restricted local IPC or an approved provider adapter; it is not a publicly exposed TCP proxy. [Placement](placement.md) defines host/code isolation; [inspection](artifact-inspection.md) defines evidence views; [client fields](reference/other-contracts.md#client-and-model-boundaries) standardize exported identity and readiness information.
+The API-only owner module is Phase 3, in a separately approved and reversible development/evaluation configuration. Endpoint credentials and actual capability qualification gate real activation. Disabled Phase 3 routing leaves the baseline available; an API failure does not automatically replay work through Codex.
 
 ## Registry and two-stage selection
 
-The bounded model registry records endpoint/version, declared versus verified capabilities (context, modality, tools and structured output), supported roles, access/health state and available usage metadata. The binder/planner chooses the admitted CC; the router never substitutes a different capability. Phase 3 first filters endpoints against required capabilities, access, disclosure and policy, then chooses among eligible endpoints under a pinned role/profile selection rule. Freeze the effective choice before the invocation. Empty eligibility blocks; no learned router, ensemble or mid-execution switching is introduced.
+Given Capsule and protected profile → compatibility filtering → sole candidate or at most one authorized Judge → optional single predefined fallback → preflight → persisted frozen decision. The runner rechecks current eligibility and prerequisites before dispatch and uses the same Capsule and model for every call in the invocation. Invalidated frozen decisions halt; new work requires an explicit upstream attempt.
 
-The [client/model field contract](reference/other-contracts.md#client-and-model-boundaries) supplies the registry/selection records. Implementation specifications choose the bounded selection algorithm and test its declared rule on matched cases, including no eligible model and unavailable telemetry.
+Verifier CCs have separate assignments, contexts, profiles and reserved budgets. Their routed output follows the existing [verifier assessment](reference/checking.md), not a router-defined approval verdict. Code-only/tool-only CCs needing no executor model use the governed runner without a model route. [Placement](placement.md) supplies confinement; [inspection](artifact-inspection.md) supplies authorized evidence views.

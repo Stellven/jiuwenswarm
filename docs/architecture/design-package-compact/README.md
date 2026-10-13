@@ -95,4 +95,8 @@ Full M1 covers baseline research/workstation, required isolated RSI and every ap
 
 ## Review and evidence
 
-Use [phase detail](delivery-phases.md) and [Immediate Plan](immediate-plan.md) before reviewing a build. Exact contracts/versions/examples and decision behavior match the full input. The controlled difference is explanatory depth and views. D5/D6 remain explicit authorized departures from literal PRD wording. Human review and real implementation evidence remain unperformed.
+Use [phase detail](delivery-phases.md) and [Immediate Plan](immediate-plan.md) before reviewing a build. Exact contracts/versions/examples and decision behavior match the full input. The controlled difference is explanatory depth and views. D5 is aligned with the current PRD; D6 remains an explicitly recorded source departure. Human review and real implementation evidence remain unperformed.
+
+## Model-routing integration
+
+[Routing overview](model-routing.md) connects the separate routing-owner component to the [shared Capsule export, profile and decision contract](reference/capsule-model-routing.md). Phase 1 remains fixed Codex; APIs are Phase 3.

@@ -31,7 +31,7 @@ Follow the listed documents' relevant schema/field links. Field tables are the n
 
 ## Source precedence and bounded choices
 
-The external PRD Main Body owns product obligations; its Context contributes relevant functional context. This package owns implementation-facing architecture and records D5's fixed multi-pass exception to §§3.2/4.7. Resolve an actual product-obligation contradiction explicitly; do not interpret the word “one-shot” as permission to omit Requirements or verification.
+The external PRD Main Body owns product obligations; its Context contributes relevant functional context. This package owns implementation-facing architecture and records bounded multi-pass sequencing now authorized by PRD (4) §§3.2/4.7. Resolve an actual product-obligation contradiction explicitly; do not interpret the word “one-shot” as permission to omit Requirements or verification.
 
 Input directory qualification is deterministic, not semantic readiness. A configured empty default document directory is permitted; specified required unreadable inputs halt. Qualified resources remain separate from extracted reference text. The compiler cannot claim that a default `single_gpu` profile proves GPU availability.
 
