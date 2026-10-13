@@ -1,0 +1,2188 @@
+/**
+ * 聊天状态管理（多 session 版本）
+ *
+ * 所有对话运行态按 session 隔离存储在 runtimes 中。
+ * 组件通过 activeSessionId 读取当前会话的运行态。
+ */
+
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import {
+  Message,
+  OutputOrder,
+  ToolCall,
+  ToolResult,
+  ToolExecution,
+  ToolExecutionStatus,
+  AutoReviewerMetadata,
+  InterruptResultPayload,
+  AskUserQuestionPayload,
+  EvolutionStatusPayload,
+  UsageSummary,
+  FileDownloadItem,
+  ContextCompressionRuntime,
+  ContextCompressionSummary,
+  MediaItem,
+} from '../types';
+import { useTodoStore } from './todoStore';
+import { findActiveTeamLeaderMessage } from '../features/teamLeaderMessages';
+import {
+  mergeReviewerProgress,
+  mergeToolResultProgress,
+  shouldDropToolResult,
+} from './toolResultLifecycle';
+import { mergeFileDownloadItems } from '../utils/fileDownloadDedup';
+import { parseTimestampToMs } from '../utils/timestamp';
+import {
+  consumePendingQuestion as consumeQueuedQuestion,
+  clearPermissionQuestions as clearQueuedPermissionQuestions,
+  enqueuePendingQuestions,
+} from './pendingQuestionQueue';
+
+const TOOL_TIMEOUT_MS = 12_000_000;
+const EVOLUTION_STATUS_END_VISIBLE_MS = 3_000;
+
+let reasoningSegmentSeq = 0;
+
+function createReasoningSegmentId(): string {
+  reasoningSegmentSeq += 1;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `rsn-${crypto.randomUUID()}`;
+  }
+  return `rsn-${Date.now()}-${reasoningSegmentSeq}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function computeTimeoutAt(baseIso: string): string {
+  return new Date(Date.parse(baseIso) + TOOL_TIMEOUT_MS).toISOString();
+}
+
+function resolveExecutionStatus(result: ToolResult): ToolExecutionStatus {
+  if (result.pending) {
+    return 'pending';
+  }
+  if (result.timedOut) {
+    return 'timeout';
+  }
+  return result.success ? 'completed' : 'error';
+}
+
+type TaskInputStatus = 'queued' | 'sending' | 'failed' | 'unknown';
+
+export interface TaskInputReceipt {
+  taskId: string;
+  content: string;
+  requestId?: string;
+  status: 'sending' | 'accepted' | 'failed' | 'unknown';
+  error?: string;
+  errorCode?: string;
+  timestamp: string;
+  supplementalInput: NonNullable<Message['supplementalInput']>;
+}
+
+interface TaskItem {
+  id: string;
+  content: string;
+  timestamp: number;
+  status: TaskInputStatus;
+  requestId?: string;
+  error?: string;
+  /** Persisted attachments (images/documents, incl. PDF); dispatched with the message when the queued task is sent */
+  mediaItems?: MediaItem[];
+}
+
+export interface QueuedSessionMessage {
+  messageId: string;
+  sourceSessionId: string;
+  sourceTitle: string;
+  content: string;
+}
+
+export interface QueuedSessionMessageSnapshot {
+  generation: number;
+  previous: QueuedSessionMessage[];
+}
+
+export interface HistoryPagerMeta {
+  nextCursor: string | null;
+  hasMore: boolean;
+  snapshotId: string | null;
+  snapshotEnd: number;
+  loadedBatchSeq: number;
+  publishedBatchSeq: number;
+  historyComplete: boolean;
+}
+
+/**
+ * 单个 session 的对话运行态。
+ * 原全局字段全部迁移到这里，按 session 隔离。
+ */
+export interface ReasoningSegment {
+  outputOrder?: OutputOrder;
+  id: string;
+  text: string;
+  startedAt: number;
+  closed: boolean;
+  /** 当前流式 reasoning 所属的 Web 单 Agent 专家。 */
+  agentTemplateName?: string;
+  /** 最近一个 delta 到达时刻；即使 final 丢失，耗时终点也能落在最后一个真实帧。 */
+  updatedAt?: number;
+  /** 收尾时刻；用于延迟折进 streak。历史可省略。 */
+  closedAt?: number;
+  /** 仅用于大历史渐进发布；实时思考没有该标记。 */
+  historyBatchSeq?: number;
+}
+
+export interface ChatRuntime {
+  messages: Message[];
+  isProcessing: boolean;
+  activeExecutionId: string | null;
+  executionError: string | null;
+  /** The Team session's bound AgentGroup was deleted or uninstalled. */
+  agentGroupUnavailable: boolean;
+  isThinking: boolean;
+  isLoadingHistory: boolean;
+  historyPagerMeta: HistoryPagerMeta | null;
+  evolutionStatus: EvolutionStatusPayload | null;
+  isPaused: boolean;
+  pausedTask: string | null;
+  interruptResult: InterruptResultPayload | null;
+  switchingMode: boolean;
+  isNewSession: boolean;
+  currentStreamContent: string;
+  currentStreamId: string | null;
+  outputPhaseId?: string;
+  /** 本轮是否已按工具边界分段（chat.final 去重）。 */
+  assistantStreamSplit: boolean;
+  reasoningSegments: ReasoningSegment[];
+  /** 已接受补充输入；仅在下一条 reasoning 真正到达时分段。 */
+  reasoningInputBoundaryPending: boolean;
+  /** 「思考中」耗时锚点：仅在可见文字产出时前移。 */
+  thinkingAnchorAt: number;
+  messageRenderKeySeq: number;
+  /** 最近一次 chat.error 的错误信息，用于会话列表展示异常标记 */
+  error: string | null;
+  streamBuffers: Map<string, string>;
+  toolExecutions: Map<string, ToolExecution>;
+  toolExecutionOrder: string[];
+  orphanResults: Map<string, ToolResult>;
+  contextCompressionRuntime?: ContextCompressionRuntime;
+  contextCompressionSummary?: ContextCompressionSummary;
+  toolMetrics: {
+    toolCallDedupDropped: number;
+    toolResultDedupDropped: number;
+  };
+  taskQueue: TaskItem[];
+  queuedSessionMessages: QueuedSessionMessage[];
+  queuedSessionMessageSnapshotGeneration: number;
+  /** A mailbox item cannot return to queued after it starts. */
+  settledQueuedSessionMessageIds: Set<string>;
+  /** Keep request ownership even after a receipt is dismissed, to isolate late ACK/errors. */
+  taskInputRequests: Record<string, { taskId: string; content: string; delivery?: 'chat' }>;
+  /** Message-level feedback survives removal from the executable queue. */
+  taskInputReceipts: Record<string, TaskInputReceipt>;
+  queuePaused: boolean;
+  pendingQuestions: AskUserQuestionPayload[];
+  /**
+   * 忙碌时设目标：用户气泡暂存在此（界面不立刻显示）；
+   * 空 chat.final / processing 结束再正式入 messages。
+   */
+  pendingGoalObjectiveBubble: { content: string; timestamp: string } | null;
+  inputValue: string;
+  /** evolutionStatus 自动清除定时器，按 session 隔离 */
+  evolutionStatusClearTimer: ReturnType<typeof setTimeout> | null;
+  /** interruptResult 自动清除定时器，按 session 隔离 */
+  interruptResultClearTimer: ReturnType<typeof setTimeout> | null;
+}
+
+function createEmptyRuntime(): ChatRuntime {
+  return {
+    messages: [],
+    isProcessing: false,
+    activeExecutionId: null,
+    executionError: null,
+    agentGroupUnavailable: false,
+    isThinking: false,
+    isLoadingHistory: false,
+    historyPagerMeta: null,
+    evolutionStatus: null,
+    isPaused: false,
+    pausedTask: null,
+    interruptResult: null,
+    switchingMode: false,
+    isNewSession: false,
+    currentStreamContent: '',
+    currentStreamId: null,
+    assistantStreamSplit: false,
+    reasoningSegments: [],
+    reasoningInputBoundaryPending: false,
+    thinkingAnchorAt: Date.now(),
+    messageRenderKeySeq: 0,
+    error: null,
+    streamBuffers: new Map(),
+    toolExecutions: new Map(),
+    toolExecutionOrder: [],
+    orphanResults: new Map(),
+    contextCompressionRuntime: undefined,
+    contextCompressionSummary: undefined,
+    toolMetrics: {
+      toolCallDedupDropped: 0,
+      toolResultDedupDropped: 0,
+    },
+    taskQueue: [],
+    queuedSessionMessages: [],
+    queuedSessionMessageSnapshotGeneration: 0,
+    settledQueuedSessionMessageIds: new Set(),
+    taskInputRequests: {},
+    taskInputReceipts: {},
+    queuePaused: false,
+    pendingQuestions: [],
+    pendingGoalObjectiveBubble: null as ChatRuntime['pendingGoalObjectiveBubble'],
+    inputValue: '',
+    evolutionStatusClearTimer: null,
+    interruptResultClearTimer: null,
+  };
+}
+
+function assignMessageRenderKeys(
+  runtime: ChatRuntime,
+  messages: Message[]
+): { messages: Message[]; messageRenderKeySeq: number } {
+  let messageRenderKeySeq = runtime.messageRenderKeySeq;
+  return {
+    messages: messages.map((message) => {
+      if (message.renderKey) {
+        return message;
+      }
+      messageRenderKeySeq += 1;
+      return {
+        ...message,
+        renderKey: `message-${messageRenderKeySeq}`,
+      };
+    }),
+    messageRenderKeySeq,
+  };
+}
+
+interface ChatState {
+  runtimes: Record<string, ChatRuntime>;
+  activeSessionId: string | null;
+  /** Gateway broadcasts this status without a session id, so it is intentionally app-wide. */
+  globalTaskRunning: boolean;
+
+  ensureRuntime: (sessionId: string) => ChatRuntime;
+  getRuntime: (sessionId: string | null) => ChatRuntime | undefined;
+  setActiveSessionId: (sessionId: string | null) => void;
+  setGlobalTaskRunning: (running: boolean) => void;
+  removeRuntime: (sessionId: string) => void;
+
+  addMessage: (sessionId: string, message: Message) => void;
+  replaceHistoryMessages: (sessionId: string, messages: Message[]) => void;
+  updateMessage: (sessionId: string, id: string, updates: Partial<Message>) => void;
+  appendStreamContent: (sessionId: string, content: string, streamKey?: string) => void;
+  appendReasoning: (
+    sessionId: string,
+    content: string,
+    options?: { atMs?: number; agentTemplateName?: string; outputOrder?: OutputOrder },
+  ) => void;
+  closeReasoning: (sessionId: string, options?: { atMs?: number }) => void;
+  restoreReasoningSegments: (
+    sessionId: string,
+    items: {
+      id?: string;
+      outputOrder?: OutputOrder;
+      at: string;
+      text: string;
+      agentTemplateName?: string;
+      updatedAt?: number;
+      historyBatchSeq?: number;
+    }[],
+  ) => void;
+  startStreaming: (sessionId: string, messageId: string, streamKey?: string) => void;
+  stopStreaming: (sessionId: string, streamKey?: string) => void;
+  finalizeStreamSegment: (sessionId: string, streamKey?: string) => void;
+  finalizeTeamLeaderSegment: (sessionId: string, requestId?: string) => void;
+  clearStreamSplit: (sessionId: string) => void;
+  collapseTurnFinal: (
+    sessionId: string,
+    opts: {
+      kind: 'agent' | 'team';
+      content: string;
+      finalId: string;
+      timestampIso: string;
+      agentTemplateName?: string;
+    }
+  ) => void;
+  bumpThinkingAnchor: (sessionId: string) => void;
+  setExecutionError: (sessionId: string, error: string | null) => void;
+  setAgentGroupUnavailable: (sessionId: string, unavailable: boolean) => void;
+  setProcessing: (sessionId: string, status: boolean) => void;
+  setActiveExecutionId: (sessionId: string, executionId: string) => void;
+  setThinking: (sessionId: string, status: boolean) => void;
+  setLoadingHistory: (sessionId: string, status: boolean) => void;
+  setHistoryPagerMeta: (sessionId: string, meta: HistoryPagerMeta | null) => void;
+  setEvolutionStatus: (sessionId: string, status: EvolutionStatusPayload | null) => void;
+  setPaused: (sessionId: string, paused: boolean, task?: string | null) => void;
+  setQueuePaused: (sessionId: string, paused: boolean) => void;
+  upsertQueuedSessionMessage: (sessionId: string, message: QueuedSessionMessage) => void;
+  removeQueuedSessionMessage: (sessionId: string, messageId: string) => void;
+  beginQueuedSessionMessageSnapshot: (sessionId: string) => QueuedSessionMessageSnapshot;
+  reconcileQueuedSessionMessageSnapshot: (
+    sessionId: string,
+    snapshot: QueuedSessionMessageSnapshot,
+    messages: QueuedSessionMessage[]
+  ) => void;
+  setInterruptResult: (sessionId: string, result: InterruptResultPayload | null) => void;
+  setSwitchingMode: (sessionId: string, switching: boolean) => void;
+  setNewSession: (sessionId: string, isNew: boolean) => void;
+  addToolCall: (
+    sessionId: string,
+    toolCall: ToolCall,
+    options?: {
+      startedAt?: string;
+      requestId?: string;
+      agentTemplateName?: string;
+      historyBatchSeq?: number;
+    },
+  ) => void;
+  updateToolProgress: (sessionId: string, toolCallId: string, progress: Partial<ToolResult>) => void;
+  updateToolReviewer: (sessionId: string, toolCallId: string, reviewer: AutoReviewerMetadata) => void;
+  addToolResult: (sessionId: string, toolResult: ToolResult, options?: { updatedAt?: string }) => void;
+  markTimedOutExecutions: (sessionId: string) => void;
+  /** 历史回放常只有 tool_call、无 tool_result：把仍 pending 的工具按 startedAt 结算，避免超时巡检用 now 污染耗时 */
+  settleHistoricalToolExecutions: (sessionId: string) => void;
+  clearMessages: (sessionId: string) => void;
+  clearCurrentTurnData: (sessionId: string, requestId?: string) => void;
+  prependMessages: (sessionId: string, olderFirst: Message[]) => void;
+  addToTaskQueue: (sessionId: string, content: string, mediaItems?: MediaItem[]) => void;
+  claimQueuedTask: (sessionId: string, taskId?: string) => TaskItem | undefined;
+  claimTaskInput: (sessionId: string, taskId: string) => TaskItem | undefined;
+  bindTaskInputRequest: (sessionId: string, taskId: string, requestId: string) => void;
+  settleTaskInput: (
+    sessionId: string,
+    taskId: string,
+    requestId: string | undefined,
+    status: 'accepted' | 'failed' | 'unknown',
+    error?: string,
+    errorCode?: string,
+    delivery?: 'chat' | 'stream',
+  ) => void;
+  setOutputPhase: (sessionId: string, phaseId: string) => void;
+  clearTaskQueue: (sessionId: string) => void;
+  removeFromTaskQueue: (sessionId: string, id: string) => void;
+  reorderTaskQueue: (sessionId: string, fromIndex: number, toIndex: number) => void;
+  enqueuePendingQuestion: (sessionId: string, question: AskUserQuestionPayload) => void;
+  consumePendingQuestion: (sessionId: string, question: AskUserQuestionPayload) => void;
+  clearPendingQuestions: (sessionId: string) => void;
+  setPendingGoalObjectiveBubble: (sessionId: string, content: string | null) => void;
+  flushPendingGoalObjectiveBubble: (sessionId: string) => void;
+  queueOrAddGoalObjectiveMessage: (sessionId: string, content: string) => void;
+  clearPermissionQuestions: (sessionId: string) => void;
+  setInputValue: (sessionId: string, value: string) => void;
+  setSessionError: (sessionId: string, error: string | null) => void;
+  setUsageSummary: (sessionId: string, messageId: string, usage: UsageSummary) => void;
+  addFileItems: (
+    sessionId: string,
+    files: FileDownloadItem[],
+    options?: { timestampIso?: string }
+  ) => void;
+  setContextCompressionStatus: (
+    sessionId: string,
+    runtime?: ContextCompressionRuntime,
+    summary?: ContextCompressionSummary
+  ) => void;
+}
+
+export const useChatStore = create<ChatState>()(subscribeWithSelector((set, get) => ({
+  runtimes: {},
+  activeSessionId: null,
+  globalTaskRunning: false,
+
+  ensureRuntime: (sessionId) => {
+    const existing = get().runtimes[sessionId];
+    if (existing) return existing;
+    const runtime = createEmptyRuntime();
+    set((state) => ({
+      runtimes: { ...state.runtimes, [sessionId]: runtime },
+    }));
+    return runtime;
+  },
+
+  getRuntime: (sessionId) => {
+    if (!sessionId) return undefined;
+    return get().runtimes[sessionId];
+  },
+
+  setOutputPhase: (sessionId, phaseId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return { runtimes: { ...state.runtimes, [sessionId]: { ...runtime, outputPhaseId: phaseId } } };
+    });
+  },
+
+  setActiveSessionId: (sessionId) => {
+    set({ activeSessionId: sessionId });
+  },
+
+  setGlobalTaskRunning: (running) => {
+    set({ globalTaskRunning: running });
+  },
+
+  removeRuntime: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (runtime) {
+        if (runtime.evolutionStatusClearTimer) clearTimeout(runtime.evolutionStatusClearTimer);
+        if (runtime.interruptResultClearTimer) clearTimeout(runtime.interruptResultClearTimer);
+      }
+      const next = { ...state.runtimes };
+      delete next[sessionId];
+      return {
+        runtimes: next,
+        activeSessionId: state.activeSessionId === sessionId ? null : state.activeSessionId,
+      };
+    });
+  },
+
+  addMessage: (sessionId, message) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const { messages, messageRenderKeySeq } = assignMessageRenderKeys(runtime, [message]);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: [...runtime.messages, ...messages],
+            messageRenderKeySeq,
+            ...(message.role === 'user'
+              ? {
+                  assistantStreamSplit: false,
+                  // 上一轮被中断（暂停/停止）时思考段可能永远等不到 closeReasoning；
+                  // 新一轮开始只把它冻结收尾，不能整段丢弃——否则上一轮思考块连同头像
+                  // 会凭空消失（刷新后历史又能恢复）。closedAt 落在最后一个真实 delta 帧。
+                  reasoningSegments: runtime.reasoningSegments.map((segment) =>
+                    segment.closed
+                      ? segment
+                      : { ...segment, closed: true, closedAt: segment.updatedAt ?? Date.now() }
+                  ),
+                }
+              : {}),
+          },  
+        },
+      };
+    });
+  },
+
+  replaceHistoryMessages: (sessionId, messages) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      if (runtime.evolutionStatusClearTimer) {
+        clearTimeout(runtime.evolutionStatusClearTimer);
+      }
+      const assigned = assignMessageRenderKeys(runtime, messages);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: assigned.messages,
+            messageRenderKeySeq: assigned.messageRenderKeySeq,
+            currentStreamContent: '',
+            currentStreamId: null,
+            assistantStreamSplit: false,
+            reasoningSegments: [],
+            streamBuffers: new Map(),
+            evolutionStatus: null,
+            evolutionStatusClearTimer: null,
+            isPaused: false,
+            pausedTask: null,
+            interruptResult: null,
+            switchingMode: false,
+            toolExecutions: new Map(),
+            toolExecutionOrder: [],
+            orphanResults: new Map(),
+            contextCompressionRuntime: undefined,
+            contextCompressionSummary: undefined,
+            toolMetrics: {
+              toolCallDedupDropped: 0,
+              toolResultDedupDropped: 0,
+            },
+            taskQueue: [],
+            // pendingQuestions 是后端通过 chat.ask_user_question 实时推送的交互状态，
+            // 不属于历史消息范畴。历史恢复只重建消息列表，不应清空 pendingQuestions——
+            // 否则切到/切回一个正在等待 ask_user/权限确认的会话时，吸附条会永久消失
+            // （后端不会重发 pending question）。仅在新会话首次创建时由 clearMessages 清空。
+            pendingGoalObjectiveBubble: null,
+          },
+        },
+      };
+    });
+  },
+
+  updateMessage: (sessionId, id, updates) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: runtime.messages.map((msg) =>
+              msg.id === id ? { ...msg, ...updates } : msg
+            ),
+          },
+        },
+      };
+    });
+  },
+
+  appendStreamContent: (sessionId, content, streamKey = 'default') => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || !runtime.currentStreamId) return state;
+
+      const existingBuffer = runtime.streamBuffers.get(streamKey) || '';
+      const nextContent = existingBuffer + content;
+
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            currentStreamContent: nextContent,
+            streamBuffers: new Map(runtime.streamBuffers).set(streamKey, nextContent),
+            messages: runtime.messages.map((msg) =>
+              msg.id === runtime.currentStreamId
+                ? { ...msg, content: nextContent }
+                : msg
+            ),
+          },
+        },
+      };
+    });
+  },
+
+  appendReasoning: (sessionId, content, options) => {
+    if (!content) return;
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const segments = runtime.reasoningSegments;
+      const last = segments[segments.length - 1];
+      const atMs =
+        typeof options?.atMs === 'number' && Number.isFinite(options.atMs)
+          ? options.atMs
+          : Date.now();
+      let next: ReasoningSegment[];
+      if (last && !last.closed && !runtime.reasoningInputBoundaryPending) {
+        // 每个 delta 都推进 updatedAt，使耗时终点不依赖 closeReasoning 收尾事件
+        next = segments.slice(0, -1).concat({
+          ...last,
+          text: last.text + content,
+          updatedAt: atMs,
+          ...(options?.agentTemplateName && !last.agentTemplateName
+            ? { agentTemplateName: options.agentTemplateName }
+            : {}),
+        });
+      } else {
+        const settledSegments =
+          last && !last.closed && runtime.reasoningInputBoundaryPending
+            ? segments.slice(0, -1).concat({
+                ...last,
+                closed: true,
+                closedAt: atMs,
+              })
+            : segments;
+        next = settledSegments.concat({
+          outputOrder: options?.outputOrder,
+          id: createReasoningSegmentId(),
+          text: content,
+          startedAt: atMs,
+          updatedAt: atMs,
+          closed: false,
+          ...(options?.agentTemplateName ? { agentTemplateName: options.agentTemplateName } : {}),
+        });
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            reasoningSegments: next,
+            reasoningInputBoundaryPending: false,
+          },
+        },
+      };
+    });
+  },
+
+  closeReasoning: (sessionId, options) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const segments = runtime.reasoningSegments;
+      const last = segments[segments.length - 1];
+      if (!last || last.closed) {
+        if (!runtime.reasoningInputBoundaryPending) return state;
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: { ...runtime, reasoningInputBoundaryPending: false },
+          },
+        };
+      }
+      const atMs =
+        typeof options?.atMs === 'number' && Number.isFinite(options.atMs)
+          ? options.atMs
+          : Date.now();
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            reasoningSegments: segments.slice(0, -1).concat({
+              ...last,
+              closed: true,
+              closedAt: atMs,
+              updatedAt: atMs,
+            }),
+            reasoningInputBoundaryPending: false,
+          },
+        },
+      };
+    });
+  },
+
+  restoreReasoningSegments: (sessionId, items) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const segments: ReasoningSegment[] = [];
+      const seen = new Set<string>();
+      items.forEach((item, index) => {
+        const text = item.text?.trim();
+        const identity = item.outputOrder ? `${item.outputOrder.requestId}:${item.outputOrder.sequence}` : text;
+        if (!text || seen.has(identity)) return;
+        seen.add(identity);
+        const parsed = parseTimestampToMs(item.at);
+        // 历史里思考与同一步 final/tool_call 共用落盘时间；减 1ms 仅补齐缺失的独立时间戳，
+        // 使时间线能分出「先思考、后动作」，不做跨步骤重排。
+        // 解析失败时跳过该段，勿用 index 当 epoch（会让 startMs≈0，耗时爆炸）
+        if (!Number.isFinite(parsed)) {
+          return;
+        }
+        const startedAt = parsed - 1;
+        // updatedAt 取落盘的 reasoning_updated_at（末帧时刻）；缺失/非法时回退 startedAt，
+        // 使异常结束的耗时终点也能落在最后一个真实帧。
+        const replayUpdatedAt = parseTimestampToMs(item.updatedAt);
+        const updatedAt =
+          Number.isFinite(replayUpdatedAt) && replayUpdatedAt > 1_000_000_000_000
+            ? replayUpdatedAt
+            : startedAt;
+        segments.push({
+          id: item.id ?? `hist-rsn-${sessionId}-${index}-${createReasoningSegmentId()}`,
+          text,
+          outputOrder: item.outputOrder,
+          startedAt,
+          closed: true,
+          ...(item.agentTemplateName ? { agentTemplateName: item.agentTemplateName } : {}),
+          // 历史已结束：closedAt 用 startedAt，立刻 settled，且比魔法 0 更可解释。
+          closedAt: startedAt,
+          updatedAt,
+          historyBatchSeq: item.historyBatchSeq,
+        });
+      });
+      segments.sort((a, b) => a.startedAt - b.startedAt);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, reasoningSegments: segments },
+        },
+      };
+    });
+  },
+
+  startStreaming: (sessionId, messageId, streamKey = 'default') => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            currentStreamId: messageId,
+            currentStreamContent: '',
+            streamBuffers: new Map(runtime.streamBuffers).set(streamKey, ''),
+          },
+        },
+      };
+    });
+  },
+
+  stopStreaming: (sessionId, streamKey = 'default') => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || !runtime.currentStreamId) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: runtime.messages.map((msg) =>
+              msg.id === runtime.currentStreamId ? { ...msg, isStreaming: false } : msg
+            ),
+            currentStreamId: null,
+            currentStreamContent: '',
+            streamBuffers: new Map(runtime.streamBuffers).set(streamKey, ''),
+          },
+        },
+      };
+    });
+  },
+
+  finalizeStreamSegment: (sessionId, streamKey = 'default') => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || !runtime.currentStreamId) return state;
+      const streamingMessage = runtime.messages.find(
+        (msg) => msg.id === runtime.currentStreamId
+      );
+      const hasVisibleText = Boolean(streamingMessage?.content?.trim());
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: runtime.messages.map((msg) =>
+              msg.id === runtime.currentStreamId ? { ...msg, isStreaming: false } : msg
+            ),
+            currentStreamId: null,
+            currentStreamContent: '',
+            assistantStreamSplit: runtime.assistantStreamSplit || hasVisibleText,
+            streamBuffers: new Map(runtime.streamBuffers).set(streamKey, ''),
+          },
+        },
+      };
+    });
+  },
+
+  finalizeTeamLeaderSegment: (sessionId, requestId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const target = findActiveTeamLeaderMessage(runtime.messages, requestId);
+      if (!target) return state;
+      const targetId = target.id;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: runtime.messages.map((msg) =>
+              msg.id === targetId ? { ...msg, isStreaming: false, teamStream: undefined } : msg
+            ),
+            assistantStreamSplit: true,
+          },
+        },
+      };
+    });
+  },
+
+  clearStreamSplit: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || !runtime.assistantStreamSplit) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, assistantStreamSplit: false },
+        },
+      };
+    });
+  },
+
+  collapseTurnFinal: (sessionId, { kind, content, finalId, timestampIso, agentTemplateName }) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const msgs = runtime.messages;
+      let turnStart = 0;
+      for (let i = msgs.length - 1; i >= 0; i -= 1) {
+        if (msgs[i].role === 'user' && !msgs[i].supplementalInput) {
+          turnStart = i + 1;
+          break;
+        }
+      }
+      const isTarget = (m: Message) =>
+        kind === 'team'
+          ? m.role === 'system' && typeof m.id === 'string' && m.id.startsWith('team-leader-')
+          : m.role === 'assistant';
+      const kept: Message[] = [];
+      const removedIds = new Set<string>();
+      let removed = 0;
+      for (let i = 0; i < msgs.length; i += 1) {
+        if (i >= turnStart && isTarget(msgs[i])) {
+          removed += 1;
+          removedIds.add(msgs[i].id);
+          continue;
+        }
+        kept.push(msgs[i]);
+      }
+      if (removed === 0) return state;
+      const displayContent =
+        kind === 'team'
+          ? `team.leader:${JSON.stringify({ content, timestamp: Date.parse(timestampIso) || Date.now() })}`
+          : content;
+      const reboundMessages = kept.map((message) => {
+        const streamMessageId = message.supplementalInput?.streamMessageId;
+        if (!streamMessageId || !removedIds.has(streamMessageId)) return message;
+        return {
+          ...message,
+          supplementalInput: {
+            ...message.supplementalInput!,
+            streamMessageId: finalId,
+          },
+        };
+      });
+      reboundMessages.push({
+        id: finalId,
+        role: kind === 'team' ? 'system' : 'assistant',
+        content: displayContent,
+        timestamp: timestampIso,
+        completedAt: timestampIso,
+        isStreaming: false,
+        ...(kind === 'agent' && agentTemplateName ? { agentTemplateName } : {}),
+      });
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: reboundMessages,
+            assistantStreamSplit: false,
+            currentStreamId: null,
+            currentStreamContent: '',
+          },
+        },
+      };
+    });
+  },
+
+  bumpThinkingAnchor: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, thinkingAnchorAt: Date.now() },
+        },
+      };
+    });
+  },
+
+  setExecutionError: (sessionId, error) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, executionError: error },
+        },
+      };
+    });
+  },
+
+  setActiveExecutionId: (sessionId, executionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || runtime.activeExecutionId === executionId) return state;
+      return {
+        runtimes: { ...state.runtimes, [sessionId]: { ...runtime, activeExecutionId: executionId } },
+      };
+    });
+  },
+
+  setAgentGroupUnavailable: (sessionId, unavailable) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || runtime.agentGroupUnavailable === unavailable) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, agentGroupUnavailable: unavailable },
+        },
+      };
+    });
+  },
+
+  setProcessing: (sessionId, status) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      // 新一轮开始（false→true）：把「思考中」耗时锚点归到轮次起点。
+      const turnStart = status && !runtime.isProcessing;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            isProcessing: status,
+            ...(!status ? {
+              activeExecutionId: null,
+              reasoningInputBoundaryPending: false,
+            } : {}),
+            executionError: status ? null : runtime.executionError,
+            ...(status ? { error: null } : {}),
+            ...(turnStart ? { thinkingAnchorAt: Date.now() } : {}),
+          },
+        },
+      };
+    });
+    // 整轮空闲：把忙碌时暂存的目标用户气泡正式入列（空 final 主路径之外的兜底）
+    if (!status) {
+      get().flushPendingGoalObjectiveBubble(sessionId);
+    }
+  },
+
+  setSessionError: (sessionId, error) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, error },
+        },
+      };
+    });
+  },
+
+  setThinking: (sessionId, status) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || runtime.isThinking === status) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, isThinking: status },
+        },
+      };
+    });
+  },
+
+  setLoadingHistory: (sessionId, status) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, isLoadingHistory: status },
+        },
+      };
+    });
+  },
+
+  setHistoryPagerMeta: (sessionId, meta) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, historyPagerMeta: meta },
+        },
+      };
+    });
+  },
+
+  setEvolutionStatus: (sessionId, status) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      if (runtime.evolutionStatusClearTimer) {
+        clearTimeout(runtime.evolutionStatusClearTimer);
+      }
+      const nextRuntime: ChatRuntime = { ...runtime, evolutionStatus: status };
+      if (status?.status === 'end') {
+        nextRuntime.evolutionStatusClearTimer = setTimeout(() => {
+          set((s) => {
+            const r = s.runtimes[sessionId];
+            if (!r || r.evolutionStatus !== status) return s;
+            return {
+              runtimes: {
+                ...s.runtimes,
+                [sessionId]: { ...r, evolutionStatus: null, evolutionStatusClearTimer: null },
+              },
+            };
+          });
+        }, EVOLUTION_STATUS_END_VISIBLE_MS);
+      } else {
+        nextRuntime.evolutionStatusClearTimer = null;
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: nextRuntime,
+        },
+      };
+    });
+  },
+
+  setPaused: (sessionId, paused, task = null) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, isPaused: paused, pausedTask: task ?? null },
+        },
+      };
+    });
+  },
+
+  setQueuePaused: (sessionId, paused) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, queuePaused: paused },
+        },
+      };
+    });
+  },
+
+  upsertQueuedSessionMessage: (sessionId, message) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId] ?? createEmptyRuntime();
+      if (runtime.settledQueuedSessionMessageIds.has(message.messageId)) return state;
+      const existing = runtime.queuedSessionMessages.findIndex(
+        (item) => item.messageId === message.messageId
+      );
+      const queuedSessionMessages = [...runtime.queuedSessionMessages];
+      if (existing >= 0) queuedSessionMessages[existing] = message;
+      else queuedSessionMessages.push(message);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, queuedSessionMessages },
+        },
+      };
+    });
+  },
+
+  removeQueuedSessionMessage: (sessionId, messageId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId] ?? createEmptyRuntime();
+      if (runtime.settledQueuedSessionMessageIds.has(messageId)) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            queuedSessionMessages: runtime.queuedSessionMessages.filter(
+              (item) => item.messageId !== messageId
+            ),
+            settledQueuedSessionMessageIds: new Set([...runtime.settledQueuedSessionMessageIds, messageId]),
+          },
+        },
+      };
+    });
+  },
+
+  beginQueuedSessionMessageSnapshot: (sessionId) => {
+    const runtime = get().ensureRuntime(sessionId);
+    const snapshot = {
+      generation: runtime.queuedSessionMessageSnapshotGeneration + 1,
+      previous: runtime.queuedSessionMessages,
+    };
+    set((state) => ({
+      runtimes: {
+        ...state.runtimes,
+        [sessionId]: {
+          ...state.runtimes[sessionId],
+          queuedSessionMessageSnapshotGeneration: snapshot.generation,
+        },
+      },
+    }));
+    return snapshot;
+  },
+
+  reconcileQueuedSessionMessageSnapshot: (sessionId, snapshot, messages) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || runtime.queuedSessionMessageSnapshotGeneration !== snapshot.generation) return state;
+      const queuedSessionMessages = messages.filter(
+        (message) => !runtime.settledQueuedSessionMessageIds.has(message.messageId)
+      );
+      for (const message of runtime.queuedSessionMessages) {
+        if (snapshot.previous.includes(message)) continue;
+        const existing = queuedSessionMessages.findIndex((item) => item.messageId === message.messageId);
+        if (existing >= 0) queuedSessionMessages[existing] = message;
+        else queuedSessionMessages.push(message);
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, queuedSessionMessages },
+        },
+      };
+    });
+  },
+
+  setInterruptResult: (sessionId, result) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      if (runtime.interruptResultClearTimer) {
+        clearTimeout(runtime.interruptResultClearTimer);
+      }
+      const nextRuntime: ChatRuntime = { ...runtime, interruptResult: result };
+      if (result) {
+        nextRuntime.interruptResultClearTimer = setTimeout(() => {
+          set((s) => {
+            const r = s.runtimes[sessionId];
+            if (!r || r.interruptResult !== result) return s;
+            return {
+              runtimes: {
+                ...s.runtimes,
+                [sessionId]: { ...r, interruptResult: null, interruptResultClearTimer: null },
+              },
+            };
+          });
+        }, 3000);
+      } else {
+        nextRuntime.interruptResultClearTimer = null;
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: nextRuntime,
+        },
+      };
+    });
+  },
+
+  setSwitchingMode: (sessionId, switching) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      if (switching) {
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: {
+              ...runtime,
+              switchingMode: true,
+              isProcessing: false,
+              isPaused: false,
+              pausedTask: null,
+              interruptResult: null,
+            },
+          },
+        };
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, switchingMode: false },
+        },
+      };
+    });
+  },
+
+  setNewSession: (sessionId, isNew) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, isNewSession: isNew },
+        },
+      };
+    });
+  },
+
+  addToolCall: (sessionId, toolCall, options) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      if (!toolCall.id) {
+        const nextDropped = runtime.toolMetrics.toolCallDedupDropped + 1;
+        if (import.meta.env.DEV && (nextDropped === 1 || nextDropped % 10 === 0)) {
+          console.debug('[ws][metrics] toolCallDedupDropped', {
+            count: nextDropped,
+            reason: 'missing toolCallId',
+          });
+        }
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: {
+              ...runtime,
+              toolMetrics: {
+                ...runtime.toolMetrics,
+                toolCallDedupDropped: nextDropped,
+              },
+            },
+          },
+        };
+      }
+      if (runtime.toolExecutions.has(toolCall.id)) {
+        const nextDropped = runtime.toolMetrics.toolCallDedupDropped + 1;
+        if (import.meta.env.DEV && (nextDropped === 1 || nextDropped % 10 === 0)) {
+          console.debug('[ws][metrics] toolCallDedupDropped', {
+            count: nextDropped,
+            reason: 'toolCallId execution hit',
+          });
+        }
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: {
+              ...runtime,
+              toolMetrics: {
+                ...runtime.toolMetrics,
+                toolCallDedupDropped: nextDropped,
+              },
+            },
+          },
+        };
+      }
+      const nowIso = new Date().toISOString();
+      const startedAt =
+        typeof options?.startedAt === 'string' && options.startedAt.trim()
+          ? options.startedAt.trim()
+          : nowIso;
+      const orphanResult = runtime.orphanResults.get(toolCall.id);
+      const nextExecutions = new Map(runtime.toolExecutions);
+      const nextOrphanResults = new Map(runtime.orphanResults);
+      if (orphanResult) {
+        nextOrphanResults.delete(toolCall.id);
+      }
+      const timeoutAt = computeTimeoutAt(startedAt);
+      const resultStatus = orphanResult ? resolveExecutionStatus(orphanResult) : 'pending';
+      nextExecutions.set(toolCall.id, {
+        outputOrder: toolCall.outputOrder,
+        toolCallId: toolCall.id,
+        toolCall,
+        result: orphanResult,
+        status: resultStatus,
+        startedAt,
+        updatedAt: startedAt,
+        timeoutAt,
+        requestId: options?.requestId,
+        agentTemplateName: options?.agentTemplateName,
+        historyBatchSeq: options?.historyBatchSeq,
+      });
+
+      const nextOrder = [...runtime.toolExecutionOrder, toolCall.id];
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            toolExecutions: nextExecutions,
+            toolExecutionOrder: nextOrder,
+            orphanResults: nextOrphanResults,
+          },
+        },
+      };
+    });
+  },
+
+  addToolResult: (sessionId, toolResult, options) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const incomingToolCallId = toolResult.toolCallId;
+      if (!incomingToolCallId) {
+        const nextDropped = runtime.toolMetrics.toolResultDedupDropped + 1;
+        if (import.meta.env.DEV && (nextDropped === 1 || nextDropped % 10 === 0)) {
+          console.debug('[ws][metrics] toolResultDedupDropped', {
+            count: nextDropped,
+            reason: 'missing toolCallId',
+          });
+        }
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: {
+              ...runtime,
+              toolMetrics: {
+                ...runtime.toolMetrics,
+                toolResultDedupDropped: nextDropped,
+              },
+            },
+          },
+        };
+      }
+      const nowIso = new Date().toISOString();
+      const updatedAt =
+        typeof options?.updatedAt === 'string' && options.updatedAt.trim()
+          ? options.updatedAt.trim()
+          : nowIso;
+      const existingExecution = runtime.toolExecutions.get(incomingToolCallId);
+
+      if (!existingExecution) {
+        const nextOrphanResults = new Map(runtime.orphanResults);
+        const duplicatedOrphan = nextOrphanResults.get(incomingToolCallId);
+        if (
+          duplicatedOrphan &&
+          shouldDropToolResult(
+            resolveExecutionStatus(duplicatedOrphan),
+            duplicatedOrphan,
+            toolResult
+          )
+        ) {
+          const nextDropped = runtime.toolMetrics.toolResultDedupDropped + 1;
+          if (import.meta.env.DEV && (nextDropped === 1 || nextDropped % 10 === 0)) {
+            console.debug('[ws][metrics] toolResultDedupDropped', {
+              count: nextDropped,
+              reason: 'orphan duplicate',
+            });
+          }
+          return {
+            runtimes: {
+              ...state.runtimes,
+              [sessionId]: {
+                ...runtime,
+                toolMetrics: {
+                  ...runtime.toolMetrics,
+                  toolResultDedupDropped: nextDropped,
+                },
+              },
+            },
+          };
+        }
+        nextOrphanResults.set(incomingToolCallId, toolResult);
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: { ...runtime, orphanResults: nextOrphanResults },
+          },
+        };
+      }
+
+      const mergedToolResult = mergeToolResultProgress(
+        existingExecution.result,
+        toolResult
+      );
+      const nextStatus = resolveExecutionStatus(mergedToolResult);
+
+      if (
+        shouldDropToolResult(
+          existingExecution.status,
+          existingExecution.result,
+          mergedToolResult
+        )
+      ) {
+        const nextDropped = runtime.toolMetrics.toolResultDedupDropped + 1;
+        if (import.meta.env.DEV && (nextDropped === 1 || nextDropped % 10 === 0)) {
+          console.debug('[ws][metrics] toolResultDedupDropped', {
+            count: nextDropped,
+            reason: 'execution duplicate',
+          });
+        }
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: {
+              ...runtime,
+              toolMetrics: {
+                ...runtime.toolMetrics,
+                toolResultDedupDropped: nextDropped,
+              },
+            },
+          },
+        };
+      }
+
+      const nextExecutions = new Map(runtime.toolExecutions);
+      nextExecutions.set(incomingToolCallId, {
+        ...existingExecution,
+        result: mergedToolResult,
+        status: nextStatus,
+        updatedAt,
+        resultArrivedAfterTimeout:
+          existingExecution.status === 'timeout' ? true : existingExecution.resultArrivedAfterTimeout,
+      });
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, toolExecutions: nextExecutions },
+        },
+      };
+    });
+  },
+
+  updateToolProgress: (sessionId, toolCallId, progress) => {
+    if (!toolCallId) return;
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const execution = runtime.toolExecutions.get(toolCallId);
+      if (!execution) return state;
+      const nextExecutions = new Map(runtime.toolExecutions);
+      // 进度更新不得把已完成/失败/超时打回 pending，否则 UI 会误显示「执行中」。
+      const keepStatus =
+        execution.status === 'completed' ||
+        execution.status === 'error' ||
+        execution.status === 'timeout'
+          ? execution.status
+          : 'pending';
+      nextExecutions.set(toolCallId, {
+        ...execution,
+        result: {
+          toolName: execution.toolCall.name,
+          result: '',
+          success: true,
+          toolCallId,
+          ...execution.result,
+          ...progress,
+        },
+        status: keepStatus,
+        updatedAt:
+          keepStatus === 'pending' ? new Date().toISOString() : execution.updatedAt,
+      });
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, toolExecutions: nextExecutions },
+        },
+      };
+    });
+  },
+
+  updateToolReviewer: (sessionId, toolCallId, reviewer) => {
+    if (!toolCallId) return;
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const execution = runtime.toolExecutions.get(toolCallId);
+      if (!execution) return state;
+      const nextReviewer = mergeReviewerProgress(execution.toolCall.reviewer, reviewer);
+      if (nextReviewer === execution.toolCall.reviewer) return state;
+      const nextExecutions = new Map(runtime.toolExecutions);
+      nextExecutions.set(toolCallId, {
+        ...execution,
+        toolCall: { ...execution.toolCall, reviewer: nextReviewer },
+      });
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, toolExecutions: nextExecutions },
+        },
+      };
+    });
+  },
+
+  markTimedOutExecutions: (sessionId) => {
+    const now = Date.now();
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      let changed = false;
+      const nextExecutions = new Map(runtime.toolExecutions);
+      for (const [toolCallId, execution] of nextExecutions) {
+        if (execution.status !== 'pending') {
+          continue;
+        }
+        const timeoutTs = Date.parse(execution.timeoutAt);
+        if (Number.isNaN(timeoutTs) || timeoutTs > now) {
+          continue;
+        }
+        changed = true;
+        // timedOutAt = 巡检发现时刻；updatedAt 保持事件时间（startedAt/原值），避免把「已完成」耗时撑到 now。
+        nextExecutions.set(toolCallId, {
+          ...execution,
+          status: 'timeout',
+          timedOutAt: new Date(now).toISOString(),
+        });
+      }
+      if (!changed) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, toolExecutions: nextExecutions },
+        },
+      };
+    });
+  },
+
+  settleHistoricalToolExecutions: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || runtime.isProcessing) return state;
+      let changed = false;
+      const nextExecutions = new Map(runtime.toolExecutions);
+      for (const [toolCallId, execution] of nextExecutions) {
+        // 只结算仍 pending 的历史孤儿 tool_call。
+        // timeout/error 必须保留，否则刷新后失败/超时会被抹成「已完成」。
+        if (execution.status !== 'pending') {
+          continue;
+        }
+        if (execution.result) {
+          const nextStatus = resolveExecutionStatus(execution.result);
+          if (nextStatus !== execution.status) {
+            changed = true;
+            nextExecutions.set(toolCallId, {
+              ...execution,
+              status: nextStatus,
+              updatedAt: execution.updatedAt || execution.startedAt,
+            });
+          }
+          continue;
+        }
+        // 无真实 result：按调用时刻结算为完成，不引入 Date.now()
+        changed = true;
+        nextExecutions.set(toolCallId, {
+          ...execution,
+          status: 'completed',
+          updatedAt: execution.startedAt,
+          result: {
+            toolName: execution.toolCall.name,
+            result: '',
+            success: true,
+            toolCallId,
+          } as ToolResult,
+        });
+      }
+      if (!changed) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, toolExecutions: nextExecutions },
+        },
+      };
+    });
+  },
+
+  clearCurrentTurnData: (sessionId, requestId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      if (requestId) {
+        const nextExecutions = new Map(runtime.toolExecutions);
+        const nextOrder: string[] = [];
+        for (const id of runtime.toolExecutionOrder) {
+          const exec = nextExecutions.get(id);
+          if (exec && exec.requestId === requestId) {
+            nextExecutions.delete(id);
+          } else {
+            nextOrder.push(id);
+          }
+        }
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: {
+              ...runtime,
+              toolExecutions: nextExecutions,
+              toolExecutionOrder: nextOrder,
+              orphanResults: new Map(),
+              interruptResult: null,
+              pendingQuestions: [],
+              toolMetrics: {
+                toolCallDedupDropped: 0,
+                toolResultDedupDropped: 0,
+              },
+            },
+          },
+        };
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            toolExecutions: new Map(),
+            toolExecutionOrder: [],
+            orphanResults: new Map(),
+            interruptResult: null,
+            pendingQuestions: [],
+            toolMetrics: {
+              toolCallDedupDropped: 0,
+              toolResultDedupDropped: 0,
+            },
+          },
+        },
+      };
+    });
+    useTodoStore.getState().clearTodos(sessionId);
+  },
+
+  prependMessages: (sessionId, olderFirst) => {
+    if (!olderFirst.length) return;
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const assigned = assignMessageRenderKeys(runtime, olderFirst);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: [...assigned.messages, ...runtime.messages],
+            messageRenderKeySeq: assigned.messageRenderKeySeq,
+          },
+        },
+      };
+    });
+  },
+
+  clearMessages: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      if (runtime.evolutionStatusClearTimer) {
+        clearTimeout(runtime.evolutionStatusClearTimer);
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: [],
+            currentStreamContent: '',
+            currentStreamId: null,
+            streamBuffers: new Map(),
+            evolutionStatus: null,
+            evolutionStatusClearTimer: null,
+            isPaused: false,
+            pausedTask: null,
+            interruptResult: null,
+            switchingMode: false,
+            toolExecutions: new Map(),
+            toolExecutionOrder: [],
+            orphanResults: new Map(),
+            contextCompressionRuntime: undefined,
+            contextCompressionSummary: undefined,
+            toolMetrics: {
+              toolCallDedupDropped: 0,
+              toolResultDedupDropped: 0,
+            },
+            taskQueue: [],
+            taskInputReceipts: {},
+            pendingQuestions: [],
+            pendingGoalObjectiveBubble: null,
+          },
+        },
+      };
+    });
+  },
+
+  addToTaskQueue: (sessionId, content, mediaItems) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            taskQueue: [
+              ...runtime.taskQueue,
+              {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                content,
+                timestamp: Date.now(),
+                status: 'queued',
+                ...(mediaItems && mediaItems.length > 0 ? { mediaItems } : {}),
+              },
+            ],
+          },
+        },
+      };
+    });
+  },
+
+  claimQueuedTask: (sessionId, taskId) => {
+    let claimed: TaskItem | undefined;
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (
+        !runtime ||
+        runtime.isProcessing ||
+        runtime.isPaused ||
+        runtime.pendingQuestions.length ||
+        runtime.taskQueue.some((task) => task.status === 'sending')
+      )
+        return state;
+      const task = runtime.taskQueue.find((item) =>
+        taskId ? item.id === taskId && ['queued', 'failed'].includes(item.status) : item.status === 'queued',
+      );
+      if (!task) return state;
+      claimed = task;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            taskQueue: runtime.taskQueue.filter((item) => item.id !== task.id),
+          },
+        },
+      };
+    });
+    return claimed;
+  },
+
+  claimTaskInput: (sessionId, taskId) => {
+    let claimed: TaskItem | undefined;
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (
+        !runtime ||
+        runtime.isPaused ||
+        runtime.isLoadingHistory ||
+        runtime.switchingMode ||
+        runtime.pendingQuestions.length
+      )
+        return state;
+      const task = runtime.taskQueue.find((item) => item.id === taskId);
+      if (!task || !['queued', 'failed'].includes(task.status) || !task.content.trim() || task.mediaItems?.length)
+        return state;
+      claimed = task;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            taskQueue: runtime.taskQueue.map((item) =>
+              item.id === taskId ? { ...item, status: 'sending', requestId: undefined, error: undefined } : item,
+            ),
+            taskInputReceipts: {
+              ...runtime.taskInputReceipts,
+              [taskId]: {
+                taskId,
+                content: task.content,
+                status: 'sending',
+                timestamp: new Date().toISOString(),
+                supplementalInput: {
+                  executionId: runtime.activeExecutionId ?? '',
+                  streamMessageId: runtime.currentStreamId ?? undefined,
+                  streamOffset: runtime.currentStreamContent.length,
+                },
+              },
+            },
+          },
+        },
+      };
+    });
+    return claimed;
+  },
+
+  bindTaskInputRequest: (sessionId, taskId, requestId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      const receipt = runtime?.taskInputReceipts[taskId];
+      if (!runtime || !receipt || receipt.status !== 'sending') return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            taskInputRequests: {
+              ...runtime.taskInputRequests,
+              [requestId]: {
+                taskId,
+                content: runtime.taskQueue.find((task) => task.id === taskId)?.content ?? '',
+              },
+            },
+            taskQueue: runtime.taskQueue.map((task) =>
+              task.id === taskId && task.status === 'sending' ? { ...task, requestId } : task,
+            ),
+            taskInputReceipts: {
+              ...runtime.taskInputReceipts,
+              [taskId]: { ...receipt, requestId },
+            },
+          },
+        },
+      };
+    });
+  },
+
+  settleTaskInput: (sessionId, taskId, requestId, status, error, errorCode, delivery) => {
+    let chatMessage: Message | undefined;
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      const receipt = runtime?.taskInputReceipts[taskId];
+      // Late responses can settle unknown delivery, but cannot affect an accepted or retried item.
+      if (!runtime || !receipt || receipt.requestId !== requestId || !['sending', 'unknown'].includes(receipt.status))
+        return state;
+      if (status === 'accepted' && delivery === 'chat') {
+        chatMessage = {
+          id: `user-steer-${taskId}`, role: 'user', content: receipt.content, timestamp: receipt.timestamp,
+        };
+      }
+      const acceptedMessages = status === 'accepted' && !chatMessage && delivery !== 'stream'
+        ? assignMessageRenderKeys(runtime, [{
+            id: `user-steer-${taskId}`,
+            role: 'user',
+            content: receipt.content,
+            timestamp: receipt.timestamp,
+            supplementalInput: receipt.supplementalInput,
+          }])
+        : undefined;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            ...(chatMessage && requestId ? {
+              taskInputRequests: {
+                ...runtime.taskInputRequests,
+                [requestId]: { ...runtime.taskInputRequests[requestId], delivery: 'chat' as const },
+              },
+            } : {}),
+            ...(acceptedMessages ? {
+              messages: [...runtime.messages, ...acceptedMessages.messages],
+              messageRenderKeySeq: acceptedMessages.messageRenderKeySeq,
+              reasoningInputBoundaryPending: true,
+            } : {}),
+            taskQueue:
+              status === 'accepted'
+                ? runtime.taskQueue.filter((item) => item.id !== taskId)
+                : runtime.taskQueue.map((item) => (item.id === taskId ? { ...item, status, error } : item)),
+            taskInputReceipts: {
+              ...runtime.taskInputReceipts,
+              [taskId]: { ...receipt, status, error, errorCode },
+            },
+          },
+        },
+      };
+    });
+    if (chatMessage) {
+      // Ordinary chat uses the existing user-message boundary and lifecycle, only after Runtime admission.
+      get().addMessage(sessionId, chatMessage);
+      get().setProcessing(sessionId, true);
+      get().setThinking(sessionId, true);
+    }
+  },
+
+  clearTaskQueue: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            taskQueue: runtime.taskQueue.filter((task) => ['sending', 'unknown'].includes(task.status)),
+            queuePaused: false,
+          },
+        },
+      };
+    });
+  },
+
+  removeFromTaskQueue: (sessionId, id) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            taskQueue: runtime.taskQueue.filter((task) => task.id !== id || task.status === 'sending'),
+          },
+        },
+      };
+    });
+  },
+
+  reorderTaskQueue: (sessionId, fromIndex, toIndex) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const queue = [...runtime.taskQueue];
+      if (fromIndex < 0 || fromIndex >= queue.length || toIndex < 0 || toIndex >= queue.length || fromIndex === toIndex) {
+        return state;
+      }
+      const [moved] = queue.splice(fromIndex, 1);
+      queue.splice(toIndex, 0, moved);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, taskQueue: queue },
+        },
+      };
+    });
+  },
+
+  enqueuePendingQuestion: (sessionId, question) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const pendingQuestions = enqueuePendingQuestions(runtime.pendingQuestions, question);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            pendingQuestions,
+          },
+        },
+      };
+    });
+  },
+
+  consumePendingQuestion: (sessionId, question) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const pendingQuestions = consumeQueuedQuestion(runtime.pendingQuestions, question);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            pendingQuestions,
+          },
+        },
+      };
+    });
+  },
+
+  clearPendingQuestions: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, pendingQuestions: [] },
+        },
+      };
+    });
+  },
+
+  setPendingGoalObjectiveBubble: (sessionId, content) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId] ?? createEmptyRuntime();
+      const trimmed = content && content.trim() ? content.trim() : null;
+      const next = trimmed
+        ? {
+            content: trimmed,
+            timestamp: runtime.pendingGoalObjectiveBubble?.content === trimmed
+              ? runtime.pendingGoalObjectiveBubble.timestamp
+              : new Date().toISOString(),
+          }
+        : null;
+      if (
+        runtime.pendingGoalObjectiveBubble?.content === next?.content &&
+        runtime.pendingGoalObjectiveBubble?.timestamp === next?.timestamp &&
+        state.runtimes[sessionId]
+      ) {
+        return state;
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, pendingGoalObjectiveBubble: next },
+        },
+      };
+    });
+  },
+
+  flushPendingGoalObjectiveBubble: (sessionId) => {
+    const runtime = get().runtimes[sessionId];
+    const pending = runtime?.pendingGoalObjectiveBubble;
+    if (!pending?.content) {
+      return;
+    }
+    const already = (runtime.messages ?? []).some(
+      (message) =>
+        message.role === 'user' &&
+        message.isGoalObjectiveMessage &&
+        message.content === pending.content
+    );
+    set((state) => {
+      const current = state.runtimes[sessionId];
+      if (!current) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...current, pendingGoalObjectiveBubble: null },
+        },
+      };
+    });
+    if (!already) {
+      get().addMessage(sessionId, {
+        id: `user-goal-${Date.now()}`,
+        role: 'user',
+        content: pending.content,
+        // 入列时刻与后端 defer flush 对齐（上一轮收尾之后）
+        timestamp: new Date().toISOString(),
+        isGoalObjectiveMessage: true,
+      });
+    }
+  },
+
+  queueOrAddGoalObjectiveMessage: (sessionId, content) => {
+    const trimmed = content.trim();
+    if (!trimmed) {
+      return;
+    }
+    const runtime = get().runtimes[sessionId] ?? createEmptyRuntime();
+    // 暂存的目的是"避免插进当前回答中间拆轮"——只有存在可被拆的 assistant 轮次时才有意义。
+    // 后端 _should_defer_goal_objective_history 也是精确判断"有无活跃 user round / 并发任务"，
+    // idle 时不 defer（test_should_not_defer_when_idle）。这里用"已有 assistant 消息且仍在处理"
+    // 对齐该语义：新会话首次设目标时 messages 里没有 assistant 消息，即便
+    // registerCreatedConversation 把 isProcessing 乐观置 true 也不暂存，立即落地，避免用户
+    // 气泡被推迟到 agent 回复完成之后才 append 到末尾（顺序错乱、时间戳变落地时刻）。
+    const hasAssistantTurn = (runtime.messages ?? []).some((message) => message.role === 'assistant');
+    const busy = hasAssistantTurn && Boolean(runtime.isProcessing || runtime.currentStreamId);
+    if (busy) {
+      get().setPendingGoalObjectiveBubble(sessionId, trimmed);
+      return;
+    }
+    get().setPendingGoalObjectiveBubble(sessionId, null);
+    const already = (runtime.messages ?? []).some(
+      (message) =>
+        message.role === 'user' &&
+        message.isGoalObjectiveMessage &&
+        message.content === trimmed
+    );
+    if (!already) {
+      get().addMessage(sessionId, {
+        id: `user-goal-${Date.now()}`,
+        role: 'user',
+        content: trimmed,
+        timestamp: new Date().toISOString(),
+        isGoalObjectiveMessage: true,
+      });
+    }
+  },
+
+  clearPermissionQuestions: (sessionId) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const pendingQuestions = clearQueuedPermissionQuestions(runtime.pendingQuestions);
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            pendingQuestions,
+          },
+        },
+      };
+    });
+  },
+
+  setInputValue: (sessionId, value) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: { ...runtime, inputValue: value },
+        },
+      };
+    });
+  },
+
+  setUsageSummary: (sessionId, messageId, usage) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: runtime.messages.map((msg) =>
+              msg.id === messageId ? { ...msg, usageSummary: usage } : msg
+            ),
+          },
+        },
+      };
+    });
+  },
+
+  addFileItems: (sessionId, files, options) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const lastMessage = runtime.messages[runtime.messages.length - 1];
+      // 与历史 restore 一致：优先挂当前流；否则挂最近一条助手消息（不是下一条 final）。
+      const targetId =
+        runtime.currentStreamId ??
+        (lastMessage?.role === 'assistant' ||
+        (lastMessage?.role === 'system' && lastMessage.id?.startsWith('team-leader-'))
+          ? lastMessage.id
+          : null);
+      const timestampIso =
+        typeof options?.timestampIso === 'string' && options.timestampIso.trim()
+          ? options.timestampIso.trim()
+          : new Date().toISOString();
+      if (!targetId) {
+        const msgId = `file-${timestampIso}`;
+        return {
+          runtimes: {
+            ...state.runtimes,
+            [sessionId]: {
+              ...runtime,
+              messages: [
+                ...runtime.messages,
+                {
+                  id: msgId,
+                  role: 'assistant',
+                  content: '',
+                  timestamp: timestampIso,
+                  fileItems: files,
+                },
+              ],
+            },
+          },
+        };
+      }
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...runtime,
+            messages: runtime.messages.map((msg) =>
+              msg.id === targetId
+                ? { ...msg, fileItems: mergeFileDownloadItems(msg.fileItems, files) }
+                : msg
+            ),
+          },
+        },
+      };
+    });
+  },
+
+  setContextCompressionStatus: (sessionId, runtime, summary) => {
+    set((state) => {
+      const r = state.runtimes[sessionId];
+      if (!r) return state;
+      return {
+        runtimes: {
+          ...state.runtimes,
+          [sessionId]: {
+            ...r,
+            contextCompressionRuntime: runtime,
+            contextCompressionSummary: summary,
+          },
+        },
+      };
+    });
+  },
+})));
