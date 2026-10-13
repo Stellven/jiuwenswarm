@@ -317,6 +317,15 @@
       "applicable_phases": [
         "Phase 2"
       ]
+    },
+    {
+      "topic": "Capsule model-routing integration",
+      "document": "capsule-model-routing.md#shared-flow",
+      "version": "2.0.0",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
     }
   ],
   "interfaces": [
@@ -746,22 +755,6 @@
       ]
     },
     {
-      "id": "model-route:field-contract:1",
-      "name": "model-route",
-      "version": "1.0.0",
-      "producer": "protected router",
-      "consumers": [
-        "audited bridge",
-        "observations"
-      ],
-      "document": "field-catalog.md#model-route",
-      "fields": "field-contracts.json",
-      "applicable_phases": [
-        "Phase 1",
-        "Phase 3"
-      ]
-    },
-    {
       "id": "rsi-target-profile:field-contract:1",
       "name": "rsi-target-profile",
       "version": "1.0.0",
@@ -928,6 +921,88 @@
         "node gate",
         "inspection"
       ],
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "selected-capsule-input:field-contract:1",
+      "name": "selected-capsule-input",
+      "version": "1.0.0",
+      "producer": "protected binder/runner",
+      "consumers": [
+        "router/static adapter"
+      ],
+      "document": "capsule-model-routing.md#selected-capsule-input",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "model-selection-profile:field-contract:1",
+      "name": "model-selection-profile",
+      "version": "1.0.0",
+      "producer": "protected configuration owner",
+      "consumers": [
+        "binder",
+        "router/static adapter",
+        "bridge"
+      ],
+      "document": "capsule-model-routing.md#model-selection-profile",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "route-request:field-contract:1",
+      "name": "route-request",
+      "version": "1.0.0",
+      "producer": "protected upstream routing adapter",
+      "consumers": [
+        "router/static adapter"
+      ],
+      "document": "capsule-model-routing.md#route-request",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "model-route:field-contract:2",
+      "name": "model-route",
+      "version": "2.0.0",
+      "producer": "protected router/static adapter",
+      "consumers": [
+        "audited bridge",
+        "runner",
+        "observations",
+        "Run Bundle"
+      ],
+      "document": "capsule-model-routing.md#model-route",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "model-call:field-contract:1",
+      "name": "model-call",
+      "version": "1.0.0",
+      "producer": "governed bridge/audit writer",
+      "consumers": [
+        "observations",
+        "Run Bundle",
+        "authorized inspection"
+      ],
+      "document": "capsule-model-routing.md#model-call",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",

@@ -772,6 +772,346 @@
           "meaning": "Maximum admitted tools"
         }
       }
+    },
+    "RuntimeIdentities": {
+      "fields": {
+        "run_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected run_id"
+        },
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected node_id"
+        },
+        "subnode_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected subnode_id"
+        },
+        "attempt_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected attempt_id"
+        },
+        "invocation_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected invocation_id"
+        }
+      },
+      "document": "capsule-model-routing.md#runtimeidentities"
+    },
+    "PrerequisiteReadiness": {
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Declaration predicate"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "meaning": "pass or deferred; unavailable/unknown mandatory checks block"
+        },
+        "evaluable_at": {
+          "type": "string",
+          "required": true,
+          "meaning": "planning, dispatch or both"
+        },
+        "evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Protected state/source evidence"
+        }
+      },
+      "document": "capsule-model-routing.md#prerequisitereadiness"
+    },
+    "RoutingBudgetSnapshot": {
+      "fields": {
+        "snapshot_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Immutable initial protected ledger snapshot; live recheck is separate"
+        },
+        "node_remaining": {
+          "type": "RoutingBudgetBalance",
+          "required": true,
+          "meaning": "Remaining node time/calls and effective memory ceiling"
+        },
+        "subnode_remaining": {
+          "type": "RoutingBudgetBalance",
+          "required": true,
+          "meaning": "Remaining CC execution allowance"
+        },
+        "verifier_reserved": {
+          "type": "RoutingBudgetBalance",
+          "required": true,
+          "meaning": "Reserved independent checking; no borrowing"
+        },
+        "routing_reserved": {
+          "type": "RoutingBudgetBalance",
+          "required": true,
+          "meaning": "Routing overhead reservation, included in node totals"
+        },
+        "tokens_remaining": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Available attributable token balance or unavailable"
+        },
+        "cost_remaining": {
+          "type": "nullable-number",
+          "required": true,
+          "meaning": "Available monetary balance or unavailable"
+        },
+        "cost_currency": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Currency for comparable cost amounts"
+        },
+        "unavailable_reasons": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unsupported optional telemetry"
+        },
+        "other_work_reserved": {
+          "type": "RoutingBudgetBalance",
+          "required": true,
+          "meaning": "Reserved other required work; not available to this invocation"
+        }
+      },
+      "document": "capsule-model-routing.md#routingbudgetsnapshot"
+    },
+    "BoundRoutingContext": {
+      "fields": {
+        "runtime": {
+          "type": "RuntimeIdentities",
+          "required": true,
+          "meaning": "Exact protected identities"
+        },
+        "binding_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Selected single CC binding"
+        },
+        "role": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected attribution label; not Router executor type"
+        },
+        "objective": {
+          "type": "string",
+          "required": true,
+          "meaning": "Assigned subnode objective"
+        },
+        "inputs": {
+          "type": "BoundNodeInput[]",
+          "required": true,
+          "meaning": "Named accepted concrete inputs"
+        },
+        "outputs": {
+          "type": "BoundNodeOutput[]",
+          "required": true,
+          "meaning": "Required output contract"
+        },
+        "implementation_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Original-byte implementation pins"
+        },
+        "overlay_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Original-byte instruction/experience overlay pins"
+        },
+        "dependency_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Original-byte resolved dependency closure"
+        },
+        "admission_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned admission decision; current standing rechecked"
+        },
+        "eligibility": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected eligible standing at capture"
+        },
+        "prerequisite_results": {
+          "type": "PrerequisiteReadiness[]",
+          "required": true,
+          "meaning": "Planning results and dispatch-deferred obligations"
+        },
+        "effective_authority": {
+          "type": "AuthorityCeiling",
+          "required": true,
+          "meaning": "Existing binding authority intersection"
+        },
+        "invocation_limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Existing chosen binding limits; CC execution scope"
+        },
+        "subnode_limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Subnode execution ceilings"
+        },
+        "node_limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Parent aggregate limits including routing and verification"
+        },
+        "budget_snapshot": {
+          "type": "RoutingBudgetSnapshot",
+          "required": true,
+          "meaning": "Protected independent reservations and available balance"
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Governing protected policy"
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned configuration selecting the profile"
+        }
+      },
+      "document": "capsule-model-routing.md#boundroutingcontext"
+    },
+    "RoutingRequirements": {
+      "fields": {
+        "tool_calling": {
+          "type": "boolean",
+          "required": false,
+          "meaning": "Additional positive capability requirement"
+        },
+        "min_context": {
+          "type": "integer",
+          "required": false,
+          "meaning": "Additional minimum context"
+        },
+        "modalities": {
+          "type": "string[]",
+          "required": false,
+          "meaning": "Additional required modalities"
+        },
+        "families": {
+          "type": "string[]",
+          "required": false,
+          "meaning": "Additional model-family restriction"
+        },
+        "excludes": {
+          "type": "string[]",
+          "required": false,
+          "meaning": "Excluded families/models under pinned interpretation"
+        },
+        "native_structured_output": {
+          "type": "boolean",
+          "required": false,
+          "meaning": "Explicit native generation requirement, never inferred from JSON ports"
+        },
+        "model_allowlist": {
+          "type": "string[]",
+          "required": false,
+          "meaning": "Optional narrowing; explicit empty list denies all"
+        }
+      },
+      "document": "capsule-model-routing.md#routingrequirements"
+    },
+    "RoutingPreferences": {
+      "fields": {
+        "quality": {
+          "type": "string",
+          "required": false,
+          "meaning": "Soft quality preference with evidence basis"
+        },
+        "cost": {
+          "type": "string",
+          "required": false,
+          "meaning": "Soft cost preference"
+        },
+        "speed": {
+          "type": "string",
+          "required": false,
+          "meaning": "Soft speed preference"
+        }
+      },
+      "document": "capsule-model-routing.md#routingpreferences"
+    },
+    "JudgeAllowance": {
+      "fields": {
+        "enabled": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Protected authorization for an internal selection call"
+        },
+        "deployment_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Pinned approved Judge; required when enabled"
+        },
+        "model_calls": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Zero when disabled; at most one when enabled"
+        },
+        "time_s": {
+          "type": "number",
+          "required": true,
+          "meaning": "Protected routing deadline allowance"
+        },
+        "output_tokens": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Bounded billed output including reported reasoning"
+        },
+        "disclosure_scope": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Permitted bounded Judge material; no credentials"
+        }
+      },
+      "document": "capsule-model-routing.md#judgeallowance"
+    },
+    "ModelExclusion": {
+      "fields": {
+        "model_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Excluded deployment"
+        },
+        "reason_codes": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Retained concrete exclusion reasons"
+        }
+      },
+      "document": "capsule-model-routing.md#modelexclusion"
+    },
+    "RoutingBudgetBalance": {
+      "document": "capsule-model-routing.md#routingbudgetbalance",
+      "fields": {
+        "time_s": {
+          "type": "number",
+          "required": true,
+          "meaning": "Nonnegative remaining/reserved elapsed allowance; zero is exhausted or inapplicable"
+        },
+        "model_calls": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Nonnegative available/reserved model calls"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Positive effective resource ceiling; not additive spend"
+        }
+      }
     }
   },
   "interfaces": [
@@ -2424,70 +2764,6 @@
       "failure": "Never include credentials/hidden fixtures or suggest implicit work retry."
     },
     {
-      "id": "model-route:field-contract:1",
-      "name": "model-route",
-      "version": "1.0.0",
-      "topic": "client-and-model-boundaries",
-      "producer": "protected router",
-      "consumers": [
-        "audited bridge",
-        "observations"
-      ],
-      "fields": {
-        "schema_version": {
-          "type": "string",
-          "required": true,
-          "meaning": "Format version 1.0.0"
-        },
-        "id": {
-          "type": "string",
-          "required": true,
-          "meaning": "Immutable record identity"
-        },
-        "invocation_id": {
-          "type": "string",
-          "required": true,
-          "meaning": "Attempt call"
-        },
-        "role": {
-          "type": "string",
-          "required": true,
-          "meaning": "Approved CC role"
-        },
-        "profile_ref": {
-          "type": "Ref",
-          "required": true,
-          "meaning": "Frozen selection policy"
-        },
-        "eligible_endpoints": {
-          "type": "string[]",
-          "required": true,
-          "meaning": "Approved candidates"
-        },
-        "excluded_reasons": {
-          "type": "string[]",
-          "required": true,
-          "meaning": "Capability/access failures"
-        },
-        "selected_endpoint": {
-          "type": "nullable-string",
-          "required": true,
-          "meaning": "Eligible endpoint or unavailable"
-        },
-        "identity": {
-          "type": "ModelIdentity",
-          "required": true,
-          "meaning": "Requested/effective identity"
-        },
-        "limits": {
-          "type": "Limits",
-          "required": true,
-          "meaning": "Frozen call bounds"
-        }
-      },
-      "failure": "No eligible endpoint blocks. Router cannot replace CC or switch a started invocation."
-    },
-    {
       "id": "rsi-target-profile:field-contract:1",
       "name": "rsi-target-profile",
       "version": "1.0.0",
@@ -3254,6 +3530,418 @@
         }
       },
       "failure": "Unknown, unavailable or unsupported default authority blocks the affected requirement; policy cannot invent purpose or claim hardware availability."
+    },
+    {
+      "id": "selected-capsule-input:field-contract:1",
+      "name": "selected-capsule-input",
+      "type_name": "SelectedCapsuleInput",
+      "version": "1.0.0",
+      "producer": "protected binder/runner",
+      "consumers": [
+        "router/static adapter"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "declaration": {
+          "type": "object",
+          "required": true,
+          "meaning": "Complete parsed declaration; validate existing exact schema against original bytes"
+        },
+        "declaration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Original-byte declaration identity"
+        },
+        "node_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Finalized parent"
+        },
+        "subnode_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Finalized single-CC child"
+        },
+        "bound_context": {
+          "type": "BoundRoutingContext",
+          "required": true,
+          "meaning": "Protected projection, not client claims"
+        }
+      },
+      "failure": "Missing, swapped, forged, changed, unsupported or ineligible input blocks; never choose another CC."
+    },
+    {
+      "id": "model-selection-profile:field-contract:1",
+      "name": "model-selection-profile",
+      "type_name": "ModelSelectionProfile",
+      "version": "1.0.0",
+      "producer": "protected configuration owner",
+      "consumers": [
+        "binder",
+        "router/static adapter",
+        "bridge"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable profile identity"
+        },
+        "mode": {
+          "type": "string",
+          "required": true,
+          "meaning": "static_codex or api_phase3"
+        },
+        "approved_model_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Approved scope; empty denies all"
+        },
+        "extra_requirements": {
+          "type": "RoutingRequirements",
+          "required": true,
+          "meaning": "Requirements only; no grant of tools or effects"
+        },
+        "judge_allowance": {
+          "type": "JudgeAllowance",
+          "required": true,
+          "meaning": "Distinct protected overhead reservation"
+        },
+        "fallback_model_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "At most one predetermined compatible API fallback"
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected governing authorization"
+        }
+      },
+      "failure": "Missing/unauthorized profile blocks. Judge inability uses only the compatible configured fallback. Guard profiles remain independent."
+    },
+    {
+      "id": "route-request:field-contract:1",
+      "name": "route-request",
+      "type_name": "RouteRequest",
+      "version": "1.0.0",
+      "producer": "protected upstream routing adapter",
+      "consumers": [
+        "router/static adapter"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "request_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable request identity"
+        },
+        "workflow_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Explicit local correlation, not assumed equal to run_id"
+        },
+        "task_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Upstream task attribution"
+        },
+        "execution_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "One governed invocation routing idempotency key"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Authenticated session identity"
+        },
+        "task_type": {
+          "type": "string",
+          "required": true,
+          "meaning": "Trusted task label"
+        },
+        "task_summary": {
+          "type": "string",
+          "required": true,
+          "meaning": "Bound objective-derived summary"
+        },
+        "domains": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Upstream applicability labels"
+        },
+        "input_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Same accepted inventory as the selected binding"
+        },
+        "selected_capsule": {
+          "type": "SelectedCapsuleInput",
+          "required": true,
+          "meaning": "Exactly one upstream selected CC"
+        },
+        "model_selection_profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected immutable profile alongside the binding"
+        },
+        "requirements": {
+          "type": "RoutingRequirements",
+          "required": true,
+          "meaning": "Narrowing hard constraints"
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Same protected policy"
+        },
+        "preferences": {
+          "type": "RoutingPreferences",
+          "required": true,
+          "meaning": "Soft preferences only"
+        }
+      },
+      "failure": "Unknown task type, top-level role, changed idempotency input or inconsistent trusted binding rejects before task calls."
+    },
+    {
+      "id": "model-route:field-contract:2",
+      "name": "model-route",
+      "type_name": "RouteDecision",
+      "version": "2.0.0",
+      "producer": "protected router/static adapter",
+      "consumers": [
+        "audited bridge",
+        "runner",
+        "observations",
+        "Run Bundle"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 2.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Persisted immutable routing decision identity; not group route_id"
+        },
+        "request_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact request identity"
+        },
+        "selected_capsule_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact exported CC and protected context"
+        },
+        "runtime": {
+          "type": "RuntimeIdentities",
+          "required": true,
+          "meaning": "Governed invocation attribution"
+        },
+        "execution_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Routing execution key"
+        },
+        "binding_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Same upstream binding"
+        },
+        "role": {
+          "type": "string",
+          "required": true,
+          "meaning": "Protected attribution only"
+        },
+        "model_selection_profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Selection policy, distinct from guard profile"
+        },
+        "registry_snapshot_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Pinned API candidate snapshot; null for static baseline"
+        },
+        "eligible_endpoints": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Permitted candidates"
+        },
+        "excluded_reasons": {
+          "type": "ModelExclusion[]",
+          "required": true,
+          "meaning": "Deployment exclusions"
+        },
+        "selected_endpoint": {
+          "type": "string",
+          "required": true,
+          "meaning": "One approved model ID"
+        },
+        "deployment_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Frozen model/adapter/endpoint/configuration pins"
+        },
+        "identity": {
+          "type": "ModelIdentity",
+          "required": true,
+          "meaning": "Requested/observed identity with basis"
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "CC execution ceilings; separate routing overhead"
+        },
+        "selection_method": {
+          "type": "string",
+          "required": true,
+          "meaning": "single_candidate, llm_judgment or predefined_fallback"
+        },
+        "fallback_used": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Actual fallback path, not merely matching its ID"
+        },
+        "ready_at": {
+          "type": "string",
+          "required": true,
+          "meaning": "Persisted ready timestamp"
+        },
+        "valid_until": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unexecuted decision expiry"
+        },
+        "routing_context_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned derived requirements/context with adapter revision"
+        },
+        "adapter_revision": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact normalization adapter revision; not a model quality claim"
+        }
+      },
+      "failure": "Missing or invalidated frozen decision blocks dispatch; no CC substitution, rerouting or replay inside the invocation."
+    },
+    {
+      "id": "model-call:field-contract:1",
+      "name": "model-call",
+      "type_name": "CallRecord",
+      "version": "1.0.0",
+      "producer": "governed bridge/audit writer",
+      "consumers": [
+        "observations",
+        "Run Bundle",
+        "authorized inspection"
+      ],
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique local call/event identity"
+        },
+        "route_attempt_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Preallocated attempt exists before Judge"
+        },
+        "route_decision_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Final frozen decision for task_execution; nullable during routing_judge"
+        },
+        "execution_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Subject routing execution"
+        },
+        "invocation_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Governed CC invocation attribution"
+        },
+        "purpose": {
+          "type": "string",
+          "required": true,
+          "meaning": "routing_judge or task_execution"
+        },
+        "deployment_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Actual called deployment; Judge differs from selected task model"
+        },
+        "model_selection_profile_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected call authorization"
+        },
+        "provider_request_id": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Provider correlation or unavailable"
+        },
+        "identity": {
+          "type": "ModelIdentity",
+          "required": true,
+          "meaning": "Requested/effective actual model and basis"
+        },
+        "started_at": {
+          "type": "string",
+          "required": true,
+          "meaning": "Observed call start"
+        },
+        "ended_at": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Observed completion or uncertain"
+        },
+        "outcome": {
+          "type": "string",
+          "required": true,
+          "meaning": "completed, failed or outcome_unknown"
+        },
+        "usage": {
+          "type": "Usage",
+          "required": true,
+          "meaning": "Available telemetry; null is not zero"
+        },
+        "evidence_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Access-controlled immutable call evidence"
+        },
+        "observed_runtime": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "False for synthetic documentation examples; never acceptance evidence"
+        }
+      },
+      "failure": "Missing mandatory provenance blocks acceptance; uncertain outcomes are retained without automatic resend. Unknown usage is explicit."
     }
   ]
 }

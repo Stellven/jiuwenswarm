@@ -1,12 +1,22 @@
-# PRD source receipt: supplied separately
+# Current product source receipt
 
-Neither design package contains a PRD body. The coding prompt supplies PRD Main Body and PRD Context separately; use their relevant functional obligations alongside the assigned architecture package. This page identifies the source reviewed for this architecture, not a substitute PRD.
+The PRD body is supplied separately. This receipt identifies the product source adopted for the maintained design; it does not replace the PRD.
 
-| Received source | Bytes | SHA-256 |
+## Current source: confirmed October 13, 2026
+
+| Received filename | Bytes | SHA-256 |
+|---|---:|---|
+| PRD - AI4Research (4).txt | 255245 | `890c63ee4849d61e8c7ddc980891985d57c59005ca6c62be45957c59e82782de` |
+
+The user confirmed this source during routing integration. Repository capture: `docs/product/received-prds/prd-m1-reviewed-2026-10-13.txt`. The date identifies review/adoption, not an inferred author revision. All 188 numbered clause headings match the earlier crosswalk. Compiler clauses now authorize architecture-owned internal steps and model-call sequencing within bounded non-interactive compilation. D5 remains the selected design and is current-source aligned; its former single-generation exception is historical. Routing §4.3 retains the Codex Phase 1 baseline and access-gated Phase 3 APIs. D6 remains the recorded packaging departure.
+
+[Clause allocation](../../coverage-allocation.md) maps requirements; [decisions](../../decision-review.md#r12--routing-owner-integration-and-prd-adoption) explain this revision.
+
+## Historical receipts
+
+| Earlier capture | Bytes | SHA-256 |
 |---|---:|---|
 | prd-m1-current-2026-10-06.txt | 232489 | `6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839` |
 | prd-m1-current-2026-10-07.txt | 254883 | `10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc` |
 
-The October 7 download was received as `PRD - AI4Research (3).txt`; a receipt date does not establish author revision. The October 6 source is prior provenance, not current input. Repository originals live under `docs/product/received-prds/`, outside both architecture folders. Preserved frozen experiment inputs retain their historical source contents; they are not the current packages.
-
-[Clause crosswalk](../../coverage-allocation.md) maps obligations to responsibilities; [decisions](../../decision-review.md#r11--complete-compiler-node-subnode-vocabulary-and-brief-compatibility) record D5's bounded multi-pass exception and other retained decisions. If the separately supplied PRD changes product obligations, reconcile it explicitly; do not assume a filename proves source equality.
+Earlier originals remain under `docs/product/received-prds/`. Frozen experiment inputs retain their original PRDs and identities; they are not updated to this source. A supplied source must match the current receipt before its evidence is treated as current. The routing-owner standalone PRD is older background; the confirmed full PRD and adopted architecture determine present phase and binding boundaries.

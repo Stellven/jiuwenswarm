@@ -6,7 +6,8 @@
 
 | Record | Role and recorded status |
 |---|---|
-| [Latest matched delivery](design-package-delivery-2026-10-13/README.md) | Current full/compact package inventories and documentation checks |
+| [Current routing-integration delivery](design-package-routing-integration-2026-10-13/README.md) | Current package identities, confirmed PRD (4), routing contracts and documentation checks |
+| [October 13 pre-routing delivery](design-package-delivery-2026-10-13/README.md) | Earlier package inventories; retained original measurements |
 | [October 8 delivery](design-package-delivery-2026-10-08/README.md) | Earlier delivered bytes and measurements; later maintained edits require a new receipt |
 | [Original M1 pair](m1-comparison.json) | Frozen full baseline and original cut-down inputs under the protocol below |
 | [October 8 contract-review pair](m1-contract-review-2026-10-08/README.md) | Frozen repaired full/compact comparison inputs |

@@ -31,3 +31,7 @@ The reference validator checks selected structural and relational invariants, in
 `Intention_Node_Contract.json` contains Intention/Requirements work plus separately governed verifier assignments. `Intention_Subnode_Contract.json` and `Requirements_Subnode_Contract.json` bind concrete work. `Gate_Decision.json` accepts intermediate Intent; `Gate_Requirements_Pass.json` accepts the Brief; `Gate_Intention_Compiler_Pass.json` aggregates node acceptance. No synthetic observation establishes measured execution.
 
 `Intent_Permissible_Omissions.json` and `Research_Brief_Defaults.json` illustrate usable purpose/result with missing hardware: only authorized `single_gpu` is applied, attributed to actual `/constraints/0`, with no invented empirical target. Protocol repetition remains in the later Blueprint. `Compiler_Failure_Receipt.json`, `Compiler_No_Output_Checks.json` and `Gate_Compiler_No_Output.json` show a halt without fabricated output references.
+
+## Capsule–routing teaching sequence
+
+[Selected Capsule](Selected_Capsule_Input.json) → [RouteRequest](Route_Request.json) with [protected profile](Model_Selection_Profile.json) and [budget snapshot](Routing_Budget_Snapshot.json) → [frozen decision](Route_Decision.json) → [call record](Model_Call_Record.json). These are synthetic illustrations. The deployment is an example identity, the call has `observed_runtime=false`, and no API/Codex call, live eligibility or measured budget is claimed. Runtime acceptance requires independently captured evidence.

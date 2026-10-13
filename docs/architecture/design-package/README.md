@@ -114,4 +114,8 @@ The current compiler build ends at an accepted Research Brief or a visible halt.
 
 [Design review](coverage.md) traces source obligations, compatibility, challenge cases and limitations. Documentation checks do not establish runtime acceptance.
 
-Received PRD bodies remain unchanged outside this package and are supplied separately. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures. These include D5's fixed, bounded multi-pass compiler and D6's packaging realization. We do not claim literal zero differences. Historical material is optional provenance.
+Received PRD bodies remain unchanged outside this package and are supplied separately. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures. These include D6's packaging realization; D5's compiler sequencing now follows the confirmed PRD (4). We do not claim literal zero differences. Historical material is optional provenance.
+
+## Model-routing integration
+
+[Routing overview](model-routing.md) connects the separate routing-owner component to the [shared Capsule export, profile and decision contract](reference/capsule-model-routing.md). Phase 1 remains fixed Codex; APIs are Phase 3.

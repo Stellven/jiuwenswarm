@@ -90,7 +90,7 @@
 | D2 | Deterministic checks, independent verifier, protected gate | §§1.4, 4.2; replaces optional semantic checking |
 | D3 | Protected host owns release; freeze referee assets | §§4.1.5, 4.2.8, 4.4.5 |
 | D4 | No automatic repair/replay; blocking outcomes halt | §§1.4, 4.6.4; human correction is new linked work |
-| D5 | Separate bounded generative Intent and Requirements CCs, each checked | **Authorized local exception** to §§3.2/4.7 single-generation Brief fallback. Freeze combined budgets; retain non-interactive baseline |
+| D5 | Separate bounded generative Intent and Requirements CCs, each checked | **Aligned with PRD (4)** §§3.2/4.7: architecture defines internal bounded, non-interactive sequencing. The earlier single-generation exception is historical. Freeze combined budgets |
 | D6 | One Docker app, Python/TypeScript, SQLite state and artifact files | **Authorized local realization/exception** to source container/native-only and persistence assumptions in §§4.1.4, 4.5, 5.1, 5.2, 5.4. Generated-code confinement remains separately required |
 | D7 | Preserve CC concepts with one reconciled current machine contract | §4.1; historical sources are provenance, not competing serialization authorities |
 | D8 | Required offline RSI in Phase 2; interfaces precede planner completion | §§1.3, 4.4, 6.11; immediate slice excludes execution |
@@ -162,3 +162,7 @@ D5 now permits a fixed bounded sequence rather than requiring exactly one genera
 Research Brief 2.0 adds qualified-intake/context/input bindings, fixed research lane and attributed normalized constraints/targets. Protocol defaults remain in Hypothesis. Gate 2.0 names node/subnode scope and permits no-output halt evidence. Subnode Execution Contract 1.0 replaces the old CC-sized Node Execution Contract 1.0; the enclosing node uses a 2.0 field chart. Exact JSON remains limited to critical shared boundaries. Versions are per contract; no implicit compatibility or migration is claimed.
 
 **Review questions:** Does the Brief preserve every product obligation without selecting the scientific solution? Can a faithful but unusable IR block before Requirements? Can a component implementer locate all required foundations and prove Brief release? Does final node acceptance aggregate evidence without giving CCs release authority?
+
+## R12 — Routing-owner integration and PRD adoption
+
+The user confirmed preservation of the Codex Phase 1 baseline, Phase 3 placement of the API router and adoption of PRD (4). Keep one shared Capsule–routing contract, separate routing-owner algorithm/catalog documents, unchanged declaration 1.0.0 and independently owned checking. The router consumes an upstream-selected Capsule; a frozen decision selects its model only. This avoids duplicating binding/permission/gate authority. Raw owner sources and earlier trial inputs remain immutable. D5 is now source-aligned; D6 remains the documented packaging departure. Unknown registry quality, missing dossiers and unqualified endpoints remain disclosed; documentation does not establish runtime acceptance.

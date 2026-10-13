@@ -52,3 +52,7 @@ The original [machine schema](../sources/capsule.schema.json), [v2.10b semantic 
 - `schema_version` 1.0.0 identifies this architecture-owned format; it is not a claim that a historical v2.10b/implementation v2.11 artifact is byte-compatible. Importers must explicitly map/validate historical declarations. No blanket old-runtime compatibility is promised.
 
 Derived declaration/contract hashes, eligibility flags, bindings, observations and gate decisions are protected/derived records. They are not author-entered declaration fields. Builder notes, coverage notes and `ext` are ignored for guarantees; canonical contract hashing must include authored port/need/effect/guarantee/budget/composition promises while excluding advisory notes, with the hashing profile pinned in runtime evidence.
+
+## Model-backed export
+
+Populate applicable `needs.model.tool_calling`, `min_context`, `modalities`, `families` and `excludes` from the actual capability. Export the admitted declaration and original-byte closure through [SelectedCapsuleInput](../reference/capsule-model-routing.md#selected-capsule-input). Profiles, current eligibility, task context, route decisions and budgets remain protected runtime information outside this unchanged schema.

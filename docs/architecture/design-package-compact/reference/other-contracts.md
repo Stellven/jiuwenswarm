@@ -69,3 +69,7 @@ Concrete routes, protocol encodings and internal APIs remain implementation choi
 | Human activation/rollback / authorized human → future selection | Actor/time, exact admitted from/to versions and reason; security-session clearance additionally pins violation/remediation and validated guardrail evidence; effect is future selection only. Target 1 M1 remains sandbox delivery, not changed live production |
 
 The implementation mutation target and work scoring rubric are distinct from protected verifier/referee assets. Future improver policy changes need held-out improvement-task evaluation; no current record or extension activates recursion, new hidden-suite generation, fusion or live installation.
+
+## Finalized Capsule–routing agreement
+
+The [integration contract](capsule-model-routing.md) owns selected-Capsule export, model-selection profile, RouteRequest, RouteDecision and call provenance fields. The generic client/model descriptions above retain system context. Checking profiles remain independently owned. Trace references in invocation observations and Run Bundle inventories include exact route/call artifacts; they do not embed credentials or replace accepted output/gate records.

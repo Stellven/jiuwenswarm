@@ -548,22 +548,7 @@
 
 ### model-route
 
-`model-route:field-contract:1` · protected router → audited bridge, observations.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `invocation_id` | `string` | Attempt call |
-| `role` | `string` | Approved CC role |
-| `profile_ref` | `Ref` | Frozen selection policy |
-| `eligible_endpoints` | `string[]` | Approved candidates |
-| `excluded_reasons` | `string[]` | Capability/access failures |
-| `selected_endpoint` | `nullable-string` | Eligible endpoint or unavailable |
-| `identity` | `ModelIdentity` | Requested/effective identity |
-| `limits` | `Limits` | Frozen call bounds |
-
-**Invalid/missing behavior:** No eligible endpoint blocks. Router cannot replace CC or switch a started invocation.
+`model-route:field-contract:2` is RouteDecision. Its authoritative fields and supporting types are in the [Capsule–routing integration contract](capsule-model-routing.md#model-route). Version 1 is historical.
 
 ## Offline rsi records
 

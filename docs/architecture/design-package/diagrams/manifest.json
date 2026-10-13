@@ -127,8 +127,8 @@
       "anchor": "deterministic-boundary",
       "mermaid_sha256": "af16ad9134046bf466ca6a9669997f16483641bb819cc887ddd6bff67efbbdf4",
       "svg": "diagrams/intent-design-1.svg",
-      "svg_sha256": "d0151c5b6511e5ef0b29c2c60506db279bc8c6f75e38cbd8dc09fd862c2cd4fa",
       "png": "diagrams/intent-design-1.png",
+      "svg_sha256": "d0151c5b6511e5ef0b29c2c60506db279bc8c6f75e38cbd8dc09fd862c2cd4fa",
       "png_sha256": "bd9e00a0a15f468594925cf6b8f7757e80f005a8ef8925c560b7f53b4dd50d76"
     },
     {
@@ -172,14 +172,64 @@
       "png_sha256": "9da6058c3ec2c7fdc1ce3a812b547f3ea6e820c7c5b13a41e8349923d3aba36c"
     },
     {
-      "source": "model-routing.md",
-      "title": "Purpose and connections",
-      "anchor": "purpose-and-connections",
-      "mermaid_sha256": "436fdd2ff4d76fcd7f77d23274fb475f29401adbf6dd9be9a3fde7dc79203e31",
-      "svg": "diagrams/model-routing-1.svg",
-      "png": "diagrams/model-routing-1.png",
-      "svg_sha256": "6174f91e9a38f059d8e8edad1e257b2f619e40bb87a13693288349e4be9419b9",
-      "png_sha256": "0405adc57e14f90747129b1638e2b593b092bf28fbcedf83f0061bf6e5e6aa10"
+      "source": "m1-design.md",
+      "title": "Inside the POC task",
+      "anchor": "inside-the-poc-task",
+      "mermaid_sha256": "700c553db6cad7269b9984a7453cf7a477fa818244a82ca11c14c0bc96920692",
+      "svg": "diagrams/m1-design-4.svg",
+      "png": "diagrams/m1-design-4.png",
+      "svg_sha256": "9db41f659bad3093d85aa751afe13aafa11492637689b4be43a67497b97791db",
+      "png_sha256": "1a93e222d150c94f420f1355c3965606e63ed9b30567a6271a88f05cd99cc2f4"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "e905ee5a26b78a3e828d3c7b6087a9fb22ac7e44bdb607416a3ba9b306168b9e",
+      "svg": "diagrams/m1-design-5.svg",
+      "png": "diagrams/m1-design-5.png",
+      "svg_sha256": "f75f1ced2c29f7369c55f049ae9677d74fd47df3cfff4b0943ae6f678cf8274d",
+      "png_sha256": "359366ebb4c16176d9c433a52e06afbdd536931b48d21a1c29d734f2998d23ed"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "b9c7c5d9d6ee3839e6d20178293c84ae3ac221bdb177cb95c10e6b998a615cb4",
+      "svg": "diagrams/m1-design-6.svg",
+      "png": "diagrams/m1-design-6.png",
+      "svg_sha256": "7c71167e15ea278eb6b51de621f8282fd9b979fc806bbe4a7b0a1cc2c34e80de",
+      "png_sha256": "a50745415e1ba9a8643742c99819351e167e9b865304fde1be40a15a5a470db5"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "4dd5aa56b0486e22454b4c6a4c8735c736882664cce18902fc6986a21a6ef360",
+      "svg": "diagrams/m1-design-7.svg",
+      "png": "diagrams/m1-design-7.png",
+      "svg_sha256": "acbb8d85424aead65e1f5aaf426f693d41d2aa03919038a9c0554d36f064cc02",
+      "png_sha256": "efd1b480f62d3af8c5bfba081a2aa98719cb77ee2fe8e0e53fc044ee8cccda60"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "f0b4ad32f22b2091f50e92dda2bd7836a2780b28fc514b0e05251267ca11fcc0",
+      "svg": "diagrams/m1-design-8.svg",
+      "png": "diagrams/m1-design-8.png",
+      "svg_sha256": "bda79667ad04c43d042956f39b9a2b6841ae16db74192f8cfed3f9947fee14fe",
+      "png_sha256": "a2bf423c00f954246b5fbbee7fa6caefb66c1e38d803c3f599d67882ede65fd2"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "a670b0aabd5f3c253df49a14f95428832c5d050a9cbbda8447a5754a6bd9df14",
+      "svg": "diagrams/m1-design-9.svg",
+      "png": "diagrams/m1-design-9.png",
+      "svg_sha256": "aaeb99a4f5ee500bb02fc947d3574b91a62076c5bdcb7fa1f233c023c1bdc784",
+      "png_sha256": "62ed6c262866fe795798f5bb9061f82a2bc19d1301603eec57ae6fce32db8c40"
     },
     {
       "source": "phase-details.md",
@@ -187,8 +237,8 @@
       "anchor": "delivery-phase-3-integration-accounting",
       "mermaid_sha256": "8ae6964e529af163bb6014dc1a0f0766d31ab66485ac0228afe19c996c70a399",
       "svg": "diagrams/phase-details-1.svg",
-      "svg_sha256": "2c4bfa26f77d9627477365849a6ca886628b81e05f8cc9c6b6d4a42650832c06",
       "png": "diagrams/phase-details-1.png",
+      "svg_sha256": "2c4bfa26f77d9627477365849a6ca886628b81e05f8cc9c6b6d4a42650832c06",
       "png_sha256": "f351a8bf15d74d5b56a2afeb7e0050315d09734c8c611f04833b894c73678076"
     },
     {
@@ -220,6 +270,16 @@
       "png": "diagrams/README-1.png",
       "svg_sha256": "bfb2eac27821f2a27beb87335faa66d219d6c62af0634e247e1143f180947e78",
       "png_sha256": "e664db1b0207649f978351515d5fd5f37b2fb47468e3be13e9c176571fa78797"
+    },
+    {
+      "source": "reference/capsule-model-routing.md",
+      "title": "Shared flow",
+      "anchor": "shared-flow",
+      "mermaid_sha256": "5b90f7d189a5286accdf42a93e38899fb62e8f74e238d9d2ee32cf4cf25b4cef",
+      "svg": "diagrams/reference-capsule-model-routing-1.svg",
+      "svg_sha256": "5fd2058203be8029635963b2245769430045028ec915285f1b27b36f11827d95",
+      "png": "diagrams/reference-capsule-model-routing-1.png",
+      "png_sha256": "d5c8156df112cf2d17d2628df13d1510c538d21a622171cbc9667b5acd536cde"
     },
     {
       "source": "research-design.md",
@@ -260,66 +320,6 @@
       "png": "diagrams/workflow-2.png",
       "svg_sha256": "297550b1f410d0ef4d4733160626cfacb5b2a3ecce1fe825d8aa0760a6d1abee",
       "png_sha256": "35d40d909d429654792bb3c5cab13d646153436c2ff437ccdc74c229e9ff29de"
-    },
-    {
-      "source": "m1-design.md",
-      "title": "POC task internals",
-      "anchor": "inside-the-poc-task",
-      "mermaid_sha256": "700c553db6cad7269b9984a7453cf7a477fa818244a82ca11c14c0bc96920692",
-      "svg": "diagrams/m1-design-4.svg",
-      "png": "diagrams/m1-design-4.png",
-      "svg_sha256": "9db41f659bad3093d85aa751afe13aafa11492637689b4be43a67497b97791db",
-      "png_sha256": "1a93e222d150c94f420f1355c3965606e63ed9b30567a6271a88f05cd99cc2f4"
-    },
-    {
-      "source": "m1-design.md",
-      "title": "Search node responsibilities and handoffs",
-      "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "e905ee5a26b78a3e828d3c7b6087a9fb22ac7e44bdb607416a3ba9b306168b9e",
-      "svg": "diagrams/m1-design-5.svg",
-      "png": "diagrams/m1-design-5.png",
-      "svg_sha256": "f75f1ced2c29f7369c55f049ae9677d74fd47df3cfff4b0943ae6f678cf8274d",
-      "png_sha256": "359366ebb4c16176d9c433a52e06afbdd536931b48d21a1c29d734f2998d23ed"
-    },
-    {
-      "source": "m1-design.md",
-      "title": "Screening node responsibilities and handoffs",
-      "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "b9c7c5d9d6ee3839e6d20178293c84ae3ac221bdb177cb95c10e6b998a615cb4",
-      "svg": "diagrams/m1-design-6.svg",
-      "png": "diagrams/m1-design-6.png",
-      "svg_sha256": "7c71167e15ea278eb6b51de621f8282fd9b979fc806bbe4a7b0a1cc2c34e80de",
-      "png_sha256": "a50745415e1ba9a8643742c99819351e167e9b865304fde1be40a15a5a470db5"
-    },
-    {
-      "source": "m1-design.md",
-      "title": "Hypothesis node responsibilities and handoffs",
-      "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "4dd5aa56b0486e22454b4c6a4c8735c736882664cce18902fc6986a21a6ef360",
-      "svg": "diagrams/m1-design-7.svg",
-      "png": "diagrams/m1-design-7.png",
-      "svg_sha256": "acbb8d85424aead65e1f5aaf426f693d41d2aa03919038a9c0554d36f064cc02",
-      "png_sha256": "efd1b480f62d3af8c5bfba081a2aa98719cb77ee2fe8e0e53fc044ee8cccda60"
-    },
-    {
-      "source": "m1-design.md",
-      "title": "Evaluation node responsibilities and handoffs",
-      "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "f0b4ad32f22b2091f50e92dda2bd7836a2780b28fc514b0e05251267ca11fcc0",
-      "svg": "diagrams/m1-design-8.svg",
-      "png": "diagrams/m1-design-8.png",
-      "svg_sha256": "bda79667ad04c43d042956f39b9a2b6841ae16db74192f8cfed3f9947fee14fe",
-      "png_sha256": "a2bf423c00f954246b5fbbee7fa6caefb66c1e38d803c3f599d67882ede65fd2"
-    },
-    {
-      "source": "m1-design.md",
-      "title": "Delivery node responsibilities and handoffs",
-      "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "a670b0aabd5f3c253df49a14f95428832c5d050a9cbbda8447a5754a6bd9df14",
-      "svg": "diagrams/m1-design-9.svg",
-      "png": "diagrams/m1-design-9.png",
-      "svg_sha256": "aaeb99a4f5ee500bb02fc947d3574b91a62076c5bdcb7fa1f233c023c1bdc784",
-      "png_sha256": "62ed6c262866fe795798f5bb9061f82a2bc19d1301603eec57ae6fce32db8c40"
     }
   ]
 }

@@ -1,0 +1,55 @@
+{
+  "schema_version": "2.0.0",
+  "id": "route:routing-example",
+  "request_ref": {
+    "id": "Route_Request.json",
+    "sha256": "56d9831792b831e079ef5aadb6f3a6ca5605ab6f4e9c295a8a56ebe7a1edaa19"
+  },
+  "selected_capsule_ref": {
+    "id": "Selected_Capsule_Input.json",
+    "sha256": "7b3b50db916f63f3d5ca4175c0afae502a663a950d0cea2159d76565677ac475"
+  },
+  "runtime": {
+    "run_id": "run:example",
+    "node_id": "intention.compiler",
+    "subnode_id": "intention",
+    "attempt_id": "attempt:1",
+    "invocation_id": "invocation:routing-teaching-example"
+  },
+  "execution_id": "execution:routing-example",
+  "binding_id": "binding:intent.compiler",
+  "role": "intent.compiler",
+  "model_selection_profile_ref": {
+    "id": "Model_Selection_Profile.json",
+    "sha256": "6d9e80b9bb49a434302fc7ad4ea81e46aadcc6bc5faeb385b0051d65d5b09845"
+  },
+  "registry_snapshot_ref": null,
+  "eligible_endpoints": [
+    "codex.static.example"
+  ],
+  "excluded_reasons": [],
+  "selected_endpoint": "codex.static.example",
+  "deployment_ref": {
+    "id": "Model_Deployment_Example.json",
+    "sha256": "36f6b76b855f440a6045bf135714f4cf9079e72e44a28932ddfffa1701bf3352"
+  },
+  "identity": {
+    "requested": "codex.static.example",
+    "effective": null,
+    "basis": "synthetic configuration; served model not observed"
+  },
+  "limits": {
+    "time_s": 60,
+    "model_calls": 1,
+    "memory_mb": 512
+  },
+  "selection_method": "single_candidate",
+  "fallback_used": false,
+  "ready_at": "2026-10-13T12:00:00Z",
+  "valid_until": "2026-10-13T12:00:30Z",
+  "routing_context_ref": {
+    "id": "Capsule_Routing_Context.json",
+    "sha256": "0f407f79eaa006aff7ef6d81eb2888276c2591b8327d2f8f6fadd14d0f03681b"
+  },
+  "adapter_revision": "synthetic-1"
+}

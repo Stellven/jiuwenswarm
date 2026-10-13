@@ -14,5 +14,6 @@ Start at the [system view](../m1-design.md); follow its component/field routes. 
 | Execution and model routing | [m1-design.md](../m1-design.md#execution-and-model-routing) | [SVG](../diagrams/m1-design-2.svg) / [PNG](../diagrams/m1-design-2.png) |
 | Where RSI connects | [m1-design.md](../m1-design.md#where-rsi-connects) | [SVG](../diagrams/m1-design-3.svg) / [PNG](../diagrams/m1-design-3.png) |
 | System picture | [README.md](../README.md#system-picture) | [SVG](../diagrams/README-1.svg) / [PNG](../diagrams/README-1.png) |
+| Shared flow | [reference/capsule-model-routing.md](../reference/capsule-model-routing.md#shared-flow) | [SVG](../diagrams/reference-capsule-model-routing-1.svg) / [PNG](../diagrams/reference-capsule-model-routing-1.png) |
 
-All 10 maintained views have matching [source/projection hashes](manifest.json). Rendering proves syntax/presentation, not runtime behavior.
+All 11 maintained views have matching [source/projection hashes](manifest.json). Rendering proves syntax/presentation, not runtime behavior.

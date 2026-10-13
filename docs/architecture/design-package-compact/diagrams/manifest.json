@@ -47,8 +47,8 @@
       "anchor": "deterministic-boundary",
       "mermaid_sha256": "92f2afbd0c24ecb9db8b186baaab907dc336e7527f4b14a04a18907bd1474230",
       "svg": "diagrams/intent-design-1.svg",
-      "svg_sha256": "e97deb6cfabe2f34f2505db65f89cc815b083cb4da466ba296af54a906dad635",
       "png": "diagrams/intent-design-1.png",
+      "svg_sha256": "e97deb6cfabe2f34f2505db65f89cc815b083cb4da466ba296af54a906dad635",
       "png_sha256": "1adc7d6236a8dd6112eb0521ab4f9a2db2d579c5076e9495d845413180927ca0"
     },
     {
@@ -100,6 +100,16 @@
       "png": "diagrams/README-1.png",
       "svg_sha256": "bfb2eac27821f2a27beb87335faa66d219d6c62af0634e247e1143f180947e78",
       "png_sha256": "e664db1b0207649f978351515d5fd5f37b2fb47468e3be13e9c176571fa78797"
+    },
+    {
+      "source": "reference/capsule-model-routing.md",
+      "title": "Shared flow",
+      "anchor": "shared-flow",
+      "mermaid_sha256": "5b90f7d189a5286accdf42a93e38899fb62e8f74e238d9d2ee32cf4cf25b4cef",
+      "svg": "diagrams/reference-capsule-model-routing-1.svg",
+      "svg_sha256": "5fd2058203be8029635963b2245769430045028ec915285f1b27b36f11827d95",
+      "png": "diagrams/reference-capsule-model-routing-1.png",
+      "png_sha256": "d5c8156df112cf2d17d2628df13d1510c538d21a622171cbc9667b5acd536cde"
     }
   ]
 }

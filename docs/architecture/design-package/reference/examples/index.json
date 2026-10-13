@@ -441,6 +441,43 @@
     {
       "path": "Node_Finalization_Profile.json",
       "schema_id": null
+    },
+    {
+      "path": "Selected_Capsule_Input.json",
+      "schema_id": null,
+      "field_contract_id": "selected-capsule-input:field-contract:1"
+    },
+    {
+      "path": "Model_Selection_Profile.json",
+      "schema_id": null,
+      "field_contract_id": "model-selection-profile:field-contract:1"
+    },
+    {
+      "path": "Route_Request.json",
+      "schema_id": null,
+      "field_contract_id": "route-request:field-contract:1"
+    },
+    {
+      "path": "Route_Decision.json",
+      "schema_id": null,
+      "field_contract_id": "model-route:field-contract:2"
+    },
+    {
+      "path": "Model_Call_Record.json",
+      "schema_id": null,
+      "field_contract_id": "model-call:field-contract:1"
+    },
+    {
+      "path": "Routing_Budget_Snapshot.json",
+      "schema_id": null
+    },
+    {
+      "path": "Model_Deployment_Example.json",
+      "schema_id": null
+    },
+    {
+      "path": "Capsule_Routing_Context.json",
+      "schema_id": null
     }
   ]
 }
