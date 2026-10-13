@@ -1,6 +1,6 @@
 # System architecture
 
-**Reading level: human immediate.** This page connects the whole M1 system. [Research design](research-design.md) expands each responsibility; [reference](reference/README.md) defines the information crossing boundaries.
+**Reading level: human immediate.** This page connects the whole M1 system. [Research design](research-design.md) expands each responsibility. [Reference](reference/README.md) defines the information crossing boundaries.
 
 ## From meaning to a governed research program
 
@@ -36,11 +36,11 @@ flowchart TB
     E --> T[Deliver report and evidence]
 ```
 
-Search → Screening → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery is one governed research sequence. Every stage uses the shared capture/check/verifier/protected-commit boundary; the diagram abbreviates those repeated boundaries. Scientific FAIL may be a valid accepted result, not infrastructure failure.
+Search → Screening → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery is one governed research sequence. Every stage uses the shared capture/check/verifier/protected-commit boundary. The diagram abbreviates those repeated boundaries. Scientific FAIL may be a valid accepted result, not infrastructure failure.
 
 ## Execution and model routing
 
-Each execution subnode binds one CC; the enclosing node contains its bounded work/verifier structure. Additional work CCs use separate gated subnodes within their declared node; verifier invocations remain separately governed checking assignments. Composite/merged CCs and arbitrary capsule member graphs remain later work.
+Each execution subnode binds one CC. The enclosing node contains its bounded work/verifier structure. Additional work CCs use separate gated subnodes within their declared node. Verifier invocations remain separately governed checking assignments. Composite/merged CCs and arbitrary capsule member graphs remain later work.
 
 ```mermaid
 flowchart LR
@@ -48,7 +48,7 @@ flowchart LR
     R --> C[Work or verifier CC]
     C -->|permitted model request through runner context| Route[Protected role/profile routing]
     Route --> Bridge[Audited model bridge]
-    Bridge --> Model[Configured endpoint; static Codex baseline]
+    Bridge --> Model[Configured endpoint<br/> static Codex baseline]
     Bridge --> Evidence[Observed calls, effective identity and telemetry]
     R --> X[Restricted scientific executor]
     X --> Evidence
@@ -72,17 +72,17 @@ flowchart LR
 
 ## Placement, state and human inspection
 
-The application image contains the frontend, same-origin web/control API and workflow runtime. Its entrypoint starts the product. The browser reaches container port 5173 through host-loopback publication, normally `127.0.0.1:5173:5173`. No external UI script or separate frontend container is required. A separate sidecar/benchmarker uses configured private-network service DNS and the container port, ordinary scoped authentication and a compatibility handshake; its own localhost is not the application.
+The application image contains the frontend, same-origin web/control API and workflow runtime. Its entrypoint starts the product. The browser reaches container port 5173 through host-loopback publication, normally `127.0.0.1:5173:5173`. No external UI script or separate frontend container is required. A separate sidecar/benchmarker uses configured private-network service DNS, the container port, scoped authentication and a compatibility handshake. Its own localhost is not the application.
 
-SQLite owns durable lifecycle/release state; immutable files retain artifacts and observations. Account/profile state survives run/workspace deletion. Readable views are derived from the same records; restart pauses without replay, and saved inspection never executes work.
+SQLite owns durable lifecycle/release state. Immutable files retain artifacts and observations. Account/profile state survives run/workspace deletion. Readable views come from the same records. Restart pauses without replay, and saved inspection never executes work.
 
 ## Full M1 and the next build
 
 | Delivery phase | Required architecture and exit meaning |
 |---|---|
-| Phase 1: baseline, Stages 0–7 | Governed foundation; qualified request → accepted Brief → static bound research graph; search/screen/hypothesis; POC and matched measurements; scientific verdict/report; persistence, evidence and native workstation clients. Demonstrate real connected work and failure handling |
-| Phase 2: Stage 8 RSI | Independent bounded Target 1 mutation/evaluation/evidence with frozen referee and security; sandbox candidate stays outside production. Target 2 depends on available bounded model execution |
-| Phase 3: integration | Attempt every applicable advanced compiler, Team/Cluster planning, dynamic discovery/binding, heterogeneous routing, alternate verifier and Code Mode effort. Preserve baseline; distinguish validated, blocked and incomplete outcomes |
+| Phase 1: baseline, Stages 0–7 | Governed foundation. Qualified request → accepted Brief → static bound research graph. Includes search, screening, hypothesis, POC, matched measurements, scientific verdict/report, persistence, evidence and native workstation clients. Exit requires real connected work and failure handling. |
+| Phase 2: Stage 8 RSI | Independent bounded Target 1 mutation, evaluation and evidence with a frozen referee and security. The sandbox candidate stays outside production. Target 2 depends on bounded model execution. |
+| Phase 3: integration | Attempt every applicable advanced compiler, Team/Cluster planning, dynamic discovery/binding, heterogeneous routing, alternate verifier and Code Mode effort. Preserve the baseline. Mark results as validated, blocked or incomplete. |
 
 
 ## Current next build

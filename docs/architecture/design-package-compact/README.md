@@ -1,12 +1,17 @@
 # AI4Research M1: compact design input
 
-**Compact design package, full M1 scope.** The separately supplied PRD defines product obligations; its [source receipt](sources/product/README.md) identifies the reviewed input. This architecture defines components, contracts and authority. It is independently readable; consult only the assigned input during a paired trial. The full design-package owns architectural changes; this matched version compresses explanations and preserves authoritative contracts.
+**Compact design package, full M1 scope.** The separately supplied PRD defines product obligations. Its [source receipt](sources/product/README.md) identifies the reviewed input. This architecture defines components, contracts and authority. It is independently readable. During a paired trial, consult only the assigned input. The full design package owns architectural changes. This matched version compresses explanations while preserving authoritative contracts.
 
-**PRD and design authority:** The PRD owns overall requirements and required outcomes. Design interprets the PRD and owns architecture and implementation-facing details that achieve those outcomes. If implementation guidance conflicts, follow the current design. Product obligations remain binding; a conflict that changes an obligation needs an explicitly recorded authorized decision.
+**PRD and design authority:**
+
+- The PRD owns overall requirements and required outcomes.
+- Design interprets the PRD and owns architecture and implementation-facing details that achieve those outcomes.
+- If implementation guidance conflicts with the current design, follow the design.
+- Product obligations remain binding. A change to an obligation needs an explicitly recorded, authorized decision.
 
 ## Human super-important read: understand the whole system
 
-Read this README → [system](m1-design.md) → [principles](principles.md). This covers the whole M1, deployment, authority, phases and next build. Fields are reference; phase/component detail is selected by question.
+Read this README → [system](m1-design.md) → [principles](principles.md). This covers the whole M1, deployment, authority, phases and next build. Fields are reference material. Choose phase or component detail based on the question.
 
 ## For design authors and human reviewers
 
@@ -16,7 +21,7 @@ Read this README → [system](m1-design.md) → [principles](principles.md). Thi
 
 ## Build a specific component
 
-For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. Success reaches accepted `Research_Brief.json`; accepted Intent IR alone is incomplete.
+For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `Research_Brief.json`. Accepted Intent IR alone is incomplete.
 
 ## Human should read: review the affected responsibility
 
@@ -35,13 +40,13 @@ For the complete Intention Compiler, start with the [Architecture Main entrypoin
 
 ## AI read: human-readable reference, selective human review
 
-[Reference index](reference/README.md), [field catalog](reference/field-catalog.md), [CC declaration](capsule/declaration.md) and [examples](reference/examples/README.md) are identical to the full condition. [Vocabulary](glossary.md), [coverage](coverage.md) and [clause index](coverage-allocation.md) retain traceability. Private algorithms/classes/adapters remain constrained implementation choices; shared fields cannot be invented independently.
+[Reference index](reference/README.md), [field catalog](reference/field-catalog.md), [CC declaration](capsule/declaration.md) and [examples](reference/examples/README.md) are identical to the full condition. [Vocabulary](glossary.md), [coverage](coverage.md) and [clause index](coverage-allocation.md) retain traceability. Private algorithms, classes and adapters remain implementation choices within the contracts. Shared fields cannot be invented independently.
 
 Find any artifact or field through the [contract index](reference/contract-index.md).
 
 ## System picture
 
-AI4Research turns a supplied research purpose/resources into grounded opportunity, registered hypothesis, bounded POC, matched measurements and report. Candidate artifacts reach consumers only after protected durable acceptance. Intent describes meaning; Requirements produces the contract that planning must fulfil. Verifiers assess submitted artifacts; gates control progression. RSI is outside live research.
+AI4Research turns a supplied research purpose and resources into a grounded opportunity, registered hypothesis, bounded POC, matched measurements and report. Candidate artifacts reach consumers only after protected durable acceptance. Intent describes meaning. Requirements produces the contract that planning must fulfil. Verifiers assess submitted artifacts. Gates control progression. RSI is outside live research.
 
 ```mermaid
 flowchart TB
@@ -67,24 +72,24 @@ flowchart TB
     Human[Human activation for future runs] --> Library
 ```
 
-Preparation and planning use the same checking pattern. The release edge is dependency dispatch, not a cyclic scientific graph. RSI evidence goes through admission; only human activation changes future selection.
+Preparation and planning use the same checking pattern. The release edge represents dependency dispatch, not a cyclic scientific graph. RSI evidence goes through admission. Only human activation changes future selection.
 
 ## Responsibility and authority
 
 | Component | Owns | Connects to |
 |---|---|---|
-| Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs; checking consumes outputs |
-| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Protected review context in; assessment out to host |
+| Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs. Checking consumes outputs. |
+| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Protected review context is input. Assessment goes to the host. |
 | Protected binder | Concrete contracts, typed bindings and independent check assignments | Accepted requirements, admitted pins, policy, evidence and durable state |
-| Protected gate | Checked decision and durable acceptance; no release before commit | Exact contract, subject, evidence and assessment |
-| Protected library admission | Inactive candidate eligibility and standing history | Declaration/body/provenance, independent evaluation; human activation |
+| Protected gate | Checked decision and durable acceptance. No release before commit. | Exact contract, subject, evidence and assessment |
+| Protected library admission | Inactive candidate eligibility and standing history | Declaration, body and provenance. Independent evaluation. Human activation. |
 | Scheduler/runner | Eligible dispatch, scoped execution, budgets and observed evidence | Frozen contracts, CCs, model bridge and restricted experiment executor |
 | Control plane | Authenticated submission, inspection and visible results/blockers | Browser/CLI/TUI and server-owned run state |
 | Offline RSI | Bounded implementation improvement and comparable evidence | Protected target profile, isolated runner/referee and inactive library candidates |
 
 ## Deployment and scope
 
-One app image bundles frontend/service/runtime. Entrypoint starts the product; browser uses host-loopback `http://127.0.0.1:5173` through `127.0.0.1:5173:5173`. Private sidecar clients use service DNS, compatibility/readiness handshake and scoped authentication, outside M1 prerequisites. Model IPC, persistent account/state/evidence and restricted scientific execution have distinct authority/access. Restart pauses without replay; browser disconnect does not cancel.
+One app image bundles the frontend, service and runtime. Its entrypoint starts the product. The browser uses host-loopback `http://127.0.0.1:5173` through `127.0.0.1:5173:5173`. Private sidecar clients use service DNS, a compatibility/readiness handshake and scoped authentication. They are outside M1 prerequisites. Model IPC, persistent account/state/evidence and restricted scientific execution have distinct authorities and access. Restart pauses without replay. Browser disconnection does not cancel.
 
 Full M1 covers baseline research/workstation, required isolated RSI and every applicable bounded integration effort. The current build produces an accepted Research Brief or visible halt, including compiler foundations; it does not complete downstream research or M1. Future remote workers, fusion and recursive improvement remain context, not implemented scope.
 

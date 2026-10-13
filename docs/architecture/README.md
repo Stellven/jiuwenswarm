@@ -1,22 +1,22 @@
-# Architecture entry
+# AI4Research architecture
+
+Updated October 13, 2026. These packages are the shared architecture for `ai4r_muk` and `ai4r_main_branch`.
 
 | Package | Use |
 |---|---|
-| [design-package](design-package/README.md) | Maintained full architecture; human explanation, detailed responsibilities and AI reference |
-| [design-package-compact](design-package-compact/README.md) | Same M1 and authoritative contracts, with less explanatory prose |
+| [design-package](design-package/README.md) | Full M1 architecture, responsibilities, rationale and implementation-facing reference |
+| [design-package-compact](design-package-compact/README.md) | The same M1 scope, shared contracts and source decisions with less explanatory prose |
 
-Start with the assigned package README. Both are portable; compare only matched versions during experiments. The PRD remains verbatim in both. The full package owns architectural changes; synchronize shared content into compact.
+Start with the package README, then its system architecture and principles. The full package owns architectural changes; synchronize shared contracts, examples and decisions into compact. The PRD is supplied separately and owns product requirements. Its receipt and clause mappings are retained inside each package.
 
-The [very condensed design](very-condensed-design.md) is a preserved comparison experiment from before the three-level revision. It is not current guidance for the restored shared contracts. The maintained package defines the bounded Intent Compilation and Verification Slice and complete M1 architecture.
+## Component reading
 
-Product requirements belong to the PRD; detailed realization and evidence belong to TASKS/TASK/Spec Kit. Superseded architecture and generated snapshots are retained only as optional [pinned history](design-package/history.md). Local editor workspace state is not a project document.
+The [Intention Compiler entrypoint](design-package/builds/intention-compiler/README.md) and [Context](design-package/builds/intention-compiler/context.md) define the complete compiler through an accepted Research Brief or attributable halt, including required foundations. Accepted Intent IR is an intermediate result. Design scope does not establish implementation completion; use the live coding records and exact runtime evidence for that status.
 
-Extra intent and evolving context may be kept in the Git-ignored local `notes/` folder as Obsidian-compatible Markdown. Notes are outside the review package and main delivery; material decisions must be reflected in the maintained design. Shared vault settings remain versioned, while pane/session state stays local.
+[Design method](design-package/design-method.md) explains design depth, review and change impact. [Decision review](design-package/decision-review.md) records alternatives and authorized source exceptions. Detailed fields, schemas and examples belong to each package's reference layer.
 
-## Current design-depth experiment
+## Experiments and evidence
 
-The [experiment registry and original protocol](experiments/README.md) preserve the first pair. The [October 8 comparison](experiments/m1-contract-review-2026-10-08/README.md) freezes the repaired full design and a stronger compact input with identical contracts, examples and source decisions. It is an experimental input, not maintained architecture. The older very-condensed design remains unchanged. Design authors use [design method](design-package/design-method.md) for depth, tiered human review and change impact.
+The [experiment registry](experiments/README.md) identifies dated inputs, protocols, delivery receipts and prepared benchmark designs. Use the [October 13 delivery receipt](experiments/design-package-delivery-2026-10-13/README.md) for the latest maintained pair. Frozen comparisons retain their recorded versions; later edits to the maintained packages do not update those inputs. Documentation checks establish package consistency, not agent quality or runtime acceptance.
 
-## Current complete compiler assignment
-
-Use the [Intention Compiler Main entrypoint](design-package/builds/intention-compiler/README.md) and its Context. The component includes required foundations and ends at accepted Research Brief or an attributable halt. Earlier Intent-only scope is historical; coding registration remains pending. Preserve TASK/AC/IF identities and reconcile changed contracts before relying on earlier evidence.
+Local notes are outside the shared review package. Promote material decisions into the maintained design. Optional provenance remains in [pinned history](design-package/history.md).

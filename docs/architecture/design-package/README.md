@@ -1,8 +1,13 @@
 # AI4Research M1 design package
 
-**Reading level: human immediate · October 8, 2026 · branch `ai4r_muk`.** This folder is the sole maintained architecture. Start here. The [current PRD receipt](sources/product/README.md) defines product requirements; this package explains the system that realizes them. The [source index](sources/product/README.md) preserves receipt identities and explicit local exceptions.
+**Reading level: human immediate · October 13, 2026.** This folder is the sole maintained architecture. Start here. The separately supplied PRD defines product requirements; its [receipt](sources/product/README.md) identifies the reviewed source. This package explains the system that realizes them. The [source index](sources/product/README.md) preserves receipt identities and explicit local exceptions.
 
-**PRD and design authority:** The PRD owns overall requirements and required outcomes. Design interprets the PRD and owns architecture and implementation-facing details that achieve those outcomes. If implementation guidance conflicts, follow the current design. Product obligations remain binding; a conflict that changes an obligation needs an explicitly recorded authorized decision.
+**PRD and design authority:**
+
+- The PRD owns overall requirements and required outcomes.
+- Design interprets the PRD and owns the architecture and implementation-facing details that achieve those outcomes.
+- If implementation guidance conflicts with the current design, follow the design.
+- Product obligations remain binding. A change to an obligation needs an explicitly recorded, authorized decision.
 
 ## Human super-important read: understand the whole system
 
@@ -16,13 +21,14 @@ Read these three documents for M1 responsibilities, authority, placement, phases
 
 ## For design authors and human reviewers
 
-[Design method and architectural integrity](design-method.md) explains the role and depth of architecture, project decision handoffs, change propagation and integrity checks. Read it when authoring or reviewing changes. [Decision review](decision-review.md) gives alternatives, pros, cons and implications for the latest repairs.
+[Design method](design-method.md) defines architectural depth, change handling, maintenance and review. Use it when authoring or reviewing the maintained design. [Decision review](decision-review.md) retains alternatives and reasoning.
+
 
 **PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
 
 ## Build a specific component
 
-For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. Success reaches accepted `Research_Brief.json`; accepted Intent IR alone is incomplete.
+For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `Research_Brief.json`. Accepted Intent IR alone is incomplete.
 
 ## Human should read: review the affected responsibility
 
@@ -45,7 +51,7 @@ Select the affected responsibility. These pages explain purpose, connections, be
 
 Read [reference principles and index](reference/README.md) for field contracts, selected exact schemas and readable examples. [CC fields](capsule/declaration.md) preserve the reusable declaration inventory. [Vocabulary](glossary.md), [clause coverage](coverage-allocation.md), [source decisions](authority-index.md) and [design review](coverage.md) support tracing, not a second architecture.
 
-Find a particular artifact or field through the [contract index](reference/contract-index.md). Reference defines shared fields; implementers choose private algorithms, classes and adapters within them. No historical-schema search is required.
+Find a particular artifact or field through the [contract index](reference/contract-index.md). The reference defines shared fields. Implementers choose private algorithms, classes and adapters within those fields. No historical-schema search is required.
 
 ## System picture
 
@@ -75,31 +81,37 @@ flowchart TB
     Human[Human activation for future runs] --> Library
 ```
 
-Preparation and planning use the same checking pattern shown for research. The runtime feedback edge represents dependency release, not a cyclic research graph. RSI is outside live research execution; its scores cannot release product work or activate themselves.
+Preparation and planning use the same checking pattern shown for research. The runtime feedback edge represents dependency release, not a cyclic research graph. RSI runs outside live research. Its scores cannot release product work or activate a candidate.
 
 ## Responsibility and authority
 
 | Component | Owns | Connects to |
 |---|---|---|
-| Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs; checking consumes outputs |
-| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Protected review context in; assessment out to host |
+| Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs. Checking consumes outputs. |
+| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Protected review context is input. Assessment goes to the host. |
 | Protected binder | Concrete contracts, typed bindings and independent check assignments | Accepted requirements, admitted pins, policy, evidence and durable state |
-| Protected gate | Checked decision and durable acceptance; no release before commit | Exact contract, subject, evidence and assessment |
-| Protected library admission | Inactive candidate eligibility and standing history | Declaration/body/provenance, independent evaluation; human activation |
+| Protected gate | Checked decision and durable acceptance. No release before commit. | Exact contract, subject, evidence and assessment |
+| Protected library admission | Inactive candidate eligibility and standing history | Declaration, body and provenance. Independent evaluation. Human activation. |
 | Scheduler/runner | Eligible dispatch, scoped execution, budgets and observed evidence | Frozen contracts, CCs, model bridge and restricted experiment executor |
 | Control plane | Authenticated submission, inspection and visible results/blockers | Browser/CLI/TUI and server-owned run state |
 | Offline RSI | Bounded implementation improvement and comparable evidence | Protected target profile, isolated runner/referee and inactive library candidates |
 
-CC authors produce work or assessments; protected infrastructure releases it. Inspect IRs and decisions as readable records, with raw evidence separate.
+CC authors produce work or assessments. Protected infrastructure releases accepted results. Inspect IRs and decisions as readable records, with raw evidence separate.
 
 ## Deployment and scope
 
-One workflow application container bundles the frontend, web/control service and runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`; the image entrypoint starts the application. No external UI helper is required. Internal model access is protected; generated scientific code has a separate confinement boundary. The optional [development sidecar](development-tools/sidecar/README.md) is an ordinary authenticated client on the private container network, outside product agents and M1 delivery dependencies.
+One workflow application container bundles the frontend, web/control service and runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`. The image entrypoint starts the application, so no external UI helper is required. Internal model access is protected. Generated scientific code has a separate confinement boundary. The optional [development sidecar](development-tools/sidecar/README.md) is an ordinary authenticated client on the private container network. It is outside product agents and M1 delivery dependencies.
 
-Full M1 includes the baseline research journey/workstation, independent isolated RSI, and the applicable bounded dynamic integration efforts. The current compiler build ends at accepted Research Brief or a visible halt; its foundational dependencies are included. Composite/merged CCs, remote workers and live self-modification are compatibility/research directions, not implied implementations.
+Full M1 includes:
+
+- The baseline research journey and workstation.
+- Independent, isolated RSI.
+- Applicable bounded dynamic integration efforts.
+
+The current compiler build ends at an accepted Research Brief or a visible halt. Its foundational dependencies are included. Composite or merged CCs, remote workers and live self-modification are compatibility and research directions. They are not implied implementations.
 
 ## Review and evidence
 
 [Design review](coverage.md) traces source obligations, compatibility, challenge cases and limitations. Documentation checks do not establish runtime acceptance.
 
-Received PRD bodies remain unchanged outside this package and are supplied separately. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures, especially D5's fixed bounded multi-pass compiler and D6's packaging realization; literal zero differences are not claimed. Historical material is optional provenance. The separate very-condensed experiment is a historical comparison input and is not a substitute for this revised three-level package.
+Received PRD bodies remain unchanged outside this package and are supplied separately. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures. These include D5's fixed, bounded multi-pass compiler and D6's packaging realization. We do not claim literal zero differences. Historical material is optional provenance.

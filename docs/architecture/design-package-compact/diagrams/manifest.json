@@ -68,18 +68,18 @@
       "mermaid_sha256": "c266423761e4d15bddd1053c5dc4cf599012c97b91a47bd359080d252789f86a",
       "svg": "diagrams/m1-design-1.svg",
       "png": "diagrams/m1-design-1.png",
-      "svg_sha256": "30c264eaf50b7072bd24818dd3ccf0068970197964b2d096479bad53e1757fa7",
-      "png_sha256": "2c96e38bcf801010edc50fd60232a72cd10e40ad60c89ba3f2e09bdee1c346be"
+      "svg_sha256": "f291575b09d44a7b86bd0990a4ee52a693352d0ad27960fba03096b0a5164cd7",
+      "png_sha256": "22e841f30de6c2f60fbf7fda108353d172701bf950b6d98f647a1484c8816d05"
     },
     {
       "source": "m1-design.md",
       "title": "Execution and model routing",
       "anchor": "execution-and-model-routing",
-      "mermaid_sha256": "9702cf0cf1b9481e53e1f77bcc5daa3c7522bfe3b16532b9df32a7a277893858",
+      "mermaid_sha256": "82af21bff9d63f986fa1b5cd7d6d84e3639a36a82a6a4edda88bf282a98bd350",
       "svg": "diagrams/m1-design-2.svg",
       "png": "diagrams/m1-design-2.png",
-      "svg_sha256": "6394ab2f9d470283b7306aed038bbf236223192cfb9a3d021cb304f86413d84c",
-      "png_sha256": "4ae0c1db771bddd3327ba7e96f25b12fafb3a17afcec0a1de222ce780e593e6f"
+      "svg_sha256": "12e6ac49f6a3cd65242acc0fbce0ad6e7ebdd998da1b4cb86a69985cebb7db3d",
+      "png_sha256": "d2ee736f345034e004b9933a97a843fec6a531a0e27934bf57bd27f94f89af40"
     },
     {
       "source": "m1-design.md",
@@ -88,8 +88,8 @@
       "mermaid_sha256": "5e6954816b65f9e5981dddaf6a9e38ae61591e1c89414874b5cfc984f5c61749",
       "svg": "diagrams/m1-design-3.svg",
       "png": "diagrams/m1-design-3.png",
-      "svg_sha256": "e8f31abc283c51d4802538b056b322e04a4ac2f9a83c4b7b3089c4f6df0083c3",
-      "png_sha256": "e6fa81e0a748234d0f6c7b274d6d2358fc9e797469a539b2e768fbff187ae1e6"
+      "svg_sha256": "46eca5b7c5b55d3c901288a72f1539e616646326ec092a42a98ba34298d656b1",
+      "png_sha256": "9da6058c3ec2c7fdc1ce3a812b547f3ea6e820c7c5b13a41e8349923d3aba36c"
     },
     {
       "source": "README.md",

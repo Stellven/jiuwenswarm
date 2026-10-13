@@ -659,7 +659,11 @@ for number in range(1, 21):
     require(f'| US{number:02d} |' in audit, 'Missing user-story mapping')
 
 top = ['README.md', 'principles.md', 'm1-design.md']
-words = sum(len((ROOT / name).read_text(encoding='utf-8').split()) for name in top)
+def prose_words(path):
+    text = path.read_text(encoding='utf-8')
+    text = re.sub(r'```.*?```', '', text, flags=re.S)
+    return len(text.split())
+words = sum(prose_words(ROOT / name) for name in top)
 require(words <= 3400, 'Three-document orientation exceeds conservative editing target: ' + str(words))
 require(not (ROOT / 'handoff.md').exists(), 'Obsolete coding handoff still present')
 

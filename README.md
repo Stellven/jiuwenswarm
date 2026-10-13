@@ -1,4 +1,4 @@
-> **AI4Research on `ai4r_muk`:** [Full M1 design](docs/architecture/design-package/README.md) and [compact M1 design](docs/architecture/design-package-compact/README.md) share the PRD and authoritative contracts. Start with the assigned package README. The JiuwenSwarm documentation below describes the underlying platform.
+> **AI4Research architecture:** Start at the [architecture index](docs/architecture/README.md) for the [full design package](docs/architecture/design-package/README.md), [compact design package](docs/architecture/design-package-compact/README.md) and [experiment registry](docs/architecture/experiments/README.md). The JiuwenSwarm documentation below describes the underlying platform.
 
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />

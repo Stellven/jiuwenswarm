@@ -9,7 +9,7 @@
 | Alternative | Benefit | Cost / reason for disposition |
 |---|---|---|
 | Prose-only node fields | Small reference layer | Existing examples omitted permissions and bindings; independent agents cannot reliably agree |
-| Exact node boundary — selected | Makes execution and release inputs compatible; omissions are mechanically detectable | Adds a seventh schema and version maintenance |
+| Exact node boundary: selected | Makes execution and release inputs compatible; omissions are mechanically detectable | Adds a seventh schema and version maintenance |
 | Schema for every runtime object | Broad mechanical coverage | Excess inventory obscures consequential boundaries and constrains replaceable internals |
 
 **Review obligation:** reject missing bindings, unmatched ports, excessive authority, stale scope and missing evidence. A structurally valid contract written by a CC still has no binding authority. [Definition](reference/node-execution.md).
@@ -21,7 +21,7 @@
 | Alternative | Benefit | Cost / reason for disposition |
 |---|---|---|
 | Information summaries only | Easy to read | Leaves incompatible names, types and missing-output interpretations |
-| Named field contracts — selected | Standardizes meaning and shape with limited machinery | Some relationships still need explicit runtime checks |
+| Named field contracts: selected | Standardizes meaning and shape with limited machinery | Some relationships still need explicit runtime checks |
 | Exact schema for every type | Uniform validation | Large maintenance surface without proportional architectural value |
 
 **Consequential choices:** scientific comparison boundaries use named operand/comparator/reference/factor/offset fields, rather than free-form expressions; this supports portable checking but confines M1 to declared simple comparisons and pinned measurement adapters. Readiness prerequisites have individual name/status/reason fields, rather than a string that each client parses differently. RSI profiles explicitly pin adapter, improver and configuration; attempt observations retain the same context. This adds metadata but makes comparable sessions auditable. Invocation usage names tokens/cost and explicit unavailable values: this adds small bookkeeping but prevents absent telemetry being treated as zero or parsed differently.
@@ -35,7 +35,7 @@
 | Alternative | Benefit | Cost / reason for disposition |
 |---|---|---|
 | Many independent templates | Broad field illustration | Conceals incompatible identities and missing evidence chains |
-| Few linked paths — selected | Makes producer/consumer compatibility inspectable | A single path cannot cover scientific domains or enforcement mechanisms |
+| Few linked paths: selected | Makes producer/consumer compatibility inspectable | A single path cannot cover scientific domains or enforcement mechanisms |
 | Executable reference application | Demonstrates implementation | Outside this documentation scope; risks making one algorithm architectural authority |
 
 **Review obligation:** example references and measurements agree; synthetic evidence never claims measured execution or admission authority. [Examples](reference/examples/README.md).
@@ -47,7 +47,7 @@
 | Alternative | Benefit | Cost / reason for disposition |
 |---|---|---|
 | Change weights or choose more promising opportunities | Larger quality search | Changes fixed Target 1 behavior; belongs to a separately authorized target |
-| Passed tests, then paired time — selected | Preserves PRD order; a correct parent can have measured timing headroom | Small helper timing is noisy; calibration may show no eligible improvement |
+| Passed tests, then paired time: selected | Preserves PRD order; a correct parent can have measured timing headroom | Small helper timing is noisy; calibration may show no eligible improvement |
 | Latency as primary score | Direct optimization signal | Conflicts with PRD time-only tie-break rule |
 
 **Policy:** seven paired rounds after five warm-up batches; equal batch workload and fixed host/configuration; use medians of paired batch times. At equal pass counts, a gain must be at least 10% and exceed three times the calibrated relative timing noise. These conservative values are chosen standards, not empirical guarantees. Calibration must demonstrate an attainable stronger planted child before proposals. No demonstrated headroom means BLOCKED, not success or relaxed scoring. Loop feedback remains passed/total/queries-left only. [RSI detail](offline-rsi.md#target-1-scoring-and-headroom).
@@ -59,7 +59,7 @@
 | Alternative | Benefit | Cost / reason for disposition |
 |---|---|---|
 | Builder resolves online | Flexible package choice | Violates no discovery/install rule; mutable resolution undermines reproduction |
-| Approved complete locks — selected | Feasible sequence with reproducible package identity | New packages require protected preparation before a new run |
+| Approved complete locks: selected | Feasible sequence with reproducible package identity | New packages require protected preparation before a new run |
 | Assume framework names imply a lock | Minimal input | Transitive versions and availability remain undefined |
 
 **Review obligation:** no compatible lock or missing package blocks before scientific execution. Provisioning cannot repair the declaration. Hashes establish identity, not package safety; review and confinement remain necessary. [Deployment ownership](placement.md#dependency-preparation-and-provisioning).
@@ -121,7 +121,7 @@ These are review questions about selected decisions, not unresolved behavior or 
 | Alternative | Benefit | Cost / disposition |
 |---|---|---|
 | Infer planning ports from unnamed contract inventories | Smaller fields | Cannot represent concrete inputs or resolve future named ports; rejected |
-| Named planning ports and one work CC per subnode — selected | Compatible boundaries; directly uses existing checks/gates | More external nodes for additional work; PRD's broader permitted sets unused |
+| Named planning ports and one work CC per subnode: selected | Compatible boundaries; directly uses existing checks/gates | More external nodes for additional work; PRD's broader permitted sets unused |
 | Internal multi-CC member graph/release contracts | Expresses intra-node composition | Adds deferred composition machinery; rejected for M1 after user scope clarification |
 
 The PRD §§4.1.3–4.1.4 permits one or more admitted CCs per node. This is a bounded realization of the permitted single-CC option, not removal of product obligations or a claim that a new exception was needed. Private helpers remain within the owning CC. The independent review's member-wiring gap is resolved by explicit deferral, not implementation of member graphs.
@@ -137,7 +137,7 @@ Pre-implementation format version remains 1.0.0. The unused experimental revisio
 | Alternative | Benefit | Cost / disposition |
 |---|---|---|
 | Require an exact schema and fixture for every internal type | Uniform syntax checks | Expands inventory and obscures consequential architecture; rejected |
-| Selected schemas, complete named fields, direct index — selected | Compatible shared boundaries and short reading routes | Relational/semantic obligations still require protected runtime checks |
+| Selected schemas, complete named fields, direct index: selected | Compatible shared boundaries and short reading routes | Relational/semantic obligations still require protected runtime checks |
 | Accept arbitrary budget mode maps | Flexible metadata | Missing or unattached modes make enforcement meaning ambiguous; rejected |
 
 This pre-implementation schema clarification preserves version 1.0.0 and the declared budget dimensions; it is not asserted compatible with already generated implementations. Native agreements must reconcile it. A schema can recognize future composite metadata while current admission/binding rejects its execution. The renamed full and compact folders share all current authoritative reference content; frozen historical comparison inputs are unchanged.
@@ -151,11 +151,11 @@ This pre-implementation schema clarification preserves version 1.0.0 and the dec
 | Choice | Advantages | Costs / disposition |
 |---|---|---|
 | Keep Intent-only entrypoint | Smaller build | Repeats the observed missing-Brief failure; rejected as current assignment |
-| Whole node with explicit foundations — selected | Matches PRD output and makes required infrastructure discoverable | Larger bounded build; does not claim full Stage 2/M1 completion |
+| Whole node with explicit foundations: selected | Matches PRD output and makes required infrastructure discoverable | Larger bounded build; does not claim full Stage 2/M1 completion |
 | Only rename diagrams | Small diff | Leaves competing runtime scope and acceptance contracts; rejected |
-| Versioned node/subnode scope — selected | Parent obligations and one-CC permissions remain distinct | Breaks earlier generated interfaces; affected evidence requires reconciliation |
+| Versioned node/subnode scope: selected | Parent obligations and one-CC permissions remain distinct | Breaks earlier generated interfaces; affected evidence requires reconciliation |
 | Exact schema for every type | Maximum serialization detail | Adds bloat/private implementation prescription; rejected |
-| Field charts, selected critical schemas — selected | Shared meaning and consumers stay precise; agents choose private realization | Requires compatibility checks at implemented public boundaries |
+| Field charts, selected critical schemas: selected | Shared meaning and consumers stay precise; agents choose private realization | Requires compatibility checks at implemented public boundaries |
 
 D5 now permits a fixed bounded sequence rather than requiring exactly one generative pass. The selected baseline retains separate Intention/Requirements generations and their independently assigned verifiers; combined budgets are frozen. This is explicitly different from literal §§3.2.1/4.7 one-pass wording. No automatic retry, autonomous clarification or dynamic workflow selection follows from it.
 

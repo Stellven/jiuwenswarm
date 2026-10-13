@@ -1,6 +1,6 @@
 # Intention Compiler: full/cut-detail × Spec Kit/direct
 
-**Evaluator material: keep outside participant workspaces.** Four architecture inputs are delivered; no implementation trial has run and no winner is assumed.
+**Evaluator material: keep outside participant workspaces.** Four architecture inputs are delivered. This prepared input record includes no implementation trial results or winning condition.
 
 | Architecture | Coding method | Branch |
 |---|---|---|
@@ -39,4 +39,4 @@ Use [the manifest](trial-manifest.template.json). Capture all task calls from fi
 
 Input includes cached input; output includes reasoning subsets. Record provider/model, call count, measurement source, currency and actual billed cost. Inaccessible usage/cost is Unavailable, not estimated exact usage. Close telemetry after the final response. Track time to first accepted Brief, final completion, interventions and correction cycles. Keep separately measured later repairs distinct from original results.
 
-Run `python validate_inputs.py` to verify the committed deliveries, exported portable packages, contracts/examples, entrypoint links and case templates. Documentation checks establish consistent inputs, not runtime behavior. Participant trials and human domain review remain unperformed.
+Run `python validate_inputs.py` to verify the committed deliveries, exported portable packages, contracts/examples, entrypoint links and case templates. Documentation checks establish consistent inputs, not runtime behavior. This preparation record includes no participant trial results or human domain review receipt. Later execution must be reported with its exact candidate and evidence.

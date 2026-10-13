@@ -1,10 +1,10 @@
 # System architecture
 
-**Reading level: human immediate.** This page connects the whole M1 system. [Research design](research-design.md) expands each responsibility; [reference](reference/README.md) defines the information crossing boundaries.
+**Reading level: human immediate.** This page connects the whole M1 system. [Research design](research-design.md) expands each responsibility. [Reference](reference/README.md) defines the information crossing boundaries.
 
 ## From meaning to a governed research program
 
-**Example flow:** accepted intent becomes a Research Brief, the Brief becomes a checked and frozen plan, and that plan releases research nodes in dependency order. The example shows where CCs, verifiers and gates sit; it is an orientation view, not a promise that every plan has this exact graph.
+**Example flow:** accepted intent becomes a Research Brief, the Brief becomes a checked and frozen plan, and that plan releases research nodes in dependency order. The example shows where CCs, verifiers and gates sit. It orients the reader. It does not promise that every plan has this exact graph.
 
 ```mermaid
 flowchart TB
@@ -42,13 +42,23 @@ flowchart TB
 
 The [expanded research-node view](#research-nodes-and-subnodes) shows each stage's work and verifier subnodes and gates. The [POC task/node view](#inside-the-poc-task) gives the Builder and Benchmark checks a larger view. A blocked check, verifier or gate halts the dependent path and retains evidence. If Intent has no workable purpose/result, Requirements is not invoked and no intent is invented.
 
-The Brief fixes objectives, mandatory outcomes, preferences, scope, constraints, deliverables and evidence obligations. The baseline binds a fixed SwarmFlow research sequence; the Phase 3 planner may propose compatible admitted CCs. Protected binding independently assigns checks and effective authority. Freeze captures the graph and pins before execution; future values remain typed references until their producing gates accept them.
+The Brief fixes objectives, mandatory outcomes, preferences, scope, constraints, deliverables and evidence obligations. The baseline binds a fixed SwarmFlow research sequence. The Phase 3 planner may propose compatible admitted CCs. Protected binding independently assigns checks and effective authority. Freeze captures the graph and pins before execution. Future values remain typed references until their producing gates accept them.
 
-Search produces cited candidates; Screening selects one with reasons; Hypothesis registers measurements and success/falsification boundaries before code/results; Builder packages a bounded intervention without running the scientific trial; Benchmark collects matched empirical evidence; Evaluation applies the registered criteria; Delivery reports the result and limitations. A scientific `FAIL` can be a correctly completed result and proceed to Delivery after infrastructure acceptance.
+The research stages pass these artifacts forward:
+
+- Search produces cited candidates.
+- Screening selects one opportunity and records its reasons.
+- Hypothesis registers measurements and success/falsification boundaries before code or results exist.
+- Builder packages a bounded intervention without running the scientific trial.
+- Benchmark collects matched empirical evidence.
+- Evaluation applies the registered criteria.
+- Delivery reports the result and its limitations.
+
+A scientific `FAIL` can be a correctly completed result. It can proceed to Delivery after infrastructure acceptance.
 
 ## Execution and model routing
 
-Each execution subnode binds one CC; the enclosing node contains its bounded work/verifier structure. Additional work CCs use separate gated subnodes within their declared node; verifier invocations remain separately governed checking assignments. Composite/merged CCs and arbitrary capsule member graphs remain later work.
+Each execution subnode binds one CC. The enclosing node contains its bounded work and verifier structure. Additional work CCs use separate gated subnodes within their declared node. Verifier invocations remain separately governed checking assignments. Composite or merged CCs and arbitrary capsule member graphs remain later work.
 
 ```mermaid
 flowchart LR
@@ -56,14 +66,14 @@ flowchart LR
     R --> C[Work or verifier CC]
     C -->|permitted model request through runner context| Route[Protected role/profile routing]
     Route --> Bridge[Audited model bridge]
-    Bridge --> Model[Configured endpoint; static Codex baseline]
+    Bridge --> Model[Configured endpoint<br/> static Codex baseline]
     Bridge --> Evidence[Observed calls, effective identity and telemetry]
     R --> X[Restricted scientific executor]
     X --> Evidence
     Evidence --> Check[Checking and durable run state]
 ```
 
-The model boundary is shared by compiler, research, verifier and eligible RSI proposal calls. The runner binds the role/profile and effective limits; routing selects only an approved endpoint within that binding. Phase 1 uses fixed selection. Phase 3 integration may introduce heterogeneous routes and an alternate verifier, but never a hidden mid-call replacement. Missing required access blocks; unavailable token/cost telemetry remains explicitly unavailable. [Routing detail](model-routing.md) explains those seams.
+The compiler, research, verifier and eligible RSI proposal calls share the model boundary. The runner binds the role/profile and effective limits. Routing selects only an approved endpoint within that binding. Phase 1 uses fixed selection. Phase 3 integration may introduce heterogeneous routes and an alternate verifier, but never a hidden mid-call replacement. Missing required access blocks the run. Unavailable token/cost telemetry remains explicitly unavailable. [Routing detail](model-routing.md) explains those seams.
 
 Runner admission, node authority and run policy intersect per CC. Deterministic/semantic checking cannot undo effects, so execution confinement and disclosure permissions are enforced before work. Generated POC code cannot access gate state, referee fixtures, credentials or unrelated host paths.
 
@@ -82,46 +92,46 @@ flowchart LR
     Human -->|future selection only| L
 ```
 
-Required Target 1 improves a sandbox copy of Screening's pure ranking helper. It preserves incoming scoring dimensions, contract and referee. The M1 deliverable is a child plus evaluation/security evidence; it does not change live production ranking. Target 2 implementation-text changes are conditional on bounded headless model support. RSI shares audited model/evidence capabilities but has its own session, budgets and callback policy, outside the live research DAG. [Offline detail](offline-rsi.md) defines protected data partitions and limits.
+Required Target 1 improves a sandbox copy of Screening's pure ranking helper. It preserves incoming scoring dimensions, contract and referee. The M1 deliverable is a child plus evaluation/security evidence. It does not change live production ranking. Target 2 implementation-text changes depend on bounded headless model support. RSI shares audited model/evidence capabilities, but uses its own session, budgets and callback policy outside the live research DAG. [Offline detail](offline-rsi.md) defines protected data partitions and limits.
 
 ## Inside the POC task
 
-**A CC does the assigned work; checks, a separate verifier and protected gates decide whether its output can advance.** The example makes the two POC subnodes visible. The node gate releases the combined result only after the required subnode decisions and evidence are durable.
+**A CC does the assigned work. Checks, a separate verifier and protected gates decide whether its output can advance.** The example makes the two POC subnodes visible. The node gate releases the combined result only after the required subnode decisions and evidence are durable.
 
 ```mermaid
 flowchart TB
     H[(Input: accepted Blueprint/protocol, Brief and scoped project assets)]
     O[(Output: released POC bundle and Benchmark_Payload.json with execution evidence)]
     subgraph Workflow[Governed CC workflow]
-      subgraph POC[POC node — build a bounded intervention, then measure it]
+      subgraph POC[POC node: build a bounded intervention, then measure it]
         subgraph Builder[Builder subnode]
-          B[Builder work · Builder CC<br/>Create bounded package; no trial or dependency installation]
+          B[Builder work · Builder CC<br/>Create bounded package<br/> no trial or dependency installation]
           BA[(Candidate POC_Artifact_Bundle.zip and build evidence)]
           BC{Build checks<br/>syntax, readiness and forbidden-module use/imports}
           BR[Protected review context<br/>accepted Blueprint/Brief + package + check results + criteria]
-          BV[Build verifier · verifier CC<br/>Assess package/evidence against build obligations; do not edit or accept]
+          BV[Build verifier · verifier CC<br/>Assess package/evidence against build obligations<br/> do not edit or accept]
           BVA[/Typed build assessment/]
           BVAL[[Validate assessment schema and exact subject identity]]
-          BG{{Protected Build gate<br/>apply checks + validated assessment; commit or halt}}
+          BG{{Protected Build gate<br/>apply checks + validated assessment<br/> commit or halt}}
           B --> BA --> BC
           BC -->|valid| BR --> BV --> BVA --> BVAL --> BG
           BC -->|invalid or unavailable| BG
         end
         subgraph Benchmark[Benchmark subnode]
-          M[Benchmark work · Benchmark CC<br/>Provision frozen dependencies; baseline first, then treatment; no interpretation]
+          M[Benchmark work · Benchmark CC<br/>Provision frozen dependencies<br/> baseline first, then treatment<br/> no interpretation]
           MA[(Candidate Benchmark_Payload.json, empirical results and logs)]
           MC{Measurement checks<br/>protocol, resource, hardware, runs, metrics and execution evidence}
           MR[Protected review context<br/>accepted package/protocol + payload/logs + check results + criteria]
-          MV[Measurement verifier · verifier CC<br/>Assess run fidelity, measurements and evidence completeness; do not edit or accept]
+          MV[Measurement verifier · verifier CC<br/>Assess run fidelity, measurements and evidence completeness<br/> do not edit or accept]
           MVA[/Typed measurement assessment/]
           MVAL[[Validate assessment schema and exact subject identity]]
-          MG{{Protected Measurement gate<br/>apply checks + validated assessment; commit or halt}}
+          MG{{Protected Measurement gate<br/>apply checks + validated assessment<br/> commit or halt}}
           M --> MA --> MC
           MC -->|valid| MR --> MV --> MVA --> MVAL --> MG
           MC -->|invalid or unavailable| MG
         end
         NG{{POC node gate<br/>commit only when both required subnode results are accepted}}
-        X[/Halt reason; preserve candidate and evidence/]
+        X[/Halt reason<br/> preserve candidate and evidence/]
         BG -->|accepted bundle| M
         BG -->|accepted build result| NG
         BG -->|reject or block| X
@@ -154,27 +164,27 @@ flowchart TB
     style Benchmark fill:#F8FAFC,stroke:#64748B,stroke-dasharray:4 3
 ```
 
-The Builder capsule packages the intervention; it does not run the scientific trial. The Benchmark capsule measures the registered baseline and treatment. The verifier assesses evidence independently of the work CC, and neither verifier nor artifact can accept itself. See [Tasks, nodes, and verification](workflow.md#tasks-nodes-and-verification) for the shared execution contract.
+The Builder capsule packages the intervention. It does not run the scientific trial. The Benchmark capsule measures the registered baseline and treatment. The verifier assesses evidence independently of the work CC. Neither the verifier nor the artifact can accept itself. See [Tasks, nodes, and verification](workflow.md#tasks-nodes-and-verification) for the shared execution contract.
 
 ## Research nodes and subnodes
 
-**Each diagram shows one node inside the governed CC workflow.** Inputs and outputs sit outside that node; internal candidates, checks, verifier assessment and gate remain inside the node. Green means an artifact, blue means work, purple means independent assessment, orange means deterministic checking, and amber means protected control. The gate alone releases the named accepted artifact. This repeated pattern explains the shared contract; node-specific evidence and criteria remain defined by their contracts.
+**Each diagram shows one node inside the governed CC workflow.** Inputs and outputs sit outside that node. Internal candidates, checks, verifier assessment and gate remain inside it. Green means an artifact, blue means work, purple means independent assessment, orange means deterministic checking, and amber means protected control. The gate alone releases the named accepted artifact. This repeated pattern explains the shared contract. Each node's contract defines its evidence and criteria.
 
 ```mermaid
 flowchart TB
     I[(Input: accepted Brief, local extracted documents, permitted academic sources)]
     O[(Output: accepted Candidate_Set.json with cited sources and 1–3 grounded ideas)]
     subgraph Workflow[Governed CC workflow]
-      subgraph Node[Search node — bounded retrieval and grounded ideation]
-        W[Search work subnode · Search CC<br/>Run fixed query strategy; group exact source excerpts; preserve citations]
+      subgraph Node[Search node: bounded retrieval and grounded ideation]
+        W[Search work subnode · Search CC<br/>Run fixed query strategy<br/> group exact source excerpts<br/> preserve citations]
         C{Deterministic checks<br/>contract, source references, required fields and limits}
         R[Protected review context<br/>accepted inputs + exact candidate + check results + assigned criteria]
-        V[Verifier subnode · verifier CC<br/>Assess grounding, citation fidelity, scope and required coverage; do not edit or accept]
+        V[Verifier subnode · verifier CC<br/>Assess grounding, citation fidelity, scope and required coverage<br/> do not edit or accept]
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
-        G{{Protected gate<br/>apply checks + validated assessment; commit or halt}}
+        G{{Protected gate<br/>apply checks + validated assessment<br/> commit or halt}}
         Q[(Candidate_Set.json)]
-        H[/Halt reason; preserve candidate and evidence/]
+        H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
         C -->|invalid or unavailable| G
@@ -209,16 +219,16 @@ flowchart TB
     I[(Input: accepted Candidate_Set.json and Brief constraints)]
     O[(Output: accepted Opportunity_Card.json with score reasons and disposition)]
     subgraph Workflow[Governed CC workflow]
-      subgraph Node[Screening node — consolidate and rank one opportunity]
-        W[Screening work subnode · Screening CC<br/>One-pass consolidation; score novelty, feasibility and compute alignment; filter forbidden dependencies]
+      subgraph Node[Screening node: consolidate and rank one opportunity]
+        W[Screening work subnode · Screening CC<br/>One-pass consolidation<br/> score novelty, feasibility and compute alignment<br/> filter forbidden dependencies]
         C{Deterministic checks<br/>contract, 1–5 score dimensions, reasons and fixed tie/missing-score policy}
         R[Protected review context<br/>accepted candidates + exact card + check results + assigned criteria]
-        V[Verifier subnode · verifier CC<br/>Assess evidence support, scoring reasons, constraints and disposition; do not edit or accept]
+        V[Verifier subnode · verifier CC<br/>Assess evidence support, scoring reasons, constraints and disposition<br/> do not edit or accept]
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
-        G{{Protected gate<br/>apply checks + validated assessment; commit or halt}}
+        G{{Protected gate<br/>apply checks + validated assessment<br/> commit or halt}}
         Q[(Candidate Opportunity_Card.json)]
-        H[/Halt reason; preserve candidate and evidence/]
+        H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
         C -->|invalid or unavailable| G
@@ -253,16 +263,16 @@ flowchart TB
     I[(Input: accepted opportunity, Brief, supplied baseline and validation resource)]
     O[(Output: accepted Hypothesis_Blueprint.json with frozen protocol)]
     subgraph Workflow[Governed CC workflow]
-      subgraph Node[Hypothesis node — register one testable claim and protocol]
+      subgraph Node[Hypothesis node: register one testable claim and protocol]
         W[Hypothesis work subnode · Hypothesis CC<br/>Specify mechanism, variables, baseline, fixed measures, thresholds and middle-region rule]
         C{Deterministic checks<br/>contract, required protocol fields, resource bindings and consistency}
         R[Protected review context<br/>accepted inputs + exact Blueprint + check results + assigned criteria]
-        V[Verifier subnode · verifier CC<br/>Assess testability, evidence provenance and protocol completeness; do not edit or accept]
+        V[Verifier subnode · verifier CC<br/>Assess testability, evidence provenance and protocol completeness<br/> do not edit or accept]
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
-        G{{Protected gate<br/>apply checks + validated assessment; commit or halt}}
+        G{{Protected gate<br/>apply checks + validated assessment<br/> commit or halt}}
         Q[(Candidate Hypothesis_Blueprint.json)]
-        H[/Halt reason; preserve candidate and evidence/]
+        H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
         C -->|invalid or unavailable| G
@@ -299,16 +309,16 @@ flowchart TB
     I[(Input: accepted measurements, raw logs, frozen Blueprint and Brief)]
     O[(Output: accepted Evaluation_Verdict.json with conclusion, risks and follow-ups)]
     subgraph Workflow[Governed CC workflow]
-      subgraph Node[Evaluation node — apply preregistered criteria to evidence]
-        W[Evaluation work subnode · Evaluation CC<br/>Check empirical origin, metric completeness and validity; classify against fixed criteria]
+      subgraph Node[Evaluation node: apply preregistered criteria to evidence]
+        W[Evaluation work subnode · Evaluation CC<br/>Check empirical origin, metric completeness and validity<br/> classify against fixed criteria]
         C{Deterministic checks<br/>required measurements, provenance, schema and frozen thresholds}
         R[Protected review context<br/>accepted evidence + exact verdict + check results + assigned criteria]
-        V[Verifier subnode · verifier CC<br/>Assess evidence-to-conclusion fidelity and criteria application; do not edit or accept]
+        V[Verifier subnode · verifier CC<br/>Assess evidence-to-conclusion fidelity and criteria application<br/> do not edit or accept]
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
-        G{{Scientific-output Evaluator Gate<br/>apply checks + validated assessment; commit or halt}}
+        G{{Scientific-output Evaluator Gate<br/>apply checks + validated assessment<br/> commit or halt}}
         Q[(Candidate Evaluation_Verdict.json)]
-        H[/Halt reason; preserve candidate and evidence/]
+        H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
         C -->|invalid or unavailable| G
@@ -343,16 +353,16 @@ flowchart TB
     I[(Input: accepted verdict, Brief, citations, Blueprint, package and benchmark evidence)]
     O[(Output: released standard Markdown report and evidence package)]
     subgraph Workflow[Governed CC workflow]
-      subgraph Node[Delivery node — report the accepted result and its limits]
+      subgraph Node[Delivery node: report the accepted result and its limits]
         W[Delivery work subnode · Delivery CC<br/>Preserve claims, methods, measured delta, verdict, warnings, limits and follow-ups]
         C{Deterministic checks<br/>report structure, required evidence links and claim references}
         R[Protected review context<br/>accepted inputs + exact report/package + check results + assigned criteria]
-        V[Verifier subnode · verifier CC<br/>Assess report consistency with accepted evidence and required disclosures; do not edit or accept]
+        V[Verifier subnode · verifier CC<br/>Assess report consistency with accepted evidence and required disclosures<br/> do not edit or accept]
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
-        G{{Delivery Evaluator Gate<br/>apply checks + validated assessment; commit or halt}}
+        G{{Delivery Evaluator Gate<br/>apply checks + validated assessment<br/> commit or halt}}
         Q[(Candidate report and evidence package)]
-        H[/Halt reason; preserve candidate and evidence/]
+        H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
         C -->|invalid or unavailable| G
@@ -386,11 +396,11 @@ The Scientific-output and Delivery Evaluator Gates apply checks, verifier assess
 
 ## Placement, state and human inspection
 
-The application image contains the frontend, same-origin web/control API and workflow runtime. Its entrypoint starts the product. The browser reaches container port 5173 through host-loopback publication, normally `127.0.0.1:5173:5173`. No external UI script or separate frontend container is required. A separate sidecar/benchmarker uses configured private-network service DNS and the container port, ordinary scoped authentication and a compatibility handshake; its own localhost is not the application.
+The application image contains the frontend, same-origin web/control API and workflow runtime. Its entrypoint starts the product. The browser reaches container port 5173 through host-loopback publication, normally `127.0.0.1:5173:5173`. No external UI script or separate frontend container is required. A separate sidecar/benchmarker uses configured private-network service DNS, the container port, scoped authentication and a compatibility handshake. Its own localhost is not the application.
 
 SQLite owns durable lifecycle/release state. Immutable files retain artifacts and append-only observations; Run Bundles and derived scorecards cite them. Product account/profile state survives workspace/run deletion and is distinct from OS identity. Inspecting saved results never starts execution or changes accepted state.
 
-Humans see readable Intent, Brief, major research artifacts, verification reasons, accepted/candidate status and limits. The UI or Markdown view is derived from the same versioned records. Raw traces remain available separately, with audience restrictions and redaction. Candidate files after a failed commit are not accepted outputs. Browser disconnection does not cancel server execution; restart preserves evidence and pauses interrupted attempts without replay.
+Humans see readable Intent, Brief, major research artifacts, verification reasons, accepted/candidate status and limits. The UI or Markdown view is derived from the same versioned records. Raw traces remain available separately, with audience restrictions and redaction. Candidate files after a failed commit are not accepted outputs. Browser disconnection does not cancel server execution. Restart preserves evidence and pauses interrupted attempts without replay.
 
 
 ## Navigate from responsibility to fields

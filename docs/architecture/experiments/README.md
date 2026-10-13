@@ -1,6 +1,19 @@
 # Full-M1 design-depth experiment
 
-**Evaluator guidance, not participant input.** The original pair is [full baseline](m1-full-baseline/README.md) and [original compact](m1-cut-down/README.md); both retain original input hashes. The [October 8 pair](m1-contract-review-2026-10-08/README.md) separately includes current contract/reading repairs. Assign a pair/version explicitly. The maintained design is [design package](../design-package/README.md). The [cut-down snapshot](m1-cut-down/README.md) covers the same full M1 scope with identical reference contracts, schemas, examples, CC field inventory, PRD and source decisions. The historical [very-condensed design](../very-condensed-design.md) remains unchanged and is not this experiment's input.
+**Evaluator guidance, not participant input.** The original pair is [full baseline](m1-full-baseline/README.md) and [original compact](m1-cut-down/README.md); both retain original input hashes. The [October 8 pair](m1-contract-review-2026-10-08/README.md) separately includes current contract/reading repairs. Assign a pair/version explicitly. The maintained design is [design package](../design-package/README.md). The [cut-down snapshot](m1-cut-down/README.md) covers the same full M1 scope with identical reference contracts, schemas, examples, CC field inventory, PRD and source decisions.
+
+## Registry status: October 13, 2026
+
+| Record | Role and recorded status |
+|---|---|
+| [Latest matched delivery](design-package-delivery-2026-10-13/README.md) | Current full/compact package inventories and documentation checks |
+| [October 8 delivery](design-package-delivery-2026-10-08/README.md) | Earlier delivered bytes and measurements; later maintained edits require a new receipt |
+| [Original M1 pair](m1-comparison.json) | Frozen full baseline and original cut-down inputs under the protocol below |
+| [October 8 contract-review pair](m1-contract-review-2026-10-08/README.md) | Frozen repaired full/compact comparison inputs |
+| [Four compiler conditions](intention-compiler-depth-2026-10-08/README.md) | Prepared input deliveries, evaluator cases and accounting templates; this record includes no scored trial results |
+| [Compiler benchmark pilot draft](intent-compiler-benchmark-pilot-2026-10-08/INTENT_COMPILER_BENCHMARK_PILOT_DESIGN.md) | Prepared draft with external prerequisites; campaign receipts and scored results are not included |
+
+The maintained [full](../design-package/README.md) and [compact](../design-package-compact/README.md) packages remain the current architecture. Historical experiment inputs retain their recorded identities. Claims about execution, quality or a winning condition require separately recorded results.
 
 ## Hypothesis and controlled difference
 
@@ -62,7 +75,7 @@ This is a pinned experiment, not a second maintained design. If canonical meanin
 
 Explanatory reduction: **67.79%**. Count whitespace-delimited words, including Mermaid text; exclude immutable source receipts, reference contracts/examples, glossary/index, governance/review and generated projections. All 65 reference/source/inventory files match bytes; eight core tables and two system/deployment diagram definitions match meaning. Portable validators, exact identities, reference/span/gate checks and six negative manifest/inventory checks pass on standalone copies. The full reviewer record is [coverage](../design-package/coverage.md#full-m1-design-integrity-review--october-7-2026).
 
-Human review and paired agent trials have not been run. These are prepared inputs and documentation checks, not evidence that compression preserves implementation quality.
+The original preparation record included no human review or paired agent trial results. These measurements describe the frozen prepared inputs and documentation checks; they do not establish that compression preserves implementation quality.
 
 ## Renamed full and compact delivery
 
@@ -71,4 +84,4 @@ The user-selected [full design-package](../design-package/README.md) and [design
 
 ## Complete Intention Compiler: four matched conditions
 
-The [October 8 compiler comparison](intention-compiler-depth-2026-10-08/README.md) pins full and cut-detail inputs with and without Spec Kit on four branches using identical file locations. Contracts, product inputs and component scope match. Forty evaluator cases and separate preparation/implementation telemetry support comparison. Use identical starting scaffolding/tooling and isolated inputs; source-branch application histories are not matched bases. Prompts remain owned by the coding experiment owner. No coding trial has run.
+The [October 8 compiler comparison](intention-compiler-depth-2026-10-08/README.md) pins full and cut-detail inputs with and without Spec Kit on four branches using identical file locations. Contracts, product inputs and component scope match. Forty evaluator cases and separate preparation/implementation telemetry support comparison. Use identical starting scaffolding/tooling and isolated inputs; source-branch application histories are not matched bases. Prompts remain owned by the coding experiment owner. This prepared delivery record includes no coding trial results.
