@@ -6,34 +6,38 @@
 
 Intake captures the original request and qualifies permitted local documents/assets. It rejects unreadable required inputs rather than silently losing them. Intent compilation identifies the user's problem, desired change and requested result. Requirements turns accepted meaning into the Research Brief contract. Neither compiler chooses the scientific solution.
 
+The diagram draws the checks, verifiers and gates only inside the Intention Compiler node. The Planner and every research node have the same pattern: deterministic checks, a verifier and a protected gate. The diagram omits them to stay readable. The [research-node view](research-nodes.md) draws them.
+
 ```mermaid
 flowchart TB
     I[Qualified original request] --> C
     subgraph Compiler[Intention Compiler node]
         C[Intention work subnode: candidate Intent IR]
     C --> D1{Deterministic Intent checks}
-    D1 -->|valid| V1[Intent verifier subnode: fidelity and usability verdict]
+    D1 -->|valid| V1[Intent verifier subnode: declaration and output only]
     D1 -->|invalid| G1[Protected Intent gate]
     V1 --> G1
     G1 -->|durably accepted| R[Requirements work subnode: Research Brief contract]
     G1 -->|blocked| H[Visible halt: reason and retained artifact]
     R --> D2{Deterministic Brief checks}
-    D2 -->|valid| V2[Requirements verifier subnode: completeness and consistency]
+    D2 -->|valid| V2[Requirements verifier subnode: declaration and output only]
     D2 -->|invalid| G2[Protected Requirements gate]
     V2 --> G2
     G2 -->|internally accepted| NG[Protected node finalization]
     NG -->|incomplete or failed commit| H
     end
-    NG -->|durably released Brief| P[Static binder or bounded Phase 3 planner]
+    NG -->|durably released Brief| P[Static template, then Planner node<br/>own checks, verifier and gate not drawn]
     G2 -->|blocked| H
     P --> F[Protected plan check and freeze]
-    F --> S[Search and ideation]
-    S --> O[Screen one opportunity]
-    O --> B[Register hypothesis and protocol]
-    B --> K[Build bounded POC]
-    K --> M[Measure baseline then treatment]
-    M --> E[Scientific evaluation]
-    E --> T[Deliver report and evidence]
+    subgraph Research[Research path: every node has checks, a verifier and a gate, not drawn here]
+        S[Search] --> O[Screen one opportunity]
+        O --> B[Register hypothesis and protocol]
+        B --> K[Build bounded POC]
+        K --> M[Measure baseline then treatment]
+        M --> E[Scientific evaluation]
+        E --> T[Deliver report and evidence]
+    end
+    F --> S
 ```
 
 Search → Screening → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery is one governed research sequence. Every stage uses the shared capture/check/verifier/protected-commit boundary. The diagram abbreviates those repeated boundaries. Scientific FAIL may be a valid accepted result, not infrastructure failure. The static template and the Planner both yield a [`run_plan`](reference/run-plan.md) ([D26](decision-review.md#d26)). An infeasible plan starts a linked Intention Compiler attempt. The scientific Research Benchmark CC is not the platform benchmark. Builder produces build evidence only.

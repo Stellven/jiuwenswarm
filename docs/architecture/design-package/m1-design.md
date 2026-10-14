@@ -4,7 +4,7 @@
 
 ## From meaning to a governed research program
 
-**Example flow:** accepted intent becomes a Research Brief, the Brief becomes a checked and frozen plan, and that plan releases research nodes in dependency order. It orients the reader and does not promise that every plan has this exact graph.
+**Example flow:** accepted intent becomes a Research Brief, the Brief becomes a checked and frozen plan, and that plan releases research nodes in dependency order. The diagram draws the checks, verifiers and gates only inside the Intention Compiler node. The Planner and every research node have the same pattern: deterministic checks, a verifier and a protected gate. The diagram omits them to stay readable. The [research-node view](#research-nodes-and-subnodes) draws them. It orients the reader and does not promise that every plan has this exact graph.
 
 ```mermaid
 flowchart TB
@@ -24,12 +24,12 @@ flowchart TB
         G2 -->|accepted Brief| NG[Protected node finalization]
         NG -->|failed or incomplete| H
     end
-    NG -->|durably released Research Brief| P[Fixed Planner node proposes admitted CC graph]
+    NG -->|durably released Research Brief| P[Fixed Planner node proposes admitted CC graph<br/>own checks, verifier and gate not drawn]
     P --> Bind[Protected binder pins CC capsules, contracts and check bundles]
     Bind --> PG[Plan checks, plan verifier and Evaluator Gate]
     PG -->|accepted plan| F[Freeze graph and versions]
     PG -->|blocked| H
-    subgraph Example[Research path with CCs and protected checks]
+    subgraph Example[Research path: every node has checks, a verifier and a gate, not drawn here]
       direction LR
       F --> S[Search node]
       S --> O[Screening node]
