@@ -22,6 +22,16 @@
       "png_sha256": "84aaa81452c2b2856553fa21fc01f7f0f6cebb1cff2cd97b9828f217ded94bb1"
     },
     {
+      "source": "capsules.md",
+      "title": "Exact verification boundary",
+      "anchor": "exact-verification-boundary",
+      "mermaid_sha256": "a5d8d065e5e29420331a333b543b3916fa043fc05e1196e7b14566fd9b11a1b5",
+      "svg": "diagrams/capsules-1.svg",
+      "png": "diagrams/capsules-1.png",
+      "svg_sha256": "06a375b96f47f3cc92798a5f91859f131fd56a40f3db1b0d7902bf6c93b3d4be",
+      "png_sha256": "6313857c2a0a2ed927776e0b9220d7fdaf39bb0849508d5f1b63fd1c42df740d"
+    },
+    {
       "source": "development-tools/benchmark-runner/README.md",
       "title": "Components",
       "anchor": "components",
@@ -50,6 +60,36 @@
       "png": "diagrams/development-tools-test-runner-README-1.png",
       "svg_sha256": "7f847432429acae581b627c4ead3d69b7390ae3f857cc9fd8bce11df67b64093",
       "png_sha256": "d32630e56a7d440651598968054cd5425637112a2dd6a715d6f34eaa2a01f638"
+    },
+    {
+      "source": "guard-design.md",
+      "title": "Purpose and boundary",
+      "anchor": "purpose-and-boundary",
+      "mermaid_sha256": "825593ee774c1a8717bfa1155ff1f964806bbd50de00d46f374b1da8066da384",
+      "svg": "diagrams/guard-design-1.svg",
+      "png": "diagrams/guard-design-1.png",
+      "svg_sha256": "8f955ca50003d593bf3d6245ac2cc52d847f28a071372872a920426d183360f8",
+      "png_sha256": "a8ad3075e3a26226111ddb0c189352d05de39a20323891fecaed6456899f7834"
+    },
+    {
+      "source": "guard-design.md",
+      "title": "Assignments and check plans",
+      "anchor": "assignments-and-check-plans",
+      "mermaid_sha256": "cbf2697285a00e2f0da727238b11a75aeda900cc294326e26f98b7243c652010",
+      "svg": "diagrams/guard-design-2.svg",
+      "png": "diagrams/guard-design-2.png",
+      "svg_sha256": "a14e651da89301902647993eb172227da40e0acb8fc589e0b08960e46211c4ca",
+      "png_sha256": "6763a33d95418eb09a60fa5e54064b815d54abcf33d678fe5788a7d453e2b60c"
+    },
+    {
+      "source": "guard-design.md",
+      "title": "Declaration-and-output review boundary",
+      "anchor": "declaration-and-output-review-boundary",
+      "mermaid_sha256": "f2ff1d52d6688b8fc5e9f11506721f083bf718bb82a01c21a395483aba731671",
+      "svg": "diagrams/guard-design-3.svg",
+      "png": "diagrams/guard-design-3.png",
+      "svg_sha256": "d4e6c803df61bbd4847368d7e3e7198b3ac3ab762f92799c4685a3961c7436dc",
+      "png_sha256": "8ea1067862b3a0a7061b1e0d120a1853492eab1040d2fce755ca94f6d7a2f7a3"
     },
     {
       "source": "intent-design.md",
@@ -120,6 +160,26 @@
       "png": "diagrams/reference-run-plan-1.png",
       "svg_sha256": "c62bd201a2766da42451d6bbacd9d07386e1ff140d4aa7e1842d03a63afa36e5",
       "png_sha256": "e651148bc9c2f1a8e4b9a647b4d02525df996f77cbb10d5a3a9302a69c2ec7d5"
+    },
+    {
+      "source": "research-design.md",
+      "title": "Research path and ports",
+      "anchor": "research-path-and-ports",
+      "mermaid_sha256": "880aa2df8544e9a70fa14030877396875608f010c43297271674ca77694b493a",
+      "svg": "diagrams/research-design-1.svg",
+      "png": "diagrams/research-design-1.png",
+      "svg_sha256": "321bb4cc01d1967430af657f88d60937dca1eef066dc9070daf6b74f8c225dfd",
+      "png_sha256": "05d01c6400461c5599a72bb45f2e3f652a34c3c1987beebddaf419674848dea3"
+    },
+    {
+      "source": "research-design.md",
+      "title": "Commit before successor release",
+      "anchor": "commit-before-successor-release",
+      "mermaid_sha256": "fba16b897c7d709d0e4923d5dbd2922d36ca28b419a2ad6a4f5133cc9b8e9214",
+      "svg": "diagrams/research-design-2.svg",
+      "png": "diagrams/research-design-2.png",
+      "svg_sha256": "e61e6c9c239d4f88c392ee2c5807c6d39cc01cbcabe55269d80bfa0eba81c571",
+      "png_sha256": "85eb84d59840d086b7d9a07c32e2bb0842f4f9d429a9ce71bf2c399c8ae8b464"
     },
     {
       "source": "research-nodes.md",

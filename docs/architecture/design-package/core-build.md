@@ -1,6 +1,6 @@
 # Core build: a bounded governed research journey
 
-**Reading level: human potential.** This is the current build assignment (decisions [D19](decision-review.md#d19), [D22](decision-review.md#d22) and [D26](decision-review.md#d26)). The whole product vision is in [system architecture](m1-design.md). This page says what to build now, in what order, and which later work it must not block. It is a design scope, not a schedule or a runtime acceptance claim.
+**Reading level: human potential.** This is the current build assignment (decisions [D19](decision-review.md#d19), [D22](decision-review.md#d22) and [D26](decision-review.md#d26)). The whole product vision is in [system architecture](m1-design.md). This page says what to build now, in what order, and which later work it must not block. It is a design scope, not a schedule. Every acceptance statement stays `DESIGN` until implementation and verification evidence exist.
 
 ## What to build, in order
 
@@ -12,7 +12,7 @@
 | 4 | Planner CC producing a `plan_proposal` that the same binder turns into a frozen `run_plan` | The planned path reaches Delivery, and bad proposals are rejected before dispatch |
 | 5 | Platform benchmark runs over the result | The M1 pilot cases run end to end and their results are stored as the baseline |
 
-Each step uses the contracts on the [capsule build pages](reference/capsules/README.md) and the [run plan page](reference/run-plan.md). M1 is the first and weakest working version. It must produce correct, checked artifacts. It does not need the best plans, ideas or scores.
+Each step uses the contracts on the [capsule build pages](reference/capsules/README.md) and the [run plan page](reference/run-plan.md). M1 is the first and weakest working version. It must produce correct, checked artifacts, not the best plans, ideas or scores.
 
 ## The required journey
 
@@ -20,9 +20,9 @@ Each step uses the contracts on the [capsule build pages](reference/capsules/REA
 
 **Planning.** In static mode the binder reads a hand-authored static template. In planned mode the Planner proposes a finite JSON DAG from the accepted Brief, the pinned library snapshot, the resource inventory and the plan policy. The binder validates either one the same way: Brief coverage, typed ports, dependencies, permissions, resources, budgets, acyclicity and a pinned check bundle for every CC. It then freezes the `run_plan`. The Planner cannot release its own graph or change checks. An infeasible or rejected proposal halts the planned run and starts a linked Intention Compiler attempt with the reasons (PRD 4.8.3). Select the mode before the run and record it. A failed planned run never falls back to static mode silently. A static run does not count as planned-mode acceptance.
 
-**Research path.** One opportunity, one registered hypothesis and protocol, a bounded POC, sequential baseline then treatment measurement, a scientific verdict and a readable report. Every CC invocation is checked. A valid scientific negative result is delivered like any other.
+**Research path.** One opportunity, one registered hypothesis and protocol, a bounded POC, sequential baseline then treatment measurement, a scientific verdict and a readable report. Every CC invocation is checked. Each scientific stage has its own contract, evidence and gate. Scientific Evaluation owns the conclusion, and infrastructure gates decide only whether artifacts and process are admissible. A valid scientific negative result is delivered like any other.
 
-**Dispatch.** The scheduler dispatches a node only when its inputs are gate-accepted outputs or run inputs. It writes a `dispatch_record` per attempt. After freeze, nothing changes the topology, CC pins or check pins.
+**Dispatch.** The scheduler dispatches a node only when its inputs are gate-accepted outputs or run inputs. It writes a `dispatch_record` per attempt. After freeze, nothing changes the topology, CC pins or check pins. No live replan or substitution is allowed.
 
 ## Responsibility and reuse
 
@@ -37,7 +37,7 @@ Each step uses the contracts on the [capsule build pages](reference/capsules/REA
 
 ## Future work this build must not block
 
-RSI and new Model Router work get no human effort before the core gate. The design keeps these seams so later work fits without rework.
+RSI and new Model Router work get no human effort before the core gate. No RSI engine, alternate verifier or route, Generalist, MCTS, composition or spatiotemporal capability is a core dependency. The design keeps these seams so later work fits without rework.
 
 | Later capability | Seam kept now |
 |---|---|
@@ -48,6 +48,14 @@ RSI and new Model Router work get no human effort before the core gate. The desi
 | Better planning and MCTS (November) | The `plan_proposal` type and the binder stay the same. Only how the proposal is produced changes |
 | Composition and fusion (December) | A run plan node references one CC version. Node contracts already allow an enclosing node with subnodes |
 | Spatiotemporal lifecycle (2027) | Frozen runs keep their original identities. New versions affect only new runs |
+
+## Scope boundaries
+
+- The optional RSI target is independently buildable once its parent CC export, frozen target and referee, and protected fixtures exist. It stays outside core startup, imports, coding, tests, platform benchmarks and release gates. Core work never waits for it.
+- Full M1 PRD coverage stays visible in [coverage allocation](coverage-allocation.md). It is not the same as this assignment.
+- The Planner's place in the core is the explicit D19 amendment in [principles](principles.md#decisions-and-source-amendments). It is not an unaltered PRD requirement.
+- Reuse the existing compiler and the governed runtime and evidence foundations where they fit. Keep attribution, immutable artifacts, durable decisions, exact version pins, bounded model access, user-visible halt evidence and local secured execution.
+- Existing TASK, AC, IF and feature identities, including historical compiler trial names, are not renamed.
 
 ## Connected acceptance
 

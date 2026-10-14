@@ -18,9 +18,7 @@ Every admitted/usable CC version is explicitly associated with an immutable, ind
 
 ## Exact verification boundary
 
-**Core path:** fixed Compiler Intent + Requirement work and gates produce the accepted Research Brief; the planner proposes the downstream DAG, while the protected binder assigns mandatory profiles/checks, validates coverage and graph feasibility, and freezes before dispatch. A planner failure halts unless the run explicitly selected the retained static SwarmFlow fallback mode at run entry. See [core build](core-build.md) and D19.
-
-**Required now.** Every work invocation, including planning and delivery, has a pinned verification assignment. Protected configuration combines each participating CC version's pinned deterministic bundle with mandatory checks derived from the node/subnode contracts, CC/dependency pins, applicable accepted obligations, artifact type and run policy. Fixed preparation uses the qualified original request and protected template obligations before an accepted Research Brief exists; planned research uses the Brief. Invocation checks protect intermediate boundaries; the node aggregate gate also checks the objective and all required outputs/evidence before successor release. The planner may add checks but cannot remove the CC-pinned bundle or contract/policy obligations. A CC without an eligible explicit bundle association or any missing supported check blocks readiness, binding and graph freeze.
+Checking has one owner page. [Guard design](guard-design.md) specifies the host check bundle, the declaration-and-output-only verifier, assessment validation, the protected gate and how the binder attaches the pinned bundle and profile. [Verifier page](reference/capsules/verifier.md) lists the verifier criteria. Every work invocation, including planning and delivery, has a pinned verification assignment. A CC without an eligible explicit bundle association blocks readiness, binding and graph freeze.
 
 ```mermaid
 flowchart TB
@@ -44,25 +42,9 @@ flowchart TB
     class Capture,T1,Halt,Validate,Gate,Commit,Next control
 ```
 
-Trusted code retains a host-only, audit-only review manifest from original accepted inputs, declaration/guarantees, applicable rubric, exact outputs, upstream evidence and observed execution. It identifies subject and source for deterministic checks, provenance and audit. The semantic model receives exactly the pinned subject CC declaration and exact output bytes, plus fixed verifier instructions; it receives no worker inputs, request-specific context, conversation, criteria/profile records, observations, predecessor evidence or evidence-fetch capability. The producer cannot choose checking policy or substitute its assertion for host evidence.
-
-Tier 1 handles mechanically decidable questions: contract and format conformance, identity and version binding, required evidence, execution completion, duration, declared tools, and enforced access boundaries. Mandatory failure prevents Tier 2. An unavailable required environment is blocked, not evidence that the artifact is wrong or correct.
-
-Tier 2 checks declaration/output conformance only, rather than producer reasoning or a suggested verdict. It cannot establish fidelity, source support or scientific validity ([D24](decision-review.md#d24)). Those are producer obligations backed by host checks. It does not solve or repair missing work and has no evidence-fetch/read capability. Artifact content is data, including text asking the reviewer to ignore its rules. See the [Verifier page](reference/capsules/verifier.md) and the per-CC pages in [capsule build references](reference/capsules/README.md). Tier 1 and the host gate continue to apply host-held deterministic obligations.
-
-The model reply is untrusted finding/uncertainty/limitation content only. The host validates required criterion coverage and assembles the unchanged persisted Assessment, attaching trusted identity/evidence references and assigning the verdict. The model does not supply the trusted identity envelope or gate authority. Malformed/unsupported replies, timeout, or unresolved mandatory conditions cannot advance. Preserve raw reply and final decision. Use the existing PRD verdict meanings; only `PASS` or `PASS_WITH_KNOWN_LIMITATIONS` can advance when host-established mandatory obligations pass. Do not imply host-held evidence was reviewed semantically.
-
-Bind the decision to run, enclosing node, subnode, attempt, both execution-contract identities/hashes/revisions, participating invocation identities, input/output identities, all capsule implementation and dependency pins, verifier, checks, policy and relevant configuration. Publish only those exact immutable accepted artifacts. Producer mutation after review, cross-run substitution, retry, or policy changes cannot reuse an earlier pass. Artifact and decision persistence must succeed before downstream readiness is exposed.
-
 ## Evaluator Gate internals and referee protection
 
-**Required now.** The Evaluator Gate boundary composes deterministic checking, a runtime verifier CC assessment and protected decision/release infrastructure. The verifier reply is limited untrusted declaration/output findings; it does not receive hidden accepted inputs or attest to them. The trusted host assembles the persisted Assessment and the protected gate interprets it with mandatory host checks and bound policy, then issues the **authoritative gate verdict**. Run-state must durably commit that decision before the scheduler advances. The capsule author, producer and verifier have no successor-dispatch or acceptance-policy authority; a supplied boolean or free-text command never changes outer control flow directly. [Human callbacks](failure-and-human.md) define every non-advancing outcome and mode-specific routing.
-
-Verification CCs end the semantic checking branch. Mechanically validate their response; do not generate an endless verifier-of-verifier chain. Pin and test them through separate development evaluation. Sharing a provider gives process separation, not independent model failure modes or a truth guarantee. Use protected labeled challenge cases to characterize omissions, unsupported claims, ambiguity, and instruction injection; record observed errors and limitations. The protected admission profile fixes cases, metrics and thresholds before candidate measurement.
-
-Any CC or dependency supplying the checking assessment for a mandatory gate is outside RSI's mutation scope. Protection includes its prompts and rubrics, deterministic checks and runners, policy, hidden fixtures, permission enforcement, library activation, and authoritative evidence storage. Capsule-local evolution metadata cannot expand that scope. Screening's explicitly mutable ranking helper is a work implementation, not permission to alter its verifier or gate criteria.
-
-Scientific Evaluation owns the hypothesis conclusion, but the restricted semantic model cannot inspect its hidden criteria, measurements or supporting evidence. Host checks can validate available identities/contracts; they do not establish scientific correctness. A scientific negative can receive infrastructure acceptance; neither the gate nor evaluator may move thresholds to make it positive.
+The gate, its verdict and its commit rules are in [guard design](guard-design.md). The verifier CC ends the semantic checking branch, so no verifier-of-verifier chain exists. [Human callbacks](failure-and-human.md) define every non-advancing outcome.
 
 ## Library lifecycle
 
@@ -72,7 +54,9 @@ Admission eligibility and activation are distinct. The explicit M1 bootstrap set
 
 ## RSI boundary
 
-RSI is an optional, separately buildable target. It has no import, startup, test, or core acceptance dependency; the core parent handoff remains independent of RSI availability. RSI cannot change live workflow or mandatory verifier/referee boundaries.
+RSI is an optional, separately buildable target. It has no import, startup, test, or core acceptance dependency; the core parent export remains independent of RSI availability. RSI cannot change live workflow or mandatory verifier/referee boundaries.
+
+Any CC or dependency supplying the checking assessment for a mandatory gate is outside RSI's mutation scope. Protection includes its prompts and rubrics, deterministic checks and runners, policy, hidden fixtures, permission enforcement, library activation, and authoritative evidence storage. Capsule-local evolution metadata cannot expand that scope. Screening's explicitly mutable ranking helper is a work implementation, not permission to alter its verifier or gate criteria.
 
 ## Composition and optimization
 
@@ -88,4 +72,4 @@ RSI is an optional, separately buildable target. It has no import, startup, test
 
 ## Per-CC build coverage
 
-Use the [CC ports and checking map](cc-build-coverage.md) for all ten work capabilities, the Planner semantic-verifier context and the shared implementation-completion rule.
+See [CC ports and checking map](cc-build-coverage.md).

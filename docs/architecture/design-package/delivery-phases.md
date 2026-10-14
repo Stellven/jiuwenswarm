@@ -1,46 +1,28 @@
 # Delivery phases and build direction
 
-**Reading level: human potential.** Delivery phases, implementation stages and runtime research steps are different concepts. This page selects scope; [phase details](phase-details.md) retain exact stage exits and source dispositions. The [PRD](sources/product/README.md) owns acceptance requirements.
-
-## Current core build
-
-The current assignment is the bounded complete research journey described in [Core build](core-build.md): fixed compiler intent and requirements with independent verifier gates, accepted Brief, protected planner proposal and freeze, then one Search-to-Delivery scientific path. The [existing complete Intention Compiler build](builds/intention-compiler/README.md) is a reusable first component and historical calibration boundary; it is not the complete journey. [Immediate plan](immediate-plan.md) routes builders to the current core assignment.
-
-## October 30 coordination gate
-
-The October 30 presentation target is the bounded D19 journey using the existing fixed Codex route. RSI work and new Model Router integration are excluded from its acceptance criteria; they are not build, startup, test, benchmark or demo prerequisites. This date-specific target is narrower than the confirmed PRD’s full M1 completion gate. Keep the original PRD obligations visible in the stage and clause maps, and do not report the bounded demonstration as full PRD M1 completion. This schedule decision does not edit the received PRD. See [D22](decision-review.md#d22).
+**Reading level: human potential.** Delivery phases, implementation stages and runtime research steps are different concepts. This page lists each phase once and points to the page that defines it. The [PRD](sources/product/README.md) owns acceptance requirements.
 
 ## Current assignment and independent product coverage
 
-| Phase | Entry and build | Produced result / exit meaning |
+| Phase | What it is | Defined in |
 |---|---|---|
-| **Core assignment (D19)** | Accepted compiler Brief → protected planner proposes admitted downstream CCs and emits assignment proposals → binder pins each CC's deterministic check bundle → independent typed-port, check-bundle, resource, coverage and cycle validation → freeze → one sequential Search, Screening, Hypothesis, Builder, Benchmark, Evaluation and Delivery path | One bounded scientific journey with gate-controlled transitions, immutable hypothesis/protocol, reproducible evidence and delivery, including valid negative results. A static template runs first ([D26](decision-review.md#d26)) and yields the same [run plan](reference/run-plan.md) type. It cannot stand in for the planned-mode acceptance record. This is a design scope, not runtime completion |
-| **Separate optional RSI target** | When its own parent, fixtures, referee, target profile and local-isolation prerequisites are available, improve a sandbox copy of `rank_opportunities` | Independently buildable and accepted on its own evidence. RSI is not a startup, import, core coding, core test, platform benchmark or core release dependency. A parent-CC export/handoff is consumed when available; RSI has one CC improvement goal outside the core path. No live production change |
-| **Other M1 product coverage / later extensions** | The full PRD remains mapped in [coverage allocation](coverage-allocation.md); additional dynamic integrations retain their source traceability. Generalist work is future November scope; MCTS is November; composition/fusion is December; spatiotemporal research is 2027. | These are separate from the bounded core assignment. Keep the fixed Codex route; an API-only seam may be optional if compatible. Alternate verifier integration is deferred. No design-only coverage statement establishes runtime acceptance |
+| Current core (D19) | The bounded journey from accepted Brief through planner proposal, binder check and freeze to one Search-to-Delivery scientific path. A static template runs first ([D26](decision-review.md#d26)) and cannot stand in for the planned-mode record. Design scope, not runtime completion | [Core build](core-build.md), [run plan](reference/run-plan.md) |
+| October 30 gate scope | The bounded D19 journey on the fixed Codex route. RSI and new Model Router work are excluded from its acceptance. It is narrower than the full PRD M1 gate and must not be reported as full M1 completion ([D22](decision-review.md#d22)) | [Core build](core-build.md#connected-acceptance) |
+| Separate optional RSI target | Improves a sandbox copy of `rank_opportunities`. Built and accepted on its own evidence. Never a startup, import, test, benchmark or release dependency of the core | [Core build](core-build.md#future-work-this-build-must-not-block) |
+| Full M1 coverage | The whole PRD, mapped clause by clause. Not equivalent to the current core | [Coverage allocation](coverage-allocation.md), [phase details](phase-details.md) |
+| November | Generalist, automatic capsule generation, automatic library admission, better planning and MCTS ([D21](decision-review.md#d21)) | [Core build](core-build.md#future-work-this-build-must-not-block) |
+| December | Composition and fusion ([D21](decision-review.md#d21)) | [Core build](core-build.md#future-work-this-build-must-not-block) |
+| 2027 | Spatiotemporal lifecycle | [Core build](core-build.md#future-work-this-build-must-not-block) |
 
-The planner is part of the D19 core assignment, explicitly promoted from later dynamic-planning scope; this amendment does not claim the original PRD already required this exact assignment. RSI design and implementation may proceed independently and never gates core work. Detailed [stage and source mapping](phase-details.md) keeps full-M1 product coverage separate from current assignment scope.
-
-```mermaid
-flowchart TB
-    Compiler[Reusable Intention Compiler component] --> Core[Current D19 core: planner through one scientific delivery path]
-    Static[Explicit static fallback] -. separate acceptance record .-> Core
-    Core --> CoreEvidence[Core journey evidence; design only until verified]
-    RSI[Optional independent RSI target] -. no dependency .-> Core
-    M1[Full M1 source coverage] --> Later[Other M1/later capabilities tracked separately]
-```
+[Immediate plan](immediate-plan.md) routes builders to the current core. The existing [Intention Compiler build](builds/intention-compiler/README.md) is a reusable first component, not the complete journey.
 
 ## Boundaries that remain fixed
 
-The static template runs without autonomous planning, but it has a separate acceptance record and cannot satisfy the D19 core assignment. A new route, compiler or candidate version affects new attributable runs; it never changes a started invocation, accepted Brief, `run_plan` or historical decision. Advanced clarification is bounded pre-acceptance work in declared interactive mode. Headless paths never wait.
-
-One active research run follows one opportunity/hypothesis and sequential baseline/treatment measurement. M1 adds no distributed workers, model training, external publication, live self-installation or recursive improver deployment. Composite creation/execution, merging, arbitrary capsule member graphs, multiple planning epochs and broader optimizers remain later work. M1 uses separate gated work CC nodes.
-
-## How completion is judged
-
-Stage and phase completion require reproducible evidence, not implementation existence or a diagram. The latest PRD adds user-story traceability, explicit stage validation, phase summaries and `m1_final_test_report.md`. Its required summaries reference underlying verification; they do not replace it. Change history explains revisions; current canonical PRD/design must describe selected behavior without replaying that history. This package contains design, not the development workflow or runtime test results.
-
-Use [Core build](core-build.md) for the current bounded assignment, [Immediate Plan](immediate-plan.md) for the current route and compiler component, and [phase details](phase-details.md) for source coverage and stage boundaries. D19 is the explicit planner-scope amendment recorded in [Principles](principles.md#decisions-and-source-amendments); D5 and D6 retain their separately recorded decisions.
-
-## Current semantic-review scope
-
-[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation/admission and December composition.
+- The static template has a separate acceptance record and cannot satisfy the D19 core assignment.
+- A new route, compiler or candidate version affects only new attributable runs. It never changes a started invocation, accepted Brief, `run_plan` or historical decision.
+- Advanced clarification is bounded pre-acceptance work in declared interactive mode. Headless paths never wait.
+- One active research run follows one opportunity and hypothesis, with sequential baseline then treatment measurement.
+- M1 adds no distributed workers, model training, external publication, live self-installation or recursive improver deployment.
+- Composite creation and execution, merging, arbitrary capsule member graphs, multiple planning epochs and broader optimizers remain later work. M1 uses separate gated work CC nodes.
+- Stage and phase completion need reproducible evidence, not implementation existence or a diagram. Required summaries reference underlying verification and do not replace it.
+- Semantic review input is limited to the declaration and output ([D20](principles.md#d20-declarationoutput-only-semantic-review)). Host checks retain runtime evidence.

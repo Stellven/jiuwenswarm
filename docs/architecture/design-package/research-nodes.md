@@ -1,10 +1,10 @@
 # Research nodes, subnodes and gates
 
-**Reading level: human potential.** The [system overview](m1-design.md) gives the whole journey. These expanded diagrams retain each work, checking, assessment and release boundary. The shared semantics are in [Workflow](workflow.md) and [Guard design](guard-design.md). Per-CC contracts are in [capsule build references](reference/capsules/README.md).
+**Reading level: human potential.** The [system overview](m1-design.md) gives the whole journey. These diagrams show each work, checking and release boundary. The shared checking pattern is in [Guard design](guard-design.md), execution in [Workflow](workflow.md) and per-CC contracts in [capsule build references](reference/capsules/README.md).
 
 ## Inside the POC task
 
-**A CC does the assigned work. Checks, a separate verifier and protected gates decide whether its output can advance.** The example makes the two POC subnodes visible. The node gate releases the combined result only after the required subnode decisions and evidence are durable.
+**Two subnodes, Builder and Benchmark, each have their own gate.** The node gate releases the combined result only after both subnode decisions and evidence are durable.
 
 ```mermaid
 flowchart TB
@@ -72,11 +72,11 @@ flowchart TB
     style Benchmark fill:#F8FAFC,stroke:#64748B,stroke-dasharray:4 3
 ```
 
-The Builder capsule packages the intervention. It does not run the scientific trial. The Benchmark capsule measures the registered baseline and treatment. The verifier independently assesses the declaration/output pair only; the host review manifest is audit-only. See the [Verifier page](reference/capsules/verifier.md). Neither the verifier nor the artifact can accept itself. See [Tasks, nodes, and verification](workflow.md#tasks-nodes-and-verification) for the shared execution contract.
+Builder packages the intervention and does not run the trial. Benchmark measures baseline and treatment. See [guard design](guard-design.md) for the checking pattern and [Tasks, nodes, and verification](workflow.md#tasks-nodes-and-verification) for the execution contract.
 
 ## Research nodes and subnodes
 
-**Each diagram shows one node inside the governed CC workflow.** Inputs and outputs sit outside that node. Internal candidates, checks, verifier assessment and gate remain inside it. Green means an artifact, blue means work, purple means independent assessment, orange means deterministic checking, and amber means protected control. The gate alone releases the named accepted artifact. This repeated pattern explains the shared contract. Each node's contract defines its evidence and criteria.
+**Each diagram shows one node with the same checking pattern from [guard design](guard-design.md).** Green is an artifact, blue work, purple independent assessment, orange deterministic checking and amber protected control. Each node's contract defines its evidence and criteria.
 
 ```mermaid
 flowchart TB
@@ -210,7 +210,7 @@ flowchart TB
     style Node fill:#EFF6FF,stroke:#4472C4,stroke-width:2px
 ```
 
-The [POC task/node diagram](#inside-the-poc-task) shows its Builder and Benchmark work subnodes and their separate gates. The POC node gate aggregates both accepted results.
+The [POC diagram](#inside-the-poc-task) shows the Builder and Benchmark subnodes.
 
 ```mermaid
 flowchart TB
@@ -300,9 +300,9 @@ flowchart TB
     style Node fill:#EFF6FF,stroke:#4472C4,stroke-width:2px
 ```
 
-The Scientific-output and Delivery Evaluator Gates apply checks, verifier assessments and protected decisions. A blocking check, verifier or gate stops dependent work and retains evidence.
+A blocking check, verifier or gate stops dependent work and retains evidence.
 
 
 ## Current semantic-review scope
 
-[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation/admission and December composition.
+[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration and output. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation and admission and December composition.

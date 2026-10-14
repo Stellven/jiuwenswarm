@@ -42,16 +42,6 @@
       "png_sha256": "071b5fae74c15206356104ffefd4538483189a56a24e37471c1486c5fb963df6"
     },
     {
-      "source": "delivery-phases.md",
-      "title": "Current assignment and independent product coverage",
-      "anchor": "current-assignment-and-independent-product-coverage",
-      "mermaid_sha256": "b903a0fe3db286a881f6ff7530d89286a70ba8c5f82effd00fff4ab6d20275e5",
-      "svg": "diagrams/delivery-phases-1.svg",
-      "png": "diagrams/delivery-phases-1.png",
-      "svg_sha256": "f9b2503e7a6695353114ae52acce96ab837002017a8eada0b3da53683683a2b0",
-      "png_sha256": "ed6630b1e290bdcfd2249dd9ee36b072f4e561e183638b968ade69a5e8fc5529"
-    },
-    {
       "source": "development-tools/benchmark-runner/README.md",
       "title": "Components",
       "anchor": "components",

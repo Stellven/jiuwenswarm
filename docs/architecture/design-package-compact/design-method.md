@@ -70,16 +70,16 @@ Use plain technical English and one canonical term per component. Every sentence
 | Container or identity | Startup, published/private ports, session authentication, model IPC, volumes, isolation, doctor and clients |
 | Gate or evidence policy | Check assignments, review context, release transaction, failure behavior, scheduler and invalidated verification |
 
-Use current canonical behavior rather than requiring readers to reconstruct history. Existing TASKS/TASK/native specifications retain their authority; create no parallel handoff or change-card system.
+Use current canonical behavior rather than requiring readers to reconstruct history. Existing TASKS/TASK/native specifications retain their authority; create no parallel change-card system.
 
-## Team decisions and implementation handoff
+## Team decisions and implementation
 
 **Architecture connects product intent to implementable work.** The PRD sets outcomes; code tasks are too detailed to own the system picture. Architecture is the level where contributors can see component boundaries, dependencies, shared contracts and why a choice was made. Clear instructions help coding agents and human contributors for the same reason: both need unambiguous inputs, outputs and constraints.
 
 - **Review material changes with affected owners.** Check impacts on components, contracts, authority, phase exits, evidence and schedule. Record the decision, reason, owner and follow-up in the existing design and linked work records. Keep superseded decisions for context; do not create a parallel change log.
 - **Maintain high-level design CI.** Architecture owns lightweight scripts and reusable agent skills/workers that review changes to system design and its documentation. Check structure, links, names, versions and references mechanically. For English and Chinese documents, check that required counterparts exist and that shared identifiers, contracts and links agree; use agents to flag possible meaning drift for owner review. Report findings and notify affected owners. Do not let agents silently rewrite, translate or approve consequential changes.
 - **Reuse the sidecar where it fits.** Run checks as bounded jobs with attributable inputs and retained results. Keep this review lane separate from product gates; start with useful checks and extend it when experience shows a need.
-- **Make rotation safe.** Keep current decisions, rationale, open questions, accepted state and evidence links in Git beside the authoritative design. New owners should be able to understand and modify it without private handoff context. Component responsibility persists even when a person changes roles.
+- **Make rotation safe.** Keep current decisions, rationale, open questions, accepted state and evidence links in Git beside the authoritative design. New owners should be able to understand and modify it without private context. Component responsibility persists even when a person changes roles.
 - **Keep plans honest.** Track target dates separately from forecasts and assumptions. When dates move, show affected dependencies and choices; change scope or commitments by team decision. At a phase boundary, carry accepted evidence, unfinished work and open decisions into the next baseline.
 
 **Example — model access is late.** Keep the working static path, mark real model integration blocked, and update dependent tasks and forecast. Do not count mock results as integration evidence or weaken the exit. This preserves progress and makes the schedule decision visible.

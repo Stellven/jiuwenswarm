@@ -2,7 +2,7 @@
 
 **Reading level: human potential.** Question answered: How can implementations improve outside the live research DAG?
 
-**Optional, independently buildable target:** RSI has its own prerequisites and evidence; it is not a current-core startup, import, coding, test, platform benchmark or release dependency. Consume the parent-CC export/handoff when available. Full PRD coverage remains visible; no core work waits on RSI design or implementation.
+**Optional, independently buildable target:** RSI has its own prerequisites and evidence; it is not a current-core startup, import, coding, test, platform benchmark or release dependency. Consume the parent-CC export when available. Full PRD coverage remains visible; no core work waits on RSI design or implementation.
 
 ## Responsibilities and semantic connections
 

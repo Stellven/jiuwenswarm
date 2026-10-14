@@ -6,42 +6,70 @@
 
 `V ⊆ C`: runtime verifier capsules are a subset of capability capsules. `G ∩ C = ∅`: protected gates are separate infrastructure roles. The [composition notation](glossary.md#composition-notation) distinguishes subtype, dependency, binding and permission intersection. A gate uses a verifier assessment; it does not inherit capsule identity or delegate release authority to the capsule author.
 
-Every admitted/usable CC version is explicitly associated with an immutable, independently owned deterministic check bundle. The bundle is a separately versioned library record, not capsule-author-controlled content; reuse across CC versions requires an explicit compatibility association. M1 protected admission pins the exact CC and bundle versions. Execution and freeze pin both; a new CC version or bundle association follows the applicable admission path. Existing frozen runs retain their pins. Capsule-pinned checks supplement contract/policy checks and do not replace the semantic verifier or protected gate.
+**Required now.** A CC describes a reusable capability; a node encapsulates a product responsibility under a Node Execution Contract; each internal subnode binds one pinned CC. The [field reference](capsule/declaration.md) defines one reconciled current declaration and [exact schema](reference/schemas/capsule-declaration.schema.json). A code/tool CC, agent/prompt CC or supported service adapter has the same declared boundary. Composite CC creation and execution remain later work. The runner resolves the pinned implementation, binds accepted inputs and scoped context, enforces permissions and limits, executes known code or a bounded native agent loop, and captures actual outcomes.
+
+A node contract restricts each CC independently: effective authority is the intersection of that CC’s admission, the node and subnode contracts and run policy. Permissions from another bound CC are never transferred or unioned into its authority. Node-wide budgets cover every invocation, and each invocation also obeys its own limits. Additional work CCs use separate gated subnodes within their declared node. Unsupported composition blocks admission/binding.
+
+An agent loop may call permitted tools; M1 does not support internal CC dispatch. It cannot rewrite the outer graph, upstream requirements, checking criteria, permissions, or accepted artifacts. Ordinary private helpers are not automatically separate CCs; their behavior remains the invoking capsule's responsibility.
+
+Reusable guard definitions, full-context check-plan binding, independent profile ownership and output-led evidence disclosure are specified in [guard design](guard-design.md). Capsule authors can document guarantees, propose candidate checks and run self-tests; they do not author or approve the mandatory deterministic check bundle associated with their usable CC version.
+
+Every admitted/usable CC version is explicitly associated with an immutable, independently owned deterministic check bundle. The bundle is a separately versioned library record, not capsule-author-controlled declaration or implementation content. Reuse across CC versions requires an explicit compatibility association. Admission binds the exact CC version, bundle version and compatibility evidence; execution and freeze pin those identities together. A new CC version or changed bundle requires a new association and applicable admission. Existing frozen runs retain the old pins. This reusable capsule baseline supplements, and never replaces, checks derived from the run-specific Subnode/Node Execution Contracts and policy.
 
 ## Exact verification boundary
 
-**Core path:** fixed Compiler Intent + Requirement work and gates produce the accepted Research Brief; the planner proposes the downstream DAG, while the protected binder assigns mandatory profiles/checks, validates coverage and graph feasibility, and freezes before dispatch. A planner failure halts unless the run explicitly selected the retained static SwarmFlow fallback mode at run entry. See [core build](core-build.md) and D19.
+Checking has one owner page. [Guard design](guard-design.md) specifies the host check bundle, the declaration-and-output-only verifier, assessment validation, the protected gate and how the binder attaches the pinned bundle and profile. [Verifier page](reference/capsules/verifier.md) lists the verifier criteria. Every work invocation, including planning and delivery, has a pinned verification assignment. A CC without an eligible explicit bundle association blocks readiness, binding and graph freeze.
 
-**Required now.** Every work invocation, including planning and delivery, has a pinned verification assignment. Protected configuration combines each participating CC version's pinned deterministic bundle with mandatory checks from the node/subnode contracts, CC/dependency pins, accepted obligations, artifact type and policy. The planner may add checks but cannot remove the CC bundle or contract/policy obligations. Missing bundle association or unsupported mandatory checks block readiness, binding and freeze. Invocation checks protect intermediate boundaries; aggregate node verification controls successor release. Fixed preparation uses protected templates and the qualified original request; planned research uses the accepted Brief.
+```mermaid
+flowchart TB
+    Work[Work CC invocation] --> Capture[Capture exact result and runtime evidence]
+    Capture --> T1{Deterministic checks pass?}
+    T1 -->|No: assessment not run| Gate
+    T1 -->|Yes| Verifier[Read-only verifier CC]
+    Verifier -->|Assessment verdict| Validate[Validate assessment and evidence references]
+    Validate --> Gate{Protected gate interprets checks and assessment}
+    Gate -->|Authoritative blocking decision| Halt[Record blocking outcome; stop new dispatch]
+    Gate -->|All mandatory obligations pass| Commit[Commit decision and accepted artifact identity]
+    Commit --> Next[Release result to dependent work]
+    subgraph Legend[Legend]
+        Key[Blue: CC work; purple: verification; amber: infrastructure]
+    end
+    classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
+    classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
+    classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
+    class Work work
+    class Verifier verify
+    class Capture,T1,Halt,Validate,Gate,Commit,Next control
+```
 
 ## Evaluator Gate internals and referee protection
 
-**Required now.** The Evaluator Gate boundary composes host deterministic checking, a restricted semantic verifier CC assessment and protected decision/release infrastructure. The model receives exactly the subject CC declaration and exact output plus fixed instructions. It does not receive hidden inputs/criteria/evidence or fetch capability. It cannot establish fidelity, source support or scientific validity ([D24](decision-review.md#d24)). Those are producer obligations backed by host checks. See the [Verifier page](reference/capsules/verifier.md) and [capsule build references](reference/capsules/README.md). The host keeps a host-only, audit-only review manifest. The host assembles the unchanged persisted Assessment and gate applies mandatory host checks and policy. The capsule author, producer and verifier have no successor-dispatch or acceptance-policy authority. [Human callbacks](failure-and-human.md) define non-advancing outcomes.
+The gate, its verdict and its commit rules are in [guard design](guard-design.md). The verifier CC ends the semantic checking branch, so no verifier-of-verifier chain exists. [Human callbacks](failure-and-human.md) define every non-advancing outcome.
 
 ## Library lifecycle
 
 **Required now.** Publish declarations and referenced implementation closure together as immutable versions. The M1 bootstrap catalog is an explicit, bounded set of existing versions designated for the initial build; file presence alone never grants use. Bind each bootstrap version to an immutable independently maintained shared checking bundle and record its exact identity. This bootstrap record enables the first main path but is not evidence of capsule-specific correctness or a completed governed admission gate. Keep activation and suspension under human standing control. Once the governed admission gate is implemented, disable bootstrap defaults for every new or changed version; those candidates require a protected eligibility decision with independent evidence and an exact compatible bundle. Existing bootstrap records remain usable unless suspended or revoked. Retain versions, bundle associations and decisions.
 
+Admission eligibility and activation are distinct. The explicit M1 bootstrap set is available to the initial planner; human standing controls later activation, suspension and rollback. Bootstrap is temporary admission policy, not a capsule-specific quality verdict. Once the governed gate exists, every new or changed version needs protected eligibility based on identity, dependency closure, permissions, independent evidence and an exact compatible bundle. Under D21, M2 may automatically admit an RSI-produced version only after that same protected gate passes. The candidate cannot choose or alter its bundle; protected admission may resolve one only from a pre-approved compatibility association uniquely covering the exact version. Missing or ambiguous coverage blocks. Passing eligibility may make a version available to future plans without separate human activation; it never changes a frozen run. Existing runs keep exact CC and bundle pins. Suspension blocks new starts; preserve in-flight evidence and recheck eligibility before release. Never substitute a version silently. Hand-authored and generated candidates follow the same governed path after bootstrap ends; RSI is not required to author or use the library.
+
 ## RSI boundary
 
-RSI is an optional, separately buildable target. It has no import, startup, test, or core acceptance dependency; the core parent handoff remains independent of RSI availability. RSI cannot change live workflow or mandatory verifier/referee boundaries.
+RSI is an optional, separately buildable target. It has no import, startup, test, or core acceptance dependency; the core parent export remains independent of RSI availability. RSI cannot change live workflow or mandatory verifier/referee boundaries.
 
-M1 retains human activation. Under D21, M2 (November 2026) protected automatic admission for a passing RSI-produced version validates the exact compatible check-bundle pin. Admission may resolve the bundle only from a pre-approved compatibility association that uniquely covers the candidate version; the candidate cannot choose or alter it, and missing or ambiguous coverage blocks admission. A passing version may become eligible for future plans without human activation. It cannot self-admit or change M1 or frozen runs. M3 composition/fusion is targeted for December 2026; spatiotemporal lifecycle work is targeted for 2027.
+Any CC or dependency supplying the checking assessment for a mandatory gate is outside RSI's mutation scope. Protection includes its prompts and rubrics, deterministic checks and runners, policy, hidden fixtures, permission enforcement, library activation, and authoritative evidence storage. Capsule-local evolution metadata cannot expand that scope. Screening's explicitly mutable ranking helper is a work implementation, not permission to alter its verifier or gate criteria.
 
 ## Composition and optimization
 
 **M1 distinction.** A node may contain predefined work/verifier subnodes and protected gates, each governed by its own assignment. Composite/merged CC creation and arbitrary intra-capsule dispatch remain later work; fixed node cooperation does not create a reusable composite capability.
 
-## Connected behavior summary
+**Future direction; not M1 implementation.** A composite would declare pinned members and wiring as an internal DAG with its own boundary ports. Resolve its complete dependency closure and preserve scoped member calls, required verification, effects, and attributable evidence. An outer verifier does not erase member checks. Detect recursive dependencies; nesting must not bypass limits or grant additional authority.
 
-CC is a reusable declaration plus exact admitted implementation, not a node or run contract. M1 includes bounded code tools/prompts/skills/adapters, with one work CC per subnode. Composite creation/execution and merging remain later work. [CC fields](capsule/declaration.md) and [schema](reference/schemas/capsule-declaration.schema.json) standardize identity/version, ports, entrypoints, dependencies, conditions, effects/resources, limits, evidence/checking and mutation scope.
+**NOV-only future; not M1:** fusion replaces an admitted member graph with a separately admitted implementation after comparative evidence establishes the same contract meaning, effects, required verification, and traceability. Retain the unfused reference and member-to-fused provenance. Do not remove checking boundaries merely because the combined output looks correct. Fusion must be justified by this system's comparative evidence.
 
-Human-readable `make_capsule.md` derives from `capsule.json`. Hand-written and RSI versions undergo declaration/integrity/provenance/compatibility/self-test admission and pin an independently maintained check bundle; provisional is M1 trust level. Changed implementation or bundle association follows admission as a new immutable version/association. Self-tests support admission, not runtime release authority. Human activates/suspends/deprecates/rolls back in M1; retained CC and bundle history supports reproduction.
+**Future compatibility:** interaction findings bind to versions, context, and evidence; record whether risk was predicted or execution-confirmed. **M2 target: November 2026; not M1:** Generalist behavior and automatic RSI generation/admission. **M3 target: December 2026:** composition/fusion. **2027 target:** spatiotemporal lifecycle. Any borrowed skill-interaction analysis must be evaluated against the isolated CC execution boundary. Predicted risk cannot certify safety or replace live verification.
 
-Binder selects admitted CC versions and their exact bundle associations from captured inventory; node contract narrows permission. Runner intersects admission, contract and policy per CC, combines capsule-bundle and run-specific checks, captures every invocation and aggregates node evidence/checking. Additional work CCs use separate gated subnodes within their declared node. Private helpers remain the owning CC's responsibility; no internal CC dispatch, member graph, composite execution or merging in M1. Unsupported forms or missing bundles block admission/binding.
-
-CC authors produce payload/assessment; trusted capture owns envelope/hash/provenance, protected gate owns release. No model self-selection, capability installation, mutation of gate/referee, automatic promotion or permission widening. Suspension blocks eligible start/release without silently rewriting history. [Workflow](workflow.md), [guard](guard-design.md) and [RSI](offline-rsi.md) connect these boundaries.
+**Future compatibility (not M1).** Preserve dependency, effect, idempotency, reversibility, and lifecycle declarations for spatiotemporal composition, planned for 2027. **Future direction:** install, drain, replace, and compensate capabilities during long runs through a separate lifecycle mechanism. M1 changes take effect between runs. Removal from routing must never delete historical evidence or pretend external emissions were undone.
 
 ## Per-CC build coverage
 
-Use the [CC ports and checking map](cc-build-coverage.md) for all ten work capabilities, the Planner semantic-verifier context and the shared implementation-completion rule.
+See [CC ports and checking map](cc-build-coverage.md).

@@ -1,6 +1,6 @@
 # Design coverage and review
 
-**Reading level: AI reference; design audit.** This is the single maintained design-review account, not a coding handoff or runtime acceptance report. The first human route is [README](README.md); details and contracts are linked underneath it.
+**Reading level: AI reference; design audit.** This is the single maintained design-review account, not a coding task or runtime acceptance report. The first human route is [README](README.md); details and contracts are linked underneath it.
 
 October 8 contract and reading results and later source-adoption checks are retained as dated records. Earlier counts describe their named snapshots; this document does not claim runtime acceptance.
 

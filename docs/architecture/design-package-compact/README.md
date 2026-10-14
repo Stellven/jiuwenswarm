@@ -15,7 +15,7 @@ Read this README → [system](m1-design.md) → [principles](principles.md). Thi
 
 ## For design authors and human reviewers
 
-[Design method](design-method.md) defines architectural depth, project decision handoffs, tiered review and change propagation. [Decision review](decision-review.md) preserves identical decisions, source exceptions and pros/cons. Documentation checks do not mean human approval or runtime success.
+[Design method](design-method.md) defines architectural depth, project decisions, tiered review and change propagation. [Decision review](decision-review.md) preserves identical decisions, source exceptions and pros/cons. Documentation checks do not mean human approval or runtime success.
 
 **PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
 
@@ -31,6 +31,7 @@ Later work: Generalist, automatic capsule generation, automatic admission and be
 |---|---|
 | The core journey and its order | [Core build](core-build.md) |
 | One CC and its verifier assignment | [Capsule build references](reference/capsules/README.md) |
+| Which component checks what, per CC (worker, host check bundle, verifier, gate) | [CC build coverage](cc-build-coverage.md), then [guard design](guard-design.md) |
 | Static template, Planner proposal, frozen run plan and dispatch | [Run plan](reference/run-plan.md) |
 | The Intention Compiler node (to accepted `research_brief.json`) | [Compiler entrypoint](builds/intention-compiler/README.md) and [context](builds/intention-compiler/context.md) |
 | The platform benchmark runner (development tooling) | [Benchmark runner](development-tools/benchmark-runner/README.md) |

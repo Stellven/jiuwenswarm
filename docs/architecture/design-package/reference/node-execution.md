@@ -35,6 +35,6 @@ Bound check plans reference concrete contracts and exact inputs; contracts pin g
 
 The old `node-execution-contract:1.0.0` described a CC-sized assignment; it is retired from maintained examples and becomes `subnode-execution-contract:1.0.0` with explicit parent scope. The enclosing Node Execution Contract is the `2.0.0` field contract. Gate decisions and affected public field contracts use `2.0.0`; unchanged critical artifact/assessment schemas retain `1.0.0`. Resolve versions per catalog entry, never by one global assumption. Historical snapshots remain unchanged and must not be mixed with current inputs.
 
-## Model-routing handoff
+## Model-routing boundary
 
 The protected binder/runner exports the existing single binding through [SelectedCapsuleInput](capsule-model-routing.md#selected-capsule-input), with a separate protected selection-profile reference. Contracts stay finalized and unchanged. Routing overhead and independent verifier reservations are recorded in the protected ledger and included in aggregate limits. [Shared flow](capsule-model-routing.md#shared-flow) defines frozen-decision consumption and avoids hash cycles.
