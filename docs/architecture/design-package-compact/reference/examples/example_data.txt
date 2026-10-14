@@ -1,1 +1,0 @@
-Synthetic fixed data identity; this illustration contains no real research dataset.

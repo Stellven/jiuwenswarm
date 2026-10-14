@@ -1,10 +1,10 @@
 # Canonical vocabulary and PRD crosswalk
 
-This Git-tracked page is the shared naming register and PRD-to-architecture crosswalk for maintained terms, prose and diagrams. The full package is authoritative; the compact package mirrors this content. Any team member can propose edits; affected owners check meaning and use. Use canonical terms in design, tasks, specifications and agent instructions. Stable machine identifiers remain in their contract and task registries. The received PRD remains verbatim; its words and clause numbers remain source references. The crosswalk explains responsibilities and relationships rather than declaring unlike components interchangeable. The [coverage map](coverage.md) and [decisions](principles.md#decisions-and-source-amendments) retain actual amendments; vocabulary edits do not change product scope. Definitions and examples still matter; matching labels alone do not ensure shared understanding.
+This Git-tracked page is the shared naming register and PRD-to-architecture crosswalk for maintained terms, prose and diagrams. The design package is authoritative. Any team member can propose edits; affected owners check meaning and use. Use canonical terms in design, tasks, specifications and agent instructions. Stable machine identifiers remain in their contract and task registries. The received PRD remains verbatim; its words and clause numbers remain source references. The crosswalk explains responsibilities and relationships rather than declaring unlike components interchangeable. The [coverage map](coverage.md) and [decisions](principles.md#decisions-and-source-amendments) retain actual amendments; vocabulary edits do not change product scope. Definitions and examples still matter; matching labels alone do not ensure shared understanding.
 
 ## Package naming
 
-**Design-package** is the maintained full architecture at `docs/architecture/design-package/`. **Design-package-compact** is its matched reduced-explanation version at `docs/architecture/design-package-compact/`. Both cover the same M1 and share authoritative contracts. Build-package is the former name, retained in historical receipts. In paired trials, consult only the assigned version.
+**Design-package** is the maintained architecture at `docs/architecture/design-package/`. Design-package-compact was a reduced-explanation copy, retired on October 14, 2026 ([D27](decision-review.md#d27)). Build-package is the former name, retained in historical receipts.
 
 ## Delivery, implementation and research conventions
 

@@ -86,11 +86,9 @@ Use current canonical behavior rather than requiring readers to reconstruct hist
 
 Fix a design defect in the authoritative design and refresh affected evidence. Fix code that diverges from correct design in implementation work; logs help diagnose it but are not the decision record.
 
-Use the Git-tracked full-package [glossary](glossary.md) as the naming source. The compact glossary mirrors it. Any team member can propose edits in Git; affected owners check meaning and affected uses. Use the canonical terms in design, tasks, specifications and agent instructions. Keep stable machine identifiers in the contract and task registries. This gives people and agents one shared reference. Definitions and examples still matter; matching names alone do not prove shared understanding.
+Use the Git-tracked full-package [glossary](glossary.md) as the naming source. Any team member can propose edits in Git; affected owners check meaning and affected uses. Use the canonical terms in design, tasks, specifications and agent instructions. Keep stable machine identifiers in the contract and task registries. This gives people and agents one shared reference. Definitions and examples still matter; matching names alone do not prove shared understanding.
 
-Keep detail at the level needed to decide boundaries, shared contracts, authority, failure behavior and phase exits; leave private algorithms to implementation plans. Full versus compact remains an open question. Use the project’s matched experiment protocol to compare consequential ambiguity, compatibility defects, clarification and correction effort at equal scope, not document size alone.
-
-Keeping both packages current adds a second edit and review pass and creates drift risk. In the October 8 delivery snapshot, compact has 36% fewer explanatory words (15,961 vs. 25,066) and 10 diagram views (full: 26), with shared contracts preserved. If only one remains, full costs more reading and diagram upkeep; compact costs less, but may need more clarification if its shorter rationale leaves gaps. No paired implementation results yet show that compact performs as well. Use the experiment before choosing one; then make one package authoritative and freeze the other as historical evidence instead of maintaining two live copies.
+Keep detail at the level needed to decide boundaries, shared contracts, authority, failure behavior and phase exits. Leave private algorithms to implementation plans. One package is maintained ([D27](decision-review.md#d27)). Shorten it by removing repeated explanation, never by removing contract detail.
 
 ## Mechanical document checks
 

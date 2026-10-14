@@ -1,1 +1,0 @@
-# Python standard-library-only fixture; no third-party dependency installation required.

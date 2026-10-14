@@ -1,13 +1,12 @@
 # AI4Research architecture
 
-Updated October 13, 2026. These packages are the shared architecture for `ai4r_muk` and `ai4r_main_branch`.
+Updated October 13, 2026. This package is the shared architecture for `ai4r_muk` and `ai4r_main_branch`.
 
 | Package | Use |
 |---|---|
 | [design-package](design-package/README.md) | Full M1 architecture, responsibilities, rationale and implementation-facing reference |
-| [design-package-compact](design-package-compact/README.md) | The same M1 scope, shared contracts and source decisions with less explanatory prose |
 
-Start with the package README, then its system architecture and principles. The full package owns architectural changes; synchronize shared contracts, examples and decisions into compact. The PRD is supplied separately and owns product requirements. Its receipt and clause mappings are retained inside each package.
+Start with the package README, then its system architecture and principles. The compact package was retired on October 14, 2026 (decision D27). It remains in Git history. The PRD is supplied separately and owns product requirements. Its receipt and clause mappings are retained inside each package.
 
 ## Component reading
 

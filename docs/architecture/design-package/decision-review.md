@@ -112,6 +112,7 @@
 | D24 | Verifier criteria are output-only. Fidelity and preservation are Intent and Requirement producer obligations | Narrows §4.2 verifier duties consistently with D20. See [D24](#d24) |
 | D25 | Every CC has a declaration, a field table with constraints, a check bundle and verifier criteria in one tier 3 page | Extends D16. See [D25](#d25) |
 | D26 | Build the static fixed DAG first, then the Planner, both producing one frozen run plan type | Follows PRD §2 default over dynamic. See [D26](#d26) |
+| D27 | One maintained design package. The compact copy is retired | Design practice, no PRD change. See [D27](#d27) |
 
 ## Human review priorities
 
@@ -206,3 +207,7 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 ## D26
 
 **Static first, then planned.** The first runnable path is a hand-authored static template over the research CCs. The Planner then produces a proposal that the same binder turns into the same frozen run plan type. Both modes use the same dispatch, checks, gates and storage. Reason: PRD §2 sets default over dynamic, and a working static path gives a baseline to debug the Planner against. A static run does not count as planned-mode acceptance. Contracts: [run plan](reference/run-plan.md).
+
+## D27
+
+**One maintained package.** The compact package is retired. Keeping two packages in step doubled every edit and let them drift, and no paired experiment showed that the compact copy performed as well. Shorten this package by removing repeated explanation. Keep tier 3 contract detail. The last compact version is in Git history at commit `c6c6f08b0`.
