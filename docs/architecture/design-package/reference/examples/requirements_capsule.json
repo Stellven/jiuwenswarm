@@ -30,7 +30,7 @@
         "name": "intake",
         "schema_ref": "qualified-intake:field-contract:2",
         "required": true,
-        "artifact_type": "intake",
+        "artifact_type": "qualified_intake",
         "description": "Accepted qualified context or protected default policy for Requirements",
         "check_ids": [
           "exact_identity",
@@ -41,7 +41,7 @@
         "name": "defaults",
         "schema_ref": "default-policy:field-contract:1",
         "required": true,
-        "artifact_type": "defaults",
+        "artifact_type": "default_policy",
         "description": "Accepted qualified context or protected default policy for Requirements",
         "check_ids": [
           "exact_identity",
@@ -52,7 +52,7 @@
     "outputs": [
       {
         "name": "brief",
-        "artifact_type": "research-brief",
+        "artifact_type": "research_brief",
         "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
         "required": true,
         "description": "Attributed interpretation, not Requirements",
@@ -138,7 +138,7 @@
     ],
     "evals": [],
     "unanchored": [
-      "Semantic fidelity/usability require independently assigned runtime verification"
+      "Request fidelity and downstream usability are producer obligations backed by deterministic host checks, not verifier criteria"
     ]
   },
   "budget": {

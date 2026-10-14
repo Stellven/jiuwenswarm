@@ -4,7 +4,7 @@
 
 ## From meaning to a governed research program
 
-**Example flow:** accepted intent becomes a Research Brief, the Brief becomes a checked and frozen plan, and that plan releases research nodes in dependency order. The example shows where CCs, verifiers and gates sit. It orients the reader. It does not promise that every plan has this exact graph.
+**Example flow:** accepted intent becomes a Research Brief, the Brief becomes a checked and frozen plan, and that plan releases research nodes in dependency order. It orients the reader and does not promise that every plan has this exact graph.
 
 ```mermaid
 flowchart TB
@@ -25,7 +25,7 @@ flowchart TB
         NG -->|failed or incomplete| H
     end
     NG -->|durably released Research Brief| P[Fixed Planner node proposes admitted CC graph]
-    P --> Bind[Protected binder pins CC capsules, contracts and required checks]
+    P --> Bind[Protected binder pins CC capsules, contracts and check bundles]
     Bind --> PG[Plan checks, plan verifier and Evaluator Gate]
     PG -->|accepted plan| F[Freeze graph and versions]
     PG -->|blocked| H
@@ -42,7 +42,7 @@ flowchart TB
 
 The [expanded research-node view](#research-nodes-and-subnodes) shows each stage's work and verifier subnodes and gates. The [POC task/node view](#inside-the-poc-task) gives the Builder and Benchmark checks a larger view. A blocked check, verifier or gate halts the dependent path and retains evidence. If Intent has no workable purpose/result, Requirements is not invoked and no intent is invented.
 
-The Brief fixes objectives, mandatory outcomes, preferences, scope, constraints, deliverables and evidence obligations. The assigned core Planner proposes compatible admitted CCs under D19. The existing fixed SwarmFlow sequence remains an explicitly selected baseline mode; a failed planned run cannot silently fall back. Protected binding independently assigns checks and effective authority. Freeze captures the graph and pins before execution. Future values remain typed references until their producing gates accept them.
+The Brief fixes objectives, mandatory outcomes, preferences, scope, constraints, deliverables and evidence obligations. The assigned core Planner proposes compatible admitted CCs under D19. A static template runs first and yields the same [`run_plan`](reference/run-plan.md) type ([D26](decision-review.md#d26)). A failed planned run never falls back silently. An infeasible plan starts a linked Intention Compiler attempt. Protected binding assigns the check bundles and effective authority. Freeze captures the `run_plan` and pins before execution. Future values remain typed references until their producing gates accept them.
 
 The research stages pass these artifacts forward:
 
@@ -96,7 +96,7 @@ Independently buildable Target 1 improves a sandbox copy of Screening's pure ran
 
 ## Inside the POC task
 
-Builder and Research Benchmark are separately gated subnodes. Builder creates the bounded intervention; Benchmark provisions the frozen environment and measures baseline and treatment. Node acceptance requires both results and durable evidence. [Expanded POC view](research-nodes.md#inside-the-poc-task) shows their internal boundaries.
+Builder and Research Benchmark are separately gated subnodes. The scientific Research Benchmark CC is not the platform benchmark. Builder creates the bounded intervention and build evidence only. Benchmark provisions the frozen environment and measures baseline and treatment. Node acceptance requires both results and durable evidence. [Expanded POC view](research-nodes.md#inside-the-poc-task) shows their internal boundaries.
 
 ## Research nodes and subnodes
 
@@ -130,7 +130,7 @@ Each detail page explains purpose, owners, inputs/outputs and failures. [Contrac
 | Scope | Build and acceptance meaning |
 |---|---|
 | Assigned core | Fixed Compiler → bounded Planner proposal → independent binding/checking/freeze → governed Search-to-Delivery journey, required resources, evidence and product control/inspection boundaries |
-| Static baseline | Existing fixed sequence is retained and explicitly selected before a run; it is not silent recovery or proof that planning works |
+| Static template | Built first, selected before a run, same `run_plan` type. Not silent recovery or proof that planning works |
 | Independent RSI | Separate offline target, pinned parent, unchanged referee and isolated candidate evidence; absence cannot block the core |
 | Broader product continuation | Advanced compilation, heterogeneous routing, alternate-verifier studies and Code Mode remain separately scoped; Generalist/MCTS/composition refinement and later lifecycle work do not enter the core by implication |
 

@@ -7,15 +7,15 @@
 Build and connect these bounded boundaries in order:
 
 1. Establish the fixed compiler path: qualified input → candidate Intent → deterministic checks → independent verifier assessment → protected acceptance gate; then requirements → candidate Brief → checks → verifier → protected Brief release.
-2. Feed only the accepted Brief to the fixed core Planner. It chooses downstream admitted CCs, checks and assignment proposals, and emits the proposed workflow as a JSON DAG.
+2. Feed only the accepted Brief to the fixed core Planner. It proposes downstream admitted CCs and may suggest extra checks. The binder assigns the pinned check bundles. The proposal is a JSON DAG ([run plan](reference/run-plan.md)).
 3. Independently validate required responsibility coverage, typed ports and dependency closure, required checks, resources/limits, effects and absence of cycles. Freeze the accepted graph, exact pins and contracts before dispatch.
 4. Execute one governed Search → Screening → Hypothesis → Builder → Scientific Benchmark → Scientific Evaluation → Delivery path. Hypothesis and protocol are frozen before build; valid scientific negatives remain deliverable.
 
-The explicit static mode remains available as a separate fallback that can run the workflow without autonomous planning. Its acceptance evidence is distinct: static execution does not satisfy the mandatory dynamic planner record for this core assignment. The planner's proposal is never release authority; a failed validation or persistence step halts before dispatch.
+The static template is built first and runs without autonomous planning ([D26](decision-review.md#d26)). Static execution does not satisfy the planned-mode record for this core assignment. An infeasible plan halts and starts a linked Intention Compiler attempt. The planner's proposal is never release authority; a failed validation or persistence step halts before dispatch.
 
 ## What acceptance means
 
-The compiler preserves user meaning, authorized defaults, constraints and required outcomes in a usable Brief. Semantic assessment reads original evidence and cannot accept or rewrite the submitted artifact; only committed protected decisions release exact accepted references.
+The compiler preserves user meaning, authorized defaults, constraints and required outcomes in a usable Brief. The producer CCs self-review fidelity and preservation, and deterministic host checks back them. The semantic verifier reads only the declaration and the exact output ([D24](decision-review.md#d24)). It cannot accept or rewrite the submitted artifact; only committed protected decisions release exact accepted references.
 
 A planner proposal is only a candidate. Independent checks bind the proposal to the Brief, eligible catalogue snapshot, policy, ports, checks and resource limits. Missing mandatory coverage, incompatible ports, denied effects, unresolved dependencies, excess resources or cycles prevent freeze. After freeze, no live replan or substitution changes the run. Each scientific stage has its own contract, evidence and gate; scientific Evaluation owns the conclusion, while infrastructure gates determine process/artifact admissibility.
 

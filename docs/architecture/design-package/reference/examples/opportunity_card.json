@@ -1,13 +1,13 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "id": "opportunity_card",
   "candidate_ref": {
     "id": "candidate_set.json",
-    "sha256": "b5443f1bfd122e146709733d89820beae2f73a000b1a9b552778e1d71acd7431"
+    "sha256": "cbef70c354ed11573d22471cd2f8bf6fa5f7e7d3fe0a89116aae3ef159dd02d0"
   },
   "screening_ref": {
     "id": "screening_result.json",
-    "sha256": "21f655981199334ee2f7a99b5111d7816731c2bf629229be7ebd1e2bcd512068"
+    "sha256": "f544fb261cec5322c1f7f742a8657880819961ca62658c4a7024600a9fba2554"
   },
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
@@ -15,19 +15,35 @@
   },
   "idea_id": "idea:001",
   "title": "Bounded index lookup",
-  "opportunity_statement": "Repeated lookup may be a retrieval bottleneck; test whether indexing reduces latency without changing answer quality.",
+  "summary": "Test whether an index over repeated lookups reduces retrieval latency in the supplied baseline.",
+  "opportunity_statement": "Repeated lookup may be a retrieval bottleneck. An index could remove the repeated work, so test whether it lowers latency without changing answer quality.",
+  "scores": {
+    "novelty": 3,
+    "feasibility": 4,
+    "compute_alignment": 5,
+    "total": 12
+  },
+  "rank": 1,
   "citation_ids": [
     "citation:index"
   ],
   "constraints": [
-    "Preserve answer quality",
-    "One GPU"
+    "One GPU",
+    "Evaluate an intervention intended to reduce retrieval latency",
+    "Preserve answer quality"
   ],
   "assumptions": [
-    "Lookup work is material"
+    "Baseline overhead includes repeated lookup"
   ],
   "risks": [
-    "Index maintenance overhead"
+    "Index maintenance could offset lookup gains"
+  ],
+  "other_dispositions": [
+    {
+      "idea_id": "idea:002",
+      "disposition": "rejected",
+      "reason": "Requires a proprietary model, which the rubric forbids."
+    }
   ],
   "ext": {
     "example.synthetic": true

@@ -1,0 +1,1103 @@
+{
+  "interfaces": [
+    {
+      "id": "plan-proposal:field-contract:3",
+      "name": "plan-proposal",
+      "version": "3.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "Planner CC (research.planner)",
+      "consumers": [
+        "protected binder",
+        "plan checks",
+        "plan verifier"
+      ],
+      "document": "capsules/planner.md#output-field-contract",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 3.0.0. Reject any other value. Constraint: exactly 3.0.0."
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable ID of this proposal. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted governing Research Brief. Constraint: the accepted Brief given to the Planner."
+        },
+        "library_snapshot_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned list of eligible CC versions the nodes were chosen from. Constraint: the snapshot given to the Planner."
+        },
+        "resource_inventory_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned list of supplied and observed resources. Constraint: the snapshot given to the Planner."
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Protected policy limits the plan was made under. Constraint: the plan policy given to the Planner."
+        },
+        "mode": {
+          "type": "string",
+          "required": true,
+          "meaning": "Marks a Planner-made plan. A static template carries `static` instead. Constraint: exactly planned.",
+          "enum": [
+            "planned"
+          ]
+        },
+        "nodes": {
+          "type": "PlanNode[]",
+          "required": true,
+          "meaning": "The finite graph of nodes. Edges come from `predecessors` and future inputs. Constraint: 1 to 12 nodes (M1 ceiling, also limited by policy max_nodes).",
+          "min_items": 1,
+          "max_items": 12
+        },
+        "coverage": {
+          "type": "CoverageEntry[]",
+          "required": true,
+          "meaning": "Self-review map from each Brief item to the nodes that cover it. It is the exact inverse of the node tags. Constraint: 1 to 60 entries; one entry per mandatory requirement and per deliverable of the Brief.",
+          "min_items": 1,
+          "max_items": 60
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Aggregate ceiling for the whole plan. Constraint: time and calls at least the sum of node limits, memory at least the largest node limit, all at most the policy aggregate limits."
+        },
+        "notes": {
+          "type": "string",
+          "required": true,
+          "meaning": "Short planner remark for human review. It is not an instruction and grants nothing. Constraint: 0 to 1000 characters; the empty string is allowed only here.",
+          "min": 0,
+          "max": 1000
+        }
+      },
+      "failure": "Reject before dispatch for a failed binder check. A proposal grants no authority and no check relief."
+    },
+    {
+      "id": "static-template:field-contract:1",
+      "name": "static-template",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "Architect (hand-authored)",
+      "consumers": [
+        "protected binder"
+      ],
+      "document": "run-plan.md#static-template",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0. Reject any other value. Constraint: exactly 1.0.0."
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable ID of this template. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "template_name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Name of the fixed path, for example `m1_research_path`. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "mode": {
+          "type": "string",
+          "required": true,
+          "meaning": "Marks a hand-authored plan. Constraint: exactly static.",
+          "enum": [
+            "static"
+          ]
+        },
+        "nodes": {
+          "type": "PlanNode[]",
+          "required": true,
+          "meaning": "The fixed nodes. Same node shape as a plan proposal. Constraint: 1 to 12 nodes.",
+          "min_items": 1,
+          "max_items": 12
+        },
+        "coverage": {
+          "type": "CoverageEntry[]",
+          "required": true,
+          "meaning": "Self-review map from each Brief item to the nodes that cover it. It is the exact inverse of the node tags. Constraint: 1 to 60 entries; one entry per mandatory requirement and per deliverable of the Brief.",
+          "min_items": 1,
+          "max_items": 60
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Aggregate ceiling for the whole plan. Constraint: same rule as a plan proposal."
+        }
+      },
+      "failure": "Reject before dispatch for a failed binder check. A template grants no authority."
+    },
+    {
+      "id": "library-snapshot:field-contract:1",
+      "name": "library-snapshot",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected library",
+      "consumers": [
+        "Planner CC",
+        "protected binder"
+      ],
+      "document": "run-plan.md#library-snapshot",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0. Reject any other value. Constraint: exactly 1.0.0."
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable ID of this snapshot. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "captured_at": {
+          "type": "string",
+          "required": true,
+          "meaning": "When the library captured the snapshot. Constraint: UTC time, pattern YYYY-MM-DDTHH:MM:SSZ.",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "entries": {
+          "type": "LibraryEntry[]",
+          "required": true,
+          "meaning": "Eligible CC versions. Active library changes after capture never alter this list. Constraint: 1 to 200 entries; the pair (cc_name, cc_version) is unique.",
+          "min_items": 1,
+          "max_items": 200
+        }
+      },
+      "failure": "An entry with a null check pin is unusable. The binder rejects any node that names it."
+    },
+    {
+      "id": "resource-inventory:field-contract:1",
+      "name": "resource-inventory",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "host intake and capture",
+      "consumers": [
+        "Planner CC",
+        "protected binder"
+      ],
+      "document": "run-plan.md#resource-inventory",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0. Reject any other value. Constraint: exactly 1.0.0."
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable ID of this snapshot. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "resources": {
+          "type": "ResourceItem[]",
+          "required": true,
+          "meaning": "Resources supplied by the user or observed on the host. Constraint: 0 to 100 items; resource_key unique.",
+          "max_items": 100
+        }
+      },
+      "failure": "A missing resource makes every node that needs it infeasible. The binder rejects the plan."
+    },
+    {
+      "id": "plan-policy:field-contract:1",
+      "name": "plan-policy",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected configuration owner",
+      "consumers": [
+        "Planner CC",
+        "protected binder"
+      ],
+      "document": "run-plan.md#plan-policy",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0. Reject any other value. Constraint: exactly 1.0.0."
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable ID of this policy. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "max_nodes": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Most nodes a plan may hold. Constraint: 1 to 12.",
+          "min": 1,
+          "max": 12
+        },
+        "allowed_effect_classes": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Effect classes a node CC may have. M1 excludes `irreversible`. Constraint: 1 to 5 values from the effect class enum.",
+          "min_items": 1,
+          "max_items": 5
+        },
+        "allow_network": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "When false, no node may use a CC whose `network_mode` is not `none`."
+        },
+        "aggregate_limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Ceiling for the whole plan. Time and calls add across nodes. Memory is the largest node value because M1 runs nodes one at a time. Constraint: positive; model_calls may be 0."
+        },
+        "max_attempts_per_node": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Ceiling for `max_attempts` of any node. Constraint: 1 to 3.",
+          "min": 1,
+          "max": 3
+        }
+      },
+      "failure": "A plan outside the policy is rejected. The Planner cannot change the policy."
+    },
+    {
+      "id": "run-plan:field-contract:1",
+      "name": "run-plan",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "protected binder and freeze",
+      "consumers": [
+        "scheduler",
+        "guard resolver",
+        "run state"
+      ],
+      "document": "run-plan.md#run-plan",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0. Reject any other value. Constraint: exactly 1.0.0."
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable ID of this frozen plan. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "mode": {
+          "type": "string",
+          "required": true,
+          "meaning": "`static` when built from a static template. `planned` when built from a Planner proposal. Both use this same type. Constraint: enum.",
+          "enum": [
+            "static",
+            "planned"
+          ]
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Brief the plan answers. Constraint: the accepted Brief."
+        },
+        "library_snapshot_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Snapshot every CC pin was resolved against. Constraint: the pinned snapshot."
+        },
+        "resource_inventory_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Resources the feasibility check used. Constraint: the pinned snapshot."
+        },
+        "policy_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Plan policy the checks used. Constraint: the pinned policy."
+        },
+        "configuration_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Effective run configuration. Constraint: the frozen run configuration."
+        },
+        "source_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "The unmodified source the binder started from. Constraint: a static template when mode is static, a plan proposal when mode is planned."
+        },
+        "acceptance_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Committed acceptance of the bound plan. Dispatch cannot start without it. Constraint: a gate decision with action advance."
+        },
+        "nodes": {
+          "type": "RunPlanNode[]",
+          "required": true,
+          "meaning": "Bound nodes with resolved accepted refs and copied check pins. Constraint: 1 to 12 nodes.",
+          "min_items": 1,
+          "max_items": 12
+        },
+        "topological_order": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Dispatch order computed by the binder. M1 runs nodes one at a time in this order. Constraint: each node ID once; every node after all its predecessors.",
+          "min_items": 1,
+          "max_items": 12
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Aggregate ceiling for the whole plan. Constraint: same rule as a plan proposal."
+        },
+        "frozen": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Marks the plan immutable. After freeze there is no replan, substitution or pin change. Constraint: must be true."
+        }
+      },
+      "failure": "A missing acceptance record, an unresolved accepted ref or a missing pin blocks dispatch. Nothing in a frozen run plan may change."
+    },
+    {
+      "id": "dispatch-record:field-contract:1",
+      "name": "dispatch-record",
+      "version": "1.0.0",
+      "topic": "planning-and-node-contracts",
+      "producer": "scheduler",
+      "consumers": [
+        "run state",
+        "guard resolver",
+        "observability",
+        "RSI export"
+      ],
+      "document": "run-plan.md#dispatch-record",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version 1.0.0. Reject any other value. Constraint: exactly 1.0.0."
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable ID of this record. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "run_plan_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Plan the dispatch belongs to. Constraint: the frozen run plan of this run."
+        },
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Node dispatched. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; a node of the run plan.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "cc": {
+          "type": "CcPin",
+          "required": true,
+          "meaning": "CC version that ran. Constraint: equal to the run plan node cc."
+        },
+        "bound_input_refs": {
+          "type": "BoundInput[]",
+          "required": true,
+          "meaning": "Exact accepted artifacts passed in. Constraint: one per node input that was bound; names unique; at most 16.",
+          "max_items": 16
+        },
+        "check_pins": {
+          "type": "CheckPins",
+          "required": true,
+          "meaning": "Check bundle and profile that applied. Constraint: equal to the run plan node check_pins."
+        },
+        "check_plan_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Bound check plan built for this attempt. Constraint: a bound check plan."
+        },
+        "attempt": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Attempt number. A new attempt is a new record. Constraint: 1 to the node max_attempts.",
+          "min": 1,
+          "max": 3
+        },
+        "started_at": {
+          "type": "string",
+          "required": true,
+          "meaning": "Dispatch start time. Constraint: UTC YYYY-MM-DDTHH:MM:SSZ.",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "ended_at": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "End time. Constraint: null only for outcome interrupted; otherwise UTC YYYY-MM-DDTHH:MM:SSZ."
+        },
+        "outcome": {
+          "type": "string",
+          "required": true,
+          "meaning": "How the attempt ended. `accepted`: the gate accepted the outputs. `rejected`: checks or verifier did not pass. `halted`: protected stop. `failed`: execution or infrastructure error. `budget_exhausted`: a limit was hit. `interrupted`: the process ended before a decision. Constraint: enum.",
+          "enum": [
+            "accepted",
+            "rejected",
+            "halted",
+            "failed",
+            "budget_exhausted",
+            "interrupted"
+          ]
+        },
+        "gate_decision_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Gate decision for this attempt. Constraint: null only for outcomes failed, budget_exhausted and interrupted."
+        },
+        "output_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "Accepted outputs. Rejected output stays in evidence, not here. Constraint: non-empty only for outcome accepted; at most 16.",
+          "max_items": 16
+        },
+        "elapsed_s": {
+          "type": "nullable-number",
+          "required": true,
+          "meaning": "Observed wall time in seconds. Constraint: null or at least 0.",
+          "min": 0
+        },
+        "model_calls_used": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Observed model calls, null when unobserved. Constraint: null or at least 0.",
+          "min": 0
+        }
+      },
+      "failure": "A record that names a node, pin or input not in the run plan is rejected and the dispatch is blocked. Records are append-only."
+    }
+  ],
+  "types": {
+    "CcPin": {
+      "fields": {
+        "cc_name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Dotted name of the capability capsule. It must equal the name of an entry in the library snapshot. Constraint: pattern ^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$, for example research.screening.",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+        },
+        "cc_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Admitted version of that CC. Together with `cc_name` it must match exactly one library snapshot entry. Never a range or `latest`. Constraint: pattern ^[a-z0-9][a-z0-9._-]{0,31}$.",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,31}$"
+        },
+        "declaration_sha256": {
+          "type": "sha256",
+          "required": true,
+          "meaning": "Digest of the exact declaration bytes. In a plan proposal or static template it must equal the digest in the library entry. The binder rejects a mismatch. Constraint: 64 lowercase hex characters."
+        }
+      }
+    },
+    "CheckPins": {
+      "fields": {
+        "check_bundle_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "ID of the deterministic check bundle that the protected library pinned to this CC version. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "check_bundle_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact version of that bundle. Constraint: pattern ^[0-9]+\\.[0-9]+\\.[0-9]+$.",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "check_bundle_sha256": {
+          "type": "sha256",
+          "required": true,
+          "meaning": "Digest of the bundle bytes. Constraint: 64 lowercase hex characters."
+        },
+        "checking_profile_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "ID of the checking profile (which semantic criteria apply and how the gate decides) pinned to this CC version. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "checking_profile_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact version of that profile. Constraint: pattern ^[0-9]+\\.[0-9]+\\.[0-9]+$.",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "checking_profile_sha256": {
+          "type": "sha256",
+          "required": true,
+          "meaning": "Digest of the profile bytes. Constraint: 64 lowercase hex characters."
+        }
+      }
+    },
+    "PortSpec": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Port name exactly as in the CC declaration. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; unique among the same direction of one entry.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "artifact_type": {
+          "type": "string",
+          "required": true,
+          "meaning": "Lowercase snake_case artifact type that flows through the port, for example `candidate_set`. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "schema_ref": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact contract that defines the port content. Two ports are compatible only when both `artifact_type` and `schema_ref` are equal. Constraint: schema URN or field-contract ID."
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "True when the CC cannot run without this input, or must produce this output."
+        }
+      }
+    },
+    "ResourceNeed": {
+      "fields": {
+        "resource_key": {
+          "type": "string",
+          "required": true,
+          "meaning": "Key of a resource the CC reads or uses, as in the declaration `needs.resources`. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "mode": {
+          "type": "string",
+          "required": true,
+          "meaning": "How the CC uses the resource. Constraint: enum.",
+          "enum": [
+            "read",
+            "write",
+            "use"
+          ]
+        },
+        "min_quantity": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Smallest quantity needed (for example one GPU). Null when the resource is not countable. Constraint: null or at least 1.",
+          "min": 1
+        }
+      }
+    },
+    "LibraryEntry": {
+      "fields": {
+        "cc_name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Dotted name of the capability capsule. It must equal the name of an entry in the library snapshot. Constraint: pattern ^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$, for example research.screening.",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+        },
+        "cc_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Admitted version of that CC. Together with `cc_name` it must match exactly one library snapshot entry. Never a range or `latest`. Constraint: pattern ^[a-z0-9][a-z0-9._-]{0,31}$.",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,31}$"
+        },
+        "declaration_sha256": {
+          "type": "sha256",
+          "required": true,
+          "meaning": "Digest of the exact declaration bytes. In a plan proposal or static template it must equal the digest in the library entry. The binder rejects a mismatch. Constraint: 64 lowercase hex characters."
+        },
+        "selectable_by_planner": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "True when the Planner may choose this CC. False for fixed preparation CCs (Intent, Requirement) and for the Planner itself. The static template may use any entry marked true."
+        },
+        "input_ports": {
+          "type": "PortSpec[]",
+          "required": true,
+          "meaning": "All input ports declared by the CC. Constraint: at most 16 items; names unique.",
+          "max_items": 16
+        },
+        "output_ports": {
+          "type": "PortSpec[]",
+          "required": true,
+          "meaning": "All output ports declared by the CC. Constraint: 1 to 16 items; names unique.",
+          "min_items": 1,
+          "max_items": 16
+        },
+        "effect_class": {
+          "type": "string",
+          "required": true,
+          "meaning": "Effect class from the CC declaration `changes.effect_class`. Constraint: enum.",
+          "enum": [
+            "pure",
+            "read_only",
+            "idempotent",
+            "compensable",
+            "irreversible"
+          ]
+        },
+        "network_mode": {
+          "type": "string",
+          "required": true,
+          "meaning": "Network mode from the declaration `needs.network.mode`. Constraint: enum.",
+          "enum": [
+            "none",
+            "allowlist",
+            "open"
+          ]
+        },
+        "resource_needs": {
+          "type": "ResourceNeed[]",
+          "required": true,
+          "meaning": "Resources the CC needs, taken from the declaration. Constraint: at most 16 items.",
+          "max_items": 16
+        },
+        "max_limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Per-node ceiling taken from the declaration budget. A node may ask for less, never more. Constraint: all values positive except model_calls, which may be 0."
+        },
+        "check_pins": {
+          "type": "nullable-CheckPins",
+          "required": true,
+          "meaning": "Check bundle and checking profile pinned by protected admission. Null means the version has no admitted bundle. The binder must reject any node that uses a null entry. Constraint: must be non-null for a usable entry."
+        }
+      }
+    },
+    "ResourceItem": {
+      "fields": {
+        "resource_key": {
+          "type": "string",
+          "required": true,
+          "meaning": "Key that CC declarations use to ask for this resource. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; unique in the snapshot.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "kind": {
+          "type": "string",
+          "required": true,
+          "meaning": "What sort of resource it is. Constraint: enum.",
+          "enum": [
+            "file",
+            "dataset",
+            "gpu",
+            "model",
+            "network"
+          ]
+        },
+        "available": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "True when the host observed the resource at capture time."
+        },
+        "quantity": {
+          "type": "nullable-integer",
+          "required": true,
+          "meaning": "Observed count for countable resources (for example 1 GPU). Null otherwise. Constraint: null or at least 0.",
+          "min": 0
+        },
+        "ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Exact bytes of a supplied file or dataset. Null for hardware and services. Constraint: null or a Ref to immutable bytes."
+        }
+      }
+    },
+    "FutureInput": {
+      "fields": {
+        "producer_node": {
+          "type": "string",
+          "required": true,
+          "meaning": "Node that will produce the value. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; an existing node ID other than the consumer.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "port": {
+          "type": "string",
+          "required": true,
+          "meaning": "Output port of that node. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; a name in the producer node outputs.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "artifact_type": {
+          "type": "string",
+          "required": true,
+          "meaning": "Artifact type the consumer expects. A mismatch is an incompatible binding. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; must equal the producer output artifact_type.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        }
+      }
+    },
+    "PlanInput": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Consumer input port name. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; unique in the node; an input port of the CC in the library entry.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "artifact_type": {
+          "type": "string",
+          "required": true,
+          "meaning": "Artifact type of the port. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; equals the library input port type.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Whether the node needs this input. The Planner cannot mark a required library port optional. Constraint: must be true when the library port is required."
+        },
+        "source_kind": {
+          "type": "string",
+          "required": true,
+          "meaning": "`accepted_ref` means an input that already exists when the run starts (the Brief or a supplied resource). `future_output` means the accepted output of an earlier node. Constraint: enum.",
+          "enum": [
+            "accepted_ref",
+            "future_output"
+          ]
+        },
+        "run_input_key": {
+          "type": "nullable-string",
+          "required": true,
+          "meaning": "Which run input to bind. The Planner names the key and never writes a ref. Constraint: non-null exactly when source_kind is accepted_ref; value brief or a resource_key of the resource inventory."
+        },
+        "accepted_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Exact bytes of the run input. Only the binder fills this field. Constraint: null in every plan proposal and static template; non-null in a run plan when source_kind is accepted_ref."
+        },
+        "future": {
+          "type": "nullable-FutureInput",
+          "required": true,
+          "meaning": "Producer node, port and type of the future value. It binds to the gate-accepted output only, at dispatch. Constraint: non-null exactly when source_kind is future_output."
+        }
+      }
+    },
+    "PlanOutput": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Producer output port name. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; unique in the node; an output port of the CC in the library entry.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "artifact_type": {
+          "type": "string",
+          "required": true,
+          "meaning": "Artifact type of the port. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; equals the library output port type.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "required": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Whether the node must produce this output. Constraint: must be true when the library port is required."
+        }
+      }
+    },
+    "CoverageEntry": {
+      "fields": {
+        "item_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Brief item being covered. Constraint: an ID in the Brief mandatory_requirements or deliverables."
+        },
+        "item_kind": {
+          "type": "string",
+          "required": true,
+          "meaning": "Whether the item is a mandatory requirement or a deliverable. Constraint: enum.",
+          "enum": [
+            "requirement",
+            "deliverable"
+          ]
+        },
+        "node_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Nodes that cover the item. The list is the exact inverse of the node tags. Constraint: 1 to 12 node IDs; each node must tag this item.",
+          "min_items": 1,
+          "max_items": 12
+        }
+      }
+    },
+    "PlanNode": {
+      "fields": {
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Name of this node in the graph, for example `screening`. Never reused. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; unique in the plan.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "cc": {
+          "type": "CcPin",
+          "required": true,
+          "meaning": "The one CC version this node runs. M1 binds one CC per node. Constraint: must match one library entry with selectable_by_planner true."
+        },
+        "objective": {
+          "type": "string",
+          "required": true,
+          "meaning": "One plain sentence on what this node does for the run. Constraint: 1 to 300 characters.",
+          "min": 1,
+          "max": 300
+        },
+        "requirement_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Mandatory Brief requirements this node helps satisfy. Constraint: each an ID in the Brief mandatory_requirements; at most 40.",
+          "max_items": 40
+        },
+        "deliverable_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Brief deliverables this node produces or helps produce. Constraint: each an ID in the Brief deliverables; at most 20; requirement_ids and deliverable_ids together hold at least 1 item.",
+          "max_items": 20
+        },
+        "predecessors": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Nodes that must be accepted before this node starts. Extra entries are ordering-only dependencies. Constraint: node IDs; at most 11; includes every future.producer_node of this node; no self reference.",
+          "max_items": 11
+        },
+        "inputs": {
+          "type": "PlanInput[]",
+          "required": true,
+          "meaning": "Typed bindings for the node inputs. Constraint: at most 16 items; covers every required library input port.",
+          "max_items": 16
+        },
+        "outputs": {
+          "type": "PlanOutput[]",
+          "required": true,
+          "meaning": "Typed outputs the node will produce. Constraint: 1 to 16 items; covers every required library output port.",
+          "min_items": 1,
+          "max_items": 16
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Time, model-call and memory ceiling for one attempt of this node. Constraint: each value at most the library max_limits."
+        },
+        "suggested_checks": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Extra deterministic checks the Planner wants. The binder may adopt them. They never replace the mandatory bundle. Constraint: at most 8 check IDs, each matching ^[a-z][a-z0-9_]{0,63}$.",
+          "max_items": 8
+        }
+      }
+    },
+    "BoundInput": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Input port name. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "The accepted artifact the scheduler handed to this port. Constraint: exact bytes of an accepted artifact."
+        }
+      }
+    },
+    "RunPlanNode": {
+      "fields": {
+        "node_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Name of this node in the graph, for example `screening`. Never reused. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; unique in the plan.",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "cc": {
+          "type": "CcPin",
+          "required": true,
+          "meaning": "The one CC version this node runs. M1 binds one CC per node. Constraint: must match one library entry with selectable_by_planner true."
+        },
+        "objective": {
+          "type": "string",
+          "required": true,
+          "meaning": "One plain sentence on what this node does for the run. Constraint: 1 to 300 characters.",
+          "min": 1,
+          "max": 300
+        },
+        "requirement_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Mandatory Brief requirements this node helps satisfy. Constraint: each an ID in the Brief mandatory_requirements; at most 40.",
+          "max_items": 40
+        },
+        "deliverable_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Brief deliverables this node produces or helps produce. Constraint: each an ID in the Brief deliverables; at most 20; requirement_ids and deliverable_ids together hold at least 1 item.",
+          "max_items": 20
+        },
+        "predecessors": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Nodes that must be accepted before this node starts. Extra entries are ordering-only dependencies. Constraint: node IDs; at most 11; includes every future.producer_node of this node; no self reference.",
+          "max_items": 11
+        },
+        "inputs": {
+          "type": "PlanInput[]",
+          "required": true,
+          "meaning": "Typed bindings for the node inputs. Constraint: at most 16 items; covers every required library input port.",
+          "max_items": 16
+        },
+        "outputs": {
+          "type": "PlanOutput[]",
+          "required": true,
+          "meaning": "Typed outputs the node will produce. Constraint: 1 to 16 items; covers every required library output port.",
+          "min_items": 1,
+          "max_items": 16
+        },
+        "limits": {
+          "type": "Limits",
+          "required": true,
+          "meaning": "Time, model-call and memory ceiling for one attempt of this node. Constraint: each value at most the library max_limits."
+        },
+        "effect_class": {
+          "type": "string",
+          "required": true,
+          "meaning": "Effect class of the pinned CC version. The scheduler uses it to decide what may run. Constraint: enum; copied from the library entry.",
+          "enum": [
+            "pure",
+            "read_only",
+            "idempotent",
+            "compensable",
+            "irreversible"
+          ]
+        },
+        "check_pins": {
+          "type": "CheckPins",
+          "required": true,
+          "meaning": "Mandatory check bundle and checking profile for this node. Frozen. Constraint: copied from the library entry by the binder, never from the proposal."
+        },
+        "extra_check_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Extra checks the binder adopted. Empty for a static template. Constraint: subset of the proposal suggested_checks; at most 8.",
+          "max_items": 8
+        },
+        "max_attempts": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Attempts the scheduler may start for this node. Each attempt is a new dispatch record. M1 allows no automatic repair, so the value is 1. Constraint: 1 to 3; M1 plans use 1.",
+          "min": 1,
+          "max": 3
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "path": "plan_proposal.json",
+      "field_contract_id": "plan-proposal:field-contract:3",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "plan_proposal_invalid_cycle.json",
+      "field_contract_id": "plan-proposal:field-contract:3",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "acyclicity"
+    },
+    {
+      "path": "plan_proposal_invalid_port_type.json",
+      "field_contract_id": "plan-proposal:field-contract:3",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "port_type_compatibility"
+    },
+    {
+      "path": "plan_proposal_invalid_missing_check_bundle.json",
+      "field_contract_id": "plan-proposal:field-contract:3",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "mandatory_check_bundle_present"
+    },
+    {
+      "path": "static_template.json",
+      "field_contract_id": "static-template:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "library_snapshot.json",
+      "field_contract_id": "library-snapshot:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "library_snapshot_unbundled.json",
+      "field_contract_id": "library-snapshot:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "resource_inventory.json",
+      "field_contract_id": "resource-inventory:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "plan_policy.json",
+      "field_contract_id": "plan-policy:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "run_plan.json",
+      "field_contract_id": "run-plan:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "dispatch_record.json",
+      "field_contract_id": "dispatch-record:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "planner_capsule.json",
+      "field_contract_id": null,
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "expect": "valid"
+    }
+  ],
+  "replaces": [
+    "plan-proposal:field-contract:2",
+    "frozen-graph:field-contract:2"
+  ],
+  "retired_types": [
+    "PlannedSubnode"
+  ],
+  "contract_index_rows": [
+    "| plan-proposal | 3.0.0 | [Fields](capsules/planner.md#output-field-contract) | Planner CC -> binder, plan checks, plan verifier |",
+    "| static-template | 1.0.0 | [Fields](run-plan.md#static-template) | Architect -> binder |",
+    "| library-snapshot | 1.0.0 | [Fields](run-plan.md#library-snapshot) | protected library -> Planner, binder |",
+    "| resource-inventory | 1.0.0 | [Fields](run-plan.md#resource-inventory) | host intake -> Planner, binder |",
+    "| plan-policy | 1.0.0 | [Fields](run-plan.md#plan-policy) | configuration owner -> Planner, binder |",
+    "| run-plan | 1.0.0 | [Fields](run-plan.md#run-plan) | binder and freeze -> scheduler, guard resolver |",
+    "| dispatch-record | 1.0.0 | [Fields](run-plan.md#dispatch-record) | scheduler -> run state, guard resolver, observability |"
+  ],
+  "remove_from_shared_pages": [
+    "field-catalog.md section plan-proposal becomes a link to capsules/planner.md#output-field-contract (superseded by v3).",
+    "field-catalog.md section frozen-graph becomes a link to run-plan.md#run-plan (superseded by run-plan:field-contract:1).",
+    "field-catalog.md shared types PlanNode, PlanInput, PlanOutput, FutureInput become links to capsules/planner.md#node-fields. PlannedSubnode is deleted.",
+    "field-catalog.md section bound-check-plan stays. Add one sentence that its pins now come from run_plan node check_pins (run-plan.md#gates-on-planned-ccs).",
+    "other-contracts.md rows \"Plan proposal / static template or planner -> binder/checking\" and \"Frozen graph\" become links to capsules/planner.md and run-plan.md.",
+    "examples planning_nodes.json, node_template.json (planning use) and verifier_subnode_template.json are replaced by static_template.json and run_plan.json. validate.py plan_issues() reads planning_nodes.json in the old shape and must be updated to the new PlanNode shape (see open_questions)."
+  ],
+  "prd_conflicts": [
+    "PRD 4.8.3 says an infeasible dynamic graph routes back to the Intention Compiler for replanning. This design halts the run instead (workflow.md: no silent fallback, no live replanning). A new run or a changed Brief is a human action.",
+    "PRD 4.8.2 Phase 3 says the Leader Agent builds the TaskGraph. Here the Planner CC produces a proposal and a protected binder produces the graph. This follows workflow.md D19."
+  ],
+  "open_questions": [
+    "validate.py plan_issues() and the planning_nodes.json index entry use the old PlanNode shape (contract_id, artifact_refs, subnodes). They must be rewritten or removed. I did not edit shared files.",
+    "The check_bundle and checking_profile contracts are on the Verifier page. CheckPins carries id, version and sha256 of each. Names must match the Verifier author output.",
+    "Port names and artifact types of the seven research CCs in the examples (library_snapshot.json) are my reading of research-design.md. Other CC authors own them. The example library snapshot, static_template.json, plan_proposal*.json and run_plan.json must be regenerated from the final port tables. Schema refs such as opportunity-card:field-contract:1 are assumed.",
+    "Declaration digests in the examples: search, screening and evaluation use the sha256 of the current discovery_capsule.json, screening_capsule.json and evaluation_capsule.json. The other CCs use synthetic digests. Refresh when other authors publish declarations.",
+    "Examples use Refs to research_brief.json, request.txt, example_data.txt, run_configuration.json, gate_decision.json, check_plan.json and candidate_set.json. Their hashes go stale if those files change.",
+    "plan-policy:field-contract:1 and resource-inventory:field-contract:1 are new contracts needed by the binder. The configuration owner should confirm the policy fields. Limits type has time_s, model_calls, memory_mb. Declaration budgets use wall_s, invocations, tool_calls. The library maps them into max_limits.",
+    "bound-check-plan:field-contract:2 is kept, not superseded, because gate examples and validate.py depend on it. It could gain a run_plan_ref field later.",
+    "Verifier page should register the host check IDs of the Planner bundle and a plan-level gate profile for the binder step. The plan acceptance gate decision (acceptance_ref) reuses the gate_decision contract."
+  ]
+}

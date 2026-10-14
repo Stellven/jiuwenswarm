@@ -28,7 +28,7 @@
       "role": "intent.compiler",
       "declaration_ref": {
         "id": "capsule_declaration.json",
-        "sha256": "43c55a5feca7e9443c24ba19b9402c78777d59a3b10c3a406330faa0a99627d8"
+        "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
       },
       "implementation_refs": [
         {
@@ -95,7 +95,7 @@
   ],
   "guard_profile_ref": {
     "id": "topic_guard_profile.json",
-    "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+    "sha256": "dbdb6b8635136c6e94893133e9d3bdc50a6ac70026018b2916f7ad60253ae757"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
@@ -103,12 +103,12 @@
   },
   "template_ref": {
     "id": "topic_subnode_template.json",
-    "sha256": "b5d86bd77f823cd994200e7905375b27c4aa353a80329cfc3fd8c7f4c4458fe2"
+    "sha256": "e3317bff7036bbb6cb9a52cde702bb615b2afe97f5208ad947e77b9450f1a3c8"
   },
   "subnode_id": "intention",
   "node_contract_ref": {
     "id": "topic_node_contract.json",
-    "sha256": "4035deca9df1374bdf28ef37c2fd833ea780f4ce5ec0ff93e136ba86a198388f"
+    "sha256": "d0d124cc692f6bba65a68fc09b92f78093deb96f801bb1d7d4fa705c60d847d3"
   },
   "subnode_limits": {
     "time_s": 120,

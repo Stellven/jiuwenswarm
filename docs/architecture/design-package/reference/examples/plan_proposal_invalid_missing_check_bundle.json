@@ -1,0 +1,659 @@
+{
+  "schema_version": "3.0.0",
+  "id": "plan_proposal_invalid_missing_check_bundle_example",
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+  },
+  "library_snapshot_ref": {
+    "id": "library_snapshot_unbundled.json",
+    "sha256": "23c9e1366d8ca95d071d00f463f643ab217d1de38889f2fb0bdc30d3eb85175b"
+  },
+  "resource_inventory_ref": {
+    "id": "resource_inventory.json",
+    "sha256": "acb210b0948ed4e46295944c8ace2496429335bd127cd95892d8634b2e610ca8"
+  },
+  "policy_ref": {
+    "id": "plan_policy.json",
+    "sha256": "2b38739842a274fb9d75cb39bdd01cbffc21b33eefa3ff713d819fcde2308b0b"
+  },
+  "mode": "planned",
+  "nodes": [
+    {
+      "node_id": "search",
+      "cc": {
+        "cc_name": "research.search",
+        "cc_version": "example-2",
+        "declaration_sha256": "28c2556691bc0ed66e0bac9587f089603745fd5e910b1cc9af380c192036feab"
+      },
+      "objective": "Find grounded candidate ideas for the Brief",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "search_scope",
+          "artifact_type": "search_scope",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "search_scope",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 300,
+        "model_calls": 2,
+        "memory_mb": 4096
+      },
+      "suggested_checks": []
+    },
+    {
+      "node_id": "screening",
+      "cc": {
+        "cc_name": "research.screening",
+        "cc_version": "example-2",
+        "declaration_sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d"
+      },
+      "objective": "Score candidates and select one opportunity",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "search"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "search",
+            "port": "candidate_set",
+            "artifact_type": "candidate_set"
+          }
+        },
+        {
+          "name": "screening_rubric",
+          "artifact_type": "screening_rubric",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "screening_rubric",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "required": true
+        },
+        {
+          "name": "opportunity_card",
+          "artifact_type": "opportunity_card",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "suggested_checks": []
+    },
+    {
+      "node_id": "hypothesis",
+      "cc": {
+        "cc_name": "research.hypothesis",
+        "cc_version": "example-1",
+        "declaration_sha256": "8c5cab3416d7aee037f153f2d9eb97803a19964b44d7943457d659eac9277899"
+      },
+      "objective": "State one hypothesis and freeze the measurement protocol",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "screening"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "opportunity",
+          "artifact_type": "opportunity_card",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "screening",
+            "port": "opportunity_card",
+            "artifact_type": "opportunity_card"
+          }
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 180,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "suggested_checks": []
+    },
+    {
+      "node_id": "builder",
+      "cc": {
+        "cc_name": "research.builder",
+        "cc_version": "example-1",
+        "declaration_sha256": "b40dd25880ef4be4adb411e0d0612e26a117ed227daf9e6cdff17cf2f340d6ad"
+      },
+      "objective": "Build the proof of concept patch and benchmark runner",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "hypothesis"
+      ],
+      "inputs": [
+        {
+          "name": "blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "environment_lock",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "manifest",
+          "artifact_type": "poc_manifest",
+          "required": true
+        },
+        {
+          "name": "bundle",
+          "artifact_type": "poc_artifact_bundle",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 600,
+        "model_calls": 1,
+        "memory_mb": 8192
+      },
+      "suggested_checks": []
+    },
+    {
+      "node_id": "benchmark",
+      "cc": {
+        "cc_name": "research.benchmark",
+        "cc_version": "example-1",
+        "declaration_sha256": "b38b3c1e8259a2f27b43afba49723b2e1ce3363a66da24371e10e4eac8bd22e1"
+      },
+      "objective": "Measure baseline then treatment on the local GPU",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "hypothesis",
+        "builder"
+      ],
+      "inputs": [
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "builder",
+            "port": "manifest",
+            "artifact_type": "poc_manifest"
+          }
+        },
+        {
+          "name": "poc_artifact_bundle",
+          "artifact_type": "poc_artifact_bundle",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "builder",
+            "port": "bundle",
+            "artifact_type": "poc_artifact_bundle"
+          }
+        },
+        {
+          "name": "build_receipt",
+          "artifact_type": "build_receipt",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "build_receipt",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "environment_lock",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "required": true
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 3600,
+        "model_calls": 0,
+        "memory_mb": 16384
+      },
+      "suggested_checks": []
+    },
+    {
+      "node_id": "evaluation",
+      "cc": {
+        "cc_name": "research.evaluation",
+        "cc_version": "example-1",
+        "declaration_sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+      },
+      "objective": "Classify the result with the registered rules",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "hypothesis",
+        "benchmark"
+      ],
+      "inputs": [
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "benchmark",
+            "port": "benchmark_payload",
+            "artifact_type": "benchmark_payload"
+          }
+        },
+        {
+          "name": "research_brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "evaluation_verdict",
+          "artifact_type": "evaluation_verdict",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 180,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "suggested_checks": []
+    },
+    {
+      "node_id": "delivery",
+      "cc": {
+        "cc_name": "research.delivery",
+        "cc_version": "example-1",
+        "declaration_sha256": "cdfe008f9bba380d6684528cd3d6498fe8509d95d9dcf9a062a45c69be1ae3d9"
+      },
+      "objective": "Write the report and delivery manifest",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [
+        "deliverable:report"
+      ],
+      "predecessors": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "search",
+            "port": "candidate_set",
+            "artifact_type": "candidate_set"
+          }
+        },
+        {
+          "name": "opportunity_card",
+          "artifact_type": "opportunity_card",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "screening",
+            "port": "opportunity_card",
+            "artifact_type": "opportunity_card"
+          }
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "builder",
+            "port": "manifest",
+            "artifact_type": "poc_manifest"
+          }
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "benchmark",
+            "port": "benchmark_payload",
+            "artifact_type": "benchmark_payload"
+          }
+        },
+        {
+          "name": "evaluation_verdict",
+          "artifact_type": "evaluation_verdict",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "evaluation",
+            "port": "evaluation_verdict",
+            "artifact_type": "evaluation_verdict"
+          }
+        },
+        {
+          "name": "gate_decision_index",
+          "artifact_type": "gate_decision_index",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "gate_decision_index",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "delivery_manifest",
+          "artifact_type": "delivery_manifest",
+          "required": true
+        },
+        {
+          "name": "research_report",
+          "artifact_type": "research_report",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "suggested_checks": []
+    }
+  ],
+  "coverage": [
+    {
+      "item_id": "requirement:latency",
+      "item_kind": "requirement",
+      "node_ids": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation",
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "requirement:quality",
+      "item_kind": "requirement",
+      "node_ids": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation",
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "deliverable:report",
+      "item_kind": "deliverable",
+      "node_ids": [
+        "delivery"
+      ]
+    }
+  ],
+  "topic_hints": [
+    "indexed lookup",
+    "retrieval latency"
+  ],
+  "limits": {
+    "time_s": 7200,
+    "model_calls": 60,
+    "memory_mb": 16384
+  },
+  "notes": "Follows the standard research path because every requirement needs a measured comparison."
+}

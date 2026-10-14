@@ -18,7 +18,7 @@ Prefer wrapping a working JiuwenSwarm/OpenJiuwen capability. Keep the summary ta
 
 The preserved sources disagree on shapes and requiredness. Use the reconciled [declaration reference](declaration.md) and [current schema](../reference/schemas/capsule-declaration.schema.json); import historical declarations through an explicit mapping. Do not independently invent keys. Model/service calls use governed context and admitted injected services; a verifier returns an assessment and never performs workflow halt/continue itself.
 
-Protected configuration or the frozen graph assigns runtime criteria. Keep verifiers, gates, check bundles/runners, hidden fixtures, and their behavioral dependency closure outside RSI mutation. Capsule-associated checks do not grant release authority; the protected gate alone releases work.
+Protected configuration or the frozen `run_plan` ([contract](../reference/run-plan.md)) assigns runtime criteria. The binder pins the mandatory check bundle of each CC version. The Planner can only suggest extra checks. Per-CC pages: [capsule build references](../reference/capsules/README.md). Keep verifiers, gates, check bundles/runners, hidden fixtures, and their behavioral dependency closure outside RSI mutation. Capsule-associated checks do not grant release authority; the protected gate alone releases work.
 
 ## Change rules
 

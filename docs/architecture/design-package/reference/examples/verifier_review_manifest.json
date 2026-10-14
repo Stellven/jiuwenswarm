@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "id": "review_manifest:verifier_example",
+  "note": "Host-only audit record. Synthetic. Never sent to the verifier model.",
+  "subject_ref": {
+    "id": "screening_result.json",
+    "sha256": "f544fb261cec5322c1f7f742a8657880819961ca62658c4a7024600a9fba2554"
+  },
+  "subject_declaration_ref": {
+    "id": "screening_capsule.json",
+    "sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d"
+  },
+  "input_refs": [
+    {
+      "id": "candidate_set.json",
+      "sha256": "cbef70c354ed11573d22471cd2f8bf6fa5f7e7d3fe0a89116aae3ef159dd02d0"
+    }
+  ],
+  "check_bundle_ref": {
+    "id": "check_bundle.json",
+    "sha256": "b1b3719f42eb00299397f762ac7302c340aedbef139bcb4fc526d0e684f3f744"
+  },
+  "checking_profile_ref": {
+    "id": "checking_profile.json",
+    "sha256": "151036ce7c88518f7237d0d1c1bf317f23abd4b54e21bb66367be6ed01043985"
+  }
+}

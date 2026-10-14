@@ -1,6 +1,6 @@
 # Research nodes, subnodes and gates
 
-**Reading level: human potential.** The [system overview](m1-design.md) gives the whole journey. These expanded diagrams retain each work, checking, assessment and release boundary. The shared semantics are in [Workflow](workflow.md) and [Guard design](guard-design.md).
+**Reading level: human potential.** The [system overview](m1-design.md) gives the whole journey. These expanded diagrams retain each work, checking, assessment and release boundary. The shared semantics are in [Workflow](workflow.md) and [Guard design](guard-design.md). Per-CC contracts are in [capsule build references](reference/capsules/README.md).
 
 ## Inside the POC task
 
@@ -9,7 +9,7 @@
 ```mermaid
 flowchart TB
     H[(Input: accepted Blueprint/protocol, Brief and scoped project assets)]
-    O[(Output: released POC bundle and benchmark_payload.json with execution evidence)]
+    O[(Output: released POC bundle with build evidence and benchmark_payload.json with execution evidence)]
     subgraph Workflow[Governed CC workflow]
       subgraph POC[POC node: build a bounded intervention, then measure it]
         subgraph Builder[Builder subnode]
@@ -72,7 +72,7 @@ flowchart TB
     style Benchmark fill:#F8FAFC,stroke:#64748B,stroke-dasharray:4 3
 ```
 
-The Builder capsule packages the intervention. It does not run the scientific trial. The Benchmark capsule measures the registered baseline and treatment. The verifier independently assesses the declaration/output pair only; host-attached references do not imply access to upstream evidence. Neither the verifier nor the artifact can accept itself. See [Tasks, nodes, and verification](workflow.md#tasks-nodes-and-verification) for the shared execution contract.
+The Builder capsule packages the intervention. It does not run the scientific trial. The Benchmark capsule measures the registered baseline and treatment. The verifier independently assesses the declaration/output pair only; the host review manifest is audit-only. See the [Verifier page](reference/capsules/verifier.md). Neither the verifier nor the artifact can accept itself. See [Tasks, nodes, and verification](workflow.md#tasks-nodes-and-verification) for the shared execution contract.
 
 ## Research nodes and subnodes
 

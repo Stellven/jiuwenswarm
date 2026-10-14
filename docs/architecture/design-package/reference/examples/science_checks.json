@@ -2,21 +2,76 @@
   "schema_version": "1.0.0",
   "subject_ref": {
     "id": "evaluation_verdict.json",
-    "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+    "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
   },
   "check_plan_ref": {
     "id": "science_check_plan.json",
-    "sha256": "41a574b92ffc68e6f7c70d0242f5324e56bc662762e7c1cf032afdc9de9562be"
+    "sha256": "3895bdbe9ed80e2684330237aee3551084b5e83812126b20c7fc05dd83ff39f1"
   },
   "results": [
     {
-      "check_id": "science_structure",
+      "check_id": "verdict_schema",
       "outcome": "PASS",
-      "reason": "Synthetic conformance illustration",
+      "reason": "Verdict matches the field table, enums and lengths (synthetic illustration)",
       "evidence_refs": [
         {
           "id": "evaluation_verdict.json",
-          "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+          "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+        }
+      ]
+    },
+    {
+      "check_id": "refs_match_inputs",
+      "outcome": "PASS",
+      "reason": "brief_ref, blueprint_ref and benchmark_ref equal the input refs (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+        }
+      ]
+    },
+    {
+      "check_id": "blueprint_rules_disjoint",
+      "outcome": "PASS",
+      "reason": "Success and falsification regions do not both hold on the payload values (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+        }
+      ]
+    },
+    {
+      "check_id": "rule_recomputation",
+      "outcome": "PASS",
+      "reason": "Findings, threshold, completeness and overall classification recompute from the blueprint and payload (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+        }
+      ]
+    },
+    {
+      "check_id": "finding_coverage",
+      "outcome": "PASS",
+      "reason": "One finding per blueprint metric (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+        }
+      ]
+    },
+    {
+      "check_id": "registered_rule_only",
+      "outcome": "PASS",
+      "reason": "Every rule text restates a registered rule and no conditional result appears (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
         }
       ]
     }

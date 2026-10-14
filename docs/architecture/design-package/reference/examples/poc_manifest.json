@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "id": "poc_manifest",
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+    "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
   },
   "environment_ref": {
     "id": "environment_lock.json",
@@ -11,7 +11,7 @@
   },
   "archive_ref": {
     "id": "poc_artifact_bundle.zip",
-    "sha256": "cc9f4685f792cd9a081fc346914b42d25c9af9505e195ce48b2e144cb79b55f0"
+    "sha256": "95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1"
   },
   "files": [
     {
@@ -36,18 +36,13 @@
       "path": "run_benchmark.py",
       "artifact_ref": {
         "id": "run_benchmark.py",
-        "sha256": "e4c0c389409ac19b457b3fa48fad893487ed45eebcc7d29d25f36f3e7d40ff65"
+        "sha256": "56e286b8f79ae5b30ee1d4d5ccb8e863f9a8e2185e054b837b6bb971df358759"
       },
       "media_type": "text/x-python",
       "audience": "authorized researcher"
     }
   ],
-  "mechanical_evidence_refs": [
-    {
-      "id": "mechanical_example.txt",
-      "sha256": "0d423fff9a87bc02439b770ade6d1ab728590cd86b879dea03087a5a2a56a321"
-    }
-  ],
+  "dependencies": [],
   "ext": {
     "example.synthetic": true
   }

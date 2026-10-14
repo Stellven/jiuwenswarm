@@ -36,7 +36,7 @@
       "role": "requirements.compiler",
       "declaration_ref": {
         "id": "requirements_capsule.json",
-        "sha256": "f6c63e730e3e5c12e4117f5328d1025085bc0a75a0ec245f201fe444220c6b5c"
+        "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
       },
       "implementation_refs": [
         {
@@ -135,7 +135,7 @@
   ],
   "guard_profile_ref": {
     "id": "requirements_guard_profile.json",
-    "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6"
+    "sha256": "d9d16af36505c981275b12e2e05e5e765c67b2b4ebca8d4f56a1d2d2a525bacc"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
@@ -143,12 +143,12 @@
   },
   "template_ref": {
     "id": "requirements_subnode_template.json",
-    "sha256": "45b0d69405bbdd334c6215868973af245eddb74c7fef69eaee7faaebf2452268"
+    "sha256": "06ae4c5a667afccf5b8e3201cc3f4b9952d67efb379331211b03779b42caa77d"
   },
   "subnode_id": "requirements",
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
   },
   "subnode_limits": {
     "time_s": 120,

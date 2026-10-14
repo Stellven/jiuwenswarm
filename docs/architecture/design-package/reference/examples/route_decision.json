@@ -3,11 +3,11 @@
   "id": "route:routing-example",
   "request_ref": {
     "id": "route_request.json",
-    "sha256": "679cca471395f14474bb818273815791a21382bc0d14d3e2725e571b9949c484"
+    "sha256": "edac7d8645eefae7819fcdf18c890793fb74e040eafb087284845f3971d91612"
   },
   "selected_capsule_ref": {
     "id": "selected_capsule_input.json",
-    "sha256": "0be917770eaaf0cd243068700c10442932d3bc39acef6769011c0aca5c6f6188"
+    "sha256": "c5ffea9c049d42d081077c65514ca9b527286c5987abd9cbf7e1b780d4d8fd66"
   },
   "runtime": {
     "run_id": "run:example",
@@ -49,7 +49,7 @@
   "valid_until": "2026-10-13T12:00:30Z",
   "routing_context_ref": {
     "id": "capsule_routing_context.json",
-    "sha256": "6d54985389c7ae1c4a00f52ae7580520edc210527ffb30ffcbea4dc3c902fe86"
+    "sha256": "447a8a493d960fec96c871a9774be01012d3b55103afb800e0b8cada3b3e28a7"
   },
   "adapter_revision": "synthetic-1"
 }

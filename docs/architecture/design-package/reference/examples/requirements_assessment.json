@@ -6,64 +6,67 @@
   },
   "review_context_ref": {
     "id": "requirements_review_context.json",
-    "sha256": "3d212c5c963bd0faa71e95f5745ed6a31f30f95c7c78dd75dcfc7f2275faeb66"
+    "sha256": "073a895b24438e560982fd0b428a1769360f826fac312f01ab48d5e93cb75563"
   },
   "verdict": "PASS",
   "findings": [
     {
-      "criterion_id": "intent_preservation",
+      "criterion_id": "declared_output_conformance",
       "outcome": "PASS",
-      "reason": "Purpose, report, single-GPU constraint and quality target are preserved without adding validation assets",
+      "reason": "Output has the research_brief fields and port type that the declaration states",
       "evidence_refs": [
         {
           "id": "research_brief.json",
           "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
         },
         {
-          "id": "intent_ir.json",
-          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
-        },
-        {
-          "id": "default_policy.json",
-          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+          "id": "requirements_capsule.json",
+          "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
         }
       ]
     },
     {
-      "criterion_id": "default_authority",
+      "criterion_id": "internal_consistency",
       "outcome": "PASS",
-      "reason": "No missing parameter is silently filled; default policy is available independently and every applied default must be attributable",
+      "reason": "Requirement, metric, acceptance and evidence IDs resolve inside the output and do not contradict each other",
       "evidence_refs": [
         {
           "id": "research_brief.json",
           "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
         },
         {
-          "id": "intent_ir.json",
-          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
-        },
-        {
-          "id": "default_policy.json",
-          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+          "id": "requirements_capsule.json",
+          "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
         }
       ]
     },
     {
-      "criterion_id": "planning_usability",
+      "criterion_id": "limitations_consistency",
       "outcome": "PASS",
-      "reason": "Mandatory requirements, deliverable, acceptance and evidence obligations can be mapped to the fixed workflow; empirical resources must still bind before execution",
+      "reason": "The output lists no unresolved item that its own content contradicts",
       "evidence_refs": [
         {
           "id": "research_brief.json",
           "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
         },
         {
-          "id": "intent_ir.json",
-          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+          "id": "requirements_capsule.json",
+          "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
+        }
+      ]
+    },
+    {
+      "criterion_id": "requirement_link_completeness",
+      "outcome": "PASS",
+      "reason": "Each mandatory requirement is linked from an acceptance expectation and an evidence obligation",
+      "evidence_refs": [
+        {
+          "id": "research_brief.json",
+          "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
         },
         {
-          "id": "default_policy.json",
-          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+          "id": "requirements_capsule.json",
+          "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
         }
       ]
     }

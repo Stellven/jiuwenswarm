@@ -25,6 +25,7 @@
 | `profile_ref` | `Ref` | Protected local execution profile |
 | `workspace_ref` | `Ref` | Authorized run workspace |
 | `input_directory_ref` | `Ref` | Qualified configured input directory, including an empty authorized default directory |
+| `prior_plan_outcome_ref` | `nullable-Ref` | Optional. Set only on an Intention Compiler attempt started by a `plan_infeasible` [plan outcome](run-plan.md#plan-outcome). The Intent and Requirement CCs read its reasons. Null on a first attempt |
 
 **Invalid/missing behavior:** Reject missing required source or undecodable text; do not silently treat a rejected resource as available.
 
@@ -64,38 +65,11 @@
 
 ### plan-proposal
 
-`plan-proposal:field-contract:2` · static template or bounded planner → binder, plan checking.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 2.0.0 |
-| `id` | `string` | Immutable record identity |
-| `brief_ref` | `Ref` | Accepted governing Brief |
-| `library_snapshot_ref` | `Ref` | Eligible version snapshot |
-| `mode` | `string` | static or bounded planning |
-| `nodes` | `PlanNode[]` | Proposed bounded graph |
-| `limits` | `Limits` | Aggregate proposed bounds |
-| `additional_checks` | `string[]` | Extra checks, never waiver |
-
-**Invalid/missing behavior:** Reject cycles, missing Brief coverage, incompatible ports or denied effects; proposal grants no authority.
+Moved. The current contract is `plan-proposal:field-contract:3`, defined on [capsules/planner.md](capsules/planner.md#output-field-contract). Do not restate its fields here.
 
 ### frozen-graph
 
-`frozen-graph:field-contract:2` · protected freeze → scheduler, binder.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 2.0.0 |
-| `id` | `string` | Immutable record identity |
-| `proposal_ref` | `Ref` | Checked plan |
-| `decision_ref` | `Ref` | Committed acceptance |
-| `node_template_refs` | `Ref[]` | Pinned node templates |
-| `policy_ref` | `Ref` | Effective policy |
-| `configuration_ref` | `Ref` | Frozen run configuration |
-| `library_snapshot_ref` | `Ref` | Pinned eligible CC versions and their exact check-bundle associations |
-| `limits` | `Limits` | Aggregate limits |
-
-**Invalid/missing behavior:** Missing commit/pins/compatibility blocks dispatch; template future values are not observed artifacts.
+Moved. The current contract is `run-plan:field-contract:1`, defined on [run-plan.md](run-plan.md#run-plan). Do not restate its fields here.
 
 ### bound-check-plan
 
@@ -164,154 +138,35 @@
 
 ### candidate-set
 
-`candidate-set:field-contract:1` · Search and Ideation CC → Screening, checking.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `brief_ref` | `Ref` | Governing accepted requirements |
-| `queries` | `string[]` | Fixed retrieval queries |
-| `citations` | `Citation[]` | Captured source evidence |
-| `ideas` | `Idea[]` | One to three grounded candidates |
-
-**Invalid/missing behavior:** Missing grounding, unresolved citation or unsupported claims block; bounded retrieval cannot repair itself.
+Moved. The current contract is `candidate-set:field-contract:2`, defined on [capsules/search.md](capsules/search.md#candidate_set). Do not restate its fields here.
 
 ### screening-result
 
-`screening-result:field-contract:1` · Screening CC and deterministic helper → selection, checking, RSI.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `candidate_ref` | `Ref` | Exact candidate set |
-| `brief_ref` | `Ref` | Accepted requirements |
-| `rubric_ref` | `Ref` | Frozen work scoring policy |
-| `scores` | `IdeaScore[]` | One assessment per idea |
-| `ranking` | `Ranking[]` | Eligible sum order with stable ID ties |
-| `selected_idea_id` | `string` | Exactly one Top-1 |
-
-**Invalid/missing behavior:** Missing/duplicate/out-of-range scores or no eligible idea block; do not impute or invent an alternative.
+Moved. The current contract is `screening-result:field-contract:2`, defined on [capsules/screening.md](capsules/screening.md#screening_result). Do not restate its fields here.
 
 ### opportunity-card
 
-`opportunity-card:field-contract:1` · Screening CC → Hypothesis, checking.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `candidate_ref` | `Ref` | Grounded set |
-| `screening_ref` | `Ref` | Checked scoring/ranking |
-| `brief_ref` | `Ref` | User obligations |
-| `idea_id` | `string` | Existing selected ID |
-| `title` | `string` | Readable title |
-| `opportunity_statement` | `string` | Bottleneck and mechanism |
-| `citation_ids` | `string[]` | Supporting citations |
-| `constraints` | `string[]` | Applicable requirements |
-| `assumptions` | `string[]` | Unproven premises |
-| `risks` | `string[]` | Known concerns |
-
-**Invalid/missing behavior:** Selected ID must equal ranking Top-1 and exist in candidates; unsupported mechanism or lost constraints blocks.
+Moved. The current contract is `opportunity-card:field-contract:2`, defined on [capsules/screening.md](capsules/screening.md#opportunity_card). Do not restate its fields here.
 
 ### hypothesis-blueprint
 
-`hypothesis-blueprint:field-contract:1` · Hypothesis CC → Builder, Benchmark, Evaluation, checking.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `brief_ref` | `Ref` | Accepted requirements |
-| `opportunity_ref` | `Ref` | Accepted opportunity |
-| `claim` | `string` | One testable claim |
-| `mechanism` | `string` | Proposed causal mechanism |
-| `independent_variable` | `string` | Treatment intervention |
-| `dependent_variables` | `string[]` | Registered measurements |
-| `resource_refs` | `Ref[]` | Captured baseline/data |
-| `environment_ref` | `Ref` | Selected prepared lock |
-| `metrics` | `MetricRule[]` | Success/negative/middle rules fixed before results |
-| `repeat_count` | `integer` | Positive repetitions |
-| `seed` | `integer` | Registered seed |
-| `implementation_scope` | `string` | Bounded allowed change |
-| `constraints` | `string[]` | Preserved requirements |
-| `verification_plan` | `string[]` | Required evidence checks |
-
-**Invalid/missing behavior:** Missing resources, lock, measurable rules or full classification blocks Builder. Protocol cannot change after measurements.
+Moved. The current contract is `hypothesis-blueprint:field-contract:2`, defined on [capsules/hypothesis.md](capsules/hypothesis.md#output-field-contract). Do not restate its fields here.
 
 ### poc-manifest
 
-`poc-manifest:field-contract:1` · Builder CC with trusted capture → Benchmark, checking, Delivery.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `blueprint_ref` | `Ref` | Frozen protocol |
-| `environment_ref` | `Ref` | Exact unchanged prepared lock |
-| `archive_ref` | `Ref` | Separate executable bundle |
-| `files` | `NamedFile[]` | Required scripts/declaration |
-| `mechanical_evidence_refs` | `Ref[]` | Syntax/forbidden-module/package checks |
-
-**Invalid/missing behavior:** No scientific trial/install in Builder. Missing script, traversal, lock mutation or undeclared dependency blocks.
+Moved. The current contract is `poc-manifest:field-contract:2`, defined on [capsules/builder.md](capsules/builder.md#poc_manifest). Do not restate its fields here.
 
 ### benchmark-payload
 
-`benchmark-payload:field-contract:1` · Benchmark with protected provisioner/executor → Evaluation, checking, Delivery.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `blueprint_ref` | `Ref` | Frozen criteria |
-| `poc_ref` | `Ref` | Checked package |
-| `resource_refs` | `Ref[]` | Exact baseline/data |
-| `configuration_ref` | `Ref` | Observed fixed hardware/runtime |
-| `baseline_execution_ref` | `Ref` | Unmodified baseline first |
-| `treatment_execution_ref` | `Ref` | Matched treatment second |
-| `metrics` | `MetricObservation[]` | All registered raw and aggregate values |
-| `raw_evidence_refs` | `Ref[]` | Empirical repeats/stdout/stderr |
-| `provisioning_ref` | `Ref` | Exact lock installation and limits |
-| `missing_evidence` | `MissingEvidence[]` | Unmeasured/error reasons |
-
-**Invalid/missing behavior:** Incomplete mandatory metric, changed baseline or unmatched settings blocks scientific evaluation; no fabricated values.
+Moved. The current contract is `benchmark-payload:field-contract:2`, defined on [capsules/research-benchmark.md](capsules/research-benchmark.md#41-benchmark_payload-benchmark-payloadfield-contract2). Do not restate its fields here.
 
 ### evaluation-verdict
 
-`evaluation-verdict:field-contract:1` · Scientific Evaluation CC → Delivery, checking.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `brief_ref` | `Ref` | Preserved objective |
-| `blueprint_ref` | `Ref` | Predeclared rules |
-| `benchmark_ref` | `Ref` | Exact measurements |
-| `classification` | `string` | PASS/FAIL/INCONCLUSIVE/CONDITIONALLY_ACCEPTABLE |
-| `findings` | `MetricFinding[]` | Every registered metric rationale |
-| `limitations` | `string[]` | Interpretive limits |
-| `blockers` | `string[]` | Missing scientific basis |
-| `followups` | `string[]` | Recommendations, not reruns |
-
-**Invalid/missing behavior:** Apply registered rules; scientific FAIL is valid when supported. Conditional acceptance requires preregistration. No control-flow action field.
+Moved. The current contract is `evaluation-verdict:field-contract:2`, defined on [capsules/scientific-evaluation.md](capsules/scientific-evaluation.md#41-evaluation_verdict-evaluation-verdictfield-contract2). Do not restate its fields here.
 
 ### delivery-manifest
 
-`delivery-manifest:field-contract:1` · Delivery CC with trusted export → user, checking, client.
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `schema_version` | `string` | Format version 1.0.0 |
-| `id` | `string` | Immutable record identity |
-| `brief_ref` | `Ref` | Objective |
-| `verdict_ref` | `Ref` | Accepted scientific classification |
-| `report_ref` | `Ref` | Readable narrative report |
-| `artifact_refs` | `Ref[]` | Reproducible lifecycle records |
-| `files` | `NamedFile[]` | Exact exported content and audience |
-| `missing_evidence` | `MissingEvidence[]` | Omissions/redactions |
-
-**Invalid/missing behavior:** Contradiction with verdict, missing mandatory content or unauthorized disclosure blocks release/export.
+Moved. The current contract is `delivery-manifest:field-contract:2`, defined on [capsules/delivery.md](capsules/delivery.md#delivery_manifest). Do not restate its fields here.
 
 ## Manifest and runtime records
 
@@ -366,6 +221,8 @@
 **Invalid/missing behavior:** Missing mandatory observations block release; optional telemetry stays unavailable. Synthetic illustrations cannot certify runtime work.
 
 ### review-context
+
+**Host-only review manifest.** The host writes it for audit and the gate reads it. It is never part of the verifier model payload. The verifier sees only the declaration and the exact output ([verifier](capsules/verifier.md#review-manifest)).
 
 `review-context:field-contract:2` · protected context builder → read-only verifier.
 

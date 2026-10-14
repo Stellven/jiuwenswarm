@@ -51,11 +51,26 @@ The workflow application exposes one versioned, authenticated client boundary fo
 | Finish/retrieve | Structured terminal status, detailed verdict/reason, accepted result references and allowed Run Bundle. Headless failures never wait for a human. |
 | Cancel | Explicit authenticated control action; preserve work already performed and cancellation evidence. It cannot undo external effects. |
 
+Hardware inventory reference. Benchmark clients run a host-side inventory collector before every test and repeat. Submit accepts an optional `evaluation` block `{campaign_id, run_id, inventory_id}`. The application does not read or judge the inventory. It echoes the three identities in the readiness-to-export manifest so the exported run bundle links to the pre-test hardware record. Readiness also reports `evaluation_profile` (the approved profile identity or `none`) and `fault_injection` (`available` or `unavailable`). Product profiles always report `none` and `unavailable`.
+
 The submission contract must support client request identity and reconciliation after uncertain delivery, so automation can discover whether a run was created before retrying. The transport adapter selects the concrete reconciliation mechanism. Separate client transport recovery from forbidden automatic capsule retries. For complete Intention Compiler node, allow one active run and sequential campaign cases; no concurrent-run orchestration is needed.
 
 Provide a simple documented launch/run/retrieve path and a smoke mode using labeled mocks. A model-backed mode exercises the actual bridge, compiler, verifier and durable release. Both use the same runner and client adapter. A Compose campaign command should return non-success when required cases or prerequisites fail, preserve per-case records, and allow cleanup of replaceable containers without deleting evidence. Exact CLI syntax and Compose service definitions are implementation work, not executable promises in this design.
 
 Campaigns freeze the task set, expected outcomes, profiles, component pins and analysis policy before measurement. Run matched inputs/configurations, preserve repetitions and requested/effective seeds, failures, elapsed time and available calls/cost. Label model nondeterminism and provider gaps. Cases can continue after a terminal failed run according to campaign policy; the failed workflow itself cannot continue. Scientific benchmark deltas remain inside the user's research protocol; campaign pass rates and latency are platform measures.
+
+## Evaluation-profile entry points
+
+The platform benchmark needs four operations the user client does not have. They exist only when the launcher starts the application with an approved evaluation profile. They use a separate `evaluation_profile` credential scope. Product profiles do not list them in readiness, and a request for one is refused. Anything they produce is labeled `invalid_for_product` and cannot be admitted, activated or used as RSI material. They are development seams, outside product startup and every milestone exit. A client that finds one missing reports a dependency block and does not fall back to another path.
+
+| Operation | What the application does | Never |
+|---|---|---|
+| Node replay | Accepts a frozen node bundle (pinned declaration and exact output, plus host-only records) and runs the verifier path on it. Returns tier verdicts, gate decision, downstream action | Pass host-only records to the semantic verifier, or run the producing capsule |
+| Single-CC invocation | Runs one admitted capsule and its pinned check bundle with an externally supplied binding. Returns output and check results | Release a gate, start another node, or let the capsule choose its model route |
+| Fault injection | Applies faults declared in the evaluation profile definition (delayed gate persistence, swapped artifact). The client supplies only a fault identity | Accept a fault definition from a client, or exist in a product profile |
+| Checkpoint observation | Writes read-only checkpoint records at declared node boundaries into the export | Reveal checkpoints to the agent or return corrective feedback |
+
+Payload field tables, entry point numbering (E1 to E6) and the M1 pilot split are in the [benchmark runner design](development-tools/benchmark-runner/README.md#entry-points). Run-level submit, observe, retrieve and cancel are the operations in the table above and need no new endpoint.
 
 ## Development capabilities worth establishing early
 

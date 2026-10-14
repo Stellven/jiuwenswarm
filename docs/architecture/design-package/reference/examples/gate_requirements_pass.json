@@ -7,16 +7,16 @@
   "attempt_id": "attempt:1",
   "contract_ref": {
     "id": "requirements_subnode_contract.json",
-    "sha256": "785ed4bf03299372c64ee253e3bfa1c8c23d957cf4ac065b3484d5e1e4456618"
+    "sha256": "686350ff2669cb91cf8bed1497d4a265643c59dee627fd96c6d364e842510bc1"
   },
   "invocation_refs": [
     {
       "id": "requirements_invocation_observation.json",
-      "sha256": "90041f59e177f61878abd44cee2d66078fba75bef5a5c252059b882821598427"
+      "sha256": "e7d0e46c87d783011d77588c5f36b6909cca7ddfff497bdf7cea7727a075f510"
     },
     {
       "id": "requirements_verifier_observation.json",
-      "sha256": "b08d157f76c07f17e86f0b1025174f328fc5366c40b0f4b61b5bca813cca8a7f"
+      "sha256": "6a81545aa13844b0980b0704a7db4e2a09be4d7e99a7ba1a06392a9b576b2f60"
     }
   ],
   "policy_ref": {
@@ -25,7 +25,7 @@
   },
   "check_plan_ref": {
     "id": "requirements_check_plan.json",
-    "sha256": "975e451657559332f141cb61d1197c0756ad2355a6912c78a4374707b312c396"
+    "sha256": "14bb5a58ac214aedd0b884605147a289c0d811477774dd425edea28459082830"
   },
   "input_refs": [
     {
@@ -49,11 +49,11 @@
   ],
   "deterministic_result_ref": {
     "id": "requirements_checks.json",
-    "sha256": "cb1626d970fbee7d903183a2b0375e094dfd247a534cf4f0466aa57b252704b8"
+    "sha256": "cd937ff44dd0da6d9fef303fbceb8f8b3391aa9e3f02e671799c29e58ddb6a05"
   },
   "assessment_ref": {
     "id": "requirements_assessment.json",
-    "sha256": "c275f02999b4f0ba532eb8d1055d091b053f1d43e954a62791aa81ac9e7ce569"
+    "sha256": "e0bdf4545a0923335886ed3ec6ddacfc2baaed97c2b421c84bede6b39990d3e8"
   },
   "verdict": "PASS",
   "reasons": [
@@ -61,14 +61,15 @@
       "code": "REQUIREMENTS_USABLE",
       "message": "Illustrative planning acceptance; not an empirical readiness or database commit claim",
       "criterion_ids": [
-        "intent_preservation",
-        "default_authority",
-        "planning_usability"
+        "declared_output_conformance",
+        "internal_consistency",
+        "limitations_consistency",
+        "requirement_link_completeness"
       ],
       "evidence_refs": [
         {
           "id": "requirements_assessment.json",
-          "sha256": "c275f02999b4f0ba532eb8d1055d091b053f1d43e954a62791aa81ac9e7ce569"
+          "sha256": "e0bdf4545a0923335886ed3ec6ddacfc2baaed97c2b421c84bede6b39990d3e8"
         }
       ]
     }
@@ -82,7 +83,7 @@
   ],
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
   },
   "subnode_id": "requirements",
   "scope_kind": "subnode",

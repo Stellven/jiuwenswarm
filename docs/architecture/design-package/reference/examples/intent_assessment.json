@@ -6,52 +6,67 @@
   },
   "review_context_ref": {
     "id": "review_context.json",
-    "sha256": "f05b5ee5ab08734855c5f53760d22540b4ba971e40bcc1d2c2c89d774637072c"
+    "sha256": "5aaaf1c621bc92a6cf593ed78a325ac1bd37d1a3614ce6184b8019dd6ac30924"
   },
   "verdict": "PASS",
   "findings": [
     {
-      "criterion_id": "fidelity",
+      "criterion_id": "declared_output_conformance",
       "outcome": "PASS",
-      "reason": "Preserves supplied purpose, resource scope and requested report",
+      "reason": "Output has the intent_ir fields and port type that the declaration states",
       "evidence_refs": [
         {
           "id": "intent_ir.json",
           "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
         },
         {
-          "id": "request.txt",
-          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          "id": "capsule_declaration.json",
+          "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
         }
       ]
     },
     {
-      "criterion_id": "consistency",
+      "criterion_id": "internal_consistency",
       "outcome": "PASS",
-      "reason": "No contradictory required obligations",
+      "reason": "No two fields of the output contradict each other; every referenced local ID exists",
       "evidence_refs": [
         {
           "id": "intent_ir.json",
           "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
         },
         {
-          "id": "request.txt",
-          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          "id": "capsule_declaration.json",
+          "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
         }
       ]
     },
     {
-      "criterion_id": "requirements_usability",
+      "criterion_id": "limitations_consistency",
       "outcome": "PASS",
-      "reason": "Purpose and requested result are sufficient; experimental methods remain downstream",
+      "reason": "The output lists no limitation that its own content contradicts",
       "evidence_refs": [
         {
           "id": "intent_ir.json",
           "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
         },
         {
-          "id": "request.txt",
-          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          "id": "capsule_declaration.json",
+          "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+        }
+      ]
+    },
+    {
+      "criterion_id": "uncertainty_consistency",
+      "outcome": "PASS",
+      "reason": "Readiness is ready and the output lists no blocking uncertainty",
+      "evidence_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        },
+        {
+          "id": "capsule_declaration.json",
+          "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
         }
       ]
     }

@@ -3,7 +3,7 @@
   "role": "work",
   "capsule_ref": {
     "id": "requirements_capsule.json",
-    "sha256": "f6c63e730e3e5c12e4117f5328d1025085bc0a75a0ec245f201fe444220c6b5c"
+    "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
   },
   "input_contracts": [
     "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
@@ -15,7 +15,7 @@
   ],
   "guard_profile_ref": {
     "id": "requirements_guard_profile.json",
-    "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6"
+    "sha256": "d9d16af36505c981275b12e2e05e5e765c67b2b4ebca8d4f56a1d2d2a525bacc"
   },
   "synthetic": true
 }

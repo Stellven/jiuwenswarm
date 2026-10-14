@@ -1,38 +1,36 @@
 # AI4Research M1 design package
 
-**Reading level: human immediate · October 13, 2026.** This folder is the sole maintained architecture. Start here. The separately supplied PRD defines product requirements; its [receipt](sources/product/README.md) identifies the reviewed source. This package explains the system that realizes them. The [source index](sources/product/README.md) preserves receipt identities and explicit local exceptions.
+**Reading level: human immediate · October 14, 2026.** This folder is the sole maintained architecture. Start here. The PRD is supplied separately and owns product requirements. Its [receipt](sources/product/README.md) identifies the reviewed copy. This package owns the architecture and implementation-facing details that realize it. If implementation guidance conflicts with this design, follow the design. Changing a product obligation needs a recorded, authorized decision.
 
-**PRD and design authority:**
-
-- The PRD owns overall requirements and required outcomes.
-- Design interprets the PRD and owns the architecture and implementation-facing details that achieve those outcomes.
-- If implementation guidance conflicts with the current design, follow the design.
-- Product obligations remain binding. A change to an obligation needs an explicitly recorded, authorized decision.
-
-## Human super-important read: understand the whole system
-
-Read these three documents for M1 responsibilities, authority, placement, phases and the next build.
+## Human read: the whole system
 
 | Order | Read | Review outcome |
 |---|---|---|
-| 1 | This README | Find responsibilities and the reading route |
-| 2 | [System architecture](m1-design.md) | Explain connections, deployment, phases and what comes next |
-| 3 | [Principles](principles.md) | Explain checking, permissions, evidence and failure invariants |
+| 1 | This README | Responsibilities and the reading route |
+| 2 | [System architecture](m1-design.md) | Connections, deployment, phases and what comes next |
+| 3 | [Principles](principles.md) | Checking, permissions, evidence and failure rules |
 
-## For design authors and human reviewers
+## For design authors and reviewers
 
-[Design method](design-method.md) defines architectural depth, change handling, maintenance and review. Use it when authoring or reviewing the maintained design. [Decision review](decision-review.md) retains alternatives and reasoning.
-
-
-**PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
+[Design method](design-method.md) sets depth, change handling and review. [Decision review](decision-review.md) keeps alternatives and reasons.
 
 ## Assigned build scope
 
-The October 30 demonstration target is the fixed Compiler and Planner, protected validation/freeze, and one bounded research journey through Delivery, using the existing fixed Codex execution route. RSI work and new Model Router integration are excluded from this date’s acceptance criteria; they are not core-path prerequisites. RSI remains independently buildable. This bounded demonstration is distinct from the confirmed PRD’s broader M1 completion gate; see [delivery phases](delivery-phases.md) and [D19](decision-review.md#decisions-and-source-amendments). Generalist, automatic capsule generation, automatic library admission and improved planning/MCTS are November continuation; composition/fusion is December work; spatiotemporal lifecycle is later work. [Core build](core-build.md) and [D19](decision-review.md#decisions-and-source-amendments) define the authorized scope amendment. Broader M1 product coverage is retained and is not a claim of full product completion.
+The October 30 target is the bounded core: the Intention Compiler, a static fixed DAG, then the Planner producing a fixed DAG, protected freeze, one research path through Delivery, and a platform benchmark run. It uses the existing fixed Codex route. RSI and new Model Router work are not part of this target and do not block it. This is narrower than full PRD M1. See [core build](core-build.md), [delivery phases](delivery-phases.md) and decisions [D19 to D26](decision-review.md#decisions-and-source-amendments).
+
+Later work: Generalist, automatic capsule generation, automatic admission and better planning or MCTS in November, composition in December, spatiotemporal lifecycle in 2027. The design keeps seams for them now.
 
 ## Build a specific component
 
-For the current bounded research core, read [Core build](core-build.md). The Compiler is its reusable preparation component. For that complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `research_brief.json`. Accepted Intent IR alone is incomplete.
+| To build | Start at |
+|---|---|
+| The core journey and its order | [Core build](core-build.md) |
+| One CC and its verifier assignment | [Capsule build references](reference/capsules/README.md) |
+| Static template, Planner proposal, frozen run plan and dispatch | [Run plan](reference/run-plan.md) |
+| The Intention Compiler node (to accepted `research_brief.json`) | [Compiler entrypoint](builds/intention-compiler/README.md) and [context](builds/intention-compiler/context.md) |
+| The platform benchmark runner (development tooling) | [Benchmark runner](development-tools/benchmark-runner/README.md) |
+
+Internal names are lowercase ([D23](decision-review.md#d23)).
 
 ## Human should read: review the affected responsibility
 
@@ -92,7 +90,7 @@ Preparation and planning use the same checking pattern shown for research. The r
 | Component | Owns | Connects to |
 |---|---|---|
 | Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs. Checking consumes outputs. |
-| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Semantic input is declaration plus exact output only (D20). Assessment content goes to the host. |
+| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Sees only the declaration and the exact output (D20, D24). Assessment goes to the host. |
 | Protected binder | Concrete contracts, typed bindings and independent check assignments combining pinned per-CC bundles with run obligations | Accepted requirements, admitted CC/bundle pins, policy, evidence and durable state |
 | Protected gate | Checked decision and durable acceptance. No release before commit. | Exact contract, subject, evidence and assessment |
 | Protected library admission | Exact CC-version/check-bundle association, candidate eligibility and standing history | Declaration, body, bundle compatibility and independent evidence. M1 begins from an explicit bootstrap catalog with shared bundle pins; this is not capsule-specific admission evidence. New/changed versions require governed admission once implemented. Human standing controls activation; D21 M2 automatic admission may establish future-plan eligibility. |
@@ -104,21 +102,13 @@ CC authors produce work or assessments. Protected infrastructure releases accept
 
 ## Deployment and scope
 
-One workflow application container bundles the frontend, web/control service and runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`. The image entrypoint starts the application, so no external UI helper is required. Internal model access is protected. Generated scientific code has a separate confinement boundary. The optional development sidecar is an ordinary authenticated client on the private container network. It is outside product agents and M1 delivery dependencies.
+One application container holds the frontend, the control service and the runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`. Model access goes through a protected bridge. Generated scientific code runs in a separate confined executor. The optional development sidecar is an ordinary authenticated client on the private container network and is never a product dependency.
 
-Full M1 includes:
-
-- The baseline research journey and workstation.
-- Independent, isolated RSI.
-- Applicable bounded dynamic integration efforts.
-
-The current compiler build ends at an accepted Research Brief or a visible halt. Its foundational dependencies are included. Composite or merged CCs, remote workers and live self-modification are compatibility and research directions. They are not implied implementations.
+Full M1 also includes the workstation, isolated offline RSI and bounded dynamic integrations. Composite CCs, remote workers and live self-modification are later directions, not current builds.
 
 ## Review and evidence
 
-[Design review](coverage.md) traces source obligations, compatibility, challenge cases and limitations. Documentation checks do not establish runtime acceptance.
-
-Received PRD bodies remain unchanged outside this package and are supplied separately. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures. These include D6's packaging realization; D5's compiler sequencing now follows the confirmed PRD (4). We do not claim literal zero differences. Historical material is optional provenance.
+[Design review](coverage.md) traces source obligations, compatibility and limits. Documentation checks do not prove runtime acceptance. Authorized departures from the PRD are listed in [decisions](decision-review.md#decisions-and-source-amendments).
 
 ## Model-routing integration
 

@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "id": "check-bundle:research.screening:invalid",
+  "bundle_id": "research.screening.checks",
+  "version": "1.0.0",
+  "target_cc_name": "research.screening",
+  "target_cc_version_range": "example-1",
+  "checks": [
+    {
+      "check_id": "screening_result_schema",
+      "target_port": "screening_result",
+      "rule_summary": "Output parses and satisfies the screening_result field contract",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "scored_ideas_in_candidate_set",
+      "target_port": "screening_result",
+      "rule_summary": "Every scored idea_id appears in the accepted candidate_set input",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output",
+        "inputs"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "model_call_count_within_budget",
+      "target_port": "screening_result",
+      "rule_summary": "Recorded model calls do not exceed the declared per-call budget",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "runtime_records"
+      ],
+      "blocking": false
+    }
+  ],
+  "owner_role": "verifier_owner"
+}

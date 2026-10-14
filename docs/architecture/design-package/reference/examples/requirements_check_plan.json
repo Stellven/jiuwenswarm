@@ -3,7 +3,7 @@
   "id": "check-plan:requirements",
   "contract_ref": {
     "id": "requirements_subnode_contract.json",
-    "sha256": "785ed4bf03299372c64ee253e3bfa1c8c23d957cf4ac065b3484d5e1e4456618"
+    "sha256": "686350ff2669cb91cf8bed1497d4a265643c59dee627fd96c6d364e842510bc1"
   },
   "input_refs": [
     {
@@ -21,7 +21,7 @@
   ],
   "profile_ref": {
     "id": "requirements_guard_profile.json",
-    "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6"
+    "sha256": "d9d16af36505c981275b12e2e05e5e765c67b2b4ebca8d4f56a1d2d2a525bacc"
   },
   "policy_ref": {
     "id": "default_policy.json",
@@ -33,9 +33,10 @@
     "requirement_coverage"
   ],
   "mandatory_semantic": [
-    "intent_preservation",
-    "default_authority",
-    "planning_usability"
+    "declared_output_conformance",
+    "internal_consistency",
+    "limitations_consistency",
+    "requirement_link_completeness"
   ],
   "runner_refs": [
     {
@@ -45,7 +46,7 @@
   ],
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
   },
   "subnode_id": "requirements"
 }

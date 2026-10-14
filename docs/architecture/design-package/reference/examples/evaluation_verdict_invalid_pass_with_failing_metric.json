@@ -1,0 +1,62 @@
+{
+  "schema_version": "2.0.0",
+  "id": "evaluation_verdict",
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+  },
+  "blueprint_ref": {
+    "id": "hypothesis_blueprint.json",
+    "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+  },
+  "benchmark_ref": {
+    "id": "benchmark_payload.json",
+    "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
+  },
+  "classification": "PASS",
+  "aggregation_rule": "m1_conjunctive_v1",
+  "findings": [
+    {
+      "metric_id": "latency_ms",
+      "classification": "FAIL",
+      "rule_applied": "falsification",
+      "rule_text": "falsification: treatment >= 1 * baseline + 0",
+      "baseline_value": 100,
+      "treatment_value": 105,
+      "threshold": 100,
+      "rationale": "Treatment median 105 ms is at or above the falsification threshold 100 ms. Success needed 90 ms or less."
+    },
+    {
+      "metric_id": "quality",
+      "classification": "PASS",
+      "rule_applied": "success",
+      "rule_text": "success: treatment >= 1 * baseline + 0",
+      "baseline_value": 0.9,
+      "treatment_value": 0.9,
+      "threshold": 0.9,
+      "rationale": "Treatment mean 0.9 meets the success threshold 0.9, so quality is preserved."
+    }
+  ],
+  "completeness": {
+    "status": "complete",
+    "notes": [
+      "Both registered metrics have baseline and treatment values for all 3 repeats."
+    ]
+  },
+  "plausibility": {
+    "status": "plausible",
+    "notes": [
+      "A 5% latency increase is within the range expected for added index maintenance."
+    ]
+  },
+  "blockers": [],
+  "residual_risks": [
+    "Synthetic linked illustration only. No measured experiment."
+  ],
+  "followups": [
+    "Investigate why index maintenance offsets retrieval savings in a separately authorized new experiment."
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

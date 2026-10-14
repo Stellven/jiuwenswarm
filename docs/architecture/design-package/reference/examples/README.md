@@ -24,7 +24,7 @@ The reference validator checks selected structural and relational invariants, in
 
 ## Named planning connections
 
-`planning_nodes.json` shows concrete accepted Brief inputs and a future candidate-output connection between separate Search & Ideation and Screening nodes. Each node explicitly assigns internal CC subnodes and protected gates. Declarations and pins are synthetic examples, not admission or observed execution.
+`static_template.json` and `run_plan.json` show the seven-node research path with accepted Brief inputs, future outputs between nodes and host records. Each node pins one CC version and its check bundle and profile. `plan_proposal.json` is the same graph as a Planner proposal. `plan_outcome.json` records a rejected proposal. Declarations and pins are synthetic examples, not admission or observed execution.
 
 ## Complete compiler and defaults
 

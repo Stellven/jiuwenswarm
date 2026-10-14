@@ -1,36 +1,38 @@
 # CC build coverage and checking assignments
 
-**Reading level: human potential.** This is a navigation and responsibility map for the existing ten CC designs. Use the current contracts and shared runner rather than implementing ten different execution or verification setups. No declaration/schema version changes are introduced here.
+**Reading level: human potential.** One row per capability capsule (CC). Each row says what the CC takes, what it produces, and how its output is checked. The exact fields, checks and criteria are on the linked tier 3 page.
 
-## Ports and assigned verification
+## How every CC is checked
 
-These are work-CC ports; [field contracts](reference/other-contracts.md), [Intent/Requirements](reference/intent-and-requirements.md) and [checking records](reference/checking.md) own the serialized meanings. Workers receive their bound inputs. Host-side deterministic checking and release retain full accepted inputs and attributable upstream evidence. The semantic verifier sees only the subject CC declaration and exact output bytes plus fixed instructions; it cannot compare with worker inputs, request-specific context, conversation or fetched evidence. Tier 2 therefore checks only declaration/output conformance and does not establish fidelity, factuality, citation support or scientific validity. This is an authorized reduced-assurance departure from PRD §4.2.
+1. The worker CC produces its output. It runs its own self-review first. For example, the Intent CC checks its reading against the request.
+2. The host runs the deterministic check bundle pinned to that CC version. These checks may read inputs and runtime records.
+3. The verifier CC reads only the pinned declaration and the exact output. Its criteria are answerable from those two artifacts ([D24](decision-review.md#d24)). A CC with several outputs gets one verifier call per output.
+4. The protected gate reads both results and accepts, rejects or halts.
 
-| CC | Required input | Candidate output | Independent verifier responsibility |
-|---|---|---|---|
-| Intent | Qualified original request and attributable reference context | Intent IR with scope, constraints, uncertainty and traceability | Check declared output structure and internal consistency only; host validates span/reference identities. Request fidelity and usefulness are not semantically established. |
-| Requirement | Accepted Intent, original context, resource references and authorized defaults | Research Brief with obligations, preferences, resources, metrics and evidence requirements | Check declared output structure and internal consistency only; host validates known refs/default authorization. Preservation and usefulness against hidden inputs are not semantically established. |
-| Planner | Accepted Brief, pinned eligible catalogue, supplied resources and protected policy | Proposed finite JSON DAG, dependencies, bindings and suggested checking assignments | Check graph/declaration conformance only. Host binder independently checks Brief coverage, ports, dependencies, cycles, resources and mandatory assignments; see narrow contract below. |
-| Search | Accepted Brief and plan-bound query/scope | Attributed candidate evidence and source references | Check declared output shape/internal consistency only. Source grounding and citation support require host-accessible deterministic evidence checks or remain unestablished. |
-| Screening | Attributed candidates and inclusion/exclusion/scoring rules | Decisions, scores and reasons linked to candidates | Check declared output shape and arithmetic/identity consistency where deterministic. Rule application/support against undisclosed inputs is not semantically established. |
-| Hypothesis | Accepted screened evidence, question and Brief | Testable hypothesis, registered protocol/criteria and uncertainty | Check declared output shape/internal coherence only. Evidence links and constraints can be host-validated mechanically; scientific support/falsifiability is not established. |
-| Builder | Accepted frozen hypothesis/protocol, supplied baseline/resources and permitted tools | Bounded POC/source/build artifacts and execution evidence | Host checks imports/effects, build/runtime observations and required artifact identities; semantic review checks only declaration/output conformance, not protocol fidelity. |
-| Research Benchmark | Accepted POC, frozen protocol, matched baseline/treatment and validation resources | Measurements, comparison and run records | Host checks run/metric identities and captured conditions where available; semantic review does not establish matchedness, provenance or validity beyond declaration/output conformance. |
-| Scientific Evaluation | Accepted registered criteria, measurements and supporting evidence | Scientific verdict with evidence-to-criterion reasoning and limits | Semantic review cannot compare with hidden criteria/measurements; host validates available identities/schema. Scientific conclusion remains unverified by this restricted Tier 2. |
-| Delivery | Accepted scientific outputs, gate outcomes and required disclosures | Packaged report/artifacts with verdict, provenance and limitations | Host checks artifact/reference consistency mechanically; semantic review does not establish consistency with undisclosed inputs or scientific validity. |
+The binder attaches the bundle and the checking profile from the chosen CC version. This is the same for the static template and for a planned DAG. The Planner cannot add, drop or weaken them. See [verifier](reference/capsules/verifier.md) and [run plan](reference/run-plan.md).
 
-The CC owner defines per-CC ports and proposes checking duties. The Verification lead owns independently admitted mandatory checking profiles and protected gate behavior; the Benchmark lead owns expected platform labels independently of producer outputs. The protected binder assigns exact profiles and criteria before output review. Capsule-author self-tests support development but cannot certify their own outputs.
+## Per-CC map
 
-## Planner semantic verifier contract
+| CC | Takes | Produces | Host checks cover | Build page |
+|---|---|---|---|---|
+| Intent | Qualified intake | `intent_ir` | Schema, source spans, references | [Intent and Requirements](reference/intent-and-requirements.md) |
+| Requirement | Accepted `intent_ir`, intake, default policy | `research_brief` | Schema, requirement links, default authorization | [Intent and Requirements](reference/intent-and-requirements.md) |
+| Planner | Accepted Brief, library snapshot, resource inventory, plan policy | `plan_proposal` | Brief coverage, port types, dependencies, cycles, mandatory check bundles, permissions, resources, budgets | [Planner](reference/capsules/planner.md) |
+| Search | Accepted Brief, search scope | `candidate_set` | Citations resolve to captured sources, excerpt hashes, idea count | [Search](reference/capsules/search.md) |
+| Screening | Candidate set, Brief, pinned rubric | `screening_result`, `opportunity_card` | Score ranges, totals, tie rule, selection in candidate set | [Screening](reference/capsules/screening.md) |
+| Hypothesis | Opportunity card, Brief, resource snapshots | `hypothesis_blueprint` | Metrics map to Brief targets, rules use declared metrics, boundaries do not overlap | [Hypothesis](reference/capsules/hypothesis.md) |
+| Builder | Blueprint, resource snapshots, environment lock | `poc_manifest`, `poc_artifact_bundle` | Required files, syntax, forbidden modules, pinned dependencies, output format. Build evidence only. No trial runs | [Builder](reference/capsules/builder.md) |
+| Research Benchmark | POC, build receipt, blueprint, resources, environment lock | `benchmark_payload` | Protocol and environment match, baseline before treatment, repeat counts, values match raw results | [Research Benchmark](reference/capsules/research-benchmark.md) |
+| Scientific Evaluation | Blueprint, benchmark payload, Brief | `evaluation_verdict` | Recompute every rule from the blueprint and payload, registered rules only | [Scientific Evaluation](reference/capsules/scientific-evaluation.md) |
+| Delivery | All accepted artifacts and gate decisions | `delivery_manifest`, `research_report` | Ref hashes, required sections, numbers match payload, verdict matches evaluation | [Delivery](reference/capsules/delivery.md) |
+| Verifier | Declaration and exact output only | `verifier_assessment` | Assessment schema, subject identity, one finding per criterion | [Verifier](reference/capsules/verifier.md) |
 
-The semantic invocation contains exactly two artifacts: (1) the pinned Planner CC declaration and (2) the exact Planner output bytes. Fixed verifier instructions permit only declaration/output-conformance questions. It does not receive the worker's Brief, catalogue, resources, policy, request, conversation, binder findings, upstream evidence or runtime observations, and cannot fetch them. The host retains a separate complete review manifest for deterministic binding/audit. The Planner's narrative and suggested checks are untrusted work output, not checking authority.
+## What the checks do not establish
 
-Before semantic review, the protected binder—not the semantic verifier—rejects missing Brief coverage, incompatible ports, invalid dependencies, cycles, missing mandatory assignments, denied permissions and infeasible known resources. The semantic verifier can check only whether the proposal conforms to what its declaration says it emits, including its self-contained graph structure. It cannot affirm objective relevance, obligation coverage, feasibility against undisclosed resources or evidence paths. Those semantic properties remain reduced/unverified under this authorized boundary and must not be reported as verified. The verifier does not author a replacement plan, add nodes or repair bindings.
+The verifier does not judge request fidelity, source support or scientific validity. Fidelity and preservation are producer obligations of the Intent and Requirement CCs, backed by host span and reference checks. Scientific validity is the job of Scientific Evaluation, backed by rule recomputation. Platform benchmark cases measure how well this works over time.
 
-Keep the existing persisted Assessment schema. The model's reply is untrusted finding content only; the trusted host validates required criterion coverage, binds the exact subject and host-only review-manifest identity, attaches references to the declaration/output and assembles the existing Assessment and gate records. The model does not supply trusted identity fields or a gate verdict. No new public API/schema is implied. Mandatory conditions not established by host checks block advancement; the restricted semantic pass does not compensate for missing evidence.
+## Ownership and completion
 
-## One shared build and completion rule
+The CC owner defines ports and proposes per-CC checks and criteria. The Verifier owner owns check bundles and checking profiles. The Benchmark owner owns platform benchmark cases and labels. Capsule self-tests help development but never certify outputs.
 
-Use the same declaration loader, runner, host-only review-manifest builder, evidence capture, deterministic checking, declaration/output-only semantic invocation and durable gate/store path for each supported CC. The manifest stays outside the semantic model payload. Reconcile and adapt the already built compiler and compatible implementations first. A generated module or successful self-test is a candidate implementation. The owning native task records implementation complete only after observed behavior satisfies its assigned cases, connected boundaries and required evidence; limitations and environment blocks remain recorded. Whole-workflow acceptance additionally requires connected end-to-end evidence.
-
-See [capsules](capsules.md), [research ports](research-design.md), [node/subnode contracts](reference/node-execution.md) and [core scope](core-build.md). Human schedules and development-tool skills stay outside the product build package.
+Use one declaration loader, runner, check runner, verifier call and gate store for every CC. Reuse the built compiler where it fits. A generated module is a candidate until its assigned cases and connected boundaries pass. Whole-workflow acceptance needs connected end-to-end evidence.

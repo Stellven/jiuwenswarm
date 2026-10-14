@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "plan_outcome_example",
+  "outcome": "plan_infeasible",
+  "trigger": "proposal_rejected",
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+  },
+  "source_ref": {
+    "id": "plan_proposal_invalid_cycle.json",
+    "sha256": "1583d9cc28da92907dd3dcb58a02db9f9816bd4b7321e24438b52a70e993aaa1"
+  },
+  "check_result_ref": null,
+  "gate_decision_ref": null,
+  "reasons": [
+    {
+      "check_id": "acyclicity",
+      "detail": "The predecessors graph has a cycle: node search lists node delivery as a predecessor."
+    }
+  ],
+  "attempt_depth": 1,
+  "next_stage": "intention_compiler",
+  "linked_attempt_id": "attempt:intention_compiler_2"
+}

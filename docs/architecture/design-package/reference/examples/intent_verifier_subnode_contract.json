@@ -6,8 +6,12 @@
   "objective": "Assess submitted artifact against protected assigned criteria without modifying work or controlling flow",
   "input_refs": [
     {
-      "id": "review_context.json",
-      "sha256": "f05b5ee5ab08734855c5f53760d22540b4ba971e40bcc1d2c2c89d774637072c"
+      "id": "capsule_declaration.json",
+      "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+    },
+    {
+      "id": "intent_ir.json",
+      "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
     }
   ],
   "required_outputs": [
@@ -28,7 +32,7 @@
       "role": "verifier",
       "declaration_ref": {
         "id": "verifier_capsule.json",
-        "sha256": "dad108536e6b23b9fc4c65e287d27a15ffd9e2ef8718d93fe4f9df3aea73e64a"
+        "sha256": "0fe08599f9ddc38bdb71feea8adfa43038fc937e26352b9dcdbb6589b6712bae"
       },
       "implementation_refs": [
         {
@@ -46,8 +50,12 @@
         "network_allowlist": [],
         "resource_reads": [
           {
-            "id": "review_context.json",
-            "sha256": "f05b5ee5ab08734855c5f53760d22540b4ba971e40bcc1d2c2c89d774637072c"
+            "id": "capsule_declaration.json",
+            "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+          },
+          {
+            "id": "intent_ir.json",
+            "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
           }
         ],
         "write_roots": [
@@ -66,21 +74,33 @@
   ],
   "inputs": [
     {
-      "name": "review_context",
-      "contract_id": "review-context:field-contract:2",
-      "version": "2.0.0",
+      "name": "subject_declaration",
+      "contract_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "version": "1.0.0",
       "required": true,
       "artifact_refs": [
         {
-          "id": "review_context.json",
-          "sha256": "f05b5ee5ab08734855c5f53760d22540b4ba971e40bcc1d2c2c89d774637072c"
+          "id": "capsule_declaration.json",
+          "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+        }
+      ]
+    },
+    {
+      "name": "subject_output",
+      "contract_id": "opaque-bytes",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
         }
       ]
     }
   ],
   "outputs": [
     {
-      "name": "assessment",
+      "name": "verifier_assessment",
       "contract_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
       "version": "1.0.0",
       "required": true
@@ -92,7 +112,7 @@
   ],
   "guard_profile_ref": {
     "id": "guard_profile.json",
-    "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+    "sha256": "3d8597307df174a5e7c65e54bc01dd650bf70bb0f54ec04b668b53a7d60b6110"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
@@ -100,12 +120,12 @@
   },
   "template_ref": {
     "id": "verifier_subnode_template.json",
-    "sha256": "f1d6852ce1a654656a7442733b22476d57af9ca00a877fea4432c7b9f73acf48"
+    "sha256": "271bd089e735f4e8f778d7f735cdc52c1b15b66477b6a15ac2c1da16dd5f88fa"
   },
   "subnode_id": "intention.verifier",
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
   },
   "subnode_limits": {
     "time_s": 60,

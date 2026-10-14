@@ -2,7 +2,16 @@
   "schema_version": "1.0.0",
   "id": "profile:evaluation",
   "criteria": [
-    "registered_rule_applied"
+    "declared_output_conformance",
+    "internal_consistency",
+    "limitations_consistency",
+    "classification_consistent_with_findings",
+    "finding_names_metric",
+    "finding_consistent_with_values",
+    "rationale_states_values_and_rule",
+    "blockers_match_findings",
+    "followups_are_recommendations",
+    "no_unregistered_criteria"
   ],
   "synthetic": true,
   "work_model_calls": 1,

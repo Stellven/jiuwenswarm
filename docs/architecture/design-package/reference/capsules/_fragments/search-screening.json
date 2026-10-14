@@ -1,0 +1,895 @@
+{
+  "interfaces": [
+    {
+      "id": "search-scope:field-contract:1",
+      "name": "search-scope",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "Planner binding (plan-bound)",
+      "consumers": [
+        "Search CC",
+        "checking"
+      ],
+      "document": "capsules/search.md#search_scope-field-contract",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version",
+          "enum": [
+            "1.0.0"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Record identity",
+          "enum": [
+            "search_scope"
+          ]
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted Brief this scope serves"
+        },
+        "queries": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Queries Search must run, in order, and no others",
+          "min_items": 1,
+          "max_items": 8
+        },
+        "connectors": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Permitted connectors. Each from the connector enum, no duplicates",
+          "min_items": 1,
+          "max_items": 3
+        },
+        "top_k_per_query": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Most sources one external connector may give per query",
+          "min": 1,
+          "max": 5
+        },
+        "local_document_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "User local documents to search. Non-empty when local_documents is permitted",
+          "min_items": 0
+        }
+      },
+      "failure": "A scope that fails its structure check blocks the Search dispatch."
+    },
+    {
+      "id": "candidate-set:field-contract:2",
+      "name": "candidate-set",
+      "version": "2.0.0",
+      "topic": "research-artifacts",
+      "producer": "Search CC",
+      "consumers": [
+        "Screening CC",
+        "checking"
+      ],
+      "document": "capsules/search.md#candidate_set",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version",
+          "enum": [
+            "2.0.0"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Record identity",
+          "enum": [
+            "candidate_set"
+          ]
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted Brief"
+        },
+        "scope_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Bound search_scope"
+        },
+        "queries": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Equals scope queries, same order",
+          "min_items": 1,
+          "max_items": 8
+        },
+        "connector_outcomes": {
+          "type": "ConnectorOutcome[]",
+          "required": true,
+          "meaning": "One row per permitted connector, including failures",
+          "min_items": 1,
+          "max_items": 3
+        },
+        "citations": {
+          "type": "Citation[]",
+          "required": true,
+          "meaning": "Captured exact excerpts",
+          "min_items": 1
+        },
+        "ideas": {
+          "type": "Idea[]",
+          "required": true,
+          "meaning": "One to three grounded ideas, each citing at least one citation",
+          "min_items": 1,
+          "max_items": 3
+        }
+      },
+      "failure": "Wrong idea count, uncited idea, unresolved citation or excerpt mismatch rejects. No evidence from any connector halts. An unavailable connector is recorded, never filled with an invented hit."
+    },
+    {
+      "id": "screening-rubric:field-contract:1",
+      "name": "screening-rubric",
+      "version": "1.0.0",
+      "topic": "research-artifacts",
+      "producer": "CC owner (pinned in the Screening declaration)",
+      "consumers": [
+        "Screening CC",
+        "checking",
+        "RSI referee"
+      ],
+      "document": "capsules/screening.md#screening_rubric-field-contract",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version",
+          "enum": [
+            "1.0.0"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Record identity",
+          "enum": [
+            "screening_rubric"
+          ]
+        },
+        "dimensions": {
+          "type": "RubricDimension[]",
+          "required": true,
+          "meaning": "Exactly novelty, feasibility and compute_alignment",
+          "min_items": 3,
+          "max_items": 3
+        },
+        "total_rule": {
+          "type": "string",
+          "required": true,
+          "meaning": "Total is the plain sum",
+          "enum": [
+            "sum"
+          ]
+        },
+        "tie_rule": {
+          "type": "string",
+          "required": true,
+          "meaning": "Equal totals rank the lower idea_id first",
+          "enum": [
+            "ascending_idea_id"
+          ]
+        },
+        "selection_rule": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exactly one idea is selected",
+          "enum": [
+            "top_1"
+          ]
+        },
+        "forbidden_dependencies": {
+          "type": "ForbiddenDependency[]",
+          "required": true,
+          "meaning": "Dependencies that make an idea ineligible",
+          "min_items": 0
+        },
+        "reason_max_chars": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Longest allowed reason",
+          "min": 50,
+          "max": 500
+        }
+      },
+      "failure": "A rubric hash that differs from the pin halts Screening. RSI never changes the rubric."
+    },
+    {
+      "id": "screening-result:field-contract:2",
+      "name": "screening-result",
+      "version": "2.0.0",
+      "topic": "research-artifacts",
+      "producer": "Screening CC",
+      "consumers": [
+        "Hypothesis CC",
+        "checking",
+        "RSI"
+      ],
+      "document": "capsules/screening.md#screening_result",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version",
+          "enum": [
+            "2.0.0"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Record identity",
+          "enum": [
+            "screening_result"
+          ]
+        },
+        "candidate_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact candidate set scored"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted Brief"
+        },
+        "rubric_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned rubric used"
+        },
+        "scores": {
+          "type": "IdeaScore[]",
+          "required": true,
+          "meaning": "Exactly one row per candidate idea",
+          "min_items": 1,
+          "max_items": 3
+        },
+        "ranking": {
+          "type": "Ranking[]",
+          "required": true,
+          "meaning": "Selected and eligible ideas by total descending then idea_id ascending",
+          "min_items": 1,
+          "max_items": 3
+        },
+        "selected_idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Equals ranking[0].idea_id"
+        }
+      },
+      "failure": "Missing, duplicate or out-of-range scores, wrong totals or order reject. No eligible idea halts with no_eligible_idea."
+    },
+    {
+      "id": "opportunity-card:field-contract:2",
+      "name": "opportunity-card",
+      "version": "2.0.0",
+      "topic": "research-artifacts",
+      "producer": "Screening CC",
+      "consumers": [
+        "Hypothesis CC",
+        "checking"
+      ],
+      "document": "capsules/screening.md#opportunity_card",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version",
+          "enum": [
+            "2.0.0"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Record identity",
+          "enum": [
+            "opportunity_card"
+          ]
+        },
+        "candidate_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Candidate set"
+        },
+        "screening_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Produced screening_result (ranking reference)"
+        },
+        "brief_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Accepted Brief"
+        },
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Selected idea. Equals screening_result.selected_idea_id and exists in the candidate set"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "meaning": "Equals the idea title",
+          "min": 1,
+          "max": 120
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "meaning": "Purpose of the card: what is tested and why",
+          "min": 1,
+          "max": 600
+        },
+        "opportunity_statement": {
+          "type": "string",
+          "required": true,
+          "meaning": "Evidence-grounded bottleneck and mechanism",
+          "min": 1,
+          "max": 800
+        },
+        "scores": {
+          "type": "ScoreSet",
+          "required": true,
+          "meaning": "Original scores of the selected idea, unchanged"
+        },
+        "rank": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Rank of the selected idea",
+          "enum": [
+            1
+          ]
+        },
+        "citation_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Equals the idea citation_ids",
+          "min_items": 1
+        },
+        "constraints": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Verbatim text of every Brief constraint and mandatory requirement",
+          "min_items": 1
+        },
+        "assumptions": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Equals the idea assumptions",
+          "min_items": 1
+        },
+        "risks": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Equals the idea risks",
+          "min_items": 1
+        },
+        "other_dispositions": {
+          "type": "Disposition[]",
+          "required": true,
+          "meaning": "One row per non-selected candidate idea",
+          "min_items": 0,
+          "max_items": 2
+        }
+      },
+      "failure": "A selected idea outside the candidate set, a mismatch with the screening result, a lost constraint or a missing disposition rejects."
+    }
+  ],
+  "types": {
+    "ConnectorOutcome": {
+      "fields": {
+        "connector": {
+          "type": "string",
+          "required": true,
+          "meaning": "Connector this row describes",
+          "enum": [
+            "local_documents",
+            "arxiv",
+            "semantic_scholar"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "meaning": "used if the connector answered, unavailable if it failed",
+          "enum": [
+            "used",
+            "unavailable"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "Plain statement of what happened",
+          "min": 1,
+          "max": 200
+        },
+        "citations_captured": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Citations from this connector. 0 when unavailable",
+          "min": 0
+        }
+      }
+    },
+    "Citation": {
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Stable citation ID",
+          "pattern": "^citation:[a-z0-9_]+$"
+        },
+        "source_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Exact captured source bytes"
+        },
+        "connector": {
+          "type": "string",
+          "required": true,
+          "meaning": "Connector that produced the source",
+          "enum": [
+            "local_documents",
+            "arxiv",
+            "semantic_scholar"
+          ]
+        },
+        "query": {
+          "type": "string",
+          "required": true,
+          "meaning": "Scope query that found the source"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "meaning": "Source title or local file name",
+          "min": 1,
+          "max": 300
+        },
+        "locator": {
+          "type": "string",
+          "required": true,
+          "meaning": "Origin and position, human readable",
+          "min": 1,
+          "max": 300
+        },
+        "char_start": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Excerpt start in decoded source, code points",
+          "min": 0
+        },
+        "char_end": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Excerpt end, exclusive. Greater than char_start",
+          "min": 1
+        },
+        "excerpt": {
+          "type": "string",
+          "required": true,
+          "meaning": "Verbatim source text from char_start to char_end",
+          "min": 1,
+          "max": 2000
+        },
+        "excerpt_sha256": {
+          "type": "sha256",
+          "required": true,
+          "meaning": "SHA-256 of the UTF-8 excerpt bytes"
+        }
+      }
+    },
+    "Idea": {
+      "fields": {
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Unique immutable ID",
+          "pattern": "^idea:[0-9]{3}$"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "meaning": "Short name",
+          "min": 1,
+          "max": 120
+        },
+        "summary": {
+          "type": "string",
+          "required": true,
+          "meaning": "Proposed mechanism in plain words",
+          "min": 1,
+          "max": 600
+        },
+        "citation_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Citation IDs in this set that support the idea",
+          "min_items": 1
+        },
+        "assumptions": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Unproven premises",
+          "min_items": 1
+        },
+        "risks": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Known ways the idea could fail",
+          "min_items": 1
+        }
+      }
+    },
+    "ScoreAnchor": {
+      "fields": {
+        "score": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Score this anchor defines",
+          "min": 1,
+          "max": 5
+        },
+        "description": {
+          "type": "string",
+          "required": true,
+          "meaning": "What an idea looks like at this score",
+          "min": 1,
+          "max": 200
+        }
+      }
+    },
+    "RubricDimension": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "meaning": "Dimension name and score field name",
+          "enum": [
+            "novelty",
+            "feasibility",
+            "compute_alignment"
+          ]
+        },
+        "scale_min": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Lowest score",
+          "enum": [
+            1
+          ]
+        },
+        "scale_max": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Highest score",
+          "enum": [
+            5
+          ]
+        },
+        "anchors": {
+          "type": "ScoreAnchor[]",
+          "required": true,
+          "meaning": "One anchor per score 1 to 5",
+          "min_items": 5,
+          "max_items": 5
+        }
+      }
+    },
+    "ForbiddenDependency": {
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Flag ID recorded in scores",
+          "pattern": "^dep:[a-z0-9_]+$"
+        },
+        "description": {
+          "type": "string",
+          "required": true,
+          "meaning": "What the dependency is",
+          "min": 1,
+          "max": 200
+        },
+        "match_terms": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Lowercase phrases that always trigger the flag",
+          "min_items": 1
+        }
+      }
+    },
+    "IdeaScore": {
+      "fields": {
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Candidate idea scored"
+        },
+        "novelty": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Novelty score using rubric anchors",
+          "min": 1,
+          "max": 5
+        },
+        "feasibility": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Feasibility score using rubric anchors",
+          "min": 1,
+          "max": 5
+        },
+        "compute_alignment": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Compute alignment score using rubric anchors",
+          "min": 1,
+          "max": 5
+        },
+        "total": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Sum of the three scores",
+          "min": 3,
+          "max": 15
+        },
+        "novelty_reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "One-sentence reason for the novelty score",
+          "min": 1,
+          "max": 500
+        },
+        "feasibility_reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "One-sentence reason for the feasibility score",
+          "min": 1,
+          "max": 500
+        },
+        "compute_alignment_reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "One-sentence reason for the compute alignment score",
+          "min": 1,
+          "max": 500
+        },
+        "citation_ids": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Evidence behind the scores. Subset of the idea's citations",
+          "min_items": 1
+        },
+        "dependency_flags": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Forbidden dependency IDs that apply. May be empty"
+        },
+        "eligible": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "False exactly when dependency_flags is not empty"
+        },
+        "disposition": {
+          "type": "string",
+          "required": true,
+          "meaning": "Fate of the idea",
+          "enum": [
+            "selected",
+            "eligible",
+            "rejected",
+            "deferred"
+          ]
+        },
+        "disposition_reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "Cause of the disposition",
+          "min": 1,
+          "max": 500
+        }
+      }
+    },
+    "Ranking": {
+      "fields": {
+        "rank": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Position, counting up from 1 without gaps",
+          "min": 1
+        },
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Ranked idea with disposition selected or eligible"
+        },
+        "total": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Total score used to rank",
+          "min": 3,
+          "max": 15
+        }
+      }
+    },
+    "ScoreSet": {
+      "fields": {
+        "novelty": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Novelty score",
+          "min": 1,
+          "max": 5
+        },
+        "feasibility": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Feasibility score",
+          "min": 1,
+          "max": 5
+        },
+        "compute_alignment": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Compute alignment score",
+          "min": 1,
+          "max": 5
+        },
+        "total": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Sum of the three scores",
+          "min": 3,
+          "max": 15
+        }
+      }
+    },
+    "Disposition": {
+      "fields": {
+        "idea_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Non-selected candidate idea"
+        },
+        "disposition": {
+          "type": "string",
+          "required": true,
+          "meaning": "Fate of the idea",
+          "enum": [
+            "eligible",
+            "rejected",
+            "deferred"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "required": true,
+          "meaning": "Cause. Equals disposition_reason in screening_result",
+          "min": 1,
+          "max": 500
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "path": "search_scope.json",
+      "field_contract_id": "search-scope:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "candidate_set.json",
+      "field_contract_id": "candidate-set:field-contract:2",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "candidate_set_invalid_four_ideas.json",
+      "field_contract_id": "candidate-set:field-contract:2",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "idea_count"
+    },
+    {
+      "path": "candidate_set_invalid_uncited_idea.json",
+      "field_contract_id": "candidate-set:field-contract:2",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "idea_citations_resolve"
+    },
+    {
+      "path": "screening_rubric.json",
+      "field_contract_id": "screening-rubric:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "screening_result.json",
+      "field_contract_id": "screening-result:field-contract:2",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "screening_result_invalid_score_out_of_range.json",
+      "field_contract_id": "screening-result:field-contract:2",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "score_range"
+    },
+    {
+      "path": "opportunity_card.json",
+      "field_contract_id": "opportunity-card:field-contract:2",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "opportunity_card_invalid_unlisted_idea.json",
+      "field_contract_id": "opportunity-card:field-contract:2",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "selected_in_candidates"
+    },
+    {
+      "path": "search_capsule.json",
+      "field_contract_id": null,
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "expect": "valid"
+    },
+    {
+      "path": "screening_capsule.json",
+      "field_contract_id": null,
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "expect": "valid"
+    }
+  ],
+  "replaces": [
+    "candidate-set:field-contract:1",
+    "screening-result:field-contract:1",
+    "opportunity-card:field-contract:1"
+  ],
+  "contract_index_rows": [
+    "| search-scope | 1.0.0 | [Fields](capsules/search.md#search_scope-field-contract) | Planner binding -> Search CC, checking |",
+    "| candidate-set | 2.0.0 | [Fields](capsules/search.md#candidate_set) | Search CC -> Screening CC, checking |",
+    "| screening-rubric | 1.0.0 | [Fields](capsules/screening.md#screening_rubric-field-contract) | CC owner pin -> Screening CC, checking, RSI referee |",
+    "| screening-result | 2.0.0 | [Fields](capsules/screening.md#screening_result) | Screening CC -> Hypothesis CC, checking, RSI |",
+    "| opportunity-card | 2.0.0 | [Fields](capsules/screening.md#opportunity_card) | Screening CC -> Hypothesis CC, checking |"
+  ],
+  "remove_from_shared_pages": [
+    "field-catalog.md sections candidate-set, screening-result, opportunity-card (replace with links to the capsule pages)",
+    "other-contracts.md rows 21, 22 and 23 (candidate_set, screening assessments, opportunity_card)",
+    "contract-index.md rows for candidate-set, screening-result and opportunity-card at version 1.0.0",
+    "field-contracts.json types Citation, Idea, IdeaScore and Ranking (replaced by the types in this fragment)"
+  ],
+  "prd_conflicts": [
+    "PRD 3.3.1 has Search generate the keyword queries with one LLM prompt. The brief makes queries part of the plan-bound search_scope, so the Planner supplies them and Search runs them unchanged. This keeps the plan-bound scope but moves query writing out of Search.",
+    "PRD 3.4.3 names idea card fields linked_citations, core_assumptions and identified_risks. The existing contract uses citation_ids, assumptions and risks. Kept the existing names. A glossary mapping is needed.",
+    "PRD 3.4.5 lists evidence maturity and a verification path among screening dimensions. M1 uses only the three PRD whitelist dimensions, so these are not scored."
+  ],
+  "open_questions": [
+    "Name consistency: old names to retire are Search and Ideation, discovery (discovery_capsule.json with CC name search.ideation), ideation, and Idea Screening. discovery_capsule.json is left in place and superseded by search_capsule.json. The shared pages should be updated by their owners.",
+    "Hashes changed. candidate_set.json is now 84563d7f3ac7950ae6b30fdebd114cde5b1031248d7e5e77b42634786ea20755. opportunity_card.json is now 59a05f2ddf41f1231044feefb474e490b9baeb5f953cae3a1584ba32392ee016. screening_result.json is now 52fc84271df64eb09fa3555031083a92d0bcf5d1ac2d617c1b231162a26cdb5e. hypothesis_blueprint.json and delivery_manifest.json hold stale refs to candidate_set.json and opportunity_card.json. Their owners must refresh them. The Hypothesis owner should also check that the opportunity card fields it reads still exist (summary and scores are new, idea_id, title, opportunity_statement, citation_ids, constraints, assumptions and risks are kept).",
+    "ranking_declaration.json and ranking_child_declaration.json still reference screening-result:field-contract:1 and the version 1 score shape. Their owner (RSI) must move them to version 2. The helper rank_opportunities should take scores and rubric and return ranking and selected_idea_id.",
+    "screening_rubric.txt is no longer referenced by screening_result. It is left in place. ranking_* examples may still use it.",
+    "The host needs a run capture store keyed by file name and hash for source bytes. This page assumes the Verifier owner or runner owner provides it. The check bundle owner must also decide the term match rule for dependency_filter (this page uses case-insensitive substring match).",
+    "Semantic verifier receives both outputs of Screening together. Confirm the verifier subject can be a pair of artifacts, or split the assessment per output.",
+    "The semantic verifier cannot open sources, so excerpt-to-idea support is unestablished. This is stated once in each page."
+  ]
+}

@@ -13,7 +13,7 @@
   },
   "admission_ref": {
     "id": "rsi_admission.json",
-    "sha256": "9526f6b64daf6137a9de3d6e96c1477b0ee24a6e28dc4d8c397712f5f9d3e441"
+    "sha256": "438b683b2d08df3da396d44f00996f61d990fce776cbf5dec45406a47b184bc9"
   },
   "reason": "Illustrative sandbox-only human selection",
   "effect_scope": "future sandbox selection only",

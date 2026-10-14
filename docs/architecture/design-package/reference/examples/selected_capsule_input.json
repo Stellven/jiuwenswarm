@@ -32,7 +32,7 @@
       "outputs": [
         {
           "name": "intent",
-          "artifact_type": "intent-ir",
+          "artifact_type": "intent_ir",
           "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
           "required": true,
           "description": "Attributed interpretation, not Requirements",
@@ -118,7 +118,7 @@
       ],
       "evals": [],
       "unanchored": [
-        "Semantic fidelity/usability require independently assigned runtime verification"
+        "Request fidelity and downstream usability are producer obligations backed by deterministic host checks, not verifier criteria"
       ]
     },
     "budget": {
@@ -152,15 +152,15 @@
   },
   "declaration_ref": {
     "id": "capsule_declaration.json",
-    "sha256": "43c55a5feca7e9443c24ba19b9402c78777d59a3b10c3a406330faa0a99627d8"
+    "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
   },
   "subnode_contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "025c01aadd8238d8f1bacc17d74cce6fc8fd72898e261038ec523489052ea487"
+    "sha256": "ce2d11dad7bb4796ef8b0f867a4d38206d81883986f5ef434dd8e366ed757b51"
   },
   "bound_context": {
     "runtime": {

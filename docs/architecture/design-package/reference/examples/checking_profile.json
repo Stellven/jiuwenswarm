@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "id": "checking-profile:research.screening:1",
+  "profile_id": "research.screening.profile",
+  "version": "1.0.0",
+  "target_cc_name": "research.screening",
+  "target_cc_version_range": "example-1",
+  "criteria": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "question": "Does the output contain what the declaration says this CC produces, in the declared shape and ports?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "question": "Does the output avoid contradicting itself, for example a field that disagrees with another field in the same output?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "question": "Are the limitations and uncertainties the output states consistent with the output content and with the declaration's stated limits?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "reasons_address_dimension",
+      "question": "Does each score reason speak to its own dimension and give a basis, rather than repeating the score or another dimension?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "screening_result"
+    },
+    {
+      "criterion_id": "opportunity_statement_complete",
+      "question": "Does opportunity_statement name a bottleneck and the mechanism that addresses it?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "opportunity_card"
+    },
+    {
+      "criterion_id": "disposition_reasons_specific",
+      "question": "Does each disposition reason name a cause specific to its idea?",
+      "blocking": false,
+      "answerable_from": "declaration_and_output",
+      "target_port": "screening_result"
+    }
+  ],
+  "instruction_ref": {
+    "id": "verifier_implementation.txt",
+    "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+  },
+  "model_call_limit": 1,
+  "time_s": 60,
+  "owner_role": "verifier_owner"
+}

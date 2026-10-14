@@ -2,7 +2,7 @@
   "id": "routing-context:teaching-example",
   "selected_capsule_ref": {
     "id": "selected_capsule_input.json",
-    "sha256": "0be917770eaaf0cd243068700c10442932d3bc39acef6769011c0aca5c6f6188"
+    "sha256": "c5ffea9c049d42d081077c65514ca9b527286c5987abd9cbf7e1b780d4d8fd66"
   },
   "model_selection_profile_ref": {
     "id": "model_selection_profile.json",

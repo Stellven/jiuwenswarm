@@ -1,0 +1,290 @@
+{
+  "interfaces": [
+    {
+      "id": "check-bundle:field-contract:1",
+      "name": "check-bundle",
+      "version": "1.0.0",
+      "topic": "verifier",
+      "producer": "Verifier owner via protected admission",
+      "consumers": [
+        "binder",
+        "check runner",
+        "gate"
+      ],
+      "document": "capsules/verifier.md#check_bundle-contract",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version",
+          "enum": [
+            "1.0.0"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "bundle_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Stable bundle name"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Semver x.y.z",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "target_cc_name": {
+          "type": "string",
+          "required": true,
+          "meaning": "The one CC checked",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+        },
+        "target_cc_version_range": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact version label or <major>.x"
+        },
+        "checks": {
+          "type": "BundleCheck[]",
+          "required": true,
+          "meaning": "Deterministic checks. Must include a blocking <port>_schema check per output port",
+          "min_items": 1
+        },
+        "owner_role": {
+          "type": "string",
+          "required": true,
+          "meaning": "Who may change it",
+          "enum": [
+            "verifier_owner"
+          ]
+        }
+      },
+      "failure": "Missing blocking schema check per output port, or unpinned bundle on an admitted CC version, rejects admission and binding"
+    },
+    {
+      "id": "checking-profile:field-contract:1",
+      "name": "checking-profile",
+      "version": "1.0.0",
+      "topic": "verifier",
+      "producer": "Verifier owner via protected admission",
+      "consumers": [
+        "binder",
+        "verifier host",
+        "gate"
+      ],
+      "document": "capsules/verifier.md#checking_profile-contract",
+      "fields": {
+        "schema_version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Format version",
+          "enum": [
+            "1.0.0"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Immutable record identity"
+        },
+        "profile_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Stable profile name"
+        },
+        "version": {
+          "type": "string",
+          "required": true,
+          "meaning": "Semver x.y.z",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "target_cc_name": {
+          "type": "string",
+          "required": true,
+          "meaning": "CC reviewed",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+        },
+        "target_cc_version_range": {
+          "type": "string",
+          "required": true,
+          "meaning": "Exact version label or <major>.x"
+        },
+        "criteria": {
+          "type": "Criterion[]",
+          "required": true,
+          "meaning": "Must include the three generic criteria, blocking",
+          "min_items": 3
+        },
+        "instruction_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Fixed verifier instruction text"
+        },
+        "model_call_limit": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Max verifier model calls",
+          "min": 1,
+          "max": 3
+        },
+        "time_s": {
+          "type": "integer",
+          "required": true,
+          "meaning": "Review wall-clock limit",
+          "min": 1,
+          "max": 600
+        },
+        "owner_role": {
+          "type": "string",
+          "required": true,
+          "meaning": "Who may change it",
+          "enum": [
+            "verifier_owner"
+          ]
+        }
+      },
+      "failure": "Any criterion with answerable_from other than declaration_and_output, or a missing generic criterion, rejects admission"
+    }
+  ],
+  "types": {
+    "BundleCheck": {
+      "fields": {
+        "check_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Lowercase snake_case check name, unique in bundle"
+        },
+        "target_port": {
+          "type": "string",
+          "required": true,
+          "meaning": "Output port of the target CC"
+        },
+        "rule_summary": {
+          "type": "string",
+          "required": true,
+          "meaning": "What must hold",
+          "min": 1,
+          "max": 300
+        },
+        "runner_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "Pinned runner code"
+        },
+        "reads": {
+          "type": "string[]",
+          "required": true,
+          "meaning": "Records the runner may read. Each in output, inputs, runtime_records",
+          "min_items": 1
+        },
+        "blocking": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Non-PASS blocks release when true"
+        }
+      }
+    },
+    "Criterion": {
+      "fields": {
+        "criterion_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Lowercase snake_case criterion name"
+        },
+        "question": {
+          "type": "string",
+          "required": true,
+          "meaning": "Question answerable from declaration plus output",
+          "min": 1,
+          "max": 400
+        },
+        "blocking": {
+          "type": "boolean",
+          "required": true,
+          "meaning": "Non-PASS blocks release when true"
+        },
+        "answerable_from": {
+          "type": "string",
+          "required": true,
+          "meaning": "Fixed value",
+          "enum": [
+            "declaration_and_output"
+          ]
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "path": "check_bundle.json",
+      "field_contract_id": "check-bundle:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "check_bundle_invalid_missing_schema_check.json",
+      "field_contract_id": "check-bundle:field-contract:1",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "bundle_has_blocking_schema_check"
+    },
+    {
+      "path": "checking_profile.json",
+      "field_contract_id": "checking-profile:field-contract:1",
+      "schema_id": null,
+      "expect": "valid"
+    },
+    {
+      "path": "checking_profile_invalid_answerable_from.json",
+      "field_contract_id": "checking-profile:field-contract:1",
+      "schema_id": null,
+      "expect": "invalid",
+      "rejected_by": "criterion_answerable_from_declaration_and_output"
+    },
+    {
+      "path": "verifier_assessment.json",
+      "field_contract_id": null,
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+      "expect": "valid"
+    },
+    {
+      "path": "verifier_capsule.json",
+      "field_contract_id": null,
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "expect": "valid"
+    }
+  ],
+  "replaces": [
+    "review-context:field-contract:2"
+  ],
+  "contract_index_rows": [
+    "| check-bundle | check-bundle:field-contract:1 | Verifier owner via protected admission | binder, check runner, gate | [verifier.md](capsules/verifier.md#check_bundle-contract) |",
+    "| checking-profile | checking-profile:field-contract:1 | Verifier owner via protected admission | binder, verifier host, gate | [verifier.md](capsules/verifier.md#checking_profile-contract) |",
+    "| verifier-assessment (schema unchanged) | urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0 | host from untrusted verifier reply | gate | [verifier.md](capsules/verifier.md#output-field-contract) |"
+  ],
+  "remove_from_shared_pages": [
+    "field-catalog.md '### review-context' section (about lines 368-385): remove, replace with link to capsules/verifier.md. Its input_refs, observations, criteria and deterministic_result_ref must not reach the model. The host review manifest keeps them for audit.",
+    "contract-index.md line ~49 row 'review-context | 2.0.0 ... protected context builder -> read-only verifier': remove, add the three rows in contract_index_rows",
+    "field-contracts.json: remove interface review-context:field-contract:2, add the two new interfaces and types BundleCheck, Criterion",
+    "other-contracts.md line 36 review manifest row: keep, but state it is host-only and referenced by review_context_ref",
+    "checking.md Verifier assessment section: 'review_context_ref' should read 'host review manifest ref'; remove mention of a profile/criteria record being absent if bundle/profile now defined here",
+    "examples/index.json: add the new examples. review_context.json, *_review_context.json and *_verifier_observation.json are now orphaned legacy files",
+    "guard-design.md, intent-design.md, placement.md, design-method.md, core-build.md, builds/intention-compiler/context.md: grep review_context / review-context and drop the verifier-input meaning",
+    "guard_profile.json, science_guard_profile.json, requirements_guard_profile.json, topic_guard_profile.json still list fidelity-style criteria and worker-input access. NOT edited here because check_plan.json and others hash them. Owners of check_plan files should replace them with checking_profile records",
+    "intent_verifier_subnode_contract.json, requirements_/science_/topic_verifier_subnode_contract.json and *_node_contract.json embed the old sha256 of verifier_capsule.json, which changed. Refresh those hashes"
+  ],
+  "prd_conflicts": [
+    "PRD 4.2 asks for contextual review with inputs. D20 limits the verifier to declaration plus output. Input-dependent obligations move to host deterministic checks in the check bundle."
+  ],
+  "open_questions": [
+    "verifier_assessment.review_context_ref is required by the unchanged schema. This page makes it point to the host review manifest. A later schema 2.0 could rename it review_manifest_ref.",
+    "Port schema_ref for subject_output is the placeholder 'opaque-bytes'. The admission schema may need a defined value.",
+    "verifier_review_manifest.json is a synthetic example only. The manifest has no field contract yet (other-contracts.md line 36).",
+    "Check ID rejected_by names (bundle_has_blocking_schema_check, criterion_answerable_from_declaration_and_output) are admission checks run by validate.py or protected admission. validate.py needs rules for them.",
+    "The shared verifier_subnode_template.json input_contract is now the string subject_declaration+subject_output. Replace with port names list if the template schema allows."
+  ]
+}

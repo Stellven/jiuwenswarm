@@ -7,16 +7,16 @@
   "attempt_id": "attempt:topic",
   "contract_ref": {
     "id": "topic_subnode_contract.json",
-    "sha256": "dbae85861a9daa01baf4e57a3bffc8b46b39efa845f56b226869993d390c697a"
+    "sha256": "4a11beadbc0bb36a9c93ff308bf329c2e35edd949b2b32defa1cb14a963dba33"
   },
   "invocation_refs": [
     {
       "id": "topic_observation.json",
-      "sha256": "904ef92096235478e8b872cc468ff4b1f5b0bbffb2847727380c1ab7b2d12d8f"
+      "sha256": "a64cb206dff0e098b42f29615e964ea0115e1ebcfc1135f55251d2cfa6efbc91"
     },
     {
       "id": "topic_verifier_observation.json",
-      "sha256": "663333809f228228ac9e961186dca4d340ceea0c715fcc438ac5abb60cc332d0"
+      "sha256": "4c07a330e66737139e4207889c13bdc7dde1fe76dc7d634ae700c1e009217e52"
     }
   ],
   "policy_ref": {
@@ -25,7 +25,7 @@
   },
   "check_plan_ref": {
     "id": "topic_check_plan.json",
-    "sha256": "13649f567338fe87d0e63453c68e9ea41b250005f5d900089fe1997418f32656"
+    "sha256": "5321dfe22c55bd48599dc088920c5beaa62e770d58425f15d29af9c1f90e039a"
   },
   "input_refs": [
     {
@@ -41,24 +41,24 @@
   ],
   "deterministic_result_ref": {
     "id": "topic_checks.json",
-    "sha256": "28d6f1010993a5f97e2665e052397745465bb16d000bcfaf1fba2f67c2088b6f"
+    "sha256": "3279fc3f42eed43e2fd757c1ff339dd991ad7ef1afa21b9d24d7a47db7827063"
   },
   "assessment_ref": {
     "id": "topic_assessment.json",
-    "sha256": "932634bc326e0be25e3b6578fc2560c0a1b386544fd6df0abbb8fd4891a6c2c8"
+    "sha256": "1172c5685dcf7f1f72ff28b79910bfd5a1aa03f1e2d2d2acae980ff9cff600ff"
   },
   "verdict": "INCONCLUSIVE",
   "reasons": [
     {
       "code": "INTENT_NOT_USABLE",
-      "message": "Clarify research purpose and requested result; do not invoke Requirements",
+      "message": "Output declares needs_clarification with a blocking uncertainty; the gate halts and does not invoke Requirements",
       "criterion_ids": [
-        "requirements_usability"
+        "uncertainty_consistency"
       ],
       "evidence_refs": [
         {
           "id": "topic_assessment.json",
-          "sha256": "932634bc326e0be25e3b6578fc2560c0a1b386544fd6df0abbb8fd4891a6c2c8"
+          "sha256": "1172c5685dcf7f1f72ff28b79910bfd5a1aa03f1e2d2d2acae980ff9cff600ff"
         }
       ]
     }
@@ -67,7 +67,7 @@
   "accepted_refs": [],
   "node_contract_ref": {
     "id": "topic_node_contract.json",
-    "sha256": "4035deca9df1374bdf28ef37c2fd833ea780f4ce5ec0ff93e136ba86a198388f"
+    "sha256": "d0d124cc692f6bba65a68fc09b92f78093deb96f801bb1d7d4fa705c60d847d3"
   },
   "subnode_id": "intention",
   "scope_kind": "subnode",

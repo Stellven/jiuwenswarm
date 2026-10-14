@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "id": "hypothesis_blueprint",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
@@ -7,7 +7,7 @@
   },
   "opportunity_ref": {
     "id": "opportunity_card.json",
-    "sha256": "ec8fcbfc60cb44c5acffab8d3073d2bea70bb4c2b9783c4ddb16337d7ae7635c"
+    "sha256": "7580c65400822b3ab29c964555016ac84dc51505ce74a808ad79d379fab6e004"
   },
   "claim": "Indexing lowers retrieval latency by at least 10% with no answer-quality loss",
   "mechanism": "Avoid repeated lookup work",
@@ -16,6 +16,18 @@
     "latency_ms",
     "quality"
   ],
+  "baseline_identity": {
+    "resource_ref": {
+      "id": "baseline_resource.json",
+      "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+    },
+    "revision": "fixture-v1",
+    "entry_point": "example_baseline.txt"
+  },
+  "validation_resource_ref": {
+    "id": "validation_resource.json",
+    "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+  },
   "resource_refs": [
     {
       "id": "baseline_resource.json",
@@ -35,7 +47,22 @@
       "metric_id": "latency_ms",
       "unit": "ms",
       "measurement": "elapsed retrieval time on frozen data",
+      "direction": "lower_better",
       "aggregation": "median",
+      "target_id": null
+    },
+    {
+      "metric_id": "quality",
+      "unit": "fraction",
+      "measurement": "unchanged approved answer-quality metric",
+      "direction": "higher_better",
+      "aggregation": "mean",
+      "target_id": "target:quality"
+    }
+  ],
+  "outcome_rules": [
+    {
+      "metric_id": "latency_ms",
       "success": {
         "operand": "treatment",
         "comparator": "le",
@@ -50,13 +77,12 @@
         "factor": 1,
         "offset": 0
       },
-      "middle": "INCONCLUSIVE"
+      "middle": "INCONCLUSIVE",
+      "conditional_rule": null,
+      "conditional_meaning": null
     },
     {
       "metric_id": "quality",
-      "unit": "fraction",
-      "measurement": "unchanged approved answer-quality metric",
-      "aggregation": "mean",
       "success": {
         "operand": "treatment",
         "comparator": "ge",
@@ -71,12 +97,26 @@
         "factor": 1,
         "offset": 0
       },
-      "middle": "INCONCLUSIVE"
+      "middle": "INCONCLUSIVE",
+      "conditional_rule": null,
+      "conditional_meaning": null
     }
   ],
   "repeat_count": 3,
   "seed": 42,
-  "implementation_scope": "Only lookup patch; baseline/data/measurement remain immutable",
+  "seed_policy": "fixed_same_for_all_runs",
+  "implementation_scope": {
+    "may_change": [
+      "Bounded index lookup patch in one file"
+    ],
+    "must_not_change": [
+      "baseline",
+      "validation_data",
+      "measurement_functions",
+      "outcome_rules"
+    ],
+    "max_patch_files": 1
+  },
   "constraints": [
     "One GPU",
     "Preserve answer quality"
