@@ -1,51 +1,34 @@
-# Immediate Plan: complete Intention Compiler node
+# Immediate Plan: current core research journey
 
-**Human potential.** Current next build: the whole Intention Compiler, not the earlier Intent Compilation and Verification Slice (formerly TRIAL-1). That smaller assignment is historical and remains preserved in frozen experiment inputs; task/interface identities are not renamed. Use the [Main build entrypoint](builds/intention-compiler/README.md) and [supporting Context](builds/intention-compiler/context.md).
+**Human potential.** The current bounded assignment is the complete journey in [Core build](core-build.md): fixed compiler intent and requirements with verifier gates, accepted Research_Brief.json, protected autonomous planning and freeze, then one bounded scientific path through Delivery. The earlier [complete Intention Compiler build](builds/intention-compiler/README.md) remains a reusable first component and historical calibration boundary. Existing TASK, AC, IF and feature identities, including historical compiler trial names, are not renamed.
 
-## What to build
+## Current route
 
-Qualified local intake, attributed interpretation, accepted Intent IR, compiled requirements, verified `Research_Brief.json` and protected enclosing-node release. Include the governed execution/evidence/control foundations, bundled frontend/service/runtime image, browser inspection and local headless interface. Private implementation details belong to implementers; shared fields and authority do not.
+Build and connect these bounded boundaries in order:
 
-```mermaid
-flowchart TB
-    Input[Qualified intake and protected default policy] --> IC
-    subgraph Node[Intention Compiler node]
-        IC[Intention work subnode: one CC] --> IR[Candidate Intent IR]
-        IR --> D1{Deterministic checks}
-        D1 -->|valid| V1[Intent verifier subnode: assessment only]
-        D1 -->|invalid or unavailable| G1[Protected Intent gate]
-        V1 --> G1
-        G1 -->|committed acceptance| RC[Requirements work subnode: one CC]
-        RC --> B[Candidate Research Brief]
-        B --> D2{Deterministic checks}
-        D2 -->|valid| V2[Requirements verifier subnode: assessment only]
-        D2 -->|invalid or unavailable| G2[Protected Requirements gate]
-        V2 --> G2
-        G2 -->|committed acceptance| NG[Protected node finalization: aggregate evidence]
-        G1 -->|halt| H[Visible halt and retained evidence]
-        G2 -->|halt| H
-        NG -->|durable release| Out[Accepted Research_Brief.json]
-        NG -->|incomplete or persistence failure| H
-    end
-    Out -.-> Consumer[Later static workflow or Phase 3 Leader]
-```
+1. Establish the fixed compiler path: qualified input → candidate Intent → deterministic checks → independent verifier assessment → protected acceptance gate; then requirements → candidate Brief → checks → verifier → protected Brief release.
+2. Feed only the accepted Brief to the fixed core Planner. It chooses downstream admitted CCs, checks and assignment proposals, and emits the proposed workflow as a JSON DAG.
+3. Independently validate required responsibility coverage, typed ports and dependency closure, required checks, resources/limits, effects and absence of cycles. Freeze the accepted graph, exact pins and contracts before dispatch.
+4. Execute one governed Search → Screening → Hypothesis → Builder → Scientific Benchmark → Scientific Evaluation → Delivery path. Hypothesis and protocol are frozen before build; valid scientific negatives remain deliverable.
+
+The explicit static mode remains available as a separate fallback that can run the workflow without autonomous planning. Its acceptance evidence is distinct: static execution does not satisfy the mandatory dynamic planner record for this core assignment. The planner's proposal is never release authority; a failed validation or persistence step halts before dispatch.
 
 ## What acceptance means
 
-Intent IR must preserve meaning and provide a coherent purpose/result usable by Requirements. A topic alone cannot pass merely because omissions are honestly recorded. Missing optional hardware/method/thresholds need not block; permitted defaults are separate attributed decisions. The verifier assesses the submitted IR against original evidence and protected criteria, not a second interpretation.
+The compiler preserves user meaning, authorized defaults, constraints and required outcomes in a usable Brief. Semantic assessment reads original evidence and cannot accept or rewrite the submitted artifact; only committed protected decisions release exact accepted references.
 
-Requirements consumes only accepted Intent and outputs the PRD Research Brief. Its verifier checks preservation, default authority, constraints, output/evidence completeness and downstream usability. Hypothesis later registers experimental criteria. Passing Intent verification is an internal milestone, not compiler completion.
+A planner proposal is only a candidate. Independent checks bind the proposal to the Brief, eligible catalogue snapshot, policy, ports, checks and resource limits. Missing mandatory coverage, incompatible ports, denied effects, unresolved dependencies, excess resources or cycles prevent freeze. After freeze, no live replan or substitution changes the run. Each scientific stage has its own contract, evidence and gate; scientific Evaluation owns the conclusion, while infrastructure gates determine process/artifact admissibility.
 
-Node finalization checks the exact accepted Brief, internal decisions, observed invocations and combined limits without another semantic-review call. Only durable protected release makes the Brief available externally. A failed/no-output invocation, missing finding, stale subject, timeout or failed commit halts and retains real evidence; no fake output reference or automatic repair is permitted.
+## Supporting foundations and boundary
 
-## Minimum supporting system
+Reuse the existing compiler component and governed runtime/evidence foundations where they fit. Retain attribution, immutable artifacts, durable decisions, exact version pins, bounded model access, user-visible halt evidence, and local secured execution. No RSI engine, advanced alternate verifier, alternate route, Generalist, MCTS, composition/fusion or spatiotemporal capability is a core dependency.
 
-Use pinned work/verifier declarations, fixed admitted versions, protected model bridge, independently owned check profiles and node/subnode contracts, immutable artifacts and durable state. Separate bounded work generations and verifier calls share frozen time/call budgets; the baseline does not require one LLM call. Unknown token/cost telemetry is unavailable.
+The optional RSI target is independently buildable when its parent CC handoff, frozen target/referee and protected fixtures are available. It remains outside core startup, imports, coding/tests, platform benchmarks and release gates. Core work does not wait for RSI design or evidence.
 
-The image entrypoint starts the bundled UI/API/runtime; browser access uses loopback port publication. Inspect descriptive `Intent_IR.json`, `Research_Brief.json`, assessments, checking results and decisions, with raw evidence separate. Browser closure does not cancel; restart pauses interrupted work without replay. Headless halts never wait for approval.
+## Scope and proof status
 
-## Build boundary and proof
+This assignment is a design allocation only; every acceptance statement here remains `DESIGN` until implementation and verification evidence demonstrate it. Full M1 PRD coverage remains visible in [coverage allocation](coverage-allocation.md) and is not equivalent to the current core assignment. The exact planner promotion is the explicit D19 amendment in [Principles](principles.md#decisions-and-source-amendments); it is not represented as an unaltered PRD requirement.
 
-Demonstrate a real supported request reaching accepted Brief, then exercise the [component verification matrix](reference/compiler-verification.md). A bounded test consumer validates the released Brief contract, not a research workflow. Planning, Search, Hypothesis, Builder, scientific execution, Delivery, RSI, advanced compiler and sidecar implementation are excluded.
+## Current semantic-review scope
 
-This build contributes Stage 0/1 foundations and the Stage 2 Brief boundary. It does not complete Stage 2's fixed graph initialization or full M1. The entrypoint identifies which shared foundations must be built so “only the compiler” cannot be interpreted as a naked prompt wrapper.
+[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation/admission and December composition.

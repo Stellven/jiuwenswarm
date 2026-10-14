@@ -26,9 +26,13 @@ Read these three documents for M1 responsibilities, authority, placement, phases
 
 **PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
 
+## Assigned build scope
+
+The October 30 demonstration target is the fixed Compiler and Planner, protected validation/freeze, and one bounded research journey through Delivery, using the existing fixed Codex execution route. RSI work and new Model Router integration are excluded from this date’s acceptance criteria; they are not core-path prerequisites. RSI remains independently buildable. This bounded demonstration is distinct from the confirmed PRD’s broader M1 completion gate; see [delivery phases](delivery-phases.md) and [D19](decision-review.md#decisions-and-source-amendments). Generalist, automatic capsule generation, automatic library admission and improved planning/MCTS are November continuation; composition/fusion is December work; spatiotemporal lifecycle is later work. [Core build](core-build.md) and [D19](decision-review.md#decisions-and-source-amendments) define the authorized scope amendment. Broader M1 product coverage is retained and is not a claim of full product completion.
+
 ## Build a specific component
 
-For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `Research_Brief.json`. Accepted Intent IR alone is incomplete.
+For the current bounded research core, read [Core build](core-build.md). The Compiler is its reusable preparation component. For that complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `Research_Brief.json`. Accepted Intent IR alone is incomplete.
 
 ## Human should read: review the affected responsibility
 
@@ -61,7 +65,7 @@ AI4Research turns a supplied research purpose and local assets into a grounded o
 flowchart TB
     User[Browser or supported local client] --> Control[Authenticated control plane]
     Control --> Prep[Intention Compiler node: verified Intent and Research Brief]
-    Prep --> Plan[Static binding or bounded Phase 3 planning]
+    Prep --> Plan[Fixed Planner: bounded CC DAG proposal]
     Plan --> Freeze[Protected plan checking and freeze]
     Freeze --> Runner[Scheduler and governed CC runner]
     Runner --> Work[Research CCs: search to delivery]
@@ -78,7 +82,7 @@ flowchart TB
     Library --> Runner
     RSI[Separate offline RSI: candidate and protected evaluation] --> Admission[Protected admission: inactive eligible candidate]
     Admission --> Library
-    Human[Human activation for future runs] --> Library
+    Human[M1 human activation; M2 protected auto-eligibility] --> Library
 ```
 
 Preparation and planning use the same checking pattern shown for research. The runtime feedback edge represents dependency release, not a cyclic research graph. RSI runs outside live research. Its scores cannot release product work or activate a candidate.
@@ -88,10 +92,10 @@ Preparation and planning use the same checking pattern shown for research. The r
 | Component | Owns | Connects to |
 |---|---|---|
 | Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs. Checking consumes outputs. |
-| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Protected review context is input. Assessment goes to the host. |
-| Protected binder | Concrete contracts, typed bindings and independent check assignments | Accepted requirements, admitted pins, policy, evidence and durable state |
+| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Semantic input is declaration plus exact output only (D20). Assessment content goes to the host. |
+| Protected binder | Concrete contracts, typed bindings and independent check assignments combining pinned per-CC bundles with run obligations | Accepted requirements, admitted CC/bundle pins, policy, evidence and durable state |
 | Protected gate | Checked decision and durable acceptance. No release before commit. | Exact contract, subject, evidence and assessment |
-| Protected library admission | Inactive candidate eligibility and standing history | Declaration, body and provenance. Independent evaluation. Human activation. |
+| Protected library admission | Exact CC-version/check-bundle association, candidate eligibility and standing history | Declaration, body, bundle compatibility and independent evidence. M1 begins from an explicit bootstrap catalog with shared bundle pins; this is not capsule-specific admission evidence. New/changed versions require governed admission once implemented. Human standing controls activation; D21 M2 automatic admission may establish future-plan eligibility. |
 | Scheduler/runner | Eligible dispatch, scoped execution, budgets and observed evidence | Frozen contracts, CCs, model bridge and restricted experiment executor |
 | Control plane | Authenticated submission, inspection and visible results/blockers | Browser/CLI/TUI and server-owned run state |
 | Offline RSI | Bounded implementation improvement and comparable evidence | Protected target profile, isolated runner/referee and inactive library candidates |
@@ -100,7 +104,7 @@ CC authors produce work or assessments. Protected infrastructure releases accept
 
 ## Deployment and scope
 
-One workflow application container bundles the frontend, web/control service and runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`. The image entrypoint starts the application, so no external UI helper is required. Internal model access is protected. Generated scientific code has a separate confinement boundary. The optional [development sidecar](development-tools/sidecar/README.md) is an ordinary authenticated client on the private container network. It is outside product agents and M1 delivery dependencies.
+One workflow application container bundles the frontend, web/control service and runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`. The image entrypoint starts the application, so no external UI helper is required. Internal model access is protected. Generated scientific code has a separate confinement boundary. The optional development sidecar is an ordinary authenticated client on the private container network. It is outside product agents and M1 delivery dependencies.
 
 Full M1 includes:
 

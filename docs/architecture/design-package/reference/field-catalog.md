@@ -92,7 +92,7 @@
 | `node_template_refs` | `Ref[]` | Pinned node templates |
 | `policy_ref` | `Ref` | Effective policy |
 | `configuration_ref` | `Ref` | Frozen run configuration |
-| `library_snapshot_ref` | `Ref` | Pinned eligible versions |
+| `library_snapshot_ref` | `Ref` | Pinned eligible CC versions and their exact check-bundle associations |
 | `limits` | `Limits` | Aggregate limits |
 
 **Invalid/missing behavior:** Missing commit/pins/compatibility blocks dispatch; template future values are not observed artifacts.
@@ -109,13 +109,13 @@
 | `input_refs` | `Ref[]` | Exact bound inputs |
 | `profile_ref` | `Ref` | Independently owned guard profile |
 | `policy_ref` | `Ref` | Frozen policy |
-| `mandatory_deterministic` | `string[]` | Unique mandatory check IDs |
+| `mandatory_deterministic` | `string[]` | Unique required IDs from each pinned CC bundle plus contract, profile and policy checks |
 | `mandatory_semantic` | `string[]` | Unique mandatory criterion IDs |
-| `runner_refs` | `Ref[]` | Pinned check and verifier implementations |
+| `runner_refs` | `Ref[]` | Pinned check/verifier implementations and exact CC check-bundle associations |
 | `node_contract_ref` | `Ref` | Owning enclosing Node Execution Contract |
 | `subnode_id` | `nullable-string` | Subject/producing subnode; null for node aggregate records |
 
-**Invalid/missing behavior:** Reject missing assignments, mutable runner identities or hash cycles. Producer suggestions cannot replace mandatory criteria.
+**Invalid/missing behavior:** Reject missing CC/bundle associations, unsupported compatibility, missing assignments, mutable runner identities or hash cycles. Producer suggestions cannot replace mandatory criteria. Existing field shapes remain unchanged here; the owning implementation agreement specifies serialization.
 
 ### node-execution-contract
 
@@ -670,12 +670,12 @@
 | `id` | `string` | Immutable record identity |
 | `candidate_ref` | `Ref` | Exact declaration/body package |
 | `parent_ref` | `nullable-Ref` | Lineage |
-| `evidence_refs` | `Ref[]` | Independent allowed-change/contract/test/effect checks |
+| `evidence_refs` | `Ref[]` | Independent allowed-change/contract/test/effect checks and compatible mandatory check-bundle association |
 | `status` | `string` | admitted/rejected/blocked |
 | `standing` | `string` | inactive/active/suspended/revoked |
 | `reasons` | `string[]` | Disposition rationale |
 
-**Invalid/missing behavior:** Only protected admission authors standing. RSI score or producer declaration grants no eligibility.
+**Invalid/missing behavior:** Only protected admission authors standing and records the exact CC/check-bundle association. RSI score or producer declaration grants no eligibility. M1 initial availability is an explicit bootstrap set with pinned shared bundles, not capsule-specific admission evidence; new or changed versions require the governed protected gate once implemented. D21 M2 automatic admission may make a passing RSI version future-plan eligible only after validating a pre-approved compatible bundle.
 
 ### activation-record
 

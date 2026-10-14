@@ -4,11 +4,13 @@
 
 ## Establish intent before planning
 
+**Core build scope:** the fixed Compiler Intent + Requirement sequence and their required independent gates produce an accepted `Research_Brief`; this preparation is mandatory in the core. The admitted planner then proposes a bounded JSON DAG of downstream CCs with objective coverage, typed ports, dependencies and any additional checks. The protected binder independently selects mandatory profiles, validates coverage, ports, dependencies, cycles, permissions and resource feasibility, assigns required checks, and freezes the complete graph before research dispatch. A failed planner or invalid proposal halts at the applicable gate; there is no silent switch to the static runner. The retained fixed SwarmFlow runner is a supported explicit fallback run mode, selected before execution. The real governed journey remains Search → Screen → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery. See [core build](core-build.md) for scope reconciliation and recorded PRD deviations (D19).
+
 **Required now.** Ordinary intake binds the original request and permitted documents, project assets, and validation data to a run. Reject empty or unreadable required input. Do not fetch undeclared datasets, clone arbitrary repositories, or turn missing evidence into observed facts.
 
 ## Planner choice and limits
 
-**Delivery Phase 1 required baseline:** bind the hardcoded sequential SwarmFlow research graph and its admitted versions without autonomous planning. Check and freeze its contracts exactly as for any graph. It remains an operational fallback, not merely a comparison fixture.
+**Supported explicit fallback mode:** bind the hardcoded sequential SwarmFlow research graph and its admitted versions without autonomous planning. Check and freeze its contracts exactly as for any graph. This mode is selected before execution; planner failure never switches to it silently.
 
 ## Freeze and unknown future values
 
@@ -24,15 +26,17 @@ Use the [failure and human-callback policy](failure-and-human.md) as the single 
 
 ## Concrete execution boundary
 
+The [core build scope](core-build.md) records the authorized promotion of fixed compilation plus protected planning into the core and the best-effort PRD deviations (D19).
+
 Protected binding creates the enclosing node contract and exact [Subnode Execution Contract](reference/node-execution.md) before dispatch. Participating bindings name admitted declaration/body/dependency pins, role, effective authority and per-call limits; parent node limits bound their aggregate; concrete subnode limits narrow each assignment. Inputs carry named typed ports and exact refs, outputs name catalog contracts/versions and evidence obligations. The guard profile is pinned in the contract; the bound check plan references that finalized contract without a hash cycle. Missing input or unsupported authority blocks dispatch, never becomes a placeholder observed artifact.
 
 ## Connected behavior summary
 
 Preparation is a protected fixed sequence before the research DAG exists. preparation nodes and their work/verifier subnodes receive distinct node/subnode/attempt identity, admitted pins, input references and budgets through the same runner. No circular dependency on the plan being built.
 
-Phase 1 statically injects accepted Brief parameters into the fixed SwarmFlow sequence. Phase 3 Leader/Team proposes bounded work and compatible admitted CCs; preliminary self-review cannot release a plan. Protected binder assigns contracts/checks independently, verifies requirement coverage, dependencies/typed ports, permitted effects, resource feasibility and acyclicity, then freezes the graph. No match blocks; no invented or installed CC.
+Core preparation compiles fixed Intent + Requirement with required gates to a host-accepted Brief. The planner proposes a bounded JSON DAG of admitted downstream CCs; each must have an explicit compatible check-bundle association. Its semantic review receives only declaration plus exact output and cannot check Brief coverage. The protected binder independently assigns mandatory profiles, combines each pinned CC bundle with contract/policy checks, verifies mechanically available objective coverage, typed ports, dependencies, cycles, effects and known resource feasibility, then freezes exact CC/bundle pins before dispatch. No match or missing bundle blocks; no invented or installed CC. Record reduced semantic assurance and the PRD §4.2 departure. The static SwarmFlow path remains a separately selected explicit fallback mode.
 
-Freeze exact library/dependency/guard/profile/policy/config pins and templates. Future values remain typed `{producer_node,port,type/version}` references until accepted; protected assembly finalizes concrete contracts before dispatch. Known-false preconditions block planning, value-dependent ones block dispatch when false. Suspension/revocation can block a pinned capability at start/release, but cannot replace it silently.
+Freeze exact library/dependency/CC-bundle/guard/profile/policy/config pins and templates. Future values remain typed `{producer_node,port,type/version}` references until accepted; protected assembly finalizes concrete contracts before dispatch. Known-false preconditions block planning, value-dependent ones block dispatch when false. Suspension/revocation can block a pinned capability at start/release, but cannot replace it silently.
 
 M1 uses one work CC per subnode; additional work CCs use separate gated subnodes within their declared node, and verifiers remain separate checking assignments. Composite CC execution, arbitrary intra-capsule dispatch and merging remain later work; fixed node subnodes are supported. Protected aggregate node acceptance releases successors. Scheduler uses durable readiness; native memory/cache/queue is not acceptance. Single active research run and one sequential scientific path; no automatic repair, replay, replan or runtime library substitution.
 

@@ -27,3 +27,21 @@ Use the [Intention Compiler Main entrypoint](../../architecture/design-package/b
 ## October 13 source and routing integration
 
 Current PRD is the confirmed PRD (4). Use the [shared routing integration](../../architecture/design-package/reference/capsule-model-routing.md) and separate routing-owner component. Coding registration remains pending. The implementation owner registers the binder/router/bridge IF agreement once under the live SOP, retaining occupied task/AC/IF identities. This documentation revision allocates no implementation or runtime acceptance.
+
+## Current core assignment under D19
+
+The [Core build](../../architecture/design-package/core-build.md) is the current implementation allocation source. Use the received PRD and recorded D19 amendment together; do not let the earlier compiler-only register or original phase allocation silently override it. Keep complete compiler preflight evidence separate from core research acceptance.
+
+| Responsibility | Implementation ownership | Source and dependency |
+|---|---|---|
+| Compiler reuse/reconciliation | CC owner with Verification lead | Existing compiler candidate and current Intent/Brief/checking contracts |
+| Planner/binding/freeze | CC owner and Architecture owner | Accepted Brief, admitted declarations, independent checking profiles and supplied resources |
+| Governed research integration | Component owners with CC owner | Frozen graph, released predecessor outputs and registered experiment resources |
+| Platform benchmark evidence | Benchmark lead with Verification lead | Independently expected cases and actual connected runtime evidence |
+| Independent RSI | RSI owner; CC owner supplies pinned parent | One-way CC export dependency; no core import/startup/test/acceptance dependency |
+
+Registration remains pending: reconcile occupied TASK/AC/IF identities before generating native records, then record source allocations and interface ownership once. This revision registers no new implementation IDs or runtime PASS. Preserve original M0/compiler histories and frozen receipts. Producer and consumer owners recheck affected evidence after contract changes.
+
+## October 14 checking and continuation amendments
+
+Read the maintained design decisions D20 and D21 with the PRD and D19. D20 limits the semantic model payload to the pinned declaration and exact output; host/deterministic checks retain required input/runtime records. The compiler trial's worker-data copying is not the intended semantic interface. Preserve the explicitly reduced fidelity/source assurance and reconcile affected native evidence. D21 allocates November Generalist, automatic generation, automatic admission with future-plan eligibility and planner/MCTS increments; composition/fusion is December. M1 human activation remains unchanged. No running DAG changes its pins. Architecture freeze requires an available aligned PRD; unresolved product conflicts remain open. These documentation changes create no new TASK/AC/IF identities or runtime PASS.

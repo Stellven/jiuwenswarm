@@ -4,13 +4,13 @@
 
 ## Lifecycle
 
-1. **Declare.** State purpose, kind, typed ports, preconditions, dependencies, effects, guarantees, checks, and applicable limits. Keep objectives, node IDs, permissions, verifier assignment, and run policy outside.
+1. **Declare.** State purpose, kind, typed ports, preconditions, dependencies, effects, guarantees, candidate checks, and applicable limits. Keep objectives, node IDs, permissions, verifier assignment, and run policy outside. Declared checks do not define the mandatory bundle.
 2. **Choose form.** A leaf points to implementation by locator and hash. Composite creation/execution and merging remain later work; do not author them for M1.
 3. **Build.** Keep code separate and pin covered files. Preserve the declaration's meaning. An M1 subnode binds one admitted CC under its Subnode Execution Contract. Additional work CCs use separate gated subnodes within their declared node; verifier invocations remain separate checking assignments. A CC assesses; the gate decides and releases.
-4. **Verify.** Run applicable tests and characterization checks; retain outputs, check results, and evidence references against the exact declaration and implementation hashes. A passing self-test alone is not admission.
-5. **Admit.** A trusted path checks declaration, hashes, dependencies, and effects. M1 runs deterministic checks before an independent verifier reviews the evidence. The gate host records the decision; unsupported obligations block admission or binding. Protected admission configuration owns the concrete policy.
-6. **Publish.** Store an immutable version with references, hashes, and admission record. New versions do not change existing runs.
-7. **Activate.** A human-controlled pointer selects admitted versions for future plans. RSI candidates remain inactive until admission and human activation. Reversion changes the pointer, not prior records.
+4. **Verify.** Run applicable tests and characterization checks; retain outputs, check results, and evidence references against exact declaration/implementation hashes. A passing self-test is not admission or approval of mandatory checks.
+5. **Prepare mandatory checks.** An independent check maintainer authors and versions the deterministic bundle and records its exact CC compatibility. The CC author cannot approve or alter it. Contract/policy checks are added separately at protected binding.
+6. **Admit.** M1 initial use is limited to the explicitly recorded bootstrap set with its pinned shared bundle; this does not constitute capsule-specific admission evidence. New or changed versions require the governed protected admission gate once available. Under D21, M2 protected automatic admission may admit a passing RSI-produced version only when a pre-approved compatibility association uniquely covers that exact candidate version; the candidate cannot choose or alter its bundle, and missing or ambiguous coverage blocks admission. Unsupported checks block admission or binding. Eligibility applies to future plans only and never changes frozen pins.
+7. **Publish and select.** Store immutable CC/bundle versions, association and admission record. M1 uses human activation; M2 automatic eligibility never changes frozen pins. Reversion affects future selection only.
 
 ## Authoring rules
 

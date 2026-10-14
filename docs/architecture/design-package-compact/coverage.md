@@ -2,13 +2,17 @@
 
 **Reading level: AI reference; design audit.** This is the single maintained design-review account, not a coding handoff or runtime acceptance report. The first human route is [README](README.md); details and contracts are linked underneath it.
 
-Current October 8 results are recorded in the final contract/reading review section. Earlier counts describe dated snapshots.
+October 8 contract and reading results and later source-adoption checks are retained as dated records. Earlier counts describe their named snapshots; this document does not claim runtime acceptance.
+
+## Current scope and status
+
+This package records design coverage only. `PASS` in a dated documentation-check log means that check passed on its named documentation input; it is not runtime acceptance. The current bounded assignment is [Core build](core-build.md), with D19 planner amendment; full M1 source coverage remains visible independently in [coverage allocation](coverage-allocation.md). Optional RSI is not a core dependency.
 
 ## Baseline and source differences
 
 The prior package, including local edits and the interrupted reference draft, was copied byte-for-byte to `architecture-checks-2026-10-07/three-tier-before` outside the repository; every copy hash was verified. The interrupted broad reference draft had 60 contracts and 178 example/context records. It is superseded by six critical schemas plus shared definitions and concise field contracts for other major boundaries.
 
-The current received PRD is the unchanged October 7 download. Differences from the previous receipt include §1.10 change classification/canonical synchronization, §1.11 US01–US20, §6.2.1 verification governance and §6.2.2 incremental implementation. Product changes additionally require explicit intake/default/readiness outcomes, measured baseline/treatment/delta, scientific rationale, report consistency, read-only inspection and visible lifecycle results. Output conformance now references Node Execution Contract plus applicable CC declarations. Architecture dispositions appear in the coverage below; development governance remains outside the design package.
+At the October 7 baseline review, the received PRD was the unchanged October 7 download, with differences from its prior receipt including §1.10 change classification/canonical synchronization, §1.11 US01–US20, §6.2.1 verification governance and §6.2.2 incremental implementation. The current confirmed source is the October 13 receipt in [product source identity](sources/product/README.md). Its clauses retain full M1 coverage, while D19 separately amends the current core assignment. Architecture dispositions appear in the coverage below; development governance remains outside this design package.
 
 ## Observed Intent outputs
 
@@ -18,7 +22,7 @@ The current received PRD is the unchanged October 7 download. Differences from t
 
 ## PRD and user-story responsibility map
 
-The [clause index](coverage-allocation.md) maps every current numbered heading. The table below checks the specific user-visible journey without repeating the PRD stories. Each is realized within Phase 1; Phase 2 RSI and Phase 3 efforts remain separately covered by [phase details](phase-details.md).
+The [clause index](coverage-allocation.md) maps every current numbered PRD heading, while this table checks product-story coverage. Neither mapping assigns every M1 obligation to the current D19 core assignment or establishes implementation status. RSI Phase 2 and other PRD capabilities remain separately covered by [phase details](phase-details.md). The D19 planner promotion is an authorized design amendment, not a claim that the original PRD specified this bounded core assignment.
 
 | Story | Specific source | Architectural realization | Owner document |
 |---|---|---|---|
@@ -112,11 +116,11 @@ Review method: [design method](design-method.md). The pre-review 151-file checkp
 | §§3.6–3.7, 4.9 | Bounded scripts and bundle, no build-time scientific trial/install, restricted provisioning and matched baseline/treatment | Placement clarifies archive containment, direct/transitive pins, protected provisioning versus generated-code restrictions, immutable baseline and same-host worker. No generated Docker orchestration |
 | §§3.8–3.9 | Logs-to-metric validity, frozen criteria/rationale, four scientific classifications, consistent template report and local package | Research/Evaluation/Delivery obligations; trusted hash capture is outside scientific evaluator, which does not invent a crypto provenance service. No post-result criteria, rerun or publication |
 | §§4.1–4.2 | CC/node/contract distinction, declaration/provenance/admission, per-invocation and aggregate evidence, deterministic-first/read-only semantic checking | Capsules, guard, checking contracts and component obligations. Mandatory unknown/malformed/stale/effect evidence cannot advance; human standing and version history remain protected |
-| §§4.4, 6.11 | Required bounded Target 1, conditional Target 2, split custody/query limits/referee/calibration/adversarial evidence, human activation | Offline RSI and reference records; live ranking unchanged. Demonstrate admission/activation through eligible sandbox standing, not automatic production replacement |
+| §§4.4, 6.11 | Full-PRD bounded Target 1, conditional Target 2, split custody/query limits/referee/calibration/adversarial evidence, human activation | Offline RSI and reference records preserve full source coverage. Target 1 is optional and independent of current core startup, coding/tests, platform benchmarks and release; live ranking remains unchanged |
 | §§4.5–4.6 | Agent memory distinct from Run Bundle, effective state/observations, scorecards/exports, dispatch/timeouts/durable gates/headless halt | State/evidence and runtime obligations. D6 SQLite authority plus portable append-only evidence retained; no broker, automatic replay or distributed scheduler |
 | §§5.1–5.3, 5.5 | Native run-tree/CLI/Web/TUI, install/doctor, artifacts/report, tmux and stable headless completion | Operational shell/inspection; supported POSIX workstation and Linux container prerequisites; browser disconnect not cancellation; no native desktop binaries/custom workflow editor |
 | §§5.4, 5.6 | Stable account separate from OS/workspace, protected token/local access, fixture/POC isolation, scoped deletion, frozen precedence/limits/evaluation | Placement/client/inspection obligations. Private authenticated container access is D6; no LAN/public model bridge, false token accounting or end-user control bypass |
-| §§1.10–1.11, 6.1–6.14 | Canonical change discipline, US01–20, stage exits/failure tests/reports, all expected dynamic efforts | Phase details, coverage and design-method change propagation; native records own concrete implementation evidence. Every applicable Phase 3 effort accounted; core demonstration differs from complete accounting |
+| §§1.10–1.11, 6.1–6.14 | Canonical change discipline, US01–20, stage exits/failure tests/reports, broader M1 dynamic-scope traceability | Phase details, coverage and design-method change propagation; native records own concrete implementation evidence. Full M1 product coverage remains separately accounted; D19 current core assignment differs from complete M1 accounting |
 
 ### Repairs and source distinctions
 
@@ -268,3 +272,7 @@ The complete Intention Compiler now ends at protected release of `Research_Brief
 - Immediate routes: **3,388 full / 2,842 compact words**. The same 20 explanatory files: **25,066 / 15,961**, **36.32% reduction**. Identical contracts, principles, decisions and build entrypoints are retained. This is an explanatory-word measurement, not total input-token savings or a performance result.
 
 Human review remains required for D5's bounded multi-pass departure, node/subnode authority/aggregate limits, the normalized Brief/default semantics and the complete build boundary. These are selected decisions with rationale in R11, not unresolved architectural placeholders. Documentation checks do not prove semantic model quality, operational authentication/confinement, transactional release or empirical results. No runtime implementation, paired agent trial, commit or push is included. Historical independent-review conclusions above apply to their earlier inputs; this revision received author and mechanical review, not a new independent review.
+
+## Current semantic-review scope
+
+[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation/admission and December composition.

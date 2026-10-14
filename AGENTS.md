@@ -23,7 +23,7 @@ The PRD owns overall product requirements and outcomes. The maintained design in
 
 For M1 work, read only `docs/architecture/design-package/` as maintained product/design input, starting with its overview and decisions plus the separately supplied PRD, then the assigned slice. The package contains architecture, CC sources, phase boundaries and vocabulary. Superseded architecture is retained only as pinned Git history listed in the package; do not scan historical versions during routine build preparation or infer current requirements from them.
 
-The current bounded build is the complete Intention Compiler node through accepted Research Brief, including required foundations. The earlier Intent Compilation and Verification Slice (formerly TRIAL-1) remains historical in frozen inputs. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
+The current assigned core is defined in `docs/architecture/design-package/core-build.md`: the fixed Compiler and bounded Planner, protected freeze and one governed research journey. The complete Intention Compiler remains its reusable preparation component; RSI is independently buildable and is not a core prerequisite. The earlier Intent Compilation and Verification Slice (formerly TRIAL-1) remains historical in frozen inputs. Display-name changes do not rename TASK, AC, IF or feature identities. Coding agents register or reconcile coding records under the live SOP from this package; older records cannot override its PRD and decisions. The M1 register records current registration status.
 
 Local Obsidian-compatible working notes may live in `docs/architecture/notes/`, which is Git-ignored and excluded from main delivery. Notes retain context and open ideas, not implementation authority; promote material architecture decisions into the maintained design. Keep personal pane/session state local while retaining shared vault settings.
 
@@ -50,3 +50,7 @@ A feature request permits necessary functional changes; the older test-ID-only i
 
 ## Legacy evidence
 Existing task histories and application tests are preserved. New v2 tasks do not require legacy authorization/review cards or completion of unfinished legacy tasks. Do not rewrite past run results when referencing them.
+
+## October 14 checking and continuation amendments
+
+Read the maintained design decisions D20 and D21 with the PRD and D19. D20 limits the semantic model payload to the pinned declaration and exact output; host/deterministic checks retain required input/runtime records. The compiler trial's worker-data copying is not the intended semantic interface. Preserve the explicitly reduced fidelity/source assurance and reconcile affected native evidence. D21 allocates November Generalist, automatic generation, automatic admission with future-plan eligibility and planner/MCTS increments; composition/fusion is December. M1 human activation remains unchanged. No running DAG changes its pins. Architecture freeze requires an available aligned PRD; unresolved product conflicts remain open. These documentation changes create no new TASK/AC/IF identities or runtime PASS.

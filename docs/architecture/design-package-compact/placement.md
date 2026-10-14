@@ -4,7 +4,7 @@
 
 ## Deployment and boundaries
 
-**Required now.** Use one authorized local execution host with Python services, the existing TypeScript web UI, SQLite authoritative run state and filesystem artifacts. Product identity is user-scoped, distinct from the local OS account; durable account/profile state survives run/workspace deletion. M1 keeps one active authorized execution context, without enterprise multi-tenant administration. Keep internal modules distinct without making them separate services. One container may contain several native processes.
+**Required now.** Use one authorized local execution host with Python services, the existing TypeScript web UI, SQLite authoritative run state and filesystem artifacts. Product identity is user-scoped, distinct from the local OS account; durable account/profile state survives run/workspace deletion. M1 keeps one active authorized execution context, without enterprise multi-tenant administration. Keep internal modules distinct without making them separate services. One container may contain several native processes. D19 core execution uses the core planner after accepted Brief; the retained static SwarmFlow path is an explicit preselected fallback. See [core build](core-build.md).
 
 ## Data foundation
 
@@ -40,7 +40,7 @@ One authorized local host; one application image bundles frontend assets, same-o
 
 Private sidecar/benchmarker uses application service DNS/container port, compatibility/readiness handshake and separately scoped credentials. It cannot mount state/fixtures or control gate policy. Optional tooling is not an M1 prerequisite.
 
-Package approved Codex CLI/bridge inside the Linux application image; operator provisions existing subscription authentication through protected configuration. Use owned Unix-domain IPC and ephemeral credential, not adapter TCP or a broad host home mount. Native supported workstation uses equivalent protected IPC. Missing subscription/runtime/device blocks execution; no silent host proxy/mock fallback. Provider credentials, gate state and hidden data are inaccessible to POC code.
+Package approved Codex CLI/bridge inside the Linux application image; operator provisions existing subscription authentication through protected configuration. The fixed Codex route under schema 1.0.0 is core compatibility behavior. API routing is an optional isolated target; alternate-verifier study is excluded from core and cannot alter verifier policy. Routing/call failure does not automatically replay work through another model or runner. Use owned Unix-domain IPC and ephemeral credential, not adapter TCP or a broad host home mount. Native supported workstation uses equivalent protected IPC. Missing subscription/runtime/device blocks execution; no silent host proxy/mock fallback. Provider credentials, gate state and hidden data are inaccessible to POC code.
 
 Persist SQLite lifecycle, immutable files/evidence and account/profile state separately from replaceable image/workspace. Hidden RSI store has separate custody. Account defaults → local machine → project overrides resolve before run freeze; no override widens policy. Native memory holds compact reasoning references. Files/decision must persist before release; orphans grant none. Browser disconnect preserves execution; restart pauses without replay.
 
@@ -51,3 +51,7 @@ Trusted provisioning rejects archive traversal/links/undeclared files and unreso
 Verify startup without UI helper, same-origin access, denied LAN/unauthenticated access, persistent inspection after recreation, denied secret/control/fixture/network access and IPC readiness. Exact OS/container mechanisms belong to implementation specifications. Optional cloud profile persistence is not a cloud research-data/worker service.
 
 Startup enables lossless trajectory capture, required trace retention and sandbox activity logs; boot checks deny restricted identity access to hidden fixtures. Native one-time local browser token bootstrap stays out of logs/exports; private clients use separately scoped credentials.
+
+## Current semantic-review scope
+
+[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation/admission and December composition.

@@ -86,24 +86,25 @@
 
 | ID | Current decision | Source disposition |
 |---|---|---|
-| D1 | Static Phase 1 baseline; bounded direct admitted CC planning in Phase 3 | §§1.3, 4.8, 6.5, 6.12; no live restructuring |
+| D1 | Original full-product phase allocation: static Phase 1; bounded planning later. Assigned core amended by D19 | §§1.3, 4.8, 6.5, 6.12; no live restructuring |
 | D2 | Deterministic checks, independent verifier, protected gate | §§1.4, 4.2; replaces optional semantic checking |
 | D3 | Protected host owns release; freeze referee assets | §§4.1.5, 4.2.8, 4.4.5 |
 | D4 | No automatic repair/replay; blocking outcomes halt | §§1.4, 4.6.4; human correction is new linked work |
 | D5 | Separate bounded generative Intent and Requirements CCs, each checked | **Aligned with PRD (4)** §§3.2/4.7: architecture defines internal bounded, non-interactive sequencing. The earlier single-generation exception is historical. Freeze combined budgets |
 | D6 | One Docker app, Python/TypeScript, SQLite state and artifact files | **Authorized local realization/exception** to source container/native-only and persistence assumptions in §§4.1.4, 4.5, 5.1, 5.2, 5.4. Generated-code confinement remains separately required |
 | D7 | Preserve CC concepts with one reconciled current machine contract | §4.1; historical sources are provenance, not competing serialization authorities |
-| D8 | Required offline RSI in Phase 2; interfaces precede planner completion | §§1.3, 4.4, 6.11; immediate slice excludes execution |
+| D8 | Full-product Phase 2 offline RSI; assigned core makes it independently buildable/non-blocking under D19 | §§1.3, 4.4, 6.11; immediate slice excludes execution |
 | D9 | Mandatory evidence fails closed; optional telemetry can be unavailable | §§1.4, 4.2, 4.5, 6.4 |
 | D10 | Verifier assesses; gate decides; control plane shows halt/triage | §§4.2, 4.3.4, 4.6.4, 5.3; headless never waits |
 | D11 | Optional benchmarker uses ordinary scoped client boundary | §§5.3.1, 5.6.5; no privileged product control |
 | D12 | Durable product identity/profile separate from local execution host | §§1.1, 2.3, 5.4; optional cloud profile storage grants no remote execution |
 | D13 | Node objective/contract differs from CC invocation | §§1.4, 4.1, 4.2; per-call checking plus node aggregate acceptance |
-| D14 | Account for all stages/phases and applicable Phase 3 efforts | §§1.3, 6.12, 6.14; preliminary Leader checks never replace plan acceptance |
+| D14 | Account for broader product stages/phases; D19 separates assigned core acceptance from later efforts | §§1.3, 6.12, 6.14; preliminary Leader checks never replace plan acceptance |
 | D15 | Independent guard profiles and output-led evidence review | §§1.4, 4.1, 4.2, 5.4; review is assessment, not replacement authorship |
 | D16 | Three reading levels; critical schemas and other major field contracts | §§1.7, 6.13 and October 7 user direction; replaces agent-owned competing wire shapes |
 | D17 | Intent acceptance requires fidelity **and** usefulness to Requirements | §§3.2.1, 4.7.3, 4.2; topic-only extraction with material missing purpose/result blocks |
 | D18 | Readable IRs, decisions and views; raw evidence separate | §§5.1.2, 5.3.1, US05–US17; no mandatory opaque binary decoding |
+| D19 | User-authorized bounded Planner in assigned core; static mode retained; RSI independently buildable and non-blocking; continuation separated | Changes current allocation relative to §§1.3, 4.8, 6.11–6.14; preserves §4.2 checks and exact frozen dispatch. [Core build](core-build.md) governs the assignment; D1/D8/D14 remain original full-product phase context |
 
 ## Human review priorities
 
@@ -166,3 +167,19 @@ Research Brief 2.0 adds qualified-intake/context/input bindings, fixed research 
 ## R12 — Routing-owner integration and PRD adoption
 
 The user confirmed preservation of the Codex Phase 1 baseline, Phase 3 placement of the API router and adoption of PRD (4). Keep one shared Capsule–routing contract, separate routing-owner algorithm/catalog documents, unchanged declaration 1.0.0 and independently owned checking. The router consumes an upstream-selected Capsule; a frozen decision selects its model only. This avoids duplicating binding/permission/gate authority. Raw owner sources and earlier trial inputs remain immutable. D5 is now source-aligned; D6 remains the documented packaging departure. Unknown registry quality, missing dossiers and unqualified endpoints remain disclosed; documentation does not establish runtime acceptance.
+
+
+## D19
+
+The current core assignment is an authorized delivery-scope amendment, not a rewrite of the received PRD. It promotes bounded pre-dispatch planning, retains an explicitly selected static baseline and keeps RSI independently buildable and non-blocking. Original D1/D8/D14 allocations remain broader-product context. [Core build](core-build.md) owns the selected behavior and acceptance boundaries.
+
+## D20
+
+**Authorized semantic-review scope change.** Give the LLM reviewer the pinned declaration and exact worker output only; retain input/runtime evidence in protected deterministic/host processing. Do not replay worker input or conversation under another field name. This changes the relevant-upstream-context expectation in PRD §4.2.1 and earlier verification interpretations. Output-contract/internal-consistency review cannot establish request fidelity or independently verify sources. The received PRD is unchanged; record the departure and limited assurance in native implementation acceptance.
+
+## D21
+
+**Authorized continuation allocation and promotion change.** Generalist, automatic generation linked with offline RSI, automatic admission with future-plan eligibility, and planner/MCTS improvements are November increments. M1 retains its human-activation policy; M2 protected admission may make a passing version eligible automatically. Proposers cannot activate themselves, broaden authority or alter running DAGs. Composition/fusion is December. Reconcile the continuation PRD and record unresolved conflicts before its conditional architecture freeze.
+## D22
+
+**October 30 demonstration scope.** The presentation gate targets the bounded Compiler → Planner → selected downstream CCs → Delivery journey over the existing fixed Codex route, with benchmark evidence. RSI work and new Model Router integration are excluded from that date’s acceptance criteria and cannot block the demonstration. This is a coordination/schedule boundary, not a revision to the received PRD or a claim that the PRD’s full M1 completion gate is satisfied. Preserve full source obligations in the coverage maps and report this bounded result accurately.

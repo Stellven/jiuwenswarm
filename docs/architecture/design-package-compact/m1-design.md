@@ -40,7 +40,7 @@ Search → Screening → Hypothesis → Builder → Benchmark → Scientific Eva
 
 ## Execution and model routing
 
-Each execution subnode binds one CC. The enclosing node contains its bounded work/verifier structure. Additional work CCs use separate gated subnodes within their declared node. Verifier invocations remain separately governed checking assignments. Composite/merged CCs and arbitrary capsule member graphs remain later work.
+Each execution subnode binds one admitted CC version and its exact associated deterministic check-bundle version. The enclosing node contains its bounded work/verifier structure; protected binding adds applicable contract and policy checks. Additional work CCs use separate gated subnodes within their declared node. Verifier invocations remain separately governed checking assignments. Composite/merged CCs and arbitrary capsule member graphs remain later work.
 
 ```mermaid
 flowchart LR
@@ -76,30 +76,13 @@ The application image contains the frontend, same-origin web/control API and wor
 
 SQLite owns durable lifecycle/release state. Immutable files retain artifacts and observations. Account/profile state survives run/workspace deletion. Readable views come from the same records. Restart pauses without replay, and saved inspection never executes work.
 
-## Full M1 and the next build
+## Full product coverage and assigned core
 
-| Delivery phase | Required architecture and exit meaning |
+| Scope | Build and acceptance meaning |
 |---|---|
-| Phase 1: baseline, Stages 0–7 | Governed foundation. Qualified request → accepted Brief → static bound research graph. Includes search, screening, hypothesis, POC, matched measurements, scientific verdict/report, persistence, evidence and native workstation clients. Exit requires real connected work and failure handling. |
-| Phase 2: Stage 8 RSI | Independent bounded Target 1 mutation, evaluation and evidence with a frozen referee and security. The sandbox candidate stays outside production. Target 2 depends on bounded model execution. |
-| Phase 3: integration | Attempt every applicable advanced compiler, Team/Cluster planning, dynamic discovery/binding, heterogeneous routing, alternate verifier and Code Mode effort. Preserve the baseline. Mark results as validated, blocked or incomplete. |
+| Assigned core | Fixed Compiler → bounded Planner proposal → independent binding/checking/freeze → governed Search-to-Delivery journey, required resources, evidence and product control/inspection boundaries |
+| Static baseline | Existing fixed sequence is retained and explicitly selected before a run; it is not silent recovery or proof that planning works |
+| Independent RSI | Separate offline target, pinned parent, unchanged referee and isolated candidate evidence; absence cannot block the core |
+| Broader product continuation | Advanced compilation, heterogeneous routing, alternate-verifier studies and Code Mode remain separately scoped; Generalist/MCTS/composition refinement and later lifecycle work do not enter the core by implication |
 
-
-## Current next build
-
-The **next build** is the complete Intention Compiler node: qualified intake → verified Intent IR → Requirements → verified Research Brief → protected node release. Include governed execution, model access, evidence/state and bundled browser/container foundations. Exclude downstream research and RSI execution. Intent IR is an internal milestone, not completion. This establishes the Brief boundary but not Stage 2 graph initialization or full M1. [Build entrypoint](builds/intention-compiler/README.md), [Immediate Plan](immediate-plan.md) and [phase details](phase-details.md) define scope. Existing task/interface identities retain their history.
-
-
-## Navigate from responsibility to fields
-
-| Responsibility and purpose | Inputs → outputs / connections | Detail and field reference |
-|---|---|---|
-| Intention Compiler: establish usable research obligations | Qualified intake → verified Intent IR → verified Brief → binding/planning | [Build](builds/intention-compiler/README.md), [fields](reference/intent-and-requirements.md) |
-| Planning/binding: authorize achievable work | Brief + admitted capabilities → frozen node/subnode contracts → runner | [Workflow](workflow.md), [contracts](reference/node-execution.md) |
-| Research: investigate and measure | Brief → candidates → opportunity → protocol → POC → measurements → scientific verdict → report | [Ports/purpose](research-design.md#research-path-and-ports), [fields](reference/other-contracts.md#research-artifacts) |
-| Checking/gates: decide admissibility | Submitted work + protected criteria/evidence → assessment → committed release or halt | [Guards](guard-design.md), [fields](reference/checking.md) |
-| Routing/execution: run admitted capabilities safely | Bound role/context/limits → approved model or confined scientific executor → observations | [Placement](placement.md), [routing](model-routing.md), [fields](reference/other-contracts.md#client-and-model-boundaries) |
-| Evidence/clients: make outcomes inspectable | Captured artifacts/state → readable inspection/export → authorized clients | [Inspection](artifact-inspection.md), [fields](reference/other-contracts.md#manifest-and-runtime-records) |
-| Library/RSI: improve eligible implementations offline | Target profile → isolated evaluation → inactive candidate → admission → human activation | [RSI](offline-rsi.md), [fields](reference/other-contracts.md#offline-rsi-records) |
-
-Each detail page explains purpose, owners, inputs/outputs and failures. [Contract index](reference/contract-index.md) leads from an artifact to its field chart, selected schema and examples. Read future context to preserve intended seams, not to expand the assigned build.
+The [Core build](core-build.md) owns the current assignment. The [complete Compiler route](builds/intention-compiler/README.md) remains reusable preflight/component context; its success alone does not establish a working Planner or research journey. [D19](decision-review.md#decisions-and-source-amendments) records the authorized difference from original Phase 1/2/3 allocations. Frozen source inputs and earlier evidence retain their identities. The [phase account](delivery-phases.md) keeps broader product obligations visible.

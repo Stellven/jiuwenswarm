@@ -2,6 +2,8 @@
 
 **Reading level: human potential.** Question answered: How can implementations improve outside the live research DAG?
 
+**Optional, independently buildable target:** RSI has its own prerequisites and evidence; it is not a current-core startup, import, coding, test, platform benchmark or release dependency. Consume the parent-CC export/handoff when available. Full PRD coverage remains visible; no core work waits on RSI design or implementation.
+
 ## Responsibilities and semantic connections
 
 | Responsibility | Inputs / outputs | Boundary |
@@ -12,7 +14,7 @@
 | Write guard and isolated child runner | Candidate diff and parent contract / allowed candidate plus visible/parent-test results, or refusal | Trusted enforcement outside mutable code; validate full affected dependency closure. A declaration cannot grant more authority. |
 | Fixture oracle and independent referee | Exact parent/child and sealed split identity / permitted counts and protected scoring evidence | Custodian owns hidden data, scoring and lifetime query count. Child runs cannot read expected outputs or the fixture store. |
 | Evidence/export builder | Session, attempts, parent/child identities, scoring, limits and violations / reconciled report and allowed paired records | Raw evidence is protected; proposer receives only its permitted view. General export never copies hidden content. |
-| Admission and human activation | Candidate, lineage, compatibility and protected evaluation evidence / admitted inactive version or refusal | Explicit human selection affects future runs only; preserve rollback. Target 1's M1 deliverable remains sandbox child/evidence, not a changed live sum/ranking policy. |
+| M1 admission and human activation | Candidate, lineage, compatibility and protected evaluation evidence / admitted inactive version or refusal | Explicit human selection affects future runs only; preserve rollback. The optional target delivers sandbox child/evidence, not a changed live sum/ranking policy. |
 
 ## Data needed from day one
 
@@ -42,7 +44,7 @@ The proposer sees only passed/total/queries-left from hidden-loop scoring, plus 
 
 ## Connected behavior summary
 
-Target 1 improves a sandbox copy of Screening's pure `rank_opportunities`, preserving incoming dimensions/interface/target policy. Live production remains unchanged. Target 2 implementation text/work rubric is conditional on bounded headless model support; verifier/referee rubric stays frozen. Required Target 1 does not wait for a finished planner.
+The optional Target 1 improves a sandbox copy of Screening's pure `rank_opportunities`, preserving incoming dimensions/interface/target policy. Live production remains unchanged. Target 2 implementation text/work rubric is conditional on bounded headless model support; verifier/referee rubric stays frozen. Optional Target 1 does not gate the core Planner or wait on core acceptance.
 
 Protected target profile pins parent, allowed mutation/dependency closure, frozen contract, visible tests, split/scoring/improver/settings and limits. Session controller bounds ordered proposals; proposer sees only authorized development context. Trusted guard rejects forbidden changes; isolated child runs required tests. Independent custodian/referee owns hidden-loop/final fixtures, counters/scoring and comparable paired parent/child evaluation. Security fault stops session; ordinary candidate decline can feed bounded loop.
 
@@ -53,3 +55,7 @@ Retain lineage/diff/configuration/contract/referee/scoring identities, observati
 Approved public references may be retrieved read-only by protected preparation with origin/license/revision/hash snapshot, separate from hidden fixtures. Offline means outside live DAG, not uncontrolled network. Proposer model calls use audited boundary and separate audience/budget. Future improver changes require held-out improvement-task evaluation; M1 improver/referee remain fixed. [RSI fields](reference/other-contracts.md#offline-rsi-records) define all records.
 
 Trusted ordered attempt logs are hash-chained with sequence/root/previous-record hash and pinned hash profile. Admission verifies chain continuity, parent lineage and scores against custodian evidence. A security halt requires recorded human clearance and validated remediation before a new autonomous session; no waiver or deleted history. Frozen target profile specifies improvement measure/minimum delta/headroom rule; planted-child calibration must demonstrate attainable improvement, or block the target. Numeric query/fixture limits are retained architecture policy, not verbatim latest PRD numbers or proven optima.
+
+## Continuation admission boundary
+
+D21 adds November automatic candidate generation and protected admission. M1 human activation remains the original policy; the November admission controller may make a passing immutable version selectable for a future plan automatically. RSI supplies candidates and paired evidence, never eligibility authority or policy changes. A missing RSI service does not block independent Generalist generation, the working core or platform benchmarks. Composition/fusion is deferred to December.

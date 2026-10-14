@@ -10,13 +10,15 @@ Required fields: `schema_version`, exact `subject_ref`, `check_plan_ref`, nonemp
 
 ## Verifier assessment
 
-Producer: independently assigned read-only verifier CC. Consumer: protected host gate. [Schema](schemas/verifier-assessment.schema.json).
+Semantic source: independently assigned read-only verifier CC. Assessment producer/consumer: trusted host gate. [Schema](schemas/verifier-assessment.schema.json) remains the persisted record; no schema change is implied.
 
-Required fields: `schema_version`, exact `subject_ref`, `review_context_ref`, `verdict`, nonempty `findings`, `uncertainties`, `limitations`, nullable `required_correction`. Each finding has `criterion_id`, `outcome`, `reason`, nonempty `evidence_refs`. Cover every required criterion exactly once. Findings identify the obligation and evidence, not replacement work.
+The semantic model receives exactly two reviewed artifacts—the pinned subject CC declaration and exact output bytes—plus fixed verifier instructions. It receives no worker input, request-specific context, conversation, review manifest, profile/criteria record, runtime observation, predecessor artifact or evidence-fetch capability. Its reply is untrusted finding/uncertainty/limitation content only; it does not supply trusted identity, evidence references or gate authority. The host validates the required criterion set and assembles this existing persisted record from that reply and protected records.
+
+The unchanged persisted record requires `schema_version`, exact `subject_ref`, `review_context_ref`, `verdict`, nonempty `findings`, `uncertainties`, `limitations`, nullable `required_correction`. Each finding has `criterion_id`, `outcome`, `reason`, nonempty `evidence_refs`. Cover every required criterion exactly once. The host owns identity/context refs, evidence refs, and verdict; references attached by the host must not imply that hidden evidence was semantically reviewed. Findings identify the declaration/output basis and limitations, not replacement work. No new public reply schema is introduced.
 
 Assessment verdicts use the PRD outcome vocabulary: `PASS`, `PASS_WITH_KNOWN_LIMITATIONS`, `FAIL`, `ENVIRONMENT_BLOCKED`, `INCONCLUSIVE`. They are checking data, not control actions. Mandatory failure or unresolved uncertainty cannot accompany an advancing assessment. Known limitations can advance only when no mandatory obligation is unsatisfied. Missing required evidence means unavailable/inconclusive, not inferred success.
 
-The protected review context binds subject, original/accepted inputs, owning node and subject subnode contracts, CC/dependency pins, assigned criteria/profile, policy, deterministic results, observations and allowed evidence audience. Producer narratives are untrusted diagnostics. The verifier does not obtain hidden RSI data or mutate outputs. For Intent it evaluates the submitted IR's usefulness and fidelity, not a second independently authored response to the prompt.
+The host-only review manifest binds subject, original/accepted inputs, owning node and subject subnode contracts, CC/dependency pins, assigned criteria/profile, policy, deterministic results, observations and allowed evidence audience. It is retained for deterministic checking, provenance and gate assembly, but is not sent to the semantic model. The verifier cannot access any of those records beyond the two-artifact projection and cannot fetch evidence or mutate outputs. For Intent it can check only declaration/output conformance; request usefulness and fidelity are not established by semantic Tier 2.
 
 ## Gate decision
 

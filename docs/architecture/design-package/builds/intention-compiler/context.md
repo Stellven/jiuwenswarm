@@ -23,7 +23,7 @@ Follow the listed documents' relevant schema/field links. Field tables are the n
 | Context | Use now / exclusion |
 |---|---|
 | [Research responsibilities](../../research-design.md) and [workflow](../../workflow.md) | Understand what the Brief must support; do not build downstream research stages |
-| [Delivery phases](../../delivery-phases.md) and [stage exits](../../phase-details.md) | Separate component completion from Stage 2 graph initialization/full M1; Phase 3 is an integration seam |
+| [Delivery phases](../../delivery-phases.md), [stage exits](../../phase-details.md), and [core build](../../core-build.md) | This assigned compiler component ends at Brief; the D19 core build uses the Brief for protected planning and proceeds through the full governed journey. Advanced integrations remain separately scoped. |
 | [Offline RSI](../../offline-rsi.md) | Preserve immutable contract/check ownership and future eligible implementation boundaries; no RSI execution in this build |
 | Scientific execution confinement in placement | Preserve credential/control boundaries; no experiment executor is needed for compilation-only work |
 | Sidecar/development tools | Optional ordinary-client compatibility context only; not a build/startup dependency |
@@ -31,8 +31,12 @@ Follow the listed documents' relevant schema/field links. Field tables are the n
 
 ## Source precedence and bounded choices
 
-The external PRD Main Body owns product obligations; its Context contributes relevant functional context. This package owns implementation-facing architecture and records bounded multi-pass sequencing now authorized by PRD (4) §§3.2/4.7. Resolve an actual product-obligation contradiction explicitly; do not interpret the word “one-shot” as permission to omit Requirements or verification.
+The external PRD Main Body owns product obligations; its Context contributes relevant functional context. This package owns implementation-facing architecture; confirmed PRD (4) §§3.2/4.7 supports the fixed bounded multi-pass compiler sequence. D19 authorizes protected planning as part of the core journey and records its deviation from the PRD’s original Phase 1/Phase 3 allocation. Resolve any other actual product-obligation contradiction explicitly; never omit Requirements or verification.
 
 Input directory qualification is deterministic, not semantic readiness. A configured empty default document directory is permitted; specified required unreadable inputs halt. Qualified resources remain separate from extracted reference text. The compiler cannot claim that a default `single_gpu` profile proves GPU availability.
 
 Field IDs/types, policy sources, accepted states and authority are consequential shared obligations. Private encodings and algorithms can vary where their meaning, interchange and verification stay compatible. The reference validator establishes documentation/example consistency, not operational security, semantic quality or full implementation acceptance.
+
+## Current semantic-review scope
+
+[D20](../../principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](../../decision-review.md#d21) governs November generation/admission and December composition.

@@ -31,11 +31,11 @@ flowchart TB
 
 ## Intent verifier responsibility
 
-The verifier receives the candidate IR as its primary subject, original request/context as evidence, protected criteria and relevant execution observations. It asks whether **this artifact** performed Intent's job: faithful coverage, no unsupported additions, preserved scope/constraints, consistent interpretation, explicit material uncertainty and a workable purpose/result for Requirements.
+The arrows through Context in the diagram show host-side control and evidence custody; that review-context record is not sent to the semantic model. Its payload contains exactly the pinned Intent CC declaration and exact candidate IR bytes, plus fixed verifier instructions. The model receives no original request/source text, request-specific context, criteria records, observations, conversation or evidence-fetch capability. It can check declaration/output conformance and internal consistency only. Request fidelity, completeness, and usefulness to Requirements are not established. Host deterministic checks may validate span/reference identities and required fields but do not prove entailment. This is an authorized reduced-assurance departure from PRD §4.2; do not claim semantic fidelity.
 
 ## Gate responsibility and human outcome
 
-Protected host code validates and interprets deterministic results plus the assessment, then writes the authoritative decision. It alone publishes accepted output after persistence succeeds. Missing references, contradictory findings, failed mandatory obligations, material unresolved uncertainty or unavailable evidence cannot advance. A compiler-generated readiness flag is advisory.
+Protected host code validates the restricted declaration/output findings plus deterministic results, then writes the authoritative decision. It alone publishes accepted output after persistence succeeds. Missing references, contradictory output findings, failed mandatory obligations, explicit blocking uncertainty markers or unavailable mandatory host evidence cannot advance. The model cannot resolve request fidelity against undisclosed input; retain that reduced assurance as a limitation. A compiler-generated readiness flag is advisory.
 
 ## Requirements CC and the second boundary
 
@@ -58,15 +58,19 @@ flowchart TB
     G -->|failed or unclear| H[Visible halt; do not plan]
 ```
 
+The Requirements diagram shows host-side data flow. Its semantic model invocation contains exactly the Requirements CC declaration and exact candidate Brief output, plus fixed instructions; it receives no Intent, original context, defaults policy or other evidence. The host retains those records for binding and deterministic checks.
+
+The Requirements verifier can check declaration/output conformance and internal consistency only. Host-side binding checks known references, default authorization and contract fields where mechanically decidable. Preservation of accepted meaning, completeness against hidden obligations and usability for planning are not semantically established. This is part of the authorized PRD §4.2 reduced-assurance departure; conditions unavailable to host checks must block rather than be represented as verified.
+
 ## Source and build boundaries
 
 D5 permits the selected fixed multi-pass sequence instead of the unchanged PRD's literal single bounded generation. Combined limits are frozen; each compilation remains bounded/non-interactive in the baseline. Verifier calls are separate checking work. The current Immediate Plan builds the whole compiler through accepted Research Brief. Complete Stage 2 includes qualified documents/resources, accepted Brief and initialized baseline graph; the Intent verifier is not downstream work Node B.
 
 ## Connected behavior summary
 
-Intent compiler records what the user means: problem, desired change/result, scope, explicit constraints, source-supported claims, omissions/conflicts and readiness. It chooses no solution. Capture candidate → deterministic structure/reference/scope checks → independent read-only verifier of fidelity/coherence/usability against original source evidence → mechanically validate assessment → protected gate commits accepted Intent or halts visibly. Invalid structure prevents verifier spend. Topic-only honest uncertainty cannot pass usability; missing optional methodology need not block actionable meaning. Verifier judges submitted IR, not a second interpretation.
+Intent compiler's candidate records its interpretation. Capture candidate → deterministic structure/reference/identity checks → restricted declaration/output conformance review → host assembles the existing Assessment → protected gate commits or halts. Invalid structure prevents verifier spend. Since the model cannot see source inputs, its pass does not establish fidelity, coherence or usability. Topic-only output may pass structural checks but must not be presented as verified actionable meaning.
 
-Only accepted Intent reaches Requirements. Requirements produces Research Brief governing downstream obligations: objective, mandatory outcomes/preferences, scope, constraints, target metrics, deliverables, evidence and attributed authorized defaults. Never attribute defaults to user; do not default missing purpose/result. Repeat deterministic/semantic/protected checking; unresolved material contradictions block binder/planner. Defaults/profile cannot widen permissions. Hypothesis later registers experiment-specific criteria; Brief is not measured scientific success.
+Only host-accepted Intent reaches Requirements. Requirements produces a Research Brief for downstream use: objective, mandatory outcomes/preferences, scope, constraints, target metrics, deliverables, evidence and attributed authorized defaults. Never attribute defaults to the user; do not default missing purpose/result. Host checks and restricted declaration/output review apply; semantic preservation of Intent and completeness against it are not established. Conditions not decidable from host records block binder/planner. Defaults/profile cannot widen permissions. Hypothesis later registers experiment-specific criteria; Brief is not measured scientific success.
 
 Phase 1 uses two bounded compiler passes under D5, no dialogue/repair. Phase 3 may declare bounded pre-acceptance clarification; accepted meaning/Brief and downstream contract remain governed. [Fields](reference/intent-and-requirements.md) connect producer obligations, deterministic checks and semantic obligations; examples show actionable, unusable, contradictory and negative-science cases.
 

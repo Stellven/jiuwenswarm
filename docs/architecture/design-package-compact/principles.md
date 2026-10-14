@@ -18,7 +18,7 @@ Every work invocation follows **capture → deterministic checks → semantic ve
 
 Fixed mandatory work has its output contracts and independently owned checking profiles assigned beforehand. Bound checks incorporate the actual objective, input identities, CC/dependency pins, policy and limits. They are not derived from a favorable producer claim after execution. Check the exact output on every attempt; an earlier pass cannot authorize a changed subject.
 
-Structure and meaning are separate obligations. Well-formed Intent that merely lists unknown purpose and result may be faithfully extracted yet unusable. The verifier checks whether the submitted interpretation is coherent and usable by Requirements, using the original request as evidence. It does not give a second independent answer to the user's request.
+Structure and meaning are separate obligations. Well-formed Intent that merely lists unknown purpose and result may be faithfully extracted yet unusable. The verifier checks whether the submitted interpretation is consistent with its declared output contract; downstream usability and request fidelity need separate benchmark evidence under D20. It does not give a second independent answer to the user's request.
 
 Only committed protected decisions publish accepted references to successors. Failed evidence persistence blocks release. A valid scientific negative can pass infrastructure verification and be delivered. A research conclusion and a workflow decision are different records.
 
@@ -42,12 +42,25 @@ Default to zero automatic repair or replay. Blocking failures halt new dispatch,
 
 CC model calls go through governed execution and the protected routing/bridge boundary. Record requested and effective model/configuration identities and unavailable telemetry. No CC independently selects a stronger endpoint or silently switches a started invocation.
 
-RSI operates separately from live research. It changes only allowed implementation parts of an eligible target, with frozen contracts/referees and protected fixture custody. Paired evidence is independent of proposer assertions. Candidates remain inactive until admission and explicit human activation. Changed versions affect future runs. Better scores grant neither broader permissions nor release authority.
+RSI operates separately from live research. It changes only allowed implementation parts of an eligible target, with frozen contracts/referees and protected fixture custody. Paired evidence is independent of proposer assertions. M1 candidates remain inactive until admission and explicit human activation. D21 permits protected automatic selectability for admitted M2 candidates in future plans only. Changed versions affect future runs. Better scores grant neither broader permissions nor release authority.
 
 ## Decisions and source amendments
 
-[Decision history and review reasoning](decision-review.md) retain D1–D18 and the new contract/reading choices. D5 retains the fixed, bounded multi-pass compiler sequence, now aligned with the confirmed PRD (4). D6 retains the authorized bundled Docker/SQLite realization and its recorded source departure. Their source status and rationale remain visible.
+[Decision history and review reasoning](decision-review.md) retain D1–D18 and D19, the current core-scope amendment. D5 retains the fixed, bounded multi-pass compiler sequence, now aligned with the confirmed PRD (4). D6 retains the authorized bundled Docker/SQLite realization and its recorded source departure. Their source status and rationale remain visible.
 
 ## Required now and later
 
-M1 preserves bounded research, local supplied resources, permitted academic retrieval, one opportunity/hypothesis, immutable experimental criteria, isolated execution, matched measurements, negative-result delivery, inspectable evidence, workstation security and required RSI. Phase 3 integrates declared dynamic capabilities while retaining the baseline. Composite/merged CCs, new planning epochs, remote workers and recursive improver deployment remain future directions.
+M1 preserves bounded research, local supplied resources, permitted academic retrieval, one opportunity/hypothesis, immutable experimental criteria, isolated execution, matched measurements, negative-result delivery, inspectable evidence, workstation security and independently buildable RSI. D19 promotes bounded pre-dispatch planning into the assigned core while retaining the static baseline; broader integration remains separately scoped. Composite/merged CCs, new planning epochs, remote workers and recursive improver deployment remain future directions.
+
+
+### D19: assigned core scope and non-blocking improvement
+
+The user-authorized assignment promotes a bounded Planner into the current core, retains a separately selected static baseline and keeps RSI independently buildable without making it a prerequisite. This modifies the delivery allocation in PRD §§1.3, 4.8 and 6.12/6.14 and the core dependency treatment of §§4.4/6.11. It does not waive §4.2 checking, declared authority, resource feasibility or durable release. Full source obligations remain traceable; current core acceptance is not a claim that every full-M1/Phase 3 obligation is complete. [Core build](core-build.md) states the selected behavior.
+
+## D20: declaration/output-only semantic review
+
+The LLM reviewer receives the declaration and exact output only. Worker inputs, conversation and external evidence stay outside its context. Protected deterministic checks retain runtime records. This authorized change reduces PRD §4.2.1 assurance: request fidelity and independent source accuracy require separate benchmark evidence. [Review contract](reference/semantic-review.md).
+
+## D21: iterative generation and automatic admission
+
+November adds Generalist, generation, protected automatic admission and improved planning/MCTS. Admitted M2 versions become selectable for future plans; M1 retains human activation. Frozen runs keep their pins. Composition/fusion moves to December. [Decision details](decision-review.md#d21).

@@ -8,6 +8,8 @@ Required root groups: `schema_version`, `identity`, `ports`, `needs`, `changes`,
 
 A declaration describes a reusable capability and its pinned implementation, never a task or run. A node objective, artifact binding, effective permissions, verifier assignment and release decision belong to protected runtime records.
 
+The mandatory deterministic check bundle associated with a usable CC version is a separate immutable registry/library record, not a declaration-schema field. `guarantees.checks[]`, output `check_ids` and invariant `check_id`s describe candidate claims and useful coverage links; they do not author or approve the mandatory bundle. An independent check maintainer versions the bundle and records compatibility with exact CC version(s). Protected admission binds the exact association; runtime binding adds the run-specific contract and policy checks. The declaration schema remains unchanged.
+
 | Group / fields | Meaning and applicability |
 |---|---|
 | `schema_version` | Explicit current declaration-format version |

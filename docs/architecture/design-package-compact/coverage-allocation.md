@@ -1,6 +1,6 @@
 # Current PRD clause coverage
 
-**Reading level: AI reference.** Every numbered heading in the current verbatim PRD has an architectural responsibility below. A mapping is a reading route, not proof that every bullet is implemented. The source whitelist/blacklist and global invariants still apply. [Design review](coverage.md) checks consequential changes and US01–US20; [decisions](principles.md#decisions-and-source-amendments) identify explicit local exceptions.
+**Reading level: AI reference.** Every numbered heading in the current verbatim PRD has an architectural responsibility below. This is full-M1 product coverage, not a claim that every mapped requirement is in the current core assignment or implemented at runtime. A mapping is a reading route, not proof that every bullet is implemented. The D19 planner scope amendment is recorded in [Core build](core-build.md) and [decision history](decision-review.md#d19); the source body remains unchanged. The source whitelist/blacklist and global invariants still apply. [Design review](coverage.md) checks consequential changes and US01–US20; [decisions](principles.md#decisions-and-source-amendments) identify explicit local exceptions.
 
 Current source receipt: [Current confirmed PRD](sources/product/README.md), 188 numbered headings.
 
@@ -194,3 +194,7 @@ Current source receipt: [Current confirmed PRD](sources/product/README.md), 188 
 | §6.12 M1 Delivery Phase 3 — Dynamic System Integration | [principles.md](principles.md); [delivery-phases.md](delivery-phases.md); [phase-details.md](phase-details.md) |
 | §6.13 Architecture Handoff Boundary | [principles.md](principles.md); [delivery-phases.md](delivery-phases.md); [phase-details.md](phase-details.md) |
 | §6.14 M1 Implementation Completion & Core Demo Rule | [principles.md](principles.md); [delivery-phases.md](delivery-phases.md); [phase-details.md](phase-details.md) |
+
+## Current semantic-review scope
+
+[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation/admission and December composition.

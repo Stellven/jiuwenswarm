@@ -11,7 +11,7 @@ flowchart TB
     Browser[Browser]
     subgraph App[One application container]
         Web[Web assets and control plane]
-        Planner[Delivery Phase 3 planner CC]
+        Planner[Core planner CC; advanced planner integration optional later]
         Binder[Protected contract and guard binder]
         Scheduler[Scheduler]
         Runner[CC runner and native harness]
@@ -72,7 +72,7 @@ The planner is invoked through the same runner; its separate box shows responsib
 
 Build the browser frontend into the workflow application image and serve its static assets from that container alongside the web server/control API and workflow runtime. The container image supplies its own startup entrypoint so a containerized install can start and present the UI without a separate host-side helper script or frontend container. Publish the shared UI/API endpoint on host loopback only: default browser URL `http://127.0.0.1:5173`, mapping host `127.0.0.1:5173` to the application's container port `5173`. Listening on a container interface enables port forwarding but does not authorize LAN exposure. Persist data separately from the replaceable image; supply credentials through protected configuration, not declarations or output artifacts. The [Compose client topology](automation.md#local-compose-topology) shows the access path and benchmarker connection.
 
-Use the existing Codex integration as the baseline model route. Preserve protected local IPC and owned execution context. Attempt approved alternate routing and verifier integration in isolated Delivery Phase 3 configurations, retaining the static Codex fallback. Every supported model call crosses the audited bridge; local run/capsule correlation stays in local telemetry rather than being added to provider prompts solely for attribution. Record time/calls and reliably available native spend/budget telemetry. Capture reliably exposed account allowance/limits/credits/reset separately; these are not per-invocation token or cost measurements. Absent reliable telemetry remains unavailable.
+The core compatibility route is the existing fixed Codex CLI integration under schema 1.0.0. Preserve protected local IPC and owned execution context. API routing is an optional isolated target; alternate-verifier study is excluded from core and cannot alter verifier policy. Static SwarmFlow is an explicit preselected workflow fallback mode. No failed call automatically replays through another model or runner. Every supported model call crosses the audited bridge; local run/capsule correlation stays in local telemetry rather than being added to provider prompts solely for attribution. Record time/calls and reliably available native spend/budget telemetry. Capture reliably exposed account allowance/limits/credits/reset separately; these are not per-invocation token or cost measurements. Absent reliable telemetry remains unavailable.
 
 Generated POC code is untrusted. Docker packaging and a Python virtual environment do not prove confinement. Enforce scoped filesystem access, restricted identity, denied undeclared network/tools, resource limits, and separation from credentials, control state, library activation, and hidden fixtures. Do not expose the Docker socket. The owning task selects and verifies the available mechanism; if a mandatory boundary cannot be enforced, block execution. PRD §3.6.2 additionally forbids generated POC code from importing or using OS/network modules, including `os`, `sys`, `subprocess`, `requests`, `urllib` and `shutil`. The Builder/Verifier must reject a violating package before empirical execution; an intentional bypass is a required negative case. This product compliance rule does not constrain trusted provisioning/capture infrastructure in the same way. Prompt instructions or import scanning complement enforced confinement but cannot replace it.
 
@@ -80,7 +80,7 @@ Use a protected persistent account/profile store logically separate from run/wor
 
 The [Compose client topology](automation.md#local-compose-topology) specifies network-port intent and benchmarker access. [M1 data ownership](research-design.md#data-and-state-ownership) identifies each authoritative writer and consumer.
 
-Verifier disclosure and read capabilities are deliberately smaller than work capabilities. The [review-context contract](guard-design.md#output-led-review-and-controlled-disclosure) specifies permitted evidence, model audience checks, immutable subject views, prohibited effects and non-advancing outcomes when necessary evidence cannot be disclosed. These are enforced boundaries, not prompt-only instructions.
+Verifier disclosure and read capabilities are deliberately smaller than work capabilities. The [review-context contract](guard-design.md#declaration-and-output-review-boundary) specifies permitted evidence, model audience checks, immutable subject views, prohibited effects and non-advancing outcomes when necessary evidence cannot be disclosed. These are enforced boundaries, not prompt-only instructions.
 
 ## Data foundation
 
@@ -130,7 +130,7 @@ The [RSI connection design](offline-rsi.md) defines target profiles, data partit
 
 The feedback arrow returns only the approved bounded loop information. Hidden fixture content, expected outputs, per-case hidden results, and final-evaluation feedback remain outside the proposer and candidate. Separate development, hidden-loop, hidden-final, and milestone data. Reserve final evaluation for terminal assessment; freeze scoring and evaluation identities before the session. Compare parent and child under the same relevant configuration and enforce the declared query/resource limits.
 
-RSI may change only explicitly eligible implementation parts. It cannot change contracts, gate/verifier/check assets, security or mutation permissions, evidence stores, fixture custody, model weights, or activation controls. Enforce restrictions outside the mutable target. Preserve attempts, lineage, scoring, and violation evidence. Admission and human activation are separate from a better score; retain rollback. Target 2 mutates explicitly permitted Screening implementation text only when bounded headless model execution is available (PRD 4.4.1); otherwise defer it to M2 without blocking required Target 1 or M1 completion.
+RSI may change only explicitly eligible implementation parts. It cannot change contracts, gate/verifier/check assets, security or mutation permissions, evidence stores, fixture custody, model weights, or activation controls. Enforce restrictions outside the mutable target. Preserve attempts, lineage, scoring, and violation evidence. Admission and human activation are separate from a better score; retain rollback. Target 2 mutates explicitly permitted Screening implementation text only when bounded headless model execution is available (PRD 4.4.1); otherwise defer it to M2. RSI is an independently buildable optional target with its own session prerequisites; its availability or failure does not block core build completion.
 
 ## Native reuse
 
@@ -166,3 +166,7 @@ Startup also enables the native lossless trajectory store, configured trace-trun
 | Restricted scientific executor | Provisioned environment/frozen protocol → baseline then treatment measurements and raw evidence | Generated code cannot install, discover dependencies, access secrets or alter the baseline |
 
 Protected preparation is outside Builder and generated-code permissions. M1 uses prepared package bytes; supplying a new framework requires protected preparation and a new linked run, rather than dynamic installation during work. A Python virtual environment provides dependency separation; filesystem/process/network confinement remains separately enforced. Exact locks enable reconstruction but do not prove scientific validity or package safety.
+
+## Current semantic-review scope
+
+[D20](principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](decision-review.md#d21) governs November generation/admission and December composition.

@@ -1,6 +1,6 @@
 # Intention Compiler: standalone node build
 
-**Architecture Design Main Body.** Start here when the coding prompt assigns the Intent/Intention Compiler. Here **Intention Compiler means the whole node**, not only the Intention CC. The [Context entrypoint](context.md) identifies required supporting design. The package describes full M1 and future intent; this assignment builds only the compiler and the foundations it needs.
+**Architecture Design Main Body.** Start here when the coding prompt assigns the Intent/Intention Compiler. Here **Intention Compiler means the whole node**, not only the Intention CC. The [Context entrypoint](context.md) identifies required supporting design. The package describes the full M1 architecture; this component entrypoint covers only the fixed compiler and its foundations. The current D19 core build consumes this node’s accepted Brief in the protected planner and continues through Search, Screen, Hypothesis, Builder, Benchmark, Scientific Evaluation and Delivery; those downstream stages are outside this component assignment. See [core build](../../core-build.md).
 
 ## Completion boundary
 
@@ -14,7 +14,7 @@ Successful completion produces accepted `Research_Brief.json`, both subnode deci
 |---|---|---|
 | Local intake adapter | Capture request; qualify `.txt`, `.md`, `.pdf` material; register supplied project/data resources and authorized user/profile/workspace | Protected qualification; no web retrieval, cloning, dataset downloads or host profiling |
 | Intention work subnode | Extract faithful meaning, purpose/result, context, scope, constraints, preferences and uncertainty into Intent IR | No scientific solution selection; readiness is a candidate claim |
-| Intent checks and verifier subnode | Check structure/identities/spans first; then assess submitted IR for fidelity, coverage, consistency and Requirements usability | Verifier reads protected criteria and original evidence; cannot replace IR or control the workflow |
+| Intent checks and verifier subnode | Check structure/identities/spans first; then assess submitted IR for fidelity, coverage, consistency and Requirements usability | Verifier uses prewritten profile instructions and receives only the declaration and exact output; cannot replace IR or control the workflow |
 | Intent protected gate | Validate findings and subject; persist decision and accepted IR or halt | Requirements is never dispatched on candidate or blocked Intent |
 | Requirements work subnode | Build Research Brief from accepted Intent, qualified context and protected defaults | Preserve user obligations; record every applied default; no final experimental protocol |
 | Requirements checks and verifier subnode | Validate shared fields, references/default authority and obligation relationships; assess preservation, completeness and downstream usability | Assessment is data; no replacement Brief or producer-selected criteria |
@@ -26,7 +26,7 @@ The node owns its external contract and frozen internal structure. Each subnode 
 
 Build or reuse the governed runner, pinned declarations and local admitted capability set, protected model bridge, node/subnode binding, independently owned checking profiles, immutable artifact capture, durable release state and authenticated local control surface. These are relevant compiler dependencies, not unrelated scope. No general library authoring/admission UI is required; fixed fixture admission is not evidence of runtime eligibility.
 
-Use the configured approved model endpoint; retain the protected Codex fallback interface. The Phase 1 graph is fixed and non-interactive. Separate Intention and Requirements generations plus their verifier calls are bounded by a frozen total profile. D5 overrides literal PRD one-pass wording; it does not authorize dynamic workflow selection, clarification loops, repair or retries. Missing telemetry is unavailable, never zero.
+Use the configured approved model endpoint with the existing fixed Codex CLI route under the unchanged schema 1.0.0 contract. Separate fixed Intention and Requirements generations plus their verifier calls are bounded by a frozen total profile, consistent with confirmed PRD 4. This component ends at the accepted Brief; the assigned core planner consumes it for the downstream JSON DAG. This does not authorize clarification loops, repair or retries. Missing telemetry is unavailable, never zero.
 
 ## Browser and container boundary
 
@@ -40,7 +40,7 @@ The browser submits requests and supplied input locations, observes status, and 
 |---|---|
 | Actionable request with supported input | Both work stages complete; verified `Research_Brief.json` and node release persist; browser and export agree |
 | Missing optional hardware/method/threshold | Preserve omissions; apply only authorized parameter defaults; invent no objective, target or scientific result |
-| Topic-only, contradictory or unsupported interpretation | Valid shape can still fail semantic usability/fidelity; no Requirements dispatch on blocked Intent |
+- Measure topic-only, unsupported or constraint-losing outputs in independent cases. Runtime semantic rejection is required for visible declaration/output violations, not a claim of original-input fidelity under D20.
 | Malformed work or verifier output | Halt at the appropriate deterministic boundary; no absent criterion or fabricated evidence counted as a pass |
 | Stale subject, swapped resource, exceeded limit | Reject exact mismatch/violation before downstream release |
 | Timeout, missing model access or no output | Halt with real failure evidence; no invented artifact/reference or unnecessary verifier call |
@@ -51,6 +51,10 @@ Use labelled positive/negative fixtures and real configured-model evidence. Reco
 
 ## M1 connection and prompt use
 
-This component supplies the Brief boundary of Implementation Stage 2; it does not initialize the complete research DAG or satisfy full M1 exits. Later static SwarmFlow binding and Phase 3 Leader integration consume the same Brief semantics. An advanced compiler adapter must supply the same published output/evidence obligations, without copying the baseline algorithm.
+This component supplies the Brief boundary of Implementation Stage 2; it does not initialize the complete research DAG or satisfy full M1 exits. The assigned core planner consumes the same Brief semantics after this component completes. The retained static SwarmFlow workflow is available only as an explicitly selected run mode; advanced planner integration remains optional/later. An advanced compiler adapter must supply the same published output/evidence obligations, without copying the baseline algorithm.
 
 In the supplied four-document coding prompt, replace only the two architecture path placeholders with this file and [context.md](context.md) in the assigned full or compact package. Required links stay within that package. The other machine's PRD Main/Context and token-reporting instructions retain their roles; telemetry-report paths are not product output paths. This design creates no extra coding approval workflow or task identity.
+
+## Current semantic-review scope
+
+[D20](../../principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](../../decision-review.md#d21) governs November generation/admission and December composition.
