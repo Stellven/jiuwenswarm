@@ -4,14 +4,14 @@
 
 **Decision:** every blocking product failure stops new dispatch and creates an attributable human-action request after available evidence is preserved. Interactive sessions use native `human_session` / interaction prompts for triage. Headless sessions return a terminal status immediately and never wait for a reply. Human triage cannot turn failed mandatory checks into an advancing verdict.
 
-The **Evaluator Gate boundary** composes deterministic checks, a runtime verifier CC assessment and protected host decision/release. Verifier capsules are CCs; gates are protected infrastructure. The verifier reports an assessment verdict about the bound subject, while the gate validates/interprets that verdict under policy and controls advancement through durable run-state and scheduler readiness. The harness applies its recorded routing action; neither a producer nor a model-generated “pass” controls scheduling. See [vocabulary](glossary.md) and [verification](capsules.md).
+The **protected gate boundary** composes deterministic checks, a runtime verifier CC assessment and protected host decision/release. Verifier capsules are CCs; gates are protected infrastructure. The verifier reports an assessment verdict about the bound subject, while the gate validates/interprets that verdict under policy and controls advancement through durable run-state and scheduler readiness. The harness applies its recorded routing action; neither a producer nor a model-generated “pass” controls scheduling. See [vocabulary](glossary.md) and [verification](capsules.md).
 
 ## When to call the human
 
 | Event | Autonomous behavior | Human callback |
 |---|---|---|
 | Empty/unreadable intake; unsupported domain or mandatory input | Reject before work dispatch, retain rejection reason | Show actionable input correction at the submitting surface. It does not start a semantic clarification dialogue. |
-| Material intent/requirement ambiguity or conflicting constraints in complete Intention Compiler node/Delivery Phase 1, or after Delivery Phase 3 clarification is exhausted | Evaluator Gate records a non-advancing result; halt | Ask the user to correct the source objective or supply the missing permitted input. New submission creates a new run. |
+| Material intent/requirement ambiguity or conflicting constraints in complete Intention Compiler node/Delivery Phase 1, or after Delivery Phase 3 clarification is exhausted | Protected gate records a non-advancing result; halt | Ask the user to correct the source objective or supply the missing permitted input. New submission creates a new run. |
 | Work execution fault, invalid artifact, mandatory semantic failure | Record `FAIL`, stop new dispatch | Triage request with failed obligation, exact subject, available evidence and permitted next action. |
 | Unauthenticated/unavailable model, missing dataset/dependency, timeout preventing valid evaluation | Record `ENVIRONMENT_BLOCKED` where dependency failure prevents a valid judgment; halt | Request the specific environment repair. A demonstrated implementation defect remains `FAIL`; uncertainty stays explicit. |
 | Insufficient evidence or unresolved verifier judgment | Record `INCONCLUSIVE`, halt | Request inspection/additional evidence. Human opinion alone cannot satisfy a mechanically or scientifically required observation. |
@@ -31,7 +31,7 @@ Freeze interaction mode and originating session with effective run configuration
 sequenceDiagram
     participant C as User or headless client
     participant H as Harness
-    participant V as Protected Evaluator Gate boundary
+    participant V as Protected gate boundary
     participant S as Run-state authority
     H->>V: Exact candidate, evidence and protected profile
     V->>V: Deterministic checks, then semantic assessment if allowed
@@ -74,9 +74,9 @@ This resolves PRD §4.6.4's “manually correcting the run” as **a new linked 
 ```mermaid
 sequenceDiagram
     participant U as Local interactive user
-    participant C as Advanced compiler
+    participant C as Intention Compiler CC
     participant H as Protected run control
-    participant V as Evaluator Gate
+    participant V as Protected gate
     H->>C: Original request and frozen clarification budget
     C-->>H: Material missing or conflicting requirement
     alt Interactive and budget available

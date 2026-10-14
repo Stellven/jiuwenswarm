@@ -33,6 +33,7 @@ flowchart LR
     O --> BI
     B --> BI
     BI --> G[Plan gate]
+    G -->|rejected or infeasible| X[Halt and start linked Intention Compiler attempt]
     G --> RP[run_plan frozen]
     RP --> S[Scheduler]
     S --> D[dispatch_record per node attempt]
@@ -40,7 +41,7 @@ flowchart LR
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
     classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
     class P work
-    class BI,G,S control
+    class BI,G,S,X control
     class B,L,R,O,PP,T,RP,D data
 ```
 

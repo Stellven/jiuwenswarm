@@ -11,7 +11,7 @@ flowchart TB
     I[Qualified request and permitted resources] --> C
     subgraph Compiler[Intention Compiler node]
         direction TB
-        C[Intention work subnode: Intention CC capsule] --> D1{Intent checks}
+        C[Intent work subnode: Intent CC] --> D1{Intent checks}
         D1 -->|valid| V1[Intent verifier subnode: verifier CC]
         D1 -->|invalid or unavailable| G1[Protected Intent gate]
         V1 --> G1
@@ -24,18 +24,18 @@ flowchart TB
         G2 -->|accepted Brief| NG[Protected node finalization]
         NG -->|failed or incomplete| H
     end
-    NG -->|durably released Research Brief| P[Fixed Planner node proposes admitted CC graph<br/>own checks, verifier and gate not drawn]
-    P --> Bind[Protected binder pins CC capsules, contracts and check bundles]
-    Bind --> PG[Plan checks, plan verifier and Evaluator Gate]
-    PG -->|accepted plan| F[Freeze graph and versions]
-    PG -->|blocked| H
+    NG -->|durably released research_brief.json| P[Static template first, then Planner CC proposal<br/>Planner own checks, verifier and gate not drawn]
+    P --> Bind[Protected binder: one run_plan type, pins CC versions, check bundles and profiles]
+    Bind --> PG[Plan checks, plan verifier for planned mode, protected gate]
+    PG -->|accepted plan| F[Freeze run_plan]
+    PG -->|rejected or infeasible| PH[Halt and start linked Intention Compiler attempt]
     subgraph Example[Research path: every node has checks, a verifier and a gate, not drawn here]
       direction LR
       F --> S[Search node]
       S --> O[Screening node]
       O --> B[Hypothesis node]
-      B --> K[POC task/node<br/>Builder and Benchmark subnodes]
-      K --> E[Evaluation node]
+      B --> K[POC task/node<br/>Builder subnode: build evidence only<br/>Research Benchmark subnode]
+      K --> E[Scientific Evaluation node]
       E --> T[Delivery node]
     end
 ```
@@ -64,9 +64,9 @@ Each execution subnode binds one admitted CC version and its exact associated de
 flowchart LR
     S[Protected scheduler] --> R[Governed CC runner]
     R --> C[Work or verifier CC]
-    C -->|permitted model request through runner context| Route[Protected role/profile routing]
+    C -->|permitted model request through runner context| Route[Fixed Codex route in M1<br/>router is Phase 3]
     Route --> Bridge[Audited model bridge]
-    Bridge --> Model[Configured endpoint<br/> static Codex baseline]
+    Bridge --> Model[Configured endpoint<br/>Codex]
     Bridge --> Evidence[Observed calls, effective identity and telemetry]
     R --> X[Restricted scientific executor]
     X --> Evidence

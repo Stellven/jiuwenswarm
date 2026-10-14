@@ -8,13 +8,13 @@ Use the [latest received PRD](sources/product/README.md), especially §§1.3–1
 
 ## Every implementation stage
 
-The predecessor exits govern integration/completion; independent preparation may proceed earlier. Each boundary uses admitted capabilities, a protected Node Execution Contract, captured evidence and the same Evaluator Gate. Concrete executable verification procedures belong to the implementation verification artifacts; this document defines architectural exits.
+The predecessor exits govern integration/completion; independent preparation may proceed earlier. Each boundary uses admitted capabilities, a protected Node Execution Contract, captured evidence and the same protected gate. Concrete executable verification procedures belong to the implementation verification artifacts; this document defines architectural exits.
 
 | Delivery / implementation stage | Inputs and responsibility | Runnable exit and retained evidence | Design connection |
 |---|---|---|---|
 | Delivery Phase 1, Implementation Stage 0 (§6.3): runtime unblocker | Protected local configuration/identity, model credentials, bounded Codex adapter and secured IPC | Real bounded model request returns through JiuwenSwarm with required security; distinguish authentication, storage, security and HTTP liveness | [Placement](placement.md), [automation](automation.md)|
 | Delivery Phase 1, Implementation Stage 1 (§6.4): governed backbone | Declaration/admission → static route/reviewer → durable evidence → runner → gate | Node A accepted output releases an actual bounded work Node B; invalid A prevents B; equivalent headless failure exits without human wait. Exact contracts, versions, effective config and decisions persist | [Capsules](capsules.md), [callbacks](failure-and-human.md)|
-| Delivery Phase 1, Implementation Stage 2 (§6.5): intake, Brief, fixed graph | Text/documents, supplied project/data resources, defaults → accepted Brief → planner proposal → independently checked/frozen JSON DAG | Core path accepts a usable Brief, plans admitted downstream CC/check assignments, validates coverage, typed ports, mandatory checks, limits and acyclic closure, then freezes before dispatch. Explicit static fallback is separately recorded; it does not satisfy dynamic core acceptance. Intent alone cannot satisfy this exit | [Intent/Brief fields](reference/intent-and-requirements.md), [workflow](workflow.md)|
+| Delivery Phase 1, Implementation Stage 2 (§6.5): intake, Brief, fixed graph | Text/documents, supplied project/data resources, defaults → accepted Brief → planner proposal → independently checked/frozen JSON DAG | Core path accepts a usable Brief. The static template is built first and the Planner second. The same binder validates coverage, typed ports, mandatory checks, limits and acyclic closure for either, then freezes one `run_plan` before dispatch. A rejected or infeasible plan halts and starts a linked Intention Compiler attempt. There is no silent fallback to static. Intent alone cannot satisfy this exit | [Intent/Brief fields](reference/intent-and-requirements.md), [workflow](workflow.md)|
 | Delivery Phase 1, Implementation Stage 3 (§6.6): evidence to hypothesis | Accepted Brief → bounded retrieval/candidates → fixed screening → hypothesis/protocol | `candidate_set.json`, `opportunity_card.json`, `hypothesis_blueprint.json` retain citations/constraints, and each gate controls advancement; freeze empirical criteria before build | [Research ports](research-design.md#research-path-and-ports)|
 | Delivery Phase 1, Implementation Stage 4 (§6.7): Builder/POC | Accepted immutable Blueprint, scoped assets and declared environment | Bounded mechanically valid `poc_artifact_bundle.zip` accepted with construction/readiness evidence, without repair loop or scientific experiment during build | [Research ports](research-design.md#research-path-and-ports), [confinement](placement.md)|
 | Delivery Phase 1, Implementation Stage 5 (§6.8): benchmark/science | Accepted POC, frozen baseline/data/protocol → empirical payload → evaluation | Demonstrate scientific positive and valid negative cases, with infrastructure acceptance permitting the appropriate downstream state. Raw observations and fixed criteria establish the conclusion | [Research ports](research-design.md#research-path-and-ports), [callbacks](failure-and-human.md)|
@@ -49,8 +49,9 @@ Disable an experimental configuration to restore the operational baseline. Autom
 flowchart TB
     Slice["Complete Intention Compiler node<br/>Accepted Research Brief or halt"] -.-> P1[Delivery Phase 1: Implementation Stages 0 through 7]
     P1 --> P2[Delivery Phase 2: Implementation Stage 8 local-isolated RSI]
-    Compiler[Reusable compiler component] --> Core[Current D19 core: planner through scientific Delivery]
-    Static[Explicit static fallback] -. separate acceptance record .-> Core
+    Compiler[Reusable compiler component] --> Static[Static template first]
+    Static --> Planner[Then Planner CC proposal, same binder and run_plan type]
+    Planner --> Core[Current D19 core: frozen run_plan through scientific Delivery]
     Core --> Evidence[Core evidence; design only until runtime verified]
     RSI[Optional independent RSI; no core dependency] -.-> Core
     PRD[Full M1 PRD coverage] --> Other[Other M1/later capabilities tracked separately]

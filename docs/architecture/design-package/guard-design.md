@@ -44,7 +44,7 @@ flowchart TB
   R[Accepted requirements and protocol] --> B[Protected binding]
   L[Admitted CC and guard library] --> B
   P[Policy, scopes, limits] --> B
-  B -->|derive checks; reject omissions| F[Freeze complete bindings]
+  B -->|attach pinned check bundle and profile; reject omissions| F[Freeze complete bindings]
   F --> X[Shared resolver and runner]
   X --> G[Per invocation guard sequence]
   G --> V[Host verdict and durable release]

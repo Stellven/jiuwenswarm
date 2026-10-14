@@ -14,16 +14,17 @@ D5 separates Intent and Requirement compilation, with independent verification a
 flowchart TB
     Intake[Intake] --> Intent
     subgraph Compiler[Intention Compiler node]
-        Intent[Intention work subnode]
+        Intent[Intent work subnode]
     Intent --> IV[Intent checks, verifier subnode and protected gate]
     IV --> Req[Requirements work subnode]
     Req --> RV[Requirements checks, verifier subnode and protected gate]
     RV --> NG[Protected node finalization]
     end
-    NG --> Plan[Core bounded planner CC]
-    Plan --> Bind
-    Bind --> PV[Plan Evaluator Gate]
-    PV --> Freeze[Freeze accepted graph]
+    NG --> Tpl[Static template first, then Planner CC proposal]
+    Tpl --> Bind[Protected binder: one run_plan type]
+    Bind --> PV[Plan checks, plan verifier for planned mode, protected gate]
+    PV -->|rejected or infeasible| Halt0[Halt and start linked Intention Compiler attempt]
+    PV --> Freeze[Freeze run_plan]
     Freeze --> Run[Execute research DAG]
     Run --> Out[Expose verified delivery]
     subgraph Legend[Legend]
@@ -32,7 +33,7 @@ flowchart TB
     classDef work fill:#E8F0FE,stroke:#2563EB,color:#172554
     classDef verify fill:#F3E8FF,stroke:#7E22CE,color:#3B0764
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
-    class Intent,Req,Plan,Run work
+    class Intent,Req,Tpl,Run work
     class IV,RV,PV verify
     class Intake,Bind,Freeze,Out,NG control
 ```
@@ -51,7 +52,7 @@ Generate a bounded set of candidates. The protected binder rejects missing or in
 
 Rank feasible candidates first by comparable evidence of successful outcomes, then execution time and available cost. Keep sample counts and uncertainty visible. Unknown reliability remains unmeasured, and unknown cost is not zero. The selected planning profile pins the bounded search, comparison rule, conservative defaults and ties. Preserve a fixed reference graph for regression and matched comparisons. A single feasible candidate provides no evidence of optimization.
 
-This is the best candidate found within a declared search budget, not globally optimal planning. A separate logical-operator layer would add binding flexibility but also another representation to reconcile; direct CC bindings provide one inspectable execution boundary shared with the static fallback. Retain objective mappings so later logical planning can lower into that same boundary. Separating graph proposal, dependency dispatch and execution makes their evidence and authority independently inspectable.
+This is the best candidate found within a declared search budget, not globally optimal planning. A separate logical-operator layer would add binding flexibility but also another representation to reconcile; direct CC bindings provide one inspectable execution boundary shared with the static template. Retain objective mappings so later logical planning can lower into that same boundary. Separating graph proposal, dependency dispatch and execution makes their evidence and authority independently inspectable.
 
 ## Freeze and unknown future values
 
@@ -69,11 +70,11 @@ Evaluate preconditions with the same semantics at planning and dispatch. Known f
 flowchart TB
     H[(Accepted hypothesis and protocol)]
     subgraph Task[Task: construct and measure the intervention]
-        Build[POC builder CC] --> BD[Protected build checks]
+        Build[Builder CC: build evidence only] --> BD[Protected build checks]
         BD -->|valid| BV[Build verifier CC]
         BD -->|invalid| BG[Protected build gate]
         BV --> BG[Protected build gate]
-        BG -->|Committed acceptance| Measure[Benchmark CC]
+        BG -->|Committed acceptance| Measure[Research Benchmark CC]
         BG -->|Blocked| Halt[Visible halt and retained evidence]
         Measure --> MD[Protected measurement checks]
         MD -->|valid| MV[Measurement verifier CC]
@@ -83,10 +84,10 @@ flowchart TB
     H --> Build
     MG -->|Committed acceptance| Eval[Scientific evaluation CC]
     MG -->|Blocked| Halt
-    Eval --> EV[Scientific-output Evaluator Gate]
+    Eval --> EV[Protected scientific-output gate]
     EV -->|Committed acceptance| Report[Delivery CC]
     EV -->|Blocked| Halt
-    Report --> DV[Delivery Evaluator Gate]
+    Report --> DV[Protected Delivery gate]
     DV -->|Committed acceptance| O[(Released report and evidence)]
     DV -->|Blocked| Halt
     subgraph Legend[Legend]
@@ -97,12 +98,12 @@ flowchart TB
     classDef control fill:#FEF3C7,stroke:#B45309,color:#451A03
     classDef data fill:#DCFCE7,stroke:#15803D,color:#052E16
     class Build,Measure,Eval,Report work
-    class BV,MV,EV,DV verify
-    class BD,MD,BG,MG,Halt control
+    class BV,MV verify
+    class BD,MD,BG,MG,EV,DV,Halt,Halt0 control
     class H,O data
 ```
 
-Build and measurement show their deterministic checks explicitly; combined scientific-output and Delivery Evaluator Gate boxes include deterministic checks, read-only assessment and protected decisions. Dependency arrows mean runner-mediated transfer of accepted artifacts, not direct calls that bypass gates. A verifier assessment comes from a separately governed verifier subnode; neither is the downstream work Node B. All participating invocation evidence is aggregated against the node contract. Only committed node acceptance releases successor nodes. Verifiers do not recursively require semantic verifiers.
+Build and measurement show their deterministic checks explicitly; the scientific-output and Delivery gate boxes stand for the full pattern of deterministic checks, verifier assessment and protected decision, which is not drawn. Dependency arrows mean runner-mediated transfer of accepted artifacts, not direct calls that bypass gates. A verifier assessment comes from a separately governed verifier subnode; neither is the downstream work Node B. All participating invocation evidence is aggregated against the node contract. Only committed node acceptance releases successor nodes. Verifiers do not recursively require semantic verifiers.
 
 ## Scheduling and failure
 

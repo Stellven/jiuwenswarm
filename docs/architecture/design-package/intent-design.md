@@ -24,18 +24,16 @@ flowchart TB
             direction TB
             subgraph Work[Work subnode]
                 direction TB
-                WorkCC[Intention CC capsule<br/>Interpret request; preserve scope, constraints and uncertainty]
+                WorkCC[Intent CC with own self-review<br/>Interpret request; owns fidelity and preservation of scope, constraints and uncertainty]
             end
             WorkCC --> Candidate[/Candidate intent_ir.json/]
             Candidate --> Checks{Deterministic checks<br/>schema, spans, sources and identities}
             Checks -->|valid| CheckResults[/Check results/]
             Checks -->|invalid or unavailable| CheckFail[/Failed check result and reason/]
-            CheckResults --> ContextBuilder[Protected context builder<br/>bind exact subject and review evidence]
-            Candidate --> ContextBuilder
+            Candidate --> ContextBuilder[Protected review-input builder<br/>bind pinned declaration and exact candidate]
             Profile --> Checks
             Profile --> ContextBuilder
-            Request --> ContextBuilder
-            ContextBuilder --> Context[/Protected review context record<br/>candidate + accepted input + criteria/policy + checks + observations/]
+            ContextBuilder --> Context[/Review input<br/>pinned declaration + exact candidate only/]
             subgraph Verify[Verifier subnode]
                 direction TB
                 VerifierCC[Intent verifier CC<br/>Check declared output conformance and consistency; do not edit or accept]
@@ -55,7 +53,7 @@ flowchart TB
         Gate -->|reject or block| Halt[/Terminal halt reason; candidate and evidence retained/]
         Accepted --> Requirements
         subgraph RequirementsSubnode[Requirements work subnode]
-            Requirements[Requirements CC capsule<br/>Consumes accepted Intent IR; produces candidate Research Brief]
+            Requirements[Requirements CC<br/>Consumes accepted Intent IR; produces candidate research_brief.json<br/>own checks, verifier and gate drawn below]
         end
     end
 
@@ -114,15 +112,13 @@ Requirements receives **accepted** Intent, original context, supplied resource r
 flowchart TB
     I[Accepted Intent and original context] --> R[Requirements CC]
     Policy[Authorized defaults and template obligations] --> R
-    R --> Brief[Candidate Research Brief: requirements contract]
+    R --> Brief[Candidate research_brief.json: requirements contract]
     Brief --> D{Deterministic contract checks}
-    D -->|valid| V[Requirements verifier CC]
+    D -->|valid| V[Requirements verifier CC<br/>pinned declaration and exact Brief only]
     D -->|invalid or unavailable| G[Protected Requirements gate]
-    I --> V
-    Policy --> V
     V -->|verdict, findings and reasons| G
     G -->|internally accepted| NG[Protected node finalization: aggregate evidence]
-    NG -->|durably released Brief| P[Static binder or Phase 3 planner must fulfil contract]
+    NG -->|durably released Brief| P[Binder: static template or Planner proposal must fulfil contract]
     NG -->|incomplete or failed commit| H
     G -->|failed or unclear| H[Visible halt; do not plan]
 ```

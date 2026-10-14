@@ -25,8 +25,8 @@ flowchart TB
           BC -->|valid| BR --> BV --> BVA --> BVAL --> BG
           BC -->|invalid or unavailable| BG
         end
-        subgraph Benchmark[Benchmark subnode]
-          M[Benchmark work · Benchmark CC<br/>Provision frozen dependencies<br/> baseline first, then treatment<br/> no interpretation]
+        subgraph Benchmark[Research Benchmark subnode]
+          M[Research Benchmark work · Research Benchmark CC<br/>Provision frozen dependencies<br/> baseline first, then treatment<br/> no interpretation]
           MA[(Candidate benchmark_payload.json, empirical results and logs)]
           MC{Measurement checks<br/>protocol, resource, hardware, runs, metrics and execution evidence}
           MR[Semantic review input<br/>pinned declaration + exact worker output only]
@@ -217,14 +217,14 @@ flowchart TB
     I[(Input: accepted measurements, raw logs, frozen Blueprint and Brief)]
     O[(Output: accepted evaluation_verdict.json with conclusion, risks and follow-ups)]
     subgraph Workflow[Governed CC workflow]
-      subgraph Node[Evaluation node: apply preregistered criteria to evidence]
-        W[Evaluation work subnode · Evaluation CC<br/>Check empirical origin, metric completeness and validity<br/> classify against fixed criteria]
+      subgraph Node[Scientific Evaluation node: apply preregistered criteria to evidence]
+        W[Scientific Evaluation work subnode · Scientific Evaluation CC<br/>Check empirical origin, metric completeness and validity<br/> classify against fixed criteria]
         C{Deterministic checks<br/>required measurements, provenance, schema and frozen thresholds}
         R[Semantic review input<br/>pinned declaration + exact worker output only]
         V[Verifier subnode · verifier CC<br/>Assess declared output and internal consistency<br/> no input replay, edits or acceptance authority]
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
-        G{{Scientific-output Evaluator Gate<br/>apply checks + validated assessment<br/> commit or halt}}
+        G{{Protected scientific-output gate<br/>apply checks + validated assessment<br/> commit or halt}}
         Q[(Candidate evaluation_verdict.json)]
         H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
@@ -268,7 +268,7 @@ flowchart TB
         V[Verifier subnode · verifier CC<br/>Assess declared output and internal consistency<br/> no input replay, edits or acceptance authority]
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
-        G{{Delivery Evaluator Gate<br/>apply checks + validated assessment<br/> commit or halt}}
+        G{{Protected Delivery gate<br/>apply checks + validated assessment<br/> commit or halt}}
         Q[(Candidate report and evidence package)]
         H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C

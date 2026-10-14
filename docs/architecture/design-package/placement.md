@@ -11,7 +11,7 @@ flowchart TB
     Browser[Browser]
     subgraph App[One application container]
         Web[Web assets and control plane]
-        Planner[Core planner CC; advanced planner integration optional later]
+        Planner[Planner CC, built after the static template]
         Binder[Protected contract and guard binder]
         Scheduler[Scheduler]
         Runner[CC runner and native harness]
@@ -21,7 +21,7 @@ flowchart TB
         Bridge[Audited model bridge]
         State[Run-state module]
         POC[Restricted POC execution boundary]
-        Web -->|Fixed preparation and static template| Binder
+        Web -->|Fixed preparation and static template, built first| Binder
         Web -->|Bounded planning through runner| Planner
         Planner --> Binder
         Binder --> Det[Protected deterministic checks]
@@ -32,7 +32,7 @@ flowchart TB
         Scheduler --> Runner
         Runner -->|Captured work result and evidence| Det
         Gate -->|Committed release or halt| Scheduler
-        Runner --> Routing[Protected model routing]
+        Runner --> Routing[Fixed Codex route in M1]
         Routing --> Bridge
         Runner --> POC
         Library -.-> Binder

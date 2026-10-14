@@ -5,11 +5,11 @@
       "source": "README.md",
       "title": "System picture",
       "anchor": "system-picture",
-      "mermaid_sha256": "6bd2094c397f2da3d580b61c1c372297b91dff8722dc5aeb139b4b6758eafdfc",
+      "mermaid_sha256": "fe00dd6395798c8b02a1498af10add48b4c658f3ec6eaec2264b735265a4d55a",
       "svg": "diagrams/README-1.svg",
       "png": "diagrams/README-1.png",
-      "svg_sha256": "90cc3abd1d09248df083dcfefcb8a3b30d46ea6f87f925974b925d1f848b5281",
-      "png_sha256": "2873138e43b3b331737436652aa6bc18df487eb62ea23994755a3d35494e337f"
+      "svg_sha256": "e910a920b07d5ff7405b1fe15527caae9cc414b0402085a0f2443dd946f7587a",
+      "png_sha256": "bce72472420c58467f88d6a6d4b358fad0c3b0579c6c69283389a25049fdf9bc"
     },
     {
       "source": "artifact-inspection.md",
@@ -18,8 +18,8 @@
       "mermaid_sha256": "c8b19b4ba0596fb64beb4eba24e25c1ddb3c70a2fed552638df07a46569feda7",
       "svg": "diagrams/artifact-inspection-1.svg",
       "png": "diagrams/artifact-inspection-1.png",
-      "svg_sha256": "368eb769d3d8415929a02732d7800c142a9d9f9d45d6ed9ed984766720ff8fcf",
-      "png_sha256": "815c0b531f8dd09e19aae8456baa2d9dd8c47ce1b19e89f5e25602afabd537aa"
+      "svg_sha256": "3ffef05aa9bc45eb13b25f347dc80884090064e2d25b1d02edc7d0be821cd5d3",
+      "png_sha256": "7778006794f3a2966f2f497d85c8d1fb455c649c31d6e1ef2ccb5019bd34524f"
     },
     {
       "source": "automation.md",
@@ -28,8 +28,8 @@
       "mermaid_sha256": "0d79ca94afc94d5dc3a51f499f871ed78c0120005c399c53be6060146b2b5ad9",
       "svg": "diagrams/automation-1.svg",
       "png": "diagrams/automation-1.png",
-      "svg_sha256": "79c1af9eddb595a32992f195467b23bd03e097bd9f28d225782c8212e57c8a1f",
-      "png_sha256": "84aaa81452c2b2856553fa21fc01f7f0f6cebb1cff2cd97b9828f217ded94bb1"
+      "svg_sha256": "88d2c950fb02faf1fa4c0e2ebdbacc2a0ea438f8689a6499e3b5ad5a5fab95e4",
+      "png_sha256": "c647ed5422b0a1a3d07b461cd83598cdf5e34020202583838b5da07cd3b4acab"
     },
     {
       "source": "capsules.md",
@@ -38,8 +38,8 @@
       "mermaid_sha256": "a5d8d065e5e29420331a333b543b3916fa043fc05e1196e7b14566fd9b11a1b5",
       "svg": "diagrams/capsules-1.svg",
       "png": "diagrams/capsules-1.png",
-      "svg_sha256": "48f7bbd0b34a7d13d43a40311821701789b0b6077947295d621d529836753175",
-      "png_sha256": "071b5fae74c15206356104ffefd4538483189a56a24e37471c1486c5fb963df6"
+      "svg_sha256": "f57e01b6913462649a9f1774aa5361149ea8ef1a7eb9a5e37cb931f50628237b",
+      "png_sha256": "2991c98a93f93e9bcc3f529278e0752b43d235488e63131a89541f2ef3bf3423"
     },
     {
       "source": "development-tools/benchmark-runner/README.md",
@@ -48,7 +48,7 @@
       "mermaid_sha256": "68c9c090c10b231999bb4a5c914cbb75189b7c1752b895659e3189552ed5a82a",
       "svg": "diagrams/development-tools-benchmark-runner-README-1.svg",
       "png": "diagrams/development-tools-benchmark-runner-README-1.png",
-      "svg_sha256": "e8dbe346230dbe057c93a973d70a99c09e1ed9f9dae8a60ff7c41f5a2bf2f1fb",
+      "svg_sha256": "814a8235a914b0f224130bc4670bb21689b4a870dca8347b0c63e491a785ac4a",
       "png_sha256": "db1322b7625f14120f69c17ada6579e6a15424fe7b7419e67dd693089145b137"
     },
     {
@@ -58,7 +58,7 @@
       "mermaid_sha256": "c7a89e81c56a5cfe85a731632c59523919882c95f4941125d58da60ea598e172",
       "svg": "diagrams/development-tools-sidecar-README-1.svg",
       "png": "diagrams/development-tools-sidecar-README-1.png",
-      "svg_sha256": "d0191380d76b252e8c2464dcadc7793c8b130e7b00a43e11221c87ec46b1c024",
+      "svg_sha256": "a3a6c04c4ca78a2bb41664987832fc1fa1ebf4eea2b7524550c42c7ff5c6e8c4",
       "png_sha256": "c03457203a6385c9677e5722e1b70c81bd648e42fbe62741b597ad1074bf89e6"
     },
     {
@@ -68,28 +68,28 @@
       "mermaid_sha256": "c7190da7ac9756c54416ac66b7075345de2052410938e1e0f604d6d161b2a2b4",
       "svg": "diagrams/development-tools-test-runner-README-1.svg",
       "png": "diagrams/development-tools-test-runner-README-1.png",
-      "svg_sha256": "7f847432429acae581b627c4ead3d69b7390ae3f857cc9fd8bce11df67b64093",
-      "png_sha256": "d32630e56a7d440651598968054cd5425637112a2dd6a715d6f34eaa2a01f638"
+      "svg_sha256": "f4072e0205dc90b0c57369cc3d4008f325fa224bcc54e06d60f07b62c485ce18",
+      "png_sha256": "407036ed6a720ce6c2b86d0cb9aeff67542ef99c7e4bccac71a82f44ba499c0f"
     },
     {
       "source": "failure-and-human.md",
       "title": "When to call the human",
       "anchor": "when-to-call-the-human",
-      "mermaid_sha256": "e9c956c150ac3fa7af8ee377763b4099a37b7e2e56981a6338e70d0fcbdd58d1",
+      "mermaid_sha256": "a93562cc43e0283e596fba8544472b02a1323fa860de2d2fcbadfe07f14d1589",
       "svg": "diagrams/failure-and-human-1.svg",
       "png": "diagrams/failure-and-human-1.png",
-      "svg_sha256": "9886ebddae66d13a656a6d7ba58da20b2c0c6d4c2a3fa2c5691f0678394d0651",
-      "png_sha256": "2dde490ac5c550cb0d0f0c2b5e953fbb8aa6a087af5fc3c1c2f4400455f1d7bb"
+      "svg_sha256": "dcd620d6ddc34f2bc272962f6d0652ef2306f14d63973d7402171930c7393a9b",
+      "png_sha256": "d950854d696c30c362cd5457b6672d4844361a2b9622ec1eea85d45a01c4ff99"
     },
     {
       "source": "failure-and-human.md",
       "title": "Delivery Phase 3 clarification before acceptance",
       "anchor": "delivery-phase-3-clarification-before-acceptance",
-      "mermaid_sha256": "7d94591d85132dd2f1fabd65f89bb61773aaa5cacce41651555c09870b41f88e",
+      "mermaid_sha256": "4663dcab40879d2a13af4eae291431174e393e5a5b7f5f40ee27831feaad3616",
       "svg": "diagrams/failure-and-human-2.svg",
       "png": "diagrams/failure-and-human-2.png",
-      "svg_sha256": "2392b119f6be9815b448fb55489295eb56e881cae42f5c95ed429a48224086f6",
-      "png_sha256": "777d94a19b6d830a8e94fdbb76e7768622dbee5d18555dd2aa13e513fc719902"
+      "svg_sha256": "7e69cc5778cab9cf6e6ee67bf495666963844c8af5c3126d4c16ded45a96c223",
+      "png_sha256": "6aa7741bd0ac3951b84d2b338b0e849486207053144d2c742696f53da96bcaee"
     },
     {
       "source": "guard-design.md",
@@ -98,18 +98,18 @@
       "mermaid_sha256": "825593ee774c1a8717bfa1155ff1f964806bbd50de00d46f374b1da8066da384",
       "svg": "diagrams/guard-design-1.svg",
       "png": "diagrams/guard-design-1.png",
-      "svg_sha256": "4a3370de2d642ef73ee6b7f43f6b846346f03d0a4e67c6742ba5fe54b63333db",
-      "png_sha256": "d9e92d6d5e5492665676adf081c6757a6089c8cd6ad233e8966afc51e943c04b"
+      "svg_sha256": "1d89502c1cceaccfe6117d81bea6cdeeb7dacd942e4e7b96e1b55a03f71be04e",
+      "png_sha256": "a8ad3075e3a26226111ddb0c189352d05de39a20323891fecaed6456899f7834"
     },
     {
       "source": "guard-design.md",
       "title": "Assignments and check plans",
       "anchor": "assignments-and-check-plans",
-      "mermaid_sha256": "cbf2697285a00e2f0da727238b11a75aeda900cc294326e26f98b7243c652010",
+      "mermaid_sha256": "2973d51788c2c642b8eea01ddababf3ce370c7bd642877d9b85b1c9b82973a75",
       "svg": "diagrams/guard-design-2.svg",
       "png": "diagrams/guard-design-2.png",
-      "svg_sha256": "1845e9357a7352b562f4cbb1530fa14673b5cf464c43ba59e8895ca88fa43664",
-      "png_sha256": "158476c9ba2899c9fd028d95b26dc55aeb6bd90bcf305f3bb63806fb77c8320d"
+      "svg_sha256": "e4a23cb3bf9a11212303bfd6b2d8834e96fce210437df8eb702c8398db6ab63b",
+      "png_sha256": "522e900d2eba0733761cdb96ee2fd9c6aa5929fe8c8d30a5d665bdd217fc95ec"
     },
     {
       "source": "guard-design.md",
@@ -118,48 +118,48 @@
       "mermaid_sha256": "f2ff1d52d6688b8fc5e9f11506721f083bf718bb82a01c21a395483aba731671",
       "svg": "diagrams/guard-design-3.svg",
       "png": "diagrams/guard-design-3.png",
-      "svg_sha256": "daff640074a538600674719e5ac74750c5985a08c9ee980aba4cb8d8c77e9628",
+      "svg_sha256": "ed2c31611fe807ab91f45f283976585070334b322301cb8180ebc05ea949cd1b",
       "png_sha256": "8ea1067862b3a0a7061b1e0d120a1853492eab1040d2fce755ca94f6d7a2f7a3"
     },
     {
       "source": "intent-design.md",
       "title": "Deterministic boundary",
       "anchor": "deterministic-boundary",
-      "mermaid_sha256": "e56f8fdd6b436d83f1c9c104fc76503d19ff44ebdd31fe4462aeb1d0dfb00542",
+      "mermaid_sha256": "f44afe09a0bca4fcf4de3e60d9d6a6fa0b549c477d94f678ea34fa9f5ceb49ff",
       "svg": "diagrams/intent-design-1.svg",
       "png": "diagrams/intent-design-1.png",
-      "svg_sha256": "bd56025f6d309a95750f6b237ad88abdb8202fde660a7ce1f431a965e4e63cf9",
-      "png_sha256": "425b973d2094b58e83ee5aecc5399c6643c6fda9a69c43e0af4c18b5e9360f03"
+      "svg_sha256": "c8b390d77106d30d21a2f5a037aeca5dde8fd662f2d07983c28ad1278c5ad515",
+      "png_sha256": "83557ba08e3836f42ca99e28b7721c17381883de787cbb8fdf599116379758c2"
     },
     {
       "source": "intent-design.md",
       "title": "Requirements CC and the second boundary",
       "anchor": "requirements-cc-and-the-second-boundary",
-      "mermaid_sha256": "51b42262973522f1d410df5c2179efdec50fe25da40e875b90297db4432766fc",
+      "mermaid_sha256": "0d43f09bb3bbcd513b439c51f4820de72697e18273031022b7b8603be46b2ef3",
       "svg": "diagrams/intent-design-2.svg",
       "png": "diagrams/intent-design-2.png",
-      "svg_sha256": "41febc62416fc84671d6724631f8f736c6ce2ebb1413d0fa722466e694a69db1",
-      "png_sha256": "a172efb149f17718001ca55bf4c294f86c3b09ddcf3e73f12bf1f7d1b54aab4b"
+      "svg_sha256": "e427c829fa069cf4cd104d910780a6ecfcb3e5a3f2d4b4dee45c2bc1351ae1e2",
+      "png_sha256": "06d87565c4ac2f1ec77fb6021a08e071cdc093ce077917adebff64b843ef25aa"
     },
     {
       "source": "m1-design.md",
       "title": "From meaning to a governed research program",
       "anchor": "from-meaning-to-a-governed-research-program",
-      "mermaid_sha256": "b04d46680225aa9a9f8c8c182c71d53e74460d890066332264c76729bcf6b41e",
+      "mermaid_sha256": "26c0fe5444a2d83f6181aba37e723f361c28166b641c32fca4397679367eea5f",
       "svg": "diagrams/m1-design-1.svg",
       "png": "diagrams/m1-design-1.png",
-      "svg_sha256": "3ac55e6fe6781572b48d354a6d9240b4c76604143e83ae6b9a45f794eaaf01da",
-      "png_sha256": "c1228bda1410c04f8f7b2018945651d3687ac090e7a18a6f3e652a995e9e86df"
+      "svg_sha256": "b3334e7d810050556dea09bb58f332b5daec879f28c9e1881fac89a2107b6561",
+      "png_sha256": "d15c4a59cd4d2e0c3d620efe2e483aa93a8c9efa163b7813b5ecf37fd9a54cc1"
     },
     {
       "source": "m1-design.md",
       "title": "Execution and model routing",
       "anchor": "execution-and-model-routing",
-      "mermaid_sha256": "82af21bff9d63f986fa1b5cd7d6d84e3639a36a82a6a4edda88bf282a98bd350",
+      "mermaid_sha256": "3fb8ef5c0ea7c436be136815595df847d76a26ace59fbb619c2f93f4c7b2da42",
       "svg": "diagrams/m1-design-2.svg",
       "png": "diagrams/m1-design-2.png",
-      "svg_sha256": "12e6ac49f6a3cd65242acc0fbce0ad6e7ebdd998da1b4cb86a69985cebb7db3d",
-      "png_sha256": "d2ee736f345034e004b9933a97a843fec6a531a0e27934bf57bd27f94f89af40"
+      "svg_sha256": "4672e3b4124841b4e07f53a704a62b89b8601720649cdd843a7a1292b47fe468",
+      "png_sha256": "1c356bc83ef5558a180c19026cffc19ce622f95a5252806783328e5e5b56a765"
     },
     {
       "source": "m1-design.md",
@@ -168,28 +168,28 @@
       "mermaid_sha256": "5e6954816b65f9e5981dddaf6a9e38ae61591e1c89414874b5cfc984f5c61749",
       "svg": "diagrams/m1-design-3.svg",
       "png": "diagrams/m1-design-3.png",
-      "svg_sha256": "46eca5b7c5b55d3c901288a72f1539e616646326ec092a42a98ba34298d656b1",
-      "png_sha256": "9da6058c3ec2c7fdc1ce3a812b547f3ea6e820c7c5b13a41e8349923d3aba36c"
+      "svg_sha256": "f7771cecba2583d1a54a9477b646b400f6d9afd24ae5957415f4ce2c73895b42",
+      "png_sha256": "a17c43c9a3379be859e0b3a19507e3dcd6e744eac9f078727a3d17866fbf3fd3"
     },
     {
       "source": "phase-details.md",
       "title": "Other source-mapped integration scope",
       "anchor": "other-source-mapped-integration-scope",
-      "mermaid_sha256": "23cc8a6c90533bb986aac29ec7e10500e232f2a9737ab2817b9f45f82455ef38",
+      "mermaid_sha256": "a3a671f71ccff004eb9b3f8cf07d76536abcbc3ac08e5533345396b525693772",
       "svg": "diagrams/phase-details-1.svg",
       "png": "diagrams/phase-details-1.png",
-      "svg_sha256": "67abb6a16949bd7dd4012724b3490eedfbaca1084e350741bf4970481e4992c9",
-      "png_sha256": "c6e0772805275d61c1109ef62021a0dbb50d0dabd4abaea132cec858e705df90"
+      "svg_sha256": "a2d13f5fc8668a11b7d1fbfb01984a14d3ad70936121ca40df1e4dc380b799be",
+      "png_sha256": "c4ab68c53396238e8536cbc1d5eccbc87c848ef438309d13c785b6a503b04d49"
     },
     {
       "source": "placement.md",
       "title": "Deployment and boundaries",
       "anchor": "deployment-and-boundaries",
-      "mermaid_sha256": "d39893647efe126e2559029584e1a8409d20224d0a6346f6d9b7140e11a057ae",
+      "mermaid_sha256": "31d9587f4f2bf72a0e9239ee514ed50e05088d74609780e20cce52e91b1a83b2",
       "svg": "diagrams/placement-1.svg",
       "png": "diagrams/placement-1.png",
-      "svg_sha256": "d3306695735f96f4e94802418299b7723de85d4dd2ddc8b0773ab6d4d8240935",
-      "png_sha256": "27c9a6a2e7e11899df75e5d0ee125c7f0ba1ebc0eb77b6a6b823a6c612b5bc6c"
+      "svg_sha256": "c0b35001c51572b51788f0da833ddc33666cce0de0bbfb4bb93965c224f1d4b8",
+      "png_sha256": "0a9cdc2246c5b666fefb778000e008bd7ceec2e4a063758eb893d2db639f9840"
     },
     {
       "source": "placement.md",
@@ -198,8 +198,8 @@
       "mermaid_sha256": "617bc5daeb09b2564ae809412baba6ac2a94dad1a67344577b41df456ce4b9ea",
       "svg": "diagrams/placement-2.svg",
       "png": "diagrams/placement-2.png",
-      "svg_sha256": "adf9e12669f77cbbdd6ab444d1ab3e923a54ad7e10fdac6b0dbba6627d42640f",
-      "png_sha256": "119483025b13de7872165973cab56e9cc6584e632cdc6a8eb1114064ad63bf32"
+      "svg_sha256": "36bb9c216e7c44e8fd2d2cc95db80856467f1a4a277e07102a7b93671b45ef38",
+      "png_sha256": "3ff6645902ad5d203abd02d0c1383306938bc0a76ec0f2b6cbc0c5bc10b2dd6c"
     },
     {
       "source": "reference/capsule-model-routing.md",
@@ -208,48 +208,48 @@
       "mermaid_sha256": "5b90f7d189a5286accdf42a93e38899fb62e8f74e238d9d2ee32cf4cf25b4cef",
       "svg": "diagrams/reference-capsule-model-routing-1.svg",
       "png": "diagrams/reference-capsule-model-routing-1.png",
-      "svg_sha256": "5fd2058203be8029635963b2245769430045028ec915285f1b27b36f11827d95",
-      "png_sha256": "d5c8156df112cf2d17d2628df13d1510c538d21a622171cbc9667b5acd536cde"
+      "svg_sha256": "44f63a28b3b5d43370fc2688adf2fad1b829d261a794d7782334bfbc0b3a86de",
+      "png_sha256": "6bfd5141a40d88c8cedc99eac28c4f3fc56d5b23e417eccdd4137b42a73e1b29"
     },
     {
       "source": "reference/run-plan.md",
       "title": "Build order",
       "anchor": "build-order",
-      "mermaid_sha256": "530fbb81691d5b24e61cec0e0988f92073a0a37742e553e07f3f196e6ea436af",
+      "mermaid_sha256": "92e2b1d4cd39ba81a1267ff2da843c93b7f125a92cb913091674052110dda3f6",
       "svg": "diagrams/reference-run-plan-1.svg",
       "png": "diagrams/reference-run-plan-1.png",
-      "svg_sha256": "11f5e63371ee4a4e563e8623abb0fd9f73cdcc638a9134e215a6a75c924f73af",
-      "png_sha256": "e651148bc9c2f1a8e4b9a647b4d02525df996f77cbb10d5a3a9302a69c2ec7d5"
+      "svg_sha256": "32a09096b383657ca0d1a1d7edcce250926bbc134391866cf854b24c106b6983",
+      "png_sha256": "f094639a5f8df49f4787110dd70fd9c16c46f84c8947d634cb1d374806a1820c"
     },
     {
       "source": "research-design.md",
       "title": "Research path and ports",
       "anchor": "research-path-and-ports",
-      "mermaid_sha256": "880aa2df8544e9a70fa14030877396875608f010c43297271674ca77694b493a",
+      "mermaid_sha256": "e87f68d0f24a4f0990a4c83e1078a34e4468bd9a9acb587a60ce40174530fd2c",
       "svg": "diagrams/research-design-1.svg",
       "png": "diagrams/research-design-1.png",
-      "svg_sha256": "4bbeb73d81bc789a3fd53dd2acabaf92b75f612c1bc407332bac784f28884380",
-      "png_sha256": "05d01c6400461c5599a72bb45f2e3f652a34c3c1987beebddaf419674848dea3"
+      "svg_sha256": "2547507d06ba95e9a48664a2010ccfb865f3e5880e213f360bf839f82918713d",
+      "png_sha256": "139eb3481e660fbea1b49e0583e781d7c8a8a2260a2732fab4e984a89c775407"
     },
     {
       "source": "research-design.md",
       "title": "Commit before successor release",
       "anchor": "commit-before-successor-release",
-      "mermaid_sha256": "fba16b897c7d709d0e4923d5dbd2922d36ca28b419a2ad6a4f5133cc9b8e9214",
+      "mermaid_sha256": "ccba26bc450a20ce5532b23c97b523790ae6ff01bac843055bf39044d41199cb",
       "svg": "diagrams/research-design-2.svg",
       "png": "diagrams/research-design-2.png",
-      "svg_sha256": "337f888cb358bb11b856d8a152d897a8f266cf65fdc8a127d364269e0687e819",
-      "png_sha256": "7d1ea074518eed3dacb1767d46afa37f5365e4eba56f0ad8fd13c5c9c7a1800f"
+      "svg_sha256": "a44fb7d367b505fcb5c61978315ce959f97eb083af67ea204c1b63d1e392e2a1",
+      "png_sha256": "590695342a38fe2eb4b372d35e50c780216e09b93a97ce49b41b8c9cb1c8a42c"
     },
     {
       "source": "research-nodes.md",
       "title": "Inside the POC task",
       "anchor": "inside-the-poc-task",
-      "mermaid_sha256": "9899f358c2590bdef0f8d60529b2275f152711aeb4d03c42784454ccef1a6210",
+      "mermaid_sha256": "68cfb2ecbe0689c74a3e8308215c906720b834a725b7af910ee00534c60fe289",
       "svg": "diagrams/research-nodes-1.svg",
       "png": "diagrams/research-nodes-1.png",
-      "svg_sha256": "73f7142798f685596b731b8e416bbd776dfc1bf75a3340f2dcec1202c95cd864",
-      "png_sha256": "1e8110b45e12584042497e0a0dc7c088f252e4677e5b9203a696a85b9eab54ce"
+      "svg_sha256": "14b4ff0602b20956b2bfdee3743a116e5b311fa538cac70a0686be8c7e232960",
+      "png_sha256": "0f8d24c8dbebddc1f25dafa38e53ab2f0314b39b4407ded3566d270036369875"
     },
     {
       "source": "research-nodes.md",
@@ -258,7 +258,7 @@
       "mermaid_sha256": "8110e99d46cb26658f648f9a81c8aa59dcfbefef6309a3e975596cc9396867ce",
       "svg": "diagrams/research-nodes-2.svg",
       "png": "diagrams/research-nodes-2.png",
-      "svg_sha256": "a41fe99b4fbb6d36ad2239b8bd467fb6733470277169bb97ea50d1c75c971d80",
+      "svg_sha256": "89b76cfcaddb69b03b93970f0c801104871dfdc074e8f65d88814c3d3b285b1e",
       "png_sha256": "3dbb3e2dfa6ef0d790aa74a0299ce09b4e9b75acfdc5fa8d7b925d6f1ac36ec3"
     },
     {
@@ -268,7 +268,7 @@
       "mermaid_sha256": "3926ba2bc68fb74c506fde5f9c36aa37751dba3db7474cfbc07430a31d6ee64e",
       "svg": "diagrams/research-nodes-3.svg",
       "png": "diagrams/research-nodes-3.png",
-      "svg_sha256": "f2fe240f91f82cb1c58cb6b0724a1a2bcd498ce40895efd377bdd55c7b1e6628",
+      "svg_sha256": "50ccc428a215c884bc17bc4b87e412f877708e2ad1f391986103a30b0f3ae133",
       "png_sha256": "cb643921f16b0f99e6ad452153bf7e3b5aafe3d0e183340af8cda73d1c992cfb"
     },
     {
@@ -278,48 +278,48 @@
       "mermaid_sha256": "6554a50e7f49b0c85b3c1f67f27653f7069ee040a3cf530be026b8c9d0e648d2",
       "svg": "diagrams/research-nodes-4.svg",
       "png": "diagrams/research-nodes-4.png",
-      "svg_sha256": "d1a081a99d89e9b2b949dbfde60709ce904332e57d759d7343da64fdc0911d86",
+      "svg_sha256": "5e5166508fd3cc8097bf260bd77590b4734c62a01a3d07673059858ba43d7456",
       "png_sha256": "d9d6b18c12668b20a7fc95750622c94163ef712b697226114bf0193b4c0e7440"
     },
     {
       "source": "research-nodes.md",
       "title": "Research nodes and subnodes",
       "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "bb2cb48d8a77939e874b98b8bd8ffd72ebed2e8acb21cc9a3141091e8f7abce0",
+      "mermaid_sha256": "d30623f2758772d2c568363da49abf69cd021896d3c22930dd23c8c095efb440",
       "svg": "diagrams/research-nodes-5.svg",
       "png": "diagrams/research-nodes-5.png",
-      "svg_sha256": "828d03a98b96bfcbcd82504d82757a7440d6e041cb474e2dae69b733ef25b2e1",
-      "png_sha256": "1798b541d80f5e032f5709ce22d109307b0a13229d23b7dc96bfa57339eac1e2"
+      "svg_sha256": "4d5154cb815eff97b403c5e8f7ef72d391939bf7b35f0d76c3e0201942377516",
+      "png_sha256": "41e31f58d9afc2d2f5dad8d431b996c1e7cbe8b6fa5e05c980847b74698068fe"
     },
     {
       "source": "research-nodes.md",
       "title": "Research nodes and subnodes",
       "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "a8c170542e0f57dbb644df1b0cebf05edd48738a7cfcce4d12d8e80bb13ec433",
+      "mermaid_sha256": "93ca01fc79da3ce0e6f0916315f85bca925ba106312e18a05f3427936926c9e0",
       "svg": "diagrams/research-nodes-6.svg",
       "png": "diagrams/research-nodes-6.png",
-      "svg_sha256": "2c1965cf8a1e68ca0929bf7147960db05451c83b42b89a24138ba305e5ed893d",
-      "png_sha256": "0c9fd853f63387534824eefc24bec92d6c7211239ec79647bb840005a9fb4764"
+      "svg_sha256": "8a7c82dfa9ee71e689a7d39a394604f616ae2b3198d02142ff934a79e28ddf17",
+      "png_sha256": "9d1b258d53a30f242d49a57cbb6a80dbeeb51835af9412dd12151323fbb1db80"
     },
     {
       "source": "workflow.md",
       "title": "Establish intent before planning",
       "anchor": "establish-intent-before-planning",
-      "mermaid_sha256": "621df3d2267160be65b8c9330d38034da86be11f321ed027b0df013c7982bec5",
+      "mermaid_sha256": "5aeb8cd753dc440d635c33e3abed050cad83de103e2255acd4cd921801bbd6d9",
       "svg": "diagrams/workflow-1.svg",
       "png": "diagrams/workflow-1.png",
-      "svg_sha256": "f31a279e61741072745f7d660d973601a98386bf928706b2cab0fe34526185de",
-      "png_sha256": "6a5e48834ef8ed2af53d91e5088cbd8830049f136d467b163d52560e8982fa07"
+      "svg_sha256": "5e560ee64b94fef40027170064887acde33aa890010f3a17039b3bdda0919d98",
+      "png_sha256": "aeaa0bfc5fab8619449439f124493b02af9bd943182d22833537fa72972158a2"
     },
     {
       "source": "workflow.md",
       "title": "Tasks, nodes, and verification",
       "anchor": "tasks-nodes-and-verification",
-      "mermaid_sha256": "f566183ee6a933ee229c166e32a5f6118a638c1e4b26284df306567dec87f6b3",
+      "mermaid_sha256": "d46b35c403477cf606e29995a0a4579a53ac85860c9523c526f9bca6e84ce4e3",
       "svg": "diagrams/workflow-2.svg",
       "png": "diagrams/workflow-2.png",
-      "svg_sha256": "297550b1f410d0ef4d4733160626cfacb5b2a3ecce1fe825d8aa0760a6d1abee",
-      "png_sha256": "35d40d909d429654792bb3c5cab13d646153436c2ff437ccdc74c229e9ff29de"
+      "svg_sha256": "99e48e583a788f7fd7ab5e9a55b8db6a424c611032c72de85d39974c0fa0f562",
+      "png_sha256": "22bf45b5a469def5e4368f16e9f103933a98eddd26719a5dbdba2025db87be1f"
     }
   ]
 }

@@ -63,11 +63,12 @@ AI4Research turns a supplied research purpose and local assets into a grounded o
 ```mermaid
 flowchart TB
     User[Browser or supported local client] --> Control[Authenticated control plane]
-    Control --> Prep[Intention Compiler node: verified Intent and Research Brief]
-    Prep --> Plan[Fixed Planner: bounded CC DAG proposal]
-    Plan --> Freeze[Protected plan checking and freeze]
+    Control --> Prep[Intention Compiler node: verified Intent and research_brief.json]
+    Prep --> Plan[Static template first, then Planner CC proposal]
+    Plan --> Freeze[Protected binder: plan checks, gate and freeze of one run_plan]
+    Freeze -->|rejected or infeasible: halt, linked new attempt| Prep
     Freeze --> Runner[Scheduler and governed CC runner]
-    Runner --> Work[Research CCs: search to delivery]
+    Runner --> Work[Research CCs: Search to Delivery<br/>each with its own checks, verifier and gate, not drawn]
     Work --> Det[Deterministic output checks]
     Det -->|valid| Verify[Read-only verifier CC: assessment]
     Det -->|invalid or unavailable| Gate[Protected gate: control decision]
@@ -75,13 +76,13 @@ flowchart TB
     Gate --> State[Durable decision and immutable accepted artifacts]
     State -->|accepted predecessor| Runner
     State -->|halt or result| Control
-    Runner --> Models[Protected model routing and audited bridge]
+    Runner --> Models[Fixed Codex route and audited bridge]
     Models --> Endpoint[Configured model endpoint]
     Library[(Admitted CC library and guard profiles)] --> Plan
     Library --> Runner
     RSI[Separate offline RSI: candidate and protected evaluation] --> Admission[Protected admission: inactive eligible candidate]
     Admission --> Library
-    Human[M1 human activation; M2 protected auto-eligibility] --> Library
+    Human[M1 human activation; November automatic admission makes versions eligible for future plans only] --> Library
 ```
 
 Preparation and planning use the same checking pattern shown for research. The runtime feedback edge represents dependency release, not a cyclic research graph. RSI runs outside live research. Its scores cannot release product work or activate a candidate.

@@ -28,7 +28,7 @@ Each work output is a candidate until deterministic checks, its assigned verifie
 flowchart TB
     subgraph Prep[Prepare and freeze]
         direction LR
-        I[Qualified intake] --> C[Intent and requirements] --> B[Research Brief] --> P[Plan and freeze]
+        I[Qualified intake] --> C[Intent and requirements] --> B[research_brief.json] --> P[Template or Planner, then freeze run_plan]
     end
     subgraph Research[Evidence to registered experiment]
         direction LR
@@ -36,7 +36,7 @@ flowchart TB
     end
     subgraph Execution[Build and measure]
         direction LR
-        K[Bounded POC] --> M[Baseline then treatment]
+        K[Builder: build evidence only] --> M[Research Benchmark: baseline then treatment]
     end
     subgraph Conclusion[Interpret and deliver]
         direction LR
@@ -87,7 +87,7 @@ Authoritative release state lives in SQLite, with PRD-compatible append-only rec
 sequenceDiagram
     participant R as Runner
     participant F as Artifact store
-    participant V as Evaluator Gate
+    participant V as Protected gate
     participant S as Durable run-state
     participant H as Scheduler
     R->>F: Capture immutable candidate and observations
@@ -151,7 +151,7 @@ These design-level obligations supplement the PRD and are not runtime pass claim
 | Packaging and security / 1 | Packaged frontend and runtime → loopback browser, private clients, scoped worker | Image starts its services. Protected IPC, token and volumes. A POC cannot read control files, credentials or hidden fixtures or use a denied network |
 | Optional offline RSI | Parent and target profile → isolated proposals → protected paired evaluation → inactive child | Independently buildable. Nothing in the core depends on RSI. Live ranking unchanged. Contract, referee and hidden splits frozen. No automatic promotion |
 
-The full PRD coverage map is in [coverage allocation](coverage-allocation.md). The static fallback stays separately attributable, and mocks do not establish real integration. Design status remains `DESIGN` until runtime evidence exists.
+The full PRD coverage map is in [coverage allocation](coverage-allocation.md). The static template run stays separately attributable, and mocks do not establish real integration. Design status remains `DESIGN` until runtime evidence exists.
 
 ### Fixed research policies and feasibility
 

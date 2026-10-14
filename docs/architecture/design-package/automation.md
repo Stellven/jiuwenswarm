@@ -2,7 +2,7 @@
 
 **Reading level: human potential.** Question answered: How do authenticated clients connect, observe and recover without release authority?
 
-**Required shape:** a benchmarker drives the workflow exactly as an authenticated user client does. It submits bounded work, observes status, retrieves permitted artifacts, and records terminal outcomes. It cannot write authoritative run state, insert accepted outputs, bypass the Evaluator Gate, or mount the hidden RSI fixture store. Concrete commands, routes and fixture mechanisms remain implementation choices.
+**Required shape:** a benchmarker drives the workflow exactly as an authenticated user client does. It submits bounded work, observes status, retrieves permitted artifacts, and records terminal outcomes. It cannot write authoritative run state, insert accepted outputs, bypass the protected gate, or mount the hidden RSI fixture store. Concrete commands, routes and fixture mechanisms remain implementation choices.
 
 ## Local Compose topology
 
