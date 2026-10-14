@@ -1,0 +1,88 @@
+{
+  "schema_version": "2.0.0",
+  "id": "decision:science",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:science",
+  "node_id": "scientific.evaluation",
+  "attempt_id": "attempt:science",
+  "contract_ref": {
+    "id": "science_subnode_contract.json",
+    "sha256": "32498a921afdfc4970ff7cdc03f24062563c627a27b7728ae7e80b3b4534918e"
+  },
+  "invocation_refs": [
+    {
+      "id": "science_observation.json",
+      "sha256": "a960dda55b05459d507ccd178d55bc65e481867523f68555d2ef91b809ddec24"
+    },
+    {
+      "id": "science_verifier_observation.json",
+      "sha256": "11abcf6feb9401cc900332aeb326e7e43e212c197ac89f51e6ce8207847a8eaa"
+    }
+  ],
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "check_plan_ref": {
+    "id": "science_check_plan.json",
+    "sha256": "41a574b92ffc68e6f7c70d0242f5324e56bc662762e7c1cf032afdc9de9562be"
+  },
+  "input_refs": [
+    {
+      "id": "lifecycle_research_brief.json",
+      "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+    },
+    {
+      "id": "hypothesis_blueprint.json",
+      "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+    },
+    {
+      "id": "benchmark_payload.json",
+      "sha256": "45b0e5c60a463beb810d38a31cfb06d4accaaff8ff80aa931332287e3de0c7de"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "science_checks.json",
+    "sha256": "a2718c3b4a714630335470736e9b13dd64a0cf63f22ae43d3a8cc03147d42716"
+  },
+  "assessment_ref": {
+    "id": "science_assessment.json",
+    "sha256": "299b1c58b968920dc2d2afef190564e377f12f2aca9003630b87b2c701a428f3"
+  },
+  "verdict": "PASS",
+  "reasons": [
+    {
+      "code": "VALID_NEGATIVE",
+      "message": "Infrastructure acceptance permits delivery of the scientific FAIL",
+      "criterion_ids": [
+        "registered_rule_applied"
+      ],
+      "evidence_refs": [
+        {
+          "id": "science_assessment.json",
+          "sha256": "299b1c58b968920dc2d2afef190564e377f12f2aca9003630b87b2c701a428f3"
+        }
+      ]
+    }
+  ],
+  "action": "advance",
+  "accepted_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "a13cd39128ee33a5a340de78f931f30129145289b2dd3f1e4281962b9651527c"
+  },
+  "subnode_id": "evaluation",
+  "scope_kind": "subnode",
+  "internal_decision_refs": []
+}

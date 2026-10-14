@@ -1,0 +1,51 @@
+{
+  "schema_version": "2.0.0",
+  "id": "observation:evaluation.verifier",
+  "contract_ref": {
+    "id": "science_verifier_subnode_contract.json",
+    "sha256": "432a517dcc39ffafafb76869137d6accf4ebdebcebebb8fd1753068daf83f7a5"
+  },
+  "binding_id": "binding:evaluation.verifier",
+  "input_refs": [
+    {
+      "id": "science_review_context.json",
+      "sha256": "89c5b024e6f18f39bf34c5ea6a871c5e4445e0cebd933603b8dc5ea0ea2228f2"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "science_assessment.json",
+      "sha256": "299b1c58b968920dc2d2afef190564e377f12f2aca9003630b87b2c701a428f3"
+    }
+  ],
+  "model_identity": {
+    "requested": "synthetic teaching endpoint",
+    "effective": null,
+    "basis": "unobserved example"
+  },
+  "started_at": null,
+  "ended_at": null,
+  "outcome": "synthetic_example",
+  "effects": [],
+  "duration_s": null,
+  "model_calls": null,
+  "trace_refs": [],
+  "unavailable_reasons": [
+    "No runtime execution or observed effects are claimed"
+  ],
+  "observed_runtime": false,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic illustration; no tokens or attributable cost were observed"
+    ]
+  },
+  "node_contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "a13cd39128ee33a5a340de78f931f30129145289b2dd3f1e4281962b9651527c"
+  },
+  "subnode_id": "evaluation.verifier"
+}

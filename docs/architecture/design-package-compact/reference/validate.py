@@ -212,14 +212,14 @@ def plan_issues(nodes, allowed_requirements=None):
                 if src['producer_node'] not in n['predecessors'] or not out or (out['contract_id'],out['version'])!=(src['contract_id'],src['version']) or (src['contract_id'],src['version'])!=(p['contract_id'],p['version']):result.append('incompatible future planning port')
     return result
 
-for name in ('Gate_Decision.json', 'Gate_Topic_Halt.json', 'Gate_Science_Pass.json', 'Gate_Requirements_Pass.json'):
+for name in ('gate_decision.json', 'gate_topic_halt.json', 'gate_science_pass.json', 'gate_requirements_pass.json'):
     for issue in gate_issues(load(EX / name)):
         errors.append(name + ': ' + issue)
-require(load(EX / 'Topic_Assessment.json')['verdict'] == 'INCONCLUSIVE', 'Topic-only intent must not pass usability')
-require(load(EX / 'Gate_Topic_Halt.json')['accepted_refs'] == [], 'Blocked intent must not reach Requirements')
-require(load(EX / 'Evaluation_Verdict.json')['classification'] == 'FAIL' and load(EX / 'Gate_Science_Pass.json')['verdict'] == 'PASS', 'Science/gate distinction lost')
+require(load(EX / 'topic_assessment.json')['verdict'] == 'INCONCLUSIVE', 'Topic-only intent must not pass usability')
+require(load(EX / 'gate_topic_halt.json')['accepted_refs'] == [], 'Blocked intent must not reach Requirements')
+require(load(EX / 'evaluation_verdict.json')['classification'] == 'FAIL' and load(EX / 'gate_science_pass.json')['verdict'] == 'PASS', 'Science/gate distinction lost')
 
-brief = load(EX / 'Research_Brief.json')
+brief = load(EX / 'research_brief.json')
 req_ids = {x['id'] for x in brief['mandatory_requirements'] + brief['optional_preferences']}
 for expectation in brief['acceptance_expectations'] + brief['evidence_obligations']:
     require(set(expectation['requirement_ids']) <= req_ids, 'Unknown Brief requirement ID')
@@ -231,7 +231,7 @@ intent_key = next(k for k in schemas if ':intent-ir:' in k)
 assess_key = next(k for k in schemas if ':verifier-assessment:' in k)
 gate_key = next(k for k in schemas if ':gate-decision:' in k)
 for mode in ('missing', 'unknown_field', 'bad_version', 'bad_extension', 'bad_enum', 'bad_reference'):
-    value = copy.deepcopy(load(EX / 'Intent_IR.json'))
+    value = copy.deepcopy(load(EX / 'intent_ir.json'))
     if mode == 'missing':
         del value['interpretation']
     elif mode == 'unknown_field':
@@ -246,18 +246,18 @@ for mode in ('missing', 'unknown_field', 'bad_version', 'bad_extension', 'bad_en
         value['request_ref']['sha256'] = 'not-a-content-hash'
     require(not validators[intent_key].is_valid(value), 'Negative schema case incorrectly accepted: ' + mode)
     negative_count += 1
-value = copy.deepcopy(load(EX / 'Intent_Assessment.json'))
+value = copy.deepcopy(load(EX / 'intent_assessment.json'))
 value['action'] = 'halt'
 require(not validators[assess_key].is_valid(value), 'Verifier may not author control action')
 negative_count += 1
-value = copy.deepcopy(load(EX / 'Gate_Decision.json'))
+value = copy.deepcopy(load(EX / 'gate_decision.json'))
 value['verdict'] = 'FAIL'
 require(not validators[gate_key].is_valid(value), 'FAIL must not authorize advance')
 negative_count += 1
 for mode in ('subject', 'scope', 'acceptance', 'missing_assessment'):
-    value = copy.deepcopy(load(EX / 'Gate_Decision.json'))
+    value = copy.deepcopy(load(EX / 'gate_decision.json'))
     if mode == 'subject':
-        value['output_refs'] = [load(EX / 'Gate_Topic_Halt.json')['output_refs'][0]]
+        value['output_refs'] = [load(EX / 'gate_topic_halt.json')['output_refs'][0]]
     elif mode == 'scope':
         value['run_id'] = 'wrong-run'
     elif mode == 'acceptance':
@@ -342,7 +342,7 @@ for item in index:
 
 def research_issues():
     result=[]
-    candidates=load(EX/'Candidate_Set.json'); scores=load(EX/'Screening_Result.json'); opportunity=load(EX/'Opportunity_Card.json')
+    candidates=load(EX/'candidate_set.json'); scores=load(EX/'screening_result.json'); opportunity=load(EX/'opportunity_card.json')
     ids={x['idea_id'] for x in candidates['ideas']}; citations={x['id'] for x in candidates['citations']}
     if not 1 <= len(ids) <= 3 or len(ids)!=len(candidates['ideas']):result.append('candidate cardinality/identity')
     for idea in candidates['ideas']:
@@ -355,13 +355,13 @@ def research_issues():
         if score['eligible']:expected.append({'idea_id':score['idea_id'],'total':sum(values)})
     expected.sort(key=lambda x:(-x['total'],x['idea_id']))
     if scores['ranking']!=expected or not expected or opportunity['idea_id']!=expected[0]['idea_id'] or scores['selected_idea_id']!=opportunity['idea_id']:result.append('inconsistent Top-1')
-    blueprint=load(EX/'Hypothesis_Blueprint.json');poc=load(EX/'POC_Manifest.json');benchmark=load(EX/'Benchmark_Payload.json');verdict=load(EX/'Evaluation_Verdict.json');delivery=load(EX/'Delivery_Manifest.json')
+    blueprint=load(EX/'hypothesis_blueprint.json');poc=load(EX/'poc_manifest.json');benchmark=load(EX/'benchmark_payload.json');verdict=load(EX/'evaluation_verdict.json');delivery=load(EX/'delivery_manifest.json')
     if blueprint['environment_ref']!=poc['environment_ref'] or benchmark['blueprint_ref']!=poc['blueprint_ref']:result.append('different protocol/environment')
     metric_ids={x['metric_id'] for x in blueprint['metrics']}
     if {x['metric_id'] for x in benchmark['metrics']}!=metric_ids or {x['metric_id'] for x in verdict['findings']}!=metric_ids:result.append('incomplete metric coverage')
     for metric in benchmark['metrics']:
         if len(metric['baseline'])!=blueprint['repeat_count'] or len(metric['treatment'])!=blueprint['repeat_count'] or abs(metric['delta']-(metric['treatment_value']-metric['baseline_value']))>1e-9:result.append('measurement relationship')
-    if verdict['classification']!='FAIL' or delivery['verdict_ref']!=ref_for('Evaluation_Verdict.json'):result.append('negative delivery changed')
+    if verdict['classification']!='FAIL' or delivery['verdict_ref']!=ref_for('evaluation_verdict.json'):result.append('negative delivery changed')
     return result
 
 def ref_for(name):
@@ -381,12 +381,12 @@ def rsi_issues(evidence):
         if len(pair['parent_time_s'])!=target['scoring']['paired_rounds'] or len(pair['child_time_s'])!=target['scoring']['paired_rounds']:result.append('missing paired timing')
     return result
 
-with zipfile.ZipFile(EX/'POC_Artifact_Bundle.zip') as archive:
-    poc=load(EX/'POC_Manifest.json')
+with zipfile.ZipFile(EX/'poc_artifact_bundle.zip') as archive:
+    poc=load(EX/'poc_manifest.json')
     require(set(archive.namelist())=={x['path'] for x in poc['files']}, 'POC archive/manifest mismatch')
     for item in poc['files']:
         require(hashlib.sha256(archive.read(item['path'])).hexdigest()==item['artifact_ref']['sha256'], 'POC packaged bytes differ')
-for rule in [rule for metric in load(EX/'Hypothesis_Blueprint.json')['metrics'] for rule in (metric['success'],metric['falsification'])]:
+for rule in [rule for metric in load(EX/'hypothesis_blueprint.json')['metrics'] for rule in (metric['success'],metric['falsification'])]:
     require(rule['operand']=='treatment' and rule['comparator'] in ('lt','le','eq','ge','gt') and rule['reference'] in ('baseline','constant'), 'Unsupported comparison rule')
     require(rule['reference']!='constant' or rule['factor']==0, 'Constant rule has baseline factor')
 for item in field_catalog['interfaces']:
@@ -394,20 +394,20 @@ for item in field_catalog['interfaces']:
     for name,info in item['fields'].items():
         require('| `'+name+'` | `'+info['type']+'` |' in view, 'Field view/type drift '+item['name']+'.'+name)
 errors.extend(research_issues())
-errors.extend(rsi_issues(load(EX/'RSI_Referee_Evidence.json')))
-candidate=load(EX/'RSI_Child_Candidate.json')
-require(candidate['implementation_refs']==[load(EX/'RSI_Attempt_01.json')['child_ref']], 'Candidate body/attempt mismatch')
-require(load(EX/'RSI_Admission.json')['candidate_ref']==ref_for('RSI_Child_Candidate.json'), 'Admission references wrong package')
-parent=load(EX/'Ranking_Declaration.json'); child=load(EX/'Ranking_Child_Declaration.json')
+errors.extend(rsi_issues(load(EX/'rsi_referee_evidence.json')))
+candidate=load(EX/'rsi_child_candidate.json')
+require(candidate['implementation_refs']==[load(EX/'rsi_attempt_01.json')['child_ref']], 'Candidate body/attempt mismatch')
+require(load(EX/'rsi_admission.json')['candidate_ref']==ref_for('rsi_child_candidate.json'), 'Admission references wrong package')
+parent=load(EX/'ranking_declaration.json'); child=load(EX/'ranking_child_declaration.json')
 for key in parent:
     if key!='identity':require(parent[key]==child[key], 'RSI changes frozen declaration semantics')
 for key in parent['identity']:
     if key not in ('version_label','carrier','body'):require(parent['identity'][key]==child['identity'][key], 'RSI changes frozen identity semantics')
 require(child['identity']['body'][0]['sha256']==candidate['implementation_refs'][0]['sha256'], 'Derived body pin mismatch')
-require(load(EX/'RSI_Rollback.json')['admission_ref']==ref_for('RSI_Parent_Admission.json'), 'Rollback lacks prior-version admission')
+require(load(EX/'rsi_rollback.json')['admission_ref']==ref_for('rsi_parent_admission.json'), 'Rollback lacks prior-version admission')
 
 for mode in ('missing_binding','unknown_contract','input_inventory','oversized_limit','port_name'):
-    bad=copy.deepcopy(load(EX/'Intention_Subnode_Contract.json'))
+    bad=copy.deepcopy(load(EX/'intention_subnode_contract.json'))
     if mode=='missing_binding':bad['bindings']=[]
     elif mode=='unknown_contract':bad['outputs'][0]['contract_id']='invented:contract'
     elif mode=='input_inventory':bad['input_refs']=[]
@@ -416,14 +416,14 @@ for mode in ('missing_binding','unknown_contract','input_inventory','oversized_l
     require(bool(node_issues(bad)) or not validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(bad), 'Node negative accepted: '+mode)
     negative_count += 1
 for mode in ('missing','type','extension'):
-    bad=copy.deepcopy(load(EX/'Opportunity_Card.json'))
+    bad=copy.deepcopy(load(EX/'opportunity_card.json'))
     if mode=='missing':del bad['opportunity_statement']
     elif mode=='type':bad['citation_ids']='untyped string'
     else:bad['ext']={'unqualified':True}
     require(bool(field_errors(bad,interfaces['opportunity-card:field-contract:1']['fields'])), 'Field negative accepted: '+mode)
     negative_count += 1
 for mode in ('lineage','mandatory','final_reuse'):
-    bad=copy.deepcopy(load(EX/'RSI_Referee_Evidence.json'))
+    bad=copy.deepcopy(load(EX/'rsi_referee_evidence.json'))
     if mode=='lineage':bad['child_ref']=bad['parent_ref']
     elif mode=='mandatory':bad['mandatory_parent_tests_passed']=False
     else:bad['final_evaluations']=2
@@ -431,8 +431,8 @@ for mode in ('lineage','mandatory','final_reuse'):
     negative_count += 1
 
 # Independent-review regressions: member wiring, optional ports and exact source decoding.
-planning=load(EX/'Planning_Nodes.json');nodes=planning['nodes'];governing=resolved(planning['brief_ref']);allowed={r['id'] for r in governing['mandatory_requirements']+governing['optional_preferences']}
-errors.extend(type_errors(nodes,'PlanNode[]','Planning_Nodes'))
+planning=load(EX/'planning_nodes.json');nodes=planning['nodes'];governing=resolved(planning['brief_ref']);allowed={r['id'] for r in governing['mandatory_requirements']+governing['optional_preferences']}
+errors.extend(type_errors(nodes,'PlanNode[]','planning_nodes'))
 errors.extend(plan_issues(nodes,allowed))
 bad=copy.deepcopy(nodes);bad[0]['requirement_ids']=['invented:obligation']
 require('unknown planning obligation' in plan_issues(bad,allowed), 'Foreign planning obligation accepted');negative_count+=1
@@ -446,32 +446,32 @@ for mode in ('unknown_port','mixed_source','cycle'):
 old_resolved=resolved
 def resolved(r):
     d=old_resolved(r)
-    if r['id']=='Capsule_Declaration.json':
+    if r['id']=='capsule_declaration.json':
         d['ports']['inputs'].append(dict(d['ports']['inputs'][0],name='optional-context',required=False))
         d['ports']['outputs'].append(dict(d['ports']['outputs'][0],name='optional-intent',required=False))
     return d
-require(not node_issues(load(EX/'Intention_Subnode_Contract.json')), 'Optional declaration port incorrectly mandatory')
-optional=copy.deepcopy(load(EX/'Intention_Subnode_Contract.json'));optional['outputs'].append(dict(optional['outputs'][0],name='optional-intent',required=False))
+require(not node_issues(load(EX/'intention_subnode_contract.json')), 'Optional declaration port incorrectly mandatory')
+optional=copy.deepcopy(load(EX/'intention_subnode_contract.json'));optional['outputs'].append(dict(optional['outputs'][0],name='optional-intent',required=False))
 require(not node_issues(optional) and validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(optional), 'Optional output incorrectly required')
 resolved=old_resolved
-bad=copy.deepcopy(load(EX/'Gate_Decision.json'));bad['invocation_refs']=[]
+bad=copy.deepcopy(load(EX/'gate_decision.json'));bad['invocation_refs']=[]
 require('incomplete/duplicate work binding observations' in gate_issues(bad), 'Missing binding observation accepted');negative_count+=1
-span_fixture=load(EX/'Source_Spans_CRLF.json')
+span_fixture=load(EX/'source_spans_crlf.json')
 for span,expected_text in zip(span_fixture['source_spans'],span_fixture['expected_text']):
     decoded=(EX/span['source_ref']['id']).read_bytes().decode('utf-8')
     require(decoded[span['start']:span['end']]==expected_text, 'CRLF/non-BMP span regression')
-attempt=load(EX/'RSI_Attempt_01.json');genesis=resolved(attempt['chain_root_ref'])
+attempt=load(EX/'rsi_attempt_01.json');genesis=resolved(attempt['chain_root_ref'])
 require(genesis['session_id']==attempt['session_id'] and genesis['target_ref']==attempt['target_ref'] and genesis['hash_profile_ref']==attempt['hash_profile_ref'], 'RSI genesis/profile mismatch')
 require(attempt['sequence']==1 and attempt['previous_ref'] is None, 'First RSI chain link must start at separate genesis')
 for key in ('hash_profile_ref','chain_root_ref'):
     bad=copy.deepcopy(attempt);bad.pop(key)
     require(bool(field_errors(bad,interfaces['rsi-attempt:field-contract:1']['fields'])), 'Missing RSI custody accepted');negative_count+=1
-clearance=load(EX/'RSI_Security_Clearance.json')
+clearance=load(EX/'rsi_security_clearance.json')
 require(clearance['decision']=='denied' and clearance['effect_scope']=='new_rsi_session_only', 'Synthetic security clearance must not grant eligibility')
 bad=copy.deepcopy(clearance);bad.pop('guardrail_evidence_refs')
 require(bool(field_errors(bad,interfaces['security-clearance:field-contract:1']['fields'])), 'Missing clearance evidence accepted');negative_count+=1
 
-bad=copy.deepcopy(load(EX/'Intention_Subnode_Contract.json'));bad['bindings'].append(copy.deepcopy(bad['bindings'][0]))
+bad=copy.deepcopy(load(EX/'intention_subnode_contract.json'));bad['bindings'].append(copy.deepcopy(bad['bindings'][0]))
 require(bool(node_issues(bad)) and not validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(bad), 'Unsupported M1 member composition accepted');negative_count+=1
 
 # Field/summary appropriateness: closed types, meaningful fields and local-section matching.
@@ -498,16 +498,16 @@ for x in catalog['interfaces']:
     require('('+x['document']+')' in contract_index, 'Unindexed field contract: '+x['name'])
 cc_key='urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0'
 for mode in ('missing_budget_mode','unbound_budget_mode'):
-    bad=copy.deepcopy(load(EX/'Capsule_Declaration.json'))
+    bad=copy.deepcopy(load(EX/'capsule_declaration.json'))
     if mode=='missing_budget_mode':bad['budget']['enforcement'].pop('wall_s')
     else:bad['budget']['enforcement']['tokens']='hard'
     require(not validators[cc_key].is_valid(bad), 'Budget boundary negative accepted: '+mode);negative_count+=1
 old_resolved=resolved
 def resolved(r):
     d=old_resolved(r)
-    if r['id']=='Capsule_Declaration.json':d['identity']['kind']='composite'
+    if r['id']=='capsule_declaration.json':d['identity']['kind']='composite'
     return d
-require('composite dispatch unsupported in M1' in node_issues(load(EX/'Intention_Subnode_Contract.json')), 'Future composite form dispatched in M1');negative_count+=1
+require('composite dispatch unsupported in M1' in node_issues(load(EX/'intention_subnode_contract.json')), 'Future composite form dispatched in M1');negative_count+=1
 resolved=old_resolved
 
 
@@ -550,36 +550,36 @@ def aggregate_issues(g):
     if len(finals)!=1 or finals[0]['assessment_ref']!=g['assessment_ref'] or g['accepted_refs']!=g['output_refs'] or checks['subject_ref'] not in g['output_refs']:result.append('unaccepted aggregate output')
     return result
 
-for n in ('Research_Brief.json','Lifecycle_Research_Brief.json','Research_Brief_Defaults.json'):
+for n in ('research_brief.json','lifecycle_research_brief.json','research_brief_defaults.json'):
     errors.extend(n+': '+i for i in brief_issues(load(EX/n)))
-errors.extend(aggregate_issues(load(EX/'Gate_Intention_Compiler_Pass.json')))
-require(not gate_issues(load(EX/'Gate_Compiler_No_Output.json')), 'No-output halt needs no fabricated subject output')
+errors.extend(aggregate_issues(load(EX/'gate_intention_compiler_pass.json')))
+require(not gate_issues(load(EX/'gate_compiler_no_output.json')), 'No-output halt needs no fabricated subject output')
 brief_key=next(k for k in schemas if ':research-brief:' in k)
 for mode in ('missing_context','wrong_unit','invented_default_pointer','lost_input','wrong_request'):
-    bad=copy.deepcopy(load(EX/'Research_Brief_Defaults.json'))
+    bad=copy.deepcopy(load(EX/'research_brief_defaults.json'))
     if mode=='missing_context':bad.pop('context_refs')
     elif mode=='wrong_unit':bad['constraints'][0].update(operator='le',normalized_value=1,unit=None)
     elif mode=='invented_default_pointer':bad['assumptions'][0]['affected_fields']=['/future_protocol/repeat_count']
     elif mode=='lost_input':bad['input_bindings']=[dict(id='invented',role='project_asset',resource_ref=bad['intent_ref'])]
-    else:bad['intake_ref']=ref_for('Qualified_Intake.json')
+    else:bad['intake_ref']=ref_for('qualified_intake.json')
     require(not validators[brief_key].is_valid(bad) or bool(brief_issues(bad)), 'Brief regression accepted: '+mode);negative_count+=1
 for mode in ('missing_stage','missing_review','wrong_scope','unaccepted_output'):
-    bad=copy.deepcopy(load(EX/'Gate_Intention_Compiler_Pass.json'))
+    bad=copy.deepcopy(load(EX/'gate_intention_compiler_pass.json'))
     if mode=='missing_stage':bad['internal_decision_refs']=bad['internal_decision_refs'][:1]
     elif mode=='missing_review':bad['invocation_refs']=bad['invocation_refs'][:1]
     elif mode=='wrong_scope':bad['subnode_id']='intention'
-    else:bad['accepted_refs']=[ref_for('Intent_IR.json')]
+    else:bad['accepted_refs']=[ref_for('intent_ir.json')]
     require(bool(aggregate_issues(bad)) or not validators[gate_key].is_valid(bad), 'Aggregate regression accepted: '+mode);negative_count+=1
 for mode in ('missing_finding','duplicate_finding','wrong_review_subject'):
     saved=resolved
     def resolved(r):
         value=saved(r)
-        if r['id']=='Intent_Assessment.json':
+        if r['id']=='intent_assessment.json':
             if mode=='missing_finding':value['findings']=value['findings'][:-1]
             elif mode=='duplicate_finding':value['findings'].append(value['findings'][0])
-            else:value['subject_ref']=ref_for('Intent_Topic_Only.json')
+            else:value['subject_ref']=ref_for('intent_topic_only.json')
         return value
-    require(bool(gate_issues(load(EX/'Gate_Decision.json'))), 'Verification coverage regression accepted: '+mode);negative_count+=1
+    require(bool(gate_issues(load(EX/'gate_decision.json'))), 'Verification coverage regression accepted: '+mode);negative_count+=1
     resolved=saved
 
 
@@ -599,10 +599,10 @@ def enclosing_issues(n):
         if template['capsule_ref']!=s['capsule_ref']:out.append('wrong declaration/template pin')
     return out
 
-for n in ('Intention_Node_Contract.json','Topic_Node_Contract.json','Science_Node_Contract.json'):
+for n in ('intention_node_contract.json','topic_node_contract.json','science_node_contract.json'):
     errors.extend(n+': '+i for i in enclosing_issues(load(EX/n)))
 for mode in ('cycle','missing_subnode','missing_gate_subject'):
-    bad=copy.deepcopy(load(EX/'Intention_Node_Contract.json'))
+    bad=copy.deepcopy(load(EX/'intention_node_contract.json'))
     if mode=='cycle':bad['subnodes'][0]['depends_on']=['requirements']
     elif mode=='missing_subnode':bad['subnodes']=[]
     else:bad['gate_assignments'][0]['subject_subnode_id']='unknown'
@@ -687,7 +687,7 @@ require(not (ROOT / 'handoff.md').exists(), 'Obsolete coding handoff still prese
 # Required current build/navigation must not regress to the historical Intent-only slice.
 for name in ('README.md','immediate-plan.md','m1-design.md','builds/intention-compiler/README.md','builds/intention-compiler/context.md'):
     current=(ROOT/name).read_text(encoding='utf-8')
-    require('Research Brief' in current or 'Research_Brief.json' in current, 'Current build missing Brief boundary: '+name)
+    require('Research Brief' in current or 'research_brief.json' in current, 'Current build missing Brief boundary: '+name)
     require('ends at accepted Intent or visible halt' not in current, 'Obsolete Intent-only completion: '+name)
 require(not (REF/'schemas/node-execution-contract.schema.json').exists(), 'Retired CC-sized node schema remains current')
 for entry in catalog['interfaces']:

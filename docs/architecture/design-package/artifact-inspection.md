@@ -4,7 +4,7 @@
 
 ## Substantive artifacts first
 
-Persist and export descriptive, formatted files: `Intent_IR.json`, `Research_Brief.json`, `Intent_Assessment.json`, `Requirements_Assessment.json`, `Gate_Decision.json`, and the PRD research filenames. Identity-bearing directories may organize runs, but inspection must not require mapping anonymous `.bin` objects to their meaning. Internal content-addressed storage remains possible if the inspection/export boundary projects readable named artifacts without changing their bytes/meaning.
+Persist and export descriptive, formatted files: `intent_ir.json`, `research_brief.json`, `intent_assessment.json`, `requirements_assessment.json`, `gate_decision.json`, and the PRD research filenames. Identity-bearing directories may organize runs, but inspection must not require mapping anonymous `.bin` objects to their meaning. Internal content-addressed storage remains possible if the inspection/export boundary projects readable named artifacts without changing their bytes/meaning.
 
 The UI or a generated Markdown view shows problem/purpose, requested result, scope, constraints, user targets, unresolved items, defaults, verdict/reasons and status. It is derived from the same records, not a separately authored interpretation. Preserve provenance links and make candidate/accepted distinctions visible. Do not hide blocking uncertainty behind a successful JSON parse, a green summary or a generic completion label.
 

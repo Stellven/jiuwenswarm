@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0.0",
+  "id": "benchmark_payload",
+  "blueprint_ref": {
+    "id": "hypothesis_blueprint.json",
+    "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+  },
+  "poc_ref": {
+    "id": "poc_manifest.json",
+    "sha256": "e4e2672beda95c687a9462c2dbced4c8f83a2c3d3b3a6c081c377e517dfdd989"
+  },
+  "resource_refs": [
+    {
+      "id": "baseline_resource.json",
+      "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+    },
+    {
+      "id": "validation_resource.json",
+      "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+    }
+  ],
+  "configuration_ref": {
+    "id": "run_configuration.json",
+    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+  },
+  "baseline_execution_ref": {
+    "id": "baseline_execution.txt",
+    "sha256": "7d7258cca1062c6b18845aad55ebb5d4d8a6e251f2f88932711f8032369e08cb"
+  },
+  "treatment_execution_ref": {
+    "id": "treatment_execution.txt",
+    "sha256": "132ee29c6a8dd9a7f82e0842390a927ecceefd987f0891c89bf96844212f62f4"
+  },
+  "metrics": [
+    {
+      "metric_id": "latency_ms",
+      "unit": "ms",
+      "baseline": [
+        100,
+        100,
+        100
+      ],
+      "treatment": [
+        105,
+        105,
+        105
+      ],
+      "baseline_value": 100,
+      "treatment_value": 105,
+      "delta": 5
+    },
+    {
+      "metric_id": "quality",
+      "unit": "fraction",
+      "baseline": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "treatment": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "baseline_value": 0.9,
+      "treatment_value": 0.9,
+      "delta": 0
+    }
+  ],
+  "raw_evidence_refs": [
+    {
+      "id": "baseline_execution.txt",
+      "sha256": "7d7258cca1062c6b18845aad55ebb5d4d8a6e251f2f88932711f8032369e08cb"
+    },
+    {
+      "id": "treatment_execution.txt",
+      "sha256": "132ee29c6a8dd9a7f82e0842390a927ecceefd987f0891c89bf96844212f62f4"
+    }
+  ],
+  "provisioning_ref": {
+    "id": "provisioning_example.txt",
+    "sha256": "4f03527cac922d7f53939f8d026a536e16909dc45c218b39f59140c4aa5b87b6"
+  },
+  "missing_evidence": [],
+  "ext": {
+    "example.synthetic": true
+  }
+}

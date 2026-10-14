@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "research_brief.json",
+    "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
+  },
+  "check_plan_ref": {
+    "id": "intention_node_check_plan.json",
+    "sha256": "7b04253c4097c191f48e199250a42622130ceaf2754403820b1bb46d61614945"
+  },
+  "results": [
+    {
+      "check_id": "internal_acceptance",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of required aggregate obligation; no measured execution",
+      "evidence_refs": [
+        {
+          "id": "gate_decision.json",
+          "sha256": "d3341f2a6a1dbdae195012ffdd0c44e98e4e14d4be8f60e4938105ae7e4a35d1"
+        },
+        {
+          "id": "gate_requirements_pass.json",
+          "sha256": "929056654daad6adf35a0ac9391f95f7419312323e55cfcee36e47268eb9b9b8"
+        }
+      ]
+    },
+    {
+      "check_id": "external_output",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of required aggregate obligation; no measured execution",
+      "evidence_refs": [
+        {
+          "id": "gate_decision.json",
+          "sha256": "d3341f2a6a1dbdae195012ffdd0c44e98e4e14d4be8f60e4938105ae7e4a35d1"
+        },
+        {
+          "id": "gate_requirements_pass.json",
+          "sha256": "929056654daad6adf35a0ac9391f95f7419312323e55cfcee36e47268eb9b9b8"
+        }
+      ]
+    },
+    {
+      "check_id": "aggregate_limits",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of required aggregate obligation; no measured execution",
+      "evidence_refs": [
+        {
+          "id": "gate_decision.json",
+          "sha256": "d3341f2a6a1dbdae195012ffdd0c44e98e4e14d4be8f60e4938105ae7e4a35d1"
+        },
+        {
+          "id": "gate_requirements_pass.json",
+          "sha256": "929056654daad6adf35a0ac9391f95f7419312323e55cfcee36e47268eb9b9b8"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Immediate Plan: current core research journey
 
-**Human potential.** The current bounded assignment is the complete journey in [Core build](core-build.md): fixed compiler intent and requirements with verifier gates, accepted Research_Brief.json, protected autonomous planning and freeze, then one bounded scientific path through Delivery. The earlier [complete Intention Compiler build](builds/intention-compiler/README.md) remains a reusable first component and historical calibration boundary. Existing TASK, AC, IF and feature identities, including historical compiler trial names, are not renamed.
+**Human potential.** The current bounded assignment is the complete journey in [Core build](core-build.md): fixed compiler intent and requirements with verifier gates, accepted research_brief.json, protected autonomous planning and freeze, then one bounded scientific path through Delivery. The earlier [complete Intention Compiler build](builds/intention-compiler/README.md) remains a reusable first component and historical calibration boundary. Existing TASK, AC, IF and feature identities, including historical compiler trial names, are not renamed.
 
 ## Current route
 

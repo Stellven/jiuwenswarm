@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "research_brief.json",
+    "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
+  },
+  "review_context_ref": {
+    "id": "requirements_review_context.json",
+    "sha256": "3d212c5c963bd0faa71e95f5745ed6a31f30f95c7c78dd75dcfc7f2275faeb66"
+  },
+  "verdict": "PASS",
+  "findings": [
+    {
+      "criterion_id": "intent_preservation",
+      "outcome": "PASS",
+      "reason": "Purpose, report, single-GPU constraint and quality target are preserved without adding validation assets",
+      "evidence_refs": [
+        {
+          "id": "research_brief.json",
+          "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
+        },
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        },
+        {
+          "id": "default_policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ]
+    },
+    {
+      "criterion_id": "default_authority",
+      "outcome": "PASS",
+      "reason": "No missing parameter is silently filled; default policy is available independently and every applied default must be attributable",
+      "evidence_refs": [
+        {
+          "id": "research_brief.json",
+          "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
+        },
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        },
+        {
+          "id": "default_policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ]
+    },
+    {
+      "criterion_id": "planning_usability",
+      "outcome": "PASS",
+      "reason": "Mandatory requirements, deliverable, acceptance and evidence obligations can be mapped to the fixed workflow; empirical resources must still bind before execution",
+      "evidence_refs": [
+        {
+          "id": "research_brief.json",
+          "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
+        },
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        },
+        {
+          "id": "default_policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ]
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Synthetic teaching example, not calibrated model evidence"
+  ],
+  "required_correction": null
+}

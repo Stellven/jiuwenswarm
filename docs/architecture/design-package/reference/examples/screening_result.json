@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "id": "screening_result",
+  "candidate_ref": {
+    "id": "candidate_set.json",
+    "sha256": "b5443f1bfd122e146709733d89820beae2f73a000b1a9b552778e1d71acd7431"
+  },
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+  },
+  "rubric_ref": {
+    "id": "screening_rubric.txt",
+    "sha256": "ed1201266d40ca261230992470442a6e2fa2d71b91a84663fc32c512337f73c9"
+  },
+  "scores": [
+    {
+      "idea_id": "idea:001",
+      "novelty": 3,
+      "feasibility": 4,
+      "compute_alignment": 5,
+      "reasons": [
+        "Mechanism is grounded; bounded same-host intervention fits one-GPU constraint"
+      ],
+      "citation_ids": [
+        "citation:index"
+      ],
+      "eligible": true,
+      "disposition": "eligible"
+    }
+  ],
+  "ranking": [
+    {
+      "idea_id": "idea:001",
+      "total": 12
+    }
+  ],
+  "selected_idea_id": "idea:001",
+  "ext": {
+    "example.synthetic": true
+  }
+}

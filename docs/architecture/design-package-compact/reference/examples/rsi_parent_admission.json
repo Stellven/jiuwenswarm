@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_parent_admission",
+  "candidate_ref": {
+    "id": "ranking_declaration.json",
+    "sha256": "ecb69715ee4a935aff51c237361f54d1af1e477b4aa0dc9e4dccb13ea1b71b49"
+  },
+  "parent_ref": null,
+  "evidence_refs": [
+    {
+      "id": "ranking_visible_tests.txt",
+      "sha256": "ea6f8e79e8ad9fff7dbfaf1f19cf4eb37c5345b0ce4db4dd1f55d201782a3b74"
+    }
+  ],
+  "status": "admitted",
+  "standing": "active",
+  "reasons": [
+    "Synthetic prior eligible sandbox version; no observed admission or test pass"
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

@@ -32,9 +32,9 @@
         "readiness"
       ],
       "examples": [
-        "Intent_IR.json",
-        "Intent_Topic_Only.json",
-        "Intent_Contradictory.json"
+        "intent_ir.json",
+        "intent_topic_only.json",
+        "intent_contradictory.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -75,9 +75,9 @@
         "input_bindings"
       ],
       "examples": [
-        "Research_Brief.json",
-        "Research_Brief_Defaults.json",
-        "Lifecycle_Research_Brief.json"
+        "research_brief.json",
+        "research_brief_defaults.json",
+        "lifecycle_research_brief.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -101,10 +101,10 @@
         "results"
       ],
       "examples": [
-        "Intent_Checks.json",
-        "Topic_Checks.json",
-        "Science_Checks.json",
-        "Requirements_Checks.json"
+        "intent_checks.json",
+        "topic_checks.json",
+        "science_checks.json",
+        "requirements_checks.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -132,10 +132,10 @@
         "required_correction"
       ],
       "examples": [
-        "Intent_Assessment.json",
-        "Topic_Assessment.json",
-        "Science_Assessment.json",
-        "Requirements_Assessment.json"
+        "intent_assessment.json",
+        "topic_assessment.json",
+        "science_assessment.json",
+        "requirements_assessment.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -179,12 +179,12 @@
         "internal_decision_refs"
       ],
       "examples": [
-        "Gate_Decision.json",
-        "Gate_Topic_Halt.json",
-        "Gate_Science_Pass.json",
-        "Gate_Requirements_Pass.json",
-        "Gate_Intention_Compiler_Pass.json",
-        "Gate_Compiler_No_Output.json"
+        "gate_decision.json",
+        "gate_topic_halt.json",
+        "gate_science_pass.json",
+        "gate_requirements_pass.json",
+        "gate_intention_compiler_pass.json",
+        "gate_compiler_no_output.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -216,7 +216,7 @@
         "coverage"
       ],
       "examples": [
-        "Capsule_Declaration.json"
+        "capsule_declaration.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -259,10 +259,10 @@
         "node_contract_ref"
       ],
       "examples": [
-        "Intention_Subnode_Contract.json",
-        "Requirements_Subnode_Contract.json",
-        "Topic_Subnode_Contract.json",
-        "Science_Subnode_Contract.json"
+        "intention_subnode_contract.json",
+        "requirements_subnode_contract.json",
+        "topic_subnode_contract.json",
+        "science_subnode_contract.json"
       ],
       "applicable_phases": [
         "Phase 1",

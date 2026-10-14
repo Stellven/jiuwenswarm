@@ -1,0 +1,48 @@
+{
+  "id": "review:topic",
+  "subject_ref": {
+    "id": "intent_topic_only.json",
+    "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+  },
+  "input_refs": [
+    {
+      "id": "topic_qualified_intake.json",
+      "sha256": "c4fee6c9b187becc217e52c6079007d44952ef71a01e308401b39dce01ba9810"
+    }
+  ],
+  "contract_ref": {
+    "id": "topic_subnode_contract.json",
+    "sha256": "dbae85861a9daa01baf4e57a3bffc8b46b39efa845f56b226869993d390c697a"
+  },
+  "check_plan_ref": {
+    "id": "topic_check_plan.json",
+    "sha256": "13649f567338fe87d0e63453c68e9ea41b250005f5d900089fe1997418f32656"
+  },
+  "deterministic_result_ref": {
+    "id": "topic_checks.json",
+    "sha256": "28d6f1010993a5f97e2665e052397745465bb16d000bcfaf1fba2f67c2088b6f"
+  },
+  "criteria": [
+    "fidelity",
+    "consistency",
+    "requirements_usability"
+  ],
+  "observations": [
+    {
+      "id": "topic_observation.json",
+      "sha256": "904ef92096235478e8b872cc468ff4b1f5b0bbffb2847727380c1ab7b2d12d8f"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "evidence_classes": [
+    "protected policy",
+    "accepted input",
+    "observed evidence",
+    "untrusted producer content"
+  ],
+  "node_contract_ref": {
+    "id": "topic_node_contract.json",
+    "sha256": "4035deca9df1374bdf28ef37c2fd833ea780f4ce5ec0ff93e136ba86a198388f"
+  },
+  "subnode_id": "intention"
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": "2.0.0",
+  "id": "decision:intent",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:example",
+  "node_id": "intention.compiler",
+  "attempt_id": "attempt:1",
+  "contract_ref": {
+    "id": "intention_subnode_contract.json",
+    "sha256": "025c01aadd8238d8f1bacc17d74cce6fc8fd72898e261038ec523489052ea487"
+  },
+  "invocation_refs": [
+    {
+      "id": "invocation_observation.json",
+      "sha256": "3681e65bb9d8cfa80e5ec74bc9384c97dd34b3a3614837f37c7e04fb0dea8956"
+    },
+    {
+      "id": "intent_verifier_observation.json",
+      "sha256": "5df8da13c81579915127a9db3603a0407fb50c01e97102d8e191260254f391fe"
+    }
+  ],
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "check_plan_ref": {
+    "id": "check_plan.json",
+    "sha256": "423932999eb7aa19a92cd7ae425d848b7e97f3810db697cbc0cb308a9a73546e"
+  },
+  "input_refs": [
+    {
+      "id": "qualified_intake.json",
+      "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "intent_ir.json",
+      "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "intent_checks.json",
+    "sha256": "8f32cfa27971099e5e3ab71f69b21404313182c9de4dff083618da07209285ed"
+  },
+  "assessment_ref": {
+    "id": "intent_assessment.json",
+    "sha256": "9b8ca1f37f50fc4333d6711b37e02e7a6f3da2f6c17f6076a65d611de69b5589"
+  },
+  "verdict": "PASS",
+  "reasons": [
+    {
+      "code": "INTENT_USABLE",
+      "message": "Synthetic usable meaning; all required example criteria pass",
+      "criterion_ids": [
+        "fidelity",
+        "consistency",
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "intent_assessment.json",
+          "sha256": "9b8ca1f37f50fc4333d6711b37e02e7a6f3da2f6c17f6076a65d611de69b5589"
+        }
+      ]
+    }
+  ],
+  "action": "advance",
+  "accepted_refs": [
+    {
+      "id": "intent_ir.json",
+      "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "intention_node_contract.json",
+    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+  },
+  "subnode_id": "intention",
+  "scope_kind": "subnode",
+  "internal_decision_refs": []
+}

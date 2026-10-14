@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "evaluation_verdict.json",
+    "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+  },
+  "review_context_ref": {
+    "id": "science_review_context.json",
+    "sha256": "89c5b024e6f18f39bf34c5ea6a871c5e4445e0cebd933603b8dc5ea0ea2228f2"
+  },
+  "verdict": "PASS",
+  "findings": [
+    {
+      "criterion_id": "registered_rule_applied",
+      "outcome": "PASS",
+      "reason": "The scientific FAIL correctly applies the frozen falsification boundary; negative science is a valid deliverable",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+        }
+      ]
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Linked synthetic lifecycle; no execution or actual scientific validity is certified"
+  ],
+  "required_correction": null
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "compiler_failure_receipt.json",
+    "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+  },
+  "check_plan_ref": {
+    "id": "check_plan.json",
+    "sha256": "423932999eb7aa19a92cd7ae425d848b7e97f3810db697cbc0cb308a9a73546e"
+  },
+  "results": [
+    {
+      "check_id": "structure",
+      "outcome": "ENVIRONMENT_BLOCKED",
+      "reason": "No completed compiler output is available",
+      "evidence_refs": [
+        {
+          "id": "compiler_failure_receipt.json",
+          "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+        }
+      ]
+    },
+    {
+      "check_id": "source_spans",
+      "outcome": "ENVIRONMENT_BLOCKED",
+      "reason": "No completed compiler output is available",
+      "evidence_refs": [
+        {
+          "id": "compiler_failure_receipt.json",
+          "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+        }
+      ]
+    },
+    {
+      "check_id": "exact_identity",
+      "outcome": "ENVIRONMENT_BLOCKED",
+      "reason": "No completed compiler output is available",
+      "evidence_refs": [
+        {
+          "id": "compiler_failure_receipt.json",
+          "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+        }
+      ]
+    }
+  ]
+}

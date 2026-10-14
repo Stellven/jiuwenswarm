@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_referee_evidence",
+  "attempt_ref": {
+    "id": "rsi_attempt_01.json",
+    "sha256": "f19dab17d912aadf2681b9ef32f6b2f7b8ead9c6b4068a24c8358f30f5b5a39b"
+  },
+  "target_ref": {
+    "id": "rsi_target_profile.json",
+    "sha256": "4fa09fe26dff849f45d66c0101d7060b1e6c5f655233aafcbf7cea553df1a2c5"
+  },
+  "parent_ref": {
+    "id": "ranking_parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "child_ref": {
+    "id": "ranking_child.txt",
+    "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+  },
+  "pairs": [
+    {
+      "split": "custodian:loop-v1",
+      "parent_passed": 20,
+      "child_passed": 20,
+      "total": 20,
+      "parent_time_s": [
+        0.1,
+        0.102,
+        0.098,
+        0.1,
+        0.101,
+        0.099,
+        0.1
+      ],
+      "child_time_s": [
+        0.08,
+        0.082,
+        0.078,
+        0.08,
+        0.081,
+        0.079,
+        0.08
+      ]
+    },
+    {
+      "split": "custodian:final-v1",
+      "parent_passed": 20,
+      "child_passed": 20,
+      "total": 20,
+      "parent_time_s": [
+        0.1,
+        0.102,
+        0.098,
+        0.1,
+        0.101,
+        0.099,
+        0.1
+      ],
+      "child_time_s": [
+        0.08,
+        0.082,
+        0.078,
+        0.08,
+        0.081,
+        0.079,
+        0.08
+      ]
+    }
+  ],
+  "mandatory_parent_tests_passed": true,
+  "integrity_passed": true,
+  "final_evaluations": 1,
+  "violations": [],
+  "ext": {
+    "example.synthetic": true
+  },
+  "configuration_ref": {
+    "id": "run_configuration.json",
+    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+  }
+}

@@ -9,12 +9,12 @@
 ```mermaid
 flowchart TB
     H[(Input: accepted Blueprint/protocol, Brief and scoped project assets)]
-    O[(Output: released POC bundle and Benchmark_Payload.json with execution evidence)]
+    O[(Output: released POC bundle and benchmark_payload.json with execution evidence)]
     subgraph Workflow[Governed CC workflow]
       subgraph POC[POC node: build a bounded intervention, then measure it]
         subgraph Builder[Builder subnode]
           B[Builder work · Builder CC<br/>Create bounded package<br/> no trial or dependency installation]
-          BA[(Candidate POC_Artifact_Bundle.zip and build evidence)]
+          BA[(Candidate poc_artifact_bundle.zip and build evidence)]
           BC{Build checks<br/>syntax, readiness and forbidden-module use/imports}
           BR[Semantic review input<br/>pinned declaration + exact worker output only]
           BV[Build verifier · verifier CC<br/>Assess declared output and internal consistency<br/> no input replay, edits or acceptance authority]
@@ -27,7 +27,7 @@ flowchart TB
         end
         subgraph Benchmark[Benchmark subnode]
           M[Benchmark work · Benchmark CC<br/>Provision frozen dependencies<br/> baseline first, then treatment<br/> no interpretation]
-          MA[(Candidate Benchmark_Payload.json, empirical results and logs)]
+          MA[(Candidate benchmark_payload.json, empirical results and logs)]
           MC{Measurement checks<br/>protocol, resource, hardware, runs, metrics and execution evidence}
           MR[Semantic review input<br/>pinned declaration + exact worker output only]
           MV[Measurement verifier · verifier CC<br/>Assess declared output and internal consistency<br/> no input replay, edits or acceptance authority]
@@ -81,7 +81,7 @@ The Builder capsule packages the intervention. It does not run the scientific tr
 ```mermaid
 flowchart TB
     I[(Input: accepted Brief, local extracted documents, permitted academic sources)]
-    O[(Output: accepted Candidate_Set.json with cited sources and 1–3 grounded ideas)]
+    O[(Output: accepted candidate_set.json with cited sources and 1–3 grounded ideas)]
     subgraph Workflow[Governed CC workflow]
       subgraph Node[Search node: bounded retrieval and grounded ideation]
         W[Search work subnode · Search CC<br/>Run fixed query strategy<br/> group exact source excerpts<br/> preserve citations]
@@ -91,7 +91,7 @@ flowchart TB
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
         G{{Protected gate<br/>apply checks + validated assessment<br/> commit or halt}}
-        Q[(Candidate_Set.json)]
+        Q[(candidate_set.json)]
         H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
@@ -124,8 +124,8 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    I[(Input: accepted Candidate_Set.json and Brief constraints)]
-    O[(Output: accepted Opportunity_Card.json with score reasons and disposition)]
+    I[(Input: accepted candidate_set.json and Brief constraints)]
+    O[(Output: accepted opportunity_card.json with score reasons and disposition)]
     subgraph Workflow[Governed CC workflow]
       subgraph Node[Screening node: consolidate and rank one opportunity]
         W[Screening work subnode · Screening CC<br/>One-pass consolidation<br/> score novelty, feasibility and compute alignment<br/> filter forbidden dependencies]
@@ -135,7 +135,7 @@ flowchart TB
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
         G{{Protected gate<br/>apply checks + validated assessment<br/> commit or halt}}
-        Q[(Candidate Opportunity_Card.json)]
+        Q[(Candidate opportunity_card.json)]
         H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
@@ -169,7 +169,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     I[(Input: accepted opportunity, Brief, supplied baseline and validation resource)]
-    O[(Output: accepted Hypothesis_Blueprint.json with frozen protocol)]
+    O[(Output: accepted hypothesis_blueprint.json with frozen protocol)]
     subgraph Workflow[Governed CC workflow]
       subgraph Node[Hypothesis node: register one testable claim and protocol]
         W[Hypothesis work subnode · Hypothesis CC<br/>Specify mechanism, variables, baseline, fixed measures, thresholds and middle-region rule]
@@ -179,7 +179,7 @@ flowchart TB
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
         G{{Protected gate<br/>apply checks + validated assessment<br/> commit or halt}}
-        Q[(Candidate Hypothesis_Blueprint.json)]
+        Q[(Candidate hypothesis_blueprint.json)]
         H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R
@@ -215,7 +215,7 @@ The [POC task/node diagram](#inside-the-poc-task) shows its Builder and Benchmar
 ```mermaid
 flowchart TB
     I[(Input: accepted measurements, raw logs, frozen Blueprint and Brief)]
-    O[(Output: accepted Evaluation_Verdict.json with conclusion, risks and follow-ups)]
+    O[(Output: accepted evaluation_verdict.json with conclusion, risks and follow-ups)]
     subgraph Workflow[Governed CC workflow]
       subgraph Node[Evaluation node: apply preregistered criteria to evidence]
         W[Evaluation work subnode · Evaluation CC<br/>Check empirical origin, metric completeness and validity<br/> classify against fixed criteria]
@@ -225,7 +225,7 @@ flowchart TB
         A[/Typed verifier assessment<br/>verdict, reasons, evidence and uncertainty/]
         X[[Validate assessment schema and exact subject identity]]
         G{{Scientific-output Evaluator Gate<br/>apply checks + validated assessment<br/> commit or halt}}
-        Q[(Candidate Evaluation_Verdict.json)]
+        Q[(Candidate evaluation_verdict.json)]
         H[/Halt reason<br/> preserve candidate and evidence/]
         W --> Q --> C
         C -->|valid| R

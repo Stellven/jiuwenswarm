@@ -147,7 +147,7 @@ This pre-implementation schema clarification preserves version 1.0.0 and the dec
 
 ## R11 — Complete compiler node, subnode vocabulary and Brief compatibility
 
-**User-authorized revision:** Intention Compiler is the whole PRD node; its Intention and Requirements work plus checking/gates cooperate inside it. Success reaches Research_Brief.json. Earlier one-work-CC “nodes” are now subnodes. M1 still defers composite/merged CC creation and arbitrary composition; predefined node structure is allowed.
+**User-authorized revision:** Intention Compiler is the whole PRD node; its Intention and Requirements work plus checking/gates cooperate inside it. Success reaches research_brief.json. Earlier one-work-CC “nodes” are now subnodes. M1 still defers composite/merged CC creation and arbitrary composition; predefined node structure is allowed.
 
 | Choice | Advantages | Costs / disposition |
 |---|---|---|

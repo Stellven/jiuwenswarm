@@ -264,7 +264,7 @@ Earlier check receipts above refer to earlier inputs. The current assignment rea
 
 ### Current compiler-node revision: checked delivery
 
-The complete Intention Compiler now ends at protected release of `Research_Brief.json`, with checked/verified Intent as its intermediate. Two identical architecture entrypoints identify necessary foundations, downstream exclusions and the supplied coding prompt's two path substitutions. README and system navigation link responsibilities to their purpose, ports, fields and examples. The final immediate-route review repaired a stale compact Intent-only completion statement and added a regression check.
+The complete Intention Compiler now ends at protected release of `research_brief.json`, with checked/verified Intent as its intermediate. Two identical architecture entrypoints identify necessary foundations, downstream exclusions and the supplied coding prompt's two path substitutions. README and system navigation link responsibilities to their purpose, ports, fields and examples. The final immediate-route review repaired a stale compact Intent-only completion statement and added a regression check.
 
 - Seven critical Draft 2020-12 schemas plus common definitions, 38 named field contracts, 99 indexed synthetic records and 50 negative cases pass. Exact references, source spans, complete verifier findings, node/subnode relationships, defaults and no-output/aggregate release examples are checked.
 - The separately supplied current PRD matches its exact source hash and 188 clause headings; US01–US20 and clause dispositions remain mapped. PRD bodies are absent from both packages. Received originals are preserved outside them; receipts are portable.

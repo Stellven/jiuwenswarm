@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "evaluation_verdict.json",
+    "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+  },
+  "check_plan_ref": {
+    "id": "science_check_plan.json",
+    "sha256": "41a574b92ffc68e6f7c70d0242f5324e56bc662762e7c1cf032afdc9de9562be"
+  },
+  "results": [
+    {
+      "check_id": "science_structure",
+      "outcome": "PASS",
+      "reason": "Synthetic conformance illustration",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+        }
+      ]
+    }
+  ]
+}

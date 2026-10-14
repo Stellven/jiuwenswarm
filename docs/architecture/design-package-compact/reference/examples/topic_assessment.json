@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "intent_topic_only.json",
+    "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+  },
+  "review_context_ref": {
+    "id": "topic_review_context.json",
+    "sha256": "5a388e3ae7d8d9d76ffeb44f8b716bf2b46c9665e0ac1531331e418ab93f618d"
+  },
+  "verdict": "INCONCLUSIVE",
+  "findings": [
+    {
+      "criterion_id": "fidelity",
+      "outcome": "PASS",
+      "reason": "Faithfully preserves the topic and absent intent",
+      "evidence_refs": [
+        {
+          "id": "intent_topic_only.json",
+          "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+        },
+        {
+          "id": "request_topic_only.txt",
+          "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+        }
+      ]
+    },
+    {
+      "criterion_id": "consistency",
+      "outcome": "PASS",
+      "reason": "No contradiction introduced",
+      "evidence_refs": [
+        {
+          "id": "intent_topic_only.json",
+          "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+        }
+      ]
+    },
+    {
+      "criterion_id": "requirements_usability",
+      "outcome": "INCONCLUSIVE",
+      "reason": "No workable purpose or requested result; Requirements would have to invent the desired work",
+      "evidence_refs": [
+        {
+          "id": "intent_topic_only.json",
+          "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+        },
+        {
+          "id": "request_topic_only.txt",
+          "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+        }
+      ]
+    }
+  ],
+  "uncertainties": [
+    "Purpose and requested result are missing"
+  ],
+  "limitations": [
+    "Synthetic challenge derived from observed ZIP gap"
+  ],
+  "required_correction": "State what you want to learn or change, and what result you want returned."
+}

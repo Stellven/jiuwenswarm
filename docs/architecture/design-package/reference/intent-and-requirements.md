@@ -30,7 +30,7 @@ An honest `needs_clarification` artifact is structurally valid, retained candida
 
 ## Research Brief / Requirements IR
 
-Producer: Requirements CC within the Intention Compiler node. Consumers: deterministic checks, Requirements verifier, node gate, then static binder/planner and research CCs **after node release**. [Critical schema](schemas/research-brief.schema.json), version `2.0.0`. The external name remains `Research_Brief.json`; Requirements IR is a descriptive alias, not a second format.
+Producer: Requirements CC within the Intention Compiler node. Consumers: deterministic checks, Requirements verifier, node gate, then static binder/planner and research CCs **after node release**. [Critical schema](schemas/research-brief.schema.json), version `2.0.0`. The external name remains `research_brief.json`; Requirements IR is a descriptive alias, not a second format.
 
 | Required field | Required meaning / information | Why consumers need it |
 |---|---|---|

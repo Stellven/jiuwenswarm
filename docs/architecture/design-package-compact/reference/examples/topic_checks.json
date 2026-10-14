@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "intent_topic_only.json",
+    "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+  },
+  "check_plan_ref": {
+    "id": "topic_check_plan.json",
+    "sha256": "13649f567338fe87d0e63453c68e9ea41b250005f5d900089fe1997418f32656"
+  },
+  "results": [
+    {
+      "check_id": "structure",
+      "outcome": "PASS",
+      "reason": "Schema-valid candidate with explicit material uncertainty",
+      "evidence_refs": [
+        {
+          "id": "intent_topic_only.json",
+          "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+        },
+        {
+          "id": "request_topic_only.txt",
+          "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+        }
+      ]
+    },
+    {
+      "check_id": "source_spans",
+      "outcome": "PASS",
+      "reason": "Schema-valid candidate with explicit material uncertainty",
+      "evidence_refs": [
+        {
+          "id": "intent_topic_only.json",
+          "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+        },
+        {
+          "id": "request_topic_only.txt",
+          "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+        }
+      ]
+    },
+    {
+      "check_id": "exact_identity",
+      "outcome": "PASS",
+      "reason": "Schema-valid candidate with explicit material uncertainty",
+      "evidence_refs": [
+        {
+          "id": "intent_topic_only.json",
+          "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+        },
+        {
+          "id": "request_topic_only.txt",
+          "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+        }
+      ]
+    }
+  ]
+}

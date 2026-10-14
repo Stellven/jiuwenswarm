@@ -84,7 +84,7 @@ def decision_issues(decision,request,profile):
         ctx=request['selected_capsule']['bound_context']
         effective_limits=copy.deepcopy(ctx['invocation_limits'])
         effective_limits['time_s']=min(effective_limits['time_s'],ctx['subnode_limits']['time_s'],ctx['node_limits']['time_s'],ctx['budget_snapshot']['subnode_remaining']['time_s'],request['selected_capsule']['declaration']['budget']['per_call']['wall_s'])
-        for key,expected in [('request_ref',ref_for('Route_Request.json')),('selected_capsule_ref',ref_for('Selected_Capsule_Input.json')),('runtime',ctx['runtime']),('execution_id',request['execution_id']),('binding_id',ctx['binding_id']),('role',ctx['role']),('model_selection_profile_ref',request['model_selection_profile_ref']),('limits',effective_limits)]:
+        for key,expected in [('request_ref',ref_for('route_request.json')),('selected_capsule_ref',ref_for('selected_capsule_input.json')),('runtime',ctx['runtime']),('execution_id',request['execution_id']),('binding_id',ctx['binding_id']),('role',ctx['role']),('model_selection_profile_ref',request['model_selection_profile_ref']),('limits',effective_limits)]:
             if decision[key]!=expected:result.append('decision mismatch: '+key)
         if decision['selected_endpoint'] not in decision['eligible_endpoints'] or not set(decision['eligible_endpoints'])<=set(profile['approved_model_ids']):result.append('ineligible model')
         if decision['selection_method'] not in ('single_candidate','llm_judgment','predefined_fallback'):result.append('unknown selection method')
@@ -100,11 +100,11 @@ def decision_issues(decision,request,profile):
     except (KeyError,TypeError,ValueError) as exc:result.append('invalid decision: '+str(exc))
     return result
 
-selected=load(EX/'Selected_Capsule_Input.json');request=load(EX/'Route_Request.json');profile=load(EX/'Model_Selection_Profile.json');decision=load(EX/'Route_Decision.json');call=load(EX/'Model_Call_Record.json')
+selected=load(EX/'selected_capsule_input.json');request=load(EX/'route_request.json');profile=load(EX/'model_selection_profile.json');decision=load(EX/'route_decision.json');call=load(EX/'model_call_record.json')
 require(not export_issues(selected),'Routing teaching export inconsistent: '+str(export_issues(selected)))
 require(not request_issues(request,profile),'Routing request/profile inconsistent: '+str(request_issues(request,profile)))
 require(not decision_issues(decision,request,profile),'Routing decision inconsistent: '+str(decision_issues(decision,request,profile)))
-require(call['purpose']=='task_execution' and call['route_decision_ref']==ref_for('Route_Decision.json') and call['deployment_ref']==decision['deployment_ref'] and call['execution_id']==request['execution_id'] and call['invocation_id']==decision['runtime']['invocation_id'],'Call provenance mismatch')
+require(call['purpose']=='task_execution' and call['route_decision_ref']==ref_for('route_decision.json') and call['deployment_ref']==decision['deployment_ref'] and call['execution_id']==request['execution_id'] and call['invocation_id']==decision['runtime']['invocation_id'],'Call provenance mismatch')
 require(not call['observed_runtime'] and all(call['usage'][key] is None for key in ('input_tokens','output_tokens','cost_amount')) and bool(call['usage']['unavailable_reasons']),'Synthetic call invents runtime usage')
 
 routing_seed_valid=not export_issues(selected) and not request_issues(request,profile) and not decision_issues(decision,request,profile)

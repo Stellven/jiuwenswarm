@@ -26,7 +26,7 @@ flowchart TB
                 direction TB
                 WorkCC[Intention CC capsule<br/>Interpret request; preserve scope, constraints and uncertainty]
             end
-            WorkCC --> Candidate[/Candidate Intent_IR.json/]
+            WorkCC --> Candidate[/Candidate intent_ir.json/]
             Candidate --> Checks{Deterministic checks<br/>schema, spans, sources and identities}
             Checks -->|valid| CheckResults[/Check results/]
             Checks -->|invalid or unavailable| CheckFail[/Failed check result and reason/]
@@ -51,7 +51,7 @@ flowchart TB
             Profile --> Gate
             Gate{{Protected Intent gate<br/>apply mandatory checks and policy; commit or halt}}
         end
-        Gate -->|accept: commit exact candidate| Accepted[/Accepted Intent_IR.json/]
+        Gate -->|accept: commit exact candidate| Accepted[/Accepted intent_ir.json/]
         Gate -->|reject or block| Halt[/Terminal halt reason; candidate and evidence retained/]
         Accepted --> Requirements
         subgraph RequirementsSubnode[Requirements work subnode]

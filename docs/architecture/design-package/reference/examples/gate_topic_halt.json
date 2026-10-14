@@ -1,0 +1,75 @@
+{
+  "schema_version": "2.0.0",
+  "id": "decision:topic",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:topic",
+  "node_id": "intention.compiler",
+  "attempt_id": "attempt:topic",
+  "contract_ref": {
+    "id": "topic_subnode_contract.json",
+    "sha256": "dbae85861a9daa01baf4e57a3bffc8b46b39efa845f56b226869993d390c697a"
+  },
+  "invocation_refs": [
+    {
+      "id": "topic_observation.json",
+      "sha256": "904ef92096235478e8b872cc468ff4b1f5b0bbffb2847727380c1ab7b2d12d8f"
+    },
+    {
+      "id": "topic_verifier_observation.json",
+      "sha256": "663333809f228228ac9e961186dca4d340ceea0c715fcc438ac5abb60cc332d0"
+    }
+  ],
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "check_plan_ref": {
+    "id": "topic_check_plan.json",
+    "sha256": "13649f567338fe87d0e63453c68e9ea41b250005f5d900089fe1997418f32656"
+  },
+  "input_refs": [
+    {
+      "id": "topic_qualified_intake.json",
+      "sha256": "c4fee6c9b187becc217e52c6079007d44952ef71a01e308401b39dce01ba9810"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "intent_topic_only.json",
+      "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "topic_checks.json",
+    "sha256": "28d6f1010993a5f97e2665e052397745465bb16d000bcfaf1fba2f67c2088b6f"
+  },
+  "assessment_ref": {
+    "id": "topic_assessment.json",
+    "sha256": "932634bc326e0be25e3b6578fc2560c0a1b386544fd6df0abbb8fd4891a6c2c8"
+  },
+  "verdict": "INCONCLUSIVE",
+  "reasons": [
+    {
+      "code": "INTENT_NOT_USABLE",
+      "message": "Clarify research purpose and requested result; do not invoke Requirements",
+      "criterion_ids": [
+        "requirements_usability"
+      ],
+      "evidence_refs": [
+        {
+          "id": "topic_assessment.json",
+          "sha256": "932634bc326e0be25e3b6578fc2560c0a1b386544fd6df0abbb8fd4891a6c2c8"
+        }
+      ]
+    }
+  ],
+  "action": "halt",
+  "accepted_refs": [],
+  "node_contract_ref": {
+    "id": "topic_node_contract.json",
+    "sha256": "4035deca9df1374bdf28ef37c2fd833ea780f4ce5ec0ff93e136ba86a198388f"
+  },
+  "subnode_id": "intention",
+  "scope_kind": "subnode",
+  "internal_decision_refs": []
+}

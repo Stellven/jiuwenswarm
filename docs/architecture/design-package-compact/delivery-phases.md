@@ -24,7 +24,7 @@ The explicit static workflow remains runnable without autonomous planning, but i
 
 ## How completion is judged
 
-Stage and phase completion require reproducible evidence, not implementation existence or a diagram. The latest PRD adds user-story traceability, explicit stage validation, phase summaries and `M1_Final_Test_Report.md`. Its required summaries reference underlying verification; they do not replace it. Change history explains revisions; current canonical PRD/design must describe selected behavior without replaying that history. This package contains design, not the development workflow or runtime test results.
+Stage and phase completion require reproducible evidence, not implementation existence or a diagram. The latest PRD adds user-story traceability, explicit stage validation, phase summaries and `m1_final_test_report.md`. Its required summaries reference underlying verification; they do not replace it. Change history explains revisions; current canonical PRD/design must describe selected behavior without replaying that history. This package contains design, not the development workflow or runtime test results.
 
 ## Current semantic-review scope
 

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_rollback",
+  "actor": "synthetic authorized reviewer",
+  "recorded_at": "2026-10-08T12:01:00Z",
+  "from_ref": {
+    "id": "ranking_child.txt",
+    "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+  },
+  "to_ref": {
+    "id": "ranking_parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "admission_ref": {
+    "id": "rsi_parent_admission.json",
+    "sha256": "56071c86aefb599914251b5aebd5ca114b5a7d69d496cc58a2a89ff599399897"
+  },
+  "reason": "Illustrative restoration of prior eligible sandbox version; activation history retained",
+  "effect_scope": "future sandbox selection only",
+  "ext": {
+    "example.synthetic": true
+  }
+}

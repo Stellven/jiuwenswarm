@@ -25,7 +25,7 @@ The October 30 demonstration target is the fixed Compiler and Planner, protected
 
 ## Build a specific component
 
-For the current bounded research core, read [Core build](core-build.md). The Compiler is its reusable preparation component. For that complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `Research_Brief.json`. Accepted Intent IR alone is incomplete.
+For the current bounded research core, read [Core build](core-build.md). The Compiler is its reusable preparation component. For that complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `research_brief.json`. Accepted Intent IR alone is incomplete.
 
 ## Human should read: review the affected responsibility
 

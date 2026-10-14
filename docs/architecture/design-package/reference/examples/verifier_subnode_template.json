@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "id": "template:verifier",
+  "role": "verifier",
+  "capsule_ref": {
+    "id": "verifier_capsule.json",
+    "sha256": "dad108536e6b23b9fc4c65e287d27a15ffd9e2ef8718d93fe4f9df3aea73e64a"
+  },
+  "input_contract": "review-context:field-contract:2",
+  "output_contract": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+  "semantic_followup": false
+}

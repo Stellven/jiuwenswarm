@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0.0",
+  "id": "check-plan:intent",
+  "contract_ref": {
+    "id": "intention_subnode_contract.json",
+    "sha256": "025c01aadd8238d8f1bacc17d74cce6fc8fd72898e261038ec523489052ea487"
+  },
+  "input_refs": [
+    {
+      "id": "qualified_intake.json",
+      "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+    }
+  ],
+  "profile_ref": {
+    "id": "guard_profile.json",
+    "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+  },
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "mandatory_deterministic": [
+    "structure",
+    "source_spans",
+    "exact_identity"
+  ],
+  "mandatory_semantic": [
+    "fidelity",
+    "consistency",
+    "requirements_usability"
+  ],
+  "runner_refs": [
+    {
+      "id": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "intention_node_contract.json",
+    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+  },
+  "subnode_id": "intention"
+}

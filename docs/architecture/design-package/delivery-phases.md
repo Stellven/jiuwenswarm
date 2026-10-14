@@ -37,7 +37,7 @@ One active research run follows one opportunity/hypothesis and sequential baseli
 
 ## How completion is judged
 
-Stage and phase completion require reproducible evidence, not implementation existence or a diagram. The latest PRD adds user-story traceability, explicit stage validation, phase summaries and `M1_Final_Test_Report.md`. Its required summaries reference underlying verification; they do not replace it. Change history explains revisions; current canonical PRD/design must describe selected behavior without replaying that history. This package contains design, not the development workflow or runtime test results.
+Stage and phase completion require reproducible evidence, not implementation existence or a diagram. The latest PRD adds user-story traceability, explicit stage validation, phase summaries and `m1_final_test_report.md`. Its required summaries reference underlying verification; they do not replace it. Change history explains revisions; current canonical PRD/design must describe selected behavior without replaying that history. This package contains design, not the development workflow or runtime test results.
 
 Use [Core build](core-build.md) for the current bounded assignment, [Immediate Plan](immediate-plan.md) for the current route and compiler component, and [phase details](phase-details.md) for source coverage and stage boundaries. D19 is the explicit planner-scope amendment recorded in [Principles](principles.md#decisions-and-source-amendments); D5 and D6 retain their separately recorded decisions.
 

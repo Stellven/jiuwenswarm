@@ -39,7 +39,7 @@ The host validates assessment structure, source/subject/context binding, criteri
 
 Accepted references must be the exact reviewed output subset fulfilling required node outputs. Persist immutable artifacts and decision before the accepted-output commit becomes scheduler readiness. A proposed decision file is not a successful database commit. Persistence failure keeps readiness blocked, even if an assessment passed. New attempts/policy/subjects need new decisions.
 
-Scientific `Evaluation_Verdict.json` has its own classification and measurement-to-criterion rationale. It is never copied into the gate verdict as an automatic halt. Valid scientific `FAIL` can be reviewed as conformant and yield infrastructure `PASS` for Delivery.
+Scientific `evaluation_verdict.json` has its own classification and measurement-to-criterion rationale. It is never copied into the gate verdict as an automatic halt. Valid scientific `FAIL` can be reviewed as conformant and yield infrastructure `PASS` for Delivery.
 
 ## Subnode versus node release
 

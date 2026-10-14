@@ -1,0 +1,126 @@
+{
+  "schema_version": "2.0.0",
+  "intent_ref": {
+    "id": "intent_permissible_omissions.json",
+    "sha256": "fc3e16aa5d28b5fd134829ceb4bab603e401d74100219eea430b4d9f9fa4c466"
+  },
+  "objective": {
+    "id": "objective:latency",
+    "text": "Investigate retrieval latency in the supplied baseline",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "intent_permissible_omissions.json",
+        "sha256": "fc3e16aa5d28b5fd134829ceb4bab603e401d74100219eea430b4d9f9fa4c466"
+      }
+    ]
+  },
+  "in_scope": [
+    {
+      "id": "scope:baseline",
+      "text": "Supplied data lake baseline",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "intent_permissible_omissions.json",
+          "sha256": "fc3e16aa5d28b5fd134829ceb4bab603e401d74100219eea430b4d9f9fa4c466"
+        }
+      ]
+    }
+  ],
+  "out_of_scope": [],
+  "mandatory_requirements": [
+    {
+      "id": "requirement:latency",
+      "text": "Investigate and report retrieval latency",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "intent_permissible_omissions.json",
+          "sha256": "fc3e16aa5d28b5fd134829ceb4bab603e401d74100219eea430b4d9f9fa4c466"
+        }
+      ]
+    }
+  ],
+  "optional_preferences": [],
+  "constraints": [
+    {
+      "id": "constraint:default-hardware",
+      "text": "Use the conservative single_gpu target profile",
+      "category": "hardware",
+      "origin": "system_default",
+      "source_refs": [
+        {
+          "id": "default_policy.json",
+          "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+        }
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": "single_gpu",
+      "unit": null,
+      "operator": "eq"
+    }
+  ],
+  "target_metrics": [],
+  "deliverables": [
+    {
+      "id": "deliverable:report",
+      "name": "research_report.md",
+      "description": "Reproducible baseline/treatment comparison and outcome",
+      "artifact_type": "research_report"
+    }
+  ],
+  "acceptance_expectations": [
+    {
+      "id": "acceptance:comparison",
+      "requirement_ids": [
+        "requirement:latency"
+      ],
+      "description": "Report matched measurements and whether the registered experiment met the user objective"
+    }
+  ],
+  "evidence_obligations": [
+    {
+      "id": "evidence:comparison",
+      "requirement_ids": [
+        "requirement:latency"
+      ],
+      "description": "Registered protocol, raw execution evidence and baseline/treatment values"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "assumption:hardware",
+      "text": "Missing hardware uses authorized single_gpu profile; availability remains unobserved",
+      "authority_ref": {
+        "id": "default_policy.json",
+        "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+      },
+      "affected_fields": [
+        "/constraints/0"
+      ]
+    }
+  ],
+  "unresolved_items": [],
+  "resource_refs": [],
+  "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+      {
+        "id": "request_permissible_omissions.txt",
+        "sha256": "dc8f1655124edd64adb899ffd907e3cc359ae4a947f0f32f84b7991ac662706b"
+      },
+      {
+        "id": "default_policy.json",
+        "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+      }
+    ]
+  },
+  "intake_ref": {
+    "id": "permissible_qualified_intake.json",
+    "sha256": "389a92a16847ed744c346a8e9408294ba0b263cf474bafa5b526a8dca3cef422"
+  },
+  "context_refs": [],
+  "domain_lane": "scientific_research",
+  "input_bindings": []
+}

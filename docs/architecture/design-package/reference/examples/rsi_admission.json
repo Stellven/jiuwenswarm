@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_admission",
+  "candidate_ref": {
+    "id": "rsi_child_candidate.json",
+    "sha256": "5a537308b39d69e1203435927f4c8efbecec3e3df2354c02d83de6685115247a"
+  },
+  "parent_ref": {
+    "id": "ranking_parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "evidence_refs": [
+    {
+      "id": "rsi_referee_evidence.json",
+      "sha256": "ee21bc030d637916ba05a6ab2b5215b42b46380b184df95158a7d093d9c60fb8"
+    },
+    {
+      "id": "rsi_evidence_export.json",
+      "sha256": "f1f4fe69516841db8a30611365f29353095c445dc3ac1a982052526c4c8b7265"
+    }
+  ],
+  "status": "admitted",
+  "standing": "inactive",
+  "reasons": [
+    "Synthetic example of protected compatibility/security/evidence disposition; not an actual admission"
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

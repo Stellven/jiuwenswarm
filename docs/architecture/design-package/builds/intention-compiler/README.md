@@ -6,7 +6,7 @@
 
 **Qualified intake → Intention CC → checked and semantically verified Intent IR → Requirements CC → checked and semantically verified Research Brief → protected node release.**
 
-Successful completion produces accepted `Research_Brief.json`, both subnode decisions, the enclosing node decision and readable evidence. Intent IR alone, unverified JSON, a mocked model response or a successful HTTP request is not completion. An unusable request legitimately ends in a visible halt; that case does not demonstrate the successful path.
+Successful completion produces accepted `research_brief.json`, both subnode decisions, the enclosing node decision and readable evidence. Intent IR alone, unverified JSON, a mocked model response or a successful HTTP request is not completion. An unusable request legitimately ends in a visible halt; that case does not demonstrate the successful path.
 
 ## Node responsibilities
 
@@ -38,7 +38,7 @@ The browser submits requests and supplied input locations, observes status, and 
 
 | Scenario | Required observable result |
 |---|---|
-| Actionable request with supported input | Both work stages complete; verified `Research_Brief.json` and node release persist; browser and export agree |
+| Actionable request with supported input | Both work stages complete; verified `research_brief.json` and node release persist; browser and export agree |
 | Missing optional hardware/method/threshold | Preserve omissions; apply only authorized parameter defaults; invent no objective, target or scientific result |
 - Measure topic-only, unsupported or constraint-losing outputs in independent cases. Runtime semantic rejection is required for visible declaration/output violations, not a claim of original-input fidelity under D20.
 | Malformed work or verifier output | Halt at the appropriate deterministic boundary; no absent criterion or fabricated evidence counted as a pass |

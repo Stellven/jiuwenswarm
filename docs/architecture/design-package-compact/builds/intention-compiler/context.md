@@ -1,6 +1,6 @@
 # Intention Compiler: supporting architecture context
 
-**Architecture Design Context.** Read the [Main entrypoint](README.md) first. Completion requires released `Research_Brief.json` or an attributable halt. The following content is specifically relevant to this node even when shared with other features. Read only the assigned package; do not consult the other experiment condition.
+**Architecture Design Context.** Read the [Main entrypoint](README.md) first. Completion requires released `research_brief.json` or an attributable halt. The following content is specifically relevant to this node even when shared with other features. Read only the assigned package; do not consult the other experiment condition.
 
 ## Required reading by dependency
 
