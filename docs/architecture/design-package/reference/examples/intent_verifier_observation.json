@@ -3,7 +3,7 @@
   "id": "observation:intention.verifier",
   "contract_ref": {
     "id": "intent_verifier_subnode_contract.json",
-    "sha256": "b87bd395399fd006160a9d418e5c5c1aa5973711c3e290b620cf8b6f241c7085"
+    "sha256": "604eeb2e826e2fee3156c2aba926fbbf1aa283ffb609b8af9ad5bb4afb54ae22"
   },
   "binding_id": "binding:intention.verifier",
   "input_refs": [
@@ -19,7 +19,7 @@
   "output_refs": [
     {
       "id": "intent_assessment.json",
-      "sha256": "389ba72504f8ea060001fa6b6271cc2e1d6e748ccad3f0ade293053eb67a85f2"
+      "sha256": "e62686cb5113e1b32549b896e937000eb469267972a23e40a3e1468e6f67fc15"
     }
   ],
   "model_identity": {
@@ -49,7 +49,7 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
+    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
   },
   "subnode_id": "intention.verifier"
 }

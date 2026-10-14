@@ -28,8 +28,8 @@ Read each row as **a PRD responsibility elaborated into cooperating parts**, wit
 |---|---|---|
 | Ingestion (§3.1) | Capture original input; qualify/extract permitted documents; bind supplied project/data assets. | Qualified Intake Package with attribution. Intake infrastructure owns qualification. [Research responsibilities](research-design.md#research-path-and-ports). |
 | Requirement Compilation; Intention Compilers (§3.2, §4.7) | Fixed Intention and Requirements work stages with required independent checks/gates. | They produce accepted `research_brief.json`, consumed by the assigned core planner. This compiler component itself ends at the Brief; the overall D19 core build continues through the protected-planned research DAG. Advanced compiler integration remains optional/later. [Workflow](workflow.md), [core build](core-build.md). |
-| Planner; Harness Core (§4.8, §4.6) | Original PRD allocation places dynamic planning in Phase 3. Under D19, the core planner proposes a bounded downstream JSON DAG after accepted Brief; protected binder independently assigns mandatory profiles/checks, validates graph coverage and feasibility, and freezes it before dispatch. | Frozen TaskGraph and run-specific Node Execution Contracts. Planner proposes; protected infrastructure authorizes. The retained static SwarmFlow runner is an explicit preselected fallback mode; planner failure does not switch modes. [Workflow](workflow.md), [core build](core-build.md). |
-| Search & Ideation; Idea Screening (§3.3–3.4) | Permitted retrieval and cited candidate generation; feasibility/scoring and Top-1 selection; pure ranking helper also serves offline RSI. | Cited ideas, selected opportunity and rejection reasons, checked by their gates. [Research responsibilities](research-design.md#research-path-and-ports). |
+| Planner; Harness Core (§4.8, §4.6) | Original PRD allocation places dynamic planning in Phase 3. Under D19, the core planner proposes a bounded downstream JSON DAG after accepted Brief; protected binder independently assigns mandatory profiles/checks, validates graph coverage and feasibility, and freezes it before dispatch. | Frozen `run_plan` ([contract](reference/run-plan.md)) and run-specific Node Execution Contracts. Planner proposes and may suggest extra checks. Protected infrastructure authorizes and pins the check bundles. A static template is built first and yields the same run plan type ([D26](decision-review.md#d26)). Planner failure does not switch modes. An infeasible plan starts a linked Intention Compiler attempt. [Workflow](workflow.md), [core build](core-build.md). |
+| Search CC; Screening CC (§3.3–3.4) | Permitted retrieval and cited candidate generation; feasibility/scoring and Top-1 selection; pure ranking helper also serves offline RSI. | Cited ideas, selected opportunity and rejection reasons, checked by their gates. [Research responsibilities](research-design.md#research-path-and-ports), [Search](reference/capsules/search.md), [Screening](reference/capsules/screening.md). |
 | Hypothesis Generation (§3.5) | Form one claim; bind baseline/data/metrics; pre-register success, falsification and inconclusive criteria. | Frozen experimental protocol before building or measuring. [Research responsibilities](research-design.md#research-path-and-ports). |
 | POC Implementation; Builder (§3.6, §4.9) | POC builder CC constructs bounded intervention, harness and declared dependencies; readiness checks inspect the package. | Build evidence and POC package; runner executes CCs, while scientific execution belongs to Benchmarking. [Research responsibilities](research-design.md#research-path-and-ports). |
 | Scientific Benchmarking (§3.7) | Provision pinned dependencies under isolation; run baseline then treatment under the frozen protocol; retain measurements and raw logs. | Attributable empirical evidence for Scientific Evaluation. [Placement](placement.md). |
@@ -63,7 +63,7 @@ Read each row as **a PRD responsibility elaborated into cooperating parts**, wit
 
 ## Naming and schema principles
 
-Use canonical display names throughout maintained prose, headings, tables and diagram labels. Explain what components contain, produce, consume or control; avoid blanket equations between roles or layers. Do not replace PRD bytes, immutable source schema keys, status enums, PRD artifact filenames, native identifiers or historical records. Maintained shared-contract keys may change only through explicit versioned migration. Required CC sources retain their bytes; their internal M1/M2/M3/M4 labels describe source profiles/maturity, not M1 Delivery Phase numbers.
+Use canonical display names throughout maintained prose, headings, tables and diagram labels. Explain what components contain, produce, consume or control; avoid blanket equations between roles or layers. Do not replace PRD bytes, immutable source schema keys, status enums, native identifiers or historical records. Internal artifact names are lowercase snake ([D23](decision-review.md#d23)). Maintained shared-contract keys may change only through explicit versioned migration. Required CC sources retain their bytes; their internal M1/M2/M3/M4 labels describe source profiles/maturity, not M1 Delivery Phase numbers.
 
 When terminology changes, update labels and rendered diagram views together, retain stable paths where possible, and repair heading fragments. If a replacement changes producer, consumer, authority, budget, verdict or behavior, record a design decision rather than a naming edit.
 
@@ -72,6 +72,21 @@ Use descriptive capability names consistently across declarations, diagrams, tas
 Every shared payload has one semantic owner, a version, validation rules, and identified producers/consumers. Distinguish missing, unknown, unavailable, and not applicable. Preserve units, metric direction, evidence origin, warnings, and scope. Content and identity are immutable after acceptance; derived summaries cite their source. Additive fields require explicit compatibility rules rather than assuming all readers tolerate them. Reject unsupported mandatory semantics; do not silently drop them.
 
 Keep reusable capability declaration, Node Execution Contract, invocation binding, runtime observation, verifier assessment, authoritative gate decision, and aggregate score separate. A schema-valid self-assertion is not evidence of execution. Future readers must be able to reconstruct which versions, policy, inputs, and accepted predecessors produced a decision.
+
+PRD artifact names map to lowercase internal names ([D23](decision-review.md#d23)). Enum values keep their schema spelling.
+
+| PRD name | Internal name |
+|---|---|
+| `Research_Brief.json` | `research_brief.json` |
+| `Hypothesis_Blueprint.json` | `hypothesis_blueprint.json` |
+| `Candidate_Set.json` | `candidate_set.json` |
+| `Opportunity_Card.json` | `opportunity_card.json` |
+| `POC_Artifact_Bundle.zip` | `poc_artifact_bundle.zip` |
+| `Benchmark_Payload.json` | `benchmark_payload.json` |
+| `Evaluation_Verdict.json` | `evaluation_verdict.json` |
+| `Phase_1_Completion_Report.md (also 2 and 3)` | `phase_1_completion_report.md` |
+| `M1_Final_Test_Report.md` | `m1_final_test_report.md` |
+| `M1_Implementation_Report.md` | `m1_implementation_report.md` |
 
 ## Composition notation
 

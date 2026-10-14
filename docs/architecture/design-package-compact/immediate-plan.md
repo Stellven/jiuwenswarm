@@ -5,11 +5,11 @@
 ## Route
 
 1. Fixed Intent and Requirements compiler work, each with deterministic checks, independent verifier assessment and protected gate, releases an accepted Research Brief.
-2. The fixed core Planner chooses downstream admitted CCs, required checks and assignments, and emits a JSON DAG proposal.
+2. The fixed core Planner proposes downstream admitted CCs and may suggest extra checks. The binder assigns the pinned check bundles. The proposal is a JSON DAG ([run plan](reference/run-plan.md)).
 3. Independent protected validation checks obligation coverage, typed ports/dependency closure, mandatory checks, resources/effects and cycles. Freeze exact accepted graph, pins and contracts before dispatch.
 4. Run one governed Search → Screening → Hypothesis → Builder → Scientific Benchmark → Scientific Evaluation → Delivery path. Freeze the hypothesis and protocol before build; deliver valid scientific negatives.
 
-Static mode remains a separately selectable static baseline mode and can run without autonomous planning. Its acceptance record is separate; it cannot satisfy the D19 dynamic-planner core record. The proposal itself never releases work. Failed validation or persistence halts before dispatch; no live replan or substitution changes a frozen run.
+The static template is built first and runs without autonomous planning ([D26](decision-review.md#d26)). It cannot satisfy the planned-mode record. An infeasible plan halts and starts a linked Intention Compiler attempt. The producer CCs self-review fidelity, backed by deterministic host checks. The semantic verifier reads only the declaration and exact output ([D24](decision-review.md#d24)). The proposal itself never releases work. Failed validation or persistence halts before dispatch; no live replan or substitution changes a frozen run.
 
 ## Independent boundaries
 

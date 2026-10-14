@@ -1,7 +1,7 @@
 {
   "id": "subnode-contract:requirements",
   "run_id": "run:example",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:1",
   "objective": "Produce a planning contract preserving accepted Intent",
   "input_refs": [
@@ -36,7 +36,7 @@
       "role": "requirements.compiler",
       "declaration_ref": {
         "id": "requirements_capsule.json",
-        "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
+        "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
       },
       "implementation_refs": [
         {
@@ -143,12 +143,12 @@
   },
   "template_ref": {
     "id": "requirements_subnode_template.json",
-    "sha256": "06ae4c5a667afccf5b8e3201cc3f4b9952d67efb379331211b03779b42caa77d"
+    "sha256": "ee951012283cf5f73c5a70f29d7609e3b3b27405d01760775c1ac16d18df6822"
   },
   "subnode_id": "requirements",
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
+    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
   },
   "subnode_limits": {
     "time_s": 120,

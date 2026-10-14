@@ -2,21 +2,21 @@
   "schema_version": "1.0.0",
   "subject_ref": {
     "id": "compiler_failure_receipt.json",
-    "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+    "sha256": "9f4ab3748227c8c18027f066cb817fe772441a5fcb28f2cb76b01cbc6ff15310"
   },
   "check_plan_ref": {
     "id": "check_plan.json",
-    "sha256": "423932999eb7aa19a92cd7ae425d848b7e97f3810db697cbc0cb308a9a73546e"
+    "sha256": "b4d1e24fae483d79ddf66d6f6d7b87ef66c2ec3d22ecc6d650e8b4d3b5ed3780"
   },
   "results": [
     {
-      "check_id": "structure",
+      "check_id": "intent_schema",
       "outcome": "ENVIRONMENT_BLOCKED",
       "reason": "No completed compiler output is available",
       "evidence_refs": [
         {
           "id": "compiler_failure_receipt.json",
-          "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+          "sha256": "9f4ab3748227c8c18027f066cb817fe772441a5fcb28f2cb76b01cbc6ff15310"
         }
       ]
     },
@@ -27,7 +27,7 @@
       "evidence_refs": [
         {
           "id": "compiler_failure_receipt.json",
-          "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+          "sha256": "9f4ab3748227c8c18027f066cb817fe772441a5fcb28f2cb76b01cbc6ff15310"
         }
       ]
     },
@@ -38,7 +38,7 @@
       "evidence_refs": [
         {
           "id": "compiler_failure_receipt.json",
-          "sha256": "32a671284ce074446b1c0af9ddb1ee735244dcbb2bba4ca81725ebde22c5d9dc"
+          "sha256": "9f4ab3748227c8c18027f066cb817fe772441a5fcb28f2cb76b01cbc6ff15310"
         }
       ]
     }

@@ -1,13 +1,13 @@
 {
   "schema_version": "2.0.0",
-  "id": "node-contract:intention.compiler",
+  "id": "node-contract:intention_compiler",
   "run_id": "run:example",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:1",
   "revision": 1,
   "objective": "Produce a faithful, usable accepted Research Brief from qualified intake",
   "requirement_ids": [
-    "fixed:intention.compiler"
+    "fixed:intention_compiler"
   ],
   "inputs": [
     {
@@ -93,11 +93,11 @@
       "role": "work",
       "template_ref": {
         "id": "intention_subnode_template.json",
-        "sha256": "b3d53ddac2326ecef5d9d7717ec3a3987bc63523c03c9fea733256c04f507b1c"
+        "sha256": "8e5f9cd27564bf3eb7bfcd5a56a94ea6c2f54c5bb68abbd6fea83782df4ae0cc"
       },
       "capsule_ref": {
         "id": "capsule_declaration.json",
-        "sha256": "43c55a5feca7e9443c24ba19b9402c78777d59a3b10c3a406330faa0a99627d8"
+        "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
       },
       "depends_on": [],
       "required": true
@@ -107,11 +107,11 @@
       "role": "verifier",
       "template_ref": {
         "id": "verifier_subnode_template.json",
-        "sha256": "f1d6852ce1a654656a7442733b22476d57af9ca00a877fea4432c7b9f73acf48"
+        "sha256": "271bd089e735f4e8f778d7f735cdc52c1b15b66477b6a15ac2c1da16dd5f88fa"
       },
       "capsule_ref": {
         "id": "verifier_capsule.json",
-        "sha256": "dad108536e6b23b9fc4c65e287d27a15ffd9e2ef8718d93fe4f9df3aea73e64a"
+        "sha256": "0fe08599f9ddc38bdb71feea8adfa43038fc937e26352b9dcdbb6589b6712bae"
       },
       "depends_on": [
         "intention"
@@ -123,11 +123,11 @@
       "role": "work",
       "template_ref": {
         "id": "requirements_subnode_template.json",
-        "sha256": "45b0d69405bbdd334c6215868973af245eddb74c7fef69eaee7faaebf2452268"
+        "sha256": "ee951012283cf5f73c5a70f29d7609e3b3b27405d01760775c1ac16d18df6822"
       },
       "capsule_ref": {
         "id": "requirements_capsule.json",
-        "sha256": "f6c63e730e3e5c12e4117f5328d1025085bc0a75a0ec245f201fe444220c6b5c"
+        "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
       },
       "depends_on": [
         "intention",
@@ -140,11 +140,11 @@
       "role": "verifier",
       "template_ref": {
         "id": "verifier_subnode_template.json",
-        "sha256": "f1d6852ce1a654656a7442733b22476d57af9ca00a877fea4432c7b9f73acf48"
+        "sha256": "271bd089e735f4e8f778d7f735cdc52c1b15b66477b6a15ac2c1da16dd5f88fa"
       },
       "capsule_ref": {
         "id": "verifier_capsule.json",
-        "sha256": "dad108536e6b23b9fc4c65e287d27a15ffd9e2ef8718d93fe4f9df3aea73e64a"
+        "sha256": "0fe08599f9ddc38bdb71feea8adfa43038fc937e26352b9dcdbb6589b6712bae"
       },
       "depends_on": [
         "requirements"
@@ -158,7 +158,7 @@
       "subject_subnode_id": "intention",
       "profile_ref": {
         "id": "guard_profile.json",
-        "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+        "sha256": "3d8597307df174a5e7c65e54bc01dd650bf70bb0f54ec04b668b53a7d60b6110"
       }
     },
     {
@@ -166,7 +166,7 @@
       "subject_subnode_id": "requirements",
       "profile_ref": {
         "id": "requirements_guard_profile.json",
-        "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6"
+        "sha256": "d9d16af36505c981275b12e2e05e5e765c67b2b4ebca8d4f56a1d2d2a525bacc"
       }
     },
     {

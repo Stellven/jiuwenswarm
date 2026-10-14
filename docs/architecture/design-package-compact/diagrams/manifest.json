@@ -8,7 +8,7 @@
       "mermaid_sha256": "6bd2094c397f2da3d580b61c1c372297b91dff8722dc5aeb139b4b6758eafdfc",
       "svg": "diagrams/README-1.svg",
       "png": "diagrams/README-1.png",
-      "svg_sha256": "5df895bbe0b7ab6c0848a590c2f439768005066c112d3bf5e7e7f1f3f0b7a520",
+      "svg_sha256": "3508f65b21e3a7443b5b1144e9837d33ca0e9d8a8fb61cad9203da5c7ffbd715",
       "png_sha256": "2873138e43b3b331737436652aa6bc18df487eb62ea23994755a3d35494e337f"
     },
     {
@@ -20,6 +20,16 @@
       "png": "diagrams/automation-1.png",
       "svg_sha256": "79c1af9eddb595a32992f195467b23bd03e097bd9f28d225782c8212e57c8a1f",
       "png_sha256": "84aaa81452c2b2856553fa21fc01f7f0f6cebb1cff2cd97b9828f217ded94bb1"
+    },
+    {
+      "source": "development-tools/benchmark-runner/README.md",
+      "title": "Components",
+      "anchor": "components",
+      "mermaid_sha256": "68c9c090c10b231999bb4a5c914cbb75189b7c1752b895659e3189552ed5a82a",
+      "svg": "diagrams/development-tools-benchmark-runner-README-1.svg",
+      "png": "diagrams/development-tools-benchmark-runner-README-1.png",
+      "svg_sha256": "6635eca4f9e24253a0fada3461a2b081189cadf662e1ef7d1a817692d27869c0",
+      "png_sha256": "db1322b7625f14120f69c17ada6579e6a15424fe7b7419e67dd693089145b137"
     },
     {
       "source": "development-tools/sidecar/README.md",
@@ -45,11 +55,11 @@
       "source": "intent-design.md",
       "title": "Deterministic boundary",
       "anchor": "deterministic-boundary",
-      "mermaid_sha256": "92f2afbd0c24ecb9db8b186baaab907dc336e7527f4b14a04a18907bd1474230",
+      "mermaid_sha256": "a717d560ab13ed0fcd6aeea430a338caa27666f0849010088180e1d5d90897c4",
       "svg": "diagrams/intent-design-1.svg",
       "png": "diagrams/intent-design-1.png",
-      "svg_sha256": "e97deb6cfabe2f34f2505db65f89cc815b083cb4da466ba296af54a906dad635",
-      "png_sha256": "1adc7d6236a8dd6112eb0521ab4f9a2db2d579c5076e9495d845413180927ca0"
+      "svg_sha256": "3dced088dc1b34a6ee055ed82ed29a46b579759522f911f9e45518ad557d40cc",
+      "png_sha256": "546bc548f80e7766d1c2bf8fd487e85462df3ed96b52b5492972c3e12e82a7a3"
     },
     {
       "source": "intent-design.md",
@@ -100,6 +110,76 @@
       "png": "diagrams/reference-capsule-model-routing-1.png",
       "svg_sha256": "5fd2058203be8029635963b2245769430045028ec915285f1b27b36f11827d95",
       "png_sha256": "d5c8156df112cf2d17d2628df13d1510c538d21a622171cbc9667b5acd536cde"
+    },
+    {
+      "source": "reference/run-plan.md",
+      "title": "Build order",
+      "anchor": "build-order",
+      "mermaid_sha256": "530fbb81691d5b24e61cec0e0988f92073a0a37742e553e07f3f196e6ea436af",
+      "svg": "diagrams/reference-run-plan-1.svg",
+      "png": "diagrams/reference-run-plan-1.png",
+      "svg_sha256": "c62bd201a2766da42451d6bbacd9d07386e1ff140d4aa7e1842d03a63afa36e5",
+      "png_sha256": "e651148bc9c2f1a8e4b9a647b4d02525df996f77cbb10d5a3a9302a69c2ec7d5"
+    },
+    {
+      "source": "research-nodes.md",
+      "title": "Inside the POC task",
+      "anchor": "inside-the-poc-task",
+      "mermaid_sha256": "9899f358c2590bdef0f8d60529b2275f152711aeb4d03c42784454ccef1a6210",
+      "svg": "diagrams/research-nodes-1.svg",
+      "png": "diagrams/research-nodes-1.png",
+      "svg_sha256": "7fab7d8ce67d3c2f32fba2e64d31f6a8a09b8ff58e4f77fb4407d7246d13fb4c",
+      "png_sha256": "1e8110b45e12584042497e0a0dc7c088f252e4677e5b9203a696a85b9eab54ce"
+    },
+    {
+      "source": "research-nodes.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "8110e99d46cb26658f648f9a81c8aa59dcfbefef6309a3e975596cc9396867ce",
+      "svg": "diagrams/research-nodes-2.svg",
+      "png": "diagrams/research-nodes-2.png",
+      "svg_sha256": "b332229a9d169cf16bf6f091ee7c0b4c0b6fc020a753458166bd3fa7ddac45b3",
+      "png_sha256": "3dbb3e2dfa6ef0d790aa74a0299ce09b4e9b75acfdc5fa8d7b925d6f1ac36ec3"
+    },
+    {
+      "source": "research-nodes.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "3926ba2bc68fb74c506fde5f9c36aa37751dba3db7474cfbc07430a31d6ee64e",
+      "svg": "diagrams/research-nodes-3.svg",
+      "png": "diagrams/research-nodes-3.png",
+      "svg_sha256": "26af6f6f9abc47733e117785fa8ae6d789aee605b85e3c2367e065d31d136161",
+      "png_sha256": "cb643921f16b0f99e6ad452153bf7e3b5aafe3d0e183340af8cda73d1c992cfb"
+    },
+    {
+      "source": "research-nodes.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "6554a50e7f49b0c85b3c1f67f27653f7069ee040a3cf530be026b8c9d0e648d2",
+      "svg": "diagrams/research-nodes-4.svg",
+      "png": "diagrams/research-nodes-4.png",
+      "svg_sha256": "0c0ce2276f5e5a691fe29464b2b85194507b1387406b4e4c5572195cf9752f3e",
+      "png_sha256": "d9d6b18c12668b20a7fc95750622c94163ef712b697226114bf0193b4c0e7440"
+    },
+    {
+      "source": "research-nodes.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "bb2cb48d8a77939e874b98b8bd8ffd72ebed2e8acb21cc9a3141091e8f7abce0",
+      "svg": "diagrams/research-nodes-5.svg",
+      "png": "diagrams/research-nodes-5.png",
+      "svg_sha256": "8f8e81458f7dab15f75b42419a62e14c38b73829f08498164aa51ca7e4cf0436",
+      "png_sha256": "1798b541d80f5e032f5709ce22d109307b0a13229d23b7dc96bfa57339eac1e2"
+    },
+    {
+      "source": "research-nodes.md",
+      "title": "Research nodes and subnodes",
+      "anchor": "research-nodes-and-subnodes",
+      "mermaid_sha256": "a8c170542e0f57dbb644df1b0cebf05edd48738a7cfcce4d12d8e80bb13ec433",
+      "svg": "diagrams/research-nodes-6.svg",
+      "png": "diagrams/research-nodes-6.png",
+      "svg_sha256": "d482de1551ae9b0e5e1530e5c2dca43aee1fd83bead33d6599591af63b074107",
+      "png_sha256": "0c9fd853f63387534824eefc24bec92d6c7211239ec79647bb840005a9fb4764"
     }
   ]
 }

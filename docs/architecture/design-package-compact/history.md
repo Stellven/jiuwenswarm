@@ -22,7 +22,7 @@ git show 0e560729374cfb35119a9d5b42b43860c5d513ad:docs/tasks/M1/TASKS.md
 git show b710bed752e66a21c993e77d90fa588598140924:docs/product/prd-m1-full-2026-10-02.txt
 ```
 
-The snapshot branch is local until explicitly published. Preserve that ref when transferring the cleanup to another checkout. No snapshot supplies missing current requirements; use the [maintained reading route](README.md#human-super-important-read-understand-the-whole-system).
+The snapshot branch is local until explicitly published. Preserve that ref when transferring the cleanup to another checkout. No snapshot supplies missing current requirements; use the [maintained reading route](README.md#human-read-the-whole-system).
 
 ## Final docs cleanup — October 7, 2026
 

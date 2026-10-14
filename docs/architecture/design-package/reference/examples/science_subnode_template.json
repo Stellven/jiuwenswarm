@@ -3,7 +3,7 @@
   "role": "work",
   "capsule_ref": {
     "id": "scientific_evaluation_capsule.json",
-    "sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+    "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
   },
   "input_contracts": [
     "urn:jiuwenswarm:m1-design:research-brief:2.0.0",

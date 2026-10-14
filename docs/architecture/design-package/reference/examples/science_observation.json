@@ -3,9 +3,9 @@
   "id": "invocation:science",
   "contract_ref": {
     "id": "science_subnode_contract.json",
-    "sha256": "4c1945a2393eff867c1a649350b783718db38e4dd743d499a34759e8bd6a2798"
+    "sha256": "e3d039474cb884abdcf27a0dd7f22c37c88612b88b01e78fc3ad04c6f591ab91"
   },
-  "binding_id": "binding:scientific.evaluation",
+  "binding_id": "binding:evaluation",
   "input_refs": [
     {
       "id": "lifecycle_research_brief.json",
@@ -53,7 +53,7 @@
   },
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "0ba9ca73eb53f4dd64bece0e055391f38b2b133fbdd548ffe5186269a0338d06"
+    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
   },
   "subnode_id": "evaluation"
 }

@@ -6,11 +6,11 @@
   },
   "check_plan_ref": {
     "id": "check_plan.json",
-    "sha256": "8f816fb841f9b896609d725f6896a908d8c0454a704984bcf49c1e305c3fe56d"
+    "sha256": "b4d1e24fae483d79ddf66d6f6d7b87ef66c2ec3d22ecc6d650e8b4d3b5ed3780"
   },
   "results": [
     {
-      "check_id": "structure",
+      "check_id": "intent_schema",
       "outcome": "PASS",
       "reason": "Synthetic structurally valid example",
       "evidence_refs": [

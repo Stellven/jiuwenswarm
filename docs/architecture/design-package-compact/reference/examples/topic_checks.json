@@ -6,11 +6,11 @@
   },
   "check_plan_ref": {
     "id": "topic_check_plan.json",
-    "sha256": "13649f567338fe87d0e63453c68e9ea41b250005f5d900089fe1997418f32656"
+    "sha256": "0546587c36096823ae826bda42a974f6d4e79512c4e5d5be64e62c537359739c"
   },
   "results": [
     {
-      "check_id": "structure",
+      "check_id": "intent_schema",
       "outcome": "PASS",
       "reason": "Schema-valid candidate with explicit material uncertainty",
       "evidence_refs": [

@@ -25,7 +25,7 @@
 | `profile_ref` | `Ref` | Protected local execution profile |
 | `workspace_ref` | `Ref` | Authorized run workspace |
 | `input_directory_ref` | `Ref` | Qualified configured input directory, including an empty authorized default directory |
-| `prior_plan_outcome_ref` | `nullable-Ref` | Optional. Set only on an Intention Compiler attempt started by a `plan_infeasible` [plan outcome](run-plan.md#plan-outcome). The Intent and Requirement CCs read its reasons. Null on a first attempt |
+| `prior_plan_outcome_ref` | `nullable-Ref` | Optional. Set only on an Intention Compiler attempt started by a `plan_infeasible` [plan outcome](run-plan.md#plan-outcome). The Intent and Requirement CCs read its reasons and must address or carry each one (as an Intent uncertainty or a Brief unresolved item). Null on a first attempt |
 
 **Invalid/missing behavior:** Reject missing required source or undecodable text; do not silently treat a rejected resource as available.
 
@@ -804,16 +804,6 @@ These meanings constrain shared interfaces. Private helper types and classes rem
 | `contract_id` | `string` | Catalog contract |
 | `version` | `string` | Exact contract version |
 | `required` | `boolean` | Mandatory output |
-
-### PlannedSubnode
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `subnode_id` | `string` | Unique identity within node |
-| `role` | `string` | work or verifier |
-| `capsule_ref` | `Ref` | Exactly one admitted CC declaration |
-| `template_ref` | `Ref` | Frozen internal port/check template |
-| `depends_on` | `string[]` | Earlier internal subnode IDs; protected gates mediate work dependencies |
 
 ### BoundNodeInput
 

@@ -7,6 +7,9 @@ Maintainer: Xiaoyang. These durable instructions apply throughout the repository
 - [Current PRD and architecture reading package](docs/architecture/design-package/README.md)
 - [Current complete Intention Compiler build](docs/architecture/design-package/immediate-plan.md)
 - [Canonical vocabulary and PRD crosswalk](docs/architecture/design-package/glossary.md)
+- [Core build order](docs/architecture/design-package/core-build.md)
+- [Capsule build references, one page per CC](docs/architecture/design-package/reference/capsules/README.md)
+- [Run plan, binder and dispatch contracts](docs/architecture/design-package/reference/run-plan.md)
 - [Spec Kit workflow](docs/code/code_sop/SPEC_KIT_WORKFLOW.md)
 - [Verification method](docs/code/code_sop/VERIFICATION.md)
 - [Constitution](.specify/memory/constitution.md)
@@ -54,3 +57,5 @@ Existing task histories and application tests are preserved. New v2 tasks do not
 ## October 14 checking and continuation amendments
 
 Read the maintained design decisions D20 and D21 with the PRD and D19. D20 limits the semantic model payload to the pinned declaration and exact output; host/deterministic checks retain required input/runtime records. The compiler trial's worker-data copying is not the intended semantic interface. Preserve the explicitly reduced fidelity/source assurance and reconcile affected native evidence. D21 allocates November Generalist, automatic generation, automatic admission with future-plan eligibility and planner/MCTS increments; composition/fusion is December. M1 human activation remains unchanged. No running DAG changes its pins. Architecture freeze requires an available aligned PRD; unresolved product conflicts remain open. These documentation changes create no new TASK/AC/IF identities or runtime PASS.
+
+D23 to D26 (October 14): internal file, port, check and criterion names are lowercase. Verifier criteria are answerable from the declaration and the output alone, and fidelity and preservation are Intent and Requirement producer obligations. Each CC has one tier 3 build page. Build the static DAG first, then the Planner, both producing the same frozen run plan.

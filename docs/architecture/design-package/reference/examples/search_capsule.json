@@ -43,7 +43,7 @@
         "required": true,
         "description": "Captured citations and 1 to 3 grounded ideas",
         "check_ids": [
-          "output_structure",
+          "candidate_set_schema",
           "brief_binding",
           "scope_binding",
           "queries_within_bounds",
@@ -149,7 +149,7 @@
   "guarantees": {
     "checks": [
       {
-        "id": "output_structure",
+        "id": "candidate_set_schema",
         "kind": "deterministic",
         "target": "outputs.candidate_set",
         "runner": {
@@ -454,7 +454,7 @@
       }
     ],
     "acceptance": [
-      "output_structure",
+      "candidate_set_schema",
       "brief_binding",
       "scope_binding",
       "queries_within_bounds",

@@ -1,13 +1,17 @@
 {
   "id": "subnode-contract:intention.verifier",
   "run_id": "run:topic",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:topic",
   "objective": "Assess submitted artifact against protected assigned criteria without modifying work or controlling flow",
   "input_refs": [
     {
-      "id": "topic_review_context.json",
-      "sha256": "5a388e3ae7d8d9d76ffeb44f8b716bf2b46c9665e0ac1531331e418ab93f618d"
+      "id": "capsule_declaration.json",
+      "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+    },
+    {
+      "id": "intent_topic_only.json",
+      "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
     }
   ],
   "required_outputs": [
@@ -28,7 +32,7 @@
       "role": "verifier",
       "declaration_ref": {
         "id": "verifier_capsule.json",
-        "sha256": "dad108536e6b23b9fc4c65e287d27a15ffd9e2ef8718d93fe4f9df3aea73e64a"
+        "sha256": "0fe08599f9ddc38bdb71feea8adfa43038fc937e26352b9dcdbb6589b6712bae"
       },
       "implementation_refs": [
         {
@@ -46,8 +50,12 @@
         "network_allowlist": [],
         "resource_reads": [
           {
-            "id": "topic_review_context.json",
-            "sha256": "5a388e3ae7d8d9d76ffeb44f8b716bf2b46c9665e0ac1531331e418ab93f618d"
+            "id": "capsule_declaration.json",
+            "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+          },
+          {
+            "id": "intent_topic_only.json",
+            "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
           }
         ],
         "write_roots": [
@@ -66,21 +74,33 @@
   ],
   "inputs": [
     {
-      "name": "review_context",
-      "contract_id": "review-context:field-contract:2",
-      "version": "2.0.0",
+      "name": "subject_declaration",
+      "contract_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "version": "1.0.0",
       "required": true,
       "artifact_refs": [
         {
-          "id": "topic_review_context.json",
-          "sha256": "5a388e3ae7d8d9d76ffeb44f8b716bf2b46c9665e0ac1531331e418ab93f618d"
+          "id": "capsule_declaration.json",
+          "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+        }
+      ]
+    },
+    {
+      "name": "subject_output",
+      "contract_id": "opaque-bytes",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "intent_topic_only.json",
+          "sha256": "0852d5fe8133c2e22da797027f4868ad09bb973f8ecf4ace4d1ade9bb8b87591"
         }
       ]
     }
   ],
   "outputs": [
     {
-      "name": "assessment",
+      "name": "verifier_assessment",
       "contract_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
       "version": "1.0.0",
       "required": true
@@ -92,7 +112,7 @@
   ],
   "guard_profile_ref": {
     "id": "topic_guard_profile.json",
-    "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+    "sha256": "dbdb6b8635136c6e94893133e9d3bdc50a6ac70026018b2916f7ad60253ae757"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
@@ -100,12 +120,12 @@
   },
   "template_ref": {
     "id": "verifier_subnode_template.json",
-    "sha256": "f1d6852ce1a654656a7442733b22476d57af9ca00a877fea4432c7b9f73acf48"
+    "sha256": "271bd089e735f4e8f778d7f735cdc52c1b15b66477b6a15ac2c1da16dd5f88fa"
   },
   "subnode_id": "intention.verifier",
   "node_contract_ref": {
     "id": "topic_node_contract.json",
-    "sha256": "4035deca9df1374bdf28ef37c2fd833ea780f4ce5ec0ff93e136ba86a198388f"
+    "sha256": "733770af74db86dc1d323e67f26b805dad32c2fd9ae6e9b7301c84e30f903818"
   },
   "subnode_limits": {
     "time_s": 60,

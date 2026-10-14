@@ -40,9 +40,7 @@
         "schema_ref": "opportunity-card:field-contract:2",
         "required": true,
         "description": "Selected opportunity",
-        "check_ids": [
-          "exact_identity"
-        ]
+        "check_ids": []
       },
       {
         "name": "baseline_resource",
@@ -50,9 +48,7 @@
         "schema_ref": "resource-snapshot:field-contract:1",
         "required": true,
         "description": "Captured baseline",
-        "check_ids": [
-          "exact_identity"
-        ]
+        "check_ids": []
       },
       {
         "name": "validation_resource",
@@ -60,9 +56,7 @@
         "schema_ref": "resource-snapshot:field-contract:1",
         "required": true,
         "description": "Captured validation data",
-        "check_ids": [
-          "exact_identity"
-        ]
+        "check_ids": []
       }
     ],
     "outputs": [
@@ -73,7 +67,7 @@
         "required": true,
         "description": "Frozen experiment protocol",
         "check_ids": [
-          "output_structure",
+          "blueprint_schema",
           "rules_reference_declared_metrics",
           "boundaries_disjoint"
         ]
@@ -127,7 +121,7 @@
   "guarantees": {
     "checks": [
       {
-        "id": "output_structure",
+        "id": "blueprint_schema",
         "kind": "deterministic",
         "target": "outputs.blueprint",
         "runner": {
@@ -185,7 +179,7 @@
       }
     ],
     "acceptance": [
-      "output_structure",
+      "blueprint_schema",
       "rules_reference_declared_metrics",
       "boundaries_disjoint"
     ],

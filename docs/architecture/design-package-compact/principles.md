@@ -18,7 +18,7 @@ Every work invocation follows **capture → deterministic checks → semantic ve
 
 Fixed mandatory work has its output contracts and independently owned checking profiles assigned beforehand. Bound checks incorporate the actual objective, input identities, CC/dependency pins, policy and limits. They are not derived from a favorable producer claim after execution. Check the exact output on every attempt; an earlier pass cannot authorize a changed subject.
 
-Structure and meaning are separate obligations. Well-formed Intent that merely lists unknown purpose and result may be faithfully extracted yet unusable. The verifier checks whether the submitted interpretation is consistent with its declared output contract; downstream usability and request fidelity need separate benchmark evidence under D20. It does not give a second independent answer to the user's request.
+Structure and meaning are separate obligations. Each producer CC self-reviews the fidelity or preservation of its own output, and deterministic host checks on spans, references and coverage back that review. The verifier checks the exact output against its declaration and against itself. It never reads the request, the Intent or any worker input, and it does not give a second answer to the user's request.
 
 Only committed protected decisions publish accepted references to successors. Failed evidence persistence blocks release. A valid scientific negative can pass infrastructure verification and be delivered. A research conclusion and a workflow decision are different records.
 
@@ -59,7 +59,7 @@ The user-authorized assignment promotes a bounded Planner into the current core,
 
 ## D20: declaration/output-only semantic review
 
-The LLM reviewer receives the declaration and exact output only. Worker inputs, conversation and external evidence stay outside its context. Protected deterministic checks retain runtime records. This authorized change reduces PRD §4.2.1 assurance: request fidelity and independent source accuracy require separate benchmark evidence. [Review contract](reference/semantic-review.md).
+The LLM reviewer receives the declaration and exact output only. Worker inputs, conversation and external evidence stay outside its context. Protected deterministic checks retain runtime records. No semantic check establishes fidelity ([D24](decision-review.md#d24)). [Review contract](reference/semantic-review.md).
 
 ## D21: iterative generation and automatic admission
 

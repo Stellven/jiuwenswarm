@@ -3,13 +3,13 @@
   "id": "observation:evaluation.verifier",
   "contract_ref": {
     "id": "science_verifier_subnode_contract.json",
-    "sha256": "b1e60510f6b0667ce67ca80f5c18570047379034ce4ff878e4bde9c729508447"
+    "sha256": "55ec414548160a14702edff2251435ca133400065de5e28ffda0f90adfa6a7e8"
   },
   "binding_id": "binding:evaluation.verifier",
   "input_refs": [
     {
       "id": "scientific_evaluation_capsule.json",
-      "sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+      "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
     },
     {
       "id": "evaluation_verdict.json",
@@ -19,7 +19,7 @@
   "output_refs": [
     {
       "id": "science_assessment.json",
-      "sha256": "bbb1c5744a43d64cf329e3a4b158d4a0f1ffade0f9af6aae637df405ce9a7192"
+      "sha256": "a8a16daec31399bd8a82ea9100725cfd16aa8f0c7467e70c9fa9edae9f31761a"
     }
   ],
   "model_identity": {
@@ -49,7 +49,7 @@
   },
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "0ba9ca73eb53f4dd64bece0e055391f38b2b133fbdd548ffe5186269a0338d06"
+    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
   },
   "subnode_id": "evaluation.verifier"
 }

@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
   "identity": {
-    "name": "runtime.verifier",
+    "name": "research.verifier",
     "version_label": "example-1",
     "kind": "agent",
-    "summary": "Extract faithful, coherent user meaning with explicit uncertainty",
+    "summary": "Check one CC output against its pinned declaration under fixed profile criteria. Reads only the declaration and the output.",
     "carrier": {
       "ref": "intent_implementation.txt",
       "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
@@ -19,27 +19,36 @@
   "ports": {
     "inputs": [
       {
-        "name": "review_context",
-        "schema_ref": "review-context:field-contract:2",
+        "name": "subject_declaration",
+        "schema_ref": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
         "required": true,
-        "artifact_type": "review_context",
-        "description": "Protected review input or read-only submitted-artifact assessment",
+        "artifact_type": "capsule_declaration",
+        "description": "Exact pinned declaration of the CC under review",
         "check_ids": [
-          "structure",
-          "exact_identity"
+          "declaration_pin_matches"
+        ]
+      },
+      {
+        "name": "subject_output",
+        "schema_ref": "opaque-bytes",
+        "required": true,
+        "artifact_type": "subject_output",
+        "description": "Exact output bytes of the CC under review, unchanged",
+        "check_ids": [
+          "output_hash_matches"
         ]
       }
     ],
     "outputs": [
       {
-        "name": "assessment",
+        "name": "verifier_assessment",
         "schema_ref": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
         "required": true,
-        "artifact_type": "assessment",
-        "description": "Protected review input or read-only submitted-artifact assessment",
+        "artifact_type": "verifier_assessment",
+        "description": "Host-assembled assessment from the untrusted model reply",
         "check_ids": [
-          "structure",
-          "exact_identity"
+          "assessment_schema",
+          "criterion_coverage_exact"
         ]
       }
     ]
@@ -52,12 +61,7 @@
       "direction": "none",
       "allowlist": []
     },
-    "resources": [
-      {
-        "resource_key": "original_request",
-        "mode": "read"
-      }
-    ],
+    "resources": [],
     "injects": [
       {
         "service_key": "audited_model_bridge",
@@ -78,7 +82,7 @@
         "id": "model-disclosure",
         "resource_key": "approved_model_bridge",
         "op": "model_invoke",
-        "scope": "bound permitted request context",
+        "scope": "pinned declaration and exact output only",
         "idempotent": false,
         "reversibility": "none",
         "undo": null,
@@ -96,9 +100,9 @@
   "guarantees": {
     "checks": [
       {
-        "id": "intent_schema",
+        "id": "assessment_schema",
         "kind": "deterministic",
-        "target": "outputs.intent",
+        "target": "outputs.verifier_assessment",
         "runner": {
           "ref": "intent_implementation.txt",
           "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
@@ -116,11 +120,11 @@
       }
     ],
     "acceptance": [
-      "intent_schema"
+      "assessment_schema"
     ],
     "evals": [],
     "unanchored": [
-      "Semantic fidelity/usability require independently assigned runtime verification"
+      "Reduced assurance: no input fidelity, source support or scientific validity is established"
     ]
   },
   "budget": {
@@ -148,7 +152,7 @@
   },
   "coverage": {
     "undeclared_notes": [
-      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+      "Fixed instructions and criteria come from the pinned checking profile, not from this declaration."
     ]
   }
 }

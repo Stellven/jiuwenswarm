@@ -1,13 +1,13 @@
 {
   "id": "subnode-contract:evaluation.verifier",
   "run_id": "run:science",
-  "node_id": "scientific.evaluation",
-  "attempt_id": "attempt:science",
+  "node_id": "evaluation",
+  "attempt_id": "evaluation-a1",
   "objective": "Assess submitted artifact against protected assigned criteria without modifying work or controlling flow",
   "input_refs": [
     {
       "id": "scientific_evaluation_capsule.json",
-      "sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+      "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
     },
     {
       "id": "evaluation_verdict.json",
@@ -52,7 +52,7 @@
         "resource_reads": [
           {
             "id": "scientific_evaluation_capsule.json",
-            "sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+            "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
           },
           {
             "id": "evaluation_verdict.json",
@@ -82,7 +82,7 @@
       "artifact_refs": [
         {
           "id": "scientific_evaluation_capsule.json",
-          "sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+          "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
         }
       ]
     },
@@ -126,7 +126,7 @@
   "subnode_id": "evaluation.verifier",
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "0ba9ca73eb53f4dd64bece0e055391f38b2b133fbdd548ffe5186269a0338d06"
+    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
   },
   "subnode_limits": {
     "time_s": 60,

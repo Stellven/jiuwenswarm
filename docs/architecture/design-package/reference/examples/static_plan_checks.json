@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "static_template.json",
+    "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+  },
+  "check_plan_ref": {
+    "id": "static_plan_check_plan.json",
+    "sha256": "db5717cff452258a45d4ec1e7aa14d58130f3f4eb4a288541e21709142da55cb"
+  },
+  "results": [
+    {
+      "check_id": "template_structure",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "brief_coverage",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "library_membership",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "port_type_compatibility",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "dependency_closure",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "acyclicity",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "mandatory_check_bundle_present",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "effects_within_policy",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "resource_feasibility",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    },
+    {
+      "check_id": "budget_ceilings",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+        }
+      ]
+    }
+  ]
+}

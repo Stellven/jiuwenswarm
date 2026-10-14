@@ -87,7 +87,7 @@ Examples: [valid](../examples/plan_proposal.json) Â· rejected by `acyclicity`: [
 | `artifact_type` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, equals the library input port type | Artifact type of the port. |
 | `required` | `boolean` | yes | must be true when the library port is required | Whether the node needs this input. The Planner cannot mark a required library port optional. |
 | `source_kind` | `string` | yes | enum `accepted_ref`, `future_output`, `host_record` | `accepted_ref` means an input that already exists when the run starts: the Brief, the bound `search_scope` or a supplied resource. `future_output` means the accepted output of an earlier node. `host_record` means a record the host supplies without a producing node: a pinned body file or a record built from the run's own accepted records. |
-| `run_input_key` | `nullable-string` | yes | non-null exactly when `source_kind` is `accepted_ref` or `host_record`. For `accepted_ref`: `brief`, `search_scope` or a `resource_key` of the resource inventory. For `host_record`: `screening_rubric`, `build_receipt` or `gate_decision_index` | Which run input or host record to bind. The Planner names the key and never writes a ref. |
+| `run_input_key` | `nullable-string` | yes | non-null exactly when `source_kind` is `accepted_ref` or `host_record`. For `accepted_ref`: `brief`, `search_scope` or a `resource_key` of the resource inventory. For `host_record`: `screening_rubric`, `build_receipt`, `gate_decision_index`, `screening_result`, `execution_receipt`, `provisioning_receipt`, `environment_lock` or `run_configuration` | Which run input or host record to bind. The Planner names the key and never writes a ref. |
 | `accepted_ref` | `nullable-Ref` | yes | null in every plan proposal and static template. In a run plan non-null when `source_kind` is `accepted_ref`, null otherwise | Exact bytes of the run input. Only the binder fills this field. A host record is bound at dispatch from the run's accepted records. |
 | `future` | `nullable-FutureInput` | yes | non-null exactly when `source_kind` is `future_output` | Producer node, port and type of the future value. It binds to the gate-accepted output only, at dispatch. |
 
@@ -119,7 +119,7 @@ Examples: [valid proposal with all node types](../examples/plan_proposal.json) Â
 
 Cross-field rules:
 
-- Edges are exactly the `predecessors` lists. Every future input must name a node that is in the same node's `predecessors`. A `host_record` input draws no edge. The record `build_receipt` is the host-written receipt of the accepted Builder attempt. The record `gate_decision_index` lists the gate decisions of the accepted attempts before the node. The node that takes either record must list the producing nodes in `predecessors`. The record `screening_rubric` is the rubric pinned in the CC body.
+- Edges are exactly the `predecessors` lists. Every future input must name a node that is in the same node's `predecessors`. A `host_record` input draws no edge. The record `build_receipt` is the host-written receipt of the accepted Builder attempt. The record `gate_decision_index` lists the node-scope gate decisions of the accepted attempts before the node. The records `screening_result`, `execution_receipt` and `provisioning_receipt` are the accepted outputs of the Screening and Benchmark nodes. The records `environment_lock` and `run_configuration` are the run's prepared lock and frozen configuration. The node that takes `build_receipt`, `gate_decision_index`, `screening_result`, `execution_receipt` or `provisioning_receipt` must list the producing nodes in `predecessors`. The record `screening_rubric` is the rubric pinned in the CC body.
 - A producer and a consumer are port-compatible when `artifact_type` is equal in the future binding, in the consumer input and in the producer output. The `schema_ref` of the two library ports must also be equal.
 - The union of `requirement_ids` and `deliverable_ids` of a node has at least one item. Every mandatory Brief requirement and every Brief deliverable is covered by at least one node.
 - Node IDs are not reused and are stable names, not numbers that change with order.
@@ -148,11 +148,11 @@ The host binder runs these checks on the exact output and on the pinned inputs. 
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `proposal_structure` | Matches `plan-proposal:field-contract:3`: field types, enums, patterns, lengths, unique node IDs, node count at most `max_nodes`, `mode` is `planned`, no `accepted_ref` is set, `brief_ref`, `library_snapshot_ref`, `resource_inventory_ref` and `policy_ref` equal the refs given to the Planner. | reject |
+| `plan_proposal_schema` | Matches `plan-proposal:field-contract:3`: field types, enums, patterns, lengths, unique node IDs, node count at most `max_nodes`, `mode` is `planned`, no `accepted_ref` is set, `brief_ref`, `library_snapshot_ref`, `resource_inventory_ref` and `policy_ref` equal the refs given to the Planner. | reject |
 | `brief_coverage` | Every mandatory requirement and deliverable of the Brief has a `coverage` entry. Every node has at least one tag. `coverage` is the exact inverse of the node tags. Every tag is an ID in the Brief. | reject |
 | `library_membership` | Every node `cc` matches exactly one library entry by name, version and `declaration_sha256`, and the entry has `selectable_by_planner` true. Unknown versions fail. | reject |
 | `port_type_compatibility` | Every input and output name and type equals a port of the library entry. Required ports are present and not marked optional. Every future binding has the same `artifact_type` and `schema_ref` at the producer output and the consumer input. A host record key equals the port `artifact_type` of its input. | reject |
-| `dependency_closure` | Every future binding names an existing other node that is in `predecessors` and lists that port in `outputs`. Every accepted-ref `run_input_key` is `brief`, `search_scope` or a key in the resource inventory. Every host-record key is `screening_rubric`, `build_receipt` or `gate_decision_index`. Every required input is bound. | reject |
+| `dependency_closure` | Every future binding names an existing other node that is in `predecessors` and lists that port in `outputs`. Every accepted-ref `run_input_key` is `brief`, `search_scope` or a key in the resource inventory. Every host-record key is one of the eight keys listed for `run_input_key`. Every required input is bound. | reject |
 | `acyclicity` | The `predecessors` graph has a topological order. | reject |
 | `mandatory_check_bundle_present` | The library entry of every node has non-null `check_pins`, and the pinned bundle and profile exist in the protected registry. | reject |
 | `effects_within_policy` | Each node `effect_class` is in `allowed_effect_classes`. A CC with a `network_mode` other than `none` is allowed only when `allow_network` is true. | reject |
@@ -180,7 +180,7 @@ The gate accepts when all eleven host checks pass (`suggested_checks_known` may 
 
 | Condition | Outcome | What is kept |
 |---|---|---|
-| Output is not valid JSON or fails `proposal_structure` | reject, `plan_infeasible`, run halts before dispatch | raw output and check result |
+| Output is not valid JSON or fails `plan_proposal_schema` | reject, `plan_infeasible`, run halts before dispatch | raw output and check result |
 | Any other host check fails | reject, `plan_infeasible`, run halts | proposal, check result, failing check ID |
 | A verifier criterion fails | reject, `plan_infeasible`, run halts | proposal, assessment |
 | No listed CC covers a mandatory requirement | the Planner replies `INFEASIBLE:`, `plan_infeasible`, run halts | report, no graph |

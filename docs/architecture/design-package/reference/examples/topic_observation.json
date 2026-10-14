@@ -3,7 +3,7 @@
   "id": "invocation:topic",
   "contract_ref": {
     "id": "topic_subnode_contract.json",
-    "sha256": "4a11beadbc0bb36a9c93ff308bf329c2e35edd949b2b32defa1cb14a963dba33"
+    "sha256": "97eb51f0fabd6417eb92548c2bea2972cab367b8055cee1ee9ae4b9628e86eae"
   },
   "binding_id": "binding:intent.compiler",
   "input_refs": [
@@ -45,7 +45,7 @@
   },
   "node_contract_ref": {
     "id": "topic_node_contract.json",
-    "sha256": "d0d124cc692f6bba65a68fc09b92f78093deb96f801bb1d7d4fa705c60d847d3"
+    "sha256": "733770af74db86dc1d323e67f26b805dad32c2fd9ae6e9b7301c84e30f903818"
   },
   "subnode_id": "intention"
 }

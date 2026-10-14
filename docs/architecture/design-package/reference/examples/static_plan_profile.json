@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "profile:static-plan",
+  "mandatory_deterministic": [
+    "template_structure",
+    "brief_coverage",
+    "library_membership",
+    "port_type_compatibility",
+    "dependency_closure",
+    "acyclicity",
+    "mandatory_check_bundle_present",
+    "effects_within_policy",
+    "resource_feasibility",
+    "budget_ceilings"
+  ],
+  "mandatory_semantic": [],
+  "additional_model_calls": 0,
+  "synthetic": true
+}

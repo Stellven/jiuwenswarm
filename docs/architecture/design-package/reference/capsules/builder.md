@@ -13,7 +13,7 @@
 
 ## Purpose and place in the run
 
-Builder is stage 3.6. It follows Hypothesis and precedes Research Benchmark. The Planner does not select it. It reads the frozen blueprint and cannot change the validation data, measurement functions or outcome rules (PRD 3.6.3). It does not repair its own failures. A failed check halts to the human session (PRD 3.6.4, 4.9.5).
+Builder is stage 3.6. It follows Hypothesis and precedes Research Benchmark. It reads the frozen blueprint and cannot change the validation data, measurement functions or outcome rules (PRD 3.6.3). It does not repair its own failures. A failed check halts to the human session (PRD 3.6.4, 4.9.5).
 
 ## Declaration
 
@@ -22,10 +22,10 @@ Declaration example: [builder_capsule.json](../examples/builder_capsule.json). I
 | Item | Value |
 |---|---|
 | Name | `research.builder`, kind `agent` |
-| Needs | model bridge and the bounded code search operator. No network. |
+| Needs | model bridge, the bounded code search operator and write access to the `poc_workspace` resource. No network. |
 | Effect class | `idempotent`. Writes only under `/workspace/poc/`. Starts no process except the compile check run by the host. |
 | Budget | 600 s wall, 1 invocation, 40 tool calls, hard |
-| Pinned check bundle | The declaration pins the checks below that read only outputs. The binder adds the host checks. The Planner cannot drop or weaken any of them. |
+| Pinned check bundle | The declaration pins `manifest_schema`, `bundle_schema`, `required_files_present`, `dependencies_pinned`, `bundle_hash_matches`, `syntax_check` and `forbidden_modules_absent`. The binder adds the other host checks below. The Planner cannot drop or weaken any of them. |
 | Output ports | `manifest` and `bundle`. The host-written `build_receipt` is not an output port. It reaches Research Benchmark as a `host_record` input. |
 | Verifier runs | Once per output artifact (`manifest`, then `bundle`). Each run gets the same pinned declaration and the same checking profile. A criterion applies only to the output named in the criteria table. |
 
@@ -167,7 +167,8 @@ The host runs these before the verifier. It writes `build_receipt` from the resu
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `output_structure` | Manifest matches `poc-manifest:field-contract:2`. | reject |
+| `manifest_schema` | Manifest matches `poc-manifest:field-contract:2`. | reject |
+| `bundle_schema` | The bundle is a zip with no password, at most 1 MiB, and its entries and logical parts match `poc-artifact-bundle:field-contract:1`. | reject |
 | `required_files_present` | Zip entries are exactly the three required names, lowercase, no extra, no traversal. The manifest `files` paths match. | reject |
 | `bundle_hash_matches` | SHA-256 of the zip equals `archive_ref.sha256`. Each entry hash equals the manifest `artifact_ref.sha256`. | reject |
 | `dependencies_pinned` | Every `requirements.txt` line is `name==exact version` with no option, URL or range. `dependencies` equals the parsed lines. | reject |
@@ -182,7 +183,7 @@ The host runs these before the verifier. It writes `build_receipt` from the resu
 
 ## Verifier criteria
 
-The verifier runs once for each output artifact, `manifest` and `bundle`, each time with the same pinned declaration. In the `manifest` run it sees the declaration and the manifest. In the `bundle` run it sees the declaration and the text of the bundle files. It never sees the blueprint, so it cannot judge protocol fidelity. The verifier is a reduced-assurance reviewer. The generic criteria of the [checking profile](verifier.md#checking_profile-contract) apply to both runs.
+The verifier runs once for each output artifact, `manifest` and `bundle`, each time with the same pinned declaration. In the `manifest` run it sees the declaration and the manifest. In the `bundle` run it sees the declaration and the [zip projection](verifier.md#zip-output-projection) of the bundle, a text listing of every file path, hash and full text. It never sees the blueprint, so it cannot judge protocol fidelity. The verifier is a reduced-assurance reviewer. The generic criteria of the [checking profile](verifier.md#checking_profile-contract) apply to both runs.
 
 | Criterion ID | Output | Question | Blocking |
 |---|---|---|---|

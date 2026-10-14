@@ -53,7 +53,7 @@
       }
     },
     {
-      "resource_key": "workspace_poc",
+      "resource_key": "poc_workspace",
       "kind": "workspace",
       "available": true,
       "quantity": null,

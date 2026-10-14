@@ -8,7 +8,7 @@
       "mermaid_sha256": "6bd2094c397f2da3d580b61c1c372297b91dff8722dc5aeb139b4b6758eafdfc",
       "svg": "diagrams/README-1.svg",
       "png": "diagrams/README-1.png",
-      "svg_sha256": "1925aa1c885a109592001f00d9ef4ddcb1f368e4ef8b853e3de097c76a1a089d",
+      "svg_sha256": "90cc3abd1d09248df083dcfefcb8a3b30d46ea6f87f925974b925d1f848b5281",
       "png_sha256": "2873138e43b3b331737436652aa6bc18df487eb62ea23994755a3d35494e337f"
     },
     {
@@ -50,6 +50,16 @@
       "png": "diagrams/delivery-phases-1.png",
       "svg_sha256": "f9b2503e7a6695353114ae52acce96ab837002017a8eada0b3da53683683a2b0",
       "png_sha256": "ed6630b1e290bdcfd2249dd9ee36b072f4e561e183638b968ade69a5e8fc5529"
+    },
+    {
+      "source": "development-tools/benchmark-runner/README.md",
+      "title": "Components",
+      "anchor": "components",
+      "mermaid_sha256": "68c9c090c10b231999bb4a5c914cbb75189b7c1752b895659e3189552ed5a82a",
+      "svg": "diagrams/development-tools-benchmark-runner-README-1.svg",
+      "png": "diagrams/development-tools-benchmark-runner-README-1.png",
+      "svg_sha256": "e8dbe346230dbe057c93a973d70a99c09e1ed9f9dae8a60ff7c41f5a2bf2f1fb",
+      "png_sha256": "db1322b7625f14120f69c17ada6579e6a15424fe7b7419e67dd693089145b137"
     },
     {
       "source": "development-tools/sidecar/README.md",
@@ -125,11 +135,11 @@
       "source": "intent-design.md",
       "title": "Deterministic boundary",
       "anchor": "deterministic-boundary",
-      "mermaid_sha256": "af16ad9134046bf466ca6a9669997f16483641bb819cc887ddd6bff67efbbdf4",
+      "mermaid_sha256": "e56f8fdd6b436d83f1c9c104fc76503d19ff44ebdd31fe4462aeb1d0dfb00542",
       "svg": "diagrams/intent-design-1.svg",
       "png": "diagrams/intent-design-1.png",
-      "svg_sha256": "d0151c5b6511e5ef0b29c2c60506db279bc8c6f75e38cbd8dc09fd862c2cd4fa",
-      "png_sha256": "bd9e00a0a15f468594925cf6b8f7757e80f005a8ef8925c560b7f53b4dd50d76"
+      "svg_sha256": "bd56025f6d309a95750f6b237ad88abdb8202fde660a7ce1f431a965e4e63cf9",
+      "png_sha256": "425b973d2094b58e83ee5aecc5399c6643c6fda9a69c43e0af4c18b5e9360f03"
     },
     {
       "source": "intent-design.md",
@@ -145,11 +155,11 @@
       "source": "m1-design.md",
       "title": "From meaning to a governed research program",
       "anchor": "from-meaning-to-a-governed-research-program",
-      "mermaid_sha256": "26f88abc0ba80edb8b072e6e198499aa8ef339fd20f3cef849f078bddde80091",
+      "mermaid_sha256": "2b594184ede86abe0dcec980086ab5b1d7f493175d13f29df331b8792f2dc637",
       "svg": "diagrams/m1-design-1.svg",
       "png": "diagrams/m1-design-1.png",
-      "svg_sha256": "977b789f6f04138e2a07c064e1fcc852a93a533560ed8184e2faa3f8b74f2c91",
-      "png_sha256": "d181240c8be648b8513ca6d57a77d6fd40bf3c1b138b88227fc5a07f1669d391"
+      "svg_sha256": "4b54becee734223100ed1dc5ba2cda3e4bffee6519211c93308985b81ea44808",
+      "png_sha256": "69fec921e79ed6475dfc481e924ffe1e59b997ca9e7bdf01a06e43ac927e2d3a"
     },
     {
       "source": "m1-design.md",
@@ -212,14 +222,24 @@
       "png_sha256": "d5c8156df112cf2d17d2628df13d1510c538d21a622171cbc9667b5acd536cde"
     },
     {
+      "source": "reference/run-plan.md",
+      "title": "Build order",
+      "anchor": "build-order",
+      "mermaid_sha256": "530fbb81691d5b24e61cec0e0988f92073a0a37742e553e07f3f196e6ea436af",
+      "svg": "diagrams/reference-run-plan-1.svg",
+      "png": "diagrams/reference-run-plan-1.png",
+      "svg_sha256": "11f5e63371ee4a4e563e8623abb0fd9f73cdcc638a9134e215a6a75c924f73af",
+      "png_sha256": "e651148bc9c2f1a8e4b9a647b4d02525df996f77cbb10d5a3a9302a69c2ec7d5"
+    },
+    {
       "source": "research-design.md",
       "title": "Research path and ports",
       "anchor": "research-path-and-ports",
-      "mermaid_sha256": "7d93008358ea10aa57009c2ddece8343a3ae082439817bccaa18276cdebf19b6",
+      "mermaid_sha256": "880aa2df8544e9a70fa14030877396875608f010c43297271674ca77694b493a",
       "svg": "diagrams/research-design-1.svg",
       "png": "diagrams/research-design-1.png",
-      "svg_sha256": "a0fee890eb4518f37545de7ba891919890216baf29dffce213c58b0ab68ade0e",
-      "png_sha256": "275bafa415b4f226b8321c2147525c0d38c3432b44f0a32bef2a1bb046dfb54e"
+      "svg_sha256": "4bbeb73d81bc789a3fd53dd2acabaf92b75f612c1bc407332bac784f28884380",
+      "png_sha256": "05d01c6400461c5599a72bb45f2e3f652a34c3c1987beebddaf419674848dea3"
     },
     {
       "source": "research-design.md",
@@ -235,51 +255,51 @@
       "source": "research-nodes.md",
       "title": "Inside the POC task",
       "anchor": "inside-the-poc-task",
-      "mermaid_sha256": "5c525e09cbe1956cbae1f35bd37881f5c63f17ad8c2dbc44e1ac613c9a6db5e2",
+      "mermaid_sha256": "9899f358c2590bdef0f8d60529b2275f152711aeb4d03c42784454ccef1a6210",
       "svg": "diagrams/research-nodes-1.svg",
       "png": "diagrams/research-nodes-1.png",
-      "svg_sha256": "095d8f57392fe06636af7454425dd2ca2630294b44456390f61833fbf1e0cd5c",
-      "png_sha256": "c18603f858bbf17be98bebdc3e256bb7bca6228a4e25dfecedf4be1c74653917"
+      "svg_sha256": "73f7142798f685596b731b8e416bbd776dfc1bf75a3340f2dcec1202c95cd864",
+      "png_sha256": "1e8110b45e12584042497e0a0dc7c088f252e4677e5b9203a696a85b9eab54ce"
     },
     {
       "source": "research-nodes.md",
       "title": "Research nodes and subnodes",
       "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "aafcd62624478e3fe444436f0d5a755384060c314b1d7d2f89b0b657e00cd412",
+      "mermaid_sha256": "8110e99d46cb26658f648f9a81c8aa59dcfbefef6309a3e975596cc9396867ce",
       "svg": "diagrams/research-nodes-2.svg",
       "png": "diagrams/research-nodes-2.png",
-      "svg_sha256": "c7457e3fe4967ca47a009780b54365a23bf3b84acb8a47f011d52cb604081023",
-      "png_sha256": "59e82a8981a67a1b97af283cbb3817db9f254e8242512abf499cde232c98f1a2"
+      "svg_sha256": "a41fe99b4fbb6d36ad2239b8bd467fb6733470277169bb97ea50d1c75c971d80",
+      "png_sha256": "3dbb3e2dfa6ef0d790aa74a0299ce09b4e9b75acfdc5fa8d7b925d6f1ac36ec3"
     },
     {
       "source": "research-nodes.md",
       "title": "Research nodes and subnodes",
       "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "e2d90746e7145141c8aa3dfb4d372c879c6e140a73cad80bae39a8ff2ad5bcf3",
+      "mermaid_sha256": "3926ba2bc68fb74c506fde5f9c36aa37751dba3db7474cfbc07430a31d6ee64e",
       "svg": "diagrams/research-nodes-3.svg",
       "png": "diagrams/research-nodes-3.png",
-      "svg_sha256": "e2e0e2def1e6de1a507669c8abcc833f7831c8dee7642874f5e5f38811466261",
-      "png_sha256": "22bf21ae0ad870537d271643d13684e76a8e26cd0e97a0ca88c93f4c00f69995"
+      "svg_sha256": "f2fe240f91f82cb1c58cb6b0724a1a2bcd498ce40895efd377bdd55c7b1e6628",
+      "png_sha256": "cb643921f16b0f99e6ad452153bf7e3b5aafe3d0e183340af8cda73d1c992cfb"
     },
     {
       "source": "research-nodes.md",
       "title": "Research nodes and subnodes",
       "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "131ec3d4bdc0c9fba9026bf65eedb56747d7505fe26a6c5f05517d7048905b8b",
+      "mermaid_sha256": "6554a50e7f49b0c85b3c1f67f27653f7069ee040a3cf530be026b8c9d0e648d2",
       "svg": "diagrams/research-nodes-4.svg",
       "png": "diagrams/research-nodes-4.png",
-      "svg_sha256": "5e4c89f54eaa49dfa5f2e00e1c76506091b75f1e53da85e77c1ae2d799ce759d",
-      "png_sha256": "bbd2a7b03abf3c5e0779e0c1a794e8f9f00e04cc798ea0e37645df22b00f7afa"
+      "svg_sha256": "d1a081a99d89e9b2b949dbfde60709ce904332e57d759d7343da64fdc0911d86",
+      "png_sha256": "d9d6b18c12668b20a7fc95750622c94163ef712b697226114bf0193b4c0e7440"
     },
     {
       "source": "research-nodes.md",
       "title": "Research nodes and subnodes",
       "anchor": "research-nodes-and-subnodes",
-      "mermaid_sha256": "0cde286ffd20c18c8efd5ba18c31a0fe2b591579125279c857c0de4063bcce65",
+      "mermaid_sha256": "bb2cb48d8a77939e874b98b8bd8ffd72ebed2e8acb21cc9a3141091e8f7abce0",
       "svg": "diagrams/research-nodes-5.svg",
       "png": "diagrams/research-nodes-5.png",
-      "svg_sha256": "81a605a241cad191bea1cb971bfeca5a9d817a0a8fd23b93445fcb2a2e809e79",
-      "png_sha256": "1d04b37a7492332c10652e4b0848f2e96f0d2927310423c1c916c0d7a21f6021"
+      "svg_sha256": "828d03a98b96bfcbcd82504d82757a7440d6e041cb474e2dae69b733ef25b2e1",
+      "png_sha256": "1798b541d80f5e032f5709ce22d109307b0a13229d23b7dc96bfa57339eac1e2"
     },
     {
       "source": "research-nodes.md",

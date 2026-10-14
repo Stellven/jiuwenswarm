@@ -1,5 +1,11 @@
 # Intent IR and Requirements IR
 
+**Summary.**
+- The Intent CC turns the qualified request into `intent_ir`. The Requirement CC turns accepted Intent into `research_brief`.
+- Each CC owns the fidelity and preservation of its own output. It self-reviews, and the host runs deterministic checks on spans, references, link coverage and default authorization.
+- The semantic verifier reads only the CC declaration and the exact output. It never reads the request, the Intent, the defaults or any other worker input.
+- Verifier criteria for both CCs are in the tables below. Each is answerable from declaration plus output.
+
 **Reading level: AI reference.** [Intent design](../intent-design.md) explains behavior and rationale. Required core keys below match the exact schemas. All statements need attributable support; no sample is a fill-in prompt template.
 
 ## Intent IR
@@ -22,11 +28,40 @@ Producer: Intention CC. Consumers: deterministic checker, Intent verifier, then 
 
 An attributed statement has `id`, `text`, `source_spans`. Each span contains `source_ref`, `start`, `end`; offsets count Unicode code points in exact source text and exclude the end. IDs are unique within the IR; references must be permitted and spans nonempty/in-bounds. Preserve original source bytes before any extraction/normalization and identify the extracted source text separately when relevant.
 
-**Deterministic checks:** schema/version, required structure, identity/source resolution, span ranges, local IDs, actual invocation completion, pinned implementation and supported effects/limits. Do not treat them as proof of faithful or useful interpretation.
+### Producer obligations (Intent CC)
 
-**Worker obligation:** Intent should cover material meaning; support its claims/paraphrases; preserve exclusions, constraints and preferences; keep entities/scope consistent; state uncertainty; and give enough purpose/result to define Requirements without inventing the user's request. Optional methods/hardware/thresholds can remain absent. Not knowing requested work is blocking. Impossible or contradictory required constraints block; uncertain scientific success is not itself unusable intent. These remain field/worker requirements, not claims about semantic verification.
+The Intent CC owns fidelity to the request and usefulness to Requirements. Before it returns output it re-reads its own IR against the request and confirms each point.
 
-An honest `needs_clarification` artifact is structurally valid, retained candidate data. Under the restricted review boundary, the semantic model cannot decide whether it is honest or whether a confident `ready` is unsupported, because it receives no original input. The host can still block on deterministic invalidity, mandatory missing records or explicit blocking uncertainty markers, but these checks do not establish request fidelity. The model does not create corrected Intent; the host routes a useful explanation to the user.
+1. Every `in_scope` item, `constraint` and `user_target` traces to a source span that supports it. A paraphrase must not add a method, effect, target or number the span does not state.
+2. Every exclusion, constraint and preference in the request appears in the IR with its span. Optional methods, hardware and thresholds may stay absent.
+3. Entities and scope agree across fields. Contradictory required constraints appear as a blocking uncertainty.
+4. `interpretation` gives enough purpose and requested result for Requirements to start without inventing the work. When it cannot, the IR lists a blocking `missing` uncertainty and sets `readiness.status` to `needs_clarification`.
+5. `readiness` agrees with `uncertainties`: `ready` only when no uncertainty is blocking.
+
+### Deterministic host checks (Intent)
+
+The host runs these before the verifier. They read the request and runtime records. The check plan is in [check_plan](examples/check_plan.json).
+
+| Check ID | Rule | Outcome on failure |
+|---|---|---|
+| `intent_schema` | Schema and version match. Required fields are present. Local IDs are unique. | Halt. No verifier call. |
+| `source_spans` | Every span names a permitted source, is nonempty and lies inside the exact source text (span bounds). | Halt. |
+| `exact_identity` | `request_ref` and every `context_refs` entry resolve to the exact qualified bytes (reference resolution). The invocation completed with the pinned implementation. | Halt. |
+
+### Verifier criteria (Intent)
+
+The verifier sees the Intent CC declaration and the exact `intent_ir` output. Nothing else.
+
+| Criterion ID | Question | Blocking |
+|---|---|---|
+| `declared_output_conformance` | Does the output have the artifact type, fields and shape the declaration states? | yes |
+| `internal_consistency` | Do the fields of the output agree with each other, and do all local ID references resolve inside the output? | yes |
+| `limitations_consistency` | Are the listed uncertainties and limitations coherent with the rest of the output? | yes |
+| `uncertainty_consistency` | Does `readiness.status` agree with the listed uncertainties (`ready` only when none is blocking)? | yes |
+
+An honest `needs_clarification` IR is valid candidate data. The gate halts on it because readiness is `needs_clarification` or an uncertainty is blocking. The verifier does not create corrected Intent. The host shows the user the clarification text.
+
+Examples: [valid](examples/intent_ir.json) · halted by the readiness rule: [intent_topic_only](examples/intent_topic_only.json) · blocking contradiction: [intent_contradictory](examples/intent_contradictory.json) · assessments: [intent_assessment](examples/intent_assessment.json), [topic_assessment](examples/topic_assessment.json) · declaration: [capsule_declaration](examples/capsule_declaration.json)
 
 ## Research Brief / Requirements IR
 
@@ -58,8 +93,41 @@ Metric comparison records use `comparator`, `reference` (`baseline` or `constant
 
 Protected default policy supplies conservative missing parameters, currently `single_gpu` for omitted hardware. Each actual default needs policy evidence, a `system_default` field and an assumption pointing at an existing field. It does not prove hardware availability. Repetition/protocol defaults belong to Hypothesis unless explicitly requested. Defaults cannot supply unknown purpose or resolve conflicting mandatory instructions silently.
 
-**Producer → deterministic checks → restricted semantic review → host gate:** the semantic model receives only the subject CC declaration and exact candidate output bytes plus fixed instructions. It cannot receive or fetch the original request, accepted Intent, policy, conversation or evidence. Its review can assess declaration/output conformance only; it cannot establish preservation, coherence against hidden inputs, default authorization, deliverable/evidence completeness or downstream usability. Host-side deterministic binding checks known identities/fields/default references and applies mandatory profiles; these do not prove semantic fidelity. This is an authorized reduced-assurance departure from PRD §4.2. Blocking unresolved items still prevent acceptance; never report unavailable semantic properties as verified.
+### Producer obligations (Requirement CC)
 
-## Unsupported confident interpretation
+The Requirement CC owns preservation of accepted Intent. Before it returns output it re-reads the Intent against its Brief and confirms each point.
 
-For the worked latency request, an IR claiming that the user requires a new neural retriever, cloud training, or a 50% speedup illustrates an unsupported method/effect/target under the source example. A source span pointing at “reduce latency” does not substantiate those additions. This is a contract example for worker behavior and human/native challenge cases; the restricted runtime semantic model cannot make that comparison without the request. Do not imply that the runtime verifier detects this example from declaration/output alone.
+1. Every Intent constraint, target and in-scope item appears in the Brief, or appears in `unresolved_items` with a reason.
+2. Every mandatory requirement is linked from at least one `acceptance_expectations` entry and one `evidence_obligations` entry.
+3. Every Intent target has a `target_metrics` entry. A qualitative target keeps a null comparison and never gains an invented number.
+4. Every default it applies has a `system_default` origin and an assumption with an `authority_ref` and affected-field pointers that exist. A default never supplies an unknown purpose or settles a conflict silently.
+5. Derived requirements follow accepted meaning. They add no objective and choose no scientific solution.
+
+### Deterministic host checks (Requirement)
+
+The host runs these before the verifier. They read the Intent, intake and default policy. The check plan is in [requirements_check_plan](examples/requirements_check_plan.json).
+
+| Check ID | Rule | Outcome on failure |
+|---|---|---|
+| `brief_schema` | Schema and version match. Local IDs are unique. Typed limits are valid. | Halt. No verifier call. |
+| `source_identity` | `intake_ref`, `intent_ref`, every source reference and every `authority_ref` resolve to exact accepted bytes (reference resolution). Each applied default is authorized by the protected policy and points to an existing field (default authorization). | Halt. |
+| `requirement_coverage` | Requirement IDs in acceptance, evidence and metric entries resolve. Every mandatory requirement is linked (requirement-link coverage). Every Intent constraint, target and in-scope item is present in the Brief or in `unresolved_items`. | Halt. |
+
+### Verifier criteria (Brief)
+
+The verifier sees the Requirement CC declaration and the exact `research_brief` output. Nothing else. It does not see the Intent or the defaults.
+
+| Criterion ID | Question | Blocking |
+|---|---|---|
+| `declared_output_conformance` | Does the output have the artifact type, fields and shape the declaration states? | yes |
+| `internal_consistency` | Do requirement, constraint, metric, acceptance and evidence entries agree, and do their ID references resolve inside the output? | yes |
+| `limitations_consistency` | Are `unresolved_items` and limitations coherent with the rest of the output? | yes |
+| `requirement_link_completeness` | Is every mandatory requirement linked from an acceptance expectation and an evidence obligation in the output? | yes |
+
+Blocking unresolved items prevent acceptance.
+
+Examples: [valid](examples/research_brief.json) · defaults variant: [research_brief_defaults](examples/research_brief_defaults.json) · assessment: [requirements_assessment](examples/requirements_assessment.json) · declaration: [requirements_capsule](examples/requirements_capsule.json)
+
+## Challenge case for the Intent CC
+
+For the worked latency request, an IR that claims the user requires a new neural retriever, cloud training or a 50% speedup adds a method, effect and target the request does not state. A span pointing at "reduce latency" does not support those additions. The Intent CC prevents this through its own self-review. Independent benchmark cases measure how often it succeeds.

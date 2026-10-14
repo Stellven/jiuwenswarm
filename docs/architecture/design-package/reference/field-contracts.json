@@ -728,7 +728,7 @@
         "run_input_key": {
           "type": "nullable-string",
           "required": true,
-          "meaning": "Which run input or host record to bind. The Planner names the key and never writes a ref. Constraint: non-null exactly when source_kind is accepted_ref or host_record. For accepted_ref the value is brief, search_scope or a resource_key of the resource inventory. For host_record the value is screening_rubric, build_receipt or gate_decision_index."
+          "meaning": "Which run input or host record to bind. The Planner names the key and never writes a ref. Constraint: non-null exactly when source_kind is accepted_ref or host_record. For accepted_ref the value is brief, search_scope or a resource_key of the resource inventory. For host_record the value is screening_rubric, build_receipt, gate_decision_index, screening_result, execution_receipt, provisioning_receipt, environment_lock or run_configuration."
         },
         "accepted_ref": {
           "type": "nullable-Ref",
@@ -760,35 +760,6 @@
           "type": "boolean",
           "required": true,
           "meaning": "Whether the node must produce this output. Constraint: must be true when the library port is required."
-        }
-      }
-    },
-    "PlannedSubnode": {
-      "fields": {
-        "subnode_id": {
-          "type": "string",
-          "required": true,
-          "meaning": "Unique identity within node"
-        },
-        "role": {
-          "type": "string",
-          "required": true,
-          "meaning": "work or verifier"
-        },
-        "capsule_ref": {
-          "type": "Ref",
-          "required": true,
-          "meaning": "Exactly one admitted CC declaration"
-        },
-        "template_ref": {
-          "type": "Ref",
-          "required": true,
-          "meaning": "Frozen internal port/check template"
-        },
-        "depends_on": {
-          "type": "string[]",
-          "required": true,
-          "meaning": "Earlier internal subnode IDs; protected gates mediate work dependencies"
         }
       }
     },
@@ -2495,7 +2466,7 @@
         "gate_decision_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "The gate decision with action advance that accepted that node attempt"
+          "meaning": "The node-scope gate decision (scope_kind node) with action advance that accepted that node attempt"
         }
       }
     },
@@ -5767,7 +5738,7 @@
         "acceptance_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "Committed acceptance of the bound plan. Dispatch cannot start without it. Constraint: a gate decision with action advance."
+          "meaning": "Committed acceptance of the bound plan. Dispatch cannot start without it. Constraint: when mode is planned, a gate decision with action advance. When mode is static, a deterministic check result whose checks all PASS on the template (no verifier runs)."
         },
         "nodes": {
           "type": "RunPlanNode[]",
@@ -5797,9 +5768,9 @@
       "failure": "A missing acceptance record, an unresolved accepted ref or a missing pin blocks dispatch. Nothing in a frozen run plan may change."
     },
     {
-      "id": "dispatch-record:field-contract:1",
+      "id": "dispatch-record:field-contract:2",
       "name": "dispatch-record",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "topic": "planning-and-node-contracts",
       "producer": "scheduler",
       "consumers": [
@@ -5812,7 +5783,7 @@
         "schema_version": {
           "type": "string",
           "required": true,
-          "meaning": "Format version 1.0.0. Reject any other value. Constraint: exactly 1.0.0."
+          "meaning": "Format version 2.0.0. Reject any other value. Constraint: exactly 2.0.0."
         },
         "id": {
           "type": "string",
@@ -5820,21 +5791,47 @@
           "meaning": "Immutable ID of this record. Constraint: pattern ^[a-z][a-z0-9_.-]{0,63}$.",
           "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
         },
-        "run_plan_ref": {
-          "type": "Ref",
+        "run_id": {
+          "type": "string",
           "required": true,
-          "meaning": "Plan the dispatch belongs to. Constraint: the frozen run plan of this run."
+          "meaning": "Run this record belongs to. The host assigns it at intake and every run-state record (contracts, check plans, gate decisions, dispatch records) carries it. Constraint: pattern ^[a-z0-9][a-z0-9_.:-]{0,63}$.",
+          "pattern": "^[a-z0-9][a-z0-9_.:-]{0,63}$"
+        },
+        "attempt_id": {
+          "type": "string",
+          "required": true,
+          "meaning": "Identity of this node attempt. The scheduler builds it as <node_id>-a<attempt>, for example evaluation-a1. The node contract, check plans and gate decisions of the attempt carry it. Constraint: pattern ^[a-z0-9][a-z0-9_.:-]{0,63}$ and equal to <node_id>-a<attempt>.",
+          "pattern": "^[a-z0-9][a-z0-9_.:-]{0,63}$"
+        },
+        "phase": {
+          "type": "string",
+          "required": true,
+          "meaning": "Whether the node ran before or after the run plan was frozen. pre_plan: the Intention Compiler node and the Planner node. planned: every node of the run plan. Constraint: enum.",
+          "enum": [
+            "pre_plan",
+            "planned"
+          ]
+        },
+        "run_plan_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "Plan the dispatch belongs to. Constraint: the frozen run plan of this run. Null only when phase is pre_plan."
         },
         "node_id": {
           "type": "string",
           "required": true,
-          "meaning": "Node dispatched. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$; a node of the run plan.",
+          "meaning": "Node dispatched. Constraint: pattern ^[a-z][a-z0-9_]{0,31}$. When phase is planned, a node of the run plan. When phase is pre_plan, intention_compiler or planner.",
           "pattern": "^[a-z][a-z0-9_]{0,31}$"
         },
         "cc": {
-          "type": "CcPin",
+          "type": "nullable-CcPin",
           "required": true,
-          "meaning": "CC version that ran. Constraint: equal to the run plan node cc."
+          "meaning": "CC version that ran. Constraint: equal to the run plan node cc, or the Planner library entry pin for node planner. Null only for node intention_compiler, which has two work CCs pinned in its node contract."
+        },
+        "node_contract_ref": {
+          "type": "Ref",
+          "required": true,
+          "meaning": "The Node Execution Contract (node scope) that the scheduler built for this attempt from the run plan node. Constraint: its run_id, node_id and attempt_id equal this record."
         },
         "bound_input_refs": {
           "type": "BoundInput[]",
@@ -5843,19 +5840,19 @@
           "max_items": 16
         },
         "check_pins": {
-          "type": "CheckPins",
+          "type": "nullable-CheckPins",
           "required": true,
-          "meaning": "Check bundle and profile that applied. Constraint: equal to the run plan node check_pins."
+          "meaning": "Check bundle and profile that applied. Constraint: equal to the run plan node check_pins. Null exactly when cc is null."
         },
         "check_plan_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "Bound check plan built for this attempt. Constraint: a bound check plan."
+          "meaning": "Bound check plan of the node scope, built for this attempt. Constraint: a bound check plan whose node_contract_ref equals node_contract_ref."
         },
         "attempt": {
           "type": "integer",
           "required": true,
-          "meaning": "Attempt number. A new attempt is a new record. Constraint: 1 to the node max_attempts.",
+          "meaning": "Attempt number. A new attempt is a new record. Constraint: 1 to the node max_attempts (1 in M1).",
           "min": 1,
           "max": 3
         },
@@ -5873,7 +5870,7 @@
         "outcome": {
           "type": "string",
           "required": true,
-          "meaning": "How the attempt ended. `accepted`: the gate accepted the outputs. `rejected`: checks or verifier did not pass. `halted`: protected stop. `failed`: execution or infrastructure error. `budget_exhausted`: a limit was hit. `interrupted`: the process ended before a decision. Constraint: enum.",
+          "meaning": "How the attempt ended. `accepted`: the gate accepted the outputs. `rejected`: a blocking check or criterion failed, so the node halted and its candidate and evidence are kept. `halted`: protected stop. `failed`: execution or infrastructure error. `budget_exhausted`: a limit was hit. `interrupted`: the process ended before a decision. Constraint: enum.",
           "enum": [
             "accepted",
             "rejected",
@@ -5886,7 +5883,13 @@
         "gate_decision_ref": {
           "type": "nullable-Ref",
           "required": true,
-          "meaning": "Gate decision for this attempt. Constraint: null only for outcomes failed, budget_exhausted and interrupted."
+          "meaning": "The node-scope gate decision for this attempt. Constraint: scope_kind node. Null only for outcomes failed, budget_exhausted and interrupted."
+        },
+        "output_gate_decision_refs": {
+          "type": "Ref[]",
+          "required": true,
+          "meaning": "The subnode-scope gate decisions that the node-scope decision aggregates, one for each output reviewed (its internal_decision_refs). Constraint: empty exactly when gate_decision_ref is null. At most 16.",
+          "max_items": 16
         },
         "output_refs": {
           "type": "Ref[]",
@@ -6556,7 +6559,7 @@
         "entries": {
           "type": "GateDecisionEntry[]",
           "required": true,
-          "meaning": "One entry per node whose gate advanced before Delivery started, in run plan topological order. Node IDs unique",
+          "meaning": "One entry per node whose node-scope gate advanced before Delivery started, in run plan topological order. Node IDs unique, so the index holds one decision per node",
           "min_items": 1,
           "max_items": 12
         }
@@ -6600,7 +6603,7 @@
         "trigger": {
           "type": "string",
           "required": true,
-          "meaning": "What made the plan infeasible: the binder or a proposal check rejected the proposal or template, the plan gate did not advance, or the Planner reported that no listed CC can cover the Brief",
+          "meaning": "What made the plan infeasible. proposal_rejected: a binder or proposal check rejected the proposal or template. plan_rejected: in planned mode the plan gate did not advance. planner_reported_infeasible: the Planner replied INFEASIBLE. Constraint: enum.",
           "enum": [
             "proposal_rejected",
             "plan_rejected",
@@ -6620,12 +6623,12 @@
         "check_result_ref": {
           "type": "nullable-Ref",
           "required": true,
-          "meaning": "The deterministic check result that carries the failing check. Null when no check ran"
+          "meaning": "The deterministic check result that carries the failing check. Constraint: null only when trigger is planner_reported_infeasible, because no check ran. Never null when a check ran."
         },
         "gate_decision_ref": {
           "type": "nullable-Ref",
           "required": true,
-          "meaning": "The plan gate decision, when a gate decided. Null otherwise"
+          "meaning": "The plan gate decision. Constraint: non-null only when trigger is plan_rejected, which happens in planned mode only. Null otherwise."
         },
         "reasons": {
           "type": "PlanReason[]",

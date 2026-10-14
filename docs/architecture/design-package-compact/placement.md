@@ -8,7 +8,7 @@
 
 ## Data foundation
 
-**Required now.** The run-state module owns durable lifecycle, frozen graph, attempts, decisions, and accepted artifact references. The scheduler and control plane use that authority. Native queues, journals, caches, and UI traces are projections or dispatch aids.
+**Required now.** The run-state module owns durable lifecycle, frozen `run_plan`, attempts, decisions, and accepted artifact references. The scheduler and control plane use that authority. Native queues, journals, caches, and UI traces are projections or dispatch aids.
 
 ## Offline RSI
 

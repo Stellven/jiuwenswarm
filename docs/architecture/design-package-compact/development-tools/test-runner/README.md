@@ -84,7 +84,7 @@ Docker daemon control carries broad host authority, so it stays with the externa
 
 The runner's role is to accept a bounded validation case, interact through supported seams, assess observable results against declared expectations, and export evidence with a process outcome that automation can consume. CI can invoke this role without keeping a permanent runner service alive.
 
-Cases can expand as product capabilities grow. Platform benchmarking can later add repetitions and measurements under declared campaigns. Scientific benchmarking remains inside the research workflow. None of these extensions grants additional infrastructure authority.
+Cases can expand as product capabilities grow. Platform benchmarking is a separate role defined in the [benchmark runner design](../benchmark-runner/README.md): frozen campaigns, repeats, host hardware inventory, a protected label store and referee scoring. This validation runner does not use the evaluation-profile entry points and never holds labels. Scientific benchmarking remains inside the research workflow. None of these extensions grants additional infrastructure authority.
 
 Deployment control, environment repair, general command execution, production monitoring, workflow execution and authoritative acceptance remain outside its role. The runner can report application verdicts; it cannot replace verification, bypass gates or insert accepted results. Surrounding CI/CD owns release and deployment decisions.
 

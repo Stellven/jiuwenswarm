@@ -4,7 +4,7 @@
   "route_attempt_id": "route-attempt:routing-example",
   "route_decision_ref": {
     "id": "route_decision.json",
-    "sha256": "10672deda98a49b3db258e71f33a5ed4a3bc3eecef7ce01b32bc796c36ad43d6"
+    "sha256": "2def6c4f29328ae1edc21d220148f6962ad60c676f5f8761c0f45437cad7fdcc"
   },
   "execution_id": "execution:routing-example",
   "invocation_id": "invocation:routing-teaching-example",

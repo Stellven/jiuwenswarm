@@ -11,7 +11,7 @@
 
 ## 1. Purpose and place in the run
 
-The CC sits after the Evaluator Gate admits the benchmark payload and before Delivery. It has one output, so the verifier runs once. It is a fixed template node. The Planner may not select or skip it. It reads, interprets and records. It never reruns code, patches code or changes any rule.
+The CC sits after the Evaluator Gate admits the benchmark payload and before Delivery. It has one output, so the verifier runs once. It reads, interprets and records. It never reruns code, patches code or changes any rule.
 
 ## 2. Declaration
 
@@ -20,7 +20,7 @@ Example: [scientific_evaluation_capsule.json](../examples/scientific_evaluation_
 | Item | Value |
 |---|---|
 | Name and kind | `research.evaluation`, `agent` |
-| Inputs | `hypothesis_blueprint`, `benchmark_payload`, `research_brief` |
+| Inputs | `hypothesis_blueprint`, `benchmark_payload`, `brief` |
 | Output | `evaluation_verdict` |
 | Effect class | `read_only`. The one effect is a model call through the audited bridge. |
 | Network | none |
@@ -33,7 +33,7 @@ Example: [scientific_evaluation_capsule.json](../examples/scientific_evaluation_
 |---|---|---|---|---|
 | `hypothesis_blueprint` | `hypothesis_blueprint` (`hypothesis-blueprint:field-contract:2`) | Hypothesis | yes | Source of every rule. The CC may apply these rules and may not change or add to them. |
 | `benchmark_payload` | `benchmark_payload` (`benchmark-payload:field-contract:2`) | Research Benchmark | yes | The only source of measured values. |
-| `research_brief` | `research_brief` | Requirement | yes | Context for residual risks and follow-ups, such as the stated constraints. It cannot change a rule or a classification. |
+| `brief` | `research_brief` | Requirement | yes | Context for residual risks and follow-ups, such as the stated constraints. It cannot change a rule or a classification. |
 
 The blueprint rules used here are `outcome_rules[].success`, `falsification`, `middle` and `conditional_rule` (`hypothesis-blueprint:field-contract:2`). The metric `aggregation` and `unit` come from `metrics`. A rule holds when `treatment.value <comparator> threshold`. The threshold is `factor * baseline.value + offset` when `reference` is `baseline`. It is `offset` when `reference` is a constant and `factor` is 0. The comparator is one of `lt`, `le`, `eq`, `ge`, `gt`. `eq` uses relative tolerance 1e-9. A conditional result is possible only where `middle` is `CONDITIONALLY_ACCEPTABLE` and `conditional_rule` is set. The blueprint is frozen before results, so this is the only way a conditional result can exist.
 
@@ -120,7 +120,7 @@ Self-review before emitting: recompute each finding by hand from the two input v
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `verdict_schema` | Output matches the field table, enums, ranges and string lengths above. | reject |
+| `evaluation_verdict_schema` | Output matches the field table, enums, ranges and string lengths above. | reject |
 | `refs_match_inputs` | `brief_ref`, `blueprint_ref` and `benchmark_ref` equal the input Refs. The payload's `blueprint_ref` equals the blueprint. | reject |
 | `blueprint_rules_disjoint` | Input check. For every metric the success and falsification rules do not both hold on the payload values, and every `conditional_rule` region lies outside both. The Hypothesis checks already enforce this. This check is a second line of defence. | halt (blueprint defect, human triage) |
 | `rule_recomputation` | The host recomputes every finding and the overall classification from the blueprint and the payload using section 4.2. It also recomputes `threshold`, `completeness.status`, and the blocker condition. All must equal the output. | reject |
@@ -145,7 +145,7 @@ The verifier sees only the declaration and the exact verdict. Reduced assurance 
 
 ## 8. Gate rule
 
-Accept when every host check passes and no blocking criterion fails. The accepted classification goes to Delivery unchanged, whatever its value. `FAIL`, `INCONCLUSIVE` and `CONDITIONALLY_ACCEPTABLE` are valid accepted results. Reject only when the output is not a correct application of the registered rules. Halt only for a blueprint defect or an exhausted retry.
+Accept when every host check passes and no blocking criterion fails. The accepted classification goes to Delivery unchanged, whatever its value. `FAIL`, `INCONCLUSIVE` and `CONDITIONALLY_ACCEPTABLE` are valid accepted results. Reject only when the output is not a correct application of the registered rules. A rejection halts the node. Nothing retries it. Halt for human triage also for a blueprint defect.
 
 ## 9. Failure outcomes
 
@@ -153,9 +153,8 @@ Accept when every host check passes and no blocking criterion fails. The accepte
 |---|---|---|
 | Scientific `FAIL` or `INCONCLUSIVE` supported by the rules | Accepted. Delivery proceeds. | Verdict |
 | Unmeasured metric in the payload | Accepted as `INCONCLUSIVE` with blockers | Verdict |
-| `rule_recomputation` mismatch | Reject, one retry as the plan allows | Rejected output, check result |
+| `rule_recomputation` mismatch | Reject. The node halts (dispatch outcome `rejected`) and nothing retries it | Rejected output, check result |
 | Blueprint rules overlap or `middle` invalid | Halt for human triage | Inputs, check result |
-| Retry exhausted | Halt for human triage | All attempts |
 
 ## 10. Examples
 

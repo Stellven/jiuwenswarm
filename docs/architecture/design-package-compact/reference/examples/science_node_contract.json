@@ -1,9 +1,9 @@
 {
   "schema_version": "2.0.0",
-  "id": "node-contract:scientific.evaluation",
+  "id": "node-contract:evaluation",
   "run_id": "run:science",
-  "node_id": "scientific.evaluation",
-  "attempt_id": "attempt:science",
+  "node_id": "evaluation",
+  "attempt_id": "evaluation-a1",
   "revision": 1,
   "objective": "Apply registered scientific criteria",
   "requirement_ids": [
@@ -24,35 +24,35 @@
       ]
     },
     {
-      "name": "blueprint",
-      "contract_id": "hypothesis-blueprint:field-contract:1",
-      "version": "1.0.0",
+      "name": "hypothesis_blueprint",
+      "contract_id": "hypothesis-blueprint:field-contract:2",
+      "version": "2.0.0",
       "required": true,
       "artifact_refs": [
         {
           "id": "hypothesis_blueprint.json",
-          "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+          "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
         }
       ]
     },
     {
-      "name": "measurements",
-      "contract_id": "benchmark-payload:field-contract:1",
-      "version": "1.0.0",
+      "name": "benchmark_payload",
+      "contract_id": "benchmark-payload:field-contract:2",
+      "version": "2.0.0",
       "required": true,
       "artifact_refs": [
         {
           "id": "benchmark_payload.json",
-          "sha256": "45b0e5c60a463beb810d38a31cfb06d4accaaff8ff80aa931332287e3de0c7de"
+          "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
         }
       ]
     }
   ],
   "outputs": [
     {
-      "name": "verdict",
-      "contract_id": "evaluation-verdict:field-contract:1",
-      "version": "1.0.0",
+      "name": "evaluation_verdict",
+      "contract_id": "evaluation-verdict:field-contract:2",
+      "version": "2.0.0",
       "required": true
     }
   ],
@@ -63,11 +63,11 @@
     },
     {
       "id": "hypothesis_blueprint.json",
-      "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+      "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
     },
     {
       "id": "benchmark_payload.json",
-      "sha256": "45b0e5c60a463beb810d38a31cfb06d4accaaff8ff80aa931332287e3de0c7de"
+      "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
     }
   ],
   "required_outputs": [
@@ -82,7 +82,7 @@
   ],
   "guard_profile_ref": {
     "id": "science_guard_profile.json",
-    "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+    "sha256": "f52f314e6d4d67e01979ccf0bca3de45ecab2774d54a50ee5124a37f39359328"
   },
   "policy_ref": {
     "id": "default_policy.json",
@@ -94,7 +94,7 @@
   },
   "template_ref": {
     "id": "science_node_template.json",
-    "sha256": "df394a7c25cadf3a3ffb1b3985c97325741b3435a60acdc47cef6c218cad9f53"
+    "sha256": "3e6a5b2bd5c7956e54a72dfa7281344e50c5df616a19260c8c812e83b86cbd34"
   },
   "node_limits": {
     "time_s": 180,
@@ -111,11 +111,11 @@
       },
       {
         "id": "hypothesis_blueprint.json",
-        "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+        "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
       },
       {
         "id": "benchmark_payload.json",
-        "sha256": "45b0e5c60a463beb810d38a31cfb06d4accaaff8ff80aa931332287e3de0c7de"
+        "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
       }
     ],
     "write_roots": [
@@ -132,11 +132,11 @@
       "role": "work",
       "template_ref": {
         "id": "science_subnode_template.json",
-        "sha256": "579694f9c08a3a000fa82968e40736554b94e252b7b0aff5f4379fc49601c42e"
+        "sha256": "171e0deaf1d0f6fb61a1fddc551805e9fb9d2eeb5794313134ca91571f885aac"
       },
       "capsule_ref": {
-        "id": "evaluation_capsule.json",
-        "sha256": "6ca484496bcb3c0cc2666985bba015009e5d2975311aa64323e1bf6f40ba5fcd"
+        "id": "scientific_evaluation_capsule.json",
+        "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
       },
       "depends_on": [],
       "required": true
@@ -146,11 +146,11 @@
       "role": "verifier",
       "template_ref": {
         "id": "verifier_subnode_template.json",
-        "sha256": "f1d6852ce1a654656a7442733b22476d57af9ca00a877fea4432c7b9f73acf48"
+        "sha256": "271bd089e735f4e8f778d7f735cdc52c1b15b66477b6a15ac2c1da16dd5f88fa"
       },
       "capsule_ref": {
         "id": "verifier_capsule.json",
-        "sha256": "dad108536e6b23b9fc4c65e287d27a15ffd9e2ef8718d93fe4f9df3aea73e64a"
+        "sha256": "0fe08599f9ddc38bdb71feea8adfa43038fc937e26352b9dcdbb6589b6712bae"
       },
       "depends_on": [
         "evaluation"
@@ -164,7 +164,7 @@
       "subject_subnode_id": "evaluation",
       "profile_ref": {
         "id": "science_guard_profile.json",
-        "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+        "sha256": "f52f314e6d4d67e01979ccf0bca3de45ecab2774d54a50ee5124a37f39359328"
       }
     },
     {
@@ -172,7 +172,7 @@
       "subject_subnode_id": "evaluation",
       "profile_ref": {
         "id": "science_guard_profile.json",
-        "sha256": "f8dc610263962c86eb3bb5ab1875df2c1b874b7f34391b55749cc8d300a4b434"
+        "sha256": "f52f314e6d4d67e01979ccf0bca3de45ecab2774d54a50ee5124a37f39359328"
       }
     }
   ]

@@ -59,6 +59,7 @@
         "required": true,
         "description": "All scores with reasons, ranking and the selected idea",
         "check_ids": [
+          "screening_result_schema",
           "scores_cover_candidates",
           "score_range",
           "score_total_sum",
@@ -76,6 +77,7 @@
         "required": true,
         "description": "Exactly one selected idea with scores and dispositions",
         "check_ids": [
+          "opportunity_card_schema",
           "selected_in_candidates",
           "card_matches_selection",
           "card_constraints_carried",
@@ -136,9 +138,28 @@
   "guarantees": {
     "checks": [
       {
-        "id": "output_structure",
+        "id": "screening_result_schema",
         "kind": "deterministic",
-        "target": "outputs",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "opportunity_card_schema",
+        "kind": "deterministic",
+        "target": "outputs.opportunity_card",
         "runner": {
           "ref": "intent_implementation.txt",
           "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
@@ -479,7 +500,8 @@
       }
     ],
     "acceptance": [
-      "output_structure",
+      "screening_result_schema",
+      "opportunity_card_schema",
       "candidate_binding",
       "rubric_pinned",
       "scores_cover_candidates",

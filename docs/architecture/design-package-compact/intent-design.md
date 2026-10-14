@@ -20,7 +20,7 @@ flowchart TB
     Request --> Context
     Profile[Predefined independently owned obligations] --> D
     Profile --> Context
-    Context --> V[Intent verifier CC: judge submitted IR]
+    Context --> V[Intent verifier CC: check declared output conformance]
     V --> A[Typed assessment verdict and reasons]
     A --> Validate[Mechanical assessment and subject validation]
     Validate --> Gate
@@ -31,7 +31,7 @@ flowchart TB
 
 ## Intent verifier responsibility
 
-The arrows through Context in the diagram show host-side control and evidence custody; that review-context record is not sent to the semantic model. Its payload contains exactly the pinned Intent CC declaration and exact candidate IR bytes, plus fixed verifier instructions. The model receives no original request/source text, request-specific context, criteria records, observations, conversation or evidence-fetch capability. It can check declaration/output conformance and internal consistency only. Request fidelity, completeness, and usefulness to Requirements are not established. Host deterministic checks may validate span/reference identities and required fields but do not prove entailment. This is an authorized reduced-assurance departure from PRD §4.2; do not claim semantic fidelity.
+The arrows through Context in the diagram show host-side control and evidence custody; that review-context record is not sent to the semantic model. Its payload contains exactly the pinned Intent CC declaration and exact candidate IR bytes, plus fixed verifier instructions. The model receives no original request/source text, request-specific context, criteria records, observations, conversation or evidence-fetch capability. The verifier answers four questions: `declared_output_conformance`, `internal_consistency`, `limitations_consistency` and `uncertainty_consistency` ([definitions](reference/intent-and-requirements.md#verifier-criteria-intent)). Fidelity to the request and usefulness to Requirements belong to the Intent CC, which self-reviews its IR. Host checks on span bounds and reference resolution back that review ([producer obligations](reference/intent-and-requirements.md#producer-obligations-intent-cc)). A candidate saying it cannot determine the work carries `needs_clarification` and a blocking uncertainty, and the gate halts on it.
 
 ## Gate responsibility and human outcome
 
@@ -60,7 +60,7 @@ flowchart TB
 
 The Requirements diagram shows host-side data flow. Its semantic model invocation contains exactly the Requirements CC declaration and exact candidate Brief output, plus fixed instructions; it receives no Intent, original context, defaults policy or other evidence. The host retains those records for binding and deterministic checks.
 
-The Requirements verifier can check declaration/output conformance and internal consistency only. Host-side binding checks known references, default authorization and contract fields where mechanically decidable. Preservation of accepted meaning, completeness against hidden obligations and usability for planning are not semantically established. This is part of the authorized PRD §4.2 reduced-assurance departure; conditions unavailable to host checks must block rather than be represented as verified.
+The Requirements verifier answers four questions: `declared_output_conformance`, `internal_consistency`, `limitations_consistency` and `requirement_link_completeness`. The Requirement CC owns preservation of accepted Intent and self-reviews its Brief. The host backs that review with deterministic checks on reference resolution, requirement-link coverage and default authorization ([producer obligations](reference/intent-and-requirements.md#producer-obligations-requirement-cc)). Conditions that host checks cannot establish must block.
 
 ## Source and build boundaries
 

@@ -13,7 +13,7 @@
   },
   "admission_ref": {
     "id": "rsi_parent_admission.json",
-    "sha256": "56071c86aefb599914251b5aebd5ca114b5a7d69d496cc58a2a89ff599399897"
+    "sha256": "4976a0221ce190fb56db8638a9de9f8676d45f419adf8e50316dc0d297a92609"
   },
   "reason": "Illustrative restoration of prior eligible sandbox version; activation history retained",
   "effect_scope": "future sandbox selection only",

@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "plan_proposal_invalid_cycle.json",
+    "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+  },
+  "check_plan_ref": {
+    "id": "plan_outcome_check_plan.json",
+    "sha256": "81d82a698c999e370e9b40665df90c6ccebd9340da5f02dfb008688e13406b08"
+  },
+  "results": [
+    {
+      "check_id": "plan_proposal_schema",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "brief_coverage",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "library_membership",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "port_type_compatibility",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "dependency_closure",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "acyclicity",
+      "outcome": "FAIL",
+      "reason": "The predecessors graph has a cycle: node search lists node delivery as a predecessor",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "mandatory_check_bundle_present",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "effects_within_policy",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "resource_feasibility",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "budget_ceilings",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    },
+    {
+      "check_id": "suggested_checks_known",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the proposal",
+      "evidence_refs": [
+        {
+          "id": "plan_proposal_invalid_cycle.json",
+          "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
+        }
+      ]
+    }
+  ]
+}

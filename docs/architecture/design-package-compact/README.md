@@ -9,7 +9,7 @@
 - If implementation guidance conflicts with the current design, follow the design.
 - Product obligations remain binding. A change to an obligation needs an explicitly recorded, authorized decision.
 
-## Human super-important read: understand the whole system
+## Human read: the whole system
 
 Read this README → [system](m1-design.md) → [principles](principles.md). This covers the whole M1, deployment, authority, phases and next build. Fields are reference material. Choose phase or component detail based on the question.
 
@@ -21,11 +21,21 @@ Read this README → [system](m1-design.md) → [principles](principles.md). Thi
 
 ## Assigned build scope
 
-The October 30 demonstration target is the fixed Compiler and Planner, protected validation/freeze, and one bounded research journey through Delivery, using the existing fixed Codex execution route. RSI work and new Model Router integration are excluded from this date’s acceptance criteria; they are not core-path prerequisites. RSI remains independently buildable. This bounded demonstration is distinct from the confirmed PRD’s broader M1 completion gate; see [delivery phases](delivery-phases.md) and [D19](decision-review.md#decisions-and-source-amendments). Generalist, automatic capsule generation, automatic library admission and improved planning/MCTS are November continuation; composition/fusion is December work; spatiotemporal lifecycle is later work. [Core build](core-build.md) and [D19](decision-review.md#decisions-and-source-amendments) define the authorized scope amendment. Broader M1 product coverage is retained and is not a claim of full product completion.
+The October 30 target is the bounded core: the Intention Compiler, a static fixed DAG, then the Planner producing a fixed DAG, protected freeze, one research path through Delivery, and a platform benchmark run. It uses the existing fixed Codex route. RSI and new Model Router work are not part of this target and do not block it. This is narrower than full PRD M1. See [core build](core-build.md), [delivery phases](delivery-phases.md) and decisions [D19 to D26](decision-review.md#decisions-and-source-amendments).
+
+Later work: Generalist, automatic capsule generation, automatic admission and better planning or MCTS in November, composition in December, spatiotemporal lifecycle in 2027. The design keeps seams for them now.
 
 ## Build a specific component
 
-For the current bounded research core, read [Core build](core-build.md). The Compiler is its reusable preparation component. For that complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `research_brief.json`. Accepted Intent IR alone is incomplete.
+| To build | Start at |
+|---|---|
+| The core journey and its order | [Core build](core-build.md) |
+| One CC and its verifier assignment | [Capsule build references](reference/capsules/README.md) |
+| Static template, Planner proposal, frozen run plan and dispatch | [Run plan](reference/run-plan.md) |
+| The Intention Compiler node (to accepted `research_brief.json`) | [Compiler entrypoint](builds/intention-compiler/README.md) and [context](builds/intention-compiler/context.md) |
+| The platform benchmark runner (development tooling) | [Benchmark runner](development-tools/benchmark-runner/README.md) |
+
+Internal names are lowercase ([D23](decision-review.md#d23)).
 
 ## Human should read: review the affected responsibility
 
@@ -83,7 +93,7 @@ Preparation and planning use the same checking pattern. The release edge represe
 | Component | Owns | Connects to |
 |---|---|---|
 | Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs. Checking consumes outputs. |
-| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Semantic input is declaration plus exact output only (D20). Assessment content goes to the host. |
+| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Sees only the declaration and the exact output (D20, D24). Assessment goes to the host. |
 | Protected binder | Concrete contracts, typed bindings and independent check assignments | Accepted requirements, admitted pins, policy, evidence and durable state |
 | Protected gate | Checked decision and durable acceptance. No release before commit. | Exact contract, subject, evidence and assessment |
 | Protected library admission | Exact CC-version/check-bundle association, candidate eligibility and standing history | Declaration, body, bundle compatibility and independent evidence. M1 begins from an explicit bootstrap catalog with shared bundle pins; this is not capsule-specific admission evidence. New/changed versions require governed admission once implemented. Human standing controls activation; D21 M2 automatic admission may establish future-plan eligibility. |

@@ -12,25 +12,26 @@
   ],
   "contract_ref": {
     "id": "topic_subnode_contract.json",
-    "sha256": "dbae85861a9daa01baf4e57a3bffc8b46b39efa845f56b226869993d390c697a"
+    "sha256": "97eb51f0fabd6417eb92548c2bea2972cab367b8055cee1ee9ae4b9628e86eae"
   },
   "check_plan_ref": {
     "id": "topic_check_plan.json",
-    "sha256": "13649f567338fe87d0e63453c68e9ea41b250005f5d900089fe1997418f32656"
+    "sha256": "0546587c36096823ae826bda42a974f6d4e79512c4e5d5be64e62c537359739c"
   },
   "deterministic_result_ref": {
     "id": "topic_checks.json",
-    "sha256": "28d6f1010993a5f97e2665e052397745465bb16d000bcfaf1fba2f67c2088b6f"
+    "sha256": "1ff6a1e2e3e80bb62128107877fb9d1cdb660fa8185afb839f556aabe25d96bf"
   },
   "criteria": [
-    "fidelity",
-    "consistency",
-    "requirements_usability"
+    "declared_output_conformance",
+    "internal_consistency",
+    "limitations_consistency",
+    "uncertainty_consistency"
   ],
   "observations": [
     {
       "id": "topic_observation.json",
-      "sha256": "904ef92096235478e8b872cc468ff4b1f5b0bbffb2847727380c1ab7b2d12d8f"
+      "sha256": "1c8247877f408195aceb7bf87da4c851d89d8cc01e420b1a4b25de271f836d89"
     }
   ],
   "schema_version": "2.0.0",
@@ -42,7 +43,7 @@
   ],
   "node_contract_ref": {
     "id": "topic_node_contract.json",
-    "sha256": "4035deca9df1374bdf28ef37c2fd833ea780f4ce5ec0ff93e136ba86a198388f"
+    "sha256": "733770af74db86dc1d323e67f26b805dad32c2fd9ae6e9b7301c84e30f903818"
   },
   "subnode_id": "intention"
 }

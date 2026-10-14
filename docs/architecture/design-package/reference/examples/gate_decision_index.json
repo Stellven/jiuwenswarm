@@ -3,14 +3,14 @@
   "id": "gate_decision_index",
   "run_plan_ref": {
     "id": "run_plan.json",
-    "sha256": "4b9fc92a8ace92a86dafbfa2f5fb22bcd2fdcd3ce7b02058b1ba109661f95776"
+    "sha256": "a9f2e14b473ac88b5aa1d6e6bc72e3b0886ef43e5a3234113d92ff1e3a5fe496"
   },
   "entries": [
     {
       "node_id": "evaluation",
       "gate_decision_ref": {
-        "id": "gate_science_pass.json",
-        "sha256": "d37fa48ee36da0fbf9fd3a50c4502c3197feec294ff550107c3779e43b246c4e"
+        "id": "gate_science_node_pass.json",
+        "sha256": "3a15e8af3f25ecd98d49bfa5a5dbff1fc470bd07cea07422ba0432d310029d65"
       }
     }
   ]

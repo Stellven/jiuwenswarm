@@ -33,9 +33,9 @@
       "blocking": true
     },
     {
-      "check_id": "scored_ideas_in_candidate_set",
+      "check_id": "candidate_binding",
       "target_port": "screening_result",
-      "rule_summary": "Every scored idea_id appears in the accepted candidate_set input",
+      "rule_summary": "candidate_ref and brief_ref in both outputs equal the accepted inputs",
       "runner_ref": {
         "id": "intent_implementation.txt",
         "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
@@ -47,17 +47,180 @@
       "blocking": true
     },
     {
-      "check_id": "model_call_count_within_budget",
+      "check_id": "rubric_pinned",
       "target_port": "screening_result",
-      "rule_summary": "Recorded model calls do not exceed the declared per-call budget",
+      "rule_summary": "rubric_ref equals the rubric pinned in the CC declaration",
       "runner_ref": {
         "id": "intent_implementation.txt",
         "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
       },
       "reads": [
+        "output",
         "runtime_records"
       ],
-      "blocking": false
+      "blocking": true
+    },
+    {
+      "check_id": "scores_cover_candidates",
+      "target_port": "screening_result",
+      "rule_summary": "One scores row for each candidate idea, none missing, duplicated or extra",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output",
+        "inputs"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "score_range",
+      "target_port": "screening_result",
+      "rule_summary": "Each dimension score is an integer from 1 to 5",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "score_total_sum",
+      "target_port": "screening_result",
+      "rule_summary": "Each total equals the sum of its dimension scores and matches the ranking total",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "score_citations_in_idea",
+      "target_port": "screening_result",
+      "rule_summary": "Each score row cites only citations that its idea cites",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output",
+        "inputs"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "dependency_filter",
+      "target_port": "screening_result",
+      "rule_summary": "Every rubric term found in an idea is in dependency_flags and eligible is false exactly when flags exist",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output",
+        "inputs"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "disposition_consistency",
+      "target_port": "screening_result",
+      "rule_summary": "Exactly one selected idea, rejected matches eligible false, ranking rows are the selected and eligible ideas",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "ranking_deterministic",
+      "target_port": "screening_result",
+      "rule_summary": "Ranking order equals total descending then idea_id ascending",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "selected_is_top1",
+      "target_port": "screening_result",
+      "rule_summary": "selected_idea_id equals the first ranking row",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "selected_in_candidates",
+      "target_port": "opportunity_card",
+      "rule_summary": "selected_idea_id and the card idea_id are ideas in the accepted candidate_set",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output",
+        "inputs"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "card_matches_selection",
+      "target_port": "opportunity_card",
+      "rule_summary": "Card values equal the selected idea values and screening_ref is the produced result",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output",
+        "inputs"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "card_constraints_carried",
+      "target_port": "opportunity_card",
+      "rule_summary": "Card constraints contain each Brief constraint and mandatory requirement text verbatim",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output",
+        "inputs"
+      ],
+      "blocking": true
+    },
+    {
+      "check_id": "card_dispositions_complete",
+      "target_port": "opportunity_card",
+      "rule_summary": "other_dispositions covers every non-selected idea once and equals the screening dispositions",
+      "runner_ref": {
+        "id": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "reads": [
+        "output"
+      ],
+      "blocking": true
     }
   ],
   "owner_role": "verifier_owner"

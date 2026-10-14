@@ -3,7 +3,7 @@
   "id": "invocation:intent",
   "contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "025c01aadd8238d8f1bacc17d74cce6fc8fd72898e261038ec523489052ea487"
+    "sha256": "c4a3a8f025d5fbca56c61d6fd5020e68e39cc6864022ef136e141884b2385886"
   },
   "binding_id": "binding:intent.compiler",
   "input_refs": [
@@ -45,7 +45,7 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
   },
   "subnode_id": "intention"
 }

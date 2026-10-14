@@ -11,7 +11,7 @@
 
 ## 1. Purpose and place in the run
 
-The CC sits after Builder and before Scientific Evaluation in the static template. It is a fixed template node. The Planner may not select, skip or reorder it. The protected provisioner and executor do the effects. The CC assembles the measurements from what they record.
+The CC sits after Builder and before Scientific Evaluation in the static template. The protected provisioner and executor do the effects. The CC assembles the measurements from what they record.
 
 ## 2. Declaration
 
@@ -24,7 +24,7 @@ Example: [research_benchmark_capsule.json](../examples/research_benchmark_capsul
 | Outputs | `benchmark_payload`, `execution_receipt`, `provisioning_receipt` |
 | Effect class | `compensable`. All writes stay in the run workspace `/workspace/poc/`, which the run can remove. |
 | Network | Allowlist egress to the approved package index during provisioning only. No network during measured runs. |
-| Resources | Write `workspace_poc`, read `baseline_resource`, exclusive `gpu_device` (single GPU in M1). |
+| Resources | Write `poc_workspace`, read `baseline_resource`, exclusive `gpu_device` (single GPU in M1). |
 | Budget | 3600 s wall, 1 invocation, hard. |
 | Pinned checks | The check bundle in section 6 and the criteria in section 7, assigned by the protected binder. |
 
@@ -185,7 +185,9 @@ The host runs these before the verifier. They read inputs and runtime records.
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `payload_schema` | All three outputs match their field tables, enums and ranges above. | reject |
+| `benchmark_payload_schema` | The `benchmark_payload` matches its field table, enums and ranges above. | reject |
+| `execution_receipt_schema` | The `execution_receipt` matches its field table, enums and ranges above. | reject |
+| `provisioning_receipt_schema` | The `provisioning_receipt` matches its field table, enums and ranges above. | reject |
 | `build_receipt_ready` | Input check. The `build_receipt` input has `readiness` `READY`, its `manifest_ref` and `archive_ref` equal the manifest and bundle inputs, and `trial_executed` and `packages_installed` are false. A failed check halts the node before provisioning. | halt |
 | `refs_resolve` | Every Ref resolves to stored bytes with the stated sha256. | reject |
 | `protocol_matches_blueprint` | `blueprint_ref`, `repeat_count`, `seed`, `seed_policy`, per-run seeds, `resource_refs`, and each metric's id, unit and aggregation equal the frozen blueprint. | reject |
@@ -225,7 +227,7 @@ Accept when every host check passes and no blocking criterion fails. Reject for 
 | Baseline run exits non-zero or times out | Halt, no payload | Receipts, logs |
 | Treatment run fails or times out | Payload emitted with `unmeasured_reason` `run_failed` or `timeout` on the treatment side | All receipts, payload |
 | A metric not emitted | Payload emitted with `metric_not_emitted` | All receipts, payload |
-| Host check fails | Reject. One retry as the plan allows. | Rejected output, check result |
+| Host check fails | Reject. The node halts (dispatch outcome `rejected`) and nothing retries it | Rejected output, check result |
 
 A payload with unmeasured sides is valid data. Scientific Evaluation classifies it `INCONCLUSIVE`.
 

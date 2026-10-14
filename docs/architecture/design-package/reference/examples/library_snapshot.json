@@ -50,7 +50,7 @@
     {
       "cc_name": "requirements.compiler",
       "cc_version": "example-1",
-      "declaration_sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1",
+      "declaration_sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6",
       "selectable_by_planner": false,
       "input_ports": [
         {
@@ -106,7 +106,7 @@
     {
       "cc_name": "research.search",
       "cc_version": "example-2",
-      "declaration_sha256": "28c2556691bc0ed66e0bac9587f089603745fd5e910b1cc9af380c192036feab",
+      "declaration_sha256": "b0187d00f33522d795eac9962226db601145a82b7685954b465d66193443f209",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -161,7 +161,7 @@
     {
       "cc_name": "research.screening",
       "cc_version": "example-2",
-      "declaration_sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d",
+      "declaration_sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -214,7 +214,7 @@
       "check_pins": {
         "check_bundle_id": "research.screening.checks",
         "check_bundle_version": "1.0.0",
-        "check_bundle_sha256": "b1b3719f42eb00299397f762ac7302c340aedbef139bcb4fc526d0e684f3f744",
+        "check_bundle_sha256": "ea123ab35eaeecf23fbcdcc6d62b0a72540a10212e10e4fb066457f48885fc9d",
         "checking_profile_id": "research.screening.profile",
         "checking_profile_version": "1.0.0",
         "checking_profile_sha256": "151036ce7c88518f7237d0d1c1bf317f23abd4b54e21bb66367be6ed01043985"
@@ -223,7 +223,7 @@
     {
       "cc_name": "research.hypothesis",
       "cc_version": "example-1",
-      "declaration_sha256": "8c5cab3416d7aee037f153f2d9eb97803a19964b44d7943457d659eac9277899",
+      "declaration_sha256": "57936b5e897f23951637a58ccb354e03c6b3a33e7bf81a852693c599f5b37841",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -279,7 +279,7 @@
     {
       "cc_name": "research.builder",
       "cc_version": "example-1",
-      "declaration_sha256": "b40dd25880ef4be4adb411e0d0612e26a117ed227daf9e6cdff17cf2f340d6ad",
+      "declaration_sha256": "297675c8a8793a00646ab2d8dd2c8a81fa85298ab585abf46185569938ecc16a",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -323,7 +323,13 @@
       ],
       "effect_class": "idempotent",
       "network_mode": "none",
-      "resource_needs": [],
+      "resource_needs": [
+        {
+          "resource_key": "poc_workspace",
+          "mode": "write",
+          "min_quantity": null
+        }
+      ],
       "max_limits": {
         "time_s": 600,
         "model_calls": 1,
@@ -341,7 +347,7 @@
     {
       "cc_name": "research.benchmark",
       "cc_version": "example-1",
-      "declaration_sha256": "b38b3c1e8259a2f27b43afba49723b2e1ce3363a66da24371e10e4eac8bd22e1",
+      "declaration_sha256": "85d9b870961ae694fe489cbbf9087649ea936d598f0d398c226570efccf21f45",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -411,7 +417,7 @@
       "network_mode": "allowlist",
       "resource_needs": [
         {
-          "resource_key": "workspace_poc",
+          "resource_key": "poc_workspace",
           "mode": "write",
           "min_quantity": null
         },
@@ -443,7 +449,7 @@
     {
       "cc_name": "research.evaluation",
       "cc_version": "example-1",
-      "declaration_sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1",
+      "declaration_sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -459,7 +465,7 @@
           "required": true
         },
         {
-          "name": "research_brief",
+          "name": "brief",
           "artifact_type": "research_brief",
           "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
           "required": true
@@ -493,7 +499,7 @@
     {
       "cc_name": "research.delivery",
       "cc_version": "example-1",
-      "declaration_sha256": "cdfe008f9bba380d6684528cd3d6498fe8509d95d9dcf9a062a45c69be1ae3d9",
+      "declaration_sha256": "428be52d7b5b276cbbb4bc77f5326d7db667703f2e23ef04286a260b0ad74cb7",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -543,6 +549,36 @@
           "artifact_type": "gate_decision_index",
           "schema_ref": "gate-decision-index:field-contract:1",
           "required": true
+        },
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "schema_ref": "screening-result:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "schema_ref": "execution-receipt:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "schema_ref": "provisioning-receipt:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "schema_ref": "environment-lock:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "run_configuration",
+          "artifact_type": "run_configuration",
+          "schema_ref": "opaque-bytes",
+          "required": true
         }
       ],
       "output_ports": [
@@ -561,13 +597,7 @@
       ],
       "effect_class": "read_only",
       "network_mode": "none",
-      "resource_needs": [
-        {
-          "resource_key": "run_artifact_store",
-          "mode": "read",
-          "min_quantity": null
-        }
-      ],
+      "resource_needs": [],
       "max_limits": {
         "time_s": 120,
         "model_calls": 1,
@@ -629,7 +659,7 @@
     {
       "cc_name": "research.planner",
       "cc_version": "example-2",
-      "declaration_sha256": "cab01557c8578d2ee3128ceaf0c8dd9815381f9de65f26d39433f902988ecc47",
+      "declaration_sha256": "48d000dc33a5c6005b7124f051ad31198ed88a10736295d2867546e98e42b6ee",
       "selectable_by_planner": false,
       "input_ports": [
         {

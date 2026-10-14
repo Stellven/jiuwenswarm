@@ -105,6 +105,19 @@
       "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
+      "path": "science_node_check_plan.json",
+      "schema_id": null,
+      "field_contract_id": "bound-check-plan:field-contract:2"
+    },
+    {
+      "path": "science_node_checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "gate_science_node_pass.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
+    },
+    {
       "path": "requirements_check_plan.json",
       "schema_id": null,
       "field_contract_id": "bound-check-plan:field-contract:2"
@@ -613,9 +626,35 @@
       "field_contract_id": "run-plan:field-contract:1"
     },
     {
+      "path": "static_plan_profile.json",
+      "schema_id": null
+    },
+    {
+      "path": "static_plan_check_plan.json",
+      "schema_id": null,
+      "field_contract_id": "bound-check-plan:field-contract:2"
+    },
+    {
+      "path": "static_plan_checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "planner_gate_profile.json",
+      "schema_id": null
+    },
+    {
+      "path": "plan_outcome_check_plan.json",
+      "schema_id": null,
+      "field_contract_id": "bound-check-plan:field-contract:2"
+    },
+    {
+      "path": "plan_outcome_checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
       "path": "dispatch_record.json",
       "schema_id": null,
-      "field_contract_id": "dispatch-record:field-contract:1"
+      "field_contract_id": "dispatch-record:field-contract:2"
     },
     {
       "path": "planner_capsule.json",

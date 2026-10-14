@@ -2,10 +2,19 @@
   "id": "review:science",
   "subject_ref": {
     "id": "evaluation_verdict.json",
-    "sha256": "17c59b22f073dca32a51d4148be6973de4d1a08030a1d38e40d413c33c651349"
+    "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
   },
   "criteria": [
-    "registered_rule_applied"
+    "declared_output_conformance",
+    "internal_consistency",
+    "limitations_consistency",
+    "classification_consistent_with_findings",
+    "finding_names_metric",
+    "finding_consistent_with_values",
+    "rationale_states_values_and_rule",
+    "blockers_match_findings",
+    "followups_are_recommendations",
+    "no_unregistered_criteria"
   ],
   "input_refs": [
     {
@@ -14,29 +23,29 @@
     },
     {
       "id": "hypothesis_blueprint.json",
-      "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+      "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
     },
     {
       "id": "benchmark_payload.json",
-      "sha256": "45b0e5c60a463beb810d38a31cfb06d4accaaff8ff80aa931332287e3de0c7de"
+      "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
     }
   ],
   "contract_ref": {
     "id": "science_subnode_contract.json",
-    "sha256": "32498a921afdfc4970ff7cdc03f24062563c627a27b7728ae7e80b3b4534918e"
+    "sha256": "e3d039474cb884abdcf27a0dd7f22c37c88612b88b01e78fc3ad04c6f591ab91"
   },
   "check_plan_ref": {
     "id": "science_check_plan.json",
-    "sha256": "41a574b92ffc68e6f7c70d0242f5324e56bc662762e7c1cf032afdc9de9562be"
+    "sha256": "50a444d46da023113a56b24df5054112e8616c6501b585af7b532d48d1aefaf5"
   },
   "deterministic_result_ref": {
     "id": "science_checks.json",
-    "sha256": "a2718c3b4a714630335470736e9b13dd64a0cf63f22ae43d3a8cc03147d42716"
+    "sha256": "d98d665d2182f326c94db0825131b7fbb0f68531d6e406acff4b1e829abcb976"
   },
   "observations": [
     {
       "id": "science_observation.json",
-      "sha256": "a960dda55b05459d507ccd178d55bc65e481867523f68555d2ef91b809ddec24"
+      "sha256": "84c4a393290bf90e43cc045c39fa65840340379d2d1c47fed74762a0494cc34f"
     }
   ],
   "schema_version": "2.0.0",
@@ -48,7 +57,7 @@
   ],
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "a13cd39128ee33a5a340de78f931f30129145289b2dd3f1e4281962b9651527c"
+    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
   },
   "subnode_id": "evaluation"
 }

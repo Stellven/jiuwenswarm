@@ -7,11 +7,13 @@
 - Recommendations live only in section 8 and carry a label. Everything else is observation.
 - The report's limitations section carries the verdict's `blockers`, `residual_risks` and review notes, and section 8 carries its `followups`, all verbatim.
 - Gate decisions reach Delivery as one host-built `gate_decision_index`, because a declaration port carries one artifact.
+- The worker reads only its bound inputs. Five host records carry the files it lists but does not read.
+- A failed blocking check or criterion halts the node and keeps the candidate and its evidence. Nothing retries it.
 - The host checks hashes, headings, numbers and verdict text. The semantic verifier judges only coherence of the output. It runs once for each output, the manifest and the report, with the same declaration.
 
 ## Purpose and place in the run
 
-Delivery is the final node of the static M1 template, after the gate that accepted the Scientific Evaluation output. The Planner does not select it. It always runs, including after a scientific `FAIL`. It consumes only gate-accepted artifacts. It does not measure, re-evaluate or fetch anything.
+Delivery is the final node of the static M1 template, after the gate that accepted the Scientific Evaluation output. It always runs, including after a scientific `FAIL`. It consumes only gate-accepted artifacts. It does not measure, re-evaluate or fetch anything.
 
 PRD mapping: PRD section 3.9 (3.9.1 to 3.9.4), user stories US15 and US16. The PRD names the capability `report_capsule.md` and the template `sciencediscovery/report-writer`. This design keeps the nine-section structure below as that static template.
 
@@ -22,12 +24,12 @@ Example: [delivery_capsule.json](../examples/delivery_capsule.json), valid again
 | Item | Value |
 |---|---|
 | Name | `research.delivery`, kind `agent` |
-| Inputs | eight ports, see Inputs. Each port carries one artifact |
+| Inputs | thirteen ports, see Inputs. Each port carries one artifact |
 | Outputs | `delivery_manifest`, `research_report`. The verifier runs once for each output, each time with this same declaration |
 | Effect class | `read_only` (model call only). The trusted host, not the worker, copies exported files into the user workspace |
 | Network | none |
 | Budget | 120 s wall, one invocation, no tool calls |
-| Pinned checks | declared: `output_structure`, `required_sections`, `recommendation_labeling`. The protected binder adds the host checks listed below |
+| Pinned checks | declared: `delivery_manifest_schema`, `research_report_schema`, `required_sections`, `recommendation_labeling`. The protected binder adds the host checks listed below |
 
 ## Inputs
 
@@ -40,11 +42,16 @@ Example: [delivery_capsule.json](../examples/delivery_capsule.json), valid again
 | `poc_manifest` | `poc_manifest` | Builder CC | yes | POC files for sections 4 and 9 |
 | `benchmark_payload` | `benchmark_payload` | Research Benchmark CC | yes | Only source of numbers in section 5 |
 | `evaluation_verdict` | `evaluation_verdict` | Scientific Evaluation CC | yes | Only source of the verdict, blockers, residual risks, review notes and follow-ups |
-| `gate_decision_index` | `gate_decision_index` (`gate-decision-index:field-contract:1`) | Scheduler (`host_record` key `gate_decision_index`) | yes | One record that lists the gate decisions of the run, listed in the manifest |
+| `gate_decision_index` | `gate_decision_index` (`gate-decision-index:field-contract:1`) | Scheduler (`host_record` key `gate_decision_index`) | yes | One record that lists the node-scope gate decisions of the run, listed in the manifest |
+| `screening_result` | `screening_result` (`screening-result:field-contract:2`) | Host record of the accepted Screening output (`host_record` key `screening_result`) | yes | Listed in the manifest with role `screening` and in `artifact_refs` |
+| `execution_receipt` | `execution_receipt` (`execution-receipt:field-contract:1`) | Host record of the accepted Benchmark output (`host_record` key `execution_receipt`) | yes | Hardware and run facts for section 9. Its run records name the raw evidence files (`stdout_ref`, `stderr_ref`, `empirical_results_ref`) that the manifest lists with role `raw_evidence` |
+| `provisioning_receipt` | `provisioning_receipt` (`provisioning-receipt:field-contract:1`) | Host record of the accepted Benchmark output (`host_record` key `provisioning_receipt`) | yes | Runtime facts for section 9, such as the interpreter version and the installed packages |
+| `environment_lock` | `environment_lock` (`environment-lock:field-contract:1`) | Host record of the run's prepared lock (`host_record` key `environment_lock`) | yes | Listed in the manifest with role `environment` and in section 9 |
+| `run_configuration` | `run_configuration` (`opaque-bytes`) | Host record of the frozen run configuration (`host_record` key `run_configuration`) | yes | Listed in the manifest with role `environment` and in section 9. Delivery lists it by Ref and does not read inside it |
 
 The declaration schema gives a port no cardinality, so a port carries exactly one artifact. A run has many gate decisions. The scheduler therefore builds one `gate_decision_index` from the accepted dispatch records and hands it in on a single port. Delivery never builds the index itself.
 
-The host also gives the worker the run artifact store for reading by Ref. The `screening_result` and raw execution files are not worker inputs. The host adds them to the manifest from the run record.
+The worker reads only its bound inputs. It has no tool calls and no store access. It writes the whole manifest from those inputs. Every Ref and hash in the manifest comes from a bound input or from a Ref inside one, such as the run records of the `execution_receipt` and the `archive_ref` of the `poc_manifest`. The host checks below read the run artifact store, not the worker.
 
 ### gate_decision_index
 
@@ -62,9 +69,9 @@ The host also gives the worker the run artifact store for reading by Ref. The `s
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `node_id` | `string` | yes | Pattern `^[a-z][a-z0-9_]{0,31}$`. A node of the run plan | The node whose attempt was accepted |
-| `gate_decision_ref` | `Ref` | yes | A gate decision with action `advance` for that node | The decision that admitted the node's output |
+| `gate_decision_ref` | `Ref` | yes | A node-scope gate decision (`scope_kind` `node`) with action `advance` for that node | The decision that admitted the node's output |
 
-Examples: [valid](../examples/gate_decision_index.json). The synthetic example lists one entry (`evaluation`), because only that node has a full gate decision example.
+Examples: [valid](../examples/gate_decision_index.json). The synthetic example lists one entry (`evaluation`), because only that node has a node-scope gate decision example.
 
 ## Output field contract
 
@@ -128,7 +135,7 @@ Examples: [valid report](../examples/research_report.md) · rejected by `require
 
 ## Producer obligations
 
-1. Read all inputs by Ref. Write the report first, then compute its sha256, then write the manifest.
+1. Read the bound inputs and nothing else. Write the report first, then compute its sha256, then write the manifest.
 2. Copy numbers, rules, verdict strings, blockers, residual risks, review notes, follow-ups and citations from the source artifacts. Do not paraphrase the verdict classification.
 3. Self-review before output. Re-read the Brief objective and confirm section 1 matches. Compare each results row with the payload. Compare section 6 with the verdict. Confirm every blocker, residual risk, completeness note, plausibility note and follow-up of the verdict appears. Confirm every `Recommendation:` label sits in section 8. Confirm the manifest lists each lifecycle artifact once.
 4. Do not edit, redact or omit evidence silently. If an artifact is unavailable or withheld, list it in `missing_evidence` with a reason and `blocking`.
@@ -137,24 +144,25 @@ Examples: [valid report](../examples/research_report.md) · rejected by `require
 
 ## Deterministic check bundle
 
-The host runs these before the verifier. The first three are also declared in the CC.
+The host runs these before the verifier. The first four are also declared in the CC. Every failure is a blocking failure. It halts the node. Nothing retries it.
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `output_structure` | Manifest matches `delivery-manifest:field-contract:2`. Enums, path rule, role coverage and `ext` as above. Report is valid UTF-8 markdown | reject, worker retry |
-| `required_sections` | The nine headings of the table appear exactly once, in order, each with non-empty body. No other level-2 heading | reject, worker retry |
-| `recommendation_labeling` | `Recommendation:` appears only in section 8. Every bullet in section 8 starts with it | reject, worker retry |
-| `ref_resolves` | Every Ref in the manifest resolves to bytes in the run artifact store | reject, worker retry |
-| `ref_hash_match` | Every Ref `sha256` and every `files[].artifact_ref.sha256` equals the sha256 of the stored bytes. `report_ref` equals the report file hash | reject, worker retry |
-| `manifest_completeness` | `brief_ref` and `verdict_ref` equal the accepted inputs. `gate_decision_refs` equal the run's advancing decisions. `artifact_refs` and `files` roles cover the lifecycle as in the contract | reject, worker retry |
-| `results_table_matches_payload` | Each row of the section 5 table has a payload metric and each payload metric has a row. Baseline, treatment and delta equal the payload numbers (numeric equality) | reject, worker retry |
-| `criteria_match_blueprint` | Section 3 table has the blueprint's metric IDs, units and aggregations, no more and no fewer | reject, worker retry |
-| `verdict_matches_evaluation` | `Classification:` string equals the verdict `classification`. The `Completeness:` and `Plausibility:` lines equal the verdict statuses. Each finding line matches the verdict finding for its metric | reject, worker retry |
-| `carried_content` | Every verdict blocker, residual risk, completeness note and plausibility note appears verbatim in section 7. Every verdict follow-up appears verbatim in section 8. Every opportunity risk appears in section 7. Every card `citation_id` appears in section 2 | reject, worker retry |
-| `reproducibility_pins` | The section 9 table rows equal manifest Refs for the same IDs and hashes. All eight required rows present | reject, worker retry |
-| `negative_result_delivered` | When classification is `FAIL` or `INCONCLUSIVE`, a report and manifest still exist and no `blocking` missing evidence hides the cause | reject, worker retry |
+| `delivery_manifest_schema` | Manifest matches `delivery-manifest:field-contract:2`. Enums, path rule, role coverage and `ext` as above | reject, node halts |
+| `research_report_schema` | Report is valid UTF-8 markdown with a title line `# ` | reject, node halts |
+| `required_sections` | The nine headings of the table appear exactly once, in order, each with non-empty body. No other level-2 heading | reject, node halts |
+| `recommendation_labeling` | `Recommendation:` appears only in section 8. Every bullet in section 8 starts with it | reject, node halts |
+| `ref_resolves` | Every Ref in the manifest resolves to bytes in the run artifact store | reject, node halts |
+| `ref_hash_match` | Every Ref `sha256` and every `files[].artifact_ref.sha256` equals the sha256 of the stored bytes. `report_ref` equals the report file hash | reject, node halts |
+| `manifest_completeness` | `brief_ref` and `verdict_ref` equal the accepted inputs. `gate_decision_refs` equal the run's advancing decisions. `artifact_refs` and `files` roles cover the lifecycle as in the contract, including the `screening_result`, `environment_lock` and `run_configuration` inputs and the raw evidence Refs of the `execution_receipt` | reject, node halts |
+| `results_table_matches_payload` | Each row of the section 5 table has a payload metric and each payload metric has a row. Baseline, treatment and delta equal the payload numbers (numeric equality) | reject, node halts |
+| `criteria_match_blueprint` | Section 3 table has the blueprint's metric IDs, units and aggregations, no more and no fewer | reject, node halts |
+| `verdict_matches_evaluation` | `Classification:` string equals the verdict `classification`. The `Completeness:` and `Plausibility:` lines equal the verdict statuses. Each finding line matches the verdict finding for its metric | reject, node halts |
+| `carried_content` | Every verdict blocker, residual risk, completeness note and plausibility note appears verbatim in section 7. Every verdict follow-up appears verbatim in section 8. Every opportunity risk appears in section 7. Every card `citation_id` appears in section 2 | reject, node halts |
+| `reproducibility_pins` | The section 9 table rows equal manifest Refs for the same IDs and hashes. All eight required rows present | reject, node halts |
+| `negative_result_delivered` | When classification is `FAIL` or `INCONCLUSIVE`, a report and manifest still exist and no `blocking` missing evidence hides the cause | reject, node halts |
 
-Retry budget: two worker retries, then the node fails (see Failure outcomes).
+A failed blocking check halts the node and keeps the candidate output, its evidence and the check results (see Failure outcomes). There is no retry budget.
 
 Note on the invalid pair for `required_sections`: a report without section 7 also lacks the blockers and residual risks that `carried_content` requires. `required_sections` fires first.
 
@@ -172,17 +180,17 @@ The verifier runs once for each output artifact, the `research_report` and the `
 
 ## Gate rule
 
-Accept when every deterministic check passes and no blocking criterion fails. The gate then advances the run to lifecycle closure, which exports the manifest files to the user workspace. A scientific `FAIL` or `INCONCLUSIVE` verdict does not affect acceptance. Reject back to the worker on any failed check or blocking criterion, up to two retries. Halt the run when the retry budget is spent or when `missing_evidence` has a `blocking` item the worker cannot resolve.
+Accept when every deterministic check passes and no blocking criterion fails. The gate then advances the run to lifecycle closure, which exports the manifest files to the user workspace. A scientific `FAIL` or `INCONCLUSIVE` verdict does not affect acceptance. Reject on any failed check or blocking criterion. A rejection halts the node, keeps the candidate output and evidence, and starts no retry. Halt the run also when `missing_evidence` has a `blocking` item.
 
 ## Failure outcomes
 
 | Condition | Outcome | Kept |
 |---|---|---|
-| Hash or Ref check fails | worker retry, then node `FAILED` | all inputs, rejected outputs and check results |
-| Required section missing or out of order | worker retry, then node `FAILED` | rejected report and manifest |
-| Report verdict differs from the saved verdict | worker retry, then node `FAILED`. The saved verdict is never altered | rejected report, saved verdict |
-| Blocking `missing_evidence` | run halts with release blocked | manifest draft and the reason |
-| Verifier blocking criterion fails | worker retry with the findings, then node `FAILED` | verifier assessment |
+| Hash or Ref check fails | node halts, dispatch outcome `rejected` | all inputs, rejected outputs and check results |
+| Required section missing or out of order | node halts, dispatch outcome `rejected` | rejected report and manifest |
+| Report verdict differs from the saved verdict | node halts, dispatch outcome `rejected`. The saved verdict is never altered | rejected report, saved verdict |
+| Blocking `missing_evidence` | node halts, dispatch outcome `halted`, release blocked | manifest draft and the reason |
+| Verifier blocking criterion fails | node halts, dispatch outcome `rejected` | verifier assessment and rejected outputs |
 | Input artifact absent or not gate-accepted | node does not start, run halts | run record |
 
 ## Examples
@@ -197,7 +205,7 @@ Accept when every deterministic check passes and no blocking criterion fails. Th
 | [delivery_manifest_invalid_missing_limitations.json](../examples/delivery_manifest_invalid_missing_limitations.json) with [research_report_invalid_missing_limitations.md](../examples/research_report_invalid_missing_limitations.md) | invalid pair | `required_sections` |
 | [delivery_manifest_invalid_verdict_mismatch.json](../examples/delivery_manifest_invalid_verdict_mismatch.json) with [research_report_invalid_verdict_mismatch.md](../examples/research_report_invalid_verdict_mismatch.md) | invalid pair | `verdict_matches_evaluation` |
 
-The synthetic run has one gate decision example (`gate_science_pass.json`). The synthetic `gate_decision_index` lists only that decision. A real run lists every advancing decision.
+The synthetic run has one node-scope gate decision example (`gate_science_node_pass.json`). The synthetic `gate_decision_index` lists only that decision. A real run lists the node-scope decision of every accepted node.
 
 ## Future seams
 

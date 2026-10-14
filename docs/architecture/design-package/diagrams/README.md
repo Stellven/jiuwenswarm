@@ -9,6 +9,7 @@ Generated projections of the maintained Mermaid definitions. Prose and Mermaid s
 | Local Compose topology | [automation.md](../automation.md#local-compose-topology) | [SVG](../diagrams/automation-1.svg) / [PNG](../diagrams/automation-1.png) |
 | Exact verification boundary | [capsules.md](../capsules.md#exact-verification-boundary) | [SVG](../diagrams/capsules-1.svg) / [PNG](../diagrams/capsules-1.png) |
 | Current assignment and independent product coverage | [delivery-phases.md](../delivery-phases.md#current-assignment-and-independent-product-coverage) | [SVG](../diagrams/delivery-phases-1.svg) / [PNG](../diagrams/delivery-phases-1.png) |
+| Components | [development-tools/benchmark-runner/README.md](../development-tools/benchmark-runner/README.md#components) | [SVG](../diagrams/development-tools-benchmark-runner-README-1.svg) / [PNG](../diagrams/development-tools-benchmark-runner-README-1.png) |
 | Purpose and composition | [development-tools/sidecar/README.md](../development-tools/sidecar/README.md#purpose-and-composition) | [SVG](../diagrams/development-tools-sidecar-README-1.svg) / [PNG](../diagrams/development-tools-sidecar-README-1.png) |
 | AI4Research sidecar: client-validation runner | [development-tools/test-runner/README.md](../development-tools/test-runner/README.md#ai4research-sidecar-client-validation-runner) | [SVG](../diagrams/development-tools-test-runner-README-1.svg) / [PNG](../diagrams/development-tools-test-runner-README-1.png) |
 | When to call the human | [failure-and-human.md](../failure-and-human.md#when-to-call-the-human) | [SVG](../diagrams/failure-and-human-1.svg) / [PNG](../diagrams/failure-and-human-1.png) |
@@ -25,6 +26,7 @@ Generated projections of the maintained Mermaid definitions. Prose and Mermaid s
 | Deployment and boundaries | [placement.md](../placement.md#deployment-and-boundaries) | [SVG](../diagrams/placement-1.svg) / [PNG](../diagrams/placement-1.png) |
 | Offline RSI | [placement.md](../placement.md#offline-rsi) | [SVG](../diagrams/placement-2.svg) / [PNG](../diagrams/placement-2.png) |
 | Shared flow | [reference/capsule-model-routing.md](../reference/capsule-model-routing.md#shared-flow) | [SVG](../diagrams/reference-capsule-model-routing-1.svg) / [PNG](../diagrams/reference-capsule-model-routing-1.png) |
+| Build order | [reference/run-plan.md](../reference/run-plan.md#build-order) | [SVG](../diagrams/reference-run-plan-1.svg) / [PNG](../diagrams/reference-run-plan-1.png) |
 | Research path and ports | [research-design.md](../research-design.md#research-path-and-ports) | [SVG](../diagrams/research-design-1.svg) / [PNG](../diagrams/research-design-1.png) |
 | Commit before successor release | [research-design.md](../research-design.md#commit-before-successor-release) | [SVG](../diagrams/research-design-2.svg) / [PNG](../diagrams/research-design-2.png) |
 | Inside the POC task | [research-nodes.md](../research-nodes.md#inside-the-poc-task) | [SVG](../diagrams/research-nodes-1.svg) / [PNG](../diagrams/research-nodes-1.png) |

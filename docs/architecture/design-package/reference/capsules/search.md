@@ -125,7 +125,7 @@ The host runs these before the verifier. The binder assigns them. The Planner ma
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `output_structure` | Output parses and matches the field tables, including enums and lengths | reject |
+| `candidate_set_schema` | Output parses and matches the field tables, including enums and lengths | reject |
 | `brief_binding` | `brief_ref` equals the accepted Brief | reject |
 | `scope_binding` | `scope_ref` equals the bound scope | reject |
 | `queries_within_bounds` | `queries` has 1 to `max_queries` items, each 3 to 200 characters, no duplicates | reject |

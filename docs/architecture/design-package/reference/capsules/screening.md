@@ -192,7 +192,8 @@ Screening must not invent ideas, cite sources outside the candidate set, re-veri
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `output_structure` | Both outputs parse and match the tables, including enums, ranges and lengths | reject |
+| `screening_result_schema` | The `screening_result` parses and matches its table, including enums, ranges and lengths | reject |
+| `opportunity_card_schema` | The `opportunity_card` parses and matches its table, including enums, ranges and lengths | reject |
 | `candidate_binding` | `candidate_ref` and `brief_ref` in both outputs equal the inputs | reject |
 | `rubric_pinned` | `rubric_ref` equals the rubric pinned in the declaration | reject |
 | `scores_cover_candidates` | One `scores` row for each candidate idea, no missing, duplicate or extra row | reject |

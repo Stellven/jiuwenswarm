@@ -1,7 +1,7 @@
 {
   "id": "subnode-contract:intention",
   "run_id": "run:topic",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:topic",
   "objective": "Produce faithful and usable Intent",
   "input_refs": [
@@ -108,7 +108,7 @@
   "subnode_id": "intention",
   "node_contract_ref": {
     "id": "topic_node_contract.json",
-    "sha256": "d0d124cc692f6bba65a68fc09b92f78093deb96f801bb1d7d4fa705c60d847d3"
+    "sha256": "733770af74db86dc1d323e67f26b805dad32c2fd9ae6e9b7301c84e30f903818"
   },
   "subnode_limits": {
     "time_s": 120,

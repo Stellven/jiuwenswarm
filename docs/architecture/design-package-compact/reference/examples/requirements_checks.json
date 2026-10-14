@@ -6,11 +6,11 @@
   },
   "check_plan_ref": {
     "id": "requirements_check_plan.json",
-    "sha256": "975e451657559332f141cb61d1197c0756ad2355a6912c78a4374707b312c396"
+    "sha256": "607f186cd69d34eb94a14d70996af4e3bede8a5945b7b0f83493ad3f150baecf"
   },
   "results": [
     {
-      "check_id": "structure",
+      "check_id": "brief_schema",
       "outcome": "PASS",
       "reason": "Illustrative schema/identity/ID checks; not executed infrastructure",
       "evidence_refs": [

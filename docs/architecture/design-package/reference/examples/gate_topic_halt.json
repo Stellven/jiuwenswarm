@@ -3,20 +3,20 @@
   "id": "decision:topic",
   "recorded_at": "2026-10-07T12:00:00Z",
   "run_id": "run:topic",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:topic",
   "contract_ref": {
     "id": "topic_subnode_contract.json",
-    "sha256": "4a11beadbc0bb36a9c93ff308bf329c2e35edd949b2b32defa1cb14a963dba33"
+    "sha256": "97eb51f0fabd6417eb92548c2bea2972cab367b8055cee1ee9ae4b9628e86eae"
   },
   "invocation_refs": [
     {
       "id": "topic_observation.json",
-      "sha256": "a64cb206dff0e098b42f29615e964ea0115e1ebcfc1135f55251d2cfa6efbc91"
+      "sha256": "1c8247877f408195aceb7bf87da4c851d89d8cc01e420b1a4b25de271f836d89"
     },
     {
       "id": "topic_verifier_observation.json",
-      "sha256": "4c07a330e66737139e4207889c13bdc7dde1fe76dc7d634ae700c1e009217e52"
+      "sha256": "d3a0aebeb288e46f1a733b6d4cd36a410803bfff280320c8e623a92e0de31637"
     }
   ],
   "policy_ref": {
@@ -25,7 +25,7 @@
   },
   "check_plan_ref": {
     "id": "topic_check_plan.json",
-    "sha256": "5321dfe22c55bd48599dc088920c5beaa62e770d58425f15d29af9c1f90e039a"
+    "sha256": "0546587c36096823ae826bda42a974f6d4e79512c4e5d5be64e62c537359739c"
   },
   "input_refs": [
     {
@@ -41,11 +41,11 @@
   ],
   "deterministic_result_ref": {
     "id": "topic_checks.json",
-    "sha256": "3279fc3f42eed43e2fd757c1ff339dd991ad7ef1afa21b9d24d7a47db7827063"
+    "sha256": "1ff6a1e2e3e80bb62128107877fb9d1cdb660fa8185afb839f556aabe25d96bf"
   },
   "assessment_ref": {
     "id": "topic_assessment.json",
-    "sha256": "1172c5685dcf7f1f72ff28b79910bfd5a1aa03f1e2d2d2acae980ff9cff600ff"
+    "sha256": "a43b3fb9a121baa43744c4d93fa8668aaa6ba17320c40a45e970ccac1d21a1f8"
   },
   "verdict": "INCONCLUSIVE",
   "reasons": [
@@ -58,7 +58,7 @@
       "evidence_refs": [
         {
           "id": "topic_assessment.json",
-          "sha256": "1172c5685dcf7f1f72ff28b79910bfd5a1aa03f1e2d2d2acae980ff9cff600ff"
+          "sha256": "a43b3fb9a121baa43744c4d93fa8668aaa6ba17320c40a45e970ccac1d21a1f8"
         }
       ]
     }
@@ -67,7 +67,7 @@
   "accepted_refs": [],
   "node_contract_ref": {
     "id": "topic_node_contract.json",
-    "sha256": "d0d124cc692f6bba65a68fc09b92f78093deb96f801bb1d7d4fa705c60d847d3"
+    "sha256": "733770af74db86dc1d323e67f26b805dad32c2fd9ae6e9b7301c84e30f903818"
   },
   "subnode_id": "intention",
   "scope_kind": "subnode",

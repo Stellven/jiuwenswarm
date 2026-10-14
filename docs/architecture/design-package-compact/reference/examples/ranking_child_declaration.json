@@ -21,7 +21,7 @@
       {
         "name": "scores",
         "artifact_type": "screening_result",
-        "schema_ref": "screening-result:field-contract:1",
+        "schema_ref": "screening-result:field-contract:2",
         "required": true,
         "description": "Frozen incoming scores",
         "check_ids": [
@@ -33,7 +33,7 @@
       {
         "name": "selection",
         "artifact_type": "screening_result",
-        "schema_ref": "screening-result:field-contract:1",
+        "schema_ref": "screening-result:field-contract:2",
         "required": true,
         "description": "Fixed ranking/Top-1 selection",
         "check_ids": [

@@ -409,7 +409,7 @@ def rbundle_text(name):
 CS = 'candidate-set'
 
 
-@rcheck(CS, 'output_structure')
+@rcheck(CS, 'candidate_set_schema')
 def _(d, path):
     return rfield_errors('candidate-set:field-contract:2', d)
 
@@ -521,7 +521,7 @@ def rcandidate(d):
     return rload(d['candidate_ref'])
 
 
-@rcheck(SR, 'output_structure')
+@rcheck(SR, 'screening_result_schema')
 def _(d, path):
     return rfield_errors('screening-result:field-contract:2', d)
 
@@ -607,7 +607,7 @@ def _(d, path):
     return [] if d['ranking'] and d['selected_idea_id'] == d['ranking'][0]['idea_id'] else ['selected idea is not rank 1']
 
 
-@rcheck(OC, 'output_structure')
+@rcheck(OC, 'opportunity_card_schema')
 def _(d, path):
     return rfield_errors('opportunity-card:field-contract:2', d)
 
@@ -694,7 +694,7 @@ def rprobes(*rules):
     return (0.001, 1.0, 1000.0) if any(r['reference'] == 'baseline' for r in rules if r) else (1.0,)
 
 
-@rcheck(HB, 'output_structure')
+@rcheck(HB, 'blueprint_schema')
 def _(d, path):
     return rfield_errors('hypothesis-blueprint:field-contract:2', d)
 
@@ -821,7 +821,7 @@ def rrequirements():
     return [x.strip() for x in rbundle_text('requirements.txt').decode('utf-8').splitlines() if x.strip() and not x.startswith('#')]
 
 
-@rcheck(PM, 'output_structure')
+@rcheck(PM, 'manifest_schema')
 def _(d, path):
     return rfield_errors('poc-manifest:field-contract:2', d)
 
@@ -920,7 +920,7 @@ def rformat_scan(source, metric_ids):
     return {'result': 'pass' if ok else 'fail', 'json_print_calls': len(json_prints), 'metrics_key_found': metrics_key, 'missing_metric_ids': missing}
 
 
-@rcheck(BR, 'output_structure')
+@rcheck(BR, 'build_receipt_schema')
 def _(d, path):
     return rfield_errors('build-receipt:field-contract:1', d)
 
@@ -1025,7 +1025,7 @@ def rbench(d):
             'manifest': rload(d['poc_ref']), 'empirical': rload(next(r for r in d['raw_evidence_refs'] if r['id'] == rload(d['execution_receipt_ref'])['empirical_results_ref']['id']))}
 
 
-@rcheck(BP, 'payload_schema')
+@rcheck(BP, 'benchmark_payload_schema')
 def _(d, path):
     x = rbench(d)
     return (rfield_errors('benchmark-payload:field-contract:2', d) + rfield_errors('execution-receipt:field-contract:1', x['receipt']) + rfield_errors('provisioning-receipt:field-contract:1', x['prov']))
@@ -1250,7 +1250,7 @@ def rrecompute(d):
     return findings, overall, payload
 
 
-@rcheck(EV, 'verdict_schema')
+@rcheck(EV, 'evaluation_verdict_schema')
 def _(d, path):
     return rfield_errors('evaluation-verdict:field-contract:2', d)
 
@@ -1341,7 +1341,7 @@ def rtable(body):
     return rows[2:] if len(rows) >= 2 else []
 
 
-@rcheck(DM, 'output_structure')
+@rcheck(DM, 'delivery_manifest_schema')
 def _(d, path):
     bad = rfield_errors('delivery-manifest:field-contract:2', d)
     roles = [f['role'] for f in d['files']]
@@ -1511,11 +1511,11 @@ def rlib_entry(lib, cc):
     return next((e for e in lib['entries'] if e['cc_name'] == cc['cc_name'] and e['cc_version'] == cc['cc_version'] and e['declaration_sha256'] == cc['declaration_sha256']), None)
 
 
-HOST_RECORDS = {'screening_rubric', 'build_receipt', 'gate_decision_index'}
+HOST_RECORDS = {'screening_rubric', 'build_receipt', 'gate_decision_index', 'screening_result', 'execution_receipt', 'provisioning_receipt', 'environment_lock', 'run_configuration'}
 
 
-def rplan_checks(kind, contract_id):
-    @rcheck(kind, 'proposal_structure')
+def rplan_checks(kind, contract_id, structure_id):
+    @rcheck(kind, structure_id)
     def _(d, path):
         return rfield_errors(contract_id, d)
 
@@ -1667,9 +1667,9 @@ def rplan_checks(kind, contract_id):
         return bad
 
 
-rplan_checks('plan-proposal', 'plan-proposal:field-contract:3')
-rplan_checks('static-template', 'static-template:field-contract:1')
-rplan_checks('run-plan', 'run-plan:field-contract:1')
+rplan_checks('plan-proposal', 'plan-proposal:field-contract:3', 'plan_proposal_schema')
+rplan_checks('static-template', 'static-template:field-contract:1', 'template_structure')
+rplan_checks('run-plan', 'run-plan:field-contract:1', 'run_plan_structure')
 
 
 @rcheck('plan-proposal', 'proposal_references')
@@ -1702,8 +1702,14 @@ def _(d, path):
 
 @rcheck('run-plan', 'acceptance_advances')
 def _(d, path):
-    gate = rload(d['acceptance_ref'])
-    return [] if gate['action'] == 'advance' else ['plan acceptance is not an advance decision']
+    acc = rload(d['acceptance_ref'])
+    if d['mode'] == 'static':
+        # static mode: the template is pre-admitted, so acceptance is a deterministic check result with no verifier
+        plan = rload(acc['check_plan_ref'])
+        ok = acc['subject_ref'] == d['source_ref'] and 'template_structure' in plan['mandatory_deterministic'] and not plan['mandatory_semantic']
+        ok = ok and {r['check_id'] for r in acc['results']} == set(plan['mandatory_deterministic']) and all(r['outcome'] == 'PASS' for r in acc['results'])
+        return [] if ok else ['static plan acceptance is not a passing deterministic result for the template']
+    return [] if acc.get('action') == 'advance' else ['plan acceptance is not an advance decision']
 
 
 # ---- library snapshot, dispatch record, plan outcome, gate decision index, search scope
@@ -1767,13 +1773,28 @@ def _(d, path):
 
 @rcheck('dispatch-record', 'output_structure')
 def _(d, path):
-    bad = rfield_errors('dispatch-record:field-contract:1', d)
-    plan = rload(d['run_plan_ref'])
-    node = next((n for n in plan['nodes'] if n['node_id'] == d['node_id']), None)
-    if node is None or node['cc'] != d['cc'] or node['check_pins'] != d['check_pins']:
-        bad.append('cc or check pins differ from the run plan node')
-    elif sorted(x['name'] for x in d['bound_input_refs']) != sorted(i['name'] for i in node['inputs']):
-        bad.append('bound inputs differ from the run plan node')
+    bad = rfield_errors('dispatch-record:field-contract:2', d)
+    if d['phase'] == 'pre_plan':
+        if d['run_plan_ref'] is not None or d['node_id'] not in ('intention_compiler', 'planner'):
+            bad.append('a pre-plan record names no run plan and a pre-plan node')
+    else:
+        if d['run_plan_ref'] is None:
+            bad.append('a planned record needs a run plan')
+        else:
+            plan = rload(d['run_plan_ref'])
+            node = next((n for n in plan['nodes'] if n['node_id'] == d['node_id']), None)
+            if node is None or node['cc'] != d['cc'] or node['check_pins'] != d['check_pins']:
+                bad.append('cc or check pins differ from the run plan node')
+            elif sorted(x['name'] for x in d['bound_input_refs']) != sorted(i['name'] for i in node['inputs']):
+                bad.append('bound inputs differ from the run plan node')
+    if d['attempt_id'] != '%s-a%d' % (d['node_id'], d['attempt']):
+        bad.append('attempt_id is not <node_id>-a<attempt>')
+    node_gate = rload(d['gate_decision_ref']) if d['gate_decision_ref'] else None
+    if node_gate is not None:
+        if node_gate['scope_kind'] != 'node' or any(node_gate[k] != d[k] for k in ('run_id', 'node_id', 'attempt_id')) or node_gate['node_contract_ref'] != d['node_contract_ref']:
+            bad.append('gate_decision_ref is not the node-scope decision of this attempt')
+        elif d['outcome'] == 'accepted' and (node_gate['action'] != 'advance' or node_gate['internal_decision_refs'] != d['output_gate_decision_refs'] or node_gate['accepted_refs'] != d['output_refs']):
+            bad.append('accepted record differs from its node-scope decision')
     return bad
 
 
@@ -1782,6 +1803,13 @@ def _(d, path):
     bad = rfield_errors('plan-outcome:field-contract:1', d)
     if d['trigger'] != 'planner_reported_infeasible' and d['source_ref'] is None:
         bad.append('source_ref is null without a Planner report')
+    if (d['trigger'] != 'planner_reported_infeasible') != (d['check_result_ref'] is not None):
+        bad.append('check_result_ref must be set exactly when a check ran')
+    elif d['check_result_ref'] is not None:
+        res = rload(d['check_result_ref'])
+        failing = {r['check_id'] for r in res['results'] if r['outcome'] != 'PASS'}
+        if d['trigger'] == 'proposal_rejected' and not {x['check_id'] for x in d['reasons'] if x['check_id']} <= failing:
+            bad.append('a reason names a check that did not fail in the check result')
     if d['attempt_depth'] < 2 and d['linked_attempt_id'] is None:
         bad.append('a linked Intention Compiler attempt is required before the depth limit')
     return bad
@@ -1801,8 +1829,9 @@ def _(d, path):
     if len(set(ids)) != len(ids) or not set(ids) <= nodes:
         bad.append('entries repeat a node or name a node outside the run plan')
     for e in d['entries']:
-        if rload(e['gate_decision_ref'])['action'] != 'advance':
-            bad.append('entry is not an advancing gate decision')
+        g = rload(e['gate_decision_ref'])
+        if g['action'] != 'advance' or g['scope_kind'] != 'node' or g['node_id'] != e['node_id']:
+            bad.append('entry is not an advancing node-scope gate decision of its node')
     return bad
 
 
@@ -2192,6 +2221,7 @@ def aggregate_issues(g):
 for n in ('research_brief.json','lifecycle_research_brief.json','research_brief_defaults.json'):
     errors.extend(n+': '+i for i in brief_issues(load(EX/n)))
 errors.extend(aggregate_issues(load(EX/'gate_intention_compiler_pass.json')))
+errors.extend(aggregate_issues(load(EX/'gate_science_node_pass.json')))
 require(not gate_issues(load(EX/'gate_compiler_no_output.json')), 'No-output halt needs no fabricated subject output')
 brief_key=next(k for k in schemas if ':research-brief:' in k)
 for mode in ('missing_context','wrong_unit','invented_default_pointer','lost_input','wrong_request'):

@@ -3,7 +3,7 @@
   "id": "rsi_parent_admission",
   "candidate_ref": {
     "id": "ranking_declaration.json",
-    "sha256": "ecb69715ee4a935aff51c237361f54d1af1e477b4aa0dc9e4dccb13ea1b71b49"
+    "sha256": "087acb435bcc1efdffd31ae2475d9cae8615f9523374d53b1e9ecc966fbb9004"
   },
   "parent_ref": null,
   "evidence_refs": [

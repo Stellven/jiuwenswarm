@@ -1,13 +1,13 @@
 {
   "schema_version": "2.0.0",
-  "id": "node-contract:intention.compiler",
+  "id": "node-contract:intention_compiler",
   "run_id": "run:topic",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:topic",
   "revision": 1,
   "objective": "Produce a faithful, usable accepted Research Brief from qualified intake",
   "requirement_ids": [
-    "fixed:intention.compiler"
+    "fixed:intention_compiler"
   ],
   "inputs": [
     {
@@ -123,11 +123,11 @@
       "role": "work",
       "template_ref": {
         "id": "requirements_subnode_template.json",
-        "sha256": "06ae4c5a667afccf5b8e3201cc3f4b9952d67efb379331211b03779b42caa77d"
+        "sha256": "ee951012283cf5f73c5a70f29d7609e3b3b27405d01760775c1ac16d18df6822"
       },
       "capsule_ref": {
         "id": "requirements_capsule.json",
-        "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
+        "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
       },
       "depends_on": [
         "intention",

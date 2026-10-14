@@ -1,0 +1,95 @@
+{
+  "schema_version": "2.0.0",
+  "id": "gate:node-evaluation",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:science",
+  "node_id": "evaluation",
+  "attempt_id": "evaluation-a1",
+  "contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
+  },
+  "invocation_refs": [
+    {
+      "id": "science_observation.json",
+      "sha256": "84c4a393290bf90e43cc045c39fa65840340379d2d1c47fed74762a0494cc34f"
+    },
+    {
+      "id": "science_verifier_observation.json",
+      "sha256": "47740cd4e63613395da0d6e5b46e8b3f21f76bc4b02bbc7c461c87601567a97a"
+    }
+  ],
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "check_plan_ref": {
+    "id": "science_node_check_plan.json",
+    "sha256": "c899664f5ae4122fdbed501b36630306f32a22bb1c3db0f4e891b1f5698267e1"
+  },
+  "input_refs": [
+    {
+      "id": "lifecycle_research_brief.json",
+      "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+    },
+    {
+      "id": "hypothesis_blueprint.json",
+      "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+    },
+    {
+      "id": "benchmark_payload.json",
+      "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "science_node_checks.json",
+    "sha256": "3c18fdc023e3813b79c27c2f0da59b56a1de35a93769938d72149f5da17da5c6"
+  },
+  "assessment_ref": {
+    "id": "science_assessment.json",
+    "sha256": "a8a16daec31399bd8a82ea9100725cfd16aa8f0c7467e70c9fa9edae9f31761a"
+  },
+  "verdict": "PASS",
+  "reasons": [
+    {
+      "code": "NODE_ACCEPTED",
+      "message": "Synthetic illustration: accepted work and review for the evaluation node plus the exact released verdict; no observed runtime execution",
+      "criterion_ids": [
+        "internal_acceptance",
+        "external_output",
+        "aggregate_limits"
+      ],
+      "evidence_refs": [
+        {
+          "id": "gate_science_pass.json",
+          "sha256": "f2ecc804a9bdaf36d46e5cc6c0145c2415d47d75e1a1a70bb83ee2c8ecab2c1a"
+        }
+      ]
+    }
+  ],
+  "action": "advance",
+  "accepted_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
+  },
+  "subnode_id": null,
+  "scope_kind": "node",
+  "internal_decision_refs": [
+    {
+      "id": "gate_science_pass.json",
+      "sha256": "f2ecc804a9bdaf36d46e5cc6c0145c2415d47d75e1a1a70bb83ee2c8ecab2c1a"
+    }
+  ]
+}

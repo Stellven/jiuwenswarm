@@ -20,9 +20,9 @@
       "blocking": true
     },
     {
-      "check_id": "scored_ideas_in_candidate_set",
+      "check_id": "candidate_binding",
       "target_port": "screening_result",
-      "rule_summary": "Every scored idea_id appears in the accepted candidate_set input",
+      "rule_summary": "candidate_ref and brief_ref in both outputs equal the accepted inputs",
       "runner_ref": {
         "id": "intent_implementation.txt",
         "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
@@ -34,17 +34,18 @@
       "blocking": true
     },
     {
-      "check_id": "model_call_count_within_budget",
+      "check_id": "scores_cover_candidates",
       "target_port": "screening_result",
-      "rule_summary": "Recorded model calls do not exceed the declared per-call budget",
+      "rule_summary": "One scores row for each candidate idea, none missing, duplicated or extra",
       "runner_ref": {
         "id": "intent_implementation.txt",
         "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
       },
       "reads": [
-        "runtime_records"
+        "output",
+        "inputs"
       ],
-      "blocking": false
+      "blocking": true
     }
   ],
   "owner_role": "verifier_owner"

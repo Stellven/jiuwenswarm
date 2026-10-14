@@ -15,8 +15,8 @@
   },
   "gate_decision_refs": [
     {
-      "id": "gate_science_pass.json",
-      "sha256": "d37fa48ee36da0fbf9fd3a50c4502c3197feec294ff550107c3779e43b246c4e"
+      "id": "gate_science_node_pass.json",
+      "sha256": "3a15e8af3f25ecd98d49bfa5a5dbff1fc470bd07cea07422ba0432d310029d65"
     }
   ],
   "artifact_refs": [
@@ -191,10 +191,10 @@
       "audience": "researcher"
     },
     {
-      "path": "gate_science_pass.json",
+      "path": "gate_science_node_pass.json",
       "artifact_ref": {
-        "id": "gate_science_pass.json",
-        "sha256": "d37fa48ee36da0fbf9fd3a50c4502c3197feec294ff550107c3779e43b246c4e"
+        "id": "gate_science_node_pass.json",
+        "sha256": "3a15e8af3f25ecd98d49bfa5a5dbff1fc470bd07cea07422ba0432d310029d65"
       },
       "media_type": "application/json",
       "role": "gate_decision",

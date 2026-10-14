@@ -44,7 +44,7 @@ The host runs these before the verifier. They read the request and runtime recor
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `structure` | Schema and version match. Required fields are present. Local IDs are unique. | Halt. No verifier call. |
+| `intent_schema` | Schema and version match. Required fields are present. Local IDs are unique. | Halt. No verifier call. |
 | `source_spans` | Every span names a permitted source, is nonempty and lies inside the exact source text (span bounds). | Halt. |
 | `exact_identity` | `request_ref` and every `context_refs` entry resolve to the exact qualified bytes (reference resolution). The invocation completed with the pinned implementation. | Halt. |
 
@@ -109,7 +109,7 @@ The host runs these before the verifier. They read the Intent, intake and defaul
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `structure` | Schema and version match. Local IDs are unique. Typed limits are valid. | Halt. No verifier call. |
+| `brief_schema` | Schema and version match. Local IDs are unique. Typed limits are valid. | Halt. No verifier call. |
 | `source_identity` | `intake_ref`, `intent_ref`, every source reference and every `authority_ref` resolve to exact accepted bytes (reference resolution). Each applied default is authorized by the protected policy and points to an existing field (default authorization). | Halt. |
 | `requirement_coverage` | Requirement IDs in acceptance, evidence and metric entries resolve. Every mandatory requirement is linked (requirement-link coverage). Every Intent constraint, target and in-scope item is present in the Brief or in `unresolved_items`. | Halt. |
 

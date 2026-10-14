@@ -3,7 +3,7 @@
   "role": "work",
   "capsule_ref": {
     "id": "requirements_capsule.json",
-    "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
+    "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
   },
   "input_contracts": [
     "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",

@@ -3,7 +3,7 @@
   "role": "work",
   "capsule_ref": {
     "id": "capsule_declaration.json",
-    "sha256": "43c55a5feca7e9443c24ba19b9402c78777d59a3b10c3a406330faa0a99627d8"
+    "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
   },
   "input_contracts": [
     "qualified-intake:field-contract:2"
@@ -13,7 +13,7 @@
   ],
   "guard_profile_ref": {
     "id": "guard_profile.json",
-    "sha256": "45bde5dc856deee5e2ac4c66b812c893e67750628ba6319a6c1b30306d07d59d"
+    "sha256": "3d8597307df174a5e7c65e54bc01dd650bf70bb0f54ec04b668b53a7d60b6110"
   },
   "synthetic": true
 }

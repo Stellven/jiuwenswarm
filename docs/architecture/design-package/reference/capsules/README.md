@@ -28,8 +28,9 @@ Internal names are lowercase only. Docker runs on Linux, where `Research_Brief.j
 |---|---|---|
 | Artifact type | lowercase snake_case noun | `research_brief` |
 | Artifact file | artifact type plus extension | `research_brief.json` |
-| Port name | lowercase snake_case role name. Use the artifact type unless one CC takes two artifacts of the same type | `brief`, `candidate_set` |
+| Port name | lowercase snake_case short role name. A port may use its artifact type or a shorter role name. The Brief port is always `brief`. Two ports of one CC that take the same artifact type need distinct names | `brief`, `candidate_set`, `manifest`, `baseline_resource` |
 | Check ID and criterion ID | lowercase snake_case | `score_range`, `declared_output_conformance` |
+| Schema check ID | every output port has one blocking schema check named `<port>_schema`. The CC declaration, the check bundle and the page use the same ID | `candidate_set_schema`, `manifest_schema` |
 | CC name | lowercase dotted `<area>.<capability>` | `research.screening` |
 | Contract ID | existing lowercase kebab IDs stay as they are | `candidate-set:field-contract:2` |
 | Enum values | keep the spelling of the owning schema or table | `PASS`, `single_gpu` |

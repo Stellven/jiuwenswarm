@@ -11,7 +11,7 @@
 
 ## Purpose and place in the run
 
-Hypothesis is stage 3.5. It follows Screening and precedes Builder in the static template. The Planner does not select it. It is a fixed node: one run, one opportunity, one hypothesis. It writes the experimental design and does not write code (PRD 3.5.5).
+Hypothesis is stage 3.5. It follows Screening and precedes Builder in the static template. It is a fixed node: one run, one opportunity, one hypothesis. It writes the experimental design and does not write code (PRD 3.5.5).
 
 ## Declaration
 
@@ -23,7 +23,7 @@ Declaration example: [hypothesis_capsule.json](../examples/hypothesis_capsule.js
 | Needs | model bridge, no network, no tools |
 | Effect class | `read_only` (model call only) |
 | Budget | 180 s wall, 1 invocation, hard |
-| Pinned check bundle | The declaration pins `output_structure`, `rules_reference_declared_metrics` and `boundaries_disjoint`. The protected binder adds the other mandatory host checks below. The Planner cannot drop or weaken any of them. |
+| Pinned check bundle | The declaration pins `blueprint_schema`, `rules_reference_declared_metrics` and `boundaries_disjoint`. The protected binder adds the other mandatory host checks below. The Planner cannot drop or weaken any of them. |
 
 ## Inputs
 
@@ -153,7 +153,7 @@ The host runs these before the verifier. Checks marked "Output" read only the bl
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `output_structure` | Output. Matches the field contract: types, required fields, every enum and range above, ComparisonRule factor rules, finite numbers. | reject |
+| `blueprint_schema` | Output. Matches the field contract: types, required fields, every enum and range above, ComparisonRule factor rules, finite numbers. | reject |
 | `rules_reference_declared_metrics` | Output. Each `outcome_rules.metric_id` is a declared `metric_id`. Each declared metric has exactly one rule. | reject |
 | `dependent_variables_match_metrics` | Output. `dependent_variables` equals the `metric_id` set. | reject |
 | `rule_direction_consistent` | Output. Success and falsification comparators match `direction` as the OutcomeRule table says. | reject |

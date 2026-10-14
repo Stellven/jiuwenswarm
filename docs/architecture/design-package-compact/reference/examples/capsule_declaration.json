@@ -30,7 +30,7 @@
     "outputs": [
       {
         "name": "intent",
-        "artifact_type": "intent-ir",
+        "artifact_type": "intent_ir",
         "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
         "required": true,
         "description": "Attributed interpretation, not Requirements",
@@ -116,7 +116,7 @@
     ],
     "evals": [],
     "unanchored": [
-      "Semantic fidelity/usability require independently assigned runtime verification"
+      "Request fidelity and downstream usability are producer obligations backed by deterministic host checks, not verifier criteria"
     ]
   },
   "budget": {

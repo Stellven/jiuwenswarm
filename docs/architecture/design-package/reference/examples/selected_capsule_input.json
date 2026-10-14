@@ -156,16 +156,16 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
+    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
   },
   "subnode_contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "ce2d11dad7bb4796ef8b0f867a4d38206d81883986f5ef434dd8e366ed757b51"
+    "sha256": "c4a3a8f025d5fbca56c61d6fd5020e68e39cc6864022ef136e141884b2385886"
   },
   "bound_context": {
     "runtime": {
       "run_id": "run:example",
-      "node_id": "intention.compiler",
+      "node_id": "intention_compiler",
       "subnode_id": "intention",
       "attempt_id": "attempt:1",
       "invocation_id": "invocation:routing-teaching-example"

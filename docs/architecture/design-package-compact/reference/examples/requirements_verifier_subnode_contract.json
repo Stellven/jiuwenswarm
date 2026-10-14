@@ -1,13 +1,17 @@
 {
   "id": "subnode-contract:requirements.verifier",
   "run_id": "run:example",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:1",
   "objective": "Assess submitted artifact against protected assigned criteria without modifying work or controlling flow",
   "input_refs": [
     {
-      "id": "requirements_review_context.json",
-      "sha256": "3d212c5c963bd0faa71e95f5745ed6a31f30f95c7c78dd75dcfc7f2275faeb66"
+      "id": "requirements_capsule.json",
+      "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
+    },
+    {
+      "id": "research_brief.json",
+      "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
     }
   ],
   "required_outputs": [
@@ -28,7 +32,7 @@
       "role": "verifier",
       "declaration_ref": {
         "id": "verifier_capsule.json",
-        "sha256": "dad108536e6b23b9fc4c65e287d27a15ffd9e2ef8718d93fe4f9df3aea73e64a"
+        "sha256": "0fe08599f9ddc38bdb71feea8adfa43038fc937e26352b9dcdbb6589b6712bae"
       },
       "implementation_refs": [
         {
@@ -46,8 +50,12 @@
         "network_allowlist": [],
         "resource_reads": [
           {
-            "id": "requirements_review_context.json",
-            "sha256": "3d212c5c963bd0faa71e95f5745ed6a31f30f95c7c78dd75dcfc7f2275faeb66"
+            "id": "requirements_capsule.json",
+            "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
+          },
+          {
+            "id": "research_brief.json",
+            "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
           }
         ],
         "write_roots": [
@@ -66,21 +74,33 @@
   ],
   "inputs": [
     {
-      "name": "review_context",
-      "contract_id": "review-context:field-contract:2",
-      "version": "2.0.0",
+      "name": "subject_declaration",
+      "contract_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "version": "1.0.0",
       "required": true,
       "artifact_refs": [
         {
-          "id": "requirements_review_context.json",
-          "sha256": "3d212c5c963bd0faa71e95f5745ed6a31f30f95c7c78dd75dcfc7f2275faeb66"
+          "id": "requirements_capsule.json",
+          "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
+        }
+      ]
+    },
+    {
+      "name": "subject_output",
+      "contract_id": "opaque-bytes",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "research_brief.json",
+          "sha256": "9e75e9cdd206701384dca9ea7aa3c83562f5846b5b8cfc5a2786be6fd8d4258f"
         }
       ]
     }
   ],
   "outputs": [
     {
-      "name": "assessment",
+      "name": "verifier_assessment",
       "contract_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
       "version": "1.0.0",
       "required": true
@@ -92,7 +112,7 @@
   ],
   "guard_profile_ref": {
     "id": "requirements_guard_profile.json",
-    "sha256": "9bb21bc0de8ab59af3f021b4af6d238aadc1143473bc141b0f8c5625971e57b6"
+    "sha256": "d9d16af36505c981275b12e2e05e5e765c67b2b4ebca8d4f56a1d2d2a525bacc"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
@@ -100,12 +120,12 @@
   },
   "template_ref": {
     "id": "verifier_subnode_template.json",
-    "sha256": "f1d6852ce1a654656a7442733b22476d57af9ca00a877fea4432c7b9f73acf48"
+    "sha256": "271bd089e735f4e8f778d7f735cdc52c1b15b66477b6a15ac2c1da16dd5f88fa"
   },
   "subnode_id": "requirements.verifier",
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "940e71de3c16ba3e57595e7919634db749afff98bc1694583338b9cc42535fa6"
+    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
   },
   "subnode_limits": {
     "time_s": 60,

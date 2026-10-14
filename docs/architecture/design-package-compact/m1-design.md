@@ -36,7 +36,7 @@ flowchart TB
     E --> T[Deliver report and evidence]
 ```
 
-Search → Screening → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery is one governed research sequence. Every stage uses the shared capture/check/verifier/protected-commit boundary. The diagram abbreviates those repeated boundaries. Scientific FAIL may be a valid accepted result, not infrastructure failure.
+Search → Screening → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery is one governed research sequence. Every stage uses the shared capture/check/verifier/protected-commit boundary. The diagram abbreviates those repeated boundaries. Scientific FAIL may be a valid accepted result, not infrastructure failure. The static template and the Planner both yield a [`run_plan`](reference/run-plan.md) ([D26](decision-review.md#d26)). An infeasible plan starts a linked Intention Compiler attempt. The scientific Research Benchmark CC is not the platform benchmark. Builder produces build evidence only.
 
 ## Execution and model routing
 
@@ -81,7 +81,7 @@ SQLite owns durable lifecycle/release state. Immutable files retain artifacts an
 | Scope | Build and acceptance meaning |
 |---|---|
 | Assigned core | Fixed Compiler → bounded Planner proposal → independent binding/checking/freeze → governed Search-to-Delivery journey, required resources, evidence and product control/inspection boundaries |
-| Static baseline | Existing fixed sequence is retained and explicitly selected before a run; it is not silent recovery or proof that planning works |
+| Static template | Built first, selected before a run, same [`run_plan`](reference/run-plan.md) type. Not silent recovery or proof that planning works |
 | Independent RSI | Separate offline target, pinned parent, unchanged referee and isolated candidate evidence; absence cannot block the core |
 | Broader product continuation | Advanced compilation, heterogeneous routing, alternate-verifier studies and Code Mode remain separately scoped; Generalist/MCTS/composition refinement and later lifecycle work do not enter the core by implication |
 

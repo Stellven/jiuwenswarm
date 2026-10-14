@@ -1095,9 +1095,9 @@
       ]
     },
     {
-      "id": "dispatch-record:field-contract:1",
+      "id": "dispatch-record:field-contract:2",
       "name": "dispatch-record",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "producer": "scheduler",
       "consumers": [
         "run state",

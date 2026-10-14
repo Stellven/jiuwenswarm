@@ -8,7 +8,9 @@
 - Two sources produce the same run plan type through the same binder and freeze. A hand-authored **static template** (build step 1, the M1 default) and a **plan proposal** from the Planner (build step 2).
 - The binder rejects a bad plan before dispatch. It copies check pins from the library. Neither the template author nor the Planner can change them.
 - After freeze there is no replan, substitution or pin change. Future values bind only to gate-accepted outputs, at dispatch.
-- The scheduler writes one **dispatch record** per node attempt.
+- The scheduler writes one **dispatch record** per node attempt. It first turns the frozen node into one Node Execution Contract with one work subnode and one verifier subnode for each output (see [From run plan node to execution contracts](#from-run-plan-node-to-execution-contracts)).
+- The **plan gate** accepts the bound plan. In planned mode it uses the Planner CC's pinned bundle and profile. In static mode the template is a protected, pre-admitted record, so only deterministic checks run and no verifier runs.
+- A failed blocking check or criterion halts the node and keeps the candidate and its evidence. Nothing retries or repairs it (decision D4, PRD 4.8.3).
 - An infeasible or rejected plan halts the run and records a `plan_infeasible` **plan outcome**. The host starts a new, linked Intention Compiler attempt that carries the Brief ref and the reasons. There is no repair inside the same run (decision D4, PRD 4.8.3).
 
 ## Build order
@@ -149,7 +151,7 @@ Examples: [valid](examples/plan_policy.json)
 
 ## Static template
 
-Producer: Architect, by hand. It uses the same `PlanNode` shape as a plan proposal (see [node fields](capsules/planner.md#node-fields)). A template names fixed CC versions and fixed bindings. Brief inputs use `run_input_key: brief`. The binder resolves it to the accepted Brief ref. The Search node uses `run_input_key: search_scope`. The binder builds that scope from the run configuration and the resource inventory, with empty `topic_hints`. Resource inputs use their `resource_key`. The rubric, the build receipt and the gate decision index are host records (`source_kind: host_record`).
+Producer: Architect, by hand. It uses the same `PlanNode` shape as a plan proposal (see [node fields](capsules/planner.md#node-fields)). A template names fixed CC versions and fixed bindings. Brief inputs use `run_input_key: brief`. The binder resolves it to the accepted Brief ref. The Search node uses `run_input_key: search_scope`. The binder builds that scope from the run configuration and the resource inventory, with empty `topic_hints`. Resource inputs use their `resource_key`. The rubric, the build receipt, the gate decision index and the five Delivery records (`screening_result`, `execution_receipt`, `provisioning_receipt`, `environment_lock`, `run_configuration`) are host records (`source_kind: host_record`).
 
 `static-template:field-contract:1`
 
@@ -184,7 +186,7 @@ Producer: protected binder and freeze. Consumers: scheduler, guard resolver, run
 | `policy_ref` | `Ref` | yes | the pinned policy | Plan policy the checks used. |
 | `configuration_ref` | `Ref` | yes | the frozen run configuration | Effective run configuration. |
 | `source_ref` | `Ref` | yes | a static template when `mode` is `static`, a plan proposal when `mode` is `planned` | The unmodified source the binder started from. |
-| `acceptance_ref` | `Ref` | yes | a gate decision with action `advance` | Committed acceptance of the bound plan. Dispatch cannot start without it. |
+| `acceptance_ref` | `Ref` | yes | when `mode` is `planned`, a gate decision with action `advance`. When `mode` is `static`, a deterministic check result in which every check is `PASS` | Committed acceptance of the bound plan, from the [plan gate](#plan-gate). Dispatch cannot start without it. |
 | `nodes` | `RunPlanNode[]` | yes | 1 to 12 nodes | Bound nodes with resolved accepted refs and copied check pins. |
 | `topological_order` | `string[]` | yes | each node ID once, every node after all its predecessors | Dispatch order computed by the binder. M1 runs nodes one at a time in this order. |
 | `limits` | `Limits` | yes | same rule as a plan proposal | Aggregate ceiling for the whole plan. |
@@ -194,7 +196,7 @@ Producer: protected binder and freeze. Consumers: scheduler, guard resolver, run
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the plan | Name of this node in the graph, for example `screening`. Never reused. |
+| `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the plan | Name of this node in the graph, for example `screening`. Never reused. The same pattern holds for every node ID in the system, including the fixed `intention_compiler` and `planner` nodes. |
 | `cc` | `CcPin` | yes | must match one library entry with `selectable_by_planner` true | The one CC version this node runs. M1 binds one CC per node. |
 | `objective` | `string` | yes | 1 to 300 characters | One plain sentence on what this node does for the run. |
 | `requirement_ids` | `string[]` | yes | each an ID in the Brief `mandatory_requirements`, at most 40 | Mandatory Brief requirements this node helps satisfy. |
@@ -212,11 +214,26 @@ Examples: [valid (from the static template)](examples/run_plan.json)
 
 How the binder builds it:
 
-1. Run the [host check bundle](capsules/planner.md#deterministic-check-bundle) on the source. For a static template the Planner-specific parts (`mode` value, `accepted_ref` empty) use `static`.
+1. Run the [host check bundle](capsules/planner.md#deterministic-check-bundle) on the source. For a static template the Planner-specific parts (`mode` value, `accepted_ref` empty) use `static`, and the structure check is `template_structure`. Validate the bound plan against `run-plan:field-contract:1` (`run_plan_structure`).
 2. Resolve each accepted-ref `run_input_key` to an exact `accepted_ref` (the Brief, a resource ref, or the `search_scope` record the binder builds from the run configuration, the resource inventory and the proposal `topic_hints`). Host records stay unresolved until dispatch.
 3. Copy `effect_class` and `check_pins` from each library entry. Copy `suggested_checks` that exist in the check registry into `extra_check_ids`.
 4. Compute `topological_order`.
-5. Submit the bound plan to the plan gate. On `advance`, store `acceptance_ref` and set `frozen` to true. When any step above fails, or the gate does not advance, write a `plan_infeasible` [plan outcome](#plan-outcome). No run plan is frozen.
+5. Submit the bound plan to the [plan gate](#plan-gate). When it accepts, store `acceptance_ref` and set `frozen` to true. When any step above fails, or the gate does not advance, write a `plan_infeasible` [plan outcome](#plan-outcome). No run plan is frozen.
+
+### Plan gate
+
+The plan gate accepts or rejects the bound plan. Its record is stored as `acceptance_ref`. The plan source decides which gates apply.
+
+| Mode | Checks | Verifier | Acceptance record |
+|---|---|---|---|
+| `planned` | The check bundle and checking profile pinned in the Planner CC's library entry (`check_pins`). These are the eleven host checks and the five criteria of the [Planner page](capsules/planner.md#deterministic-check-bundle). Nobody can change them for this run. | No new call. The decision reuses the assessment of the Planner node attempt, which reviewed the same proposal bytes with the Planner profile. | A gate decision with action `advance` |
+| `static` | Deterministic checks only: `template_structure` and the nine shared host checks of the Planner page (`brief_coverage`, `library_membership`, `port_type_compatibility`, `dependency_closure`, `acyclicity`, `mandatory_check_bundle_present`, `effects_within_policy`, `resource_feasibility`, `budget_ceilings`). `suggested_checks_known` does not apply, because a template suggests nothing. | None. The template is a protected, pre-admitted record that the Architect wrote and admission approved. There is no model output to review. | A deterministic check result in which every check is `PASS` |
+
+`template_structure` validates the template against `static-template:field-contract:1`. It checks field types, enums, patterns, lengths, a node count at most the policy `max_nodes`, `mode` equal to `static` and no `accepted_ref`. It is the static counterpart of `plan_proposal_schema`.
+
+The bound check plan of a plan-gate check names the plan source (template or proposal) in both `contract_ref` and `node_contract_ref`, because no Node Execution Contract exists before the freeze. Its `subnode_id` is null. Gate decision schema 2.0.0 needs an assessment for `advance`. That is why the static acceptance is a check result and not a gate decision. A plan gate that does not accept writes a `plan_infeasible` [plan outcome](#plan-outcome).
+
+Examples: [static plan checks](examples/static_plan_checks.json) with its [check plan](examples/static_plan_check_plan.json) and [profile](examples/static_plan_profile.json) · planned mode profile: [planner_gate_profile](examples/planner_gate_profile.json)
 
 ### Gates on planned CCs
 
@@ -224,29 +241,74 @@ Every admitted CC version has a prewritten check bundle and a checking profile. 
 
 ### Freeze
 
-After freeze the scheduler may not replan, substitute a CC, change a pin or edit a limit. Later library, bundle or policy changes do not affect the run. A changed graph or objective needs a new plan, a new binding and a new freeze, as a new run. Future input values stay references. At dispatch the scheduler binds each `future_output` input only to an output that the producer node's gate accepted. A rejected output is never bound. It builds each `host_record` input from the accepted records of the run: the receipt of the accepted Builder attempt for `build_receipt`, and one entry per accepted node attempt for `gate_decision_index`.
+After freeze the scheduler may not replan, substitute a CC, change a pin or edit a limit. Later library, bundle or policy changes do not affect the run. A changed graph or objective needs a new plan, a new binding and a new freeze, as a new run. Future input values stay references. At dispatch the scheduler binds each `future_output` input only to an output that the producer node's gate accepted. A rejected output is never bound. It builds each `host_record` input from the accepted records of the run: the receipt of the accepted Builder attempt for `build_receipt`, one entry per accepted node attempt, naming its node-scope gate decision, for `gate_decision_index`, the accepted Screening result for `screening_result`, the accepted Benchmark receipts for `execution_receipt` and `provisioning_receipt`, and the run's prepared lock and frozen configuration for `environment_lock` and `run_configuration`.
+
+## From run plan node to execution contracts
+
+At dispatch the scheduler builds the contracts of one attempt from one frozen node. It chooses nothing. It copies or derives every value, so the contracts cannot widen what the plan pinned. The contracts are the [Node Execution Contract](node-execution.md#enclosing-node) (node scope) and its [Subnode Execution Contracts](node-execution.md#concrete-subnode).
+
+Two identities tie every record of an attempt together.
+
+- `run_id` is a string that the host assigns at intake, with pattern `^[a-z0-9][a-z0-9_.:-]{0,63}$`. Every run-state record carries it: contracts, check plans, gate decisions and dispatch records.
+- `attempt_id` is a string that the scheduler builds as `<node_id>-a<attempt>`, for example `evaluation-a1`. A new attempt gets a new `attempt_id`.
+
+| Run plan item | Becomes | Rule |
+|---|---|---|
+| One frozen `run_plan` node | One Node Execution Contract, node scope | `node_id`, `objective` and `requirement_ids` are copied. `run_id`, `attempt_id`, `policy_ref` and `configuration_ref` come from the run. |
+| Node `inputs` | Contract `inputs` and `input_refs` | One entry per input name. Each ref is the exact bound artifact of the dispatch record. |
+| Node `outputs` | Contract `outputs` and `required_outputs` | One entry per output port. |
+| Node `limits` | Contract `node_limits` | Copied. The parent reserves the verifier spend separately inside these limits. |
+| Node `effect_class` with the CC declaration `needs` | Contract `authority_ceiling` | Never wider than the declaration and the plan policy. |
+| Node `cc` | One work subnode of the contract | `role` work, `subnode_id` equal to `node_id`, `capsule_ref` the CC declaration. It is a Subnode Execution Contract. |
+| Node `check_pins` and each output port | One verifier subnode for each output | `role` verifier, `capsule_ref` the Verifier CC declaration, `depends_on` the work subnode. `subnode_id` is `<node_id>.verifier` when the node has one output and `<node_id>.verifier.<port>` when it has several. Each is a Subnode Execution Contract. The checking profile pin gives its guard profile. |
+| Node `check_pins` | Bound check plans | The work subnode contract gets one bound check plan, built from the pinned bundle and profile and the exact inputs. The node contract gets the node-scope plan (`internal_acceptance`, `external_output`, `aggregate_limits`). |
+
+A gate decision (schema 2.0.0) takes these values.
+
+| Gate decision field | Node-scope decision | Per-output subnode-scope decision |
+|---|---|---|
+| `run_id`, `attempt_id`, `node_id` | From the dispatch record | The same |
+| `scope_kind`, `subnode_id` | `node`, null | `subnode`, the work subnode ID |
+| `node_contract_ref` | The node contract | The same node contract |
+| `contract_ref` | The node contract (equal to `node_contract_ref`) | The work subnode contract |
+| `check_plan_ref` | The node-scope bound check plan (the dispatch record `check_plan_ref`) | The bound check plan of the work subnode contract |
+| `deterministic_result_ref` | The result of the node checks | The result of the pinned check bundle on that output |
+| `assessment_ref` | The assessment of the first declared output. The others are reachable through `internal_decision_refs` | The assessment of that output |
+| `output_refs`, `accepted_refs` | All outputs | That output only |
+| `internal_decision_refs` | The per-output subnode decisions | Empty |
+
+The dispatch record names the node-scope decision in `gate_decision_ref` and lists the per-output decisions in `output_gate_decision_refs`. The [gate decision index](capsules/delivery.md#gate_decision_index) lists node-scope decisions only, one for each node.
+
+**Pre-plan nodes.** Two nodes run before a run plan exists: the Intention Compiler node (`intention_compiler`) and, in planned mode, the Planner node (`planner`). They are fixed nodes with a node contract of their own and are not run plan nodes. The scheduler records each with a dispatch record of phase `pre_plan` and a null `run_plan_ref`. The Intention Compiler record has null `cc` and `check_pins`, because its node contract pins two work CCs (Intent and Requirements). The Planner record pins the Planner CC and its `check_pins` from the library snapshot. Every node of the frozen run plan has phase `planned` and a non-null `run_plan_ref`. Static mode has no Planner node.
+
+Examples: [node contract](examples/science_node_contract.json) · [work subnode contract](examples/science_subnode_contract.json) · [verifier subnode contract](examples/science_verifier_subnode_contract.json) · [per-output decision](examples/gate_science_pass.json) · [node-scope decision](examples/gate_science_node_pass.json) with its [check plan](examples/science_node_check_plan.json) and [checks](examples/science_node_checks.json)
 
 ## Dispatch record
 
 Producer: scheduler. The scheduler writes one record per node attempt, at the end of the attempt. A restart marks an unfinished attempt `interrupted`. Records are append-only and a failed attempt is never overwritten.
 
-`dispatch-record:field-contract:1`
+`dispatch-record:field-contract:2` (version 2.0.0: adds `run_id`, `attempt_id`, `phase`, `node_contract_ref` and `output_gate_decision_refs`, and makes `run_plan_ref`, `cc` and `check_pins` nullable for pre-plan nodes)
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
+| `schema_version` | `string` | yes | exactly `2.0.0` | Format version 2.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this record. |
-| `run_plan_ref` | `Ref` | yes | the frozen run plan of this run | Plan the dispatch belongs to. |
-| `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, a node of the run plan | Node dispatched. |
-| `cc` | `CcPin` | yes | equal to the run plan node `cc` | CC version that ran. |
+| `run_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.:-]{0,63}$` | Run this record belongs to. The host assigns it at intake. Every run-state record carries it. |
+| `attempt_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.:-]{0,63}$`, equal to `<node_id>-a<attempt>` | Identity of this node attempt, for example `evaluation-a1`. The node contract, check plans and gate decisions of the attempt carry it. |
+| `phase` | `string` | yes | enum `pre_plan`, `planned` | `pre_plan`: the Intention Compiler node or the Planner node, which run before a run plan exists. `planned`: a node of the frozen run plan. |
+| `run_plan_ref` | `nullable-Ref` | yes | the frozen run plan of this run. Null only when `phase` is `pre_plan` | Plan the dispatch belongs to. |
+| `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`. When `phase` is `planned`, a node of the run plan. When `pre_plan`, `intention_compiler` or `planner` | Node dispatched. |
+| `cc` | `nullable-CcPin` | yes | equal to the run plan node `cc`, or to the Planner library entry pin for node `planner`. Null only for node `intention_compiler` | CC version that ran. The Intention Compiler node has two work CCs, pinned in its node contract. |
+| `node_contract_ref` | `Ref` | yes | the node-scope Node Execution Contract built for this attempt. Its `run_id`, `node_id` and `attempt_id` equal this record | Contract the attempt ran under. See [From run plan node to execution contracts](#from-run-plan-node-to-execution-contracts). |
 | `bound_input_refs` | `BoundInput[]` | yes | one per node input that was bound, names unique, at most 16 | Exact accepted artifacts passed in. |
-| `check_pins` | `CheckPins` | yes | equal to the run plan node `check_pins` | Check bundle and profile that applied. |
-| `check_plan_ref` | `Ref` | yes | a bound check plan | Bound check plan built for this attempt. |
+| `check_pins` | `nullable-CheckPins` | yes | equal to the run plan node `check_pins`. Null exactly when `cc` is null | Check bundle and profile that applied. |
+| `check_plan_ref` | `Ref` | yes | a bound check plan of the node scope, whose `node_contract_ref` equals this record's | Bound check plan built for this attempt. |
 | `attempt` | `integer` | yes | 1 to the node `max_attempts` | Attempt number. A new attempt is a new record. |
 | `started_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | Dispatch start time. |
 | `ended_at` | `nullable-string` | yes | null only for outcome `interrupted`, otherwise UTC `YYYY-MM-DDTHH:MM:SSZ` | End time. |
-| `outcome` | `string` | yes | enum | How the attempt ended. `accepted`: the gate accepted the outputs. `rejected`: checks or verifier did not pass. `halted`: protected stop. `failed`: execution or infrastructure error. `budget_exhausted`: a limit was hit. `interrupted`: the process ended before a decision. |
-| `gate_decision_ref` | `nullable-Ref` | yes | null only for outcomes `failed`, `budget_exhausted` and `interrupted` | Gate decision for this attempt. |
+| `outcome` | `string` | yes | enum | How the attempt ended. `accepted`: the gate accepted the outputs. `rejected`: a blocking check or criterion failed, so the node halted and its candidate and evidence are kept. `halted`: protected stop. `failed`: execution or infrastructure error. `budget_exhausted`: a limit was hit. `interrupted`: the process ended before a decision. |
+| `gate_decision_ref` | `nullable-Ref` | yes | a node-scope gate decision (`scope_kind` `node`). Null only for outcomes `failed`, `budget_exhausted` and `interrupted` | Gate decision for this attempt. |
+| `output_gate_decision_refs` | `Ref[]` | yes | empty exactly when `gate_decision_ref` is null, at most 16. Equal to the `internal_decision_refs` of the node-scope decision | The per-output subnode-scope decisions that the node-scope decision aggregates, one for each output reviewed. |
 | `output_refs` | `Ref[]` | yes | non-empty only for outcome `accepted`, at most 16 | Accepted outputs. Rejected output stays in evidence, not here. |
 | `elapsed_s` | `nullable-number` | yes | null or at least 0 | Observed wall time in seconds. |
 | `model_calls_used` | `nullable-integer` | yes | null or at least 0 | Observed model calls, null when unobserved. |
@@ -258,14 +320,16 @@ Producer: scheduler. The scheduler writes one record per node attempt, at the en
 | `name` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$` | Input port name. |
 | `ref` | `Ref` | yes | exact bytes of an accepted artifact | The accepted artifact the scheduler handed to this port. |
 
-Examples: [valid](examples/dispatch_record.json)
+Examples: [valid](examples/dispatch_record.json) (`evaluation` attempt 1, accepted)
 
 Scheduler rules:
 
 - Dispatch a node only when every predecessor has an `accepted` record.
 - Check that `cc`, `check_pins` and the input names equal the run plan node before the attempt.
 - `attempt` is at most the node `max_attempts` (1 in M1).
+- Nothing retries a node. A failed blocking check or criterion ends the attempt with outcome `rejected`: the node halts and keeps its candidate output and evidence. The scheduler starts no second attempt, and no worker repairs the output. A new attempt exists only when a person or a linked Intention Compiler attempt starts new work.
 - A blocking failure stops new dispatch for the whole run. In-flight attempts keep their records.
+- Set the dispatch record outcome from this table of attempt endings and never use another status word.
 
 ## Failure modes
 
@@ -282,6 +346,7 @@ The binder rejects before dispatch. Nothing runs and nothing is partially frozen
 | Brief item not covered | `brief_coverage` | reject, `plan_infeasible` |
 | Effect or network outside the policy | `effects_within_policy` | reject, `plan_infeasible` |
 | Needed resource missing | `resource_feasibility` | reject, `plan_infeasible` |
+| Template or proposal fails its structure check | `template_structure`, `plan_proposal_schema` | reject, `plan_infeasible` |
 | Plan gate does not advance | none | no run plan, `plan_infeasible` |
 | Planner replies `INFEASIBLE:` | none | no proposal, `plan_infeasible` |
 
@@ -289,7 +354,7 @@ The binder rejects before dispatch. Nothing runs and nothing is partially frozen
 
 Producer: protected binder and scheduler. Consumers: host run controller, the next Intention Compiler attempt, audit. The binder writes one record when it cannot freeze a plan. It records a rejected static template or plan proposal, a Planner infeasibility reply, or a plan gate that did not advance. The run halts at once. Nothing in the same run changes the plan, swaps in the static template or retries the Planner. This follows decision D4 and answers PRD 4.8.3, which sends an infeasible plan back to the Intention Compiler.
 
-Next step: the host starts a new Intention Compiler attempt that is linked to this outcome. The attempt receives the Brief ref (`brief_ref`) and the `reasons`, so the Compiler can change the Brief or say why it cannot. The new attempt is a new run. It may produce a changed Brief and a new plan. M1 allows at most two linked plan attempts for one request (`attempt_depth` 1 and 2). After the second outcome the host halts for a human and sets `linked_attempt_id` to null. The limit is a default for the configuration owner to confirm. The intake contract of the Intention Compiler needs an optional reference to this record. The Requirement owner owns that change.
+Next step: the host starts a new Intention Compiler attempt that is linked to this outcome. The attempt receives the Brief ref (`brief_ref`) and the `reasons`, so the Compiler can change the Brief or say why it cannot. The new attempt is a new run. It may produce a changed Brief and a new plan. M1 allows at most two linked plan attempts for one request (`attempt_depth` 1 and 2). After the second outcome the host halts for a human and sets `linked_attempt_id` to null. The limit is a default for the configuration owner to confirm. The intake carries this record as `prior_plan_outcome_ref` (see [qualified-intake](field-catalog.md#qualified-intake)). The Intent and Requirement CCs read the `reasons`. Each reason must be addressed or carried forward. Intent either resolves it in the Intent IR or lists it as an uncertainty. Requirements either resolves it in the Brief or lists it in `unresolved_items`. Neither CC drops a reason silently.
 
 `plan-outcome:field-contract:1`
 
@@ -298,11 +363,11 @@ Next step: the host starts a new Intention Compiler attempt that is linked to th
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this record. |
 | `outcome` | `string` | yes | enum `plan_infeasible` | The recorded halt outcome. It is the only value in M1. |
-| `trigger` | `string` | yes | enum `proposal_rejected`, `plan_rejected`, `planner_reported_infeasible` | What made the plan infeasible. `proposal_rejected`: a binder or proposal check rejected the proposal or template. `plan_rejected`: the plan gate did not advance. `planner_reported_infeasible`: the Planner replied `INFEASIBLE:`. |
+| `trigger` | `string` | yes | enum `proposal_rejected`, `plan_rejected`, `planner_reported_infeasible` | What made the plan infeasible. `proposal_rejected`: a binder or proposal check rejected the proposal or template. `plan_rejected`: in planned mode the plan gate did not advance. `planner_reported_infeasible`: the Planner replied `INFEASIBLE:`. |
 | `brief_ref` | `Ref` | yes | the accepted Brief the plan was meant to answer | The Brief that goes to the next Intention Compiler attempt. |
 | `source_ref` | `nullable-Ref` | yes | null only when `trigger` is `planner_reported_infeasible` | The rejected static template or plan proposal. |
-| `check_result_ref` | `nullable-Ref` | yes | a deterministic check result, or null when no check ran | The result that holds the failing check. |
-| `gate_decision_ref` | `nullable-Ref` | yes | a gate decision, or null when no gate decided | The plan gate decision, when there is one. |
+| `check_result_ref` | `nullable-Ref` | yes | a deterministic check result. Null only when `trigger` is `planner_reported_infeasible`, because no check ran | The result that holds the failing check. It is never null when a check ran. |
+| `gate_decision_ref` | `nullable-Ref` | yes | a plan gate decision. Non-null only when `trigger` is `plan_rejected`, which happens in planned mode. Null otherwise | The plan gate decision, when there is one. |
 | `reasons` | `PlanReason[]` | yes | 1 to 20 items | Why the plan is infeasible. Carried to the next attempt. |
 | `attempt_depth` | `integer` | yes | 1 to 3. M1 default limit 2 | Position of this plan attempt in the chain of linked attempts for one request. The first is 1. |
 | `next_stage` | `string` | yes | enum `intention_compiler` | Where the host sends the request next. |
@@ -339,8 +404,11 @@ Examples: [valid](examples/plan_outcome.json) (the cyclic proposal [plan_proposa
 | [plan_policy.json](examples/plan_policy.json) | valid |
 | [static_template.json](examples/static_template.json) | valid |
 | [run_plan.json](examples/run_plan.json) | valid, frozen, mode `static` |
-| [dispatch_record.json](examples/dispatch_record.json) | valid, `search` attempt 1 accepted |
-| [plan_outcome.json](examples/plan_outcome.json) | valid `plan_infeasible` outcome for the cyclic proposal |
+| [dispatch_record.json](examples/dispatch_record.json) | valid, `evaluation` attempt 1 accepted |
+| [science_node_check_plan.json](examples/science_node_check_plan.json), [science_node_checks.json](examples/science_node_checks.json), [gate_science_node_pass.json](examples/gate_science_node_pass.json) | node-scope check plan, check result and gate decision that the dispatch record names |
+| [static_plan_profile.json](examples/static_plan_profile.json), [static_plan_check_plan.json](examples/static_plan_check_plan.json), [static_plan_checks.json](examples/static_plan_checks.json) | plan gate for the static template. The run plan `acceptance_ref` names the checks |
+| [planner_gate_profile.json](examples/planner_gate_profile.json), [plan_outcome_check_plan.json](examples/plan_outcome_check_plan.json), [plan_outcome_checks.json](examples/plan_outcome_checks.json) | planned-mode gate profile, and the check plan and result behind the plan outcome |
+| [plan_outcome.json](examples/plan_outcome.json) | valid `plan_infeasible` outcome for the cyclic proposal. `check_result_ref` names the failing `acyclicity` result |
 
 Invalid proposals with the checks that reject them are listed on the [Planner page](capsules/planner.md#examples).
 

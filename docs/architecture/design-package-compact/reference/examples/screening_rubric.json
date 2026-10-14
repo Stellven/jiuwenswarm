@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0.0",
+  "id": "screening_rubric",
+  "dimensions": [
+    {
+      "name": "novelty",
+      "scale_min": 1,
+      "scale_max": 5,
+      "anchors": [
+        {
+          "score": 1,
+          "description": "Restates the cited baseline approach"
+        },
+        {
+          "score": 2,
+          "description": "Minor variation on the cited baseline"
+        },
+        {
+          "score": 3,
+          "description": "Known technique applied to this baseline in a new place"
+        },
+        {
+          "score": 4,
+          "description": "Combines known techniques in a way the cited sources do not"
+        },
+        {
+          "score": 5,
+          "description": "Introduces a mechanism the cited sources do not describe"
+        }
+      ]
+    },
+    {
+      "name": "feasibility",
+      "scale_min": 1,
+      "scale_max": 5,
+      "anchors": [
+        {
+          "score": 1,
+          "description": "Needs infrastructure or skills outside the baseline stack"
+        },
+        {
+          "score": 2,
+          "description": "Needs large changes to the baseline code"
+        },
+        {
+          "score": 3,
+          "description": "Needs moderate changes in standard Python or PyTorch"
+        },
+        {
+          "score": 4,
+          "description": "Needs a small bounded change in standard Python or PyTorch"
+        },
+        {
+          "score": 5,
+          "description": "Needs a trivial change in standard Python or PyTorch"
+        }
+      ]
+    },
+    {
+      "name": "compute_alignment",
+      "scale_min": 1,
+      "scale_max": 5,
+      "anchors": [
+        {
+          "score": 1,
+          "description": "Exceeds a Brief hardware constraint"
+        },
+        {
+          "score": 2,
+          "description": "Needs more than the constraint allows without major workarounds"
+        },
+        {
+          "score": 3,
+          "description": "Fits the constraint only with careful tuning"
+        },
+        {
+          "score": 4,
+          "description": "Fits the constraint with margin"
+        },
+        {
+          "score": 5,
+          "description": "Fits the constraint with large margin and short runs"
+        }
+      ]
+    }
+  ],
+  "total_rule": "sum",
+  "tie_rule": "ascending_idea_id",
+  "selection_rule": "top_1",
+  "forbidden_dependencies": [
+    {
+      "id": "dep:proprietary_model",
+      "description": "Needs an unreleased or proprietary model",
+      "match_terms": [
+        "proprietary model",
+        "unreleased model"
+      ]
+    },
+    {
+      "id": "dep:closed_dataset",
+      "description": "Needs a closed or unavailable dataset",
+      "match_terms": [
+        "closed dataset",
+        "private dataset"
+      ]
+    }
+  ],
+  "reason_max_chars": 300
+}

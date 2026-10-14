@@ -54,7 +54,7 @@ These are expected design outcomes, not observed runtime test passes. Executable
 | Challenge | Designed outcome | Boundary |
 |---|---|---|
 | Actionable request, optional omissions | Intent schema passes; verifier accepts usable purpose/result; method and experiment details remain downstream | [intent-design.md](intent-design.md) |
-| Topic-only request | Shape/fidelity may pass; semantic usability is INCONCLUSIVE; gate halts before Requirements | [intent-design.md](intent-design.md) |
+| Topic-only request | Shape may pass; usability is a producer obligation and host checks block the Brief; gate halts before Requirements | [intent-design.md](intent-design.md) |
 | Conflicting constraints / invented goal / missing exclusion | Valid shape cannot rescue invalid interpretation; verifier reports failed/unclear obligation | [reference/intent-and-requirements.md](reference/intent-and-requirements.md) |
 | Candidate instruction injection | Treat content as evidence; no policy change or replacement interpretation | [guard-design.md](guard-design.md) |
 | Malformed compiler/verifier or stale/swapped subject | Mechanical checks halt; no old decision reused | [reference/checking.md](reference/checking.md) |

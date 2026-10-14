@@ -6,7 +6,7 @@
   },
   "review_context_ref": {
     "id": "verifier_review_manifest.json",
-    "sha256": "4aab40d81d22ef929c7ed218c4e4508127ad354fea57b8d1f1b2dbedc9c0a581"
+    "sha256": "cd42e09b5c60faaddaf95a9ae8ab79048959d8fd1d0cd99dbe171426028da7a5"
   },
   "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
   "findings": [
@@ -17,7 +17,7 @@
       "evidence_refs": [
         {
           "id": "screening_capsule.json",
-          "sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d"
+          "sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e"
         },
         {
           "id": "screening_result.json",
@@ -32,7 +32,7 @@
       "evidence_refs": [
         {
           "id": "screening_capsule.json",
-          "sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d"
+          "sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e"
         },
         {
           "id": "screening_result.json",
@@ -47,7 +47,7 @@
       "evidence_refs": [
         {
           "id": "screening_capsule.json",
-          "sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d"
+          "sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e"
         },
         {
           "id": "screening_result.json",

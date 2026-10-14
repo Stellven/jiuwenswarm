@@ -3,7 +3,7 @@
   "id": "rsi_child_candidate",
   "declaration_ref": {
     "id": "ranking_child_declaration.json",
-    "sha256": "366ab50e913adbc56b9b51f1779f1497e4d75d61aefd84ce3343522cf20a4f40"
+    "sha256": "c99fae0331c059417ca2bd6fe2690e2da6e8e72e0b44a92395725aed3968f3f4"
   },
   "implementation_refs": [
     {

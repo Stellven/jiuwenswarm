@@ -9,7 +9,7 @@
       "cc": {
         "cc_name": "research.search",
         "cc_version": "example-2",
-        "declaration_sha256": "28c2556691bc0ed66e0bac9587f089603745fd5e910b1cc9af380c192036feab"
+        "declaration_sha256": "b0187d00f33522d795eac9962226db601145a82b7685954b465d66193443f209"
       },
       "objective": "Find grounded candidate ideas for the Brief",
       "requirement_ids": [
@@ -57,7 +57,7 @@
       "cc": {
         "cc_name": "research.screening",
         "cc_version": "example-2",
-        "declaration_sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d"
+        "declaration_sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e"
       },
       "objective": "Score candidates and select one opportunity",
       "requirement_ids": [
@@ -125,7 +125,7 @@
       "cc": {
         "cc_name": "research.hypothesis",
         "cc_version": "example-1",
-        "declaration_sha256": "8c5cab3416d7aee037f153f2d9eb97803a19964b44d7943457d659eac9277899"
+        "declaration_sha256": "57936b5e897f23951637a58ccb354e03c6b3a33e7bf81a852693c599f5b37841"
       },
       "objective": "State one hypothesis and freeze the measurement protocol",
       "requirement_ids": [
@@ -197,7 +197,7 @@
       "cc": {
         "cc_name": "research.builder",
         "cc_version": "example-1",
-        "declaration_sha256": "b40dd25880ef4be4adb411e0d0612e26a117ed227daf9e6cdff17cf2f340d6ad"
+        "declaration_sha256": "297675c8a8793a00646ab2d8dd2c8a81fa85298ab585abf46185569938ecc16a"
       },
       "objective": "Build the proof of concept patch and benchmark runner",
       "requirement_ids": [
@@ -274,7 +274,7 @@
       "cc": {
         "cc_name": "research.benchmark",
         "cc_version": "example-1",
-        "declaration_sha256": "b38b3c1e8259a2f27b43afba49723b2e1ce3363a66da24371e10e4eac8bd22e1"
+        "declaration_sha256": "85d9b870961ae694fe489cbbf9087649ea936d598f0d398c226570efccf21f45"
       },
       "objective": "Measure baseline then treatment on the local GPU",
       "requirement_ids": [
@@ -392,7 +392,7 @@
       "cc": {
         "cc_name": "research.evaluation",
         "cc_version": "example-1",
-        "declaration_sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+        "declaration_sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
       },
       "objective": "Classify the result with the registered rules",
       "requirement_ids": [
@@ -432,7 +432,7 @@
           }
         },
         {
-          "name": "research_brief",
+          "name": "brief",
           "artifact_type": "research_brief",
           "required": true,
           "source_kind": "accepted_ref",
@@ -460,7 +460,7 @@
       "cc": {
         "cc_name": "research.delivery",
         "cc_version": "example-1",
-        "declaration_sha256": "cdfe008f9bba380d6684528cd3d6498fe8509d95d9dcf9a062a45c69be1ae3d9"
+        "declaration_sha256": "428be52d7b5b276cbbb4bc77f5326d7db667703f2e23ef04286a260b0ad74cb7"
       },
       "objective": "Write the report and delivery manifest",
       "requirement_ids": [
@@ -572,6 +572,51 @@
           "required": true,
           "source_kind": "host_record",
           "run_input_key": "gate_decision_index",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "screening_result",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "execution_receipt",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "provisioning_receipt",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "environment_lock",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "run_configuration",
+          "artifact_type": "run_configuration",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "run_configuration",
           "accepted_ref": null,
           "future": null
         }

@@ -102,9 +102,16 @@
 | D14 | Account for broader product stages/phases; D19 separates assigned core acceptance from later efforts | §§1.3, 6.12, 6.14; preliminary Leader checks never replace plan acceptance |
 | D15 | Independent guard profiles and output-led evidence review | §§1.4, 4.1, 4.2, 5.4; review is assessment, not replacement authorship |
 | D16 | Three reading levels; critical schemas and other major field contracts | §§1.7, 6.13 and October 7 user direction; replaces agent-owned competing wire shapes |
-| D17 | Intent acceptance requires fidelity **and** usefulness to Requirements | §§3.2.1, 4.7.3, 4.2; topic-only extraction with material missing purpose/result blocks |
+| D17 | Intent acceptance requires fidelity **and** usefulness to Requirements. Under D24 the Intent and Requirement CCs own these as producer obligations, backed by host span and reference checks. The verifier does not judge them | §§3.2.1, 4.7.3, 4.2; topic-only extraction with material missing purpose/result blocks |
 | D18 | Readable IRs, decisions and views; raw evidence separate | §§5.1.2, 5.3.1, US05–US17; no mandatory opaque binary decoding |
 | D19 | User-authorized bounded Planner in assigned core; static mode retained; RSI independently buildable and non-blocking; continuation separated | Changes current allocation relative to §§1.3, 4.8, 6.11–6.14; preserves §4.2 checks and exact frozen dispatch. [Core build](core-build.md) governs the assignment; D1/D8/D14 remain original full-product phase context |
+| D20 | Semantic verifier input is the pinned declaration and the exact output only | Departs from the relevant-upstream-context reading of §4.2.1. See [D20](#d20) |
+| D21 | November increments: Generalist, automatic generation, automatic admission for future plans, better planning and MCTS. Composition in December | Continuation allocation. See [D21](#d21) |
+| D22 | October 30 demo is the bounded core over the fixed Codex route | Schedule boundary, not a PRD change. See [D22](#d22) |
+| D23 | Internal names are lowercase: files, ports, artifact types, check and criterion IDs | Realizes PRD artifact names as lowercase internal files. See [D23](#d23) |
+| D24 | Verifier criteria are output-only. Fidelity and preservation are Intent and Requirement producer obligations | Narrows §4.2 verifier duties consistently with D20. See [D24](#d24) |
+| D25 | Every CC has a declaration, a field table with constraints, a check bundle and verifier criteria in one tier 3 page | Extends D16. See [D25](#d25) |
+| D26 | Build the static fixed DAG first, then the Planner, both producing one frozen run plan type | Follows PRD §2 default over dynamic. See [D26](#d26) |
 
 ## Human review priorities
 
@@ -175,7 +182,7 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 
 ## D20
 
-**Authorized semantic-review scope change.** Give the LLM reviewer the pinned declaration and exact worker output only; retain input/runtime evidence in protected deterministic/host processing. Do not replay worker input or conversation under another field name. This changes the relevant-upstream-context expectation in PRD §4.2.1 and earlier verification interpretations. Output-contract/internal-consistency review cannot establish request fidelity or independently verify sources. The received PRD is unchanged; record the departure and limited assurance in native implementation acceptance.
+**Authorized semantic-review scope change.** Give the LLM reviewer the pinned declaration and exact worker output only; retain input/runtime evidence in protected deterministic/host processing. Do not replay worker input or conversation under another field name. This changes the relevant-upstream-context expectation in PRD §4.2.1 and earlier verification interpretations. Criteria are output-only ([D24](#d24)). The received PRD is unchanged; record the departure and limited assurance in native implementation acceptance.
 
 ## D21
 
@@ -183,3 +190,19 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 ## D22
 
 **October 30 demonstration scope.** The presentation gate targets the bounded Compiler → Planner → selected downstream CCs → Delivery journey over the existing fixed Codex route, with benchmark evidence. RSI work and new Model Router integration are excluded from that date’s acceptance criteria and cannot block the demonstration. This is a coordination/schedule boundary, not a revision to the received PRD or a claim that the PRD’s full M1 completion gate is satisfied. Preserve full source obligations in the coverage maps and report this bounded result accurately.
+
+## D23
+
+**Lowercase internal names.** Every file the system writes uses a lowercase name unless the user explicitly asks for a different one. Ports, artifact types, check IDs and criterion IDs use lowercase snake_case. The PRD sometimes uses capitals, for example `Research_Brief.json`. The [glossary](glossary.md) maps those names to `research_brief.json`. Reason: people design on Windows, but the product runs in Docker on Linux, where file names are case sensitive. Mixed case would let two names for one artifact coexist. Enum values keep the spelling of their schema. Rules: [capsule references](reference/capsules/README.md#naming-rules).
+
+## D24
+
+**Output-only verifier criteria.** Every verifier criterion must be answerable from the pinned declaration and the exact output. Request fidelity and Brief preservation move to the Intent and Requirement CCs as producer obligations with their own self-review. Host checks back them with span bounds, reference resolution, requirement-link coverage and default authorization. The generic criteria are `declared_output_conformance`, `internal_consistency` and `limitations_consistency`. Each CC page adds its own output-only criteria. Reason: a verifier that reads the worker input redoes the task and inherits its context errors. Consequence: no semantic check establishes fidelity. Benchmark cases measure it instead.
+
+## D25
+
+**One build page per CC.** Each work CC and the verifier CC has one tier 3 page with a declaration example, typed ports, a field table with constraints, producer obligations, a check bundle, verifier criteria, a gate rule and failure outcomes. Field tables with plain-English meanings remain the standard for research artifacts. Exact JSON Schemas stay limited to the critical records listed in [reference](reference/README.md). Examples illustrate. Tables define. Reason: a coding agent must build each CC without inventing shared fields. Index: [capsule references](reference/capsules/README.md).
+
+## D26
+
+**Static first, then planned.** The first runnable path is a hand-authored static template over the research CCs. The Planner then produces a proposal that the same binder turns into the same frozen run plan type. Both modes use the same dispatch, checks, gates and storage. Reason: PRD §2 sets default over dynamic, and a working static path gives a baseline to debug the Planner against. A static run does not count as planned-mode acceptance. Contracts: [run plan](reference/run-plan.md).

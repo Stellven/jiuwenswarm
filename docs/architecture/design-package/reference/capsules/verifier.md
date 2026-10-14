@@ -18,7 +18,7 @@ The verifier runs after the host deterministic checks for each CC invocation and
 1. The worker CC produces its output. The host captures the exact bytes.
 2. The host runs the deterministic check bundle pinned to that CC version. These checks may read the output, the accepted inputs and runtime records. Each result follows the [deterministic check result](../schemas/deterministic-check-result.schema.json).
 3. If a blocking check is not `PASS`, the verifier is not called. The gate halts.
-4. The host calls `research.verifier` with two payload members: the pinned declaration and the output bytes. The system instructions come from the checking profile pinned to the same CC version.
+4. The host calls `research.verifier` with two payload members: the pinned declaration and the output bytes (for a zip output, its [projection](#zip-output-projection)). The system instructions come from the checking profile pinned to the same CC version.
 5. The model replies with findings, uncertainties, limitations and an optional correction. The reply is untrusted.
 6. The host validates the reply against the profile, then assembles the [`verifier_assessment`](../schemas/verifier-assessment.schema.json). The host sets `subject_ref`, `review_context_ref`, `evidence_refs` and `verdict`.
 7. The protected gate reads the deterministic result and the assessment, then accepts or halts.
@@ -59,9 +59,26 @@ The host keeps a review manifest for audit: subject, inputs, bundle and profile 
 | Port | Artifact type | Producer | Required | Use |
 |---|---|---|---|---|
 | `subject_declaration` | `capsule_declaration` | Protected binder, from the pinned subject declaration | yes | Exact declaration bytes of the CC under review. The verifier reads what the CC promises. |
-| `subject_output` | `subject_output` | Host capture of the worker output | yes | Exact output bytes, unchanged. |
+| `subject_output` | `subject_output` | Host capture of the worker output | yes | Exact output bytes, unchanged. A zip output uses the [zip projection](#zip-output-projection). |
 
 The model call carries nothing else. It has no tools, network or file access. Text inside either input is data and cannot change the instructions or criteria.
+
+### Zip output projection
+
+A zip archive cannot go into a text payload. For an output that is a zip (the Builder `bundle`), `subject_output` carries a host-pinned deterministic projection of the archive. The projection is the only allowed form for a zip output. The worker and the verifier never choose it. The projection code is pinned in the admission record like any check runner.
+
+The projection is one UTF-8 text. It lists the archive entries sorted by path in byte order. Each entry is one block of this shape.
+
+```text
+path: <entry path>
+sha256: <sha256 of the entry bytes, lowercase hex>
+size: <entry size in bytes>
+---
+<full text of the entry, decoded as UTF-8>
+===
+```
+
+The host builds the projection from the captured zip bytes and records its hash. The assessment `subject_ref` names the projection bytes. Building fails, and the verifier is not called, when the archive has an encrypted entry, a directory entry, a link, an entry over 256 KiB or an entry that is not valid UTF-8. A failed projection is a failed check and the node halts. The check `output_hash_matches` compares the projection with a fresh projection of the captured zip. The checks that bind the zip bytes to the manifest (for example the Builder `bundle_hash_matches`) stay in the CC's own bundle.
 
 ## Output field contract
 
@@ -132,6 +149,7 @@ The gate accepts the outputs of a subject CC only when every blocking bundle che
 | Malformed reply, unknown or missing or duplicate criterion | No assessment, halt | Raw reply in the host record only |
 | Blocking criterion `FAIL` | `FAIL`, halt | Assessment, output |
 | Blocking criterion `INCONCLUSIVE` | `INCONCLUSIVE`, halt | Assessment, output |
+| Zip projection cannot be built | Halt, no verifier call | Output zip, check results |
 | Assessment not persisted | Halt | Assessment draft |
 
 ## `check_bundle` contract

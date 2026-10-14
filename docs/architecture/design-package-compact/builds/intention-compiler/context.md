@@ -37,6 +37,6 @@ Input directory qualification is deterministic, not semantic readiness. A config
 
 Field IDs/types, policy sources, accepted states and authority are consequential shared obligations. Private encodings and algorithms can vary where their meaning, interchange and verification stay compatible. The reference validator establishes documentation/example consistency, not operational security, semantic quality or full implementation acceptance.
 
-## Current semantic-review scope
+## Verifier boundary
 
-[D20](../../principles.md#d20-declarationoutput-only-semantic-review) limits semantic input to declaration/output; earlier full-context descriptions remain source context. Host checks retain runtime evidence. [D21](../../decision-review.md#d21) governs November generation/admission and December composition.
+The semantic verifier receives only the declaration and the exact output ([D20](../../principles.md#d20-declarationoutput-only-semantic-review)). Fidelity and preservation are producer obligations backed by host checks. [D21](../../decision-review.md#d21) governs November generation/admission and December composition.

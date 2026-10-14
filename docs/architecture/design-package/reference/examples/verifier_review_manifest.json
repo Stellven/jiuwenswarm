@@ -8,7 +8,7 @@
   },
   "subject_declaration_ref": {
     "id": "screening_capsule.json",
-    "sha256": "0e293934b5a57214ec636fcf29577b360d5d25e71305b4c9e97870afe0b7dc1d"
+    "sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e"
   },
   "input_refs": [
     {
@@ -18,7 +18,7 @@
   ],
   "check_bundle_ref": {
     "id": "check_bundle.json",
-    "sha256": "b1b3719f42eb00299397f762ac7302c340aedbef139bcb4fc526d0e684f3f744"
+    "sha256": "ea123ab35eaeecf23fbcdcc6d62b0a72540a10212e10e4fb066457f48885fc9d"
   },
   "checking_profile_ref": {
     "id": "checking_profile.json",

@@ -67,7 +67,7 @@
         "required": true,
         "description": "Bound typed artifact",
         "check_ids": [
-          "proposal_structure",
+          "plan_proposal_schema",
           "brief_coverage",
           "library_membership",
           "port_type_compatibility",
@@ -129,7 +129,7 @@
   "guarantees": {
     "checks": [
       {
-        "id": "proposal_structure",
+        "id": "plan_proposal_schema",
         "kind": "deterministic",
         "target": "outputs.plan_proposal",
         "runner": {
@@ -339,7 +339,7 @@
       }
     ],
     "acceptance": [
-      "proposal_structure",
+      "plan_proposal_schema",
       "brief_coverage",
       "library_membership",
       "port_type_compatibility",

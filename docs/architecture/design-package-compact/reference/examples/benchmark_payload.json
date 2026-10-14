@@ -1,13 +1,17 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "id": "benchmark_payload",
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "4623ae1aa48ecc4ca5407a7890ee8ee830fcbcf887d7c68bbfc3bf48b1d418af"
+    "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
   },
   "poc_ref": {
     "id": "poc_manifest.json",
-    "sha256": "e4e2672beda95c687a9462c2dbced4c8f83a2c3d3b3a6c081c377e517dfdd989"
+    "sha256": "5256dfa86a4212a05fec6d5db23211322e4d4e136f687a5bb69dc648d23f0e6b"
+  },
+  "environment_lock_ref": {
+    "id": "environment_lock.json",
+    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
   },
   "resource_refs": [
     {
@@ -23,65 +27,92 @@
     "id": "run_configuration.json",
     "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
   },
-  "baseline_execution_ref": {
-    "id": "baseline_execution.txt",
-    "sha256": "7d7258cca1062c6b18845aad55ebb5d4d8a6e251f2f88932711f8032369e08cb"
+  "execution_receipt_ref": {
+    "id": "execution_receipt.json",
+    "sha256": "6637e19ec3d28f34dda26edda59ab7c7da43f8bedb12ac4cc72bf6ca609a52d7"
   },
-  "treatment_execution_ref": {
-    "id": "treatment_execution.txt",
-    "sha256": "132ee29c6a8dd9a7f82e0842390a927ecceefd987f0891c89bf96844212f62f4"
+  "provisioning_receipt_ref": {
+    "id": "provisioning_receipt.json",
+    "sha256": "0c872e207435f02da12bee1ae7c8c63b70c0bb0c04c7f9441e77ac8274f72bfb"
   },
+  "repeat_count": 3,
+  "seed": 42,
+  "run_order": [
+    "baseline",
+    "baseline",
+    "baseline",
+    "treatment",
+    "treatment",
+    "treatment"
+  ],
   "metrics": [
     {
       "metric_id": "latency_ms",
       "unit": "ms",
-      "baseline": [
-        100,
-        100,
-        100
-      ],
-      "treatment": [
-        105,
-        105,
-        105
-      ],
-      "baseline_value": 100,
-      "treatment_value": 105,
+      "aggregation": "median",
+      "baseline": {
+        "repeats": [
+          100,
+          100,
+          100
+        ],
+        "value": 100,
+        "unmeasured_reason": null
+      },
+      "treatment": {
+        "repeats": [
+          105,
+          105,
+          105
+        ],
+        "value": 105,
+        "unmeasured_reason": null
+      },
       "delta": 5
     },
     {
       "metric_id": "quality",
       "unit": "fraction",
-      "baseline": [
-        0.9,
-        0.9,
-        0.9
-      ],
-      "treatment": [
-        0.9,
-        0.9,
-        0.9
-      ],
-      "baseline_value": 0.9,
-      "treatment_value": 0.9,
+      "aggregation": "mean",
+      "baseline": {
+        "repeats": [
+          0.9,
+          0.9,
+          0.9
+        ],
+        "value": 0.9,
+        "unmeasured_reason": null
+      },
+      "treatment": {
+        "repeats": [
+          0.9,
+          0.9,
+          0.9
+        ],
+        "value": 0.9,
+        "unmeasured_reason": null
+      },
       "delta": 0
     }
   ],
   "raw_evidence_refs": [
     {
+      "id": "execution_receipt_empirical_results.json",
+      "sha256": "5572476f18ecd1ecae3d393dd748333136b2d5307ddbc766f8925821afb47838"
+    },
+    {
       "id": "baseline_execution.txt",
-      "sha256": "7d7258cca1062c6b18845aad55ebb5d4d8a6e251f2f88932711f8032369e08cb"
+      "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
     },
     {
       "id": "treatment_execution.txt",
-      "sha256": "132ee29c6a8dd9a7f82e0842390a927ecceefd987f0891c89bf96844212f62f4"
+      "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+    },
+    {
+      "id": "execution_receipt_stderr.txt",
+      "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
     }
   ],
-  "provisioning_ref": {
-    "id": "provisioning_example.txt",
-    "sha256": "4f03527cac922d7f53939f8d026a536e16909dc45c218b39f59140c4aa5b87b6"
-  },
-  "missing_evidence": [],
   "ext": {
     "example.synthetic": true
   }

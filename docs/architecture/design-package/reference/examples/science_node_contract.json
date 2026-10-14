@@ -1,9 +1,9 @@
 {
   "schema_version": "2.0.0",
-  "id": "node-contract:scientific.evaluation",
+  "id": "node-contract:evaluation",
   "run_id": "run:science",
-  "node_id": "scientific.evaluation",
-  "attempt_id": "attempt:science",
+  "node_id": "evaluation",
+  "attempt_id": "evaluation-a1",
   "revision": 1,
   "objective": "Apply registered scientific criteria",
   "requirement_ids": [
@@ -12,7 +12,7 @@
   ],
   "inputs": [
     {
-      "name": "research_brief",
+      "name": "brief",
       "contract_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
       "version": "2.0.0",
       "required": true,
@@ -132,11 +132,11 @@
       "role": "work",
       "template_ref": {
         "id": "science_subnode_template.json",
-        "sha256": "0a3e1142de84274dd6cd5807b124e0c03b410bc4df2a01c1864685576acf352a"
+        "sha256": "171e0deaf1d0f6fb61a1fddc551805e9fb9d2eeb5794313134ca91571f885aac"
       },
       "capsule_ref": {
         "id": "scientific_evaluation_capsule.json",
-        "sha256": "cc4ec9cb46193082fa5de3be8329fae8f4c351c6d2145cb102a35118b4cef3e1"
+        "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
       },
       "depends_on": [],
       "required": true

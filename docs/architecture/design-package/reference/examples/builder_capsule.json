@@ -32,9 +32,7 @@
         "schema_ref": "hypothesis-blueprint:field-contract:2",
         "required": true,
         "description": "Frozen experiment protocol",
-        "check_ids": [
-          "exact_identity"
-        ]
+        "check_ids": []
       },
       {
         "name": "baseline_resource",
@@ -42,9 +40,7 @@
         "schema_ref": "resource-snapshot:field-contract:1",
         "required": true,
         "description": "Captured baseline",
-        "check_ids": [
-          "exact_identity"
-        ]
+        "check_ids": []
       },
       {
         "name": "validation_resource",
@@ -52,9 +48,7 @@
         "schema_ref": "resource-snapshot:field-contract:1",
         "required": true,
         "description": "Captured validation data",
-        "check_ids": [
-          "exact_identity"
-        ]
+        "check_ids": []
       },
       {
         "name": "lock",
@@ -62,9 +56,7 @@
         "schema_ref": "environment-lock:field-contract:1",
         "required": true,
         "description": "Prepared environment lock",
-        "check_ids": [
-          "exact_identity"
-        ]
+        "check_ids": []
       }
     ],
     "outputs": [
@@ -75,7 +67,7 @@
         "required": true,
         "description": "Readable bundle description",
         "check_ids": [
-          "output_structure",
+          "manifest_schema",
           "required_files_present",
           "dependencies_pinned",
           "bundle_hash_matches"
@@ -88,6 +80,7 @@
         "required": true,
         "description": "Zip with requirements.txt, poc_patch.py, run_benchmark.py",
         "check_ids": [
+          "bundle_schema",
           "required_files_present",
           "bundle_hash_matches"
         ]
@@ -102,7 +95,12 @@
       "direction": "none",
       "allowlist": []
     },
-    "resources": [],
+    "resources": [
+      {
+        "resource_key": "poc_workspace",
+        "mode": "write"
+      }
+    ],
     "injects": [
       {
         "service_key": "audited_model_bridge",
@@ -156,7 +154,7 @@
   "guarantees": {
     "checks": [
       {
-        "id": "output_structure",
+        "id": "manifest_schema",
         "kind": "deterministic",
         "target": "outputs.manifest",
         "runner": {
@@ -173,6 +171,25 @@
         "signal_source": "captured output and run records",
         "owner": "protected profile registry",
         "assurance": "structure only"
+      },
+      {
+        "id": "bundle_schema",
+        "kind": "deterministic",
+        "target": "outputs.bundle",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "archive container and entries only"
       },
       {
         "id": "required_files_present",
@@ -271,7 +288,8 @@
       }
     ],
     "acceptance": [
-      "output_structure",
+      "manifest_schema",
+      "bundle_schema",
       "required_files_present",
       "dependencies_pinned",
       "bundle_hash_matches",

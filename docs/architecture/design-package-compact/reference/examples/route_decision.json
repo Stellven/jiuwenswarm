@@ -3,15 +3,15 @@
   "id": "route:routing-example",
   "request_ref": {
     "id": "route_request.json",
-    "sha256": "679cca471395f14474bb818273815791a21382bc0d14d3e2725e571b9949c484"
+    "sha256": "67ce10e0b28842a60de600487871d2f6d8c4b82013139a4233ac235baf997fee"
   },
   "selected_capsule_ref": {
     "id": "selected_capsule_input.json",
-    "sha256": "0be917770eaaf0cd243068700c10442932d3bc39acef6769011c0aca5c6f6188"
+    "sha256": "0075a824b18de73589094894e35493d5b61d2558a78728bdeee28f85c7acc3b6"
   },
   "runtime": {
     "run_id": "run:example",
-    "node_id": "intention.compiler",
+    "node_id": "intention_compiler",
     "subnode_id": "intention",
     "attempt_id": "attempt:1",
     "invocation_id": "invocation:routing-teaching-example"
@@ -49,7 +49,7 @@
   "valid_until": "2026-10-13T12:00:30Z",
   "routing_context_ref": {
     "id": "capsule_routing_context.json",
-    "sha256": "6d54985389c7ae1c4a00f52ae7580520edc210527ffb30ffcbea4dc3c902fe86"
+    "sha256": "82ab0e8fe6361736eb1d1a36777d4f259b4ccd4083f8957fe0279fed6d800ec1"
   },
   "adapter_revision": "synthetic-1"
 }

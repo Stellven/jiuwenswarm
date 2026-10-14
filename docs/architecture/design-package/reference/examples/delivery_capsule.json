@@ -81,6 +81,46 @@
         "required": true,
         "description": "Host-built index of the gate decisions of this run. One artifact, many decision refs",
         "check_ids": []
+      },
+      {
+        "name": "screening_result",
+        "artifact_type": "screening_result",
+        "schema_ref": "screening-result:field-contract:2",
+        "required": true,
+        "description": "Accepted Screening result, listed in the manifest. Delivery lists it by Ref",
+        "check_ids": []
+      },
+      {
+        "name": "execution_receipt",
+        "artifact_type": "execution_receipt",
+        "schema_ref": "execution-receipt:field-contract:1",
+        "required": true,
+        "description": "Benchmark execution receipt. Its run records name the raw evidence files listed in the manifest",
+        "check_ids": []
+      },
+      {
+        "name": "provisioning_receipt",
+        "artifact_type": "provisioning_receipt",
+        "schema_ref": "provisioning-receipt:field-contract:1",
+        "required": true,
+        "description": "Benchmark provisioning receipt, listed in the manifest",
+        "check_ids": []
+      },
+      {
+        "name": "environment_lock",
+        "artifact_type": "environment_lock",
+        "schema_ref": "environment-lock:field-contract:1",
+        "required": true,
+        "description": "Prepared dependency lock, listed as an environment file",
+        "check_ids": []
+      },
+      {
+        "name": "run_configuration",
+        "artifact_type": "run_configuration",
+        "schema_ref": "opaque-bytes",
+        "required": true,
+        "description": "Frozen run configuration, listed as an environment file. Delivery lists it by Ref and does not read inside it",
+        "check_ids": []
       }
     ],
     "outputs": [
@@ -91,7 +131,7 @@
         "required": true,
         "description": "Index of every exported lifecycle artifact",
         "check_ids": [
-          "output_structure"
+          "delivery_manifest_schema"
         ]
       },
       {
@@ -101,6 +141,7 @@
         "required": true,
         "description": "Markdown report with nine fixed sections",
         "check_ids": [
+          "research_report_schema",
           "required_sections",
           "recommendation_labeling"
         ]
@@ -115,12 +156,7 @@
       "direction": "none",
       "allowlist": []
     },
-    "resources": [
-      {
-        "resource_key": "run_artifact_store",
-        "mode": "read"
-      }
-    ],
+    "resources": [],
     "injects": [
       {
         "service_key": "audited_model_bridge",
@@ -159,9 +195,28 @@
   "guarantees": {
     "checks": [
       {
-        "id": "output_structure",
+        "id": "delivery_manifest_schema",
         "kind": "deterministic",
         "target": "outputs.delivery_manifest",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "manifest fields, enums and path rules"
+      },
+      {
+        "id": "research_report_schema",
+        "kind": "deterministic",
+        "target": "outputs.research_report",
         "runner": {
           "ref": "intent_implementation.txt",
           "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
@@ -217,7 +272,8 @@
       }
     ],
     "acceptance": [
-      "output_structure",
+      "delivery_manifest_schema",
+      "research_report_schema",
       "required_sections",
       "recommendation_labeling"
     ],

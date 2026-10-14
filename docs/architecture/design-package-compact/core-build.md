@@ -1,45 +1,56 @@
 # Core build: a bounded governed research journey
 
-**Reading level: human potential.** This is the current implementation assignment under decision D19. The whole product vision remains in [system architecture](m1-design.md); this page distinguishes the assigned core from independent and later builds. It is a design scope, not a human schedule or a runtime acceptance claim.
+**Reading level: human potential.** This is the current build assignment (decisions [D19](decision-review.md#d19), [D22](decision-review.md#d22) and [D26](decision-review.md#d26)). The whole product vision is in [system architecture](m1-design.md). This page says what to build now, in what order, and which later work it must not block. It is a design scope, not a schedule or a runtime acceptance claim.
 
-## Required core
+## What to build, in order
 
-Qualified intake enters the fixed Intention Compiler node. Intent and Requirements work CCs have separate deterministic checks, read-only verifier assignments and protected gates. The node releases accepted `research_brief.json` only after its required decisions and evidence are durable.
+| Step | Build | Done when |
+|---|---|---|
+| 1 | Reconcile the existing Intention Compiler node to the current contracts: lowercase names, verifier sees declaration and output only, real binding checks, computed node gate | Accepted `research_brief.json` or a visible halt, with all decisions and evidence stored |
+| 2 | Shared runtime: declaration loader, binder, freeze, scheduler, dispatch, check runner, verifier call, gate and store | One path runs every CC the same way |
+| 3 | Static template over Search, Screening, Hypothesis, Builder, Research Benchmark, Scientific Evaluation and Delivery | One request runs from Brief to Delivery, or halts with a recorded reason |
+| 4 | Planner CC producing a `plan_proposal` that the same binder turns into a frozen `run_plan` | The planned path reaches Delivery, and bad proposals are rejected before dispatch |
+| 5 | Platform benchmark runs over the result | The M1 pilot cases run end to end and their results are stored as the baseline |
 
-The fixed Planner node proposes a finite JSON DAG from the accepted Brief, eligible pinned CC declarations and supplied resources. For the initial M1 path, eligibility comes from the explicit bootstrap catalog and exact shared-bundle associations; this availability record is not a capsule-specific admission verdict. New or changed versions require the governed protected admission gate once it is implemented. Its work output is untrusted. Protected binding dynamically selects and instantiates existing mandatory profiles and independently validates requirement coverage, known prerequisites, typed ports, dependencies, permissions, resource feasibility and acyclicity. The semantic plan verifier sees only the Planner declaration and exact graph output; it cannot assess coverage or relevance against the undisclosed Brief. This is an authorized reduced-assurance departure from PRD §4.2, and must not be reported as semantic coverage verification. The protected plan gate commits the frozen topology, pins, contracts and checking assignments. The Planner cannot release its own graph or waive required checks. Future values stay typed predecessor references and bind only to accepted outputs before dispatch.
+Each step uses the contracts on the [capsule build pages](reference/capsules/README.md) and the [run plan page](reference/run-plan.md). M1 is the first and weakest working version. It must produce correct, checked artifacts. It does not need the best plans, ideas or scores.
 
-The bounded selected journey includes Search, Screening, Hypothesis, Builder, Research Benchmark, Scientific Evaluation and Delivery. Support one scientific path with supplied baseline and validation resources, registered criteria and matched baseline/treatment measurements. Every governed work invocation retains required checking; subnode passes do not replace aggregate node acceptance. A valid scientific negative result remains deliverable after infrastructure acceptance.
+## The required journey
 
-The existing static SwarmFlow sequence remains an explicitly selected baseline mode. It reuses the same admission, checking, execution, storage and release boundaries. Select the mode before the run and record it. A failed planned run halts; it cannot silently switch to static mode, repair the graph, substitute a CC or dispatch new nodes. A subsequent static attempt is new linked work with its own evidence. Passing static mode does not satisfy the planned-mode acceptance requirement.
+**Compiler.** Qualified intake enters the fixed Intention Compiler node. The Intent and Requirement CCs each have deterministic checks, a verifier and a protected gate. The node releases `research_brief.json` only after its decisions and evidence are durable.
+
+**Planning.** In static mode the binder reads a hand-authored static template. In planned mode the Planner proposes a finite JSON DAG from the accepted Brief, the pinned library snapshot, the resource inventory and the plan policy. The binder validates either one the same way: Brief coverage, typed ports, dependencies, permissions, resources, budgets, acyclicity and a pinned check bundle for every CC. It then freezes the `run_plan`. The Planner cannot release its own graph or change checks. An infeasible or rejected proposal halts the planned run and starts a linked Intention Compiler attempt with the reasons (PRD 4.8.3). Select the mode before the run and record it. A failed planned run never falls back to static mode silently. A static run does not count as planned-mode acceptance.
+
+**Research path.** One opportunity, one registered hypothesis and protocol, a bounded POC, sequential baseline then treatment measurement, a scientific verdict and a readable report. Every CC invocation is checked. A valid scientific negative result is delivered like any other.
+
+**Dispatch.** The scheduler dispatches a node only when its inputs are gate-accepted outputs or run inputs. It writes a `dispatch_record` per attempt. After freeze, nothing changes the topology, CC pins or check pins.
 
 ## Responsibility and reuse
 
-| Boundary | Design responsibility | Reuse expectation |
+| Boundary | Owner role | Reuse |
 |---|---|---|
-| Compiler | CC owner defines usable Intent/Brief contracts; Verification lead owns independent checking profiles | Reconcile the already demonstrated compiler and its runner, bridge and store against current contracts before replacing code |
-| Planner and binder | Architecture owner defines graph and authority boundaries; CC owner defines planning capability ports | Adapt native Leader/SwarmFlow and existing binding code where compatible; retain the working static sequence |
-| Checks and protected release | Verification lead defines protected criteria and failure outcomes | Reuse deterministic checks, review-context construction and durable gate/store mechanisms; do not make the producer its own referee |
-| Research path | CC owner defines stage outputs and required resources; Benchmark lead owns independently expected platform cases | Use existing skills/tools and bounded code/service capsules; preserve scientific Benchmark versus platform benchmarking distinction |
-| Routing | Model Router owner supplies component compatibility; Architecture owner owns dispatch authority | Keep the existing fixed Codex core behavior. New Model Router integration is a later, independent task and is not required for October 30 acceptance |
+| Compiler contracts | CC owner (contracts), Verifier owner (checking profiles) | Reconcile the built standalone compiler, its runner, bridge and store before replacing code |
+| Planner, binder, freeze, dispatch | Architect (graph and authority), CC owner (Planner ports) | Adapt agent-core Leader and SwarmFlow where they fit. No AI4Research planner exists yet |
+| Check bundles, profiles, gates | Verifier owner | Reuse the compiler's deterministic checks and durable gate store. The producer is never its own referee |
+| Research CCs | CC owner | Use existing tools and bounded code capsules |
+| Platform benchmark | Benchmark owner | Separate development tooling. See [benchmark runner](development-tools/benchmark-runner/README.md) |
+| Model access | Router owner (component), Architect (dispatch authority) | Fixed Codex route in M1 |
 
-Use the current [field references](reference/README.md), [node/subnode contracts](reference/node-execution.md), [checking records](reference/checking.md) and [routing agreement](reference/capsule-model-routing.md). D19 changes assigned scope and planner placement; it does not rename public artifacts or bump a schema without a demonstrated compatibility change. Reuse unchanged, adapt, or replace must be justified by evidence in native implementation records.
+## Future work this build must not block
 
-## Independently buildable RSI
+RSI and new Model Router work get no human effort before the core gate. The design keeps these seams so later work fits without rework.
 
-[Offline RSI](offline-rsi.md) remains a separate build target with its own proposer, allowed mutation profile, isolated candidate execution, protected referee and paired evidence. Keep that design and its entrypoint available. The CC owner exports a pinned eligible Screening/ranking parent, its contract, allowed mutation boundary and baseline evidence without waiting for an RSI service or completed RSI design integration. Protected evaluation cases stay under independent custody.
+| Later capability | Seam kept now |
+|---|---|
+| Model Router (Phase 3) | Capsules declare model needs, not models. Dispatch keeps a route field fixed to Codex |
+| Offline RSI | CC versions are immutable and pinned. Check bundles, profiles and labels sit outside the capsule. RSI only creates candidate versions. The Screening ranking is the first target |
+| Generalist and automatic capsule generation (November) | A generated capsule uses the same declaration, check bundle and admission path as a hand-written one |
+| Automatic library admission (November) | Admission writes an eligibility record. Plans read eligibility from the library snapshot pinned at plan time. Running plans never change pins |
+| Better planning and MCTS (November) | The `plan_proposal` type and the binder stay the same. Only how the proposal is produced changes |
+| Composition and fusion (December) | A run plan node references one CC version. Node contracts already allow an enclosing node with subnodes |
+| Spatiotemporal lifecycle (2027) | Frozen runs keep their original identities. New versions affect only new runs |
 
-Dependency direction is **accepted CC parent → isolated RSI experiment → optional improvement review**. Core imports, startup/readiness, coding, test invocation, platform benchmarking and acceptance do not require RSI availability or results. An explicitly requested RSI session may block on its own prerequisites; that failure cannot block the research core. The initial M1 bootstrap catalog is explicitly available to the core with pinned shared check bundles; it is not capsule-specific admission evidence. New M1 candidates remain unavailable until the governed admission decision and explicit human standing/activation needed for future runs. M2 eligible RSI-produced versions may be admitted automatically and become selectable by future plans without human activation; running frozen pins do not change. A score is not activation authority. Report a gain only from comparable evidence under unchanged criteria.
+## Connected acceptance
 
-## Later capabilities
+The October 30 demonstration covers two representative requests, three successful repeats of one bounded journey, and rejection before dispatch of an incompatible connection, a cycle and a missing check bundle. It also covers a valid scientific negative delivery and a persistence failure that halts. Inspect the accepted artifacts, gate decisions, matched measurements and the readable report. Fixture or schema checks alone do not prove runtime acceptance.
 
-M2 (November 2026) generalist integration and automatic RSI candidate generation/admission are later work and do not block this core. Valid admitted versions become selectable by future plans automatically; M1 new-candidate activation remains human-controlled. M3 composition/fusion is targeted for December 2026. Spatiotemporal installation, drain, replacement and compensation are 2027 lifecycle work. None is an implicit dependency of this core assignment.
-
-## Connected acceptance and blockers
-
-Native specifications instantiate independently expected cases. The assigned demonstration covers two representative requests, three successful repeats of a chosen bounded journey, and rejection before dispatch of an incompatible connection, a cycle and a missing mandatory checking assignment. Inspect host-checkable Intent/Brief structure and reference integrity, exact accepted artifacts, matched measurements, gate decisions, readable Delivery and retained limitations. The semantic model is restricted to declaration plus exact output; do not claim it established Intent fidelity/usefulness or planner requirement coverage. Record this reduced assurance and its PRD §4.2 departure. Include valid scientific-negative delivery and required-evidence/persistence failure. Fixture/schema checks alone do not establish semantic or runtime acceptance.
-
-Missing required model access, baseline/data, a supported checking profile or durable release prevents the affected run from advancing. Record the unavailable resource and owner; do not replace it with an invented result. Missing optional telemetry remains unavailable. Human corrections create new linked work. Core readiness and the independently buildable RSI target receive separate verdicts.
-
-## Per-CC build coverage
-
-Use the [CC ports and checking map](cc-build-coverage.md) for all ten work capabilities, the Planner semantic-verifier context and the shared implementation-completion rule.
+Missing model access, baseline data, a check bundle or durable storage stops the affected run. Record the missing resource and its owner role. Never replace it with an invented result. Human corrections create new linked work.

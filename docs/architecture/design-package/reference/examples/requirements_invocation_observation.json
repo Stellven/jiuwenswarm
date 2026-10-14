@@ -3,7 +3,7 @@
   "id": "invocation:requirements",
   "contract_ref": {
     "id": "requirements_subnode_contract.json",
-    "sha256": "686350ff2669cb91cf8bed1497d4a265643c59dee627fd96c6d364e842510bc1"
+    "sha256": "f7c1441035737ff0764eded1641327c0b3eb78d44fda2750bc93f6c91b0ecb9b"
   },
   "binding_id": "binding:requirements.compiler",
   "input_refs": [
@@ -53,7 +53,7 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
+    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
   },
   "subnode_id": "requirements"
 }

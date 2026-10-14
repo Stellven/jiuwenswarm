@@ -83,7 +83,7 @@
         "required": true,
         "description": "Measurements only, no interpretation",
         "check_ids": [
-          "payload_schema"
+          "benchmark_payload_schema"
         ]
       },
       {
@@ -93,7 +93,7 @@
         "required": true,
         "description": "Per-run record written by the protected executor",
         "check_ids": [
-          "payload_schema"
+          "execution_receipt_schema"
         ]
       },
       {
@@ -103,7 +103,7 @@
         "required": true,
         "description": "Provisioning record written by the protected provisioner",
         "check_ids": [
-          "payload_schema"
+          "provisioning_receipt_schema"
         ]
       }
     ]
@@ -120,7 +120,7 @@
     },
     "resources": [
       {
-        "resource_key": "workspace_poc",
+        "resource_key": "poc_workspace",
         "mode": "write"
       },
       {
@@ -139,7 +139,7 @@
     "effects": [
       {
         "id": "workspace-run",
-        "resource_key": "workspace_poc",
+        "resource_key": "poc_workspace",
         "op": "provision_and_execute",
         "scope": "run workspace /workspace/poc only",
         "idempotent": false,
@@ -165,9 +165,47 @@
   "guarantees": {
     "checks": [
       {
-        "id": "payload_schema",
+        "id": "benchmark_payload_schema",
         "kind": "deterministic",
         "target": "outputs.benchmark_payload",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      },
+      {
+        "id": "execution_receipt_schema",
+        "kind": "deterministic",
+        "target": "outputs.execution_receipt",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      },
+      {
+        "id": "provisioning_receipt_schema",
+        "kind": "deterministic",
+        "target": "outputs.provisioning_receipt",
         "runner": {
           "ref": "intent_implementation.txt",
           "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
@@ -185,7 +223,9 @@
       }
     ],
     "acceptance": [
-      "payload_schema"
+      "benchmark_payload_schema",
+      "execution_receipt_schema",
+      "provisioning_receipt_schema"
     ],
     "evals": [],
     "unanchored": [

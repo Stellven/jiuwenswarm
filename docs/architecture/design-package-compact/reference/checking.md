@@ -6,7 +6,7 @@
 
 Producer: protected check runner. Consumers: review-context builder and gate. [Schema](schemas/deterministic-check-result.schema.json).
 
-Required fields: `schema_version`, exact `subject_ref`, `check_plan_ref`, nonempty `results`. Each result has `check_id`, `outcome`, `reason`, `evidence_refs`. All assigned mandatory deterministic IDs must appear exactly once. `PASS` requires actual supported checks; `FAIL`, `ENVIRONMENT_BLOCKED` or `INCONCLUSIVE` prevents semantic dispatch when mandatory. Absent required checks never pass.
+Required fields: `schema_version`, exact `subject_ref`, `check_plan_ref`, nonempty `results`. Each result has `check_id`, `outcome`, `reason`, `evidence_refs`. The bound plan resolves the exact admitted CC-version/check-bundle associations and adds all applicable contract/policy checks; all assigned mandatory deterministic IDs must appear exactly once. `PASS` requires actual supported checks; `FAIL`, `ENVIRONMENT_BLOCKED` or `INCONCLUSIVE` prevents semantic dispatch when mandatory. Absent required checks never pass. This clarification does not change the persisted result schema.
 
 ## Verifier assessment
 
@@ -18,7 +18,7 @@ The unchanged persisted record requires `schema_version`, exact `subject_ref`, `
 
 Assessment verdicts use the PRD outcome vocabulary: `PASS`, `PASS_WITH_KNOWN_LIMITATIONS`, `FAIL`, `ENVIRONMENT_BLOCKED`, `INCONCLUSIVE`. They are checking data, not control actions. Mandatory failure or unresolved uncertainty cannot accompany an advancing assessment. Known limitations can advance only when no mandatory obligation is unsatisfied. Missing required evidence means unavailable/inconclusive, not inferred success.
 
-The host-only review manifest binds subject, original/accepted inputs, owning node and subject subnode contracts, CC/dependency pins, assigned criteria/profile, policy, deterministic results, observations and allowed evidence audience. It is retained for deterministic checking, provenance and gate assembly, but is not sent to the semantic model. The verifier cannot access any of those records beyond the two-artifact projection and cannot fetch evidence or mutate outputs. For Intent it can check only declaration/output conformance; request usefulness and fidelity are not established by semantic Tier 2.
+The host-only, audit-only review manifest binds subject, original/accepted inputs, owning node and subject subnode contracts, CC/dependency pins, assigned criteria/profile, policy, deterministic results, observations and allowed evidence audience. It is retained for deterministic checking, provenance and gate assembly, but is not sent to the semantic model. The verifier cannot access any of those records beyond the two-artifact projection and cannot fetch evidence or mutate outputs. Fidelity and preservation are producer obligations backed by deterministic host checks. Tier 2 does not assess them. See the [Verifier page](capsules/verifier.md).
 
 ## Gate decision
 
@@ -29,7 +29,7 @@ Producer: protected gate host. Consumers: durable run-state, scheduler and inspe
 | `schema_version`, `id`, `recorded_at` | Record identity and UTC timestamp |
 | `run_id`, `node_id`, `subnode_id`, `attempt_id`, `scope_kind` | Explicit node/subnode invocation or aggregate context |
 | `contract_ref`, `node_contract_ref`, `invocation_refs`, `internal_decision_refs` | Checked node/subnode contract, owning node, observed invocations and internal acceptance decisions |
-| `policy_ref`, `check_plan_ref` | Fixed authority/obligations; bound plan pins profile/check definitions and participating CC/dependencies |
+| `policy_ref`, `check_plan_ref` | Fixed authority/obligations; bound plan pins profile/check definitions, exact CC/check-bundle associations and participating dependencies |
 | `input_refs`, `output_refs` | Exact accepted inputs and captured reviewed subjects |
 | `deterministic_result_ref`, `assessment_ref` | Checking records; assessment is null when Tier 1 prevented review |
 | `verdict`, `reasons` | Protected interpretation and criterion/evidence explanations |

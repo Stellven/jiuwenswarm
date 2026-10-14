@@ -1,13 +1,13 @@
 {
   "id": "subnode-contract:requirements.verifier",
   "run_id": "run:example",
-  "node_id": "intention.compiler",
+  "node_id": "intention_compiler",
   "attempt_id": "attempt:1",
   "objective": "Assess submitted artifact against protected assigned criteria without modifying work or controlling flow",
   "input_refs": [
     {
       "id": "requirements_capsule.json",
-      "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
+      "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
     },
     {
       "id": "research_brief.json",
@@ -51,7 +51,7 @@
         "resource_reads": [
           {
             "id": "requirements_capsule.json",
-            "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
+            "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
           },
           {
             "id": "research_brief.json",
@@ -81,7 +81,7 @@
       "artifact_refs": [
         {
           "id": "requirements_capsule.json",
-          "sha256": "99a283adb57fc573c43e07996436b095f78c99d9b4f435b4cc66ac40603575a1"
+          "sha256": "cfbced3910d71edf4afb5e60cbe3236c4ef78fc186ecd8f42f79f3fece6559a6"
         }
       ]
     },
@@ -125,7 +125,7 @@
   "subnode_id": "requirements.verifier",
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "864076eca68ccfee3623887e3953b50f901104cf9432d3f8273115ab8f8a68a7"
+    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
   },
   "subnode_limits": {
     "time_s": 60,

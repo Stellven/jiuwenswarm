@@ -1,1 +1,4 @@
-Synthetic treatment second: latency [105,105,105] ms; quality [0.9,0.9,0.9]. Not executed.
+# Synthetic treatment stdout, one line per repeat. Not executed.
+{"metrics": {"latency_ms": 105, "quality": 0.9}}
+{"metrics": {"latency_ms": 105, "quality": 0.9}}
+{"metrics": {"latency_ms": 105, "quality": 0.9}}

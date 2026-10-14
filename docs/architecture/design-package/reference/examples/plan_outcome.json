@@ -9,9 +9,12 @@
   },
   "source_ref": {
     "id": "plan_proposal_invalid_cycle.json",
-    "sha256": "1583d9cc28da92907dd3dcb58a02db9f9816bd4b7321e24438b52a70e993aaa1"
+    "sha256": "b51a197c92ee635efbdf98f2fe9ee6bc8529099fa8967df953f32434fae68fc2"
   },
-  "check_result_ref": null,
+  "check_result_ref": {
+    "id": "plan_outcome_checks.json",
+    "sha256": "56d28c56f28b9bae05ad910ca56938c5973c7b1111d9e19b357badc92ce05266"
+  },
   "gate_decision_ref": null,
   "reasons": [
     {
