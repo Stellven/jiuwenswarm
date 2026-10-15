@@ -2377,13 +2377,20 @@ def _(d, path):
 
 @rcheck('activation-record', 'activation_transition_allowed')
 def _(d, path):
+    if d['from_standing'] == d['to_standing'] == 'active':
+        return []  # promotion; activation_scope_matches_lineage limits it to RSI children
     return [] if d['to_standing'] in ALLOWED_MOVES[d['from_standing']] else ['%s to %s is not an allowed move' % (d['from_standing'], d['to_standing'])]
 
 
 @rcheck('activation-record', 'activation_scope_matches_lineage')
 def _(d, path):
     adm = rload(d['admission_ref'])
-    return ['an RSI child can only be activated for rsi_sandbox in M1'] if adm['parent_ref'] is not None and d['effect_scope'] != 'rsi_sandbox' else []
+    bad = []
+    if adm['parent_ref'] is not None and d['to_standing'] == 'active' and d['effect_scope'] == 'live_plans' and d['from_standing'] != 'active':
+        bad.append('an RSI child reaches live_plans only by promotion from an active sandbox activation')
+    if adm['parent_ref'] is None and d['from_standing'] == 'active' and d['to_standing'] == 'active':
+        bad.append('active to active is only for promoting an RSI child')
+    return bad
 
 
 @rcheck('client-submission', 'submission_structure')

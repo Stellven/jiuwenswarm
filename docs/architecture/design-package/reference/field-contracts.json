@@ -5053,14 +5053,14 @@
         "effect_scope": {
           "type": "string",
           "required": true,
-          "meaning": "Where the new standing applies.",
+          "meaning": "Where the new standing applies. The latest accepted record of a version sets both its standing and its scope.",
           "enum": [
             "rsi_sandbox",
             "live_plans"
           ]
         }
       },
-      "failure": "A record that fails a host check is refused and the standing does not change. A record never affects a frozen run plan and never adopts a child into live plans."
+      "failure": "A record that fails a host check is refused and the standing does not change. A record never affects a frozen run plan. A child reaches live runs only by a human promotion to live_plans plus a new static template."
     },
     {
       "id": "candidate-provenance:field-contract:1",

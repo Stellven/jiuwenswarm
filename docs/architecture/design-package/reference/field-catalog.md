@@ -1107,20 +1107,21 @@ Purpose: the one record of a human change of standing. It moves one admitted CC 
 | `from_standing` | `string` | yes | enum `inactive`, `active`, `suspended`, `revoked` | Standing before this change. |
 | `to_standing` | `string` | yes | enum `active`, `suspended`, `revoked`. Never `inactive` | Standing after this change. |
 | `reason` | `string` | yes | 1 to 300 characters | Why the human made the change. For a rollback it names the earlier version that is reactivated. |
-| `effect_scope` | `string` | yes | enum `rsi_sandbox`, `live_plans`. An RSI child can only have `rsi_sandbox` in M1 | Where the new standing applies. |
+| `effect_scope` | `string` | yes | enum `rsi_sandbox`, `live_plans`. An RSI child gets `live_plans` only by promotion (`activation_scope_matches_lineage`) | Where the new standing applies. The latest accepted record of a version sets both its standing and its scope. |
 
 **Enum `effect_scope`**
 
 | Value | Meaning |
 |---|---|
 | `rsi_sandbox` | The version is selectable only in the RSI workbench sandbox. Live plans never see it |
-| `live_plans` | The version is eligible for later live library snapshots |
+| `live_plans` | The version is eligible for library snapshots captured after this record. A non-RSI version is activated here directly. An RSI child reaches it only by promotion from `rsi_sandbox` |
 
 **Invariants** ([D46](../method/decisions.md#d46))
 
-- In M1 a human activation makes an RSI child `active` for RSI-workbench sandbox selection only. The live static template and the Planner snapshots keep pinning the parent.
+- A human activation first makes an RSI child `active` for RSI-workbench sandbox selection only (`rsi_sandbox`).
 - Activating a child never deactivates the parent. The parent stays `active` and eligible.
-- Production adoption of a child is a human decision to re-pin it in a new admitted static template version. That is later work for the Planner path.
+- Adopting a child into live runs is manual and takes two human steps. First a human records a promotion: an activation record that moves the active child from `rsi_sandbox` to `live_plans`. Then a human writes a new static template file that pins the child and points the operator config `cc.static_template_ref` at it. Runs frozen before that keep their pins. After promotion the child is in later live snapshots, so the Planner may also choose it.
+- To undo an adoption, a human points `cc.static_template_ref` back at the earlier template and suspends the child or records it back at `rsi_sandbox`.
 - A rollback is a standing move, not a new version ([D41](../method/decisions.md#d41)). Suspending or revoking a child, or reactivating an earlier version, builds nothing.
 - A record never affects a frozen run plan.
 
@@ -1129,7 +1130,7 @@ Purpose: the one record of a human change of standing. It moves one admitted CC 
 | From | To |
 |---|---|
 | `inactive` | `active`, `revoked` |
-| `active` | `suspended`, `revoked` |
+| `active` | `suspended`, `revoked`, or `active` only to promote an RSI child from `rsi_sandbox` to `live_plans`, or to move it back |
 | `suspended` | `active`, `revoked` |
 | `revoked` | none. A revoked version is permanent |
 
@@ -1140,7 +1141,7 @@ Purpose: the one record of a human change of standing. It moves one admitted CC 
 | `activation_target_admitted` | `admission_ref` is a library-admission record with status `admitted`, and its `cc` equals the record `cc` | the record is refused |
 | `activation_target_has_check_pins` | That admission record has non-null `check_pins` | the record is refused |
 | `activation_transition_allowed` | The pair `from_standing` and `to_standing` is in the table of allowed moves | the record is refused |
-| `activation_scope_matches_lineage` | A version whose admission has a `parent_ref` has `effect_scope` `rsi_sandbox` | the record is refused |
+| `activation_scope_matches_lineage` | For a version whose admission has a `parent_ref`, a record with `to_standing` `active` and `effect_scope` `live_plans` has `from_standing` `active`: the child was active in the sandbox first. An `active` to `active` record is allowed only for an RSI child | the record is refused |
 
 **Failure outcomes**
 
