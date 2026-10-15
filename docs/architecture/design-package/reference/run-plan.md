@@ -77,7 +77,7 @@ Entry types:
 | `effect_class` | `string` | yes | enum, see below | Effect class from the CC declaration `changes.effect_class`. |
 | `network_mode` | `string` | yes | enum, see below | Network mode from the declaration `needs.network.mode`. |
 | `resource_needs` | `ResourceNeed[]` | yes | at most 16 items | Resources the CC needs, taken from the declaration. |
-| `max_limits` | `Limits` | yes | all values positive except `model_calls`, which may be 0 | Per-node ceiling, copied by the protected library and never taken from a plan. `time_s` is in seconds and is the declaration budget `wall_s`. `model_calls` is a count: the budget `invocations` when the declaration injects the model bridge, otherwise 0. `memory_mb` is in megabytes and comes from the admission record, because a declaration carries no memory budget. A node may ask for less, never more. |
+| `max_limits` | `Limits` | yes | all values positive except `model_calls`, which may be 0 | Per-node ceiling, copied by the protected library and never taken from a plan. `time_s` is in seconds and is the declaration budget `wall_s`. `model_calls` is a count: the budget `invocations` when the declaration injects the model bridge, otherwise 0. `memory_mb` is in MiB and comes from the admission record, because a declaration carries no memory budget. A node may ask for less, never more. |
 | `check_pins` | `nullable-CheckPins` | yes | must be non-null for a usable entry | Check bundle and checking profile pinned by protected admission. Null means the version has no admitted bundle. The binder must reject any node that uses a null entry. |
 
 **PortSpec**
@@ -155,7 +155,7 @@ The check bundle and checking profile contracts are owned by the [Verifier page]
 | Check ID | Rule | Outcome |
 |---|---|---|
 | `output_structure` | The snapshot matches `library-snapshot:field-contract:1` | the run halts before planning |
-| `library_matches_declarations` | Each entry's version, digest, ports, effect class, network mode, resources and limits equal its declaration. Check pin IDs are `<cc_name>.checks` and `<cc_name>.profile` | the run halts before planning |
+| `library_matches_declarations` | Each entry's version, digest, ports, effect class, network mode, resources and limits equal its declaration, except `max_limits.memory_mb`, which equals the admission record `memory_mb`. Check pin IDs are `<cc_name>.checks` and `<cc_name>.profile` | the run halts before planning |
 | `check_pins_match_records` | Each non-null pin equals the ID, version and digest of the bundle and profile records | the run halts before planning |
 
 **Failure outcomes**
@@ -483,7 +483,7 @@ Purpose: the record of one node attempt. The scheduler writes one record per nod
 | `output_gate_decision_refs` | `Ref[]` | yes | empty exactly when `gate_decision_ref` is null, at most 16. Equal to the `internal_decision_refs` of the node-scope decision | The per-output subnode-scope decisions that the node-scope decision aggregates, one for each output reviewed. |
 | `output_refs` | `Ref[]` | yes | non-empty only for outcome `accepted`, at most 16 | Accepted outputs. Rejected output stays in evidence, not here. |
 | `elapsed_s` | `nullable-number` | yes | null or at least 0 | Observed wall time of the attempt in seconds, set by the scheduler. Null means not observed, never zero. |
-| `model_calls_used` | `nullable-integer` | yes | null or at least 0 | Count of model calls the work subnode made through the model bridge during the attempt, set by the scheduler from bridge records. Verifier calls are counted on their own verifier subnode, and router selection is not a model call. Null means unobserved, never zero. |
+| `model_calls_used` | `nullable-integer` | yes | null or at least 0 | Count of model calls the work subnode made through the model bridge during the attempt, set by the scheduler from bridge records. Verifier calls are counted on their own verifier subnode. M1 makes no routing selection call (`bounded_llm_ablation` is not built). Null means unobserved, never zero. |
 
 **BoundInput**
 

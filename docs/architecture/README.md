@@ -6,6 +6,12 @@ Updated October 15, 2026. The maintained design package is the shared architectu
 |---|---|
 | [design-package](design-package/README.md) | Full M1 architecture, responsibilities, rationale and implementation-facing reference |
 
+## Related architecture proposal
+
+| Proposal | Use |
+|---|---|
+| [Temporary workload profiling](design-package/temporary-workload-profiling.md) | Working proposal on CC-linked execution evidence, optional diagnostics, host/container measurements and post-run analysis. It is clearly non-authoritative and creates no M1 requirement. |
+
 Start with the package README, then its system architecture and principles. The compact package was retired on October 14, 2026 (decision D27); the maintained design package is the sole current architecture. The PRD is supplied separately and owns product requirements. Its current receipt and clause mappings are in the maintained package.
 
 ## Component reading

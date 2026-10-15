@@ -10,6 +10,7 @@
       "id": "static_template.json",
       "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
     },
+    "evaluation_profile_ref": null,
     "router": {
       "enabled": false,
       "deadline_s": 30,

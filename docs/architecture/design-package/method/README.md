@@ -12,7 +12,7 @@
 | [PRD clause coverage](clause-coverage.md) | Each PRD clause and its owning page, plus the user-story map |
 | [Phases](phases.md) | PRD delivery phases and implementation stage exits |
 | [Build scope](build-scope.md) | Ownership, scope limits and future work the build must not block |
-| [Open items](open-items.md) | The only items that stay open, with owner, need and date |
+| [Open items](open-items.md) | None open. How builders fill gaps, and the defaults that closed the last items |
 
 **Source.** The PRD V.10 receipt is in [product source identity](../sources/product/README.md). The PRD owns obligations. This package owns the realization, and [decisions](decisions.md) record each departure.
 

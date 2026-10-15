@@ -56,7 +56,7 @@ Exact rules: [RouterPort seam](../reference/model-routing-contract.md#routerport
 | RTR-4 | No hot-path module imports router code. The one router client module is the `RouterPort` IPC client (import linter, see the [import boundary](../reference/import-boundary.md)). |
 | RTR-5 | The same run with the router on and off has the same frozen plan and declaration hashes. Switching the router off restores the Codex baseline (the PRD 1.3 Phase 3 exit test). |
 | RTR-6 | Provider failures map to the [provider error codes](../reference/model-routing-contract.md#provider-errors) (`auth_failed`, `rate_limited`, `timeout`, `provider_error`, `invalid_request`, `network_error`, `invalid_output`), with no SDK retries. |
-| RTR-7 | When the audit store cannot be written, no new model call starts. A call that already started keeps a recovery state of unknown or failed. |
+| RTR-7 | When the bridge cannot write the route record or call record, no new model call starts and the node halts. A failed write to the router's own audit store is a router halt, which gives the Codex fallback. A call that already started keeps a recovery state of unknown or failed. |
 | RTR-8 | A verifier subnode call always uses the Codex route, even with `cc.router.enabled` true. Its route record has `router_enabled` false and `decision_source` `codex_router_disabled`. Only the Phase 3 alternate-verifier evaluation profile may override this. |
 
 ## Owner acceptance suite

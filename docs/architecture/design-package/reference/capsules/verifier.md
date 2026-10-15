@@ -182,7 +182,7 @@ The bundle for the verifier CC itself:
 
 ## Verifier criteria
 
-The verifier CC has no second semantic reviewer in M1. The host checks above stand in. The independently owned profile fixes its criterion IDs in its system instructions before execution. Three are generic and apply to every CC. A profile may add at most two criteria for an artifact type. Each must be answerable from declaration plus output. Stage instructions may explain a question but cannot add a criterion that needs another input.
+The verifier CC has no second semantic reviewer in M1. The host checks above stand in. The independently owned profile fixes its criterion IDs in its system instructions before execution. Three are generic and apply to every CC. A profile may add criteria for an artifact type. Each must be answerable from declaration plus output. Stage instructions may explain a question but cannot add a criterion that needs another input.
 
 | Criterion ID | Question | Applies to |
 |---|---|---|

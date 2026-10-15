@@ -114,7 +114,7 @@ The CC must:
 3. Follow section 4.2 in order and set `aggregation_rule` to `m1_conjunctive_v1`.
 4. Write one rationale per metric that names the values, the threshold and the outcome.
 5. Judge plausibility in one qualitative pass. Flag `implausible` only for values that are impossible or clearly an execution anomaly. Never use plausibility to rescue a `FAIL`.
-6. Conclude nothing the registered rules do not give. Never word a result as support when the classification is `FAIL` or `INCONCLUSIVE`. A value outside the metric's declared `valid_min` or `valid_max` is `implausible`.
+6. Conclude nothing the registered rules do not give. Never word a result as support when the classification is `FAIL` or `INCONCLUSIVE`. A value outside the metric's declared `valid_min` or `valid_max` never reaches Evaluation: Research Benchmark rejects it (`measurement_within_declared_range`).
 7. Record follow-ups as recommendations. Never trigger a rerun, a patch or a node.
 
 Self-review before emitting: recompute each finding by hand from the two input values and the registered rule. Recompute the overall classification from the findings with the table above. Confirm every blueprint metric has one finding. Confirm `blockers` is non-empty exactly when required. Confirm no rule appears that the blueprint lacks.

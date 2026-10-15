@@ -85,7 +85,7 @@ flowchart LR
 ```
 
 - **Admission**, run by a human in M1, checks the declaration, the body hashes, every pinned file and dependency, the CC's self-tests and its declared effects. It records trust level `provisional`, the only M1 level, and renders `make_capsule.md`, a readable view of the declaration (PRD 4.1). The bootstrap library, the CC versions the first build starts from, is admitted once by hand.
-- **Standing.** A human activates, suspends or revokes a version. In M1 an activated RSI child serves RSI sandbox runs only; live plans keep the parent until a human re-pins the template ([D46](method/decisions.md#d46)). A **rollback** reactivates an earlier version. It builds nothing new ([D41](method/decisions.md#d41)).
+- **Standing.** A human activates, suspends or revokes a version. In M1 an activated RSI child serves RSI sandbox runs only; live plans always keep the parent. Adopting a child into live plans is later work and not possible in M1 ([D46](method/decisions.md#d46)). A **rollback** reactivates an earlier version. It builds nothing new ([D41](method/decisions.md#d41)).
 - **The library is data**, never a hard-coded list. A plan reads the library snapshot pinned when it is made. A running plan never changes its pins.
 - **RSI in M1.** Only Screening is `rsi: propose`. Its `may_change` allows its `rank_opportunities` helper (RSI Target 1) and its instruction and rubric files (Target 2, run when headless model calls work). Verifier CCs and CCs whose output is gate evidence must be `none`.
 

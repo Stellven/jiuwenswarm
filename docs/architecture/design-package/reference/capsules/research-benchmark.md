@@ -58,7 +58,7 @@ File `benchmark_payload.json`. Contains measurements only. It has no pass, fail 
 | `poc_ref` | Ref | yes | Must equal the input `poc_manifest` Ref | The input `poc_manifest`, which is the treatment that ran. The runner copies the input Ref. |
 | `environment_lock_ref` | Ref | yes | Must equal the input lock and `blueprint.environment_ref` | The lock that was installed. |
 | `resource_refs` | Ref[] | yes | min 1. Must equal the blueprint `resource_refs` as a set | The baseline and validation snapshots used. The runner copies them from the blueprint. Compared as a set, so order does not matter. |
-| `configuration_ref` | Ref | yes | Resolves to the run configuration | The frozen run configuration of this run (the operator config snapshot), written by the binder. Benchmark reads the seed policy from it. Benchmark uses no model in M1, so no model route applies. |
+| `configuration_ref` | Ref | yes | Resolves to the run configuration | The frozen run configuration of this run (the operator config snapshot), written by the binder. The seed policy comes from the blueprint, not from here. Benchmark uses no model in M1, so no model route applies. |
 | `execution_receipt_ref` | Ref | yes | Resolves to an `execution_receipt` | The per-run record. |
 | `provisioning_receipt_ref` | Ref | yes | Resolves to a `provisioning_receipt` with status `succeeded` | The install record. |
 | `repeat_count` | integer | yes | min 1. Must equal `blueprint.repeat_count` | Number of repeats for each role, copied from the blueprint. The runner never chooses it. Each role has exactly this many runs. |
@@ -115,7 +115,7 @@ Purpose: what the protected executor observed for every run. File `execution_rec
 | `subject_ref` | Ref | yes | Baseline: equals `blueprint.baseline_identity.resource_ref`. Treatment: equals the manifest `archive_ref` | Exactly what was run. Proves the baseline was unmodified. |
 | `command` | string[] | yes | min 1 item. First item is an interpreter or executable | The command line as executed, one array item per argument. The protected executor records it as run. It is not edited afterwards. |
 | `exit_code` | integer | yes | none | Process exit code. 0 means success. |
-| `started_at` | string | yes | UTC ISO 8601. Not earlier than the previous run's start | UTC ISO 8601 time the run started. Used to check that every baseline run started before every treatment run. |
+| `started_at` | string | yes | UTC `YYYY-MM-DDTHH:MM:SSZ`. Not earlier than the previous run's start | UTC `YYYY-MM-DDTHH:MM:SSZ` time the run started. Used to check that every baseline run started before every treatment run. |
 | `wall_time_s` | number | yes | min 0 | Elapsed wall-clock time of the run, in seconds. |
 | `timeout_s` | number | yes | Greater than 0. `wall_time_s` is at most this unless the run timed out | Wall-clock limit applied to this run, in seconds. |
 | `stdout_ref` | Ref | yes | Resolves to stored bytes | Captured standard output, kept as raw evidence. Metric values come from `empirical_results`, not from this file. |
@@ -129,14 +129,14 @@ Purpose: what the protected executor observed for every run. File `execution_rec
 | `hardware_id` | string | yes | non-empty | Identity runs refer to. |
 | `gpu_model` | nullable-string | yes | Non-null when `gpu_count` is above 0 | GPU name. Null when `gpu_count` is 0. |
 | `gpu_count` | integer | yes | min 0 | Number of GPUs visible to the runs. |
-| `gpu_memory_mb` | nullable-integer | yes | Non-null when `gpu_count` is above 0 | Memory per GPU, in megabytes. Null when `gpu_count` is 0. |
+| `gpu_memory_mb` | nullable-integer | yes | Non-null when `gpu_count` is above 0 | Memory per GPU, in MiB. Null when `gpu_count` is 0. |
 | `driver_version` | nullable-string | yes | none | GPU driver version as the host reports it. Null when no GPU driver was detected, which includes a host with no GPU. Recorded as observed, never guessed. |
 | `cuda_version` | nullable-string | yes | none | CUDA or equivalent runtime version as the host reports it. Null when none was detected. Recorded as observed, never guessed. |
 | `cpu_model` | string | yes | non-empty | CPU name. |
 | `cpu_cores` | integer | yes | min 1 | Number of logical cores. |
-| `ram_mb` | integer | yes | min 1 | System memory, in megabytes. |
+| `ram_mb` | integer | yes | min 1 | System memory, in MiB. |
 | `os` | string | yes | non-empty | Operating system and kernel. |
-| `captured_at` | string | yes | UTC ISO 8601, before the first `started_at` | UTC ISO 8601 time the inventory was captured, before the first run started. |
+| `captured_at` | string | yes | UTC `YYYY-MM-DDTHH:MM:SSZ`, before the first `started_at` | UTC `YYYY-MM-DDTHH:MM:SSZ` time the inventory was captured, before the first run started. |
 
 The values of every run are in the file named by `empirical_results_ref`. Its contract is [4.2.1](#421-empirical_results-empirical-resultsfield-contract1).
 

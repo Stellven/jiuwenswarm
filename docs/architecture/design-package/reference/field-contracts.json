@@ -1255,7 +1255,7 @@
         "started_at": {
           "type": "string",
           "required": true,
-          "meaning": "UTC ISO 8601 time the run started. Used to check that every baseline run started before every treatment run."
+          "meaning": "UTC `YYYY-MM-DDTHH:MM:SSZ` time the run started. Used to check that every baseline run started before every treatment run."
         },
         "wall_time_s": {
           "type": "number",
@@ -1306,7 +1306,7 @@
         "gpu_memory_mb": {
           "type": "nullable-integer",
           "required": true,
-          "meaning": "Memory per GPU, in megabytes. Null when `gpu_count` is 0."
+          "meaning": "Memory per GPU, in MiB. Null when `gpu_count` is 0."
         },
         "driver_version": {
           "type": "nullable-string",
@@ -1332,7 +1332,7 @@
         "ram_mb": {
           "type": "integer",
           "required": true,
-          "meaning": "System memory, in megabytes.",
+          "meaning": "System memory, in MiB.",
           "min": 1
         },
         "os": {
@@ -1343,7 +1343,7 @@
         "captured_at": {
           "type": "string",
           "required": true,
-          "meaning": "UTC ISO 8601 time the inventory was captured, before the first run started."
+          "meaning": "UTC `YYYY-MM-DDTHH:MM:SSZ` time the inventory was captured, before the first run started."
         }
       }
     },
@@ -1618,7 +1618,7 @@
         "valid_min": {
           "type": "nullable-number",
           "required": true,
-          "meaning": "Lowest value one repeat can physically take, in the metric unit, for example 0 for a time or a fraction. Null means no lower bound. The host check `measurement_within_declared_range` of Research Benchmark enforces it. Evaluation treats a value outside the range as `implausible`."
+          "meaning": "Lowest value one repeat can physically take, in the metric unit, for example 0 for a time or a fraction. Null means no lower bound. The host check `measurement_within_declared_range` of Research Benchmark enforces it. A value outside the range is rejected there, so the Benchmark node stops and Evaluation never sees it."
         },
         "valid_max": {
           "type": "nullable-number",
@@ -1919,7 +1919,7 @@
         "max_limits": {
           "type": "Limits",
           "required": true,
-          "meaning": "Per-node ceiling, copied by the protected library and never taken from a plan. `time_s` is in seconds and is the declaration budget `wall_s`. `model_calls` is a count: the budget `invocations` when the declaration injects the model bridge, otherwise 0. `memory_mb` is in megabytes and comes from the admission record, because a declaration carries no memory budget. A node may ask for less, never more."
+          "meaning": "Per-node ceiling, copied by the protected library and never taken from a plan. `time_s` is in seconds and is the declaration budget `wall_s`. `model_calls` is a count: the budget `invocations` when the declaration injects the model bridge, otherwise 0. `memory_mb` is in MiB and comes from the admission record, because a declaration carries no memory budget. A node may ask for less, never more."
         },
         "check_pins": {
           "type": "nullable-CheckPins",
@@ -3297,7 +3297,7 @@
         "availability": {
           "type": "string",
           "required": true,
-          "meaning": "`available` or `unavailable`. Unavailable mandatory data blocks the run."
+          "meaning": "`available` or `unavailable`. Unavailable mandatory data stops the node that needs it."
         },
         "environment_ref": {
           "type": "nullable-Ref",
@@ -4949,7 +4949,7 @@
         "memory_mb": {
           "type": "nullable-integer",
           "required": true,
-          "meaning": "Memory ceiling the library snapshot copies into `max_limits.memory_mb`.",
+          "meaning": "Memory ceiling in MiB for one node attempt of this CC version. The person who runs the admission command sets it, because a declaration carries no memory budget. It must not exceed the plan policy `aggregate_limits.memory_mb`. An RSI child copies its parent value. The library snapshot copies it into `max_limits.memory_mb`.",
           "min": 1
         },
         "status": {
@@ -5492,7 +5492,7 @@
         "policy_mode": {
           "type": "string",
           "required": true,
-          "meaning": "Enum `development_profile` (default), `fixed_baseline` (behaves as `cc.router.enabled` false) or `bounded_llm_ablation`. Router-internal mode, not a platform switch"
+          "meaning": "Enum `development_profile` (default), `fixed_baseline` (behaves as `cc.router.enabled` false) or `bounded_llm_ablation`. Router-internal mode, not a platform switch. `bounded_llm_ablation` is not built in M1, and the router refuses it at start"
         },
         "approved_model_ids": {
           "type": "string[]",
@@ -5657,10 +5657,15 @@
           "required": true,
           "meaning": "The one static template a `static` run binds. The binder loads exactly this file and checks its hash. It never picks a template by name or by newest version. To change the fixed path, the operator points this at a new template version and restarts."
         },
+        "cc.evaluation_profile_ref": {
+          "type": "nullable-Ref",
+          "required": true,
+          "meaning": "The evaluation profile this app start runs under. Null for normal product use. The host launcher writes it when it starts the app for an evaluation; nothing else loads a profile."
+        },
         "cc.router.enabled": {
           "type": "boolean",
           "required": true,
-          "meaning": "The one router switch. Its meaning and rules live in the routing contract."
+          "meaning": "The one router switch. When `cc.evaluation_profile_ref` is set, it must equal that profile `router_enabled`. Its meaning and rules live in the routing contract."
         },
         "cc.router.deadline_s": {
           "type": "number",
@@ -6105,7 +6110,7 @@
         "configuration_ref": {
           "type": "Ref",
           "required": true,
-          "meaning": "The frozen run configuration of this run (the operator config snapshot), written by the binder. Benchmark reads the seed policy from it. Benchmark uses no model in M1, so no model route applies."
+          "meaning": "The frozen run configuration of this run (the operator config snapshot), written by the binder. The seed policy comes from the blueprint, not from here. Benchmark uses no model in M1, so no model route applies."
         },
         "execution_receipt_ref": {
           "type": "Ref",
@@ -6469,7 +6474,7 @@
         "missing_evidence": {
           "type": "MissingEvidence[]",
           "required": true,
-          "meaning": "Omissions and redactions. Lists each artifact that is unavailable or withheld, with a reason and a `blocking` flag. An empty list means nothing is missing. A `blocking` item halts the run and blocks release."
+          "meaning": "Omissions and redactions. Lists each artifact that is unavailable or withheld, with a reason and a `blocking` flag. An empty list means nothing is missing. A `blocking` item halts the Delivery node and blocks release."
         },
         "ext": {
           "type": "object",
@@ -7362,7 +7367,7 @@
         "model_calls_used": {
           "type": "nullable-integer",
           "required": true,
-          "meaning": "Count of model calls the work subnode made through the model bridge during the attempt, set by the scheduler from bridge records. Verifier calls are counted on their own verifier subnode, and router selection is not a model call. Null means unobserved, never zero.",
+          "meaning": "Count of model calls the work subnode made through the model bridge during the attempt, set by the scheduler from bridge records. Verifier calls are counted on their own verifier subnode. M1 makes no routing selection call (`bounded_llm_ablation` is not built). Null means unobserved, never zero.",
           "min": 0
         }
       },
@@ -8158,7 +8163,7 @@
         "router_enabled": {
           "type": "boolean",
           "required": true,
-          "meaning": "Whether the API router is on."
+          "meaning": "Whether the API router is on for runs under this profile. The launcher writes the same value into the operator config it starts the app with."
         },
         "router_version": {
           "type": "nullable-string",

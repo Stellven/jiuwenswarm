@@ -95,7 +95,7 @@ This is an ownership and data-flow view, not a prescribed class diagram or priva
 
 Choose capabilities whose declared input range covers the supported M1 research domain. Use one opportunity and one hypothesis path. The Hypothesis CC establishes and freezes the baseline, validation resource, measurement definitions, success/falsification boundaries, and protocol before POC generation or empirical execution. Downstream work may apply that protocol but cannot edit it after seeing results.
 
-Evaluate preconditions with the same semantics at planning and dispatch. Known false conditions reject a plan; value-dependent conditions remain explicit dispatch obligations. An unsupported hypothesis, missing resource, or false dispatch precondition blocks the run. Do not silently choose another capsule, alter the graph, or create a new protocol. Immutable pins prevent version substitution; current suspension/revocation may still block a pinned version at start or release. Multiple planning epochs remain a future possibility, not M1 behavior.
+Evaluate preconditions with the same semantics at planning and dispatch. Known false conditions reject a plan; value-dependent conditions remain explicit dispatch obligations. An unsupported hypothesis, missing resource, or false dispatch precondition blocks the run. Do not silently choose another capsule, alter the graph, or create a new protocol. Immutable pins prevent version substitution. A run keeps its pins to the end: a suspension or revocation after freeze changes later snapshots only. To stop a running version at once, a human cancels the run. Multiple planning epochs remain a future possibility, not M1 behavior.
 
 ## Tasks, nodes, and verification
 

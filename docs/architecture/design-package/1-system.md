@@ -44,7 +44,7 @@ The **hot path** is the code a research run cannot work without. A **side system
 | RSI workbench | Human-run, in its own container. Reads exported records; writes signed candidate versions to the admission inbox. A human admits and activates them. |
 | Platform benchmark runner | An outside client in the sidecar container. Submits ordinary runs through the control API and scores their records. |
 
-If a chosen model fails during a call, the node halts; nothing switches models mid-call. A Codex outage stops runs.
+If a chosen model fails during a call, the node halts; nothing switches models mid-call. A Codex outage halts each node that calls a model, so runs cannot finish until Codex returns.
 
 ## Components
 

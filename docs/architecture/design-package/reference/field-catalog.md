@@ -37,7 +37,7 @@ Purpose: the one protected record of what the user submitted and what the platfo
 - Every file the intake used came from an upload. The Intent CC and the Requirements CC never see a file that is not in `upload_refs`.
 - `source_refs` and `resource_refs` hold no duplicate ref, and no ref appears in both lists.
 - Every span in a later `intent_ir` counts code points in the bytes of `request_ref` or of one `source_refs` entry.
-- When `prior_plan_outcome_ref` is set, the Intent CC and the Requirements CC read its `reasons`. Each reason is resolved or carried forward as an Intent uncertainty or a Brief unresolved item. Neither CC drops a reason.
+- When `prior_plan_outcome_ref` is set, the Intent CC and the Requirements CC read its `reasons`. Each reason is resolved or carried forward as an Intent uncertainty or a Brief unresolved item. Neither CC drops a reason. This is a producer obligation: no host check compares reasons in M1.
 
 **Producer obligations (protected intake)**
 
@@ -82,7 +82,7 @@ Purpose: the one protected record of what the user submitted and what the platfo
 | `files` | `NamedFile[]` | Captured file contents, each a `NamedFile` with an exact hash. Consumers read these bytes, not `origin`. |
 | `access` | `string` | Permitted use of the resource, written as text, for example `read-only experiment`. A consumer must not use the resource outside it. |
 | `license` | `string` | Known license name, or the explicit word unknown. Never left empty. |
-| `availability` | `string` | `available` or `unavailable`. Unavailable mandatory data blocks the run. |
+| `availability` | `string` | `available` or `unavailable`. Unavailable mandatory data stops the node that needs it. |
 | `environment_ref` | `nullable-Ref` | Prepared environment lock that is compatible with this resource ([environment-lock](#environment-lock)). Null means no environment was prepared for it. |
 
 **Invalid/missing behavior:** Unavailable mandatory data blocks; mutable locator alone is not a reproducible identity.
@@ -754,7 +754,7 @@ Purpose: an approved app configuration for benchmarking. The launcher starts the
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this record. |
 | `profile_id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Name clients see in readiness `evaluation_profile` and send as `profile_id`. |
 | `plan_source` | `string` | yes | enum `static`, `planned` | The `plan_source` every run under this profile must request. A submission whose `plan_source` differs is rejected (`plan_source_matches_profile`). The profile mirrors the run setting and adds no other selector. |
-| `router_enabled` | `boolean` | yes | becomes `cc.router.enabled` | Whether the API router is on. |
+| `router_enabled` | `boolean` | yes | equals operator config `cc.router.enabled` (`router_enabled_needs_profile`) | Whether the API router is on for runs under this profile. The launcher writes the same value into the operator config it starts the app with. |
 | `router_version` | `nullable-string` | yes | null exactly when `router_enabled` is false | Router version the comparison pins. |
 | `model_route` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.-]{0,63}$`. The fixed Codex route ID when `router_enabled` is false | Route kept apart from the model identifier. |
 | `library_snapshot_sha256` | `sha256` | yes | digest of the library snapshot every run must capture | Library state under test. The binder refuses a run whose snapshot differs. |
@@ -950,7 +950,8 @@ The file is YAML. A dotted name is a nested key: `cc.router.enabled` is `enabled
 | `cc.plan_source` | `string` | yes | enum `static`, `planned`. Default `static` | Plan source of a run whose submission names none. A submission's `plan_source` wins ([D39](../method/decisions.md#d39)). |
 | `cc.plan_policy_ref` | `Ref` | yes | the [plan policy](run-plan.md#plan-policy) | Operator limits the binder and the Planner stay inside. |
 | `cc.static_template_ref` | `Ref` | yes | an admitted [static template](run-plan.md#static-template) | The one static template a `static` run binds. The binder loads exactly this file and checks its hash. It never picks a template by name or by newest version. To change the fixed path, the operator points this at a new template version and restarts. |
-| `cc.router.enabled` | `boolean` | yes | default `false` | The one router switch. Its meaning and rules live in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
+| `cc.evaluation_profile_ref` | `nullable-Ref` | yes | default null. When non-null, an approved [evaluation profile](#evaluation-profile) | The evaluation profile this app start runs under. Null for normal product use. The host launcher writes it when it starts the app for an evaluation; nothing else loads a profile. |
+| `cc.router.enabled` | `boolean` | yes | default `false` | The one router switch. When `cc.evaluation_profile_ref` is set, it must equal that profile `router_enabled`. Its meaning and rules live in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
 | `cc.router.deadline_s` | `number` | yes | default `30` | Router deadline in seconds. Meaning in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
 | `cc.router.profile_ref` | `nullable-Ref` | yes | default null | The model selection profile. Meaning in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
 | `rsi.custodian_key_id` | `nullable-string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$`. Default null. Null means admission refuses every candidate package | ID of the RSI custodian key whose public half is pinned in this file. Admission checks the signatures of referee evidence and session results against it ([D46](../method/decisions.md#d46)). |
@@ -961,7 +962,7 @@ The file is YAML. A dotted name is a nested key: `cc.router.enabled` is `enabled
 **Invariants**
 
 - Every `role_aliases` value equals `codex.route_id`. A role alias never names an API model in M1.
-- `cc.router.enabled` is true only under an approved [evaluation profile](#evaluation-profile). Without one it is false.
+- `cc.router.enabled` is true only when `cc.evaluation_profile_ref` names an approved [evaluation profile](#evaluation-profile) whose `router_enabled` is true. Without a profile it is false. The profile never overrides the file: the two must agree, or startup refuses.
 - Only the operator edits this file. A client submission cannot set any `cc.*` key, any `rsi.*` key or any other operator setting. The operator approves the file; each run freezes a snapshot of it ([client submission](#client-submission)).
 
 **Producer obligations (operator)**
@@ -975,7 +976,7 @@ The file is YAML. A dotted name is a nested key: `cc.router.enabled` is `enabled
 |---|---|---|
 | `config_keys_known` | The file holds only the keys above, with the right types | startup refuses with an explicit readiness failure. The app accepts no work |
 | `role_aliases_all_codex` | Every `role_aliases` value equals `codex.route_id` | startup refuses with an explicit readiness failure |
-| `router_enabled_needs_profile` | `cc.router.enabled` is true only when an approved evaluation profile is loaded | startup refuses with an explicit readiness failure |
+| `router_enabled_needs_profile` | `cc.router.enabled` is true only when `cc.evaluation_profile_ref` is non-null, and when it is non-null `cc.router.enabled` equals the profile `router_enabled` | startup refuses with an explicit readiness failure |
 
 **Failure outcomes**
 
@@ -991,6 +992,7 @@ schema_version: "1.0.0"
 cc:
   plan_source: static
   plan_policy_ref: {id: plan_policy.json, sha256: "<sha256 of the plan policy>"}
+  evaluation_profile_ref: null
   static_template_ref: {id: static_template.json, sha256: "<sha256 of the static template>"}
   router:
     enabled: false
@@ -1033,7 +1035,7 @@ Purpose: the protected disposition of one candidate CC version. It is the only r
 | `parent_admission_ref` | `nullable-Ref` | yes | null exactly when `parent_ref` is null. Otherwise a library-admission record with the same `cc.cc_name` | The library-admission record of the parent version. A child copies its check pins from it. |
 | `evidence_refs` | `Ref[]` | yes | 1 to 32 items | Independent allowed-change, contract, test and effect checks. |
 | `check_pins` | `nullable-CheckPins` | yes | non-null for a version a run plan may bind. For an RSI child, equal to the parent admission `check_pins` | Check bundle and checking profile pinned to this version. The library snapshot copies them. Null means no run plan can use the version. A child gets its parent's pins: its ports and guarantees cannot change ([D34](../method/decisions.md#d34)), so the same bundle and profile apply. |
-| `memory_mb` | `nullable-integer` | yes | min 1. Non-null when `check_pins` is non-null | Memory ceiling the library snapshot copies into `max_limits.memory_mb`. |
+| `memory_mb` | `nullable-integer` | yes | min 1. Non-null when `check_pins` is non-null | Memory ceiling in MiB for one node attempt of this CC version. The person who runs the admission command sets it, because a declaration carries no memory budget. It must not exceed the plan policy `aggregate_limits.memory_mb`. An RSI child copies its parent value. The library snapshot copies it into `max_limits.memory_mb`. |
 | `status` | `string` | yes | enum `admitted`, `rejected`, `blocked` | Disposition. |
 | `standing` | `string` | yes | enum `inactive`, `active`, `suspended`, `revoked`. Not `inactive` only when `status` is `admitted` | Current eligibility for future selection. |
 | `reasons` | `string[]` | yes | 1 to 20 items | Why this disposition. |

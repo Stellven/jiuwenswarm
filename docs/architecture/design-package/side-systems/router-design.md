@@ -38,9 +38,9 @@ A decision in ready state is valid for 30 s. An unexecuted decision then expires
 
 ## Records
 
-- **Router-owned:** route decision and route event rows in the router's audit store. They are written before the reply. A failed write is a halt (`AUDIT_UNAVAILABLE`).
+- **Router-owned:** route decision and route event rows in the router's audit store. They are written before the reply. A failed write is a router halt (`AUDIT_UNAVAILABLE`), so the bridge uses the Codex fallback. A failed write of the bridge's own route or call record is different: no call starts and the node halts.
 - **Bridge-owned:** one [route record](../reference/model-routing-contract.md#route-record) before every model call, router on or off. One [model-call record](../reference/model-routing-contract.md#model-call) per call, with `call_started` persisted before dispatch.
-- **Routing selection call:** only under `bounded_llm_ablation`. It is a model call with `purpose` `routing_selection`. The bridge records it like any other call.
+- **Routing selection call:** only under `bounded_llm_ablation`, which is not built in M1. It is a model call with `purpose` `routing_selection`. The bridge records it like any other call.
 
 ## Boundary rules
 
