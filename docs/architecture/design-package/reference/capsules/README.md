@@ -1,6 +1,8 @@
 # Capsule build references
 
-**Reading level: AI reference.** Each page here gives one coding agent what it needs to build one capability capsule (CC) and its verifier assignment without inventing a shared name, field or check. Humans read the [component pages](../../research-design.md) instead.
+`Tier 3 · Part of: [Reference](../README.md)`
+
+Each page here gives one coding agent what it needs to build one capability capsule (CC) and its verifier assignment without inventing a shared name, field or check. Humans read the [component pages](../../pipeline/README.md) instead.
 
 A page owns the field contracts of the artifacts its CC produces. Other pages link to it and do not restate fields.
 
@@ -13,7 +15,7 @@ A page owns the field contracts of the artifacts its CC produces. Other pages li
 | Screening | [screening.md](screening.md) | `screening_result`, `opportunity_card` |
 | Hypothesis | [hypothesis.md](hypothesis.md) | `hypothesis_blueprint` |
 | Builder | [builder.md](builder.md) | `poc_manifest`, `poc_artifact_bundle` |
-| Research Benchmark | [research-benchmark.md](research-benchmark.md) | `benchmark_payload` |
+| Research Benchmark | [research-benchmark.md](research-benchmark.md) | `benchmark_payload`, `execution_receipt`, `provisioning_receipt` |
 | Scientific Evaluation | [scientific-evaluation.md](scientific-evaluation.md) | `evaluation_verdict` |
 | Delivery | [delivery.md](delivery.md) | `delivery_manifest`, `research_report` |
 | Verifier | [verifier.md](verifier.md) | `verifier_assessment`, plus the `check_bundle` and `checking_profile` contracts |
@@ -44,7 +46,7 @@ Every CC page has these sections in this order. Keep prose short. Tables carry t
 The plain-English meaning and constraint of each field are the definition. A reader must be able to write a correct value from the table alone. Examples only illustrate. If an example and a table disagree, the table wins and the example is a defect. Directly under each field table, link its examples: one valid example and any invalid example, with the check that rejects it.
 
 0. **Summary.** Three to five lines a human reviewer can check without reading the tables: what the CC takes, what it produces, what blocks it, what it must never do.
-1. **Purpose and place in the run.** One paragraph. Say where it sits in the static template and whether the Planner may select it.
+1. **Purpose and place in the run.** One paragraph on what the CC does and takes. Workflow placement does not belong here ([D42](../../method/decisions.md#d42)).
 2. **Declaration.** Link the declaration example file `<cc>_capsule.json` (validates against the [declaration schema](../schemas/capsule-declaration.schema.json)). Summarize identity, ports, needs, effect class, budget and the pinned check bundle.
 3. **Inputs.** Table: port, artifact type, producer, required, how the CC uses it.
 4. **Output field contract.** Table: field, type, required, constraint, meaning. A constraint is an enum, range, length, pattern or cross-field rule. Write "none" only when no rule applies.
@@ -55,6 +57,7 @@ The plain-English meaning and constraint of each field are the definition. A rea
 9. **Failure outcomes.** Table: condition, outcome, what is kept.
 10. **Examples.** Valid and invalid example files, and the check that rejects each invalid one.
 11. **Future seams.** What later work this contract must not block.
+12. **M1 placement.** The last section. Short. It states where the CC runs in M1, which plan policy entry or binder check enforces it, and nothing else. A CC with no placement rule beyond its ports still has the section.
 
 ## Field types
 

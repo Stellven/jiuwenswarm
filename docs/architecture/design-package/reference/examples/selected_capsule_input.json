@@ -135,13 +135,8 @@
       "on_exhaust": "fail"
     },
     "evolution": {
-      "frozen": [
-        "/ports",
-        "/needs",
-        "/changes",
-        "/guarantees",
-        "/budget"
-      ],
+      "rsi": "none",
+      "may_change": [],
       "notes_for_builder": []
     },
     "coverage": {
@@ -152,22 +147,22 @@
   },
   "declaration_ref": {
     "id": "capsule_declaration.json",
-    "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+    "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
   },
   "subnode_contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "c4a3a8f025d5fbca56c61d6fd5020e68e39cc6864022ef136e141884b2385886"
+    "sha256": "2f84bff9563b1554d9142590e82af59bfb5704d8d37671b64b94264ddf35c157"
   },
   "bound_context": {
     "runtime": {
       "run_id": "run:example",
       "node_id": "intention_compiler",
       "subnode_id": "intention",
-      "attempt_id": "attempt:1",
+      "attempt_id": "intention_compiler-a1",
       "invocation_id": "invocation:routing-teaching-example"
     },
     "binding_id": "binding:intent.compiler",
@@ -182,7 +177,7 @@
         "artifact_refs": [
           {
             "id": "qualified_intake.json",
-            "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+            "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
           }
         ]
       }
@@ -215,7 +210,7 @@
       "resource_reads": [
         {
           "id": "qualified_intake.json",
-          "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+          "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
         }
       ],
       "write_roots": [
@@ -283,7 +278,7 @@
     },
     "configuration_ref": {
       "id": "run_configuration.json",
-      "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+      "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
     }
   }
 }

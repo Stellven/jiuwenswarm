@@ -135,12 +135,9 @@
     "on_exhaust": "fail"
   },
   "evolution": {
-    "frozen": [
-      "/ports",
-      "/needs",
-      "/changes",
-      "/guarantees",
-      "/budget"
+    "rsi": "propose",
+    "may_change": [
+      "files:ranking_*.txt"
     ],
     "notes_for_builder": []
   },

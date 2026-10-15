@@ -1,6 +1,6 @@
 # Search CC (`research.search`)
 
-**Reading level: AI reference.**
+`Tier 3 · Part of: [Reference](../README.md)`
 
 **Summary for reviewers.**
 - Search takes the accepted Research Brief and a plan-bound `search_scope`. The scope sets bounds only. Search writes its own keyword queries inside those bounds (PRD 3.3.1) and runs them over the permitted connectors only.
@@ -11,7 +11,7 @@
 
 ## Purpose and place in the run
 
-Search is the first research stage after the Brief is accepted. The static template always runs it. The Planner may not skip it. The protected binder builds the `search_scope` from the run configuration, the resource inventory and, in planned mode, the Planner's optional `topic_hints`, then freezes it into the run plan. The scope gives bounds. It gives no queries. Search writes its own queries from the Brief, runs them in one linear pass and does not reformulate or loop (PRD 3.3.1 blacklist). It feeds [Screening](screening.md).
+Search reads the accepted Brief and finds sources for ideas. The protected binder builds the `search_scope` from the run configuration, the resource inventory and, when `plan_source` is `planned`, the Planner's optional `topic_hints`, then freezes it into the run plan. The scope gives bounds. It gives no queries. Search writes its own queries from the Brief, runs them in one linear pass and does not reformulate or loop (PRD 3.3.1 blacklist). It feeds [Screening](screening.md).
 
 ## Declaration
 
@@ -22,16 +22,16 @@ Declaration example: [search_capsule.json](../examples/search_capsule.json). It 
 | Name and kind | `research.search`, kind `agent` |
 | Inputs | `brief` (`research_brief`), `search_scope` (`search_scope`) |
 | Output | `candidate_set` (`candidate-set:field-contract:2`) |
-| Needs | Allowlisted egress to `export.arxiv.org` and `api.semanticscholar.org`, the `deepsearch` operator, read access to the local document buffer, the model bridge |
+| Needs | Allowlisted egress to `export.arxiv.org` and `api.semanticscholar.org`. The `deepsearch` operator. Read access to the `original_request` and `local_document_buffer` resources. The model bridge, text only (`tool_calling` false): the model never calls tools itself. |
 | Effect class | `read_only`. The only effects are model calls and query text that Search wrote, sent to allowlisted hosts |
-| Budget | 300 s wall time, 2 model invocations, 20 tool calls, all hard |
+| Budget | 300 s wall time, 2 model invocations, 20 tool calls, all hard. The tool calls are connector calls made by the CC's own code through `deepsearch`, not by the model. |
 | Checks | The bundle in the deterministic check table below, then the semantic criteria below |
 
 ## Inputs
 
 | Port | Artifact type | Producer | Required | Use |
 |---|---|---|---|---|
-| `brief` | `research_brief` | Requirement CC | yes | Source of the objective, mandatory requirements and constraints that shape ideas |
+| `brief` | `research_brief` | Requirements CC | yes | Source of the objective, mandatory requirements and constraints that shape ideas |
 | `search_scope` | `search_scope` | Protected binder (plan-bound, `run_input_key` `search_scope`) | yes | The bounds: permitted connectors, local documents, query and hit limits, optional topic hints |
 
 ### `search_scope` field contract
@@ -47,7 +47,7 @@ Declaration example: [search_capsule.json](../examples/search_capsule.json). It 
 | `max_queries` | `integer` | yes | 1 to 8 | Most queries Search may write and run |
 | `max_hits_per_query` | `integer` | yes | 1 to 5 | Most sources one external connector may contribute per query |
 | `local_document_refs` | `Ref[]` | yes | 0 or more. Each must be a captured local document. Must be non-empty when `local_documents` is in `connectors` | The user's local documents Search may read |
-| `topic_hints` | `string[]` | yes | 0 to 5 items. Each 3 to 100 characters. No duplicates. Empty in static mode | Optional topic phrases from the Planner. Search may use them when it writes queries. It may ignore them. They never replace the Brief |
+| `topic_hints` | `string[]` | yes | 0 to 5 items. Each 3 to 100 characters. No duplicates. Empty when `plan_source` is `static` | Optional topic phrases from the Planner. Search may use them when it writes queries. It may ignore them. They never replace the Brief |
 
 Examples: [valid](../examples/search_scope.json)
 
@@ -103,7 +103,7 @@ Examples: [valid](../examples/search_scope.json)
 | `assumptions` | `string[]` | yes | 1 or more items | Premises the idea needs that nothing has proved |
 | `risks` | `string[]` | yes | 1 or more items | Known ways the idea could fail |
 
-Examples: [valid](../examples/candidate_set.json) · rejected by `idea_count`: [candidate_set_invalid_four_ideas](../examples/candidate_set_invalid_four_ideas.json) · rejected by `idea_citations_resolve`: [candidate_set_invalid_uncited_idea](../examples/candidate_set_invalid_uncited_idea.json)
+Examples: [valid](../examples/candidate_set.json)
 
 ## Producer obligations
 
@@ -170,13 +170,21 @@ The gate accepts when every deterministic check passes and every blocking criter
 |---|---|---|
 | [search_scope.json](../examples/search_scope.json) | valid input | none |
 | [candidate_set.json](../examples/candidate_set.json) | valid output. Two ideas. Two queries Search wrote. Two connectors unavailable | none |
-| [candidate_set_invalid_four_ideas.json](../examples/candidate_set_invalid_four_ideas.json) | four ideas | `idea_count` |
-| [candidate_set_invalid_uncited_idea.json](../examples/candidate_set_invalid_uncited_idea.json) | idea with no citation | `idea_citations_resolve` |
+
+
 | [search_capsule.json](../examples/search_capsule.json) | declaration | none |
 
 ## Future seams
 
-- A later Router may choose the model Search uses. The declaration names no model.
+- The model router (an M1 side system behind `RouterPort`) may choose the model Search uses when enabled. The declaration names no model.
 - Dynamic query reformulation and coverage loops (PRD 3.3 blacklist) can come later as new CC versions. The `queries` and `connector_outcomes` fields already record what a loop would need.
 - New connectors need a new enum value and a new capsule version. The scope already lists connectors explicitly.
 - Planner search planning can send richer `topic_hints` without changing this contract. Queries stay Search's own.
+
+## M1 placement
+
+The CC page above does not depend on where Search runs. In M1 the rules below apply.
+
+- Search is the first research stage after the Brief is accepted. Its inputs are the Brief and the `search_scope`, so no research CC can run before it.
+- No plan may skip Search or hold two Search nodes. The plan policy lists `research.search` in `required_stages` ([run plan](../run-plan.md#plan-policy)). The Planner cannot remove it.
+- Enforced by the plan policy and the protected binder check `delivery_leaf_coverage` ([D42](../../method/decisions.md#d42)).

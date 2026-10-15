@@ -32,9 +32,7 @@
         "readiness"
       ],
       "examples": [
-        "intent_ir.json",
-        "intent_topic_only.json",
-        "intent_contradictory.json"
+        "intent_ir.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -76,7 +74,6 @@
       ],
       "examples": [
         "research_brief.json",
-        "research_brief_defaults.json",
         "lifecycle_research_brief.json"
       ],
       "applicable_phases": [
@@ -102,9 +99,7 @@
       ],
       "examples": [
         "intent_checks.json",
-        "topic_checks.json",
-        "science_checks.json",
-        "requirements_checks.json"
+        "science_checks.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -133,9 +128,7 @@
       ],
       "examples": [
         "intent_assessment.json",
-        "topic_assessment.json",
-        "science_assessment.json",
-        "requirements_assessment.json"
+        "science_assessment.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -180,11 +173,7 @@
       ],
       "examples": [
         "gate_decision.json",
-        "gate_topic_halt.json",
-        "gate_science_pass.json",
-        "gate_requirements_pass.json",
-        "gate_intention_compiler_pass.json",
-        "gate_compiler_no_output.json"
+        "gate_science_pass.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -251,7 +240,7 @@
         "required_outputs",
         "evidence_obligations",
         "subnode_limits",
-        "guard_profile_ref",
+        "checking_profile_ref",
         "policy_ref",
         "configuration_ref",
         "template_ref",
@@ -260,8 +249,6 @@
       ],
       "examples": [
         "intention_subnode_contract.json",
-        "requirements_subnode_contract.json",
-        "topic_subnode_contract.json",
         "science_subnode_contract.json"
       ],
       "applicable_phases": [
@@ -274,7 +261,7 @@
   "field_contracts": [
     {
       "topic": "planning and node contracts",
-      "document": "other-contracts.md#planning-and-node-contracts",
+      "document": "field-catalog.md#planning-and-node-contracts",
       "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
@@ -283,7 +270,7 @@
     },
     {
       "topic": "research artifacts",
-      "document": "other-contracts.md#research-artifacts",
+      "document": "field-catalog.md#research-artifacts",
       "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
@@ -292,7 +279,7 @@
     },
     {
       "topic": "manifest and runtime records",
-      "document": "other-contracts.md#manifest-and-runtime-records",
+      "document": "field-catalog.md#manifest-and-runtime-records",
       "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
@@ -302,7 +289,7 @@
     },
     {
       "topic": "shared clients and model access",
-      "document": "other-contracts.md#client-and-model-boundaries",
+      "document": "field-catalog.md#client-and-model-boundaries",
       "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
@@ -311,8 +298,8 @@
       ]
     },
     {
-      "topic": "offline RSI records",
-      "document": "other-contracts.md#offline-rsi-records",
+      "topic": "RSI workbench records",
+      "document": "rsi-contracts.md#record-map",
       "version": "2.0.0",
       "applicable_phases": [
         "Phase 2"
@@ -320,7 +307,16 @@
     },
     {
       "topic": "Capsule model-routing integration",
-      "document": "capsule-model-routing.md#shared-flow",
+      "document": "model-routing-contract.md#shared-flow",
+      "version": "2.0.0",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "topic": "derived records",
+      "document": "derived-records.md#derived-contracts",
       "version": "2.0.0",
       "applicable_phases": [
         "Phase 1",
@@ -383,11 +379,11 @@
       "id": "bound-check-plan:field-contract:2",
       "name": "bound-check-plan",
       "version": "2.0.0",
-      "producer": "protected guard resolver",
+      "producer": "protected check runner at dispatch",
       "consumers": [
-        "checks",
-        "review builder",
-        "gate"
+        "check runner",
+        "review-context builder",
+        "gate host"
       ],
       "document": "field-catalog.md#bound-check-plan",
       "fields": "field-contracts.json",
@@ -414,14 +410,15 @@
       ]
     },
     {
-      "id": "invocation-observation:field-contract:2",
+      "id": "invocation-observation:field-contract:3",
       "name": "invocation-observation",
-      "version": "2.0.0",
-      "producer": "protected runner",
+      "version": "3.0.0",
+      "producer": "protected CC runner, and for the gate-side fields the gate host (hot path)",
       "consumers": [
-        "gate",
-        "review",
-        "Run Bundle"
+        "gate host",
+        "review-context builder",
+        "run bundle",
+        "record export (RSI workbench, platform benchmark runner)"
       ],
       "document": "field-catalog.md#invocation-observation",
       "fields": "field-contracts.json",
@@ -453,25 +450,11 @@
       "producer": "protected evidence builder",
       "consumers": [
         "inspection",
-        "authorized export"
+        "authorized export",
+        "platform benchmark runner",
+        "RSI workbench"
       ],
       "document": "field-catalog.md#run-bundle",
-      "fields": "field-contracts.json",
-      "applicable_phases": [
-        "Phase 1",
-        "Phase 3"
-      ]
-    },
-    {
-      "id": "scorecard:field-contract:1",
-      "name": "scorecard",
-      "version": "1.0.0",
-      "producer": "derived observation builder",
-      "consumers": [
-        "analysis",
-        "planner"
-      ],
-      "document": "field-catalog.md#scorecard",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -486,7 +469,7 @@
       "consumers": [
         "browser",
         "CLI",
-        "benchmarker",
+        "platform benchmark runner",
         "sidecar"
       ],
       "document": "field-catalog.md#client-readiness",
@@ -559,6 +542,41 @@
       ]
     },
     {
+      "id": "client-upload:field-contract:1",
+      "name": "client-upload",
+      "version": "1.0.0",
+      "producer": "control plane",
+      "consumers": [
+        "protected intake",
+        "browser",
+        "CLI"
+      ],
+      "document": "field-catalog.md#client-upload",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "operator-config:field-contract:1",
+      "name": "operator-config",
+      "version": "1.0.0",
+      "producer": "operator (protected configuration owner)",
+      "consumers": [
+        "app container entrypoint",
+        "binder",
+        "model bridge",
+        "scheduler"
+      ],
+      "document": "field-catalog.md#operator-config",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
       "id": "client-error:field-contract:1",
       "name": "client-error",
       "version": "1.0.0",
@@ -580,10 +598,10 @@
       "producer": "protected target owner",
       "consumers": [
         "controller",
-        "guard",
+        "mutation check",
         "referee"
       ],
-      "document": "field-catalog.md#rsi-target-profile",
+      "document": "rsi-contracts.md#rsi-target-profile",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 2"
@@ -595,11 +613,11 @@
       "version": "1.0.0",
       "producer": "protected RSI controller",
       "consumers": [
-        "guard",
+        "mutation check",
         "referee",
         "evidence"
       ],
-      "document": "field-catalog.md#rsi-attempt",
+      "document": "rsi-contracts.md#rsi-attempt",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 2"
@@ -613,7 +631,7 @@
       "consumers": [
         "proposer"
       ],
-      "document": "field-catalog.md#rsi-loop-feedback",
+      "document": "rsi-contracts.md#rsi-loop-feedback",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 2"
@@ -628,7 +646,7 @@
         "restricted admission",
         "evidence builder"
       ],
-      "document": "field-catalog.md#rsi-referee-evidence",
+      "document": "rsi-contracts.md#rsi-referee-evidence",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 2"
@@ -643,7 +661,7 @@
         "authorized human",
         "library"
       ],
-      "document": "field-catalog.md#rsi-evidence-export",
+      "document": "rsi-contracts.md#rsi-evidence-export",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 2"
@@ -655,8 +673,10 @@
       "version": "1.0.0",
       "producer": "protected library admission",
       "consumers": [
+        "library snapshot",
         "eligibility",
-        "human"
+        "human",
+        "RSI workbench"
       ],
       "document": "field-catalog.md#library-admission",
       "fields": "field-contracts.json",
@@ -689,7 +709,7 @@
         "human",
         "RSI"
       ],
-      "document": "field-catalog.md#candidate-provenance",
+      "document": "rsi-contracts.md#candidate-provenance",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -706,7 +726,7 @@
         "new-session eligibility",
         "audit"
       ],
-      "document": "field-catalog.md#security-clearance",
+      "document": "rsi-contracts.md#security-clearance",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 2"
@@ -733,13 +753,30 @@
       "name": "node-execution-contract",
       "version": "2.0.0",
       "document": "field-catalog.md#node-execution-contract",
-      "producer": "protected node binder",
+      "producer": "scheduler at dispatch",
       "consumers": [
-        "subnode binder",
-        "runner",
+        "CC runner",
+        "check runner",
         "node gate",
         "inspection"
       ],
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "node-finalization-profile:field-contract:2",
+      "name": "node-finalization-profile",
+      "version": "2.0.0",
+      "producer": "protected configuration owner",
+      "consumers": [
+        "scheduler",
+        "node gate",
+        "check runner"
+      ],
+      "document": "checking.md#node-finalization-profile",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -754,7 +791,7 @@
       "consumers": [
         "router/static adapter"
       ],
-      "document": "capsule-model-routing.md#selected-capsule-input",
+      "document": "model-routing-contract.md#selected-capsule-input",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -771,7 +808,7 @@
         "router/static adapter",
         "bridge"
       ],
-      "document": "capsule-model-routing.md#model-selection-profile",
+      "document": "model-routing-contract.md#model-selection-profile",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -786,7 +823,7 @@
       "consumers": [
         "router/static adapter"
       ],
-      "document": "capsule-model-routing.md#route-request",
+      "document": "model-routing-contract.md#route-request",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -804,7 +841,25 @@
         "observations",
         "Run Bundle"
       ],
-      "document": "capsule-model-routing.md#model-route",
+      "document": "model-routing-contract.md#model-route",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "route-record:field-contract:1",
+      "name": "route-record",
+      "version": "1.0.0",
+      "producer": "model bridge",
+      "consumers": [
+        "model-call records",
+        "observations",
+        "Run Bundle",
+        "platform benchmark runner"
+      ],
+      "document": "model-routing-contract.md#route-record",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -821,7 +876,7 @@
         "Run Bundle",
         "authorized inspection"
       ],
-      "document": "capsule-model-routing.md#model-call",
+      "document": "model-routing-contract.md#model-call",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",
@@ -1005,7 +1060,7 @@
       "consumers": [
         "protected binder",
         "plan checks",
-        "plan verifier"
+        "plan gate"
       ],
       "document": "capsules/planner.md#output-field-contract",
       "fields": "field-contracts.json",
@@ -1084,7 +1139,7 @@
       "producer": "protected binder and freeze",
       "consumers": [
         "scheduler",
-        "guard resolver",
+        "check runner",
         "run state"
       ],
       "document": "run-plan.md#run-plan",
@@ -1101,7 +1156,7 @@
       "producer": "scheduler",
       "consumers": [
         "run state",
-        "guard resolver",
+        "check runner",
         "observability",
         "RSI export"
       ],
@@ -1271,6 +1326,174 @@
         "audit"
       ],
       "document": "run-plan.md#plan-outcome",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "evaluation-profile:field-contract:1",
+      "name": "evaluation-profile",
+      "version": "1.0.0",
+      "producer": "protected configuration owner, approved by the benchmark owner",
+      "consumers": [
+        "launcher",
+        "application",
+        "platform benchmark runner"
+      ],
+      "document": "field-catalog.md#evaluation-profile",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "empirical-results:field-contract:1",
+      "name": "empirical-results",
+      "version": "1.0.0",
+      "producer": "Protected executor inside research.benchmark",
+      "consumers": [
+        "Research Benchmark checks",
+        "Scientific Evaluation CC",
+        "Delivery CC"
+      ],
+      "document": "capsules/research-benchmark.md#421-empirical_results-empirical-resultsfield-contract1",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "rsi-session:field-contract:1",
+      "name": "rsi-session",
+      "version": "1.0.0",
+      "producer": "RSI controller, started by a human",
+      "consumers": [
+        "proposer",
+        "mutation check",
+        "referee",
+        "evidence builder",
+        "candidate packager"
+      ],
+      "document": "rsi-contracts.md#rsi-session",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 2"
+      ]
+    },
+    {
+      "id": "rsi-session-result:field-contract:1",
+      "name": "rsi-session-result",
+      "version": "1.0.0",
+      "producer": "RSI controller",
+      "consumers": [
+        "candidate packager",
+        "human reviewer",
+        "evidence export",
+        "admission command"
+      ],
+      "document": "rsi-contracts.md#rsi-session-result",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 2"
+      ]
+    },
+    {
+      "id": "candidate-package:field-contract:1",
+      "name": "candidate-package",
+      "version": "1.0.0",
+      "producer": "RSI workbench packager",
+      "consumers": [
+        "admission inbox",
+        "admission command",
+        "human reviewer"
+      ],
+      "document": "rsi-contracts.md#candidate-package",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 2"
+      ]
+    },
+    {
+      "id": "rsi-opportunity:field-contract:1",
+      "name": "rsi-opportunity",
+      "version": "1.0.0",
+      "producer": "RSI workbench controller (opportunity qualifier)",
+      "consumers": [
+        "human reviewer",
+        "RSI controller",
+        "evidence export"
+      ],
+      "document": "rsi-contracts.md#rsi-opportunity",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 2"
+      ]
+    },
+    {
+      "id": "rsi-completion-report:field-contract:1",
+      "name": "rsi-completion-report",
+      "version": "1.0.0",
+      "producer": "RSI workbench report builder",
+      "consumers": [
+        "human reviewer",
+        "product acceptance"
+      ],
+      "document": "rsi-contracts.md#rsi-completion-report",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 2"
+      ]
+    },
+    {
+      "id": "contract-conformance:field-contract:1",
+      "name": "contract-conformance",
+      "version": "1.0.0",
+      "producer": "protected conformance builder (record builder)",
+      "consumers": [
+        "capsule scorecard builder",
+        "sample run export",
+        "RSI workbench",
+        "CC owners"
+      ],
+      "document": "derived-records.md#contract-conformance",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "capsule-scorecard:field-contract:1",
+      "name": "capsule-scorecard",
+      "version": "1.0.0",
+      "producer": "protected scorecard builder (record builder)",
+      "consumers": [
+        "CC owners",
+        "RSI workbench"
+      ],
+      "document": "derived-records.md#capsule-scorecard",
+      "fields": "field-contracts.json",
+      "applicable_phases": [
+        "Phase 1",
+        "Phase 3"
+      ]
+    },
+    {
+      "id": "sample-run-export:field-contract:1",
+      "name": "sample-run-export",
+      "version": "1.0.0",
+      "producer": "protected export builder (record builder)",
+      "consumers": [
+        "RSI workbench",
+        "platform benchmark runner",
+        "offline development of the verifier CC"
+      ],
+      "document": "derived-records.md#sample-run-export",
       "fields": "field-contracts.json",
       "applicable_phases": [
         "Phase 1",

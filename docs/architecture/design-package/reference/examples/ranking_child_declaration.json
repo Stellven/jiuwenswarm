@@ -14,7 +14,34 @@
         "path": "ranking_child.txt",
         "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
       }
-    ]
+    ],
+    "lineage": {
+      "parent": {
+        "id": "ranking_declaration.json",
+        "sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+      },
+      "co_parents": [],
+      "relation": "supersedes",
+      "builder": "rsi_workbench",
+      "build_trigger": "rsi:synthetic:1",
+      "context_capsules": [],
+      "diagnosis_inputs": [],
+      "builder_ref": {
+        "id": "rsi_attempt_01.json",
+        "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
+      },
+      "provenance": {
+        "generating_model": null,
+        "prompt_ref": {
+          "id": "rsi_improver_policy.txt",
+          "sha256": "ee424d8b228b6415978175c4d53af1ffe8c8ea3f93e026402038e7c6b94d27aa"
+        },
+        "trajectory_ref": {
+          "id": "rsi_proposal_trace.txt",
+          "sha256": "3455519aaf3c6d33a4004327555806c1dd8ef478dd32f10d66bd5cf4d4fa82d1"
+        }
+      }
+    }
   },
   "ports": {
     "inputs": [
@@ -135,12 +162,9 @@
     "on_exhaust": "fail"
   },
   "evolution": {
-    "frozen": [
-      "/ports",
-      "/needs",
-      "/changes",
-      "/guarantees",
-      "/budget"
+    "rsi": "propose",
+    "may_change": [
+      "files:ranking_*.txt"
     ],
     "notes_for_builder": []
   },

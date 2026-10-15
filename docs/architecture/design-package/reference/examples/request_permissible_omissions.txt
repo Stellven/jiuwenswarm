@@ -1,1 +1,0 @@
-Investigate retrieval latency in my supplied baseline and return a reproducible comparison report.

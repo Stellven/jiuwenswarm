@@ -1,21 +1,23 @@
 # Research Benchmark capability capsule (`research.benchmark`)
 
-**Reading level: AI reference.** Naming note: this is the scientific Research Benchmark CC. It measures a baseline and a treatment inside one research run. It is not the platform benchmark, which is the external runner that tests the AI4Research system.
+`Tier 3 · Part of: [Reference](../README.md)`
+
+Naming note: this is the scientific Research Benchmark CC. It measures a baseline and a treatment inside one research run. It is not the platform benchmark, which is the external runner that tests the AI4Research system.
 
 **Summary for reviewers**
 
 - A deterministic tool installs the frozen dependency lock, runs the unmodified baseline, then runs the treatment, and repeats as often as the blueprint says.
 - It records raw repeats, aggregates and deltas. It never judges the result. Success, failure and classification belong to Scientific Evaluation.
 - The protected executor writes two receipts (what ran, and what was installed). The payload points to them, and host checks compare all three against the frozen blueprint and lock.
-- A failed install or a failed baseline run ends the node for human triage. A failed treatment run is recorded as an unmeasured metric with a reason.
+- A failed install or a failed baseline run fails the node and writes an escalation record. A failed treatment run is recorded as an unmeasured metric with a reason.
 
 ## 1. Purpose and place in the run
 
-The CC sits after Builder and before Scientific Evaluation in the static template. The protected provisioner and executor do the effects. The CC assembles the measurements from what they record.
+The CC measures a proof of concept against its baseline. The protected provisioner and executor do the effects. The CC assembles the measurements from what they record.
 
 ## 2. Declaration
 
-Example: [research_benchmark_capsule.json](../examples/research_benchmark_capsule.json). It validates against the [declaration schema](../schemas/capsule-declaration.schema.json).
+Example: [research_benchmark_capsule.json](../examples/research_benchmark_capsule.json). It validates against the [declaration schema](../schemas/capsule-declaration.schema.json). Its `evolution.rsi` is `none` because its output is gate evidence (check `rsi_mode_allowed`, [D34](../../method/decisions.md#d34)).
 
 | Item | Value |
 |---|---|
@@ -84,16 +86,18 @@ File `benchmark_payload.json`. Contains measurements only. It has no pass, fail 
 | `value` | nullable-number | yes | Null exactly when `unmeasured_reason` is non-null. Otherwise equals `aggregation` applied to `repeats` within relative 1e-9 | The registered aggregate. |
 | `unmeasured_reason` | nullable-string | yes | Null or enum `run_failed`, `timeout`, `metric_not_emitted`, `non_finite_value`, `resource_limit_exceeded` | Why no value exists. Every metric side has a value or a reason, never both and never neither. |
 
-Examples: [valid](../examples/benchmark_payload.json) · rejected by `metric_value_or_reason`: [benchmark_payload_invalid_missing_treatment_reason](../examples/benchmark_payload_invalid_missing_treatment_reason.json) · rejected by `baseline_before_treatment`: [benchmark_payload_invalid_treatment_first](../examples/benchmark_payload_invalid_treatment_first.json)
+Examples: [valid](../examples/benchmark_payload.json)
 
 ### 4.2 `execution_receipt` (`execution-receipt:field-contract:1`)
 
-File `execution_receipt.json`. Written by the protected executor from what it observed. The worker cannot edit it.
+Purpose: what the protected executor observed for every run. File `execution_receipt.json`. The worker cannot edit it.
+
+`execution-receipt:field-contract:1` (version 1.0.0) · Producer: protected executor inside `research.benchmark`. Consumers: Research Benchmark checks, Scientific Evaluation CC, Delivery CC.
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `schema_version` | string | yes | `1.0.0` | Format version. |
-| `id` | string | yes | `execution_receipt` | Artifact identity. |
+| `schema_version` | `string` | yes | `1.0.0` | Format version. |
+| `id` | `string` | yes | `execution_receipt` | Artifact identity. |
 | `blueprint_ref` | Ref | yes | Equals the input blueprint | Protocol the runs followed. |
 | `poc_ref` | Ref | yes | Equals the input `poc_manifest` | POC under test. |
 | `hardware_inventory` | HardwareInventory | yes | none | Hardware observed once, before the first run. |
@@ -134,18 +138,104 @@ File `execution_receipt.json`. Written by the protected executor from what it ob
 | `os` | string | yes | non-empty | Operating system and kernel. |
 | `captured_at` | string | yes | UTC ISO 8601, before the first `started_at` | Capture time. |
 
-`empirical_results` (file named by `empirical_results_ref`): `{schema_version, id: "empirical_results", runs: [{sequence: integer, metrics: {<metric_id>: number}}]}`. One entry per receipt run, same `sequence`. The protected executor builds it from the one JSON line that `run_benchmark.py` prints for each run, in the [output log format](builder.md#output-log-format) that the Builder's static check `output_log_format` verified. The payload repeats must equal these values.
+The values of every run are in the file named by `empirical_results_ref`. Its contract is [4.2.1](#421-empirical_results-empirical-resultsfield-contract1).
 
-Examples: [valid receipt](../examples/execution_receipt.json) · [valid empirical results](../examples/execution_receipt_empirical_results.json). No invalid receipt example. The ordering check `baseline_before_treatment` is shown on the payload.
+**Enum `RunRecord.role`**
 
-### 4.3 `provisioning_receipt` (`provisioning-receipt:field-contract:1`)
+| Value | Meaning |
+|---|---|
+| `baseline` | The unmodified baseline resource ran |
+| `treatment` | The patched POC ran |
 
-File `provisioning_receipt.json`. Written by the protected provisioner.
+**Invariants**
+
+- Sequences run 1..N in order, and `started_at` never decreases.
+- Every baseline run comes before every treatment run.
+- Each role has exactly `repeat_count` runs, all with the blueprint seed and the same `hardware_ref`.
+
+**Producer obligations (protected executor)**
+
+- Capture hardware once, before the first run.
+- Record each run as it happened, including failures. Never reorder or drop a run.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `execution_receipt_schema` | The receipt matches `execution-receipt:field-contract:1` | reject |
+| `baseline_before_treatment` | The invariants above hold, and run counts equal `repeat_count` | reject |
+| `baseline_unmodified`, `hardware_inventory_captured`, `raw_repeats_present` | See [section 6](#6-deterministic-check-bundle) | reject |
+
+**Failure outcomes**
+
+| Condition | Outcome | What is kept |
+|---|---|---|
+| A host check fails | The Benchmark output is rejected and the node halts | The receipt, logs and payload |
+
+Examples: [valid receipt](../examples/execution_receipt.json)
+
+**Minimum quality bar.** A reader can replay the order, commands and hardware of every run from the receipt alone.
+
+### 4.2.1 `empirical_results` (`empirical-results:field-contract:1`)
+
+Purpose: the metric values of every run, parsed by the protected executor. The payload repeats must equal these values. The file is named by the receipt `empirical_results_ref` and listed in the payload `raw_evidence_refs`.
+
+Producer: protected executor inside `research.benchmark`. Consumers: Research Benchmark checks, Scientific Evaluation CC (through the payload), Delivery CC (as raw evidence).
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `schema_version` | string | yes | `1.0.0` | Format version. |
-| `id` | string | yes | `provisioning_receipt` | Artifact identity. |
+| `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
+| `id` | `string` | yes | exactly `empirical_results` | Artifact identity. |
+| `runs` | `EmpiricalRun[]` | yes | min 2. `sequence` is 1..N with no gap or duplicate, in ascending order | One entry per receipt run. |
+
+`EmpiricalRun`
+
+| Field | Type | Required | Constraint | Meaning |
+|---|---|---|---|---|
+| `sequence` | `integer` | yes | min 1. Equals one receipt run `sequence` | Which run the values came from. |
+| `metrics` | `object` | yes | map of `metric_id` to a finite number. Every run has the same key set | The values the run printed in the [output log format](builder.md#output-log-format). A run that printed no valid line has no entry and the payload records `metric_not_emitted`. |
+
+**Invariants**
+
+- The `runs` sequences equal the receipt `runs` sequences.
+- The metric keys equal the blueprint `metric_id` set.
+- Values are copied from the printed line. They are never rounded, filled or smoothed.
+
+**Producer obligations (protected executor)**
+
+- Parse only the one JSON line each run printed on standard output. Keep the raw stdout as its own Ref.
+- Write the file once, after the last run, and hash it before Benchmark reads it.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `empirical_sequence_contiguous` | Sequences are 1..N, ascending, with no gap or duplicate | reject, the node halts |
+| `empirical_values_finite` | Every metric value is a finite number, and every run has the same keys | reject, the node halts |
+
+The payload checks `raw_repeats_present` and `values_match_empirical_results` then compare this file with the receipt and the payload.
+
+**Failure outcomes**
+
+| Condition | Outcome | What is kept |
+|---|---|---|
+| A host check fails | The Benchmark node fails and writes an escalation record | The file, the receipt and the raw stdout |
+| A run printed no valid line | The run has no entry. The payload records `metric_not_emitted` | The raw stdout |
+
+Examples: [valid](../examples/execution_receipt_empirical_results.json)
+
+**Minimum quality bar.** Every number in the payload and the report can be traced to one line one run printed.
+
+### 4.3 `provisioning_receipt` (`provisioning-receipt:field-contract:1`)
+
+Purpose: what the protected provisioner installed and changed before the runs. File `provisioning_receipt.json`.
+
+`provisioning-receipt:field-contract:1` (version 1.0.0) · Producer: protected provisioner inside `research.benchmark`. Consumers: Research Benchmark checks, Scientific Evaluation CC, Delivery CC.
+
+| Field | Type | Required | Constraint | Meaning |
+|---|---|---|---|---|
+| `schema_version` | `string` | yes | `1.0.0` | Format version. |
+| `id` | `string` | yes | `provisioning_receipt` | Artifact identity. |
 | `environment_lock_ref` | Ref | yes | Equals the input lock | The lock that was meant to be installed. |
 | `poc_manifest_ref` | Ref | yes | Equals the input manifest | The bundle that was unpacked. |
 | `status` | string | yes | enum `succeeded`, `failed` | Outcome. `failed` ends the node and no payload is produced. |
@@ -157,13 +247,84 @@ File `provisioning_receipt.json`. Written by the protected provisioner.
 | `network_allowlist` | string[] | yes | Empty when policy is `none` | Hosts the policy allowed. |
 | `unlisted_network_requests` | integer | yes | min 0. Must be 0 for `succeeded` | Requests to hosts outside the allowlist, all blocked. |
 | `effects` | ProvisioningEffect[] | yes | min 1 | Changes made to the workspace, in order. |
-| `limits` | object | yes | `{wall_s_limit: number > 0, wall_s_used: number >= 0}` | Install time limit and time used. |
+| `limits` | `ProvisioningLimits` | yes | see the type below | Install time limit and time used. |
 
-`InstalledPackage`: `name` (string, non-empty), `locked_version` (string, exact, from the lock), `installed_version` (string, must equal `locked_version`), `hash_verified` (boolean, must be true when the lock carries a hash).
+`InstalledPackage`
 
-`ProvisioningEffect`: `op` (enum `unpack_bundle`, `create_venv`, `install_package`), `target` (string, a path under `/workspace/poc/`), `outcome` (enum `ok`, `failed`).
+| Field | Type | Required | Constraint | Meaning |
+|---|---|---|---|---|
+| `name` | `string` | yes | non-empty | Package name. |
+| `locked_version` | `string` | yes | exact version from the lock | Version the lock pins. |
+| `installed_version` | `string` | yes | equals `locked_version` | Version actually installed. |
+| `hash_verified` | `boolean` | yes | true when the lock carries a hash | Whether the package hash was verified. |
 
-Examples: [valid](../examples/provisioning_receipt.json). The synthetic lock lists no packages, so `packages` is empty. No invalid example.
+`ProvisioningEffect`
+
+| Field | Type | Required | Constraint | Meaning |
+|---|---|---|---|---|
+| `op` | `string` | yes | enum, see below | Change made. |
+| `target` | `string` | yes | a path under `/workspace/poc/` | What was changed. |
+| `outcome` | `string` | yes | enum `ok`, `failed` | Result of the change. |
+
+`ProvisioningLimits`
+
+| Field | Type | Required | Constraint | Meaning |
+|---|---|---|---|---|
+| `wall_s_limit` | `number` | yes | above 0 | Install time limit, in seconds. |
+| `wall_s_used` | `number` | yes | min 0 | Install time used, in seconds. |
+
+**Enum `status`**
+
+| Value | Meaning |
+|---|---|
+| `succeeded` | The environment matches the lock. Runs may start |
+| `failed` | Provisioning failed. The node halts and no payload is produced |
+
+**Enum `network_policy_used`**
+
+| Value | Meaning |
+|---|---|
+| `none` | No network during install. `network_allowlist` is empty |
+| `allowlist` | Only the listed package hosts |
+
+**Enum `ProvisioningEffect.op`**
+
+| Value | Meaning |
+|---|---|
+| `unpack_bundle` | Unpacked the POC zip |
+| `create_venv` | Created the virtual environment |
+| `install_package` | Installed one locked package |
+
+**Invariants**
+
+- A `succeeded` receipt has `unlisted_network_requests` 0.
+- `network_allowlist` is empty when `network_policy_used` is `none`.
+- `venv_path` is under `/workspace/poc/` and `runner_user` is not `root`.
+- The installed package names equal the lock's package set, each at its locked version.
+
+**Producer obligations (protected provisioner)**
+
+- Install only the frozen lock. Never add, remove or upgrade a package.
+- Record every change to the workspace in order, including failures.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `provisioning_receipt_schema` | The receipt matches `provisioning-receipt:field-contract:1` | reject |
+| `network_policy_respected` | The network and environment invariants above hold | reject |
+| `environment_lock_match` | Installed packages equal the lock with exact versions | reject |
+
+**Failure outcomes**
+
+| Condition | Outcome | What is kept |
+|---|---|---|
+| `status` `failed` | The node halts. No payload | The receipt and logs |
+| A host check fails | The Benchmark output is rejected and the node halts | The receipt and logs |
+
+Examples: [valid](../examples/provisioning_receipt.json). The synthetic lock lists no packages, so `packages` is empty.
+
+**Minimum quality bar.** A reader can tell from the receipt exactly what was installed, from where, and that nothing else reached the network.
 
 ## 5. Producer obligations
 
@@ -200,6 +361,7 @@ The host runs these before the verifier. They read inputs and runtime records.
 | `raw_repeats_present` | Each measured side has `repeat_count` repeats. Each run has stored stdout, stderr and an `empirical_results` entry. | reject |
 | `values_match_empirical_results` | Every payload repeat equals the value in `empirical_results` for that run and metric. | reject |
 | `arithmetic_consistent` | Each `value` and `delta` recomputes from the repeats within relative 1e-9. | reject |
+| `measurement_within_declared_range` | Every repeat and every aggregate `value` of a measured side lies within the blueprint metric's `valid_min` and `valid_max`. A null bound is not checked. This catches impossible values, for example a fraction above 1 ([D32](../../method/decisions.md#d32)) | reject |
 | `network_policy_respected` | Provisioning used the declared policy with no unlisted requests, and runs had no network. | reject |
 
 ## 7. Verifier criteria
@@ -216,7 +378,7 @@ The verifier sees only the declaration and the exact payload. Reduced assurance 
 
 ## 8. Gate rule
 
-Accept when every host check passes and no blocking criterion fails. Reject for any host check failure, with no fabricated repair. Halt for human triage when the build receipt is not `READY`, provisioning fails or the baseline run fails. The Benchmark CC has three outputs (`benchmark_payload`, `execution_receipt`, `provisioning_receipt`). The verifier runs once for each output artifact, each time with the same pinned declaration. The criteria in section 7 apply to the `benchmark_payload` run. The generic criteria of the checking profile apply to every run.
+Accept when every host check passes and no blocking criterion fails. Reject for any host check failure, with no fabricated repair. Fail the node with an escalation record when the build receipt is not `READY`, provisioning fails or the baseline run fails. The Benchmark CC has three outputs (`benchmark_payload`, `execution_receipt`, `provisioning_receipt`). The verifier runs once for each output artifact, each time with the same pinned declaration. The criteria in section 7 apply to the `benchmark_payload` run. The generic criteria of the checking profile apply to every run.
 
 ## 9. Failure outcomes
 
@@ -237,13 +399,17 @@ A payload with unmeasured sides is valid data. Scientific Evaluation classifies 
 |---|---|---|
 | [benchmark_payload.json](../examples/benchmark_payload.json) | valid | none |
 | [execution_receipt.json](../examples/execution_receipt.json) | valid | none |
-| [execution_receipt_empirical_results.json](../examples/execution_receipt_empirical_results.json) | valid supporting file | none |
+| [execution_receipt_empirical_results.json](../examples/execution_receipt_empirical_results.json) | valid `empirical_results` | none |
+
 | [provisioning_receipt.json](../examples/provisioning_receipt.json) | valid | none |
-| [benchmark_payload_invalid_missing_treatment_reason.json](../examples/benchmark_payload_invalid_missing_treatment_reason.json) | invalid | `metric_value_or_reason` |
-| [benchmark_payload_invalid_treatment_first.json](../examples/benchmark_payload_invalid_treatment_first.json) | invalid | `baseline_before_treatment` |
+
+
+
+
+
 | [research_benchmark_capsule.json](../examples/research_benchmark_capsule.json) | declaration | none |
 
-The older one-line placeholders `baseline_execution.txt`, `treatment_execution.txt` and `provisioning_example.txt` remain as synthetic stdout files. They are no longer the execution or provisioning contracts.
+The older one-line placeholders `baseline_execution.txt` and `treatment_execution.txt` remain as synthetic stdout files. They are no longer the execution or provisioning contracts.
 
 ## 11. Future seams
 
@@ -251,3 +417,10 @@ The older one-line placeholders `baseline_execution.txt`, `treatment_execution.t
 - Other seed policies (per-repeat seeds) change only the per-run seed rule. Interleaved baseline and treatment order would change only the order rule. The `sequence` field already records order.
 - A Model Router or Generalist may call this CC with another blueprint unchanged. The CC takes no model route.
 - Capsule admission can reuse the `execution_receipt` shape as run evidence.
+
+## M1 placement
+
+The CC page above does not depend on where Research Benchmark runs. In M1 the rules below apply.
+
+- It consumes the Builder manifest and receipt, so ports place it after Builder. Scientific Evaluation consumes its payload, so it runs before Evaluation.
+- No extra policy entry is needed. The protected binder enforces the order through `port_type_compatibility` and `dependency_closure` ([D42](../../method/decisions.md#d42)).

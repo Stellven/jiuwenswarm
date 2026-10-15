@@ -3,16 +3,16 @@
   "id": "check-plan:static-plan",
   "contract_ref": {
     "id": "static_template.json",
-    "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+    "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
   },
   "input_refs": [
     {
       "id": "lifecycle_research_brief.json",
-      "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+      "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
     },
     {
       "id": "library_snapshot.json",
-      "sha256": "3af7a852a252d8053be04b957d7ed3b71e5a7ee455ee01f5aa107453d4adcb0e"
+      "sha256": "aaf40eb39a40beb50939b6f4cd456f4be980eb5ccc781b45f9bf53647783f416"
     },
     {
       "id": "resource_inventory.json",
@@ -20,16 +20,16 @@
     },
     {
       "id": "plan_policy.json",
-      "sha256": "2b38739842a274fb9d75cb39bdd01cbffc21b33eefa3ff713d819fcde2308b0b"
+      "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
     }
   ],
   "profile_ref": {
-    "id": "static_plan_profile.json",
-    "sha256": "ba66a3fc2729fb53113ace8126024b48385736fba0a4f21abc0950933316900b"
+    "id": "static_template.json",
+    "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
   },
   "policy_ref": {
     "id": "plan_policy.json",
-    "sha256": "2b38739842a274fb9d75cb39bdd01cbffc21b33eefa3ff713d819fcde2308b0b"
+    "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
   },
   "mandatory_deterministic": [
     "template_structure",
@@ -38,6 +38,7 @@
     "port_type_compatibility",
     "dependency_closure",
     "acyclicity",
+    "delivery_leaf_coverage",
     "mandatory_check_bundle_present",
     "effects_within_policy",
     "resource_feasibility",
@@ -52,7 +53,7 @@
   ],
   "node_contract_ref": {
     "id": "static_template.json",
-    "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+    "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
   },
   "subnode_id": null
 }

@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "subject_ref": {
     "id": "static_template.json",
-    "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+    "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
   },
   "check_plan_ref": {
     "id": "static_plan_check_plan.json",
-    "sha256": "db5717cff452258a45d4ec1e7aa14d58130f3f4eb4a288541e21709142da55cb"
+    "sha256": "15f4e96f20f86fc35626104064a16deafbdbb5da05867989f6abba1865d5bb68"
   },
   "results": [
     {
@@ -16,7 +16,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -27,7 +27,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -38,7 +38,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -49,7 +49,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -60,7 +60,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -71,7 +71,18 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "delivery_leaf_coverage",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -82,7 +93,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -93,7 +104,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -104,7 +115,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     },
@@ -115,7 +126,7 @@
       "evidence_refs": [
         {
           "id": "static_template.json",
-          "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
         }
       ]
     }

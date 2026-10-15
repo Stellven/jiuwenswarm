@@ -3,7 +3,7 @@
   "role": "work",
   "capsule_ref": {
     "id": "capsule_declaration.json",
-    "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+    "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
   },
   "input_contracts": [
     "qualified-intake:field-contract:2"
@@ -11,9 +11,9 @@
   "output_contracts": [
     "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
   ],
-  "guard_profile_ref": {
-    "id": "guard_profile.json",
-    "sha256": "3d8597307df174a5e7c65e54bc01dd650bf70bb0f54ec04b668b53a7d60b6110"
+  "checking_profile_ref": {
+    "id": "intent_checking_profile.json",
+    "sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
   },
   "synthetic": true
 }

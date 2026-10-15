@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "id": "library_admission_invalid_child_pins",
+  "candidate_ref": {
+    "id": "candidate_package.json",
+    "sha256": "0c5e1722d506858c5d8e5e727e8c6f88d1eabb6bab8173b490597cc8c4906df7"
+  },
+  "cc": {
+    "cc_name": "screening.rank_opportunities",
+    "cc_version": "synthetic-child-v1",
+    "declaration_sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+  },
+  "parent_ref": {
+    "id": "ranking_parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "parent_admission_ref": {
+    "id": "rsi_parent_admission.json",
+    "sha256": "91677b6a7086ce0afaab67162283fad64e34658a344703e94ba708ef61b0df32"
+  },
+  "evidence_refs": [
+    {
+      "id": "rsi_referee_evidence.json",
+      "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
+    },
+    {
+      "id": "rsi_evidence_export.json",
+      "sha256": "83202d1ac21e78924da720952c263471e1664d6258a6342ec9a66f17d74ec99d"
+    }
+  ],
+  "check_pins": null,
+  "memory_mb": null,
+  "status": "admitted",
+  "standing": "inactive",
+  "reasons": [
+    "Synthetic example of protected compatibility/security/evidence disposition; not an actual admission"
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

@@ -1,15 +1,24 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "3.0.0",
   "id": "invocation:intent",
+  "run_id": "run:example",
+  "attempt_id": "intention_compiler-a1",
+  "node_id": "intention_compiler",
+  "subnode_id": "intention",
+  "cc_name": "intent.compiler",
+  "cc_version": "example-1",
+  "declaration_sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390",
+  "route_id": null,
+  "measurement_status": "unavailable",
   "contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "c4a3a8f025d5fbca56c61d6fd5020e68e39cc6864022ef136e141884b2385886"
+    "sha256": "2f84bff9563b1554d9142590e82af59bfb5704d8d37671b64b94264ddf35c157"
   },
   "binding_id": "binding:intent.compiler",
   "input_refs": [
     {
       "id": "qualified_intake.json",
-      "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+      "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
     }
   ],
   "output_refs": [
@@ -45,7 +54,14 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
   },
-  "subnode_id": "intention"
+  "body_files_sha256": "ddd8ba007139fc1e8985352fc173533bfb2ad5ff03f0a37695bc070cc885fb01",
+  "decision_source": null,
+  "failure_class": null,
+  "failure_reason_code": null,
+  "error_fingerprint": null,
+  "check_result_refs": [],
+  "verifier_assessment_ref": null,
+  "human_answer_ref": null
 }

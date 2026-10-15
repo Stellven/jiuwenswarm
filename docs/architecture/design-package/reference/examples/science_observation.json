@@ -1,29 +1,38 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "3.0.0",
   "id": "invocation:science",
+  "run_id": "run:science",
+  "attempt_id": "evaluation-a1",
+  "node_id": "evaluation",
+  "subnode_id": "evaluation",
+  "cc_name": "research.evaluation",
+  "cc_version": "example-1",
+  "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e",
+  "route_id": null,
+  "measurement_status": "unavailable",
   "contract_ref": {
     "id": "science_subnode_contract.json",
-    "sha256": "e3d039474cb884abdcf27a0dd7f22c37c88612b88b01e78fc3ad04c6f591ab91"
+    "sha256": "d6a8f74a4ad45953e18d2753905ae50df1452cb3696dd0bbf3d725adf7f2cc9f"
   },
   "binding_id": "binding:evaluation",
   "input_refs": [
     {
       "id": "lifecycle_research_brief.json",
-      "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+      "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
     },
     {
       "id": "hypothesis_blueprint.json",
-      "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+      "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
     },
     {
       "id": "benchmark_payload.json",
-      "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
+      "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
     }
   ],
   "output_refs": [
     {
       "id": "evaluation_verdict.json",
-      "sha256": "1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c"
+      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
     }
   ],
   "model_identity": {
@@ -53,7 +62,14 @@
   },
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
+    "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
   },
-  "subnode_id": "evaluation"
+  "body_files_sha256": "ddd8ba007139fc1e8985352fc173533bfb2ad5ff03f0a37695bc070cc885fb01",
+  "decision_source": null,
+  "failure_class": null,
+  "failure_reason_code": null,
+  "error_fingerprint": null,
+  "check_result_refs": [],
+  "verifier_assessment_ref": null,
+  "human_answer_ref": null
 }

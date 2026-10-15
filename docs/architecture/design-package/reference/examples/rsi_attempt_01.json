@@ -6,7 +6,7 @@
   "previous_ref": null,
   "target_ref": {
     "id": "rsi_target_profile.json",
-    "sha256": "4fa09fe26dff849f45d66c0101d7060b1e6c5f655233aafcbf7cea553df1a2c5"
+    "sha256": "bc9325646c3294adb03052538badb5f24dc062297418a8f18862fbf808993a9e"
   },
   "parent_ref": {
     "id": "ranking_parent.txt",
@@ -35,7 +35,7 @@
   },
   "configuration_ref": {
     "id": "run_configuration.json",
-    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
   },
   "observation_refs": [
     {
@@ -54,6 +54,6 @@
   },
   "chain_root_ref": {
     "id": "rsi_chain_genesis.json",
-    "sha256": "0797cbf1870759ffe068afc329a626d5b7d26fd548e94fe067c32af6921472ea"
+    "sha256": "832dd4a76b34e54e59b97083f345b34a465137dc046489e761963c5488b93b86"
   }
 }

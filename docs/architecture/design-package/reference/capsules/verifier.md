@@ -1,6 +1,8 @@
 # Verifier, check bundle and checking profile
 
-**Reading level: AI reference.** This page owns the generic verifier CC (`research.verifier`), the `verifier_assessment` record, and the two records that assign checks to every other CC: `check_bundle` and `checking_profile`.
+`Tier 3 · Part of: [Reference](../README.md)`
+
+This page owns the generic verifier CC (`research.verifier`), the `verifier_assessment` record, and the two records that assign checks to every other CC: `check_bundle` and `checking_profile`.
 
 **Summary for reviewers**
 - One generic verifier CC checks every work CC. It sees only the pinned declaration and the exact output. It never sees inputs, the Brief, observations or the review manifest.
@@ -11,7 +13,7 @@
 
 ## Purpose and place in the run
 
-The verifier runs after the host deterministic checks for each CC invocation and before the protected gate. The Planner never selects it. The static template and the binder place it after every CC they bind. It is one CC, reused for all work CCs.
+The verifier CC assesses one output of one CC invocation against that CC's declaration. It gives an assessment and never a decision. It is one CC, reused for all work CCs.
 
 ### End-to-end check sequence
 
@@ -52,7 +54,7 @@ The host keeps a review manifest for audit: subject, inputs, bundle and profile 
 
 ## Declaration
 
-[verifier_capsule.json](../examples/verifier_capsule.json) validates against the [declaration schema](../schemas/capsule-declaration.schema.json). It declares name `research.verifier`, kind `agent`, effect class `read_only`, one model call through the audited model bridge, no network, no tools and no resources. The port `subject_output` uses the reserved `schema_ref` `opaque-bytes`. It means the exact output bytes of the subject CC. It is not a field contract. The old `review_context` input port and the `original_request` resource are removed. The declaration pins no bundle or profile. Admission pins the check bundle for the verifier itself. The checking profile for each subject CC comes from that subject's admission record.
+[verifier_capsule.json](../examples/verifier_capsule.json) validates against the [declaration schema](../schemas/capsule-declaration.schema.json). It declares name `research.verifier`, kind `agent`, effect class `read_only`, one model call through the audited model bridge, no network, no tools and no resources. The port `subject_output` uses the reserved `schema_ref` `opaque-bytes`. It means the exact output bytes of the subject CC. It is not a field contract. The old `review_context` input port and the `original_request` resource are removed. The declaration pins no bundle or profile. Admission pins the check bundle for the verifier itself. The checking profile for each subject CC comes from that subject's admission record. Its `evolution.rsi` is `none` because it is the verifier CC (check `rsi_mode_allowed`, [D34](../../method/decisions.md#d34)).
 
 ## Inputs
 
@@ -84,25 +86,70 @@ The host builds the projection from the captured zip bytes and records its hash.
 
 The output is `verifier_assessment`, defined by the [schema](../schemas/verifier-assessment.schema.json) (`urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0`, unchanged). The host writes it. The model supplies only the finding body.
 
+Purpose: the host-assembled record of one verifier call on one output. The gate reads it after the deterministic checks.
+
+`verifier-assessment` (exact schema, version 1.0.0) · Producer: the host, from the untrusted reply of `research.verifier`. Consumers: gate host, run bundle, inspection.
+
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `schema_version` | string | yes | const `1.0.0` | Format version. |
-| `subject_ref` | Ref | yes | Ref to the exact output reviewed. Host-set | Which output the assessment is about. |
-| `review_context_ref` | Ref | yes | Ref to the host review manifest. Host-set | Audit pointer. The model never saw the manifest. |
-| `verdict` | string | yes | enum `PASS`, `PASS_WITH_KNOWN_LIMITATIONS`, `FAIL`, `ENVIRONMENT_BLOCKED`, `INCONCLUSIVE`. Host-derived | Overall result from the findings and fixed policy. |
-| `findings` | object[] | yes | min 1. One per profile criterion asked for this output, no more, no fewer | Per-criterion result. |
-| `findings[].criterion_id` | string | yes | Must be a criterion ID of the pinned profile | Which criterion. |
-| `findings[].outcome` | string | yes | enum `PASS`, `FAIL`, `ENVIRONMENT_BLOCKED`, `INCONCLUSIVE` | Result for that criterion. |
-| `findings[].reason` | string | yes | min length 1. Names output fields | Short basis from the declaration and output. |
-| `findings[].evidence_refs` | Ref[] | yes | min 1. Host-set to the exact declaration and output | What was reviewed. |
-| `uncertainties` | string[] | yes | May be empty | Open questions the verifier could not settle. |
-| `limitations` | string[] | yes | May be empty | Limits of this review. |
-| `required_correction` | nullable-string | yes | Null unless a blocking criterion failed | Short description of what is wrong. It is not replacement work. |
-| `ext` | object | no | Keys are namespaced | Diagnostics only. |
+| `schema_version` | `string` | yes | exactly `1.0.0` | Format version. Reject any other value. |
+| `subject_ref` | `Ref` | yes | the exact output reviewed, or its zip projection. Host-set | Which output the assessment is about. |
+| `review_context_ref` | `Ref` | yes | the host review manifest. Host-set | Audit pointer. The model never saw the manifest. |
+| `verdict` | `string` | yes | enum, see below. Host-derived by the verdict rule | Overall result. |
+| `findings` | `Finding[]` | yes | at least 1. One per profile criterion asked for this output, no more, no fewer | Per-criterion results. |
+| `uncertainties` | `string[]` | yes | may be empty | Open questions the verifier could not settle. |
+| `limitations` | `string[]` | yes | may be empty | Limits of this review. |
+| `required_correction` | `nullable-string` | yes | null unless a blocking criterion failed. Null for an advancing verdict | Short description of what is wrong. Not replacement work. |
+| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | Diagnostics only. |
 
-Verdict rule: `PASS` when every finding is `PASS` and there are no uncertainties. `PASS_WITH_KNOWN_LIMITATIONS` when every blocking finding is `PASS` and limitations or uncertainties are recorded. `FAIL` when any blocking finding is `FAIL`. Otherwise `ENVIRONMENT_BLOCKED` or `INCONCLUSIVE`, matching the worst blocking finding.
+**Finding**
 
-Examples: [valid](../examples/verifier_assessment.json) · host-only [review manifest](../examples/verifier_review_manifest.json)
+| Field | Type | Required | Constraint | Meaning |
+|---|---|---|---|---|
+| `criterion_id` | `string` | yes | a criterion ID of the pinned profile, once per assessment | Which criterion. |
+| `outcome` | `string` | yes | enum, see below | Result for that criterion. |
+| `reason` | `string` | yes | at least 1 character. Names output fields | Short basis from the declaration and the output. |
+| `evidence_refs` | `Ref[]` | yes | at least 1. Host-set to the exact declaration and output | What was reviewed. |
+
+**Enum `verdict`**
+
+| Value | Meaning |
+|---|---|
+| `PASS` | Every finding is `PASS` and there are no uncertainties |
+| `PASS_WITH_KNOWN_LIMITATIONS` | Every blocking finding is `PASS`. Limitations or uncertainties are recorded |
+| `FAIL` | A blocking finding is `FAIL` |
+| `ENVIRONMENT_BLOCKED` | The worst blocking finding is `ENVIRONMENT_BLOCKED` |
+| `INCONCLUSIVE` | The worst blocking finding is `INCONCLUSIVE`, or an uncertainty prevents a decision |
+
+**Enum `Finding.outcome`**
+
+| Value | Meaning |
+|---|---|
+| `PASS` | The output meets the criterion, judged from the declaration and the output |
+| `FAIL` | The output does not meet the criterion |
+| `ENVIRONMENT_BLOCKED` | The criterion could not be judged because the call or a resource failed |
+| `INCONCLUSIVE` | The declaration and the output cannot settle the criterion |
+
+**Invariants**
+
+- Every criterion asked for this output has exactly one finding.
+- `PASS` has no finding other than `PASS` and no uncertainty. `FAIL` has at least one `FAIL` finding.
+- An advancing verdict has a null `required_correction`.
+- The verdict is checking data, never a control action. Only the gate decides.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `assessment_schema` | The assembled assessment validates against the schema | `FAIL`, the gate halts |
+| `criterion_coverage_exact` | Findings cover exactly the criteria asked for this output, once each, with known outcomes | `FAIL`, the gate halts |
+| `verdict_follows_findings` | The verdict follows the findings by the verdict rule, and an advancing verdict has no required correction | `FAIL`, the gate halts |
+
+Failure outcomes are in [failure outcomes](#failure-outcomes) below.
+
+
+
+**Minimum quality bar.** The gate can see for every criterion what was judged, on which bytes and why, and the verdict can be recomputed from the findings.
 
 ## Producer obligations
 
@@ -129,12 +176,31 @@ The bundle for the verifier CC itself:
 | `output_hash_matches` | `subject_output` bytes hash to the captured output | `FAIL`, no model call |
 | `assessment_schema` | Assembled assessment satisfies the schema | `FAIL`, halt |
 | `criterion_coverage_exact` | Findings cover exactly the criteria asked for this output, once each, with known outcomes | `FAIL`, halt |
+| `verdict_follows_findings` | The verdict follows the findings by the verdict rule | `FAIL`, halt |
 
-Examples: [verifier_assessment](../examples/verifier_assessment.json) passes `assessment_schema` and `criterion_coverage_exact`. No invalid example is kept here. The invalid examples for this page are the bundle and profile records below.
+
 
 ## Verifier criteria
 
-The verifier CC has no second semantic reviewer in M1. The host checks above stand in. The subject CCs' criteria are in their own checking profiles. See the generic criteria in the profile section below.
+The verifier CC has no second semantic reviewer in M1. The host checks above stand in. The independently owned profile fixes its criterion IDs in its system instructions before execution. Three are generic and apply to every CC. A profile may add at most two criteria for an artifact type. Each must be answerable from declaration plus output. Stage instructions may explain a question but cannot add a criterion that needs another input.
+
+| Criterion ID | Question | Applies to |
+|---|---|---|
+| `declared_output_conformance` | Does the output have the artifact type, fields and shape the declaration states? | all CCs |
+| `internal_consistency` | Do the output fields agree with each other and do local references resolve inside the output? | all CCs |
+| `limitations_consistency` | Are the listed uncertainties and limitations coherent with the rest of the output? | all CCs |
+| `uncertainty_consistency` | Does `readiness.status` agree with the listed blocking uncertainties? | `intent_ir` |
+| `requirement_link_completeness` | Is every mandatory requirement linked from an acceptance expectation and an evidence obligation? | `research_brief` |
+
+Finding outcomes are `PASS`, `FAIL`, `ENVIRONMENT_BLOCKED` or `INCONCLUSIVE`. The reply body holds `findings` (`criterion_id`, `outcome`, `reason`), `uncertainties`, `limitations` and `required_correction`. The host rejects missing, duplicate or unknown criteria and unsupported outcomes. It supplies every identity and reference field. An ambiguity the profile cannot resolve from the two artifacts is `INCONCLUSIVE`. The persisted record stays the `verifier_assessment` schema. The host review manifest keeps the inputs for audit only, and a reference in it is not evidence the model saw.
+
+**What the host checks instead of the verifier ([D32](../../method/decisions.md#d32)).** PRD 4.2.6 asks Tier 2 to catch three faults. This design catches them at Tier 1 where a rule can decide them. The verifier never sees the evidence (D20), so it does not judge whether a conclusion matches it.
+
+| PRD fault | Host check | Producer obligation |
+|---|---|---|
+| A conclusion that materially exceeds the evidence | `rule_recomputation` recomputes every finding and the classification from the payload and the registered thresholds. Delivery's `verdict_matches_evaluation` and `results_table_matches_payload` tie the report to the verdict and the payload. Every Delivery reference must pass `ref_hash_match` | Scientific Evaluation states only what the registered rules give. Delivery states no conclusion stronger than the verdict and cites only accepted refs |
+| An artifact that contradicts its evidence | `ref_hash_match`, `values_match_empirical_results`, `arithmetic_consistent`, `results_table_matches_payload` | The producer copies numbers from the source artifact and never retypes them |
+| An impossible value | `measurement_within_declared_range` checks every repeat against the `valid_min` and `valid_max` that the `hypothesis_blueprint` registered for the metric | Hypothesis registers the bounds from the metric's unit before the run |
 
 ## Gate rule
 
@@ -180,7 +246,7 @@ The gate accepts the outputs of a subject CC only when every blocking bundle che
 
 Result mapping: the host runs each check once and writes one entry in `results` of the [deterministic check result](../schemas/deterministic-check-result.schema.json). The entry `check_id` equals the bundle `check_id`. `outcome` is the runner outcome (`PASS`, `FAIL`, `ENVIRONMENT_BLOCKED`, `INCONCLUSIVE`). `reason` is the runner's short reason. `evidence_refs` list the output, input or runtime records read. The bound plan holds the bundle ref, so `check_plan_ref` ties the result to the bundle. A non-blocking check that is not `PASS` is recorded and does not block. A missing entry counts as `FAIL`.
 
-Examples: [valid](../examples/check_bundle.json) · rejected by `bundle_has_blocking_schema_check`: [check_bundle_invalid_missing_schema_check](../examples/check_bundle_invalid_missing_schema_check.json)
+
 
 ## `checking_profile` contract
 
@@ -220,21 +286,29 @@ Generic criteria:
 | `internal_consistency` | Does the output avoid contradicting itself? |
 | `limitations_consistency` | Are the stated limitations and uncertainties consistent with the output and with the declaration's stated limits? |
 
-Examples: [valid](../examples/checking_profile.json) · rejected by `criterion_answerable_from_declaration_and_output`: [checking_profile_invalid_answerable_from](../examples/checking_profile_invalid_answerable_from.json)
+
 
 ## Examples
 
 | File | Kind | Rejected by |
 |---|---|---|
 | [verifier_capsule.json](../examples/verifier_capsule.json) | valid declaration | |
-| [verifier_assessment.json](../examples/verifier_assessment.json) | valid assessment | |
-| [check_bundle.json](../examples/check_bundle.json) | valid bundle for `research.screening` | |
-| [check_bundle_invalid_missing_schema_check.json](../examples/check_bundle_invalid_missing_schema_check.json) | invalid | `bundle_has_blocking_schema_check` |
-| [checking_profile.json](../examples/checking_profile.json) | valid profile for `research.screening` | |
-| [checking_profile_invalid_answerable_from.json](../examples/checking_profile_invalid_answerable_from.json) | invalid | `criterion_answerable_from_declaration_and_output` |
+
+
+
+
+
+
 
 ## Future seams
 
 - The Verifier owner may add alternate verifiers later as new profile versions or new verifier CCs. Records pin versions, so old runs stay valid.
 - RSI never edits bundles or profiles. A change goes through the Verifier owner and admission.
 - A later profile may widen `answerable_from` only through a new major contract version and a decision to change D20.
+
+## M1 placement
+
+The CC page above does not depend on where the verifier runs. In M1 the rules below apply.
+
+- No plan holds the verifier, and the Planner never selects it. The scheduler creates a verifier subnode at dispatch, one for each output of the work CC, after the host deterministic checks pass and before the protected gate decision.
+- Enforced by the scheduler and the protected binder check `library_membership`, which rejects a plan node that names it ([D42](../../method/decisions.md#d42)).

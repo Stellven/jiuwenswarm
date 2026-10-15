@@ -1,1 +1,0 @@
-Use no GPU and require GPU execution. Return a reproducible latency comparison for my supplied baseline.

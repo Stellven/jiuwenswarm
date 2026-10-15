@@ -254,7 +254,7 @@
       },
       "minItems": 1
     },
-    "guard_profile_ref": {
+    "checking_profile_ref": {
       "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
     },
     "policy_ref": {
@@ -320,7 +320,7 @@
     "required_outputs",
     "evidence_obligations",
     "subnode_limits",
-    "guard_profile_ref",
+    "checking_profile_ref",
     "policy_ref",
     "configuration_ref",
     "template_ref",

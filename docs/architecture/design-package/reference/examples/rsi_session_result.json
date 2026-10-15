@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_session_result",
+  "session_ref": {
+    "id": "rsi_session.json",
+    "sha256": "5abf71bdadf29c9416c839ca374d0d92aa9f7076376333fc17a48ded51a56184"
+  },
+  "outcome": "QUALIFIED",
+  "parent": {
+    "cc_name": "screening.rank_opportunities",
+    "cc_version": "example-1",
+    "declaration_sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+  },
+  "child": {
+    "cc_name": "screening.rank_opportunities",
+    "cc_version": "synthetic-child-v1",
+    "declaration_sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+  },
+  "child_declaration_ref": {
+    "id": "ranking_child_declaration.json",
+    "sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+  },
+  "attempt_refs": [
+    {
+      "id": "rsi_attempt_01.json",
+      "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
+    }
+  ],
+  "final_attempt_ref": {
+    "id": "rsi_attempt_01.json",
+    "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
+  },
+  "referee_evidence_ref": {
+    "id": "rsi_referee_evidence.json",
+    "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
+  },
+  "qualified_by": "timing_tiebreak",
+  "statistics": {
+    "fixture_units": 20,
+    "parent_passed": 20,
+    "child_passed": 20,
+    "gain_units": 0,
+    "loss_units": 0,
+    "pass_rate_gain": 0.0,
+    "p_value": null,
+    "timing": {
+      "warmup_batches": 5,
+      "paired_rounds": 7,
+      "parent_median_s": 0.1,
+      "child_median_s": 0.08,
+      "relative_gain": 0.2,
+      "calibrated_relative_noise": 0.02,
+      "noise_multiplier": 3,
+      "min_relative_gain": 0.1
+    }
+  },
+  "attempts_used": 1,
+  "queries_used": 2,
+  "stop_reason": "final comparison complete",
+  "limitations": [
+    "Synthetic teaching record. No session ran and no improvement was measured."
+  ],
+  "recorded_at": "2026-10-14T10:00:00Z",
+  "signature": "2bbd534e08a4174f388866c1e6197ae1e7980f59ff81070d51668ceb43059220",
+  "signer_key_id": "rsi-custodian-key-1",
+  "ext": {
+    "example.synthetic": true
+  }
+}

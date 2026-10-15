@@ -490,13 +490,8 @@
     "on_exhaust": "fail"
   },
   "evolution": {
-    "frozen": [
-      "/ports",
-      "/needs",
-      "/changes",
-      "/guarantees",
-      "/budget"
-    ],
+    "rsi": "none",
+    "may_change": [],
     "notes_for_builder": []
   },
   "coverage": {

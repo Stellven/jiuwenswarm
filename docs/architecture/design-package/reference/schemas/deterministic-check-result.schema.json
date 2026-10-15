@@ -11,6 +11,14 @@
     "subject_ref": {
       "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
     },
+    "subject_refs": {
+      "description": "Every output the check bundle read, in output port order. subject_ref equals the first item. Required when the work subnode writes more than one output.",
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+      },
+      "minItems": 1
+    },
     "check_plan_ref": {
       "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
     },

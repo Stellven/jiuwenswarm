@@ -2,19 +2,18 @@
   "schema_version": "1.0.0",
   "id": "static_template_m1_research_path",
   "template_name": "m1_research_path",
-  "mode": "static",
+  "plan_source": "static",
   "nodes": [
     {
       "node_id": "search",
       "cc": {
         "cc_name": "research.search",
         "cc_version": "example-2",
-        "declaration_sha256": "b0187d00f33522d795eac9962226db601145a82b7685954b465d66193443f209"
+        "declaration_sha256": "1c1030012e52b46f401b3bb1e1662271a2f605db6c5e3ca4bf49cb9ab04bbe4f"
       },
       "objective": "Find grounded candidate ideas for the Brief",
       "requirement_ids": [
-        "requirement:latency",
-        "requirement:quality"
+        "all_mandatory_requirements"
       ],
       "deliverable_ids": [],
       "predecessors": [],
@@ -57,12 +56,11 @@
       "cc": {
         "cc_name": "research.screening",
         "cc_version": "example-2",
-        "declaration_sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e"
+        "declaration_sha256": "1700b85f24266459f71a205ef3011aa8dd9b5e90c760583ab81cb8e302ab8d96"
       },
       "objective": "Score candidates and select one opportunity",
       "requirement_ids": [
-        "requirement:latency",
-        "requirement:quality"
+        "all_mandatory_requirements"
       ],
       "deliverable_ids": [],
       "predecessors": [
@@ -125,12 +123,11 @@
       "cc": {
         "cc_name": "research.hypothesis",
         "cc_version": "example-1",
-        "declaration_sha256": "57936b5e897f23951637a58ccb354e03c6b3a33e7bf81a852693c599f5b37841"
+        "declaration_sha256": "f44e17b13c6170ffc681d3b999c75312d413690121d55966598bf8a5bfb79e6a"
       },
       "objective": "State one hypothesis and freeze the measurement protocol",
       "requirement_ids": [
-        "requirement:latency",
-        "requirement:quality"
+        "all_mandatory_requirements"
       ],
       "deliverable_ids": [],
       "predecessors": [
@@ -197,12 +194,11 @@
       "cc": {
         "cc_name": "research.builder",
         "cc_version": "example-1",
-        "declaration_sha256": "297675c8a8793a00646ab2d8dd2c8a81fa85298ab585abf46185569938ecc16a"
+        "declaration_sha256": "05dcfcd0785bd5df9f96485f00b4e9df32a6a0d895538f3e8859b87ebf1b806a"
       },
       "objective": "Build the proof of concept patch and benchmark runner",
       "requirement_ids": [
-        "requirement:latency",
-        "requirement:quality"
+        "all_mandatory_requirements"
       ],
       "deliverable_ids": [],
       "predecessors": [
@@ -274,12 +270,11 @@
       "cc": {
         "cc_name": "research.benchmark",
         "cc_version": "example-1",
-        "declaration_sha256": "85d9b870961ae694fe489cbbf9087649ea936d598f0d398c226570efccf21f45"
+        "declaration_sha256": "829afaca0d5746ef4aa0746f9fda42c34dae31e3ea202d57e4a507ac7ca6da1d"
       },
       "objective": "Measure baseline then treatment on the local GPU",
       "requirement_ids": [
-        "requirement:latency",
-        "requirement:quality"
+        "all_mandatory_requirements"
       ],
       "deliverable_ids": [],
       "predecessors": [
@@ -392,12 +387,11 @@
       "cc": {
         "cc_name": "research.evaluation",
         "cc_version": "example-1",
-        "declaration_sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
+        "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
       },
       "objective": "Classify the result with the registered rules",
       "requirement_ids": [
-        "requirement:latency",
-        "requirement:quality"
+        "all_mandatory_requirements"
       ],
       "deliverable_ids": [],
       "predecessors": [
@@ -460,15 +454,14 @@
       "cc": {
         "cc_name": "research.delivery",
         "cc_version": "example-1",
-        "declaration_sha256": "428be52d7b5b276cbbb4bc77f5326d7db667703f2e23ef04286a260b0ad74cb7"
+        "declaration_sha256": "0102a5c6b414d0e47d3f0bee10b7e01d533019681dd2b39519b3a470bb91bae1"
       },
       "objective": "Write the report and delivery manifest",
       "requirement_ids": [
-        "requirement:latency",
-        "requirement:quality"
+        "all_mandatory_requirements"
       ],
       "deliverable_ids": [
-        "deliverable:report"
+        "all_deliverables"
       ],
       "predecessors": [
         "search",
@@ -643,8 +636,7 @@
   ],
   "coverage": [
     {
-      "item_id": "requirement:latency",
-      "item_kind": "requirement",
+      "selector": "all_mandatory_requirements",
       "node_ids": [
         "search",
         "screening",
@@ -656,23 +648,17 @@
       ]
     },
     {
-      "item_id": "requirement:quality",
-      "item_kind": "requirement",
+      "selector": "all_deliverables",
       "node_ids": [
-        "search",
-        "screening",
-        "hypothesis",
-        "builder",
-        "benchmark",
-        "evaluation",
         "delivery"
       ]
     },
     {
-      "item_id": "deliverable:report",
-      "item_kind": "deliverable",
+      "selector": "all_evidence_obligations",
       "node_ids": [
-        "delivery"
+        "hypothesis",
+        "benchmark",
+        "evaluation"
       ]
     }
   ],

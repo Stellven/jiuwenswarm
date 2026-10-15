@@ -4,7 +4,7 @@
   "session_id": "rsi:synthetic:1",
   "target_ref": {
     "id": "rsi_target_profile.json",
-    "sha256": "4fa09fe26dff849f45d66c0101d7060b1e6c5f655233aafcbf7cea553df1a2c5"
+    "sha256": "bc9325646c3294adb03052538badb5f24dc062297418a8f18862fbf808993a9e"
   },
   "hash_profile_ref": {
     "id": "rsi_hash_profile.txt",

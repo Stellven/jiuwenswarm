@@ -3,7 +3,7 @@
   "id": "poc_manifest",
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
   },
   "environment_ref": {
     "id": "environment_lock.json",

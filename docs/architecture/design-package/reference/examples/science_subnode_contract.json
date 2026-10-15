@@ -7,15 +7,15 @@
   "input_refs": [
     {
       "id": "lifecycle_research_brief.json",
-      "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+      "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
     },
     {
       "id": "hypothesis_blueprint.json",
-      "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+      "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
     },
     {
       "id": "benchmark_payload.json",
-      "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
+      "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
     }
   ],
   "required_outputs": [
@@ -37,7 +37,7 @@
       "role": "evaluation",
       "declaration_ref": {
         "id": "scientific_evaluation_capsule.json",
-        "sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
+        "sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
       },
       "implementation_refs": [
         {
@@ -56,15 +56,15 @@
         "resource_reads": [
           {
             "id": "lifecycle_research_brief.json",
-            "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
           },
           {
             "id": "hypothesis_blueprint.json",
-            "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+            "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
           },
           {
             "id": "benchmark_payload.json",
-            "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
+            "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
           }
         ],
         "write_roots": [
@@ -90,7 +90,7 @@
       "artifact_refs": [
         {
           "id": "lifecycle_research_brief.json",
-          "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+          "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
         }
       ]
     },
@@ -102,7 +102,7 @@
       "artifact_refs": [
         {
           "id": "hypothesis_blueprint.json",
-          "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+          "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
         }
       ]
     },
@@ -114,7 +114,7 @@
       "artifact_refs": [
         {
           "id": "benchmark_payload.json",
-          "sha256": "cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa"
+          "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
         }
       ]
     }
@@ -132,24 +132,24 @@
     "invocation_observation",
     "mandatory_checks",
     "semantic_assessment",
-    "independently_budgeted_guard_observation"
+    "independently_budgeted_check_observation"
   ],
-  "guard_profile_ref": {
-    "id": "science_guard_profile.json",
-    "sha256": "f52f314e6d4d67e01979ccf0bca3de45ecab2774d54a50ee5124a37f39359328"
+  "checking_profile_ref": {
+    "id": "science_checking_profile.json",
+    "sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
-    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
   },
   "template_ref": {
     "id": "science_subnode_template.json",
-    "sha256": "171e0deaf1d0f6fb61a1fddc551805e9fb9d2eeb5794313134ca91571f885aac"
+    "sha256": "46422f2608c380e528173f517d0c22be55e6bdb54dd9ed9262e00a1f4bf2ec17"
   },
   "subnode_id": "evaluation",
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "32e74e7e1980d4cec260596a77e94487d6e4d0d2d37774b1c96b45cc0a79dee5"
+    "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
   },
   "subnode_limits": {
     "time_s": 120,

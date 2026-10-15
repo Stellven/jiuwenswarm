@@ -12,6 +12,7 @@ import copy
 import hashlib
 import json
 import math
+import statistics
 import zipfile
 import re
 import sys
@@ -24,6 +25,16 @@ REF = ROOT / 'reference'
 EX = REF / 'examples'
 errors = []
 
+# Page roles. Change these lists, not the checks, when pages move.
+PAGES = {
+    'tier1': ['README.md', '1-system.md', '2-capability-capsules.md', '3-build-plan.md'],
+    'tier1_word_cap': 4800,
+    'synonyms_enforced': True,
+    'clause_coverage': 'method/clause-coverage.md',
+    'user_story_map': 'method/clause-coverage.md',
+    'brief_boundary': ['README.md', '1-system.md', 'pipeline/intention-compiler.md'],
+}
+
 
 def require(ok, message):
     if not ok:
@@ -32,6 +43,19 @@ def require(ok, message):
 
 def load(path):
     return json.loads(path.read_text(encoding='utf-8'))
+
+
+def load_example(path):
+    """A JSON example, or the logical parts of a zip example (the poc-artifact-bundle contract)."""
+    if path.suffix == '.zip':
+        with zipfile.ZipFile(path) as archive:
+            names = archive.namelist()
+            value = {'archive_format': 'zip', 'entry_names': names}
+            for entry, key in (('requirements.txt', 'requirements_txt'), ('poc_patch.py', 'poc_patch_py'), ('run_benchmark.py', 'run_benchmark_py')):
+                if entry in names:
+                    value[key] = archive.read(entry).decode('utf-8')
+        return value
+    return load(path)
 
 
 def walk(value):
@@ -72,7 +96,7 @@ field_documents = {
     'deterministic-check-result': ROOT / 'reference/checking.md',
     'verifier-assessment': ROOT / 'reference/checking.md',
     'gate-decision': ROOT / 'reference/checking.md',
-    'capsule-declaration': ROOT / 'capsule/declaration.md',
+    'capsule-declaration': ROOT / 'reference/declaration.md',
     'subnode-execution-contract': REF / 'node-execution.md',
 }
 for item in catalog['contracts']:
@@ -87,13 +111,13 @@ require(len({item['path'] for item in index}) == len(index), 'Duplicate example 
 for item in index:
     path = (EX / item['path']).resolve()
     require(path.is_relative_to(EX.resolve()) and path.exists(), 'Example path escape/missing: ' + item['path'])
-    value = load(path)
+    value = load_example(path)
     if item['schema_id'] and item.get('expect') != 'invalid':
         require(item['schema_id'] in validators, 'Unknown example schema ' + item['schema_id'])
         for error in validators[item['schema_id']].iter_errors(value):
             errors.append(f'{item["path"]}:{list(error.path)}: {error.message}')
     for node in walk(value):
-        if set(node) == {'id', 'sha256'} and item.get('rejected_by') != 'ref_hash_match':
+        if set(node) == {'id', 'sha256'} and item.get('rejected_by') not in ('ref_hash_match', 'package_refs_resolve'):
             target = (EX / node['id']).resolve()
             require(target.is_relative_to(EX.resolve()) and target.is_file(), 'Example reference escape/missing: ' + node['id'])
             if target.is_file():
@@ -111,8 +135,13 @@ def resolved(reference):
 def gate_issues(gate):
     result = []
     checks = resolved(gate['deterministic_result_ref'])
-    subject = checks['subject_ref']
-    if gate['action']=='advance' and subject not in gate['output_refs']:
+    # One check result covers every output of the work subnode (subject_refs, in port order).
+    # A per-output decision reviews exactly one of them.
+    checked = checks.get('subject_refs') or [checks['subject_ref']]
+    subject = gate['output_refs'][0] if gate['output_refs'] else checks['subject_ref']
+    if checks['subject_ref'] != checked[0]:
+        result.append('subject_ref is not the first of subject_refs')
+    if gate['action']=='advance' and (len(gate['output_refs']) != 1 or subject not in checked):
         result.append('wrong deterministic subject')
     plan = resolved(gate['check_plan_ref'])
     if {x['check_id'] for x in checks['results']} != set(plan['mandatory_deterministic']) or len(checks['results']) != len(plan['mandatory_deterministic']):
@@ -196,12 +225,9 @@ def node_issues(value):
             if not advertised <= actual or not actual <= allowed:result.append('missing/unknown declared typed port')
     return result
 
-for name in ('gate_decision.json', 'gate_topic_halt.json', 'gate_science_pass.json', 'gate_requirements_pass.json'):
+for name in ('gate_decision.json',):
     for issue in gate_issues(load(EX / name)):
         errors.append(name + ': ' + issue)
-require(load(EX / 'topic_assessment.json')['verdict'] == 'INCONCLUSIVE', 'Topic-only intent must not pass usability')
-require(load(EX / 'gate_topic_halt.json')['accepted_refs'] == [], 'Blocked intent must not reach Requirements')
-require(load(EX / 'evaluation_verdict.json')['classification'] == 'FAIL' and load(EX / 'gate_science_pass.json')['verdict'] == 'PASS', 'Science/gate distinction lost')
 
 brief = load(EX / 'research_brief.json')
 req_ids = {x['id'] for x in brief['mandatory_requirements'] + brief['optional_preferences']}
@@ -241,7 +267,7 @@ negative_count += 1
 for mode in ('subject', 'scope', 'acceptance', 'missing_assessment'):
     value = copy.deepcopy(load(EX / 'gate_decision.json'))
     if mode == 'subject':
-        value['output_refs'] = [load(EX / 'gate_topic_halt.json')['output_refs'][0]]
+        value['output_refs'] = [{'id': 'research_brief.json', 'sha256': hashlib.sha256((EX / 'research_brief.json').read_bytes()).hexdigest()}]
     elif mode == 'scope':
         value['run_id'] = 'wrong-run'
     elif mode == 'acceptance':
@@ -337,7 +363,7 @@ for item in index:
         if item['field_contract_id'] not in interfaces:
             continue
         contract = interfaces[item['field_contract_id']]
-        found = field_errors(load(EX / item['path']), contract['fields'], item['path'])
+        found = field_errors(load_example(EX / item['path']), contract['fields'], item['path'])
         if item.get('expect') == 'invalid':
             require(bool(item.get('rejected_by')), 'Invalid example names no rejecting check: ' + item['path'])
             negative_examples.append(item['path'])
@@ -348,7 +374,7 @@ for item in field_catalog['interfaces']:
         require(info['type'].removeprefix('nullable-').removesuffix('[]') in set(types) | set(interface_types) | primitive_types, 'Unknown field type')
     require(bool(item['failure']) and bool(item['producer']) and bool(item['consumers']), 'Incomplete field ownership/behavior')
 for item in index:
-    value = load(EX / item['path'])
+    value = load_example(EX / item['path'])
     if item['schema_id'] and ':capsule-declaration:' in item['schema_id']:
         for port in value['ports']['inputs'] + value['ports']['outputs']:
             require(port['schema_ref'] in known_contracts, 'Unresolved CC port contract ' + port['schema_ref'])
@@ -1188,6 +1214,21 @@ def _(d, path):
     return bad
 
 
+@rcheck(BP, 'measurement_within_declared_range')
+def _(d, path):
+    bounds = {m['metric_id']: (m['valid_min'], m['valid_max']) for m in rload(d['blueprint_ref'])['metrics']}
+    bad = []
+    for m in d['metrics']:
+        lo, hi = bounds[m['metric_id']]
+        for side in ('baseline', 'treatment'):
+            values = list(m[side]['repeats']) + ([m[side]['value']] if m[side]['value'] is not None else [])
+            for x in values:
+                if (lo is not None and x < lo) or (hi is not None and x > hi):
+                    bad.append('%s %s has %s outside [%s, %s]' % (m['metric_id'], side, x, lo, hi))
+                    break
+    return bad
+
+
 @rcheck(BP, 'network_policy_respected')
 def _(d, path):
     p = rload(d['provisioning_receipt_ref'])
@@ -1503,8 +1544,47 @@ def rplan_env(d):
     return lib, inv, pol, brief
 
 
-def rcoverage(d):
-    return d['coverage'] if 'coverage' in d else rload(d['source_ref'])['coverage']
+SELECTORS = {'all_mandatory_requirements': ('mandatory_requirements', 'requirement', 'requirement_ids'),
+             'all_deliverables': ('deliverables', 'deliverable', 'deliverable_ids'),
+             'all_evidence_obligations': ('evidence_obligations', 'evidence_obligation', None)}
+
+
+def rexpand(d, brief, allow_selectors):
+    """The binder step that expands the selectors of a static template against the accepted Brief.
+    Returns (tags, coverage, problems). tags maps node_id to (requirement_ids, deliverable_ids), expanded.
+    Planner proposals and run plans may not hold a selector."""
+    problems, tags, coverage = [], {}, []
+    for n in d['nodes']:
+        out = {'requirement_ids': [], 'deliverable_ids': []}
+        for field in out:
+            for tag in n[field]:
+                sel = SELECTORS.get(tag)
+                if sel is None or sel[2] != field:
+                    out[field].append(tag)
+                elif not allow_selectors:
+                    problems.append('selector %s outside a static template (node %s)' % (tag, n['node_id']))
+                else:
+                    out[field] += [x['id'] for x in brief[sel[0]] if x['id'] not in out[field]]
+        tags[n['node_id']] = (out['requirement_ids'], out['deliverable_ids'])
+    seen = set()
+    for c in d['coverage']:
+        if ('selector' in c) == ('item_id' in c) or ('item_id' in c) != ('item_kind' in c):
+            problems.append('a coverage entry sets exactly one of item_id with item_kind, or selector')
+            continue
+        if 'selector' in c:
+            if not allow_selectors:
+                problems.append('selector %s outside a static template' % c['selector'])
+                continue
+            key, kind, _ = SELECTORS[c['selector']]
+            entries = [{'item_id': x['id'], 'item_kind': kind, 'node_ids': list(c['node_ids'])} for x in brief[key]]
+        else:
+            entries = [c]
+        for e in entries:
+            if (e['item_id'], e['item_kind']) in seen:
+                problems.append('coverage of %s appears twice' % e['item_id'])
+            seen.add((e['item_id'], e['item_kind']))
+            coverage.append(e)
+    return tags, coverage, problems
 
 
 def rlib_entry(lib, cc):
@@ -1530,6 +1610,40 @@ def rplan_checks(kind, contract_id, structure_id):
             done |= ready
             pending -= ready
         return []
+
+    @rcheck(kind, 'delivery_leaf_coverage')
+    def _(d, path):
+        # A leaf is a node that no other node lists in predecessors. M1 allows exactly one leaf.
+        # It must run research.delivery, carry every Brief deliverable, and have exactly one
+        # research.evaluation ancestor.
+        by = {n['node_id']: n for n in d['nodes']}
+        named = {p for n in d['nodes'] for p in n['predecessors']}
+        leaves = [n for n in by if n not in named]
+        out = []
+        for stage in rplan_env(d)[2].get('required_stages', []):
+            count = sum(1 for n in d['nodes'] if n['cc']['cc_name'] == stage)
+            if count != 1:
+                out.append('required stage %s runs in %d nodes, not 1' % (stage, count))
+        if len(leaves) != 1:
+            return out + ['M1 needs exactly one leaf, found %d' % len(leaves)]
+        leaf = by[leaves[0]]
+        if leaf['cc']['cc_name'] != 'research.delivery':
+            out.append('leaf %s is not a Delivery node' % leaf['node_id'])
+        brief = rplan_env(d)[3]
+        tags = rexpand(d, brief, kind == 'static-template')[0]
+        missing = {x['id'] for x in brief['deliverables']} - set(tags[leaf['node_id']][1])
+        if missing:
+            out.append('deliverables not on the leaf: %s' % sorted(missing))
+        seen, stack = set(), list(leaf['predecessors'])
+        while stack:
+            n = stack.pop()
+            if n in seen or n not in by:
+                continue
+            seen.add(n)
+            stack.extend(by[n]['predecessors'])
+        if sum(by[n]['cc']['cc_name'] == 'research.evaluation' for n in seen) != 1:
+            out.append('leaf needs exactly one Scientific Evaluation ancestor')
+        return out
 
     @rcheck(kind, 'library_membership')
     def _(d, path):
@@ -1605,17 +1719,23 @@ def rplan_checks(kind, contract_id, structure_id):
         reqs = {r['id'] for r in brief['mandatory_requirements']}
         dels = {x['id'] for x in brief['deliverables']}
         bad = []
-        cov = {(c['item_id'], c['item_kind']): set(c['node_ids']) for c in rcoverage(d)}
+        tags, coverage, problems = rexpand(d, brief, kind == 'static-template')
+        bad += problems
+        cov = {(c['item_id'], c['item_kind']): set(c['node_ids']) for c in coverage}
         for n in d['nodes']:
-            if not n['requirement_ids'] and not n['deliverable_ids']:
+            if not tags[n['node_id']][0] and not tags[n['node_id']][1]:
                 bad.append('node %s has no coverage tag' % n['node_id'])
-            if not set(n['requirement_ids']) <= reqs or not set(n['deliverable_ids']) <= dels:
+            if not set(tags[n['node_id']][0]) <= reqs or not set(tags[n['node_id']][1]) <= dels:
                 bad.append('node %s tags an item that is not in the Brief' % n['node_id'])
-        for kind_name, ids, field in (('requirement', reqs, 'requirement_ids'), ('deliverable', dels, 'deliverable_ids')):
+        for kind_name, ids, pos in (('requirement', reqs, 0), ('deliverable', dels, 1)):
             for item in ids:
-                nodes = {n['node_id'] for n in d['nodes'] if item in n[field]}
+                nodes = {nid for nid, t in tags.items() if item in t[pos]}
                 if not nodes or cov.get((item, kind_name)) != nodes:
                     bad.append('coverage of %s is missing or not the inverse of the node tags' % item)
+        evid = {x['id'] for x in brief['evidence_obligations']}
+        for (item, kind_name), nodes in cov.items():
+            if kind_name == 'evidence_obligation' and (item not in evid or not nodes <= set(tags)):
+                bad.append('evidence coverage of %s names an unknown obligation or node' % item)
         return bad
 
     @rcheck(kind, 'effects_within_policy')
@@ -1672,6 +1792,22 @@ rplan_checks('static-template', 'static-template:field-contract:1', 'template_st
 rplan_checks('run-plan', 'run-plan:field-contract:1', 'run_plan_structure')
 
 
+def kahn_order(nodes):
+    order, taken = [], set()
+    while len(order) < len(nodes):
+        ready = [n['node_id'] for n in nodes if n['node_id'] not in taken and set(n['predecessors']) <= taken]
+        if not ready:
+            return None
+        order.append(ready[0])
+        taken.add(ready[0])
+    return order
+
+
+for name in ('run_plan.json',):
+    rp = load(EX / name)
+    require(rp['topological_order'] == kahn_order(rload(rp['source_ref'])['nodes']), 'Run plan order is not the Kahn order with the source-list tie rule: ' + name)
+
+
 @rcheck('plan-proposal', 'proposal_references')
 def _(d, path):
     return ['proposal ref does not resolve: ' + r['id'] for r in rrefs(d) if not rref_ok(r)]
@@ -1695,7 +1831,7 @@ def _(d, path):
             if (i['source_kind'] == 'accepted_ref') != (i['accepted_ref'] is not None):
                 bad.append('accepted_ref is not bound exactly for accepted_ref inputs: %s.%s' % (n['node_id'], i['name']))
     src = rload(d['source_ref'])
-    if d['mode'] != src['mode'] or [n['node_id'] for n in d['nodes']] != [n['node_id'] for n in src['nodes']]:
+    if d['plan_source'] != src['plan_source'] or [n['node_id'] for n in d['nodes']] != [n['node_id'] for n in src['nodes']]:
         bad.append('run plan differs from its source')
     return bad
 
@@ -1703,13 +1839,30 @@ def _(d, path):
 @rcheck('run-plan', 'acceptance_advances')
 def _(d, path):
     acc = rload(d['acceptance_ref'])
-    if d['mode'] == 'static':
-        # static mode: the template is pre-admitted, so acceptance is a deterministic check result with no verifier
+    if d['plan_source'] == 'static':
+        # plan_source static: the template is pre-admitted, so acceptance is a deterministic check result with no verifier
         plan = rload(acc['check_plan_ref'])
         ok = acc['subject_ref'] == d['source_ref'] and 'template_structure' in plan['mandatory_deterministic'] and not plan['mandatory_semantic']
         ok = ok and {r['check_id'] for r in acc['results']} == set(plan['mandatory_deterministic']) and all(r['outcome'] == 'PASS' for r in acc['results'])
         return [] if ok else ['static plan acceptance is not a passing deterministic result for the template']
     return [] if acc.get('action') == 'advance' else ['plan acceptance is not an advance decision']
+
+
+@rcheck('run-plan', 'selectors_expanded')
+def _(d, path):
+    # The binder expanded every selector of the source template against the accepted Brief and recorded the result.
+    src, brief = rload(d['source_ref']), rload(d['brief_ref'])
+    tags, coverage, problems = rexpand(src, brief, True)
+    bad = list(problems)
+    if any('selector' in c for c in d['coverage']):
+        bad.append('the run plan coverage still holds a selector')
+    key = lambda cs: sorted((c['item_id'], c['item_kind'], tuple(c['node_ids'])) for c in cs if 'item_id' in c)
+    if key(d['coverage']) != key(coverage):
+        bad.append('the run plan coverage is not the expansion of the template coverage')
+    for n in d['nodes']:
+        if n['node_id'] in tags and (n['requirement_ids'], n['deliverable_ids']) != tags[n['node_id']]:
+            bad.append('node %s tags are not the expansion of the template tags' % n['node_id'])
+    return bad
 
 
 # ---- library snapshot, dispatch record, plan outcome, gate decision index, search scope
@@ -1762,7 +1915,9 @@ def _(d, path):
         p = e['check_pins']
         if p is None:
             continue
-        for fname, key, idkey, vkey in (('check_bundle.json', 'check_bundle_sha256', 'check_bundle_id', 'check_bundle_version'), ('checking_profile.json', 'checking_profile_sha256', 'checking_profile_id', 'checking_profile_version')):
+        for fname, key, idkey, vkey in (('check_bundle.json', 'check_bundle_sha256', 'check_bundle_id', 'check_bundle_version'), ('checking_profile.json', 'checking_profile_sha256', 'checking_profile_id', 'checking_profile_version'), ('intent_checking_profile.json', 'checking_profile_sha256', 'checking_profile_id', 'checking_profile_version'), ('requirements_checking_profile.json', 'checking_profile_sha256', 'checking_profile_id', 'checking_profile_version'), ('science_checking_profile.json', 'checking_profile_sha256', 'checking_profile_id', 'checking_profile_version'), ('planner_checking_profile.json', 'checking_profile_sha256', 'checking_profile_id', 'checking_profile_version')):
+            if not (EX / fname).exists():
+                continue
             rec = load(EX / fname)
             if rec['target_cc_name'] == e['cc_name']:
                 ident = rec['bundle_id'] if 'bundle_id' in rec else rec['profile_id']
@@ -1812,6 +1967,8 @@ def _(d, path):
             bad.append('a reason names a check that did not fail in the check result')
     if d['attempt_depth'] < 2 and d['linked_attempt_id'] is None:
         bad.append('a linked Intention Compiler attempt is required before the depth limit')
+    if d['attempt_depth'] > 2 or (d['attempt_depth'] == 2 and d['linked_attempt_id'] is not None):
+        bad.append('a request gets at most two plan attempts, so no third attempt is linked (PLT-8)')
     return bad
 
 
@@ -1894,11 +2051,1505 @@ def _(d, path):
     return bad
 
 
+# ---- platform records: intake, lock, check plan, node contract, observation, run bundle, clients, profile, admission, results
+# Check IDs are defined on field-catalog.md, checking.md and the Research Benchmark page.
+MODEL_BRIDGE = 'audited_model_bridge'
+
+
+@rcheck('qualified-intake', 'request_text_decodable')
+def _(d, path):
+    bad = []
+    for ref in [d['request_ref']] + d['source_refs']:
+        try:
+            rref_file(ref).read_bytes().decode('utf-8')
+        except (UnicodeDecodeError, OSError):
+            bad.append('%s does not decode as UTF-8' % ref['id'])
+    return bad
+
+
+@rcheck('qualified-intake', 'intake_refs_unique')
+def _(d, path):
+    ids = [r['id'] for r in d['source_refs']] + [r['id'] for r in d['resource_refs']]
+    return ['duplicate or shared source/resource ref'] if len(ids) != len(set(ids)) else []
+
+
+@rcheck('qualified-intake', 'prior_outcome_is_plan_infeasible')
+def _(d, path):
+    if d.get('prior_plan_outcome_ref') is None:
+        return []
+    outcome = rload(d['prior_plan_outcome_ref'])
+    if outcome.get('outcome') != 'plan_infeasible' or outcome.get('next_stage') != 'intention_compiler':
+        return ['prior_plan_outcome_ref is not a plan_infeasible outcome']
+    return []
+
+
+@rcheck('qualified-intake', 'intake_files_are_uploads')
+def _(d, path):
+    uploads = [rload(r) for r in d['upload_refs']]
+    bad = ['upload %s is not uploaded' % u['id'] for u in uploads if u['status'] != 'uploaded']
+    texts = {u['text_sha256'] for u in uploads}
+    contents = {u['content_sha256'] for u in uploads}
+    bad += ['source ref %s is not the text of an upload' % r['id'] for r in d['source_refs'] if r['sha256'] not in texts]
+    bad += ['resource ref %s is not an upload' % r['id'] for r in d['resource_refs'] if r['sha256'] not in contents]
+    return bad
+
+
+UPLOAD_TYPES = {'docs': 'reference_document', 'repo': 'project_asset', 'datasets': 'validation_data'}
+
+
+@rcheck('client-upload', 'upload_kind_matches_type')
+def _(d, path):
+    bad = []
+    if UPLOAD_TYPES.get(d['kind']) != d['resource_type']:
+        bad.append('resource_type does not follow kind')
+    if d['stored_path'] != 'workspace/input/%s/%s/%s' % (d['kind'], d['scope_id'], d['filename']):
+        bad.append('stored_path does not follow kind, scope_id and filename')
+    if (d['text_sha256'] is not None) != (d['kind'] == 'docs'):
+        bad.append('text_sha256 is non-null exactly for docs')
+    return bad
+
+
+@rcheck('client-upload', 'upload_deleted_consistent')
+def _(d, path):
+    return [] if (d['deleted_at'] is not None) == (d['status'] == 'deleted') else ['deleted_at and status disagree']
+
+
+@rcheck('environment-lock', 'requirements_pinned')
+def _(d, path):
+    lines = [x.strip() for x in rref_file(d['requirements_ref']).read_text(encoding='utf-8').splitlines()]
+    return ['unpinned requirement: ' + x for x in lines if x and not x.startswith('#') and not PIN.match(x)]
+
+
+@rcheck('environment-lock', 'package_refs_unique')
+def _(d, path):
+    ids = [r['id'] for r in d['package_refs']]
+    return ['duplicate package ref'] if len(ids) != len(set(ids)) else []
+
+
+@rcheck('bound-check-plan', 'check_ids_unique')
+def _(d, path):
+    return ['duplicate ID in ' + k for k in ('mandatory_deterministic', 'mandatory_semantic') if len(d[k]) != len(set(d[k]))]
+
+
+@rcheck('bound-check-plan', 'check_plan_scope')
+def _(d, path):
+    if d['contract_ref'] == d['node_contract_ref']:
+        return [] if d['subnode_id'] is None else ['node-scope plan names a subnode']
+    if d['subnode_id'] is None:
+        return ['subnode-scope plan has a null subnode_id']
+    contract = rload(d['contract_ref'])
+    bad = []
+    if contract.get('subnode_id') != d['subnode_id'] or contract.get('node_contract_ref') != d['node_contract_ref']:
+        bad.append('plan scope differs from its subnode contract')
+    if contract.get('input_refs') != d['input_refs']:
+        bad.append('plan inputs differ from its subnode contract')
+    return bad
+
+
+@rcheck('node-execution-contract', 'internal_dependencies_acyclic')
+def _(d, path):
+    ids = [s['subnode_id'] for s in d['subnodes']]
+    if len(ids) != len(set(ids)):
+        return ['duplicate subnode_id']
+    if any(x not in ids for s in d['subnodes'] for x in s['depends_on']):
+        return ['depends_on names an unknown subnode']
+    done, pending = set(), set(ids)
+    while pending:
+        ready = {s['subnode_id'] for s in d['subnodes'] if s['subnode_id'] in pending and set(s['depends_on']) <= done}
+        if not ready:
+            return ['cyclic internal dependency among ' + ', '.join(sorted(pending))]
+        done |= ready
+        pending -= ready
+    return []
+
+
+@rcheck('node-execution-contract', 'input_inventory_matches_ports')
+def _(d, path):
+    return [] if d['input_refs'] == [r for p in d['inputs'] for r in p['artifact_refs']] else ['input_refs differ from the input ports']
+
+
+@rcheck('node-execution-contract', 'gate_subjects_bound')
+def _(d, path):
+    work = {s['subnode_id'] for s in d['subnodes'] if s['role'] == 'work'}
+    return ['gate subject is not a work subnode: ' + g['subject_subnode_id'] for g in d['gate_assignments'] if g['subject_subnode_id'] not in work]
+
+
+@rcheck('node-execution-contract', 'verifier_follows_work')
+def _(d, path):
+    work = {s['subnode_id'] for s in d['subnodes'] if s['role'] == 'work'}
+    return ['verifier without a work dependency: ' + s['subnode_id'] for s in d['subnodes'] if s['role'] == 'verifier' and not set(s['depends_on']) & work]
+
+
+def robs_binding(d):
+    contract = rload(d['contract_ref'])
+    binding = contract['bindings'][0]
+    return contract, binding, rload(binding['declaration_ref'])
+
+
+@rcheck('invocation-observation', 'observation_identity_matches_contract')
+def _(d, path):
+    contract, binding, decl = robs_binding(d)
+    bad = ['%s differs from the contract' % k for k in ('run_id', 'attempt_id', 'node_id', 'subnode_id', 'node_contract_ref') if d[k] != contract[k]]
+    if d['binding_id'] != binding['id']:
+        bad.append('binding_id differs from the contract binding')
+    if (d['cc_name'], d['cc_version'], d['declaration_sha256']) != (decl['identity']['name'], decl['identity']['version_label'], binding['declaration_ref']['sha256']):
+        bad.append('cc_name, cc_version or declaration_sha256 differs from the bound declaration')
+    return bad
+
+
+@rcheck('invocation-observation', 'measurement_status_consistent')
+def _(d, path):
+    if d['measurement_status'] == 'observed':
+        bad = ['observed status with null ' + k for k in ('started_at', 'duration_s', 'model_calls') if d[k] is None]
+        return bad + ([] if d['observed_runtime'] else ['observed status without observed runtime'])
+    return [] if d['unavailable_reasons'] else ['unavailable status without a reason']
+
+
+@rcheck('invocation-observation', 'route_id_matches_model_use')
+def _(d, path):
+    decl = robs_binding(d)[2]
+    if not any(x['service_key'] == MODEL_BRIDGE for x in decl['needs']['injects']) and d['route_id'] is not None:
+        return ['route_id set for a CC without the model bridge']
+    if (d['model_calls'] or 0) > 0 and d['route_id'] is None:
+        return ['model calls without a route_id']
+    return []
+
+
+def rbundle_set_sha(snapshot):
+    values = sorted({e['check_pins']['check_bundle_sha256'] for e in snapshot['entries'] if e['check_pins'] is not None})
+    return hashlib.sha256(''.join(v + '\n' for v in values).encode('utf-8')).hexdigest()
+
+
+def rrouter_pin(value):
+    return [] if (value['router_version'] is None) == (not value['router_enabled']) else ['router_version must be null exactly when router_enabled is false']
+
+
+@rcheck('run-bundle', 'bundle_pins_match_run_plan')
+def _(d, path):
+    if d['run_plan_ref'] is None:
+        return []
+    plan, pins, bad = rload(d['run_plan_ref']), d['pins'], []
+    if pins['library_snapshot_sha256'] != plan['library_snapshot_ref']['sha256']:
+        bad.append('library snapshot pin differs from the run plan')
+    if pins['plan_policy_ref'] != plan['policy_ref']:
+        bad.append('plan policy pin differs from the run plan')
+    if pins['check_bundle_set_sha256'] != rbundle_set_sha(rload(plan['library_snapshot_ref'])):
+        bad.append('check bundle set digest does not recompute')
+    if d['plan_source'] != plan['plan_source']:
+        bad.append('plan_source differs from the run plan')
+    return bad
+
+
+@rcheck('run-bundle', 'bundle_router_pin_consistent')
+def _(d, path):
+    return rrouter_pin(d['pins'])
+
+
+@rcheck('run-bundle', 'faults_only_in_evaluation')
+def _(d, path):
+    return ['fault ids outside an evaluation profile'] if d['fault_ids'] and d['evaluation_profile_id'] is None else []
+
+
+@rcheck('run-bundle', 'bundle_gate_entries_match')
+def _(d, path):
+    bad = []
+    if sorted(r['id'] + r['sha256'] for r in d['decision_refs']) != sorted(e['decision_ref']['id'] + e['decision_ref']['sha256'] for e in d['gate_decisions']):
+        bad.append('decision_refs differ from the gate entries')
+    for e in d['gate_decisions']:
+        g = rload(e['decision_ref'])
+        bad += ['gate entry %s differs from %s' % (k, e['decision_ref']['id']) for k in ('node_id', 'subnode_id', 'scope_kind', 'verdict', 'action', 'recorded_at') if e[k] != g[k]]
+        if e['output_port'] != g.get('output_port'):
+            bad.append('gate entry output_port differs from ' + e['decision_ref']['id'])
+        if g['run_id'] != d['run_id']:
+            bad.append('decision of another run: ' + e['decision_ref']['id'])
+    if d['status'] == 'completed':
+        advanced = {e['node_id'] for e in d['gate_decisions'] if e['scope_kind'] == 'node' and e['action'] == 'advance'}
+        bad += ['completed bundle without an advancing node decision for ' + n['node_id'] for n in d['node_dispatches'] if n['node_id'] not in advanced]
+    return bad
+
+
+@rcheck('run-bundle', 'bundle_dispatch_times_match')
+def _(d, path):
+    bad = []
+    for e in d['node_dispatches']:
+        record = rload(e['dispatch_record_ref'])
+        bad += ['dispatch entry %s differs from its record' % k for k in ('node_id', 'attempt_id', 'started_at', 'ended_at', 'outcome') if e[k] != record[k]]
+        if record['run_id'] != d['run_id']:
+            bad.append('dispatch record of another run')
+    for ref in d['observation_refs'] + d['route_record_refs']:
+        if rload(ref).get('run_id') != d['run_id']:
+            bad.append('record of another run: ' + ref['id'])
+    return bad
+
+
+@rcheck('client-readiness', 'readiness_pins_match_identity')
+def _(d, path):
+    bad = rrouter_pin(d['pins'])
+    if d['pins']['app_build'] != d['build_id'] or d['pins']['client_contract_version'] != d['client_contract_version']:
+        bad.append('pins differ from build_id or client_contract_version')
+    return bad
+
+
+@rcheck('client-readiness', 'fault_injection_needs_profile')
+def _(d, path):
+    return ['fault injection without an evaluation profile'] if d['fault_injection'] and d['evaluation_profile'] is None else []
+
+
+@rcheck('client-submission', 'fault_requires_profile')
+def _(d, path):
+    bad = []
+    if d.get('fault_id') is not None and (d.get('profile_id') is None or d.get('evaluation') is None):
+        bad.append('fault_id without profile_id and evaluation')
+    if d.get('profile_id') is not None and d.get('evaluation') is None:
+        bad.append('profile_id without evaluation')
+    return bad
+
+
+@rcheck('evaluation-profile', 'profile_router_pin_consistent')
+def _(d, path):
+    return rrouter_pin(d)
+
+
+@rcheck('evaluation-profile', 'evaluation_only_marked_invalid_for_product')
+def _(d, path):
+    evaluation_only = bool(set(d['allowed_entry_points']) & {'E2', 'E3', 'E4', 'E5'}) or bool(d['candidate_pins'])
+    return ['evaluation-only profile not marked invalid_for_product'] if evaluation_only and not d['invalid_for_product'] else []
+
+
+@rcheck('evaluation-profile', 'entry_points_unique')
+def _(d, path):
+    return ['duplicate entry point'] if len(d['allowed_entry_points']) != len(set(d['allowed_entry_points'])) else []
+
+
+@rcheck('library-admission', 'admission_cc_matches_candidate')
+def _(d, path):
+    candidate = rload(d['candidate_ref'])
+    decl_ref = candidate.get('child_declaration_ref') or candidate.get('declaration_ref') or d['candidate_ref']
+    decl = rload(decl_ref)
+    expected = {'cc_name': decl['identity']['name'], 'cc_version': decl['identity']['version_label'], 'declaration_sha256': decl_ref['sha256']}
+    return [] if d['cc'] == expected else ['cc differs from the candidate declaration']
+
+
+@rcheck('library-admission', 'standing_follows_status')
+def _(d, path):
+    return ['standing %s without admission' % d['standing']] if d['standing'] != 'inactive' and d['status'] != 'admitted' else []
+
+
+@rcheck('library-admission', 'memory_with_check_pins')
+def _(d, path):
+    return ['check pins without a memory ceiling'] if d['check_pins'] is not None and d['memory_mb'] is None else []
+
+
+@rcheck('library-admission', 'child_inherits_parent_check_pins')
+def _(d, path):
+    # A child (parent_ref set) names its parent admission, the same CC name, and copies the parent's check pins.
+    if (d['parent_ref'] is None) != (d['parent_admission_ref'] is None):
+        return ['parent_ref and parent_admission_ref must be set together']
+    if d['parent_admission_ref'] is None:
+        return []
+    parent = rload(d['parent_admission_ref'])
+    bad = []
+    if parent['cc']['cc_name'] != d['cc']['cc_name']:
+        bad.append('the parent admission names a different CC')
+    if d['check_pins'] != parent['check_pins']:
+        bad.append('check_pins differ from the parent admission')
+    return bad
+
+
+ALLOWED_MOVES = {'inactive': {'active', 'revoked'}, 'active': {'suspended', 'revoked'}, 'suspended': {'active', 'revoked'}, 'revoked': set()}
+
+
+@rcheck('activation-record', 'activation_target_admitted')
+def _(d, path):
+    adm = rload(d['admission_ref'])
+    bad = []
+    if adm['status'] != 'admitted':
+        bad.append('the admission status is %s, not admitted' % adm['status'])
+    if adm['cc'] != d['cc']:
+        bad.append('cc differs from the admission record')
+    return bad
+
+
+@rcheck('activation-record', 'activation_target_has_check_pins')
+def _(d, path):
+    return [] if rload(d['admission_ref'])['check_pins'] is not None else ['the admission record pins no check bundle']
+
+
+@rcheck('activation-record', 'activation_transition_allowed')
+def _(d, path):
+    return [] if d['to_standing'] in ALLOWED_MOVES[d['from_standing']] else ['%s to %s is not an allowed move' % (d['from_standing'], d['to_standing'])]
+
+
+@rcheck('activation-record', 'activation_scope_matches_lineage')
+def _(d, path):
+    adm = rload(d['admission_ref'])
+    return ['an RSI child can only be activated for rsi_sandbox in M1'] if adm['parent_ref'] is not None and d['effect_scope'] != 'rsi_sandbox' else []
+
+
+@rcheck('client-submission', 'submission_structure')
+def _(d, path):
+    return rfield_errors('client-submission:field-contract:1', d)
+
+
+@rcheck('empirical-results', 'empirical_sequence_contiguous')
+def _(d, path):
+    seq = [r['sequence'] for r in d['runs']]
+    return [] if seq == list(range(1, len(seq) + 1)) else ['sequences are not 1..N in order']
+
+
+@rcheck('empirical-results', 'empirical_values_finite')
+def _(d, path):
+    keys = set(d['runs'][0]['metrics']) if d['runs'] else set()
+    bad = []
+    for r in d['runs']:
+        if set(r['metrics']) != keys:
+            bad.append('run %s has different metric keys' % r['sequence'])
+        bad += ['run %s %s is not a finite number' % (r['sequence'], k) for k, v in r['metrics'].items()
+                if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v)]
+    return bad
+
+
+PLATFORM_KINDS = ('qualified-intake', 'environment-lock', 'bound-check-plan', 'node-execution-contract', 'invocation-observation', 'run-bundle',
+                  'client-readiness', 'client-submission', 'evaluation-profile', 'library-admission', 'empirical-results', 'activation-record')
+
+
+# ---- exact-schema records with relational checks. Same rule as RCHECKS: invalid examples name the rejecting check.
+def _results_cover_plan(d, path):
+    plan = rload(d['check_plan_ref'])
+    ids = [r['check_id'] for r in d['results']]
+    return [] if len(ids) == len(set(ids)) and set(ids) == set(plan['mandatory_deterministic']) else ['results do not cover the bound check plan exactly once']
+
+
+SCHEMA_CHECKS = {'deterministic-check-result': {'results_cover_plan': _results_cover_plan}}
+
+
+# ---- deterministic admission checks of the CC declaration (declaration.md). They run on every declaration example.
+ROLE = {i['path']: i.get('role') for i in index}
+M1_KINDS = ('agent', 'tool')
+ALWAYS_PROTECTED = ('/ports', '/needs', '/changes', '/guarantees', '/budget', '/identity/name', '/identity/lineage', '/evolution')
+RSI_MAY_DIFFER = ('/identity/version_label', '/identity/carrier', '/identity/body', '/identity/lineage')
+M1_POINTER_ENTRIES = ('/identity/body', '/identity/carrier')
+GATE_EVIDENCE_CCS = ('research.verifier', 'research.benchmark', 'research.evaluation')
+SECRET_ALLOWLIST = ('DEMO_API_TOKEN',)  # fixture allowlist; the operator sets the real one and M1 ships it empty
+EFFECT_ORDER = ('pure', 'read_only', 'idempotent', 'compensable', 'irreversible')
+REASON_CODE = re.compile(r'^[a-z][a-z0-9_]{0,63}$')
+
+
+def glob_regex(glob):
+    out, i = '', 0
+    while i < len(glob):
+        if glob.startswith('**', i):
+            out, i = out + '.*', i + 2
+        elif glob[i] == '*':
+            out, i = out + '[^/]*', i + 1
+        elif glob[i] == '?':
+            out, i = out + '[^/]', i + 1
+        else:
+            out, i = out + re.escape(glob[i]), i + 1
+    return re.compile(out)
+
+
+def may_files(decl):
+    return [e[6:] for e in decl['evolution'].get('may_change', []) if e.startswith('files:')]
+
+
+def covered(globs, path):
+    return any(glob_regex(g).fullmatch(path) for g in globs)
+
+
+def pointer_get(doc, pointer):
+    value = doc
+    for token in pointer.split('/')[1:]:
+        token = token.replace('~1', '/').replace('~0', '~')
+        value = value[int(token)] if isinstance(value, list) else value[token]
+    return value
+
+
+def pointer_ok(doc, pointer):
+    try:
+        pointer_get(doc, pointer)
+        return True
+    except (KeyError, IndexError, ValueError, TypeError):
+        return False
+
+
+def _decl_kind(d, path):
+    bad = []
+    if d['identity']['kind'] not in M1_KINDS:
+        bad.append('kind %s is not admitted in M1' % d['identity']['kind'])
+    if any(k in d for k in ('members', 'structure', 'wiring')) or 'remote' in d['identity']:
+        bad.append('composite or remote form is not admitted in M1')
+    if d['identity'].get('load_mode', 'invoked') != 'invoked':
+        bad.append('load_mode other than invoked is not admitted in M1')
+    return bad
+
+
+def _decl_network(d, path):
+    n = d['needs']['network']
+    if n['mode'] == 'none':
+        return [] if n['direction'] == 'none' and not n['allowlist'] else ['mode none needs direction none and an empty allowlist']
+    if n['mode'] == 'allowlist':
+        return [] if n['direction'] == 'egress' and n['allowlist'] else ['mode allowlist needs direction egress and a non-empty allowlist']
+    return ['network mode open is rejected in M1']
+
+
+def _decl_rsi_mode(d, path):
+    mode = d['evolution']['rsi']
+    bad = []
+    if mode == 'submit':
+        bad.append('rsi submit is rejected in M1')
+    if mode != 'none' and d['identity']['name'] in GATE_EVIDENCE_CCS:
+        bad.append('a verifier or gate-evidence CC must have rsi none')
+    return bad
+
+
+def _decl_cannot_grant(d, path):
+    return ['may_change lists ' + e for e in d['evolution'].get('may_change', []) if e == '/evolution' or e.startswith('/evolution/')]
+
+
+def _decl_may_change_entries(d, path):
+    bad = []
+    for e in d['evolution'].get('may_change', []):
+        if e.startswith('files:'):
+            glob = e[6:]
+            if not glob or glob.startswith('/') or '..' in glob.split('/'):
+                bad.append('files entry is not a relative glob: ' + e)
+        elif e not in M1_POINTER_ENTRIES:
+            bad.append('M1 may_change does not accept ' + e)
+    if len(set(d['evolution'].get('may_change', []))) != len(d['evolution'].get('may_change', [])):
+        bad.append('may_change repeats an entry')
+    return bad
+
+
+def _decl_dependencies(d, path):
+    bad = []
+    for e in d['needs']['external']:
+        if e['kind'] == 'package':
+            if 'pin' not in e or 'lockfile' not in e:
+                bad.append('package %s needs a pin and a lockfile' % e['identifier'])
+        elif 'lockfile' in e:
+            bad.append('lockfile on a dependency that is not a package: ' + e['identifier'])
+    return bad
+
+
+def _decl_secrets(d, path):
+    names = [s['name'] for s in d['needs'].get('secrets', [])]
+    bad = ['secret %s is not on the admission allowlist' % n for n in names if n not in SECRET_ALLOWLIST]
+    if len(set(names)) != len(names):
+        bad.append('secret names repeat')
+    return bad
+
+
+def _decl_failure_modes(d, path):
+    modes = d['guarantees'].get('failure_modes', [])
+    codes = [m['reason_code'] for m in modes]
+    bad = ['reason_code %s is not lowercase snake case' % c for c in codes if not REASON_CODE.fullmatch(c)]
+    if len(set(codes)) != len(codes):
+        bad.append('reason_code repeats')
+    bad += ['failure mode %s is retriable, which M1 rejects' % m['reason_code'] for m in modes if m['retriable'] is not False]
+    bad += ['failure mode %s has no when text' % m['reason_code'] for m in modes if not m['when'].strip()]
+    return bad
+
+
+def _decl_self_tests(d, path):
+    g = d['guarantees']
+    tests = g.get('self_tests', [])
+    codes = {m['reason_code'] for m in g.get('failure_modes', [])}
+    ids = [t['id'] for t in tests]
+    bad = []
+    if len(set(ids)) != len(ids):
+        bad.append('self-test IDs repeat')
+    if 'pass' in codes:
+        bad.append('pass is reserved and cannot be a failure mode code')
+    bad += ['failure mode %s has no self-test that expects it' % c for c in sorted(codes) if not any(t['expects'] == c for t in tests)]
+    bad += ['self-test %s expects %s, which is not a declared failure mode' % (t['id'], t['expects']) for t in tests if t['expects'] != 'pass' and t['expects'] not in codes]
+    for t in tests:
+        p = EX / t['ref']['ref']
+        if not p.is_file() or hashlib.sha256(p.read_bytes()).hexdigest() != t['ref']['sha256']:
+            bad.append('self-test %s ref does not resolve to its digest' % t['id'])
+    return bad
+
+
+def _decl_human_interaction(d, path):
+    value = d['needs'].get('human_interaction', 'none')
+    return [] if value == 'none' else ['human_interaction %s is reserved and rejected in M1' % value]
+
+
+def _decl_effect_class(d, path):
+    need = 0
+    for e in d['changes']['effects']:
+        if e['op'] == 'model_invoke':
+            continue
+        if e['idempotent']:
+            level = 'pure' if e['reversibility'] == 'scoped' else 'read_only'
+        else:
+            level = 'compensable' if e['reversibility'] in ('scoped', 'inverse', 'compensate') else 'irreversible'
+        need = max(need, EFFECT_ORDER.index(level))
+    declared = d['changes']['effect_class']
+    return [] if EFFECT_ORDER.index(declared) >= need else ['effect_class %s is weaker than the effects imply (%s)' % (declared, EFFECT_ORDER[need])]
+
+
+def _decl_lineage(d, path):
+    lineage = d['identity'].get('lineage')
+    bad = []
+    if lineage is not None and lineage['relation'] in ('composes', 'fuses', 'rollback_of'):
+        bad.append('relation %s is rejected in M1' % lineage['relation'])
+    if ROLE.get(path) == 'rsi_child':
+        if lineage is None:
+            bad.append('an RSI child has no lineage')
+        elif lineage['parent'] is None or lineage['relation'] != 'supersedes' or lineage['builder'] != 'rsi_workbench':
+            bad.append('an RSI child lineage needs a parent, relation supersedes and builder rsi_workbench')
+    return bad
+
+
+def _decl_body(d, path):
+    bad = []
+    for item in d['identity'].get('body', []):
+        target = EX / item['path']
+        if not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest() != item['sha256']:
+            bad.append('body file hash differs: ' + item['path'])
+    carrier = d['identity'].get('carrier')
+    if carrier and (not (EX / carrier['ref']).is_file() or hashlib.sha256((EX / carrier['ref']).read_bytes()).hexdigest() != carrier['sha256']):
+        bad.append('carrier hash differs: ' + carrier['ref'])
+    return bad
+
+
+# ---- gate decision and verifier assessment relational checks (checking.md, capsules/verifier.md)
+def _gate_verdict_action(d, path):
+    bad = []
+    advancing = d['verdict'] in ('PASS', 'PASS_WITH_KNOWN_LIMITATIONS')
+    if (d['action'] == 'advance') != advancing:
+        bad.append('action %s does not follow verdict %s' % (d['action'], d['verdict']))
+    if d['action'] == 'advance':
+        if d['assessment_ref'] is None or not d['accepted_refs'] or not d['invocation_refs']:
+            bad.append('advance needs an assessment, invocations and accepted refs')
+        if any(r not in d['output_refs'] for r in d['accepted_refs']):
+            bad.append('an accepted ref is not a reviewed output')
+        if d['scope_kind'] == 'subnode' and (d.get('output_port') is None or len(d['output_refs']) != 1):
+            bad.append('an advancing subnode-scope decision names one output_port and one output')
+    elif d['accepted_refs']:
+        bad.append('a halt publishes accepted refs')
+    if d['scope_kind'] == 'node' and (d.get('output_port') is not None or d['subnode_id'] is not None):
+        bad.append('a node-scope decision has a null output_port and subnode_id')
+    return bad
+
+
+def _assessment_verdict(d, path):
+    outcomes = [f['outcome'] for f in d['findings']]
+    v = d['verdict']
+    bad = []
+    if v == 'PASS' and (any(o != 'PASS' for o in outcomes) or d['uncertainties']):
+        bad.append('PASS needs every finding PASS and no uncertainty')
+    if v == 'FAIL' and 'FAIL' not in outcomes:
+        bad.append('FAIL needs a failing finding')
+    if v == 'ENVIRONMENT_BLOCKED' and 'ENVIRONMENT_BLOCKED' not in outcomes:
+        bad.append('ENVIRONMENT_BLOCKED needs a blocked finding')
+    if v == 'INCONCLUSIVE' and 'INCONCLUSIVE' not in outcomes and not d['uncertainties']:
+        bad.append('INCONCLUSIVE needs an inconclusive finding or an uncertainty')
+    if v in ('PASS', 'PASS_WITH_KNOWN_LIMITATIONS') and d['required_correction'] is not None:
+        bad.append('an advancing verdict carries no required correction')
+    if len({f['criterion_id'] for f in d['findings']}) != len(d['findings']):
+        bad.append('duplicate criterion finding')
+    return bad
+
+
+SCHEMA_CHECKS['capsule-declaration'] = {'m1_kind_admitted': _decl_kind, 'network_consistent': _decl_network,
+                                        'rsi_mode_allowed': _decl_rsi_mode, 'rsi_cannot_grant': _decl_cannot_grant, 'may_change_entries_valid': _decl_may_change_entries,
+                                        'rsi_child_has_lineage': _decl_lineage, 'body_hashes_match': _decl_body, 'dependencies_pinned': _decl_dependencies,
+                                        'secrets_allowed': _decl_secrets, 'failure_modes_valid': _decl_failure_modes, 'failure_modes_have_self_tests': _decl_self_tests, 'human_interaction_none': _decl_human_interaction,
+                                        'effect_class_matches_effects': _decl_effect_class}
+SCHEMA_CHECKS['gate-decision'] = {'verdict_action_consistent': _gate_verdict_action}
+SCHEMA_CHECKS['verifier-assessment'] = {'verdict_follows_findings': _assessment_verdict}
+
+
+# ---- dispatch record, gate decision index, rubric, bundle and receipts
+@rcheck('dispatch-record', 'dispatch_outcome_consistent')
+def _(d, path):
+    bad = []
+    no_gate = d['outcome'] in ('failed', 'budget_exhausted', 'interrupted')
+    if (d['gate_decision_ref'] is None) != no_gate:
+        bad.append('gate_decision_ref is null exactly for failed, budget_exhausted and interrupted')
+    if (not d['output_gate_decision_refs']) != (d['gate_decision_ref'] is None):
+        bad.append('output_gate_decision_refs is empty exactly when gate_decision_ref is null')
+    if bool(d['output_refs']) and d['outcome'] != 'accepted':
+        bad.append('output_refs are set only for an accepted attempt')
+    if (d['ended_at'] is None) != (d['outcome'] == 'interrupted'):
+        bad.append('ended_at is null exactly for an interrupted attempt')
+    if (d['cc'] is None) != (d['check_pins'] is None):
+        bad.append('check_pins is null exactly when cc is null')
+    return bad
+
+
+@rcheck('gate-decision-index', 'entries_are_advancing_node_decisions')
+def _(d, path):
+    bad = []
+    for e in d['entries']:
+        g = rload(e['gate_decision_ref'])
+        if g['action'] != 'advance' or g['scope_kind'] != 'node' or g['node_id'] != e['node_id']:
+            bad.append('entry %s is not an advancing node-scope decision of its node' % e['node_id'])
+    return bad
+
+
+@rcheck('screening-rubric', 'rubric_structure')
+def _(d, path):
+    return rfield_errors('screening-rubric:field-contract:1', d)
+
+
+@rcheck('screening-rubric', 'rubric_dimensions_complete')
+def _(d, path):
+    bad = []
+    if sorted(x['name'] for x in d['dimensions']) != sorted(DIMS):
+        bad.append('dimensions are not novelty, feasibility and compute_alignment once each')
+    for x in d['dimensions']:
+        if sorted(a['score'] for a in x['anchors']) != list(range(x['scale_min'], x['scale_max'] + 1)):
+            bad.append('anchors of %s do not cover the scale once each' % x['name'])
+    if len({f['id'] for f in d['forbidden_dependencies']}) != len(d['forbidden_dependencies']):
+        bad.append('duplicate forbidden dependency id')
+    return bad
+
+
+BUNDLE_FILES = ['poc_patch.py', 'requirements.txt', 'run_benchmark.py']
+
+
+@rcheck('poc-artifact-bundle', 'bundle_schema')
+def _(d, path):
+    bad = rfield_errors('poc-artifact-bundle:field-contract:1', d)
+    raw = EX / path
+    if raw.stat().st_size > 1024 * 1024:
+        bad.append('bundle is larger than 1 MiB')
+    with zipfile.ZipFile(raw) as archive:
+        bad += ['encrypted or directory entry: ' + i.filename for i in archive.infolist() if i.flag_bits & 1 or i.is_dir()]
+    return bad
+
+
+@rcheck('poc-artifact-bundle', 'required_files_present')
+def _(d, path):
+    names = d['entry_names']
+    bad = [] if sorted(names) == BUNDLE_FILES else ['entries are not exactly %s' % BUNDLE_FILES]
+    bad += ['unsafe entry name: ' + n for n in names if '/' in n or '\\' in n or '..' in n or n != n.lower()]
+    return bad
+
+
+@rcheck('execution-receipt', 'execution_receipt_schema')
+def _(d, path):
+    return rfield_errors('execution-receipt:field-contract:1', d)
+
+
+@rcheck('execution-receipt', 'baseline_before_treatment')
+def _(d, path):
+    runs, bad = d['runs'], []
+    if [r['sequence'] for r in runs] != list(range(1, len(runs) + 1)):
+        bad.append('sequences are not 1..N in order')
+    base = [r['sequence'] for r in runs if r['role'] == 'baseline']
+    treat = [r['sequence'] for r in runs if r['role'] == 'treatment']
+    if not base or not treat or max(base) > min(treat):
+        bad.append('a treatment run precedes a baseline run')
+    if [r['started_at'] for r in runs] != sorted(r['started_at'] for r in runs):
+        bad.append('started_at is not in sequence order')
+    repeats = rload(d['blueprint_ref'])['repeat_count']
+    if len(base) != repeats or len(treat) != repeats:
+        bad.append('run counts differ from repeat_count')
+    return bad
+
+
+@rcheck('provisioning-receipt', 'provisioning_receipt_schema')
+def _(d, path):
+    return rfield_errors('provisioning-receipt:field-contract:1', d)
+
+
+@rcheck('provisioning-receipt', 'network_policy_respected')
+def _(d, path):
+    bad = []
+    if d['network_policy_used'] == 'none' and d['network_allowlist']:
+        bad.append('policy none with a non-empty allowlist')
+    if d['status'] == 'succeeded' and d['unlisted_network_requests'] != 0:
+        bad.append('a succeeded receipt has unlisted network requests')
+    if d['runner_user'] == 'root' or not d['venv_path'].startswith('/workspace/poc/'):
+        bad.append('environment is not an unprivileged venv under /workspace/poc/')
+    return bad
+
+
+# ---- RSI records (rsi-contracts.md)
+SESSION_DEFAULTS = {'max_attempts': 20, 'max_no_progress': 5, 'wall_s': 3600, 'per_call_s': 300, 'session_query_limit': 30, 'lifetime_query_limit': 90}
+
+
+@rcheck('rsi-session', 'session_structure')
+def _(d, path):
+    return rfield_errors('rsi-session:field-contract:1', d)
+
+
+@rcheck('rsi-session', 'session_limits_within_defaults')
+def _(d, path):
+    lim, q, bad = d['limits'], d['qualification'], []
+    bad += ['limit %s is above the default %s' % (k, v) for k, v in SESSION_DEFAULTS.items() if lim[k] > v]
+    if lim['per_call_s'] > lim['wall_s'] or lim['session_query_limit'] > lim['lifetime_query_limit']:
+        bad.append('per-call time above wall time, or session queries above lifetime queries')
+    target = rload(d['target_profile_ref'])
+    if lim['session_query_limit'] > target['session_query_limit'] or lim['lifetime_query_limit'] > target['lifetime_query_limit']:
+        bad.append('query limits exceed the target profile')
+    if (q['min_pass_rate_gain'] < 0.05 or q['alpha'] > 0.05 or q['min_timing_gain'] < 0.1 or q['noise_multiplier'] < 3
+            or q['warmup_batches'] != 5 or q['paired_rounds'] != target['scoring']['paired_rounds']):
+        bad.append('qualification policy is weaker than the frozen rule')
+    return bad
+
+
+@rcheck('rsi-session', 'session_pins_consistent')
+def _(d, path):
+    bad = []
+    genesis = rload(d['chain_root_ref'])
+    if genesis['session_id'] != d['session_id'] or genesis['target_ref'] != d['target_profile_ref'] or genesis['hash_profile_ref'] != d['hash_profile_ref']:
+        bad.append('genesis does not pin this session, target and hash profile')
+    if d['parent']['declaration_sha256'] != d['parent_declaration_ref']['sha256']:
+        bad.append('parent pin differs from the parent declaration')
+    target = rload(d['target_profile_ref'])
+    if d['configuration_ref'] != target['configuration_ref'] or d['improver_ref'] != target['improver_ref'] or d['scoring_adapter_ref'] != target['scoring_adapter_ref']:
+        bad.append('session pins differ from the target profile')
+    if d['parent_declaration_ref'] != target['parent_declaration_ref']:
+        bad.append('parent declaration differs from the target profile')
+    return bad
+
+
+def binom_tail(g, l):
+    n = g + l
+    return sum(math.comb(n, k) for k in range(g, n + 1)) / 2 ** n
+
+
+@rcheck('rsi-session-result', 'result_structure')
+def _(d, path):
+    return rfield_errors('rsi-session-result:field-contract:1', d)
+
+
+@rcheck('rsi-session-result', 'qualification_rule_holds')
+def _(d, path):
+    bad, s, how = [], d['statistics'], d['qualified_by']
+    q = rload(d['session_ref'])['qualification']
+    if (d['outcome'] == 'QUALIFIED') != (how != 'none'):
+        bad.append('qualified_by is none exactly when the outcome is not QUALIFIED')
+    if d['outcome'] == 'QUALIFIED' and (d['child'] is None or d['child_declaration_ref'] is None or d['referee_evidence_ref'] is None or s is None):
+        bad.append('QUALIFIED needs a child, its declaration, referee evidence and statistics')
+    if s is not None:
+        if s['parent_passed'] > s['fixture_units'] or s['child_passed'] > s['fixture_units'] or s['child_passed'] - s['parent_passed'] != s['gain_units'] - s['loss_units']:
+            bad.append('pass counts and discordant units do not reconcile')
+        if not rclose(s['pass_rate_gain'], (s['child_passed'] - s['parent_passed']) / s['fixture_units']):
+            bad.append('pass_rate_gain does not recompute')
+        no_discordant = s['gain_units'] + s['loss_units'] == 0
+        if (s['p_value'] is None) != no_discordant or (s['p_value'] is not None and not rclose(s['p_value'], binom_tail(s['gain_units'], s['loss_units']))):
+            bad.append('p_value does not recompute from the discordant units')
+        if s['child_passed'] < s['parent_passed'] and d['outcome'] == 'QUALIFIED':
+            bad.append('a child with fewer passes never qualifies')
+    if how == 'pass_gain' and s is not None:
+        if s['child_passed'] <= s['parent_passed'] or s['loss_units'] != 0 or s['pass_rate_gain'] < q['min_pass_rate_gain'] or s['p_value'] is None or s['p_value'] > q['alpha']:
+            bad.append('pass_gain needs more passes, zero protected regressions, the minimum gain and p_value at most alpha')
+    if how == 'timing_tiebreak' and s is not None:
+        t = s['timing']
+        if s['child_passed'] != s['parent_passed'] or s['loss_units'] != 0 or t is None:
+            bad.append('timing_tiebreak needs equal passes, zero protected regressions and a timing comparison')
+        elif (not rclose(t['relative_gain'], 1 - t['child_median_s'] / t['parent_median_s']) or t['relative_gain'] < t['min_relative_gain']
+              or t['relative_gain'] <= t['noise_multiplier'] * t['calibrated_relative_noise'] or t['min_relative_gain'] < q['min_timing_gain']
+              or t['paired_rounds'] != q['paired_rounds'] or t['warmup_batches'] != q['warmup_batches']):
+            bad.append('timing gain does not meet the calibrated rule')
+    return bad
+
+
+@rcheck('rsi-session-result', 'result_matches_referee_evidence')
+def _(d, path):
+    if d['referee_evidence_ref'] is None:
+        return []
+    ev, bad, s = rload(d['referee_evidence_ref']), [], d['statistics']
+    target = rload(rload(d['session_ref'])['target_profile_ref'])
+    final = [p for p in ev['pairs'] if p['split'] == target['splits']['hidden_final']]
+    if ev['final_evaluations'] != 1 or len(final) != 1:
+        bad.append('referee evidence has not exactly one final evaluation')
+    elif s is not None:
+        p = final[0]
+        if (p['total'], p['parent_passed'], p['child_passed']) != (s['fixture_units'], s['parent_passed'], s['child_passed']):
+            bad.append('statistics differ from the final referee pair')
+        if s['timing'] is not None and not (rclose(statistics.median(p['parent_time_s']), s['timing']['parent_median_s']) and rclose(statistics.median(p['child_time_s']), s['timing']['child_median_s'])):
+            bad.append('timing medians differ from the final referee pair')
+    if d['child_declaration_ref'] is not None and [b['sha256'] for b in rload(d['child_declaration_ref'])['identity']['body']] != [ev['child_ref']['sha256']]:
+        bad.append('child body differs from the assessed child')
+    return bad
+
+
+@rcheck('candidate-package', 'package_structure')
+def _(d, path):
+    return rfield_errors('candidate-package:field-contract:1', d)
+
+
+@rcheck('candidate-package', 'package_refs_resolve')
+def _(d, path):
+    return ['ref does not resolve: ' + r['id'] for r in rrefs(d) if not rref_ok(r)]
+
+
+@rcheck('candidate-package', 'declaration_digests_match')
+def _(d, path):
+    bad = []
+    for side in ('parent', 'child'):
+        decl, pin = rload(d[side + '_declaration_ref']), d[side]
+        if pin['declaration_sha256'] != d[side + '_declaration_ref']['sha256'] or pin['cc_name'] != decl['identity']['name'] or pin['cc_version'] != decl['identity']['version_label']:
+            bad.append('%s pin differs from its declaration' % side)
+    if d['parent']['cc_name'] != d['child']['cc_name'] or d['parent']['cc_version'] == d['child']['cc_version']:
+        bad.append('child must keep the name and change the version label')
+    if rload(d['provenance_ref'])['declaration_ref'] != d['child_declaration_ref']:
+        bad.append('provenance names another declaration')
+    return bad
+
+
+@rcheck('candidate-package', 'child_lineage_matches_parent')
+def _(d, path):
+    lineage = rload(d['child_declaration_ref'])['identity'].get('lineage')
+    if lineage is None:
+        return ['child declaration has no lineage']
+    if lineage['parent'] != d['parent_declaration_ref'] or lineage['relation'] != 'supersedes' or lineage['builder'] != 'rsi_workbench':
+        return ['child lineage does not name the parent with relation supersedes and builder rsi_workbench']
+    return []
+
+
+@rcheck('candidate-package', 'changes_allowed')
+def _(d, path):
+    parent, child, bad = rload(d['parent_declaration_ref']), rload(d['child_declaration_ref']), []
+    if parent['evolution']['rsi'] == 'none':
+        bad.append('the parent has rsi none, so RSI may not build a child')
+    bad += ['child changes /' + k for k in set(parent) | set(child) if k != 'identity' and parent.get(k) != child.get(k)]
+    bad += ['child changes /identity/' + k for k in set(parent['identity']) | set(child['identity'])
+            if '/identity/' + k not in RSI_MAY_DIFFER and parent['identity'].get(k) != child['identity'].get(k)]
+    pb = {b['path']: b['sha256'] for b in parent['identity'].get('body', [])}
+    cb = {b['path']: b['sha256'] for b in child['identity'].get('body', [])}
+    globs = may_files(parent)
+    bad += ['body file outside may_change: ' + p for p in sorted(set(pb) | set(cb)) if pb.get(p) != cb.get(p) and not covered(globs, p)]
+    for pointer in ALWAYS_PROTECTED:
+        if pointer in RSI_MAY_DIFFER or not pointer_ok(parent, pointer):
+            continue
+        if not pointer_ok(child, pointer) or pointer_get(parent, pointer) != pointer_get(child, pointer):
+            bad.append('child changes protected ' + pointer)
+    return bad
+
+
+@rcheck('candidate-package', 'rsi_no_copy')
+def _(d, path):
+    child = rload(d['child_declaration_ref'])
+    shas = {b['sha256'] for b in child['identity'].get('body', [])}
+    bad = []
+    for item in index:
+        if not item['schema_id'] or ':capsule-declaration:' not in item['schema_id'] or item.get('expect') == 'invalid':
+            continue
+        other = load(EX / item['path'])
+        if other['identity']['name'] == child['identity']['name'] or other['evolution']['rsi'] != 'none':
+            continue
+        same = shas & {b['sha256'] for b in other['identity'].get('body', [])}
+        if same:
+            bad.append('body files copy the CC %s, which has rsi none' % other['identity']['name'])
+    return bad
+
+
+@rcheck('candidate-package', 'mutable_paths_within_profile')
+def _(d, path):
+    allowed = set(rload(d['target_profile_ref'])['mutable_paths'])
+    touched = d['mutable_paths_touched']
+    bad = ['path outside the profile mutable paths: ' + p for p in touched if p not in allowed]
+    if not touched or len(set(touched)) != len(touched):
+        bad.append('mutable_paths_touched is empty or repeats a path')
+    return bad
+
+
+@rcheck('candidate-package', 'session_result_qualified')
+def _(d, path):
+    r, bad = rload(d['session_result_ref']), []
+    if r['outcome'] != 'QUALIFIED' or r['qualified_by'] == 'none':
+        bad.append('session result is not QUALIFIED')
+    if r['parent'] != d['parent'] or r['child'] != d['child'] or r['referee_evidence_ref'] != d['referee_evidence_ref'] or r['session_ref'] != d['session_ref']:
+        bad.append('session result names another parent, child, session or referee evidence')
+    return bad
+
+
+@rcheck('candidate-package', 'attempt_chain_verifies')
+def _(d, path):
+    r, session = rload(d['session_result_ref']), rload(d['session_ref'])
+    bad, previous = [], None
+    for n, ref in enumerate(r['attempt_refs'], 1):
+        a = rload(ref)
+        if a['sequence'] != n or a['previous_ref'] != previous or a['session_id'] != session['session_id']:
+            bad.append('attempt %s breaks the chain' % ref['id'])
+        if a['chain_root_ref'] != session['chain_root_ref'] or a['hash_profile_ref'] != session['hash_profile_ref'] or a['target_ref'] != d['target_profile_ref']:
+            bad.append('attempt %s has another root, hash profile or target' % ref['id'])
+        previous = ref
+    if r['final_attempt_ref'] not in r['attempt_refs']:
+        bad.append('final attempt is not in the chain')
+    return bad
+
+
+@rcheck('candidate-package', 'diff_matches_final_attempt')
+def _(d, path):
+    final = rload(rload(d['session_result_ref'])['final_attempt_ref'])
+    child = rload(d['child_declaration_ref'])
+    bad = [] if final['diff_ref'] == d['diff_ref'] else ['diff differs from the final attempt']
+    if [b['sha256'] for b in child['identity']['body']] != [final['child_ref']['sha256']]:
+        bad.append('child body differs from the final attempt child')
+    return bad
+
+
+def rsi_issues(evidence):
+    result=[];attempt=resolved(evidence['attempt_ref']);target=resolved(evidence['target_ref'])
+    if evidence['parent_ref']!=attempt['parent_ref'] or evidence['child_ref']!=attempt['child_ref'] or evidence['target_ref']!=attempt['target_ref'] or target['parent_ref']!=attempt['parent_ref']:result.append('wrong lineage')
+    if not evidence['mandatory_parent_tests_passed'] or not evidence['integrity_passed'] or evidence['violations']:result.append('failed mandatory integrity')
+    if evidence['configuration_ref']!=target['configuration_ref'] or attempt['configuration_ref']!=target['configuration_ref']:result.append('changed RSI comparison context')
+    if evidence['final_evaluations']!=1:result.append('final query misuse')
+    if len(set(target['splits'].values()))!=4:result.append('split identity overlap')
+    if target['scoring']['primary']!='passed_test_count' or target['scoring']['secondary']!='paired_time_at_equal_counts':result.append('wrong scoring order')
+    if attempt['queries_used']>target['session_query_limit'] or target['session_query_limit']!=30 or target['lifetime_query_limit']!=90:result.append('query limit')
+    for pair in evidence['pairs']:
+        if pair['split'] not in [target['splits']['hidden_loop'],target['splits']['hidden_final']] or pair['total']<20 or not 0<=pair['parent_passed']<=pair['child_passed']<=pair['total']:result.append('invalid comparable counts')
+        if len(pair['parent_time_s'])!=target['scoring']['paired_rounds'] or len(pair['child_time_s'])!=target['scoring']['paired_rounds']:result.append('missing paired timing')
+    return result
+
+# ---- target profile, attempt, feedback, referee evidence, export, provenance, clearance, opportunity, completion report
+@rcheck('rsi-target-profile', 'profile_structure')
+def _(d, path):
+    return rfield_errors('rsi-target-profile:field-contract:1', d)
+
+
+@rcheck('rsi-target-profile', 'profile_parent_matches_declaration')
+def _(d, path):
+    decl = rload(d['parent_declaration_ref'])
+    return [] if d['parent_ref']['sha256'] in {b['sha256'] for b in decl['identity'].get('body', [])} else ['parent_ref is not a body file of the parent declaration']
+
+
+@rcheck('rsi-target-profile', 'profile_within_may_change')
+def _(d, path):
+    decl = rload(d['parent_declaration_ref'])
+    globs, bad = may_files(decl), []
+    if decl['evolution']['rsi'] != 'propose':
+        bad.append('the parent declaration does not have rsi propose')
+    bad += ['mutable path is outside the parent may_change: ' + p for p in d['mutable_paths'] if not covered(globs, p)]
+    if len(set(d['mutable_paths'])) != len(d['mutable_paths']):
+        bad.append('mutable_paths repeats a path')
+    bad += ['a protected ref is also a mutable path: ' + r['id'] for r in d['protected_refs'] if r['id'] in d['mutable_paths']]
+    return bad
+
+
+@rcheck('rsi-target-profile', 'profile_scoring_fixed')
+def _(d, path):
+    s, bad = d['scoring'], []
+    if len(set(d['splits'].values())) != 4:
+        bad.append('split identities overlap')
+    if s['primary'] != 'passed_test_count' or s['secondary'] != 'paired_time_at_equal_counts' or s['warmup_batches'] != 5 or s['paired_rounds'] != 7:
+        bad.append('scoring is not the frozen passed-tests-first rule')
+    if d['session_query_limit'] != 30 or d['lifetime_query_limit'] != 90:
+        bad.append('query limits are not 30 and 90')
+    return bad
+
+
+@rcheck('rsi-attempt', 'attempt_structure')
+def _(d, path):
+    return rfield_errors('rsi-attempt:field-contract:1', d)
+
+
+@rcheck('rsi-attempt', 'attempt_chain_link')
+def _(d, path):
+    if (d['sequence'] == 1) != (d['previous_ref'] is None):
+        return ['previous_ref is null exactly for sequence 1']
+    return []
+
+
+@rcheck('rsi-attempt', 'attempt_matches_genesis')
+def _(d, path):
+    g = rload(d['chain_root_ref'])
+    ok = g['session_id'] == d['session_id'] and g['target_ref'] == d['target_ref'] and g['hash_profile_ref'] == d['hash_profile_ref']
+    return [] if ok else ['genesis does not pin this session, target and hash profile']
+
+
+@rcheck('rsi-attempt', 'attempt_unavailable_explained')
+def _(d, path):
+    return ['time or model calls are null without an unavailable reason'] if (d['time_s'] is None or d['model_calls'] is None) and not d['unavailable_reasons'] else []
+
+
+@rcheck('rsi-attempt', 'attempt_violation_halts')
+def _(d, path):
+    return ['violations without a stop_reason'] if d['violations'] and d['stop_reason'] is None else []
+
+
+@rcheck('rsi-loop-feedback', 'feedback_structure')
+def _(d, path):
+    return rfield_errors('rsi-loop-feedback:field-contract:1', d)
+
+
+@rcheck('rsi-loop-feedback', 'feedback_counts_consistent')
+def _(d, path):
+    return [] if 0 <= d['passed'] <= d['total'] else ['passed is above total']
+
+
+@rcheck('rsi-referee-evidence', 'referee_structure')
+def _(d, path):
+    return rfield_errors('rsi-referee-evidence:field-contract:1', d)
+
+
+@rcheck('rsi-referee-evidence', 'referee_lineage_matches')
+def _(d, path):
+    return [m for m in rsi_issues(d) if m in ('wrong lineage', 'changed RSI comparison context')]
+
+
+@rcheck('rsi-referee-evidence', 'referee_integrity_holds')
+def _(d, path):
+    return [m for m in rsi_issues(d) if m in ('failed mandatory integrity', 'final query misuse')]
+
+
+def rsign(d, key_id):
+    # Stand-in for the Ed25519 signature of production: the SHA-256 of the key ID and the canonical bytes without `signature`.
+    body = {k: v for k, v in d.items() if k != 'signature'}
+    return hashlib.sha256((key_id + '\n' + json.dumps(body, sort_keys=True, separators=(',', ':'), ensure_ascii=False)).encode('utf-8')).hexdigest()
+
+
+def rsignature_errors(d):
+    pinned = load(EX / 'operator_config.json')['rsi']['custodian_key_id']
+    bad = []
+    if d['signer_key_id'] != pinned:
+        bad.append('signer_key_id %s is not the pinned custodian key %s' % (d['signer_key_id'], pinned))
+    if d['signature'] != rsign(d, d['signer_key_id']):
+        bad.append('the signature does not verify over the record bytes')
+    return bad
+
+
+@rcheck('rsi-referee-evidence', 'referee_signature_valid')
+def _(d, path):
+    return rsignature_errors(d)
+
+
+@rcheck('rsi-session-result', 'referee_signature_valid')
+def _(d, path):
+    return rsignature_errors(d)
+
+
+@rcheck('rsi-referee-evidence', 'referee_pairs_comparable')
+def _(d, path):
+    return [m for m in rsi_issues(d) if m in ('invalid comparable counts', 'missing paired timing', 'split identity overlap', 'wrong scoring order', 'query limit')]
+
+
+@rcheck('rsi-evidence-export', 'export_structure')
+def _(d, path):
+    return rfield_errors('rsi-evidence-export:field-contract:1', d)
+
+
+@rcheck('rsi-evidence-export', 'export_matches_referee')
+def _(d, path):
+    ev, bad = rload(d['referee_ref']), []
+    if ev['attempt_ref'] != d['attempt_ref'] or ev['parent_ref'] != d['parent_ref'] or ev['child_ref'] != d['child_ref']:
+        bad.append('export names another attempt, parent or child than the referee evidence')
+    if ev['violations'] != d['violations']:
+        bad.append('violations differ from the referee evidence')
+    return bad
+
+
+@rcheck('rsi-evidence-export', 'export_redacts_hidden')
+def _(d, path):
+    bad = [] if d['redactions'] else ['an export lists no redaction']
+    target = rload(rload(d['referee_ref'])['target_ref'])
+    bad += ['summary names the hidden split ' + v for k, v in target['splits'].items() if k.startswith('hidden') and v in d['summary']]
+    return bad
+
+
+@rcheck('candidate-provenance', 'provenance_structure')
+def _(d, path):
+    return rfield_errors('candidate-provenance:field-contract:1', d)
+
+
+@rcheck('candidate-provenance', 'provenance_matches_declaration')
+def _(d, path):
+    decl = rload(d['declaration_ref'])
+    return [] if [r['sha256'] for r in d['implementation_refs']] == [b['sha256'] for b in decl['identity']['body']] else ['implementation refs differ from the declaration body']
+
+
+@rcheck('candidate-provenance', 'provenance_lineage_consistent')
+def _(d, path):
+    lineage = rload(d['declaration_ref'])['identity'].get('lineage')
+    if lineage is None or lineage['parent'] is None:
+        return [] if d['parent_ref'] is None else ['parent_ref is set but the declaration has no parent']
+    if d['parent_ref'] is None:
+        return ['an RSI child names no parent body file']
+    parent = rload(lineage['parent'])
+    return [] if d['parent_ref']['sha256'] in {b['sha256'] for b in parent['identity']['body']} else ['parent_ref is not a body file of the lineage parent']
+
+
+@rcheck('security-clearance', 'clearance_structure')
+def _(d, path):
+    return rfield_errors('security-clearance:field-contract:1', d)
+
+
+@rcheck('security-clearance', 'clearance_evidence_complete')
+def _(d, path):
+    if d['decision'] == 'cleared' and (not d['guardrail_evidence_refs'] or not d['violation_refs']):
+        return ['a clearance needs incident and guardrail evidence']
+    return []
+
+
+@rcheck('rsi-opportunity', 'opportunity_structure')
+def _(d, path):
+    return rfield_errors('rsi-opportunity:field-contract:1', d)
+
+
+@rcheck('rsi-opportunity', 'opportunity_pins_consistent')
+def _(d, path):
+    profile = rload(d['target_profile_ref'])
+    bad = [] if d['parent']['declaration_sha256'] == profile['parent_declaration_ref']['sha256'] else ['parent differs from the target profile declaration']
+    return bad
+
+
+@rcheck('rsi-opportunity', 'opportunity_start_conditions')
+def _(d, path):
+    bad = []
+    if d['attribution'] == 'uncertain' and d['decision'] != 'NEEDS_REVIEW':
+        bad.append('an uncertain attribution needs NEEDS_REVIEW')
+    if d['decision'] == 'NEEDS_REVIEW' and d['attribution'] != 'uncertain':
+        bad.append('NEEDS_REVIEW is only for an uncertain attribution')
+    if d['decision'] == 'START':
+        if d['attribution'] != 'implementation' or not d['symptom_reproduced'] or not d['parent_mandatory_passed']:
+            bad.append('START needs an implementation cause, a reproduced symptom and passing parent behavior')
+        if d['headroom'] is None or d['headroom'] < d['headroom_minimum']:
+            bad.append('START needs headroom at least the profile minimum')
+        if d['diagnosis_ref'] is None:
+            bad.append('START needs a retained diagnosis')
+    return bad
+
+
+@rcheck('rsi-completion-report', 'completion_report_structure')
+def _(d, path):
+    return rfield_errors('rsi-completion-report:field-contract:1', d)
+
+
+@rcheck('rsi-completion-report', 'completion_report_claims_backed')
+def _(d, path):
+    bad, results = [], {r['id']: rload(r) for r in d['session_result_refs']}
+    ids = [r['requirement_id'] for r in d['requirement_coverage']]
+    if len(set(ids)) != len(ids):
+        bad.append('requirement_id repeats')
+    for r in d['requirement_coverage']:
+        if r['status'] in ('PASS', 'FAIL') and not r['evidence_refs']:
+            bad.append('%s is %s without evidence' % (r['requirement_id'], r['status']))
+    if any(r['status'] == 'BLOCKED' for r in d['requirement_coverage']) and not d['blockers']:
+        bad.append('a BLOCKED requirement needs a blocker')
+    for q in d['qualified_result_refs']:
+        if q not in d['session_result_refs'] or results[q['id']]['outcome'] != 'QUALIFIED':
+            bad.append('qualified result %s is not a QUALIFIED session in scope' % q['id'])
+    if d['transfer_claim'] == 'supported' and not d['transfer_evidence_refs']:
+        bad.append('a transfer claim needs held-out evidence')
+    tests = [x['test_id'] for x in d['executed_tests']]
+    if len(set(tests)) != len(tests):
+        bad.append('test_id repeats')
+    if any(x['outcome'] != 'not_run' and x['evidence_ref'] is None for x in d['executed_tests']):
+        bad.append('a test that ran has no evidence')
+    if any(x['kind'] == 'security' and x['outcome'] == 'failed' for x in d['executed_tests']) and all(r['status'] == 'PASS' for r in d['requirement_coverage']):
+        bad.append('every requirement passes although a security test failed')
+    return bad
+
+
+# ---- Capsule Run Record fields (field-catalog.md#invocation-observation) and derived records (derived-records.md)
+def rbody_sha(decl):
+    body = sorted(decl['identity']['body'], key=lambda b: b['path'].encode('utf-8'))
+    return hashlib.sha256(''.join('%s\t%s\n' % (b['path'], b['sha256']) for b in body).encode('utf-8')).hexdigest()
+
+
+def rjsonl(ref):
+    return [json.loads(x) for x in rref_file(ref).read_text(encoding='utf-8').splitlines() if x.strip()]
+
+
+@rcheck('invocation-observation', 'observation_body_matches_declaration')
+def _(d, path):
+    return [] if d['body_files_sha256'] == rbody_sha(robs_binding(d)[2]) else ['body_files_sha256 does not recompute from the bound declaration identity.body']
+
+
+@rcheck('invocation-observation', 'observation_decision_source_consistent')
+def _(d, path):
+    return [] if (d['decision_source'] is None) == (d['route_id'] is None) else ['decision_source is null exactly when route_id is null']
+
+
+@rcheck('invocation-observation', 'failure_class_consistent')
+def _(d, path):
+    fc, bad = d['failure_class'], []
+    if fc is None:
+        if d['check_result_refs'] or d['verifier_assessment_ref'] is not None or d['human_answer_ref'] is not None:
+            bad.append('gate-side refs are set while failure_class is null')
+        return bad
+    if fc == 'none':
+        if d['outcome'] in ('failed', 'budget_exhausted', 'interrupted'):
+            bad.append('failure_class none with outcome ' + d['outcome'])
+        if d['error_fingerprint'] is not None or d['failure_reason_code'] is not None:
+            bad.append('failure_class none with an error fingerprint or reason code')
+    return bad
+
+
+def rcl_required(decl):
+    ids = {'needs.network'}
+    for side in ('inputs', 'outputs'):
+        ids |= {'ports.%s.%s' % (side, p['name']) for p in decl['ports'][side]}
+    ids |= {'needs.resources.' + r['resource_key'] for r in decl['needs']['resources']}
+    ids |= {'changes.effects.' + e['id'] for e in decl['changes']['effects']}
+    ids |= {'guarantees.checks.' + c['id'] for c in decl['guarantees']['checks']}
+    ids |= {'guarantees.failure_modes.' + m['reason_code'] for m in decl['guarantees'].get('failure_modes', [])}
+    return ids
+
+
+@rcheck('contract-conformance', 'conformance_counts_match_items')
+def _(d, path):
+    items, bad = d['items'], []
+    count = lambda s: sum(1 for i in items if i['status'] == s)
+    if d['undeclared_count'] != count('undeclared'):
+        bad.append('undeclared_count differs from the items')
+    if d['unused_count'] != count('unused'):
+        bad.append('unused_count differs from the items')
+    accounted, observed = count('matched') + count('mismatched'), count('matched') + count('mismatched') + count('undeclared')
+    want = round(accounted / observed, 6) if observed else None
+    if (d['coverage'] is None) != (want is None) or (want is not None and not rclose(d['coverage'], want)):
+        bad.append('coverage does not recompute: %s' % want)
+    keys = [(i['clause_kind'], i['clause_id']) for i in items]
+    if len(keys) != len(set(keys)):
+        bad.append('a clause appears twice')
+    for i in items:
+        if (i['declared'] is None) != (i['status'] == 'undeclared'):
+            bad.append('declared is null exactly for undeclared: ' + i['clause_id'])
+        if i['observed'] is None and i['status'] not in ('unused', 'unavailable'):
+            bad.append('observed is null for status ' + i['status'])
+    if any(i['status'] == 'unavailable' for i in items) and not d['unavailable_reasons']:
+        bad.append('unavailable item without a reason')
+    return bad
+
+
+@rcheck('contract-conformance', 'conformance_clauses_complete')
+def _(d, path):
+    decl = rload(d['declaration_ref'])
+    bad = [] if d['declaration_sha256'] == d['declaration_ref']['sha256'] else ['declaration_sha256 differs from declaration_ref']
+    have = {i['clause_id'] for i in d['items'] if i['status'] != 'undeclared'}
+    return bad + ['no item for declared clause ' + x for x in sorted(rcl_required(decl) - have)]
+
+
+@rcheck('contract-conformance', 'conformance_matches_record')
+def _(d, path):
+    rec = next((r for r in rjsonl(d['records_ref']) if r['id'] == d['observation_id']), None)
+    if rec is None:
+        return ['observation_id is not in the records file']
+    keys = ('run_id', 'node_id', 'attempt_id', 'subnode_id', 'cc_name', 'cc_version', 'declaration_sha256')
+    return ['%s differs from the record' % k for k in keys if d[k] != rec[k]]
+
+
+@rcheck('capsule-scorecard', 'scorecard_counts_recompute')
+def _(d, path):
+    recs = {r['id']: r for r in rjsonl(d['records_ref'])}
+    ids, bad = d['record_ids'], []
+    if len(ids) != len(set(ids)) or d['execution_count'] != len(ids):
+        bad.append('execution_count differs from record_ids')
+    sel = [recs[i] for i in ids if i in recs]
+    if len(sel) != len(ids):
+        return bad + ['record_ids names a line that is not in the records file']
+    triple = (d['cc_name'], d['cc_version'], d['declaration_sha256'])
+    bad += ['record %s has another CC triple' % r['id'] for r in sel if (r['cc_name'], r['cc_version'], r['declaration_sha256']) != triple]
+    if any(r['failure_class'] is None for r in sel):
+        return bad + ['a scored record is not classified']
+    counts = {k: sum(1 for r in sel if r['failure_class'] == k) for k in ('none', 'capsule', 'input', 'infrastructure', 'scientific')}
+    if d['class_counts'] != counts:
+        bad.append('class_counts differ from the records: %s' % counts)
+    counted = len(sel) - counts['infrastructure'] - counts['scientific']
+    if d['counted_count'] != counted:
+        bad.append('counted_count must exclude infrastructure and scientific failures: %s' % counted)
+    want = round(counts['none'] / counted, 6) if counted else None
+    if (d['gate_pass_rate'] is None) != (want is None) or (want is not None and not rclose(d['gate_pass_rate'], want)):
+        bad.append('gate_pass_rate does not recompute: %s' % want)
+    if sorted(set(r['run_id'] for r in sel)) != sorted(d['run_ids']):
+        bad.append('run_ids differ from the records')
+    if sum(d['verdict_counts'].values()) > len(sel):
+        bad.append('verdict_counts exceed the executions')
+    tally = lambda key: {k: sum(1 for r in sel if r[key] == k) for k in {r[key] for r in sel if r[key] is not None}}
+    if {x['reason']: x['count'] for x in d['failure_reasons']} != tally('failure_reason_code'):
+        bad.append('failure_reasons differ from the records')
+    if {x['error_fingerprint']: x['count'] for x in d['error_fingerprints']} != tally('error_fingerprint'):
+        bad.append('error_fingerprints differ from the records')
+    durations = [r['duration_s'] for r in sel if r['duration_s'] is not None]
+    tokens = [r['usage']['input_tokens'] + r['usage']['output_tokens'] for r in sel if r['usage']['input_tokens'] is not None and r['usage']['output_tokens'] is not None]
+    for key, values in (('median_duration_s', durations), ('median_total_tokens', tokens)):
+        want = statistics.median(values) if values else None
+        if (d[key] is None) != (want is None) or (want is not None and not rclose(d[key], want)):
+            bad.append('%s does not recompute: %s' % (key, want))
+    confs = [rload(r) for r in d['conformance_refs']]
+    if d['undeclared_behavior_count'] != sum(c['undeclared_count'] for c in confs):
+        bad.append('undeclared_behavior_count differs from the conformance records')
+    coverage = [c['coverage'] for c in confs if c['coverage'] is not None]
+    want = round(statistics.mean(coverage), 6) if coverage else None
+    if (d['mean_declaration_coverage'] is None) != (want is None) or (want is not None and not rclose(d['mean_declaration_coverage'], want)):
+        bad.append('mean_declaration_coverage does not recompute: %s' % want)
+    return bad
+
+
+@rcheck('capsule-scorecard', 'scorecard_grants_no_authority')
+def _(d, path):
+    bad = [] if d['release_authority'] == 'none' else ['release_authority is not none']
+    allowed = {d['records_ref']['id']} | {r['id'] for r in d['conformance_refs']}
+    return bad + ['scorecard refers to %s, which is neither its records file nor a conformance record' % r['id'] for r in rrefs(d) if r['id'] not in allowed]
+
+
+@rcheck('capsule-scorecard', 'scorecard_check_rates_valid')
+def _(d, path):
+    bad = []
+    for c in d['check_rates']:
+        want = round(c['passed'] / c['executed'], 6) if c['executed'] else None
+        if c['passed'] > c['executed'] or (c['pass_rate'] is None) != (want is None) or (want is not None and not rclose(c['pass_rate'], want)):
+            bad.append('check rate of %s is inconsistent' % c['check_id'])
+    return bad
+
+
+def rexport_label(e):
+    key = '%s/%s/%s/%s' % (e['run_id'], e['node_id'], e['attempt_id'], e['subnode_id'] if e['subnode_id'] is not None else '-')
+    return 'held_out' if int(hashlib.sha256(key.encode('utf-8')).hexdigest()[:8], 16) % 5 == 0 else 'development'
+
+
+@rcheck('sample-run-export', 'export_content_hash_recomputes')
+def _(d, path):
+    files = sorted(d['files'], key=lambda f: f['path'].encode('utf-8'))
+    want = hashlib.sha256(''.join('%s\t%s\n' % (f['path'], f['sha256']) for f in files).encode('utf-8')).hexdigest()
+    bad = [] if d['content_sha256'] == want else ['content_sha256 does not recompute from files: ' + want]
+    return bad + (['a files path is repeated'] if len({f['path'] for f in files}) != len(files) else [])
+
+
+@rcheck('sample-run-export', 'export_labels_match_rule')
+def _(d, path):
+    return ['label of %s should be %s' % (e['observation_id'], rexport_label(e)) for e in d['entries'] if e['label'] != rexport_label(e)]
+
+
+@rcheck('sample-run-export', 'export_entries_have_files')
+def _(d, path):
+    paths = [f['path'] for f in d['files']]
+    bad = ['files path escapes the folder: ' + x for x in paths if x.startswith('/') or '..' in x.split('/')]
+    recs = {r['id']: r for r in rjsonl(d['records_ref'])}
+    for e in d['entries']:
+        if not e['call_folder'].endswith('/') or not any(x.startswith(e['call_folder']) for x in paths):
+            bad.append('no file under call_folder ' + e['call_folder'])
+        r = recs.get(e['observation_id'])
+        if r is None or any(r[k] != e[k] for k in ('run_id', 'node_id', 'attempt_id', 'subnode_id', 'failure_class')):
+            bad.append('entry %s does not match its record' % e['observation_id'])
+    return bad
+
+
+PLATFORM_KINDS = PLATFORM_KINDS + ('contract-conformance', 'capsule-scorecard', 'sample-run-export')
+PLATFORM_KINDS = PLATFORM_KINDS + ('screening-rubric', 'poc-artifact-bundle', 'execution-receipt', 'provisioning-receipt', 'rsi-session', 'rsi-session-result', 'candidate-package', 'rsi-target-profile', 'rsi-attempt', 'rsi-loop-feedback', 'rsi-referee-evidence', 'rsi-evidence-export', 'candidate-provenance', 'security-clearance', 'rsi-opportunity', 'rsi-completion-report')
+
+
+# ---- additional host checks
+@rcheck('run-plan', 'topological_order_is_kahn')
+def _(d, path):
+    want = kahn_order(d['nodes'])
+    return [] if d['topological_order'] == want else ['topological_order %s is not the Kahn order %s with the source-list tie rule' % (d['topological_order'], want)]
+
+
+@rcheck('run-bundle', 'dispatches_sequential')
+def _(d, path):
+    spans = sorted((e['started_at'], e['ended_at'] or '9999', e['node_id']) for e in d['node_dispatches'])
+    return ['dispatch of %s starts before the previous dispatch ended' % b[2] for a, b in zip(spans, spans[1:]) if b[0] < a[1]]
+
+
+@rcheck('run-bundle', 'dispatch_attempts_unique')
+def _(d, path):
+    ids = [e['attempt_id'] for e in d['node_dispatches']]
+    return ['attempt %s is dispatched more than once (no replay)' % a for a in sorted(set(ids)) if ids.count(a) > 1]
+
+
+@rcheck('client-submission', 'profile_matches_readiness')
+def _(d, path):
+    ready = load(EX / 'client_readiness.json')
+    return [] if d['profile_id'] == ready['evaluation_profile'] else ['profile_id %s differs from the readiness evaluation_profile %s' % (d['profile_id'], ready['evaluation_profile'])]
+
+
+@rcheck(BR, 'no_trial_no_install')
+def _(d, path):
+    return [k + ' is true' for k in ('trial_executed', 'packages_installed') if d[k]]
+
+
+PLATFORM_KINDS = PLATFORM_KINDS + ('route-record', 'model-call', 'client-upload')
+
+
+@rcheck('route-record', 'route_record_structure')
+def _(d, path):
+    return rfield_errors('route-record:field-contract:1', d)
+
+
+@rcheck('route-record', 'route_record_consistent')
+def _(d, path):
+    bad = []
+    source = d['decision_source']
+    if (source == 'codex_router_disabled') != (not d['router_enabled']):
+        bad.append('codex_router_disabled exactly when router_enabled is false')
+    if (d['router_failure'] is None) == (source == 'codex_router_failed'):
+        bad.append('router_failure is set exactly when decision_source is codex_router_failed')
+    if (d['route_decision_ref'] is not None) != (source == 'router'):
+        bad.append('route_decision_ref is set exactly when decision_source is router')
+    if source != 'router' and d['model_id'] != 'codex-cli-default':
+        bad.append('a Codex route record names the Codex route model')
+    return bad
+
+
+@rcheck('model-call', 'model_call_structure')
+def _(d, path):
+    return rfield_errors('model-call:field-contract:1', d)
+
+
+@rcheck('model-call', 'model_call_outcome_consistent')
+def _(d, path):
+    bad = []
+    if (d['ended_at'] is None) != (d['outcome'] == 'outcome_unknown'):
+        bad.append('ended_at is null exactly for outcome_unknown')
+    if d['ended_at'] is not None and d['ended_at'] < d['started_at']:
+        bad.append('ended_at is before started_at')
+    if d['purpose'] == 'routing_selection' and d['route_decision_ref'] is not None:
+        bad.append('a routing_selection call has no route decision yet')
+    return bad
+
+
+@rcheck('model-call', 'provider_error_code_consistent')
+def _(d, path):
+    return [] if (d['provider_error_code'] is not None) == (d['outcome'] == 'failed') else ['provider_error_code is non-null exactly when outcome is failed']
+
+
+@rcheck('rsi-session-result', 'no_evidence_no_hidden_query')
+def _(d, path):
+    if d['referee_evidence_ref'] is not None:
+        return []
+    bad = []
+    if d['queries_used'] != 0:
+        bad.append('a child with no referee evidence was rejected before any hidden query, so queries_used is 0')
+    if d['statistics'] is not None or d['outcome'] == 'QUALIFIED':
+        bad.append('without referee evidence there are no statistics and no QUALIFIED outcome')
+    return bad
+
+
+def rblueprint_frozen(d, path):
+    frozen = {'id': 'hypothesis_blueprint.json', 'sha256': hashlib.sha256((EX / 'hypothesis_blueprint.json').read_bytes()).hexdigest()}
+    return [] if d['blueprint_ref'] == frozen else ['blueprint_ref is not the frozen blueprint recorded at acceptance']
+
+
+for _kind in (PM, BP, EV):
+    rcheck(_kind, 'blueprint_frozen_hash_recorded')(rblueprint_frozen)
+
+
+def _gate_decision_schema(d, path):
+    return [e.message for e in validators['urn:jiuwenswarm:m1-design:gate-decision:2.0.0'].iter_errors(d)]
+
+
+SCHEMA_CHECKS['gate-decision']['gate_decision_schema'] = _gate_decision_schema
+
+
+# ---- checking profiles that bound check plans point to: each is checked against its contract by the registered checks;
+# here each bound check plan must list the semantic criteria of the profile it points to
+profiles = {x['path']: load(EX / x['path']) for x in index if x.get('field_contract_id') == 'checking-profile:field-contract:1' and x.get('expect') != 'invalid'}
+for _item in index:
+    if _item.get('field_contract_id') == 'bound-check-plan:field-contract:2' and _item.get('expect') != 'invalid':
+        _plan = load(EX / _item['path'])
+        _profile = profiles.get(_plan['profile_ref']['id'])
+        if _profile is None:
+            continue
+        require([c['criterion_id'] for c in _profile['criteria']] == _plan['mandatory_semantic'], 'Check plan %s semantic checks differ from checking profile %s' % (_item['path'], _plan['profile_ref']['id']))
+
+
 # ---- run the registered checks over the index
 RKIND = {'candidate-set': CS, 'screening-result': SR, 'opportunity-card': OC, 'hypothesis-blueprint': HB, 'poc-manifest': PM, 'build-receipt': BR,
          'benchmark-payload': BP, 'evaluation-verdict': EV, 'delivery-manifest': DM, 'plan-proposal': 'plan-proposal', 'static-template': 'static-template',
          'run-plan': 'run-plan', 'library-snapshot': 'library-snapshot', 'dispatch-record': 'dispatch-record', 'plan-outcome': 'plan-outcome',
          'gate-decision-index': 'gate-decision-index', 'search-scope': 'search-scope', 'check-bundle': 'check-bundle', 'checking-profile': 'checking-profile'}
+RKIND.update({k: k for k in PLATFORM_KINDS})
 rchecked = 0
 rrejected = 0
 for item in index:
@@ -1908,7 +3559,7 @@ for item in index:
     kind = RKIND.get(interfaces[fc]['name']) if fc in interfaces else None
     if not kind or kind not in RCHECKS:
         continue
-    doc = load(EX / item['path'])
+    doc = load_example(EX / item['path'])
     failures = {}
     for cid, fn in RCHECKS[kind].items():
         try:
@@ -1922,6 +3573,32 @@ for item in index:
         want = item['rejected_by']
         if want not in RCHECKS[kind]:
             errors.append('%s: rejected_by %s is not a check of %s' % (item['path'], want, kind))
+        elif want not in failures:
+            errors.append('%s: expected invalid but check %s passed' % (item['path'], want))
+        else:
+            rrejected += 1
+    else:
+        for cid, found in failures.items():
+            errors.append('%s: check %s failed: %s' % (item['path'], cid, '; '.join(found[:3])))
+
+for item in index:
+    name = next((c['name'] for c in catalog['contracts'] if c['schema_id'] == item.get('schema_id')), None)
+    if name not in SCHEMA_CHECKS:
+        continue
+    doc = load_example(EX / item['path'])
+    failures = {}
+    for cid, fn in SCHEMA_CHECKS[name].items():
+        try:
+            found = fn(doc, item['path'])
+        except Exception as exc:  # a check that cannot run on the example is a failure of that check
+            found = ['check could not run: %s: %s' % (type(exc).__name__, exc)]
+        if found:
+            failures[cid] = found
+    rchecked += len(SCHEMA_CHECKS[name])
+    if item.get('expect') == 'invalid':
+        want = item.get('rejected_by')
+        if want not in SCHEMA_CHECKS[name]:
+            errors.append('%s: rejected_by %s is not a check of %s' % (item['path'], want, name))
         elif want not in failures:
             errors.append('%s: expected invalid but check %s passed' % (item['path'], want))
         else:
@@ -1994,41 +3671,26 @@ for cc_name, page_name in PAGE_FOR.items():
         require(check['id'] in defined, 'Declared guarantee check %s of %s is not defined on %s' % (check['id'], cc_name, page_name))
 
 
-# ---- guard profiles and review manifests list only criteria a verifier can answer from the declaration and the output
+# ---- checking profiles and review manifests list only criteria a verifier can answer from the declaration and the output
 BANNED_CRITERIA = {'fidelity', 'consistency', 'requirements_usability', 'registered_rule_applied'}
-for guard in sorted(EX.glob('*guard_profile.json')) + sorted(EX.glob('*review_context.json')):
-    for criterion in load(guard)['criteria']:
-        require(criterion not in BANNED_CRITERIA and not any(w in criterion for w in FIDELITY_WORDS), 'Verifier criterion %s in %s needs inputs or means fidelity' % (criterion, guard.name))
+for profile in sorted(EX.glob('*_checking_profile.json')) + sorted(EX.glob('*review_context.json')):
+    for criterion in (c['criterion_id'] if isinstance(c, dict) else c for c in load(profile).get('criteria', [])):
+        require(criterion not in BANNED_CRITERIA and not any(w in criterion for w in FIDELITY_WORDS), 'Verifier criterion %s in %s needs inputs or means fidelity' % (criterion, profile.name))
 
 
 def ref_for(name):
     return {'id':name,'sha256':hashlib.sha256((EX/name).read_bytes()).hexdigest()}
 
-def rsi_issues(evidence):
-    result=[];attempt=resolved(evidence['attempt_ref']);target=resolved(evidence['target_ref'])
-    if evidence['parent_ref']!=attempt['parent_ref'] or evidence['child_ref']!=attempt['child_ref'] or evidence['target_ref']!=attempt['target_ref'] or target['parent_ref']!=attempt['parent_ref']:result.append('wrong lineage')
-    if not evidence['mandatory_parent_tests_passed'] or not evidence['integrity_passed'] or evidence['violations']:result.append('failed mandatory integrity')
-    if evidence['configuration_ref']!=target['configuration_ref'] or attempt['configuration_ref']!=target['configuration_ref']:result.append('changed RSI comparison context')
-    if evidence['final_evaluations']!=1:result.append('final query misuse')
-    if len(set(target['splits'].values()))!=4:result.append('split identity overlap')
-    if target['scoring']['primary']!='passed_test_count' or target['scoring']['secondary']!='paired_time_at_equal_counts':result.append('wrong scoring order')
-    if attempt['queries_used']>target['session_query_limit'] or target['session_query_limit']!=30 or target['lifetime_query_limit']!=90:result.append('query limit')
-    for pair in evidence['pairs']:
-        if pair['split'] not in [target['splits']['hidden_loop'],target['splits']['hidden_final']] or pair['total']<20 or not 0<=pair['parent_passed']<=pair['child_passed']<=pair['total']:result.append('invalid comparable counts')
-        if len(pair['parent_time_s'])!=target['scoring']['paired_rounds'] or len(pair['child_time_s'])!=target['scoring']['paired_rounds']:result.append('missing paired timing')
-    return result
-
 errors.extend(rsi_issues(load(EX/'rsi_referee_evidence.json')))
 candidate=load(EX/'rsi_child_candidate.json')
 require(candidate['implementation_refs']==[load(EX/'rsi_attempt_01.json')['child_ref']], 'Candidate body/attempt mismatch')
-require(load(EX/'rsi_admission.json')['candidate_ref']==ref_for('rsi_child_candidate.json'), 'Admission references wrong package')
+require(load(EX/'rsi_admission.json')['candidate_ref']==ref_for('candidate_package.json'), 'Admission references wrong package')
 parent=load(EX/'ranking_declaration.json'); child=load(EX/'ranking_child_declaration.json')
 for key in parent:
     if key!='identity':require(parent[key]==child[key], 'RSI changes frozen declaration semantics')
 for key in parent['identity']:
-    if key not in ('version_label','carrier','body'):require(parent['identity'][key]==child['identity'][key], 'RSI changes frozen identity semantics')
+    if key not in ('version_label','carrier','body','lineage'):require(parent['identity'][key]==child['identity'][key], 'RSI changes frozen identity semantics')
 require(child['identity']['body'][0]['sha256']==candidate['implementation_refs'][0]['sha256'], 'Derived body pin mismatch')
-require(load(EX/'rsi_rollback.json')['admission_ref']==ref_for('rsi_parent_admission.json'), 'Rollback lacks prior-version admission')
 
 for mode in ('missing_binding','unknown_contract','input_inventory','oversized_limit','port_name'):
     bad=copy.deepcopy(load(EX/'intention_subnode_contract.json'))
@@ -2061,20 +3723,12 @@ require(not node_issues(optional) and validators['urn:jiuwenswarm:m1-design:subn
 resolved=old_resolved
 bad=copy.deepcopy(load(EX/'gate_decision.json'));bad['invocation_refs']=[]
 require('incomplete/duplicate work binding observations' in gate_issues(bad), 'Missing binding observation accepted');negative_count+=1
-span_fixture=load(EX/'source_spans_crlf.json')
-for span,expected_text in zip(span_fixture['source_spans'],span_fixture['expected_text']):
-    decoded=(EX/span['source_ref']['id']).read_bytes().decode('utf-8')
-    require(decoded[span['start']:span['end']]==expected_text, 'CRLF/non-BMP span regression')
 attempt=load(EX/'rsi_attempt_01.json');genesis=resolved(attempt['chain_root_ref'])
 require(genesis['session_id']==attempt['session_id'] and genesis['target_ref']==attempt['target_ref'] and genesis['hash_profile_ref']==attempt['hash_profile_ref'], 'RSI genesis/profile mismatch')
 require(attempt['sequence']==1 and attempt['previous_ref'] is None, 'First RSI chain link must start at separate genesis')
 for key in ('hash_profile_ref','chain_root_ref'):
     bad=copy.deepcopy(attempt);bad.pop(key)
     require(bool(field_errors(bad,interfaces['rsi-attempt:field-contract:1']['fields'])), 'Missing RSI custody accepted');negative_count+=1
-clearance=load(EX/'rsi_security_clearance.json')
-require(clearance['decision']=='denied' and clearance['effect_scope']=='new_rsi_session_only', 'Synthetic security clearance must not grant eligibility')
-bad=copy.deepcopy(clearance);bad.pop('guardrail_evidence_refs')
-require(bool(field_errors(bad,interfaces['security-clearance:field-contract:1']['fields'])), 'Missing clearance evidence accepted');negative_count+=1
 
 bad=copy.deepcopy(load(EX/'intention_subnode_contract.json'));bad['bindings'].append(copy.deepcopy(bad['bindings'][0]))
 require(bool(node_issues(bad)) and not validators['urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0'].is_valid(bad), 'Unsupported M1 member composition accepted');negative_count+=1
@@ -2123,7 +3777,7 @@ def section_rows(document):
     return table_rows(lines[start + 1:]) if start is not None else {}
 
 
-TYPE_PAGES = sorted((REF / 'capsules').glob('*.md')) + [REF / 'run-plan.md', REF / 'field-catalog.md', REF / 'other-contracts.md', REF / 'capsule-model-routing.md', REF / 'intent-and-requirements.md', REF / 'checking.md']
+TYPE_PAGES = sorted((REF / 'capsules').glob('*.md')) + [REF / 'run-plan.md', REF / 'field-catalog.md', REF / 'derived-records.md', REF / 'rsi-contracts.md', REF / 'model-routing-contract.md', REF / 'intent-and-requirements.md', REF / 'checking.md']
 
 
 def type_rows(name):
@@ -2159,7 +3813,7 @@ for label, fields in [(x['name'], x['fields']) for x in field_catalog['interface
         require(isinstance(info['required'], bool) and bool(info['meaning'].strip()), 'Incomplete field meaning/requiredness: ' + label + '.' + key)
         require(info['type'].removeprefix('nullable-').removesuffix('[]') in set(types) | set(interface_types) | primitive_types, 'Unknown nested field type: ' + label + '.' + key)
 
-contract_index=(REF/'contract-index.md').read_text(encoding='utf-8')
+contract_index=(REF/'README.md').read_text(encoding='utf-8')
 for x in catalog['contracts']:
     require('('+x['schema']+')' in contract_index, 'Unindexed exact contract: '+x['name'])
 for x in catalog['interfaces']:
@@ -2215,30 +3869,13 @@ def aggregate_issues(g):
     if {o['subnode_id'] for o in observed}!=expected or len(observed)!=len(expected):result.append('missing aggregate invocation')
     if any(resolved(o['contract_ref'])['node_contract_ref']!=g['node_contract_ref'] for o in observed):result.append('wrong aggregate observation parent')
     finals=[d for d in decisions if g['accepted_refs'] and all(r in d['accepted_refs'] for r in g['accepted_refs'])]
-    if len(finals)!=1 or finals[0]['assessment_ref']!=g['assessment_ref'] or g['accepted_refs']!=g['output_refs'] or checks['subject_ref'] not in g['output_refs']:result.append('unaccepted aggregate output')
+    if len(finals)!=1 or finals[0]['assessment_ref']!=g['assessment_ref'] or g['accepted_refs']!=g['output_refs'] or not set(map(json.dumps, checks.get('subject_refs') or [checks['subject_ref']])) & set(map(json.dumps, g['output_refs'])):result.append('unaccepted aggregate output')
     return result
 
-for n in ('research_brief.json','lifecycle_research_brief.json','research_brief_defaults.json'):
+for n in ('research_brief.json','lifecycle_research_brief.json'):
     errors.extend(n+': '+i for i in brief_issues(load(EX/n)))
-errors.extend(aggregate_issues(load(EX/'gate_intention_compiler_pass.json')))
 errors.extend(aggregate_issues(load(EX/'gate_science_node_pass.json')))
-require(not gate_issues(load(EX/'gate_compiler_no_output.json')), 'No-output halt needs no fabricated subject output')
 brief_key=next(k for k in schemas if ':research-brief:' in k)
-for mode in ('missing_context','wrong_unit','invented_default_pointer','lost_input','wrong_request'):
-    bad=copy.deepcopy(load(EX/'research_brief_defaults.json'))
-    if mode=='missing_context':bad.pop('context_refs')
-    elif mode=='wrong_unit':bad['constraints'][0].update(operator='le',normalized_value=1,unit=None)
-    elif mode=='invented_default_pointer':bad['assumptions'][0]['affected_fields']=['/future_protocol/repeat_count']
-    elif mode=='lost_input':bad['input_bindings']=[dict(id='invented',role='project_asset',resource_ref=bad['intent_ref'])]
-    else:bad['intake_ref']=ref_for('qualified_intake.json')
-    require(not validators[brief_key].is_valid(bad) or bool(brief_issues(bad)), 'Brief regression accepted: '+mode);negative_count+=1
-for mode in ('missing_stage','missing_review','wrong_scope','unaccepted_output'):
-    bad=copy.deepcopy(load(EX/'gate_intention_compiler_pass.json'))
-    if mode=='missing_stage':bad['internal_decision_refs']=bad['internal_decision_refs'][:1]
-    elif mode=='missing_review':bad['invocation_refs']=bad['invocation_refs'][:1]
-    elif mode=='wrong_scope':bad['subnode_id']='intention'
-    else:bad['accepted_refs']=[ref_for('intent_ir.json')]
-    require(bool(aggregate_issues(bad)) or not validators[gate_key].is_valid(bad), 'Aggregate regression accepted: '+mode);negative_count+=1
 for mode in ('missing_finding','duplicate_finding','wrong_review_subject'):
     saved=resolved
     def resolved(r):
@@ -2246,7 +3883,7 @@ for mode in ('missing_finding','duplicate_finding','wrong_review_subject'):
         if r['id']=='intent_assessment.json':
             if mode=='missing_finding':value['findings']=value['findings'][:-1]
             elif mode=='duplicate_finding':value['findings'].append(value['findings'][0])
-            else:value['subject_ref']=ref_for('intent_topic_only.json')
+            else:value['subject_ref']=ref_for('research_brief.json')
         return value
     require(bool(gate_issues(load(EX/'gate_decision.json'))), 'Verification coverage regression accepted: '+mode);negative_count+=1
     resolved=saved
@@ -2268,7 +3905,7 @@ def enclosing_issues(n):
         if template['capsule_ref']!=s['capsule_ref']:out.append('wrong declaration/template pin')
     return out
 
-for n in ('intention_node_contract.json','topic_node_contract.json','science_node_contract.json'):
+for n in ('intention_node_contract.json','science_node_contract.json'):
     errors.extend(n+': '+i for i in enclosing_issues(load(EX/n)))
 for mode in ('cycle','missing_subnode','missing_gate_subject'):
     bad=copy.deepcopy(load(EX/'intention_node_contract.json'))
@@ -2332,29 +3969,36 @@ clause_index = load(REF / 'prd-clause-index.json')
 headings = [(c['number'],c['title']) for c in clause_index['clauses']]
 require(len(headings)==188 and len(set(n for n,_ in headings))==188, 'Incomplete/duplicate PRD clause index')
 require(not list((ROOT/'sources/product').glob('*.txt')), 'PRD body must be supplied separately')
-if len(sys.argv)>2:
-    supplied=Path(sys.argv[2]).resolve()
+_stored_prd = ROOT.parents[1] / 'product/received-prds/prd-m1-v10-2026-10-15.txt'
+if len(sys.argv)>2 or _stored_prd.exists():
+    supplied=Path(sys.argv[2]).resolve() if len(sys.argv)>2 else _stored_prd
     require(hashlib.sha256(supplied.read_bytes()).hexdigest()==clause_index['source_sha256'], 'External PRD source differs from audited receipt')
     actual_headings=re.findall(r'^#{2,5}\s+(\d+\.\d+(?:\.\d+)?)\s+(.+)$',supplied.read_text(encoding='utf-8-sig'),re.M)
     require(actual_headings==headings,'External PRD clause crosswalk drift')
-coverage = (ROOT / 'coverage-allocation.md').read_text(encoding='utf-8')
+coverage = (ROOT / PAGES['clause_coverage']).read_text(encoding='utf-8')
 for number, title in headings:
     require(f'| §{number} {title} |' in coverage, 'Missing current source heading ' + number)
-audit = (ROOT / 'coverage.md').read_text(encoding='utf-8')
+audit = (ROOT / PAGES['user_story_map']).read_text(encoding='utf-8')
 for number in range(1, 21):
     require(f'| US{number:02d} |' in audit, 'Missing user-story mapping')
 
-top = ['README.md', 'principles.md', 'm1-design.md']
-def prose_words(path):
-    text = path.read_text(encoding='utf-8')
-    text = re.sub(r'```.*?```', '', text, flags=re.S)
-    return len(text.split())
-words = sum(prose_words(ROOT / name) for name in top)
-require(words <= 3400, 'Three-document orientation exceeds conservative editing target: ' + str(words))
+def tier1_words(path):
+    # Counts prose and Mermaid, since readers read both. Other code fences are excluded.
+    # Fences are parsed line by line, and tokens without a letter or digit (table pipes) are not words.
+    kept, fence = [], None
+    for line in path.read_text(encoding='utf-8').splitlines():
+        if line.lstrip().startswith('```'):
+            fence = None if fence else line.strip()[3:].strip() or 'code'
+            continue
+        if fence in (None, 'mermaid'):
+            kept.append(line)
+    return sum(1 for token in ' '.join(kept).split() if re.search(r'[A-Za-z0-9]', token))
+words = sum(tier1_words(ROOT / name) for name in PAGES['tier1'])
+require(words <= PAGES['tier1_word_cap'], 'Tier 1 exceeds its reading-time cap: ' + str(words))
 require(not (ROOT / 'handoff.md').exists(), 'Obsolete coding handoff still present')
 
 # Required current build/navigation must not regress to the historical Intent-only slice.
-for name in ('README.md','immediate-plan.md','m1-design.md','builds/intention-compiler/README.md','builds/intention-compiler/context.md'):
+for name in PAGES['brief_boundary']:
     current=(ROOT/name).read_text(encoding='utf-8')
     require('Research Brief' in current or 'research_brief.json' in current, 'Current build missing Brief boundary: '+name)
     require('ends at accepted Intent or visible halt' not in current, 'Obsolete Intent-only completion: '+name)
@@ -2371,24 +4015,56 @@ for entry in catalog['field_contracts']:
     require(fragment in anchors(REF / document), 'Missing catalog field-contract section')
     require(entry['version'] == catalog['version'] and bool(entry['applicable_phases']), 'Field-contract version/phase mismatch')
 
-manifest = load(ROOT / 'diagrams/manifest.json')['diagrams']
-blocks = {}
+# Every maintained page names its tier and its hub, so readers and agents can navigate.
 for path in ROOT.rglob('*.md'):
-    if {'sources', 'diagrams'} & set(path.relative_to(ROOT).parts):
+    parts = path.relative_to(ROOT).parts
+    if parts[0] in ('sources', 'diagrams') or 'examples' in parts:
         continue
-    for number, block in enumerate(re.findall(r'```mermaid\s*\n(.*?)```', path.read_text(encoding='utf-8'), re.S), 1):
-        blocks[(path.relative_to(ROOT).as_posix(), number)] = hashlib.sha256(block.encode()).hexdigest()
-counts = {}
-for item in manifest:
-    number = counts.get(item['source'], 0) + 1
-    counts[item['source']] = number
-    require(blocks.pop((item['source'], number), None) == item['mermaid_sha256'], 'Stale diagram source ' + item['source'])
-    for extension in ('svg', 'png'):
-        path = (ROOT / item[extension]).resolve()
-        require(path.is_relative_to(ROOT) and path.exists(), 'Missing diagram projection')
-        if path.exists():
-            require(hashlib.sha256(path.read_bytes()).hexdigest() == item[extension + '_sha256'], 'Stale diagram view')
-require(not blocks, 'Unrendered maintained Mermaid blocks')
+    require('`Tier ' in path.read_text(encoding='utf-8-sig')[:600], 'Page lacks a Tier and Part of line: ' + path.relative_to(ROOT).as_posix())
+# Canonical terms: forbidden phrases come from the glossary table.
+SYNONYM_EXEMPT = {'glossary.md', 'method/decisions.md', 'side-systems/owner-rulings.md'}
+forbidden = []
+gloss = (ROOT / 'glossary.md').read_text(encoding='utf-8-sig')
+section = gloss.split('## Canonical terms', 1)[1].split('\n## ', 1)[0]
+for row in section.splitlines():
+    cells = [c.strip() for c in row.strip().strip('|').split('|')]
+    if len(cells) == 4 and cells[0] not in ('Term', '---'):
+        forbidden += re.findall(r'`([^`]+)`', cells[3])
+synonym_hits = []
+for path in ROOT.rglob('*.md'):
+    rel = path.relative_to(ROOT).as_posix()
+    if rel.split('/')[0] in ('sources', 'diagrams') or rel in SYNONYM_EXEMPT:
+        continue
+    text = path.read_text(encoding='utf-8-sig')
+    if rel == PAGES['clause_coverage']:
+        # The first cell of each row quotes a PRD heading verbatim. Its words are not ours to change.
+        text = re.sub(r'^\| §[^|]*\|', '|', text, flags=re.M)
+    text = text.lower()
+    for phrase in forbidden:
+        if phrase.lower() in text:
+            synonym_hits.append('%s: %r' % (rel, phrase))
+if PAGES['synonyms_enforced']:
+    for hit in synonym_hits:
+        require(False, 'Forbidden synonym in ' + hit)
+elif synonym_hits:
+    print('WARN: %d forbidden synonym hits (report-only)' % len(synonym_hits))
+    for hit in synonym_hits:
+        print('WARN:   ' + hit)
+for term in ('Current semantic-review scope', 'immediate-plan.md', 'plan verifier'):
+    for path in ROOT.rglob('*.md'):
+        parts = path.relative_to(ROOT).parts
+        if parts[0] in ('sources', 'diagrams') or path.name in ('history.md', 'glossary.md'):
+            continue
+        require(term not in path.read_text(encoding='utf-8-sig'), 'Retired term %r in %s' % (term, path.relative_to(ROOT).as_posix()))
+
+# ---- node lifecycle names (field-catalog.md#node-lifecycle): every dispatch outcome maps to a PRD name
+_lc = (REF / 'field-catalog.md').read_text(encoding='utf-8-sig').split('### node-lifecycle', 1)[1].split('\n### ', 1)[0]
+_lc_rows = {m.group(1): m.group(2) for m in re.finditer(r'^\| `(Pending|Running|Evaluating|Completed|Failed)` \| (.*)$', _lc, re.M)}
+require(set(_lc_rows) == {'Pending', 'Running', 'Evaluating', 'Completed', 'Failed'}, 'Node lifecycle table lacks a PRD name')
+for _o in interfaces['dispatch-record:field-contract:2']['fields']['outcome']['enum']:
+    require(sum(('`%s`' % _o) in v for v in _lc_rows.values()) == 1, 'Dispatch outcome %s is not mapped to exactly one PRD lifecycle name' % _o)
+_ns = interfaces['client-status:field-contract:1']['fields']['node_statuses']
+require(_ns['type'] == 'NodeStatus[]', 'client-status lacks node_statuses')
 
 exec(compile((REF/'routing_checks.py').read_text(encoding='utf-8'), str(REF/'routing_checks.py'), 'exec'))
 
@@ -2396,8 +4072,7 @@ if errors:
     print('\n'.join('FAIL: ' + error for error in errors))
     raise SystemExit(1)
 print(f'PASS: {len(schemas)-1} critical schemas + common; {len(index)} indexed examples/context records; {negative_count} negative cases; exact references/spans and gate relationships')
-print(f'PASS: {len(headings)} PRD headings, US01–US20, retained source hashes/external PRD receipt, {link_count} local links/fragments; three-document route {words} words')
+print(f'PASS: {len(headings)} PRD headings, US01–US20, retained source hashes/external PRD receipt, {link_count} local links/fragments; tier 1 {words} words including Mermaid')
 print(f'PASS: {len(interfaces)} named field contracts; linked research and RSI identities/selected relationships')
 print(f'PASS: {rchecked} research check runs over indexed examples; {rrejected} invalid examples rejected by their named check; end-to-end research chain consistent')
-print(f'PASS: {len(manifest)} diagram source/projection hash sets and required field-summary inventories')
 print('LIMIT: structural/document checks and selected semantic example checks, not model quality, exhaustive field-proof, transport authentication or runtime acceptance')

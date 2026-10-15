@@ -21,6 +21,10 @@
       {
         "path": "ranking_parent.txt",
         "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+      },
+      {
+        "path": "screening_prompt.txt",
+        "sha256": "11336f6ccbf243bd1d7dc3b719bdb1ee77a7cc07472e61d36ccd78657aa586e2"
       }
     ]
   },
@@ -539,12 +543,11 @@
     "on_exhaust": "fail"
   },
   "evolution": {
-    "frozen": [
-      "/ports",
-      "/needs",
-      "/changes",
-      "/guarantees",
-      "/budget"
+    "rsi": "propose",
+    "may_change": [
+      "files:ranking_*.txt",
+      "files:screening_prompt.txt",
+      "files:screening_rubric.json"
     ],
     "notes_for_builder": []
   },

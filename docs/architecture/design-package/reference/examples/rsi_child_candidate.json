@@ -3,7 +3,7 @@
   "id": "rsi_child_candidate",
   "declaration_ref": {
     "id": "ranking_child_declaration.json",
-    "sha256": "c99fae0331c059417ca2bd6fe2690e2da6e8e72e0b44a92395725aed3968f3f4"
+    "sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
   },
   "implementation_refs": [
     {
@@ -17,16 +17,16 @@
   },
   "builder_ref": {
     "id": "rsi_attempt_01.json",
-    "sha256": "f19dab17d912aadf2681b9ef32f6b2f7b8ead9c6b4068a24c8358f30f5b5a39b"
+    "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
   },
   "evidence_refs": [
     {
       "id": "rsi_referee_evidence.json",
-      "sha256": "ee21bc030d637916ba05a6ab2b5215b42b46380b184df95158a7d093d9c60fb8"
+      "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
     },
     {
       "id": "rsi_evidence_export.json",
-      "sha256": "f1f4fe69516841db8a30611365f29353095c445dc3ac1a982052526c4c8b7265"
+      "sha256": "83202d1ac21e78924da720952c263471e1664d6258a6342ec9a66f17d74ec99d"
     }
   ],
   "ext": {

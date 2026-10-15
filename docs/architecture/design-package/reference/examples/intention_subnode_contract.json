@@ -2,12 +2,12 @@
   "id": "subnode-contract:intention",
   "run_id": "run:example",
   "node_id": "intention_compiler",
-  "attempt_id": "attempt:1",
+  "attempt_id": "intention_compiler-a1",
   "objective": "Produce faithful and usable Intent",
   "input_refs": [
     {
       "id": "qualified_intake.json",
-      "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+      "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
     }
   ],
   "required_outputs": [
@@ -28,7 +28,7 @@
       "role": "intent.compiler",
       "declaration_ref": {
         "id": "capsule_declaration.json",
-        "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+        "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
       },
       "implementation_refs": [
         {
@@ -47,7 +47,7 @@
         "resource_reads": [
           {
             "id": "qualified_intake.json",
-            "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+            "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
           }
         ],
         "write_roots": [
@@ -73,7 +73,7 @@
       "artifact_refs": [
         {
           "id": "qualified_intake.json",
-          "sha256": "5bea01e2d7558189eee94a9d02799425a17287e3ff8a73384802ac5c03945be4"
+          "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
         }
       ]
     }
@@ -91,24 +91,24 @@
     "invocation_observation",
     "mandatory_checks",
     "semantic_assessment",
-    "independently_budgeted_guard_observation"
+    "independently_budgeted_check_observation"
   ],
-  "guard_profile_ref": {
-    "id": "guard_profile.json",
-    "sha256": "3d8597307df174a5e7c65e54bc01dd650bf70bb0f54ec04b668b53a7d60b6110"
+  "checking_profile_ref": {
+    "id": "intent_checking_profile.json",
+    "sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
-    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
   },
   "template_ref": {
     "id": "intention_subnode_template.json",
-    "sha256": "8e5f9cd27564bf3eb7bfcd5a56a94ea6c2f54c5bb68abbd6fea83782df4ae0cc"
+    "sha256": "eea50c04aa7ecbc40416daf2fc75225c852cc93214af503fa3a60b7fcd966994"
   },
   "subnode_id": "intention",
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
   },
   "subnode_limits": {
     "time_s": 120,

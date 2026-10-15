@@ -3,11 +3,11 @@
   "id": "rsi_evidence_export",
   "attempt_ref": {
     "id": "rsi_attempt_01.json",
-    "sha256": "f19dab17d912aadf2681b9ef32f6b2f7b8ead9c6b4068a24c8358f30f5b5a39b"
+    "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
   },
   "referee_ref": {
     "id": "rsi_referee_evidence.json",
-    "sha256": "ee21bc030d637916ba05a6ab2b5215b42b46380b184df95158a7d093d9c60fb8"
+    "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
   },
   "parent_ref": {
     "id": "ranking_parent.txt",

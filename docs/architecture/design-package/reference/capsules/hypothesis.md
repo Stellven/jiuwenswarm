@@ -1,6 +1,8 @@
 # Hypothesis capsule (`research.hypothesis`)
 
-**Reading level: AI reference.** Build page for one CC and its verifier assignment.
+`Tier 3 · Part of: [Reference](../README.md)`
+
+Build page for one CC and its verifier assignment.
 
 **Summary for human review**
 
@@ -11,7 +13,7 @@
 
 ## Purpose and place in the run
 
-Hypothesis is stage 3.5. It follows Screening and precedes Builder in the static template. It is a fixed node: one run, one opportunity, one hypothesis. It writes the experimental design and does not write code (PRD 3.5.5).
+Hypothesis is PRD stage 3.5. It turns one selected opportunity into one testable hypothesis and an experimental design. It writes no code (PRD 3.5.5).
 
 ## Declaration
 
@@ -63,7 +65,7 @@ Artifact `hypothesis_blueprint`, contract `hypothesis-blueprint:field-contract:2
 | `constraints` | `string[]` | yes | `min_items` 0. Contains the text of every Brief constraint. | Constraints the experiment preserves. |
 | `verification_plan` | `string[]` | yes | `min_items` 1, `max_items` 12, each 5 to 300 characters | Ordered, checkable steps that show the experiment was fair and complete. |
 
-Examples: [valid](../examples/hypothesis_blueprint.json) · rejected by `rules_reference_declared_metrics`: [hypothesis_blueprint_invalid_undeclared_metric](../examples/hypothesis_blueprint_invalid_undeclared_metric.json) · rejected by `boundaries_disjoint`: [hypothesis_blueprint_invalid_overlapping_boundaries](../examples/hypothesis_blueprint_invalid_overlapping_boundaries.json)
+Examples: [valid](../examples/hypothesis_blueprint.json)
 
 ### BaselineIdentity
 
@@ -85,6 +87,8 @@ Examples: [valid](../examples/hypothesis_blueprint.json) (field `baseline_identi
 | `direction` | `string` | yes | enum `higher_better`, `lower_better` | Which way is an improvement. Rules must agree with it. |
 | `aggregation` | `string` | yes | enum `median`, `mean`, `min`, `max` | How the repeats combine into one aggregate per arm. |
 | `target_id` | `nullable-string` | yes | when not null, an `id` in Brief `target_metrics` | Brief target this metric measures. Null for a metric the CC added. |
+| `valid_min` | `nullable-number` | yes | finite; when both bounds are set, `valid_min` is below `valid_max` | Lowest value one repeat can physically take, for example 0 for a time or a fraction. Null means no lower bound. The host check `measurement_within_declared_range` of Research Benchmark enforces it. |
+| `valid_max` | `nullable-number` | yes | finite | Highest value one repeat can physically take, for example 1 for a fraction. Null means no upper bound. |
 
 Examples: [valid](../examples/hypothesis_blueprint.json) (field `metrics`)
 
@@ -99,7 +103,7 @@ Examples: [valid](../examples/hypothesis_blueprint.json) (field `metrics`)
 | `conditional_rule` | `nullable-ComparisonRule` | yes | not null exactly when `middle` is `CONDITIONALLY_ACCEPTABLE`. Its region lies outside both `success` and `falsification`. | The registered condition that makes a middle result acceptable. Any comparator. |
 | `conditional_meaning` | `nullable-string` | yes | not null exactly when `conditional_rule` is not null. 10 to 300 characters. | Plain statement of what conditional acceptance means for the reader. |
 
-Examples: [valid](../examples/hypothesis_blueprint.json) (field `outcome_rules`) · rejected by `boundaries_disjoint`: [hypothesis_blueprint_invalid_overlapping_boundaries](../examples/hypothesis_blueprint_invalid_overlapping_boundaries.json)
+Examples: [valid](../examples/hypothesis_blueprint.json) (field `outcome_rules`)
 
 ### ComparisonRule
 
@@ -121,7 +125,7 @@ Examples: [valid](../examples/hypothesis_blueprint.json) (success and falsificat
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `may_change` | `string[]` | yes | `min_items` 1, `max_items` 5 | What the POC may change. |
+| `poc_change_scope` | `string[]` | yes | `min_items` 1, `max_items` 5 | What the POC may change. It is the POC's permitted change scope. It is unrelated to a declaration's `evolution.may_change`. |
 | `must_not_change` | `string[]` | yes | contains `baseline`, `validation_data`, `measurement_functions`, `outcome_rules` | What stays immutable. |
 | `max_patch_files` | `integer` | yes | min 1, max 1 | M1 allows one patch file. |
 
@@ -141,6 +145,7 @@ Conversion applies when a Brief comparison is not null. The `success` rule must 
 ## Producer obligations
 
 - Write one claim and one mechanism. Do not write competing claims (PRD 3.5.1).
+- Register `valid_min` and `valid_max` for every metric from its unit, before anything runs. Use null only where no bound exists.
 - Define every metric, rule and boundary as a number before anything runs. Do not use statistical power analysis or p-values (PRD 3.5.4).
 - Use only the supplied baseline and validation data. Do not propose synthetic or scraped data.
 - Do not write code, and do not write thresholds that depend on results.
@@ -165,7 +170,7 @@ The host runs these before the verifier. Checks marked "Output" read only the bl
 | `baseline_identity_resolves` | `baseline_identity` matches the baseline snapshot revision and `entry_point` exists in its files. | reject |
 | `environment_from_resources` | `environment_ref` equals the `environment_ref` of both snapshots and is not null. | reject |
 | `constraints_carried` | Every Brief constraint `text` appears in `constraints`. | reject |
-| `blueprint_frozen_hash_recorded` | After acceptance the host stores the blueprint SHA-256 in the run record. Later stages must present the same hash. | halt the run if absent or changed |
+| `blueprint_frozen_hash_recorded` | After acceptance the host stores the blueprint SHA-256 in the run record. Later stages must present the same hash. The Builder manifest, the benchmark payload and the verdict each carry it in `blueprint_ref`. | halt the run if absent or changed |
 
 ## Verifier criteria
 
@@ -180,14 +185,14 @@ The verifier sees the pinned declaration and the exact blueprint only. Structure
 
 ## Gate rule
 
-Accept when every deterministic check passes and no blocking criterion fails. Reject on any failed check or blocking criterion. M1 has no repair loop, so a rejection halts to the human session. A missing resource or lock halts before the CC runs.
+Accept when every deterministic check passes and no blocking criterion fails. Reject on any failed check or blocking criterion. M1 has no repair loop: a rejection stops the Hypothesis node and writes an escalation record for later human review. A missing resource or lock stops the node before the CC runs and writes an escalation record. The run does not wait.
 
 ## Failure outcomes
 
 | Condition | Outcome | Kept |
 |---|---|---|
-| Resource unavailable or no environment lock | halt before dispatch | inputs, halt reason |
-| Check or blocking criterion fails | reject and halt to human | blueprint, check results, verifier output |
+| Resource unavailable or no environment lock | Stop the Hypothesis node before dispatch and write an escalation record | inputs, halt reason |
+| Check or blocking criterion fails | Reject the blueprint, stop the Hypothesis node and write an escalation record for later human review | blueprint, check results, verifier output |
 | Blueprint hash differs later | halt at the detecting stage | both hashes |
 
 ## Examples
@@ -195,8 +200,8 @@ Accept when every deterministic check passes and no blocking criterion fails. Re
 | File | Role |
 |---|---|
 | [hypothesis_blueprint.json](../examples/hypothesis_blueprint.json) | valid |
-| [hypothesis_blueprint_invalid_undeclared_metric.json](../examples/hypothesis_blueprint_invalid_undeclared_metric.json) | rejected by `rules_reference_declared_metrics` |
-| [hypothesis_blueprint_invalid_overlapping_boundaries.json](../examples/hypothesis_blueprint_invalid_overlapping_boundaries.json) | rejected by `boundaries_disjoint` |
+
+
 | [hypothesis_capsule.json](../examples/hypothesis_capsule.json) | declaration |
 
 The synthetic scenario matches `lifecycle_research_brief.json` and `opportunity_card.json`.
@@ -207,3 +212,11 @@ The synthetic scenario matches `lifecycle_research_brief.json` and `opportunity_
 - Other seed policies and aggregates: extend the enums.
 - Statistical tests: add rule kinds beside `ComparisonRule`. M1 keeps deterministic bounds.
 - Search-based planning (MCTS) can propose blueprints. The checks stay the same.
+
+## M1 placement
+
+The CC page above does not depend on where Hypothesis runs. In M1 the rules below apply.
+
+- It is a fixed node: one run, one opportunity, one hypothesis. Its input is the selected opportunity, so it runs after Screening. Builder reads its blueprint, so it runs before Builder.
+- Every plan holds Hypothesis in exactly one node. The plan policy lists `research.hypothesis` in `required_stages` ([run plan](../run-plan.md#plan-policy)).
+- Enforced by the plan policy and the protected binder checks `delivery_leaf_coverage` and `dependency_closure` ([D42](../../method/decisions.md#d42)).

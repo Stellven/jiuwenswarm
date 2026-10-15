@@ -64,11 +64,11 @@ Seed 42. Repeats 3. Hardware and runtime: run_configuration.json. Install with t
 
 | Item | Id | sha256 |
 |---|---|---|
-| Research brief | lifecycle_research_brief.json | 428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d |
-| Hypothesis blueprint | hypothesis_blueprint.json | 4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0 |
-| POC manifest | poc_manifest.json | 5256dfa86a4212a05fec6d5db23211322e4d4e136f687a5bb69dc648d23f0e6b |
+| Research brief | lifecycle_research_brief.json | e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c |
+| Hypothesis blueprint | hypothesis_blueprint.json | 7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e |
+| POC manifest | poc_manifest.json | ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4 |
 | POC bundle | poc_artifact_bundle.zip | 95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1 |
 | Environment lock | environment_lock.json | e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df |
-| Run configuration | run_configuration.json | 73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72 |
-| Benchmark payload | benchmark_payload.json | cfc5e075b052346568b09fe13c52b8d5d6e7398b86c74b7b653a23cc9931a1aa |
-| Evaluation verdict | evaluation_verdict.json | 1279dd59a9999c7ee9323ea05c01d8b0e74b87308e90dd8bf9950ba773dcbb1c |
+| Run configuration | run_configuration.json | ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa |
+| Benchmark payload | benchmark_payload.json | ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167 |
+| Evaluation verdict | evaluation_verdict.json | e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7 |

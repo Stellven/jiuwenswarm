@@ -3,5 +3,6 @@
   "id": "configuration:example",
   "model": "synthetic teaching endpoint",
   "seed": 42,
-  "synthetic": true
+  "synthetic": true,
+  "interaction_mode": "headless"
 }

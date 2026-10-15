@@ -1,0 +1,842 @@
+{
+  "schema_version": "1.0.0",
+  "id": "run_plan_example",
+  "plan_source": "static",
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+  },
+  "library_snapshot_ref": {
+    "id": "library_snapshot.json",
+    "sha256": "aaf40eb39a40beb50939b6f4cd456f4be980eb5ccc781b45f9bf53647783f416"
+  },
+  "resource_inventory_ref": {
+    "id": "resource_inventory.json",
+    "sha256": "7b94381959b83f94f00eb07e31c9e4207c1e86b06c78f9adecdc3336db696fe9"
+  },
+  "policy_ref": {
+    "id": "plan_policy.json",
+    "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
+  },
+  "configuration_ref": {
+    "id": "run_configuration.json",
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+  },
+  "source_ref": {
+    "id": "static_template.json",
+    "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+  },
+  "acceptance_ref": {
+    "id": "static_plan_checks.json",
+    "sha256": "92e33d43a3c8e335e02ebc73b10cd668607d5d09faeb6e6db2c04e2681e363fd"
+  },
+  "nodes": [
+    {
+      "node_id": "search",
+      "cc": {
+        "cc_name": "research.search",
+        "cc_version": "example-2",
+        "declaration_sha256": "1c1030012e52b46f401b3bb1e1662271a2f605db6c5e3ca4bf49cb9ab04bbe4f"
+      },
+      "objective": "Find grounded candidate ideas for the Brief",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": {
+            "id": "lifecycle_research_brief.json",
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+          },
+          "future": null
+        },
+        {
+          "name": "search_scope",
+          "artifact_type": "search_scope",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "search_scope",
+          "accepted_ref": {
+            "id": "search_scope.json",
+            "sha256": "9f1de539a40c309b73f9124905c1aa1e9a02fe896515a540f8ad664727e5908f"
+          },
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 300,
+        "model_calls": 2,
+        "memory_mb": 4096
+      },
+      "effect_class": "read_only",
+      "check_pins": {
+        "check_bundle_id": "research.search.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "570e64d0cd2c98dd5f62d4914d76b69beef2b6b4932edf5a0b41985d51c58c4d",
+        "checking_profile_id": "research.search.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "f1eae1a1d3e332b9e84adbf5a715cdb5d5acaacc1f1a9618cf5a5cbce6cd17a5"
+      },
+      "extra_check_ids": [],
+      "max_attempts": 1
+    },
+    {
+      "node_id": "screening",
+      "cc": {
+        "cc_name": "research.screening",
+        "cc_version": "example-2",
+        "declaration_sha256": "1700b85f24266459f71a205ef3011aa8dd9b5e90c760583ab81cb8e302ab8d96"
+      },
+      "objective": "Score candidates and select one opportunity",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "search"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": {
+            "id": "lifecycle_research_brief.json",
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+          },
+          "future": null
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "search",
+            "port": "candidate_set",
+            "artifact_type": "candidate_set"
+          }
+        },
+        {
+          "name": "screening_rubric",
+          "artifact_type": "screening_rubric",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "screening_rubric",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "required": true
+        },
+        {
+          "name": "opportunity_card",
+          "artifact_type": "opportunity_card",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "effect_class": "read_only",
+      "check_pins": {
+        "check_bundle_id": "research.screening.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "ea123ab35eaeecf23fbcdcc6d62b0a72540a10212e10e4fb066457f48885fc9d",
+        "checking_profile_id": "research.screening.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "151036ce7c88518f7237d0d1c1bf317f23abd4b54e21bb66367be6ed01043985"
+      },
+      "extra_check_ids": [],
+      "max_attempts": 1
+    },
+    {
+      "node_id": "hypothesis",
+      "cc": {
+        "cc_name": "research.hypothesis",
+        "cc_version": "example-1",
+        "declaration_sha256": "f44e17b13c6170ffc681d3b999c75312d413690121d55966598bf8a5bfb79e6a"
+      },
+      "objective": "State one hypothesis and freeze the measurement protocol",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "search"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": {
+            "id": "lifecycle_research_brief.json",
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+          },
+          "future": null
+        },
+        {
+          "name": "opportunity",
+          "artifact_type": "opportunity_card",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "screening",
+            "port": "opportunity_card",
+            "artifact_type": "opportunity_card"
+          }
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": {
+            "id": "baseline_resource.json",
+            "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+          },
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": {
+            "id": "validation_resource.json",
+            "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+          },
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 180,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "effect_class": "read_only",
+      "check_pins": {
+        "check_bundle_id": "research.hypothesis.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "11a0d2f6467a78799d95cfef00e0a1ac4d960849a701e7c90fa880cb5f4bd43a",
+        "checking_profile_id": "research.hypothesis.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "54ed22b0da50627d3c35aa08751d8864bc63196c0c88021bf2db3034217d01f7"
+      },
+      "extra_check_ids": [],
+      "max_attempts": 1
+    },
+    {
+      "node_id": "builder",
+      "cc": {
+        "cc_name": "research.builder",
+        "cc_version": "example-1",
+        "declaration_sha256": "05dcfcd0785bd5df9f96485f00b4e9df32a6a0d895538f3e8859b87ebf1b806a"
+      },
+      "objective": "Build the proof of concept patch and benchmark runner",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "hypothesis"
+      ],
+      "inputs": [
+        {
+          "name": "blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": {
+            "id": "baseline_resource.json",
+            "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+          },
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": {
+            "id": "validation_resource.json",
+            "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+          },
+          "future": null
+        },
+        {
+          "name": "lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "environment_lock",
+          "accepted_ref": {
+            "id": "environment_lock.json",
+            "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+          },
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "manifest",
+          "artifact_type": "poc_manifest",
+          "required": true
+        },
+        {
+          "name": "bundle",
+          "artifact_type": "poc_artifact_bundle",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 600,
+        "model_calls": 1,
+        "memory_mb": 8192
+      },
+      "effect_class": "idempotent",
+      "check_pins": {
+        "check_bundle_id": "research.builder.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "bc09a979d273cf84ad774144bf43a33864b0fc3b30284c0237e70c1e7b6fdb96",
+        "checking_profile_id": "research.builder.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "ce4766dc0292b807efd460e1a993ccf6e4ab0a4ea9baeca298c693b0bb38e224"
+      },
+      "extra_check_ids": [],
+      "max_attempts": 1
+    },
+    {
+      "node_id": "benchmark",
+      "cc": {
+        "cc_name": "research.benchmark",
+        "cc_version": "example-1",
+        "declaration_sha256": "829afaca0d5746ef4aa0746f9fda42c34dae31e3ea202d57e4a507ac7ca6da1d"
+      },
+      "objective": "Measure baseline then treatment on the local GPU",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "hypothesis",
+        "builder"
+      ],
+      "inputs": [
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "builder",
+            "port": "manifest",
+            "artifact_type": "poc_manifest"
+          }
+        },
+        {
+          "name": "poc_artifact_bundle",
+          "artifact_type": "poc_artifact_bundle",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "builder",
+            "port": "bundle",
+            "artifact_type": "poc_artifact_bundle"
+          }
+        },
+        {
+          "name": "build_receipt",
+          "artifact_type": "build_receipt",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "build_receipt",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": {
+            "id": "baseline_resource.json",
+            "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+          },
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": {
+            "id": "validation_resource.json",
+            "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+          },
+          "future": null
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "environment_lock",
+          "accepted_ref": {
+            "id": "environment_lock.json",
+            "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+          },
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "required": true
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 3600,
+        "model_calls": 0,
+        "memory_mb": 16384
+      },
+      "effect_class": "compensable",
+      "check_pins": {
+        "check_bundle_id": "research.benchmark.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "c14dd5a7866029f92e4cbc18d82a3465297261a05a8a470f182efd02a0dcca9b",
+        "checking_profile_id": "research.benchmark.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "a6cb864fdab8bf639e2da976a9ca2d5eb8d6306e68b38f1e5b1ae1167a1353ac"
+      },
+      "extra_check_ids": [],
+      "max_attempts": 1
+    },
+    {
+      "node_id": "evaluation",
+      "cc": {
+        "cc_name": "research.evaluation",
+        "cc_version": "example-1",
+        "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
+      },
+      "objective": "Classify the result with the registered rules",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [],
+      "predecessors": [
+        "hypothesis",
+        "benchmark"
+      ],
+      "inputs": [
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "benchmark",
+            "port": "benchmark_payload",
+            "artifact_type": "benchmark_payload"
+          }
+        },
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": {
+            "id": "lifecycle_research_brief.json",
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+          },
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "evaluation_verdict",
+          "artifact_type": "evaluation_verdict",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 180,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "effect_class": "read_only",
+      "check_pins": {
+        "check_bundle_id": "research.evaluation.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "850f44daf116832f76122664e31905a7f5da27ddf4ef3c248c65ae7da01afc20",
+        "checking_profile_id": "research.evaluation.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
+      },
+      "extra_check_ids": [],
+      "max_attempts": 1
+    },
+    {
+      "node_id": "delivery",
+      "cc": {
+        "cc_name": "research.delivery",
+        "cc_version": "example-1",
+        "declaration_sha256": "0102a5c6b414d0e47d3f0bee10b7e01d533019681dd2b39519b3a470bb91bae1"
+      },
+      "objective": "Write the report and delivery manifest",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "deliverable_ids": [
+        "deliverable:report"
+      ],
+      "predecessors": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": {
+            "id": "lifecycle_research_brief.json",
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+          },
+          "future": null
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "search",
+            "port": "candidate_set",
+            "artifact_type": "candidate_set"
+          }
+        },
+        {
+          "name": "opportunity_card",
+          "artifact_type": "opportunity_card",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "screening",
+            "port": "opportunity_card",
+            "artifact_type": "opportunity_card"
+          }
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "hypothesis",
+            "port": "blueprint",
+            "artifact_type": "hypothesis_blueprint"
+          }
+        },
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "builder",
+            "port": "manifest",
+            "artifact_type": "poc_manifest"
+          }
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "benchmark",
+            "port": "benchmark_payload",
+            "artifact_type": "benchmark_payload"
+          }
+        },
+        {
+          "name": "evaluation_verdict",
+          "artifact_type": "evaluation_verdict",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {
+            "producer_node": "evaluation",
+            "port": "evaluation_verdict",
+            "artifact_type": "evaluation_verdict"
+          }
+        },
+        {
+          "name": "gate_decision_index",
+          "artifact_type": "gate_decision_index",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "gate_decision_index",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "screening_result",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "execution_receipt",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "provisioning_receipt",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "environment_lock",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "run_configuration",
+          "artifact_type": "run_configuration",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "run_configuration",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "delivery_manifest",
+          "artifact_type": "delivery_manifest",
+          "required": true
+        },
+        {
+          "name": "research_report",
+          "artifact_type": "research_report",
+          "required": true
+        }
+      ],
+      "limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "effect_class": "read_only",
+      "check_pins": {
+        "check_bundle_id": "research.delivery.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "525877c3742a6ee734fe994ae46a351f22d1e2be119256c0e35cee89668f656b",
+        "checking_profile_id": "research.delivery.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "80bcb4cd7f1505ccdeb5bbe4d92eb95d21777122ded8f85a56c44954f51f5d9c"
+      },
+      "extra_check_ids": [],
+      "max_attempts": 1
+    }
+  ],
+  "coverage": [
+    {
+      "item_id": "requirement:latency",
+      "item_kind": "requirement",
+      "node_ids": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation",
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "requirement:quality",
+      "item_kind": "requirement",
+      "node_ids": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation",
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "deliverable:report",
+      "item_kind": "deliverable",
+      "node_ids": [
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "evidence:comparison",
+      "item_kind": "evidence_obligation",
+      "node_ids": [
+        "hypothesis",
+        "benchmark",
+        "evaluation"
+      ]
+    }
+  ],
+  "topological_order": [
+    "search",
+    "hypothesis",
+    "screening",
+    "builder",
+    "benchmark",
+    "evaluation",
+    "delivery"
+  ],
+  "limits": {
+    "time_s": 7200,
+    "model_calls": 60,
+    "memory_mb": 16384
+  },
+  "frozen": true
+}

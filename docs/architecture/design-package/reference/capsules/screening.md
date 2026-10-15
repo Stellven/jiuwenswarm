@@ -1,18 +1,18 @@
 # Screening CC (`research.screening`)
 
-**Reading level: AI reference.**
+`Tier 3 · Part of: [Reference](../README.md)`
 
 **Summary for reviewers.**
 - Screening reads the candidate set and scores every idea 1 to 5 on three fixed dimensions: novelty, feasibility and compute alignment. A pinned rubric defines the dimensions and what each score means.
 - A deterministic filter rejects ideas that need a forbidden dependency. A pure helper, `rank_opportunities`, adds the scores and ranks the eligible ideas. Ties go to the lower `idea_id`.
 - It outputs two artifacts: `screening_result` (all scores, reasons, ranking, dispositions) and `opportunity_card` (exactly one selected idea).
-- The ranking helper is the only part offline RSI may change. The dimensions, the rubric and the referee stay frozen.
+- The RSI workbench may change the ranking helper (Target 1), the work prompt `screening_prompt.txt` and the work rubric `screening_rubric.json` (Target 2, conditional). The referee and its rubrics stay frozen.
 - The verifier runs once for each output, `screening_result` and `opportunity_card`, each time with the same declaration. The gate accepts the pair together.
 - Old names "Idea Screening" and the `screening` declaration name mean this CC. The CC name is `research.screening`.
 
 ## Purpose and place in the run
 
-Screening follows [Search](search.md) and feeds Hypothesis. The static template always runs it. It selects one opportunity for the M1 run. The Planner may not skip it or add a second selection. The model scores ideas in one pass. The helper then does the arithmetic and ranking in code.
+Screening reads a candidate set and selects one opportunity. It does not search and it does not design experiments. The model scores ideas in one pass. The helper then does the arithmetic and ranking in code.
 
 ## Declaration
 
@@ -23,22 +23,25 @@ Declaration example: [screening_capsule.json](../examples/screening_capsule.json
 | Name and kind | `research.screening`, kind `agent` |
 | Inputs | `brief`, `candidate_set`, `screening_rubric` |
 | Outputs | `screening_result` (`screening-result:field-contract:2`), `opportunity_card` (`opportunity-card:field-contract:2`). The verifier runs once for each output, each time with this same declaration |
-| Needs | The model bridge. No network. The rubric and the ranking helper are pinned in the body |
+| Needs | The model bridge, text only. Read access to the `original_request` resource. No network. The rubric, the work prompt and the ranking helper are pinned in the body |
 | Effect class | `read_only` |
 | Budget | 120 s wall time, 1 invocation, 0 tool calls, all hard |
 | Checks | The bundle in the deterministic check table below, then the semantic criteria below |
+| Evolution | `rsi` `propose`. `may_change` is `files:ranking_*.txt` (the ranking helper), `files:screening_prompt.txt` (the work prompt) and `files:screening_rubric.json` (the work rubric). Nothing else may change ([D34](../../method/decisions.md#d34)) |
 
 ## Inputs
 
 | Port | Artifact type | Producer | Required | Use |
 |---|---|---|---|---|
-| `brief` | `research_brief` | Requirement CC | yes | Hardware and scope constraints for compute alignment. Source of the constraints the card carries |
+| `brief` | `research_brief` | Requirements CC | yes | Hardware and scope constraints for compute alignment. Source of the constraints the card carries |
 | `candidate_set` | `candidate_set` | Search CC | yes | The 1 to 3 ideas to score |
 | `screening_rubric` | `screening_rubric` | Pinned in the CC version | yes | The frozen scoring policy |
 
 ### `screening_rubric` field contract
 
-`screening-rubric:field-contract:1`. The CC owner authors it. It is pinned by hash in the declaration body. Only a new CC version may change it. Offline RSI may never change it.
+Purpose: the frozen scoring policy of Screening. It is pinned by hash in the declaration body. Only a new CC version may change it. The RSI workbench may never change it.
+
+`screening-rubric:field-contract:1` (version 1.0.0) · Producer: the Screening CC owner, pinned in the CC body. Consumers: Screening CC, Screening host checks (`rubric_pinned`, `score_range`, `dependency_filter`, `ranking_deterministic`, `selected_is_top1`).
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
@@ -75,7 +78,61 @@ Declaration example: [screening_capsule.json](../examples/screening_capsule.json
 | `description` | `string` | yes | 1 to 200 characters | What the dependency is and why it is forbidden |
 | `match_terms` | `string[]` | yes | 1 or more lowercase phrases | Phrases that always trigger the flag. The host searches idea `title`, `summary`, `assumptions` and `risks`, ignoring case |
 
+**Enum `RubricDimension.name`**
+
+| Value | Meaning |
+|---|---|
+| `novelty` | How different the idea is from the baseline approaches |
+| `feasibility` | How plausible the idea is in standard Python and PyTorch |
+| `compute_alignment` | How well the idea fits the hardware limits in the Brief |
+
+**Enum `total_rule`**
+
+| Value | Meaning |
+|---|---|
+| `sum` | The total is the plain sum of the three scores |
+
+**Enum `tie_rule`**
+
+| Value | Meaning |
+|---|---|
+| `ascending_idea_id` | Equal totals rank the lower `idea_id` first, compared as plain strings |
+
+**Enum `selection_rule`**
+
+| Value | Meaning |
+|---|---|
+| `top_1` | The first idea in the ranking is the only selection |
+
+**Invariants**
+
+- The three dimension names appear once each.
+- Each dimension has one anchor for every score from `scale_min` to `scale_max`, so 1 to 5.
+- `forbidden_dependencies` IDs are unique.
+
+**Producer obligations (CC owner)**
+
+- Write anchors a scorer can apply without the Brief's wording.
+- A new rubric is a new CC version. An RSI child may carry one only through Target 2, when the headless model path exists, and only if it passes admission checks `rubric_structure` and `rubric_dimensions_complete`.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `rubric_structure` | The rubric matches `screening-rubric:field-contract:1` | admission rejects the CC version |
+| `rubric_dimensions_complete` | The invariants above hold | admission rejects the CC version |
+| `rubric_pinned` | The result's `rubric_ref` equals the rubric pinned in the declaration | reject the Screening output |
+
+**Failure outcomes**
+
+| Condition | Outcome | What is kept |
+|---|---|---|
+| The rubric fails a structure check at admission | The CC version is `rejected` | The admission record |
+| A result names another rubric | The Screening output is rejected and the node halts | The output and the check result |
+
 Examples: [valid](../examples/screening_rubric.json)
+
+**Minimum quality bar.** Two scorers who read the same idea and this rubric give the same scores, ranking and selection.
 
 ## Output field contract
 
@@ -131,11 +188,11 @@ Disposition rules:
 | `idea_id` | `string` | yes | An idea with disposition `selected` or `eligible` | The ranked idea |
 | `total` | `integer` | yes | Equals the idea's `total` in `scores` | The composite used to rank |
 
-Examples: [valid](../examples/screening_result.json) · rejected by `score_range`: [screening_result_invalid_score_out_of_range](../examples/screening_result_invalid_score_out_of_range.json)
+Examples: [valid](../examples/screening_result.json)
 
 ### `opportunity_card`
 
-`opportunity-card:field-contract:2`. This is the single settled field table. The older summary in `other-contracts.md` listed purpose, original scores, ranking refs and dispositions that the older field table lacked. Version 2 includes them all.
+`opportunity-card:field-contract:2`. This is the single settled field table. The older summary listed purpose, original scores, ranking refs and dispositions that the older field table lacked. Version 2 includes them all.
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
@@ -173,7 +230,7 @@ Examples: [valid](../examples/screening_result.json) · rejected by `score_range
 | `disposition` | `string` | yes | `eligible`, `rejected` or `deferred`. Equals the value in `screening_result` | Its fate |
 | `reason` | `string` | yes | Equals `disposition_reason` in `screening_result` | Why |
 
-Examples: [valid](../examples/opportunity_card.json) · rejected by `selected_in_candidates`: [opportunity_card_invalid_unlisted_idea](../examples/opportunity_card_invalid_unlisted_idea.json)
+Examples: [valid](../examples/opportunity_card.json)
 
 ## Producer obligations
 
@@ -239,16 +296,25 @@ The gate accepts when all checks pass and both blocking criteria pass in the cal
 | File | Role | Rejected by |
 |---|---|---|
 | [screening_rubric.json](../examples/screening_rubric.json) | valid pinned input | none |
+
 | [screening_result.json](../examples/screening_result.json) | valid output | none |
-| [screening_result_invalid_score_out_of_range.json](../examples/screening_result_invalid_score_out_of_range.json) | score 6 | `score_range` |
+
 | [opportunity_card.json](../examples/opportunity_card.json) | valid output | none |
-| [opportunity_card_invalid_unlisted_idea.json](../examples/opportunity_card_invalid_unlisted_idea.json) | selects an idea not in the candidate set | `selected_in_candidates` |
+
 | [screening_capsule.json](../examples/screening_capsule.json) | declaration | none |
 
 ## Future seams
 
-- **RSI seam.** The offline RSI target is the pure `rank_opportunities` helper, pinned in the declaration body as `ranking_parent.txt`. RSI may change only how the helper turns scores into the ranking. It may not change the dimensions, the rubric, the tie rule, the forbidden dependencies or the referee. The checks `score_total_sum`, `ranking_deterministic` and `selected_is_top1` keep any child honest. Any change to the rubric is a new CC version, not an RSI result.
+- **RSI seam.** Target 1 is the pure `rank_opportunities` helper, pinned in the declaration body as `ranking_parent.txt`. Target 2 is the work prompt `screening_prompt.txt` and the work rubric `screening_rubric.json`. Target 2 is conditional M1 work, available when the headless model path exists, which in M1 is the Codex CLI. The declaration allows both with `evolution.rsi` `propose` and `evolution.may_change` (`files:ranking_*.txt`, `files:screening_prompt.txt`, `files:screening_rubric.json`). The [target profile](../rsi-contracts.md#rsi-target-profile) `mutable_paths` stay inside that list. The Target 1 profile lists only the ranking helper. A Target 2 profile lists only the prompt and the work rubric. A Target 2 child must still pass the rubric invariants above. Referee-owned rubrics live outside every CC and are never mutable (PRD 4.4.9). The checks `rubric_dimensions_complete`, `score_total_sum`, `ranking_deterministic` and `selected_is_top1` keep any child honest.
 - The `deferred` disposition and the `rank` field leave room for a multi-opportunity portfolio without changing the card shape.
-- A later Router may pick the scoring model. The declaration names none.
+- The model router (an M1 side system behind `RouterPort`) may pick the scoring model when enabled. The declaration names none.
 - More dimensions (evidence maturity, verification path in PRD 3.4.5) need a new rubric version and a new contract major version.
 - The RSI examples [ranking_declaration.json](../examples/ranking_declaration.json) and [ranking_child_declaration.json](../examples/ranking_child_declaration.json) now point at `screening-result:field-contract:2`. Only the port reference changed. The RSI owner must still move the helper text to the version 2 score shape.
+
+## M1 placement
+
+The CC page above does not depend on where Screening runs. In M1 the rules below apply.
+
+- Screening consumes the `candidate_set` of [Search](search.md) and feeds Hypothesis through its `opportunity_card`. The ports decide the order.
+- Every plan holds Screening in exactly one node, so the Planner may not skip it or add a second selection. The plan policy lists `research.screening` in `required_stages` ([run plan](../run-plan.md#plan-policy)).
+- Enforced by the plan policy and the protected binder check `delivery_leaf_coverage` ([D42](../../method/decisions.md#d42)).

@@ -1,5 +1,5 @@
 {
-  "source_sha256": "890c63ee4849d61e8c7ddc980891985d57c59005ca6c62be45957c59e82782de",
+  "source_sha256": "6d85972cdc8cf586a3d76b80d56510d695f03bfcf7838661afc7f71c35f4b3fc",
   "clauses": [
     {
       "number": "1.1",
@@ -739,7 +739,7 @@
     },
     {
       "number": "6.11",
-      "title": "Implementation Stage 8 — Local-Isolated RSI Integration"
+      "title": "Implementation Stage 8 — Local-Isolated RSI Implementation"
     },
     {
       "number": "6.12",

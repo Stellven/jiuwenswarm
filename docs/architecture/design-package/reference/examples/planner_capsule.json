@@ -73,6 +73,7 @@
           "port_type_compatibility",
           "dependency_closure",
           "acyclicity",
+          "delivery_leaf_coverage",
           "mandatory_check_bundle_present",
           "effects_within_policy",
           "resource_feasibility",
@@ -243,6 +244,25 @@
         "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
       },
       {
+        "id": "delivery_leaf_coverage",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
         "id": "mandatory_check_bundle_present",
         "kind": "deterministic",
         "target": "outputs.plan_proposal",
@@ -345,6 +365,7 @@
       "port_type_compatibility",
       "dependency_closure",
       "acyclicity",
+      "delivery_leaf_coverage",
       "mandatory_check_bundle_present",
       "effects_within_policy",
       "resource_feasibility",
@@ -370,13 +391,8 @@
     "on_exhaust": "fail"
   },
   "evolution": {
-    "frozen": [
-      "/ports",
-      "/needs",
-      "/changes",
-      "/guarantees",
-      "/budget"
-    ],
+    "rsi": "none",
+    "may_change": [],
     "notes_for_builder": []
   },
   "coverage": {

@@ -1,6 +1,8 @@
 # Scientific Evaluation capability capsule (`research.evaluation`)
 
-**Reading level: AI reference.** Naming note: this CC judges the science of one research run. It is not the infrastructure verifier, and it is not the platform benchmark that tests the AI4Research system.
+`Tier 3 · Part of: [Reference](../README.md)`
+
+Naming note: this CC judges the science of one research run. It is not the infrastructure verifier, and it is not the platform benchmark that tests the AI4Research system.
 
 **Summary for reviewers**
 
@@ -11,11 +13,11 @@
 
 ## 1. Purpose and place in the run
 
-The CC sits after the Evaluator Gate admits the benchmark payload and before Delivery. It has one output, so the verifier runs once. It reads, interprets and records. It never reruns code, patches code or changes any rule.
+The CC reads the accepted benchmark payload and the frozen blueprint and records a verdict. It has one output, so the verifier runs once. It reads, interprets and records. It never reruns code, patches code or changes any rule.
 
 ## 2. Declaration
 
-Example: [scientific_evaluation_capsule.json](../examples/scientific_evaluation_capsule.json). It validates against the [declaration schema](../schemas/capsule-declaration.schema.json).
+Example: [scientific_evaluation_capsule.json](../examples/scientific_evaluation_capsule.json). It validates against the [declaration schema](../schemas/capsule-declaration.schema.json). Its `evolution.rsi` is `none` because its output is gate evidence (check `rsi_mode_allowed`, [D34](../../method/decisions.md#d34)).
 
 | Item | Value |
 |---|---|
@@ -76,7 +78,7 @@ File `evaluation_verdict.json`. This is the single settled field table. It repla
 
 `PlausibilityReview`: `status` (enum `plausible`, `implausible`, `not_assessable`) and `notes` (string[], at least one note when status is not `plausible`). `implausible` flags an execution anomaly, such as an impossible speedup or negative memory.
 
-Examples: [valid](../examples/evaluation_verdict.json) · rejected by `rule_recomputation`: [evaluation_verdict_invalid_pass_with_failing_metric](../examples/evaluation_verdict_invalid_pass_with_failing_metric.json) · rejected by `registered_rule_only`: [evaluation_verdict_invalid_rule_not_in_blueprint](../examples/evaluation_verdict_invalid_rule_not_in_blueprint.json)
+Examples: [valid](../examples/evaluation_verdict.json)
 
 ### 4.2 Aggregation rule `m1_conjunctive_v1`
 
@@ -112,7 +114,8 @@ The CC must:
 3. Follow section 4.2 in order and set `aggregation_rule` to `m1_conjunctive_v1`.
 4. Write one rationale per metric that names the values, the threshold and the outcome.
 5. Judge plausibility in one qualitative pass. Flag `implausible` only for values that are impossible or clearly an execution anomaly. Never use plausibility to rescue a `FAIL`.
-6. Record follow-ups as recommendations. Never trigger a rerun, a patch or a node.
+6. Conclude nothing the registered rules do not give. Never word a result as support when the classification is `FAIL` or `INCONCLUSIVE`. A value outside the metric's declared `valid_min` or `valid_max` is `implausible`.
+7. Record follow-ups as recommendations. Never trigger a rerun, a patch or a node.
 
 Self-review before emitting: recompute each finding by hand from the two input values and the registered rule. Recompute the overall classification from the findings with the table above. Confirm every blueprint metric has one finding. Confirm `blockers` is non-empty exactly when required. Confirm no rule appears that the blueprint lacks.
 
@@ -122,12 +125,12 @@ Self-review before emitting: recompute each finding by hand from the two input v
 |---|---|---|
 | `evaluation_verdict_schema` | Output matches the field table, enums, ranges and string lengths above. | reject |
 | `refs_match_inputs` | `brief_ref`, `blueprint_ref` and `benchmark_ref` equal the input Refs. The payload's `blueprint_ref` equals the blueprint. | reject |
-| `blueprint_rules_disjoint` | Input check. For every metric the success and falsification rules do not both hold on the payload values, and every `conditional_rule` region lies outside both. The Hypothesis checks already enforce this. This check is a second line of defence. | halt (blueprint defect, human triage) |
+| `blueprint_rules_disjoint` | Input check. For every metric the success and falsification rules do not both hold on the payload values, and every `conditional_rule` region lies outside both. The Hypothesis checks already enforce this. This check is a second line of defence. | node fails (blueprint defect), escalation record |
 | `rule_recomputation` | The host recomputes every finding and the overall classification from the blueprint and the payload using section 4.2. It also recomputes `threshold`, `completeness.status`, and the blocker condition. All must equal the output. | reject |
 | `finding_coverage` | One finding per blueprint metric, none extra, none duplicated. | reject |
 | `registered_rule_only` | A finding cites `conditional` only where the blueprint registered a `conditional_rule` for that metric. `CONDITIONALLY_ACCEPTABLE` appears only with `conditional`. Every `rule_text` restates a registered rule. | reject |
 
-`rule_recomputation` replaces the old criterion `registered_rule_applied`. That criterion needs the blueprint and the payload, which the semantic verifier never sees. So it is a host check and no verifier profile lists it. [science_guard_profile.json](../examples/science_guard_profile.json) lists the three generic criteria and the criteria of section 7.
+`rule_recomputation` replaces the old criterion `registered_rule_applied`. That criterion needs the blueprint and the payload, which the semantic verifier never sees. So it is a host check and no checking profile lists it. [science_checking_profile.json](../examples/science_checking_profile.json) lists the three generic criteria and the criteria of section 7.
 
 ## 7. Verifier criteria
 
@@ -145,7 +148,7 @@ The verifier sees only the declaration and the exact verdict. Reduced assurance 
 
 ## 8. Gate rule
 
-Accept when every host check passes and no blocking criterion fails. The accepted classification goes to Delivery unchanged, whatever its value. `FAIL`, `INCONCLUSIVE` and `CONDITIONALLY_ACCEPTABLE` are valid accepted results. Reject only when the output is not a correct application of the registered rules. A rejection halts the node. Nothing retries it. Halt for human triage also for a blueprint defect.
+Accept when every host check passes and no blocking criterion fails. The accepted classification goes to Delivery unchanged, whatever its value. `FAIL`, `INCONCLUSIVE` and `CONDITIONALLY_ACCEPTABLE` are valid accepted results. Reject only when the output is not a correct application of the registered rules. A rejection halts the node. Nothing retries it. A blueprint defect also fails the node with an escalation record.
 
 ## 9. Failure outcomes
 
@@ -154,15 +157,15 @@ Accept when every host check passes and no blocking criterion fails. The accepte
 | Scientific `FAIL` or `INCONCLUSIVE` supported by the rules | Accepted. Delivery proceeds. | Verdict |
 | Unmeasured metric in the payload | Accepted as `INCONCLUSIVE` with blockers | Verdict |
 | `rule_recomputation` mismatch | Reject. The node halts (dispatch outcome `rejected`) and nothing retries it | Rejected output, check result |
-| Blueprint rules overlap or `middle` invalid | Halt for human triage | Inputs, check result |
+| Blueprint rules overlap or `middle` invalid | Node fails, escalation record | Inputs, check result |
 
 ## 10. Examples
 
 | File | Role | Rejected by |
 |---|---|---|
 | [evaluation_verdict.json](../examples/evaluation_verdict.json) | valid (`FAIL`: latency falsified, quality preserved) | none |
-| [evaluation_verdict_invalid_pass_with_failing_metric.json](../examples/evaluation_verdict_invalid_pass_with_failing_metric.json) | invalid | `rule_recomputation` |
-| [evaluation_verdict_invalid_rule_not_in_blueprint.json](../examples/evaluation_verdict_invalid_rule_not_in_blueprint.json) | invalid (invents a conditional rule the blueprint lacks) | `registered_rule_only` |
+
+
 | [scientific_evaluation_capsule.json](../examples/scientific_evaluation_capsule.json) | declaration | none |
 
 The older `evaluation_capsule.json` is removed. The science node examples (`science_node_contract.json`, `science_subnode_contract.json`, `science_subnode_template.json`) now use `scientific_evaluation_capsule.json`.
@@ -173,3 +176,10 @@ The older `evaluation_capsule.json` is removed. The science node examples (`scie
 - Non-conjunctive claims or weighted metrics would be a new `aggregation_rule` value, not a change to `m1_conjunctive_v1`.
 - Statistical tests over repeats can add finding fields once the blueprint registers them.
 - The Router can pick any model for this CC. The classification does not depend on the model because the host recomputes it.
+
+## M1 placement
+
+The CC page above does not depend on where Scientific Evaluation runs. In M1 the rules below apply.
+
+- It consumes the benchmark payload after the protected gate has accepted it, and Delivery consumes its verdict. Ports decide the order.
+- Exactly one ancestor of the Delivery leaf runs `research.evaluation`. The protected binder enforces this in `delivery_leaf_coverage` ([D42](../../method/decisions.md#d42)).

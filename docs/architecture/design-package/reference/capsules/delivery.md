@@ -1,7 +1,9 @@
 # Delivery CC (`research.delivery`)
 
+`Tier 3 · Part of: [Reference](../README.md)`
+
 **Summary for reviewers.**
-- Delivery is the last research stage. It writes one markdown report and one manifest that lists every lifecycle artifact with its hash, role and audience.
+- Delivery is the leaf node, and an M1 plan has exactly one. It writes one markdown report and one manifest that lists every lifecycle artifact with its hash, role and audience.
 - The report has nine fixed sections in a fixed order. Numbers come only from the benchmark payload. The verdict comes only from the saved evaluation verdict.
 - A scientific negative result (`FAIL` or `INCONCLUSIVE`) is delivered normally. Delivery never softens or reverses a verdict.
 - Recommendations live only in section 8 and carry a label. Everything else is observation.
@@ -13,7 +15,7 @@
 
 ## Purpose and place in the run
 
-Delivery is the final node of the static M1 template, after the gate that accepted the Scientific Evaluation output. It always runs, including after a scientific `FAIL`. It consumes only gate-accepted artifacts. It does not measure, re-evaluate or fetch anything.
+Delivery writes the final report and manifest. It consumes only gate-accepted artifacts. It reports a scientific `FAIL` as faithfully as a pass. It does not measure, re-evaluate or fetch anything.
 
 PRD mapping: PRD section 3.9 (3.9.1 to 3.9.4), user stories US15 and US16. The PRD names the capability `report_capsule.md` and the template `sciencediscovery/report-writer`. This design keeps the nine-section structure below as that static template.
 
@@ -35,14 +37,14 @@ Example: [delivery_capsule.json](../examples/delivery_capsule.json), valid again
 
 | Port | Artifact type | Producer | Required | Use |
 |---|---|---|---|---|
-| `brief` | `research_brief` | Requirement CC | yes | Objective and constraints for section 1 |
+| `brief` | `research_brief` | Requirements CC | yes | Objective and constraints for section 1 |
 | `candidate_set` | `candidate_set` | Search CC | yes | Citation text for section 2 |
 | `opportunity_card` | `opportunity_card` | Screening CC | yes | Opportunity statement, citation IDs, risks |
 | `hypothesis_blueprint` | `hypothesis_blueprint` | Hypothesis CC | yes | Claim and registered criteria for section 3 |
 | `poc_manifest` | `poc_manifest` | Builder CC | yes | POC files for sections 4 and 9 |
 | `benchmark_payload` | `benchmark_payload` | Research Benchmark CC | yes | Only source of numbers in section 5 |
 | `evaluation_verdict` | `evaluation_verdict` | Scientific Evaluation CC | yes | Only source of the verdict, blockers, residual risks, review notes and follow-ups |
-| `gate_decision_index` | `gate_decision_index` (`gate-decision-index:field-contract:1`) | Scheduler (`host_record` key `gate_decision_index`) | yes | One record that lists the node-scope gate decisions of the run, listed in the manifest |
+| `gate_decision_index` | `gate_decision_index` (`gate-decision-index:field-contract:1`) | Scheduler (`host_record` key `gate_decision_index`) | yes | One record that lists the node-scope gate decisions of this Delivery node's ancestors, listed in the manifest. In M1 the ancestors are every node of the plan before Delivery. |
 | `screening_result` | `screening_result` (`screening-result:field-contract:2`) | Host record of the accepted Screening output (`host_record` key `screening_result`) | yes | Listed in the manifest with role `screening` and in `artifact_refs` |
 | `execution_receipt` | `execution_receipt` (`execution-receipt:field-contract:1`) | Host record of the accepted Benchmark output (`host_record` key `execution_receipt`) | yes | Hardware and run facts for section 9. Its run records name the raw evidence files (`stdout_ref`, `stderr_ref`, `empirical_results_ref`) that the manifest lists with role `raw_evidence` |
 | `provisioning_receipt` | `provisioning_receipt` (`provisioning-receipt:field-contract:1`) | Host record of the accepted Benchmark output (`host_record` key `provisioning_receipt`) | yes | Runtime facts for section 9, such as the interpreter version and the installed packages |
@@ -55,7 +57,9 @@ The worker reads only its bound inputs. It has no tool calls and no store access
 
 ### gate_decision_index
 
-`gate-decision-index:field-contract:1`. A host record. It holds Refs only and no copied decision content.
+Purpose: the list of node-scope gate decisions that admitted each node before Delivery. It holds Refs only and no copied decision content.
+
+`gate-decision-index:field-contract:1` (version 1.0.0) · Producer: scheduler, a host record built from accepted dispatch records. Consumers: Delivery CC, Delivery checks.
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
@@ -71,7 +75,33 @@ The worker reads only its bound inputs. It has no tool calls and no store access
 | `node_id` | `string` | yes | Pattern `^[a-z][a-z0-9_]{0,31}$`. A node of the run plan | The node whose attempt was accepted |
 | `gate_decision_ref` | `Ref` | yes | A node-scope gate decision (`scope_kind` `node`) with action `advance` for that node | The decision that admitted the node's output |
 
+**Invariants**
+
+- Every entry names a node of the run plan once, in run plan topological order.
+- Every entry's decision is a node-scope decision with action `advance` for that node.
+- In a real run there is one entry for each node accepted before Delivery starts, and no other.
+
+**Producer obligations (scheduler)**
+
+- Build the index from the accepted dispatch records of the run, at Delivery dispatch.
+- Copy only Refs. Never copy or summarize decision content.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `output_structure` | The index matches `gate-decision-index:field-contract:1`, and node IDs are unique and in the run plan | Delivery is not dispatched |
+| `entries_are_advancing_node_decisions` | Each entry's decision has `scope_kind` `node`, action `advance` and the entry's `node_id` | Delivery is not dispatched |
+
+**Failure outcomes**
+
+| Condition | Outcome | What is kept |
+|---|---|---|
+| A host check fails, or an entry is missing | Delivery is not dispatched. The run halts | The accepted outputs and their decisions |
+
 Examples: [valid](../examples/gate_decision_index.json). The synthetic example lists one entry (`evaluation`), because only that node has a node-scope gate decision example.
+
+**Minimum quality bar.** Delivery can prove that every stage it reports was admitted, from Refs alone.
 
 ## Output field contract
 
@@ -104,7 +134,7 @@ Role coverage in `files`: exactly one `report`, `brief`, `candidate_set`, `scree
 | `role` | string | yes | enum `report`, `brief`, `candidate_set`, `screening`, `opportunity`, `hypothesis`, `poc_manifest`, `poc_bundle`, `environment`, `raw_evidence`, `benchmark`, `verdict`, `gate_decision` | What the file is in the research lifecycle |
 | `audience` | string | yes | enum `researcher`, `reviewer` | Who may read it. `researcher` is the requesting user. `reviewer` adds authorized reviewers. Files for neither audience are not exported |
 
-Examples: [valid](../examples/delivery_manifest.json) · rejected by `ref_hash_match`: [delivery_manifest_invalid_hash_mismatch](../examples/delivery_manifest_invalid_hash_mismatch.json) · rejected by `required_sections`: [delivery_manifest_invalid_missing_limitations](../examples/delivery_manifest_invalid_missing_limitations.json) · rejected by `verdict_matches_evaluation`: [delivery_manifest_invalid_verdict_mismatch](../examples/delivery_manifest_invalid_verdict_mismatch.json)
+Examples: [valid](../examples/delivery_manifest.json) · rejected by `ref_hash_match`: [delivery_manifest_invalid_hash_mismatch](../examples/delivery_manifest_invalid_hash_mismatch.json)
 
 The user-visible file name is lowercase `research_report.md`, unless the user explicitly named another file. PRD spellings such as `Evaluation_Verdict.json` map to the lowercase internal names.
 
@@ -131,7 +161,7 @@ Rules for the whole report:
 4. Every number comes from the benchmark payload or the blueprint. No rounding, no recomputation.
 5. The report states nothing about runs that did not happen. It never claims a result for an unmeasured metric.
 
-Examples: [valid report](../examples/research_report.md) · rejected by `required_sections`: [report without section 7](../examples/research_report_invalid_missing_limitations.md) · rejected by `verdict_matches_evaluation`: [report with a different verdict](../examples/research_report_invalid_verdict_mismatch.md). The two invalid reports are reached through the invalid manifests listed above.
+Examples: [valid report](../examples/research_report.md)
 
 ## Producer obligations
 
@@ -141,6 +171,7 @@ Examples: [valid report](../examples/research_report.md) · rejected by `require
 4. Do not edit, redact or omit evidence silently. If an artifact is unavailable or withheld, list it in `missing_evidence` with a reason and `blocking`.
 5. Do not run experiments, fetch sources or change the verdict. Do not write outside the declared outputs.
 6. Set `audience` for each file as the contract allows. Never widen it.
+7. State no conclusion stronger than the verdict. Cite only accepted refs, and copy each number from the payload ([D32](../../method/decisions.md#d32)).
 
 ## Deterministic check bundle
 
@@ -201,9 +232,10 @@ Accept when every deterministic check passes and no blocking criterion fails. Th
 | [delivery_manifest.json](../examples/delivery_manifest.json) | valid manifest | none |
 | [research_report.md](../examples/research_report.md) | valid report | none |
 | [gate_decision_index.json](../examples/gate_decision_index.json) | valid host input record | none |
+
 | [delivery_manifest_invalid_hash_mismatch.json](../examples/delivery_manifest_invalid_hash_mismatch.json) | invalid manifest | `ref_hash_match` |
-| [delivery_manifest_invalid_missing_limitations.json](../examples/delivery_manifest_invalid_missing_limitations.json) with [research_report_invalid_missing_limitations.md](../examples/research_report_invalid_missing_limitations.md) | invalid pair | `required_sections` |
-| [delivery_manifest_invalid_verdict_mismatch.json](../examples/delivery_manifest_invalid_verdict_mismatch.json) with [research_report_invalid_verdict_mismatch.md](../examples/research_report_invalid_verdict_mismatch.md) | invalid pair | `verdict_matches_evaluation` |
+
+
 
 The synthetic run has one node-scope gate decision example (`gate_science_node_pass.json`). The synthetic `gate_decision_index` lists only that decision. A real run lists the node-scope decision of every accepted node.
 
@@ -213,3 +245,11 @@ The synthetic run has one node-scope gate decision example (`gate_science_node_p
 - `audience` can grow new values for external release, with an authorization check owned by the PRD owner.
 - Reports for several opportunities or hypotheses would repeat sections 2 to 6 per hypothesis. The manifest already lists artifacts by role, so it needs no change.
 - Another delivery capsule can replace this one if it keeps the manifest contract and the host checks.
+
+## M1 placement
+
+The CC page above does not depend on where Delivery runs. In M1 the rules below apply.
+
+- Delivery is the leaf of the plan. Every leaf of a plan is a Delivery node, and an M1 plan, static or planned, has exactly one ([D28](../../method/decisions.md#d28)). The leaf carries every Brief deliverable.
+- It runs after the gate that accepted the Scientific Evaluation output. It always runs, including after a scientific `FAIL`.
+- Enforced by the protected binder check `delivery_leaf_coverage` ([D42](../../method/decisions.md#d42)).

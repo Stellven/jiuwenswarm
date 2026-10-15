@@ -1,19 +1,21 @@
 # Planner CC (`research.planner`)
 
-**Reading level: AI reference.** Part of the [capsule build references](README.md).
+`Tier 3 · Part of: [Reference](../README.md)`
+
+Part of the [capsule build references](README.md).
 
 **Summary for reviewers**
 
 - The Planner reads the accepted Research Brief, a frozen list of admitted CC versions, a list of available resources and the policy limits. It returns one JSON graph (`plan_proposal`).
 - Each graph node names exactly one CC version, its typed inputs and outputs, its budget and which Brief requirements or deliverables it covers.
 - The Planner proposes only. A protected binder checks the graph, copies the mandatory check bundle of each CC into the frozen run plan and freezes it. The Planner cannot add, drop or weaken a mandatory check.
-- An infeasible or rejected plan halts the planned run and records a `plan_infeasible` outcome. The host then starts a new, linked Intention Compiler attempt that carries the Brief ref and the reasons (PRD 4.8.3, decision D4). Nothing is repaired inside the same run.
+- An infeasible or rejected plan halts the planned run and records a `plan_infeasible` outcome. The host then starts a new, linked Intention Compiler attempt that carries the Brief ref and the reasons (PRD 4.8.3, decisions D4 and [D30](../../method/decisions.md#d30)). A request gets at most two plan attempts: the original and one linked new attempt (depth 1 and 2). Nothing is repaired inside the same run.
 - The semantic verifier sees only this declaration and the proposal. It checks that the graph is consistent with itself. The host does every check that needs the Brief, the library or the policy.
-- The Planner is optional in M1. A hand-authored static template reaches the same [run plan](../run-plan.md) through the same binder.
+- The plan source, a static template or the Planner, is the `plan_source` run setting chosen before the run ([D39](../../method/decisions.md#d39)). A hand-authored static template reaches the same [run plan](../run-plan.md) through the same binder.
 
 ## Purpose and place in the run
 
-The Planner runs after the Intention Compiler node has released an accepted `research_brief`. It turns the Brief into a bounded graph of downstream research CCs. The binder then validates, binds and freezes the graph into a [run plan](../run-plan.md). In M1 the fixed static template is the default and the Planner is the second build step. The Planner is not selectable by itself or by another Planner (`selectable_by_planner` is false in its own library entry). A failed or rejected proposal halts the planned run and records a [`plan_infeasible` outcome](../run-plan.md#plan-outcome). The host then starts a new Intention Compiler attempt, linked to that outcome, which carries the Brief ref and the reasons (PRD 4.8.3). There is no silent repair of the proposal inside the same run and no silent fallback to the static template (decision D4). A user selects the static mode before a run.
+The Planner takes an accepted `research_brief` and turns it into a bounded graph of downstream research CCs. The binder then validates, binds and freezes the graph into a [run plan](../run-plan.md). A failed or rejected proposal halts the planned run and records a [`plan_infeasible` outcome](../run-plan.md#plan-outcome). There is no silent repair of the proposal inside the same run and no silent switch to the static template (decision D4).
 
 ## Declaration
 
@@ -26,7 +28,7 @@ The Planner runs after the Intention Compiler node has released an accepted `res
 | Network | none |
 | Budget per call | 120 s wall time, 1 invocation, 0 tool calls |
 | Model needs | text only, no tool calling |
-| Output checks | the eleven host checks named in the check bundle table below |
+| Output checks | the twelve host checks named in the check bundle table below |
 
 ## Inputs
 
@@ -51,18 +53,18 @@ The output artifact is `plan_proposal` (`plan-proposal:field-contract:3`, file `
 | `library_snapshot_ref` | `Ref` | yes | the snapshot given to the Planner | Pinned list of eligible CC versions the nodes were chosen from. |
 | `resource_inventory_ref` | `Ref` | yes | the snapshot given to the Planner | Pinned list of supplied and observed resources. |
 | `policy_ref` | `Ref` | yes | the plan policy given to the Planner | Protected policy limits the plan was made under. |
-| `mode` | `string` | yes | exactly `planned` | Marks a Planner-made plan. A static template carries `static` instead. |
+| `plan_source` | `string` | yes | exactly `planned` | Marks a Planner-made plan. A static template carries `static` instead. |
 | `nodes` | `PlanNode[]` | yes | 1 to 12 nodes (M1 ceiling, also limited by policy `max_nodes`) | The finite graph of nodes. Edges come from `predecessors` and future inputs. |
 | `coverage` | `CoverageEntry[]` | yes | 1 to 60 entries, one entry per mandatory requirement and per deliverable of the Brief | Self-review map from each Brief item to the nodes that cover it. It is the exact inverse of the node tags. |
 | `topic_hints` | `string[]` | yes | 0 to 5 items, each 3 to 100 characters, no duplicates. The empty list is allowed | Optional topic phrases for the Search scope. The binder copies them into `search_scope.topic_hints`. Search may use or ignore them. They grant nothing. |
 | `limits` | `Limits` | yes | time and calls at least the sum of node limits, memory at least the largest node limit, all at most the policy aggregate limits | Aggregate ceiling for the whole plan. |
 | `notes` | `string` | yes | 0 to 1000 characters, the empty string is allowed only here | Short planner remark for human review. It is not an instruction and grants nothing. |
 
-Examples: [valid](../examples/plan_proposal.json) · rejected by `acyclicity`: [plan_proposal_invalid_cycle](../examples/plan_proposal_invalid_cycle.json) · rejected by `port_type_compatibility`: [plan_proposal_invalid_port_type](../examples/plan_proposal_invalid_port_type.json) · rejected by `mandatory_check_bundle_present`: [plan_proposal_invalid_missing_check_bundle](../examples/plan_proposal_invalid_missing_check_bundle.json) (it points at the helper snapshot [library_snapshot_unbundled](../examples/library_snapshot_unbundled.json), where the benchmark CC has no admitted bundle)
+
 
 ### Node fields
 
-`PlanNode`, `PlanInput`, `FutureInput`, `PlanOutput` and `CoverageEntry` replace the old types of the same names. `PlannedSubnode` is retired. M1 runs one CC per node. The binder creates the verifier assignments from the pinned check bundle, so a plan never lists verifier subnodes.
+`PlanNode`, `PlanInput`, `FutureInput`, `PlanOutput` and `CoverageEntry` replace the old types of the same names. `PlannedSubnode` is retired. M1 runs one CC per node. The scheduler creates the verifier subnodes at dispatch, so a plan never lists them.
 
 **PlanNode**
 
@@ -71,8 +73,8 @@ Examples: [valid](../examples/plan_proposal.json) · rejected by `acyclicity`: [
 | `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the plan | Name of this node in the graph, for example `screening`. Never reused. |
 | `cc` | `CcPin` | yes | must match one library entry with `selectable_by_planner` true | The one CC version this node runs. M1 binds one CC per node. |
 | `objective` | `string` | yes | 1 to 300 characters | One plain sentence on what this node does for the run. |
-| `requirement_ids` | `string[]` | yes | each an ID in the Brief `mandatory_requirements`, at most 40 | Mandatory Brief requirements this node helps satisfy. |
-| `deliverable_ids` | `string[]` | yes | each an ID in the Brief `deliverables`, at most 20, `requirement_ids` and `deliverable_ids` together hold at least 1 item | Brief deliverables this node produces or helps produce. |
+| `requirement_ids` | `string[]` | yes | each an ID in the Brief `mandatory_requirements`, at most 40. A static template node may instead hold the one value `all_mandatory_requirements` ([selectors](../run-plan.md#selectors)) | Mandatory Brief requirements this node helps satisfy. |
+| `deliverable_ids` | `string[]` | yes | each an ID in the Brief `deliverables`, at most 20, `requirement_ids` and `deliverable_ids` together hold at least 1 item. A static template node may instead hold the one value `all_deliverables` | Brief deliverables this node produces or helps produce. |
 | `predecessors` | `string[]` | yes | node IDs, at most 11, includes every `future.producer_node` of this node, no self reference | Nodes that must be accepted before this node starts. Extra entries are ordering-only dependencies. |
 | `inputs` | `PlanInput[]` | yes | at most 16 items, covers every required library input port | Typed bindings for the node inputs. |
 | `outputs` | `PlanOutput[]` | yes | 1 to 16 items, covers every required library output port | Typed outputs the node will produce. |
@@ -111,11 +113,12 @@ Examples: [valid](../examples/plan_proposal.json) · rejected by `acyclicity`: [
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `item_id` | `string` | yes | an ID in the Brief `mandatory_requirements` or `deliverables` | Brief item being covered. |
-| `item_kind` | `string` | yes | enum | Whether the item is a mandatory requirement or a deliverable. |
-| `node_ids` | `string[]` | yes | 1 to 12 node IDs, each node must tag this item | Nodes that cover the item. The list is the exact inverse of the node tags. |
+| `item_id` | `string` | no | an ID in the Brief `mandatory_requirements`, `deliverables` or `evidence_obligations`. Set exactly when `item_kind` is set, and never together with `selector` | Brief item being covered. |
+| `item_kind` | `string` | no | enum `requirement`, `deliverable`, `evidence_obligation` | Whether the item is a mandatory requirement, a deliverable or an evidence obligation. An `evidence_obligation` entry names the nodes that produce the evidence. No node tag mirrors it, so it is outside the inverse rule. |
+| `selector` | `string` | no | enum `all_mandatory_requirements`, `all_deliverables`, `all_evidence_obligations`. Valid only in a static template. Never set together with `item_id` | A rule that stands for every Brief item of one kind ([D47](../../method/decisions.md#d47)). The binder expands it into one concrete entry per Brief item before `brief_coverage` runs. A plan proposal never uses it. |
+| `node_ids` | `string[]` | yes | 1 to 12 node IDs, each node must tag this item | Nodes that cover the item, or every item the selector stands for. The list is the exact inverse of the node tags. |
 
-Examples: [valid proposal with all node types](../examples/plan_proposal.json) · rejected by `port_type_compatibility`: [plan_proposal_invalid_port_type](../examples/plan_proposal_invalid_port_type.json) (the `evaluation_verdict` input of `delivery` is bound to a `benchmark_payload` output)
+
 
 Cross-field rules:
 
@@ -134,7 +137,7 @@ The worker must:
 4. Keep every node limit at or under the library `max_limits` and the plan limit at or under the policy aggregate limits.
 5. Keep the node count at or under the policy `max_nodes`.
 6. Suggest extra checks only as names in `suggested_checks`. Never claim to add, drop, weaken or waive a check.
-7. Run an internal self-review before output. Re-read the Brief constraints and confirm that every mandatory requirement and every deliverable maps to at least one node. Confirm that the graph has no cycle, that no required port is unbound and that no node lacks a coverage tag. Fix the graph or stop. Do not submit a known gap.
+7. Run an internal self-review before output. Re-read the Brief constraints and confirm that every mandatory requirement and every deliverable maps to at least one node. Confirm that the graph has no cycle, that it ends in exactly one Delivery leaf, that no required port is unbound and that no node lacks a coverage tag. Fix the graph or stop. Do not submit a known gap.
 8. Fill `coverage` as the exact inverse of the node tags.
 9. Never name a CC that is missing from the snapshot. If no listed CC can cover a requirement, output no graph. Reply with one text line that starts `INFEASIBLE:` and states what no CC can cover (at most 300 characters). The host records it as a `plan_infeasible` reason. Never invent a CC.
 10. Never include code, commands, permissions, file paths or model choices. Model routing is not a planning matter.
@@ -144,16 +147,17 @@ The worker must not execute anything, read the live library or change a policy v
 
 ## Deterministic check bundle
 
-The host binder runs these checks on the exact output and on the pinned inputs. They may read the Brief, the library snapshot, the resource inventory and the policy. All eleven run. A failing check blocks the plan before dispatch.
+The host binder runs these checks on the exact output and on the pinned inputs. They may read the Brief, the library snapshot, the resource inventory and the policy. All twelve run. A failing check blocks the plan before dispatch.
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
-| `plan_proposal_schema` | Matches `plan-proposal:field-contract:3`: field types, enums, patterns, lengths, unique node IDs, node count at most `max_nodes`, `mode` is `planned`, no `accepted_ref` is set, `brief_ref`, `library_snapshot_ref`, `resource_inventory_ref` and `policy_ref` equal the refs given to the Planner. | reject |
-| `brief_coverage` | Every mandatory requirement and deliverable of the Brief has a `coverage` entry. Every node has at least one tag. `coverage` is the exact inverse of the node tags. Every tag is an ID in the Brief. | reject |
+| `plan_proposal_schema` | Matches `plan-proposal:field-contract:3`: field types, enums, patterns, lengths, unique node IDs, node count at most `max_nodes`, `plan_source` is `planned`, no `accepted_ref` is set, `brief_ref`, `library_snapshot_ref`, `resource_inventory_ref` and `policy_ref` equal the refs given to the Planner. | reject |
+| `brief_coverage` | Run after the binder has expanded the selectors of a static template ([D47](../../method/decisions.md#d47)). Every mandatory requirement and deliverable of the Brief has a `coverage` entry. Every node has at least one tag. `coverage` is the exact inverse of the node tags. Every tag is an ID in the Brief. A selector appears only in a static template. A plan proposal and a run plan never hold one. An `evidence_obligation` entry names an obligation of the Brief and existing nodes. | reject |
 | `library_membership` | Every node `cc` matches exactly one library entry by name, version and `declaration_sha256`, and the entry has `selectable_by_planner` true. Unknown versions fail. | reject |
 | `port_type_compatibility` | Every input and output name and type equals a port of the library entry. Required ports are present and not marked optional. Every future binding has the same `artifact_type` and `schema_ref` at the producer output and the consumer input. A host record key equals the port `artifact_type` of its input. | reject |
 | `dependency_closure` | Every future binding names an existing other node that is in `predecessors` and lists that port in `outputs`. Every accepted-ref `run_input_key` is `brief`, `search_scope` or a key in the resource inventory. Every host-record key is one of the eight keys listed for `run_input_key`. Every required input is bound. | reject |
 | `acyclicity` | The `predecessors` graph has a topological order. | reject |
+| `delivery_leaf_coverage` | A leaf is a node that no other node lists in `predecessors`. The plan has exactly one leaf in M1. The leaf runs `research.delivery`. Its `deliverable_ids` hold every Brief deliverable. Exactly one of its ancestors runs `research.evaluation`. Every CC in the policy `required_stages` runs in exactly one node. Reason: M1 follows one opportunity, one hypothesis and one report template (PRD 3.4, 3.5, 3.9), and every DAG leaf is a Delivery node ([D28](../../method/decisions.md#d28)). | reject |
 | `mandatory_check_bundle_present` | The library entry of every node has non-null `check_pins`, and the pinned bundle and profile exist in the protected registry. | reject |
 | `effects_within_policy` | Each node `effect_class` is in `allowed_effect_classes`. A CC with a `network_mode` other than `none` is allowed only when `allow_network` is true. | reject |
 | `resource_feasibility` | Every `resource_needs` entry of every chosen CC exists in the resource inventory, is available and meets `min_quantity`. | reject |
@@ -162,7 +166,7 @@ The host binder runs these checks on the exact output and on the pinned inputs. 
 
 ## Verifier criteria
 
-The verifier receives the pinned Planner declaration and the exact `plan_proposal` bytes only. Every question below is answered from those two. It sees no Brief, library, policy or resource data, so it cannot tell whether the plan is the right plan. Under D20 this is reduced assurance. The host checks above carry the coverage and feasibility checks.
+The verifier receives the pinned Planner declaration and the exact `plan_proposal` bytes only. Every question below is answered from those two. It sees no Brief, library, policy or resource data, so it cannot tell whether the plan is the right plan. Under D20 this is reduced assurance. The host checks above carry the coverage and feasibility checks. This is the PRD §4.2 Tier 2 check of the Planner's output. It is not the autonomous peer review of the plan that PRD §4.8 excludes from M1.
 
 | Criterion ID | Question | Blocking |
 |---|---|---|
@@ -174,7 +178,7 @@ The verifier receives the pinned Planner declaration and the exact `plan_proposa
 
 ## Gate rule
 
-The gate accepts when all eleven host checks pass (`suggested_checks_known` may warn) and every criterion passes. It rejects on any failed check or criterion and records the failure. A rejection halts the planned run with a `plan_infeasible` outcome, because there is no automatic repair and no silent switch to the static template. The outcome starts a new linked Intention Compiler attempt (see [plan outcome](../run-plan.md#plan-outcome)). Acceptance of the proposal does not freeze the plan. The binder builds the run plan, and a second protected acceptance of that run plan freezes it. See [run plan](../run-plan.md#run-plan).
+The gate accepts when all twelve host checks pass (`suggested_checks_known` may warn) and every criterion passes. It rejects on any failed check or criterion and records the failure. A rejection halts the planned run with a `plan_infeasible` outcome, because there is no automatic repair and no silent switch to the static template. The outcome starts a new linked Intention Compiler attempt (see [plan outcome](../run-plan.md#plan-outcome)). Acceptance of the proposal does not freeze the plan. The plan gate (the Planner node gate plus the binder checks) accepts the bound plan, its record is stored as `acceptance_ref`, and the binder then freezes the plan. See [run plan](../run-plan.md#run-plan).
 
 ## Failure outcomes
 
@@ -187,17 +191,19 @@ The gate accepts when all eleven host checks pass (`suggested_checks_known` may 
 | Model or runtime failure | `failed`, run halts | partial evidence |
 | Budget exhausted | `budget_exhausted`, run halts | partial evidence |
 
-Every `plan_infeasible` outcome ends the run. The host records it and starts a new Intention Compiler attempt that carries the Brief ref and the reasons. The new attempt is new work with its own run. It is not a repair of the failed one. A human may instead start a new run in static mode or with a changed Brief. Model or runtime failure and budget exhaustion are not plan infeasibility. They halt the run with their own outcome and start no new attempt.
+Every `plan_infeasible` outcome ends the run. The host records it and starts a new Intention Compiler attempt that carries the Brief ref and the reasons. The new attempt is new work with its own run. It is not a repair of the failed one. A request gets at most two plan attempts: the original and one linked new attempt (depth 1 and 2). After the second `plan_infeasible` outcome the host halts and writes an escalation record ([D30](../../method/decisions.md#d30)). A human may instead start a new run with `plan_source` `static` or with a changed Brief. Model or runtime failure and budget exhaustion are not plan infeasibility. They halt the run with their own outcome and start no new attempt.
 
 ## Examples
 
 | File | Role | Rejected by |
 |---|---|---|
 | [planner_capsule.json](../examples/planner_capsule.json) | declaration | none |
-| [plan_proposal.json](../examples/plan_proposal.json) | valid output (seven nodes, Search to Delivery) | none |
-| [plan_proposal_invalid_cycle.json](../examples/plan_proposal_invalid_cycle.json) | `search` lists `delivery` as predecessor | `acyclicity` |
-| [plan_proposal_invalid_port_type.json](../examples/plan_proposal_invalid_port_type.json) | `delivery.evaluation_verdict` bound to a `benchmark_payload` output | `port_type_compatibility` |
-| [plan_proposal_invalid_missing_check_bundle.json](../examples/plan_proposal_invalid_missing_check_bundle.json) | names a CC version whose library entry has no check bundle | `mandatory_check_bundle_present` |
+
+
+
+
+
+
 
 Library, resource, policy, template and run plan examples are on the [run plan page](../run-plan.md#examples). The CC digests in the examples are synthetic. Digests for CCs other than the Planner follow whichever declaration files exist when the examples were made.
 
@@ -206,5 +212,14 @@ Library, resource, policy, template and run plan examples are on the [run plan p
 - Better planners (MCTS, search over candidate plans, learned planners) change only how a proposal is produced. The `plan_proposal` type, the binder and the run plan stay the same. A search-based planner may write several proposals and submit the best one. Every one is still checked by the same bundle.
 - Automatic CC admission feeds the library snapshot. The Planner needs no change, because it only reads the snapshot.
 - Composition later lets a node name a composite CC. The `cc` pin already carries name, version and declaration digest. A composite entry would appear in the library with its own ports and check pins. Nodes would not change shape.
-- Offline RSI may improve the Planner as a normal CC. It gets a new version in the library. Existing frozen runs keep their pins.
+- The RSI workbench may improve the Planner as a normal CC. It gets a new version in the library. Existing frozen runs keep their pins.
 - Parallel nodes and replanning stay outside M1. The graph already allows branches, because edges come from `predecessors`.
+
+## M1 placement
+
+The CC page above does not depend on where the Planner runs. In M1 the rules below apply.
+
+- The Planner runs after the Intention Compiler node has released the accepted Brief. In M1 the fixed static template is the default and the Planner is the second build step. The user chooses `plan_source` before the run ([D39](../../method/decisions.md#d39)).
+- The Planner is not selectable by itself or by another Planner. `selectable_by_planner` is false in its own library entry, and the binder check `library_membership` rejects it.
+- After a `plan_infeasible` outcome the host starts a new Intention Compiler attempt, linked to that outcome, which carries the Brief ref and the reasons (PRD 4.8.3).
+- The protected binder, not the Planner, validates, binds and freezes the plan ([D42](../../method/decisions.md#d42)).

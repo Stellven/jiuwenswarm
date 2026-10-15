@@ -1,16 +1,18 @@
 # Intent IR and Requirements IR
 
+`Tier 3 · Part of: [Reference](README.md)`
+
 **Summary.**
-- The Intent CC turns the qualified request into `intent_ir`. The Requirement CC turns accepted Intent into `research_brief`.
+- The Intent CC turns the qualified request into `intent_ir`. The Requirements CC turns accepted Intent into `research_brief`.
 - Each CC owns the fidelity and preservation of its own output. It self-reviews, and the host runs deterministic checks on spans, references, link coverage and default authorization.
 - The semantic verifier reads only the CC declaration and the exact output. It never reads the request, the Intent, the defaults or any other worker input.
 - Verifier criteria for both CCs are in the tables below. Each is answerable from declaration plus output.
 
-**Reading level: AI reference.** [Intent design](../intent-design.md) explains behavior and rationale. Required core keys below match the exact schemas. All statements need attributable support; no sample is a fill-in prompt template.
+[Intent design](../pipeline/intention-compiler.md) explains behavior and rationale. Required core keys below match the exact schemas. All statements need attributable support; no sample is a fill-in prompt template.
 
 ## Intent IR
 
-Producer: Intention CC. Consumers: deterministic checker, Intent verifier, then Requirements **only after acceptance**. [Schema](schemas/intent-ir.schema.json).
+Producer: Intent CC. Consumers: deterministic checker, Intent verifier, then Requirements **only after acceptance**. [Schema](schemas/intent-ir.schema.json).
 
 | Required field | Meaning / type | Why the consumer needs it |
 |---|---|---|
@@ -61,7 +63,7 @@ The verifier sees the Intent CC declaration and the exact `intent_ir` output. No
 
 An honest `needs_clarification` IR is valid candidate data. The gate halts on it because readiness is `needs_clarification` or an uncertainty is blocking. The verifier does not create corrected Intent. The host shows the user the clarification text.
 
-Examples: [valid](examples/intent_ir.json) · halted by the readiness rule: [intent_topic_only](examples/intent_topic_only.json) · blocking contradiction: [intent_contradictory](examples/intent_contradictory.json) · assessments: [intent_assessment](examples/intent_assessment.json), [topic_assessment](examples/topic_assessment.json) · declaration: [capsule_declaration](examples/capsule_declaration.json)
+Examples: [valid](examples/intent_ir.json) · assessments: [intent_assessment](examples/intent_assessment.json) · declaration: [capsule_declaration](examples/capsule_declaration.json)
 
 ## Research Brief / Requirements IR
 
@@ -93,9 +95,9 @@ Metric comparison records use `comparator`, `reference` (`baseline` or `constant
 
 Protected default policy supplies conservative missing parameters, currently `single_gpu` for omitted hardware. Each actual default needs policy evidence, a `system_default` field and an assumption pointing at an existing field. It does not prove hardware availability. Repetition/protocol defaults belong to Hypothesis unless explicitly requested. Defaults cannot supply unknown purpose or resolve conflicting mandatory instructions silently.
 
-### Producer obligations (Requirement CC)
+### Producer obligations (Requirements CC)
 
-The Requirement CC owns preservation of accepted Intent. Before it returns output it re-reads the Intent against its Brief and confirms each point.
+The Requirements CC owns preservation of accepted Intent. Before it returns output it re-reads the Intent against its Brief and confirms each point.
 
 1. Every Intent constraint, target and in-scope item appears in the Brief, or appears in `unresolved_items` with a reason.
 2. Every mandatory requirement is linked from at least one `acceptance_expectations` entry and one `evidence_obligations` entry.
@@ -105,7 +107,7 @@ The Requirement CC owns preservation of accepted Intent. Before it returns outpu
 
 ### Deterministic host checks (Requirement)
 
-The host runs these before the verifier. They read the Intent, intake and default policy. The check plan is in [requirements_check_plan](examples/requirements_check_plan.json).
+
 
 | Check ID | Rule | Outcome on failure |
 |---|---|---|
@@ -115,7 +117,7 @@ The host runs these before the verifier. They read the Intent, intake and defaul
 
 ### Verifier criteria (Brief)
 
-The verifier sees the Requirement CC declaration and the exact `research_brief` output. Nothing else. It does not see the Intent or the defaults.
+The verifier sees the Requirements CC declaration and the exact `research_brief` output. Nothing else. It does not see the Intent or the defaults.
 
 | Criterion ID | Question | Blocking |
 |---|---|---|
@@ -126,8 +128,28 @@ The verifier sees the Requirement CC declaration and the exact `research_brief` 
 
 Blocking unresolved items prevent acceptance.
 
-Examples: [valid](examples/research_brief.json) · defaults variant: [research_brief_defaults](examples/research_brief_defaults.json) · assessment: [requirements_assessment](examples/requirements_assessment.json) · declaration: [requirements_capsule](examples/requirements_capsule.json)
+Examples: [valid](examples/research_brief.json) · declaration: [requirements_capsule](examples/requirements_capsule.json)
 
 ## Challenge case for the Intent CC
 
 For the worked latency request, an IR that claims the user requires a new neural retriever, cloud training or a 50% speedup adds a method, effect and target the request does not state. A span pointing at "reduce latency" does not support those additions. The Intent CC prevents this through its own self-review. Independent benchmark cases measure how often it succeeds.
+
+## Verification cases
+
+Fixture checks show representation and relationships. They are not measured model behavior. Real endpoint evidence and labelled challenge cases show model quality. Keep false acceptances and refusals visible. Bare `PASS`, producer readiness and valid JSON never suffice. A missing or duplicate finding, a mismatched subject or a failing mandatory check blocks release.
+
+| Case | Expected behavior |
+|---|---|
+| Supported actionable request | Accepted Intent and Brief, two assessments, subnode and node decisions, observations. A test consumer reads the exact released Brief |
+| Optional hardware absent | An authorized `single_gpu` assumption points to the actual Brief constraint. No observed hardware claim |
+| No numeric target or method | Preserve the qualitative target and the omission. Hypothesis chooses the procedure later |
+| Topic-only or unknown purpose | The Intent CC lists a blocking uncertainty and `needs_clarification`. The gate halts on readiness |
+| Contradiction or invented method or target | The verifier rejects visible contradictions. Unsupported additions are a producer obligation measured by benchmark cases. No rewrite, no retry |
+| Missing specified resource or unreadable directory | Explicit intake error. Rejected material is never shown as qualified |
+| Malformed producer or verifier output | Deterministic halt. Bad producer output skips the verifier. A malformed assessment cannot advance |
+| Missing or duplicate criterion, stale or swapped evidence | Reject even with an overall `PASS` |
+| Time or call overrun, unavailable endpoint | Halt with observations. Unknown token or cost is unavailable |
+| Compiler produces no artifact | A failure receipt is the check subject. Output and accepted inventories stay empty |
+| Brief loses a constraint, defaults a purpose or invents a percentage | Requirements self-review and the `requirement_coverage` host check cover loss. Benchmark cases measure invented additions |
+| Node and subnode mixup, cyclic dependency, parent budget exceeded | Reject binding or release. A parent does not pool child permissions |
+| Failed persistence | No accepted-output publication. Keep the candidate and error when possible |

@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "id": "run_plan_example",
-  "mode": "static",
+  "plan_source": "static",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
   },
   "library_snapshot_ref": {
     "id": "library_snapshot.json",
-    "sha256": "3af7a852a252d8053be04b957d7ed3b71e5a7ee455ee01f5aa107453d4adcb0e"
+    "sha256": "aaf40eb39a40beb50939b6f4cd456f4be980eb5ccc781b45f9bf53647783f416"
   },
   "resource_inventory_ref": {
     "id": "resource_inventory.json",
@@ -16,19 +16,19 @@
   },
   "policy_ref": {
     "id": "plan_policy.json",
-    "sha256": "2b38739842a274fb9d75cb39bdd01cbffc21b33eefa3ff713d819fcde2308b0b"
+    "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
   },
   "configuration_ref": {
     "id": "run_configuration.json",
-    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
   },
   "source_ref": {
     "id": "static_template.json",
-    "sha256": "d3012421f499a0d2917fa18fdf96a6622a7e3c3bcdedbdcf12fad3e1f8a7283d"
+    "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
   },
   "acceptance_ref": {
     "id": "static_plan_checks.json",
-    "sha256": "a440a5ed4268265a860190f76d5da99b47d6e8fa79c2973661760b38921c6323"
+    "sha256": "92e33d43a3c8e335e02ebc73b10cd668607d5d09faeb6e6db2c04e2681e363fd"
   },
   "nodes": [
     {
@@ -36,7 +36,7 @@
       "cc": {
         "cc_name": "research.search",
         "cc_version": "example-2",
-        "declaration_sha256": "b0187d00f33522d795eac9962226db601145a82b7685954b465d66193443f209"
+        "declaration_sha256": "1c1030012e52b46f401b3bb1e1662271a2f605db6c5e3ca4bf49cb9ab04bbe4f"
       },
       "objective": "Find grounded candidate ideas for the Brief",
       "requirement_ids": [
@@ -54,7 +54,7 @@
           "run_input_key": "brief",
           "accepted_ref": {
             "id": "lifecycle_research_brief.json",
-            "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
           },
           "future": null
         },
@@ -66,7 +66,7 @@
           "run_input_key": "search_scope",
           "accepted_ref": {
             "id": "search_scope.json",
-            "sha256": "c9a53c193fd531d69ae311ade693c7fcba0e57e4afece72a41880f312ceb5b7a"
+            "sha256": "9f1de539a40c309b73f9124905c1aa1e9a02fe896515a540f8ad664727e5908f"
           },
           "future": null
         }
@@ -100,7 +100,7 @@
       "cc": {
         "cc_name": "research.screening",
         "cc_version": "example-2",
-        "declaration_sha256": "238f4a274f9f3c3a09dc3aaade2f4eca2203ecfe749a51c4f8209d94869a425e"
+        "declaration_sha256": "1700b85f24266459f71a205ef3011aa8dd9b5e90c760583ab81cb8e302ab8d96"
       },
       "objective": "Score candidates and select one opportunity",
       "requirement_ids": [
@@ -120,7 +120,7 @@
           "run_input_key": "brief",
           "accepted_ref": {
             "id": "lifecycle_research_brief.json",
-            "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
           },
           "future": null
         },
@@ -181,7 +181,7 @@
       "cc": {
         "cc_name": "research.hypothesis",
         "cc_version": "example-1",
-        "declaration_sha256": "57936b5e897f23951637a58ccb354e03c6b3a33e7bf81a852693c599f5b37841"
+        "declaration_sha256": "f44e17b13c6170ffc681d3b999c75312d413690121d55966598bf8a5bfb79e6a"
       },
       "objective": "State one hypothesis and freeze the measurement protocol",
       "requirement_ids": [
@@ -201,7 +201,7 @@
           "run_input_key": "brief",
           "accepted_ref": {
             "id": "lifecycle_research_brief.json",
-            "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
           },
           "future": null
         },
@@ -272,7 +272,7 @@
       "cc": {
         "cc_name": "research.builder",
         "cc_version": "example-1",
-        "declaration_sha256": "297675c8a8793a00646ab2d8dd2c8a81fa85298ab585abf46185569938ecc16a"
+        "declaration_sha256": "05dcfcd0785bd5df9f96485f00b4e9df32a6a0d895538f3e8859b87ebf1b806a"
       },
       "objective": "Build the proof of concept patch and benchmark runner",
       "requirement_ids": [
@@ -368,7 +368,7 @@
       "cc": {
         "cc_name": "research.benchmark",
         "cc_version": "example-1",
-        "declaration_sha256": "85d9b870961ae694fe489cbbf9087649ea936d598f0d398c226570efccf21f45"
+        "declaration_sha256": "829afaca0d5746ef4aa0746f9fda42c34dae31e3ea202d57e4a507ac7ca6da1d"
       },
       "objective": "Measure baseline then treatment on the local GPU",
       "requirement_ids": [
@@ -505,7 +505,7 @@
       "cc": {
         "cc_name": "research.evaluation",
         "cc_version": "example-1",
-        "declaration_sha256": "f49aad8cea66858670224b9d8a12eac966905643a6e77acf7bb64d7f7d9fa7c7"
+        "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
       },
       "objective": "Classify the result with the registered rules",
       "requirement_ids": [
@@ -552,7 +552,7 @@
           "run_input_key": "brief",
           "accepted_ref": {
             "id": "lifecycle_research_brief.json",
-            "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
           },
           "future": null
         }
@@ -576,7 +576,7 @@
         "check_bundle_sha256": "850f44daf116832f76122664e31905a7f5da27ddf4ef3c248c65ae7da01afc20",
         "checking_profile_id": "research.evaluation.profile",
         "checking_profile_version": "1.0.0",
-        "checking_profile_sha256": "e1a921649108be661858da21fed623651dd7f3dcedae25eaa754d24b4b2dbb08"
+        "checking_profile_sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
       },
       "extra_check_ids": [],
       "max_attempts": 1
@@ -586,7 +586,7 @@
       "cc": {
         "cc_name": "research.delivery",
         "cc_version": "example-1",
-        "declaration_sha256": "428be52d7b5b276cbbb4bc77f5326d7db667703f2e23ef04286a260b0ad74cb7"
+        "declaration_sha256": "0102a5c6b414d0e47d3f0bee10b7e01d533019681dd2b39519b3a470bb91bae1"
       },
       "objective": "Write the report and delivery manifest",
       "requirement_ids": [
@@ -613,7 +613,7 @@
           "run_input_key": "brief",
           "accepted_ref": {
             "id": "lifecycle_research_brief.json",
-            "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+            "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
           },
           "future": null
         },
@@ -778,6 +778,50 @@
       },
       "extra_check_ids": [],
       "max_attempts": 1
+    }
+  ],
+  "coverage": [
+    {
+      "item_id": "requirement:latency",
+      "item_kind": "requirement",
+      "node_ids": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation",
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "requirement:quality",
+      "item_kind": "requirement",
+      "node_ids": [
+        "search",
+        "screening",
+        "hypothesis",
+        "builder",
+        "benchmark",
+        "evaluation",
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "deliverable:report",
+      "item_kind": "deliverable",
+      "node_ids": [
+        "delivery"
+      ]
+    },
+    {
+      "item_id": "evidence:comparison",
+      "item_kind": "evidence_obligation",
+      "node_ids": [
+        "hypothesis",
+        "benchmark",
+        "evaluation"
+      ]
     }
   ],
   "topological_order": [

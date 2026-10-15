@@ -127,6 +127,18 @@
         }
       ]
     },
+    "output_port": {
+      "description": "Output port this subnode-scope decision reviews. One decision per output. Null for a node-scope decision or a halt with no output.",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "node_contract_ref": {
       "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
     },
@@ -242,6 +254,51 @@
       "else": {
         "properties": {
           "subnode_id": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "scope_kind": {
+            "const": "subnode"
+          },
+          "action": {
+            "const": "advance"
+          }
+        },
+        "required": [
+          "scope_kind",
+          "action"
+        ]
+      },
+      "then": {
+        "required": [
+          "output_port"
+        ],
+        "properties": {
+          "output_port": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "scope_kind": {
+            "const": "node"
+          }
+        },
+        "required": [
+          "scope_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "output_port": {
             "type": "null"
           }
         }

@@ -2,9 +2,9 @@
 
 ## Current inputs
 
-Use the [design reading routes](../../architecture/design-package/README.md#human-super-important-read-understand-the-whole-system), [verbatim PRD](../../product/received-prds/prd-m1-reviewed-2026-10-13.txt), [decisions](../../architecture/design-package/principles.md#decisions-and-source-amendments), [architecture phases](../../architecture/design-package/delivery-phases.md) and [critical contracts](../../architecture/design-package/reference/README.md). This register maintains no parallel architecture or PRD.
+Use the [design reading routes](../../architecture/design-package/README.md), PRD V10 identified by the canonical [product receipt](../../product/README.md) and package [source receipt](../../architecture/design-package/sources/product/README.md), [decisions](../../architecture/design-package/method/decisions.md), [architecture phases](../../architecture/design-package/method/phases.md) and [critical contracts](../../architecture/design-package/reference/README.md). This register maintains no parallel architecture or PRD.
 
-The first connected design contains **M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)**. This display name describes bounded scope, not a new TASK identifier or full-phase completion.
+The first connected design contained **M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)**. This historical display name described bounded scope, not a new TASK identifier or full-phase completion.
 
 ## Registration state
 
@@ -14,23 +14,23 @@ Preserve existing TASK, AC, IF and feature identities where applicable; an empty
 
 ## Optional prior records
 
-The former local M1 supplement, first trial draft and source-baseline hash record were superseded by the package and preserved in the [pinned muk snapshot](../../architecture/design-package/history.md#muk-cleanup-checkpoint). Their old paths, hashes, allocations and instructions are historical. Runtime records elsewhere retain their recorded results.
+The former local M1 supplement, first trial draft and source-baseline hash record were superseded by the maintained package and remain historical. Optional provenance is documented in the [method index](../../architecture/design-package/method/README.md), which links to existing pinned Git snapshots. Their old paths, hashes, allocations and instructions are not current authority. Runtime records elsewhere retain their recorded results.
 
 ## October 7 architecture source update
 
-The three-level architecture uses the verbatim October 7 PRD and architecture-owned critical field contracts. Prior implementation/interface evidence must be reconciled with those sources before dependent work is treated as current. Registration remains pending; this update allocates no new TASK, AC or IF identity. Product-required PRD change/validation summaries are separate from prohibited duplicate workflow cards.
+The three-level architecture used the verbatim October 7 PRD and architecture-owned critical field contracts. Those inputs were superseded; implementation/interface evidence prepared against them must be reconciled with PRD V10 and the maintained package before dependent work is treated as current. Registration remained pending; that update allocated no new TASK, AC or IF identity. Product-required PRD change/validation summaries were separate from prohibited duplicate workflow cards.
 
-## Current complete compiler assignment
+## October 13 compiler assignment (superseded)
 
-Use the [Intention Compiler Main entrypoint](../../architecture/design-package/builds/intention-compiler/README.md) and its Context. The component includes required foundations and ends at accepted Research Brief or an attributable halt. Earlier Intent-only scope is historical; coding registration remains pending. Preserve TASK/AC/IF identities and reconcile changed contracts before relying on earlier evidence.
+The October 13 assignment used the [Intention Compiler component](../../architecture/design-package/pipeline/intention-compiler.md) as its entrypoint. That component covers the preparation boundary through an accepted Research Brief or an attributable halt. The current core allocation is recorded below; earlier Intent-only scope and the compiler-only assignment are historical. At that time, coding registration was pending. Earlier evidence still requires source and contract reconciliation before reuse.
 
 ## October 13 source and routing integration
 
-Current PRD is the confirmed PRD (4). Use the [shared routing integration](../../architecture/design-package/reference/capsule-model-routing.md) and separate routing-owner component. Coding registration remains pending. The implementation owner registers the binder/router/bridge IF agreement once under the live SOP, retaining occupied task/AC/IF identities. This documentation revision allocates no implementation or runtime acceptance.
+At that point the confirmed input was PRD (4), which has since been superseded by PRD V10 (see the current receipt under [Current inputs](#current-inputs)). The shared routing integration was recorded in the [Capsule–routing contract](../../architecture/design-package/reference/model-routing-contract.md), which remains the interface reference. Coding registration was pending. The implementation owner was to register the binder/router/bridge IF agreement once under the then-live SOP, retaining occupied task/AC/IF identities. That documentation revision allocated no implementation or runtime acceptance.
 
 ## Current core assignment under D19
 
-The [Core build](../../architecture/design-package/core-build.md) is the current implementation allocation source. Use the received PRD and recorded D19 amendment together; do not let the earlier compiler-only register or original phase allocation silently override it. Keep complete compiler preflight evidence separate from core research acceptance.
+The [Core build](../../architecture/design-package/3-build-plan.md) is the current implementation allocation source. Use PRD V10 identified by the canonical [product receipt](../../product/README.md), together with the recorded D19 amendment; do not let the earlier compiler-only register or original phase allocation silently override it. Keep complete compiler preflight evidence separate from core research acceptance.
 
 | Responsibility | Implementation ownership | Source and dependency |
 |---|---|---|

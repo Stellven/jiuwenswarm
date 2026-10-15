@@ -3,7 +3,7 @@
   "id": "search_scope",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
   },
   "connectors": [
     "local_documents",

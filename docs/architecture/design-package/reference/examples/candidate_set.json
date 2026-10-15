@@ -3,11 +3,11 @@
   "id": "candidate_set",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
   },
   "scope_ref": {
     "id": "search_scope.json",
-    "sha256": "c9a53c193fd531d69ae311ade693c7fcba0e57e4afece72a41880f312ceb5b7a"
+    "sha256": "9f1de539a40c309b73f9124905c1aa1e9a02fe896515a540f8ad664727e5908f"
   },
   "queries": [
     "indexed lookup retrieval latency",

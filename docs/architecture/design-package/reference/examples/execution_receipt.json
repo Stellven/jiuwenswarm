@@ -3,11 +3,11 @@
   "id": "execution_receipt",
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "4b8c45a9c35991556402dd2353dced138f89689a5d60cae24efe3306e9d51ff0"
+    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
   },
   "poc_ref": {
     "id": "poc_manifest.json",
-    "sha256": "5256dfa86a4212a05fec6d5db23211322e4d4e136f687a5bb69dc648d23f0e6b"
+    "sha256": "ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4"
   },
   "hardware_inventory": {
     "hardware_id": "hw:synthetic-1",

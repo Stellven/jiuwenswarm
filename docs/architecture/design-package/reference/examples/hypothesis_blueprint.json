@@ -3,11 +3,11 @@
   "id": "hypothesis_blueprint",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "428ee0972f41abeeb67eda32c295e17311bfcb0b01dac6d5e66aeeae77adb20d"
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
   },
   "opportunity_ref": {
     "id": "opportunity_card.json",
-    "sha256": "7580c65400822b3ab29c964555016ac84dc51505ce74a808ad79d379fab6e004"
+    "sha256": "ce6543aa2ba672c37969a3cf481f135413c62acf5be1dab8a32199978926a090"
   },
   "claim": "Indexing lowers retrieval latency by at least 10% with no answer-quality loss",
   "mechanism": "Avoid repeated lookup work",
@@ -49,7 +49,9 @@
       "measurement": "elapsed retrieval time on frozen data",
       "direction": "lower_better",
       "aggregation": "median",
-      "target_id": null
+      "target_id": null,
+      "valid_min": 0,
+      "valid_max": null
     },
     {
       "metric_id": "quality",
@@ -57,7 +59,9 @@
       "measurement": "unchanged approved answer-quality metric",
       "direction": "higher_better",
       "aggregation": "mean",
-      "target_id": "target:quality"
+      "target_id": "target:quality",
+      "valid_min": 0,
+      "valid_max": 1
     }
   ],
   "outcome_rules": [
@@ -106,7 +110,7 @@
   "seed": 42,
   "seed_policy": "fixed_same_for_all_runs",
   "implementation_scope": {
-    "may_change": [
+    "poc_change_scope": [
       "Bounded index lookup patch in one file"
     ],
     "must_not_change": [

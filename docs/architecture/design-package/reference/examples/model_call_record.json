@@ -4,18 +4,19 @@
   "route_attempt_id": "route-attempt:routing-example",
   "route_decision_ref": {
     "id": "route_decision.json",
-    "sha256": "2def6c4f29328ae1edc21d220148f6962ad60c676f5f8761c0f45437cad7fdcc"
+    "sha256": "ace3669e82464bd6dd3be5eddbeb2995fc53916cb2e2427220caba32c2fcef54"
   },
   "execution_id": "execution:routing-example",
   "invocation_id": "invocation:routing-teaching-example",
   "purpose": "task_execution",
+  "call_function": "worker",
   "deployment_ref": {
     "id": "model_deployment_example.json",
     "sha256": "36f6b76b855f440a6045bf135714f4cf9079e72e44a28932ddfffa1701bf3352"
   },
   "model_selection_profile_ref": {
     "id": "model_selection_profile.json",
-    "sha256": "75ae94ee3fd3803c8961a251f8e229b9f928d6586d21a563a68fb21f5b7050f5"
+    "sha256": "8166771ea6ae108bd8ee6663ac88348fee4b942147b5efe3068fc79f1e2633df"
   },
   "provider_request_id": null,
   "identity": {
@@ -26,6 +27,7 @@
   "started_at": "2026-10-13T12:00:01Z",
   "ended_at": null,
   "outcome": "outcome_unknown",
+  "provider_error_code": null,
   "usage": {
     "input_tokens": null,
     "output_tokens": null,

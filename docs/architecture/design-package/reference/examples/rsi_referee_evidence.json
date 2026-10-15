@@ -3,11 +3,11 @@
   "id": "rsi_referee_evidence",
   "attempt_ref": {
     "id": "rsi_attempt_01.json",
-    "sha256": "f19dab17d912aadf2681b9ef32f6b2f7b8ead9c6b4068a24c8358f30f5b5a39b"
+    "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
   },
   "target_ref": {
     "id": "rsi_target_profile.json",
-    "sha256": "4fa09fe26dff849f45d66c0101d7060b1e6c5f655233aafcbf7cea553df1a2c5"
+    "sha256": "bc9325646c3294adb03052538badb5f24dc062297418a8f18862fbf808993a9e"
   },
   "parent_ref": {
     "id": "ranking_parent.txt",
@@ -71,11 +71,13 @@
   "integrity_passed": true,
   "final_evaluations": 1,
   "violations": [],
-  "ext": {
-    "example.synthetic": true
-  },
   "configuration_ref": {
     "id": "run_configuration.json",
-    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+  },
+  "signature": "ecff4c9ed545f8bb6124688cf78b85838c1b4c209c9542b0c42b09eee1e9391f",
+  "signer_key_id": "rsi-custodian-key-1",
+  "ext": {
+    "example.synthetic": true
   }
 }

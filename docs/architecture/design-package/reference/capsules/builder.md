@@ -1,6 +1,8 @@
 # Builder capsule (`research.builder`)
 
-**Reading level: AI reference.** Build page for one CC and its verifier assignment.
+`Tier 3 · Part of: [Reference](../README.md)`
+
+Build page for one CC and its verifier assignment.
 
 **Summary for human review**
 
@@ -13,7 +15,7 @@
 
 ## Purpose and place in the run
 
-Builder is stage 3.6. It follows Hypothesis and precedes Research Benchmark. It reads the frozen blueprint and cannot change the validation data, measurement functions or outcome rules (PRD 3.6.3). It does not repair its own failures. A failed check halts to the human session (PRD 3.6.4, 4.9.5).
+Builder is PRD stage 3.6. It writes the proof of concept for one hypothesis. It reads the frozen blueprint and cannot change the validation data, measurement functions or outcome rules (PRD 3.6.3). It does not repair its own failures. A failed check stops the Builder node and writes an escalation record for later human review; the run does not wait (PRD 3.6.4, 4.9.5).
 
 ## Declaration
 
@@ -22,12 +24,28 @@ Declaration example: [builder_capsule.json](../examples/builder_capsule.json). I
 | Item | Value |
 |---|---|
 | Name | `research.builder`, kind `agent` |
-| Needs | model bridge, the bounded code search operator and write access to the `poc_workspace` resource. No network. |
+| Needs | The model bridge with tool calling. The agent work is one synchronous Codex CLI invocation (headless, `codex exec` style) per CC call ([D43](../../method/decisions.md#d43)). Codex does its own tool use (read, code search and write) inside the confined POC workspace, scoped to the `poc_workspace` resource with write access. The launch, the sandbox mode and the credential are fixed in [Tool-use sandbox](#tool-use-sandbox) ([D45](../../method/decisions.md#d45)). No network for tool commands. No external operator is pinned in M1. |
 | Effect class | `idempotent`. Writes only under `/workspace/poc/`. Starts no process except the compile check run by the host. |
-| Budget | 600 s wall, 1 invocation, 40 tool calls, hard |
+| Budget | 600 s wall, 1 invocation, 40 tool calls, hard. The runner counts the tool events the CLI reports and stops it at 40 ([D43](../../method/decisions.md#d43)) |
 | Pinned check bundle | The declaration pins `manifest_schema`, `bundle_schema`, `required_files_present`, `dependencies_pinned`, `bundle_hash_matches`, `syntax_check` and `forbidden_modules_absent`. The binder adds the other host checks below. The Planner cannot drop or weaken any of them. |
 | Output ports | `manifest` and `bundle`. The host-written `build_receipt` is not an output port. It reaches Research Benchmark as a `host_record` input. |
 | Verifier runs | Once per output artifact (`manifest`, then `bundle`). Each run gets the same pinned declaration and the same checking profile. A criterion applies only to the output named in the criteria table. |
+
+## Tool-use sandbox
+
+`Standard`. The Builder's Codex CLI call is the only place where a model runs commands. [D45](../../method/decisions.md#d45) amends [D43](../../method/decisions.md#d43) with these rules. The platform page states the confinement they rely on ([platform](../../platform/README.md#deployment-and-boundaries), PLT-11).
+
+| Item | Rule |
+|---|---|
+| Who launches the CLI | The launcher of the confined executor, under the executor OS identity. The app's own identity does not run it |
+| Working directory | The POC workspace |
+| Codex sandbox mode | `workspace-write`, with the network disabled for tool commands |
+| Approvals | `never`. The CLI never waits for a person |
+| Credential | A dedicated Builder model credential. It is budget-limited and revocable. It is never the app's main credential. The credential file is readable only by the executor identity for the duration of the call, and is removed after the call |
+| What the executor identity cannot read | Run state, every other credential, the library and the fixtures. Filesystem permissions enforce this, not prompts |
+| Residual risk | A tool command inside the call can read the Builder credential. This is accepted and recorded. Its budget limit and its revocation bound the damage |
+
+The CLI process itself reaches the model endpoint. Only the tool commands it starts run without network. The model bridge still writes the route record before the call and the model-call record from the tool events the CLI reports. Criterion PLT-11: a probe from a Builder tool call must be denied when it reads run state, the main credential or a fixture path.
 
 ## Inputs
 
@@ -56,7 +74,7 @@ Contract `poc-manifest:field-contract:2`, version 2.0.0. This version drops `mec
 | `files` | `NamedFile[]` | yes | exactly 3 entries. `path` values are exactly `requirements.txt`, `poc_patch.py`, `run_benchmark.py`, lowercase, no directories. `artifact_ref.sha256` equals the hash of that entry inside the zip. | Every file in the bundle. No other file is allowed. |
 | `dependencies` | `Dependency[]` | yes | `min_items` 0, `max_items` 50. Equals the parsed lines of `requirements.txt`. Each is a subset of the lock pins. | Full list of packages the bundle needs. Empty when only the standard library is used. |
 
-Examples: [valid](../examples/poc_manifest.json) · rejected by `dependencies_pinned`: [poc_manifest_invalid_unpinned_dependency](../examples/poc_manifest_invalid_unpinned_dependency.json) · rejected by `required_files_present`: [poc_manifest_invalid_missing_run_benchmark](../examples/poc_manifest_invalid_missing_run_benchmark.json)
+Examples: [valid](../examples/poc_manifest.json)
 
 ### Dependency
 
@@ -65,11 +83,13 @@ Examples: [valid](../examples/poc_manifest.json) · rejected by `dependencies_pi
 | `name` | `string` | yes | pattern `^[a-z0-9][a-z0-9._-]*$` | Package name, lowercase. |
 | `version` | `string` | yes | pattern `^[0-9]+(\.[0-9]+)*$` | One exact version. No range, wildcard, URL or marker. In `requirements.txt` the line is `name==version`. |
 
-Examples: [rejected by `dependencies_pinned`](../examples/poc_manifest_invalid_unpinned_dependency.json) (version `>=1.26`)
+
 
 ### poc_artifact_bundle
 
-Contract `poc-artifact-bundle:field-contract:1`. A zip file, not JSON. No example validates it as a record. The valid example is [poc_artifact_bundle.zip](../examples/poc_artifact_bundle.zip).
+Purpose: the proof-of-concept files Research Benchmark runs. It is a zip file, not JSON. The fields below are its logical parts, and the validator reads them from the zip.
+
+`poc-artifact-bundle:field-contract:1` (version 1.0.0) · Producer: Builder CC (`research.builder`). Consumers: Builder host checks, Verifier CC (through the [zip projection](verifier.md#zip-output-projection)), Research Benchmark.
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
@@ -81,11 +101,48 @@ Contract `poc-artifact-bundle:field-contract:1`. A zip file, not JSON. No exampl
 
 The fields are the logical parts of the zip. The zip itself is the artifact.
 
+**Enum `archive_format`**
+
+| Value | Meaning |
+|---|---|
+| `zip` | A standard zip archive with no password |
+
+**Invariants**
+
+- The zip holds exactly the three entries, at the root, with no directory, link or `..` path.
+- The SHA-256 of the zip equals the manifest `archive_ref.sha256`, and each entry hash equals its manifest file hash.
+- Every pin in `requirements.txt` is in the environment lock.
+
+**Producer obligations (Builder CC)**
+
+- Write the three files only. Never add data, results or a fourth file.
+- Never import a forbidden module or use dynamic import.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `bundle_schema` | No password, at most 1 MiB, no directory entry, and the logical parts match `poc-artifact-bundle:field-contract:1` | reject |
+| `required_files_present` | The entries are exactly the three required names, lowercase, with no traversal | reject |
+| `bundle_hash_matches` | The zip and entry hashes equal the manifest | reject |
+
+The full Builder check bundle is in [deterministic check bundle](#deterministic-check-bundle).
+
+**Failure outcomes**
+
+| Condition | Outcome | What is kept |
+|---|---|---|
+| A host check fails | Reject the output, stop the Builder node and write an escalation record for later human review | The zip, the manifest and the check result |
+
 Examples: [valid](../examples/poc_artifact_bundle.zip). The bundle is a packaging fixture and claims no scientific result.
+
+**Minimum quality bar.** Research Benchmark can unpack and run the bundle with nothing but the lock, and every byte it runs is pinned by the manifest.
 
 ### build_receipt
 
-Written by the host check bundle, not the worker. Contract `build-receipt:field-contract:1`, version 1.0.0. It is build evidence only. It never holds measurements.
+Purpose: the host's record of the Builder checks. It is build evidence only. It never holds measurements.
+
+`build-receipt:field-contract:1` (version 1.0.0) · Producer: the Builder host check bundle, never the worker. Consumers: Research Benchmark (`build_receipt_ready`), Builder gate, Delivery.
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
@@ -107,7 +164,54 @@ Written by the host check bundle, not the worker. Contract `build-receipt:field-
 | `readiness` | `string` | yes | enum `READY`, `NOT_READY`. `READY` only when every syntax result is `pass` or `not_applicable`, `forbidden_scan_result` is `pass`, `output_format_check.result` is `pass` and `dependencies_all_pinned` is true. | Mechanical readiness for Benchmark. |
 | `readiness_reasons` | `string[]` | yes | empty when `READY`. At least one entry otherwise. | Why the bundle is not ready. |
 
-Examples: [valid](../examples/build_receipt.json) · forbidden list: [build_receipt_forbidden_modules.txt](../examples/build_receipt_forbidden_modules.txt)
+**Enum `forbidden_scan_result`**
+
+| Value | Meaning |
+|---|---|
+| `pass` | No file has a forbidden import |
+| `fail` | At least one file has a forbidden import or a dynamic import |
+
+**Enum `readiness`**
+
+| Value | Meaning |
+|---|---|
+| `READY` | Every syntax result is `pass` or `not_applicable`, the scan passed, the output format check passed and every dependency is pinned |
+| `NOT_READY` | Any of those failed. `readiness_reasons` says which |
+
+**Invariants**
+
+- `trial_executed` and `packages_installed` are false.
+- `readiness` is `READY` exactly when the rule above holds, and `readiness_reasons` is empty exactly then.
+- `file_checks` paths equal the manifest file paths, and each hash equals the zip entry.
+- `dependencies` equals the manifest `dependencies`.
+
+**Producer obligations (host check bundle)**
+
+- Compute every result from the zip, the manifest, the blueprint and the pinned forbidden list. Never copy a worker claim.
+- Never run the POC or install a package to fill the receipt.
+
+**Host checks**
+
+| Check ID | Rule | Outcome |
+|---|---|---|
+| `build_receipt_schema` | The receipt matches `build-receipt:field-contract:1` | reject |
+| `bundle_hash_matches` | Receipt refs equal the manifest, and each file hash equals the zip entry | reject |
+| `syntax_check` | Each syntax result equals a fresh compile of the entry | reject |
+| `forbidden_modules_absent` | The forbidden imports and the scan result equal a fresh AST scan | reject |
+| `output_log_format` | `output_format_check` equals a fresh static scan | reject |
+| `dependencies_pinned` | Dependencies equal the manifest and the pin flag is right | reject |
+| `build_receipt_ready` | No trial or install is recorded, and `readiness` follows the evidence | reject |
+
+**Failure outcomes**
+
+| Condition | Outcome | What is kept |
+|---|---|---|
+| A receipt check fails | Reject the output, stop the Builder node and write an escalation record for later human review | The receipt, the bundle and the manifest |
+| `readiness` is `NOT_READY` | Stop the Builder node and write an escalation record; Benchmark does not start | The receipt with its reasons |
+
+Examples: [valid](../examples/build_receipt.json) · forbidden list: [build_receipt_forbidden_modules.txt](../examples/build_receipt_forbidden_modules.txt) · rejected by `build_receipt_ready`: [build_receipt_invalid_ready_with_forbidden_import](../examples/build_receipt_invalid_ready_with_forbidden_import.json) (`READY` while the scan failed)
+
+**Minimum quality bar.** Research Benchmark can decide to start from the receipt alone, and every result in it can be recomputed from the zip.
 
 ### BuildFileCheck
 
@@ -159,7 +263,7 @@ The list lives in the pinned check bundle, not in the worker prompt or declarati
 - Do not write measured numbers into any file.
 - Make `run_benchmark.py` print exactly one line in the output log format for each invocation: `print(json.dumps({"metrics": {...}}))` with one key for every blueprint `metric_id`. Use no other `print`.
 - Self-review before returning. Re-read the blueprint and confirm every `metric_id` is a key of the printed `metrics` object in `run_benchmark.py`, the repeat count and seed match, and baseline runs before treatment. Confirm `requirements.txt` lists only pinned lock entries. Confirm the manifest lists all three files with correct hashes.
-- On a failed check do not repair in a loop. The failure goes to the human session.
+- On a failed check, do not repair in a loop. The node stops and an escalation record is kept for later human review; the run does not wait.
 
 ## Deterministic check bundle
 
@@ -178,7 +282,7 @@ The host runs these before the verifier. It writes `build_receipt` from the resu
 | `output_log_format` | Static AST scan of `run_benchmark.py`, no code runs. Exactly one `print(json.dumps(...))` call, a dict display with the key `metrics` inside it, every blueprint `metric_id` present as a string constant, no other `print` call. The host writes the result to `build_receipt.output_format_check`. Reads the blueprint. | reject, receipt `NOT_READY` |
 | `blueprint_unchanged` | Manifest `blueprint_ref` equals the frozen blueprint hash in the run record. | halt the run |
 | `environment_unchanged` | Manifest, blueprint and lock agree on `environment_ref`. | reject |
-| `no_trial_no_install` | The runtime record shows no POC process, no package manager call and no network use. | halt the run |
+| `no_trial_no_install` | The runtime record shows no POC process, no package manager call and no network use. The build receipt flags `trial_executed` and `packages_installed` are false. | halt the run |
 | `build_receipt_ready` | The receipt exists, `trial_executed` and `packages_installed` are false, `output_format_check.result` is `pass` and `readiness` is `READY`. | reject |
 
 ## Verifier criteria
@@ -194,16 +298,16 @@ The verifier runs once for each output artifact, `manifest` and `bundle`, each t
 
 ## Gate rule
 
-Accept when every check passes and no blocking criterion fails. Reject on any failure. A syntax or forbidden-module failure records the receipt as `NOT_READY` and halts to the human session. There is no automatic retry or repair. Benchmark starts only after acceptance with a `READY` receipt.
+Accept when every check passes and no blocking criterion fails. Reject on any failure. A syntax or forbidden-module failure records the receipt as `NOT_READY`, stops the Builder node and writes an escalation record for later human review. The forbidden-import result is a failed package check; by itself, it does not establish that a live integrity boundary was breached. There is no automatic retry or repair, and the run does not wait. Benchmark starts only after acceptance with a `READY` receipt.
 
 ## Failure outcomes
 
 | Condition | Outcome | Kept |
 |---|---|---|
-| Syntax or forbidden import failure | halt to human, receipt `NOT_READY` | bundle, manifest, receipt, failure trace |
-| Output log format check fails | halt to human, receipt `NOT_READY` | bundle, manifest, receipt |
-| Unpinned or out-of-lock dependency | reject and halt | manifest, bundle, receipt |
-| Missing file or hash mismatch | reject and halt | manifest, bundle |
+| Syntax or forbidden import failure | Stop the Builder node and write an escalation record; receipt `NOT_READY` | bundle, manifest, receipt, failure trace |
+| Output log format check fails | Stop the Builder node and write an escalation record; receipt `NOT_READY` | bundle, manifest, receipt |
+| Unpinned or out-of-lock dependency | Reject the output, stop the Builder node and write an escalation record | manifest, bundle, receipt |
+| Missing file or hash mismatch | Reject the output, stop the Builder node and write an escalation record | manifest, bundle |
 | Trial or install detected | halt the run | runtime record, bundle |
 | Blueprint hash changed | halt the run | both hashes |
 
@@ -215,8 +319,10 @@ Accept when every check passes and no blocking criterion fails. Reject on any fa
 | [poc_artifact_bundle.zip](../examples/poc_artifact_bundle.zip) | valid bundle fixture (unchanged bytes) |
 | [build_receipt.json](../examples/build_receipt.json) | valid receipt |
 | [build_receipt_forbidden_modules.txt](../examples/build_receipt_forbidden_modules.txt) | forbidden-module list pinned in the check bundle |
-| [poc_manifest_invalid_unpinned_dependency.json](../examples/poc_manifest_invalid_unpinned_dependency.json) | rejected by `dependencies_pinned` |
-| [poc_manifest_invalid_missing_run_benchmark.json](../examples/poc_manifest_invalid_missing_run_benchmark.json) | rejected by `required_files_present` |
+| [build_receipt_invalid_ready_with_forbidden_import.json](../examples/build_receipt_invalid_ready_with_forbidden_import.json) | rejected by `build_receipt_ready` |
+
+
+
 | [builder_capsule.json](../examples/builder_capsule.json) | declaration |
 
 The valid bundle contains only standard-library fixture scripts. Its `poc_patch.py` and `run_benchmark.py` are placeholders. `poc_patch.py` defines `transform(value)` that returns its input. `run_benchmark.py` defines a `measurement_placeholder()` that returns a metrics object with `None` values and prints it as one JSON line, so it passes the static `output_log_format` check. It is never run. Neither file implements a real intervention.
@@ -227,3 +333,10 @@ The valid bundle contains only standard-library fixture scripts. Its `poc_patch.
 - A richer forbidden list or a sandbox-enforced one: replace the pinned list. The receipt already records its source.
 - Automatic repair loops (M2): a new CC wraps the Builder and consumes the failed receipt.
 - Other runtimes or containers: add a new bundle type beside `poc_artifact_bundle`.
+
+## M1 placement
+
+The CC page above does not depend on where Builder runs. In M1 the rules below apply.
+
+- Builder consumes the `hypothesis_blueprint`, so ports place it after Hypothesis. Research Benchmark consumes its manifest, so it runs before Benchmark.
+- No extra policy entry is needed. The protected binder enforces the order through the port checks `port_type_compatibility` and `dependency_closure` ([D42](../../method/decisions.md#d42)).

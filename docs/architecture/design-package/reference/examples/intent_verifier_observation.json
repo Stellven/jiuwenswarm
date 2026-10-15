@@ -1,15 +1,24 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "3.0.0",
   "id": "observation:intention.verifier",
+  "run_id": "run:example",
+  "attempt_id": "intention_compiler-a1",
+  "node_id": "intention_compiler",
+  "subnode_id": "intention.verifier",
+  "cc_name": "research.verifier",
+  "cc_version": "example-1",
+  "declaration_sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f",
+  "route_id": null,
+  "measurement_status": "unavailable",
   "contract_ref": {
     "id": "intent_verifier_subnode_contract.json",
-    "sha256": "604eeb2e826e2fee3156c2aba926fbbf1aa283ffb609b8af9ad5bb4afb54ae22"
+    "sha256": "4633c4d5c130144fcbc46587bff7fd3d0d1d6cf5b9cd3f2327635ce672639a0d"
   },
   "binding_id": "binding:intention.verifier",
   "input_refs": [
     {
       "id": "capsule_declaration.json",
-      "sha256": "07061ed3117aeac19f590bbd03343fd99479d3803eda3e93c4952af7bed26497"
+      "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
     },
     {
       "id": "intent_ir.json",
@@ -19,7 +28,7 @@
   "output_refs": [
     {
       "id": "intent_assessment.json",
-      "sha256": "e62686cb5113e1b32549b896e937000eb469267972a23e40a3e1468e6f67fc15"
+      "sha256": "f0528abcb4ba8f37459499e9efb1238cae3d13266551c07cd17e220c97ca03fd"
     }
   ],
   "model_identity": {
@@ -49,7 +58,14 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "255ad8004f6788774e2f982d52383ecffd68effbf43a1079fbfebf56a4ac183b"
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
   },
-  "subnode_id": "intention.verifier"
+  "body_files_sha256": "66b5848b3c067f334e199497e79dec5b26a5b2838138ca969c375b1676f807b3",
+  "decision_source": null,
+  "failure_class": null,
+  "failure_reason_code": null,
+  "error_fingerprint": null,
+  "check_result_refs": [],
+  "verifier_assessment_ref": null,
+  "human_answer_ref": null
 }

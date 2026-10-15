@@ -1,5 +1,5 @@
 {
-  "revision_date": "2026-10-13",
+  "revision_date": "2026-10-15",
   "sources": [
     {
       "path": "sources/capsule.schema.json",
@@ -20,6 +20,31 @@
       "path": "sources/model-routing/received/model-router-design-en-2026-10-13.md",
       "bytes": 184666,
       "sha256": "1f6a7293cd5cac14066f99d1d826a6ef00c39688835fd00ce58697a875520368"
+    },
+    {
+      "path": "sources/model-routing/received/model-router-design-en-v2.1-2026-10-13.md",
+      "bytes": 115099,
+      "sha256": "952bc451fb1003986f046615ffacbafc825bd4e879eb96af72c07e939877c7bf"
+    },
+    {
+      "path": "sources/benchmark/received/BENCHMARK_REQUIREMENTS_Oct_14.md",
+      "bytes": 115630,
+      "sha256": "4e895ead207980508e368bab2fb215c61345ec46f12aaacb5617fa1969884616"
+    },
+    {
+      "path": "sources/rsi/received/DESIGN - RSI M1 v0.2.md",
+      "bytes": 67327,
+      "sha256": "5d3348209399433323e663a52b0c7116c23e4f1b35252e29c8272f84fd8f52a4"
+    },
+    {
+      "path": "sources/rsi/received/RSI Shared Interfaces v0.2.md",
+      "bytes": 27963,
+      "sha256": "6340949a3689a9bce15ed2ed28b37f8f57b048b721d03c6afd30c2bfe3251946"
+    },
+    {
+      "path": "sources/data-foundation/received/data-foundation-2026-09-29.md",
+      "bytes": 18513,
+      "sha256": "1ab47063dce5406438d5b899fac3d923667c69b2b88fe090e4f9f1a03eeed7c1"
     }
   ],
   "observed_archives": [
@@ -58,7 +83,14 @@
       "bytes": 255245,
       "sha256": "890c63ee4849d61e8c7ddc980891985d57c59005ca6c62be45957c59e82782de",
       "repository_path": "docs/product/received-prds/prd-m1-reviewed-2026-10-13.txt",
-      "status": "current; PRD - AI4Research (4).txt reviewed October 13"
+      "status": "previous; PRD - AI4Research (4).txt reviewed October 13"
+    },
+    {
+      "filename": "prd-m1-v10-2026-10-15.txt",
+      "bytes": 270790,
+      "sha256": "6d85972cdc8cf586a3d76b80d56510d695f03bfcf7838661afc7f71c35f4b3fc",
+      "repository_path": "docs/product/received-prds/prd-m1-v10-2026-10-15.txt",
+      "status": "current; PRD V.10 - M1 Acceptance Adjusted.txt received October 15"
     }
   ]
 }

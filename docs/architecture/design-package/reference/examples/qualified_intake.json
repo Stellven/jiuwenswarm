@@ -17,6 +17,16 @@
       "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
     }
   ],
+  "upload_refs": [
+    {
+      "id": "client_upload_baseline.json",
+      "sha256": "844076cc2fa32682b455d50c94b4a4443d3fe38987707456a75d57834be7907d"
+    },
+    {
+      "id": "client_upload_validation.json",
+      "sha256": "c956ba86951d0273e4cc77d81eac27538f48ef39ec828c7da85cc379d5c4eaea"
+    }
+  ],
   "rejected_inputs": [],
   "user_id": "user:example",
   "profile_ref": {

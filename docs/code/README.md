@@ -18,4 +18,4 @@ M1 product/design inputs are maintained in [design package](../architecture/desi
 
 ## 历史交付
 
-旧合订本、ZIP 与哈希清单可从 [固定 Git 历史](../architecture/design-package/history.md#final-branch-cleanup--october-7-2026) 查看，不是当前流程或设计输入。[历史文档检查记录](DOCUMENTATION_CHECKS.md) 保留当时结果，不代表现行 M1 验证。
+旧合订本、ZIP 与哈希清单可从 [固定 Git 历史](../architecture/design-package/method/README.md) 查看，不是当前流程或设计输入。[历史文档检查记录](DOCUMENTATION_CHECKS.md) 保留当时结果，不代表现行 M1 验证。
