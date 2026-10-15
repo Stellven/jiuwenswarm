@@ -37,18 +37,18 @@ Purpose: the decision to start, or not to start, an RSI attempt on one target. I
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this opportunity decision. |
 | `target_profile_ref` | `Ref` | yes | an `rsi-target-profile` record | Target the opportunity concerns. |
 | `parent` | `CcPin` | yes | an admitted library version. `declaration_sha256` equals the target profile `parent_declaration_ref` digest | Exact parent version the evidence was gathered on. |
-| `trigger` | `string` | yes | enum `operator_selected`, `authorized_batch` | How the target was chosen. M1 has no always-on scheduler. |
-| `selected_by` | `string` | yes | 1 to 120 characters, an authenticated human actor | Who selected the target or approved the batch. |
-| `evidence_refs` | `Ref[]` | yes | 1 to 32 items | Authorized observations and benchmark evidence examined, with their original references. |
-| `attribution` | `string` | yes | enum `implementation`, `upstream_input`, `binding_composition`, `harness`, `verifier`, `environment`, `uncertain` | Demonstrated cause class after visible reproduction. A heuristic label or a CC self-report is never enough. |
+| `trigger` | `string` | yes | enum `operator_selected`, `authorized_batch` | How the target was chosen. The controller records the human's choice. M1 has no always-on scheduler, so no other value exists. |
+| `selected_by` | `string` | yes | 1 to 120 characters, an authenticated human actor | The authenticated human who selected the target or approved the batch. Never a CC or the proposer. |
+| `evidence_refs` | `Ref[]` | yes | 1 to 32 items | Observations and benchmark evidence the controller examined, each kept as the original reference with its digest so a reviewer can open it. |
+| `attribution` | `string` | yes | enum `implementation`, `upstream_input`, `binding_composition`, `harness`, `verifier`, `environment`, `uncertain` | Demonstrated cause class, set by the controller after visible reproduction. A heuristic label or a CC self-report is never enough. Only `implementation` can lead to `START`. |
 | `symptom_reproduced` | `boolean` | yes | none | Whether the symptom reproduced on approved visible inputs, with the exact parent and the frozen environment. |
 | `parent_mandatory_passed` | `boolean` | yes | none | Whether the parent passed its mandatory behavior on the development inputs. Development failures add headroom and never waive an obligation. |
-| `headroom` | `nullable-number` | yes | 0 to 1. Null when the symptom did not reproduce | Development failure rate of the parent on approved visible inputs. |
-| `headroom_minimum` | `number` | yes | 0 to 1, equals the minimum the target profile declares | Smallest headroom that makes an attempt worth starting. |
-| `diagnosis_ref` | `nullable-Ref` | yes | non-null when `decision` is `START` | Retained structured diagnosis of the symptom: observed symptom, mechanism, alternative causes, authorized component, proposed direction and falsification checks. |
+| `headroom` | `nullable-number` | yes | 0 to 1. Null when the symptom did not reproduce | Development failure rate of the parent on approved visible inputs, as a fraction (0.25 means one failure in four). The controller measures it. Null means the symptom did not reproduce, and null is not 0. |
+| `headroom_minimum` | `number` | yes | 0 to 1, equals the minimum the target profile declares | Smallest headroom that makes an attempt worth starting, as a fraction like `headroom`. Copied from the target profile. The controller does not choose it. |
+| `diagnosis_ref` | `nullable-Ref` | yes | non-null when `decision` is `START` | Retained structured diagnosis of the symptom: observed symptom, mechanism, alternative causes, authorized component, proposed direction and falsification checks. Required for `START`. For any other decision it may hold the partial diagnosis or be null. Only `START` reads it. |
 | `decision` | `string` | yes | enum `START`, `NO_ATTEMPT`, `NEEDS_REVIEW` | What happens next. `START` freezes a session. `NO_ATTEMPT` records why no attempt runs. `NEEDS_REVIEW` waits for a human. |
-| `reason` | `string` | yes | 1 to 300 characters | Why this decision, in plain words. |
-| `decided_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the controller wrote the decision. |
+| `reason` | `string` | yes | 1 to 300 characters | Why this decision, in plain words, for the human reviewer. The next step follows from `decision` and the invariants, never from this text. |
+| `decided_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the controller wrote the decision. UTC, whole seconds. |
 
 **Invariants**
 
@@ -95,18 +95,18 @@ Purpose: the frozen description of one improvement target: the parent, the paths
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this target profile. |
-| `parent_ref` | `Ref` | yes | one body file of the parent declaration. Its digest is in `identity.body` | Eligible exact sandbox parent code. |
+| `parent_ref` | `Ref` | yes | one body file of the parent declaration. Its digest is in `identity.body` | The one body file of the parent declaration that RSI may improve. Its digest is in `identity.body`. |
 | `parent_declaration_ref` | `Ref` | yes | the parent declaration bytes. Its `evolution.rsi` is `propose` | Declaration whose `evolution.may_change` bounds `mutable_paths`. |
-| `frozen_contract_ref` | `Ref` | yes | the interface contract bytes the child keeps | Unchanged interface. |
+| `frozen_contract_ref` | `Ref` | yes | the interface contract bytes the child keeps | Interface contract the child must keep unchanged. No candidate result may change it. |
 | `required_test_refs` | `Ref[]` | yes | 1 to 16 items | Mandatory parent tests. The child must pass all of them. |
-| `mutable_paths` | `string[]` | yes | 1 to 16 unique paths. Each is covered by a `files:` glob in the parent `evolution.may_change` (check `profile_within_may_change`) | The only body paths the proposer may change. |
-| `protected_refs` | `Ref[]` | yes | 1 to 32 items. None is a mutable path | Immutable dependency and referee closure. |
-| `splits` | `SplitIdentities` | yes | four distinct identities | Disjoint partition identities. |
+| `mutable_paths` | `string[]` | yes | 1 to 16 unique paths. Each is covered by a `files:` glob in the parent `evolution.may_change` (check `profile_within_may_change`) | The only body paths the proposer may change. The target owner sets them inside what the CC author allowed in `may_change`, never the RSI operator or the proposer. A touched path outside this list is a security violation. |
+| `protected_refs` | `Ref[]` | yes | 1 to 32 items. None is a mutable path | Files the proposer must not change and that the referee depends on. Never overlaps `mutable_paths`. |
+| `splits` | `SplitIdentities` | yes | four distinct identities | Four distinct partition identities. The hidden ones are known only to the custodian and are never shown to the proposer. |
 | `scoring` | `RSIScore` | yes | `primary` is `passed_test_count`, `secondary` is `paired_time_at_equal_counts`, `warmup_batches` is 5, `paired_rounds` is 7 | Passed-tests-first scoring with a timing tie rule. |
 | `calibration_ref` | `Ref` | yes | a calibration record with planted good and bad children | Measured headroom and timing noise. |
-| `session_query_limit` | `integer` | yes | exactly 30 | Hidden-loop queries one session may spend. |
+| `session_query_limit` | `integer` | yes | exactly 30 | Hidden-loop queries one session may spend, as a count. The baseline evaluation counts as one. |
 | `lifetime_query_limit` | `integer` | yes | exactly 90 | Hidden-loop queries over the lifetime of the registered loop set. |
-| `limits` | `Limits` | yes | positive values | Frozen bounds for every child run. |
+| `limits` | `Limits` | yes | positive values | Frozen bounds for every child run: `time_s` in seconds, `model_calls` as a count, `memory_mb` in MiB. Every value must be above zero here, stricter than the shared `Limits` type, because a child run with a zero bound cannot run. The target owner sets them. A candidate cannot change them. |
 | `scoring_adapter_ref` | `Ref` | yes | the frozen scoring adapter bytes | Frozen independent scoring adapter. |
 | `improver_ref` | `Ref` | yes | the fixed proposer policy and implementation bytes | Fixed proposer policy and implementation. |
 | `configuration_ref` | `Ref` | yes | the frozen configuration bytes | Frozen model, host and runtime settings, the same for parent and child. |
@@ -156,7 +156,7 @@ Purpose: the frozen binding of one RSI session. It fixes the parent, the target,
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this frozen session record. |
-| `session_id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Session that every attempt, query and result names. |
+| `session_id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Session ID that every attempt, query and result names. The controller sets it once when the human starts the session. A changed session needs a new `session_id`. |
 | `target_profile_ref` | `Ref` | yes | an `rsi-target-profile` record | Frozen target: parent, mutable paths, tests, splits and scoring. |
 | `parent` | `CcPin` | yes | an admitted library version. `declaration_sha256` equals `parent_declaration_ref.sha256` | Exact parent version. The final comparison always runs against it. |
 | `parent_declaration_ref` | `Ref` | yes | the parent declaration bytes | Declaration the child must keep, outside the pointers RSI may write. |
@@ -165,11 +165,11 @@ Purpose: the frozen binding of one RSI session. It fixes the parent, the target,
 | `configuration_ref` | `Ref` | yes | equals the target profile `configuration_ref` | Frozen model, host and runtime settings, the same for parent and child. |
 | `hash_profile_ref` | `Ref` | yes | the pinned serialization and hash profile | How attempt records are serialized, hashed and chained. |
 | `chain_root_ref` | `Ref` | yes | the protected genesis record. It pins this `session_id`, the target and the hash profile | Root of the attempt hash chain, fixed before attempt 1. |
-| `limits` | `RsiSessionLimits` | yes | each value at most its default | Search budget of the session. |
+| `limits` | `RsiSessionLimits` | yes | each value at most its default | Search budget of the session. The proposer sees these limits and nothing else of this record. |
 | `pass_count_repeats` | `integer` | yes | enum `1`, `3` | Repeats per fixture for pass counts: 1 for a deterministic target, 3 for a model-backed target. |
 | `qualification` | `RsiQualificationPolicy` | yes | no value weaker than the [qualification rule](../side-systems/rsi-workbench.md#qualification-rule) | Qualification values, pinned before any code is proposed. |
-| `started_by` | `string` | yes | 1 to 120 characters, an authenticated human actor | Who started the session. A session never starts itself. |
-| `frozen_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the session record was frozen, before attempt 1. |
+| `started_by` | `string` | yes | 1 to 120 characters, an authenticated human actor | The authenticated human who started the session. A session never starts itself, so this is never a CC or the proposer. |
+| `frozen_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the controller froze the record, before attempt 1. UTC, whole seconds. |
 
 **RsiSessionLimits**
 
@@ -188,10 +188,10 @@ The defaults are RSI v0.2 values that the owner rulings adopt ([ruling 4](../sid
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `min_pass_rate_gain` | `number` | yes | 0.05 to 1 | Smallest absolute final pass-rate gain that can qualify a child with more passes. |
-| `alpha` | `number` | yes | above 0, at most 0.05 | Level of the one-sided exact paired binomial test. |
-| `min_timing_gain` | `number` | yes | 0.1 to 1 | Smallest relative timing gain that can qualify a child with equal passes. |
-| `noise_multiplier` | `number` | yes | min 3 | The timing gain must be more than this multiple of the calibrated timing noise. |
+| `min_pass_rate_gain` | `number` | yes | 0.05 to 1 | Smallest absolute final pass-rate gain that can qualify a child with more passes, as a fraction of fixture units (0.05 means 5 points). |
+| `alpha` | `number` | yes | above 0, at most 0.05 | Significance level of the one-sided exact paired binomial test, as a probability. The child's `p_value` must be at most this. |
+| `min_timing_gain` | `number` | yes | 0.1 to 1 | Smallest relative timing gain that can qualify a child with equal passes, as a fraction (0.1 means 10 percent faster). |
+| `noise_multiplier` | `number` | yes | min 3 | The timing gain must be more than this multiple of the calibrated timing noise. A unitless factor. |
 | `warmup_batches` | `integer` | yes | exactly 5 | Warm-up batches the referee runs before timing. |
 | `paired_rounds` | `integer` | yes | exactly 7, equal to the target profile `scoring.paired_rounds` | Paired timing rounds, in alternating order. |
 
@@ -239,7 +239,7 @@ Purpose: one proposal attempt of a session: the exact child, the diff, the propo
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this attempt record. |
 | `session_id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$`, equals the session `session_id` | Session this attempt belongs to. |
-| `sequence` | `integer` | yes | 1 to 20 | Position of the attempt in the session, counted from 1. |
+| `sequence` | `integer` | yes | 1 to 20 | Position of the attempt in the session, counted from 1 with no gap. |
 | `previous_ref` | `nullable-Ref` | yes | null exactly when `sequence` is 1. Otherwise the attempt with `sequence` minus 1 | Previous attempt in the hash chain. |
 | `target_ref` | `Ref` | yes | equals the session `target_profile_ref` | Frozen target profile. |
 | `parent_ref` | `Ref` | yes | equals the target profile `parent_ref` | The same eligible parent on every attempt. |
@@ -247,13 +247,13 @@ Purpose: one proposal attempt of a session: the exact child, the diff, the propo
 | `diff_ref` | `Ref` | yes | a diff that touches only mutable paths | Allowed implementation change. |
 | `rationale` | `string` | yes | 1 to 2000 characters | The proposer explanation. It is not proof and is never read as evidence. |
 | `visible_evidence_refs` | `Ref[]` | yes | 0 to 32 items | Visible test results the proposer saw. |
-| `queries_used` | `integer` | yes | 0 to 30 | Hidden-loop queries spent so far, as counted by the custodian. |
-| `violations` | `string[]` | yes | 0 to 50 items | Violations the mutation check observed. |
-| `stop_reason` | `nullable-string` | yes | non-null when `violations` is not empty or the session stops here | Why the session ended at this attempt, or null. |
+| `queries_used` | `integer` | yes | 0 to 30 | Hidden-loop queries spent so far in the session, as a count. Copied from the custodian, never from the proposer. |
+| `violations` | `string[]` | yes | 0 to 50 items | Violations the mutation check observed, as short descriptions. The mutation check writes them, never the proposer. A non-empty list ends the session at this attempt. |
+| `stop_reason` | `nullable-string` | yes | non-null when `violations` is not empty or the session stops here | Why the session ended at this attempt, in plain words for the human reviewer. Written by the RSI controller. Null while the session continues. Must be set when `violations` is not empty. No check parses it: the outcome comes from the structured fields. |
 | `configuration_ref` | `Ref` | yes | equals the target profile `configuration_ref` | Same frozen target context. |
-| `observation_refs` | `Ref[]` | yes | 0 to 64 items | Protected model, time and call traces. |
-| `time_s` | `nullable-number` | yes | min 0. Null when not observed | Observed elapsed session time, or unavailable. |
-| `model_calls` | `nullable-integer` | yes | min 0. Null when not observed | Observed proposal model calls, or unavailable. |
+| `observation_refs` | `Ref[]` | yes | 0 to 64 items | Protected model, time and call traces of the attempt, written by the RSI controller. For the referee, the evidence builder and people. The proposer never reads them. |
+| `time_s` | `nullable-number` | yes | min 0. Null when not observed | Observed elapsed session time, in seconds. Null means unavailable, and null is never zero. |
+| `model_calls` | `nullable-integer` | yes | min 0. Null when not observed | Observed proposal model calls, as a count. Null means unavailable, and null is never zero. |
 | `unavailable_reasons` | `string[]` | yes | 0 to 10 items. Non-empty when `time_s` or `model_calls` is null | Why telemetry is missing. Missing telemetry is never reported as zero. |
 | `hash_profile_ref` | `Ref` | yes | equals the session `hash_profile_ref` | Pinned serialization and hash profile. |
 | `chain_root_ref` | `Ref` | yes | equals the session `chain_root_ref` | Protected genesis record. The first attempt never refers to itself. |
@@ -303,8 +303,8 @@ Purpose: the only feedback the proposer receives from the hidden loop split: cou
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this loop feedback record. |
-| `passed` | `integer` | yes | min 0, at most `total` | Aggregate hidden-loop passed count. |
-| `total` | `integer` | yes | min 20 | Hidden-loop case count. |
+| `passed` | `integer` | yes | min 0, at most `total` | Aggregate hidden-loop passed count. A count only, with no case identity. The proposer reads this. |
+| `total` | `integer` | yes | min 20 | Hidden-loop case count, as a count. A count only, with no case identity. |
 | `queries_left` | `integer` | yes | 0 to 30 | Hidden-loop queries still allowed in the session. |
 
 **Invariants**
@@ -355,8 +355,8 @@ Purpose: the protected comparison of parent and child by the independent referee
 | `final_evaluations` | `integer` | yes | exactly 1 (check `referee_integrity_holds`) | Terminal evaluations the referee ran. A second one is a misuse of the final split. |
 | `violations` | `string[]` | yes | 0 to 50 items. Empty for a certifiable child | Protected security results. |
 | `configuration_ref` | `Ref` | yes | equals the target profile `configuration_ref` | Exact comparable evaluation context of parent and child. |
-| `signature` | `string` | yes | 43 to 128 characters of base64url or hex | The custodian's signature over the canonical JSON bytes of this record without `signature`. The key is held by `rsi_custodian`. `rsi_worker` cannot read it ([D46](../method/decisions.md#d46)). |
-| `signer_key_id` | `string` | yes | equals the operator config `rsi.custodian_key_id` | ID of the signing key. |
+| `signature` | `string` | yes | 43 to 128 characters of base64url or hex | The custodian's signature over the canonical JSON bytes of this record without `signature`. The referee writes it, running as `rsi_custodian`, only after its checks pass. `rsi_worker` cannot read the key ([D46](../method/decisions.md#d46)). |
+| `signer_key_id` | `string` | yes | equals the operator config `rsi.custodian_key_id` | ID of the signing key, not the key itself. A mismatch with the pinned ID blocks certification. |
 
 **Invariants**
 
@@ -409,7 +409,7 @@ Purpose: the audience-filtered summary of a referee comparison for a human and t
 | `parent_ref` | `Ref` | yes | equals the referee evidence `parent_ref` | Exact parent. |
 | `child_ref` | `Ref` | yes | equals the referee evidence `child_ref` | Exact child. |
 | `summary` | `string` | yes | 1 to 1000 characters. Holds no hidden split identity, case ID or expected answer | Allowed paired aggregate comparison. |
-| `redactions` | `string[]` | yes | 1 to 20 items | What was withheld: hidden cases, identities, answers and scoring detail. |
+| `redactions` | `string[]` | yes | 1 to 20 items | Names the kinds of content withheld (hidden cases, identities, answers, scoring detail), never the withheld content itself. Never empty. |
 | `violations` | `string[]` | yes | equals the referee evidence `violations` | Allowed security outcomes. |
 
 **Invariants**
@@ -464,11 +464,11 @@ Purpose: the one terminal result of a session. It records the outcome, the retai
 | `statistics` | `nullable-QualificationStatistics` | yes | non-null when a final comparison ran | Counts and statistics the rule was applied to. |
 | `attempts_used` | `integer` | yes | 0 to the session `limits.max_attempts` | Attempts the session started. |
 | `queries_used` | `integer` | yes | 0 to the session `limits.session_query_limit`. Includes the baseline query | Hidden-loop queries the session spent. |
-| `stop_reason` | `string` | yes | 1 to 300 characters | Why search stopped, in plain words. |
-| `limitations` | `string[]` | yes | at most 20 | Limits of this result, for example synthetic data or unavailable telemetry. |
-| `recorded_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the controller closed the session. |
-| `signature` | `string` | yes | 43 to 128 characters of base64url or hex | The custodian's signature over the canonical JSON bytes of this record without `signature` ([D46](../method/decisions.md#d46)). |
-| `signer_key_id` | `string` | yes | equals the operator config `rsi.custodian_key_id` | ID of the signing key. |
+| `stop_reason` | `string` | yes | 1 to 300 characters | Why search stopped, in plain words, for the human reviewer. The outcome comes from `outcome`, not from this text. |
+| `limitations` | `string[]` | yes | at most 20 | Limits of this result, for example synthetic data or unavailable telemetry. For the reader. They do not change `outcome`. |
+| `recorded_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the controller closed the session. UTC, whole seconds. |
+| `signature` | `string` | yes | 43 to 128 characters of base64url or hex | The custodian's signature over the canonical JSON bytes of this record without `signature` ([D46](../method/decisions.md#d46)). Admission verifies it again. |
+| `signer_key_id` | `string` | yes | equals the operator config `rsi.custodian_key_id` | ID of the signing key, not the key itself. A mismatch with the pinned ID blocks the candidate package. |
 
 **Enum `outcome`**
 
@@ -578,8 +578,8 @@ Purpose: what the workbench writes to the admission inbox for one qualified chil
 | `child_declaration_ref` | `Ref` | yes | the child declaration bytes. Its `identity.lineage` names the parent | Declaration admission stores for the child. |
 | `diff_ref` | `Ref` | yes | equals the final attempt `diff_ref` | The allowed implementation change. |
 | `referee_evidence_ref` | `Ref` | yes | equals the session result `referee_evidence_ref` | Protected paired evidence of the final comparison. |
-| `mutable_paths_touched` | `string[]` | yes | 1 to 16 unique paths, each in the target profile `mutable_paths` | Body paths the change touched. |
-| `created_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the workbench wrote the package to the inbox. |
+| `mutable_paths_touched` | `string[]` | yes | 1 to 16 unique paths, each in the target profile `mutable_paths` | Body paths the change touched. The packager derives them from the diff. Admission checks each against the target profile `mutable_paths`, and a path outside it is a security halt. |
+| `created_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the workbench wrote the package to the inbox. UTC, whole seconds. |
 
 **Invariants**
 
@@ -683,8 +683,8 @@ Purpose: the human decision that lets a new RSI session start after a security h
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this clearance record. |
-| `actor_id` | `string` | yes | 1 to 120 characters, an authorized security reviewer | Who decided. |
-| `recorded_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the decision was recorded. |
+| `actor_id` | `string` | yes | 1 to 120 characters, an authorized security reviewer | The authorized security reviewer who decided. A person, not the operator who ran the session. |
+| `recorded_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the decision was recorded. UTC, whole seconds. |
 | `halted_session_id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$`, a session whose result is `SECURITY_HALTED` | Exact session the violation halted. |
 | `violation_refs` | `Ref[]` | yes | 1 to 32 items | Protected incident evidence. |
 | `remediation_ref` | `Ref` | yes | the exact remediation bytes | Remediation applied. |
@@ -743,7 +743,7 @@ Purpose: the report that closes the M1 RSI acceptance run. It states which build
 | `uncertainties` | `string[]` | yes | 0 to 50 items | What the evidence leaves open. |
 | `unavailable` | `string[]` | yes | 0 to 50 items | Values that could not be measured, for example monetary cost. |
 | `containment_limitations` | `string[]` | yes | 0 to 20 items | Residual containment limits and any discovered vulnerability. |
-| `compiled_by` | `string` | yes | 1 to 120 characters | Who or what compiled the report. |
+| `compiled_by` | `string` | yes | 1 to 120 characters | Name of the person or tool that compiled the report, for audit. Display only. It grants nothing and no check branches on it. |
 | `recorded_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the report was written. |
 
 **RsiRequirementStatus**

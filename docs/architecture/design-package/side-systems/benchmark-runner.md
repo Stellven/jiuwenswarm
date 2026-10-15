@@ -9,12 +9,12 @@ This page defines how the platform benchmark runs the whole AI4Research system, 
 - The runner drives the app as an ordinary authenticated client. A separate referee holds the labels. The runner never sees them.
 - Every case, oracle, campaign and report format is versioned. M1 is the weakest version and the baseline. M2, M3, M4 and later runs compare against it with the same case keys.
 - Goal at M1: run end to end and record comparable results. A low score is acceptable. A missing record is not.
-- Six entry points are needed. E1 is the ordinary product client. Four are evaluation-profile only. The October 30 pilot uses E1 only (see below). The full M1 pilot (S01 to S06) adds E2 to E4. E5 and E6 follow.
-- Runner tools and credentials are unavailable to product agents and capability capsules. Product startup never depends on this page. The E1 pilot is a separate acceptance item from October 30 acceptance, scored from the sidecar after the core runs. A pilot failure is reported and never holds the core ([D40](../method/decisions.md#d40)).
+- Six entry points are needed. E1 is the ordinary product client. Four are evaluation-profile only. The initial E1 feasibility pilot uses E1 only (see below). The full M1 pilot (S01 to S06) adds E2 to E4. E5 and E6 follow.
+- Runner tools and credentials are unavailable to product agents and capability capsules. Product startup never depends on this page. The sidecar pilot is separate from the PRD core gate and runs after research jobs. A pilot failure is reported and never blocks the research workflow ([D40](../method/decisions.md#d40)).
 
-## October 30 pilot
+## Initial E1 feasibility pilot
 
-`Standard`. Decided by the architect on 2026-10-14.
+`Standard`. This bounded pilot checks that the sidecar can submit, observe and retrieve a run through the ordinary product client.
 
 | Item | Value |
 |---|---|
@@ -492,9 +492,9 @@ This map describes the family coverage the runner must be able to orchestrate ov
 | S09 RSI isolation and security | RSI workbench security path delegated by host launcher through the same scoped host-executor interface; not an E4 fault or generic app endpoint | Disposable, job-owned target with only campaign-authorized visible assets; candidate cannot access referee, hidden fixtures, host credentials or unrelated jobs | Attempted/actual violations, containment, evidence preservation and provenance | M2/M3; not M1 benchmark acceptance |
 | S10 Long-horizon reliability | E1 `long_horizon`, with E5 read-only checkpoint observation | Visible long-task data, protocol and checkpoint schedule; checkpoint list hidden from agent | Obligations and evidence over time, drift, time to failure, and correct halt | Extended Performance; not M1 pilot/acceptance prerequisite |
 
-Conditional Dynamic Agent Planning is tracked separately from S01–S10: use matched E1 runs on the same Brief for `plan_source: static` and `plan_source: planned`, with positive and negative plan/binder evidence. Report implementation, integration and verification separately. The bounded Planner is required by the October 30 assignment and is the Phase 3 item targeted for full implementation, integration and verification in M1. The PRD Phase 1 core gate is a separate boundary that excludes Phase 3. Model Routing implementation is required. Its integration/verification and full RSI validation are outside that PRD core gate. Keep these status distinctions aligned with PRD V10 §§1.3, 1.5, 6.11 and 6.12.
+Dynamic Agent Planning is assessed separately from S01–S10: use matched E1 runs on the same Brief for `plan_source: static` and `plan_source: planned`, with positive and negative plan/binder evidence. Report implementation, integration and verification separately. Dynamic Agent Planning is the Phase 3 item targeted for full implementation, integration and verification in M1. The PRD Phase 1 core gate excludes Phase 3. Model Routing implementation is required; its integration/verification and full RSI validation are outside that core gate. Keep these statuses aligned with PRD V.10 §§1.3, 1.5, 6.11 and 6.12.
 
-The October 30 E1 feasibility pilot remains its stated three-case, nine-run subset. It does not stand in for the S01–S06 M1 benchmark pilot or the complete Phase 1 research-workflow and ten-case Evaluator/Verifier acceptance in requirements §12.1 and PRD V10 §1.5. Statistical held-out campaigns, routing/RSI comparisons and long-horizon campaigns remain at their specified later phases.
+The initial E1 feasibility pilot is a three-case, nine-run subset. It does not stand in for the S01–S06 M1 benchmark pilot or the complete Phase 1 research-workflow and ten-case Evaluator/Verifier acceptance in requirements §12.1 and PRD V.10 §1.5. Statistical held-out campaigns, routing/RSI comparisons and long-horizon campaigns remain at their specified later phases.
 
 The platform benchmark runner is an experiment client and record writer; its separate referee scores evidence using protected labels. The Research Benchmark CC is a product capability inside a research run that produces `Benchmark_Payload.json` for that run's scientific evaluation. The test runner is generic client-validation tooling and has no E2–E5 authority, evaluation-profile startup authority, or app lifecycle ownership. The sidecar/host launcher owns campaign execution and job-owned resources, not product state or referee labels.
 
@@ -609,11 +609,11 @@ Goal: M1 results stay comparable with M2, M3, M4 and later results. M1 is the ba
 
 ## Benchmark rulings
 
-`Standard`. These items were open in the received requirements. The architect ruled on each. Only the peak-memory measurement stays open, and it needs the first pilot run ([open items](../method/open-items.md)).
+`Standard`. These items were open in the received requirements. The architect ruled on each. None stays open: the server host has 128 GB of memory, far above the M1 ceilings.
 
 | # | Item | Ruling |
 |---|---|---|
-| 1 | Scenarios for full M1 acceptance (requirements 12.1) | S01 to S06 with entry points E1 to E4. S05 and S06 together cover all ten PRD 4.2.9 cases (the table in requirements 12.1). S01 covers CC transfer, S02 static binding, S03 the fixed workflow, S04 composition and closure. S07 to S09 are scheduled at M2 and M3; S10 is Extended Performance. None are M1 acceptance. The October 30 pilot is the E1 subset above. |
+| 1 | Scenarios for full M1 acceptance (requirements 12.1) | S01 to S06 with entry points E1 to E4. S05 and S06 together cover all ten PRD 4.2.9 cases (the table in requirements 12.1). S01 covers CC transfer, S02 static binding, S03 the fixed workflow, S04 composition and closure. S07 to S09 are scheduled at M2 and M3; S10 is Extended Performance. None are M1 acceptance. The initial E1 feasibility pilot is the subset above. |
 | 2 | Model identity | `model_route` is the `route_id` of the [route record](../reference/model-routing-contract.md#route-record). `model_identifier` is its `model_id`. A `gpt-6.1-sol` configuration is a separate configuration for later comparisons. |
 | 3 | Peak memory | The pilot run (`purpose: feasibility`) measures peaks on the GB10 server host before budgets freeze. Until then the plan policy memory ceiling is 32768 MB ([plan policy](../reference/run-plan.md#plan-policy)). |
 | 4 | `host_records` in node replay | Accepted. The replay passes them only to the deterministic host checks, never to the semantic verifier. The host profile comes from the case `host_profile` and the hardware inventory record. No new record type is added. |

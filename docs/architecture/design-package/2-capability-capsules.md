@@ -4,6 +4,10 @@
 
 What a Capability Capsule (CC) is, how it is checked, and where it is going.
 
+## CC discovery and execution
+
+The library exposes a captured snapshot of eligible, versioned CCs. A static template names its CCs; the Planner proposes from the snapshot. The binder checks and pins exact versions and check bundles. At dispatch, SwarmFlow receives contracts built from the frozen plan. The CC runner resolves each pin, binds accepted inputs and limits, and uses the native agent/model path or pinned tool path. It captures outputs and observations for independent checks and the protected gate. The runner does not authorize a result. See [planning and freeze](platform/planning-and-freeze.md) for the full flow.
+
 ## What a CC is
 
 A CC is a reusable module with a declared contract, like a tool, a skill, an MCP server or an A2A agent. It has two parts:

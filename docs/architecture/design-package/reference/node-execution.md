@@ -22,7 +22,7 @@ Built by the scheduler at dispatch from the frozen plan and the templates stored
 
 | Required fields | Meaning / why needed |
 |---|---|
-| `schema_version`, `id`, `run_id`, `node_id`, `subnode_id`, `attempt_id`, `revision`, `node_contract_ref` | Exact child identity and enclosing authority; reject swapped parent/run/attempt |
+| `schema_version`, `id`, `run_id`, `node_id`, `subnode_id`, `attempt_id`, `revision`, `node_contract_ref` | Exact child identity and enclosing authority, set by the scheduler at dispatch. A CC cannot author them. Reject swapped parent/run/attempt |
 | `objective`, `requirement_ids` | Assigned obligation; fixed work uses predefined profile IDs |
 | `bindings` | Exactly one admitted declaration/body/dependency/admission pin, role, effective authority and invocation limits |
 | `inputs`, `outputs` | Named contract/version/required ports; concrete accepted input references |

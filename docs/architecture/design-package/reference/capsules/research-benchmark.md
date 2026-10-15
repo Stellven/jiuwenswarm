@@ -54,37 +54,37 @@ File `benchmark_payload.json`. Contains measurements only. It has no pass, fail 
 |---|---|---|---|---|
 | `schema_version` | string | yes | `2.0.0` | Format version. |
 | `id` | string | yes | `benchmark_payload` | Artifact identity. |
-| `blueprint_ref` | Ref | yes | Must equal the input blueprint's Ref | The frozen protocol the runs followed. |
-| `poc_ref` | Ref | yes | Must equal the input `poc_manifest` Ref | The POC that was run as the treatment. |
+| `blueprint_ref` | Ref | yes | Must equal the input blueprint's Ref | The frozen protocol the runs followed. The runner copies the input blueprint Ref. Check `protocol_matches_blueprint` rejects any other value. |
+| `poc_ref` | Ref | yes | Must equal the input `poc_manifest` Ref | The input `poc_manifest`, which is the treatment that ran. The runner copies the input Ref. |
 | `environment_lock_ref` | Ref | yes | Must equal the input lock and `blueprint.environment_ref` | The lock that was installed. |
-| `resource_refs` | Ref[] | yes | min 1. Must equal the blueprint `resource_refs` as a set | The baseline and validation data used. |
-| `configuration_ref` | Ref | yes | Resolves to the run configuration | The effective run configuration (model route, seed policy). |
+| `resource_refs` | Ref[] | yes | min 1. Must equal the blueprint `resource_refs` as a set | The baseline and validation snapshots used. The runner copies them from the blueprint. Compared as a set, so order does not matter. |
+| `configuration_ref` | Ref | yes | Resolves to the run configuration | The frozen run configuration of this run (the operator config snapshot), written by the binder. Benchmark reads the seed policy from it. Benchmark uses no model in M1, so no model route applies. |
 | `execution_receipt_ref` | Ref | yes | Resolves to an `execution_receipt` | The per-run record. |
 | `provisioning_receipt_ref` | Ref | yes | Resolves to a `provisioning_receipt` with status `succeeded` | The install record. |
-| `repeat_count` | integer | yes | min 1. Must equal `blueprint.repeat_count` | Number of repeats per role. |
-| `seed` | integer | yes | Must equal `blueprint.seed` | The registered seed. Blueprint `seed_policy` `fixed_same_for_all_runs` means every run of both roles uses it. |
+| `repeat_count` | integer | yes | min 1. Must equal `blueprint.repeat_count` | Number of repeats for each role, copied from the blueprint. The runner never chooses it. Each role has exactly this many runs. |
+| `seed` | integer | yes | Must equal `blueprint.seed` | The registered seed, copied from the blueprint. The runner never chooses it. Blueprint `seed_policy` `fixed_same_for_all_runs` means every run of both roles uses it. |
 | `run_order` | string[] | yes | Each item is `baseline` or `treatment`. Length is `2 * repeat_count`. All `baseline` items come before every `treatment` item. | Execution order of the runs, copied from the receipt so the payload is self-checking. |
 | `metrics` | BenchmarkMetric[] | yes | Exactly one item per blueprint metric. No extras. | Every registered measurement. |
-| `raw_evidence_refs` | Ref[] | yes | min 1. Must contain `empirical_results_ref` and every run's `stdout_ref` and `stderr_ref` from the receipt | Evidence the values came from sandbox execution. |
+| `raw_evidence_refs` | Ref[] | yes | min 1. Must contain `empirical_results_ref` and every run's `stdout_ref` and `stderr_ref` from the receipt | Pointers to the raw evidence behind the values: the `empirical_results` file and each run's stdout and stderr. The runner writes them so a reader can audit the values. |
 
 `BenchmarkMetric`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `metric_id` | string | yes | Equals a blueprint `metric_id` | The registered metric. |
-| `unit` | string | yes | Equals the blueprint unit | Unit of every value. |
+| `unit` | string | yes | Equals the blueprint unit | Unit of every repeat, value and delta of this metric, copied from the blueprint. The runner does not convert units. |
 | `aggregation` | string | yes | enum `min`, `max`, `mean`, `median`. Equals the blueprint aggregation | How repeats combine into `value`. |
 | `baseline` | MetricSide | yes | none | Baseline measurements. |
 | `treatment` | MetricSide | yes | none | Treatment measurements. |
-| `delta` | nullable-number | yes | Non-null exactly when both `value` fields are non-null. Then `delta = treatment.value - baseline.value` within relative 1e-9 | Absolute difference, always treatment minus baseline. Never a percentage. |
+| `delta` | nullable-number | yes | Non-null exactly when both `value` fields are non-null. Then `delta = treatment.value - baseline.value` within relative 1e-9 | Absolute difference, always treatment minus baseline, in the metric unit. Never a percentage. Null when either side has no value. Null is not zero. |
 
 `MetricSide`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `repeats` | number[] | yes | Length equals `repeat_count` when `value` is non-null. Length 0 to `repeat_count` otherwise. Finite numbers only | Raw value of each completed repeat, in repeat order. |
-| `value` | nullable-number | yes | Null exactly when `unmeasured_reason` is non-null. Otherwise equals `aggregation` applied to `repeats` within relative 1e-9 | The registered aggregate. |
-| `unmeasured_reason` | nullable-string | yes | Null or enum `run_failed`, `timeout`, `metric_not_emitted`, `non_finite_value`, `resource_limit_exceeded` | Why no value exists. Every metric side has a value or a reason, never both and never neither. |
+| `repeats` | number[] | yes | Length equals `repeat_count` when `value` is non-null. Length 0 to `repeat_count` otherwise. Finite numbers only | Raw value of each completed repeat, in repeat order and in the metric unit. Copied from `empirical_results`, never estimated or filled (check `values_match_empirical_results`). A failed repeat has no entry, so the list is shorter than `repeat_count` only when `value` is null. |
+| `value` | nullable-number | yes | Null exactly when `unmeasured_reason` is non-null. Otherwise equals `aggregation` applied to `repeats` within relative 1e-9 | The registered aggregate of `repeats`, in the metric unit. Null when the side is unmeasured, and then `unmeasured_reason` says why. Null is not zero and not a failure verdict. |
+| `unmeasured_reason` | nullable-string | yes | Null or enum `run_failed`, `timeout`, `metric_not_emitted`, `non_finite_value`, `resource_limit_exceeded` | Why no value exists. Null when `value` exists. Descriptive only: it is a measurement fact, not a pass or fail judgement. Every metric side has a value or a reason, never both and never neither. |
 
 Examples: [valid](../examples/benchmark_payload.json)
 
@@ -100,7 +100,7 @@ Purpose: what the protected executor observed for every run. File `execution_rec
 | `id` | `string` | yes | `execution_receipt` | Artifact identity. |
 | `blueprint_ref` | Ref | yes | Equals the input blueprint | Protocol the runs followed. |
 | `poc_ref` | Ref | yes | Equals the input `poc_manifest` | POC under test. |
-| `hardware_inventory` | HardwareInventory | yes | none | Hardware observed once, before the first run. |
+| `hardware_inventory` | HardwareInventory | yes | none | Hardware observed once, before the first run. Written by the protected executor. Every run points at its `hardware_id`. |
 | `empirical_results_ref` | Ref | yes | Resolves to an `empirical_results` file | The parsed metric values of every run. |
 | `runs` | RunRecord[] | yes | min 2. `sequence` is 1..N with no gaps. Exactly `repeat_count` baseline runs and `repeat_count` treatment runs | One record per run, in execution order. |
 
@@ -108,18 +108,18 @@ Purpose: what the protected executor observed for every run. File `execution_rec
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `sequence` | integer | yes | min 1. Unique | Global execution position. |
+| `sequence` | integer | yes | min 1. Unique | Global execution position, counted 1 to N across both roles in the order the runs started. |
 | `role` | string | yes | enum `baseline`, `treatment` | Which subject ran. |
-| `repeat_index` | integer | yes | min 0, below `repeat_count`. Unique within a role | Repeat number within the role. |
+| `repeat_index` | integer | yes | min 0, below `repeat_count`. Unique within a role | Zero-based repeat number within the role. |
 | `seed` | integer | yes | Equals `blueprint.seed` for every run (policy `fixed_same_for_all_runs`) | Seed passed to the run. |
 | `subject_ref` | Ref | yes | Baseline: equals `blueprint.baseline_identity.resource_ref`. Treatment: equals the manifest `archive_ref` | Exactly what was run. Proves the baseline was unmodified. |
-| `command` | string[] | yes | min 1 item. First item is an interpreter or executable | The command line as executed. |
+| `command` | string[] | yes | min 1 item. First item is an interpreter or executable | The command line as executed, one array item per argument. The protected executor records it as run. It is not edited afterwards. |
 | `exit_code` | integer | yes | none | Process exit code. 0 means success. |
-| `started_at` | string | yes | UTC ISO 8601. Not earlier than the previous run's start | Run start time. |
-| `wall_time_s` | number | yes | min 0 | Elapsed time. |
-| `timeout_s` | number | yes | Greater than 0. `wall_time_s` is at most this unless the run timed out | Time limit applied. |
-| `stdout_ref` | Ref | yes | Resolves to stored bytes | Captured standard output. |
-| `stderr_ref` | Ref | yes | Resolves to stored bytes | Captured standard error. |
+| `started_at` | string | yes | UTC ISO 8601. Not earlier than the previous run's start | UTC ISO 8601 time the run started. Used to check that every baseline run started before every treatment run. |
+| `wall_time_s` | number | yes | min 0 | Elapsed wall-clock time of the run, in seconds. |
+| `timeout_s` | number | yes | Greater than 0. `wall_time_s` is at most this unless the run timed out | Wall-clock limit applied to this run, in seconds. |
+| `stdout_ref` | Ref | yes | Resolves to stored bytes | Captured standard output, kept as raw evidence. Metric values come from `empirical_results`, not from this file. |
+| `stderr_ref` | Ref | yes | Resolves to stored bytes | Captured standard error, kept as raw evidence. Metric values come from `empirical_results`, not from this file. |
 | `hardware_ref` | string | yes | Equals `hardware_inventory.hardware_id` | Hardware the run used. All runs use the same value. |
 
 `HardwareInventory`
@@ -127,16 +127,16 @@ Purpose: what the protected executor observed for every run. File `execution_rec
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `hardware_id` | string | yes | non-empty | Identity runs refer to. |
-| `gpu_model` | nullable-string | yes | Non-null when `gpu_count` is above 0 | GPU name. |
+| `gpu_model` | nullable-string | yes | Non-null when `gpu_count` is above 0 | GPU name. Null when `gpu_count` is 0. |
 | `gpu_count` | integer | yes | min 0 | Number of GPUs visible to the runs. |
-| `gpu_memory_mb` | nullable-integer | yes | Non-null when `gpu_count` is above 0 | Memory per GPU. |
-| `driver_version` | nullable-string | yes | none | GPU driver. |
-| `cuda_version` | nullable-string | yes | none | CUDA or equivalent runtime. |
+| `gpu_memory_mb` | nullable-integer | yes | Non-null when `gpu_count` is above 0 | Memory per GPU, in megabytes. Null when `gpu_count` is 0. |
+| `driver_version` | nullable-string | yes | none | GPU driver version as the host reports it. Null when no GPU driver was detected, which includes a host with no GPU. Recorded as observed, never guessed. |
+| `cuda_version` | nullable-string | yes | none | CUDA or equivalent runtime version as the host reports it. Null when none was detected. Recorded as observed, never guessed. |
 | `cpu_model` | string | yes | non-empty | CPU name. |
-| `cpu_cores` | integer | yes | min 1 | Logical cores. |
-| `ram_mb` | integer | yes | min 1 | System memory. |
+| `cpu_cores` | integer | yes | min 1 | Number of logical cores. |
+| `ram_mb` | integer | yes | min 1 | System memory, in megabytes. |
 | `os` | string | yes | non-empty | Operating system and kernel. |
-| `captured_at` | string | yes | UTC ISO 8601, before the first `started_at` | Capture time. |
+| `captured_at` | string | yes | UTC ISO 8601, before the first `started_at` | UTC ISO 8601 time the inventory was captured, before the first run started. |
 
 The values of every run are in the file named by `empirical_results_ref`. Its contract is [4.2.1](#421-empirical_results-empirical-resultsfield-contract1).
 
@@ -186,14 +186,14 @@ Producer: protected executor inside `research.benchmark`. Consumers: Research Be
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | exactly `empirical_results` | Artifact identity. |
-| `runs` | `EmpiricalRun[]` | yes | min 2. `sequence` is 1..N with no gap or duplicate, in ascending order | One entry per receipt run. |
+| `runs` | `EmpiricalRun[]` | yes | min 2. `sequence` is 1..N with no gap or duplicate, in ascending order | One entry per receipt run, in ascending `sequence`. The protected executor writes it from the one line each run printed, not the CC. |
 
 `EmpiricalRun`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `sequence` | `integer` | yes | min 1. Equals one receipt run `sequence` | Which run the values came from. |
-| `metrics` | `object` | yes | map of `metric_id` to a finite number. Every run has the same key set | The values the run printed in the [output log format](builder.md#output-log-format). A run that printed no valid line has no entry and the payload records `metric_not_emitted`. |
+| `metrics` | `object` | yes | map of `metric_id` to a finite number. Every run has the same key set | The values the run printed in the [output log format](builder.md#output-log-format), as a map of `metric_id` to number. A run that printed no valid line has no entry, and the payload records `metric_not_emitted`. Values are never estimated or filled. |
 
 **Invariants**
 
@@ -238,15 +238,15 @@ Purpose: what the protected provisioner installed and changed before the runs. F
 | `id` | `string` | yes | `provisioning_receipt` | Artifact identity. |
 | `environment_lock_ref` | Ref | yes | Equals the input lock | The lock that was meant to be installed. |
 | `poc_manifest_ref` | Ref | yes | Equals the input manifest | The bundle that was unpacked. |
-| `status` | string | yes | enum `succeeded`, `failed` | Outcome. `failed` ends the node and no payload is produced. |
+| `status` | string | yes | enum `succeeded`, `failed` | Outcome of the install. `failed` ends the node and no payload is produced. |
 | `python_version` | string | yes | non-empty | Interpreter version in the virtual environment. |
 | `venv_path` | string | yes | Starts with `/workspace/poc/` | Where the environment lives. |
 | `runner_user` | string | yes | Not `root` | Unprivileged user that owns the environment. |
-| `packages` | InstalledPackage[] | yes | Name set equals the lock's package set. Empty when the lock lists none | What is installed. |
+| `packages` | InstalledPackage[] | yes | Name set equals the lock's package set. Empty when the lock lists none | What is installed, as read back after install. Empty when the lock lists none. |
 | `network_policy_used` | string | yes | enum `none`, `allowlist` | Network mode applied while installing. |
-| `network_allowlist` | string[] | yes | Empty when policy is `none` | Hosts the policy allowed. |
-| `unlisted_network_requests` | integer | yes | min 0. Must be 0 for `succeeded` | Requests to hosts outside the allowlist, all blocked. |
-| `effects` | ProvisioningEffect[] | yes | min 1 | Changes made to the workspace, in order. |
+| `network_allowlist` | string[] | yes | Empty when policy is `none` | Hosts the network policy allowed during install. Empty when policy is `none`. |
+| `unlisted_network_requests` | integer | yes | min 0. Must be 0 for `succeeded` | Count of requests to hosts outside the allowlist. All were blocked. Must be 0 for `succeeded`. |
+| `effects` | ProvisioningEffect[] | yes | min 1 | Changes made to the workspace, in the order they happened. Audit record only. |
 | `limits` | `ProvisioningLimits` | yes | see the type below | Install time limit and time used. |
 
 `InstalledPackage`
@@ -256,7 +256,7 @@ Purpose: what the protected provisioner installed and changed before the runs. F
 | `name` | `string` | yes | non-empty | Package name. |
 | `locked_version` | `string` | yes | exact version from the lock | Version the lock pins. |
 | `installed_version` | `string` | yes | equals `locked_version` | Version actually installed. |
-| `hash_verified` | `boolean` | yes | true when the lock carries a hash | Whether the package hash was verified. |
+| `hash_verified` | `boolean` | yes | true when the lock carries a hash | Whether the installer verified the package hash. Must be true when the lock carries a hash for the package. |
 
 `ProvisioningEffect`
 
@@ -271,7 +271,7 @@ Purpose: what the protected provisioner installed and changed before the runs. F
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `wall_s_limit` | `number` | yes | above 0 | Install time limit, in seconds. |
-| `wall_s_used` | `number` | yes | min 0 | Install time used, in seconds. |
+| `wall_s_used` | `number` | yes | min 0 | Install time actually used, in seconds. |
 
 **Enum `status`**
 

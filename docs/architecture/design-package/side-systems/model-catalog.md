@@ -33,4 +33,4 @@ The routing owner pins the catalog, capability-verification and pricing revision
 | `timeout_s` | `number` | yes | 1 to 600 | Time limit of one call to this provider. The call's own time limit still applies when it is shorter. |
 | `enabled` | `boolean` | yes | default false | Registration does not activate an endpoint. The routing owner sets it after the capability checks. |
 
-Until the routing owner supplies real entries, the router runs against mocked endpoints and every real provider stays disabled ([open items](../method/open-items.md)).
+Until the routing owner supplies real entries, the router runs against mocked endpoints and every real provider stays disabled. Adding real entries is the routing owner's decision and never blocks M1.

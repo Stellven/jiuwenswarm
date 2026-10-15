@@ -97,11 +97,11 @@ Purpose: show, for one execution, what the CC declared beside what it did, so di
 | `cc_version` | `string` | yes | pattern `^[a-z0-9][a-z0-9._-]{0,31}$`, equals the record's `cc_version` | Exact version that ran. |
 | `declaration_ref` | `Ref` | yes | the declaration bound to the invocation | Exact declaration compared against. |
 | `declaration_sha256` | `sha256` | yes | equals the digest of `declaration_ref` and the record's `declaration_sha256` | Join key with the record. |
-| `built_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the builder wrote the record. |
+| `built_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the conformance builder wrote the record. UTC, whole seconds. |
 | `items` | `ConformanceItem[]` | yes | at most 200. Covers the clauses in the table below | One entry per declared clause and per undeclared behavior. |
 | `undeclared_count` | `integer` | yes | min 0, equals the number of items with status `undeclared` | Behavior with no declaration. |
 | `unused_count` | `integer` | yes | min 0, equals the number of items with status `unused` | Declarations never used. |
-| `coverage` | `nullable-number` | yes | min 0, max 1. Null when no observed behavior exists | Share of observed behavior that the declaration accounted for. |
+| `coverage` | `nullable-number` | yes | min 0, max 1. Null when no observed behavior exists | Share of observed behavior that the declaration accounted for, as a fraction from 0 to 1 (formula in the invariants). Null means nothing was observed, and null is not 0. Reporting only: no gate reads it. |
 | `evidence_refs` | `Ref[]` | yes | at most 64 | Tool-call logs, the workspace copy and the check results the builder read. |
 | `unavailable_reasons` | `string[]` | yes | at most 50. Non-empty when an item is `unavailable` | Why an observation was not available. |
 
@@ -111,8 +111,8 @@ Purpose: show, for one execution, what the CC declared beside what it did, so di
 |---|---|---|---|---|
 | `clause_kind` | `string` | yes | enum `port`, `need`, `effect`, `check`, `failure_mode` | Which kind of declaration clause. |
 | `clause_id` | `string` | yes | 1 to 200 characters, unique within `clause_kind`. The declaration path of the clause, for example `ports.outputs.intent`, `needs.network`, `needs.resources.original_request`, `changes.effects.model-disclosure`, `guarantees.checks.intent_schema`, `guarantees.failure_modes.<reason_code>`. For an undeclared behavior, the same form for the observed thing | Which clause. |
-| `declared` | `nullable-string` | yes | 1 to 500 characters. Null exactly when `status` is `undeclared` | What the declaration says. |
-| `observed` | `nullable-string` | yes | 1 to 500 characters. Null when `status` is `unused` or `unavailable` | What the run did. |
+| `declared` | `nullable-string` | yes | 1 to 500 characters. Null exactly when `status` is `undeclared` | Short text of what the declaration says about this clause, for a reader. Null when the behavior was undeclared. The comparison result is in `status`, not in this text. |
+| `observed` | `nullable-string` | yes | 1 to 500 characters. Null when `status` is `unused` or `unavailable` | Short text of what the run did for this clause, for a reader. Null when nothing was observed (`unused` or `unavailable`). The comparison result is in `status`, not in this text. |
 | `status` | `string` | yes | enum `matched`, `mismatched`, `undeclared`, `unused`, `unavailable` | How the two compare. |
 
 **Enum `status`**
@@ -173,7 +173,7 @@ Purpose: summarize one CC version over a set of runs, so its owner can see how i
 | `cc_name` | `string` | yes | pattern `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$` | CC scored. |
 | `cc_version` | `string` | yes | pattern `^[a-z0-9][a-z0-9._-]{0,31}$` | Exact version scored. |
 | `declaration_sha256` | `sha256` | yes | equals the `declaration_sha256` of every record used | Exact declaration scored. |
-| `built_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the builder wrote the scorecard. |
+| `built_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the scorecard builder wrote the scorecard. UTC, whole seconds. |
 | `records_ref` | `Ref` | yes | a `records.jsonl` file | Exact records file read. |
 | `conformance_refs` | `Ref[]` | yes | at most 5000. Each is a conformance record of a scored execution | Conformance records behind `undeclared_behavior_count` and `mean_declaration_coverage`. Empty when none were built. |
 | `record_ids` | `string[]` | yes | 1 to 5000 unique IDs, each the `id` of a line of the records file whose CC triple equals this scorecard's | Executions scored. |
@@ -182,17 +182,17 @@ Purpose: summarize one CC version over a set of runs, so its owner can see how i
 | `execution_count` | `integer` | yes | min 1, equals the length of `record_ids` | Executions scored. |
 | `class_counts` | `ClassCounts` | yes | the counts sum to `execution_count` | Executions by failure class. |
 | `counted_count` | `integer` | yes | min 0, equals `execution_count` minus the `infrastructure` and `scientific` counts | Executions that count against the pass rate. |
-| `gate_pass_rate` | `nullable-number` | yes | min 0, max 1. Equals the `none` count divided by `counted_count`, rounded to six decimals. Null when `counted_count` is 0 | Share of counted executions that the gate advanced. |
+| `gate_pass_rate` | `nullable-number` | yes | min 0, max 1. Equals the `none` count divided by `counted_count`, rounded to six decimals. Null when `counted_count` is 0 | Share of counted executions that the gate advanced, as a fraction from 0 to 1. Reporting only: a gate decision never reads it. Null means no counted execution, and null is not 0. |
 | `verdict_counts` | `VerdictCounts` | yes | none | Gate verdicts of the executions that reached the gate. |
 | `check_rates` | `CheckRate[]` | yes | at most 64, unique `check_id` | Pass rate of each declared check. |
 | `failure_reasons` | `ReasonCount[]` | yes | at most 20, most frequent first | Most common declared failure reason codes. |
-| `error_fingerprints` | `FingerprintCount[]` | yes | at most 20, most frequent first | Most common error fingerprints. |
+| `error_fingerprints` | `FingerprintCount[]` | yes | at most 20, most frequent first | Most common error fingerprints. Each is a SHA-256 hash of normalized error text, never the text itself. |
 | `undeclared_behavior_count` | `integer` | yes | min 0, equals the sum of `undeclared_count` over `conformance_refs` | Items with status `undeclared` across the scored conformance records. |
 | `mean_declaration_coverage` | `nullable-number` | yes | min 0, max 1. The mean of `coverage` over `conformance_refs`, rounded to six decimals. Null when no conformance record has a coverage | Mean `coverage` of the scored conformance records. |
-| `next_node_acceptance_rate` | `nullable-number` | yes | min 0, max 1. Null when unavailable | Share of outputs that the next node accepted, matched by file hash. |
-| `median_duration_s` | `nullable-number` | yes | min 0. Null when no execution has a measured duration | Typical duration. |
-| `median_total_tokens` | `nullable-number` | yes | min 0. Null when no execution has token counts | Typical token use, input plus output. |
-| `median_attempts` | `nullable-number` | yes | min 1 | Typical number of attempts. |
+| `next_node_acceptance_rate` | `nullable-number` | yes | min 0, max 1. Null when unavailable | Share of this CC's outputs, in the window, that a downstream node consumed and whose consuming node gate decision advanced, matched by file hash. A fraction from 0 to 1. Null when no downstream node consumed an output in the window. Null is not zero. Off the hot path: no gate reads it. |
+| `median_duration_s` | `nullable-number` | yes | min 0. Null when no execution has a measured duration | Typical duration of one execution, in seconds. Null means no execution has a measured duration, and null is not 0. |
+| `median_total_tokens` | `nullable-number` | yes | min 0. Null when no execution has token counts | Typical token use of one execution, as a count of input plus output tokens. Null means no execution has token counts, and null is not 0. |
+| `median_attempts` | `nullable-number` | yes | min 1 | Median, over this CC's node executions in the window, of the attempt count per node execution (1 means first attempt). Null when the window has no execution. Off the hot path: no gate reads it. |
 | `unavailable_reasons` | `string[]` | yes | at most 50 | Measures that could not be computed, and why. |
 
 **ClassCounts**
@@ -235,7 +235,7 @@ Purpose: summarize one CC version over a set of runs, so its owner can see how i
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `error_fingerprint` | `sha256` | yes | none | Error fingerprint. |
+| `error_fingerprint` | `sha256` | yes | none | SHA-256 of the error text after removing volatile details (see the fingerprint rule above). Groups the same error across runs. Not a secret and not reversible. |
 | `count` | `integer` | yes | min 1 | Executions with it. |
 
 **Invariants**
@@ -274,14 +274,14 @@ Purpose: frozen copies of real executions, so other tracks work against realisti
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$`, equals the export folder name | Export ID. A changed export gets a new ID. |
-| `built_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the builder wrote the export. |
+| `built_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the export builder wrote the export. UTC, whole seconds. |
 | `records_ref` | `Ref` | yes | the `records.jsonl` inside the export folder | The exported records, one line per entry. |
 | `bundle_refs` | `Ref[]` | yes | 1 to 500, one run bundle per run in `entries` | Run bundle manifests of the exported runs. |
 | `entries` | `ExportEntry[]` | yes | 1 to 5000, unique `observation_id` | The exported executions. Failed executions are included. |
 | `files` | `ExportFile[]` | yes | 1 to 100000, unique `path` | Every file in the export folder except `export.json`. |
 | `content_sha256` | `sha256` | yes | see the rule below | One hash for the whole export, so everyone can confirm they use the same data. |
 | `omitted` | `MissingEvidence[]` | yes | at most 100 | Executions or files left out, with the reason. |
-| `redactions` | `string[]` | yes | at most 100 | What this audience does not see, and why. Protected evaluation data is always listed here when present. |
+| `redactions` | `string[]` | yes | at most 100 | What this audience does not see, and why. Names the kind of withheld content, never the content. Protected evaluation data is always listed here when present. |
 
 `content_sha256` is the SHA-256 of a UTF-8 text with one line per entry of `files`, sorted by `path` in byte order: the path, a tab, the file `sha256`, and a line feed.
 
@@ -293,10 +293,10 @@ Purpose: frozen copies of real executions, so other tracks work against realisti
 | `run_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.:-]{0,63}$` | Run of the execution. |
 | `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$` | Node of the execution. |
 | `attempt_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.:-]{0,63}$` | Attempt of the execution. |
-| `subnode_id` | `nullable-string` | yes | none | Subnode of the execution. |
-| `failure_class` | `string` | yes | enum `capsule`, `input`, `infrastructure`, `scientific`, `none` | Copied from the record, so a consumer can filter without opening it. |
+| `subnode_id` | `nullable-string` | yes | none | Subnode of the execution, copied from the record. Null when the execution has no subnode. The label rule writes null as `-`. |
+| `failure_class` | `string` | yes | enum `capsule`, `input`, `infrastructure`, `scientific`, `none` | Copied from the record by the builder, so a consumer can filter without opening it. It is not decided again here. |
 | `call_folder` | `string` | yes | a relative path inside the export folder, ending in `/`, a prefix of at least one `files` path | Copy of the per-call folder. |
-| `label` | `string` | yes | enum `development`, `held_out`. Fixed by the rule below | Whether a consumer may use the execution for development or must set it aside. |
+| `label` | `string` | yes | enum `development`, `held_out`. Fixed by the rule below | Whether a consumer may use the execution for development or must set it aside (`held_out`). The builder sets it by the rule below from the keys alone. A consumer cannot change it. |
 
 The `label` is `held_out` when the first eight hex digits of the SHA-256 of the text `<run_id>/<node_id>/<attempt_id>/<subnode_id>`, read as a number, divide by 5 with no remainder. Otherwise it is `development`. A null `subnode_id` is written as `-`. The rule depends only on the keys, so the same execution gets the same label in every export.
 
@@ -306,7 +306,7 @@ The `label` is `held_out` when the first eight hex digits of the SHA-256 of the 
 |---|---|---|---|---|
 | `path` | `string` | yes | relative to the export folder, no `..`, no leading `/` | File path. |
 | `sha256` | `sha256` | yes | digest of the exact bytes | File digest. |
-| `bytes` | `integer` | yes | min 0 | File size. |
+| `bytes` | `integer` | yes | min 0 | File size in bytes. |
 
 **Invariants**
 

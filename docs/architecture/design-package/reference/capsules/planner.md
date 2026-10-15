@@ -48,17 +48,17 @@ The output artifact is `plan_proposal` (`plan-proposal:field-contract:3`, file `
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `3.0.0` | Format version 3.0.0. Reject any other value. |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this proposal. |
-| `brief_ref` | `Ref` | yes | the accepted Brief given to the Planner | Accepted governing Research Brief. |
-| `library_snapshot_ref` | `Ref` | yes | the snapshot given to the Planner | Pinned list of eligible CC versions the nodes were chosen from. |
-| `resource_inventory_ref` | `Ref` | yes | the snapshot given to the Planner | Pinned list of supplied and observed resources. |
-| `policy_ref` | `Ref` | yes | the plan policy given to the Planner | Protected policy limits the plan was made under. |
-| `plan_source` | `string` | yes | exactly `planned` | Marks a Planner-made plan. A static template carries `static` instead. |
-| `nodes` | `PlanNode[]` | yes | 1 to 12 nodes (M1 ceiling, also limited by policy `max_nodes`) | The finite graph of nodes. Edges come from `predecessors` and future inputs. |
-| `coverage` | `CoverageEntry[]` | yes | 1 to 60 entries, one entry per mandatory requirement and per deliverable of the Brief | Self-review map from each Brief item to the nodes that cover it. It is the exact inverse of the node tags. |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this proposal. Chosen by the Planner. A label only. It grants nothing. |
+| `brief_ref` | `Ref` | yes | the accepted Brief given to the Planner | Accepted governing Research Brief. The Planner copies the Ref of its `brief` input. Check `plan_proposal_schema` rejects any other Ref. |
+| `library_snapshot_ref` | `Ref` | yes | the snapshot given to the Planner | Pinned list of eligible CC versions the nodes were chosen from. Copied from the `library_snapshot` input. Check `plan_proposal_schema` rejects any other Ref. |
+| `resource_inventory_ref` | `Ref` | yes | the snapshot given to the Planner | Pinned list of supplied and observed resources. Copied from the `resource_inventory` input. Check `plan_proposal_schema` rejects any other Ref. |
+| `policy_ref` | `Ref` | yes | the plan policy given to the Planner | Protected policy limits the plan was made under. Copied from the `plan_policy` input. The Planner cannot change a policy value. |
+| `plan_source` | `string` | yes | exactly `planned` | Marks a Planner-made plan. A static template carries `static` instead. The user chooses the plan source before the run ([D39](../../method/decisions.md#d39)). The Planner does not choose it. |
+| `nodes` | `PlanNode[]` | yes | 1 to 12 nodes (M1 ceiling, also limited by policy `max_nodes`) | The finite graph of nodes. Edges come from `predecessors` and future inputs. The Planner proposes it. The protected binder checks and freezes it. |
+| `coverage` | `CoverageEntry[]` | yes | 1 to 60 entries, one entry per mandatory requirement and per deliverable of the Brief | Self-review map from each Brief item to the nodes that cover it. It is the exact inverse of the node tags. The Planner writes it. Check `brief_coverage` compares it with the node tags. |
 | `topic_hints` | `string[]` | yes | 0 to 5 items, each 3 to 100 characters, no duplicates. The empty list is allowed | Optional topic phrases for the Search scope. The binder copies them into `search_scope.topic_hints`. Search may use or ignore them. They grant nothing. |
-| `limits` | `Limits` | yes | time and calls at least the sum of node limits, memory at least the largest node limit, all at most the policy aggregate limits | Aggregate ceiling for the whole plan. |
-| `notes` | `string` | yes | 0 to 1000 characters, the empty string is allowed only here | Short planner remark for human review. It is not an instruction and grants nothing. |
+| `limits` | `Limits` | yes | time and calls at least the sum of node limits, memory at least the largest node limit, all at most the policy aggregate limits | Aggregate ceiling for the whole plan, in the units of the shared [Limits](../field-catalog.md#limits) type. Proposed by the Planner. The binder checks it against the node limits and the plan policy aggregate limits. |
+| `notes` | `string` | yes | 0 to 1000 characters, the empty string is allowed only here | Short planner remark for human review. It is not an instruction and grants nothing. The verifier checks that it makes no authority claim (`no_authority_claims`). |
 
 
 
@@ -70,42 +70,42 @@ The output artifact is `plan_proposal` (`plan-proposal:field-contract:3`, file `
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the plan | Name of this node in the graph, for example `screening`. Never reused. |
-| `cc` | `CcPin` | yes | must match one library entry with `selectable_by_planner` true | The one CC version this node runs. M1 binds one CC per node. |
-| `objective` | `string` | yes | 1 to 300 characters | One plain sentence on what this node does for the run. |
-| `requirement_ids` | `string[]` | yes | each an ID in the Brief `mandatory_requirements`, at most 40. A static template node may instead hold the one value `all_mandatory_requirements` ([selectors](../run-plan.md#selectors)) | Mandatory Brief requirements this node helps satisfy. |
-| `deliverable_ids` | `string[]` | yes | each an ID in the Brief `deliverables`, at most 20, `requirement_ids` and `deliverable_ids` together hold at least 1 item. A static template node may instead hold the one value `all_deliverables` | Brief deliverables this node produces or helps produce. |
+| `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the plan | Name of this node in the graph, for example `screening`. Never reused. The Planner chooses it. `predecessors`, `future.producer_node` and `coverage` refer to it by this exact string. |
+| `cc` | `CcPin` | yes | must match one library entry with `selectable_by_planner` true | The one CC version this node runs. M1 binds one CC per node. The Planner copies name, version and digest from a library entry and invents none. |
+| `objective` | `string` | yes | 1 to 300 characters | One plain sentence on what this node does for the run. Text for people. It grants nothing. |
+| `requirement_ids` | `string[]` | yes | each an ID in the Brief `mandatory_requirements`, at most 40. A static template node may instead hold the one value `all_mandatory_requirements` ([selectors](../run-plan.md#selectors)) | Mandatory Brief requirements this node helps satisfy. These are tags. `coverage` must mirror them exactly. |
+| `deliverable_ids` | `string[]` | yes | each an ID in the Brief `deliverables`, at most 20, `requirement_ids` and `deliverable_ids` together hold at least 1 item. A static template node may instead hold the one value `all_deliverables` | Brief deliverables this node produces or helps produce. These are tags. `coverage` must mirror them exactly. |
 | `predecessors` | `string[]` | yes | node IDs, at most 11, includes every `future.producer_node` of this node, no self reference | Nodes that must be accepted before this node starts. Extra entries are ordering-only dependencies. |
-| `inputs` | `PlanInput[]` | yes | at most 16 items, covers every required library input port | Typed bindings for the node inputs. |
+| `inputs` | `PlanInput[]` | yes | at most 16 items, covers every required library input port | Typed bindings for the node inputs. The Planner names what each input binds to. It never writes a Ref. |
 | `outputs` | `PlanOutput[]` | yes | 1 to 16 items, covers every required library output port | Typed outputs the node will produce. |
-| `limits` | `Limits` | yes | each value at most the library `max_limits` | Time, model-call and memory ceiling for one attempt of this node. |
-| `suggested_checks` | `string[]` | yes | at most 8 check IDs, each matching `^[a-z][a-z0-9_]{0,63}$` | Extra deterministic checks the Planner wants. The binder may adopt them. They never replace the mandatory bundle. |
+| `limits` | `Limits` | yes | each value at most the library `max_limits` | Time, model-call and memory ceiling for one attempt of this node, in the units of the shared [Limits](../field-catalog.md#limits) type. The Planner proposes it. The library `max_limits` of the chosen CC cap it. |
+| `suggested_checks` | `string[]` | yes | at most 8 check IDs, each matching `^[a-z][a-z0-9_]{0,63}$` | Extra deterministic checks the Planner wants. The binder may adopt them. They never replace the mandatory bundle. An unknown ID is dropped and logged and does not fail the plan alone (`suggested_checks_known`). |
 
 **PlanInput**
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `name` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the node, an input port of the CC in the library entry | Consumer input port name. |
+| `name` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the node, an input port of the CC in the library entry | Consumer input port name. Copied from the library entry. Not a free label. |
 | `artifact_type` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, equals the library input port type | Artifact type of the port. |
-| `required` | `boolean` | yes | must be true when the library port is required | Whether the node needs this input. The Planner cannot mark a required library port optional. |
+| `required` | `boolean` | yes | must be true when the library port is required | Whether the node needs this input. Copied from the library port. The Planner cannot mark a required library port optional. |
 | `source_kind` | `string` | yes | enum `accepted_ref`, `future_output`, `host_record` | `accepted_ref` means an input that already exists when the run starts: the Brief, the bound `search_scope` or a supplied resource. `future_output` means the accepted output of an earlier node. `host_record` means a record the host supplies without a producing node: a pinned body file or a record built from the run's own accepted records. |
-| `run_input_key` | `nullable-string` | yes | non-null exactly when `source_kind` is `accepted_ref` or `host_record`. For `accepted_ref`: `brief`, `search_scope` or a `resource_key` of the resource inventory. For `host_record`: `screening_rubric`, `build_receipt`, `gate_decision_index`, `screening_result`, `execution_receipt`, `provisioning_receipt`, `environment_lock` or `run_configuration` | Which run input or host record to bind. The Planner names the key and never writes a ref. |
-| `accepted_ref` | `nullable-Ref` | yes | null in every plan proposal and static template. In a run plan non-null when `source_kind` is `accepted_ref`, null otherwise | Exact bytes of the run input. Only the binder fills this field. A host record is bound at dispatch from the run's accepted records. |
-| `future` | `nullable-FutureInput` | yes | non-null exactly when `source_kind` is `future_output` | Producer node, port and type of the future value. It binds to the gate-accepted output only, at dispatch. |
+| `run_input_key` | `nullable-string` | yes | non-null exactly when `source_kind` is `accepted_ref` or `host_record`. For `accepted_ref`: `brief`, `search_scope` or a `resource_key` of the resource inventory. For `host_record`: `screening_rubric`, `build_receipt`, `gate_decision_index`, `screening_result`, `execution_receipt`, `provisioning_receipt`, `environment_lock` or `run_configuration` | Which run input or host record to bind. The Planner names the key and never writes a ref. Null for `future_output`. |
+| `accepted_ref` | `nullable-Ref` | yes | null in every plan proposal and static template. In a run plan non-null when `source_kind` is `accepted_ref`, null otherwise | Exact bytes of the run input. Only the binder fills this field. The Planner must leave it null, and `plan_proposal_schema` rejects a proposal that sets it. A host record is bound at dispatch from the run's accepted records. |
+| `future` | `nullable-FutureInput` | yes | non-null exactly when `source_kind` is `future_output` | Producer node, port and type of the future value. It binds to the gate-accepted output only, at dispatch. Null for the other two source kinds. |
 
 **FutureInput**
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `producer_node` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, an existing node ID other than the consumer | Node that will produce the value. |
-| `port` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, a name in the producer node `outputs` | Output port of that node. |
+| `producer_node` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, an existing node ID other than the consumer | Node that will produce the value. It must also be in this node's `predecessors`, so the edge is explicit. |
+| `port` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, a name in the producer node `outputs` | Output port of that node. It must be listed in that node's `outputs`. |
 | `artifact_type` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, must equal the producer output `artifact_type` | Artifact type the consumer expects. A mismatch is an incompatible binding. |
 
 **PlanOutput**
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `name` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the node, an output port of the CC in the library entry | Producer output port name. |
+| `name` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the node, an output port of the CC in the library entry | Producer output port name. Copied from the library entry. Not a free label. |
 | `artifact_type` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, equals the library output port type | Artifact type of the port. |
 | `required` | `boolean` | yes | must be true when the library port is required | Whether the node must produce this output. |
 
@@ -113,10 +113,10 @@ The output artifact is `plan_proposal` (`plan-proposal:field-contract:3`, file `
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `item_id` | `string` | no | an ID in the Brief `mandatory_requirements`, `deliverables` or `evidence_obligations`. Set exactly when `item_kind` is set, and never together with `selector` | Brief item being covered. |
+| `item_id` | `string` | no | an ID in the Brief `mandatory_requirements`, `deliverables` or `evidence_obligations`. Set exactly when `item_kind` is set, and never together with `selector` | Brief item being covered. Copied from the Brief. The Planner invents no ID. Absent for a selector entry. |
 | `item_kind` | `string` | no | enum `requirement`, `deliverable`, `evidence_obligation` | Whether the item is a mandatory requirement, a deliverable or an evidence obligation. An `evidence_obligation` entry names the nodes that produce the evidence. No node tag mirrors it, so it is outside the inverse rule. |
 | `selector` | `string` | no | enum `all_mandatory_requirements`, `all_deliverables`, `all_evidence_obligations`. Valid only in a static template. Never set together with `item_id` | A rule that stands for every Brief item of one kind ([D47](../../method/decisions.md#d47)). The binder expands it into one concrete entry per Brief item before `brief_coverage` runs. A plan proposal never uses it. |
-| `node_ids` | `string[]` | yes | 1 to 12 node IDs, each node must tag this item | Nodes that cover the item, or every item the selector stands for. The list is the exact inverse of the node tags. |
+| `node_ids` | `string[]` | yes | 1 to 12 node IDs, each node must tag this item | Nodes that cover the item, or every item the selector stands for. The list is the exact inverse of the node tags. A node missing or extra here fails `brief_coverage`. |
 
 
 

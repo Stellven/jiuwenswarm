@@ -40,7 +40,7 @@ Finalize node/subnode contracts before routing. The decision references those pi
 |---|---|---|---|
 | `cc.router.enabled` | `boolean` | `false` | When false, the bridge uses `CodexRouter` for every call. It may be true only under an approved [evaluation profile](field-catalog.md#evaluation-profile), so a router-enabled run is a Phase 3 development or evaluation run, never a Phase 1 product run (PRD 4.3, 5.6.5). Before model access is approved, the router runs against mocked or simulated endpoints. |
 | `cc.router.deadline_s` | `number` | `30` | Time `RouterPort` waits for the router process before it returns the Codex route. Fixed at 30 s in this package. Only a recorded decision changes it ([owner rulings](../side-systems/owner-rulings.md#routing-v21), deadline row). |
-| `cc.router.profile_ref` | `nullable-Ref` | `null` | The [model-selection-profile](#model-selection-profile). Its `approved_model_ids` is the approved list. |
+| `cc.router.profile_ref` | `nullable-Ref` | `null` | The [model-selection-profile](#model-selection-profile). Its `approved_model_ids` is the approved list. Null while the router is off. With the router on, a null or unauthorized profile is a router halt (`PROFILE_UNAVAILABLE`) and the Codex fallback is used. |
 
 The profile field `policy_mode` does not switch the router. `cc.router.enabled` is the only platform switch. `policy_mode: fixed_baseline` behaves as `cc.router.enabled` false.
 
@@ -65,18 +65,18 @@ After the call starts, the model is fixed for that whole CC call. A model or pro
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version |
-| `route_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.-]{0,63}$`, unique in the run | Identity of this routing choice. Every model call of the invocation carries it. |
+| `route_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.-]{0,63}$`, unique in the run | Identity of this routing choice. The model bridge sets it. Every model call of the invocation carries it, and it joins calls and observations to this record. |
 | `invocation_id` | `string` | yes | the governed CC invocation | The CC call this route serves |
-| `run_id` | `string` | yes | protected run ID | Run attribution |
-| `node_id` | `string` | yes | protected node ID | Node attribution |
-| `subnode_id` | `string` | yes | protected subnode ID | Subnode attribution |
+| `run_id` | `string` | yes | protected run ID | Protected run ID, copied by the bridge from the runtime identities. Attribution only. |
+| `node_id` | `string` | yes | protected node ID | Protected node ID, copied by the bridge from the runtime identities. Attribution only. |
+| `subnode_id` | `string` | yes | protected subnode ID | Protected subnode ID, copied by the bridge from the runtime identities. Attribution only. |
 | `router_enabled` | `boolean` | yes | copied from `cc.router.enabled`. False for a verifier call, which never consults the router | Whether the API router was switched on and consulted for this call |
-| `decision_source` | `string` | yes | enum `router`, `codex_router_disabled`, `codex_router_failed` | Who chose the model |
-| `router_failure` | `nullable-string` | yes | enum `missing`, `error`, `timeout`, `unapproved_model`, `invalid_decision`, `no_route`. Null unless `decision_source` is `codex_router_failed` | Why the Codex route was used |
+| `decision_source` | `string` | yes | enum `router`, `codex_router_disabled`, `codex_router_failed` | Who chose the model. `router`: the API router returned a valid decision. `codex_router_disabled`: the router is off or not consulted (always so for a verifier call), so the Codex route is the default. `codex_router_failed`: the router is on but failed before the call, so the Codex fallback was used. |
+| `router_failure` | `nullable-string` | yes | enum `missing`, `error`, `timeout`, `unapproved_model`, `invalid_decision`, `no_route`. Null unless `decision_source` is `codex_router_failed` | Why the Codex fallback was used. The values are the cases of the fallback rule above. Null in every other case. |
 | `router_halt_code` | `nullable-string` | yes | enum `PROFILE_UNAVAILABLE`, `NO_COMPATIBLE_MODEL`, `MODEL_ACCESS_UNAVAILABLE`, `TASK_MISMATCH`, `MODEL_SCOPE_DENIED`, `CAPABILITY_UNVERIFIED`, `CONTEXT_EXCEEDED`, `POLICY_DENIED`, `ENVIRONMENT_BLOCKED`, `BUDGET_EXCEEDED`, `BUDGET_UNVERIFIABLE`, `LIMIT_UNSUPPORTED`, `DEPLOYMENT_BLOCKED`, `SERVICE_STALE`, `PROFILE_COVERAGE_MISSING`, `ALTERNATE_UNAVAILABLE`, `AUDIT_UNAVAILABLE`, `ROUTING_IN_PROGRESS`, `ROUTING_DEADLINE_EXCEEDED`, `ROUTING_OUTCOME_UNKNOWN`. Non-null exactly when `router_failure` is `no_route` | The router's halt or block code, so the cause of the Codex route is visible |
-| `model_id` | `string` | yes | the Codex route ID, or an ID in the approved list | The model fixed for this call |
+| `model_id` | `string` | yes | the Codex route ID, or an ID in the approved list | The one model fixed for this whole call. It never changes after the call starts. |
 | `route_decision_ref` | `nullable-Ref` | yes | non-null exactly when `decision_source` is `router` | The API router's frozen decision |
-| `recorded_at` | `string` | yes | UTC timestamp | When the bridge fixed the model |
+| `recorded_at` | `string` | yes | UTC timestamp | UTC time `YYYY-MM-DDTHH:MM:SSZ` at which the bridge fixed the model, before the call starts. Written by the bridge. |
 
 **Invalid/missing behavior:** a call without a route record does not start. A route record never changes after the call starts.
 
@@ -158,7 +158,7 @@ SelectedCapsuleInput, RouteRequest, ModelSelectionProfile and CallRecord start a
 | `approved_model_ids` | `string[]` | Approved scope; empty denies all |
 | `extra_requirements` | `RoutingRequirements` | Requirements only; no grant of tools or effects |
 | `selection_allowance` | `SelectionAllowance` | Distinct protected overhead reservation for the routing selection call. Zero calls unless `policy_mode` is `bounded_llm_ablation` |
-| `alternate_model_id` | `nullable-string` | The router alternate model: at most one predetermined compatible API model, used at most once before freeze |
+| `alternate_model_id` | `nullable-string` | The router alternate model: at most one predetermined compatible API model, used at most once before freeze. Null means the profile names no alternate. |
 | `policy_ref` | `Ref` | Protected governing authorization |
 
 **Invalid/missing behavior:** With the router enabled, a missing or unauthorized profile is a router halt (`PROFILE_UNAVAILABLE`): the bridge uses the Codex route and records `no_route`. Selection-call inability uses only the router alternate model. Checking profiles remain independent.
@@ -203,14 +203,14 @@ SelectedCapsuleInput, RouteRequest, ModelSelectionProfile and CallRecord start a
 | `registry_snapshot_ref` | `nullable-Ref` | Pinned API candidate snapshot; null for static baseline |
 | `eligible_endpoints` | `string[]` | Permitted candidates |
 | `excluded_reasons` | `ModelExclusion[]` | Deployment exclusions |
-| `selected_endpoint` | `string` | One approved model ID |
+| `selected_endpoint` | `string` | The one model ID the router chose. It must be in `approved_model_ids`, otherwise the bridge treats the reply as `unapproved_model` and uses the Codex fallback. |
 | `deployment_ref` | `Ref` | Frozen model/adapter/endpoint/configuration pins |
 | `identity` | `ModelIdentity` | Requested/observed identity with basis |
 | `limits` | `Limits` | CC execution ceilings; separate routing overhead |
 | `selection_method` | `string` | Enum `fixed_profile`, `single_candidate`, `development_profile_policy`, `bounded_llm_selection` (only under `bounded_llm_ablation`), `compatible_baseline` or `router_alternate_model` |
 | `alternate_used` | `boolean` | True when the router alternate model was chosen, not merely when it matches its ID |
-| `ready_at` | `string` | Persisted ready timestamp |
-| `valid_until` | `string` | Unexecuted decision expiry |
+| `ready_at` | `string` | UTC time `YYYY-MM-DDTHH:MM:SSZ` at which the route decision was persisted and became ready to execute. Written by the bridge. |
+| `valid_until` | `string` | UTC time `YYYY-MM-DDTHH:MM:SSZ` after which a decision whose call has not started is expired. An expired decision cannot be executed and is not rewritten. |
 | `routing_context_ref` | `Ref` | Pinned derived requirements/context with adapter revision |
 | `adapter_revision` | `string` | Exact normalization adapter revision; not a model quality claim |
 
@@ -223,22 +223,22 @@ SelectedCapsuleInput, RouteRequest, ModelSelectionProfile and CallRecord start a
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0 |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$`, unique in the run | Unique local call/event identity |
-| `route_attempt_id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Preallocated attempt exists before the routing selection call |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$`, unique in the run | Unique ID of this call record within the run. The bridge and audit writer set it. |
+| `route_attempt_id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | ID of the routing attempt, allocated before any routing selection call. It lets the selection call's attempt and evidence be stored before the final decision exists. |
 | `route_decision_ref` | `nullable-Ref` | yes | null for `routing_selection`, and when the route record's `decision_source` is not `router`. Otherwise the frozen decision | Final frozen decision for task_execution; nullable during routing_selection |
-| `execution_id` | `string` | yes | the routing execution of the invocation | Subject routing execution |
+| `execution_id` | `string` | yes | the routing execution of the invocation | Routing execution key of the governed CC invocation this call serves (the routing idempotency key). |
 | `invocation_id` | `string` | yes | equals the route record `invocation_id` | Governed CC invocation attribution |
-| `purpose` | `string` | yes | enum `routing_selection`, `task_execution` | routing_selection or task_execution |
+| `purpose` | `string` | yes | enum `routing_selection`, `task_execution` | Why the call was made (see Enum `purpose`). A `routing_selection` call never produces CC output. |
 | `call_function` | `string` | yes | enum `worker`, `verifier`, `planner`, `routing_selection` | Attribution of the call (v2.1 §2.12.1). A `routing_selection` call has `purpose` `routing_selection`. `planner` exists only in a later profile |
 | `deployment_ref` | `Ref` | yes | the deployment the bridge called. For `routing_selection` it differs from the selected task model | Actual called deployment; the selection deployment differs from the selected task model |
 | `model_selection_profile_ref` | `Ref` | yes | the protected profile of the run | Protected call authorization |
-| `provider_request_id` | `nullable-string` | yes | null when the provider gave none | Provider correlation or unavailable |
-| `identity` | `ModelIdentity` | yes | `requested` equals the route record `model_id` | Requested/effective actual model and basis |
-| `started_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | Observed call start |
+| `provider_request_id` | `nullable-string` | yes | null when the provider gave none | Request ID that the provider returned, kept only for correlation. Null when the provider gave none. |
+| `identity` | `ModelIdentity` | yes | `requested` equals the route record `model_id` | The requested model, the model actually observed and the basis for that. `requested` must equal the route record `model_id`. |
+| `started_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | When the call started, as observed by the bridge. UTC, to the second. |
 | `ended_at` | `nullable-string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ`, not before `started_at`. Null only when `outcome` is `outcome_unknown` | Observed completion or uncertain |
-| `outcome` | `string` | yes | enum `completed`, `failed`, `outcome_unknown` | completed, failed or outcome_unknown |
+| `outcome` | `string` | yes | enum `completed`, `failed`, `outcome_unknown` | How the call ended (see Enum `outcome`). Only `failed` carries a `provider_error_code`. |
 | `provider_error_code` | `nullable-string` | yes | enum `auth_failed`, `rate_limited`, `timeout`, `provider_error`, `invalid_request`, `network_error`, `invalid_output` (the [provider error](#provider-errors) codes). Non-null exactly when `outcome` is `failed` | The one code the provider adapter mapped the failure to. Null for `completed` and `outcome_unknown` |
-| `usage` | `Usage` | yes | null is never zero | Available telemetry; null is not zero |
+| `usage` | `Usage` | yes | null is never zero | Telemetry that the provider or bridge could observe. An unknown figure stays null and must never be read as zero or as complete cost. |
 | `evidence_refs` | `Ref[]` | yes | at most 64 | Access-controlled immutable call evidence |
 | `observed_runtime` | `boolean` | yes | false only in synthetic documentation examples | False for synthetic documentation examples; never acceptance evidence |
 
@@ -334,7 +334,7 @@ SelectedCapsuleInput, RouteRequest, ModelSelectionProfile and CallRecord start a
 | Field | Type | Meaning / why needed |
 |---|---|---|
 | `tool_calling` | `boolean` | Additional positive capability requirement (optional) |
-| `min_context` | `integer` | Additional minimum context (optional) |
+| `min_context` | `integer` | Minimum context window the model must offer, in tokens, in addition to the default floor. Optional. Absent means no extra requirement. |
 | `modalities` | `string[]` | Additional required modalities (optional) |
 | `families` | `string[]` | Additional model-family restriction (optional) |
 | `excludes` | `string[]` | Excluded families/models under pinned interpretation (optional) |

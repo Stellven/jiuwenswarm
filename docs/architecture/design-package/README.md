@@ -10,32 +10,15 @@ This package is the design for milestone 1 (M1) of AI4Research. Coding agents bu
 - If the code does not do what the PRD or this package says, the code is wrong. If this package is wrong, fix the package first, record the decision, then fix the code.
 - Each concept has one name, in the [glossary](glossary.md#canonical-terms).
 
-## What AI4Research is
+Related proposal, not an M1 standard: [temporary workload profiling](temporary-workload-profiling.md).
 
-AI4Research is one Dockerized application on a server. A user gives it a research goal and files in a browser. The application:
+## Architecture at a glance
 
-1. turns the goal into a checked Research Brief (`research_brief.json`);
-2. plans the work as a graph of steps;
-3. runs every step with a **Capability Capsule** (CC), a reusable module with a declared contract;
-4. checks every output before the next step may use it;
-5. lets humans improve CCs offline with **RSI** (recursive self-improvement), never during a run;
-6. delivers a readable report with its evidence.
-
-A correctly measured negative result is a valid, delivered result.
-
-## Principles
-
-AI4Research values accuracy over speed. The full table of what good and bad look like is in [principles](method/principles.md). Use it whenever this package does not settle a case.
-
-- **Never pass garbage forward.** Every output is checked before anything uses it. If it is bad, that node stops.
-- **Get intent right first, then keep rolling.** Runs are long and unattended, often overnight. The Intention Compiler makes the request clear up front. After that, the run follows its frozen plan without waiting for anyone. Slight uncertainty is handled by declared defaults and recorded, not by asking a person ([D50](method/decisions.md#d50)).
-- **A failure stops only what depends on it.** A failed node and its dependents stop. Independent branches continue in dependency order ([D49](method/decisions.md#d49)).
-- **Keep everything.** Exact versions are pinned, and every artifact and record is saved, so any run can be reproduced and debugged.
-- **Side systems never block.** A run works without the model router, the RSI workbench or the sidecar.
+AI4Research builds on JiuwenSwarm/OpenJiuwen. It reuses the existing workflow, agent, model, UI and diagnostic runtime where compatible, then adds research-specific CC governance, binding, checks, gates and evidence. A request becomes a checked Research Brief before planning. M1 uses Python services, a TypeScript UI, SQLite and files on Docker volumes. See [native reuse evidence](sources/native-reuse-evidence.json) and [system architecture](1-system.md).
 
 ## Deployment and access
 
-**Diagram A.** Level: containers and their main processes. Not shown: the modules inside the runtime ([diagram B](1-system.md#components)) and the steps of a run ([diagram C](1-system.md#a-run-node-by-node)). Dashed lines are off the hot path: a run works without them. Stores are mounted Docker volumes. Also not drawn: the API router process inside the app container, and the platform benchmark referee, a separate process under its own identity inside the sidecar.
+**Diagram A.** Deployment and main processes. Dashed lines are off the hot path. Stores are mounted Docker volumes. The AI4Research control flow inside the app is detailed in [1. The system](1-system.md#components). The API router runs as a separate process inside the app container. The benchmark referee is a separate process under its own identity inside the sidecar.
 
 ```mermaid
 flowchart LR
@@ -71,11 +54,19 @@ flowchart LR
 
 Detail: [platform](platform/README.md) and [Compose topology](development-tools/automation.md).
 
+## Principles
+
+AI4Research values accuracy over speed. The full table of what good and bad look like is in [principles](method/principles.md). Use it whenever this package does not settle a case.
+
+- **Never pass garbage forward.** Every output is checked before anything uses it. If it is bad, that node stops.
+- **Get intent right first, then keep rolling.** The run follows its frozen plan without waiting for a person ([D50](method/decisions.md#d50)).
+- **A failure stops only what depends on it.** Independent branches continue in dependency order ([D49](method/decisions.md#d49)).
+- **Keep everything.** Exact versions are pinned, and artifacts and records are retained for reproduction and debugging.
+- **Side systems never block.** A run works without the model router, RSI workbench or sidecar.
+
 ## How to use this package
 
-- **Build.** Read tier 1 (about 20 minutes), then the tier 2 pages for your area, then the tier 3 page for your component.
-- **Test.** Each build criterion says what correct looks like, and each check states its exact condition.
-- **Fix.** Find the rule the bug breaks. Fix the code, or fix the design first if the design is wrong.
+- Read tier 1, then the tier 2 area page and tier 3 component contract. Each page states the expected behavior and links to its owning contract.
 
 Tier 1 is this page, [1. System](1-system.md), [2. Capability Capsules](2-capability-capsules.md) and [3. Build plan](3-build-plan.md). Tier 2 is the areas below. Tier 3 is the [reference](reference/README.md).
 

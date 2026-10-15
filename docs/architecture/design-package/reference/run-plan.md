@@ -58,8 +58,8 @@ Purpose: the list of CC versions a run may use. The library captures it once at 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this snapshot. |
-| `captured_at` | `string` | yes | UTC time, pattern `YYYY-MM-DDTHH:MM:SSZ` | When the library captured the snapshot. |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this snapshot. The protected library sets it at capture. A new capture is a new record with a new ID. |
+| `captured_at` | `string` | yes | UTC time, pattern `YYYY-MM-DDTHH:MM:SSZ` | UTC time, to the second, when the protected library captured the snapshot. Later library changes never alter it. |
 | `entries` | `LibraryEntry[]` | yes | 1 to 200 entries, the pair `(cc_name, cc_version)` is unique | Eligible CC versions. Active library changes after capture never alter this list. |
 
 Entry types:
@@ -68,16 +68,16 @@ Entry types:
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `cc_name` | `string` | yes | pattern `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`, for example `research.screening` | Dotted name of the capability capsule. It must equal the name of an entry in the library snapshot. |
+| `cc_name` | `string` | yes | pattern `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`, for example `research.screening` | Dotted name of the CC, copied by the protected library from the admitted declaration. A plan or template node must name a pair `(cc_name, cc_version)` that matches exactly one snapshot entry. |
 | `cc_version` | `string` | yes | pattern `^[a-z0-9][a-z0-9._-]{0,31}$` | Admitted version of that CC. Equals the declaration `identity.version_label`. Together with `cc_name` it must match exactly one library snapshot entry. Never a range or `latest`. |
 | `declaration_sha256` | `sha256` | yes | 64 lowercase hex characters | Digest of the exact declaration bytes. In a plan proposal or static template it must equal the digest in the library entry. The binder rejects a mismatch. |
-| `selectable_by_planner` | `boolean` | yes | none | True when the Planner may choose this CC. False for fixed preparation CCs (Intent, Requirement), for the Verifier and for the Planner itself. The static template may use any entry marked true. |
-| `input_ports` | `PortSpec[]` | yes | at most 16 items, names unique | All input ports declared by the CC. |
-| `output_ports` | `PortSpec[]` | yes | 1 to 16 items, names unique | All output ports declared by the CC. |
+| `selectable_by_planner` | `boolean` | yes | none | True when the Planner may choose this CC. The protected library sets it from admission, never a plan. False for fixed preparation CCs (Intent, Requirement), for the Verifier and for the Planner itself. The static template may use any entry marked true. |
+| `input_ports` | `PortSpec[]` | yes | at most 16 items, names unique | All input ports declared by the CC, copied from the declaration. An empty list means the CC takes no input. |
+| `output_ports` | `PortSpec[]` | yes | 1 to 16 items, names unique | All output ports declared by the CC, copied from the declaration. |
 | `effect_class` | `string` | yes | enum, see below | Effect class from the CC declaration `changes.effect_class`. |
 | `network_mode` | `string` | yes | enum, see below | Network mode from the declaration `needs.network.mode`. |
 | `resource_needs` | `ResourceNeed[]` | yes | at most 16 items | Resources the CC needs, taken from the declaration. |
-| `max_limits` | `Limits` | yes | all values positive except `model_calls`, which may be 0 | Per-node ceiling. `time_s` is the declaration budget `wall_s`. `model_calls` is the budget `invocations` when the declaration injects the model bridge, otherwise 0. `memory_mb` comes from the admission record, because a declaration carries no memory budget. A node may ask for less, never more. |
+| `max_limits` | `Limits` | yes | all values positive except `model_calls`, which may be 0 | Per-node ceiling, copied by the protected library and never taken from a plan. `time_s` is in seconds and is the declaration budget `wall_s`. `model_calls` is a count: the budget `invocations` when the declaration injects the model bridge, otherwise 0. `memory_mb` is in megabytes and comes from the admission record, because a declaration carries no memory budget. A node may ask for less, never more. |
 | `check_pins` | `nullable-CheckPins` | yes | must be non-null for a usable entry | Check bundle and checking profile pinned by protected admission. Null means the version has no admitted bundle. The binder must reject any node that uses a null entry. |
 
 **PortSpec**
@@ -179,8 +179,8 @@ Producer: host intake and capture. It lists user-supplied and observed resources
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this snapshot. |
-| `resources` | `ResourceItem[]` | yes | 0 to 100 items, `resource_key` unique | Resources supplied by the user or observed on the host. |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this inventory. Host intake and capture set it. |
+| `resources` | `ResourceItem[]` | yes | 0 to 100 items, `resource_key` unique | Resources supplied by the user or observed on the host. Host intake and capture write the list, never a CC. An empty list means no resource is available, so a node whose CC needs one fails `resource_feasibility`. |
 
 **ResourceItem**
 
@@ -188,7 +188,7 @@ Producer: host intake and capture. It lists user-supplied and observed resources
 |---|---|---|---|---|
 | `resource_key` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the snapshot | Key that CC declarations use to ask for this resource. |
 | `kind` | `string` | yes | enum `file`, `dataset`, `gpu`, `model`, `network`, `workspace`, `store` | What sort of resource it is. |
-| `available` | `boolean` | yes | none | True when the host observed the resource at capture time. |
+| `available` | `boolean` | yes | none | True when the host observed the resource at capture time. False means the resource is listed but was not observed, and `resource_feasibility` treats it as missing. Set by host intake and capture, never by a CC. |
 | `quantity` | `nullable-integer` | yes | null or at least 0 | Observed count for countable resources (for example 1 GPU). Null otherwise. |
 | `ref` | `nullable-Ref` | yes | null or a Ref to immutable bytes | Exact bytes of a supplied file or dataset. Null for hardware and services. |
 
@@ -203,13 +203,13 @@ Producer: protected configuration owner. It carries limits the Planner and templ
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this policy. |
-| `max_nodes` | `integer` | yes | 1 to 12 | Most nodes a plan may hold. |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this policy. The protected configuration owner sets it. |
+| `max_nodes` | `integer` | yes | 1 to 12 | Most nodes a plan may hold, as a count. It counts the nodes of the plan only, not the pre-plan Intention Compiler and Planner nodes. |
 | `allowed_effect_classes` | `string[]` | yes | 1 to 5 values from the effect class enum | Effect classes a node CC may have. M1 excludes `irreversible`. |
 | `allow_network` | `boolean` | yes | none | When false, no node may use a CC whose `network_mode` is not `none`. |
-| `required_stages` | `string[]` | yes | 0 to 12 unique CC names, each in the library | CCs that every plan holds, static or planned. Each named CC runs in exactly one node. In M1: `research.search`, `research.screening` and `research.hypothesis`. |
-| `aggregate_limits` | `Limits` | yes | positive, `model_calls` may be 0 | Ceiling for the whole plan. Time and calls add across nodes. Memory is the largest node value because M1 runs nodes one at a time. |
-| `max_attempts_per_node` | `integer` | yes | 1 to 3 | Ceiling for `max_attempts` of any node. |
+| `required_stages` | `string[]` | yes | 0 to 12 unique CC names, each in the library | CCs that every plan holds, static or planned. Each named CC must have an eligible entry in the library snapshot the binder uses, or binding fails. Each runs in exactly one node. In M1: `research.search`, `research.screening` and `research.hypothesis`. |
+| `aggregate_limits` | `Limits` | yes | positive, `model_calls` may be 0 | Ceiling for the whole plan, never changed by the Planner. `time_s` is in seconds and `memory_mb` in MiB. `model_calls` is a count. Time and calls add across nodes. Memory is the largest node value because M1 runs nodes one at a time. |
+| `max_attempts_per_node` | `integer` | yes | 1 to 3 | Ceiling for `max_attempts` of any node, as a count of attempts. The M1 value is 1. |
 
 **Placement rules live here.** A CC page describes only the CC ([D42](../method/decisions.md#d42)). Where a CC must run in M1 is a policy entry that the protected binder enforces. `required_stages` is the first such entry: the Planner cannot skip Search, Screening or Hypothesis, and cannot add a second selection. The binder checks it in `delivery_leaf_coverage`. Order follows from the port types: a CC runs after the nodes that produce its inputs, so no order list is needed. The Verifier CC is not in any plan. The scheduler creates a verifier subnode for each output at dispatch.
 
@@ -221,7 +221,7 @@ Producer: protected configuration owner. It carries limits the Planner and templ
 | `allowed_effect_classes` | `pure`, `read_only`, `idempotent`, `compensable` | M1 excludes `irreversible`. |
 | `allow_network` | true | Search and Benchmark declare an allowlisted network. Every other node stays `none` through its own declaration. |
 | `required_stages` | `research.search`, `research.screening`, `research.hypothesis` | Exactly the three named in the field table. |
-| `aggregate_limits` | `time_s` 10800, `model_calls` 80, `memory_mb` 32768 | A planned run may use up to 3 hours and 80 calls. Memory is the largest node value. The GB10 peak-memory measurement may lower it ([open items](../method/open-items.md)). |
+| `aggregate_limits` | `time_s` 10800, `model_calls` 80, `memory_mb` 32768 | A planned run may use up to 3 hours and 80 calls. Memory is the largest node value. The server host has 128 GB, so this is far from a hardware limit. The first pilot run may lower it. |
 | `max_attempts_per_node` | 1 | M1 allows no automatic repair. |
 
 Examples: [valid](examples/plan_policy.json)
@@ -235,12 +235,12 @@ Purpose: the fixed, hand-written plan of the M1 research path. It uses the same 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this template. |
-| `template_name` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$` | Name of the fixed path, for example `m1_research_path`. |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this template. A changed template is a new record with a new ID, admitted again. |
+| `template_name` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$` | Name of the fixed path, for example `m1_research_path`. A label for people and logs. The binder never chooses a template by name: a `static` run binds the template named by the operator config `cc.static_template_ref`. |
 | `plan_source` | `string` | yes | exactly `static` | Marks a hand-authored plan. |
 | `nodes` | `PlanNode[]` | yes | 1 to 12 nodes | The fixed nodes. Same node shape as a plan proposal. |
 | `coverage` | `CoverageEntry[]` | yes | 1 to 60 entries. Each entry names one Brief item or uses a `selector` | Self-review map from each Brief item to the nodes that cover it. A template is written before any Brief exists, so it cannot know Brief IDs. An entry may use a selector instead (see [Selectors](#selectors)). After expansion it is the exact inverse of the node tags. |
-| `limits` | `Limits` | yes | same rule as a plan proposal | Aggregate ceiling for the whole plan. |
+| `limits` | `Limits` | yes | same rule as a plan proposal | Aggregate ceiling for the whole plan: `time_s` in seconds, `model_calls` as a count, `memory_mb` in MiB. The binder rejects limits above the plan policy `aggregate_limits` (`budget_ceilings`). |
 
 The M1 template has seven nodes in this order: `search`, `screening`, `hypothesis`, `builder`, `benchmark`, `evaluation`, `delivery`. Search covers candidates, Screening picks one opportunity, Hypothesis freezes the protocol, Builder makes the proof of concept, Benchmark measures baseline then treatment on one local GPU, Evaluation classifies the result and Delivery writes the report. The Intention Compiler node runs before the template and is not in it.
 
@@ -309,19 +309,19 @@ Purpose: the one frozen graph the scheduler runs. A run plan is the frozen resul
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this frozen plan. |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this frozen plan. The binder sets it at freeze. |
 | `plan_source` | `string` | yes | enum `static`, `planned`. Equals the run request `plan_source` | `static` when built from a static template. `planned` when built from a Planner proposal. Both use this same type. |
 | `brief_ref` | `Ref` | yes | the accepted Brief | Brief the plan answers. |
 | `library_snapshot_ref` | `Ref` | yes | the pinned snapshot | Snapshot every CC pin was resolved against. |
 | `resource_inventory_ref` | `Ref` | yes | the pinned snapshot | Resources the feasibility check used. |
 | `policy_ref` | `Ref` | yes | the pinned policy | Plan policy the checks used. |
 | `configuration_ref` | `Ref` | yes | the frozen run configuration | Effective run configuration. |
-| `source_ref` | `Ref` | yes | a static template when `plan_source` is `static`, a plan proposal when `plan_source` is `planned` | The unmodified source the binder started from. |
+| `source_ref` | `Ref` | yes | a static template when `plan_source` is `static`, a plan proposal when `plan_source` is `planned` | The unmodified source the binder started from: for `static`, the template named by the operator config `cc.static_template_ref`; for `planned`, the accepted plan proposal. |
 | `acceptance_ref` | `Ref` | yes | when `plan_source` is `planned`, a gate decision with action `advance`. When `plan_source` is `static`, a deterministic check result in which every check is `PASS` | Committed acceptance of the bound plan, from the [plan gate](#plan-gate). Dispatch cannot start without it. |
 | `nodes` | `RunPlanNode[]` | yes | 1 to 12 nodes | Bound nodes with resolved accepted refs and copied check pins. |
 | `coverage` | `CoverageEntry[]` | yes | 1 to 60 entries, concrete Brief IDs only, one entry per mandatory requirement and per deliverable of the Brief | The coverage map after the binder expanded every selector of a static template against the accepted Brief ([Selectors](#selectors)). It is the exact inverse of the node tags. |
 | `topological_order` | `string[]` | yes | each node ID once, every node after all its predecessors, equal to the Kahn order with the tie rule below | Dispatch order computed by the binder with Kahn's algorithm. M1 runs nodes one at a time in this order. |
-| `limits` | `Limits` | yes | same rule as a plan proposal | Aggregate ceiling for the whole plan. |
+| `limits` | `Limits` | yes | same rule as a plan proposal | Aggregate ceiling for the whole plan: `time_s` in seconds, `model_calls` as a count, `memory_mb` in MiB. The binder carries it over from the source and checks it against the plan policy. |
 | `frozen` | `boolean` | yes | must be true | Marks the plan immutable. After freeze there is no replan, substitution or pin change. |
 
 **RunPlanNode**
@@ -330,13 +330,13 @@ Purpose: the one frozen graph the scheduler runs. A run plan is the frozen resul
 |---|---|---|---|---|
 | `node_id` | `string` | yes | pattern `^[a-z][a-z0-9_]{0,31}$`, unique in the plan | Name of this node in the graph, for example `screening`. Never reused. The same pattern holds for every node ID in the system, including the fixed `intention_compiler` and `planner` nodes. |
 | `cc` | `CcPin` | yes | must match one library entry with `selectable_by_planner` true | The one CC version this node runs. Every M1 run plan node has one work subnode. The node contract allows more for later composition, and the pre-plan Intention Compiler node already has two. |
-| `objective` | `string` | yes | 1 to 300 characters | One plain sentence on what this node does for the run. |
-| `requirement_ids` | `string[]` | yes | each an ID in the Brief `mandatory_requirements`, at most 40 | Mandatory Brief requirements this node helps satisfy. |
+| `objective` | `string` | yes | 1 to 300 characters | One plain sentence on what this node does for the run. The template author or the Planner writes it. The scheduler copies it into the node contract as the assigned objective. |
+| `requirement_ids` | `string[]` | yes | each an ID in the Brief `mandatory_requirements`, at most 40 | Mandatory Brief requirements this node helps satisfy. An empty list is allowed when `deliverable_ids` is not empty. A static template may use one selector instead of IDs, and the binder replaces it with concrete IDs. |
 | `deliverable_ids` | `string[]` | yes | each an ID in the Brief `deliverables`, at most 20, `requirement_ids` and `deliverable_ids` together hold at least 1 item | Brief deliverables this node produces or helps produce. |
 | `predecessors` | `string[]` | yes | node IDs, at most 11, includes every `future.producer_node` of this node, no self reference | Nodes that must be accepted before this node starts. Extra entries are ordering-only dependencies. |
 | `inputs` | `PlanInput[]` | yes | at most 16 items, covers every required library input port | Typed bindings for the node inputs. |
 | `outputs` | `PlanOutput[]` | yes | 1 to 16 items, covers every required library output port | Typed outputs the node will produce. |
-| `limits` | `Limits` | yes | each value at most the library `max_limits` | Time, model-call and memory ceiling for one attempt of this node. |
+| `limits` | `Limits` | yes | each value at most the library `max_limits` | Time, model-call and memory ceiling for one attempt of this node: `time_s` in seconds, `model_calls` as a count, `memory_mb` in MiB. The scheduler copies them into the node contract `node_limits`. |
 | `effect_class` | `string` | yes | enum, see below, copied from the library entry | Effect class of the pinned CC version. The scheduler uses it to decide what may run. |
 | `check_pins` | `CheckPins` | yes | copied from the library entry by the binder, never from the proposal | Mandatory check bundle and checking profile for this node. Frozen. |
 | `extra_check_ids` | `string[]` | yes | subset of the proposal `suggested_checks`, at most 8 | Extra checks the binder adopted. Empty for a static template. |
@@ -464,7 +464,7 @@ Purpose: the record of one node attempt. The scheduler writes one record per nod
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `2.0.0` | Format version 2.0.0. Reject any other value. |
-| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this record. |
+| `id` | `string` | yes | pattern `^[a-z][a-z0-9_.-]{0,63}$` | Immutable ID of this record. The scheduler sets it. |
 | `run_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.:-]{0,63}$` | Run this record belongs to. The host assigns it at intake. Every run-state record carries it. |
 | `attempt_id` | `string` | yes | pattern `^[a-z0-9][a-z0-9_.:-]{0,63}$`, equal to `<node_id>-a<attempt>` | Identity of this node attempt, for example `evaluation-a1`. The node contract, check plans and gate decisions of the attempt carry it. |
 | `phase` | `string` | yes | enum `pre_plan`, `planned` | `pre_plan`: the Intention Compiler node or the Planner node, which run before a run plan exists. `planned`: a node of the frozen run plan. |
@@ -476,14 +476,14 @@ Purpose: the record of one node attempt. The scheduler writes one record per nod
 | `check_pins` | `nullable-CheckPins` | yes | equal to the run plan node `check_pins`. Null exactly when `cc` is null | Check bundle and profile that applied. |
 | `check_plan_ref` | `Ref` | yes | a bound check plan of the node scope, whose `node_contract_ref` equals this record's | Bound check plan built for this attempt. |
 | `attempt` | `integer` | yes | 1 to the node `max_attempts` | Attempt number. A new attempt is a new record. |
-| `started_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | Dispatch start time. |
-| `ended_at` | `nullable-string` | yes | null only for outcome `interrupted`, otherwise UTC `YYYY-MM-DDTHH:MM:SSZ` | End time. |
+| `started_at` | `string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ` | Dispatch start time, set by the scheduler. UTC, to the second. |
+| `ended_at` | `nullable-string` | yes | null only for outcome `interrupted`, otherwise UTC `YYYY-MM-DDTHH:MM:SSZ` | End time of the attempt, set by the scheduler. UTC, to the second. Null means the attempt was interrupted and has no end. |
 | `outcome` | `string` | yes | enum | How the attempt ended. `accepted`: the gate accepted the outputs. `rejected`: a blocking check or criterion failed, so the node halted and its candidate and evidence are kept. `halted`: protected stop. `failed`: execution or infrastructure error. `budget_exhausted`: a limit was hit. `interrupted`: the process ended before a decision. |
 | `gate_decision_ref` | `nullable-Ref` | yes | a node-scope gate decision (`scope_kind` `node`). Null only for outcomes `failed`, `budget_exhausted` and `interrupted` | Gate decision for this attempt. |
 | `output_gate_decision_refs` | `Ref[]` | yes | empty exactly when `gate_decision_ref` is null, at most 16. Equal to the `internal_decision_refs` of the node-scope decision | The per-output subnode-scope decisions that the node-scope decision aggregates, one for each output reviewed. |
 | `output_refs` | `Ref[]` | yes | non-empty only for outcome `accepted`, at most 16 | Accepted outputs. Rejected output stays in evidence, not here. |
-| `elapsed_s` | `nullable-number` | yes | null or at least 0 | Observed wall time in seconds. |
-| `model_calls_used` | `nullable-integer` | yes | null or at least 0 | Observed model calls, null when unobserved. |
+| `elapsed_s` | `nullable-number` | yes | null or at least 0 | Observed wall time of the attempt in seconds, set by the scheduler. Null means not observed, never zero. |
+| `model_calls_used` | `nullable-integer` | yes | null or at least 0 | Count of model calls the work subnode made through the model bridge during the attempt, set by the scheduler from bridge records. Verifier calls are counted on their own verifier subnode, and router selection is not a model call. Null means unobserved, never zero. |
 
 **BoundInput**
 
@@ -592,7 +592,7 @@ Next step for a planned run: the host starts a new Intention Compiler attempt th
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `check_id` | `nullable-string` | yes | pattern `^[a-z][a-z0-9_]{0,63}$`, or null for a Planner reply or a gate halt | The failing host check, for example `acyclicity`. |
-| `detail` | `string` | yes | 1 to 300 characters | Plain statement of what failed, or what no listed CC can cover. |
+| `detail` | `string` | yes | 1 to 300 characters | Plain statement of what failed, or what no listed CC can cover, at most 300 characters. The binder writes it for a binder rejection; for `planner_reported_infeasible` it is the Planner's own text. The Intent and Requirement CCs of the next attempt read it as data, never as instructions, and each reason must be resolved or carried forward. |
 
 **Host checks**
 

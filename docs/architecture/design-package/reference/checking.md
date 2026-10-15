@@ -17,7 +17,7 @@ Purpose: the outcome of every mandatory deterministic check of one bound check p
 | `subject_refs` | `Ref[]` | no; required when the work subnode writes more than one output | 1 or more, in output port order. The first item equals `subject_ref` | Every output the check bundle read in its one run. Each per-output gate decision reviews exactly one of them. Each result's `evidence_refs` still names the outputs that check read. |
 | `check_plan_ref` | `Ref` | yes | the bound check plan the runner executed | Which checks were mandatory. |
 | `results` | `CheckResult[]` | yes | 1 to 64 items. `check_id` values are unique and equal the plan's `mandatory_deterministic` set | One entry per mandatory check. |
-| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | Namespaced diagnostics. Never changes meaning, permission or acceptance. |
+| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | Namespaced diagnostic data, written by the check runner. Consumers may ignore it. It never changes meaning, permission, acceptance, check outcomes or gate decisions. |
 
 **CheckResult**
 
@@ -25,7 +25,7 @@ Purpose: the outcome of every mandatory deterministic check of one bound check p
 |---|---|---|---|---|
 | `check_id` | `string` | yes | an ID in the plan's `mandatory_deterministic` | Check that ran. |
 | `outcome` | `string` | yes | enum below | Result of the check. |
-| `reason` | `string` | yes | at least 1 character | Plain statement of what the check found. |
+| `reason` | `string` | yes | at least 1 character | Plain statement of what the check found, for people reading the record. The result is carried by `outcome`, not by this text. |
 | `evidence_refs` | `Ref[]` | yes | may be empty only for a check that read no artifact | Exact bytes the check read. |
 
 **Enum `outcome`**
@@ -88,7 +88,7 @@ Purpose: the protected decision that releases or halts work. There is one per ou
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `2.0.0` | Format version. Reject any other value. |
 | `id` | `string` | yes | at least 1 character, unique in the run | Immutable decision ID. |
-| `recorded_at` | `string` | yes | UTC date-time | When the gate host stored the decision. |
+| `recorded_at` | `string` | yes | UTC date-time | When the gate host stored the decision. The gate host sets it from its own clock, in UTC. A CC or client value is never used. |
 | `run_id` | `string` | yes | the run of the attempt | Run scope. |
 | `node_id` | `string` | yes | a node of the run plan, or `intention_compiler` or `planner` | Node scope. |
 | `attempt_id` | `string` | yes | `<node_id>-a<attempt>`, equal to the dispatch record | Attempt scope. |
@@ -105,18 +105,18 @@ Purpose: the protected decision that releases or halts work. There is one per ou
 | `output_refs` | `Ref[]` | yes | at least 1 for `advance`. Exactly 1 on an advancing subnode-scope decision | Exact reviewed outputs. |
 | `deterministic_result_ref` | `Ref` | yes | the deterministic result of `check_plan_ref` | Tier 1 result. |
 | `assessment_ref` | `nullable-Ref` | yes | non-null for `advance`. Null when Tier 1 stopped review | Tier 2 verifier assessment. |
-| `verdict` | `string` | yes | enum, see below. `PASS` or `PASS_WITH_KNOWN_LIMITATIONS` exactly for `advance` | Protected verdict. |
-| `reasons` | `Reason[]` | yes | at least 1 | Why, with criterion IDs and evidence. |
-| `action` | `string` | yes | enum, see below | Control action. |
+| `verdict` | `string` | yes | enum, see below. `PASS` or `PASS_WITH_KNOWN_LIMITATIONS` exactly for `advance` | Protected verdict, set by the gate host from the checking records. A CC or verifier cannot set it. It is a checking verdict, never a copy of the scientific `evaluation_verdict`. |
+| `reasons` | `Reason[]` | yes | at least 1 | Why, with criterion IDs and evidence. The gate host writes it from protected records, for people and audit. The decision itself is carried by `verdict` and `action`. |
+| `action` | `string` | yes | enum, see below | Control action, set by the gate host. It follows `verdict`: `advance` exactly when the verdict is `PASS` or `PASS_WITH_KNOWN_LIMITATIONS`. |
 | `accepted_refs` | `Ref[]` | yes | at least 1 and a subset of `output_refs` for `advance`. Empty for `halt` | Outputs released to the next nodes. |
-| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | Namespaced diagnostics. Never changes meaning or authority. |
+| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | Namespaced diagnostic data, written by the gate host. Consumers may ignore it. It never changes meaning, authority, the verdict, the action or any later gate decision. |
 
 **Reason**
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `code` | `string` | yes | at least 1 character | Stable reason code, for example a failing check ID. |
-| `message` | `string` | yes | at least 1 character | Plain explanation. |
+| `message` | `string` | yes | at least 1 character | Plain explanation for people, written by the gate host. Display and audit only: no component parses it or branches on it. The reason `code` is the stable key. |
 | `criterion_ids` | `string[]` | yes | may be empty | Criteria the reason concerns. |
 | `evidence_refs` | `Ref[]` | yes | may be empty | Evidence the reason rests on. |
 
@@ -235,7 +235,7 @@ Purpose: the checking profile of a whole node. It lists the node checks and says
 | `mandatory_deterministic` | `string[]` | yes | 1 to 8 items, unique, each pattern `^[a-z][a-z0-9_]{0,63}$` | Node check IDs that must each pass once before the node gate decision. M1 lists `internal_acceptance`, `external_output` and `aggregate_limits`. |
 | `semantic_assessment_reuse` | `string` | yes | an ID from the node contract `evidence_obligations` | Evidence obligation whose accepted verifier assessment the node gate reuses instead of asking for a new one. |
 | `additional_model_calls` | `integer` | yes | exactly 0 in M1 | Model calls node finalization may add. Node finalization makes no semantic call. |
-| `synthetic` | `boolean` | no | absent in a real record | Marks an example record. |
+| `synthetic` | `boolean` | no | absent in a real record | Marks an example record. A real record leaves it out. |
 
 **Examples:** [valid](examples/node_finalization_profile.json)
 

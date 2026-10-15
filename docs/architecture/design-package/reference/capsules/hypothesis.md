@@ -45,25 +45,25 @@ Artifact `hypothesis_blueprint`, contract `hypothesis-blueprint:field-contract:2
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `2.0.0` | Format version. |
-| `id` | `string` | yes | non-empty | Record identity. |
-| `brief_ref` | `Ref` | yes | resolves to the input Brief bytes | The accepted Brief this design answers. |
-| `opportunity_ref` | `Ref` | yes | resolves to the input opportunity card | The selected opportunity. |
-| `claim` | `string` | yes | one sentence, 20 to 300 characters | The single testable claim. It names the intervention, the measured effect and its size or direction. |
-| `mechanism` | `string` | yes | 10 to 500 characters | The causal reason the intervention should work. |
-| `independent_variable` | `string` | yes | non-empty | What the POC changes. Exactly one intervention. |
-| `dependent_variables` | `string[]` | yes | `min_items` 1, `max_items` 8. The set equals the `metric_id` set of `metrics`. | Names of everything Benchmark will measure. |
+| `id` | `string` | yes | non-empty | Record identity, set by the Hypothesis CC. A label only: consumers find the blueprint by its Ref, never by this ID, and it grants nothing. |
+| `brief_ref` | `Ref` | yes | resolves to the input Brief bytes | The accepted Brief this design answers. The CC copies the Ref of its `brief` input. Check `resource_refs_resolve` rejects a Ref that does not resolve. |
+| `opportunity_ref` | `Ref` | yes | resolves to the input opportunity card | The selected opportunity. The CC copies the Ref of its `opportunity` input. Check `resource_refs_resolve` rejects a Ref that does not resolve. |
+| `claim` | `string` | yes | one sentence, 20 to 300 characters | The single testable claim. It names the intervention, the measured effect and its size or direction. The CC writes it. The verifier checks that it agrees with the success rules (`claim_consistent_with_rules`). Frozen with the blueprint. |
+| `mechanism` | `string` | yes | 10 to 500 characters | The causal reason the intervention should work. Explanation for readers and the verifier. No check or rule reads it as a number. |
+| `independent_variable` | `string` | yes | non-empty | What the POC changes. Exactly one intervention. The Builder reads it to know what to build. It must match the intervention named in `claim`. |
+| `dependent_variables` | `string[]` | yes | `min_items` 1, `max_items` 8. The set equals the `metric_id` set of `metrics`. | Names of everything Benchmark will measure. A copy of the `metric_id` values, written by the CC. Check `dependent_variables_match_metrics` rejects any difference. |
 | `baseline_identity` | `BaselineIdentity` | yes | see type below | The exact unmodified baseline that treatment is compared with. |
-| `validation_resource_ref` | `Ref` | yes | also appears in `resource_refs` | The fixed validation data. |
-| `resource_refs` | `Ref[]` | yes | `min_items` 2. Each resolves. Contains `baseline_identity.resource_ref` and `validation_resource_ref`. | All captured resources the experiment uses. |
-| `environment_ref` | `Ref` | yes | equals `environment_ref` of both resource snapshots | The prepared environment lock. |
-| `metrics` | `MetricDeclaration[]` | yes | `min_items` 1, `max_items` 8. `metric_id` unique. | Declares every metric once: what it is, how it is measured, and which way is better. |
-| `outcome_rules` | `OutcomeRule[]` | yes | exactly one rule per declared `metric_id`, none for an undeclared metric | The pre-registered success, falsification and middle-region rules. |
-| `repeat_count` | `integer` | yes | min 3, max 30 | Repetitions of each baseline and treatment measurement. Three is the M1 minimum so a median and a spread exist. The PRD sets no number. |
-| `seed` | `integer` | yes | min 0, max 2147483647 | Registered random seed. |
+| `validation_resource_ref` | `Ref` | yes | also appears in `resource_refs` | The fixed validation data, copied from the `validation_resource` input. The CC may not invent, fetch or swap data. |
+| `resource_refs` | `Ref[]` | yes | `min_items` 2. Each resolves. Contains `baseline_identity.resource_ref` and `validation_resource_ref`. | All captured resources the experiment uses. The CC copies Refs from its two resource inputs. It adds no other resource. |
+| `environment_ref` | `Ref` | yes | equals `environment_ref` of both resource snapshots | The prepared environment lock. The CC copies it from the resource snapshots and does not choose it. Check `environment_from_resources` rejects a null or different value. |
+| `metrics` | `MetricDeclaration[]` | yes | `min_items` 1, `max_items` 8. `metric_id` unique. | Declares every metric once: what it is, how it is measured, and which way is better. The CC writes it before any run. Benchmark and Evaluation read it and cannot change it. |
+| `outcome_rules` | `OutcomeRule[]` | yes | exactly one rule per declared `metric_id`, none for an undeclared metric | The pre-registered success, falsification and middle-region rules. The CC writes them before any run. Evaluation applies them to the measured values. Nothing changes them after the blueprint is frozen. |
+| `repeat_count` | `integer` | yes | min 3, max 30 | Number of repetitions of each baseline and treatment measurement, counted per arm. Three is the M1 minimum so a median and a spread exist. The PRD sets no number. |
+| `seed` | `integer` | yes | min 0, max 2147483647 | Registered random seed, a plain integer. The CC picks it before any run. Benchmark uses it in every repeat of both arms (see `seed_policy`). Not a secret. |
 | `seed_policy` | `string` | yes | enum `fixed_same_for_all_runs` | Baseline and treatment use this same seed in every repeat. Other policies are future work. |
 | `implementation_scope` | `ImplementationScope` | yes | see type below | Limits on what the Builder may write. |
-| `constraints` | `string[]` | yes | `min_items` 0. Contains the text of every Brief constraint. | Constraints the experiment preserves. |
-| `verification_plan` | `string[]` | yes | `min_items` 1, `max_items` 12, each 5 to 300 characters | Ordered, checkable steps that show the experiment was fair and complete. |
+| `constraints` | `string[]` | yes | `min_items` 0. Contains the text of every Brief constraint. | Constraints the experiment preserves. The CC copies the text of every Brief constraint without change (`constraints_carried`). An empty list means the Brief has none. |
+| `verification_plan` | `string[]` | yes | `min_items` 1, `max_items` 12, each 5 to 300 characters | Ordered, checkable steps that show the experiment was fair and complete. Written by the CC for human and verifier review (`scope_bounded`). No rule or gate reads it as a number. |
 
 Examples: [valid](../examples/hypothesis_blueprint.json)
 
@@ -72,8 +72,8 @@ Examples: [valid](../examples/hypothesis_blueprint.json)
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `resource_ref` | `Ref` | yes | one of `resource_refs` | The baseline resource snapshot. |
-| `revision` | `string` | yes | equals the snapshot `revision` | Captured immutable revision of the baseline. |
-| `entry_point` | `string` | yes | equals a `path` in that snapshot `files` | The file Benchmark runs as the baseline. |
+| `revision` | `string` | yes | equals the snapshot `revision` | Captured immutable revision of the baseline. Copied from the baseline snapshot, not chosen by the CC. Check `baseline_identity_resolves` compares it. |
+| `entry_point` | `string` | yes | equals a `path` in that snapshot `files` | The file Benchmark runs as the baseline. A `path` from the baseline snapshot `files`, written as the snapshot records it. |
 
 Examples: [valid](../examples/hypothesis_blueprint.json) (field `baseline_identity`)
 
@@ -81,14 +81,14 @@ Examples: [valid](../examples/hypothesis_blueprint.json) (field `baseline_identi
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `metric_id` | `string` | yes | pattern `^[a-z][a-z0-9_]*$`, unique | Name used everywhere downstream. |
-| `unit` | `string` | yes | non-empty | Unit of the aggregate, for example `ms` or `fraction`. |
-| `measurement` | `string` | yes | non-empty | Deterministic definition of how one repeat value is extracted. |
-| `direction` | `string` | yes | enum `higher_better`, `lower_better` | Which way is an improvement. Rules must agree with it. |
-| `aggregation` | `string` | yes | enum `median`, `mean`, `min`, `max` | How the repeats combine into one aggregate per arm. |
-| `target_id` | `nullable-string` | yes | when not null, an `id` in Brief `target_metrics` | Brief target this metric measures. Null for a metric the CC added. |
-| `valid_min` | `nullable-number` | yes | finite; when both bounds are set, `valid_min` is below `valid_max` | Lowest value one repeat can physically take, for example 0 for a time or a fraction. Null means no lower bound. The host check `measurement_within_declared_range` of Research Benchmark enforces it. |
-| `valid_max` | `nullable-number` | yes | finite | Highest value one repeat can physically take, for example 1 for a fraction. Null means no upper bound. |
+| `metric_id` | `string` | yes | pattern `^[a-z][a-z0-9_]*$`, unique | Name used everywhere downstream. The CC chooses it. `outcome_rules`, `dependent_variables`, Benchmark values and verdict findings all refer to it by this exact string. |
+| `unit` | `string` | yes | non-empty | Unit of the aggregate, for example `ms` or `fraction`. Thresholds (`offset`) are in this unit. The report copies it as a label. |
+| `measurement` | `string` | yes | non-empty | Deterministic definition of how one repeat value is extracted. Text written by the CC before any run. It uses no judgement by a model. Benchmark measures as it says. |
+| `direction` | `string` | yes | enum `higher_better`, `lower_better` | Which way is an improvement. Rules must agree with it (`rule_direction_consistent`). It is not a pass or fail by itself. |
+| `aggregation` | `string` | yes | enum `median`, `mean`, `min`, `max` | How the repeats combine into one aggregate per arm. The aggregate is the baseline or treatment value that the outcome rules compare. |
+| `target_id` | `nullable-string` | yes | when not null, an `id` in Brief `target_metrics` | Brief target this metric measures. Null for a metric the CC added. Check `brief_targets_covered` needs every Brief target to appear here. |
+| `valid_min` | `nullable-number` | yes | finite; when both bounds are set, `valid_min` is below `valid_max` | Lowest value one repeat can physically take, in the metric unit, for example 0 for a time or a fraction. Null means no lower bound. The host check `measurement_within_declared_range` of Research Benchmark enforces it. Evaluation treats a value outside the range as `implausible`. |
+| `valid_max` | `nullable-number` | yes | finite | Highest value one repeat can physically take, in the metric unit, for example 1 for a fraction. Null means no upper bound. Enforced like `valid_min`. |
 
 Examples: [valid](../examples/hypothesis_blueprint.json) (field `metrics`)
 
@@ -97,11 +97,11 @@ Examples: [valid](../examples/hypothesis_blueprint.json) (field `metrics`)
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `metric_id` | `string` | yes | a declared `metric_id` | The metric the rule decides. |
-| `success` | `ComparisonRule` | yes | comparator in the improvement family for `direction`: `lt` or `le` for `lower_better`, `gt` or `ge` for `higher_better` | Region where the metric counts as a success. |
-| `falsification` | `ComparisonRule` | yes | comparator in the opposite family | Region where the metric falsifies the claim. Must not overlap `success`. |
-| `middle` | `string` | yes | enum `INCONCLUSIVE`, `CONDITIONALLY_ACCEPTABLE` | Classification for results in neither region. `INCONCLUSIVE` is the PRD default. |
-| `conditional_rule` | `nullable-ComparisonRule` | yes | not null exactly when `middle` is `CONDITIONALLY_ACCEPTABLE`. Its region lies outside both `success` and `falsification`. | The registered condition that makes a middle result acceptable. Any comparator. |
-| `conditional_meaning` | `nullable-string` | yes | not null exactly when `conditional_rule` is not null. 10 to 300 characters. | Plain statement of what conditional acceptance means for the reader. |
+| `success` | `ComparisonRule` | yes | comparator in the improvement family for `direction`: `lt` or `le` for `lower_better`, `gt` or `ge` for `higher_better` | Region where the metric counts as a success. The CC writes it. When the Brief target has a comparison, it must equal the converted target (`brief_comparison_consistent`). |
+| `falsification` | `ComparisonRule` | yes | comparator in the opposite family | Region where the metric falsifies the claim. The CC writes it. It must not overlap `success` (`boundaries_disjoint`). Evaluation reports a falsified metric as `FAIL`. |
+| `middle` | `string` | yes | enum `INCONCLUSIVE`, `CONDITIONALLY_ACCEPTABLE` | Classification for results in neither region. `INCONCLUSIVE` is the PRD default. Choose `CONDITIONALLY_ACCEPTABLE` only together with a `conditional_rule`. |
+| `conditional_rule` | `nullable-ComparisonRule` | yes | not null exactly when `middle` is `CONDITIONALLY_ACCEPTABLE`. Its region lies outside both `success` and `falsification`. | The registered condition that makes a middle result acceptable. Any comparator. Null when `middle` is `INCONCLUSIVE`. Written before any run, so Evaluation cannot add one later. |
+| `conditional_meaning` | `nullable-string` | yes | not null exactly when `conditional_rule` is not null. 10 to 300 characters. | Plain statement of what conditional acceptance means for the reader. Written by the CC for people. Null when `conditional_rule` is null. |
 
 Examples: [valid](../examples/hypothesis_blueprint.json) (field `outcome_rules`)
 
@@ -111,11 +111,11 @@ Shared type. This version adds the enums and factor rules.
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `operand` | `string` | yes | enum `treatment` | The treatment aggregate is what gets compared. |
+| `operand` | `string` | yes | enum `treatment` | The treatment aggregate is what gets compared. Always `treatment`. The baseline enters only through `reference`. |
 | `comparator` | `string` | yes | enum `lt`, `le`, `eq`, `ge`, `gt` | The comparison. |
-| `reference` | `string` | yes | enum `baseline`, `constant` | What the treatment aggregate is compared with. |
-| `factor` | `number` | yes | finite. 0 when `reference` is `constant`. Greater than 0 when `baseline`. | Multiplier on the baseline aggregate. |
-| `offset` | `number` | yes | finite | Added after the factor, in the metric unit. |
+| `reference` | `string` | yes | enum `baseline`, `constant` | What the treatment aggregate is compared with: the baseline aggregate, or a fixed number given by `offset`. |
+| `factor` | `number` | yes | finite. 0 when `reference` is `constant`. Greater than 0 when `baseline`. | Multiplier on the baseline aggregate. A plain ratio with no unit, for example 0.9 for "90% of baseline". Fixed at 0 for a `constant` reference. |
+| `offset` | `number` | yes | finite | Added after the factor, in the metric unit. For a `constant` reference it is the threshold itself. |
 
 The threshold is `factor * baseline_aggregate + offset` when `reference` is `baseline`, and `offset` when `reference` is `constant`. The rule holds when `treatment_aggregate comparator threshold` is true.
 
@@ -125,9 +125,9 @@ Examples: [valid](../examples/hypothesis_blueprint.json) (success and falsificat
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `poc_change_scope` | `string[]` | yes | `min_items` 1, `max_items` 5 | What the POC may change. It is the POC's permitted change scope. It is unrelated to a declaration's `evolution.may_change`. |
-| `must_not_change` | `string[]` | yes | contains `baseline`, `validation_data`, `measurement_functions`, `outcome_rules` | What stays immutable. |
-| `max_patch_files` | `integer` | yes | min 1, max 1 | M1 allows one patch file. |
+| `poc_change_scope` | `string[]` | yes | `min_items` 1, `max_items` 5 | What the POC may change. It is the POC's permitted change scope. The CC writes it and the Builder reads it. The Builder cannot widen it. It is unrelated to a declaration's `evolution.may_change`. |
+| `must_not_change` | `string[]` | yes | contains `baseline`, `validation_data`, `measurement_functions`, `outcome_rules` | What stays immutable. The Builder must not touch these. The CC may add items but may not remove the four required ones. |
+| `max_patch_files` | `integer` | yes | min 1, max 1 | Largest number of files the patch may touch. M1 allows one patch file. |
 
 Examples: [valid](../examples/hypothesis_blueprint.json) (field `implementation_scope`)
 

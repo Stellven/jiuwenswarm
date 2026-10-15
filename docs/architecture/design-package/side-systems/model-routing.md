@@ -65,4 +65,4 @@ Exact rules: [RouterPort seam](../reference/model-routing-contract.md#routerport
 
 ## Decisions and sources
 
-[D22](../method/decisions.md#d22), the [received v2.1 design](../sources/model-routing/README.md) and its [rulings](owner-rulings.md#routing-v21).
+[D40](../method/decisions.md#d40), the [received v2.1 design](../sources/model-routing/README.md) and its [rulings](owner-rulings.md#routing-v21).

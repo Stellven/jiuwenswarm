@@ -6,7 +6,7 @@ Question answered: How are accepted requirements turned into governed work and d
 
 ## Establish intent before planning
 
-**Core build scope:** the fixed Compiler Intent + Requirement sequence and their required independent gates produce an accepted `research_brief`; this preparation is mandatory in the core. The admitted planner then proposes a bounded JSON DAG of downstream CCs with objective coverage, typed ports, dependencies and any suggested extra checks. The protected binder independently selects mandatory profiles, validates coverage, ports, dependencies, cycles, permissions and resource feasibility, assigns required checks, and freezes the [`run_plan`](../reference/run-plan.md) before research dispatch. An infeasible or rejected proposal halts the run and starts one linked new Intention Compiler attempt that carries the reasons. A request gets at most two plan attempts, then halts and writes an escalation record ([D30](../method/decisions.md#d30)). There is no silent switch to the static template. The static template is built first and yields the same run plan type ([D26](../method/decisions.md#d26)). The run request sets `plan_source` before execution. The real governed journey remains Search → Screen → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery. See [core build](../3-build-plan.md) for scope reconciliation and recorded PRD deviations (D19).
+**M1 planning scope:** the fixed Compiler Intent + Requirement sequence and their required independent gates produce an accepted `research_brief`. The static template is the Phase 1 baseline. The targeted Phase 3 Planner proposes a bounded JSON DAG of downstream CCs with objective coverage, typed ports, dependencies and any suggested extra checks. The protected binder independently selects mandatory profiles, validates coverage, ports, dependencies, cycles, permissions and resource feasibility, assigns required checks, and freezes the [`run_plan`](../reference/run-plan.md) before research dispatch. An infeasible or rejected proposal halts the run and starts one linked new Intention Compiler attempt that carries the reasons. A request gets at most two plan attempts, then halts and writes an escalation record ([D30](../method/decisions.md#d30)). There is no silent switch to the static template. Both plan sources yield the same run plan type ([D26](../method/decisions.md#d26)). The run request sets `plan_source` before execution. The governed research journey remains Search → Screen → Hypothesis → Builder → Benchmark → Scientific Evaluation → Delivery.
 
 **Required now.** Ordinary intake binds the original request and permitted documents, project assets, and validation data to a run. Reject empty or unreadable required input. Do not fetch undeclared datasets, clone arbitrary repositories, or turn missing evidence into observed facts.
 
@@ -58,6 +58,37 @@ Later work (November, [D21](../method/decisions.md#d21)): a search-based planner
 
 This is the best candidate found within a declared search budget, not globally optimal planning. A separate logical-operator layer would add binding flexibility but also another representation to reconcile; direct CC bindings provide one inspectable execution boundary shared with the static template. Retain objective mappings so later logical planning can lower into that same boundary. Separating graph proposal, dependency dispatch and execution makes their evidence and authority independently inspectable.
 
+## From available CC to invocation
+
+The captured library snapshot is the planning-time view of eligible CC versions. A static template names versions from that view. The Planner sees the accepted Brief, the snapshot, permitted resources and plan policy, then proposes bindings. The protected binder checks the proposal independently and freezes exact CC and check-bundle pins into one `run_plan`. The library may change later, but the frozen pins do not.
+
+At dispatch, the scheduler waits for predecessor gates, builds the node and subnode contracts from the frozen templates, and binds accepted input references. The CC runner resolves the exact pinned body and invokes it under those contracts. Agent CCs use the native agent/model path. Tool CCs run pinned code. Builder-generated POC code uses the separate confined executor. The runner records the invocation; checks, verifier assessment and the protected gate decide release.
+
+```mermaid
+flowchart LR
+    LIB[(Eligible library snapshot)] --> STATIC[Static template]
+    LIB --> PLAN[Planner proposal]
+    BRIEF[Accepted Brief] --> PLAN
+    STATIC --> BINDER[Protected binder]
+    PLAN --> BINDER
+    BINDER -->|validate and pin| FROZEN[Frozen run_plan]
+    FROZEN --> SWARM[SwarmFlow scheduler]
+    SWARM -->|after predecessor gates| CONTRACT[Dispatch contracts and accepted inputs]
+    CONTRACT --> RUNNER[CC runner resolves exact pins]
+    RUNNER -->|agent CC| AGENT[Native agent and model path]
+    RUNNER -->|tool CC| TOOL[Pinned tool code]
+    RUNNER -->|generated POC| EXEC[Confined executor]
+    AGENT --> OBS[Outputs and invocation observation]
+    TOOL --> OBS
+    EXEC --> OBS
+    OBS --> CHECKS[Independent checks and verifier]
+    CHECKS --> GATE[Protected gate and durable decision]
+    GATE -->|advance| NEXT[Release accepted outputs]
+    GATE -->|halt| RETAIN[Keep failure evidence]
+```
+
+This is an ownership and data-flow view, not a prescribed class diagram or private API. Exact fields remain in the [run plan](../reference/run-plan.md) and [Node and Subnode Execution Contracts](../reference/node-execution.md). The CC runner and SwarmFlow adapter reuse the pinned JiuwenSwarm/OpenJiuwen runtime where compatible; [native reuse evidence](../sources/native-reuse-evidence.json) records inspected interfaces, not runtime acceptance.
+
 ## Freeze and unknown future values
 
 **Required now.** Freeze the accepted topology, exact CC and dependency versions, each participating CC's check-bundle version and compatibility evidence, verification profiles, policy, limits, and input references before planned execution. Store node and subnode contract templates and their hashes at freeze. At dispatch the scheduler builds the concrete Node and Subnode Execution Contracts from those templates. It binds future-input references to the accepted predecessor outputs and records the bound check plan and the contract identities before the attempt starts. No active-library or bundle change can alter an existing run, and no post-start contract/check-plan edit is permitted. Future producer outputs are typed references, not already-known values. Freeze does not claim that a hypothesis or measurement exists before its producer runs.
@@ -88,6 +119,6 @@ Scientific rejection or inconclusive measurement is different from infrastructur
 
 ## Concrete execution boundary
 
-The [core build scope](../3-build-plan.md) records the authorized promotion of fixed compilation plus protected planning into the core and the best-effort PRD deviations (D19).
+The [M1 build scope](../3-build-plan.md) records the static baseline, targeted Planner path and their common protected binder (D19).
 
 The binder checks, binds pins and freezes the plan with its contract templates. At dispatch the scheduler builds the enclosing Node Execution Contract and each exact [Subnode Execution Contract](../reference/node-execution.md) from those templates. Participating bindings name admitted declaration/body/dependency pins, role, effective authority and per-call limits; parent node limits bound their aggregate; subnode limits narrow each assignment. Inputs carry named typed ports and exact refs, outputs name catalog contracts/versions and evidence obligations. The checking profile is pinned in the contract; the bound check plan references that finalized contract without a hash cycle. Missing input or unsupported authority blocks dispatch, never becomes a placeholder observed artifact.

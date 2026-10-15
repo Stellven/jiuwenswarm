@@ -2,7 +2,7 @@
 
 `Tier 2 · Part of: [Method](README.md)`
 
-This page holds ownership, scope limits and the future work the build must not block. The build order and acceptance list are in the [build plan](../3-build-plan.md). The assignment follows [D19](decisions.md#d19), [D22](decisions.md#d22) and [D26](decisions.md#d26).
+This page holds ownership, scope limits and the future work the build must not block. The build order and M1 acceptance boundary are in the [build plan](../3-build-plan.md). The assignment follows [D19](decisions.md#d19) and [D26](decisions.md#d26).
 
 ## Responsibility and reuse
 
@@ -17,7 +17,7 @@ This page holds ownership, scope limits and the future work the build must not b
 
 ## Future work this build must not block
 
-The October 30 acceptance never waits for a side system. The model router, the RSI workbench and the platform benchmark runner are built in M1, in parallel, and never block a run ([side systems](../side-systems/README.md)). No alternate verifier or route, Generalist, MCTS, composition or spatiotemporal capability is a dependency of the hot path.
+The Phase 1 research workflow never waits for a side system. The model router, the RSI workbench and the platform benchmark runner are built in M1, in parallel, and never block a run ([side systems](../side-systems/README.md)). No alternate verifier or route, Generalist, MCTS, composition or spatiotemporal capability is a dependency of the hot path.
 
 | Later capability | Seam kept now |
 |---|---|
@@ -33,6 +33,6 @@ The October 30 acceptance never waits for a side system. The model router, the R
 
 - The RSI workbench is a human-run side system outside startup, imports, tests and release gates.
 - Full M1 PRD coverage is in [clause coverage](clause-coverage.md). It is not the same as this assignment.
-- The Planner's place in the first build is the D19 amendment, not an unaltered PRD requirement.
+- The Planner is a targeted Phase 3 M1 capability. D19 specifies its bounded proposal and shared protected binder; the PRD owns its required M1 outcome.
 - Existing TASK, AC, IF and feature identities are not renamed.
 - Missing model access, baseline data, a check bundle or durable storage stops the affected run. Record the missing resource and its owner. Never invent a result.

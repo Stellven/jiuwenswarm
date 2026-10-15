@@ -39,7 +39,7 @@ The pattern is drawn in [1. System, diagram D](../1-system.md#inside-a-node).
 
 ## Assignments and check plans
 
-The fixed Compiler Intent and Requirement steps have required gates and produce the accepted Research Brief before planning. The planner proposes a bounded JSON DAG of single-work-CC nodes. The proposal is only input to the binder. See [core build](../3-build-plan.md) for scope and [run plan](../reference/run-plan.md) for exact contracts.
+The fixed Compiler Intent and Requirement steps have required gates and produce the accepted Research Brief before planning. The planner proposes a bounded JSON DAG of single-work-CC nodes. The proposal is only input to the binder. See [M1 build scope](../3-build-plan.md) and [run plan](../reference/run-plan.md) for exact contracts.
 
 **How the binder attaches checks.** For every static and planned CC invocation the trusted binder resolves the CC version's pinned check bundle and an independently admitted checking profile. It then adds the checks derived from the node and subnode contracts, dependency pins, accepted obligations, artifact type, policy, limits and evidence obligations. Run-specific contract and policy checks are added to the bound check plan, never to the pinned check bundle, and the bundle never waives them. The planner may suggest extra checks. It cannot remove the pinned bundle or any obligation. The binder verifies coverage, typed ports, dependencies, cycles, permission boundaries and resource feasibility, then freezes complete bindings before any dispatch. Static and planned CCs use the same binder, resolver, runner, evidence capture, tiers, verdict and release protocol. Freeze never creates a weaker path.
 

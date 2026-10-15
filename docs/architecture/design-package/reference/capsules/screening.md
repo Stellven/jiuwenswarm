@@ -47,12 +47,12 @@ Purpose: the frozen scoring policy of Screening. It is pinned by hash in the dec
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | `1.0.0` | Format version |
 | `id` | `string` | yes | `screening_rubric` | Record identity |
-| `dimensions` | `RubricDimension[]` | yes | Exactly 3 items with `name` values `novelty`, `feasibility`, `compute_alignment`, once each | The scoring dimensions. The set is closed in M1 |
+| `dimensions` | `RubricDimension[]` | yes | Exactly 3 items with `name` values `novelty`, `feasibility`, `compute_alignment`, once each | The scoring dimensions. The set is closed in M1. Each `name` is also the score field name in `IdeaScore`. |
 | `total_rule` | `string` | yes | `sum` | A total is the plain sum of the three scores |
 | `tie_rule` | `string` | yes | `ascending_idea_id` | Equal totals rank the lower `idea_id` first, compared as plain strings |
 | `selection_rule` | `string` | yes | `top_1` | Exactly one idea is selected, the first in the ranking |
-| `forbidden_dependencies` | `ForbiddenDependency[]` | yes | 0 or more items. `id` values unique | Dependencies that make an idea ineligible |
-| `reason_max_chars` | `integer` | yes | 50 to 500 | Longest allowed score reason or disposition reason |
+| `forbidden_dependencies` | `ForbiddenDependency[]` | yes | 0 or more items. `id` values unique | Dependencies that make an idea ineligible. An empty list means no idea can be filtered out. The host does the term matching, not the model. |
+| `reason_max_chars` | `integer` | yes | 50 to 500 | Longest allowed score reason or disposition reason, in characters. Applies to every `*_reason` and `disposition_reason` in the result. |
 
 `RubricDimension`
 
@@ -61,7 +61,7 @@ Purpose: the frozen scoring policy of Screening. It is pinned by hash in the dec
 | `name` | `string` | yes | `novelty`, `feasibility` or `compute_alignment` | Dimension name. It is also the score field name |
 | `scale_min` | `integer` | yes | `1` | Lowest score |
 | `scale_max` | `integer` | yes | `5` | Highest score |
-| `anchors` | `ScoreAnchor[]` | yes | Exactly 5 items, one per score 1 to 5 | What each score means. The scorer picks the anchor that fits |
+| `anchors` | `ScoreAnchor[]` | yes | Exactly 5 items, one per score 1 to 5 | What each score means. The scorer picks the anchor that fits and does not invent other levels. |
 
 `ScoreAnchor`
 
@@ -74,9 +74,9 @@ Purpose: the frozen scoring policy of Screening. It is pinned by hash in the dec
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `id` | `string` | yes | Pattern `^dep:[a-z0-9_]+$` | Flag ID that scores record when the dependency applies |
+| `id` | `string` | yes | Pattern `^dep:[a-z0-9_]+$` | The flag ID. It appears in a score row's `dependency_flags` when the dependency applies. |
 | `description` | `string` | yes | 1 to 200 characters | What the dependency is and why it is forbidden |
-| `match_terms` | `string[]` | yes | 1 or more lowercase phrases | Phrases that always trigger the flag. The host searches idea `title`, `summary`, `assumptions` and `risks`, ignoring case |
+| `match_terms` | `string[]` | yes | 1 or more lowercase phrases | Lowercase phrases that always trigger the flag. The host lowercases idea `title`, `summary`, `assumptions` and `risks` and flags the idea when any phrase occurs as a plain substring. No word boundaries, stemming or model judgment. The model does not decide matches. |
 
 **Enum `RubricDimension.name`**
 
@@ -149,8 +149,8 @@ Version 2 of `screening-result` and `opportunity-card` replaces version 1. Chang
 | `candidate_ref` | `Ref` | yes | Equals the `candidate_set` input | The exact set that was scored |
 | `brief_ref` | `Ref` | yes | Equals the `brief` input | The Brief used |
 | `rubric_ref` | `Ref` | yes | Equals the pinned rubric | The rubric used |
-| `scores` | `IdeaScore[]` | yes | Exactly one row for each idea in the candidate set, none extra | Every idea's scores, reasons and fate |
-| `ranking` | `Ranking[]` | yes | One row for each idea whose disposition is `selected` or `eligible`. Ordered by `total` descending, then `idea_id` ascending. `rank` counts 1, 2, 3 | The ranked order |
+| `scores` | `IdeaScore[]` | yes | Exactly one row for each idea in the candidate set, none extra | Every idea's scores, reasons and fate. Written by the CC (untrusted). The host checks it against the candidate set and recomputes the totals. |
+| `ranking` | `Ranking[]` | yes | One row for each idea whose disposition is `selected` or `eligible`. Ordered by `total` descending, then `idea_id` ascending. `rank` counts 1, 2, 3 | The ranked order of the selected and eligible ideas only. The host recomputes the order and rejects any difference (`ranking_deterministic`). |
 | `selected_idea_id` | `string` | yes | Equals `ranking[0].idea_id` and is a candidate idea | The single selected idea |
 
 `IdeaScore`
@@ -158,18 +158,18 @@ Version 2 of `screening-result` and `opportunity-card` replaces version 1. Chang
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `idea_id` | `string` | yes | An `idea_id` in the candidate set | The idea scored |
-| `novelty` | `integer` | yes | 1 to 5 | How different the idea is from the baseline approaches in the Brief and citations. Use the rubric anchors |
-| `feasibility` | `integer` | yes | 1 to 5 | How plausible the idea is in standard Python and PyTorch. Use the rubric anchors |
-| `compute_alignment` | `integer` | yes | 1 to 5 | How well the idea fits the hardware limits in the Brief. Use the rubric anchors |
-| `total` | `integer` | yes | 3 to 15. Equals `novelty + feasibility + compute_alignment` | The composite score |
-| `novelty_reason` | `string` | yes | One sentence, 1 to `reason_max_chars` characters | Why this novelty score and not the next one up or down |
-| `feasibility_reason` | `string` | yes | Same | Why this feasibility score |
-| `compute_alignment_reason` | `string` | yes | Same | Why this compute alignment score |
-| `citation_ids` | `string[]` | yes | 1 or more. Each is in this idea's `citation_ids` in the candidate set | The evidence behind the scores |
-| `dependency_flags` | `string[]` | yes | Each is a rubric `ForbiddenDependency.id`. Must include every flag the host term match finds | Forbidden dependencies the idea has. Empty when none |
-| `eligible` | `boolean` | yes | `false` exactly when `dependency_flags` is not empty | Whether the idea may be ranked |
+| `novelty` | `integer` | yes | 1 to 5 | How different the idea is from the baseline approaches in the Brief and citations. Scored by the CC with the rubric anchors. Integer, 1 lowest. |
+| `feasibility` | `integer` | yes | 1 to 5 | How plausible the idea is in standard Python and PyTorch. Scored by the CC with the rubric anchors. Integer, 1 lowest. |
+| `compute_alignment` | `integer` | yes | 1 to 5 | How well the idea fits the hardware limits in the Brief. Scored by the CC with the rubric anchors. Integer, 1 lowest. |
+| `total` | `integer` | yes | 3 to 15. Equals `novelty + feasibility + compute_alignment` | The composite score, the plain sum of the three scores. The host checks it (`score_total_sum`). |
+| `novelty_reason` | `string` | yes | One sentence, 1 to `reason_max_chars` characters | Why this novelty score and not the next one up or down. Free text for people. A semantic criterion reviews it (`reasons_address_dimension`). No host check parses it. |
+| `feasibility_reason` | `string` | yes | Same | Why this feasibility score. Free text reviewed by `reasons_address_dimension`. No host check parses it. |
+| `compute_alignment_reason` | `string` | yes | Same | Why this compute alignment score. Free text reviewed by `reasons_address_dimension`. No host check parses it. |
+| `citation_ids` | `string[]` | yes | 1 or more. Each is in this idea's `citation_ids` in the candidate set | The evidence ids behind the scores. Each must be one this idea cites in the candidate set (`score_citations_in_idea`). |
+| `dependency_flags` | `string[]` | yes | Each is a rubric `ForbiddenDependency.id`. Must include every flag the host term match finds | Forbidden dependencies the idea has. The host finds hits by term match, and the CC must include every one (`dependency_filter`). Empty list means none apply. |
+| `eligible` | `boolean` | yes | `false` exactly when `dependency_flags` is not empty | Whether the idea may be ranked. Derived from `dependency_flags`, not a separate judgement. |
 | `disposition` | `string` | yes | `selected`, `eligible`, `rejected` or `deferred` | The idea's fate. See the rules below |
-| `disposition_reason` | `string` | yes | 1 to `reason_max_chars` characters | Why this fate. Names the cause, not only the label |
+| `disposition_reason` | `string` | yes | 1 to `reason_max_chars` characters | Why this fate. Names the cause, not only the label. Free text for people, reviewed by `disposition_reasons_specific`. |
 
 Disposition rules:
 
@@ -184,7 +184,7 @@ Disposition rules:
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `rank` | `integer` | yes | 1 or more. Rows count up from 1 without gaps | Position in the order |
+| `rank` | `integer` | yes | 1 or more. Rows count up from 1 without gaps | Position in the order, counted from 1. |
 | `idea_id` | `string` | yes | An idea with disposition `selected` or `eligible` | The ranked idea |
 | `total` | `integer` | yes | Equals the idea's `total` in `scores` | The composite used to rank |
 
@@ -200,27 +200,27 @@ Examples: [valid](../examples/screening_result.json)
 | `id` | `string` | yes | `opportunity_card` | Record identity |
 | `candidate_ref` | `Ref` | yes | Equals the `candidate_set` input | The set the idea came from |
 | `screening_ref` | `Ref` | yes | Equals the `screening_result` produced with this card | The scoring and ranking behind the selection (the ranking reference) |
-| `brief_ref` | `Ref` | yes | Equals the `brief` input | User obligations |
+| `brief_ref` | `Ref` | yes | Equals the `brief` input | The Brief whose obligations the card carries. Must be the input Brief. |
 | `idea_id` | `string` | yes | Equals `screening_result.selected_idea_id` and is a candidate idea | The one selected idea |
 | `title` | `string` | yes | Equals the idea's `title` | Readable name |
-| `summary` | `string` | yes | 1 to 600 characters | The card's purpose: what would be tested and why, in plain words |
+| `summary` | `string` | yes | 1 to 600 characters | The card's purpose: what would be tested and why, in plain words. Free text written by the CC for the next node. |
 | `opportunity_statement` | `string` | yes | 1 to 800 characters | The evidence-grounded bottleneck and why the idea's mechanism addresses it |
-| `scores` | `ScoreSet` | yes | Equals the idea's scores in `screening_result` | The original scores, copied unchanged |
+| `scores` | `ScoreSet` | yes | Equals the idea's scores in `screening_result` | The original scores, copied unchanged from the idea's row in `screening_result`. Never rescored. |
 | `rank` | `integer` | yes | `1` | Rank in the ranking. Always 1 for the selected idea |
 | `citation_ids` | `string[]` | yes | 1 or more. Equals the idea's `citation_ids` | Supporting citations |
-| `constraints` | `string[]` | yes | Contains the verbatim `text` of every Brief constraint and every Brief mandatory requirement | Limits Hypothesis must respect |
-| `assumptions` | `string[]` | yes | Equals the idea's `assumptions` | Unproven premises |
-| `risks` | `string[]` | yes | Equals the idea's `risks` | Known concerns |
-| `other_dispositions` | `Disposition[]` | yes | One row for each candidate idea except the selected one | What happened to every other idea |
+| `constraints` | `string[]` | yes | Contains the verbatim `text` of every Brief constraint and every Brief mandatory requirement | Limits Hypothesis must respect. Copied verbatim from the Brief, never paraphrased (`card_constraints_carried`). |
+| `assumptions` | `string[]` | yes | Equals the idea's `assumptions` | Unproven premises of the idea, copied from the candidate set. |
+| `risks` | `string[]` | yes | Equals the idea's `risks` | Known concerns about the idea, copied from the candidate set. |
+| `other_dispositions` | `Disposition[]` | yes | One row for each candidate idea except the selected one | What happened to every idea that was not selected, one row each. Empty when the candidate set holds one idea. Must equal the screening dispositions and reasons (`card_dispositions_complete`). |
 
 `ScoreSet`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `novelty` | `integer` | yes | 1 to 5 | Novelty score |
-| `feasibility` | `integer` | yes | 1 to 5 | Feasibility score |
-| `compute_alignment` | `integer` | yes | 1 to 5 | Compute alignment score |
-| `total` | `integer` | yes | 3 to 15. Equals the sum | Composite |
+| `novelty` | `integer` | yes | 1 to 5 | Novelty score, copied from the result. |
+| `feasibility` | `integer` | yes | 1 to 5 | Feasibility score, copied from the result. |
+| `compute_alignment` | `integer` | yes | 1 to 5 | Compute alignment score, copied from the result. |
+| `total` | `integer` | yes | 3 to 15. Equals the sum | Composite, copied from the result. |
 
 `Disposition`
 
@@ -228,7 +228,7 @@ Examples: [valid](../examples/screening_result.json)
 |---|---|---|---|---|
 | `idea_id` | `string` | yes | A candidate idea other than the selected one | The idea |
 | `disposition` | `string` | yes | `eligible`, `rejected` or `deferred`. Equals the value in `screening_result` | Its fate |
-| `reason` | `string` | yes | Equals `disposition_reason` in `screening_result` | Why |
+| `reason` | `string` | yes | Equals `disposition_reason` in `screening_result` | Why this fate. Copied unchanged from `disposition_reason` in `screening_result`. |
 
 Examples: [valid](../examples/opportunity_card.json)
 

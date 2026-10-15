@@ -31,28 +31,27 @@ One line each. Superseded records are dropped.
 
 | ID | Current decision | Source disposition |
 |---|---|---|
-| D1 | Original full-product phase allocation: static Phase 1; bounded planning later. Assigned core amended by D19 | §§1.3, 4.8, 6.5, 6.12; no live restructuring |
+| D1 | Original full-product phase allocation: static Phase 1; bounded planning later. M1 planned-mode scope amended by D19 | §§1.3, 4.8, 6.5, 6.12; no live restructuring |
 | D2 | Deterministic checks, independent verifier, protected gate | §§1.4, 4.2; replaces optional semantic checking |
 | D3 | Protected host owns release; freeze referee assets | §§4.1.5, 4.2.8, 4.4.5 |
 | D4 | No automatic repair/replay; blocking outcomes halt | §§1.4, 4.6.4; human correction is new linked work |
 | D5 | Separate bounded generative Intent and Requirements CCs, each checked | **Aligned with PRD (4)** §§3.2/4.7: architecture defines internal bounded, non-interactive sequencing. The earlier single-generation exception is historical. Freeze combined budgets |
 | D6 | One Docker app, Python/TypeScript, SQLite state and artifact files | **Authorized local realization/exception** to source container/native-only and persistence assumptions in §§4.1.4, 4.5, 5.1, 5.2, 5.4. Generated-code confinement remains separately required |
 | D7 | Preserve CC concepts with one reconciled current machine contract | §4.1; historical sources are provenance, not competing serialization authorities |
-| D8 | Full-product Phase 2 offline RSI; assigned core makes it independently buildable/non-blocking under D19 | §§1.3, 4.4, 6.11; immediate slice excludes execution |
+| D8 | Full-product Phase 2 offline RSI; M1 design keeps it independently buildable and non-blocking | §§1.3, 4.4, 6.11; immediate slice excludes execution |
 | D9 | Mandatory evidence fails closed; optional telemetry can be unavailable | §§1.4, 4.2, 4.5, 6.4 |
 | D10 | Verifier assesses; gate decides; control plane shows halt/triage | §§4.2, 4.3.4, 4.6.4, 5.3; headless never waits |
 | D11 | Optional benchmarker uses ordinary scoped client boundary | §§5.3.1, 5.6.5; no privileged product control |
 | D12 | Durable product identity/profile separate from local execution host | §§1.1, 2.3, 5.4; optional cloud profile storage grants no remote execution |
 | D13 | Node objective/contract differs from CC invocation | §§1.4, 4.1, 4.2; per-call checking plus node aggregate acceptance |
-| D14 | Account for broader product stages/phases; D19 separates assigned October 30 acceptance from later efforts | §§1.3, 6.12, 6.14; preliminary Leader checks never replace plan acceptance |
+| D14 | Account for broader product stages/phases; D19 separates the M1 Planner path from other Phase 3 work | §§1.3, 6.12, 6.14; preliminary Leader checks never replace plan acceptance |
 | D15 | Independent guard profiles and output-led evidence review | §§1.4, 4.1, 4.2, 5.4; review is assessment, not replacement authorship |
 | D16 | Three reading levels; critical schemas and other major field contracts | §§1.7, 6.13 and October 7 user direction; replaces agent-owned competing wire shapes |
 | D17 | Intent acceptance requires fidelity **and** usefulness to Requirements. Under D24 the Intent and Requirement CCs own these as producer obligations, backed by host span and reference checks. The verifier does not judge them | §§3.2.1, 4.7.3, 4.2; topic-only extraction with material missing purpose/result blocks |
 | D18 | Readable IRs, decisions and views; raw evidence separate | §§5.1.2, 5.3.1, US05–US17; no mandatory opaque binary decoding |
-| D19 | User-authorized bounded Planner in assigned core; static mode retained; RSI independently buildable and non-blocking; continuation separated | Changes current allocation relative to §§1.3, 4.8, 6.5, 6.11–6.14; preserves §4.2 checks and exact frozen dispatch. [Build plan](../3-build-plan.md) governs the assignment; D1/D8/D14 remain original full-product phase context |
+| D19 | Bounded Planner path is targeted M1 work; static Phase 1 mode retained; RSI independently buildable and non-blocking | Realizes §§1.3, 4.8 and 6.12; preserves §4.2 checks and exact frozen dispatch. [Build plan](../3-build-plan.md) defines the M1 boundary |
 | D20 | Semantic verifier input is the pinned declaration and the exact output only | Departs from the relevant-upstream-context reading of §4.2.1. See [D20](#d20) |
 | D21 | November increments: Generalist, automatic generation, automatic admission for future plans, better planning and MCTS. Composition in December | Continuation allocation. See [D21](#d21) |
-| D22 | October 30 demo is the bounded core over the fixed Codex route | Schedule boundary, not a PRD change. See [D22](#d22) |
 | D23 | Internal names are lowercase: files, ports, artifact types, check and criterion IDs | Realizes PRD artifact names as lowercase internal files. See [D23](#d23) |
 | D24 | Verifier criteria are output-only. Fidelity and preservation are Intent and Requirement producer obligations | Narrows §4.2 verifier duties consistently with D20. See [D24](#d24) |
 | D25 | Every CC has a declaration, a field table with constraints, a check bundle and verifier criteria in one tier 3 page | Extends D16. See [D25](#d25) |
@@ -62,7 +61,7 @@ One line each. Superseded records are dropped.
 | D29 | The PRD Evaluator Gate is built as check bundle, verifier CC and gate decision. Per-output decisions. The PRD minimum gate result is a view | Realizes §4.2 without a second record. See [D29](#d29) |
 | D30 | An infeasible plan halts and starts a linked new Intention Compiler attempt | Realizes §4.8.3 routing back to the Intention Compiler. See [D30](#d30) |
 | D32 | Unsupported citations and claims are caught by deterministic host checks at Tier 1, not by the verifier | Consequence of D20 for PRD §4.2.9 case 4, §4.2.6 and §2.8. See [D32](#d32) |
-| D33 | Phase 3 items outside the October 30 core stay M1 work and are reported, never silently deferred | Realizes §1.3 Phase 3 and §6.12. See [D33](#d33) |
+| D33 | Phase 3 implementation status is reported separately; Dynamic Agent Planning is the targeted full M1 item | Realizes §1.3 Phase 3 and §6.12. See [D33](#d33) |
 | D31 | The RSI workbench and the platform benchmark runner run in their own containers beside the application container | Amends D6 (one application container) for side systems only. Realizes §§1.3, 4.4 isolation. Amended by D36: the benchmark runner is in the sidecar container. See [D31](#d31) |
 | D34 | Restore the CC's own RSI permission: `evolution.rsi` and the `evolution.may_change` allowlist, plus the other CC fields lost on October 6 | Realizes §4.4 "explicitly designated as mutable". See [D34](#d34) |
 | D35 | M1 runs on one server host (the GB10). Users reach the app container over the private LAN or VPN with token authentication | Amends D6. Departs from the loopback-only rule of §5.4.2. See [D35](#d35) |
@@ -70,7 +69,7 @@ One line each. Superseded records are dropped.
 | D37 | Data Foundation records are adopted with rulings: the Capsule Run Record extends the invocation observation, and derived records never block | Realizes §4.5. See [D37](#d37) |
 | D38 | The package is the authoritative M1 design. One canonical term per concept, with forbidden synonyms checked by the validator | Design practice. See [D38](#d38) |
 | D39 | The run setting `plan_source` (`static` or `planned`) is the only way to choose the plan source | Realizes §§1.3, 2.7. See [D39](#d39) |
-| D40 | October 30 acceptance covers the hot path only. The benchmark pilot is a separate acceptance item | Refines D22. See [D40](#d40) |
+| D40 | PRD core M1 gate is Phase 1; Phase 2/3 commitments are reported separately | Realizes PRD V.10 §§1.5, 6.12 and 6.14. See [D40](#d40) |
 | D41 | A rollback is a standing move: a human reactivates an earlier version. No new version is built | Realizes §4.4 human activation and rollback. See [D41](#d41) |
 | D42 | CCs know nothing about the workflow. Placement rules live in the plan policy and binder checks | Realizes §4.1 reuse. See [D42](#d42) |
 | D43 | The Builder's agent work is one synchronous headless Codex CLI invocation per CC call. The DAG sees one request and one response | Realizes PRD 1.3 (no multi-turn conversational streaming in the DAG). See [D43](#d43) |
@@ -85,7 +84,7 @@ One line each. Superseded records are dropped.
 
 ## D19
 
-The current core assignment is an authorized delivery-scope amendment, not a rewrite of the received PRD. It promotes bounded pre-dispatch planning (Phase 3 work built early, which touches the PRD §6.5 stage 2 exit "without autonomous planning"; the static template still meets that exit), retains an explicitly selected static baseline and keeps RSI independently buildable and non-blocking. Original D1/D8/D14 allocations remain broader-product context. [Build plan](../3-build-plan.md) owns the selected behavior and acceptance boundaries.
+The M1 design supports a fixed Phase 1 static template and the targeted Phase 3 Planner path. The static template satisfies the PRD §6.5 fixed-graph stage exit. The Planner proposes a bounded graph before dispatch; the same protected binder validates and freezes either source. Dynamic Agent Planning is targeted for full implementation, integration and verification during M1, but does not independently block the PRD Phase 1 core gate ([D40](#d40)). This preserves the PRD phase boundary while making the planned path an explicit architectural capability.
 
 ## D20
 
@@ -94,10 +93,6 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 ## D21
 
 **Authorized continuation allocation and promotion change.** Generalist, automatic generation linked with offline RSI, automatic admission with future-plan eligibility, and planner/MCTS improvements are November increments. M1 retains its human-activation policy; M2 protected admission may make a passing version eligible automatically. Proposers cannot activate themselves, broaden authority or alter running DAGs. Composition/fusion is December. Reconcile the continuation PRD and record unresolved conflicts before its conditional architecture freeze.
-## D22
-
-**October 30 demonstration scope.** The presentation gate targets the bounded Compiler → Planner → selected downstream CCs → Delivery journey over the existing fixed Codex route, with benchmark evidence. RSI work and new Model Router integration are excluded from that date’s acceptance criteria and cannot block the demonstration. `RouterPort` with `CodexRouter`, its failure paths and the benchmark E1 pilot are hot-path or pilot work and are included ([build plan](../3-build-plan.md#october-30-acceptance)). This is a coordination/schedule boundary, not a revision to the received PRD. PRD V.10 narrows the PRD core gate to Phase 1 Stages 0 to 7 ([D40](#d40)). The October 30 acceptance does not satisfy even that gate by itself, because it is the hot-path build only. Preserve full source obligations in the coverage maps and report this bounded result accurately.
-
 ## D23
 
 **Lowercase internal names.** Every file the system writes uses a lowercase name unless the user explicitly asks for a different one. Ports, artifact types, check IDs and criterion IDs use lowercase snake_case. The PRD sometimes uses capitals, for example `Research_Brief.json`. The [glossary](../glossary.md) maps those names to `research_brief.json`. Reason: people design on Windows, but the product runs in Docker on Linux, where file names are case sensitive. Mixed case would let two names for one artifact coexist. Enum values keep the spelling of their schema. Rules: [capsule references](../reference/capsules/README.md#naming-rules).
@@ -140,7 +135,7 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 
 ## D33
 
-`Standard`. **Phase 3 work is M1 work, reported on three axes.** The PRD places dynamic planning, capability binding, routing, the alternate verifier, Agent Team and Cluster Mode, advanced compilation and Code Mode in Phase 3, which is part of M1 (PRD §1.3). Phase 3 may be built in parallel with Phase 2 and does not wait for Stage 8 (PRD V.10 §6.12). The October 30 core builds `research.planner`, which realizes the planning of PRD §4.8.1 to §4.8.3 that the PRD assigns to the Cluster Mode Leader Agent. The other Phase 3 items are built after the core, with mocked endpoints where access is missing (PRD §4.3). The Phase 3 completion report gives each item three separate statuses (PRD V.10 §6.12). Implementation is Implemented, Partially Implemented, Not Implemented or Blocked. Integration is Integrated, Partially Integrated, Not Integrated or Blocked. Verification is `PASS`, `FAIL`, `BLOCKED`, `INCOMPLETE` or `NOT RUN`. Implemented but unverified is never `PASS`. None is silently skipped or moved to a later milestone. **Dynamic Agent Planning is the Planner ([D19](#d19)).** It is the one Phase 3 item targeted for implementation, integration and verification in M1 (PRD V.10 §4.8). Its `PASS` needs recorded positive-path and negative-path evidence. Positive: a valid plan is frozen and handed to governed execution. Negative: an invalid or blocked plan starts no downstream work. The static template stays available, and switching planning off restores it (PRD §1.3). Model Routing is an implementation commitment only ([D40](#d40), [D44](#d44)).
+`Standard`. **Phase 3 work is M1 work, reported on three axes.** The PRD places dynamic planning, capability binding, routing, the alternate verifier, Agent Team and Cluster Mode, advanced compilation and Code Mode in Phase 3, which is part of M1 (PRD §1.3). Phase 3 may be built in parallel with Phase 2 and does not wait for Stage 8 (PRD V.10 §6.12). The Planner realizes planning assigned to the Cluster Mode Leader Agent (PRD §§4.8.1–4.8.3). Other applicable Phase 3 items remain M1 implementation scope; missing endpoint access may use mocks where the PRD permits (PRD §4.3). The Phase 3 completion report gives each item separate implementation, integration and verification statuses (PRD V.10 §6.12). Implemented but unverified is never `PASS`. Dynamic Agent Planning is the targeted full M1 item ([D19](#d19)); its `PASS` needs positive-path evidence that a valid plan reaches governed execution and negative-path evidence that an invalid or blocked plan starts no downstream work. The static template stays available. Model Routing is an implementation commitment; integration and verification do not block the PRD core gate ([D40](#d40), [D44](#d44)).
 
 ## D34
 
@@ -168,7 +163,7 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 
 ## D40
 
-`Standard`. **October 30 acceptance is the hot path only.** The October 30 acceptance covers the bounded journey on the fixed Codex route, the non-blocking tests with router stubs, and the import check. It is not the PRD's "core M1 gate" (PRD V.10 §1.5, §6.14), which is separate and broader. Since PRD V.10 that gate is Phase 1 only: Implementation Stages 0 to 7, the end-to-end Phase 1 run, the Section 1.5 mandatory items, the Evaluator Gate tests and the Phase 1 evidence. Phase 2 and Phase 3 never block it. RSI (Phase 2, "Local-Isolated RSI Implementation") and Model Routing are implementation commitments: the code and interfaces are built and their real status is reported, but integration and verification are not required for the gate. This matches [D31](#d31), [D36](#d36) and [D44](#d44), where the side systems never block a run. The package uses "October 30 acceptance" for its own bounded date and never reports it as that gate. The platform benchmark E1 pilot is a separate acceptance item, scored from the sidecar after the core runs. A pilot failure is reported but never holds the core. Reason: the side systems must never block, and that includes acceptance.
+`Standard`. **The PRD core M1 gate is Phase 1.** PRD V.10 §§1.5 and 6.14 require Implementation Stages 0–7, the end-to-end Phase 1 run, mandatory acceptance items, Evaluator Gate tests and Phase 1 evidence. Phase 2 and Phase 3 implementation coverage is reported separately and does not block this gate. RSI and Model Routing are M1 implementation commitments; their integration and verification are not required for core acceptance. Dynamic Agent Planning is the targeted Phase 3 item for full implementation, integration and verification. Its result is reported separately and does not independently block the Phase 1 gate. The platform benchmark pilot is separate from the product gate; its failure does not block a research run.
 
 ## D41
 
@@ -196,7 +191,7 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 
 ## D47
 
-`Standard`. **A static template uses selectors.** A static template is written once and bound to many Briefs, so it cannot know Brief item IDs. A coverage entry may use `selector` (`all_mandatory_requirements`, `all_deliverables` or `all_evidence_obligations`) in place of a concrete ID, and a node tag may hold the first two. Selectors are valid only in a static template. The binder expands them against the accepted Brief before `brief_coverage` runs and records the expanded coverage in the run plan. A Planner proposal must still use concrete IDs. Two Briefs with different IDs bind to the one template, and October 30 acceptance item ACC-1 depends on it. Reason: without selectors the template would fail `brief_coverage` for every Brief but one. [Selectors](../reference/run-plan.md#selectors).
+`Standard`. **A static template uses selectors.** A static template is written once and bound to many Briefs, so it cannot know Brief item IDs. A coverage entry may use `selector` (`all_mandatory_requirements`, `all_deliverables` or `all_evidence_obligations`) in place of a concrete ID, and a node tag may hold the first two. Selectors are valid only in a static template. The binder expands them against the accepted Brief before `brief_coverage` runs and records the expanded coverage in the run plan. A Planner proposal must still use concrete IDs. Two Briefs with different IDs bind to the one template. Reason: without selectors the template would fail `brief_coverage` for every Brief but one. [Selectors](../reference/run-plan.md#selectors).
 
 ## D48
 
@@ -216,4 +211,4 @@ The current core assignment is an authorized delivery-scope amendment, not a rew
 
 App runs and evaluation entry points still use their authenticated product boundary. Launcher grants give no right to write accepted outputs, waive checks, change admission or read protected labels. Docker credentials remain with the launcher. Standing targets require explicit grants, and automatic cleanup touches only job-owned resources. The base deployment remains three services (D35 and D36). A job may create additional disposable targets within its own limits and cleanup scope.
 
-The launcher extension is optional and need not be a permanent service. Its absence blocks only jobs that need its capabilities. The app never imports it or waits for it. Job resource limits must preserve core capacity on the shared host. A missing optional observation is recorded as unavailable, while missing evidence essential to a benchmark prevents a success claim for that case. This expands benchmark infrastructure access, not the October 30 or PRD core acceptance scope.
+The launcher extension is optional and need not be a permanent service. Its absence blocks only jobs that need its capabilities. The app never imports it or waits for it. Job resource limits must preserve core capacity on the shared host. A missing optional observation is recorded as unavailable, while missing evidence essential to a benchmark prevents a success claim for that case. This expands benchmark infrastructure access without changing the PRD core gate.

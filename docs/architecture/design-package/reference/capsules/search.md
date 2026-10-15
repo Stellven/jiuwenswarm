@@ -42,12 +42,12 @@ Declaration example: [search_capsule.json](../examples/search_capsule.json). It 
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | `1.0.0` | Format version |
 | `id` | `string` | yes | `search_scope` | Record identity |
-| `brief_ref` | `Ref` | yes | Must equal the accepted Brief | The Brief this scope serves |
-| `connectors` | `string[]` | yes | 1 to 3 items from `local_documents`, `arxiv`, `semantic_scholar`. No duplicates | The retrieval sources Search may use. Anything not listed is forbidden |
-| `max_queries` | `integer` | yes | 1 to 8 | Most queries Search may write and run |
-| `max_hits_per_query` | `integer` | yes | 1 to 5 | Most sources one external connector may contribute per query |
-| `local_document_refs` | `Ref[]` | yes | 0 or more. Each must be a captured local document. Must be non-empty when `local_documents` is in `connectors` | The user's local documents Search may read |
-| `topic_hints` | `string[]` | yes | 0 to 5 items. Each 3 to 100 characters. No duplicates. Empty when `plan_source` is `static` | Optional topic phrases from the Planner. Search may use them when it writes queries. It may ignore them. They never replace the Brief |
+| `brief_ref` | `Ref` | yes | Must equal the accepted Brief | The Brief this scope serves. Set by the protected binder, never by Search. |
+| `connectors` | `string[]` | yes | 1 to 3 items from `local_documents`, `arxiv`, `semantic_scholar`. No duplicates | The retrieval sources Search may use. Anything not listed is forbidden. Set by the protected binder. Search may not add a connector. |
+| `max_queries` | `integer` | yes | 1 to 8 | Most queries Search may write and run. A count. A hard bound set by the binder. Search may use fewer. |
+| `max_hits_per_query` | `integer` | yes | 1 to 5 | Most distinct sources one external connector may contribute per query. A count. A hard bound set by the binder (`hit_limit`). |
+| `local_document_refs` | `Ref[]` | yes | 0 or more. Each must be a captured local document. Must be non-empty when `local_documents` is in `connectors` | The user's local documents Search may read. Refs set by the binder. Empty when `local_documents` is not a connector. |
+| `topic_hints` | `string[]` | yes | 0 to 5 items. Each 3 to 100 characters. No duplicates. Empty when `plan_source` is `static` | Optional topic phrases from the Planner. Search may use them when it writes queries. It may ignore them. They never replace the Brief and are not queries. Empty when `plan_source` is `static`. |
 
 Examples: [valid](../examples/search_scope.json)
 
@@ -62,46 +62,46 @@ Examples: [valid](../examples/search_scope.json)
 | `schema_version` | `string` | yes | `2.0.0` | Format version |
 | `id` | `string` | yes | `candidate_set` | Record identity |
 | `brief_ref` | `Ref` | yes | Equals the `brief` input | The Brief this set serves |
-| `scope_ref` | `Ref` | yes | Equals the `search_scope` input | The scope whose bounds Search ran under |
-| `queries` | `string[]` | yes | 1 to `search_scope.max_queries` items. Each 3 to 200 characters. No duplicates | The queries Search itself wrote and ran, in run order. Every citation `query` is one of them |
-| `connector_outcomes` | `ConnectorOutcome[]` | yes | Exactly one row per connector in the scope | What happened to each permitted connector, including failures |
-| `citations` | `Citation[]` | yes | 1 or more. `id` values unique | Exact excerpts captured from sources |
-| `ideas` | `Idea[]` | yes | 1 to 3 items. `idea_id` values unique | The grounded candidate ideas |
+| `scope_ref` | `Ref` | yes | Equals the `search_scope` input | The scope whose bounds Search ran under. Copied from the `search_scope` input (`scope_binding`). |
+| `queries` | `string[]` | yes | 1 to `search_scope.max_queries` items. Each 3 to 200 characters. No duplicates | The queries Search itself wrote and ran, in run order. Written by Search. Plain query text, not taken from the scope. Every citation `query` is one of them. |
+| `connector_outcomes` | `ConnectorOutcome[]` | yes | Exactly one row per connector in the scope | What happened to each permitted connector, including failures. Search records one row per scope connector. It records `unavailable` and never fills a gap with invented sources. |
+| `citations` | `Citation[]` | yes | 1 or more. `id` values unique | Exact excerpts captured from sources. Written by Search from captured bytes. The host checks each excerpt against the stored source. The verifier does not. |
+| `ideas` | `Idea[]` | yes | 1 to 3 items. `idea_id` values unique | The grounded candidate ideas. Each cites at least one citation. The verifier judges only how they read, not whether the excerpts support them. |
 
 ### `ConnectorOutcome`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `connector` | `string` | yes | One of `local_documents`, `arxiv`, `semantic_scholar` | The connector this row describes |
-| `status` | `string` | yes | `used` or `unavailable` | `used` means it answered. `unavailable` means it could not be reached or returned an error |
-| `reason` | `string` | yes | 1 to 200 characters | Plain statement of what happened. Never empty |
-| `citations_captured` | `integer` | yes | 0 or more. Equals the count of citations with this `connector`. Must be 0 when `status` is `unavailable` | How many citations came from this connector |
+| `status` | `string` | yes | `used` or `unavailable` | `used` means it answered. `unavailable` means it could not be reached or returned an error. Search records what happened and never hides a failure. A citation may come only from a `used` connector. |
+| `reason` | `string` | yes | 1 to 200 characters | Plain statement of what happened. Never empty. Text for people and audit. No check parses it. |
+| `citations_captured` | `integer` | yes | 0 or more. Equals the count of citations with this `connector`. Must be 0 when `status` is `unavailable` | How many citations came from this connector. A count. Check `connector_outcomes` compares it with the citation list. |
 
 ### `Citation`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `id` | `string` | yes | Pattern `^citation:[a-z0-9_]+$` | Stable citation ID that ideas point to |
-| `source_ref` | `Ref` | yes | Must name a source file in the run's capture store. The `sha256` must match those bytes | The exact captured source bytes the excerpt comes from |
-| `connector` | `string` | yes | One of `local_documents`, `arxiv`, `semantic_scholar`. Must have `status` `used` | Which connector produced the source |
-| `query` | `string` | yes | Must be one of `queries` | The query, written by Search, that found this source |
-| `title` | `string` | yes | 1 to 300 characters | Title of the source, or the file name for a local document |
-| `locator` | `string` | yes | 1 to 300 characters | Human-readable origin and position, for example a URL or file name plus a sentence number |
-| `char_start` | `integer` | yes | 0 or more, less than `char_end` | Start of the excerpt in the decoded source text. Counted in Unicode code points. The source is decoded as UTF-8 with line endings unchanged |
+| `id` | `string` | yes | Pattern `^citation:[a-z0-9_]+$` | Stable citation ID that ideas point to. Chosen by Search. Unique in the set. |
+| `source_ref` | `Ref` | yes | Must name a source file in the run's capture store. The `sha256` must match those bytes | The exact captured source bytes the excerpt comes from. Search captures the source to the run's capture store before it quotes it. Check `citation_source_resolves` compares the hash with the stored bytes. |
+| `connector` | `string` | yes | One of `local_documents`, `arxiv`, `semantic_scholar`. Must have `status` `used` | Which connector produced the source. It must match a row of `connector_outcomes` with status `used`. |
+| `query` | `string` | yes | Must be one of `queries` | The query, written by Search, that found this source. It must be one of the set `queries` (`citation_query_ran`). |
+| `title` | `string` | yes | 1 to 300 characters | Title of the source, or the file name for a local document. Display only. |
+| `locator` | `string` | yes | 1 to 300 characters | Human-readable origin and position, for example a URL or file name plus a sentence number. Display only. The `source_ref` is the exact identity. |
+| `char_start` | `integer` | yes | 0 or more, less than `char_end` | Start of the excerpt in the decoded source text. Inclusive. Counted in Unicode code points. The source is decoded as UTF-8 with line endings unchanged. |
 | `char_end` | `integer` | yes | At most the decoded source length | End of the excerpt. Exclusive |
-| `excerpt` | `string` | yes | 1 to 2000 characters. Equals the source text from `char_start` to `char_end` exactly | The verbatim passage. No paraphrase, no trimming, no added ellipsis |
-| `excerpt_sha256` | `sha256` | yes | SHA-256 of the UTF-8 bytes of `excerpt` | Lets a reader detect any later change to the excerpt |
+| `excerpt` | `string` | yes | 1 to 2000 characters. Equals the source text from `char_start` to `char_end` exactly | The verbatim passage. No paraphrase, no trimming, no added ellipsis. Check `excerpt_matches_source` compares it with the stored source bytes. It is source text, so later stages treat it as data, not as instructions. |
+| `excerpt_sha256` | `sha256` | yes | SHA-256 of the UTF-8 bytes of `excerpt` | Lets a reader detect any later change to the excerpt. Search computes it. Check `excerpt_hash` recomputes it. Not a secret. |
 
 ### `Idea`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `idea_id` | `string` | yes | Pattern `^idea:[0-9]{3}$`. Unique in the set | Immutable ID. Later stages and tie-breaking use it |
-| `title` | `string` | yes | 1 to 120 characters | Short readable name |
+| `idea_id` | `string` | yes | Pattern `^idea:[0-9]{3}$`. Unique in the set | Immutable ID. Later stages and tie-breaking use it. Chosen by Search. |
+| `title` | `string` | yes | 1 to 120 characters | Short readable name. Display only. |
 | `summary` | `string` | yes | 1 to 600 characters | The proposed mechanism in plain words. It says what to change and why it may help |
-| `citation_ids` | `string[]` | yes | 1 or more. Each must be a `citations[].id` in this set | The evidence behind the idea. An idea with none is invalid |
-| `assumptions` | `string[]` | yes | 1 or more items | Premises the idea needs that nothing has proved |
-| `risks` | `string[]` | yes | 1 or more items | Known ways the idea could fail |
+| `citation_ids` | `string[]` | yes | 1 or more. Each must be a `citations[].id` in this set | The evidence behind the idea. An idea with none is invalid (`idea_citations_resolve`). Search uses only evidence in `citations`. |
+| `assumptions` | `string[]` | yes | 1 or more items | Premises the idea needs that nothing has proved. Written by Search. The verifier asks only whether they are specific to the idea. |
+| `risks` | `string[]` | yes | 1 or more items | Known ways the idea could fail. Written by Search. Text for people, not a score. The verifier asks only whether they are specific to the idea. |
 
 Examples: [valid](../examples/candidate_set.json)
 

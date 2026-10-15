@@ -6,6 +6,10 @@
       "id": "plan_policy.json",
       "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
     },
+    "static_template_ref": {
+      "id": "static_template.json",
+      "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+    },
     "router": {
       "enabled": false,
       "deadline_s": 30,

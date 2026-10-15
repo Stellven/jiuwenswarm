@@ -84,32 +84,32 @@ The host builds the projection from the captured zip bytes and records its hash.
 
 ## Output field contract
 
-The output is `verifier_assessment`, defined by the [schema](../schemas/verifier-assessment.schema.json) (`urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0`, unchanged). The host writes it. The model supplies only the finding body.
+The output is `verifier_assessment`, defined by the [schema](../schemas/verifier-assessment.schema.json) (`urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0`, unchanged). The host writes it. The model reply supplies only the finding bodies, the uncertainties, the limitations and the correction, all untrusted. The host sets every other field and derives the verdict.
 
 Purpose: the host-assembled record of one verifier call on one output. The gate reads it after the deterministic checks.
 
 `verifier-assessment` (exact schema, version 1.0.0) · Producer: the host, from the untrusted reply of `research.verifier`. Consumers: gate host, run bundle, inspection.
 
-| Field | Type | Required | Constraint | Meaning |
-|---|---|---|---|---|
-| `schema_version` | `string` | yes | exactly `1.0.0` | Format version. Reject any other value. |
-| `subject_ref` | `Ref` | yes | the exact output reviewed, or its zip projection. Host-set | Which output the assessment is about. |
-| `review_context_ref` | `Ref` | yes | the host review manifest. Host-set | Audit pointer. The model never saw the manifest. |
-| `verdict` | `string` | yes | enum, see below. Host-derived by the verdict rule | Overall result. |
-| `findings` | `Finding[]` | yes | at least 1. One per profile criterion asked for this output, no more, no fewer | Per-criterion results. |
-| `uncertainties` | `string[]` | yes | may be empty | Open questions the verifier could not settle. |
-| `limitations` | `string[]` | yes | may be empty | Limits of this review. |
-| `required_correction` | `nullable-string` | yes | null unless a blocking criterion failed. Null for an advancing verdict | Short description of what is wrong. Not replacement work. |
-| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | Diagnostics only. |
+| Field                 | Type              | Required | Constraint                                                                     | Meaning                                                   |
+| --------------------- | ----------------- | -------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `schema_version`      | `string`          | yes      | exactly `1.0.0`                                                                | Format version. Reject any other value.                   |
+| `subject_ref`         | `Ref`             | yes      | the exact output reviewed, or its zip projection. Host-set                     | Which output the assessment is about. Set by the host; any value in the model reply is not used. |
+| `review_context_ref`  | `Ref`             | yes      | the host review manifest. Host-set                                             | Audit pointer. The model never saw the manifest.          |
+| `verdict`             | `string`          | yes      | enum, see below. Host-derived by the verdict rule                              | Overall result. Derived by the host from the findings with the verdict rule; the model does not set it. It is checking data only. The gate decides, never the verdict. |
+| `findings`            | `Finding[]`       | yes      | at least 1. One per profile criterion asked for this output, no more, no fewer | Per-criterion results. The model supplies each finding body. The host checks coverage (`criterion_coverage_exact`). |
+| `uncertainties`       | `string[]`        | yes      | may be empty                                                                   | Open questions the verifier could not settle, copied by the host from the model reply. Empty list means none. Any uncertainty rules out a `PASS` verdict. |
+| `limitations`         | `string[]`        | yes      | may be empty                                                                   | Limits of this review, copied by the host from the model reply. Empty list means none stated. Recorded for readers. Limitations alone do not make a verdict `FAIL`. |
+| `required_correction` | `nullable-string` | yes      | null unless a blocking criterion failed. Null for an advancing verdict         | Short description of what is wrong, copied by the host from the model reply, for the producer and reviewers. It is not replacement work. Null for an advancing verdict. |
+| `ext`                 | `object`          | no       | Optional namespaced diagnostic properties. Each key must match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$`; values may be JSON values. | Carries extra debugging or tracing details that do not fit the assessment fields, such as producer-specific timing or diagnostic codes. Prefix keys with the owning component or namespace to avoid collisions. Do not put findings, evidence, corrections, permissions, or acceptance rules here. Consumers may ignore this object. It must not change the verdict, gate decision, or required behavior. |
 
 **Finding**
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `criterion_id` | `string` | yes | a criterion ID of the pinned profile, once per assessment | Which criterion. |
-| `outcome` | `string` | yes | enum, see below | Result for that criterion. |
-| `reason` | `string` | yes | at least 1 character. Names output fields | Short basis from the declaration and the output. |
-| `evidence_refs` | `Ref[]` | yes | at least 1. Host-set to the exact declaration and output | What was reviewed. |
+| `outcome` | `string` | yes | enum, see below | Result for that criterion. Supplied by the model reply, which is untrusted. The verdict rule reads it. |
+| `reason` | `string` | yes | at least 1 character. Names output fields | Short basis from the declaration and the output. Names output fields. Free text for people and audit. |
+| `evidence_refs` | `Ref[]` | yes | at least 1. Host-set to the exact declaration and output | What was reviewed. Set by the host to the exact declaration and output bytes, never taken from the model reply. |
 
 **Enum `verdict`**
 
@@ -240,9 +240,9 @@ The gate accepts the outputs of a subject CC only when every blocking bundle che
 | `check_id` | string | yes | Lowercase snake_case | Check name. It becomes the `check_id` in the result. |
 | `target_port` | string | yes | Must be an output port of the target CC | The output this check is about. |
 | `rule_summary` | string | yes | Length 1 to 300 | Plain statement of what must hold. |
-| `runner_ref` | Ref | yes | Exact pinned code | The code that runs the check. |
+| `runner_ref` | Ref | yes | Exact pinned code | Pinned code the host runs for this check. The CC under review never supplies or changes it. |
 | `reads` | string[] | yes | min 1. Each in enum `output`, `inputs`, `runtime_records` | What the runner may read. Only the host runs checks that read `inputs` or `runtime_records`. |
-| `blocking` | boolean | yes | none | If true, a result other than `PASS` blocks release. |
+| `blocking` | boolean | yes | none | If true, a result other than `PASS` blocks release. If false, the result is recorded and does not block. |
 
 Result mapping: the host runs each check once and writes one entry in `results` of the [deterministic check result](../schemas/deterministic-check-result.schema.json). The entry `check_id` equals the bundle `check_id`. `outcome` is the runner outcome (`PASS`, `FAIL`, `ENVIRONMENT_BLOCKED`, `INCONCLUSIVE`). `reason` is the runner's short reason. `evidence_refs` list the output, input or runtime records read. The bound plan holds the bundle ref, so `check_plan_ref` ties the result to the bundle. A non-blocking check that is not `PASS` is recorded and does not block. A missing entry counts as `FAIL`.
 
@@ -263,7 +263,7 @@ Result mapping: the host runs each check once and writes one entry in `results` 
 | `criteria` | Criterion[] | yes | min 3. `criterion_id` unique. Must include `declared_output_conformance`, `internal_consistency` and `limitations_consistency`, all with `blocking` true | The questions the verifier must answer. |
 | `instruction_ref` | Ref | yes | Exact pinned text | Fixed system instructions. They do not come from the declaration text. |
 | `model_call_limit` | integer | yes | 1 to 3 | Most verifier model calls per review. M1 uses 1. |
-| `time_s` | integer | yes | 1 to 600 | Wall-clock limit for the review. |
+| `time_s` | integer | yes | 1 to 600 | Wall-clock limit for the whole review, in seconds. |
 | `owner_role` | string | yes | enum `verifier_owner` | Who may change it. |
 
 `Criterion`:

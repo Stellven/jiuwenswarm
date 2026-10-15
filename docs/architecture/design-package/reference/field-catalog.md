@@ -76,14 +76,14 @@ Purpose: the one protected record of what the user submitted and what the platfo
 |---|---|---|
 | `schema_version` | `string` | Format version 1.0.0 |
 | `id` | `string` | Immutable record identity |
-| `kind` | `string` | Resource kind |
-| `origin` | `string` | Original locator |
-| `revision` | `string` | Captured immutable revision |
-| `files` | `NamedFile[]` | Captured contents |
-| `access` | `string` | Permitted use |
-| `license` | `string` | Known license or explicit unknown |
-| `availability` | `string` | available or unavailable |
-| `environment_ref` | `nullable-Ref` | Prepared compatible environment lock |
+| `kind` | `string` | Plain-text resource kind, for example `supplied baseline`. No fixed set of values. Display and audit only: no check branches on it. |
+| `origin` | `string` | Original locator the resolver captured from. It is provenance only. A mutable locator alone is not a reproducible identity: use `revision` and the file hashes. |
+| `revision` | `string` | Immutable revision the resolver captured. A Hypothesis `baseline_identity.revision` must equal it. |
+| `files` | `NamedFile[]` | Captured file contents, each a `NamedFile` with an exact hash. Consumers read these bytes, not `origin`. |
+| `access` | `string` | Permitted use of the resource, written as text, for example `read-only experiment`. A consumer must not use the resource outside it. |
+| `license` | `string` | Known license name, or the explicit word unknown. Never left empty. |
+| `availability` | `string` | `available` or `unavailable`. Unavailable mandatory data blocks the run. |
+| `environment_ref` | `nullable-Ref` | Prepared environment lock that is compatible with this resource ([environment-lock](#environment-lock)). Null means no environment was prepared for it. |
 
 **Invalid/missing behavior:** Unavailable mandatory data blocks; mutable locator alone is not a reproducible identity.
 
@@ -278,8 +278,8 @@ Purpose: the run-specific contract of one node attempt. The scheduler builds it 
 |---|---|---|
 | `schema_version` | `string` | Format version 1.0.0 |
 | `id` | `string` | Immutable policy identity |
-| `hardware_profile` | `string` | Authorized conservative default single_gpu; not observed hardware |
-| `automatic_retries` | `integer` | Zero automatic compiler repair/replay |
+| `hardware_profile` | `string` | Conservative default hardware class, currently `single_gpu`. The Requirements CC uses it only to fill an omitted hardware constraint, recorded as an assumption. It is never observed hardware and does not prove a GPU is available. |
+| `automatic_retries` | `integer` | Number of automatic compiler repair or replay attempts allowed. Zero means the compiler is never retried automatically. |
 
 **Invalid/missing behavior:** Unknown, unavailable or unsupported default authority blocks the affected requirement; policy cannot invent purpose or claim hardware availability.
 
@@ -327,15 +327,15 @@ Moved. The current contract is `delivery-manifest:field-contract:2`, defined on 
 |---|---|---|
 | `schema_version` | `string` | Format version 2.0.0 |
 | `id` | `string` | Immutable record identity |
-| `contract_id` | `string` | Catalog payload contract |
-| `payload_ref` | `Ref` | Exact body |
-| `media_type` | `string` | Readable descriptive format |
-| `run_id` | `string` | Trusted run scope |
-| `node_id` | `string` | Trusted node scope |
-| `attempt_id` | `string` | Trusted attempt |
-| `invocation_ref` | `Ref` | Observed producer |
-| `source_refs` | `Ref[]` | Original/accepted source chain |
-| `audience` | `string` | Allowed readers |
+| `contract_id` | `string` | ID of the catalog contract the payload body follows. The trusted runner sets it. CC-authored metadata is untrusted. |
+| `payload_ref` | `Ref` | Exact body bytes. A hash that differs from the stored body blocks. |
+| `media_type` | `string` | Readable descriptive format of the body, for example `text/plain`. It does not prove the body matches `contract_id`. |
+| `run_id` | `string` | Trusted run scope. The trusted runner attaches it. A mismatch blocks. |
+| `node_id` | `string` | Trusted node scope. The trusted runner attaches it. A mismatch blocks. |
+| `attempt_id` | `string` | Trusted attempt scope. The trusted runner attaches it. A mismatch blocks. |
+| `invocation_ref` | `Ref` | Invocation observation of the producer. It names the exact CC version that wrote the body. |
+| `source_refs` | `Ref[]` | Chain of original and accepted sources the body derives from. Used for provenance. |
+| `audience` | `string` | One of `researcher` (the requesting user) or `reviewer` (the requesting user plus authorized reviewers), the same values as the Delivery file audience. Export and retrieval filter by it. Never widen it. |
 | `node_contract_ref` | `Ref` | Owning enclosing Node Execution Contract |
 | `subnode_id` | `nullable-string` | Subject/producing subnode; null for node aggregate records |
 
@@ -369,7 +369,7 @@ Purpose: what the runner observed when one subnode ran one CC. It is the record 
 | `ended_at` | `nullable-string` | yes | UTC `YYYY-MM-DDTHH:MM:SSZ`, not before `started_at`. Null while uncertain | Observed end. |
 | `outcome` | `string` | yes | enum below | How the invocation ended. |
 | `effects` | `string[]` | yes | at most 32 | Observed effects and tools used. Empty means none observed. |
-| `duration_s` | `nullable-number` | yes | min 0. Non-null when `measurement_status` is `observed` | Observed elapsed time. |
+| `duration_s` | `nullable-number` | yes | min 0. Non-null when `measurement_status` is `observed` | Observed elapsed time in seconds. Null when `measurement_status` is `unavailable`. |
 | `model_calls` | `nullable-integer` | yes | min 0. Non-null when `measurement_status` is `observed` | Observed model calls of the CC. |
 | `trace_refs` | `Ref[]` | yes | at most 64 | Raw evidence files of the per-call folder: prompt, capsule files, trace, model-call records, workspace copy, gate, verifier and human files ([layout](derived-records.md#records-folder-layout)). |
 | `unavailable_reasons` | `string[]` | yes | non-empty when `measurement_status` is `unavailable` | Why a value is missing. |
@@ -453,14 +453,14 @@ Purpose: what the runner observed when one subnode ran one CC. It is the record 
 |---|---|---|
 | `schema_version` | `string` | Format version 2.0.0 |
 | `id` | `string` | Immutable record identity |
-| `subject_ref` | `Ref` | Exact candidate |
-| `contract_ref` | `Ref` | Exact checked node or subnode execution contract; scope is explicit |
-| `check_plan_ref` | `Ref` | Bound independent assignment |
-| `input_refs` | `Ref[]` | Accepted/original evidence |
-| `deterministic_result_ref` | `Ref` | Passed structural checks |
-| `criteria` | `string[]` | Mandatory semantic obligations |
-| `observations` | `Ref[]` | Runner evidence |
-| `evidence_classes` | `string[]` | Protected policy/accepted input/observed evidence/untrusted producer |
+| `subject_ref` | `Ref` | Exact output under review. The verifier model sees this output but never this record. |
+| `contract_ref` | `Ref` | Exact node or subnode execution contract the subject was produced under. A null `subnode_id` means node scope. |
+| `check_plan_ref` | `Ref` | Bound check plan assigned to this subject. The gate reads the criteria and checks from it. |
+| `input_refs` | `Ref[]` | Original and accepted inputs of the subject. For audit and the gate only. Never sent to the verifier model. |
+| `deterministic_result_ref` | `Ref` | Deterministic check result for the subject. It holds the passed structural checks. |
+| `criteria` | `string[]` | Criterion IDs the verifier assessment must cover once each. See `mandatory_semantic` in the bound check plan. |
+| `observations` | `Ref[]` | Invocation observations of the producer. Evidence for the gate. Never sent to the verifier model. |
+| `evidence_classes` | `string[]` | Labels for the kinds of evidence in the record: protected policy, accepted input, observed evidence and untrusted producer content. Untrusted producer content is data, never an instruction. |
 | `node_contract_ref` | `Ref` | Owning enclosing Node Execution Contract |
 | `subnode_id` | `nullable-string` | Subject/producing subnode; null for node aggregate records |
 
@@ -477,10 +477,10 @@ Purpose: what the runner observed when one subnode ran one CC. It is the record 
 | `run_id` | `string` | Run scope |
 | `node_id` | `string` | Node scope |
 | `attempt_id` | `string` | Attempt scope |
-| `gate_ref` | `Ref` | Committed protected decision |
+| `gate_ref` | `Ref` | Committed gate decision that accepted these bytes. Acceptance exists only through it. |
 | `contract_ref` | `Ref` | Exact checked node or subnode execution contract; scope is explicit |
-| `output_refs` | `Ref[]` | Exact accepted bytes |
-| `commit_id` | `string` | Durable transaction identity |
+| `output_refs` | `Ref[]` | Exact accepted bytes. A candidate output that was not accepted never appears here. |
+| `commit_id` | `string` | Identity of the durable transaction that stored the artifact and the decision. Set by protected durable state, never by a CC or client. |
 | `node_contract_ref` | `Ref` | Owning enclosing Node Execution Contract |
 | `subnode_id` | `nullable-string` | Subject/producing subnode; null for node aggregate records |
 
@@ -693,8 +693,8 @@ Purpose: one idempotent request to start a run. An evaluation client also links 
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this submission record. |
 | `client_request_id` | `string` | yes | pattern `^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$`, unique per submission attempt | Idempotent submission identity used to reconcile uncertain delivery. |
-| `workspace_id` | `string` | yes | an authorized workspace | Scope of the run. |
-| `account_id` | `string` | yes | the authenticated actor | Who submits. |
+| `workspace_id` | `string` | yes | an authorized workspace | Scope of the run: the workspace whose uploaded inputs intake may read. The control plane checks that the session token is authorized for it, and rejects the submission otherwise. |
+| `account_id` | `string` | yes | the authenticated actor | Who submits. The control plane sets it from the session token. A value sent by the client is ignored. |
 | `intake_ref` | `Ref` | yes | a qualified intake | Qualified request and resources. |
 | `configuration_ref` | `Ref` | yes | the operator's approved `config.yaml` snapshot | The approved settings, model route and requested seed. The operator approves the file, never the client. A client cannot set `cc.router.*` or any other operator setting. |
 | `plan_source` | `string` | no | enum `static`, `planned`. Default `static`. Under an evaluation profile it equals that profile's `plan_source` | Chooses the plan before the run: `static` for the static template, `planned` for the Planner node ([D39](../method/decisions.md#d39)). The binder copies it into the run plan. Nothing else selects it. |
@@ -812,16 +812,16 @@ Purpose: an approved app configuration for benchmarking. The launcher starts the
 |---|---|---|
 | `schema_version` | `string` | Format version 1.0.0 |
 | `id` | `string` | Immutable record identity |
-| `client_request_id` | `string` | Reconciliation identity |
-| `run_id` | `nullable-string` | Allocated run or unavailable |
-| `revision` | `integer` | Monotonic state revision |
-| `stage` | `string` | Current phase/stage |
-| `status` | `string` | Completion/partial/halt/cancel/pause/in-progress |
-| `candidate_refs` | `Ref[]` | Unaccepted outputs |
-| `accepted_refs` | `Ref[]` | Committed accepted outputs |
-| `decision_ref` | `nullable-Ref` | Last decision |
-| `reasons` | `string[]` | Visible explanation |
-| `bundle_ref` | `nullable-Ref` | Available export |
+| `client_request_id` | `string` | Echo of the submission `client_request_id`. A client uses it to reconcile uncertain delivery before it resends. |
+| `run_id` | `nullable-string` | Allocated run ID. Null when no run was allocated yet. |
+| `revision` | `integer` | Monotonic integer revision of the run state. Use it to tell a newer status from a stale one. |
+| `stage` | `string` | The `node_id` of the node running now, or of the last node that finished; `intention_compiler` or `planner` before the plan exists. Display only. Per-node state is in `node_statuses`. |
+| `status` | `string` | Run state, with the run bundle `status` values: `in_progress`, `completed`, `partial`, `halted`, `paused`. A cancelled run reports `halted` and its `reasons` say so. A client decides from this field, never from `reasons`. |
+| `candidate_refs` | `Ref[]` | Candidate outputs that are not accepted. Show them as unaccepted. They are never a result. |
+| `accepted_refs` | `Ref[]` | Outputs the gate accepted and durable state committed. |
+| `decision_ref` | `nullable-Ref` | Latest gate decision. Null before any decision exists. |
+| `reasons` | `string[]` | Plain-language explanation shown to the user. Display only: a client decides from `status`, not from these strings. |
+| `bundle_ref` | `nullable-Ref` | Run bundle available for export. Null until an export exists. |
 | `node_statuses` | `NodeStatus[]` | One entry per node of the plan, with its PRD lifecycle name ([node lifecycle](#node-lifecycle)) |
 
 **Invalid/missing behavior:** Disconnection does not cancel; malformed or stale status is unavailable, not accepted completion.
@@ -835,10 +835,10 @@ Purpose: an approved app configuration for benchmarking. The launcher starts the
 | `schema_version` | `string` | Format version 1.0.0 |
 | `id` | `string` | Immutable record identity |
 | `run_id` | `string` | Authorized run |
-| `artifact_refs` | `Ref[]` | Requested/returned identities |
-| `audience` | `string` | Authorized intended readers |
-| `files` | `NamedFile[]` | Returned descriptive content |
-| `redactions` | `string[]` | Withheld evidence |
+| `artifact_refs` | `Ref[]` | Identities of the artifacts requested and returned. |
+| `audience` | `string` | One of `researcher` (the requesting user) or `reviewer` (the requesting user plus authorized reviewers), the same values as the Delivery file audience. Content outside it is withheld and listed in `redactions`. |
+| `files` | `NamedFile[]` | Returned content as `NamedFile` entries, each with its own `audience`. |
+| `redactions` | `string[]` | What was withheld from this audience, and why. Empty means nothing was withheld. |
 
 **Invalid/missing behavior:** No direct database/volume access; path escape or forbidden audience is rejected.
 
@@ -850,10 +850,10 @@ Purpose: an approved app configuration for benchmarking. The launcher starts the
 |---|---|---|
 | `schema_version` | `string` | Format version 1.0.0 |
 | `id` | `string` | Immutable record identity |
-| `request_id` | `string` | Cancellation identity |
+| `request_id` | `string` | ID of this cancellation request, chosen by the client. A resend with the same ID is recognized and not applied twice. Not the submission `client_request_id`. |
 | `run_id` | `string` | Target |
-| `status` | `string` | requested/acknowledged/terminal |
-| `preserved_effects` | `string[]` | Known effects that cannot be undone |
+| `status` | `string` | Progress of the cancellation, set by the protected controller. `requested`: recorded, and no new node is dispatched from now on. `acknowledged`: the scheduler is containing the active work. `terminal`: no work is running and the run is `halted`. |
+| `preserved_effects` | `string[]` | Known external effects that cancellation cannot undo. Cancellation is not rollback. Empty means none are known, not that none happened. |
 
 **Invalid/missing behavior:** Stop new dispatch, contain active work, preserve uncertainty/evidence; cancellation is not rollback.
 
@@ -927,12 +927,12 @@ Purpose: the record of one file a user uploaded to the server, and of its later 
 |---|---|---|
 | `schema_version` | `string` | Format version 1.0.0 |
 | `id` | `string` | Immutable record identity |
-| `category` | `string` | Stable reason family |
-| `message` | `string` | Actionable human explanation |
-| `request_id` | `nullable-string` | Known request |
-| `run_id` | `nullable-string` | Known run |
-| `evidence_refs` | `Ref[]` | Authorized diagnosis |
-| `correction` | `string` | Allowed user action |
+| `category` | `string` | Stable reason family that a client may branch on: one of `auth`, `validation`, `not_found`, `conflict`, `unavailable`, `internal`. It is not user text. |
+| `message` | `string` | Actionable explanation for the user. Display only. Never holds credentials or hidden fixtures. |
+| `request_id` | `nullable-string` | Request this error answers, when known. Null otherwise. |
+| `run_id` | `nullable-string` | Run this error concerns, when known. Null otherwise. |
+| `evidence_refs` | `Ref[]` | Records the caller is authorized to see that explain the error. Empty when there are none. |
+| `correction` | `string` | Action the user may take. A client never retries implicitly because of it. |
 
 **Invalid/missing behavior:** Never include credentials/hidden fixtures or suggest implicit work retry.
 
@@ -949,8 +949,9 @@ The file is YAML. A dotted name is a nested key: `cc.router.enabled` is `enabled
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version 1.0.0. Reject any other value. |
 | `cc.plan_source` | `string` | yes | enum `static`, `planned`. Default `static` | Plan source of a run whose submission names none. A submission's `plan_source` wins ([D39](../method/decisions.md#d39)). |
 | `cc.plan_policy_ref` | `Ref` | yes | the [plan policy](run-plan.md#plan-policy) | Operator limits the binder and the Planner stay inside. |
+| `cc.static_template_ref` | `Ref` | yes | an admitted [static template](run-plan.md#static-template) | The one static template a `static` run binds. The binder loads exactly this file and checks its hash. It never picks a template by name or by newest version. To change the fixed path, the operator points this at a new template version and restarts. |
 | `cc.router.enabled` | `boolean` | yes | default `false` | The one router switch. Its meaning and rules live in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
-| `cc.router.deadline_s` | `number` | yes | default `30` | Router deadline. Meaning in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
+| `cc.router.deadline_s` | `number` | yes | default `30` | Router deadline in seconds. Meaning in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
 | `cc.router.profile_ref` | `nullable-Ref` | yes | default null | The model selection profile. Meaning in the [routing contract](model-routing-contract.md#routerport-the-hot-path-seam). |
 | `rsi.custodian_key_id` | `nullable-string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$`. Default null. Null means admission refuses every candidate package | ID of the RSI custodian key whose public half is pinned in this file. Admission checks the signatures of referee evidence and session results against it ([D46](../method/decisions.md#d46)). |
 | `rsi.custodian_public_key` | `nullable-string` | yes | base64url public key. Default null. Non-null exactly when `rsi.custodian_key_id` is non-null | The public key the operator pins. The private key stays with `rsi_custodian` and `rsi_worker` cannot read it. |
@@ -990,6 +991,7 @@ schema_version: "1.0.0"
 cc:
   plan_source: static
   plan_policy_ref: {id: plan_policy.json, sha256: "<sha256 of the plan policy>"}
+  static_template_ref: {id: static_template.json, sha256: "<sha256 of the static template>"}
   router:
     enabled: false
     deadline_s: 30
@@ -1027,7 +1029,7 @@ Purpose: the protected disposition of one candidate CC version. It is the only r
 | `id` | `string` | yes | pattern `^[a-z][a-z0-9_.:-]{0,63}$` | Immutable ID of this admission record. |
 | `candidate_ref` | `Ref` | yes | the candidate package of an RSI child, or the declaration of a first version | Exact declaration and body package that was assessed. |
 | `cc` | `CcPin` | yes | equals the name, version label and digest of the candidate's declaration | Exact CC version this record admits or rejects. |
-| `parent_ref` | `nullable-Ref` | yes | null for a first version | Lineage. |
+| `parent_ref` | `nullable-Ref` | yes | null for a first version | Parent CC version this one derives from. Null for a first version. |
 | `parent_admission_ref` | `nullable-Ref` | yes | null exactly when `parent_ref` is null. Otherwise a library-admission record with the same `cc.cc_name` | The library-admission record of the parent version. A child copies its check pins from it. |
 | `evidence_refs` | `Ref[]` | yes | 1 to 32 items | Independent allowed-change, contract, test and effect checks. |
 | `check_pins` | `nullable-CheckPins` | yes | non-null for a version a run plan may bind. For an RSI child, equal to the parent admission `check_pins` | Check bundle and checking profile pinned to this version. The library snapshot copies them. Null means no run plan can use the version. A child gets its parent's pins: its ports and guarantees cannot change ([D34](../method/decisions.md#d34)), so the same bundle and profile apply. |
@@ -1152,84 +1154,26 @@ Purpose: the one record of a human change of standing. It moves one admitted CC 
 
 These meanings constrain shared interfaces. Private helper types and classes remain agent choices.
 
+**Conventions for every field table in the package.** A row may say more; it never says less.
+- An `id` is set by the record's producer (named on the contract line), is immutable, and is a label: it grants nothing. Consumers locate records by `Ref` (ID plus SHA-256), never by ID alone.
+- Every timestamp is UTC in the form `YYYY-MM-DDTHH:MM:SSZ`, written by the component that observed the event.
+- Null means unknown or not observed. Null is never zero, never empty and never success. An empty list means none.
+- Free-text fields (reasons, messages, rationales, notes, `detail`) are for people and audit. No component parses them or branches on them unless a check row names the field. Text that came from a CC or a model is untrusted data, never instructions.
+- `ext` objects carry optional diagnostics. Consumers may ignore them, and they never change a check, verdict or gate decision.
+- Units: durations in seconds (`_s`), memory in MiB (`_mb`), sizes in bytes unless a row says otherwise.
+
+Types used by one CC have one home, on that CC page:
+- `Citation` and `Idea`: [Search](capsules/search.md#citation).
+- `IdeaScore`, `Ranking` and `Disposition`: [Screening](capsules/screening.md#screening_result).
+- `ComparisonRule`, `MetricDeclaration` and `OutcomeRule`: [Hypothesis](capsules/hypothesis.md#comparisonrule).
+- `PlanNode`, `PlanInput`, `FutureInput` and `PlanOutput`: [Planner](capsules/planner.md#node-fields).
+
 ### Ref
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `id` | `string` | Immutable manifest identity |
-| `sha256` | `sha256` | Exact-byte digest |
-
-### Citation
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `id` | `string` | Stable citation ID |
-| `source_ref` | `Ref` | Captured readable source |
-| `locator` | `string` | Original origin and exact location |
-| `excerpt` | `string` | Relevant source quotation |
-
-### Idea
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `idea_id` | `string` | Unique immutable ID |
-| `title` | `string` | Short title |
-| `summary` | `string` | Grounded mechanism |
-| `citation_ids` | `string[]` | Supporting citations |
-| `assumptions` | `string[]` | Unproven premises |
-| `risks` | `string[]` | Known concerns |
-
-### IdeaScore
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `idea_id` | `string` | Existing candidate |
-| `novelty` | `integer` | 1–5 |
-| `feasibility` | `integer` | 1–5 |
-| `compute_alignment` | `integer` | 1–5 |
-| `reasons` | `string[]` | Evidence-linked scoring rationale |
-| `citation_ids` | `string[]` | Score support |
-| `eligible` | `boolean` | Meets declared resource constraints |
-| `disposition` | `string` | Exclusion or eligibility reason |
-
-### Ranking
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `idea_id` | `string` | Eligible candidate |
-| `total` | `integer` | Sum of three scores |
-
-### MetricRule
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `metric_id` | `string` | Unique measurement ID |
-| `unit` | `string` | Measurement unit |
-| `measurement` | `string` | Deterministic extraction definition |
-| `aggregation` | `string` | Frozen aggregation |
-| `success` | `ComparisonRule` | Predeclared success rule |
-| `falsification` | `ComparisonRule` | Predeclared negative rule |
-| `middle` | `string` | Predeclared residual classification |
-
-### MetricObservation
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `metric_id` | `string` | Blueprint metric |
-| `unit` | `string` | Same protocol unit |
-| `baseline` | `number[]` | Raw baseline repeats |
-| `treatment` | `number[]` | Raw treatment repeats |
-| `baseline_value` | `number` | Registered aggregate |
-| `treatment_value` | `number` | Registered aggregate |
-| `delta` | `number` | Treatment minus baseline |
-
-### MetricFinding
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `metric_id` | `string` | Registered metric |
-| `classification` | `string` | Scientific classification |
-| `rationale` | `string` | Measurement-to-rule explanation |
+| `id` | `string` | ID of the stored record or file. A path alone does not prove identity. |
+| `sha256` | `sha256` | SHA-256 of the exact stored bytes, 64 lowercase hex characters. Compared byte-exact. A mismatch rejects the ref. |
 
 ### NodeStatus
 
@@ -1244,181 +1188,130 @@ These meanings constrain shared interfaces. Private helper types and classes rem
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `path` | `string` | Confined descriptive relative path |
-| `artifact_ref` | `Ref` | Exact content identity |
-| `media_type` | `string` | Readable or binary format |
-| `audience` | `string` | Authorized readership |
+| `path` | `string` | Descriptive relative path, confined to the returned file set. A path escape is rejected. |
+| `artifact_ref` | `Ref` | Exact content identity of the file. Consumers fetch the bytes by this ref, not by path. |
+| `media_type` | `string` | Format of the file, readable or binary, for example `text/plain`. |
+| `audience` | `string` | One of `researcher` (the requesting user) or `reviewer` (the requesting user plus authorized reviewers), the same values as the Delivery file audience. Retrieval withholds the file from anyone outside it. |
 
 ### MissingEvidence
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `obligation_id` | `string` | Expected item |
-| `reason` | `string` | Unavailable or not-yet-produced reason |
-| `blocking` | `boolean` | Whether absence prevents release |
-
-### FutureInput
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `producer_node` | `string` | Predecessor node |
-| `port` | `string` | Named output port |
-| `contract_id` | `string` | Catalog contract |
-| `version` | `string` | Exact version |
-
-### PlanNode
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `node_id` | `string` | Unique graph node |
-| `objective` | `string` | Assigned purpose |
-| `requirement_ids` | `string[]` | Brief coverage |
-| `predecessors` | `string[]` | Dependency IDs |
-| `inputs` | `PlanInput[]` | Named concrete or future-bound inputs |
-| `outputs` | `PlanOutput[]` | Named typed outputs |
-| `subnodes` | `PlannedSubnode[]` | Bounded internal CC roles, dependencies and pinned templates; not merged CCs |
+| `obligation_id` | `string` | ID of what was expected and is absent: a Brief evidence obligation, deliverable or mandatory requirement ID, or else the contract name of the missing record, for example `delivery-manifest`. |
+| `reason` | `string` | Why it is unavailable or not yet produced. |
+| `blocking` | `boolean` | True when the absence prevents release. False when it is only reported. |
 
 ### Limits
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `time_s` | `number` | Positive elapsed cap |
-| `model_calls` | `integer` | Nonnegative call cap |
-| `memory_mb` | `integer` | Positive memory cap |
+| `time_s` | `number` | Elapsed-time cap in seconds. Positive. |
+| `model_calls` | `integer` | Cap on model calls. 0 or more. 0 allows no model call. |
+| `memory_mb` | `integer` | Memory cap in mebibytes (1 MiB = 1,048,576 bytes), the unit Docker memory limits use. Positive. |
 
 ### ModelIdentity
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `requested` | `string` | Configured identity |
-| `effective` | `nullable-string` | Reported actual identity or unavailable |
-| `basis` | `string` | How effective identity was established |
+| `requested` | `string` | Model ID the call asked for. It equals the route record `model_id`. |
+| `effective` | `nullable-string` | Model the provider reported using. Null when the actual identity is unavailable. |
+| `basis` | `string` | Short statement of how `effective` was established, or why it is null. |
 
 ### RSIPair
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `split` | `string` | loop or final partition identity, not case IDs |
-| `parent_passed` | `integer` | Aggregate count |
-| `child_passed` | `integer` | Aggregate count |
-| `total` | `integer` | Same case count |
-| `parent_time_s` | `number[]` | Paired batch durations |
-| `child_time_s` | `number[]` | Paired batch durations |
+| `split` | `string` | Identity of the target `hidden_loop` or `hidden_final` split. A partition identity, not a case ID. Never shown to the proposer. |
+| `parent_passed` | `integer` | Count of fixture units the parent passed in this split. Aggregate only. |
+| `child_passed` | `integer` | Count of fixture units the child passed in this split. Aggregate only. |
+| `total` | `integer` | Number of fixture units in the split. The same for parent and child. |
+| `parent_time_s` | `number[]` | Paired batch durations of the parent, in seconds. Paired with `child_time_s`. |
+| `child_time_s` | `number[]` | Paired batch durations of the child, in seconds. Paired with `parent_time_s`. |
 
 ### RSIScore
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `primary` | `string` | passed_test_count |
-| `secondary` | `string` | paired_time_at_equal_counts |
-| `warmup_batches` | `integer` | Frozen warm-ups |
-| `paired_rounds` | `integer` | Frozen round count |
-| `min_relative_gain` | `number` | Frozen minimum gain |
-| `noise_multiplier` | `number` | Frozen calibrated-noise multiple |
-| `batch_iterations` | `integer` | Fixed equal helper batch workload |
-| `calibrated_relative_noise` | `number` | Protected pre-session timing-noise estimate |
+| `primary` | `string` | Always `passed_test_count`. The count of passed tests decides first. |
+| `secondary` | `string` | Always `paired_time_at_equal_counts`. Timing counts only when pass counts are equal. |
+| `warmup_batches` | `integer` | Warm-up batches run before timing. Fixed at 5. |
+| `paired_rounds` | `integer` | Paired timing rounds, run in alternating order. Fixed at 7. |
+| `min_relative_gain` | `number` | Smallest relative timing gain, as a fraction, that can qualify a child on timing. Frozen. |
+| `noise_multiplier` | `number` | The timing gain must exceed this multiple of `calibrated_relative_noise`. Frozen. |
+| `batch_iterations` | `integer` | Iterations in each timed helper batch. The same for parent and child. |
+| `calibrated_relative_noise` | `number` | Timing noise measured by calibration before the session, as a fraction. Not measured on the child. |
 
 ### SplitIdentities
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `development` | `string` | Visible partition identity |
-| `hidden_loop` | `string` | Custodian-only identity |
-| `hidden_final` | `string` | Custodian-only identity |
-| `platform` | `string` | Outside-loop evaluation identity |
-
-### ComparisonRule
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `operand` | `string` | Registered treatment aggregate |
-| `comparator` | `string` | One of lt, le, eq, ge, gt |
-| `reference` | `string` | baseline aggregate or constant |
-| `factor` | `number` | Multiply baseline; zero for constant |
-| `offset` | `number` | Add threshold in the registered unit |
+| `development` | `string` | Identity of the visible partition the proposer may see. |
+| `hidden_loop` | `string` | Identity of the hidden loop partition. Known only to the custodian. Never shown to the proposer. |
+| `hidden_final` | `string` | Identity of the hidden final partition. Known only to the custodian. Never shown to the proposer. Read once per session. |
+| `platform` | `string` | Identity of the partition the platform uses for evaluation outside the RSI loop. All four identities differ. |
 
 ### Prerequisite
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `name` | `string` | Storage/auth/model/isolation prerequisite |
-| `status` | `string` | ready, unavailable or failed |
-| `reason` | `string` | Actionable observed basis; no secret values |
+| `name` | `string` | Which prerequisite this is: storage, auth, model or isolation. |
+| `status` | `string` | `ready`, `unavailable` or `failed`. A mandatory prerequisite must be `ready` for the report `ready` to be true. |
+| `reason` | `string` | Observed basis for the status, in actionable words. Never a secret value. |
 
 ### Usage
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `input_tokens` | `nullable-integer` | Observed input tokens, or unavailable |
-| `output_tokens` | `nullable-integer` | Observed output tokens, or unavailable |
-| `cost_amount` | `nullable-number` | Reported attributable cost, or unavailable; no fabricated estimate |
-| `currency` | `nullable-string` | Reported cost unit, or unavailable |
-| `unavailable_reasons` | `string[]` | Unsupported or unobserved fields and basis |
-
-### PlanInput
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `name` | `string` | Unique consumer input port |
-| `contract_id` | `string` | Catalog contract |
-| `version` | `string` | Exact contract version |
-| `required` | `boolean` | Mandatory input |
-| `artifact_refs` | `Ref[]` | Concrete accepted inputs; empty when future-bound |
-| `future_bindings` | `FutureInput[]` | Named predecessor outputs; empty when concrete |
-
-### PlanOutput
-
-| Field | Type | Meaning / why needed |
-|---|---|---|
-| `name` | `string` | Unique producer output port |
-| `contract_id` | `string` | Catalog contract |
-| `version` | `string` | Exact contract version |
-| `required` | `boolean` | Mandatory output |
+| `input_tokens` | `nullable-integer` | Input tokens the provider reported. Null means not observed. Null is never zero. |
+| `output_tokens` | `nullable-integer` | Output tokens the provider reported. Null means not observed. Null is never zero. |
+| `cost_amount` | `nullable-number` | Cost the provider reported, in `currency`. Null when unavailable. Never an estimate. |
+| `currency` | `nullable-string` | Unit of `cost_amount`, as reported. Null when unavailable. |
+| `unavailable_reasons` | `string[]` | Names each null field above and why it is unavailable. |
 
 ### BoundNodeInput
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `name` | `string` | Named external input |
+| `name` | `string` | Name of the external input port. Unique in the contract. |
 | `contract_id` | `string` | Catalog contract |
 | `version` | `string` | Supported contract version |
-| `required` | `boolean` | Required for dispatch |
-| `artifact_refs` | `Ref[]` | Exact accepted inputs |
+| `required` | `boolean` | True means the node is not dispatched without a bound ref for this port. |
+| `artifact_refs` | `Ref[]` | Exact accepted refs bound to the port. A required port with none is an unbound input and the node is not dispatched. |
 
 ### BoundNodeOutput
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `name` | `string` | Named external output |
+| `name` | `string` | Name of the external output port. Unique in the contract. |
 | `contract_id` | `string` | Catalog contract |
 | `version` | `string` | Supported contract version |
-| `required` | `boolean` | Required for release |
+| `required` | `boolean` | True means the node gate does not release the node without this output. |
 
 ### NodeSubnodeAssignment
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
 | `subnode_id` | `string` | Unique child identity |
-| `role` | `string` | work or verifier |
+| `role` | `string` | `work` or `verifier`. The scheduler creates each verifier subnode at dispatch, one per output. |
 | `template_ref` | `Ref` | Frozen internal port and checking template |
-| `capsule_ref` | `Ref` | One admitted declaration |
-| `depends_on` | `string[]` | Internal prerequisites mediated by gates |
-| `required` | `boolean` | Required for node completion |
+| `capsule_ref` | `Ref` | Pinned declaration of the one admitted CC version this subnode runs. Equals the `capsule_ref` of its template. |
+| `depends_on` | `string[]` | Subnode IDs that must be accepted first, each through its gate. Acyclic. A verifier subnode lists the work subnode it reviews. |
+| `required` | `boolean` | True means node completion needs this subnode. |
 
 ### NodeGateAssignment
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
 | `gate_id` | `string` | Protected gate identity |
-| `subject_subnode_id` | `string` | Submitted work subject; final assignment aggregates node obligations |
-| `profile_ref` | `Ref` | Independently owned criteria and checking profile |
+| `subject_subnode_id` | `string` | Work subnode whose output this gate decision reviews. The final assignment for node release aggregates the node obligations. |
+| `profile_ref` | `Ref` | Checking profile giving the criteria (the node finalization profile for node release). Owned independently of the CC. |
 
 ### AuthorityCeiling
 
 | Field | Type | Meaning / why needed |
 |---|---|---|
-| `network` | `string` | none or allowlist |
-| `network_allowlist` | `string[]` | Maximum authorized endpoints |
-| `resource_reads` | `Ref[]` | Maximum permitted read scope |
-| `write_roots` | `string[]` | Maximum permitted writes |
-| `tools` | `string[]` | Maximum admitted tools |
+| `network` | `string` | `none` or `allowlist`. `none` needs an empty `network_allowlist`. |
+| `network_allowlist` | `string[]` | Maximum endpoints the node may reach. Empty when `network` is `none`. |
+| `resource_reads` | `Ref[]` | Maximum read scope, as refs. A ceiling, never a grant. |
+| `write_roots` | `string[]` | Maximum paths the node may write under. A ceiling, never a grant. |
+| `tools` | `string[]` | Maximum admitted tools. A ceiling, never a grant. |

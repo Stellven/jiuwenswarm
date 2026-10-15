@@ -2,7 +2,7 @@
 
 `Tier 2 · Part of: [Method](README.md)`
 
-Each numbered heading of the current PRD (the [confirmed receipt](../sources/product/README.md), 188 headings) maps to the page that owns it. This is a reading route, not proof of implementation, and not the October 30 assignment (see [build plan](../3-build-plan.md) and [D19](decisions.md#d19)). [Decisions](decisions.md#decisions-and-source-amendments) list the explicit departures.
+Each numbered heading of the current PRD (the [confirmed receipt](../sources/product/README.md), 188 headings) maps to the page that owns it. This is a reading route, not proof of implementation. [Decisions](decisions.md#decisions-and-source-amendments) list the explicit departures.
 
 | Exact PRD heading | Owning page |
 |---|---|

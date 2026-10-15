@@ -2,7 +2,7 @@
 
 `Tier 1 · Part of: README · Serves: Knowledge and Standard`
 
-Five views: trust boundary, side systems, components, a run, and state.
+AI4Research builds on the existing JiuwenSwarm/OpenJiuwen runtime and adds governed research control. These views show the trust boundary, components, run flow and data ownership. See the [platform page](platform/README.md) for runtime reuse constraints and [native reuse evidence](sources/native-reuse-evidence.json) for source observations.
 
 ## Trust boundary: control flow outside, work inside
 
@@ -215,4 +215,4 @@ Detail: [failure and recovery](platform/failure-and-recovery.md).
 
 ## PRD phases
 
-All three PRD phases are part of M1. **Phase 1**, the governed baseline, is the static template, every gate and the fixed Codex route. It alone is the PRD's core M1 gate. **Phase 2**, Local-Isolated RSI Implementation, is the RSI workbench: built in M1, validated later. **Phase 3**, dynamic integration, is the Planner (the PRD's Leader Agent planning, its fully verified target), API model routing and the other items in [phases](method/phases.md). Each reports implementation, integration and verification separately, and switching it off restores the baseline ([D33](method/decisions.md#d33)). The October 30 build is a build order inside M1, not a phase ([D40](method/decisions.md#d40)).
+All three PRD phases are part of M1. **Phase 1**, the governed baseline, is the static template, every gate and the fixed Codex route. It alone is the PRD's core M1 gate. **Phase 2**, Local-Isolated RSI Implementation, is the RSI workbench: built in M1, validation is reported separately. **Phase 3**, dynamic integration, includes the Planner (the PRD's targeted full implementation, integration and verification item), API model routing and the other items in [phases](method/phases.md). Each reports implementation, integration and verification separately. Experimental paths preserve the Phase 1 baseline and can be switched off ([D33](method/decisions.md#d33), [D40](method/decisions.md#d40)).

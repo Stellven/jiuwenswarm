@@ -68,11 +68,11 @@ Contract `poc-manifest:field-contract:2`, version 2.0.0. This version drops `mec
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `2.0.0` | Format version. |
 | `id` | `string` | yes | non-empty | Record identity. |
-| `blueprint_ref` | `Ref` | yes | equals the input blueprint ref | The frozen protocol this bundle implements. |
+| `blueprint_ref` | `Ref` | yes | equals the input blueprint ref | The frozen protocol this bundle implements. The Builder CC copies the input blueprint Ref and cannot choose another. |
 | `environment_ref` | `Ref` | yes | equals the blueprint and lock `environment_ref` | The prepared lock. The Builder cannot change it. |
-| `archive_ref` | `Ref` | yes | `sha256` equals the SHA-256 of the bundle zip bytes | The bundle this manifest describes. |
-| `files` | `NamedFile[]` | yes | exactly 3 entries. `path` values are exactly `requirements.txt`, `poc_patch.py`, `run_benchmark.py`, lowercase, no directories. `artifact_ref.sha256` equals the hash of that entry inside the zip. | Every file in the bundle. No other file is allowed. |
-| `dependencies` | `Dependency[]` | yes | `min_items` 0, `max_items` 50. Equals the parsed lines of `requirements.txt`. Each is a subset of the lock pins. | Full list of packages the bundle needs. Empty when only the standard library is used. |
+| `archive_ref` | `Ref` | yes | `sha256` equals the SHA-256 of the bundle zip bytes | The bundle zip this manifest describes. Its `sha256` is the SHA-256 of the zip bytes, which Research Benchmark unpacks. |
+| `files` | `NamedFile[]` | yes | exactly 3 entries. `path` values are exactly `requirements.txt`, `poc_patch.py`, `run_benchmark.py`, lowercase, no directories. `artifact_ref.sha256` equals the hash of that entry inside the zip. | Every file in the bundle, with the hash of its entry in the zip. No other file is allowed. |
+| `dependencies` | `Dependency[]` | yes | `min_items` 0, `max_items` 50. Equals the parsed lines of `requirements.txt`. Each is a subset of the lock pins. | Full list of packages the bundle needs, equal to the parsed `requirements.txt` lines. Empty when only the standard library is used. |
 
 Examples: [valid](../examples/poc_manifest.json)
 
@@ -148,21 +148,21 @@ Purpose: the host's record of the Builder checks. It is build evidence only. It 
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | exactly `1.0.0` | Format version. |
 | `id` | `string` | yes | non-empty | Record identity. |
-| `manifest_ref` | `Ref` | yes | resolves to the checked manifest | The manifest this receipt covers. |
+| `manifest_ref` | `Ref` | yes | resolves to the checked manifest | The manifest this receipt covers. The host writes the receipt, never the worker. |
 | `blueprint_ref` | `Ref` | yes | equals the manifest `blueprint_ref` | The frozen protocol. |
 | `environment_ref` | `Ref` | yes | equals the manifest `environment_ref` | The prepared lock. |
 | `archive_ref` | `Ref` | yes | equals the manifest `archive_ref` | The bundle that was checked. |
-| `checker` | `string` | yes | non-empty | Name and version of the compile and import scan tools. |
+| `checker` | `string` | yes | non-empty | Name and version of the compile and import scan tools the host used. |
 | `file_checks` | `BuildFileCheck[]` | yes | exactly one entry per bundle file, same paths as the manifest | Per-file result. |
-| `forbidden_modules_ref` | `Ref` | yes | resolves to the list pinned in the check bundle | Source of the forbidden-module list used. |
-| `forbidden_scan_result` | `string` | yes | enum `pass`, `fail`. `pass` only when every `forbidden_imports` is empty. | Result of the import scan across all `.py` files. |
-| `output_format_check` | `OutputFormatCheck` | yes | see the type below | Static check that `run_benchmark.py` prints its metrics in the output log format. No code runs. |
+| `forbidden_modules_ref` | `Ref` | yes | resolves to the list pinned in the check bundle | Points at the forbidden-module list pinned in the check bundle, so a reader can see which list ran. |
+| `forbidden_scan_result` | `string` | yes | enum `pass`, `fail`. `pass` only when every `forbidden_imports` is empty. | Result of the import scan across all `.py` files. Host-set from a fresh scan, never from the worker. |
+| `output_format_check` | `OutputFormatCheck` | yes | see the type below | Static check that `run_benchmark.py` prints its metrics in the output log format. The host runs no code. Written by the host. |
 | `dependencies` | `Dependency[]` | yes | full list, equals the manifest `dependencies` | Every dependency, fully listed. |
-| `dependencies_all_pinned` | `boolean` | yes | true only when every entry has an exact version | Pin check result. |
-| `trial_executed` | `boolean` | yes | must be `false` | Confirms no POC code ran. Compilation does not run it. |
-| `packages_installed` | `boolean` | yes | must be `false` | Confirms nothing was installed. |
-| `readiness` | `string` | yes | enum `READY`, `NOT_READY`. `READY` only when every syntax result is `pass` or `not_applicable`, `forbidden_scan_result` is `pass`, `output_format_check.result` is `pass` and `dependencies_all_pinned` is true. | Mechanical readiness for Benchmark. |
-| `readiness_reasons` | `string[]` | yes | empty when `READY`. At least one entry otherwise. | Why the bundle is not ready. |
+| `dependencies_all_pinned` | `boolean` | yes | true only when every entry has an exact version | Pin check result, set by the host. True only when every dependency has an exact version. |
+| `trial_executed` | `boolean` | yes | must be `false` | Confirms no POC code ran. Host-set from the runtime record, and must be `false`. Compilation does not run the code. |
+| `packages_installed` | `boolean` | yes | must be `false` | Confirms nothing was installed. Host-set from the runtime record, and must be `false`. |
+| `readiness` | `string` | yes | enum `READY`, `NOT_READY`. `READY` only when every syntax result is `pass` or `not_applicable`, `forbidden_scan_result` is `pass`, `output_format_check.result` is `pass` and `dependencies_all_pinned` is true. | Mechanical readiness for Benchmark. The host sets it from the evidence above, never the worker. Benchmark starts only when it is `READY`. |
+| `readiness_reasons` | `string[]` | yes | empty when `READY`. At least one entry otherwise. | Why the bundle is not ready, for people and the escalation record. Empty when `READY`. |
 
 **Enum `forbidden_scan_result`**
 
@@ -218,9 +218,9 @@ Examples: [valid](../examples/build_receipt.json) · forbidden list: [build_rece
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
 | `path` | `string` | yes | one of the three bundle paths | The file checked. |
-| `sha256` | `sha256` | yes | equals the hash of the entry in the zip | The exact bytes checked. |
+| `sha256` | `sha256` | yes | equals the hash of the entry in the zip | Hash of the zip entry that was checked. The exact bytes checked. |
 | `syntax_result` | `string` | yes | enum `pass`, `fail`, `not_applicable`. `not_applicable` only for `requirements.txt`. | Result of `python -m py_compile` equivalent. Compiling does not run the module code. |
-| `syntax_detail` | `nullable-string` | yes | not null when `fail`. At most 500 characters. | Compiler message. |
+| `syntax_detail` | `nullable-string` | yes | not null when `fail`. At most 500 characters. | Compiler message. Required when `syntax_result` is `fail`. At most 500 characters. |
 | `forbidden_imports` | `string[]` | yes | empty for `requirements.txt` | Forbidden modules found by an AST import scan, plus any use of `__import__`, `importlib`, `exec` or `eval`. |
 
 Examples: [valid](../examples/build_receipt.json) (field `file_checks`)

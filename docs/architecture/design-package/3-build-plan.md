@@ -37,16 +37,6 @@ Every run must finish with the same frozen plan and CC versions. An [import lint
 
 Each build criterion in the tier 2 pages says what correct looks like, and each tier 3 check states the exact condition it enforces. Builders write their own tests from these. The team verifies after the build.
 
-## October 30 acceptance
+## M1 scope and acceptance boundary
 
-**October 30 acceptance** covers the hot path only ([D40](method/decisions.md#d40)). The PRD's core M1 gate is Phase 1, Stages 0 to 7. RSI and routing must be implemented but never block it.
-- two different research requests, each run from intake to report, one static and one planned (the Planner is Phase 3 work built early, [D19](method/decisions.md#d19));
-- one of them repeated three times with the same frozen plan, all successful;
-- rejection before dispatch of an incompatible connection, a cycle and a missing check bundle;
-- a scientific positive and a valid scientific negative, both delivered, from fixture tasks with known outcomes;
-- a storage failure that halts;
-- the non-blocking test and the import check, with router stubs.
-
-**Benchmark pilot**, a separate item: the platform benchmark runner scores the benchmark's first end-to-end cases (E1) from the sidecar and stores the baseline. A pilot failure is reported, but it never holds the October 30 acceptance.
-
-Passing checks alone does not prove a run works: inspect its artifacts and report.
+The PRD core M1 gate is Phase 1, Stages 0–7 ([D40](method/decisions.md#d40)). Phase 2 and Phase 3 implementation coverage is reported separately and does not block that gate. Dynamic Agent Planning is the targeted Phase 3 item for full implementation, integration and verification. Its positive and negative paths must be reported. RSI and Model Routing are M1 implementation commitments; successful integration and verification are not core gate conditions. The [benchmark runner](side-systems/benchmark-runner.md) defines its own pilot and evidence.

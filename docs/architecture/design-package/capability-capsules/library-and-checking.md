@@ -36,7 +36,7 @@ Admission eligibility and activation are distinct. The explicit M1 bootstrap set
 
 ## RSI boundary
 
-RSI is built in M1, off the hot path, and separately buildable. It has no import, startup, test, or October 30 acceptance dependency; the core parent export remains independent of RSI availability. RSI cannot change live workflow or mandatory verifier/referee boundaries.
+RSI is built in M1, off the hot path, and separately buildable. It has no import, startup, test, or core gate dependency; the parent export remains independent of RSI availability. RSI cannot change live workflow or mandatory verifier/referee boundaries.
 
 Any CC or dependency supplying the checking assessment for a mandatory gate is outside RSI's mutation scope. Protection includes its prompts and rubrics, deterministic checks and runners, policy, hidden fixtures, permission enforcement, library activation, and authoritative evidence storage. A CC's `evolution.may_change` cannot expand that scope: it never lists `/evolution` (`rsi_cannot_grant`), and a verifier CC or a CC whose output is gate evidence must have `rsi` `none` (`rsi_mode_allowed`). The declaration parts RSI may never change are listed in the [declaration reference](../reference/declaration.md#evolution-what-rsi-may-change). Screening's explicitly mutable ranking helper is a work implementation, not permission to alter its verifier or gate criteria.
 

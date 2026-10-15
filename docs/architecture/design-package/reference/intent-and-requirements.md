@@ -18,15 +18,15 @@ Producer: Intent CC. Consumers: deterministic checker, Intent verifier, then Req
 |---|---|---|
 | `schema_version` | Current format version | Reject incompatible structures before review |
 | `request_ref` | Exact original request reference | Prevent substitution and preserve meaning |
-| `interpretation` | Nullable statements `problem`, `desired_change`, `requested_result` | Identify purpose and intended output without choosing a scientific solution |
+| `interpretation` | The Intent CC's statements `problem`, `desired_change` and `requested_result`, each nullable. A null means the request does not state it. If that leaves Requirements without enough purpose, the IR carries a blocking `missing` uncertainty | Identify purpose and intended output without choosing a scientific solution |
 | `context` | IDs, entity name/role and source spans | Make affected entities and supplied context explicit |
 | `in_scope`, `out_of_scope` | Attributed statement lists | Bound Requirements and later work |
 | `constraints` | ID, text, category and source spans | Preserve limits, prohibitions, time/data/format requirements |
 | `preferences` | Attributed statements | Preserve optional wishes without silently elevating them |
 | `user_targets` | ID, metric, target text, source spans | Preserve explicit targets; do not invent numeric thresholds |
 | `context_refs` | Permitted context/source references | Resolve relevant original material |
-| `uncertainties` | ID, kind, description, affected fields, blocking flag, clarification | Distinguish missing, ambiguous and conflicting meaning |
-| `readiness` | Producer's `ready` / `needs_clarification` claim and reason | Explain the worker's candidate-state claim; host gate owns acceptance |
+| `uncertainties` | ID, kind, description, affected fields, blocking flag, clarification. A blocking uncertainty means `readiness.status` is `needs_clarification` | Distinguish missing, ambiguous and conflicting meaning |
+| `readiness` | The Intent CC's own claim, `ready` or `needs_clarification`, with a reason. It is untrusted. `ready` only when no uncertainty is blocking | Explain the worker's candidate-state claim; host gate owns acceptance |
 
 An attributed statement has `id`, `text`, `source_spans`. Each span contains `source_ref`, `start`, `end`; offsets count Unicode code points in exact source text and exclude the end. IDs are unique within the IR; references must be permitted and spans nonempty/in-bounds. Preserve original source bytes before any extraction/normalization and identify the extracted source text separately when relevant.
 
@@ -84,7 +84,7 @@ Producer: Requirements CC within the Intention Compiler node. Consumers: determi
 | `acceptance_expectations` | ID, linked requirements and observable completion meaning | Check that the workflow addresses the user's requested result |
 | `evidence_obligations` | ID, linked requirements and evidence meaning | Establish what must substantiate completion |
 | `assumptions` | ID, text, protected `authority_ref`, actual affected-field JSON pointers | Make every applied default visible and attributable |
-| `unresolved_items` | Missing/ambiguous/conflicting information and blocking disposition | Block material uncertainty instead of manufacturing requirements |
+| `unresolved_items` | Missing, ambiguous or conflicting information, each with a blocking or non-blocking disposition. A blocking item prevents acceptance | Block material uncertainty instead of manufacturing requirements |
 | `confirmation` | User-request or authorized-assumption basis with sources | Record permission to proceed without asynchronous approval waiting |
 
 Requirement statements contain `id`, `text`, `origin` (`user`, `system_default`, `derived`) and source references. Local IDs are unique. Acceptance/evidence/metric requirement IDs resolve. Derived requirements follow accepted meaning; they cannot introduce a new objective or chosen scientific solution.

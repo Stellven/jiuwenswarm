@@ -49,30 +49,30 @@ File `evaluation_verdict.json`. This is the single settled field table. It repla
 |---|---|---|---|---|
 | `schema_version` | string | yes | `2.0.0` | Format version. |
 | `id` | string | yes | `evaluation_verdict` | Artifact identity. |
-| `brief_ref` | Ref | yes | Equals the input brief's Ref | The brief the run served. |
-| `blueprint_ref` | Ref | yes | Equals the input blueprint's Ref and `benchmark_payload.blueprint_ref` | The registered rules applied. |
-| `benchmark_ref` | Ref | yes | Equals the input payload's Ref | The measurements judged. |
-| `classification` | string | yes | enum `PASS`, `FAIL`, `INCONCLUSIVE`, `CONDITIONALLY_ACCEPTABLE`. Must equal the result of section 4.2 | The overall scientific result. |
-| `aggregation_rule` | string | yes | enum `m1_conjunctive_v1` | Names the rule in section 4.2 used to combine findings. |
-| `findings` | MetricVerdictFinding[] | yes | min 1. Exactly one finding per blueprint metric, in blueprint order | Per-metric comparison of measurement to rule. |
-| `completeness` | CompletenessReview | yes | none | Whether every registered measurement exists. |
-| `plausibility` | PlausibilityReview | yes | none | Whether the measured values are physically and computationally believable. |
-| `blockers` | string[] | yes | Non-empty exactly when a finding has `rule_applied` `unmeasured` or `plausibility.status` is `implausible`. Each item is under 300 characters | What blocks a firm classification. |
-| `residual_risks` | string[] | yes | Each item under 300 characters. May be empty | Interpretive limits and operational risks that remain, such as noise, narrow data or one hardware type. |
-| `followups` | string[] | yes | Each item under 300 characters. Recommendations only. No item is an instruction to rerun a node or change code | Suggested future work, to be authorized separately. |
+| `brief_ref` | Ref | yes | Equals the input brief's Ref | The brief the run served. Copied from the `brief` input. Check `refs_match_inputs` rejects any other Ref. |
+| `blueprint_ref` | Ref | yes | Equals the input blueprint's Ref and `benchmark_payload.blueprint_ref` | The registered rules applied. Copied from the `hypothesis_blueprint` input. Check `refs_match_inputs` rejects any other Ref. |
+| `benchmark_ref` | Ref | yes | Equals the input payload's Ref | The measurements judged. Copied from the `benchmark_payload` input. Check `refs_match_inputs` rejects any other Ref. |
+| `classification` | string | yes | enum `PASS`, `FAIL`, `INCONCLUSIVE`, `CONDITIONALLY_ACCEPTABLE`. Must equal the result of section 4.2 | The overall scientific result. The CC proposes it. The host recomputes it from the findings and rejects any difference (`rule_recomputation`). Delivery reports it unchanged. Wording cannot move it. |
+| `aggregation_rule` | string | yes | enum `m1_conjunctive_v1` | Names the rule in section 4.2 used to combine findings. A fixed label in M1, not a free choice. |
+| `findings` | MetricVerdictFinding[] | yes | min 1. Exactly one finding per blueprint metric, in blueprint order | Per-metric comparison of measurement to rule. The CC writes it from the blueprint rules and the payload values only. The host recomputes every finding. |
+| `completeness` | CompletenessReview | yes | none | Whether every registered measurement exists. Describes the payload. It never softens a finding. |
+| `plausibility` | PlausibilityReview | yes | none | Whether the measured values are physically and computationally believable. Never use it to rescue a `FAIL`. An `implausible` status makes the overall result `INCONCLUSIVE`. |
+| `blockers` | string[] | yes | Non-empty exactly when a finding has `rule_applied` `unmeasured` or `plausibility.status` is `implausible`. Each item is under 300 characters | What blocks a firm classification. Text for readers. Empty exactly when no finding is unmeasured and plausibility is not `implausible`. Delivery copies each item verbatim into its limitations section. |
+| `residual_risks` | string[] | yes | Each item under 300 characters. May be empty | Interpretive limits and operational risks that remain, such as noise, narrow data or one hardware type. Text for readers, never a rule or a threshold. An empty list means the CC names none. Delivery copies each item verbatim. |
+| `followups` | string[] | yes | Each item under 300 characters. Recommendations only. No item is an instruction to rerun a node or change code | Suggested future work, to be authorized separately. Text only. Nothing acts on it automatically. Delivery copies each item verbatim into its recommendations section. |
 
 `MetricVerdictFinding`
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `metric_id` | string | yes | Equals a blueprint `metric_id`. Unique across findings | The metric judged. |
-| `classification` | string | yes | enum `PASS`, `FAIL`, `INCONCLUSIVE`, `CONDITIONALLY_ACCEPTABLE` | Result for this metric under section 4.2 step 1. |
+| `metric_id` | string | yes | Equals a blueprint `metric_id`. Unique across findings | The metric judged. Copied from the blueprint as the exact string. |
+| `classification` | string | yes | enum `PASS`, `FAIL`, `INCONCLUSIVE`, `CONDITIONALLY_ACCEPTABLE` | Result for this metric under section 4.2 step 1. The host recomputes it from the two values and the registered rule. |
 | `rule_applied` | string | yes | enum `success`, `falsification`, `conditional`, `middle`, `unmeasured` | Which registered rule decided it. `middle` means no region matched and no conditional rule held. `unmeasured` means a side has no value. |
-| `rule_text` | string | yes | 1 to 300 characters. Restates the registered comparator, factor and offset of the rule applied, or says that no region matched | The rule in words so a reader can check it. |
-| `baseline_value` | nullable-number | yes | Equals the payload's baseline `value` for this metric | Baseline aggregate used. |
-| `treatment_value` | nullable-number | yes | Equals the payload's treatment `value` for this metric | Treatment aggregate used. |
-| `threshold` | nullable-number | yes | Non-null exactly when `rule_applied` is `success`, `falsification` or `conditional`. Then equals the registered threshold computed from `baseline_value` | The number the treatment was compared with. |
-| `rationale` | string | yes | 1 to 600 characters. Names the values, the threshold and the outcome | Measurement-to-rule explanation. |
+| `rule_text` | string | yes | 1 to 300 characters. Restates the registered comparator, factor and offset of the rule applied, or says that no region matched | The rule in words so a reader can check it. Text for readers. It restates a registered rule and adds no new threshold (`registered_rule_only`). |
+| `baseline_value` | nullable-number | yes | Equals the payload's baseline `value` for this metric | Baseline aggregate used, in the metric unit. Copied from the payload, never recomputed. Null when the baseline has no value, which makes the finding `unmeasured`. |
+| `treatment_value` | nullable-number | yes | Equals the payload's treatment `value` for this metric | Treatment aggregate used, in the metric unit. Copied from the payload, never recomputed. Null when the treatment has no value, which makes the finding `unmeasured`. |
+| `threshold` | nullable-number | yes | Non-null exactly when `rule_applied` is `success`, `falsification` or `conditional`. Then equals the registered threshold computed from `baseline_value` | The number the treatment was compared with, in the metric unit. Null when no rule applied. The host recomputes it from the registered rule and `baseline_value`. |
+| `rationale` | string | yes | 1 to 600 characters. Names the values, the threshold and the outcome | Measurement-to-rule explanation. Text for readers and the verifier. No gate parses it. |
 
 `CompletenessReview`: `status` (enum `complete`, `incomplete`. `incomplete` exactly when some metric side is unmeasured) and `notes` (string[], each under 300 characters).
 

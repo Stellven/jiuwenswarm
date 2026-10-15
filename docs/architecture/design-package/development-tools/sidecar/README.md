@@ -2,7 +2,7 @@
 
 `Tier 2 · Part of: [README](../../README.md)`
 
-The sidecar is an off-hot-path, finite-job development and benchmarking tool on the server host ([D35](../../method/decisions.md#d35), [D36](../../method/decisions.md#d36)). It contains the platform benchmark runner and test runner. Their entry points, credentials, data and authority remain separate. Product agents and capability capsules cannot use sidecar tools or credentials. Product startup and research runs do not depend on the sidecar; the benchmark pilot remains separate from October 30 acceptance ([D40](../../method/decisions.md#d40)).
+The sidecar is an off-hot-path, finite-job development and benchmarking tool on the server host ([D35](../../method/decisions.md#d35), [D36](../../method/decisions.md#d36)). It contains the platform benchmark runner and test runner. Their entry points, credentials, data and authority remain separate. Product agents and capability capsules cannot use sidecar tools or credentials. Product startup and research runs do not depend on the sidecar; the benchmark pilot is separate from the PRD core gate ([D40](../../method/decisions.md#d40)).
 
 Some benchmark experiments need target lifecycle, image preparation, fault injection or host observations. The existing host launcher may provide these through an optional privileged host-executor function and a narrow per-job contract. The launcher retains Docker credentials; the sidecar receives no Docker socket, daemon credentials or general host shell. Ordinary API campaigns need no privileged operation.
 
@@ -112,4 +112,4 @@ Benchmark and test processes use separate scoped app tokens. Evaluation-profile 
 
 ## Scope and phase boundaries
 
-This is architecture, not runtime implementation. PRD V10 core gate: Phase 1 stages 0–7, end-to-end run, Section 1.5 items, Evaluator Gate tests and Phase 1 evidence. Phases 2/3 do not block it. October 30 acceptance and E1 pilot remain separate; pilot failure does not hold October 30 acceptance ([D40](../../method/decisions.md#d40)). The optional host-launcher boundary is [D51](../../method/decisions.md#d51) and grants no product authority.
+This is architecture, not runtime implementation. The PRD V.10 core gate is Phase 1 Stages 0–7, the end-to-end run, Section 1.5 items, Evaluator Gate tests and Phase 1 evidence. Phase 2/3 implementation coverage and the sidecar benchmark pilot are reported separately; none blocks this gate ([D40](../../method/decisions.md#d40)). The optional host-launcher boundary is [D51](../../method/decisions.md#d51) and grants no product authority.

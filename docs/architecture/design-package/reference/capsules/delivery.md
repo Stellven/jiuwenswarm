@@ -65,15 +65,15 @@ Purpose: the list of node-scope gate decisions that admitted each node before De
 |---|---|---|---|---|
 | `schema_version` | `string` | yes | `1.0.0` | Format version |
 | `id` | `string` | yes | `gate_decision_index` | Record identity |
-| `run_plan_ref` | `Ref` | yes | The frozen run plan of this run | The plan whose accepted attempts the index lists |
-| `entries` | `GateDecisionEntry[]` | yes | 1 to 12 items. `node_id` values unique. In a real run one entry for each node whose attempt was accepted before Delivery starts, in run plan topological order | The advancing gate decisions of the run |
+| `run_plan_ref` | `Ref` | yes | The frozen run plan of this run | The plan whose accepted attempts the index lists. Set by the scheduler, never by the Delivery CC. |
+| `entries` | `GateDecisionEntry[]` | yes | 1 to 12 items. `node_id` values unique. In a real run one entry for each node whose attempt was accepted before Delivery starts, in run plan topological order | The advancing gate decisions of the run. Built by the scheduler at Delivery dispatch. Delivery reads it and must not extend or reorder it. |
 
 **GateDecisionEntry**
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `node_id` | `string` | yes | Pattern `^[a-z][a-z0-9_]{0,31}$`. A node of the run plan | The node whose attempt was accepted |
-| `gate_decision_ref` | `Ref` | yes | A node-scope gate decision (`scope_kind` `node`) with action `advance` for that node | The decision that admitted the node's output |
+| `node_id` | `string` | yes | Pattern `^[a-z][a-z0-9_]{0,31}$`. A node of the run plan | The node whose attempt was accepted. A node ID of the frozen run plan. |
+| `gate_decision_ref` | `Ref` | yes | A node-scope gate decision (`scope_kind` `node`) with action `advance` for that node | The decision that admitted the node's output. A Ref only. Delivery copies it into the manifest and does not read the decision. |
 
 **Invariants**
 
@@ -113,14 +113,14 @@ Contract ID `delivery-manifest:field-contract:2` (bumped from 1: added `gate_dec
 |---|---|---|---|---|
 | `schema_version` | string | yes | equals `2.0.0` | Format version |
 | `id` | string | yes | `delivery_manifest` | Artifact identity |
-| `brief_ref` | Ref | yes | equals the accepted Brief Ref | Brief the run answered |
-| `verdict_ref` | Ref | yes | equals the accepted `evaluation_verdict` Ref | Saved verdict this delivery reports |
-| `report_ref` | Ref | yes | equals the `artifact_ref` of the single `files` entry with role `report` | The report |
-| `gate_decision_refs` | Ref[] | yes | min 1 item. Equals the `gate_decision_ref` values of the `gate_decision_index` input, in the same order | Evidence that each stage was admitted |
-| `artifact_refs` | Ref[] | yes | min 7 items. Must include `candidate_set`, `screening_result`, `opportunity_card`, `hypothesis_blueprint`, `poc_manifest`, `benchmark_payload` and `evaluation_verdict`. No duplicate `id` | Every lifecycle record of the run |
-| `files` | DeliveryFile[] | yes | min 12 items. Unique `path`. Role coverage below | Every file exported to the output directory |
-| `missing_evidence` | MissingEvidence[] | yes | empty list when nothing is missing. Any `blocking: true` item blocks release | Omissions and redactions |
-| `ext` | object | no | none | Extension data |
+| `brief_ref` | Ref | yes | equals the accepted Brief Ref | Brief the run answered. Copied from the `brief` input. Check `manifest_completeness` rejects any other Ref. |
+| `verdict_ref` | Ref | yes | equals the accepted `evaluation_verdict` Ref | Saved verdict this delivery reports. Copied from the `evaluation_verdict` input. The report agrees with that verdict and never changes it. |
+| `report_ref` | Ref | yes | equals the `artifact_ref` of the single `files` entry with role `report` | The report. Delivery writes the report first, then computes its sha256, then writes the manifest (producer obligation 1). Check `ref_hash_match` compares the hash. |
+| `gate_decision_refs` | Ref[] | yes | min 1 item. Equals the `gate_decision_ref` values of the `gate_decision_index` input, in the same order | Evidence that each stage was admitted. Copied from the `gate_decision_index` input, never built by the CC. Holds Refs only. |
+| `artifact_refs` | Ref[] | yes | min 7 items. Must include `candidate_set`, `screening_result`, `opportunity_card`, `hypothesis_blueprint`, `poc_manifest`, `benchmark_payload` and `evaluation_verdict`. No duplicate `id` | Every lifecycle record of the run. The CC takes each Ref from a bound input and lists each artifact once. Hashes come from the inputs and are never recomputed. |
+| `files` | DeliveryFile[] | yes | min 12 items. Unique `path`. Role coverage below | Every file exported to the output directory. The CC lists them. The trusted host copies them into the user workspace, not the CC. A file for neither audience is not listed. |
+| `missing_evidence` | MissingEvidence[] | yes | empty list when nothing is missing. Any `blocking: true` item blocks release | Omissions and redactions. Lists each artifact that is unavailable or withheld, with a reason and a `blocking` flag. An empty list means nothing is missing. A `blocking` item halts the run and blocks release. |
+| `ext` | object | no | none | Extension data written by the Delivery CC. Consumers may ignore it. It never changes the meaning of the manifest or the outcome of a check. |
 
 Role coverage in `files`: exactly one `report`, `brief`, `candidate_set`, `screening`, `opportunity`, `hypothesis`, `poc_manifest`, `poc_bundle`, `benchmark` and `verdict`. At least one `gate_decision`. At least two `raw_evidence` (baseline and treatment execution records). At least two `environment` (environment lock and run configuration).
 
@@ -128,11 +128,11 @@ Role coverage in `files`: exactly one `report`, `brief`, `candidate_set`, `scree
 
 | Field | Type | Required | Constraint | Meaning |
 |---|---|---|---|---|
-| `path` | string | yes | relative, lowercase, pattern `^[a-z0-9_][a-z0-9_./-]*$`, no `..` segment, unique in the manifest | Where the file sits in the output directory |
-| `artifact_ref` | Ref | yes | `sha256` equals the hash of the file bytes | Exact content identity |
-| `media_type` | string | yes | one of `text/markdown`, `application/json`, `text/plain`, `application/zip`, `text/x-python` | Format |
-| `role` | string | yes | enum `report`, `brief`, `candidate_set`, `screening`, `opportunity`, `hypothesis`, `poc_manifest`, `poc_bundle`, `environment`, `raw_evidence`, `benchmark`, `verdict`, `gate_decision` | What the file is in the research lifecycle |
-| `audience` | string | yes | enum `researcher`, `reviewer` | Who may read it. `researcher` is the requesting user. `reviewer` adds authorized reviewers. Files for neither audience are not exported |
+| `path` | string | yes | relative, lowercase, pattern `^[a-z0-9_][a-z0-9_./-]*$`, no `..` segment, unique in the manifest | Where the file sits in the output directory. The CC chooses it within the pattern. The user-visible report name is `research_report.md` unless the user named another file. |
+| `artifact_ref` | Ref | yes | `sha256` equals the hash of the file bytes | Exact content identity. `sha256` is the hash of the file bytes, taken from a bound input or from the report Delivery just wrote. Check `ref_hash_match` compares it with the stored bytes. |
+| `media_type` | string | yes | one of `text/markdown`, `application/json`, `text/plain`, `application/zip`, `text/x-python` | Format of the file, from the fixed list. The Delivery CC picks the type that matches the file bytes. No role-to-type mapping is enforced in M1. Readers use it to display the file, never to decide trust. |
+| `role` | string | yes | enum `report`, `brief`, `candidate_set`, `screening`, `opportunity`, `hypothesis`, `poc_manifest`, `poc_bundle`, `environment`, `raw_evidence`, `benchmark`, `verdict`, `gate_decision` | What the file is in the research lifecycle. The role coverage rules above say how many files of each role must appear. `manifest_completeness` checks them. |
+| `audience` | string | yes | enum `researcher`, `reviewer` | Who may read it. `researcher` is the requesting user. `reviewer` adds authorized reviewers. Files for neither audience are not exported. The CC sets it as the contract allows and never widens it. |
 
 Examples: [valid](../examples/delivery_manifest.json) · rejected by `ref_hash_match`: [delivery_manifest_invalid_hash_mismatch](../examples/delivery_manifest_invalid_hash_mismatch.json)
 

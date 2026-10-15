@@ -38,7 +38,7 @@ Every field below has an M1 status.
 | `wiring` | `Wire[]` | no | composite only | `rejected-in-M1` | Port connections of a composite. |
 | `evolution` | `Evolution` | yes | see [evolution](#evolution-what-rsi-may-change) | `checked` | Whether RSI may build a child of this CC, which parts it may change, and builder notes. |
 | `coverage` | `Coverage` | yes | see [coverage](#coverage) | `checked` | What the declaration deliberately leaves out. |
-| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | `accepted-unused` | Namespaced diagnostics. Never changes meaning, permission or acceptance. |
+| `ext` | `object` | no | keys match `^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$` | `accepted-unused` | Namespaced diagnostic data, written by the CC author or importer. Consumers may ignore it. It never changes meaning, permission, acceptance or any gate decision, and no M1 component acts on it. |
 
 Required groups are always present. An empty list means "not applicable" and is written explicitly. An optional field that does not apply is left out.
 
@@ -46,16 +46,16 @@ Required groups are always present. An empty list means "not applicable" and is 
 
 | Field | Type | Required | Constraint | M1 status | Meaning |
 |---|---|---|---|---|---|
-| `identity.name` | `string` | yes | at least 1 character. The library pins it with pattern `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$` | `checked` | Stable dotted name, for example `research.screening`. Always protected. |
-| `identity.version_label` | `string` | yes | at least 1 character. The library pins it with pattern `^[a-z0-9][a-z0-9._-]{0,31}$`. Unique per name | `checked` | Implementation label. A changed body needs a new label. |
+| `identity.name` | `string` | yes | at least 1 character. The library pins it with pattern `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$` | `checked` | Stable dotted name, for example `research.screening`, chosen by the author. Every version of one capability shares it, and an RSI child never changes it (always-protected set). |
+| `identity.version_label` | `string` | yes | at least 1 character. The library pins it with pattern `^[a-z0-9][a-z0-9._-]{0,31}$`. Unique per name | `checked` | Implementation label, a display value only: it never identifies content (the exact identity is `declaration_sha256`, see the hashing profile). A changed body needs a new label. The workbench packager sets it for an RSI child. |
 | `identity.kind` | `string` | yes | enum, see [kind](#enum-identitykind) | `checked` | Execution style. M1 admits `agent` and `tool`. |
-| `identity.summary` | `string` | yes | 1 to 400 characters | `checked` | Task-independent purpose. The Planner reads it with the ports. |
+| `identity.summary` | `string` | yes | 1 to 400 characters | `checked` | Task-independent purpose, written by the author. It describes the capability, never a task or a run. The Planner reads it with the ports. |
 | `identity.carrier` | `CodePin` | yes for `agent` and `tool` | absent for a composite. Exactly one of `carrier` with `body`, or `remote` | `checked` | Entry point the runner loads. |
 | `identity.body` | `BodyFile[]` | yes for `agent` and `tool` | at least 1 item, paths unique | `checked` | Every implementation file, each with its own digest. |
 | `identity.remote` | `RemotePin` | no | only without `carrier` and `body` | `rejected-in-M1` | Pinned remote interface of an MCP or A2A capability. |
 | `identity.load_mode` | `string` | no | enum `invoked`, `context_injected`. Absent means `invoked` | `checked` for `invoked`. `context_injected` is `rejected-in-M1` | How the runner loads the CC. |
 | `identity.overlays` | `Overlay[]` | no | each overlay pinned by hash | `accepted-unused`. A non-empty list fails binding, because no M1 runner supports overlays | Experience or prompt layers loaded with the CC. |
-| `identity.lineage` | `Lineage` | no. Required for every RSI child | see [lineage](#lineage) | `checked` | Parent version and how this version was built. |
+| `identity.lineage` | `Lineage` | no. Required for every RSI child | see [lineage](#lineage) | `checked` | Parent version and how this version was built. For an RSI child the workbench packager writes it once, and the RSI proposer never writes it. |
 
 **CodePin**
 
@@ -228,7 +228,7 @@ Rule `network_consistent`: `mode` `none` needs `direction` `none` and an empty a
 
 | Field | Type | Required | Constraint | M1 status | Meaning |
 |---|---|---|---|---|---|
-| `changes.effect_class` | `string` | yes | enum, see below | `checked` | The author's class for the whole CC. The plan policy filters on it. |
+| `changes.effect_class` | `string` | yes | enum, see below | `checked` | The author's class for the whole CC. The plan policy filters on it. It is never weaker than the effects imply, and admission rejects a weaker class (`effect_class_matches_effects`). |
 | `changes.effects` | `Effect[]` | yes | empty only when the CC changes nothing | `checked` | Each change the CC may make. |
 | `changes.provides` | `ProvidedService[]` | yes | may be empty | `accepted-unused` | Services the CC offers to other CCs. |
 | `changes.invariants` | `Invariant[]` | yes | may be empty | `accepted-unused` | Statements the CC keeps true, each linked to a check. |
@@ -239,13 +239,13 @@ Rule `network_consistent`: `mode` `none` needs `direction` `none` and an empty a
 |---|---|---|---|---|---|
 | `id` | `string` | yes | at least 1 character, unique in the declaration | `checked` | Effect ID. |
 | `resource_key` | `string` | yes | at least 1 character | `checked` | What the effect touches. |
-| `op` | `string` | yes | at least 1 character, for example `model_invoke`, `write`, `network_egress` | `checked` | Operation, in plain words. |
-| `scope` | `string` | yes | at least 1 character | `checked` | How far the effect reaches, for example `/workspace/poc/ only`. |
-| `idempotent` | `boolean` | yes | none | `checked` | Whether running twice leaves the same state as once. |
+| `op` | `string` | yes | at least 1 character, for example `model_invoke`, `write`, `network_egress` | `checked` | Operation, in plain words. Descriptive only: admission judges an effect by `resource_key`, `scope`, `reversibility` and `risk`, not by `op`. |
+| `scope` | `string` | yes | at least 1 character | `checked` | How far the effect reaches, in the author's words, for example `/workspace/poc/ only`. Written by the CC author. Admission reads it with `resource_key`, `reversibility` and `risk` to judge the effect (`effect_class_matches_effects`). It grants nothing: the runner enforces authority from the binding, never from this text. |
+| `idempotent` | `boolean` | yes | none | `checked` | Whether running twice leaves the same state as once. The author's claim. It feeds the `effect_class_matches_effects` check. |
 | `reversibility` | `string` | yes | enum, see below | `checked` | Whether and how the effect can be undone. |
 | `undo` | `nullable-CodePin` | yes | non-null for `compensate`. Null for `none`, `scoped` and `emission` | `checked` | Pinned code that undoes the effect. |
 | `risk` | `Risk` | yes | see below | `checked` | How bad the effect can be. |
-| `assurance` | `string` | yes | at least 1 character | `checked` | What enforces the effect's limits, for example the protected bridge. |
+| `assurance` | `string` | yes | at least 1 character | `checked` | What the author says enforces the effect's limits, for example the protected bridge. A claim for reviewers. No M1 component decides on it. |
 
 **Risk**
 
@@ -295,7 +295,7 @@ The guarantees are the author's claims. The checks that decide are in the check 
 
 | Field | Type | Required | Constraint | M1 status | Meaning |
 |---|---|---|---|---|---|
-| `guarantees.checks` | `ClaimedCheck[]` | yes | at least 1 item, IDs unique. Each ID is defined on the CC's build page | `checked` | Checks the author claims cover the CC. |
+| `guarantees.checks` | `ClaimedCheck[]` | yes | at least 1 item, IDs unique. Each ID is defined on the CC's build page | `checked` | Checks the author claims cover the CC. Claims and coverage links only: they never choose, weaken or replace the check bundle that admission pins. |
 | `guarantees.acceptance` | `string[]` | yes | may be empty. Each is a `checks[].id` | `accepted-unused` | Check IDs the author considers acceptance. |
 | `guarantees.evals` | `Eval[]` | yes | may be empty | `accepted-unused` | Evaluation suites with a metric and threshold. |
 | `guarantees.unanchored` | `string[]` | yes | may be empty | `checked` | Claims the author cannot back with a check. The verifier reads them as limits. |
@@ -314,12 +314,12 @@ The guarantees are the author's claims. The checks that decide are in the check 
 | `runner` | `CodePin` | yes | digest of the runner bytes | `checked` | Pinned check implementation. |
 | `anchor` | `string` | yes | at least 1 character | `accepted-unused` | What the check compares against, in plain words. |
 | `over` | `string[]` | yes | at least 1 item, each enum `each_call`, `outputs`, `inputs_and_outputs` | `checked` | What the check covers. |
-| `author` | `string` | yes | at least 1 character | `checked` | Who wrote the check. |
-| `written_before_body` | `boolean` | yes | none | `checked` | Whether the check existed before the body. |
-| `held_out` | `boolean` | yes | none | `checked` | Whether the body author could see the check. |
-| `signal_source` | `string` | yes | at least 1 character | `accepted-unused` | Where the check's signal comes from. |
-| `owner` | `string` | yes | at least 1 character | `accepted-unused` | Who owns the check. |
-| `assurance` | `string` | yes | at least 1 character | `accepted-unused` | How strong the check is, in plain words. |
+| `author` | `string` | yes | at least 1 character | `checked` | Who wrote the claimed check, in plain words. Written by the CC author. A claim for reviewers. No M1 component decides on it. |
+| `written_before_body` | `boolean` | yes | none | `checked` | Whether the check existed before the body. The author's claim. |
+| `held_out` | `boolean` | yes | none | `checked` | Whether the body author could see the check. The author's claim. |
+| `signal_source` | `string` | yes | at least 1 character | `accepted-unused` | Where the claimed check's signal comes from, in plain words. Accepted and stored, never used in M1: guarantees are claims only. |
+| `owner` | `string` | yes | at least 1 character | `accepted-unused` | Who maintains the claimed check, in plain words. Accepted and stored, never used in M1: guarantees are claims only. |
+| `assurance` | `string` | yes | at least 1 character | `accepted-unused` | How strong the author says the claimed check is, in plain words. Accepted and stored, never used in M1: guarantees are claims only. |
 
 **FailureMode**
 
@@ -551,19 +551,7 @@ Binding adds two M1 checks: a node whose CC lists overlays fails binding, and a 
 | [capsule_declaration.json](examples/capsule_declaration.json) | valid `agent` declaration (`intent.compiler`) | |
 | [research_benchmark_capsule.json](examples/research_benchmark_capsule.json) | valid `tool` declaration with network allowlist and a scoped effect | |
 | [ranking_child_declaration.json](examples/ranking_child_declaration.json) | valid RSI child with lineage | |
-
-
-
-
 | [verifier_capsule_invalid_rsi_propose.json](examples/verifier_capsule_invalid_rsi_propose.json) | verifier CC with `rsi` `propose` | `rsi_mode_allowed` |
-
-
-
-
-
-
-
-
 
 The RSI candidate examples that fail `changes_allowed`, `rsi_no_copy` and `profile_within_may_change` are listed in the [RSI contracts](rsi-contracts.md#candidate-package). Every CC build page links its own declaration example. All are listed in the [contract index](README.md#contract-index).
 
