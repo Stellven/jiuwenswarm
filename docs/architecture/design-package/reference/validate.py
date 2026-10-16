@@ -3921,11 +3921,10 @@ for mode in ('cycle','missing_subnode','missing_gate_subject'):
     else:bad['gate_assignments'][0]['subject_subnode_id']='unknown'
     require(bool(enclosing_issues(bad)),'Enclosing-node regression accepted: '+mode);negative_count+=1
 
-# Source byte preservation is portable: receipt manifest uses package paths.
-for source in load(REF / 'provenance.json')['sources']:
-    path = (ROOT / source['path']).resolve()
-    require(path.is_relative_to(ROOT) and path.is_file(), 'Missing/escaping source path ' + source['path'])
-    require(len(path.read_bytes()) == source['bytes'] and hashlib.sha256(path.read_bytes()).hexdigest() == source['sha256'], 'Source bytes changed ' + source['path'])
+# Portable package boundaries replace the removed received-source collection.
+exec(compile((REF/'package_checks.py').read_text(encoding='utf-8'), str(REF/'package_checks.py'), 'exec'))
+for issue in delivery_issues(ROOT):
+    require(False, issue)
 
 
 def slug(text):
@@ -3950,12 +3949,9 @@ def anchors(path):
 
 
 link_count = 0
-# Historical received CC semantic text is immutable bibliography, not required
-# navigation. Current product source remains scanned for local Markdown links.
-documents = list(ROOT.rglob('*.md')) + list((ROOT / 'sources/product').glob('*.txt'))
+# Scan all delivered Markdown-bearing text for portable local navigation.
+documents = list(ROOT.rglob('*.md')) + list(ROOT.rglob('*.txt'))
 for path in documents:
-    if 'sources' in path.relative_to(ROOT).parts and 'product' not in path.relative_to(ROOT).parts:
-        continue
     text = path.read_text(encoding='utf-8-sig')
     text = re.sub(r'```.*?```', '', text, flags=re.S)
     destinations = re.findall(r'!?\[[^\]]*\]\(([^)]+)\)', text)
@@ -3975,10 +3971,8 @@ for path in documents:
 clause_index = load(REF / 'prd-clause-index.json')
 headings = [(c['number'],c['title']) for c in clause_index['clauses']]
 require(len(headings)==188 and len(set(n for n,_ in headings))==188, 'Incomplete/duplicate PRD clause index')
-require(not list((ROOT/'sources/product').glob('*.txt')), 'PRD body must be supplied separately')
-_stored_prd = ROOT.parents[1] / 'product/received-prds/prd-m1-v10-2026-10-15.txt'
-if len(sys.argv)>2 or _stored_prd.exists():
-    supplied=Path(sys.argv[2]).resolve() if len(sys.argv)>2 else _stored_prd
+if len(sys.argv)>2:
+    supplied=Path(sys.argv[2]).resolve()
     require(hashlib.sha256(supplied.read_bytes()).hexdigest()==clause_index['source_sha256'], 'External PRD source differs from audited receipt')
     actual_headings=re.findall(r'^#{2,5}\s+(\d+\.\d+(?:\.\d+)?)\s+(.+)$',supplied.read_text(encoding='utf-8-sig'),re.M)
     require(actual_headings==headings,'External PRD clause crosswalk drift')
@@ -4079,7 +4073,7 @@ if errors:
     print('\n'.join('FAIL: ' + error for error in errors))
     raise SystemExit(1)
 print(f'PASS: {len(schemas)-1} critical schemas + common; {len(index)} indexed examples/context records; {negative_count} negative cases; exact references/spans and gate relationships')
-print(f'PASS: {len(headings)} PRD headings, US01–US20, retained source hashes/external PRD receipt, {link_count} local links/fragments; tier 1 {words} words including Mermaid')
+print(f'PASS: {len(headings)} PRD headings, US01–US20, delivery boundaries/current external PRD identity, {link_count} local links/fragments; tier 1 {words} words including Mermaid')
 print(f'PASS: {len(interfaces)} named field contracts; linked research and RSI identities/selected relationships')
 print(f'PASS: {rchecked} research check runs over indexed examples; {rrejected} invalid examples rejected by their named check; end-to-end research chain consistent')
 print('LIMIT: structural/document checks and selected semantic example checks, not model quality, exhaustive field-proof, transport authentication or runtime acceptance')

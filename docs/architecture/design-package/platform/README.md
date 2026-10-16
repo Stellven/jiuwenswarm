@@ -8,6 +8,7 @@
 |---|---|
 | [Planning and freeze](planning-and-freeze.md) | Plan source, binder, plan gate, freeze, dispatch, Kahn order |
 | [Failure and recovery](failure-and-recovery.md) | Node failure and skipped nodes, escalation records, cancel, restart |
+| [JiuwenSwarm foundation](native-reuse.md) | Inspected native components and research adaptations |
 | [Inspection](inspection.md) | Readable views of artifacts and decisions |
 
 **Feeders:** the user (through the browser), the CC library, the run configuration. **Users:** every node, the [checking](../checking/README.md) path, the [side systems](../side-systems/README.md) through the control API, the record export and the admission inbox. **Exact contracts:** [run plan](../reference/run-plan.md), [node execution](../reference/node-execution.md), [field catalog](../reference/field-catalog.md), [routing seam](../reference/model-routing-contract.md#routerport-the-hot-path-seam).
@@ -150,7 +151,7 @@ RSI may change only explicitly eligible implementation parts. It cannot change c
 
 ## Native reuse
 
-**Required now.** The scheduler runs the frozen run plan on SwarmFlow (PRD 1.3 Phase 1) and exposes the run tree through the native `/swarmflows` view. Start from native UI and transport, Symphony agent and harness components, existing model integration, storage and diagnostics. Historical integration audits are source leads, not current policy. Native observations are in [native reuse evidence](../sources/native-reuse-evidence.json).
+**Required now.** The scheduler runs the frozen run plan on SwarmFlow (PRD 1.3 Phase 1) and exposes the run tree through the native `/swarmflows` view. Start from native UI and transport, Symphony agent and harness components, existing model integration, storage and diagnostics. Follow the [JiuwenSwarm foundation](native-reuse.md) for concrete reuse and required adaptations. Native observations are in [native reuse evidence](../reference/native-reuse-evidence.json).
 
 At the installed dependency version, verify adapter behavior for swallowed exceptions, hidden retries, journal/cache replay, duplicate effects, cancellation, and background lifecycle. In particular, a native cached result cannot establish a committed CC gate pass. Keep model-process ownership separate from unrelated interactive chats. Concrete module files and private APIs remain implementation choices.
 

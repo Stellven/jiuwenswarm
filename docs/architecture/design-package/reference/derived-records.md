@@ -2,7 +2,7 @@
 
 `Tier 3 · Part of: [Reference](README.md)`
 
-This page defines what the app keeps for every CC execution, in what folder layout, and the three records built from it after a run: contract conformance, the capsule scorecard and the sample run export. The Data Foundation owner design ([receipt](../sources/data-foundation/README.md)) is an input. The package rules on each difference in [owner rulings](../side-systems/owner-rulings.md#data-foundation) and in [D37](../method/decisions.md#d37).
+This page defines what the app keeps for every CC execution, in what folder layout, and the three records built from it after a run: contract conformance, the capsule scorecard and the sample run export. The adopted integration rules are in [owner rulings](../side-systems/owner-rulings.md#data-foundation) and in [D37](../method/decisions.md#d37).
 
 **Find:** [layout](#records-folder-layout) · [release rule](#release-rule) · [Capsule Run Record](#capsule-run-record) · [failure class rules](#failure-class-rules) · [contract-conformance](#contract-conformance) · [capsule-scorecard](#capsule-scorecard) · [sample-run-export](#sample-run-export) · [library analysis](#library-analysis)
 
@@ -43,7 +43,7 @@ Keys. A record is keyed by `run_id`, `node_id`, `attempt_id` and `subnode_id`, w
 | `scorecards/<scorecard_id>.json` and `.md` | scorecard builder | On request or after a run | The [capsule-scorecard](#capsule-scorecard) and its table view | CC owners, RSI workbench |
 | `exports/<export_id>/` | export builder | On request | The [sample-run-export](#sample-run-export) folder: `export.json`, `records.jsonl`, and copies of the call folders and bundle manifests | RSI workbench, platform benchmark runner |
 
-The run bundle stays the run-level manifest. The per-call folders are what its `artifact_refs` and the observation `trace_refs` point to. The owner design names a folder per `agent_id`. The package names it by `node_id`, `attempt_id` and `subnode_id` instead ([D37](../method/decisions.md#d37)).
+The run bundle stays the run-level manifest. The per-call folders are what its `artifact_refs` and the observation `trace_refs` point to. The package identifies call folders by `node_id`, `attempt_id` and `subnode_id` instead ([D37](../method/decisions.md#d37)).
 
 Raw evidence may hold sensitive text, so it is internal. Credentials are never captured. An export keeps protected evaluation data out, as the run bundle does.
 
@@ -336,4 +336,4 @@ The `label` is `held_out` when the first eight hex digits of the SHA-256 of the 
 
 ## Library analysis
 
-The owner design calls the file computed from the capsule library alone a "Library Snapshot". The package calls it library analysis, and it is later work ([D21](../method/decisions.md#d21)). The name `library_snapshot` already means the Planner's list of eligible CCs ([library snapshot](run-plan.md#library-snapshot)) and keeps that meaning ([D37](../method/decisions.md#d37)).
+A file computed from the capsule library alone is library analysis, and it is later work ([D21](../method/decisions.md#d21)). The name `library_snapshot` already means the Planner's list of eligible CCs ([library snapshot](run-plan.md#library-snapshot)) and keeps that meaning ([D37](../method/decisions.md#d37)).

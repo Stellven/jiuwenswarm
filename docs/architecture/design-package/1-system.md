@@ -2,7 +2,7 @@
 
 `Tier 1 · Part of: README · Serves: Knowledge and Standard`
 
-AI4Research builds on the existing JiuwenSwarm/OpenJiuwen runtime and adds governed research control. These views show the trust boundary, components, run flow and data ownership. See the [platform page](platform/README.md) for runtime reuse constraints and [native reuse evidence](sources/native-reuse-evidence.json) for source observations.
+AI4Research builds on the existing JiuwenSwarm/OpenJiuwen runtime and adds governed research control. These views show the trust boundary, components, run flow and data ownership. See the [platform page](platform/README.md) for runtime reuse constraints and [native reuse evidence](reference/native-reuse-evidence.json) for source observations.
 
 ## Trust boundary: control flow outside, work inside
 

@@ -5570,7 +5570,7 @@
         "task_category": {
           "type": "string",
           "required": true,
-          "meaning": "Trusted task category. Enum `ml_methods_and_inference`, `retrieval_and_knowledge_systems`, `algorithms_optimization_and_formal`, `software_systems_and_performance`, `databases_and_data_processing`, `networking_and_distributed_algorithms`, `security_and_reliability`, `experimental_evaluation_and_technical_data` (traceability IDs C01 to C08 in the owner design)"
+          "meaning": "Trusted task category. Enum `ml_methods_and_inference`, `retrieval_and_knowledge_systems`, `algorithms_optimization_and_formal`, `software_systems_and_performance`, `databases_and_data_processing`, `networking_and_distributed_algorithms`, `security_and_reliability`, `experimental_evaluation_and_technical_data` (traceability IDs C01 to C08 in the package catalog)"
         },
         "workflow_stage": {
           "type": "string",

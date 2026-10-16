@@ -474,7 +474,7 @@ The checks, check bundles, checking profiles, referee and hidden fixtures stay o
 | `composes` | Built from several CCs | `rejected-in-M1` |
 | `fuses` | Members merged into one body. Reserved, not implemented | `rejected-in-M1` |
 
-**Rule `rsi_child_has_lineage`.** Every RSI child has `identity.lineage`. `parent` is the Ref of the parent declaration bytes, `relation` is `supersedes` and `builder` is `rsi_workbench`. The admission inbox knows a declaration is an RSI child because it arrives in a [candidate package](rsi-contracts.md#candidate-package). A child without lineage is rejected, and so is any declaration whose relation is `rollback_of`, `composes` or `fuses`. This follows [RSI ruling 10](../side-systems/owner-rulings.md#rsi-v02) and supersedes the historical `policy-m1.json` deferral.
+**Rule `rsi_child_has_lineage`.** Every RSI child has `identity.lineage`. `parent` is the Ref of the parent declaration bytes, `relation` is `supersedes` and `builder` is `rsi_workbench`. The admission inbox knows a declaration is an RSI child because it arrives in a [candidate package](rsi-contracts.md#candidate-package). A child without lineage is rejected, and so is any declaration whose relation is `rollback_of`, `composes` or `fuses`. This follows [RSI ruling 10](../side-systems/owner-rulings.md#rsi-v02).
 
 ## Coverage
 
@@ -506,7 +506,7 @@ One profile for every CC version in M1. It is the profile every [CcPin](run-plan
 - Declare every effect, dependency and resource the body uses. An undeclared effect is treated as `irreversible`.
 - Write empty lists explicitly, and say in `coverage.undeclared_notes` what is left out.
 - Never name a model. State model needs only.
-- Import a historical declaration by an explicit mapping. Never claim byte compatibility with v2.10b or v2.11.
+- Import a historical declaration by an explicit mapping. Never claim byte compatibility with another format.
 
 **RSI workbench packager**
 - Derive the child declaration from the parent declaration bytes. Change only the derived identity fields.
@@ -557,42 +557,44 @@ The RSI candidate examples that fail `changes_allowed`, `rsi_no_copy` and `profi
 
 **Minimum quality bar.** A reviewer can tell from the declaration alone what the CC may touch, how each change is undone, which parts RSI may change, and which exact bytes the version pins.
 
-## Differences from the historical source
+<a id="differences-from-the-historical-source"></a>
 
-The [historical schema](../sources/capsule.schema.json), the [v2.10b semantic description](../sources/capsule-semantic-v2.10b.md) and the [historical policy](../sources/policy-m1.json) stay byte-identical as provenance. Version 1.0.0 is the format this package owns. It is not byte-compatible with v2.10b or an implementation v2.11.
+## Current declaration rules
 
-| Topic | Historical schema | 1.0.0 | Ruling |
-|---|---|---|---|
-| Required groups | Only `schema_version` and `identity` | All nine root groups | Every group is present. An empty list is explicit, so a missing claim is never read as a promise |
-| `schema_version` | Pattern `^2\.[0-9]+$` | Exactly `1.0.0` | A new format owned by this package. Importers map old declarations explicitly |
-| `identity.kind` | `tool`, `skill`, `mcp`, `a2a`, `subagent`, `agent_template`, `prompt_section`, `bundle`, `composite` | `tool`, `skill`, `mcp`, `a2a`, `prompt`, `subagent`, `agent`, `composite` | `agent_template` becomes `agent`. `prompt_section` becomes `prompt`. `bundle` is dropped: a bundle is a composite later. M1 admits only `agent` and `tool` |
-| `identity.load_mode` | `eager`, `on_demand` | `invoked`, `context_injected` | Follows v2.10b semantics: the question is isolation, not timing. M1 admits only `invoked` |
-| `identity.overlays` | `string[]` | Objects pinned by `sha256` | An overlay must be pinned to be checked. No M1 runner supports overlays |
-| `identity.remote` | `endpoint`, `version`, optional range | Adds a required `fingerprint` and range | A remote interface needs a digest. Remote CCs are rejected in M1 |
-| `identity.lineage` | Hash strings, all fields optional | `Ref` objects, all fields required when lineage is present | Refs resolve to bytes. Lineage is required for every RSI child ([ruling 10](../side-systems/owner-rulings.md#rsi-v02)) |
-| `lineage.relation` | Same six values | Same six values, now enforced in the schema | `composes` and `fuses` are rejected in M1 |
-| `effects[].reversibility` | `none`, `compensable`, `reversible` | `none`, `scoped`, `inverse`, `compensate`, `emission` | `reversible` splits into `scoped` and `inverse`. `compensable` becomes `compensate` with pinned `undo`. `emission` is added for effects that leave the system |
-| `effects[].op` | `read`, `write`, `create`, `delete`, `emit`, `execute` (v2.10b text) | Free text | Lost enum. Admission judges an effect by `resource_key`, `scope`, `reversibility` and `risk`. `op` is descriptive |
-| `effects[].risk.severity` | Free text | `low`, `bounded`, `high` | Enum decided here. `high` is rejected in M1 |
-| `effects[]` other fields | Only `scope` required | All nine fields required | Every effect states repeat safety, undo and risk |
-| `guarantees.checks[].kind` | `deterministic`, `reference`, `judge`, `negative_control` | `deterministic`, `semantic` | `reference` is deterministic. `judge` is semantic. A negative control is a deterministic check whose `target` names the input to refuse. The deciding checks live in the check bundle |
-| `guarantees.checks[]` `anchor`, `signal_source`, `owner`, `assurance` | Enums | Free text | Lost enums. Guarantees are claims only, so these describe and never decide |
-| `guarantees.checks[].over` | `each_call`, `outputs`, `inputs_and_outputs` | Same enum | Kept |
-| `guarantees.acceptance`, `evals` | A string and `string[]` | `string[]` and `Eval[]` objects | Type change. Both are accepted-unused in M1 |
-| `guarantees.quality.window` | `string` | `integer` | Type change: a window is a count of observations |
-| `guarantees.exempt` | `boolean` | `{reason: generalist}` | The reason is explicit. Rejected in M1 |
-| `ports` | `{name, type, description, required}`, output `check` | `{name, artifact_type, schema_ref, required, description, check_ids}` | One port vocabulary. Ports connect only when type and contract are equal |
-| `needs.network` | One enum `none`, `egress`, `ingress`, `both` | `mode` + `direction` + `allowlist` | Authorization and direction are separate. M1 admits `none`/`none` and `allowlist`/`egress` |
-| `needs.external` | `{ref, decl_hash, pinned, unpinned_purpose}` | `{kind, identifier}` with `pin` or `floating` | A floating need states purpose, role and contracts and must pin before dispatch |
-| `needs.resources`, `needs.injects` | `string[]` | Objects with `mode` or an interface range | Type change. The library and binder read the mode |
-| `needs.when` predicates | `op` enum, `on_unknown` `defer` or `block` | `check.operator` free text, `on_unknown` `block` or `defer_to_dispatch`, `on_unavailable` `block` | Unknown never passes. A non-empty list is rejected in M1 |
-| `budget` | `tokens`, `time_s`, `money`, `concurrency` | `per_call` dimensions with `enforcement` and `on_exhaust` | Each limit says how it is enforced. `concurrency` is dropped: M1 runs one node at a time |
-| `evolution` | `rsi`, `may_change` and `notes`, as in commit `36436834a`. Later a denylist `frozen` of dotted group names | `rsi`, `may_change` (allowlist) and `notes_for_builder`. No `frozen` | The October 6 rebuild replaced the author's allowlist with a denylist and moved the allowlist into the target profile, with no recorded decision. [D34](../method/decisions.md#d34) restores the allowlist. The target profile `mutable_paths` must be a subset of `may_change` |
-| `needs.external[].purpose`, `needs.human_interaction`, `needs.secrets`, package and lockfile pins, `guarantees.failure_modes` | Present in `36436834a` | Restored with the M1 status given above | Dropped in the same rebuild ([D34](../method/decisions.md#d34)). Package pins now use an external dependency of kind `package` with a `lockfile` |
-| `lineage.relation` `rollback_of` | Allowed | `rejected-in-M1` | Rollback is a standing move ([D41](../method/decisions.md#d41)) |
-| `interface_hash` | Hash of what a test depends on | None | Later work. M1 compares exact declaration bytes |
-| `structure.nodes` | Object map, optional `loop_guards` | `string[]`, `type` `dag`, `direction` `forward` | A finite acyclic graph. Composites are rejected in M1 |
-| Contract hash | `contract_hash` over the contract, excluding notes | None. One digest of the exact bytes | See [hashing profile](#hashing-profile). A canonical contract hash is reserved |
+Version `1.0.0` and the current [schema](schemas/capsule-declaration.schema.json) define this package's declaration format. Importers map other formats explicitly; similarity does not imply byte compatibility.
+
+| Topic | Current format | Ruling |
+|---|---|---|
+| Required groups | All nine root groups | Every group is present. An empty list is explicit, so a missing claim is never read as a promise |
+| `schema_version` | Exactly `1.0.0` | A new format owned by this package. Importers map old declarations explicitly |
+| `identity.kind` | `tool`, `skill`, `mcp`, `a2a`, `prompt`, `subagent`, `agent`, `composite` | `agent_template` becomes `agent`. `prompt_section` becomes `prompt`. `bundle` is dropped: a bundle is a composite later. M1 admits only `agent` and `tool` |
+| `identity.load_mode` | `invoked`, `context_injected` | The question is isolation, not timing. M1 admits only `invoked` |
+| `identity.overlays` | Objects pinned by `sha256` | An overlay must be pinned to be checked. No M1 runner supports overlays |
+| `identity.remote` | Adds a required `fingerprint` and range | A remote interface needs a digest. Remote CCs are rejected in M1 |
+| `identity.lineage` | `Ref` objects, all fields required when lineage is present | Refs resolve to bytes. Lineage is required for every RSI child ([ruling 10](../side-systems/owner-rulings.md#rsi-v02)) |
+| `lineage.relation` | `supersedes`, `specialises`, `rollback_of`, `migrated_from`, `composes`, `fuses` | `composes` and `fuses` are rejected in M1 |
+| `effects[].reversibility` | `none`, `scoped`, `inverse`, `compensate`, `emission` | `reversible` splits into `scoped` and `inverse`. `compensable` becomes `compensate` with pinned `undo`. `emission` is added for effects that leave the system |
+| `effects[].op` | Free text | Lost enum. Admission judges an effect by `resource_key`, `scope`, `reversibility` and `risk`. `op` is descriptive |
+| `effects[].risk.severity` | `low`, `bounded`, `high` | Enum decided here. `high` is rejected in M1 |
+| `effects[]` other fields | All nine fields required | Every effect states repeat safety, undo and risk |
+| `guarantees.checks[].kind` | `deterministic`, `semantic` | `reference` is deterministic. `judge` is semantic. A negative control is a deterministic check whose `target` names the input to refuse. The deciding checks live in the check bundle |
+| `guarantees.checks[]` `anchor`, `signal_source`, `owner`, `assurance` | Free text | Lost enums. Guarantees are claims only, so these describe and never decide |
+| `guarantees.checks[].over` | `each_call`, `outputs`, `inputs_and_outputs` | The declared scope is explicit |
+| `guarantees.acceptance`, `evals` | `string[]` and `Eval[]` objects | Type change. Both are accepted-unused in M1 |
+| `guarantees.quality.window` | `integer` | Type change: a window is a count of observations |
+| `guarantees.exempt` | `{reason: generalist}` | The reason is explicit. Rejected in M1 |
+| `ports` | `{name, artifact_type, schema_ref, required, description, check_ids}` | One port vocabulary. Ports connect only when type and contract are equal |
+| `needs.network` | `mode` + `direction` + `allowlist` | Authorization and direction are separate. M1 admits `none`/`none` and `allowlist`/`egress` |
+| `needs.external` | `{kind, identifier}` with `pin` or `floating` | A floating need states purpose, role and contracts and must pin before dispatch |
+| `needs.resources`, `needs.injects` | Objects with `mode` or an interface range | Type change. The library and binder read the mode |
+| `needs.when` predicates | `check.operator` free text, `on_unknown` `block` or `defer_to_dispatch`, `on_unavailable` `block` | Unknown never passes. A non-empty list is rejected in M1 |
+| `budget` | `per_call` dimensions with `enforcement` and `on_exhaust` | Each limit says how it is enforced. `concurrency` is dropped: M1 runs one node at a time |
+| `evolution` | `rsi`, `may_change` (allowlist) and `notes_for_builder`. No `frozen` | The October 6 rebuild replaced the author's allowlist with a denylist and moved the allowlist into the target profile, with no recorded decision. [D34](../method/decisions.md#d34) restores the allowlist. The target profile `mutable_paths` must be a subset of `may_change` |
+| `needs.external[].purpose`, `needs.human_interaction`, `needs.secrets`, package and lockfile pins, `guarantees.failure_modes` | Restored with the M1 status given above | Dropped in the same rebuild ([D34](../method/decisions.md#d34)). Package pins now use an external dependency of kind `package` with a `lockfile` |
+| `lineage.relation` `rollback_of` | `rejected-in-M1` | Rollback is a standing move ([D41](../method/decisions.md#d41)) |
+| `interface_hash` | None | Later work. M1 compares exact declaration bytes |
+| `structure.nodes` | `string[]`, `type` `dag`, `direction` `forward` | A finite acyclic graph. Composites are rejected in M1 |
+| Contract hash | None. One digest of the exact bytes | See [hashing profile](#hashing-profile). A canonical contract hash is reserved |
 
 ## Execution styles and consumers
 

@@ -139,6 +139,4 @@ Every mandatory check bundle and criterion set is admitted independently with it
 - [CC declaration fields](../reference/declaration.md)
 - [Restricted semantic-review contract](../reference/capsules/verifier.md)
 - [Planning, freeze, and execution](../platform/planning-and-freeze.md)
-- Optional historical identity reference: [M1-003 admission task](https://github.com/Stellven/jiuwenswarm/blob/45c0566aeaff1f7b8a5063c46397afa2d8084f94/docs/code/Missions/M1/M1-003/TASK.md). Reconcile its older source assumptions.
-- Optional historical identity reference: [M1-007 check ownership task](https://github.com/Stellven/jiuwenswarm/blob/45c0566aeaff1f7b8a5063c46397afa2d8084f94/docs/code/Missions/M1/M1-007/TASK.md). Reconcile its older source assumptions.
-- [PRD §4.2 Evaluator Gate](../sources/product/README.md)
+- [PRD §4.2 Evaluator Gate](../reference/product-input.md)

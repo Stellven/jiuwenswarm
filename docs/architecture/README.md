@@ -6,12 +6,6 @@ Updated October 15, 2026. The maintained design package is the shared architectu
 |---|---|
 | [design-package](design-package/README.md) | Full M1 architecture, responsibilities, rationale and implementation-facing reference |
 
-## Related architecture proposal
-
-| Proposal | Use |
-|---|---|
-| [Temporary workload profiling](design-package/temporary-workload-profiling.md) | Working proposal on CC-linked execution evidence, optional diagnostics, host/container measurements and post-run analysis. It is clearly non-authoritative and creates no M1 requirement. |
-
 Start with the package README, then its system architecture and principles. The compact package was retired on October 14, 2026 (decision D27); the maintained design package is the sole current architecture. The PRD is supplied separately and owns product requirements. Its current receipt and clause mappings are in the maintained package.
 
 ## Component reading
@@ -24,7 +18,7 @@ The [Intention Compiler component](design-package/pipeline/intention-compiler.md
 
 The [experiment registry](experiments/README.md) identifies dated inputs, protocols, delivery receipts and prepared benchmark designs. The [routing-integration delivery receipt](experiments/design-package-routing-integration-2026-10-13/README.md) records the October 13 integration snapshot. Frozen comparisons retain their recorded versions; later edits to the maintained package do not update those inputs. Documentation checks establish package consistency, not agent quality or runtime acceptance.
 
-Local notes are outside the shared review package. Promote material decisions into the maintained design. Optional provenance is documented in the [method index](design-package/method/README.md), which links to existing pinned Git snapshots.
+Local notes are outside the shared review package. Promote material decisions into the maintained design. Historical source evidence stays outside the delivery package and is not routine build input.
 
 ## Model-routing owner integration
 

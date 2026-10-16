@@ -2,13 +2,13 @@
 
 `Tier 2 · Part of: [Method](README.md)`
 
-Delivery phases, implementation stages and runtime research steps are different concepts. This page lists each phase once and points to the page that defines it. The [PRD](../sources/product/README.md) owns acceptance requirements.
+Delivery phases, implementation stages and runtime research steps are different concepts. This page lists each phase once and points to the page that defines it. The [PRD](../reference/product-input.md) owns acceptance requirements.
 
 ## M1 phase and coverage boundaries
 
 | Phase | What it is | Defined in |
 |---|---|---|
-| PRD core M1 gate | Phase 1 Stages 0–7, including the end-to-end research path, mandatory acceptance items, gate tests and evidence. Phase 2/3 implementation status is reported separately and does not block this gate ([D40](decisions.md#d40)) | [Build plan](../3-build-plan.md), [PRD receipt](../sources/product/README.md) |
+| PRD core M1 gate | Phase 1 Stages 0–7, including the end-to-end research path, mandatory acceptance items, gate tests and evidence. Phase 2/3 implementation status is reported separately and does not block this gate ([D40](decisions.md#d40)) | [Build plan](../3-build-plan.md), [PRD receipt](../reference/product-input.md) |
 | Phase 3 dynamic integration | M1 scope includes dynamic planning, binding, routing and other applicable integrations. Dynamic Agent Planning is the targeted full implementation, integration and verification item. It needs positive and negative path evidence. Every item reports implementation, integration and verification separately; unfinished work is not silently deferred ([D33](decisions.md#d33)) | Stage exits below |
 | RSI workbench (M1 side system), PRD Phase 2 "Local-Isolated RSI Implementation" | Improves a sandbox copy of `rank_opportunities`. Built in M1 as an implementation commitment. Validation, the adversarial suite run and activation are deferred from the PRD core gate. Never a startup, import, test, benchmark or release dependency of the core | [RSI workbench](../side-systems/rsi-workbench.md) |
 | Full M1 coverage | The whole PRD, mapped clause by clause. The PRD core gate is only Phase 1 | [Coverage allocation](clause-coverage.md) |

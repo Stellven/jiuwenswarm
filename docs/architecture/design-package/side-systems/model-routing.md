@@ -36,9 +36,9 @@ Exact rules: [RouterPort seam](../reference/model-routing-contract.md#routerport
 
 ## Children
 
-- [Router design](router-design.md): the boundary behavior, meaning inputs, replies including `no route`, the deadline and the records. The owner's v2.1 design holds the internals.
-- [Model catalog](model-catalog.md): the 24-entry qualification inventory by link, qualification states and provider entries.
-- [Owner rulings](owner-rulings.md#routing-v21): each difference from the received v2.1 design and how it was ruled.
+- [Router design](router-design.md): the boundary behavior, meaning inputs, replies including `no route`, the deadline and the records. The package owns the filtering, selection and lifecycle rules.
+- [Model catalog](model-catalog.md): the 24-entry qualification inventory, qualification states and provider entries.
+- [Owner rulings](owner-rulings.md#routing-v21): the adopted integration responsibilities.
 
 **Feeders:** CC declarations (`needs.model`), the run configuration (`cc.router.enabled`, `cc.router.deadline_s`, `cc.router.profile_ref`), the owner catalog snapshot and the run budget ledger. **Users:** the model bridge, the [platform benchmark runner](benchmark-runner.md) and [inspection](../platform/inspection.md).
 
@@ -61,8 +61,8 @@ Exact rules: [RouterPort seam](../reference/model-routing-contract.md#routerport
 
 ## Owner acceptance suite
 
-`Standard`. The routing owner's acceptance suite A01 to A40 is the owner's own test set, with its observable pass conditions in the [v2.1 design, section 6.6](../sources/model-routing/received/model-router-design-en-v2.1-2026-10-13.md#66-acceptance-cases). This package does not copy it. The [rulings](owner-rulings.md#routing-v21), row 11, record how the suite applies to M1.
+`Standard`. The package [acceptance scenarios](routing-acceptance.md) preserve A01 to A40 with current platform boundary rules. RTR-1 to RTR-8 remain the platform criteria. Evaluation-only scenarios do not become core M1 gate conditions.
 
-## Decisions and sources
+## Decisions
 
-[D40](../method/decisions.md#d40), the [received v2.1 design](../sources/model-routing/README.md) and its [rulings](owner-rulings.md#routing-v21).
+[D40](../method/decisions.md#d40), [D44](../method/decisions.md#d44) and the [integration rulings](owner-rulings.md#routing-v21).

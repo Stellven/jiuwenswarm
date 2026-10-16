@@ -6,7 +6,7 @@ This Git-tracked page is the shared naming register and PRD-to-architecture cros
 
 ## Canonical terms
 
-Each term has one meaning and one home page. Use the term exactly. The phrases in the last column are **forbidden** in maintained pages, because they suggest a second meaning. `validate.py` reads this table and fails on any forbidden phrase outside `sources/`, `diagrams/`, this page, [decisions](method/decisions.md) and [owner rulings](side-systems/owner-rulings.md). Matching ignores case. Each forbidden phrase is written in backticks.
+Each term has one meaning and one home page. Use the term exactly. The phrases in the last column are **forbidden** in maintained pages, because they suggest a second meaning. `validate.py` reads this table and fails on any forbidden phrase outside `diagrams/`, this page, [decisions](method/decisions.md) and [owner rulings](side-systems/owner-rulings.md). Matching ignores case. Each forbidden phrase is written in backticks.
 
 | Term | Meaning | Home | Forbidden |
 |---|---|---|---|

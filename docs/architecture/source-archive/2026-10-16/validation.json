@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-16",
+  "branch": "ai4r_muk",
+  "source_base_commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+  "preservation": {
+    "exact_archived_files": 16,
+    "sha256_verification": "PASS"
+  },
+  "adopted_content": {
+    "routing_inventory": "12 executor + 12 typed tool entries",
+    "routing_acceptance": "A01 to A40 retained with adopted platform boundaries",
+    "shared_contracts": "Existing schema, TASK, AC and IF identities preserved"
+  },
+  "checks": {
+    "delivery_regression_tests": 12,
+    "critical_schemas": 7,
+    "common_schema": 1,
+    "indexed_examples_and_context_records": 118,
+    "negative_cases": 57,
+    "additional_routing_negative_cases": 24,
+    "research_example_check_runs": 548,
+    "prd_headings": 188,
+    "user_stories": 20,
+    "exact_git_blob_and_symbol_verification": "PASS: 12 JiuwenSwarm files and 7 OpenJiuwen files",
+    "external_prd_crosswalk": "PASS: supplied PRD identity and headings match",
+    "new_diagram": "Rendered and visually inspected; all prior maintained Mermaid blocks unchanged"
+  },
+  "limitations": [
+    "Documentation and source checks only",
+    "Runtime compatibility and application acceptance NOT_RUN",
+    "Frozen experiments, historical ZIPs and unrelated work unchanged"
+  ]
+}

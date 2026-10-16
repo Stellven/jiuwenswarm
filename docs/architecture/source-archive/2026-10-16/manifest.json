@@ -1,0 +1,103 @@
+{
+  "archived_on": "2026-10-16",
+  "source_commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+  "purpose": "Exact historical inputs removed from the maintained delivery; no implementation authority",
+  "files": [
+    {
+      "original_package_path": "sources/benchmark/README.md",
+      "archive_path": "sources/benchmark/README.md",
+      "bytes": 608,
+      "sha256": "4e1a551a42107636d0ca8f79f0a36e2dc57111a09bdb7766a42c0f20a48b450d"
+    },
+    {
+      "original_package_path": "sources/benchmark/received/BENCHMARK_REQUIREMENTS_Oct_14.md",
+      "archive_path": "sources/benchmark/received/BENCHMARK_REQUIREMENTS_Oct_14.md",
+      "bytes": 115630,
+      "sha256": "4e895ead207980508e368bab2fb215c61345ec46f12aaacb5617fa1969884616"
+    },
+    {
+      "original_package_path": "sources/capsule-semantic-v2.10b.md",
+      "archive_path": "sources/capsule-semantic-v2.10b.md",
+      "bytes": 174011,
+      "sha256": "30b02e874dda0a9acd4c06e5fadd8c855cd3024d6aaca58c7c937aed161d00b9"
+    },
+    {
+      "original_package_path": "sources/capsule.schema.json",
+      "archive_path": "sources/capsule.schema.json",
+      "bytes": 22040,
+      "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd"
+    },
+    {
+      "original_package_path": "sources/data-foundation/README.md",
+      "archive_path": "sources/data-foundation/README.md",
+      "bytes": 835,
+      "sha256": "49fc26d9f6a2a676fde1b09ab5b2df2c03a45acced2ed160b0ff774c9e81a5af"
+    },
+    {
+      "original_package_path": "sources/data-foundation/received/data-foundation-2026-09-29.md",
+      "archive_path": "sources/data-foundation/received/data-foundation-2026-09-29.md",
+      "bytes": 18513,
+      "sha256": "1ab47063dce5406438d5b899fac3d923667c69b2b88fe090e4f9f1a03eeed7c1"
+    },
+    {
+      "original_package_path": "sources/model-routing/README.md",
+      "archive_path": "sources/model-routing/README.md",
+      "bytes": 1905,
+      "sha256": "a3b17aa18e43afdbd75c5f623fe5bb4318018629e2f5d71ef9ecfb0250375318"
+    },
+    {
+      "original_package_path": "sources/model-routing/received/model-router-design-en-2026-10-13.md",
+      "archive_path": "sources/model-routing/received/model-router-design-en-2026-10-13.md",
+      "bytes": 184666,
+      "sha256": "1f6a7293cd5cac14066f99d1d826a6ef00c39688835fd00ce58697a875520368"
+    },
+    {
+      "original_package_path": "sources/model-routing/received/model-router-design-en-v2.1-2026-10-13.md",
+      "archive_path": "sources/model-routing/received/model-router-design-en-v2.1-2026-10-13.md",
+      "bytes": 115099,
+      "sha256": "952bc451fb1003986f046615ffacbafc825bd4e879eb96af72c07e939877c7bf"
+    },
+    {
+      "original_package_path": "sources/native-reuse-evidence.json",
+      "archive_path": "sources/native-reuse-evidence.json",
+      "bytes": 7302,
+      "sha256": "9c4125f625819735f90ee9a7f34afc15ea5226b9dd047ce1a2cfac5a8c1fc732"
+    },
+    {
+      "original_package_path": "sources/policy-m1.json",
+      "archive_path": "sources/policy-m1.json",
+      "bytes": 3225,
+      "sha256": "43305e008f72d480b24269e06285225617b969944b771fd181e911b988d4c011"
+    },
+    {
+      "original_package_path": "sources/product/README.md",
+      "archive_path": "sources/product/README.md",
+      "bytes": 2209,
+      "sha256": "4ff49106d90322d69d8e4a782b59c1901ee438a9faf23d8f05a15744818a9256"
+    },
+    {
+      "original_package_path": "sources/rsi/README.md",
+      "archive_path": "sources/rsi/README.md",
+      "bytes": 779,
+      "sha256": "909ad6a000c1c10ddbc05248e51abbb77de1396b0d97ff4ecebff434d14f6957"
+    },
+    {
+      "original_package_path": "sources/rsi/received/DESIGN - RSI M1 v0.2.md",
+      "archive_path": "sources/rsi/received/DESIGN - RSI M1 v0.2.md",
+      "bytes": 67327,
+      "sha256": "5d3348209399433323e663a52b0c7116c23e4f1b35252e29c8272f84fd8f52a4"
+    },
+    {
+      "original_package_path": "sources/rsi/received/RSI Shared Interfaces v0.2.md",
+      "archive_path": "sources/rsi/received/RSI Shared Interfaces v0.2.md",
+      "bytes": 27963,
+      "sha256": "6340949a3689a9bce15ed2ed28b37f8f57b048b721d03c6afd30c2bfe3251946"
+    },
+    {
+      "original_package_path": "reference/provenance.json",
+      "archive_path": "provenance.json",
+      "bytes": 3857,
+      "sha256": "15113c646fe958c0a6cc7dd43081c27854b3d62dfee0eb2969dea3e4bd9685d8"
+    }
+  ]
+}

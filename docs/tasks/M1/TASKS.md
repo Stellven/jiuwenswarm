@@ -2,7 +2,7 @@
 
 ## Current inputs
 
-Use the [design reading routes](../../architecture/design-package/README.md), PRD V10 identified by the canonical [product receipt](../../product/README.md) and package [source receipt](../../architecture/design-package/sources/product/README.md), [decisions](../../architecture/design-package/method/decisions.md), [architecture phases](../../architecture/design-package/method/phases.md) and [critical contracts](../../architecture/design-package/reference/README.md). This register maintains no parallel architecture or PRD.
+Use the [design reading routes](../../architecture/design-package/README.md), PRD V10 identified by the canonical [product receipt](../../product/README.md) and package [source receipt](../../architecture/design-package/reference/product-input.md), [decisions](../../architecture/design-package/method/decisions.md), [architecture phases](../../architecture/design-package/method/phases.md) and [critical contracts](../../architecture/design-package/reference/README.md). This register maintains no parallel architecture or PRD.
 
 The first connected design contained **M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1)**. This historical display name described bounded scope, not a new TASK identifier or full-phase completion.
 
@@ -14,7 +14,7 @@ Preserve existing TASK, AC, IF and feature identities where applicable; an empty
 
 ## Optional prior records
 
-The former local M1 supplement, first trial draft and source-baseline hash record were superseded by the maintained package and remain historical. Optional provenance is documented in the [method index](../../architecture/design-package/method/README.md), which links to existing pinned Git snapshots. Their old paths, hashes, allocations and instructions are not current authority. Runtime records elsewhere retain their recorded results.
+The former local M1 supplement, first trial draft and source-baseline hash record were superseded by the maintained package and remain historical. Historical provenance stays outside the delivery package and is not routine build input. Their old paths, hashes, allocations and instructions are not current authority. Runtime records elsewhere retain their recorded results.
 
 ## October 7 architecture source update
 
@@ -45,3 +45,7 @@ Registration remains pending: reconcile occupied TASK/AC/IF identities before ge
 ## October 14 checking and continuation amendments
 
 Read the maintained design decisions D20 and D21 with the PRD and D19. D20 limits the semantic model payload to the pinned declaration and exact output; host/deterministic checks retain required input/runtime records. The compiler trial's worker-data copying is not the intended semantic interface. Preserve the explicitly reduced fidelity/source assurance and reconcile affected native evidence. D21 allocates November Generalist, automatic generation, automatic admission with future-plan eligibility and planner/MCTS increments; composition/fusion is December. M1 human activation remains unchanged. No running DAG changes its pins. Architecture freeze requires an available aligned PRD; unresolved product conflicts remain open. These documentation changes create no new TASK/AC/IF identities or runtime PASS.
+
+## October 16 delivery source cleanup
+
+D52 removes received and historical design inputs from the delivery. Use package-owned component pages, shared contracts and the separately supplied PRD. Concrete JiuwenSwarm reuse is recorded in the platform foundation. Existing TASK/AC/IF identities and scope remain unchanged. Reconcile source pointers before dependent implementation; this change provides no runtime acceptance evidence.

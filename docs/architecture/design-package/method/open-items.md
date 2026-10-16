@@ -2,7 +2,7 @@
 
 `Tier 2 · Part of: [Method](README.md) · Serves: Standard`
 
-**No design item is open.** Every question has a ruling, recorded in the page that owns the fact and, where it differs from an owner design, in [owner rulings](../side-systems/owner-rulings.md).
+**No design item is open.** Every question has a ruling, recorded in the page that owns the fact and, for component integration, in [owner rulings](../side-systems/owner-rulings.md).
 
 ## Gaps found while building
 

@@ -4,7 +4,7 @@
 
 This page is the runner's exact contract. Its records are listed in the [contract index](../reference/README.md#contract-index).
 
-This page defines how the platform benchmark runs the whole AI4Research system, stores comparable results, and scores them against a protected oracle. The runner is an M1 side system. It runs in the sidecar container, with the test runner ([D31](../method/decisions.md#d31), [D36](../method/decisions.md#d36)). Its product connection uses the control API and record export. It is the architecture for the [benchmark requirements v0.12](../sources/benchmark/README.md) (rules B01 to B17, case format section 2.2). It is not the scientific Research Benchmark CC, which measures one hypothesis inside a run.
+This page defines how the platform benchmark runs the whole AI4Research system, stores comparable results, and scores them against a protected oracle. The runner is an M1 side system. It runs in the sidecar container, with the test runner ([D31](../method/decisions.md#d31), [D36](../method/decisions.md#d36)). Its product connection uses the control API and record export. This page owns the adopted platform benchmark behavior, case contracts and evidence rules. It is not the scientific Research Benchmark CC, which measures one hypothesis inside a run.
 
 - The runner drives the app as an ordinary authenticated client. A separate referee holds the labels. The runner never sees them.
 - Every case, oracle, campaign and report format is versioned. M1 is the weakest version and the baseline. M2, M3, M4 and later runs compare against it with the same case keys.

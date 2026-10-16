@@ -25,7 +25,7 @@ docs/architecture/design-package/sources/capsule-semantic-v2.10b.md -text
 docs/architecture/experiments/m1-cut-down/** -text
 
 # Architecture manifests pin exact input/projection bytes for portable comparisons.
-docs/architecture/design-package/** -text
+docs/architecture/design-package/** -text whitespace=cr-at-eol
 
 # Preserve paired compact design bytes and exact reference identities.
 docs/architecture/design-package-compact/** -text
@@ -40,3 +40,6 @@ docs/architecture/experiments/** -text
 
 # Received PRDs live outside architecture packages; preserve their original bytes.
 docs/product/received-prds/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+
+# Exact archived source inputs; excluded from the portable design package.
+docs/architecture/source-archive/** -text whitespace=-trailing-space,-blank-at-eof

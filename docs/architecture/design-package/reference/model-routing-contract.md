@@ -174,7 +174,7 @@ SelectedCapsuleInput, RouteRequest, ModelSelectionProfile and CallRecord start a
 | `execution_id` | `string` | One governed invocation routing idempotency key |
 | `user_id` | `string` | Authenticated session identity |
 | `domain` | `string` | Trusted domain label. Exactly `cs_ml`. Any other value is rejected |
-| `task_category` | `string` | Trusted task category. Enum `ml_methods_and_inference`, `retrieval_and_knowledge_systems`, `algorithms_optimization_and_formal`, `software_systems_and_performance`, `databases_and_data_processing`, `networking_and_distributed_algorithms`, `security_and_reliability`, `experimental_evaluation_and_technical_data` (traceability IDs C01 to C08 in the owner design) |
+| `task_category` | `string` | Trusted task category. Enum `ml_methods_and_inference`, `retrieval_and_knowledge_systems`, `algorithms_optimization_and_formal`, `software_systems_and_performance`, `databases_and_data_processing`, `networking_and_distributed_algorithms`, `security_and_reliability`, `experimental_evaluation_and_technical_data` (traceability IDs C01 to C08 in the package catalog) |
 | `workflow_stage` | `string` | Fixed research stage name, or the verifier assignment. Envelope metadata, not a declaration field |
 | `call_function` | `string` | Enum `worker`, `verifier`, `planner`. Attribution only; it creates no executor type |
 | `task_summary` | `string` | Bound objective-derived summary |

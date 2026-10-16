@@ -87,7 +87,7 @@ flowchart LR
     GATE -->|halt| RETAIN[Keep failure evidence]
 ```
 
-This is an ownership and data-flow view, not a prescribed class diagram or private API. Exact fields remain in the [run plan](../reference/run-plan.md) and [Node and Subnode Execution Contracts](../reference/node-execution.md). The CC runner and SwarmFlow adapter reuse the pinned JiuwenSwarm/OpenJiuwen runtime where compatible; [native reuse evidence](../sources/native-reuse-evidence.json) records inspected interfaces, not runtime acceptance.
+This is an ownership and data-flow view, not a prescribed class diagram or private API. Exact fields remain in the [run plan](../reference/run-plan.md) and [Node and Subnode Execution Contracts](../reference/node-execution.md). The CC runner and SwarmFlow adapter reuse the pinned JiuwenSwarm/OpenJiuwen runtime where compatible; [native reuse evidence](../reference/native-reuse-evidence.json) records inspected interfaces, not runtime acceptance.
 
 ## Freeze and unknown future values
 

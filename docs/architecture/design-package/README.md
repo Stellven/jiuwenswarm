@@ -2,19 +2,17 @@
 
 `Tier 1 · Start here · Serves: Knowledge and Standard`
 
-This package is the design for milestone 1 (M1) of AI4Research. Coding agents build from it. Humans test the code against it. The PRD (product requirements document) says what the product must do. This package says how. The PRD is supplied separately, and its [receipt](sources/product/README.md) names the copy we use.
+This package is the design for milestone 1 (M1) of AI4Research. Coding agents build from it. Humans test the code against it. The PRD (product requirements document) says what the product must do. This package says how. The PRD is supplied separately, and its [receipt](reference/product-input.md) names the copy we use.
 
 **Authority ([D38](method/decisions.md#d38)).**
 - For M1 design, this package is the authority. For requirements, the PRD is.
-- Designs received from other teams, kept in `sources/`, are inputs. Where this package differs from them or from the PRD, a numbered [decision](method/decisions.md) says why.
+- Build from this package and the separately supplied PRD. Product-obligation departures require a numbered authorized [decision](method/decisions.md).
 - If the code does not do what the PRD or this package says, the code is wrong. If this package is wrong, fix the package first, record the decision, then fix the code.
 - Each concept has one name, in the [glossary](glossary.md#canonical-terms).
 
-Related proposal, not an M1 standard: [temporary workload profiling](temporary-workload-profiling.md).
-
 ## Architecture at a glance
 
-AI4Research builds on JiuwenSwarm/OpenJiuwen. It reuses the existing workflow, agent, model, UI and diagnostic runtime where compatible, then adds research-specific CC governance, binding, checks, gates and evidence. A request becomes a checked Research Brief before planning. M1 uses Python services, a TypeScript UI, SQLite and files on Docker volumes. See [native reuse evidence](sources/native-reuse-evidence.json) and [system architecture](1-system.md).
+AI4Research builds on JiuwenSwarm/OpenJiuwen. It reuses the existing workflow, agent, model, UI and diagnostic runtime where compatible, then adds research-specific CC governance, binding, checks, gates and evidence. A request becomes a checked Research Brief before planning. M1 uses Python services, a TypeScript UI, SQLite and files on Docker volumes. See [native reuse evidence](reference/native-reuse-evidence.json) and [system architecture](1-system.md).
 
 ## Deployment and access
 

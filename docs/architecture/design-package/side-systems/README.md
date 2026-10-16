@@ -10,4 +10,4 @@ A side system is built in M1 but stays off the hot path. A research run works th
 | RSI workbench | Record export (reads), admission inbox (writes) | [RSI workbench](rsi-workbench.md) |
 | Platform benchmark runner | Control API (submits runs), record export (reads) | [Benchmark runner](benchmark-runner.md) |
 
-[Owner rulings](owner-rulings.md) record how this package adopts the routing owner's v2.1 design and the RSI owners' v0.2 design.
+[Integration rulings](owner-rulings.md) record the package-owned routing, RSI and derived-record responsibilities.

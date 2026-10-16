@@ -14,6 +14,4 @@
 | [Build scope](build-scope.md) | Ownership, scope limits and future work the build must not block |
 | [Open items](open-items.md) | None open. How builders fill gaps, and the defaults that closed the last items |
 
-**Source.** The PRD V.10 receipt is in [product source identity](../sources/product/README.md). The PRD owns obligations. This package owns the realization, and [decisions](decisions.md) record each departure.
-
-**History.** Earlier designs stay pinned in Git, for example [the architecture before replacement](https://github.com/Stellven/jiuwenswarm/tree/343a77dbd5e6dcd18de2e57794cc992d36c2f35c/docs/architecture) and [the package before the October 6 cleanup](https://github.com/Stellven/jiuwenswarm/tree/62d1fe7069baf15379487fdd6cf20e3c459263ad/docs/architecture/build-package). They are optional reading and never a requirement.
+**Source.** The PRD V.10 receipt is in [product source identity](../reference/product-input.md). The PRD owns obligations. This package owns the realization, and [decisions](decisions.md) record each departure.

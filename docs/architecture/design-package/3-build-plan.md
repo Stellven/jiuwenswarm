@@ -4,6 +4,8 @@
 
 What to build first, what must never block it, and how M1 is accepted. Ownership and scope limits are in [build scope](method/build-scope.md).
 
+Start from the [JiuwenSwarm foundation](platform/native-reuse.md): extend the native application, workflow event transport, agent harness, web run view, configuration and diagnostics. Add the governed research binder, scheduler and gate authority around them. The existing Codex chat transport needs the documented bridge and Builder adaptations before research execution.
+
 ## Build order: hot path first
 
 | Step | Build | Done when |
