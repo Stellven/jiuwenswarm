@@ -2,9 +2,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button/Button';
 import { useCodexSubscription } from './state';
+import { hasResearchSession, hasResearchConfiguration } from '../../utils/researchClient';
 import './CodexSubscriptionPanel.css';
 
-type Status = { state: string; error?: string; active_runs?: number; login_attempt_id?: string };
+type Status = {
+  state: string;
+  error?: string;
+  active_runs?: number;
+  login_attempt_id?: string;
+  auth_url?: string;
+  user_code?: string;
+};
 type Model = { id: string; name: string; default: boolean };
 type Props = {
   connected: boolean;
@@ -17,6 +25,7 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [loginUrl, setLoginUrl] = useState('');
+  const [userCode, setUserCode] = useState('');
   const [loginAttempt, setLoginAttempt] = useState<string>();
   const [models, setModels] = useState<Model[]>([]);
   const revision = useRef(0);
@@ -31,6 +40,16 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
       if (current !== revision.current) return;
       setStatus(next);
       setLoginAttempt(next.login_attempt_id);
+      setUserCode(next.user_code || '');
+      if (next.state === 'signing_in' && next.auth_url) {
+        const url = new URL(next.auth_url);
+        if (
+          url.protocol === 'https:' &&
+          ['auth.openai.com', 'auth0.openai.com', 'auth.chatgpt.com'].includes(url.hostname)
+        ) {
+          setLoginUrl(url.href);
+        }
+      }
       setError(next.error || '');
       useCodexSubscription.getState().set({ state: next.state });
       if (next.state === 'ready') {
@@ -54,6 +73,7 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
     pending.current = false;
     setBusy(false);
     setLoginUrl('');
+    setUserCode('');
     if (!connected) {
       setStatus({ state: 'disconnected' });
       useCodexSubscription.getState().set({ state: 'disconnected' });
@@ -69,17 +89,23 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
 
   const action = async (kind: 'login' | 'cancel' | 'logout') => {
     if (pending.current || !connected) return;
+    const loginWindow = kind === 'login' ? window.open('about:blank', '_blank') : null;
+    if (loginWindow) loginWindow.opener = null;
     pending.current = true;
     const current = ++revision.current;
     setBusy(true);
     setError('');
     setLoginUrl('');
+    setUserCode('');
     try {
       const result = (await request(
         `codex.auth.${kind}`,
         kind === 'cancel' ? { login_attempt_id: loginAttempt } : undefined,
       )) as Status & { auth_url?: string; login_attempt_id?: string };
-      if (current !== revision.current) return;
+      if (current !== revision.current) {
+        loginWindow?.close();
+        return;
+      }
       if (kind === 'login') {
         const url = new URL(result.auth_url || '');
         if (
@@ -89,6 +115,8 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
           throw new Error('Invalid login URL');
         setLoginAttempt(result.login_attempt_id);
         setLoginUrl(url.href);
+        setUserCode(result.user_code || '');
+        if (loginWindow && !loginWindow.closed) loginWindow.location.replace(url.href);
         setStatus({ state: 'signing_in' });
         useCodexSubscription.getState().set({ state: 'signing_in' });
       } else {
@@ -96,6 +124,7 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
         useCodexSubscription.getState().set({ state: result.state, model: '' });
       }
     } catch {
+      loginWindow?.close();
       if (current === revision.current) setError('action');
     } finally {
       if (current === revision.current) {
@@ -117,7 +146,11 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
           {t(`codexSubscription.states.${status.state}`)}
         </span>
         <span className="codex-subscription__hint" data-testid="codex-subscription-scope">
-          {t('codexSubscription.scope')}
+          {t(
+            hasResearchSession() && !hasResearchConfiguration()
+              ? 'codexSubscription.setupRequired'
+              : 'codexSubscription.scope',
+          )}
         </span>
       </div>
       <div className="codex-subscription__actions">
@@ -147,6 +180,11 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
           </>
         ) : status.state === 'signing_in' ? (
           <>
+            {userCode && (
+              <span className="codex-subscription__device" data-testid="codex-subscription-device-code">
+                {t('codexSubscription.deviceCode')} <code>{userCode}</code>
+              </span>
+            )}
             {loginUrl && (
               <a
                 data-testid="codex-subscription-login-link"

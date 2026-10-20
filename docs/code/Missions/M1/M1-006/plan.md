@@ -1,8 +1,8 @@
 # Implementation Plan: M1-006 - Authenticated operational shell
 
-**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r4](spec.md)
+**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r5](spec.md)
 
-**Revision / date**: r12 / 2026-10-20 | **Branch**: ai4r_M1
+**Revision / date**: r13 / 2026-10-20 | **Branch**: ai4r_M1
 
 **Input sources**: [Exact source receipts](../source-baseline.json), [TASKS allocation](../TASKS.md), this TASK §1/4 source clauses and canonical IF revisions; supplied PRD/Architecture_Design and applicable QA documents only. M1-C001/C002 apply where consumed.
 
@@ -322,3 +322,21 @@ Source/authority: platform/failure-and-recovery.md45-47; I031 history ownership;
 ### Fresh ordinary submit input capture (2026-10-20; C010)
 
 ResearchService.submit calls owning004 prepare_run_inputs only after actor-scoped idempotent run allocation returns fresh, after original intake ownership checks, and before run-start/background execution. It deep-copies the protected context, captures exact request/document provenance and new inventory, and never mutates shared workspace or qualified finite/profile inputs. Duplicate submit/reconcile performs no recapture/resubmit. A preparation failure halts the already allocated run with bounded original failure audit and returns its inspectable run ID/status; no worker/start/Gate is invented. This is backend wiring for existing upload/submit behavior, not a new UI/public API/setting. Source compilation only; runtime checks are NOT_RUN user-directed C010.
+
+
+### M1-C011 technical extension (IF-007@r2)
+Extend SessionAuthority with explicit reusable_bootstrap=False keyword. Validate loopback via ipaddress at construction. Initialize reads/writes a private no-follow mode0600 regular file containing random challenge, exact origin and encoded principal, validating owner/type/mode/size. Same identity retains challenge; mismatches rotate. Rebind its digest to each newly rotated session family using INSERT OR REPLACE; bootstrap omits consumption only for explicit reusable mode. Revocation consumes the family challenge and removes the matching saved reusable identity. Keep SQL transactions and existing HTTP/WS scopes. Bootstrap gateway reads protected M1 environment flag; Compose default0, local instructions opt1. Existing AC-001 authentication checks remain, with bounded new cases for repeat/two-browser/bootstrap-after-restart, non-loopback refusal, identity change and revocation/default compatibility. Focused checks only; no renewed broad C010 campaign. Rebuild the production app and recreate the existing local service with the opt-in; retain volumes, verify a repeated bootstrap on a disposable scope rather than consume/log the user's link.
+
+
+### M1-C012 technical extension
+Permit existing codex.auth.status/login/cancel/logout and codex.models.list in research_http inspection allowlist, still requiring settings-scoped WS authentication. AgentServer MethodRouter routes only those account methods through existing CodexAccountAdapter when M1 and subscription mode are active, before research execution admission; existing provider service owns dedicated account files. Frontend reserves an about:blank tab synchronously on login click, nulls opener, then replaces its location with the validated returned HTTPS provider URL; keep explicit link fallback and close failed/stale blank tabs. Focused auth/control checks and frontend build; no full-M1 acceptance or automatic provider login completion.
+
+C012 Docker login completion: the installed pinned Codex0.144.4 generated LoginAccountParams/Response JSON schemas confirm chatgptDeviceCode with verificationUrl/userCode/loginId. Use that existing native flow in protected M1 to avoid a container-local OAuth callback listener inaccessible to the host browser. Non-M1 keeps chatgpt OAuth. Validate allowlisted HTTPS URL and bounded code; display the one-time device code with bilingual text and keep pending URL/code in private service state for refresh. Clear on account completion, cancellation and logout. Device code/auth URL are credentials, excluded from logs/evidence. The user completes provider authorization in their own browser; no automatic credential entry or account completion claim.
+
+
+### M1-C013 ? Ten-minute user-facing integration pass (2026-10-20)
+User requests coherent, polished actual-use UI within ten minutes. Scope existing native sign-in, chat attachments, run inspection/cancel/export, artifact/measurement and settings surfaces. Reuse semantic theme tokens, shared controls and existing layout; preserve IDs, bilingual copy, authorization and source records. Add clear disabled/unavailable affordances and responsive styling. No invented data, execution readiness or scientific acceptance. Prioritize completing C011/C012 production integration. Build and targeted control checks; browser visual/auth completion stays unverified unless permitted/observed. Implementation progress goes in this feature tasks.md; existing AC ownership remains.
+
+C011 reconnect correction: bootstrap response adds reusable_bootstrap boolean under IF-007@r2. Only when true does the browser retain the designated challenge alongside its existing token in origin-scoped sessionStorage. Subsequent connection attempts re-bootstrap with that challenge, refreshing credentials/cookie after app restart without research replay. Default one-use responses never retain/replay their challenge. No token in query, logs or exports.
+
+C013 connection failure UX: App receives the existing WebSocket onError callback and displays localized connection/login guidance instead of continuing to label a failed handshake as Loading config. A successful connection clears that state. The notification uses the existing shell toast with bounded responsive width. C011 retains its reusable challenge in a separate origin-scoped sessionStorage entry across transient refresh failures; explicit 401/403 bootstrap refusal retires it. No authentication check is skipped.

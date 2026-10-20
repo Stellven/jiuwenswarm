@@ -1,5 +1,6 @@
 {
   "codexSubscription": {
+    "setupRequired": "登录 ChatGPT 以连接账户。执行研究还需要完成工作区配置。",
     "title": "Codex 订阅",
     "scope": "预览阶段：普通文字聊天。团队、工具和媒体仍待接入。重启或退出账号后请新建会话，已保存的历史仍可查看。",
     "model": "订阅模型",
@@ -7,6 +8,7 @@
     "login": "使用 ChatGPT 登录",
     "logout": "退出账号并停止任务",
     "openLogin": "打开安全登录页面",
+    "deviceCode": "请在登录页面输入此验证码：",
     "cancel": "取消登录",
     "refresh": "刷新状态",
     "error": "暂时无法确认连接或操作结果。请检查网络并刷新状态后再试，无需填写 API Key。",
@@ -1203,7 +1205,8 @@
     "connected": "已连接",
     "disconnected": "未连接",
     "connecting": "正在连接服务器...",
-    "loadingConfig": "加载配置中..."
+    "loadingConfig": "加载配置中...",
+    "failedHint": "暂时无法连接，请确认应用正在运行。如果使用私人登录链接，请在当前浏览器中打开完整网址。"
   },
   "toolPanel": {
     "status": "状态",
@@ -4621,6 +4624,7 @@
     }
   },
   "researchInputs": {
+    "setupRequired": "请先完成研究工作区配置，再添加附件或运行研究。可以先在上方登录 ChatGPT。",
     "title": "研究输入",
     "kind": "输入类型",
     "docs": "参考文档",

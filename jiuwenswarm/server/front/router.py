@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from typing import Any
 
 from jiuwenswarm.common.schema.agent import AgentRequest, AgentResponseChunk
@@ -121,6 +122,15 @@ class MethodRouter:
         request: AgentRequest,
         send_lock: Any,
     ) -> None:
+        if (os.environ.get('JIUWENSWARM_M1_PROFILE') == '1'
+                and os.environ.get('JIUWENSWARM_AGENT_SDK') == 'codex_subscription'
+                and request.req_method is not None
+                and request.req_method.value in {'codex.auth.status', 'codex.auth.login',
+                    'codex.auth.cancel', 'codex.auth.logout', 'codex.models.list'}):
+            from jiuwenswarm.server.runtime.gateway_adapter.codex_adapter import CodexAccountAdapter
+            response = await CodexAccountAdapter().handle(request)
+            await self._send(ws, send_lock, encode_response(response, response_id=request.request_id))
+            return
         if is_control_method(request):
             if request.req_method == ReqMethod.HEALTH_CHECK_GET_CONF:
                 await self._dispatch_health(ws, request, send_lock)

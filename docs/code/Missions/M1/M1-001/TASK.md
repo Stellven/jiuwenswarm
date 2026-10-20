@@ -3,7 +3,7 @@
 ## 1. Identity
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-001 / r18 / 2026-10-20 |
+| TASK ID / revision / date | M1-001 / r19 / 2026-10-20 |
 | Parent TASKS | [M1 register](../TASKS.md) |
 | Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
 | Requested outcome and instruction/source | Multiarchitecture app deployment, protected Codex IPC bridge, operator configuration and restricted executor readiness; [invoked user prompt](../source/Code/prompt.txt) |
@@ -180,3 +180,11 @@ Before constructing that mapping, independently prove all of the following from 
 Classification must use the exact current derived Ref, so _frozen_inventory's exact supplied/frozen equality remains unchanged. The root-installed typed construction supplies the matching native registration required by the preceding ordinary-input procedure; the nonauthorizing binding does not relax or requalify a base entry. Revalidate the original closure at preflight, activation and each actual effect using the same installed resolver. Actual prepared/live authority, fixed deadlines/cancellation/once claims, whole-parent lease, approved factory/environment/kernel/Builder prerequisites and actual cessation remain independently required. Restart does not recreate live grants or clear held/unknown leases. GPU/exclusive unsupported factories still refuse.
 
 The existing root-to-custody pipe may expose only finite read-only resolve_original_run_inputs(parent_ref). Its sole input is the exact original parent Ref, with a private context resolved only through its original canonical source/approved assignment union. It returns None for genuine original/base-only paths, or nonauthorizing typed provenance containing exactly original_parent_ref, original_run_id, run_plan_ref, input_binding_ref, base_resource_inventory_ref, resource_inventory_ref and input_read_refs. Refs retain their exact dictionaries; input_read_refs is the bounded original binding read_refs list, never caller additions. An existing but invalid/ambiguous binding or missing required frozen plan refuses rather than becoming None. The Store independently derives every returned Ref from original indexed joins; the caller supplies no base/derived choice or skip flag. This is an internal query result, not a new captured data schema or public operation. No generic root getter/writer, candidate-selected method/store or new public RPC is created. Its returned data is proof input only, never registration/liveness/lease authority. IF003r3/IF016r2, IF005r1 and all external record shapes remain unchanged. Existing001 FR/AC/work/V IDs and historical outcomes remain. Implementation is UNBUILT at this definition draft; new runtime checks are NOT_RUN under M1-C010.
+
+
+### M1-C011 consumer ? IF-007@r2
+Consume the owning M1-006/TASK.md C011 amendment through deploy/m1/compose.yaml: AI4R_REUSABLE_LOGIN=1 forwards JIUWENSWARM_M1_REUSABLE_BOOTSTRAP=1; default remains 0. Local web launch documentation opts in explicitly. The operator YAML schema, mount custody, private bind, provider account and execution prerequisites remain unchanged. Frozen one-use source remains historical for this opt-in amendment.
+
+
+### M1-C012 account-control consumer
+Support M1-006 existing authenticated provider account methods before execution admission in MethodRouter. Use existing CodexAccountAdapter/get_service; keep research runtime refused without protected operator configuration. Does not initialize full AgentWebSocketServer, dispatch turns or obtain any provider account implicitly.

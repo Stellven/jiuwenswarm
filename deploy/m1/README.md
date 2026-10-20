@@ -365,3 +365,9 @@ Otherwise, closing a counted started attempt requires the original inputs and
 actual custody halt/query evidence. Missing evidence remains unresolved.
 Terminal history does not establish that native work stopped: uncertain
 containment keeps the lease blocked and stop reports `outcome_unknown`.
+
+## Reusable local login and ChatGPT sign-in (C011/C012)
+
+Set `AI4R_REUSABLE_LOGIN=1` before Compose startup for a reusable, bookmarkable login link on a literal loopback origin only. Default remains one-use. The private saved challenge survives restarts for the exact same origin and principal; logout/revocation or identity changes retire it. Keep the complete fragment URL private. Browser sessions are independently scoped; research readiness remains separate.
+
+In protected M1, Use ChatGPT login opens the native provider device-authorization page and displays the code to enter there. This avoids container-local OAuth callback ports. A popup-blocked browser can use Open secure sign-in. The user completes authorization in their browser; provider credentials remain in the app-owned account volume. Account sign-in is available while research operator configuration is unavailable, and does not authorize research execution.

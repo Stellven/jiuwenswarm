@@ -404,6 +404,7 @@ function AppContent({
   const [serverConfig, setServerConfig] = useState<Record<string, unknown> | null>(null);
   const trajectoryUiEnabled = useTrajectoryUiEnabled();
   const [configError, setConfigError] = useState<string | null>(null);
+  const [connectionFailed, setConnectionFailed] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [restartModalOpen, setRestartModalOpen] = useState(false);
   const [restartSuccess, setRestartSuccess] = useState(false);
@@ -1025,6 +1026,7 @@ function AppContent({
   } = useWebSocket({
     activeSessionId: sessionId,
     onConnect: () => {
+      setConnectionFailed(false);
       console.log('Connected');
       // 连接建立/断线重连后重拉侧边栏定时任务列表（useCronStore）：web 先行
       // 导航时首屏挂载早于 gateway 就绪，挂载期的 cron.job.list 会失败并被
@@ -1036,6 +1038,7 @@ function AppContent({
       console.log('Disconnected');
     },
     onError: (error) => {
+      setConnectionFailed(true);
       console.error('WebSocket error:', error);
     },
     onConfigChanged: () => {
@@ -4009,8 +4012,16 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       {/* 连接状态提示 */}
       {!isConnected && (
         <div className="app-toast-wrapper app-toast-wrapper--top" data-testid="app-connection-toast">
-          <div className="app-connection-toast animate-rise" data-testid="app-connection-toast-message" data-variant={serverConfig ? 'connecting' : 'loadingConfig'}>
-            {serverConfig ? t('connection.connecting') : t('connection.loadingConfig')}
+          <div
+            className="app-connection-toast animate-rise"
+            data-testid="app-connection-toast-message"
+            data-variant={connectionFailed ? 'error' : serverConfig ? 'connecting' : 'loadingConfig'}
+          >
+            {connectionFailed
+              ? t('connection.failedHint')
+              : serverConfig
+                ? t('connection.connecting')
+                : t('connection.loadingConfig')}
           </div>
         </div>
       )}

@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Select } from '../ui/Select/Select';
+import { Button } from '../ui/Button/Button';
+import '../../styles/research-shell.css';
 import {
   bootstrapResearchSession,
+  hasResearchConfiguration,
   markResearchUpload,
   researchRequest,
   researchWorkspace,
@@ -21,6 +24,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const configured = hasResearchConfiguration();
   const refresh = async () => {
     const value = await researchRequest<ResearchUpload[]>(
       `/api/v1/inputs?scope_id=${encodeURIComponent(researchWorkspace())}`,
@@ -39,7 +43,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       .then(async (ready) => {
         if (!current) return;
         setEnabled(ready);
-        if (ready) await refresh();
+        if (ready && hasResearchConfiguration()) await refresh();
       })
       .catch(() => {
         if (current) setError(true);
@@ -68,12 +72,12 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
   };
   if (!enabled) return null;
   return (
-    <section className="flex flex-col gap-2 p-2 text-sm text-text-primary" data-testid="chat-panel-research-inputs">
-      <div className="flex flex-wrap items-center gap-2">
+    <section className="research-inputs" data-testid="chat-panel-research-inputs">
+      <div className="research-inputs__toolbar">
         <span data-testid="chat-panel-research-inputs-title">{t('researchInputs.title')}</span>
         <Select
           value={kind}
-          disabled={busy}
+          disabled={busy || !configured}
           data-testid="chat-panel-research-input-kind"
           aria-label={t('researchInputs.kind')}
           onChange={(value) => setKind(value as ResearchUpload['kind'])}
@@ -82,11 +86,15 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
             label: t(`researchInputs.${value}`),
           }))}
         />
-        <label data-testid="chat-panel-research-upload-label">
+        <label
+          className="research-inputs__upload"
+          data-disabled={busy || !configured}
+          data-testid="chat-panel-research-upload-label"
+        >
           {t('researchInputs.upload')}
           <input
             type="file"
-            disabled={busy}
+            disabled={busy || !configured}
             data-testid="chat-panel-research-upload"
             accept={kind === 'docs' ? '.txt,.md,.pdf' : kind === 'repo' ? '.zip' : undefined}
             onChange={(event) => {
@@ -101,24 +109,26 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
             }}
           />
         </label>
-        <button
+        <Button
+          size="sm"
+          variant="quiet"
           type="button"
-          disabled={busy}
+          disabled={busy || !configured}
           data-testid="chat-panel-research-input-refresh"
           onClick={() => void perform(refresh)}
         >
           {t('researchInputs.refresh')}
-        </button>
+        </Button>
       </div>
-      <p className="text-text-secondary" data-testid="chat-panel-research-input-hint">
-        {t('researchInputs.hint')}
+      <p className="research-inputs__hint" data-testid="chat-panel-research-input-hint">
+        {t(configured ? 'researchInputs.hint' : 'researchInputs.setupRequired')}
       </p>
       {error && (
         <p role="alert" className="text-warn" data-testid="chat-panel-research-input-error">
           {t('researchInputs.failed')}
         </p>
       )}
-      <ul data-testid="chat-panel-research-input-list">
+      <ul className="research-inputs__list" data-testid="chat-panel-research-input-list">
         {files.map((file) => (
           <li
             key={file.id}
@@ -139,7 +149,9 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
               />
               {file.filename}
             </label>
-            <button
+            <Button
+              size="sm"
+              variant="quiet"
               type="button"
               disabled={busy}
               data-testid="chat-panel-research-input-delete"
@@ -153,7 +165,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
               }
             >
               {t('researchInputs.delete')}
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

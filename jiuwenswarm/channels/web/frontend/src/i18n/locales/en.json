@@ -1,5 +1,6 @@
 {
   "codexSubscription": {
+    "setupRequired": "Sign in to ChatGPT to connect your account. Research execution also requires workspace setup.",
     "title": "Codex subscription",
     "scope": "Preview: ordinary text chat. Teams, tools and media are pending integration. After a restart or sign-out, start a new conversation; saved history remains available.",
     "model": "Subscription model",
@@ -7,6 +8,7 @@
     "login": "Sign in with ChatGPT",
     "logout": "Sign out and stop tasks",
     "openLogin": "Open secure sign-in",
+    "deviceCode": "Enter this code on the sign-in page:",
     "cancel": "Cancel sign-in",
     "refresh": "Refresh status",
     "error": "The connection or action could not be confirmed. Check your connection and refresh status before trying again. No API key is required.",
@@ -1203,7 +1205,8 @@
     "connected": "Connected",
     "disconnected": "Disconnected",
     "connecting": "Connecting...",
-    "loadingConfig": "Loading config..."
+    "loadingConfig": "Loading config...",
+    "failedHint": "Unable to connect. Check that the app is running. If you received a private login link, open its complete URL in this browser."
   },
   "toolPanel": {
     "status": "Status",
@@ -4622,6 +4625,7 @@
     }
   },
   "researchInputs": {
+    "setupRequired": "Research setup is required before attaching files or running a study. You can sign into ChatGPT above.",
     "title": "Research inputs",
     "kind": "Input type",
     "docs": "Reference document",

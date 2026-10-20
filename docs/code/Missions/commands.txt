@@ -1,0 +1,35 @@
+wsl -d Ubuntu -u root
+
+# Run the remaining commands in Ubuntu. Stop immediately if any command fails.
+set -euo pipefail
+
+git clone --branch ai4r_M1 https://github.com/Stellven/jiuwenswarm.git
+cd jiuwenswarm
+
+unset DOCKER_CONTEXT DOCKER_TLS_VERIFY DOCKER_CERT_PATH
+export DOCKER_HOST=unix:///var/run/docker.sock
+
+docker build --progress=plain --platform linux/amd64 \
+  -f deploy/m1/Dockerfile.app --target production \
+  -t ai4r-m1-app:local .
+
+# This empty config starts inspection mode. Research runs require initialized operator resources.
+mkdir -p /root/ai4r-web
+test -f /root/ai4r-web/config.yaml || printf '{}\n' > /root/ai4r-web/config.yaml
+chmod 644 /root/ai4r-web/config.yaml
+
+export AI4R_APP_IMAGE=ai4r-m1-app:local
+export AI4R_OPERATOR_CONFIG=/root/ai4r-web/config.yaml
+export AI4R_JOB_ID=web-play
+export AI4R_REUSABLE_LOGIN=1
+
+docker image inspect "$AI4R_APP_IMAGE" >/dev/null
+docker compose -p ai4r-web-play -f deploy/m1/compose.yaml up -d --no-build --pull never app
+docker compose -p ai4r-web-play -f deploy/m1/compose.yaml logs --since 2m -f app
+
+# Copy the complete Open JiuwenSwarm URL into Chrome/Edge's address bar.
+# With AI4R_REUSABLE_LOGIN=1 this local-only URL can be bookmarked/reused,
+# including across container restarts. Explicit logout/revocation rotates it.
+# Keep the URL private and keep 127.0.0.1 (not localhost).
+# Use ChatGPT login opens the provider device-auth page; enter the displayed code.
+# If popups are blocked, click Open secure sign-in.

@@ -1,3 +1,4 @@
+import '../../styles/research-shell.css';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui';
@@ -20,7 +21,7 @@ export function ResearchArtifactView({
   const projection = structuredResearchArtifact(artifact.content);
   const standing = artifactStanding(artifact, accepted, candidates);
   return (
-    <section className="space-y-3" data-testid="team-area-research-document" data-variant={artifact.path}>
+    <section className="research-document" data-testid="team-area-research-document" data-variant={artifact.path}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-medium" data-testid="team-area-research-document-standing" data-variant={standing}>
           {t(`researchShell.standing.${standing}`)}

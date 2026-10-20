@@ -58,3 +58,37 @@ class ShellAuthTests(unittest.TestCase):
     @unittest.skipIf(os.name == 'nt', 'Windows file mode is not Linux custody evidence')
     def test_actual_mode(self):
         self.assertEqual(os.stat(self.authority.token_path).st_mode & 0o777, 0o600)
+
+    def test_reusable_link_survives_two_browsers_and_restart(self):
+        self.authority.close()
+        self.authority = SessionAuthority(self.tmp.name, self.origin, reusable_bootstrap=True)
+        url = self.authority.initialize(self.principal)
+        self.challenge = urlsplit(url).fragment.removeprefix('research_bootstrap=')
+        first, second = self.bootstrap(), self.bootstrap()
+        self.assertNotEqual(first['ws_token'], second['ws_token'])
+        self.authority.close()
+        self.authority = SessionAuthority(self.tmp.name, self.origin, reusable_bootstrap=True)
+        self.assertEqual(url, self.authority.initialize(self.principal))
+        with self.assertRaises(ResearchError):
+            self.authority.authenticate('Bearer ' + first['token'], 'status')
+        self.assertEqual(self.authority.authenticate('Bearer ' + self.bootstrap()['token'], 'status').account_id, 'owner')
+
+    def test_reusable_revocation_rotates_saved_link(self):
+        self.authority.close()
+        self.authority = SessionAuthority(self.tmp.name, self.origin, reusable_bootstrap=True)
+        url = self.authority.initialize(self.principal)
+        self.challenge = urlsplit(url).fragment.removeprefix('research_bootstrap=')
+        grant = self.bootstrap()
+        self.authority.revoke(grant['token'])
+        with self.assertRaises(ResearchError):
+            self.bootstrap()
+        self.assertNotEqual(url, self.authority.initialize(self.principal))
+
+    def test_reusable_mode_rejects_non_loopback_and_rotates_identity(self):
+        with self.assertRaises(ValueError):
+            SessionAuthority(self.tmp.name, 'http://192.168.1.2:5173', reusable_bootstrap=True)
+        self.authority.close()
+        self.authority = SessionAuthority(self.tmp.name, self.origin, reusable_bootstrap=True)
+        url = self.authority.initialize(self.principal)
+        other = Principal('other', self.principal.workspace_ids, self.principal.operations)
+        self.assertNotEqual(url, self.authority.initialize(other))

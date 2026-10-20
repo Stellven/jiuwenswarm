@@ -23,6 +23,8 @@ class SubscriptionService:
         self.account_fingerprint = None
         self.active = {}
         self.login_id = None
+        self.login_url = None
+        self.login_user_code = None
         self.login_error = None
         self._account_observer = None
         self._governed_trace_writer = None
@@ -49,8 +51,10 @@ class SubscriptionService:
             self.last_account_observation = None
         if method == "transport/closed":
             self.epoch = uuid.uuid4().hex
+            self.login_id = self.login_url = self.login_user_code = None
         if method == "account/login/completed" and params.get("loginId") == self.login_id:
             self.login_id = None
+            self.login_url = self.login_user_code = None
             self.login_error = None if params.get("success") is True else "LOGIN_FAILED"
         if method == 'account/rateLimits/updated' and self._account_observer:
             if not self._observation_identity_verified or not self.account_fingerprint:
@@ -155,7 +159,7 @@ class SubscriptionService:
         if fingerprint != self.account_fingerprint:self.last_account_observation=None
         self.account_fingerprint = fingerprint
         self._observation_identity_verified = bool(fingerprint) and generation == self._observation_generation
-        return {"enabled": True, "state": "ready" if kind == "chatgpt" else "subscription_required" if kind else "signing_in" if self.login_id else "signed_out", "plan": account.get("planType") if kind == "chatgpt" else None, "error": self.login_error, "login_attempt_id": self.login_id, "active_runs": len(self.active), "milestone": "text_chat"}
+        return {"enabled": True, "state": "ready" if kind == "chatgpt" else "subscription_required" if kind else "signing_in" if self.login_id else "signed_out", "plan": account.get("planType") if kind == "chatgpt" else None, "error": self.login_error, "login_attempt_id": self.login_id, "auth_url": self.login_url if self.login_id else None, "user_code": self.login_user_code if self.login_id else None, "active_runs": len(self.active), "milestone": "text_chat"}
 
     async def status(self):
         async with self._account_lock:
@@ -175,15 +179,19 @@ class SubscriptionService:
             if self.login_id:
                 raise CodexError("LOGIN_PENDING")
             self.epoch = uuid.uuid4().hex
-            result = await self.transport.request("account/login/start", {"type": "chatgpt"})
-            url = result.get("authUrl", "")
+            login_type = 'chatgptDeviceCode' if os.environ.get('JIUWENSWARM_M1_PROFILE') == '1' else 'chatgpt'
+            result = await self.transport.request("account/login/start", {"type": login_type})
+            url = result.get('verificationUrl' if login_type == 'chatgptDeviceCode' else 'authUrl', '')
             parsed = urlparse(url)
-            if result.get("type") != "chatgpt" or parsed.scheme != "https" or parsed.hostname not in {"auth.openai.com", "auth0.openai.com", "auth.chatgpt.com"} or not result.get("loginId"):
+            code = result.get('userCode') if login_type == 'chatgptDeviceCode' else None
+            if (result.get("type") != login_type or parsed.scheme != "https" or parsed.hostname not in {"auth.openai.com", "auth0.openai.com", "auth.chatgpt.com"} or not result.get("loginId")
+                    or login_type == 'chatgptDeviceCode' and (not isinstance(code, str) or not 1 <= len(code) <= 64 or not code.isascii() or not code.isprintable())):
                 await self.transport.close()
                 raise CodexError("LOGIN_PROTOCOL_ERROR")
             self.login_id = result["loginId"]
+            self.login_url, self.login_user_code = url, code
             self.login_error = None
-            return {"state": "signing_in", "auth_url": url, "login_attempt_id": self.login_id}
+            return {"state": "signing_in", "auth_url": url, "login_attempt_id": self.login_id, "user_code": code}
 
     async def cancel_login(self, attempt_id):
         async with self._account_lock:
@@ -192,6 +200,7 @@ class SubscriptionService:
             if self.login_id:
                 await self.transport.request("account/login/cancel", {"loginId": self.login_id})
                 self.login_id = None
+                self.login_url = self.login_user_code = None
             return await self._status()
 
     async def logout(self):

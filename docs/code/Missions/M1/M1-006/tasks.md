@@ -6,7 +6,7 @@ description: "TASK-native work and acceptance/evidence correspondence"
 
 # Tasks: M1-006 - Authenticated operational shell
 
-**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r4 / r12 | **Tasks revision/date**: r11 / 2026-10-20
+**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r5 / r13 | **Tasks revision/date**: r12 / 2026-10-20
 
 **Feature directory**: docs/code/Missions/M1/M1-006/
 
@@ -538,3 +538,27 @@ Separate ARM64 build-only follow-on outcome: `BLOCKED_BUILD_PREREQUISITE`; origi
 | rsi-worker | `ai4r-m1-rsi-worker:20261020-functions06` | `sha256:439bc6adeda8c7926a7adc94ac8089fadcc05a0e766fd6f89d2763f42e243ce1` |
 
 2026-10-20 user-requested launch diagnosis (19:10Z): running ai4r-web-play-app-1 functions06 returned ok=true for a focused authenticated config.get request over the actual frontend /ws proxy using the existing protected HTTP bearer; configuration values are not retained as evidence. Read-only session database inspection showed the sole bootstrap challenge consumed with one active HTTP and one WS grant. Prior advice to reuse that single-use link in a fresh private window was incorrect. Browser observation was declined by the origin permission gate; no browser workaround was attempted and the user's UI outcome remains unverified. Restarted only ai4r-web-play-app-1 with a 45-second stop timeout, retaining named volumes; startup printed a fresh bootstrap handoff and read-only inspection confirmed one unused challenge. User must use the newest log URL exactly once in one browser tab. No product source, schema, native technical definition, acceptance checkbox or historical result changed; no model/scientific/benchmark campaign was run. This focused user-requested operational diagnosis does not promote build-only evidence to full-M1 acceptance.
+
+
+### M1-C011 bounded login usability work
+- [x] M1-006/T-C011-1 Implement IF-007@r2 opt-in protected reusable challenge and exact identity/revocation behavior (AC-001; existing authentication block).
+- [x] M1-006/T-C011-2 Add and run focused local authentication regression checks; record exact commands/results and limitations without broad C010 testing.
+- [ ] M1-006/T-C011-3 Build/recreate local app with reusable mode, preserve volumes and hand over the reusable link through private launcher output; browser UI remains unverified if observation is declined.
+Old build/auth results remain historical. This amendment establishes no full-M1 acceptance.
+
+
+### M1-C012 login correction work
+- [x] M1-006/T-C012-1 Connect existing provider account controls in authenticated inspection and open validated login page from explicit click; preserve popup fallback.
+- [ ] M1-006/T-C012-2 Focused account/control regression and production frontend build; browser/provider completion requires user interaction, full-M1 remains unaccepted.
+
+
+### M1-C013 ? Ten-minute user-facing integration pass (2026-10-20)
+User requests coherent, polished actual-use UI within ten minutes. Scope existing native sign-in, chat attachments, run inspection/cancel/export, artifact/measurement and settings surfaces. Reuse semantic theme tokens, shared controls and existing layout; preserve IDs, bilingual copy, authorization and source records. Add clear disabled/unavailable affordances and responsive styling. No invented data, execution readiness or scientific acceptance. Prioritize completing C011/C012 production integration. Build and targeted control checks; browser visual/auth completion stays unverified unless permitted/observed. Implementation progress goes in this feature tasks.md; existing AC ownership remains.
+
+C013 user window extended to 30 minutes, then explicit machine shutdown in 28 minutes and push requested. Finish the current runtime/browser fixes and UI integration, checkpoint native progress and push before the new shutdown window; no broad verification campaign.
+
+2026-10-20 C011/C012/C013 focused operational checkpoint (22:05Z): source is implemented for opt-in reusable local login, per-browser grants/restart retention/revocation, independent account controls, native device authorization, coherent semantic-token research UI and explicit failed-connection guidance. Commands: Linux functions06 runtime with current checkout read-only and PYTHONPATH=/src; unittest discover tests/unit_tests/research -p test_shell_auth.py: 7 passed; -p test_native_research_messages.py: 3 passed; tests/unit_tests/runtime -p test_codex_login_controls.py: 2 passed. Frontend esbuild researchClient plus node --test tests/researchClient.test.mjs: 8 passed after adding ignored cache package.json type=module for host Node20; initial host ESM harness attempts failed, and one new Chinese string corrupted by PowerShell stdin encoding was corrected before the passing run. No broad benchmark/verification campaign was restarted.
+
+Actual user-flow image ai4r-m1-app:20261020-user-flow built production with tsc/vite and native wheel closure; local ai4r-web-play service recreated with existing named volumes and AI4R_REUSABLE_LOGIN=1. Focused real frontend-/ws checks returned ok=true for config.get, codex.auth.status (signed_out) and session.list. Actual codex.auth.login returned signing_in, allowlisted auth.openai.com and a device code; diagnostic attempt was cancelled successfully. Two actual HTTP bootstrap exchanges using the same saved link each returned200/reusable=true and distinct browser cookies. No auth URL/code/token is copied into this checkpoint.
+
+Saved browser permission denied localhost UI observation; no alternate browser/native/raw-browser workaround was used. Provider authorization is not completed by the agent; visual layout, narrow/dark appearance and signed-in model/research execution remain unverified. The configured operator file is still empty inspection-only: full research/workspace/capsule execution is not established. End-to-end research acceptance is not claimed. Final source adds transient-network challenge retention and connection-failure guidance; fresh image ai4r-m1-app:20261020-user-delivery is building, so prior source images are historical for those last changes. Final image/service/push status must be appended before stopping.

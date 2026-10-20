@@ -1,7 +1,7 @@
 # Feature Specification: M1-006 - Authenticated operational shell
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r4 / 2026-10-19
+**Revision / date**: r5 / 2026-10-20
 **Feature Branch**: ai4r_M1
 **Input**: [Exact source baseline](../source-baseline.json); docs/code/Missions/M1/source/PRD/PRD_Oct_15.md §§5.1–5.6, 6.10; US01, US05–US08, US12–US20 as allocated; docs/code/Missions/M1/source/Architecture_Design/platform/{README,inspection,failure-and-recovery}.md; docs/code/Missions/M1/source/Architecture_Design/reference/field-catalog.md#control-api, #node-lifecycle, #client-readiness, #client-submission, #client-status, #client-retrieval, #client-cancellation, #client-upload, #client-error, #operator-config; docs/code/Missions/M1/source/Architecture_Design/method/decisions.md D35/D36/D39/D48–D50; jiuwenswarm/channels/web/AGENTS.md; jiuwenswarm/channels/web/frontend/AGENTS.md; docs/code/Missions/M1/M1-006/TASK.md; docs/code/Missions/M1/TASKS.md. Architecture references mean only the assigned source/Architecture_Design snapshot.
 **Status**: Specified; formal Clarify source resolutions and reviewed Plan/Tasks artifacts recorded; no runtime result implied
@@ -106,3 +106,15 @@ The delegated technical design in owning002 IF016r1 supplies fresh actual evalua
 ### Session 2026-10-19 - NATIVE-IF016-PARENT-01 consumer correction
 
 Existing I031/IF016r1 client/auth/inspection ACs consume owning002 twelve private record definitions and registered ProjectionAdapter; source canonical node/subnode/check-plan records are ORIGINAL provenance, never new evaluation dispatch records. Private context/basis kinds and exact hash/request/scope/assignment joins must validate before any body-shape interpretation or result exposure. The existing public E2/E3 requests/results and historical JSON/ZIP operation remain unchanged. E2 original subject/complete outputs/observation/host evidence are distinct from a fresh private selected-port reviewer; E3 has one private admitted worker plus pinned checks, no semantic/Gate/successor. Private reused payload shapes confer no canonical acceptance. Same-account foreign context, masqueraded type/Ref, wrong target, source-template-input drift and missing registered adapter fail before effects/export. Historical reading remains independently scoped without executable resources. No RSI signature, source-kind relabeling, invented RunPlan/product row, new public field or acceptance is authorized. Separate001 twelve-type reconciliation, neutral publication and combined re-Analyze precede code.
+
+
+### M1-C011 extension to M1-006/AC-001
+Explicit reusable local mode accepts the same designated fragment challenge in multiple browsers and after process restart, only for the same exact loopback origin and protected principal. Each bootstrap obtains an independent HttpOnly SameSite=Strict browser session. Missing/foreign/revoked grants, wrong Origin/Host and principal changes cannot gain authority. Existing default one-use behavior remains. Explicit revocation retires the saved challenge; fresh initialization generates a different link. Neither link nor grants enter ordinary evidence/exports.
+
+
+### M1-C012 extension to AC-001
+Authenticated local users can sign into the app-owned ChatGPT provider account while research readiness is blocked. Login opens a browser tab from the user gesture and navigates only to the existing allowlisted HTTPS provider URL. Popup blocking retains the explicit Open sign-in page fallback. Failed/stale attempts close any blank tab. No background research work is started.
+
+
+### M1-C013 ? Ten-minute user-facing integration pass (2026-10-20)
+User requests coherent, polished actual-use UI within ten minutes. Scope existing native sign-in, chat attachments, run inspection/cancel/export, artifact/measurement and settings surfaces. Reuse semantic theme tokens, shared controls and existing layout; preserve IDs, bilingual copy, authorization and source records. Add clear disabled/unavailable affordances and responsive styling. No invented data, execution readiness or scientific acceptance. Prioritize completing C011/C012 production integration. Build and targeted control checks; browser visual/auth completion stays unverified unless permitted/observed. Implementation progress goes in this feature tasks.md; existing AC ownership remains.

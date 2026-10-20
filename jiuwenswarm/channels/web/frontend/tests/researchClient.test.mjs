@@ -185,3 +185,35 @@ test('concurrent connection waits for the same scrubbed bootstrap request', asyn
     for (const [k, v] of originalMemory) memory.set(k, v);
   }
 });
+
+test('reusable local login renews the browser grant without a URL fragment', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalMemory = new Map(memory);
+  let attempts = 0;
+  memory.clear();
+  window.location.hash = '#research_bootstrap=reusable-local-fixture';
+  globalThis.fetch = async (path, options) => {
+    attempts++;
+    assert.equal(path, '/auth/research/bootstrap');
+    assert.equal(JSON.parse(options.body).challenge, 'reusable-local-fixture');
+    return {
+      ok: true,
+      json: async () => ({
+        token: 'renewed-' + attempts,
+        reusable_bootstrap: true,
+        defaults: { account_id: 'owner', workspace_id: 'work', configuration_ref: null },
+      }),
+    };
+  };
+  try {
+    assert.equal(await client.bootstrapResearchSession(), true);
+    assert.equal(window.location.hash, '');
+    assert.equal(await client.bootstrapResearchSession(), true);
+    assert.equal(attempts, 2);
+    assert.equal(client.hasResearchConfiguration(), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    memory.clear();
+    for (const [key, value] of originalMemory) memory.set(key, value);
+  }
+});

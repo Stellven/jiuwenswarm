@@ -126,7 +126,9 @@ async def attach_native_research(web_channel,runtime_ports=None):
     store=SQLiteRunStore(state_root,recover=True,input_root='/workspace/input');accounts=AccountStore(account_root)
     origin=os.environ.get('JIUWENSWARM_M1_ORIGIN')
     if not origin:raise ResearchError('unavailable','Protected native origin is missing')
-    authority=SessionAuthority(account_root/'sessions',origin);diagnostics=[];bindings=None;operator=None;composition=None
+    authority=SessionAuthority(account_root/'sessions',origin,
+        reusable_bootstrap=os.environ.get('JIUWENSWARM_M1_REUSABLE_BOOTSTRAP')=='1')
+    diagnostics=[];bindings=None;operator=None;composition=None
     config_path=os.environ.get('JIUWENSWARM_M1_CONFIG','/etc/ai4r/config.yaml')
     try:
         if M1_REFUSAL_REASON:

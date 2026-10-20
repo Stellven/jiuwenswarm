@@ -6,7 +6,7 @@ description: "TASK-native work and acceptance/evidence correspondence"
 
 # Tasks: M1-001 - Deployment, protected Codex bridge and confined execution
 
-**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r7 / r18 | **Tasks revision/date**: r12 / 2026-10-20
+**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r7 / r19 | **Tasks revision/date**: r13 / 2026-10-20
 
 **Feature directory**: docs/code/Missions/M1/M1-001/
 
@@ -547,3 +547,5 @@ Separate ARM64 build-only follow-on outcome: `BLOCKED_BUILD_PREREQUISITE`; origi
 | sidecar-production | `ai4r-m1-sidecar:20261020-functions06` | `sha256:b037d5beb15145a561a25a430c5df947243c8139971dbeef57a538c7b9737470` |
 | rsi-production | `ai4r-m1-rsi:20261020-functions06` | `sha256:3106eb2820f9400eb038e89bad79b27999a27106cc256359ef57c381b08d8bcf` |
 | rsi-worker | `ai4r-m1-rsi-worker:20261020-functions06` | `sha256:439bc6adeda8c7926a7adc94ac8089fadcc05a0e766fd6f89d2763f42e243ce1` |
+
+C011/C012 current user-requested integration: consume IF-007@r2 local reusable bootstrap and independent provider account control. Default one-use and research execution gates remain. Focused tests for native message routing (3) and subscription device login (2) passed using the Linux functions06 runtime with current source mounted read-only; the app production/frontend build is in progress for the combined current UI/reconnect candidate. No full-system/research/scientific or user ChatGPT authorization result is asserted.

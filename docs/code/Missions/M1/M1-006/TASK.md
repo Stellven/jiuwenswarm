@@ -3,7 +3,7 @@
 ## 1. Identity
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-006 / r12 / 2026-10-20 |
+| TASK ID / revision / date | M1-006 / r13 / 2026-10-20 |
 | Parent TASKS | [M1 register](../TASKS.md) |
 | Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
 | Requested outcome and instruction/source | Versioned control API, native CLI/web/TUI projection, uploads/deletion, account/profile durability, install/init/doctor and inspection; [invoked user prompt](../source/Code/prompt.txt) |
@@ -16,9 +16,9 @@
 | Artifact | Exact path | Authority |
 | --- | --- | --- |
 | Feature directory | docs/code/Missions/M1/M1-006/ | One directory for this TASK |
-| spec.md | [spec.md](spec.md) | r4; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
-| plan.md | [plan.md](plan.md) | r12; preserves I032 and adds thin CLI saved-session/default resolution and readable original-artifact inspection procedures |
-| tasks.md | [tasks.md](tasks.md) | r11; existing work IDs and history retained; shell feature implementation progress and C010 skipped verification recorded |
+| spec.md | [spec.md](spec.md) | r5; C011/C012/C013 amendments; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
+| plan.md | [plan.md](plan.md) | r13; C011/C012/C013; preserves I032 and adds thin CLI saved-session/default resolution and readable original-artifact inspection procedures |
+| tasks.md | [tasks.md](tasks.md) | r12; C011/C012/C013; existing work IDs and history retained; shell feature implementation progress and C010 skipped verification recorded |
 | evidence/ | evidence/ | Actual runs only; no runtime acceptance from registration |
 | Supporting artifacts | [Program source baseline](../source-baseline.json) | Source identity; subordinate to registered authorities |
 
@@ -114,3 +114,15 @@ The single field/behavior authorities are [M1-001 IF001r2](../M1-001/TASK.md#4-e
 2026-10-20 existing-function technical refinement: TASK r11, plan r11, tasks r10, unchanged spec r4. Owning004 captures fresh ordinary request/reference-document resources through the already allocated host intake boundary; original per-run bindings and exact source joins govern consumers. Owning001/007 optional router installation preserves fixed Codex and call-time integrity while supplying no unavailable API authority. Procedures and current source progress remain in registered native records. No public/source schema, interface identity, AC or work/check ID changes; C010 leaves current runtime acceptance NOT_RUN.
 
 2026-10-20 native status and original-evidence consumer refinement prepared for guarded integration: TASK/plan r12, tasks r11 and unchanged spec r4 retain IF007, current IF016 consumption and all AC/work/check identities. Existing source stage/reasons gain neutral English/Chinese native display with explicit unavailable details. Scientific verdicts stay in the separate original-artifact view; the shell infers no scientific/infrastructure classification or acceptance from run-reason strings. Authorized E2/E3 original history remains a private export, never an ordinary run alias. No public field, endpoint, new fetch/effect or grant is added. Current build/adoption and C010 skipped behavior verification remain in tasks.md.
+
+
+### M1-C011 / M1-IF-007@r2 ? Reusable local bootstrap
+Current amendment supersedes only the designated one-time login provision when the operator explicitly sets AI4R_REUSABLE_LOGIN=1. User authorization: request to replace single-use login with a permanently reusable local link (2026-10-20). Own implementation in shell_auth.py and bootstrap_gateway.py; M1-001 consumes through compose.yaml. Keep IF-007@r1 wire shapes, actor/scope/Origin/Host checks and all other guarantees. Persist one random challenge in private mode0600 custody bound to exact origin and principal; reuse across browser logins and restarts. Startup still rotates HTTP/browser session families. Logout/revocation invalidates the reusable challenge; subsequent startup issues a new one. Principal/origin changes rotate the link. Reusable mode refuses non-loopback origins. No broad test campaign or acceptance promotion. Native spec/plan/tasks add the bounded C011 work before implementation.
+
+
+### M1-C012 ? Native provider sign-in usability
+User explicitly requests fixing ChatGPT login that does not redirect. Include existing CodexSubscriptionPanel click behavior and research_http inspection account control. Provider auth does not require a valid research operator config, grant research readiness or authorize model execution. M1-001 consumes account control before execution admission. Reuse dedicated existing get_service account custody; never IDE credentials. IF-007@r2 request shapes remain unchanged.
+
+
+### M1-C013 ? Ten-minute user-facing integration pass (2026-10-20)
+User requests coherent, polished actual-use UI within ten minutes. Scope existing native sign-in, chat attachments, run inspection/cancel/export, artifact/measurement and settings surfaces. Reuse semantic theme tokens, shared controls and existing layout; preserve IDs, bilingual copy, authorization and source records. Add clear disabled/unavailable affordances and responsive styling. No invented data, execution readiness or scientific acceptance. Prioritize completing C011/C012 production integration. Build and targeted control checks; browser visual/auth completion stays unverified unless permitted/observed. Implementation progress goes in this feature tasks.md; existing AC ownership remains.

@@ -13,9 +13,11 @@ export interface ResearchDefaults {
 interface ResearchSession {
   token: string;
   defaults: ResearchDefaults;
+  bootstrap?: string;
 }
 
 const SESSION_KEY = 'ai4r.native-session';
+const BOOTSTRAP_KEY = 'ai4r.local-bootstrap';
 let bootstrapPromise: Promise<boolean> | null = null;
 
 function validSession(value: unknown): value is ResearchSession {
@@ -57,6 +59,10 @@ function session(): ResearchSession | null {
 
 export function hasResearchSession(): boolean {
   return session() !== null;
+}
+
+export function hasResearchConfiguration(): boolean {
+  return session()?.defaults.configuration_ref != null;
 }
 
 export function researchWorkspace(): string {
@@ -130,7 +136,8 @@ export async function uploadResearchInput(kind: ResearchUpload['kind'], file: Fi
 export async function bootstrapResearchSession(): Promise<boolean> {
   if (bootstrapPromise) return bootstrapPromise;
   const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const challenge = fragment.get('research_bootstrap');
+  const challenge =
+    fragment.get('research_bootstrap') || session()?.bootstrap || window.sessionStorage.getItem(BOOTSTRAP_KEY);
   if (!challenge) return session() !== null;
   bootstrapPromise = (async () => {
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -141,12 +148,21 @@ export async function bootstrapResearchSession(): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ challenge }),
     });
-    if (!response.ok) throw new Error('Native research authentication failed');
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) window.sessionStorage.removeItem(BOOTSTRAP_KEY);
+      throw new Error('Native research authentication failed');
+    }
     const value: unknown = await response.json();
     if (!validSession(value)) {
       throw new Error('Native research authentication is invalid');
     }
-    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(value));
+    const reusable = (value as ResearchSession & { reusable_bootstrap?: boolean }).reusable_bootstrap === true;
+    if (reusable) window.sessionStorage.setItem(BOOTSTRAP_KEY, challenge);
+    else window.sessionStorage.removeItem(BOOTSTRAP_KEY);
+    window.sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ ...value, ...(reusable ? { bootstrap: challenge } : {}) }),
+    );
     return true;
   })();
   try {

@@ -2,7 +2,7 @@
 
 **TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r7](spec.md)
 
-**Revision / date**: r18 / 2026-10-20 | **Branch**: ai4r_M1
+**Revision / date**: r19 / 2026-10-20 | **Branch**: ai4r_M1
 
 **Input sources**: [Exact source receipts](../source-baseline.json), [TASKS allocation](../TASKS.md), this TASK §1/4 source clauses and canonical IF revisions; supplied PRD/Architecture_Design and applicable QA documents only. M1-C001/C002 apply where consumed.
 
@@ -377,3 +377,13 @@ Owning TASK IF001r3 is the only behavior authority; it preserves the original :2
 5. Revalidate the proof/installed identities at preflight, activation and each effect; then retain every existing live-owner/cancel/deadline/once, held-lease and actual factory/kernel/Builder check. No active authority is obtained from the reader, no timeout/restart releases a lease, and GPU/exclusive unsupported operations still refuse. Missing proof or an unavailable actual service remains an attributable refusal.
 
 Planned controls extend existing V03/V04/V12/V14: exact empty-doc and nonempty-doc ordinary derivation; exact legacy/base match; altered noninput resource/availability/count/ref/lock; foreign or duplicate binding/run/account/intake; derived/frozen/base Ref mismatch; ambiguous entries; forged copied resolver; changed factory/body/policy/operations; private source/assignment drift; stale/cancelled/unknown/restarted prepared owner. They must prove zero premature worker/start/effect and unchanged lease requirements, without using a fake GPU positive. These are NOT_RUN (user-directed M1-C010); no test/campaign is dispatched for this definition. Existing literal verification commands and all historical results remain intact. Neutral ownership metadata advances to IF001r3 with unchanged schema bytes before implementation publication.
+
+
+### M1-C011 deployment consumer
+Forward explicit AI4R_REUSABLE_LOGIN opt-in to the protected M1 environment. Rebuild app production, preserve existing state/account volumes and recreate only the local app service. Default remains one-use; reject non-loopback reusable mode before grant creation. No operator-config/schema or sandbox scope change.
+
+
+### M1-C012 account-control routing
+In M1 subscription mode only, route the finite CodexAccountAdapter.methods before execution admission, encode/send existing response protocol under the send lock. Gateway retains scoped native WS checks. Provider sign-in remains explicit user interaction and app-owned account custody.
+
+C012 Docker login completion: the installed pinned Codex0.144.4 generated LoginAccountParams/Response JSON schemas confirm chatgptDeviceCode with verificationUrl/userCode/loginId. Use that existing native flow in protected M1 to avoid a container-local OAuth callback listener inaccessible to the host browser. Non-M1 keeps chatgpt OAuth. Validate allowlisted HTTPS URL and bounded code; display the one-time device code with bilingual text and keep pending URL/code in private service state for refresh. Clear on account completion, cancellation and logout. Device code/auth URL are credentials, excluded from logs/evidence. The user completes provider authorization in their own browser; no automatic credential entry or account completion claim.

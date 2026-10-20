@@ -1,3 +1,4 @@
+import '../../styles/research-shell.css';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, MarkdownPane, Select } from '../ui';
@@ -27,6 +28,7 @@ export function ResearchRunControls({ run }: { run: ResearchStatus }) {
   }, [run.run_id]);
 
   const perform = (action: () => Promise<void>) => {
+    if (busy) return;
     const runId = run.run_id;
     setBusy(true);
     setError(false);
@@ -86,11 +88,11 @@ export function ResearchRunControls({ run }: { run: ResearchStatus }) {
     );
   };
   return (
-    <div className="px-3 py-2 text-sm text-text" data-testid="team-area-research-inspection" data-variant={run.run_id}>
+    <div className="research-inspection" data-testid="team-area-research-inspection" data-variant={run.run_id}>
       <p role="status" data-testid="team-area-research-status">
         {t('researchShell.status', { status: run.status })}
       </p>
-      <dl className="my-2 space-y-2" data-testid="team-area-research-execution-details">
+      <dl className="research-inspection__details" data-testid="team-area-research-execution-details">
         <div data-testid="team-area-research-stage-detail">
           <dt className="font-medium" data-testid="team-area-research-stage-label">
             {t('researchShell.currentOrLastStage')}
@@ -127,14 +129,19 @@ export function ResearchRunControls({ run }: { run: ResearchStatus }) {
           </dd>
         </div>
       </dl>
-      <p data-testid="team-area-research-artifact-counts">
+      <p className="research-inspection__counts" data-testid="team-area-research-artifact-counts">
         {t('researchShell.artifactCounts', {
           accepted: run.accepted_refs.length,
           candidates: run.candidate_refs.length,
         })}
       </p>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button disabled={busy} onClick={() => perform(inspect)} data-testid="team-area-research-inspect-btn">
+      <div className="research-inspection__actions">
+        <Button
+          variant="primary"
+          loading={busy}
+          onClick={() => perform(inspect)}
+          data-testid="team-area-research-inspect-btn"
+        >
           {t('researchShell.inspect')}
         </Button>
         <Button
@@ -146,6 +153,7 @@ export function ResearchRunControls({ run }: { run: ResearchStatus }) {
         </Button>
         {(run.status === 'in_progress' || run.status === 'paused') && (
           <Button
+            variant="danger"
             disabled={busy || cancelRequested}
             data-testid="team-area-research-cancel-btn"
             onClick={() =>
@@ -154,7 +162,7 @@ export function ResearchRunControls({ run }: { run: ResearchStatus }) {
                   method: 'POST',
                   body: JSON.stringify({ request_id: `cancel:${Date.now()}:${Math.random().toString(36).slice(2)}` }),
                 });
-                setCancelRequested(true);
+                if (currentRun.current === run.run_id) setCancelRequested(true);
               })
             }
           >

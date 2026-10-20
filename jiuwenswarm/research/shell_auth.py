@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import json
 import os
 import secrets
@@ -40,12 +41,20 @@ class SessionAuthority:
     """
     cookie_name = 'ai4r_ws'
 
-    def __init__(self, directory: str | Path, origin: str):
+    def __init__(self, directory: str | Path, origin: str, *, reusable_bootstrap: bool = False):
         parsed = urlsplit(origin)
         if parsed.scheme not in {'http', 'https'} or not parsed.netloc or parsed.path not in {'', '/'} or parsed.query or parsed.fragment:
             raise ValueError('one exact native origin is required')
         self.origin = f'{parsed.scheme}://{parsed.netloc}'
         self.host = parsed.netloc
+        self.reusable_bootstrap = reusable_bootstrap
+        if reusable_bootstrap:
+            try:
+                local = ipaddress.ip_address(parsed.hostname or '').is_loopback
+            except ValueError:
+                local = False
+            if not local:
+                raise ValueError('reusable login requires a loopback IP origin')
         self._lock = threading.RLock()
         supplied = Path(directory)
         if supplied.is_symlink():
@@ -56,6 +65,7 @@ class SessionAuthority:
             raise ResearchError('auth', 'Invalid credential directory')
         os.chmod(self.root, 0o700)
         self.token_path = self.root / 'session-token'
+        self.reusable_path = self.root / 'reusable-bootstrap.json'
         db_path = self.root / 'native-sessions.sqlite3'
         if db_path.is_symlink():
             raise ResearchError('auth', 'Invalid session storage')
@@ -86,6 +96,32 @@ class SessionAuthority:
     def initialize(self, principal: Principal) -> str:
         token, challenge, family = secrets.token_urlsafe(32), secrets.token_urlsafe(32), secrets.token_hex(16)
         encoded = self._encode(principal)
+        if self.reusable_bootstrap:
+            saved = None
+            try:
+                fd = os.open(self.reusable_path, os.O_RDONLY | os.O_NOFOLLOW)
+            except FileNotFoundError:
+                pass
+            else:
+                with os.fdopen(fd, 'r', encoding='utf-8') as handle:
+                    info = os.fstat(handle.fileno())
+                    if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size > 8192
+                            or os.name == 'posix' and (info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) != 0o600)):
+                        raise ResearchError('auth', 'Invalid reusable login custody')
+                    saved = json.load(handle)
+            if (isinstance(saved, dict) and set(saved) == {'challenge', 'origin', 'principal'}
+                    and saved['origin'] == self.origin and saved['principal'] == encoded
+                    and isinstance(saved['challenge'], str) and re.fullmatch(r'[A-Za-z0-9_-]{43}', saved['challenge'])):
+                challenge = saved['challenge']
+            temporary = self.root / ('.bootstrap-' + secrets.token_hex(12))
+            descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+            try:
+                with os.fdopen(descriptor, 'w', encoding='utf-8') as handle:
+                    json.dump({'challenge': challenge, 'origin': self.origin, 'principal': encoded}, handle)
+                    handle.flush(); os.fsync(handle.fileno())
+                os.replace(temporary, self.reusable_path)
+            finally:
+                temporary.unlink(missing_ok=True)
         # Do not follow a planted token symlink or publish a broadly readable file.
         temporary = self.root / ('.session-' + secrets.token_hex(12))
         fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -101,7 +137,7 @@ class SessionAuthority:
             self.db.execute('UPDATE challenges SET consumed=1')
             self.db.execute('DELETE FROM evaluation_context')
             self.db.execute('INSERT INTO grants(digest,family,kind,principal) VALUES(?,?,?,?)', (_digest(token), family, 'http', encoded))
-            self.db.execute('INSERT INTO challenges(digest,family) VALUES(?,?)', (_digest(challenge), family))
+            self.db.execute('INSERT OR REPLACE INTO challenges(digest,family) VALUES(?,?)', (_digest(challenge), family))
         return self.origin + '/#research_bootstrap=' + challenge
 
     def _check_origin(self, origin: str | None, host: str | None, *, required: bool = True) -> None:
@@ -127,7 +163,8 @@ class SessionAuthority:
                 raise ResearchError('auth', 'Bootstrap is unavailable')
             ws_token = secrets.token_urlsafe(32)
             self.db.execute('INSERT INTO grants(digest,family,kind,principal) VALUES(?,?,?,?)', (_digest(ws_token), family, 'ws', grant[0]))
-            self.db.execute('UPDATE challenges SET consumed=1 WHERE digest=?', (_digest(challenge),))
+            if not self.reusable_bootstrap:
+                self.db.execute('UPDATE challenges SET consumed=1 WHERE digest=?', (_digest(challenge),))
             self.db.commit()
         except BaseException:
             self.db.rollback()
@@ -190,6 +227,11 @@ class SessionAuthority:
             if row:
                 self.db.execute('UPDATE grants SET revoked=1 WHERE family=?', (row[0],))
                 self.db.execute('UPDATE challenges SET consumed=1 WHERE family=?', (row[0],))
+                if self.reusable_bootstrap and self.reusable_path.exists():
+                    saved = json.loads(self.reusable_path.read_text(encoding='utf-8'))
+                    if self.db.execute('SELECT 1 FROM challenges WHERE digest=? AND family=?',
+                                       (_digest(saved['challenge']), row[0])).fetchone():
+                        self.reusable_path.unlink()
 
 
     @staticmethod

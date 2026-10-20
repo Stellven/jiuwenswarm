@@ -95,7 +95,8 @@ def mount_research_routes(app, channel) -> None:
                 raise ResearchError('validation')
             grant = authority.bootstrap(value['challenge'], origin=request.headers.get('origin'), host=request.headers.get('host'))
             defaults = await _result(service.client_defaults(authority.authenticate('Bearer ' + grant['token'], 'status')))
-            response = JSONResponse({'token': grant['token'], 'defaults': defaults})
+            response = JSONResponse({'token': grant['token'], 'defaults': defaults,
+                                     'reusable_bootstrap': authority.reusable_bootstrap})
             response.headers['set-cookie'] = grant['set_cookie']
             response.headers['cache-control'] = 'no-store'
             return response
@@ -301,7 +302,9 @@ async def native_research_message(channel, ws, method: str, params: dict):
     operation = 'settings' if method in settings_methods else 'status'
     principal = authority.authenticate_ws(headers, operation)
     if getattr(channel, 'research_refusal_reason', None) and method not in (
-            read_methods | {'config.get', 'locale.get_conf', 'research.preferences.get'}):
+            read_methods | {'config.get', 'locale.get_conf', 'research.preferences.get',
+                            'codex.auth.status', 'codex.auth.login', 'codex.auth.cancel',
+                            'codex.auth.logout', 'codex.models.list'}):
         raise ResearchError('unavailable', 'Mandatory operator configuration is unavailable; inspection only')
     setattr(ws, 'authenticated_user_id', principal.account_id)
     if method in {'research.preferences.get', 'research.preferences.save'}:

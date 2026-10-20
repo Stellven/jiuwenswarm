@@ -38,13 +38,35 @@ class NativeResearchMessages(unittest.IsolatedAsyncioTestCase):
             service=SimpleNamespace(ingest=AsyncMock())
             channel=SimpleNamespace(research_authority=authority,research_service=service,
                                     research_refusal_reason='operator_configuration_unavailable')
-            for method in ('chat.send','codex.auth.login','models.validate','config.set','session.create'):
+            for method in ('chat.send','models.validate','config.set','session.create'):
                 with self.subTest(method=method),self.assertRaises(ResearchError) as observed:
                     await native_research_message(channel,ws,method,{'content':'attempt work'})
                 self.assertEqual(observed.exception.code,'unavailable')
             service.ingest.assert_not_awaited()
+            for method in ('codex.auth.status', 'codex.auth.login', 'codex.auth.cancel', 'codex.auth.logout', 'codex.models.list'):
+                handled, _ = await native_research_message(channel, ws, method, {})
+                self.assertFalse(handled)
             authority.revoke(token)
             with self.assertRaises(ResearchError) as observed:
                 await native_research_message(channel,ws,'config.get',{})
             self.assertEqual(observed.exception.code,'auth')
             authority.close()
+
+    async def test_account_control_does_not_require_execution_backend(self):
+        import asyncio
+        import os
+        from unittest.mock import patch
+        from jiuwenswarm.server.front.router import MethodRouter
+        from jiuwenswarm.common.schema.agent import AgentRequest, AgentResponse
+        from jiuwenswarm.common.schema.message import ReqMethod
+        admission = SimpleNamespace(dispatch=AsyncMock())
+        router = MethodRouter(SimpleNamespace(), admission)
+        ws = SimpleNamespace(send=AsyncMock())
+        request = AgentRequest(request_id='auth-only', channel_id='web', req_method=ReqMethod('codex.auth.status'))
+        response = AgentResponse(request_id='auth-only', channel_id='web', ok=True, payload={'state': 'signed_out'})
+        with patch.dict(os.environ, {'JIUWENSWARM_M1_PROFILE': '1', 'JIUWENSWARM_AGENT_SDK': 'codex_subscription'}), \
+                patch('jiuwenswarm.server.runtime.gateway_adapter.codex_adapter.CodexAccountAdapter.handle', AsyncMock(return_value=response)) as handle:
+            await router.dispatch(ws, request, asyncio.Lock())
+        handle.assert_awaited_once_with(request)
+        admission.dispatch.assert_not_awaited()
+        ws.send.assert_awaited_once()

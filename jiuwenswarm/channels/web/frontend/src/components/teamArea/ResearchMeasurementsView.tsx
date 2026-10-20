@@ -1,3 +1,4 @@
+import '../../styles/research-shell.css';
 import { useTranslation } from 'react-i18next';
 import type { ResearchMetricRow } from './researchArtifacts';
 
@@ -15,7 +16,7 @@ export function ResearchMeasurementsView({ rows, verdict }: { rows: ResearchMetr
     </>
   );
   return (
-    <div className="overflow-x-auto" data-testid="team-area-research-measurements">
+    <div className="research-measurements" data-testid="team-area-research-measurements">
       <table className="w-full text-left text-sm" data-testid="team-area-research-measurements-table">
         <caption className="mb-2 text-left text-text-muted" data-testid="team-area-research-measurements-caption">
           {t('researchShell.measurements.recordedOnly')}
