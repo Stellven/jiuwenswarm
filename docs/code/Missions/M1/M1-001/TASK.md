@@ -188,3 +188,5 @@ Consume the owning M1-006/TASK.md C011 amendment through deploy/m1/compose.yaml:
 
 ### M1-C012 account-control consumer
 Support M1-006 existing authenticated provider account methods before execution admission in MethodRouter. Use existing CodexAccountAdapter/get_service; keep research runtime refused without protected operator configuration. Does not initialize full AgentWebSocketServer, dispatch turns or obtain any provider account implicitly.
+
+C013 local launch convenience is owned by M1-001: deploy/m1/start-local.sh is a thin Linux/WSL wrapper around the existing production build and Compose app. It uses the local Unix daemon, loopback5173, dedicated config, reusable local login and preserved named volumes; it builds when the selected image is absent or --build is selected and stops on failure. It creates only a missing empty inspection config, never replaces operator input or claims research readiness. No browser auto-opening or credential copying. M1-006 consumes through commands.txt.
