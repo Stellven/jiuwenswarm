@@ -235,6 +235,7 @@ class WebClient {
         };
       } catch (error) {
         clearAttempt();
+        if (!this.manualClose && generation === this.connectionGeneration) this.scheduleReconnect();
         rejectAttempt(error);
       }
     })();
@@ -652,7 +653,9 @@ class WebClient {
         : 2000; // 每 2 秒持续尝试
 
     this.reconnectTimer = window.setTimeout(() => {
-      void this.connect(this.lastConnectOptions);
+      void this.connect(this.lastConnectOptions).catch(() => {
+        // connect owns the next bounded retry, including bootstrap failures.
+      });
     }, delay);
   }
 

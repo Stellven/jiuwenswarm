@@ -29,7 +29,7 @@ class NativeResearchMessages(unittest.IsolatedAsyncioTestCase):
                 await native_research_message(channel, socket, 'config.get', {})
             authority.close()
 
-    async def test_refusal_mode_authenticates_but_cannot_start_any_native_effect(self):
+    async def test_refusal_mode_authenticates_but_cannot_start_research_effects(self):
         with tempfile.TemporaryDirectory() as directory:
             authority = SessionAuthority(directory, 'http://private:5173')
             authority.initialize(Principal('owner', frozenset({'work'}), frozenset({'submit','status','settings'})))

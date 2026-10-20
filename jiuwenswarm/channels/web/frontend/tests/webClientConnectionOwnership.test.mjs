@@ -198,3 +198,33 @@ test('explicit reconnect preserves durable native session and current preference
   assert.deepEqual(await request, { applies_on: 'next_start' });
   assert.equal(fetchCount, 0);
 });
+
+test('temporary reusable-bootstrap outage keeps retrying until the server returns', async () => {
+  const originalSetTimeout = window.setTimeout;
+  const originalClearTimeout = window.clearTimeout;
+  let retry;
+  window.setTimeout = (callback) => {
+    retry = callback;
+    return 1;
+  };
+  window.clearTimeout = () => {};
+  memory.set('ai4r.local-bootstrap', 'unit-reusable');
+  bootstrapResponse = { ok: false, status: 503 };
+  try {
+    await assert.rejects(webClient.connect(), /authentication/);
+    assert.equal(webClient.getState(), 'reconnecting');
+    assert.equal(typeof retry, 'function');
+    assert.equal(memory.get('ai4r.local-bootstrap'), 'unit-reusable');
+    bootstrapResponse = null;
+    retry();
+    await tick();
+    const current = FakeWebSocket.all.at(-1);
+    assert.ok(current);
+    current.open();
+    await tick();
+    assert.equal(webClient.getState(), 'ready');
+  } finally {
+    window.setTimeout = originalSetTimeout;
+    window.clearTimeout = originalClearTimeout;
+  }
+});
