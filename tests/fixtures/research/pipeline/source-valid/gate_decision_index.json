@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "id": "gate_decision_index",
+  "run_plan_ref": {
+    "id": "run_plan.json",
+    "sha256": "0f064ca543daecf4ae2b996695aa30a58f2c87648bcf48921e9173cac2703ef9"
+  },
+  "entries": [
+    {
+      "node_id": "evaluation",
+      "gate_decision_ref": {
+        "id": "gate_science_node_pass.json",
+        "sha256": "5756d7cf4bc1ea30754cd316196f8247524923af55f507f451cc9d0e729511bd"
+      }
+    }
+  ]
+}

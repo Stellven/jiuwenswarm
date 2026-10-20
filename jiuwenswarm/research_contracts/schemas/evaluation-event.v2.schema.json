@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-event:2",
+  "title": "evaluation-event",
+  "x-owning-interface": "M1-IF-016@r2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-evaluation-event:2"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "scope_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "previous_event_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "kind": {
+      "enum": [
+        "claimed",
+        "prepared",
+        "assignment_started",
+        "captured",
+        "gap",
+        "cancellation_requested",
+        "contained",
+        "terminal",
+        "audit_failure",
+        "outcome_unknown"
+      ]
+    },
+    "assignment_grant_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "capture_kind": {
+      "anyOf": [
+        {
+          "enum": [
+            "original_request",
+            "normalized_request",
+            "runtime",
+            "source_binding",
+            "source_contract",
+            "actual_contract",
+            "check_plan",
+            "input",
+            "declaration",
+            "implementation",
+            "output",
+            "deterministic_result",
+            "review_context",
+            "assessment",
+            "verifier_check",
+            "observation",
+            "prompt",
+            "route",
+            "model_claim",
+            "model_start",
+            "model_call",
+            "model_refusal",
+            "tool_claim",
+            "tool_observation",
+            "trace",
+            "workspace",
+            "evaluation_gate",
+            "recording_action",
+            "containment",
+            "measurement",
+            "result",
+            "failure",
+            "execution_preparation",
+            "execution_preflight",
+            "execution_activation"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "capture_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recorded_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "request_ref",
+    "scope_ref",
+    "sequence",
+    "previous_event_ref",
+    "kind",
+    "assignment_grant_ref",
+    "capture_kind",
+    "capture_ref",
+    "reason",
+    "recorded_unix_ns",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "captured"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "capture_kind": {
+            "enum": [
+              "original_request",
+              "normalized_request",
+              "runtime",
+              "source_binding",
+              "source_contract",
+              "actual_contract",
+              "check_plan",
+              "input",
+              "declaration",
+              "implementation",
+              "output",
+              "deterministic_result",
+              "review_context",
+              "assessment",
+              "verifier_check",
+              "observation",
+              "prompt",
+              "route",
+              "model_claim",
+              "model_start",
+              "model_call",
+              "model_refusal",
+              "tool_claim",
+              "tool_observation",
+              "trace",
+              "workspace",
+              "evaluation_gate",
+              "recording_action",
+              "containment",
+              "measurement",
+              "result",
+              "failure",
+              "execution_preparation",
+              "execution_preflight",
+              "execution_activation"
+            ]
+          },
+          "capture_ref": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "gap",
+              "audit_failure",
+              "outcome_unknown"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Data structure only. The installed M1-002 owner independently validates exact indexed kinds and hashes, durable ownership and provenance joins, approved source pins, uniqueness, authority narrowing, budgets and original deadlines. Shape validation grants no execution or product authority."
+}

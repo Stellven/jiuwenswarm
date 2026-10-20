@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-subnode-context:1",
+  "title": "evaluation-subnode-context",
+  "x-owning-interface": "M1-IF-016@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-evaluation-subnode-context:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "node_contract_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "source_subject_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "source_template_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "role": {
+      "enum": [
+        "worker",
+        "verifier"
+      ]
+    },
+    "output_port": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "node_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attempt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "const": 1
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requirement_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BoundNodeInput"
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BoundNodeOutput"
+      },
+      "minItems": 1
+    },
+    "input_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "required_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evidence_obligations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "subnode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Binding"
+      },
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "subnode_limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "checking_profile_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "policy_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "configuration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "request_ref",
+    "node_contract_ref",
+    "source_subject_ref",
+    "source_template_ref",
+    "role",
+    "output_port",
+    "run_id",
+    "node_id",
+    "attempt_id",
+    "revision",
+    "objective",
+    "requirement_ids",
+    "inputs",
+    "outputs",
+    "input_refs",
+    "required_outputs",
+    "evidence_obligations",
+    "subnode_id",
+    "bindings",
+    "subnode_limits",
+    "checking_profile_ref",
+    "policy_ref",
+    "configuration_ref",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "role": {
+            "const": "worker"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "output_port": {
+            "const": null
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "output_port": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Limits": {
+      "type": "object",
+      "properties": {
+        "time_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "model_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "time_s",
+        "model_calls",
+        "memory_mb"
+      ],
+      "additionalProperties": false
+    },
+    "Binding": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "declaration_ref": {
+          "$ref": "#/$defs/Ref"
+        },
+        "implementation_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          },
+          "minItems": 1
+        },
+        "dependency_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          },
+          "minItems": 0
+        },
+        "admission_ref": {
+          "$ref": "#/$defs/Ref"
+        },
+        "effective_authority": {
+          "type": "object",
+          "properties": {
+            "network": {
+              "enum": [
+                "none",
+                "allowlist"
+              ]
+            },
+            "network_allowlist": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "resource_reads": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              },
+              "minItems": 0
+            },
+            "write_roots": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "tools": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "network",
+            "network_allowlist",
+            "resource_reads",
+            "write_roots",
+            "tools"
+          ],
+          "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "time_s": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "model_calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "memory_mb": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "time_s",
+            "model_calls",
+            "memory_mb"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "declaration_ref",
+        "implementation_refs",
+        "dependency_refs",
+        "admission_ref",
+        "effective_authority",
+        "limits"
+      ],
+      "additionalProperties": false
+    },
+    "BoundNodeInput": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "contract_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "artifact_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "contract_id",
+        "version",
+        "required",
+        "artifact_refs"
+      ],
+      "additionalProperties": false
+    },
+    "BoundNodeOutput": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "contract_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "contract_id",
+        "version",
+        "required"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Data structure only. The installed M1-002 owner independently validates exact indexed kinds and hashes, durable ownership and provenance joins, approved source pins, uniqueness, authority narrowing, budgets and original deadlines. Shape validation grants no execution or product authority."
+}

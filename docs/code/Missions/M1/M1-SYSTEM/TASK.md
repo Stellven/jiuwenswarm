@@ -1,0 +1,63 @@
+# TASK: M1-SYSTEM - Complete integrated M1 verification
+
+> M1-C010 / 2026-10-20: The user explicitly instructed: "IN REMAINING TIME, FOCUS ON DEVELOPING ACTUAL FUNCTIONS" and "FOR BENCHMARKING/VERIFICATION, JUST MAKE SURE 4 benchmark test cases is still IMPLEMENTED, OTHERS, SKIP". Current delivery prioritizes actual functionality and retains the four executable benchmark case implementations (Capability Capsules, Evaluator/Verifier, Model Routing and RSI). Other new benchmark/verification campaigns are user-directed SKIP, recorded as NOT_RUN with this reason; no further execution is required for this delivery. Necessary syntax compilation and builds may produce usable code/artifacts. Preserve all historical outcomes and unmet product obligations; skipped, partial and stale checks are never PASS or a claim of verified full-M1 acceptance. This explicit current instruction overrides earlier required-execution directions only for the delivery verification scope. The six-hour deadline is 2026-10-20T19:53:52Z; reserve the last30minutes for integration status and a resumable checkpoint.
+
+## 1. Identity
+| Field | Value |
+| --- | --- |
+| TASK ID / revision / date | M1-SYSTEM / r7 / 2026-10-20 |
+| Parent TASKS | [M1 register](../TASKS.md) |
+| Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
+| Requested outcome and instruction/source | One identified integrated candidate: complete Phase 1 journeys/ten verifier cases, security/persistence, side-system nonblocking tests; separate Phase 2/3 and QA outcomes; [invoked user prompt](../source/Code/prompt.txt) |
+| Included scope / exclusions | Owns system acceptance only; implementation remains in child TASKs. No commit, push, merge or deployment is implied. Broader statistical benchmark campaigns and automatic live RSI activation are excluded. |
+| PRD clause and architecture node references | PRD 1, 2, 6; architecture 3-build-plan.md, method/phases.md; prompt Final Verification. Exact bytes: [source baseline](../source-baseline.json). |
+| Working checkout / branch / base | D:/research/ai_for_research/runs/jiuwenswarm / ai4r_M1 / 3f8cc21cb4b497b844821dfec10a4b9e7140f9a4; supplied Code and QA were initially untracked |
+| Affected code/document paths | Integrated test commands and generated phase/implementation/test summaries from native evidence; this TASK's native artifacts |
+
+## 2. Spec Kit registry
+| Artifact | Exact path | Authority |
+| --- | --- | --- |
+| Feature directory | docs/code/Missions/M1/M1-SYSTEM/ | One directory for this TASK |
+| spec.md | [spec.md](spec.md) | r4; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
+| plan.md | [plan.md](plan.md) | r5; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
+| tasks.md | [tasks.md](tasks.md) | r5; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
+| evidence/ | evidence/ | Actual runs only; no runtime acceptance from registration |
+| Supporting artifacts | [Program source baseline](../source-baseline.json) | Source identity; subordinate to registered authorities |
+
+Native artifacts are created only during their corresponding Spec Kit phases. spec.md r4 and reviewed plan.md r4 now exist; tasks.md r4 now records the ordered implementation/verification work and evidence matrices. Consumed M1-IF-009@r2 implements C006/C007; M1-IF-002@r2 implements C008; all other IFs retain r1. Registration or a specification does not establish implementation or acceptance.
+
+## 3. Dependencies
+| Dependency TASK/block/IF ID and revision | Required behavior or artifact | Condition needed before dependent work | Affected block/work-item references |
+| --- | --- | --- | --- |
+| All required child blocks/interfaces on same candidate; unresolved resources remain BLOCKED, never PASS | Adopt the supplied contracts with one owning TASK per interface | Definitions before dependent plan; real implementation/resources before boundary/system verification | Plan blocks: M1-SYSTEM/B01, M1-SYSTEM/B02, M1-SYSTEM/B03, M1-SYSTEM/B04, M1-SYSTEM/B05; native work IDs and AC/V evidence correspondence: tasks.md |
+
+Contract-definition order is distinct from implementation order. Define M1-006's minimal client boundary and M1-001/002 shared seams early; full shell integration does not gate independent compiler/research preparation.
+
+## 4. Embedded cross-module agreements
+
+None owned: this system-verification TASK consumes canonical product/QA contracts and publishes no duplicate product schema.
+
+Consumed agreements: [M1-IF-001@r1](../M1-001/TASK.md#4-embedded-cross-module-agreements), [M1-IF-002@r2](../M1-002/TASK.md#4-embedded-cross-module-agreements), [M1-IF-003@r1](../M1-002/TASK.md#4-embedded-cross-module-agreements), [M1-IF-004@r1](../M1-003/TASK.md#4-embedded-cross-module-agreements), [M1-IF-005@r1](../M1-004/TASK.md#4-embedded-cross-module-agreements), [M1-IF-006@r1](../M1-005/TASK.md#4-embedded-cross-module-agreements), [M1-IF-007@r1](../M1-006/TASK.md#4-embedded-cross-module-agreements), [M1-IF-008@r1](../M1-007/TASK.md#4-embedded-cross-module-agreements), [M1-IF-009@r2](../M1-008/TASK.md#4-embedded-cross-module-agreements), [M1-IF-010@r1](../M1-QA/TASK.md#4-embedded-cross-module-agreements).
+
+## 5. Changes and unresolved decisions
+| ID / date | Change or question and source | Affected spec/plan/work/IF references | Dependent work and evidence to invalidate | Executor / resolution condition |
+| --- | --- | --- | --- | --- |
+| M1-C001 / 2026-10-16 | User explicitly approved Tier 1 rejection of unsupported citations, Tier 2 NOT_RUN; preserve downstream locking. This is the approved PRD 4.2.9 / QA 12.1 case-4 tier deviation | Affected AC/block/check IDs assigned by native generation; no original Tier-2 PASS claim permitted | No existing M1 evidence; affected future expectations must carry this amendment | Codex / approved user answer in this session |
+| M1-C002 / 2026-10-16 | User explicitly approved one empirical row per execution receipt run, including missing-metric status and reason | Empirical-results field contract and host checks; exact fields resolved in TASK agreement/spec/plan | No existing M1 evidence; supplied conflicting source remains preserved | Codex / approved user answer in this session |
+| M1-C003 / 2026-10-16 | Invoked prompt supplies full-M1 snapshot and all-phases implementation plus separate four-case QA scope; supersedes earlier compiler-only assignment for this request | Current TASK scope and parent source allocation | Historical AI4R-001/DEVTOOLS results unchanged; no acceptance reused | Codex / current user request |
+| M1-R001 / 2026-10-16 | WSL Ubuntu root Docker is usable for AMD64 development; GB10 native execution, ARM64 builder and dedicated D45 Builder credential are not yet verified | Architecture-specific runtime/security checks; future V IDs | Keep affected real checks incomplete; do not label Windows ChatGPT login as Builder readiness | Codex / actual builder and Linux credential/runtime qualification |
+| M1-I010 / 2026-10-16 | Source-resolved implementation binding: Exact acceptance population and canonical names. PRD4.2.9 case5 is runtime budget violation, with Tier1 timeout evidence and no required semantic reviewer; verifier timeout is additional coverage, not a replacement. Internal report filenames follow the lowercase glossary crosswalk. Retain source-specific artifact/declaration identity checking without introducing an active interface_hash. Source: PRD4.2.9; glossary.md Artifact crosswalk; D23/D34 | Owning spec and IF r1; affected blocks/checks and work/evidence correspondence are mapped in plan.md/tasks.md | No prior M1 runtime evidence; consumers adopt this same canonical binding | Codex / source-specific reconciliation, not a fabricated new user approval |
+| M1-I012 / 2026-10-16 | Consume M1-001's verification environment binding: explicit job-only cgroup-v2 bind and host cgroup namespace for live PID migration. No SYS_ADMIN, privileged container, Docker socket or host-root cgroup filesystem is granted | System B01/B03; V05/V06/V11 and exact child M1-001 V12/V13 receipts; same AC/IF identities | Preserve the observed private-cgroup-namespace ENOENT before the launch gate. The nine focused same-candidate/delegation checks do not establish complete V12/V13 or system acceptance | Codex / actual Linux environment observation; no new product obligation |
+
+Progress belongs in tasks.md when generated. Registration is not implementation, integration or verification.
+
+C006/C007 consumer change (2026-10-16): consume only owning [M1-IF-009@r2](../M1-008/TASK.md#4-embedded-cross-module-agreements) for new RSI feedback/statistics/attempt/result signatures and joins. Preserve explicit v1 historical decoding and original bytes; current v2 mean totals remain fractional and rejected attempts remain counted/chained but cannot be finalists. Existing owned IF revisions are unchanged. Affected native verification/progress records identify stale or unrun evidence; no runtime PASS follows from this amendment.
+
+C008 consumer revision alignment (2026-10-16): consume canonical M1-IF-002@r2 from M1-002/TASK.md. Library entry/snapshot aggregate limits include work plus independently budgeted checking; unchanged worker declaration/body limits do not pool verifier authority. Exact frozen parent/check pins remain binding for isolated RSI and QA/system evidence. IF009r2/C006/C007 and all existing work/AC/V IDs remain unchanged. Preserve prior progress and frozen evidence identities; revalidate affected current evidence against the new dependency revision.
+
+
+### M1-I032 versioned scientific start/inspection consumer reconciliation
+
+Full integrated acceptance consumes current IF001r2/IF003r3/IF016r2 with the unchanged historical/public contracts. Require one exact complete candidate and actual ordinary/private root peer, original frozen context, pre-worker whole-attempt global physical-resource exclusion and independently proven cessation before lease release. Read-only terminal/history proof or original completed result cannot establish process absence, current liveness, another start or an accepted scientific measurement. Explicit resource/confinement/model/Builder credential/service absence blocks the affected required journey; schema/controlled/native/HTTP subsets do not pass it. Model-only compatible paths remain independently verifiable.
+
+The single field/behavior authorities are [M1-001 IF001r2](../M1-001/TASK.md#4-embedded-cross-module-agreements), [M1-002 IF003r3/IF016r2](../M1-002/TASK.md#4-embedded-cross-module-agreements). This consumer adds no parallel protocol fields, owning IF revision, public source field or authorization. Source allocation is TASKS I032; exact original sources: source ResourceUse208; run-plan97/138/460-542; platform/failure-and-recovery39-47; existing full Phase1 source allocation. Definitions may be prepared independently; dependent code follows current owner/neutral/consumer Analyze and independent RED, actual connected acceptance follows both implementations/resources.

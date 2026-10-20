@@ -1,0 +1,4 @@
+# Exact Linux wheels already present in uv.lock; no interpreter-wide resolver.
+openai-codex-cli-bin==0.144.4 \
+    --hash=sha256:4106229c38f37245c3eea8d904426afd45b8bf19831765715647f5402f757c06 \
+    --hash=sha256:cd4bb31b8a477a3adba22139c8c493693fa5292ba21e86eef08ace3e96c41294

@@ -1,0 +1,65 @@
+# Explicit observer-only override, after compose.sidecar.yaml. The product and
+# production benchmark images do not receive tests or private fixture copies.
+services:
+  sidecar:
+    image: ${AI4R_VERIFY_IMAGE:?Supply the qualified verification image identity}
+    build: !reset null
+    entrypoint: !override [python]
+    command: !override [-m, pytest, --help]
+    working_dir: /workspace
+    environment:
+      PYTHONPATH: /opt/ai4r
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTEST_ADDOPTS: --no-cov
+      JIUWENSWARM_M1_PROFILE: '0'
+    volumes:
+      - type: bind
+        source: ../../jiuwenswarm
+        target: /opt/ai4r/jiuwenswarm
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ../../tests
+        target: /workspace/tests
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ../../pytest.ini
+        target: /workspace/pytest.ini
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_EVIDENCE_DIR:?Supply the existing job-owned evidence directory}
+        target: /evidence
+        bind: {create_host_path: false}
+
+  referee:
+    image: ${AI4R_VERIFY_IMAGE:?Supply the qualified verification image identity}
+    entrypoint: !override [python]
+    command: !override [-m, pytest, --help]
+    working_dir: /workspace
+    environment:
+      PYTHONPATH: /opt/ai4r
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTEST_ADDOPTS: --no-cov
+      JIUWENSWARM_M1_PROFILE: '0'
+    volumes:
+      - type: bind
+        source: ../../jiuwenswarm
+        target: /opt/ai4r/jiuwenswarm
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ../../tests
+        target: /workspace/tests
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ../../pytest.ini
+        target: /workspace/pytest.ini
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_EVIDENCE_DIR:?Supply the existing referee-owned evidence directory}
+        target: /evidence
+        bind: {create_host_path: false}

@@ -73,6 +73,94 @@ class SubscriptionTests(unittest.IsolatedAsyncioTestCase):
     async def collect(self, sid="one", rid="r1"):
         return [event async for event in self.service.stream(sid, rid, "Hi")]
 
+    async def test_governed_calls_always_create_fresh_threads_without_chat_bindings(self):
+        first = await self.service.invoke_governed("one", model="fixture", timeout_s=1)
+        second = await self.service.invoke_governed("two", model="fixture", timeout_s=1)
+        self.assertEqual(first["text"], "Hello")
+        self.assertEqual(second["text"], "Hello")
+        self.assertNotEqual(first["thread_id"], second["thread_id"])
+        self.assertEqual(self.service.bindings, {})
+        starts = [p for m, p in self.transport.calls if m == "thread/start"]
+        self.assertTrue(all(p["ephemeral"] and p["sandbox"] == "read-only" and p["approvalPolicy"] == "never" for p in starts))
+        self.assertIsNone(first["usage"]["input_tokens"])
+        self.assertIsNone(first["identity"]["effective"])
+        self.assertTrue(first["usage"]["unavailable_reasons"])
+
+    async def test_governed_deadline_is_whole_call_and_does_not_replay(self):
+        self.transport.hold_turn = True
+        with self.assertRaisesRegex(CodexError, "RUNTIME_TIMEOUT"):
+            await self.service.invoke_governed("one", model="fixture", timeout_s=0.02)
+        self.assertEqual(sum(m == "turn/start" for m, _ in self.transport.calls), 1)
+        self.assertTrue(any(m == "turn/interrupt" for m, _ in self.transport.calls))
+        self.assertFalse(self.service.active)
+        self.assertFalse(self.service.bindings)
+
+    async def test_governed_cancellation_waits_for_actual_owned_runtime_exit(self):
+        self.transport.hold_turn = True
+        original = self.transport.request
+        closing, release = asyncio.Event(), asyncio.Event()
+        async def request(method, params=None):
+            if method == "turn/interrupt":
+                self.transport.calls.append((method, params))
+                return {}  # Delivery acknowledgment alone proves no terminal state.
+            return await original(method, params)
+        async def close():
+            closing.set()
+            await release.wait()
+        self.transport.request, self.transport.close = request, close
+        task = asyncio.create_task(self.service.invoke_governed("one", timeout_s=30))
+        while not any(method == "turn/start" for method, _ in self.transport.calls):
+            await asyncio.sleep(0)
+        task.cancel()
+        await asyncio.wait_for(closing.wait(), 5)
+        self.assertFalse(task.done())
+        release.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertFalse(self.service.active)
+
+    async def test_governed_notification_usage_is_correlated_and_not_account_allowance(self):
+        original = self.transport.request
+
+        async def request(method, params=None):
+            result = await original(method, params)
+            if method == "thread/start":
+                result["model"] = "observed-model"
+            if method == "turn/start":
+                # Put usage before final by suppressing the original final.
+                self.transport.emit("thread/tokenUsage/updated", {"threadId": params["threadId"], "turnId": result["turn"]["id"], "tokenUsage": {"last": {"inputTokens": 13, "outputTokens": 5}}})
+                self.transport.emit("turn/completed", {"threadId": params["threadId"], "turn": {"id": result["turn"]["id"], "status": "completed"}})
+            return result
+
+        self.transport.hold_turn = True
+        self.transport.request = request
+        result = await self.service.invoke_governed("one", model="fixture", timeout_s=1)
+        self.assertEqual(result["usage"]["input_tokens"], 13)
+        self.assertEqual(result["usage"]["output_tokens"], 5)
+        self.assertIsNone(result["usage"]["cost_amount"])
+        self.assertEqual(result["identity"]["effective"], "observed-model")
+
+    async def test_failed_governed_turn_preserves_only_observed_telemetry(self):
+        original=self.transport.request
+        async def request(method,params=None):
+            result=await original(method,params)
+            if method=='thread/start':result['model']='observed-before-failure'
+            if method=='turn/start':
+                self.transport.emit('thread/tokenUsage/updated',{'threadId':params['threadId'],'turnId':result['turn']['id'],
+                    'tokenUsage':{'last':{'inputTokens':19,'outputTokens':3}}})
+                self.transport.emit('turn/completed',{'threadId':params['threadId'],'turn':{'id':result['turn']['id'],'status':'failed'}})
+            return result
+        self.transport.hold_turn=True;self.transport.request=request
+        with self.assertRaisesRegex(CodexError,'TURN_FAILED') as captured:
+            await self.service.invoke_governed('controlled input',timeout_s=1)
+        observation=captured.exception.observation
+        self.assertEqual(observation['identity']['effective'],'observed-before-failure')
+        self.assertEqual(observation['usage']['input_tokens'],19)
+        self.assertEqual(observation['usage']['output_tokens'],3)
+        self.assertIsNone(observation['provider_request_id'])
+        self.assertIsNone(observation['usage']['cost_amount'])
+        self.assertNotIn('controlled input',str(observation))
+
     async def test_signed_out_never_starts_model_or_key_fallback(self):
         self.transport.account = None
         with self.assertRaisesRegex(CodexError, "SIGN_IN_REQUIRED"):

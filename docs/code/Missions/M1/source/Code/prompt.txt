@@ -1,0 +1,114 @@
+Use Spec Kit to BUILD CODES BASED ON EXISTING JIUWEN CODEBASE.
+
+
+INPUTS
+- PRD: D:\research\ai_for_research\runs\jiuwenswarm\docs\code\Missions\M1\source\PRD
+- Architecture design/package: D:\research\ai_for_research\runs\jiuwenswarm\docs\code\Missions\M1\source\Architecture_Design
+- QA entry point: D:\research\ai_for_research\runs\jiuwenswarm\docs\code\Missions\M1\source\QA\QA_BENCHMARK_IMPLEMENTATION_PROMPT.md
+
+Read all three documents completely, together with applicable AGENTS.md instructions and the existing constitution. Identify the actual project root and ensure the Codex integration is ready.
+
+Follow each installed Spec Kit skill's instructions and templates. Execute the skills and perform the actual work.
+
+Use the PRD for product requirements, the architecture design for technical constraints
+(also, Build app and sidecar as multiarchitecture docker images compatible with both x86-64, aarch64. the program should work in a DGX Spark with no issues.
+), and the approved benchmark requirements for evaluation obligations and milestone applicability. Use the QA implementation prompt to define the benchmark integration workstream. Surface conflicts and obtain decisions before proceeding on unresolved assumptions. Preserve the source documents and record approved clarifications through the appropriate workflow.
+
+QA AND BENCHMARK SCOPE
+
+Implement the workstream defined in QA_BENCHMARK_IMPLEMENTATION_PROMPT.md: one representative executable integration case for each of Capability Capsules, Evaluator/Verifier, Model Routing, and RSI, with the controlled variants and reusable interfaces specified there.
+
+The approved benchmark requirements define evaluation obligations and milestone applicability. The interface contract is a proposed handoff: reconcile its bindings with the adopted product architecture and record the disposition of unresolved proposals.
+
+These four cases establish an extensible integration foundation. They do not replace PRD acceptance, prove module performance, or require execution of every campaign described in the benchmark requirements.
+
+Follow the product design's Docker topology and isolation boundaries. The implementing agent must execute the applicable integration checks in that environment and provide reproducible commands and actual evidence.
+
+1. GENERATE THE SPEC
+
+$speckit-specify
+
+Use the PRD as the requirement source, incorporating applicable constraints from the architecture design, approved benchmark requirements, QA implementation prompt, and resolved interface bindings.
+
+Review the generated specification directly against the supplied inputs and their resolved references. Correct omissions and unsupported additions.
+
+2. CLARIFY
+
+$speckit-clarify
+
+Resolve remaining ambiguities and source conflicts. Use answers already present in the inputs; ask me for decisions where necessary and record the approved answers.
+
+3. CHECK REQUIREMENTS QUALITY
+
+$speckit-checklist
+
+Review the generated checklist against the source documents and approved decisions, following the skill's review and approval rules.
+
+Resolve blocking issues before proceeding.
+
+4. GENERATE THE PLAN
+
+$speckit-plan
+
+Use the reviewed specification, supplied architecture design, approved benchmark requirements, QA implementation prompt, resolved interface bindings, and existing project constraints.
+
+Review alignment with the supplied inputs and their resolved references before continuing.
+
+5. GENERATE TASKS
+
+$speckit-tasks
+
+Use the reviewed specification and planning artifacts. Explicitly request the implementation, testing, integration, and benchmarking work required by the inputs and the QA AND BENCHMARK SCOPE above.
+
+Review coverage before continuing.
+
+6. ANALYZE AND CORRECT
+
+$speckit-analyze
+
+Inspect the findings and check alignment with the supplied inputs and their resolved references.
+
+Keep Analyze read-only. Perform corrections separately in the owning artifacts, reconcile downstream documents, and rerun Analyze.
+
+Continue when blocking findings are resolved. Ask for decisions if a correction would change approved intent.
+
+7. IMPLEMENT AND VERIFY
+
+$speckit-implement
+
+Implement the reviewed tasks using the skill's workflow and gates.
+
+Run the required tests, Docker integration checks, and benchmarks applicable to the agreed delivery scope. Inspect actual results, fix failures, and repeat the affected verification.
+
+Record completed work and actual evidence accurately. Keep blocked or unexecuted work incomplete.
+
+8. CONVERGE
+
+$speckit-converge
+
+Assess the actual implementation against the current feature artifacts and verification evidence, following the skill's write restrictions.
+
+If remaining work is appended:
+- Run $speckit-implement to complete it.
+- Rerun the affected tests and benchmarks.
+- Run $speckit-converge again.
+
+If document changes are necessary, reconcile them and rerun $speckit-analyze before continuing implementation.
+
+Repeat until the required implementation gaps are resolved.
+
+FINAL VERIFICATION
+
+Verify the complete implementation and cross-feature integration directly against the supplied inputs, their resolved references, and approved clarifications.
+
+Verify the four QA cases against the QA implementation prompt and their frozen expected outcomes. Report each case's implementation status, execution status, assertions, evidence references, and remaining gaps.
+
+Deliver Docker build/start/test/export instructions and a documented automated QA entry point. Keep protected scoring resources separate from evaluated product and candidate contexts.
+
+Do not claim completion from unexecuted tests, mock-only demonstrations, or missing mandatory evidence.
+
+Return any remaining discrepancy to the appropriate workflow step and repeat the affected checks.
+
+Deliver the generated artifacts, actual code changes, verification results, final Analyze and Converge outcomes, and any remaining blockers.
+
+Continue automatically where the approved inputs support proceeding. Pause for required decisions or unavailable resources. Declare completion only when the agreed scope and required verification are supported by actual results.

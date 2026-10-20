@@ -1,0 +1,1212 @@
+{
+  "revision": "r1",
+  "captured_utc": "2026-10-16T17:45:40.582462+00:00",
+  "git_head": "3f8cc21cb4b497b844821dfec10a4b9e7140f9a4",
+  "branch": "ai4r_M1",
+  "architecture": {
+    "root": "docs/code/Missions/M1/source/Architecture_Design",
+    "file_count": 233,
+    "digest_method": "SHA256 of UTF-8 compact JSON of ordered file receipts; sort_keys=True, separators=(comma,colon)",
+    "sha256": "c7d60596504e939fd22f6f911c29a8ac8101a41eb204500c7c4a60e71c7eeeab",
+    "files": [
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/.gitattributes",
+        "bytes": 81,
+        "sha256": "5453aa960a9a168a352e6a0b43b29f15a12ab07211107cc1f5285895c9da6156"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/.gitignore",
+        "bytes": 11,
+        "sha256": "2b78ca28b3b8fee75879a2e6e4b3c5b97508e0416a7489111ca1efed3e41531d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/1-system.md",
+        "bytes": 15450,
+        "sha256": "031740d0e04d73e20647dde8127ee7774ac1f4a502b97e2de0f82d5d2bace5e3"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/2-capability-capsules.md",
+        "bytes": 8761,
+        "sha256": "09a4079654a0ac50289d6cd0deb1b33c6ffa7936957bcaaedea7958303758673"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/3-build-plan.md",
+        "bytes": 3742,
+        "sha256": "11eb67cb335543ce3a20ad9bc7e5394ce2e094e22c756d30bac9e9e1e6800dab"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/README.md",
+        "bytes": 6639,
+        "sha256": "736558f7afb66842f673577ae66b85a27685451f112828a42da567a0a19f20bb"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/capability-capsules/authoring.md",
+        "bytes": 2576,
+        "sha256": "3d3f3b936a6056af382334ae79927b920a0651cced350f44aad85fad77dfb3e0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/capability-capsules/library-and-checking.md",
+        "bytes": 9703,
+        "sha256": "c12709033b92946f2d3ec192320cc3e5ab37facd382ecc5b78bf7119b8e12be9"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/checking/README.md",
+        "bytes": 17096,
+        "sha256": "b7fde69060727b26a6040796f93ccb68e7893509c9e1e4674cf8c8cf0441ddea"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/development-tools/automation.md",
+        "bytes": 10588,
+        "sha256": "db74b48d8a12252cc3dc1d52864b68662883d9a7ad1ba8662060f51d9c646ae1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/development-tools/sidecar/README.md",
+        "bytes": 11929,
+        "sha256": "19372064411cc299dc87afe393f1829e4a91983a45d980f42307122bae141197"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/development-tools/test-runner/README.md",
+        "bytes": 5625,
+        "sha256": "9a04010e9f481d3391446dc545d3a1a2e29cfd2ceae9ce8111390aa430250edf"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/glossary.md",
+        "bytes": 9977,
+        "sha256": "1d79b0f6ad141daa8719b11db053f619aa62837707b6e9a29d285a8f8ff6fbb9"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/README.md",
+        "bytes": 1112,
+        "sha256": "d3434292e066dcdffb58984af985f27a931f35dcb5067391e0f4fffdd6014793"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/build-scope.md",
+        "bytes": 3361,
+        "sha256": "564cbbf34955bd764c96df6aa8906493731aa35be88f8816231557a6b8337b7b"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/clause-coverage.md",
+        "bytes": 47372,
+        "sha256": "d8852530e66a97e67e6a0a000c2e6d780c5a96fa7d3eafd755faa5004147f047"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/decisions.md",
+        "bytes": 41527,
+        "sha256": "609825aef49d7d5c040485726cf73600a7bd52ebab0562774eeca0564ccaaa71"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/design-method.md",
+        "bytes": 1613,
+        "sha256": "1f6fc5221ab1127fb8b9f3917395ea95b82c3b3fa2e0c206a211c5882db0510f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/open-items.md",
+        "bytes": 2441,
+        "sha256": "1185d5555abd912d6ae0995f10c17c8581204e4f4f071160a454ff920dbb7913"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/phases.md",
+        "bytes": 9385,
+        "sha256": "4c93948dd0486bae67968d522e47c0f1bda6632b1a9ccc45b58be49b81e418d0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/method/principles.md",
+        "bytes": 3513,
+        "sha256": "06ee1dc8c1ca311a002eb830dceb2af3536f11448b5751b0a20b4ad1a692097f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/pipeline/README.md",
+        "bytes": 25902,
+        "sha256": "f94dde7508bc94d02bae4b581495de0ef2a53c96ad340aadabbba360ba11a758"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/pipeline/intention-compiler.md",
+        "bytes": 12365,
+        "sha256": "646bc2f1a29c3aa5baa8a31cadc873dc3cdbbfd94abfc8f182bf012e65d6278b"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/pipeline/stages.md",
+        "bytes": 3945,
+        "sha256": "59e5ebc2d42ea6d8c61fe496a61d1ea83b6a6d92c064f553b6bad77949194f35"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/pipeline/worked-example.md",
+        "bytes": 2556,
+        "sha256": "bfa537e5730507067f614d9b464e2cd9f411c6c697c73e352d9f68d59c1eeb3f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/platform/README.md",
+        "bytes": 30027,
+        "sha256": "4bf577196cb9425f601ef65ffeeb5e67c8dcdceebaf21e632e95ac281839eaa4"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/platform/failure-and-recovery.md",
+        "bytes": 5837,
+        "sha256": "b312104fd93e9f3d2ce1ebdaf2a050c7a97d855f84a4f240a7bae9a607d5ea82"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/platform/inspection.md",
+        "bytes": 4206,
+        "sha256": "4b4ee4c9a60ca55d0fc729d63523813fb672e2820b822289b1d84a7286503626"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/platform/native-reuse.md",
+        "bytes": 5708,
+        "sha256": "e86a5fdea3237854861f1e0408ff7f5e395f9483af347e3a9898f72fb9282aa3"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/platform/native-reuse.svg",
+        "bytes": 203864,
+        "sha256": "435f3640570e55b260bf8996982613ce80949585210b621f930ce3e0ecdffa06"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/platform/planning-and-freeze.md",
+        "bytes": 17686,
+        "sha256": "97117cc67d7813442860bcac213a7aa44277ceb0ce35c33833568dc30ea305bc"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/.gitignore",
+        "bytes": 13,
+        "sha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/README.md",
+        "bytes": 25182,
+        "sha256": "ba637cca9673c77b2bccd7f669105feae9848c0a404ae79e45159a47cef5b0bf"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/README.md",
+        "bytes": 5720,
+        "sha256": "23937fa0f0c4dedde92da08795546405e0b86a0b57bc340e4a3b9ee9ba494639"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/builder.md",
+        "bytes": 28325,
+        "sha256": "a0a6b3dddf11b366717e9d1755e248438a88c819d99d6d3f621e71eaf474e902"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/delivery.md",
+        "bytes": 26557,
+        "sha256": "ab994ff208089088fc914d87dc003d740fe408893caa0b596149214f3fc28e6d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/hypothesis.md",
+        "bytes": 20802,
+        "sha256": "503b8e1f057e3bfa30f98ecba6364174278a6e1efc44b5f0fba2eb5c9fe27ba7"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/planner.md",
+        "bytes": 26712,
+        "sha256": "f518e4018741f24c8d90a7a1d4310f0219f3e6984bd63ffba66cfd285226693d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/research-benchmark.md",
+        "bytes": 31195,
+        "sha256": "d4d46d56ab1b06e77eecc42bab917b3229e8fd0add58ec810ac39b60295c03b3"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/scientific-evaluation.md",
+        "bytes": 17445,
+        "sha256": "c19a912436bad44602c42d6dcd1285427a9933b5ae9656301bd2a04f511329e0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/screening.md",
+        "bytes": 24120,
+        "sha256": "93999f90516eae1465b6979a861411ea3631f639e542b343d9a7cb08a86daedd"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/search.md",
+        "bytes": 16599,
+        "sha256": "d4faef4b0d01603d89f22e15dc11a40306b73149c17cdeb664af416cb2a8a9fc"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/capsules/verifier.md",
+        "bytes": 26923,
+        "sha256": "b45869fd84063f51d8c1983fb8be9f6257c98f7e576b6118e1e9bfb13fcb87fe"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/catalog.json",
+        "bytes": 40843,
+        "sha256": "de8374e816c90a20ce2a5d53511575ccde7f280bd7749d2fee0b38130d7b203b"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/checking.md",
+        "bytes": 21605,
+        "sha256": "cfb31abae5756ff5d5ff7a50bd04df8b796fc137742ad42e014553d9313062f9"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/declaration.md",
+        "bytes": 52259,
+        "sha256": "6282cd747ad141c6a2043356fa894e148b74dac3fd96904b1d0b4cd5e9d33468"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/derived-records.md",
+        "bytes": 32327,
+        "sha256": "78117989a2e5903f75fdf1a3c70025e265f2d54d13740f81ceb5c0cabe7247e5"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/README.md",
+        "bytes": 856,
+        "sha256": "52b5add5698854975053d48e2fccba6ce172b9c8453f91bcdc28ea7ddb0c5e20"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/academic_source.txt",
+        "bytes": 112,
+        "sha256": "da0a79d39f34aad640bd62b1f23b91887ad60f36c62f5f653e9df0889e031c2d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/approved_requirements.txt",
+        "bytes": 90,
+        "sha256": "b42023ae72eefd65f5091c3b051a46c4a5efee9aaaad7d1aed5ef159a767ed5f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/baseline_execution.txt",
+        "bytes": 215,
+        "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/baseline_resource.json",
+        "bytes": 787,
+        "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/benchmark_payload.json",
+        "bytes": 2923,
+        "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/build_receipt.json",
+        "bytes": 1972,
+        "sha256": "4c6b515892d05de58e2380768469eb7382999380a800d827e226222df9c6967e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/build_receipt_forbidden_modules.txt",
+        "bytes": 154,
+        "sha256": "28d0e9d7156e4273d9446143da6ead89e7e89de03c71067544d369bd15e47c83"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/build_receipt_invalid_ready_with_forbidden_import.json",
+        "bytes": 2028,
+        "sha256": "575615db222205012c199258aa85581374b7d3a9ad96a8936ef79380ef31738c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/builder_capsule.json",
+        "bytes": 9597,
+        "sha256": "05dcfcd0785bd5df9f96485f00b4e9df32a6a0d895538f3e8859b87ebf1b806a"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/candidate_package.json",
+        "bytes": 1771,
+        "sha256": "0c5e1722d506858c5d8e5e727e8c6f88d1eabb6bab8173b490597cc8c4906df7"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/candidate_package_invalid_child_outside_may_change.json",
+        "bytes": 1831,
+        "sha256": "6daeeb2ed2355872e94661b7829c54a03b342f83f9c19f10f0cbb954bc2fb166"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/candidate_set.json",
+        "bytes": 2443,
+        "sha256": "f9590a5647af93ae82bf431e23785e634e44d405c5011158efef5ff4d953a3f4"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/capsule_declaration.json",
+        "bytes": 3775,
+        "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/capsule_routing_context.json",
+        "bytes": 865,
+        "sha256": "55ee4e128996c1dbc2a1c5e5dfa5a963658777340e48a66a747bebfc4a1df26c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/check_plan.json",
+        "bytes": 1246,
+        "sha256": "680640007af2202ce7b07f88c3f0e66e561b9537dbba28fc51b541584285408c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/client_upload_baseline.json",
+        "bytes": 504,
+        "sha256": "844076cc2fa32682b455d50c94b4a4443d3fe38987707456a75d57834be7907d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/client_upload_validation.json",
+        "bytes": 510,
+        "sha256": "c956ba86951d0273e4cc77d81eac27538f48ef39ec828c7da85cc379d5c4eaea"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/default_policy.json",
+        "bytes": 126,
+        "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/delivery_capsule.json",
+        "bytes": 9873,
+        "sha256": "0102a5c6b414d0e47d3f0bee10b7e01d533019681dd2b39519b3a470bb91bae1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/delivery_manifest.json",
+        "bytes": 6334,
+        "sha256": "5e35e4a66461e591ff1aced5669432e50cae43dd9391d030d282058552b3a59c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/delivery_manifest_invalid_hash_mismatch.json",
+        "bytes": 6507,
+        "sha256": "e320efbf5cb2338b5d875c8d6afc9324c3231794d9f7b6fae37d308d9e0dbd16"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/dispatch_record.json",
+        "bytes": 2468,
+        "sha256": "98a72b0eacdba51b8dd53804d5b791dc52702d9e4fc13e03afc180cc300fd90d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/environment_approval.txt",
+        "bytes": 91,
+        "sha256": "036a5e2c0c7aadafa43aee121e4882516960fe375c86412335ae0dd16cf98bf6"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/environment_lock.json",
+        "bytes": 494,
+        "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/evaluation_verdict.json",
+        "bytes": 1938,
+        "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/example_baseline.txt",
+        "bytes": 102,
+        "sha256": "bfa814fe7c937e0351c2f4b8ba85527b0e55e37eb4efa84997628623b6423f6d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/example_data.txt",
+        "bytes": 85,
+        "sha256": "afea8e2428f79aadc732a59df07198b24a22f99675b60ab656630878dab9a9e1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/execution_receipt.json",
+        "bytes": 6198,
+        "sha256": "cf67d205e56b8e7550b24e783fe2491fe9e192c5c164b732523cafcfcbd79aa1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/execution_receipt_empirical_results.json",
+        "bytes": 789,
+        "sha256": "5572476f18ecd1ecae3d393dd748333136b2d5307ddbc766f8925821afb47838"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/execution_receipt_stderr.txt",
+        "bytes": 39,
+        "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/gate_decision.json",
+        "bytes": 2499,
+        "sha256": "4491e4875615bfedb5a942b8085143752675696b0e5007a73b08068db431df61"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/gate_decision_index.json",
+        "bytes": 426,
+        "sha256": "327f9ee4003fa3c178119d91315d6d3ba766446292bb86b2c483ab1bf3b935ee"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/gate_decision_invalid_advance_on_fail.json",
+        "bytes": 2521,
+        "sha256": "ff9ea8d926fc42736cab6a2dc23ea1f8ee90ffd84a19f10e8bd94da0d42bb06e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/gate_science_node_pass.json",
+        "bytes": 2915,
+        "sha256": "5756d7cf4bc1ea30754cd316196f8247524923af55f507f451cc9d0e729511bd"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/gate_science_pass.json",
+        "bytes": 3051,
+        "sha256": "0574e73dec07d98ac0472dd10fdb7d5297176e449699308259f2beecebb28179"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/hypothesis_blueprint.json",
+        "bytes": 3592,
+        "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/hypothesis_capsule.json",
+        "bytes": 5998,
+        "sha256": "f44e17b13c6170ffc681d3b999c75312d413690121d55966598bf8a5bfb79e6a"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/index.json",
+        "bytes": 17723,
+        "sha256": "ee2c64e01f0270cf14c1989e5c1cda335c58890f52898d96bb3928f3f10532ce"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intent_assessment.json",
+        "bytes": 2508,
+        "sha256": "f0528abcb4ba8f37459499e9efb1238cae3d13266551c07cd17e220c97ca03fd"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intent_checking_profile.json",
+        "bytes": 1706,
+        "sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intent_checks.json",
+        "bytes": 1647,
+        "sha256": "5aca558f60ec3eac1c9dafd2219d28f1debc6ebfe61bf897e59597b2247274eb"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intent_implementation.txt",
+        "bytes": 56,
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intent_ir.json",
+        "bytes": 3215,
+        "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intent_verifier_observation.json",
+        "bytes": 2159,
+        "sha256": "77c180b72206e449751260dbdcb02dbf345c50f6aa875394bcecfaf82b278b5e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intent_verifier_subnode_contract.json",
+        "bytes": 3870,
+        "sha256": "4633c4d5c130144fcbc46587bff7fd3d0d1d6cf5b9cd3f2327635ce672639a0d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intention_node_contract.json",
+        "bytes": 5108,
+        "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intention_subnode_contract.json",
+        "bytes": 3243,
+        "sha256": "2f84bff9563b1554d9142590e82af59bfb5704d8d37671b64b94264ddf35c157"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/intention_subnode_template.json",
+        "bytes": 516,
+        "sha256": "eea50c04aa7ecbc40416daf2fc75225c852cc93214af503fa3a60b7fcd966994"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/invocation_observation.json",
+        "bytes": 1989,
+        "sha256": "6fd56c305420adefae40bf55aebe77238c3700f03677c590baddd3e93fe40d0c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/invocation_observation_invalid_decision_source.json",
+        "bytes": 2823,
+        "sha256": "2b8fb5d7e677279676c00789a3e129d1c28f3fb07842aa5883950d96675f14ad"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/library_admission_invalid_child_pins.json",
+        "bytes": 1270,
+        "sha256": "52e8466d48f2a58bb7015f30a5718cd9f00647e29150ec5c615a9ad811741ca0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/library_snapshot.json",
+        "bytes": 23314,
+        "sha256": "aaf40eb39a40beb50939b6f4cd456f4be980eb5ccc781b45f9bf53647783f416"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/lifecycle_research_brief.json",
+        "bytes": 4769,
+        "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/local_profile.json",
+        "bytes": 123,
+        "sha256": "c000f23e9d5e6fdeeca31b63a2bcd0897eae47d61bc352604544ea96c296a57c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/model_call_record.json",
+        "bytes": 1308,
+        "sha256": "8b947d3ffd3aa700038eb4ef793db4ac6b8b3f11c6b0965116052611a0969e64"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/model_call_record_invalid_failed_without_code.json",
+        "bytes": 1332,
+        "sha256": "958885c80d61f062716612b7596637856c84ee18ce87f2be590ef79a7dff1ebe"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/model_deployment_example.json",
+        "bytes": 213,
+        "sha256": "36f6b76b855f440a6045bf135714f4cf9079e72e44a28932ddfffa1701bf3352"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/model_selection_profile.json",
+        "bytes": 532,
+        "sha256": "8166771ea6ae108bd8ee6663ac88348fee4b942147b5efe3068fc79f1e2633df"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/node_contract_invalid_gate_subject.json",
+        "bytes": 5110,
+        "sha256": "7ec3b7e5be2314ce09e1f9a62b165b07d8e281149bba32c6a4f078113294996a"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/node_finalization_profile.json",
+        "bytes": 298,
+        "sha256": "e5c7f4b93a4d3d91d1b33ee44a97abb52b9d72fd2dcb7d0023537a81222fca91"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/node_template.json",
+        "bytes": 313,
+        "sha256": "2e9063b7ce3166f16b27dacc0fbcbd3dbeb00c0fada80dda71b5079a880a4320"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/observed_prompt.txt",
+        "bytes": 227,
+        "sha256": "90df88c1b5378cbcb0d9354a4b67bc46740a6a725329226a7ea0f33b8a0bd264"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/observed_trace.jsonl",
+        "bytes": 393,
+        "sha256": "78d700ce4bec51854e9e362174756c6cb47eac3aa05f10acb0377b6d52e14f24"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/operator_config.json",
+        "bytes": 889,
+        "sha256": "0f27232e7a6ca83d7f9cfaff4a699e30a2a4bead0bd79c35229f8de768ad69a7"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/opportunity_card.json",
+        "bytes": 1510,
+        "sha256": "ce6543aa2ba672c37969a3cf481f135413c62acf5be1dab8a32199978926a090"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/plan_policy.json",
+        "bytes": 436,
+        "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/planner_capsule.json",
+        "bytes": 13018,
+        "sha256": "18c319d66fda8d084a0747ab584a07ffd2a777d6d00d650ce32593ebc3e19c80"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/poc_artifact_bundle.zip",
+        "bytes": 804,
+        "sha256": "95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/poc_manifest.json",
+        "bytes": 1405,
+        "sha256": "ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/poc_patch.py",
+        "bytes": 109,
+        "sha256": "cd23c5ffc4a30a1b5debad70de934c1763e74debeb586672568583177a878ec0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/provisioning_receipt.json",
+        "bytes": 927,
+        "sha256": "83941f7f623ea1e4f3cafe8fe974a51aec7e75f184288a02e80ad4f3c7408312"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/qualified_input_directory.json",
+        "bytes": 156,
+        "sha256": "85172dc64bf4fe8cae3dd3b4a0bd54b4ced83c9303a5c4b4a747c8feeea9b33d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/qualified_intake.json",
+        "bytes": 1375,
+        "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_child.txt",
+        "bytes": 126,
+        "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_child_declaration.json",
+        "bytes": 4717,
+        "sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_child_declaration_invalid_outside_may_change.json",
+        "bytes": 4864,
+        "sha256": "ea0d9118735cfb24713d03f56ca39054c88f429d73eaedc61908b82e3f3778d3"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_contract.txt",
+        "bytes": 92,
+        "sha256": "8670cfe4a282f3597fff60bee52d18528eeadf3a2dd82f149218a50e48e7c4c9"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_declaration.json",
+        "bytes": 3763,
+        "sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_diff.txt",
+        "bytes": 75,
+        "sha256": "a0f9f98a4cdb0196308af4a1f85c4a96f6aacbff3f8c84ab73b3a69db7735611"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_parent.txt",
+        "bytes": 94,
+        "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/ranking_visible_tests.txt",
+        "bytes": 95,
+        "sha256": "ea6f8e79e8ad9fff7dbfaf1f19cf4eb37c5345b0ce4db4dd1f55d201782a3b74"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/request.txt",
+        "bytes": 144,
+        "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/requirements_capsule.json",
+        "bytes": 4295,
+        "sha256": "81503a19783f3497ad413c5aaa7a9ae6b3387884cacf6d26047937950a38a2b1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/requirements_checking_profile.json",
+        "bytes": 1742,
+        "sha256": "8cb1a07789a0d2faa58816bce318167493157095efa2921a486ad1f6f142397a"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/requirements_subnode_template.json",
+        "bytes": 619,
+        "sha256": "be6d9efcb7c394218d1fb391878073ec59653e6413aed48102df1e467f5b3a84"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/research_benchmark_capsule.json",
+        "bytes": 7606,
+        "sha256": "829afaca0d5746ef4aa0746f9fda42c34dae31e3ea202d57e4a507ac7ca6da1d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/research_brief.json",
+        "bytes": 3973,
+        "sha256": "86c867222aa5ba1397ab9b691f3fc5be7bdba376590ded277866b434d7f59a3e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/research_report.md",
+        "bytes": 4189,
+        "sha256": "fcb0d3a0414c83dee474cfb9d6e4b697bb4c9df903b544ef9c285e2c110fa8df"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/resource_inventory.json",
+        "bytes": 2030,
+        "sha256": "7b94381959b83f94f00eb07e31c9e4207c1e86b06c78f9adecdc3336db696fe9"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/review_context.json",
+        "bytes": 1406,
+        "sha256": "92e780bd1d39c840e955ba29a267ec1077ca12ccce43787fd4460db6ff348fc0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/route_decision.json",
+        "bytes": 1744,
+        "sha256": "ace3669e82464bd6dd3be5eddbeb2995fc53916cb2e2427220caba32c2fcef54"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/route_record_invalid_router_without_decision.json",
+        "bytes": 382,
+        "sha256": "4488c4e627403e86afcc11f9bfc07017ec5961672d713132cfd6ba68f6d3d96d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/route_record_router_decision.json",
+        "bytes": 497,
+        "sha256": "829ff366e468bbd42fc1ea572827edab7e9f3f27c457e0a29b4393354b9c5c94"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/route_request.json",
+        "bytes": 9314,
+        "sha256": "3b488c7d0dc1fd85a8484222fe7a78a2a8dbee6d76b9c9d7036e975da7926e3f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/routing_budget_snapshot.json",
+        "bytes": 683,
+        "sha256": "25f58c9f7a9c9aa9c97413b02bfeda4640190a9c7725c40b4a0bdf080510bd0f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_admission.json",
+        "bytes": 1628,
+        "sha256": "31230f0969753be5c77e21082708e17fdbba61f6b304403602cf3ffc086b0352"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_attempt_01.json",
+        "bytes": 1857,
+        "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_calibration.txt",
+        "bytes": 212,
+        "sha256": "f5a53318a4245294385f4c4cb057a1652ae0ada1a8a181d4e77379362ff06d10"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_chain_genesis.json",
+        "bytes": 449,
+        "sha256": "832dd4a76b34e54e59b97083f345b34a465137dc046489e761963c5488b93b86"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_child_candidate.json",
+        "bytes": 994,
+        "sha256": "9546d6778f18ec316129df8106be21bb3adb6a2f889269a42d1378ca8aded739"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_evidence_export.json",
+        "bytes": 922,
+        "sha256": "83202d1ac21e78924da720952c263471e1664d6258a6342ec9a66f17d74ec99d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_hash_profile.txt",
+        "bytes": 222,
+        "sha256": "ee206cb900d8291ead27b92cdea4e12ec383b133698533aff3be585ee4eee99d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_improver_policy.txt",
+        "bytes": 126,
+        "sha256": "ee424d8b228b6415978175c4d53af1ffe8c8ea3f93e026402038e7c6b94d27aa"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_parent_admission.json",
+        "bytes": 1270,
+        "sha256": "91677b6a7086ce0afaab67162283fad64e34658a344703e94ba708ef61b0df32"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_proposal_trace.txt",
+        "bytes": 139,
+        "sha256": "3455519aaf3c6d33a4004327555806c1dd8ef478dd32f10d66bd5cf4d4fa82d1"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_referee_evidence.json",
+        "bytes": 1919,
+        "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_referee_evidence_invalid_signature.json",
+        "bytes": 1854,
+        "sha256": "6abe8d9d86f66c219373759dc837624fe33d42860ca2cac5da55d8076471526b"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_scoring_adapter.txt",
+        "bytes": 130,
+        "sha256": "7762160b24aff7441bb230fcbb98fc472ea44a085cdbfc857b2b3c50e059ad5c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_session.json",
+        "bytes": 1815,
+        "sha256": "5abf71bdadf29c9416c839ca374d0d92aa9f7076376333fc17a48ded51a56184"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_session_result.json",
+        "bytes": 2116,
+        "sha256": "6ca46ba896cbbf119f169a591727c1ea895c4461b0f57b45cf051c36d7a79151"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_target_profile.json",
+        "bytes": 2179,
+        "sha256": "bc9325646c3294adb03052538badb5f24dc062297418a8f18862fbf808993a9e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/rsi_target_profile_invalid_wider_than_may_change.json",
+        "bytes": 2239,
+        "sha256": "d58a4c4560f9f236219dddfbba6bfbf1c0aa5d78edeec55cdec09b02d9bfb4e2"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/run_benchmark.py",
+        "bytes": 267,
+        "sha256": "56e286b8f79ae5b30ee1d4d5ccb8e863f9a8e2185e054b837b6bb971df358759"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/run_bundle.json",
+        "bytes": 3633,
+        "sha256": "49c1001008923b9c032cb7f6307e79f11b10ddb9343b3f10f27a1ee941fb7494"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/run_configuration.json",
+        "bytes": 184,
+        "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/run_plan.json",
+        "bytes": 25774,
+        "sha256": "0f064ca543daecf4ae2b996695aa30a58f2c87648bcf48921e9173cac2703ef9"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/run_plan_invalid_selector_not_expanded.json",
+        "bytes": 25442,
+        "sha256": "6038aae41935dd7ca4456d37aff75c5ce74b48f6db943cc88e25543fb0511a41"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/run_plan_invalid_tie_order.json",
+        "bytes": 25771,
+        "sha256": "0856ed6ff184317d9f482abe234e252475d607ce6cdc385bece78975e7177efc"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/run_plan_invalid_uncovered_node.json",
+        "bytes": 25706,
+        "sha256": "292f8b24c0391923804c91e5ad7055f54509f8f7d7767da8caaee2900cb9c519"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_assessment.json",
+        "bytes": 4237,
+        "sha256": "1d479f1dc62d756a0eeda5c6233c36e45f13518c2d19d98abd2b24d58a8aa5d8"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_check_plan.json",
+        "bytes": 1851,
+        "sha256": "9e4483c6e294bd9a8dab2636c67de77b5bdec336698a27df1e07cb34e2f0de35"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_checking_profile.json",
+        "bytes": 3617,
+        "sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_checks.json",
+        "bytes": 2580,
+        "sha256": "b18491f7f052a4858a966b416bf1985fb446ce2bece8429ff7e2982248cb0b2d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_node_check_plan.json",
+        "bytes": 1419,
+        "sha256": "1fc790265ba1dd1c9ac9d826ff4b652c5ca337a2ab72763ae069165b90e89d95"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_node_checks.json",
+        "bytes": 1413,
+        "sha256": "c40b242f2b6134675575b0a5fc43d7d38ae7360ee7feccc8b56a13dd6b404425"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_node_contract.json",
+        "bytes": 5049,
+        "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_node_template.json",
+        "bytes": 256,
+        "sha256": "3e6a5b2bd5c7956e54a72dfa7281344e50c5df616a19260c8c812e83b86cbd34"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_observation.json",
+        "bytes": 2258,
+        "sha256": "6d9b210aa995d184fe81e51232639ae32d3c0691529c216372f8ff1128478f8e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_review_context.json",
+        "bytes": 1920,
+        "sha256": "3368a333c13205b15c4dda869481cfe36ebef7aa1a83dc2a3e9ad6fd7d51bc47"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_subnode_contract.json",
+        "bytes": 4580,
+        "sha256": "d6a8f74a4ad45953e18d2753905ae50df1452cb3696dd0bbf3d725adf7f2cc9f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_subnode_template.json",
+        "bytes": 622,
+        "sha256": "46422f2608c380e528173f517d0c22be55e6bdb54dd9ed9262e00a1f4bf2ec17"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_verifier_observation.json",
+        "bytes": 2165,
+        "sha256": "9f2bc0b4bcb67f7857c3ca8021c2ede40866f1d6cd447d40ae018b06fed63caa"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/science_verifier_subnode_contract.json",
+        "bytes": 3938,
+        "sha256": "ad3561aa00fbed41d33e94a81fc3a4a78d785ff16c7a690a9a3e580fc8403d3d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/scientific_evaluation_capsule.json",
+        "bytes": 4158,
+        "sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/screening_capsule.json",
+        "bytes": 17823,
+        "sha256": "1700b85f24266459f71a205ef3011aa8dd9b5e90c760583ab81cb8e302ab8d96"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/screening_prompt.txt",
+        "bytes": 216,
+        "sha256": "11336f6ccbf243bd1d7dc3b719bdb1ee77a7cc07472e61d36ccd78657aa586e2"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/screening_result.json",
+        "bytes": 1957,
+        "sha256": "77b69c14d3abbce22b046d890b80b1876d13c9e8c6d5ae644cb9c89b624ddccb"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/screening_rubric.json",
+        "bytes": 2754,
+        "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/search_capsule.json",
+        "bytes": 15730,
+        "sha256": "1c1030012e52b46f401b3bb1e1662271a2f605db6c5e3ca4bf49cb9ab04bbe4f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/search_scope.json",
+        "bytes": 514,
+        "sha256": "9f1de539a40c309b73f9124905c1aa1e9a02fe896515a540f8ad664727e5908f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/selected_capsule_input.json",
+        "bytes": 7775,
+        "sha256": "85318aeccd1967f08be75f3e8e0f9b4b145b651b8430a7b5c8efebb9d3f1644c"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/static_plan_check_plan.json",
+        "bytes": 1725,
+        "sha256": "15f4e96f20f86fc35626104064a16deafbdbb5da05867989f6abba1865d5bb68"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/static_plan_checks.json",
+        "bytes": 4156,
+        "sha256": "92e33d43a3c8e335e02ebc73b10cd668607d5d09faeb6e6db2c04e2681e363fd"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/static_template.json",
+        "bytes": 18656,
+        "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/synthetic_admission.json",
+        "bytes": 222,
+        "sha256": "ad6b207f1e9419c4f7605c16cd8ce4baa659546259aa3bbe56a2789c669c99ff"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/treatment_execution.txt",
+        "bytes": 216,
+        "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/validation_resource.json",
+        "bytes": 784,
+        "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/verifier_capsule.json",
+        "bytes": 4061,
+        "sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/verifier_capsule_invalid_rsi_propose.json",
+        "bytes": 4111,
+        "sha256": "0deaa4538d5e9cf1964280f257a8c45424b3ee6b854031cd8f1f9e0d505fe5b6"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/verifier_implementation.txt",
+        "bytes": 160,
+        "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/verifier_subnode_template.json",
+        "bytes": 387,
+        "sha256": "c87dabcd1066a4c158d09cf1863682cae35043690e32d6c345350d190da7daa0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/workspace.json",
+        "bytes": 122,
+        "sha256": "ef1126beeb8d8b872b0d756e148b7ce2fab7cfa6627c1991e64dafd8bd304eca"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/field-catalog.md",
+        "bytes": 105274,
+        "sha256": "5a743e73f0beb36c1169a30613635f87ca7f9d781bc854c9f6757f2ab1f561cb"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/field-contracts.json",
+        "bytes": 337523,
+        "sha256": "dd5dad9dea440446ee25baf7f08189ffad4e71bd96103856e06663a718d8370a"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/import-boundary.md",
+        "bytes": 3685,
+        "sha256": "13bf16413cbfaac091820aed1fa01dd074af6e070b4a0e09b2b5eba815dd5fc7"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/intent-and-requirements.md",
+        "bytes": 15903,
+        "sha256": "31d5053cefe3993a3b8e3445311ddef4015d3a6e4b060296817760834bb6d0f4"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/model-routing-contract.md",
+        "bytes": 37030,
+        "sha256": "98b3df9d0387f45886dc24c9ea5b53c033edbf7e240e44081e325573f3e889a2"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/native-reuse-evidence.json",
+        "bytes": 17267,
+        "sha256": "66abc4abd8b0ea8502187a5869a429fb8393e6a2c8aa5b44e5ebd6695a43f56d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/node-execution.md",
+        "bytes": 6038,
+        "sha256": "8fcc87139aa39c979b9966e8f522d0e96cc9cda67770c49de090233e41ca2ba0"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/package_checks.py",
+        "bytes": 6452,
+        "sha256": "6c6713dca46a3ac37278d6cd25ad8e2e18e14627b3ccabd5e5b3e965ad86856e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/prd-clause-index.json",
+        "bytes": 18634,
+        "sha256": "8f6908121dc71a5529f6bf2f3b08003d14672273271879aebe5a7f74075a2f05"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/product-input.md",
+        "bytes": 937,
+        "sha256": "b8973f29a1bda096289f4d23c8b135525f07a8cede203882d90337cce2b8fdab"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/provenance.json",
+        "bytes": 310,
+        "sha256": "478600f85e1eff2b15eb0a59fd97995dec97c66da4f054d068c6485b611f5fc6"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/routing_checks.py",
+        "bytes": 14712,
+        "sha256": "eaa1ea51d1965e14c9191d80a0efa4b5ebf9dd56f935779295b9b642134c7f03"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/rsi-contracts.md",
+        "bytes": 66979,
+        "sha256": "440d65804bf3e64a370ca00f0f77e579abae9c892729a6e764663569de68d936"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/run-plan.md",
+        "bytes": 64474,
+        "sha256": "7c3867f8914d32a49be90c2f30fea58275e1a7b64548b130b20d643280c7ba7a"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/capsule-declaration.schema.json",
+        "bytes": 39138,
+        "sha256": "e41e1d9d4e800be37262ebcccdd8174961c29f72d0ac5a53ae6aab331df6e71e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/common.schema.json",
+        "bytes": 7066,
+        "sha256": "4fd39bf2e4c58f15dfd4e1bca0727d02d3b62ea5352c28ab3a46cdc9b456a30f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/deterministic-check-result.schema.json",
+        "bytes": 2260,
+        "sha256": "c2d7d92f70546fbd33435f8c5a1b8975475597f08b594c010950801f41ca90e3"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/gate-decision.schema.json",
+        "bytes": 6734,
+        "sha256": "59d1a0a0faed27b29c840f59252dccf3ca97e68ad8619527f63d000a12e4cd41"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/intent-ir.schema.json",
+        "bytes": 5615,
+        "sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/research-brief.schema.json",
+        "bytes": 12826,
+        "sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/subnode-execution-contract.schema.json",
+        "bytes": 8296,
+        "sha256": "fa5f8efb7d9a43e6795f503e21a1a6ff8ddb98e998b7c87f7ac09161f69d5eae"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/schemas/verifier-assessment.schema.json",
+        "bytes": 2684,
+        "sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/tests/test_package_checks.py",
+        "bytes": 5701,
+        "sha256": "a80b039128fd100bf4ac79c163cdf394159053495764c07136f64ac70ab534ad"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/validate.py",
+        "bytes": 203463,
+        "sha256": "0153b1b90e76ac9a03dcacdfb512720111ebbb8e68d38002b4be879793937348"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/reference/verify_checkout.py",
+        "bytes": 892,
+        "sha256": "3ffe373ad56013d23e3726bd2ba9ff9767ccb433a3c362c7fb888ce104898b0d"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/README.md",
+        "bytes": 914,
+        "sha256": "fb2e5d2130d9226386dcba0ec5b99116d3d01d35ccb94b9a9d43e38e46a51de5"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/benchmark-runner.md",
+        "bytes": 66331,
+        "sha256": "b53ce4807bc086151168b56377dd679e490e55822c02357f1aa23e8dc7b65feb"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/model-catalog.md",
+        "bytes": 18499,
+        "sha256": "6fd1d4612b946d4c833db59dee6496a7c7006dec83cdc9201ce636a7a16993c7"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/model-routing.md",
+        "bytes": 7187,
+        "sha256": "3b1d86b16c1167f7a83e32bcde26e125c1c28045efe986934884f22586c9b6cb"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/owner-rulings.md",
+        "bytes": 23763,
+        "sha256": "ba0b5a7d082e9e55e8e8d294cad5b0ca66240743a51412656a6b6efd9b8e16bb"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/router-design.md",
+        "bytes": 8942,
+        "sha256": "341964bb21e25c9479c05963cda72e79802afb2f1a1d05613088599d0dae3644"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/routing-acceptance.md",
+        "bytes": 7557,
+        "sha256": "d63b5fc9fa3fe4a2ee6d22fb08454cc2793ce8dcedffb4106c87db3f51758a4f"
+      },
+      {
+        "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/rsi-workbench.md",
+        "bytes": 22803,
+        "sha256": "66918a59cc4416d0fde089926f0be730cfdcce4e07ba7868d78928cc629e89d2"
+      }
+    ]
+  },
+  "prd": {
+    "path": "docs/code/Missions/M1/source/PRD/PRD_Oct_15.md",
+    "bytes": 270791,
+    "sha256": "bd0bfdb430e95d2af3e90103d806d33e424b62e1e48dc4a08d21b4cf35ac6f03"
+  },
+  "qa": [
+    {
+      "path": "docs/code/Missions/M1/source/QA/BENCHMARK_INTERFACE_CONTRACT.md",
+      "bytes": 82172,
+      "sha256": "884133f072134e32c033d239cd526837588a7666dc4b0b2e861c6ebe03b50b1b"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/QA/BENCHMARK_REQUIREMENTS.md",
+      "bytes": 119196,
+      "sha256": "b8918049b9b3bf82e3f7c6eeaf9b94b582c74a77a37bfd2a970b7fa4178410ff"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/QA/QA_BENCHMARK_IMPLEMENTATION_PROMPT.md",
+      "bytes": 8363,
+      "sha256": "c5e19343d89dc4cc958946a9facf0ca16ae7d65ccdfacd1e8436ec37760e8075"
+    }
+  ],
+  "invoked_prompt": {
+    "path": "docs/code/Missions/M1/source/Code/prompt.txt",
+    "bytes": 6241,
+    "sha256": "1285ca45f428e03fcbf8729178c968725cb7961a5a5d7c5d7f066986f2ba019f"
+  },
+  "prd_receipt_disposition": {
+    "audited_sha256": "6d85972cdc8cf586a3d76b80d56510d695f03bfcf7838661afc7f71c35f4b3fc",
+    "audited_bytes": 270790,
+    "supplied_minus_one_trailing_LF_matches": true,
+    "action": "Preserve supplied bytes; do not relabel raw receipt validation as PASS."
+  }
+}

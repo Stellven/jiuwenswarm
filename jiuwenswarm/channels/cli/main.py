@@ -13,6 +13,25 @@ logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
 
 
 def main() -> None:
+    if len(sys.argv) > 1 and sys.argv[1] == "research":
+        from jiuwenswarm.channels.cli.research import main as research_main
+
+        sys.exit(research_main(sys.argv[2:]))
+    if os.environ.get('JIUWENSWARM_M1_PROFILE') == '1':
+        # The protected profile has one native TUI client. Never fall through
+        # to the legacy chat transport when its frozen launcher is missing.
+        try:
+            from jiuwenswarm_tui.app import main as tui_main
+        except ImportError:
+            logging.error('The installed native research TUI is unavailable. Inspect the frozen installation.')
+            raise SystemExit(3) from None
+        if len(sys.argv) > 1 and sys.argv[1] == 'chat':
+            sys.argv = [sys.argv[0], *sys.argv[2:]]
+        try:
+            tui_main()
+        except KeyboardInterrupt:
+            raise SystemExit(130) from None
+        return
     # 启动阶段（模块导入、YAML 配置加载、日志 handler 创建、dotenv 解析、
     # 参数解析）被 Ctrl+C 中断时，避免抛出裸 KeyboardInterrupt 堆栈——与
     # run_chat 内部的优雅退出语义（exit 130）保持一致。

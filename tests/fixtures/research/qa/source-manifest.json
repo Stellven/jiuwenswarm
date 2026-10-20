@@ -1,0 +1,12 @@
+{
+  "schema": "m1-visible-source-manifest:1",
+  "source_authority": "registered TASK and IF r1",
+  "sources": [
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/benchmark-runner.md",
+      "sha256": "b53ce4807bc086151168b56377dd679e490e55822c02357f1aa23e8dc7b65feb"
+    }
+  ],
+  "fixture_mode": "visible development only; no protected labels or operational credentials",
+  "runtime_qualification": "NOT_RUN"
+}

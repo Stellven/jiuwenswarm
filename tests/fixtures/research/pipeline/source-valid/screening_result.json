@@ -1,0 +1,65 @@
+{
+  "schema_version": "2.0.0",
+  "id": "screening_result",
+  "candidate_ref": {
+    "id": "candidate_set.json",
+    "sha256": "f9590a5647af93ae82bf431e23785e634e44d405c5011158efef5ff4d953a3f4"
+  },
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+  },
+  "rubric_ref": {
+    "id": "screening_rubric.json",
+    "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+  },
+  "scores": [
+    {
+      "idea_id": "idea:001",
+      "novelty": 3,
+      "feasibility": 4,
+      "compute_alignment": 5,
+      "total": 12,
+      "novelty_reason": "The cited source suggests indexed lookup, so this adds only a bounded variation.",
+      "feasibility_reason": "An index is a small change in standard Python.",
+      "compute_alignment_reason": "The index runs on one GPU host with margin.",
+      "citation_ids": [
+        "citation:index"
+      ],
+      "dependency_flags": [],
+      "eligible": true,
+      "disposition": "selected",
+      "disposition_reason": "Highest total among eligible ideas."
+    },
+    {
+      "idea_id": "idea:002",
+      "novelty": 4,
+      "feasibility": 2,
+      "compute_alignment": 2,
+      "total": 8,
+      "novelty_reason": "A learned ranker is not described in the cited source.",
+      "feasibility_reason": "The idea needs a hosted model outside the baseline stack.",
+      "compute_alignment_reason": "The hosted model cannot run on the single local GPU.",
+      "citation_ids": [
+        "citation:index"
+      ],
+      "dependency_flags": [
+        "dep:proprietary_model"
+      ],
+      "eligible": false,
+      "disposition": "rejected",
+      "disposition_reason": "Requires a proprietary model, which the rubric forbids."
+    }
+  ],
+  "ranking": [
+    {
+      "rank": 1,
+      "idea_id": "idea:001",
+      "total": 12
+    }
+  ],
+  "selected_idea_id": "idea:001",
+  "ext": {
+    "example.synthetic": true
+  }
+}

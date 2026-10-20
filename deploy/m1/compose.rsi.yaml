@@ -1,0 +1,188 @@
+# Independently launched RSI topology; there is no app dependency or app mount.
+# Prepare all bound Linux directories with the exact role ownership first.
+x-rsi-readonly: &rsi-readonly
+  read_only: true
+  init: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  labels:
+    ai4r.owner: ${AI4R_JOB_ID:?Supply a unique owned job ID}
+
+services:
+  rsi-workbench:
+    <<: *rsi-readonly
+    profiles: [rsi]
+    image: ${AI4R_RSI_IMAGE:?Supply the immutable RSI controller image}
+    build:
+      context: ../..
+      dockerfile: deploy/m1/Dockerfile.rsi
+      target: production
+      args:
+        APP_IMAGE: ${AI4R_APP_IMAGE:?Supply the immutable qualified native image}
+      platforms: [linux/amd64, linux/arm64]
+    user: '12001:12001'
+    # 13000 reads approved public exports; 12002 connects only the mounted
+    # custodian socket. No private custody directory is mounted here.
+    group_add: ['13000', '12002']
+    working_dir: /var/lib/ai4r-rsi/controller
+    environment:
+      HOME: /var/lib/ai4r-rsi/controller/accounts
+      JIUWENSWARM_M1_PROFILE: '0'
+      PYTHONDONTWRITEBYTECODE: '1'
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_CONTROLLER_CONFIG:?Supply the protected controller config}
+        target: /run/ai4r-rsi/jobs-service.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_CONTROLLER_ROOT:?Supply UID12001 private isolated state and own account root}
+        target: /var/lib/ai4r-rsi/controller
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_PUBLIC_ROOT:?Supply UID12001 GID13000 approved public export root}
+        target: /var/lib/ai4r-rsi-public
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_REQUEST_ROOT:?Supply UID12001 GID13000 custody request root}
+        target: /var/lib/ai4r-rsi-requests
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_JOB_IPC:?Supply UID12001 job socket directory}
+        target: /run/ai4r-rsi/jobs
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_CUSTODIAN_IPC:?Supply UID12002 custodian socket directory}
+        target: /run/ai4r-rsi/custodian
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_VISIBLE_WORKER_IPC:?Supply root-owned GID12001 worker socket directory}
+        target: /run/ai4r-rsi-worker/visible
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_VISIBLE_INPUT_ROOT:?Supply UID12001 private visible helper requests}
+        target: /var/lib/ai4r-rsi-inputs/visible
+        bind: {create_host_path: false}
+    tmpfs: ['/tmp:rw,nosuid,nodev,size=64m,uid=12001,gid=12001']
+    networks: [rsi-egress]
+    command: [serve-jobs, --config, /run/ai4r-rsi/jobs-service.json]
+    stop_grace_period: 45s
+
+  rsi-custodian:
+    <<: *rsi-readonly
+    profiles: [rsi]
+    image: ${AI4R_RSI_IMAGE:?Supply the immutable RSI custodian image}
+    user: '12002:12002'
+    group_add: ['13000']
+    working_dir: /var/lib/ai4r-rsi/custodian
+    network_mode: none
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_CUSTODIAN_CONFIG:?Supply the separately protected custodian config}
+        target: /run/ai4r-rsi/custodian-service.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_CUSTODIAN_ROOT:?Supply UID12002 private fixtures and exposure store}
+        target: /var/lib/ai4r-rsi/custodian
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_SIGNING_KEY:?Supply the UID12002 private signing key file}
+        target: /run/ai4r-rsi/signing-key
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_INBOX_ROOT:?Supply UID12002 GID13000 public signed result inbox}
+        target: /var/lib/ai4r-rsi-inbox
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_PUBLIC_ROOT:?Supply the approved public export root}
+        target: /var/lib/ai4r-rsi-public
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_REQUEST_ROOT:?Supply the custody request root}
+        target: /var/lib/ai4r-rsi-requests
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_CUSTODIAN_IPC:?Supply UID12002 custodian socket directory}
+        target: /run/ai4r-rsi/custodian
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_HIDDEN_WORKER_IPC:?Supply root-owned GID12002 worker socket directory}
+        target: /run/ai4r-rsi-worker/hidden
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_HIDDEN_INPUT_ROOT:?Supply UID12002 private per-evaluation helper requests}
+        target: /var/lib/ai4r-rsi-inputs/hidden
+        bind: {create_host_path: false}
+    tmpfs: ['/tmp:rw,nosuid,nodev,size=64m,uid=12002,gid=12002']
+    command: [serve-custodian, --config, /run/ai4r-rsi/custodian-service.json]
+    stop_grace_period: 30s
+
+  rsi-worker-broker:
+    <<: *rsi-readonly
+    profiles: [rsi]
+    image: ${AI4R_RSI_WORKER_IMAGE:?Supply the immutable fixed worker-broker image}
+    build:
+      context: ../..
+      dockerfile: deploy/m1/Dockerfile.rsi
+      target: worker-broker
+      args:
+        APP_IMAGE: ${AI4R_APP_IMAGE:?Supply the immutable qualified native image}
+      platforms: [linux/amd64, linux/arm64]
+    user: '0:0'
+    cap_add: [SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE, KILL]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=${AI4R_SECCOMP_PROFILE:-./seccomp/executor.json}
+    cgroup: host
+    network_mode: none
+    working_dir: /var/lib/ai4r-rsi-worker
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_WORKER_CONFIG:?Supply the root-private finite broker config}
+        target: /run/ai4r-rsi-worker/broker-service.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_WORKER_ROOT:?Supply root-owned worker output root}
+        target: /var/lib/ai4r-rsi-worker
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_CGROUP_HOST:?Supply a separate bounded job-owned host cgroup branch}
+        target: /run/ai4r-rsi-cgroups
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_PUBLIC_ROOT:?Supply approved public function bodies and profiles}
+        target: /var/lib/ai4r-rsi-public
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_VISIBLE_INPUT_ROOT:?Supply visible per-helper inputs}
+        target: /var/lib/ai4r-rsi-inputs/visible
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_HIDDEN_INPUT_ROOT:?Supply hidden per-helper inputs without custody store}
+        target: /var/lib/ai4r-rsi-inputs/hidden
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_VISIBLE_WORKER_IPC:?Supply root-owned GID12001 worker socket directory}
+        target: /run/ai4r-rsi-worker/visible
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_HIDDEN_WORKER_IPC:?Supply root-owned GID12002 worker socket directory}
+        target: /run/ai4r-rsi-worker/hidden
+        bind: {create_host_path: false}
+    tmpfs: ['/tmp:rw,nosuid,nodev,size=128m']
+    command: [--config, /run/ai4r-rsi-worker/broker-service.json]
+    stop_grace_period: 30s
+
+networks:
+  rsi-egress: {}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "2.0.0",
+  "id": "opportunity_card",
+  "candidate_ref": {
+    "id": "candidate_set.json",
+    "sha256": "f9590a5647af93ae82bf431e23785e634e44d405c5011158efef5ff4d953a3f4"
+  },
+  "screening_ref": {
+    "id": "screening_result.json",
+    "sha256": "77b69c14d3abbce22b046d890b80b1876d13c9e8c6d5ae644cb9c89b624ddccb"
+  },
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+  },
+  "idea_id": "idea:001",
+  "title": "Bounded index lookup",
+  "summary": "Test whether an index over repeated lookups reduces retrieval latency in the supplied baseline.",
+  "opportunity_statement": "Repeated lookup may be a retrieval bottleneck. An index could remove the repeated work, so test whether it lowers latency without changing answer quality.",
+  "scores": {
+    "novelty": 3,
+    "feasibility": 4,
+    "compute_alignment": 5,
+    "total": 12
+  },
+  "rank": 1,
+  "citation_ids": [
+    "citation:index"
+  ],
+  "constraints": [
+    "One GPU",
+    "Evaluate an intervention intended to reduce retrieval latency",
+    "Preserve answer quality"
+  ],
+  "assumptions": [
+    "Baseline overhead includes repeated lookup"
+  ],
+  "risks": [
+    "Index maintenance could offset lookup gains"
+  ],
+  "other_dispositions": [
+    {
+      "idea_id": "idea:002",
+      "disposition": "rejected",
+      "reason": "Requires a proprietary model, which the rubric forbids."
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

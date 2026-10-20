@@ -1,0 +1,20 @@
+{
+  "schema": "m1-visible-source-manifest:1",
+  "source_authority": "registered TASK and IF r1",
+  "sources": [
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/rsi-workbench.md",
+      "sha256": "66918a59cc4416d0fde089926f0be730cfdcce4e07ba7868d78928cc629e89d2"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/reference/rsi-contracts.md",
+      "sha256": "440d65804bf3e64a370ca00f0f77e579abae9c892729a6e764663569de68d936"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/owner-rulings.md",
+      "sha256": "ba0b5a7d082e9e55e8e8d294cad5b0ca66240743a51412656a6b6efd9b8e16bb"
+    }
+  ],
+  "fixture_mode": "visible development only; no protected labels or operational credentials",
+  "runtime_qualification": "NOT_RUN"
+}

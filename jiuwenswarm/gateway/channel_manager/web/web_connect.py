@@ -1554,6 +1554,19 @@ class WebChannel(BaseWsChannel):
         if not isinstance(params, dict):
             params = {}
 
+        if bool(getattr(self, "research_profile", False)):
+            from jiuwenswarm.gateway.channel_manager.web.research_http import native_research_message
+            from jiuwenswarm.research.contracts.types import ResearchError
+
+            try:
+                handled, payload = await native_research_message(self, ws, method, params)
+                if handled:
+                    await self.send_response(ws, req_id, ok=True, payload=payload)
+                    return
+            except ResearchError:
+                await self.send_response(ws, req_id, ok=False, error="Research request is not authorized or valid", code="UNAUTHORIZED")
+                return
+
         # ── V2: session_id 解析 ──
         # 请求自带 session_id（如 chat.send）→ 用它更新 ws 路由注册。
         # 请求未带 session_id（如 memory.compute 心跳、updater.check、config.get

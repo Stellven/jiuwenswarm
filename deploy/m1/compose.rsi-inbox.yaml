@@ -1,0 +1,12 @@
+# Optional public signed-candidate capture only. This grants no activation and
+# never mounts private fixtures, keys, custody records or account directories.
+services:
+  app:
+    environment:
+      JIUWENSWARM_M1_RSI_INBOX: /var/lib/ai4r-rsi-inbox
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_INBOX_ROOT:?Supply only the custodian-published public signed inbox}
+        target: /var/lib/ai4r-rsi-inbox
+        read_only: true
+        bind: {create_host_path: false}

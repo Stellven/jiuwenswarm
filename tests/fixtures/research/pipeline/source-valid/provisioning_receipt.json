@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "id": "provisioning_receipt",
+  "environment_lock_ref": {
+    "id": "environment_lock.json",
+    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+  },
+  "poc_manifest_ref": {
+    "id": "poc_manifest.json",
+    "sha256": "ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4"
+  },
+  "status": "succeeded",
+  "python_version": "3.11.9",
+  "venv_path": "/workspace/poc/.venv",
+  "runner_user": "jiuwen-runner",
+  "packages": [],
+  "network_policy_used": "none",
+  "network_allowlist": [],
+  "unlisted_network_requests": 0,
+  "effects": [
+    {
+      "op": "unpack_bundle",
+      "target": "/workspace/poc/",
+      "outcome": "ok"
+    },
+    {
+      "op": "create_venv",
+      "target": "/workspace/poc/.venv",
+      "outcome": "ok"
+    }
+  ],
+  "limits": {
+    "wall_s_limit": 600,
+    "wall_s_used": 4.2
+  },
+  "ext": {
+    "example.synthetic": true
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:admitted-measurement-grant:1",
+  "x-owner": "M1-002/TASK.md M1-IF-012@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-admitted-measurement-grant:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "binding_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "contract_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "check_plan_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "session_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "target_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "parent_declaration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "accepted": {
+      "const": false
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "binding_ref",
+    "contract_ref",
+    "check_plan_ref",
+    "session_ref",
+    "target_ref",
+    "parent_declaration_ref",
+    "accepted"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

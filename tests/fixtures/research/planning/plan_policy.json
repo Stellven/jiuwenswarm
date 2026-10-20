@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "id": "plan_policy_example",
+  "max_nodes": 12,
+  "allowed_effect_classes": [
+    "pure",
+    "read_only",
+    "idempotent",
+    "compensable"
+  ],
+  "allow_network": true,
+  "required_stages": [
+    "research.search",
+    "research.screening",
+    "research.hypothesis"
+  ],
+  "aggregate_limits": {
+    "time_s": 10800,
+    "model_calls": 80,
+    "memory_mb": 32768
+  },
+  "max_attempts_per_node": 1
+}

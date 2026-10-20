@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "source_snapshot": "M1/source/Architecture_Design",
+  "capsules": {
+    "intent": {
+      "declaration_path": "compiler/intent.declaration.json",
+      "declaration_sha256": "cfad31534c5abd2ae3620323f4e8c91a2ace4fe22d8544a447343ff5b783c32f",
+      "body": [
+        {
+          "path": "research/capsules/intent.py",
+          "sha256": "b435b3768f7b8f8b2eff020646dfc6a18860838ed52ff424ba05db15e9fde4aa"
+        },
+        {
+          "path": "research_assets/compiler/intent.txt",
+          "sha256": "b6405d7e05f52be3887d620c8eb8056c4977a1f520ee6d5db5f31db2bb0a18e9"
+        },
+        {
+          "path": "research/capsules/_common.py",
+          "sha256": "c9762ca9f85258b520c4185654ef691997a1830787212f04b0f54b8a725238fa"
+        }
+      ]
+    },
+    "requirements": {
+      "declaration_path": "compiler/requirements.declaration.json",
+      "declaration_sha256": "4b297be4dbf5b7bb052a9440728f5b60b42d1da188973e60cd8f8eaf7edf756b",
+      "body": [
+        {
+          "path": "research/capsules/requirements.py",
+          "sha256": "8246a365226b6428879e2eee18ec0d051414d231dd8263e21b662cead46fa324"
+        },
+        {
+          "path": "research_assets/compiler/requirements.txt",
+          "sha256": "0016eb120f9f4133f16a909150261b03ca312bdc58c08f5a155efb5a1dbc76f4"
+        },
+        {
+          "path": "research/capsules/_common.py",
+          "sha256": "c9762ca9f85258b520c4185654ef691997a1830787212f04b0f54b8a725238fa"
+        }
+      ]
+    },
+    "verifier": {
+      "declaration_path": "compiler/verifier.declaration.json",
+      "declaration_sha256": "e16e59a51f93751116bf1a210ff6188a87c3e8b396335a603896d9e0177c5e66",
+      "body": [
+        {
+          "path": "research/gate.py",
+          "sha256": "9a3ead19679d170fda062c394591b579c38916f8186c02af935852fecc8a039a"
+        },
+        {
+          "path": "research_assets/compiler/verifier.txt",
+          "sha256": "89018d720c6ce3dffdcd4da1da6af0af39e1e45ee951e4f8bb12b9095d0251c8"
+        }
+      ]
+    },
+    "planner": {
+      "declaration_path": "planner/planner.declaration.json",
+      "declaration_sha256": "460e6ce34e47048ec1c57a75326ffc001664ae127714df8722f78262efe40358",
+      "body": [
+        {
+          "path": "research/capsules/planner.py",
+          "sha256": "dc42c5acc321cdd40fca8b1c41525c1e2aaf34f56874e05ab3662d93cf30996e"
+        },
+        {
+          "path": "research_assets/planner/planner.txt",
+          "sha256": "f65422fa2fbfbfc2976e46d6fc60acb0c2661742f53890d2b596f53060243ad5"
+        },
+        {
+          "path": "research/capsules/_common.py",
+          "sha256": "c9762ca9f85258b520c4185654ef691997a1830787212f04b0f54b8a725238fa"
+        }
+      ]
+    }
+  },
+  "static_template": {
+    "path": "planner/static-template.json",
+    "sha256": "1a4fbc96823df72af9b7a919a2ad475de712ea7cf13b9815d571fa588f3034ab",
+    "interface_revision": "M1-IF-002@r2",
+    "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
+    "meaning": "Explicitly authored release graph with current source-correct Screening dimension-set checking pins and unchanged aggregate worker/reviewer allowances; no runtime regeneration or supplied example override"
+  }
+}

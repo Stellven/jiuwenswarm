@@ -494,7 +494,20 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
             )
 
     def _is_api_route(self) -> bool:
-        return urlparse(self.path).path.startswith("/api")
+        path = urlparse(self.path).path
+        return path.startswith("/api") or (
+            os.getenv("JIUWENSWARM_M1_PROFILE") == "1" and path.startswith("/auth/research/")
+        )
+
+    def _research_origin_allowed(self, outer_host: str) -> bool:
+        if os.getenv("JIUWENSWARM_M1_PROFILE") != "1":
+            return True
+        expected = urlparse(os.getenv("JIUWENSWARM_M1_ORIGIN", ""))
+        if expected.scheme not in ("http", "https") or not expected.netloc:
+            return False
+        origin = self.headers.get("Origin")
+        canonical = f"{expected.scheme}://{expected.netloc}"
+        return outer_host == expected.netloc and (origin is None or origin == canonical)
 
     def _is_ws_route(self) -> bool:
         return urlparse(self.path).path.startswith("/ws")
@@ -593,6 +606,9 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
         if outer_host is None:
             self._write_proxy_error(400, "invalid Host header")
             return
+        if not self._research_origin_allowed(outer_host):
+            self._write_proxy_error(403, "native origin is not authorized")
+            return
         parsed = urlparse(self.api_target)
         if parsed.scheme == "https":
             ssl_ctx = None if _get_ssl_verify() else _get_insecure_ssl_context()
@@ -646,6 +662,10 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
             conn.close()
 
     def _proxy_websocket_tunnel(self) -> None:
+        outer_host = self._clean_outer_host()
+        if outer_host is None or not self._research_origin_allowed(outer_host):
+            self._write_proxy_error(403, "native origin is not authorized")
+            return
         parsed = urlparse(self.ws_target)
         if parsed.scheme not in ("ws", "wss", "http", "https"):
             self.send_error(500, "ws proxy target must be ws/wss/http/https")
@@ -705,7 +725,8 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
                 if self.ws_disable_compress and key.lower() == "sec-websocket-extensions":
                     continue
                 if key.lower() == "host":
-                    request_lines.append(f"Host: {upstream_host}:{upstream_port}")
+                    target_host = outer_host if os.getenv("JIUWENSWARM_M1_PROFILE") == "1" else f"{upstream_host}:{upstream_port}"
+                    request_lines.append(f"Host: {target_host}")
                 else:
                     request_lines.append(f"{key}: {value}")
             if not any(line.lower().startswith("host:") for line in request_lines[1:]):

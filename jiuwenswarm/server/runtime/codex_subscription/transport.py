@@ -34,7 +34,9 @@ class AppServerTransport:
         self.cwd = self.root / "chat-workspace"
         self.process = None
         self.listeners: set[Callable] = set()
+        self.wire_listeners: set[Callable] = set()
         self.pending = {}
+        self._wire_observers = {}
         self.sequence = 0
         self._start_lock = asyncio.Lock()
         self._write_lock = asyncio.Lock()
@@ -108,23 +110,28 @@ class AppServerTransport:
                     raise
                 raise CodexError("RUNTIME_UNAVAILABLE") from None
 
-    async def _send(self, message):
+    async def _send(self, message, *, wire_observer=None):
         async with self._write_lock:
             if not self.process or self.process.returncode is not None:
                 raise CodexError("RUNTIME_DISCONNECTED")
             try:
-                self.process.stdin.write((json.dumps(message) + "\n").encode())
+                raw = (json.dumps(message) + "\n").encode()
+                if wire_observer is not None:
+                    wire_observer('out', raw, message)
+                self.process.stdin.write(raw)
                 await self.process.stdin.drain()
             except (OSError, ConnectionError):
                 raise CodexError("RUNTIME_DISCONNECTED") from None
 
-    async def request(self, method, params=None):
+    async def request(self, method, params=None, *, wire_observer=None):
         self.sequence += 1
         ident = self.sequence
         future = asyncio.get_running_loop().create_future()
         self.pending[ident] = future
+        if wire_observer is not None:
+            self._wire_observers[ident] = wire_observer
         try:
-            await self._send({"id": ident, "method": method, "params": params or {}})
+            await self._send({"id": ident, "method": method, "params": params or {}}, wire_observer=wire_observer)
             return await asyncio.wait_for(future, 30)
         except asyncio.TimeoutError:
             # A timed-out mutation may have been accepted. Close instead of replay.
@@ -132,18 +139,22 @@ class AppServerTransport:
             raise CodexError("DELIVERY_UNKNOWN") from None
         finally:
             self.pending.pop(ident, None)
+            self._wire_observers.pop(ident, None)
 
     def _notify(self, method, params):
         for callback in tuple(self.listeners):
             callback(method, params)
 
     async def _read(self, process):
+        failure = 'RUNTIME_DISCONNECTED'
         try:
             while line := await process.stdout.readline():
                 message = json.loads(line)
                 if not isinstance(message, dict):
                     raise ValueError("Invalid envelope")
                 if "method" in message:
+                    for observe in tuple(self.wire_listeners):
+                        observe('in', line, message)
                     if "id" in message:
                         await self._send({"id": message["id"], "error": {"code": -32601, "message": "Tools and interactions are unavailable in this milestone."}})
                     else:
@@ -151,16 +162,21 @@ class AppServerTransport:
                 else:
                     future = self.pending.get(message.get("id"))
                     if future is not None and not future.done():
+                        observer = self._wire_observers.get(message.get('id'))
+                        if observer is not None:
+                            observer('in', line, message)
                         if "error" in message:
                             future.set_exception(CodexError("RUNTIME_ERROR"))
                         else:
                             future.set_result(message.get("result") or {})
+        except CodexError as error:
+            failure = str(error)
         except (ValueError, OSError, ConnectionError):
             pass
         finally:
             for future in tuple(self.pending.values()):
                 if not future.done():
-                    future.set_exception(CodexError("RUNTIME_DISCONNECTED"))
+                    future.set_exception(CodexError(failure))
             self._notify("transport/closed", {})
             if process.returncode is None:
                 with contextlib.suppress(ProcessLookupError):

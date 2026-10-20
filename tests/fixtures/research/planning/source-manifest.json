@@ -1,0 +1,30 @@
+{
+  "fixture_mode": "Source documentation originals; isolated pure-validator tests only, not runtime or quality acceptance",
+  "sources": [
+    {
+      "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/static_template.json",
+      "fixture": "static_template.json",
+      "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+    },
+    {
+      "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/library_snapshot.json",
+      "fixture": "library_snapshot.json",
+      "sha256": "aaf40eb39a40beb50939b6f4cd456f4be980eb5ccc781b45f9bf53647783f416"
+    },
+    {
+      "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/resource_inventory.json",
+      "fixture": "resource_inventory.json",
+      "sha256": "7b94381959b83f94f00eb07e31c9e4207c1e86b06c78f9adecdc3336db696fe9"
+    },
+    {
+      "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/plan_policy.json",
+      "fixture": "plan_policy.json",
+      "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
+    },
+    {
+      "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/lifecycle_research_brief.json",
+      "fixture": "lifecycle_research_brief.json",
+      "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+    }
+  ]
+}

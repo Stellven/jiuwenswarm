@@ -134,12 +134,17 @@ def load_dotenv_runtime(dotenv_path: str | Path | None, *, override: bool = True
         if preserve
         else {}
     )
-    loaded = load_dotenv(dotenv_path=dotenv_path, override=override)
+    from jiuwenswarm.research.native_profile import restore_protected_startup
+    try:
+        loaded = load_dotenv(dotenv_path=dotenv_path, override=override)
+    finally:
+        restore_protected_startup()
     if saved:
         os.environ.update(saved)
     if preserve:
         # Prefer remapped AGENT_SERVER_PORT over any URL from .env/parent env.
         os.environ.pop("AGENT_SERVER_URL", None)
+    restore_protected_startup()
     return loaded
 
 

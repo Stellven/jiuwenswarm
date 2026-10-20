@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jiuwenswarm:m1-private:admission-self-test-candidate-execution:1",
+  "title": "admission-self-test-candidate-execution",
+  "x-owning-interface": "M1-IF-013@r1",
+  "x-owning-task": "M1-001",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "job_ref",
+    "declaration_ref",
+    "body_refs",
+    "input_ref",
+    "execution_receipt_ref",
+    "end_state",
+    "output_refs",
+    "reason_code",
+    "recorded_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-admission-self-test-candidate-execution:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "job_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "declaration_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "body_refs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "id",
+          "sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "input_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "execution_receipt_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "end_state": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_refs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "id",
+          "sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "reason_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "recorded_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T.*Z$"
+    }
+  }
+}

@@ -1,4 +1,7 @@
 # Python
+# Generated local test output and execution evidence stay on this machine.
+/.test_logs/
+/docs/code/**/evidence/
 __pycache__/
 *.py[cod]
 *.pyo
@@ -10,6 +13,13 @@ venv/
 env/
 ENV/
 .pytest_cache/
+# Disposable Linux test workspaces can contain links Windows Git cannot read.
+/.test_logs/**/pytest-work/
+# Isolated test repositories are fixtures, not project submodules.
+/.test_logs/m1/resume-20261019-01/isolated-e1/
+/.test_logs/m1/resume-20261019-01/isolated-http/
+/.test_logs/m1/resume-20261019-01/isolated-qa/
+/.test_logs/m1/resume-20261019-01/isolated-router/
 .mypy_cache/
 .ruff_cache/
 *.egg-info/

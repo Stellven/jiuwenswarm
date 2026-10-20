@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "id": "model-profile:static-example",
+  "policy_mode": "fixed_baseline",
+  "approved_model_ids": [
+    "codex.static.example"
+  ],
+  "extra_requirements": {},
+  "selection_allowance": {
+    "enabled": false,
+    "deployment_ref": null,
+    "model_calls": 0,
+    "time_s": 0,
+    "output_tokens": 0,
+    "disclosure_scope": []
+  },
+  "alternate_model_id": null,
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  }
+}

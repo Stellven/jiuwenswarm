@@ -6,6 +6,7 @@ import { CliPiAppState } from "./app-state.js";
 import { CommandService } from "./core/commands/CommandService.js";
 import { createBuiltinCommands, isHarmonyOSCommandsEnabled } from "./core/commands/registry.js";
 import { WsClient } from "./core/ws-client.js";
+import { ResearchClient } from "./core/researchClient.js";
 import { AppScreen } from "./ui/app-screen.js";
 import { HandoffPortImpl } from "./core/supervision/handoff-port.js";
 import { ReauthenticationPortImpl } from "./core/supervision/reauth-port.js";
@@ -89,8 +90,11 @@ if (!process.env.JIUWENSWARM_TUI_HEADLESS && (!process.stdin.isTTY || !process.s
   process.exit(1);
 }
 
-const wsUrl = values.url ?? "ws://127.0.0.1:19001/tui";
-const wsUserId = values["user-id"] ?? "";
+let researchClient: ResearchClient | null = null;
+try { researchClient = ResearchClient.fromEnvironment(); }
+catch { console.error("Protected research client configuration is unavailable."); process.exit(3); }
+const wsUrl = researchClient?.wsUrl ?? values.url ?? "ws://127.0.0.1:19001/tui";
+const wsUserId = researchClient ? "" : values["user-id"] ?? "";
 
 /**
  * Remote 模式：--url 指向非本机（非 127.0.0.1/localhost）的服务器时启用。
@@ -110,7 +114,7 @@ const isRemote = isRemoteUrl(wsUrl);
 // remote 模式下的服务器侧 workspace/project_dir：/home/agentos/<user-id>。
 const remoteProjectDir = isRemote && wsUserId ? `/home/agentos/${wsUserId}` : "";
 
-const wsClient = new WsClient(wsUrl, values.token ?? "", wsUserId);
+const wsClient = new WsClient(wsUrl, researchClient?.token ?? values.token ?? "", wsUserId, researchClient);
 
 // 读取 launcher 注入的监督协议快照（非托管启动时 supervised=false）。
 const supervisionEnv = readSupervisionEnv();

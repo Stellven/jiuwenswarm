@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import type { Frame, ReqFrame, ResFrame } from "./protocol.js";
 import { isResFrame } from "./protocol.js";
+import { ResearchClient, projectResearchWorkflow, type ResearchStatus } from "./researchClient.js";
 
 export type FrameHandler = (frame: Frame) => void;
 export type ConnectionStatus =
@@ -38,8 +39,10 @@ export class WsClient {
   private statusListeners: Array<(status: ConnectionStatus) => void> = [];
   private closeCode = 0;
   private closeReason = "";
+  private researchRuns = new Map<string, { sessionId: string; status: ResearchStatus }>();
+  private researchPolls = new Map<string, ReturnType<typeof setTimeout>>();
 
-  constructor(url: string, token = "", userId = "") {
+  constructor(url: string, token = "", userId = "", private readonly research: ResearchClient | null = null) {
     this.url = url;
     this.token = token;
     this.userId = userId;
@@ -78,6 +81,8 @@ export class WsClient {
 
   disconnect(): void {
     this.clearReconnectTimer();
+    for (const timer of this.researchPolls.values()) clearTimeout(timer);
+    this.researchPolls.clear();
     if (this.ws) {
       const ws = this.ws;
       this.ws = null;
@@ -91,6 +96,13 @@ export class WsClient {
   }
 
   send(frame: Frame): void {
+    if (this.research && frame.type === "req" && frame.method === "chat.send") {
+      void this.request(frame.id, frame.method, frame.params).catch(() => {
+        this.dispatchFrame({ type: "event", event: "chat.error", payload: { session_id: frame.params.session_id,
+          error: "Research delivery is unavailable; inspect readiness and reconcile the request before submitting new work." } });
+      });
+      return;
+    }
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(frame));
     }
@@ -103,6 +115,62 @@ export class WsClient {
     timeoutMs = 30000,
     isStream = false,
   ): Promise<ResFrame> {
+    if (this.research) return this.requestResearch(id, method, params, timeoutMs, isStream);
+    return this.requestNative(id, method, params, timeoutMs, isStream);
+  }
+
+  private async requestResearch(id: string, method: string, params: Record<string, unknown>, timeoutMs: number, isStream: boolean): Promise<ResFrame> {
+    const client = this.research!;
+    let payload: unknown;
+    if (method === "chat.send") {
+      const qualified = await this.requestNative(id, method, { ...params, workspace_id: client.defaults.workspace_id }, timeoutMs, isStream);
+      const ref = qualified.payload.intake_ref as { id: string; sha256: string } | undefined;
+      if (!ref) throw new Error("Native research intake was not qualified");
+      const status = await client.submit(ref, id);
+      this.followResearch(status, typeof params.session_id === "string" ? params.session_id : "");
+      payload = status;
+    } else if (method === "research.readiness") payload = await client.readiness();
+    else if (method === "research.status") payload = await client.status(String(params.run_id));
+    else if (method === "research.export") payload = typeof params.output === "string" && params.output
+      ? await client.download(String(params.run_id), params.output) : await client.export(String(params.run_id));
+    else if (method === "research.cancel") payload = await client.cancel(String(params.run_id), String(params.request_id));
+    else if (method === "command.workflows") {
+      if (params.action === "list") {
+        const runs = [...this.researchRuns.values()].filter((item) => item.sessionId === params.session_id);
+        payload = { type: "workflow_run_list", workflows: runs.map((item) => projectResearchWorkflow(item.status)), total: runs.length, has_more: false };
+      } else {
+        const status = await client.status(String(params.workflow_id));
+        const workflow = projectResearchWorkflow(status);
+        if (params.action === "get_workflow") payload = { type: "workflow_run_detail", workflow, has_more: false };
+        else if (params.action === "get_phase") payload = { phase: workflow.phases?.find((phase) => phase.id === params.phase_id), has_more: false };
+        else if (params.action === "get_agent") payload = { agent: workflow.phases?.flatMap((phase) => phase.agents ?? []).find((agent) => agent.id === params.agent_id) };
+        else throw new Error("Research workflow inspection is read-only");
+      }
+    } else return this.requestNative(id, method, params, timeoutMs, isStream);
+    return { type: "res", id, ok: true, payload: payload as Record<string, unknown> };
+  }
+
+  private followResearch(value: ResearchStatus, sessionId: string): void {
+    const publish = (status: ResearchStatus) => {
+      if (status.revision < (this.researchRuns.get(status.run_id)?.status.revision ?? -1)) return;
+      this.researchRuns.set(status.run_id, { sessionId, status });
+      this.dispatchFrame({ type: "event", event: "workflow.updated", payload: { session_id: sessionId, workflow: projectResearchWorkflow(status) } });
+      this.dispatchFrame({ type: "event", event: "chat.processing_status", payload: { session_id: sessionId, is_processing: status.status === "in_progress", current_task: status.stage } });
+    };
+    publish(value);
+    if (value.status !== "in_progress" || this.researchPolls.has(value.run_id)) return;
+    const poll = async () => {
+      if (this._status === "idle" || this._status === "auth_failed") { this.researchPolls.delete(value.run_id); return; }
+      try {
+        const current = await this.research!.status(value.run_id); publish(current);
+        if (current.status !== "in_progress") { this.researchPolls.delete(value.run_id); return; }
+      } catch { /* Inspection retry is GET-only; never resend or cancel work. */ }
+      this.researchPolls.set(value.run_id, setTimeout(() => { void poll(); }, 1500));
+    };
+    this.researchPolls.set(value.run_id, setTimeout(() => { void poll(); }, 0));
+  }
+
+  private requestNative(id: string, method: string, params: Record<string, unknown>, timeoutMs = 30000, isStream = false): Promise<ResFrame> {
     return new Promise((resolve, reject) => {
       if (this.ws?.readyState !== WebSocket.OPEN) {
         reject(new Error(`socket not connected: ${method}`));
@@ -121,7 +189,7 @@ export class WsClient {
         reject(new Error(`request timeout: ${method}`));
       }, timeoutMs);
       this.pending.set(id, { resolve, reject, timer });
-      this.send(frame);
+      this.ws.send(JSON.stringify(frame));
     });
   }
 
@@ -146,6 +214,7 @@ export class WsClient {
     this.ws.on("open", () => {
       this.retryCount = 0;
       this.setStatus("connected");
+      if (this.research) for (const run of this.researchRuns.values()) this.followResearch(run.status, run.sessionId);
     });
 
     this.ws.on("message", (data: WebSocket.Data) => {

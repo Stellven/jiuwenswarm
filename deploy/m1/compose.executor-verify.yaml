@@ -1,0 +1,14 @@
+services:
+  app:
+    # The mounted job delegation is outside Docker's private cgroup namespace.
+    # Host cgroup namespace permits PID migration only into that explicit bind;
+    # this adds neither SYS_ADMIN nor a host-root cgroup filesystem mount.
+    cgroup: host
+    cap_add: !override [SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE, KILL]
+    environment:
+      AI4R_EXECUTOR_CGROUP_ROOT: /run/ai4r-cgroups
+    volumes:
+      - type: bind
+        source: ${AI4R_EXECUTOR_CGROUP_HOST:?Create a job-owned host delegation first}
+        target: /run/ai4r-cgroups
+        bind: {create_host_path: false}

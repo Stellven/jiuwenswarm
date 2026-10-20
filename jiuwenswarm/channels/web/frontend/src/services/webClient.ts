@@ -14,6 +14,8 @@ import { resolveUserId } from '../utils/userId';
 import i18n from '../i18n';
 import { GoalRecord } from '../types/goal';
 import { createSessionEventGate } from './sessionEventGate';
+import { bootstrapResearchSession, hasResearchSession, researchRequest, submitResearchIntake, selectedResearchInputs, selectResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
+import { projectResearchWorkflow, type ResearchStatus } from '../components/teamArea/researchWorkflow';
 
 type EventHandler = (event: WsEvent) => void;
 type TypedEventHandler<TPayload> = (event: WsEvent & { payload: TPayload }) => void;
@@ -91,8 +93,12 @@ class WebClient {
   private reconnectAttempts = 0;
   private manualClose = false;
   private connectPromise: Promise<void> | null = null;
+  private connectionGeneration = 0;
+  private cancelConnect: (() => void) | null = null;
   private lastConnectOptions: WebConnectOptions = {};
   private requestSeq = 0;
+  private researchPolls = new Map<string, number>();
+  private researchRevisions = new Map<string, number>();
   private codexRequests = new Map<string, string>();
   private readonly sessionEventGate = createSessionEventGate((event) => {
     this.dispatchEventNow(event);
@@ -144,75 +150,95 @@ class WebClient {
 
     this.lastConnectOptions = options;
     this.manualClose = false;
-    this.updateState(this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting');
-
-    const url = this.buildWsUrl(options);
-
-    this.connectPromise = new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(url);
-      this.ws = ws;
-
-      ws.onopen = () => {
-        logDevWsTraffic({
-          direction: 'lifecycle',
-          data: { event: 'open', url },
-        });
-        this.reconnectAttempts = 0;
-        this.updateState('ready');
+    this.clearReconnectTimer();
+    const generation = ++this.connectionGeneration;
+    let resolveAttempt!: () => void;
+    let rejectAttempt!: (reason: unknown) => void;
+    const attempt = new Promise<void>((resolve, reject) => {
+      resolveAttempt = resolve;
+      rejectAttempt = reject;
+    });
+    const clearAttempt = () => {
+      if (this.connectPromise === attempt) {
         this.connectPromise = null;
-        resolve();
-      };
+        this.cancelConnect = null;
+      }
+    };
+    // Publish ownership before the first await: reload may have several callers.
+    this.connectPromise = attempt;
+    this.cancelConnect = () => {
+      clearAttempt();
+      rejectAttempt(this.createWebError(i18n.t('network.connectionClosed'), 'WS_CLOSED', undefined, false));
+    };
 
-      ws.onmessage = (event) => {
-        this.handleIncoming(event.data);
-      };
-
-      ws.onerror = () => {
-        logDevWsTraffic({
-          direction: 'lifecycle',
-          data: { event: 'error' },
-        });
-        const error = this.createWebError(
-          i18n.t('network.wsError'),
-          'WS_ERROR',
-          undefined,
-          true
-        );
-        this.connectPromise = null;
-        if (this.state !== 'ready') {
-          reject(error);
+    void (async () => {
+      try {
+        await bootstrapResearchSession();
+        if (generation !== this.connectionGeneration || this.manualClose) {
+          return;
         }
-      };
+        this.updateState(this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting');
+        const url = this.buildWsUrl(options);
+        const previous = this.ws;
+        const ws = new WebSocket(url);
+        this.ws = ws;
+        if (previous && previous.readyState !== WebSocket.CLOSED) {
+          previous.close(1000, 'Superseded connection');
+        }
+        const ownsSocket = () => generation === this.connectionGeneration && this.ws === ws;
 
-      ws.onclose = (closeEvent) => {
-        logDevWsTraffic({
-          direction: 'lifecycle',
-          data: {
-            event: 'close',
-            code: closeEvent.code,
-            reason: closeEvent.reason,
-            wasClean: closeEvent.wasClean,
-          },
-        });
-        this.ws = null;
-        this.connectPromise = null;
-        this.rejectAllPending(
-          this.createWebError(
+        ws.onopen = () => {
+          if (!ownsSocket()) return;
+          logDevWsTraffic({ direction: 'lifecycle', data: { event: 'open', url } });
+          this.reconnectAttempts = 0;
+          this.updateState('ready');
+          clearAttempt();
+          resolveAttempt();
+        };
+        ws.onmessage = (event) => {
+          if (ownsSocket()) this.handleIncoming(event.data);
+        };
+        ws.onerror = () => {
+          if (!ownsSocket()) return;
+          logDevWsTraffic({ direction: 'lifecycle', data: { event: 'error' } });
+          if (this.state !== 'ready') {
+            clearAttempt();
+            rejectAttempt(this.createWebError(i18n.t('network.wsError'), 'WS_ERROR', undefined, true));
+          }
+        };
+        ws.onclose = (closeEvent) => {
+          if (!ownsSocket()) return;
+          logDevWsTraffic({
+            direction: 'lifecycle',
+            data: {
+              event: 'close',
+              code: closeEvent.code,
+              reason: closeEvent.reason,
+              wasClean: closeEvent.wasClean,
+            },
+          });
+          this.ws = null;
+          clearAttempt();
+          const error = this.createWebError(
             i18n.t('network.connectionClosedWithCode', { code: closeEvent.code }),
             'WS_DISCONNECTED',
             undefined,
-            true
-          )
-        );
-        if (this.manualClose || closeEvent.code === 1000) {
-          this.updateState('closed');
-          return;
-        }
-        this.scheduleReconnect();
-      };
-    });
-
-    return this.connectPromise;
+            true,
+          );
+          rejectAttempt(error);
+          this.rejectAllPending(error);
+          if (this.manualClose || closeEvent.code === 1000) {
+            this.updateState('closed');
+            return;
+          }
+          this.scheduleReconnect();
+        };
+      } catch (error) {
+        clearAttempt();
+        rejectAttempt(error);
+      }
+    })();
+    return attempt;
   }
 
   /**
@@ -231,6 +257,11 @@ class WebClient {
 
   disconnect(reason = 'User disconnect'): Promise<void> {
     this.manualClose = true;
+    this.connectionGeneration += 1;
+    this.cancelConnect?.();
+    this.cancelConnect = null;
+    for (const timer of this.researchPolls.values()) window.clearTimeout(timer);
+    this.researchPolls.clear();
     this.clearReconnectTimer();
     this.rejectAllPending(
       this.createWebError(i18n.t('network.connectionClosed'), 'WS_CLOSED', undefined, false)
@@ -274,13 +305,28 @@ class WebClient {
   ): Promise<T> {
     await this.ensureReady();
 
+    if (hasResearchSession() && method === 'command.workflows') {
+      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
+      if (params?.action === 'list') {
+        const statuses = await Promise.all(researchRunHandles(sessionId).map((runId) => researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(runId)}`)));
+        for (const status of statuses) this.followResearchRun(status, sessionId);
+        return { workflows: statuses.map(projectResearchWorkflow), total: statuses.length, has_more: false } as T;
+      }
+      const status = await researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(String(params?.workflow_id))}`);
+      this.followResearchRun(status, sessionId);
+      const workflow = projectResearchWorkflow(status);
+      if (params?.action === 'get_workflow') return { workflow, has_more: false } as T;
+      if (params?.action === 'get_phase') return { phase: workflow.phases?.find((phase) => phase.id === params?.phase_id), has_more: false } as T;
+      if (params?.action === 'get_agent') return { agent: workflow.phases?.flatMap((phase) => phase.agents ?? []).find((agent) => agent.id === params?.agent_id) } as T;
+      throw new Error('Research workflow inspection is read-only');
+    }
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw this.createWebError(i18n.t('network.connectionUnavailable'), 'WS_NOT_READY', undefined, true);
     }
 
     const id = this.generateRequestId();
     const subscription = useCodexSubscription.getState();
-    if (subscription.enabled) {
+    if (subscription.enabled && !hasResearchSession()) {
       const sid = String(params?.session_id || '');
       if (method === 'chat.send') {
         if (subscription.state !== 'ready') {
@@ -293,6 +339,10 @@ class WebClient {
       }
     }
     const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    if (hasResearchSession() && method === 'chat.send') {
+      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
+      params = { ...params, workspace_id: researchWorkspace(), upload_refs: selectedResearchInputs(sessionId) };
+    }
     const message: WsRequest = {
       type: 'req',
       id,
@@ -301,7 +351,7 @@ class WebClient {
       ...(options.isStream ? { is_stream: true } : {}),
     };
 
-    return new Promise<T>((resolve, reject) => {
+    const response = await new Promise<T>((resolve, reject) => {
       const timeoutId = window.setTimeout(() => {
         this.pending.delete(id);
         reject(this.createWebError(i18n.t('network.requestTimeout'), 'REQUEST_TIMEOUT', id, true));
@@ -311,7 +361,7 @@ class WebClient {
         resolve: (value) => resolve(value as T),
         reject,
         timeoutId,
-        awaitRuntimeAccepted: options.awaitRuntimeAccepted === true,
+        awaitRuntimeAccepted: options.awaitRuntimeAccepted === true && !hasResearchSession(),
       };
       this.pending.set(id, pending);
 
@@ -345,6 +395,45 @@ class WebClient {
         reject(error);
       }
     });
+    if (hasResearchSession() && method === 'chat.send') {
+      const qualified = response as { intake_ref?: ResearchRef };
+      if (!qualified?.intake_ref) throw new Error('Native research intake was not qualified');
+      const submitted = await submitResearchIntake(qualified.intake_ref, id) as unknown as ResearchStatus;
+      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
+      if (!submitted?.run_id) throw new Error('Native research delivery could not be reconciled');
+      selectResearchInputs(sessionId, []);
+      this.followResearchRun(submitted, sessionId);
+      return submitted as T;
+    }
+    return response;
+  }
+
+  private followResearchRun(value: ResearchStatus, sessionId: string): void {
+    rememberResearchRun(sessionId, value.run_id);
+    const publish = (status: ResearchStatus) => {
+      if (status.revision < (this.researchRevisions.get(status.run_id) ?? -1)) return;
+      this.researchRevisions.set(status.run_id, status.revision);
+      this.dispatchEventNow({ type: 'event', event: 'workflow.updated',
+        payload: { session_id: sessionId, workflow: projectResearchWorkflow(status) } });
+      this.dispatchEventNow({ type: 'event', event: 'chat.processing_status',
+        payload: { session_id: sessionId, is_processing: status.status === 'in_progress', current_task: status.stage } });
+    };
+    publish(value);
+    if (this.researchPolls.has(value.run_id) || value.status !== 'in_progress') return;
+    const poll = async () => {
+      if (this.manualClose) { this.researchPolls.delete(value.run_id); return; }
+      try {
+        const current = await researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(value.run_id)}`);
+        publish(current);
+        if (current.status !== 'in_progress') { this.researchPolls.delete(value.run_id); return; }
+      } catch {
+        // Inspection reconnects using GET only. A local network interruption
+        // never cancels, replays or resubmits accepted work.
+        if (!hasResearchSession()) { this.researchPolls.delete(value.run_id); return; }
+      }
+      if (!this.manualClose) this.researchPolls.set(value.run_id, window.setTimeout(() => { void poll(); }, 1500));
+    };
+    this.researchPolls.set(value.run_id, window.setTimeout(() => { void poll(); }, 0));
   }
 
   /**
@@ -595,6 +684,10 @@ class WebClient {
     const host = window.location.host;
     const base = wsBase || `${protocol}//${host}`;
     const path = base.endsWith('/ws') || base.endsWith('/ws/gateway') ? '' : '/ws';
+    if (hasResearchSession()) {
+      const sameOrigin = `${protocol}//${host}`;
+      return `${sameOrigin}/ws`;
+    }
     const params = new URLSearchParams();
     if (options.provider) params.set('provider', options.provider);
     if (options.apiKey) params.set('api_key', options.apiKey);

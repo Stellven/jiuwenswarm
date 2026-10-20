@@ -1,0 +1,171 @@
+{
+  "schema_version": "2.0.0",
+  "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+  },
+  "objective": {
+    "id": "objective:latency",
+    "text": "Investigate lower baseline retrieval latency while preserving answer quality",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "intent_ir.json",
+        "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+      }
+    ]
+  },
+  "in_scope": [
+    {
+      "id": "scope:baseline",
+      "text": "Supplied data lake baseline",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        }
+      ]
+    }
+  ],
+  "out_of_scope": [],
+  "mandatory_requirements": [
+    {
+      "id": "requirement:latency",
+      "text": "Evaluate an intervention intended to reduce retrieval latency",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        }
+      ]
+    },
+    {
+      "id": "requirement:quality",
+      "text": "Preserve answer quality",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        }
+      ]
+    }
+  ],
+  "optional_preferences": [],
+  "constraints": [
+    {
+      "id": "constraint:gpu",
+      "text": "One GPU",
+      "category": "hardware",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        }
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": 1,
+      "unit": "gpu",
+      "operator": "le"
+    }
+  ],
+  "target_metrics": [
+    {
+      "id": "target:quality",
+      "metric": "answer quality",
+      "target_text": "preserve answer quality",
+      "source_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        }
+      ],
+      "origin": "user",
+      "requirement_ids": [
+        "requirement:quality"
+      ],
+      "unit": null,
+      "comparison": null
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "deliverable:report",
+      "name": "research_report.md",
+      "description": "Reproducible baseline/treatment comparison and outcome",
+      "artifact_type": "research_report"
+    }
+  ],
+  "acceptance_expectations": [
+    {
+      "id": "acceptance:comparison",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "description": "Report matched measurements and whether the registered experiment met the user objective"
+    }
+  ],
+  "evidence_obligations": [
+    {
+      "id": "evidence:comparison",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "description": "Registered protocol, raw execution evidence and baseline/treatment values"
+    }
+  ],
+  "assumptions": [],
+  "unresolved_items": [],
+  "resource_refs": [
+    {
+      "id": "baseline_resource.json",
+      "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+    },
+    {
+      "id": "validation_resource.json",
+      "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+    }
+  ],
+  "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+      {
+        "id": "request.txt",
+        "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+      },
+      {
+        "id": "default_policy.json",
+        "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+      }
+    ]
+  },
+  "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
+  },
+  "context_refs": [],
+  "domain_lane": "scientific_research",
+  "input_bindings": [
+    {
+      "id": "input:baseline_resource.json",
+      "role": "project_asset",
+      "resource_ref": {
+        "id": "baseline_resource.json",
+        "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+      }
+    },
+    {
+      "id": "input:validation_resource.json",
+      "role": "validation_data",
+      "resource_ref": {
+        "id": "validation_resource.json",
+        "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+      }
+    }
+  ]
+}
