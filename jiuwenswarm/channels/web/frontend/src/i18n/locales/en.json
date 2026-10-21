@@ -4678,6 +4678,8 @@
     "incomplete": "Your request could not be completed. {{reasons}}",
     "configurationRepair": "Research could not continue because its runtime configuration needs repair. Your uploaded documents are retained.",
     "requestIncomplete": "The research could not be completed. Your uploaded documents are retained.",
+    "planInfeasible": "I could not create a research plan for this request:",
+    "planFilesRetained": "Your uploaded documents are retained. You can revise the request, or choose Conversation for ordinary document questions.",
     "connectionTimeout": "Connecting to the app timed out. Check that the app is running, then try again.",
     "runtimeTimeout": "The app's availability could not be loaded in time. Please try again.",
     "redactedReport": "Some report content was withheld by the workspace disclosure policy.",

@@ -157,17 +157,31 @@ export function hasLocalChat(): boolean {
 
 export type ResearchInteraction = 'conversation' | 'research';
 
-/** A UI choice only; the server still binds policy, models and capabilities. */
-export function researchInteraction(sessionId: string): ResearchInteraction {
-  try {
-    const value = window.sessionStorage.getItem(`ai4r.interaction:${sessionId}`);
-    if (value === 'conversation' || value === 'research') return value;
-  } catch { /* Storage is optional; permission is never inferred from it. */ }
-  return hasResearchConfiguration() || !hasLocalChat() ? 'research' : 'conversation';
+function interactionChoiceKey(sessionId: string): string {
+  return `ai4r.interaction:v2:${inputOwnerScope()}:${sessionId}`;
 }
 
-export function selectResearchInteraction(sessionId: string, mode: ResearchInteraction): void {
-  window.sessionStorage.setItem(`ai4r.interaction:${sessionId}`, mode);
+/** Legacy values also held inferred defaults, so only versioned explicit choices opt in. */
+function explicitResearchInteraction(sessionId: string): ResearchInteraction | null {
+  try {
+    const raw = window.sessionStorage.getItem(interactionChoiceKey(sessionId));
+    const value = raw ? JSON.parse(raw) : null;
+    if (value?.version === 2 && value.explicit === true
+        && (value.mode === 'conversation' || value.mode === 'research')) return value.mode;
+  } catch { /* Storage is optional; permission is never inferred from it. */ }
+  return null;
+}
+
+/** Ordinary chat stays ordinary when a research backend is installed. */
+export function researchInteraction(sessionId: string): ResearchInteraction {
+  return explicitResearchInteraction(sessionId) ?? (hasLocalChat() ? 'conversation' : 'research');
+}
+
+export function selectResearchInteraction(sessionId: string, mode: ResearchInteraction, explicit = true): void {
+  const key = interactionChoiceKey(sessionId);
+  if (explicit) window.sessionStorage.setItem(key, JSON.stringify({ version: 2, explicit: true, mode }));
+  else window.sessionStorage.removeItem(key);
+  window.sessionStorage.removeItem(`ai4r.interaction:${sessionId}`);
 }
 
 export function researchWorkspace(): string {
@@ -281,6 +295,7 @@ export function captureResearchInputs(
       return version === undefined ? [] : [[id, version]];
     })),
     interaction: researchInteraction(sessionId),
+    interactionExplicit: explicitResearchInteraction(sessionId) !== null,
   };
 }
 /** Consume only the sent selection generation; later selections remain available. */
@@ -295,7 +310,7 @@ export function consumeResearchInputs(
 export function migrateResearchInputs(
   sessionId: string, snapshot: import('../types/websocket').ResearchInputSnapshot,
 ): void {
-  selectResearchInteraction(sessionId, snapshot.interaction);
+  selectResearchInteraction(sessionId, snapshot.interaction, snapshot.interactionExplicit === true);
   selectResearchInputs(sessionId, [...(inputSelections.get(sessionId) ?? []), ...snapshot.uploadRefs]);
   const versions = inputSelectionVersions.get(sessionId)!;
   for (const id of snapshot.uploadRefs) {

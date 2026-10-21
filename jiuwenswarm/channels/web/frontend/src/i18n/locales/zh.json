@@ -4677,6 +4677,8 @@
     "incomplete": "未能完成你的请求。{{reasons}}",
     "configurationRepair": "研究暂时无法继续，运行配置需要修复。你上传的文档已保留。",
     "requestIncomplete": "本次研究未能完成，你上传的文档已保留。",
+    "planInfeasible": "暂时无法为这个请求制定研究计划，具体原因是：",
+    "planFilesRetained": "你上传的文档已保留。你可以调整研究需求，或切换到“对话”模式询问文档相关问题。",
     "connectionTimeout": "连接应用超时，请确认应用正在运行后重试。",
     "runtimeTimeout": "暂时无法获取应用可用状态，请稍后重试。",
     "redactedReport": "工作区披露策略隐藏了报告的部分内容。",

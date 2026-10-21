@@ -518,6 +518,7 @@ class WebClient {
       : 'researchWorkflow.requestIncomplete');
     let hasAcceptedReport = false;
     if (status.status !== 'completed') {
+      let noContinuation = false;
       try {
         const next = await researchRequest<{ run_id: string; continuation_run_id: string | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/continuation`);
         if (next.run_id !== status.run_id || next.continuation_run_id === status.run_id) throw new Error('Invalid continuation');
@@ -531,8 +532,21 @@ class WebClient {
           this.followResearchRun(child, pending.sessionId);
           return;
         }
+        noContinuation = true;
       } catch {
         content += `\n\n${i18n.t('researchWorkflow.continuationUnavailable')}`;
+      }
+      if (noContinuation && status.reasons.includes('plan_infeasible')) {
+        try {
+          const result = await researchRequest<{ run_id: string;
+            plan_outcome?: { outcome: string; reasons: string[] } }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
+          const outcome = result.plan_outcome;
+          if (result.run_id !== status.run_id || outcome?.outcome !== 'plan_infeasible'
+              || !Array.isArray(outcome.reasons) || outcome.reasons.length < 1 || outcome.reasons.length > 20
+              || !outcome.reasons.every((reason) => typeof reason === 'string' && reason.trim() && reason.length <= 300))
+            throw new Error('Public planning explanation unavailable');
+          content = `${i18n.t('researchWorkflow.planInfeasible')}\n\n${outcome.reasons.join('\n\n')}\n\n${i18n.t('researchWorkflow.planFilesRetained')}`;
+        } catch { /* Keep the truthful generic failure when the owned explanation is unavailable. */ }
       }
     }
     try {

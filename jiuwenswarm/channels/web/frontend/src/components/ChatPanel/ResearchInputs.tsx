@@ -68,6 +68,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       .then(async (ready) => {
         if (!current) return;
         setEnabled(ready);
+        if (ready) setInteraction(researchInteraction(sessionId));
         if (ready) void refreshResearchRuntime().catch(() => { /* Settings retains actual setup diagnostics. */ });
         if (ready && hasResearchInputs()) await refresh();
       })

@@ -181,14 +181,52 @@ def run_timeline(service, principal, run_id):
     return {'schema': 'ai4r-workflow-timeline:1', 'run_id': run_id, 'revision': run['revision'], 'events': events}
 
 
+def _public_plan_outcome(store, run):
+    """Project original ordinary-run infeasibility without exporting its refs."""
+    from .binding import committed_output_proof
+
+    def require(condition):
+        if not condition:
+            raise ResearchError('integrity_fault', 'Original plan outcome does not match its owned run lineage')
+
+    # Private evaluation context is not an ordinary user-facing plan result.
+    if run['submission'].get('profile_id') is not None or store.evaluation_binding(run['id']) is not None:
+        return None
+    rows = list(store.iter_records(run_id=run['id'], kinds=('plan-outcome',)))
+    require(len(rows) == 1)
+    ref = rows[0]['ref']
+    outcome = store.read_record(ref, contract_id='plan-outcome')
+    require(store.record_kind(ref) == 'plan-outcome' and outcome['id'] == ref['id']
+            and outcome['outcome'] == 'plan_infeasible' and outcome['attempt_depth'] in (1, 2)
+            and outcome['next_stage'] == 'intention_compiler')
+    proof = committed_output_proof(store, run['id'], 'intention_compiler')
+    require(proof['outputs'] == {'brief': outcome['brief_ref']} and len(proof['gates']) == 1)
+    brief = store.read_record(outcome['brief_ref'], contract_id='research-brief')
+    require(brief['intake_ref'] == run['submission']['intake_ref'])
+    reasons = []
+    for reason in outcome['reasons'][:20]:
+        detail = reason['detail']
+        if detail.startswith('INFEASIBLE:'):
+            detail = detail[len('INFEASIBLE:'):]
+        detail = detail.strip()[:300]
+        require(bool(detail))
+        reasons.append(detail)
+    require(bool(reasons))
+    return {'outcome': 'plan_infeasible', 'reasons': reasons}
+
+
 async def run_result(service, principal, run_id):
-    """Return only an accepted Delivery report through existing disclosure rules."""
+    """Return an accepted report or bounded original public plan infeasibility."""
     principal.require('export')
     store = service.store
     run = store.get_run(run_id, account_id=principal.account_id)
     principal.require('export', run['workspace_id'])
     result = {'schema': 'ai4r-workflow-result:1', 'run_id': run_id, 'status': run['state'], 'report': None}
     if run['state'] != 'completed':
+        if run['state'] == 'halted' and run['reason'] == 'plan_infeasible':
+            outcome = _public_plan_outcome(store, run)
+            if outcome is not None:
+                result['plan_outcome'] = outcome
         return result
     reports = []
     for node in store.node_states(run_id):
