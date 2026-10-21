@@ -52,7 +52,17 @@ async def initialize_profile():
         principal=Principal(account,frozenset({workspace}),frozenset({'status','readiness','submit','reconcile','cancel','export','upload','list_uploads','delete_upload','settings'}),frozenset({'researcher','reviewer'}))
         uid,gid=os.geteuid(),os.getegid()
         actor=Principal('os:'+str(uid)+':'+pwd.getpwuid(uid).pw_name,operations=frozenset({'library_admit','library_standing','verifier_assets'}))
-        composition=await compose_core(store=store,operator=operator,model=None,executor=None,readiness=None,upload_manager=None,
+        # Explicit initialization uses the live owned ports. Their existence
+        # grants no calibration, confinement qualification or admission PASS.
+        from .native_ports import _session, APP_UID
+        from .bridge import ModelBridgeClient
+        from .private_rpc import PrivateRPCClient
+        from .executor_rpc import ExecutorClient, PROTOCOL
+        session=_session('/run/ai4r',APP_UID)
+        model=ModelBridgeClient('/run/ai4r/model.sock',peer_uid=APP_UID,**session)
+        executor=ExecutorClient(PrivateRPCClient('/run/ai4r-executor/executor.sock',protocol=PROTOCOL,
+            peer_uid=0,socket_mode=0o660,**session))
+        composition=await compose_core(store=store,operator=operator,model=model,executor=executor,readiness=None,upload_manager=None,
             principal=principal,operator_actor=actor,configuration_ref=bindings['configuration_ref'],
             model_selection_profile_ref=bindings['model_selection_profile_ref'],deployment_ref=bindings['deployment_ref'],
             workspace_id=workspace,initialize=True,protected_options=bindings['protected_options'])

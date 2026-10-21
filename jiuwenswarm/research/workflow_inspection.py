@@ -60,11 +60,32 @@ async def runtime_snapshot(channel, principal):
         readiness = await service.readiness(principal)
     except ResearchError as exc:
         diagnostics.append({'code': exc.code, 'detail': 'Protected runtime readiness is unavailable.'})
+    prerequisites = list(readiness['prerequisites']) if readiness else []
+    # Missing catalog pins must not hide independently observable runtime facts.
+    # These are status observations, never substitutes for complete readiness.
+    ports = attachment.runtime_ports
+    if readiness is None and ports is not None and 'readiness' in principal.operations:
+        try:
+            state = await ports.status_client.call('subscription_status', {}, timeout_s=10)
+            for name, ok in [('model', state.get('state') == 'ready'), ('builder', state.get('builder_qualified') is True)]:
+                prerequisites.append({'name': name, 'status': 'ready' if ok else 'unavailable',
+                    'reason': 'Observed by the native runtime owner.' if ok else 'The native runtime owner reports this prerequisite unavailable.'})
+        except Exception:
+            prerequisites.append({'name': 'model', 'status': 'unavailable', 'reason': 'Native runtime status could not be observed.'})
+        try:
+            state = await ports.executor.prerequisites()
+            prerequisites.append({'name': 'isolation', 'status': 'ready' if state.get('ready') is True else 'unavailable',
+                'reason': 'Restricted executor prerequisites passed.' if state.get('ready') is True else 'Restricted executor prerequisites are incomplete.'})
+        except Exception:
+            prerequisites.append({'name': 'isolation', 'status': 'unavailable', 'reason': 'Restricted executor status could not be observed.'})
     defaults = service.client_defaults(principal)
-    return {'schema': 'ai4r-workflow-runtime:1', 'configured': defaults['configuration_ref'] is not None,
+    # A captured operator configuration can exist before catalog installation.
+    captured = getattr(core, 'runner', None)
+    configuration = getattr(channel, 'research_refusal_reason', None) is None and captured is not None
+    return {'schema': 'ai4r-workflow-runtime:1', 'configured': configuration,
             'ready': readiness is not None and readiness['ready'] is True,
-            'plan_source': defaults.get('plan_source'), 'capsules': capsules,
-            'diagnostics': diagnostics, 'prerequisites': readiness['prerequisites'] if readiness else []}
+            'plan_source': defaults.get('plan_source') or getattr(service, 'captured_plan_source', None), 'capsules': capsules,
+            'diagnostics': diagnostics, 'prerequisites': prerequisites}
 
 
 def run_timeline(service, principal, run_id):
@@ -97,3 +118,40 @@ def run_timeline(service, principal, run_id):
                            'checks': checks, 'findings': findings,
                            'accepted_refs': record['accepted_refs'] if record['action'] == 'advance' else []})
     return {'schema': 'ai4r-workflow-timeline:1', 'run_id': run_id, 'revision': run['revision'], 'events': events}
+
+
+async def run_result(service, principal, run_id):
+    """Return only an accepted Delivery report through existing disclosure rules."""
+    principal.require('export')
+    store = service.store
+    run = store.get_run(run_id, account_id=principal.account_id)
+    principal.require('export', run['workspace_id'])
+    result = {'schema': 'ai4r-workflow-result:1', 'run_id': run_id, 'status': run['state'], 'report': None}
+    if run['state'] != 'completed':
+        return result
+    reports = []
+    for node in store.node_states(run_id):
+        for ref in store.accepted_outputs(run_id, node['node_id']).values():
+            try:
+                manifest = store.read_record(ref, contract_id='delivery-manifest')
+            except (ResearchError, ValueError, UnicodeError):
+                continue
+            # The report is both released by its node and named by its accepted
+            # manifest. Candidate output and a plausible filename never suffice.
+            accepted = store.accepted_outputs(run_id, node['node_id'])
+            if manifest['report_ref'] not in accepted.values():
+                raise ResearchError('integrity_fault', 'Delivery report lacks its exact node release')
+            for item in manifest['files']:
+                if item['role'] == 'report' and item['artifact_ref'] == manifest['report_ref'] and item['audience'] == 'researcher':
+                    reports.append(item)
+    if len(reports) != 1:
+        raise ResearchError('unavailable', 'Completed workflow has no unique accepted researcher report')
+    exported, contents = await service.artifact_bytes(principal, run_id, audience='researcher')
+    matches = [item for item in exported['files'] if item['path'] == reports[0]['path'] and item['media_type'] == 'text/markdown']
+    if len(matches) != 1:
+        raise ResearchError('unavailable', 'Accepted report is unavailable under the current disclosure policy')
+    view = matches[0]
+    result['report'] = {'content': contents[view['path']].decode('utf-8'), 'path': view['path'],
+                        'accepted_ref': reports[0]['artifact_ref'], 'display_ref': view['artifact_ref'],
+                        'redacted': view['artifact_ref'] != reports[0]['artifact_ref']}
+    return result

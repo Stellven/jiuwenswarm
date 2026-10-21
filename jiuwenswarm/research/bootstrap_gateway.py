@@ -33,6 +33,7 @@ class NativeResearchAttachment:
     bootstrap_url: str
     composition: object | None
     diagnostics: list[dict]
+    runtime_ports: object | None = None
 
     def close(self):
         self.authority.close();self.accounts.close();self.store.close()
@@ -254,6 +255,7 @@ async def attach_native_research(web_channel,runtime_ports=None):
                 run_reconcile=lambda account_id,request_id:store.list_runs(account_id=account_id,request_id=request_id),
                 campaign_id=campaign_id,**history_pins)
     service.local_chat_ready=os.environ.get('JIUWENSWARM_M1_LOCAL_CHAT')=='1'
+    service.captured_plan_source=operator.snapshot()['cc']['plan_source'] if operator is not None else None
     defaults_path=authority.token_path.parent/'client-defaults.json'
     # Same protected custody as the bearer token, without copying the token.
     temporary=defaults_path.parent/('.client-defaults-'+__import__('secrets').token_hex(12))
@@ -276,7 +278,7 @@ async def attach_native_research(web_channel,runtime_ports=None):
             handle.write(json.dumps({'url':bootstrap_url}).encode('utf-8'));handle.flush();os.fsync(handle.fileno())
         os.replace(pending,handoff);os.chmod(handoff,0o600)
     finally:pending.unlink(missing_ok=True)
-    attachment=NativeResearchAttachment(service,store,accounts,authority,bootstrap_url,composition,diagnostics)
+    attachment=NativeResearchAttachment(service,store,accounts,authority,bootstrap_url,composition,diagnostics,runtime_ports)
     web_channel.research_profile=True;web_channel.research_service=service;web_channel.research_authority=authority
     web_channel.research_refusal_reason='operator_configuration_unavailable' if operator is None else None
     web_channel.research_preferences=preferences;web_channel.research_composition=attachment

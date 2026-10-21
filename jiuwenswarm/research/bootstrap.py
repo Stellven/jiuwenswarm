@@ -171,6 +171,18 @@ def prepare_environment(environ):
                 "FRONTEND_HOST": "0.0.0.0", "FRONTEND_PORT": "5173", "PYTHONUNBUFFERED": "1",
                 "JIUWENSWARM_M1_TOKEN_FILE": str(accounts / "sessions" / "session-token"),
                 "JIUWENSWARM_M1_CLIENT_CONFIG": str(accounts / "sessions" / "client-defaults.json")})
+    if env.get('JIUWENSWARM_M1_LOCAL_RESEARCH') == '1':
+        # Explicit launcher selection captures defaults and bindings only.
+        # Catalog admission, scientific resources and readiness remain separate.
+        from .local_profile import PROFILE_NAME
+        captured = state / 'operator' / PROFILE_NAME
+        env['JIUWENSWARM_M1_CONFIG'] = str(captured / 'config.json')
+        env['JIUWENSWARM_M1_BOOTSTRAP_BINDINGS'] = str(captured / 'bootstrap.json')
+        result = subprocess.run([sys.executable, '-m', 'jiuwenswarm.research.local_profile'],
+            env=env, cwd=native, preexec_fn=_drop_identity, stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+        if result.returncode:
+            raise StartupBlocked('LOCAL_RESEARCH_CAPTURE_FAILED')
     # Validation runs as the product identity so opening a new store never
     # leaves root-owned SQLite/WAL/artifact files in application custody.
     result = subprocess.run([sys.executable, "-m", "jiuwenswarm.research.bootstrap", "_validate-config"],

@@ -101,6 +101,8 @@ class WebClient {
   private requestSeq = 0;
   private researchPolls = new Map<string, number>();
   private researchRevisions = new Map<string, number>();
+  private researchSubmissions = new Map<string, { sessionId: string; requestId: string }>();
+  private researchReplies = new Set<string>();
   private codexRequests = new Map<string, string>();
   private readonly sessionEventGate = createSessionEventGate((event) => {
     this.dispatchEventNow(event);
@@ -309,10 +311,17 @@ class WebClient {
     await this.ensureReady();
 
     const interactionSession = typeof params?.session_id === 'string' ? params.session_id : 'new';
-    const research = hasResearchSession() && method === 'chat.send' && researchInteraction(interactionSession) === 'research';
+    const research = hasResearchSession() && method === 'chat.send' && (!hasLocalChat() || researchInteraction(interactionSession) === 'research');
     if (research && !hasResearchConfiguration()) {
       requestSettingsModule('agent');
       throw this.createWebError(i18n.t('researchWorkflow.setupRequired'), 'RESEARCH_NOT_CONFIGURED');
+    }
+    if (research) {
+      const runtime = await researchRequest<{ ready: boolean }>('/api/v1/workflow/runtime');
+      if (!runtime.ready) {
+        requestSettingsModule('agent');
+        throw this.createWebError(i18n.t('researchWorkflow.blocked'), 'RESEARCH_NOT_READY');
+      }
     }
     const localChat = hasLocalChat() && method === 'chat.send' && !research;
     if (localChat) {
@@ -444,6 +453,7 @@ class WebClient {
       const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
       if (!submitted?.run_id) throw new Error('Native research delivery could not be reconciled');
       selectResearchInputs(sessionId, []);
+      this.researchSubmissions.set(submitted.run_id, { sessionId, requestId: id });
       this.followResearchRun(submitted, sessionId);
       return submitted as T;
     }
@@ -459,6 +469,7 @@ class WebClient {
         payload: { session_id: sessionId, workflow: projectResearchWorkflow(status) } });
       this.dispatchEventNow({ type: 'event', event: 'chat.processing_status',
         payload: { session_id: sessionId, is_processing: status.status === 'in_progress', current_task: status.stage } });
+      if (status.status !== 'in_progress' && status.status !== 'paused') void this.finishResearchReply(status);
     };
     publish(value);
     if (this.researchPolls.has(value.run_id) || value.status !== 'in_progress') return;
@@ -476,6 +487,27 @@ class WebClient {
       if (!this.manualClose) this.researchPolls.set(value.run_id, window.setTimeout(() => { void poll(); }, 1500));
     };
     this.researchPolls.set(value.run_id, window.setTimeout(() => { void poll(); }, 0));
+  }
+
+  private async finishResearchReply(status: ResearchStatus): Promise<void> {
+    const pending = this.researchSubmissions.get(status.run_id);
+    if (!pending || this.researchReplies.has(status.run_id)) return;
+    this.researchReplies.add(status.run_id);
+    let content = i18n.t('researchWorkflow.stopped', { stage: status.stage, reasons: status.reasons.join('; ') });
+    try {
+      if (status.status === 'completed') {
+        const result = await researchRequest<{ run_id: string; report: { content: string; redacted: boolean } | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
+        if (result.run_id !== status.run_id || !result.report?.content) throw new Error('Accepted report unavailable');
+        content = result.report.redacted ? `${i18n.t('researchWorkflow.redactedReport')}\n\n${result.report.content}` : result.report.content;
+      }
+    } catch {
+      content = i18n.t('researchWorkflow.reportUnavailable');
+    }
+    this.dispatchEventNow({ type: 'event', event: 'chat.final', payload: {
+      session_id: pending.sessionId, request_id: pending.requestId, content, final_mode: 'replace_turn',
+    } });
+    this.researchSubmissions.delete(status.run_id);
+    this.researchReplies.delete(status.run_id);
   }
 
   /**

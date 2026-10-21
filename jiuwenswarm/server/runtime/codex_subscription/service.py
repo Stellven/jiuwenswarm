@@ -319,6 +319,8 @@ class SubscriptionService:
                     if _trace is not None:
                         _trace.bind_thread(run['thread'])
                     effective_model = result.get("model")
+                    if model and effective_model != model:
+                        raise CodexError('MODEL_IDENTITY_MISMATCH')
                     self.transport.listeners.add(receive)
                 result = await native_request("turn/start", {
                     "threadId": run["thread"], "input": [{"type": "text", "text": prompt}],

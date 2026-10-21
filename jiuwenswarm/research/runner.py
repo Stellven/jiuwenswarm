@@ -257,6 +257,16 @@ class CapsuleRunner:
         value={'model_selection_profile_ref':copy.deepcopy(model_selection_profile_ref),'deployment_ref':copy.deepcopy(deployment_ref),
                'router':copy.deepcopy(router),'configuration_ref':copy.deepcopy(configuration_ref),'run_limits':copy.deepcopy(run_limits),
                'routing_context':copy.deepcopy(routing_context)}
+        # The model name is protected deployment data, never a prompt parameter.
+        # Historical opaque deployment captures retain their original behavior.
+        try: deployment=json.loads(self.store.read_blob(deployment_ref))
+        except (ValueError,UnicodeError):deployment=None
+        if isinstance(deployment,dict) and deployment.get('schema')=='ai4r-fixed-subscription:1':
+            if (set(deployment)!={'schema','id','route_id','requested_model','endpoint'}
+                    or deployment['route_id']!='codex-cli-default' or deployment['requested_model']!='gpt-6.1-sol'
+                    or deployment['endpoint']!='local-protected-IPC'):
+                raise ResearchError('deployment_binding','Unsupported fixed subscription deployment')
+            value['requested_model']=deployment['requested_model']
         if prior is not None and prior!=value:raise ResearchError('frozen_context','Run authorization cannot change')
         self._run_contexts[run_id]=value
         self._run_started.setdefault(run_id,time.monotonic())
