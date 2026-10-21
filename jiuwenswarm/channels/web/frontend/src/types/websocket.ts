@@ -39,6 +39,8 @@ export interface ResearchInputSnapshot {
   uploadRefs: string[];
   selectionVersions: Record<string, number>;
   interaction: 'conversation' | 'research';
+  ownerScope?: string;
+  files?: { id: string; filename: string }[];
 }
 
 export interface WebRequestOptions {

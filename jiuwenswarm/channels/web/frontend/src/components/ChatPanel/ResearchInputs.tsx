@@ -16,6 +16,8 @@ import {
   researchWorkspace,
   selectedResearchInputs,
   selectResearchInputs,
+  rememberResearchUploads,
+  forgetResearchUpload,
   uploadResearchInput,
   type ResearchUpload,
 } from '../../utils/researchClient';
@@ -44,7 +46,10 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
     const value = await researchRequest<ResearchUpload[]>(
       `/api/v1/inputs?scope_id=${encodeURIComponent(researchWorkspace())}`,
     );
-    if (attempt === generation.current) setFiles(value.filter((item) => item.status === 'uploaded'));
+    if (attempt === generation.current) {
+      rememberResearchUploads(value, true);
+      setFiles(value.filter((item) => item.status === 'uploaded'));
+    }
   };
   useEffect(() => {
     let current = true;
@@ -210,6 +215,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
                 void perform(async () => {
                   const attempt = generation.current;
                   await researchRequest(`/api/v1/inputs/${encodeURIComponent(file.id)}`, { method: 'DELETE' });
+                  forgetResearchUpload(file.id);
                   if (attempt !== generation.current) return;
                   choose(selected.filter((id) => id !== file.id));
                   await refresh();

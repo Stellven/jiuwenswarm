@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
 CREATE TABLE IF NOT EXISTS records (
  id TEXT PRIMARY KEY REFERENCES artifacts(id), kind TEXT NOT NULL,
  run_id TEXT, node_id TEXT, attempt_id TEXT, captured_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS records_kind_id ON records(kind,id);
 CREATE TABLE IF NOT EXISTS requests (
  account_id TEXT NOT NULL, request_id TEXT NOT NULL, fingerprint TEXT NOT NULL,
  run_id TEXT NOT NULL, PRIMARY KEY(account_id,request_id));
@@ -157,6 +158,8 @@ class SQLiteRunStore:
         self.input_root.mkdir(parents=True, exist_ok=True, mode=0o700)
         self._lock = threading.RLock()
         self._fault = fault or (lambda _: None)
+        self._material_index_records = {}
+        self._material_index_sets = None
         self.connection = sqlite3.connect(self.db_path, timeout=5, isolation_level=None,
                                           check_same_thread=False)
         self.connection.row_factory = sqlite3.Row
@@ -247,12 +250,67 @@ class SQLiteRunStore:
             self.append_record('evaluation-material',{'id':'evaluation-material:'+identity,'run_id':run_id,
                 'artifact_ref':ref,'binding_ref':binding['ref'],'invalid_for_product':True})
 
+    def warm_product_material_index(self):
+        """Read immutable origin markers once before publishing readiness."""
+        self._product_material_index()
+
+    def _product_material_index(self):
+        """Refresh exact marker metadata; reopen only previously unseen bytes.
+
+        SQLite is reread on every use, including captures from other processes.
+        Verified immutable markers may accumulate restrictions, never lose them.
+        The cache is classification data only and cannot authorize acceptance.
+        """
+        kinds=('evaluation-material','calibration-material','evaluation-context-origin',
+               'evaluation-output-origin','measurement-captured-output')
+        def exact_refs(value):
+            if isinstance(value,dict):
+                if (set(value)=={'id','sha256'} and isinstance(value['id'],str) and value['id']
+                        and isinstance(value['sha256'],str) and re.fullmatch('[0-9a-f]{64}',value['sha256'])):
+                    yield value
+                else:
+                    for nested in value.values():yield from exact_refs(nested)
+            elif isinstance(value,(list,tuple)):
+                for nested in value:yield from exact_refs(nested)
+        with self._lock:
+            rows=self.connection.execute('''SELECT r.id,r.kind,a.sha256 FROM records r
+                LEFT JOIN artifacts a ON a.id=r.id WHERE r.kind IN (?,?,?,?,?)''',kinds).fetchall()
+            missing=set(self._material_index_records)
+            changed=self._material_index_sets is None
+            for row in rows:
+                identity=row['id'];pin=(row['kind'],row['sha256'])
+                cached=self._material_index_records.get(identity)
+                if cached is not None:
+                    if cached[:2]!=pin:
+                        raise ResearchError('integrity_fault','An immutable material-origin marker changed its indexed identity or kind')
+                    missing.discard(identity)
+                else:
+                    value=self.read_record({'id':identity,'sha256':row['sha256']})
+                    self._material_index_records[identity]=(*pin,value)
+                    self._material_index_sets=None
+                    changed=True
+            if missing:
+                raise ResearchError('integrity_fault','An immutable material-origin marker disappeared from the protected index')
+            if changed:
+                records=tuple(self._material_index_records.values())
+                prohibited={(value['artifact_ref']['id'],value['artifact_ref']['sha256'])
+                    for kind,_,value in records if kind=='evaluation-material'}
+                calibration={(value['artifact_ref']['id'],value['artifact_ref']['sha256'])
+                    for kind,_,value in records if kind=='calibration-material' and value.get('calibration_only') is True}
+                origins={(value['contract_ref']['id'],value['contract_ref']['sha256'])
+                    for kind,_,value in records if kind=='evaluation-context-origin' and value.get('invalid_for_product') is True}
+                for kind,_,value in records:
+                    if kind not in {'evaluation-output-origin','measurement-captured-output'}:continue
+                    contract=value.get('contract_ref')
+                    if value.get('invalid_for_product') is True or contract and (contract['id'],contract['sha256']) in origins:
+                        outputs=value.get('output_refs',value.get('artifact_ref',[]))
+                        prohibited.update((ref['id'],ref['sha256']) for ref in exact_refs(outputs))
+                self._material_index_sets=(frozenset(prohibited),frozenset(calibration),
+                    frozenset(digest for _,digest in calibration))
+            return self._material_index_sets
+
     def require_product_material(self,refs):
-        prohibited={(r['record']['artifact_ref']['id'],r['record']['artifact_ref']['sha256'])
-            for r in self.iter_records(kinds=('evaluation-material',))}
-        calibration={(r['record']['artifact_ref']['id'],r['record']['artifact_ref']['sha256'])
-            for r in self.iter_records(kinds=('calibration-material',)) if r['record'].get('calibration_only') is True}
-        calibration_hashes={digest for _,digest in calibration}
+        prohibited,calibration,calibration_hashes=self._product_material_index()
         # IF016 indexed kinds are private. The ordinary scientific
         # evaluation-verdict remains a canonical product contract.
         private_kinds={
@@ -279,13 +337,6 @@ class SQLiteRunStore:
                     or isinstance(schema,str) and schema.startswith('ai4r-evaluation-')
                     or any(private_marker(nested) for nested in value.values()))
             return isinstance(value,(list,tuple)) and any(private_marker(nested) for nested in value)
-        origins={(r['record']['contract_ref']['id'],r['record']['contract_ref']['sha256'])
-            for r in self.iter_records(kinds=('evaluation-context-origin',)) if r['record'].get('invalid_for_product') is True}
-        for row in self.iter_records(kinds=('evaluation-output-origin','measurement-captured-output')):
-            value=row['record'];contract=value.get('contract_ref')
-            if value.get('invalid_for_product') is True or contract and (contract['id'],contract['sha256']) in origins:
-                outputs=value.get('output_refs',value.get('artifact_ref',[]))
-                prohibited.update((ref['id'],ref['sha256']) for ref in exact_refs(outputs))
         queue=list(refs);seen=set()
         while queue:
             ref=queue.pop();validate('Ref',ref);identity=(ref['id'],ref['sha256'])

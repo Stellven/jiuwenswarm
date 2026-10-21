@@ -3516,6 +3516,16 @@
     "connectionClosed": "连接已关闭",
     "connectionUnavailable": "连接不可用",
     "requestTimeout": "请求超时",
+    "requestTimeoutAction": "{{action}}超时，暂时无法确认请求结果。",
+    "researchSubmitTimeout": "提交请求超时，你上传的文件已保留。",
+    "requestActions": {
+      "createConversation": "创建对话",
+      "submitResearch": "提交研究请求",
+      "receiveReply": "等待回复",
+      "attachFiles": "附加文件",
+      "loadSettings": "加载设置",
+      "request": "连接应用"
+    },
     "requestAborted": "请求已取消",
     "requestFailed": "请求失败",
     "sendMessageFailed": "发送消息失败",

@@ -121,6 +121,8 @@ export interface Message {
   audioBase64?: string;
   audioMime?: string;
   mediaItems?: MediaItem[];
+  /** Exact uploaded filenames captured for this user turn; no download or execution claim. */
+  researchAttachments?: { id: string; filename: string }[];
   fileItems?: FileDownloadItem[];
   // 工具调用相关
   toolCall?: ToolCall;

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import base64
 import copy
@@ -51,6 +52,7 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     configuration=store.read_record(configuration_ref)
     if configuration.get('operator',configuration)!=operator.snapshot():
         raise ResearchError('configuration_override','Captured configuration differs from validated operator settings')
+    await asyncio.to_thread(store.warm_product_material_index)
     registry=Registry();checks=CheckRegistry()
     catalog=json.loads(files('jiuwenswarm.research_assets').joinpath('catalog.json').read_text('utf-8'))
     from .capsules.assets import load_research_catalog

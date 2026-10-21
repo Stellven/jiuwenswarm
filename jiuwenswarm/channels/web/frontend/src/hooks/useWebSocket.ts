@@ -5,7 +5,7 @@
  */
 
 import { readOutputOrder } from '../features/sessionOutput';
-import { captureResearchInputs } from '../utils/researchClient';
+import { captureResearchInputs, consumeResearchInputs, restoreResearchInputs } from '../utils/researchClient';
 import { useCodexSubscription } from '../features/codexSubscription/state';
 import { handleTaskInputReceipt, sendQueuedTaskInput, handleSessionOutputBoundary, shouldIgnoreSessionOutput } from '../features/sessionInput';
 import { useEffect, useRef, useCallback, useState } from 'react';
@@ -1891,6 +1891,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       // Attachment-only payloads are allowed when mediaItems are present.
       // 【上传文档】-only text without any mediaItems is still blocked.
       if (!stripUploadDocumentBlocks(content).trim() && !hasMedia) return false;
+      let researchInputSnapshot: ReturnType<typeof captureResearchInputs>;
+      try {
+        researchInputSnapshot = options?.researchInputSnapshot ?? captureResearchInputs(sessionId);
+      } catch (error) {
+        onErrorRef.current?.(error instanceof Error ? error.message : t('network.sendMessageFailed'));
+        return false;
+      }
 
       const currentMode = useSessionStore.getState().getRuntime(sessionId)?.mode;
       const unsupportedEvolutionMode = unsupportedEvolutionModeMessage(content, currentMode ?? 'agent');
@@ -1952,9 +1959,11 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         role: 'user',
         content: stripUploadDocumentBlocks(content) || content.replace(/\n*【上传文档[\s\S]*$/, '').trim() || content,
         mediaItems,
+        researchAttachments: researchInputSnapshot.files,
         timestamp: new Date().toISOString(),
         ...(selectedSkillsForRequest.length > 0 ? { skills: selectedSkillsForRequest } : {}),
       });
+      consumeResearchInputs(sessionId, researchInputSnapshot);
       // 发送后清空输入栏已选技能（一次性语义）；插件/MCP 是会话期间持续启用，不在这里清
       if (selectedSkills.length > 0) {
         useSessionStore.getState().clearSelectedSkills(sessionId);
@@ -1981,8 +1990,8 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         closeActiveTeamLeaderMessages(sessionId);
         useChatStore.getState().closeReasoning(sessionId);
       }
+      let requestDispatched = false;
       try {
-        const researchInputSnapshot = options?.researchInputSnapshot ?? captureResearchInputs(sessionId);
         let outgoingContent = content.replace(/\{\{skill:([^}]+)\}\}/g, '$1');
         let outgoingMediaItems: Record<string, unknown>[] | undefined;
         let outgoingFiles: Record<string, unknown> | undefined;
@@ -2053,7 +2062,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           ...(sessionRt?.enableSwarmflow && sessionRt.swarmflowBudget != null
             ? { swarmflow_budget: sessionRt.swarmflowBudget }
             : {}),
-        }, { researchInputSnapshot });
+        }, { researchInputSnapshot, onRequestId: () => { requestDispatched = true; } });
         clearConnectionPresentationForUserAction(sessionId);
         if (sessionMetadata) {
           useSessionStore.getState().setSessionMetadata(sessionId, null);
@@ -2066,6 +2075,12 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         return true;
       } catch (error) {
         const webError = error as WebError;
+        const status = (error as { status?: number })?.status;
+        const uncertain = ['REQUEST_TIMEOUT', 'REQUEST_ABORTED', 'WS_DISCONNECTED', 'WS_CLOSED', 'WS_NOT_READY', 'WS_ERROR'];
+        if (!requestDispatched || (webError.code && !uncertain.includes(webError.code))
+            || (status !== undefined && status >= 400 && status < 500)) {
+          restoreResearchInputs(sessionId, researchInputSnapshot);
+        }
         localSendPendingRef.current.delete(sessionId);
         if (agentGroupSelectionPayload.agent_group_name) {
           clearFailedAgentGroupBinding(sessionId, agentGroupSelectionPayload.agent_group_name);

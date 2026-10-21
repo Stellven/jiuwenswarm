@@ -69,8 +69,12 @@ class ResearchService:
         # Ingest is an internal part of authenticated native submit, not another
         # public bearer operation or a model-dispatch endpoint.
         qualified_principal=Principal(principal.account_id,principal.workspace_ids,principal.operations|{'ingest'},principal.audiences)
-        return qualify_intake(self.store,qualified_principal,text,upload_refs,workspace_id=workspace,
-            **{key:protected[key] for key in ('profile_ref','workspace_ref','input_directory_ref')})
+        # Upload reads, hash verification and durable captures are blocking I/O.
+        # Keep them off the native Gateway loop so status/configuration replies
+        # and the intake acknowledgement can continue to use the connection.
+        return await asyncio.to_thread(qualify_intake,self.store,qualified_principal,text,
+            copy.deepcopy(upload_refs),workspace_id=workspace,
+            **{key:copy.deepcopy(protected[key]) for key in ('profile_ref','workspace_ref','input_directory_ref')})
 
     async def readiness(self,principal):
         principal.require('readiness')

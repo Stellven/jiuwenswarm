@@ -316,7 +316,8 @@ class WebClient {
       ? options.researchInputSnapshot ?? captureResearchInputs(interactionSession, explicitUploads)
       : undefined;
     const inputSnapshot = capturedInputs ? { ...capturedInputs,
-      uploadRefs: [...capturedInputs.uploadRefs], selectionVersions: { ...capturedInputs.selectionVersions } } : undefined;
+      uploadRefs: [...capturedInputs.uploadRefs], selectionVersions: { ...capturedInputs.selectionVersions },
+      files: capturedInputs.files?.map((file) => ({ ...file })) } : undefined;
     const uploadRefs = explicitUploads ?? inputSnapshot?.uploadRefs ?? [];
     await this.ensureReady();
 
@@ -378,7 +379,8 @@ class WebClient {
         params = { ...params, target_request_id: this.codexRequests.get(sid) };
       }
     }
-    const timeoutMs = localChat ? 250_000 : options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const timeoutMs = localChat ? 250_000 : research ? Math.max(60_000, options.timeoutMs ?? 0)
+      : options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     if (research) {
       params = { ...params, workspace_id: researchWorkspace(), upload_refs: uploadRefs };
     }
@@ -393,7 +395,15 @@ class WebClient {
     const response = await new Promise<T>((resolve, reject) => {
       const timeoutId = window.setTimeout(() => {
         this.pending.delete(id);
-        reject(this.createWebError(i18n.t('network.requestTimeout'), 'REQUEST_TIMEOUT', id, true));
+        const action = method === 'session.create' ? 'createConversation'
+          : method === 'chat.send' ? 'submitResearch'
+          : method === 'codex.chat' ? 'receiveReply'
+          : method === 'document.persist' || method === 'media.persist' ? 'attachFiles'
+          : /^(config\.|locale\.|research\.preferences\.|models\.)/.test(method) ? 'loadSettings'
+          : 'request';
+        const message = research ? i18n.t('network.researchSubmitTimeout')
+          : i18n.t('network.requestTimeoutAction', { action: i18n.t(`network.requestActions.${action}`) });
+        reject(this.createWebError(message, 'REQUEST_TIMEOUT', id, true));
       }, timeoutMs);
 
       const pending: PendingRequest = {

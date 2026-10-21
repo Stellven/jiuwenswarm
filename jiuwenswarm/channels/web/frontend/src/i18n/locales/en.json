@@ -3517,6 +3517,16 @@
     "connectionClosed": "Connection closed",
     "connectionUnavailable": "Connection unavailable",
     "requestTimeout": "Request timed out",
+    "requestTimeoutAction": "Timed out while {{action}}. The request outcome could not be confirmed.",
+    "researchSubmitTimeout": "Submitting your request timed out. Your uploaded files are retained.",
+    "requestActions": {
+      "createConversation": "creating the conversation",
+      "submitResearch": "submitting your research request",
+      "receiveReply": "waiting for the reply",
+      "attachFiles": "attaching your files",
+      "loadSettings": "loading settings",
+      "request": "contacting the app"
+    },
     "requestAborted": "Request aborted",
     "requestFailed": "Request failed",
     "sendMessageFailed": "Failed to send message",

@@ -136,6 +136,7 @@ export async function prepareResearchExample(sessionId: string): Promise<string>
   await refreshResearchRuntime();
   const example = await researchRequest<{ filename: string; request: string; guide: string; guide_ref: ResearchRef }>('/api/v1/workflow/example');
   const uploads = await researchRequest<ResearchUpload[]>(`/api/v1/inputs?scope_id=${encodeURIComponent(researchWorkspace())}`);
+  rememberResearchUploads(uploads);
   const existing = uploads.find((item) => item.status === 'uploaded' && item.kind === 'docs' && item.content_sha256 === example.guide_ref.sha256);
   const uploaded = existing ?? await uploadResearchInput('docs', new File([example.guide], example.filename, { type: 'text/markdown' }));
   if (uploaded.content_sha256 !== example.guide_ref.sha256) throw new Error('Research example upload identity differs');
@@ -228,6 +229,21 @@ export function researchRunRequest(runId: string): { sessionId: string; requestI
 const inputSelections = new Map<string, string[]>();
 const inputSelectionVersions = new Map<string, Map<string, number>>();
 let inputSelectionVersion = 0;
+const knownUploads = new Map<string, Map<string, ResearchUpload>>();
+function inputOwnerScope(): string {
+  const defaults = session()?.defaults;
+  return JSON.stringify([defaults?.account_id ?? null, defaults?.workspace_id ?? null]);
+}
+/** Display metadata only, captured from actual authenticated upload responses. */
+export function rememberResearchUploads(rows: ResearchUpload[], replace = false): void {
+  const key = inputOwnerScope();
+  const uploads = replace ? new Map<string, ResearchUpload>() : knownUploads.get(key) ?? new Map<string, ResearchUpload>();
+  for (const row of rows) uploads.set(row.id, { ...row });
+  knownUploads.set(key, uploads);
+}
+export function forgetResearchUpload(id: string): void {
+  knownUploads.get(inputOwnerScope())?.delete(id);
+}
 const inputBusy = new Set<string>();
 export function selectedResearchInputs(sessionId: string): string[] {
   if (inputBusy.has(sessionId)) throw new Error('Wait for the controlled upload to finish');
@@ -251,6 +267,11 @@ export function captureResearchInputs(
   const versions = inputSelectionVersions.get(sessionId);
   return {
     sourceSessionId: sessionId, uploadRefs,
+    ownerScope: inputOwnerScope(),
+    files: uploadRefs.flatMap((id) => {
+      const row = knownUploads.get(inputOwnerScope())?.get(id);
+      return row?.status === 'uploaded' ? [{ id, filename: row.filename }] : [];
+    }),
     selectionVersions: Object.fromEntries(uploadRefs.flatMap((id) => {
       const version = versions?.get(id);
       return version === undefined ? [] : [[id, version]];
@@ -277,6 +298,15 @@ export function migrateResearchInputs(
     if (snapshot.selectionVersions[id] !== undefined) versions.set(id, snapshot.selectionVersions[id]);
   }
   if (sessionId !== snapshot.sourceSessionId) consumeResearchInputs(snapshot.sourceSessionId, snapshot);
+}
+/** A confirmed rejection returns still-known uploads without replacing later draft choices. */
+export function restoreResearchInputs(
+  sessionId: string, snapshot: import('../types/websocket').ResearchInputSnapshot,
+): void {
+  if (snapshot.ownerScope !== inputOwnerScope()) return;
+  const uploads = knownUploads.get(inputOwnerScope());
+  const available = snapshot.uploadRefs.filter((id) => uploads?.get(id)?.status === 'uploaded');
+  selectResearchInputs(sessionId, [...(inputSelections.get(sessionId) ?? []), ...available]);
 }
 export function markResearchUpload(sessionId: string, busy: boolean): void {
   if (busy) inputBusy.add(sessionId);
@@ -307,7 +337,9 @@ export async function uploadResearchInput(kind: ResearchUpload['kind'], file: Fi
   const body = new FormData();
   body.set('scope_id', researchWorkspace());
   body.set('file', file, filename);
-  return await researchRequest<ResearchUpload>(`/api/v1/inputs/${kind}`, { method: 'POST', body });
+  const uploaded = await researchRequest<ResearchUpload>(`/api/v1/inputs/${kind}`, { method: 'POST', body });
+  rememberResearchUploads([uploaded]);
+  return uploaded;
 }
 
 export async function bootstrapResearchSession(): Promise<boolean> {

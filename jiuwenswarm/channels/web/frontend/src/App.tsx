@@ -2859,7 +2859,8 @@ function AppContent({
       useChatStore.getState().setProcessing(NEW_CONVERSATION_ID, false);
       useChatStore.getState().setThinking(NEW_CONVERSATION_ID, false);
       console.error('Failed to create application plugin conversation:', error);
-      window.alert(t('multiSession.errors.create'));
+      window.alert(error instanceof Error && 'code' in error && error.code === 'REQUEST_TIMEOUT'
+        ? error.message : t('multiSession.errors.create'));
       return null;
     } finally {
       creatingSessionRef.current = false;
@@ -3051,7 +3052,8 @@ function AppContent({
         useChatStore.getState().setThinking(NEW_CONVERSATION_ID, false);
         useChatStore.getState().setInputValue(NEW_CONVERSATION_ID, content);
         console.error('Failed to create conversation:', error);
-        window.alert(t('multiSession.errors.create'));
+        window.alert(error instanceof Error && 'code' in error && error.code === 'REQUEST_TIMEOUT'
+          ? error.message : t('multiSession.errors.create'));
       } finally {
         creatingSessionRef.current = false;
       }

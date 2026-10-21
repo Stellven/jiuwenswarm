@@ -370,6 +370,7 @@ export const MessageItem = memo(function MessageItem({
     audioBase64,
     audioMime,
     mediaItems,
+    researchAttachments,
     fileItems,
     isGoalObjectiveMessage,
     isCommandOutput,
@@ -745,7 +746,10 @@ export const MessageItem = memo(function MessageItem({
   );
   const showCopy = Boolean(isUser ? displayContent : content) && !isStreaming;
   const isPlaying = audioBase64 ? isAudioPlaying : isSpeaking;
-  const visibleMediaItems = mediaItems?.length ? mediaItems : null;
+  const attachedItems = [...(mediaItems ?? []), ...(researchAttachments ?? []).map((file) => ({
+    type: 'document' as const, filename: file.filename, mimeType: 'application/octet-stream',
+  }))];
+  const visibleMediaItems = attachedItems.length ? attachedItems : null;
   const visibleFileItems = fileItems?.length ? fileItems : null;
   const hasDisplayText = Boolean(displayContent);
   const hasBubbleContent = isUser
