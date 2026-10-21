@@ -4659,6 +4659,8 @@
     "setupRequired": "Research execution needs an initialized operator configuration and admitted Capsule library. See Settings → Agent for the current prerequisites.",
     "stopped": "Research stopped at {{stage}}. {{reasons}}",
     "incomplete": "Your request could not be completed. {{reasons}}",
+    "connectionTimeout": "Connecting to the app timed out. Check that the app is running, then try again.",
+    "runtimeTimeout": "The app's availability could not be loaded in time. Please try again.",
     "redactedReport": "Some report content was withheld by the workspace disclosure policy.",
     "reportUnavailable": "Your request finished, but its report could not be loaded. Check the connection and try again.",
     "ready": "The governed runtime is ready. Research requests use the installed Capsules and protected gates.",

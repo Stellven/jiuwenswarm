@@ -1,4 +1,6 @@
 /** Native M1 client. Authentication scopes and acceptance remain server-owned. */
+import i18n from '../i18n';
+
 export interface ResearchRef {
   id: string;
   sha256: string;
@@ -21,6 +23,29 @@ interface ResearchSession {
 const SESSION_KEY = 'ai4r.native-session';
 const BOOTSTRAP_KEY = 'ai4r.local-bootstrap';
 let bootstrapPromise: Promise<boolean> | null = null;
+const STATUS_CACHE_MS = 5_000;
+const CONNECTION_TIMEOUT_MS = 15_000;
+let runtimeRead: { identity: string; promise: Promise<ResearchRuntime> } | null = null;
+let runtimeSnapshot: { identity: string; value: ResearchRuntime; capturedAt: number } | null = null;
+
+function sessionIdentity(value: ResearchSession): string {
+  const { defaults } = value;
+  return JSON.stringify([value.token, defaults.account_id, defaults.workspace_id,
+    defaults.configuration_ref?.id, defaults.configuration_ref?.sha256]);
+}
+
+async function boundedConnection<T>(operation: (signal: AbortSignal) => Promise<T>, messageKey: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), CONNECTION_TIMEOUT_MS);
+  try {
+    return await operation(controller.signal);
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(i18n.t(messageKey));
+    throw error;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
 
 function validSession(value: unknown): value is ResearchSession {
   if (!value || typeof value !== 'object') return false;
@@ -76,15 +101,34 @@ export interface ResearchRuntime {
 }
 
 /** Refresh server-owned defaults after initialization without another login. */
-export async function refreshResearchRuntime(): Promise<ResearchRuntime> {
-  const value = await researchRequest<ResearchRuntime>('/api/v1/workflow/runtime');
+export async function refreshResearchRuntime({ force = false }: { force?: boolean } = {}): Promise<ResearchRuntime> {
   const current = session();
-  const next = current && { ...current, defaults: value.defaults };
-  if (!current || !validSession(next) || value.defaults.account_id !== current.defaults.account_id)
-    throw new Error('Research runtime belongs to another or invalid session');
-  window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
-  window.dispatchEvent(new CustomEvent('research.runtime.changed'));
-  return value;
+  if (!current) throw new Error('Native research authentication required');
+  const identity = sessionIdentity(current);
+  if (runtimeRead?.identity === identity) return runtimeRead.promise;
+  if (!force && runtimeSnapshot?.identity === identity && runtimeSnapshot.value.ready
+      && Date.now() - runtimeSnapshot.capturedAt < STATUS_CACHE_MS) return runtimeSnapshot.value;
+  const promise = (async () => {
+    const value = await boundedConnection(
+      (signal) => researchRequest<ResearchRuntime>('/api/v1/workflow/runtime', { signal }),
+      'researchWorkflow.runtimeTimeout',
+    );
+    const actual = session();
+    const next = actual && { ...actual, defaults: value.defaults };
+    if (!actual || sessionIdentity(actual) !== identity || !validSession(next)
+        || value.defaults.account_id !== actual.defaults.account_id)
+      throw new Error('Research runtime belongs to another or invalid session');
+    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    runtimeSnapshot = value.ready ? { identity: sessionIdentity(next), value, capturedAt: Date.now() } : null;
+    window.dispatchEvent(new CustomEvent('research.runtime.changed'));
+    return value;
+  })();
+  runtimeRead = { identity, promise };
+  try {
+    return await promise;
+  } finally {
+    if (runtimeRead?.promise === promise) runtimeRead = null;
+  }
 }
 
 /** Upload the real tutorial note and prefill a request; never dispatch a run. */
@@ -228,26 +272,38 @@ export async function uploadResearchInput(kind: ResearchUpload['kind'], file: Fi
 export async function bootstrapResearchSession(): Promise<boolean> {
   if (bootstrapPromise) return bootstrapPromise;
   const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const explicitChallenge = fragment.get('research_bootstrap');
+  const existing = session();
+  // Session changes and mounted controls reuse the existing grant. Only a new
+  // explicit login URL, or recovery after the grant was removed, exchanges it.
+  if (!explicitChallenge && existing) return true;
   const challenge =
-    fragment.get('research_bootstrap') || session()?.bootstrap || window.sessionStorage.getItem(BOOTSTRAP_KEY);
-  if (!challenge) return session() !== null;
+    explicitChallenge || window.sessionStorage.getItem(BOOTSTRAP_KEY);
+  if (!challenge) return false;
   bootstrapPromise = (async () => {
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    window.sessionStorage.removeItem(SESSION_KEY);
-    const response = await fetch('/auth/research/bootstrap', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challenge }),
-    });
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) window.sessionStorage.removeItem(BOOTSTRAP_KEY);
-      throw new Error('Native research authentication failed');
-    }
-    const value: unknown = await response.json();
+    const value: unknown = await boundedConnection(async (signal) => {
+      const response = await fetch('/auth/research/bootstrap', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challenge }),
+        signal,
+      });
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          window.sessionStorage.removeItem(BOOTSTRAP_KEY);
+          window.sessionStorage.removeItem(SESSION_KEY);
+          runtimeSnapshot = null;
+        }
+        throw new Error('Native research authentication failed');
+      }
+      return await response.json();
+    }, 'researchWorkflow.connectionTimeout');
     if (!validSession(value)) {
       throw new Error('Native research authentication is invalid');
     }
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    runtimeSnapshot = null;
     const reusable = (value as ResearchSession & { reusable_bootstrap?: boolean }).reusable_bootstrap === true;
     if (reusable) window.sessionStorage.setItem(BOOTSTRAP_KEY, challenge);
     else window.sessionStorage.removeItem(BOOTSTRAP_KEY);
@@ -285,7 +341,10 @@ export async function researchFetch(path: string, options: RequestInit = {}): Pr
     redirect: 'error',
   });
   if (!response.ok) {
-    if (response.status === 401) window.sessionStorage.removeItem(SESSION_KEY);
+    if (response.status === 401) {
+      window.sessionStorage.removeItem(SESSION_KEY);
+      runtimeSnapshot = null;
+    }
     const error = new Error(`Research request failed (${response.status})`) as Error & { status: number };
     error.status = response.status;
     throw error;
@@ -368,5 +427,6 @@ export async function logoutResearchSession(): Promise<void> {
     await researchRequest('/auth/research/logout', { method: 'POST' });
   } finally {
     window.sessionStorage.removeItem(SESSION_KEY);
+    runtimeSnapshot = null;
   }
 }

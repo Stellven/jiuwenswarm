@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import inspect
 import json
@@ -230,7 +231,11 @@ class NativePorts:
         if self.operator is None:raise ResearchError('unavailable','Mandatory approved operator configuration is unavailable')
         bindings=self.bindings or {};options=bindings.get('protected_options',{})
         build=bindings.get('build_id');instance=bindings.get('instance_id')
-        installed=verify_installed_build(self.build_manifest,package_root=self.installed_package_root,component_roots=self.installed_component_roots)
+        # Exact installed-file checks include filesystem reads and hashing.
+        # Keep that work off the Gateway event loop so config and chat packets
+        # remain responsive while readiness is being established.
+        installed=await asyncio.to_thread(verify_installed_build,self.build_manifest,
+            package_root=self.installed_package_root,component_roots=self.installed_component_roots)
         library_service=self.composition.library if self.composition is not None else self.inspection_library
         if library_service is None:raise ResearchError('unavailable','Protected library observation is unavailable')
         local_development=(options.get('development_builtin_catalog') is True

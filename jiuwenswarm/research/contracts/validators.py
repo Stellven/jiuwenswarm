@@ -159,13 +159,25 @@ def contract_schema(contract_id: str) -> dict:
     return copy.deepcopy(schemas[key])
 
 
+@lru_cache(maxsize=None)
+def _validator(contract_id: str) -> Draft202012Validator:
+    """Reuse a validator over private, immutable installed schema data.
+
+    Public callers still receive isolated copies from contract_schema(). The
+    internal validator neither exposes nor changes the shared schema/registry.
+    """
+    schemas, registry = _contracts()
+    return Draft202012Validator(schemas[contract_id], registry=registry)
+
+
 def validate(contract_id: str, value: Any) -> None:
     if not _finite(value):
         raise ContractError("invalid_json", "Values must be finite JSON data")
-    schema = contract_schema(contract_id)
-    _, registry = _contracts()
+    schemas, _ = _contracts()
+    if contract_id not in schemas:
+        raise ContractError("unknown_contract", f"No adopted contract {contract_id!r}")
     try:
-        errors = sorted(Draft202012Validator(schema, registry=registry).iter_errors(value),
+        errors = sorted(_validator(contract_id).iter_errors(value),
                         key=lambda e: "/".join(map(str, e.absolute_path)))
     except Exception as exc:
         raise ContractError("schema_unavailable", f"Cannot resolve adopted contract {contract_id}") from exc

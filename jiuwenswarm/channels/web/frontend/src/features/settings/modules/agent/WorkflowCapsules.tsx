@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../../components/ui';
-import { hasResearchSession, researchRequest } from '../../../../utils/researchClient';
+import { hasResearchSession, refreshResearchRuntime, type ResearchRuntime } from '../../../../utils/researchClient';
 import { SettingRow } from '../../components';
 
-interface WorkflowRuntime {
+interface WorkflowRuntime extends ResearchRuntime {
   configured: boolean;
   ready: boolean;
   plan_source: 'static' | 'planned' | null;
@@ -23,14 +23,14 @@ export function WorkflowCapsules() {
   const refresh = () => {
     setBusy(true);
     setError(false);
-    void researchRequest<WorkflowRuntime>('/api/v1/workflow/runtime')
-      .then(setRuntime).catch(() => setError(true)).finally(() => setBusy(false));
+    void refreshResearchRuntime({ force: true })
+      .then((value) => setRuntime(value as WorkflowRuntime)).catch(() => setError(true)).finally(() => setBusy(false));
   };
   useEffect(() => {
     if (!enabled) return;
     let live = true;
-    void researchRequest<WorkflowRuntime>('/api/v1/workflow/runtime')
-      .then((value) => { if (live) setRuntime(value); })
+    void refreshResearchRuntime()
+      .then((value) => { if (live) setRuntime(value as WorkflowRuntime); })
       .catch(() => { if (live) setError(true); });
     return () => { live = false; };
   }, [enabled]);
