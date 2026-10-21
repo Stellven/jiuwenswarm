@@ -644,6 +644,8 @@ class ContractFactory:
                 vtemplate={'id':'template:'+uuid.uuid4().hex,'capsule_ref':verifier[0]['declaration_ref'],
                     'admission_ref':verifier[0]['admission_ref'],'body_refs':verifier[0]['body_refs'],'ports':verifier[1]['ports'],
                     'check_bundle_ref':verifier[3]['bundle_ref'],
+                    'capsule_checking_profile_ref':verifier[3]['profile_ref'],
+                    'subject_check_bundle_ref':association['bundle_ref'],
                     'checking_profile_ref':association['profile_ref'],'role':'verifier','subnode_id':vid,'depends_on':[subnode_id],
                     'subject_subnode_id':subnode_id,'output_port':port['name'],'cc':self.verifier_pin}
                 vtref=self.store.append_record('subnode-template',vtemplate)

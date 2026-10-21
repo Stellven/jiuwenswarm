@@ -6,6 +6,7 @@ import type { SkillTreePath } from './skillTree';
 import type { BeamSearchProgress } from './beamSearch';
 import type { HeartbeatAutomationMetadata } from './heartbeat';
 import type { CrossSessionMessageMetadata } from '../utils/crossSessionMessage';
+import type { ResearchInputSnapshot } from './websocket';
 
 export type MessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
@@ -173,7 +174,8 @@ export interface Message {
 
 /** Selected queued message sent by the existing non-interrupting send button. */
 export interface ChatSendOptions {
-  queuedTaskId: string;
+  queuedTaskId?: string;
+  researchInputSnapshot?: ResearchInputSnapshot;
 }
 
 export interface MessageForkPoint {

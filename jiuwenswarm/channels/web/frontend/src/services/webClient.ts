@@ -15,9 +15,9 @@ import i18n from '../i18n';
 import { GoalRecord } from '../types/goal';
 import { createSessionEventGate } from './sessionEventGate';
 import { requestSettingsModule } from '../features/settings/settingsNavigation';
-import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, selectedResearchInputs, selectResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
+import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, captureResearchInputs, consumeResearchInputs, migrateResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
 import { projectResearchWorkflow, type ResearchStatus } from '../components/teamArea/researchWorkflow';
-import { hasResearchConfiguration, researchInteraction, selectResearchInteraction, refreshResearchRuntime, researchRunRequest } from '../utils/researchClient';
+import { hasResearchConfiguration, researchInteraction, refreshResearchRuntime, researchRunRequest } from '../utils/researchClient';
 
 type EventHandler = (event: WsEvent) => void;
 type TypedEventHandler<TPayload> = (event: WsEvent & { payload: TPayload }) => void;
@@ -309,10 +309,18 @@ class WebClient {
     params?: Record<string, unknown>,
     options: WebRequestOptions = {}
   ): Promise<T> {
+    const interactionSession = typeof params?.session_id === 'string' ? params.session_id : 'new';
+    const explicitUploads = Array.isArray(params?.upload_refs)
+      && params.upload_refs.every((value) => typeof value === 'string') ? [...params.upload_refs] as string[] : undefined;
+    const capturedInputs = method === 'chat.send' || method === 'session.create'
+      ? options.researchInputSnapshot ?? captureResearchInputs(interactionSession, explicitUploads)
+      : undefined;
+    const inputSnapshot = capturedInputs ? { ...capturedInputs,
+      uploadRefs: [...capturedInputs.uploadRefs], selectionVersions: { ...capturedInputs.selectionVersions } } : undefined;
+    const uploadRefs = explicitUploads ?? inputSnapshot?.uploadRefs ?? [];
     await this.ensureReady();
 
-    const interactionSession = typeof params?.session_id === 'string' ? params.session_id : 'new';
-    const research = hasResearchSession() && method === 'chat.send' && (!hasLocalChat() || researchInteraction(interactionSession) === 'research');
+    const research = hasResearchSession() && method === 'chat.send' && (!hasLocalChat() || (inputSnapshot?.interaction ?? researchInteraction(interactionSession)) === 'research');
     if (research) {
       const runtime = await refreshResearchRuntime();
       if (!hasResearchConfiguration()) {
@@ -332,7 +340,7 @@ class WebClient {
       }
       const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
       method = 'codex.chat';
-      params = { ...params, session_id: sessionId, upload_refs: selectedResearchInputs(sessionId), codex_model: useCodexSubscription.getState().model || undefined, capsule_id: useCodexSubscription.getState().capsule || undefined };
+      params = { ...params, session_id: sessionId, upload_refs: uploadRefs, codex_model: useCodexSubscription.getState().model || undefined, capsule_id: useCodexSubscription.getState().capsule || undefined };
     }
 
     if (hasResearchSession() && method === 'command.workflows') {
@@ -371,9 +379,8 @@ class WebClient {
       }
     }
     const timeoutMs = localChat ? 250_000 : options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-    if (hasResearchSession() && method === 'chat.send') {
-      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
-      params = { ...params, workspace_id: researchWorkspace(), upload_refs: selectedResearchInputs(sessionId) };
+    if (research) {
+      params = { ...params, workspace_id: researchWorkspace(), upload_refs: uploadRefs };
     }
     const message: WsRequest = {
       type: 'req',
@@ -427,12 +434,10 @@ class WebClient {
         reject(error);
       }
     });
-    if (hasLocalChat() && method === 'session.create') {
+    if ((hasLocalChat() || hasResearchSession()) && method === 'session.create' && inputSnapshot) {
       const created = response as { session_id?: string };
       if (created.session_id) {
-        selectResearchInteraction(created.session_id, researchInteraction('new'));
-        selectResearchInputs(created.session_id, selectedResearchInputs('new'));
-        selectResearchInputs('new', []);
+        migrateResearchInputs(created.session_id, inputSnapshot);
       }
     }
     if (localChat) {
@@ -446,16 +451,16 @@ class WebClient {
       this.dispatchEventNow({ type: 'event', event: 'chat.processing_status', payload: {
         session_id: sessionId, is_processing: false,
       } });
-      selectResearchInputs(sessionId, []);
+      if (inputSnapshot) consumeResearchInputs(sessionId, { ...inputSnapshot, uploadRefs });
       return response;
     }
-    if (hasResearchSession() && method === 'chat.send') {
+    if (research) {
       const qualified = response as { intake_ref?: ResearchRef };
       if (!qualified?.intake_ref) throw new Error('Native research intake was not qualified');
       const submitted = await submitResearchIntake(qualified.intake_ref, id) as unknown as ResearchStatus;
       const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
       if (!submitted?.run_id) throw new Error('Native research delivery could not be reconciled');
-      selectResearchInputs(sessionId, []);
+      if (inputSnapshot) consumeResearchInputs(sessionId, { ...inputSnapshot, uploadRefs });
       this.researchSubmissions.set(submitted.run_id, { sessionId, requestId: id });
       this.followResearchRun(submitted, sessionId);
       return submitted as T;
@@ -471,7 +476,7 @@ class WebClient {
       if (status.revision < (this.researchRevisions.get(status.run_id) ?? -1)) return;
       this.researchRevisions.set(status.run_id, status.revision);
       this.dispatchEventNow({ type: 'event', event: 'chat.processing_status',
-        payload: { session_id: sessionId, is_processing: status.status === 'in_progress' } });
+        payload: { session_id: sessionId, is_processing: status.status === 'in_progress', research_stage: status.stage } });
       if (status.status !== 'in_progress' && status.status !== 'paused') void this.finishResearchReply(status);
     };
     publish(value);
@@ -496,7 +501,11 @@ class WebClient {
     const pending = this.researchSubmissions.get(status.run_id);
     if (!pending || this.researchReplies.has(status.run_id)) return;
     this.researchReplies.add(status.run_id);
-    let content = i18n.t('researchWorkflow.incomplete', { reasons: status.reasons.join('; ') });
+    const needsConfigurationRepair = status.reasons.some((reason) =>
+      reason === 'check_asset_unqualified' || reason.startsWith('check_asset_unqualified:'));
+    let content = i18n.t(needsConfigurationRepair
+      ? 'researchWorkflow.configurationRepair'
+      : 'researchWorkflow.requestIncomplete');
     let hasAcceptedReport = false;
     if (status.status !== 'completed') {
       try {

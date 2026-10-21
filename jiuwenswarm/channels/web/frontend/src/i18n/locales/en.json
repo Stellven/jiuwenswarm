@@ -1,7 +1,7 @@
 {
   "codexSubscription": {
     "capsuleTitle": "Conversation style",
-    "capsuleDescription": "Optional instructions for ordinary conversation. Governed research uses the admitted workflow Capsules listed above.",
+    "capsuleDescription": "Choose how the assistant responds in ordinary conversations, such as analysing documents or preparing a research brief.",
     "capsuleGeneral": "General conversation",
     "capsuleDocument": "Document Analyst — summary, evidence and limitations",
     "capsuleBrief": "Research Brief — questions, approach and next steps",
@@ -4651,6 +4651,12 @@
     "failed": "The file operation could not complete. Check the connection and try again."
   },
   "researchWorkflow": {
+    "progress": {
+      "understanding": "Understanding your request…",
+      "sources": "Reviewing sources…",
+      "working": "Working on your request…",
+      "results": "Preparing results…"
+    },
     "title": "Research workflow and Capsules",
     "mode": "Interaction mode",
     "conversation": "Conversation",
@@ -4659,6 +4665,8 @@
     "setupRequired": "Research execution needs an initialized operator configuration and admitted Capsule library. See Settings → Agent for the current prerequisites.",
     "stopped": "Research stopped at {{stage}}. {{reasons}}",
     "incomplete": "Your request could not be completed. {{reasons}}",
+    "configurationRepair": "Research could not continue because its runtime configuration needs repair. Your uploaded documents are retained.",
+    "requestIncomplete": "The research could not be completed. Your uploaded documents are retained.",
     "connectionTimeout": "Connecting to the app timed out. Check that the app is running, then try again.",
     "runtimeTimeout": "The app's availability could not be loaded in time. Please try again.",
     "redactedReport": "Some report content was withheld by the workspace disclosure policy.",

@@ -1,4 +1,5 @@
 import { CodexSubscriptionConnection } from './features/codexSubscription/CodexSubscriptionPanel';
+import { captureResearchInputs } from './utils/researchClient';
 import { useCodexSubscription } from './features/codexSubscription/state';
 import { AssetPublishHost } from './components/AssetPublishDrawer';
 // Copyright (c) Huawei Technologies Co., Ltd. 2025-2026. All rights reserved.
@@ -2882,6 +2883,14 @@ function AppContent({
       await sendMessage(content, currentSessionId, mediaItems, options);
       return;
     }
+    let researchInputSnapshot;
+    try {
+      researchInputSnapshot = options?.researchInputSnapshot ?? captureResearchInputs(currentSessionId);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : t('network.sendMessageFailed'));
+      return;
+    }
+    const sendOptions = { ...options, researchInputSnapshot };
     if (currentSessionId === NEW_CONVERSATION_ID) {
       const persistCommand = parsePersistSessionCommand(content);
       if (persistCommand.persistSession && !persistCommand.content) {
@@ -2946,7 +2955,7 @@ function AppContent({
         if (workContext.project_dir) {
           createParams.project_dir = workContext.project_dir;
         }
-        const created = await createConversationSession(request, createParams);
+        const created = await createConversationSession(request, createParams, { researchInputSnapshot });
         const newSid = created.session_id;
         const createdSession = registerCreatedConversation(
           created.session_id,
@@ -3027,7 +3036,7 @@ function AppContent({
           queueOrAddGoalObjectiveMessage(newSid, messageContent);
           setGoalObjective(newSid, messageContent);
         } else {
-          const sent = await sendMessage(messageContent, newSid, mediaItems);
+          const sent = await sendMessage(messageContent, newSid, mediaItems, sendOptions);
           if (!sent) {
             useChatStore.getState().setInputValue(newSid, messageContent);
           }
@@ -3049,7 +3058,7 @@ function AppContent({
       return;
     }
     disposeInFlightHistoryHandles(currentSessionId);
-    const sent = await sendMessage(content, currentSessionId, mediaItems);
+    const sent = await sendMessage(content, currentSessionId, mediaItems, sendOptions);
     if (sent) {
       const sessionState = useSessionStore.getState();
       const session =

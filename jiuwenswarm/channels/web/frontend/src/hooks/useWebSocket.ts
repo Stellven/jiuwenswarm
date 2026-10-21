@@ -5,6 +5,7 @@
  */
 
 import { readOutputOrder } from '../features/sessionOutput';
+import { captureResearchInputs } from '../utils/researchClient';
 import { useCodexSubscription } from '../features/codexSubscription/state';
 import { handleTaskInputReceipt, sendQueuedTaskInput, handleSessionOutputBoundary, shouldIgnoreSessionOutput } from '../features/sessionInput';
 import { useEffect, useRef, useCallback, useState } from 'react';
@@ -1981,6 +1982,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         useChatStore.getState().closeReasoning(sessionId);
       }
       try {
+        const researchInputSnapshot = options?.researchInputSnapshot ?? captureResearchInputs(sessionId);
         let outgoingContent = content.replace(/\{\{skill:([^}]+)\}\}/g, '$1');
         let outgoingMediaItems: Record<string, unknown>[] | undefined;
         let outgoingFiles: Record<string, unknown> | undefined;
@@ -2051,7 +2053,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           ...(sessionRt?.enableSwarmflow && sessionRt.swarmflowBudget != null
             ? { swarmflow_budget: sessionRt.swarmflowBudget }
             : {}),
-        });
+        }, { researchInputSnapshot });
         clearConnectionPresentationForUserAction(sessionId);
         if (sessionMetadata) {
           useSessionStore.getState().setSessionMetadata(sessionId, null);
@@ -4415,6 +4417,9 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           flushPendingStreamDelta(sessionId);
         }
         useChatStore.getState().setProcessing(sessionId, isProcessingNow);
+        if (typeof payload.research_stage === 'string') {
+          useChatStore.getState().setResearchStage(sessionId, isProcessingNow ? payload.research_stage : null);
+        }
         const sessionPatch: Partial<Session> = {
           is_processing: isProcessingNow,
           updated_at: new Date().toISOString(),

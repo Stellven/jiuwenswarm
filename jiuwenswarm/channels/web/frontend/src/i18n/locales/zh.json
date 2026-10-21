@@ -1,7 +1,7 @@
 {
   "codexSubscription": {
-    "capsuleTitle": "????",
-    "capsuleDescription": "???????????????????????????????????",
+    "capsuleTitle": "对话风格",
+    "capsuleDescription": "选择普通对话中助手的回答方式，例如分析文档或整理研究简报。",
     "capsuleGeneral": "普通对话",
     "capsuleDocument": "文档分析 — 总结、证据与局限",
     "capsuleBrief": "研究简报 — 问题、方法与下一步",
@@ -4650,6 +4650,12 @@
     "failed": "文件操作未能完成，请检查连接后重试。"
   },
   "researchWorkflow": {
+    "progress": {
+      "understanding": "正在理解你的需求…",
+      "sources": "正在阅读参考资料…",
+      "working": "正在处理你的请求…",
+      "results": "正在整理结果…"
+    },
     "title": "研究流程与能力胶囊",
     "mode": "交互模式",
     "conversation": "对话",
@@ -4658,6 +4664,8 @@
     "setupRequired": "研究运行需要初始化配置和可执行的胶囊库。请前往设置 → 智能体查看准备情况。",
     "stopped": "研究在{{stage}}阶段停止。{{reasons}}",
     "incomplete": "未能完成你的请求。{{reasons}}",
+    "configurationRepair": "研究暂时无法继续，运行配置需要修复。你上传的文档已保留。",
+    "requestIncomplete": "本次研究未能完成，你上传的文档已保留。",
     "connectionTimeout": "连接应用超时，请确认应用正在运行后重试。",
     "runtimeTimeout": "暂时无法获取应用可用状态，请稍后重试。",
     "redactedReport": "工作区披露策略隐藏了报告的部分内容。",

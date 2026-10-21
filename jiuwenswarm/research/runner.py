@@ -604,7 +604,41 @@ class CapsuleRunner:
             or template.get('checking_profile_ref')!=contract['checking_profile_ref']
             or 'check_bundle_ref' not in template):
             raise ResearchError('check_binding','Exact prepared checking assets differ from the frozen subnode')
-        self.check_assets.require(template['check_bundle_ref'],contract['checking_profile_ref'])
+        if contract['bindings'][0]['role']!='verifier':
+            self.check_assets.require(template['check_bundle_ref'],contract['checking_profile_ref'])
+            return
+        # The verifier's own mechanical bundle/profile is a different admitted
+        # pair from the subject profile that supplies its semantic criteria.
+        own_profile=template.get('capsule_checking_profile_ref')
+        subject_bundle=template.get('subject_check_bundle_ref')
+        if own_profile is None or subject_bundle is None:
+            raise ResearchError('check_binding','Verifier template omits its own or subject checking pair')
+        validate('Ref',own_profile);validate('Ref',subject_bundle)
+        parent=self.store.read_record(contract['node_contract_ref'],contract_id='node-execution-contract')
+        subjects=[item for item in parent['subnodes'] if item['role']=='work'
+            and item['subnode_id']==template.get('subject_subnode_id')]
+        if (len(subjects)!=1 or template.get('role')!='verifier'
+                or template.get('depends_on')!=[subjects[0]['subnode_id']]):
+            raise ResearchError('check_binding','Verifier checking pair has no exact original work predecessor')
+        subject=self.store.read_record(subjects[0]['template_ref'])
+        if (subject.get('capsule_ref')!=subjects[0]['capsule_ref']
+                or subject.get('role')!='work'
+                or subject.get('check_bundle_ref')!=subject_bundle
+                or subject.get('checking_profile_ref')!=contract['checking_profile_ref']):
+            raise ResearchError('check_binding','Verifier subject checking pair differs from its frozen work predecessor')
+        for selected,bundle_ref,profile_ref in ((template,template['check_bundle_ref'],own_profile),
+                (subject,subject_bundle,contract['checking_profile_ref'])):
+            admission=self.store.read_record(selected['admission_ref'],contract_id='library-admission')
+            bundle=self.store.read_record(bundle_ref,contract_id='check-bundle')
+            profile=self.store.read_record(profile_ref,contract_id='checking-profile')
+            pins={'check_bundle_id':bundle['bundle_id'],'check_bundle_version':bundle['version'],
+                'check_bundle_sha256':bundle_ref['sha256'],'checking_profile_id':profile['profile_id'],
+                'checking_profile_version':profile['version'],'checking_profile_sha256':profile_ref['sha256']}
+            if (self.store.record_kind(selected['admission_ref'])!='library-admission'
+                    or admission['status']!='admitted' or admission['candidate_ref']!=selected['capsule_ref']
+                    or admission['check_pins']!=pins):
+                raise ResearchError('check_binding','Verifier checking pair differs from its exact original Capsule admission')
+            self.check_assets.require(bundle_ref,profile_ref)
 
     def _decode_inputs(self,contract):
         values={}

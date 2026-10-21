@@ -226,16 +226,57 @@ export function researchRunRequest(runId: string): { sessionId: string; requestI
 }
 
 const inputSelections = new Map<string, string[]>();
+const inputSelectionVersions = new Map<string, Map<string, number>>();
+let inputSelectionVersion = 0;
 const inputBusy = new Set<string>();
 export function selectedResearchInputs(sessionId: string): string[] {
   if (inputBusy.has(sessionId)) throw new Error('Wait for the controlled upload to finish');
   return [...(inputSelections.get(sessionId) ?? [])];
 }
 export function selectResearchInputs(sessionId: string, ids: string[]): void {
-  inputSelections.set(sessionId, [...new Set(ids)]);
+  const previous = inputSelectionVersions.get(sessionId);
+  const unique = [...new Set(ids)];
+  inputSelectionVersions.set(sessionId, new Map<string, number>(unique.map((id) =>
+    [id, previous?.get(id) ?? ++inputSelectionVersion])));
+  inputSelections.set(sessionId, unique);
   window.dispatchEvent?.(
     new CustomEvent('research.inputs.changed', { detail: { sessionId, ids: inputSelections.get(sessionId) } }),
   );
+}
+export function captureResearchInputs(
+  sessionId: string, explicitRefs?: string[],
+): import('../types/websocket').ResearchInputSnapshot {
+  const selected = selectedResearchInputs(sessionId);
+  const uploadRefs = explicitRefs ? [...explicitRefs] : selected;
+  const versions = inputSelectionVersions.get(sessionId);
+  return {
+    sourceSessionId: sessionId, uploadRefs,
+    selectionVersions: Object.fromEntries(uploadRefs.flatMap((id) => {
+      const version = versions?.get(id);
+      return version === undefined ? [] : [[id, version]];
+    })),
+    interaction: researchInteraction(sessionId),
+  };
+}
+/** Consume only the sent selection generation; later selections remain available. */
+export function consumeResearchInputs(
+  sessionId: string, snapshot: import('../types/websocket').ResearchInputSnapshot,
+): void {
+  const versions = inputSelectionVersions.get(sessionId);
+  selectResearchInputs(sessionId, (inputSelections.get(sessionId) ?? []).filter((id) =>
+    !snapshot.uploadRefs.includes(id) || snapshot.selectionVersions[id] === undefined
+      || versions?.get(id) !== snapshot.selectionVersions[id]));
+}
+export function migrateResearchInputs(
+  sessionId: string, snapshot: import('../types/websocket').ResearchInputSnapshot,
+): void {
+  selectResearchInteraction(sessionId, snapshot.interaction);
+  selectResearchInputs(sessionId, [...(inputSelections.get(sessionId) ?? []), ...snapshot.uploadRefs]);
+  const versions = inputSelectionVersions.get(sessionId)!;
+  for (const id of snapshot.uploadRefs) {
+    if (snapshot.selectionVersions[id] !== undefined) versions.set(id, snapshot.selectionVersions[id]);
+  }
+  if (sessionId !== snapshot.sourceSessionId) consumeResearchInputs(snapshot.sourceSessionId, snapshot);
 }
 export function markResearchUpload(sessionId: string, busy: boolean): void {
   if (busy) inputBusy.add(sessionId);

@@ -140,6 +140,8 @@ export interface ChatRuntime {
   /** The Team session's bound AgentGroup was deleted or uninstalled. */
   agentGroupUnavailable: boolean;
   isThinking: boolean;
+  /** Display-only actual research stage; never an execution or readiness decision. */
+  researchStage?: string | null;
   isLoadingHistory: boolean;
   historyPagerMeta: HistoryPagerMeta | null;
   evolutionStatus: EvolutionStatusPayload | null;
@@ -318,6 +320,7 @@ interface ChatState {
   setProcessing: (sessionId: string, status: boolean) => void;
   setActiveExecutionId: (sessionId: string, executionId: string) => void;
   setThinking: (sessionId: string, status: boolean) => void;
+  setResearchStage: (sessionId: string, stage: string | null) => void;
   setLoadingHistory: (sessionId: string, status: boolean) => void;
   setHistoryPagerMeta: (sessionId: string, meta: HistoryPagerMeta | null) => void;
   setEvolutionStatus: (sessionId: string, status: EvolutionStatusPayload | null) => void;
@@ -934,6 +937,7 @@ export const useChatStore = create<ChatState>()(subscribeWithSelector((set, get)
           [sessionId]: {
             ...runtime,
             isProcessing: status,
+            ...(!status || turnStart ? { researchStage: null } : {}),
             ...(!status ? {
               activeExecutionId: null,
               reasoningInputBoundaryPending: false,
@@ -961,6 +965,14 @@ export const useChatStore = create<ChatState>()(subscribeWithSelector((set, get)
           [sessionId]: { ...runtime, error },
         },
       };
+    });
+  },
+
+  setResearchStage: (sessionId, stage) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || runtime.researchStage === stage) return state;
+      return { runtimes: { ...state.runtimes, [sessionId]: { ...runtime, researchStage: stage } } };
     });
   },
 
