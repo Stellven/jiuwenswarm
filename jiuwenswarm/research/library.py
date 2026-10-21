@@ -52,6 +52,9 @@ class LibraryService:
         self._snapshot_cache=None
         self._inspection_cache=None
         self._verifier_pin=None
+        self._development_entries={}
+        self._development_associations={}
+        self.development_mode=False
         # Protected composition only; never populated from submit/config data.
         self.check_assets=CheckAssetAdmissions(store) if check_assets is None else check_assets
         with store.transaction() as db:
@@ -110,6 +113,8 @@ class LibraryService:
         self._record_association(declaration_ref,bundle_ref,profile_ref,actor.account_id,evidence_refs=evidence_refs)
 
     def association(self, declaration_ref: Ref) -> dict:
+        development=self._development_associations.get(declaration_ref['sha256'])
+        if development is not None:return json.loads(json_bytes(development))
         with self.store._lock:
             row = self.store.connection.execute('SELECT * FROM check_associations WHERE declaration_sha256=?', (declaration_ref['sha256'],)).fetchone()
         if not row:
@@ -126,6 +131,56 @@ class LibraryService:
         if declaration_ref['sha256'] not in self.bootstrap_pins:
             raise ResearchError('bootstrap_not_allowed', 'Bootstrap is restricted to the explicit frozen initial catalog')
         return await self.admit(declaration_ref, body_refs, actor, _bootstrap=True, **kwargs)
+
+    def select_development_builtins(self, assets, *, memory_mb):
+        """Record local execution permission, explicitly without qualification.
+
+        The overlay never changes strict Library or checking admission tables.
+        Per-request checks, independent reviewers and gates remain required.
+        """
+        if not isinstance(memory_mb,int) or isinstance(memory_mb,bool) or memory_mb<1:
+            raise ResearchError('development_builtin_binding','Positive local memory ceiling required')
+        for asset in assets:
+            declaration_ref=asset['declaration_ref'];body_refs=asset['body_refs']
+            if declaration_ref['sha256'] not in self.bootstrap_pins:
+                raise ResearchError('development_builtin_binding','Only exact installed built-ins can be selected')
+            declaration=self.store.read_record(declaration_ref,contract_id='capsule-declaration')
+            self._validate_association(declaration_ref,asset['bundle_ref'],asset['profile_ref'])
+            identity=declaration['identity']
+            for body in [*identity['body'],identity['carrier']]:
+                path=body.get('path',body.get('ref'))
+                if path not in body_refs or body_refs[path]['sha256']!=body['sha256']:
+                    raise ResearchError('development_builtin_binding','Built-in body differs from declaration')
+            for ref in body_refs.values():self.store.read_blob(ref)
+            closure=self.check_assets.closure(asset['bundle_ref'],asset['profile_ref'])
+            key=hashlib.sha256(json_bytes([declaration_ref,body_refs,closure,memory_mb])).hexdigest()
+            authorization=self.store.append_record('development-builtin-authorization',{
+                'schema':'ai4r-development-builtin-authorization:1','id':'development-builtin:'+key,
+                'authorization_basis':'user_C022','qualification_status':'not_run',
+                'declaration_ref':declaration_ref,'body_refs':body_refs,'checking_closure':closure,
+                'scope':'explicit_local_research_only',
+                'limitations':['Independent calibration and pre-admission self-tests NOT_RUN.',
+                    'Per-request deterministic checks, Capsule verifiers and gates remain required.']})
+            self.check_assets.authorize_development_builtin(asset['bundle_ref'],asset['profile_ref'],authorization)
+            self._development_associations[declaration_ref['sha256']]={
+                'bundle_ref':asset['bundle_ref'],'profile_ref':asset['profile_ref'],'evidence_refs':[authorization]}
+            bundle=self.store.read_record(asset['bundle_ref'],contract_id='check-bundle')
+            profile=self.store.read_record(asset['profile_ref'],contract_id='checking-profile')
+            pins={'check_bundle_id':bundle['bundle_id'],'check_bundle_version':bundle['version'],
+                'check_bundle_sha256':asset['bundle_ref']['sha256'],'checking_profile_id':profile['profile_id'],
+                'checking_profile_version':profile['version'],'checking_profile_sha256':asset['profile_ref']['sha256']}
+            cc={'cc_name':identity['name'],'cc_version':identity['version_label'],'declaration_sha256':declaration_ref['sha256']}
+            admission=self.store.put_record('library-admission',{
+                'schema_version':'1.0.0','id':'dev-admission:'+key[:40],'candidate_ref':declaration_ref,
+                'cc':cc,'parent_ref':None,'parent_admission_ref':None,'evidence_refs':[authorization],
+                'check_pins':pins,'memory_mb':memory_mb,'status':'admitted','standing':'active',
+                'reasons':['User C022 authorizes local built-ins; independent qualification NOT_RUN.']})
+            self._development_entries[(identity['name'],identity['version_label'])]={
+                'name':identity['name'],'version':identity['version_label'],
+                'declaration_ref':json_bytes(declaration_ref).decode(),'admission_ref':json_bytes(admission).decode(),
+                'standing':'active','effect_scope':'live_plans','body_refs':json_bytes(body_refs).decode(),
+                'origin':'development_builtin'}
+        self.development_mode=True
 
     def capture_rsi_inbox(self,path,actor: Principal,*,read_external=None)->Ref:
         """Import an exact custodian-owned package closure through a read port.
@@ -427,6 +482,8 @@ class LibraryService:
         return ref
 
     def entries(self) -> list[dict]:
+        if self.development_mode:
+            return [dict(self._development_entries[key]) for key in sorted(self._development_entries)]
         with self.store._lock:
             return [dict(r) for r in self.store.connection.execute('SELECT * FROM library_versions ORDER BY name,version')]
 

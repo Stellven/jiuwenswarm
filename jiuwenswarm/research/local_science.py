@@ -132,4 +132,7 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
         'approved_environments': approved_environments, 'execution_bindings': bindings}
     from .science_runtime import decode_science_runtime_record
     decode_science_runtime_record(value)
-    return store.put_record('science-runtime', value)
+    # The private schema is validated by the decoder above. ``science-runtime``
+    # is the protected capture kind consumed by the broker, not a public schema
+    # alias understood by put_record().
+    return store.append_record('science-runtime', value)

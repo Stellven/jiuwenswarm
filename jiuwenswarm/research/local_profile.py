@@ -19,9 +19,9 @@ from .contracts import ResearchError, validate
 from .operator_config import OperatorConfiguration
 from .state import SQLiteRunStore, json_bytes
 
-PROFILE_NAME = 'local-research-v6'
-PREVIOUS_PROFILE_NAME = 'local-research-v5'
-GOVERNANCE_PROFILE_NAME = PREVIOUS_PROFILE_NAME
+PROFILE_NAME = 'local-research-development-v1'
+PREVIOUS_PROFILE_NAME = 'local-research-v6'
+GOVERNANCE_PROFILE_NAME = 'local-research-v5'
 
 
 def _write_once(path, value):
@@ -38,7 +38,43 @@ def _write_once(path, value):
             os.fsync(stream.fileno())
 
 
-def capture_local_profile(store, directory, *, input_root=Path('/workspace/input')):
+def _profile_stages(store, profiles):
+    result={}
+    for ref in profiles:
+        value=store.read_record(ref);parts=value['id'].split(':')
+        if len(parts)<3 or parts[0]!='authored-local-catalog' or parts[1] in result:
+            raise ResearchError('local_profile_conflict','Captured calibration stage identities are invalid or ambiguous')
+        result[parts[1]]=(ref,value)
+    return result
+
+
+def _previous_calibration_requests(store, runtime_ref):
+    with store._lock:
+        exists=store.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='private_calibration_requests'").fetchone()
+        rows=store.connection.execute('SELECT * FROM private_calibration_requests').fetchall() if exists else []
+    result={}
+    for row in rows:
+        ref=json.loads(row['request_ref']);request=store.read_record(ref)
+        if request.get('runtime_ref')!=runtime_ref:continue
+        validate('urn:ai4r:private:check-calibration-request:1',request)
+        if store.record_kind(ref)!='check-calibration-request' or request['id']!=row['id']:
+            raise ResearchError('local_profile_conflict','Original calibration request identity is inconsistent')
+        item={'request_ref':ref,'state':row['state'],
+              'receipt_ref':json.loads(row['receipt_ref']) if row['receipt_ref'] else None,'containment_ref':None}
+        if item['receipt_ref'] is not None:store.read_blob(item['receipt_ref'])
+        if row['cancel_id']:
+            containment_ref=store.record_ref(row['cancel_id']);containment=store.read_record(containment_ref)
+            run_id='calibration-run:'+request['id'].split(':',1)[1]
+            if (row['state']!='cancelled' or store.record_kind(containment_ref)!='calibration-containment'
+                    or containment.get('request_ref')!=ref or containment.get('contained') is not True
+                    or containment.get('owner_ack')!={'contained':True,'run_id':run_id,'request_id':row['cancel_id']}):
+                raise ResearchError('local_profile_conflict','Original scoped cancellation acknowledgement is unavailable')
+            item['containment_ref']=containment_ref
+        result.setdefault(request['calibration_profile_ref']['sha256'],[]).append(item)
+    return result
+
+
+def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True):
     directory = Path(directory)
     if not directory.is_absolute() or directory.is_symlink() or input_root.is_symlink() or not input_root.is_dir():
         raise ResearchError('local_profile_custody', 'Local operator and input directories must be real absolute directories')
@@ -61,6 +97,9 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         return {'configuration_path': str(config_path), 'binding_path': str(binding_path), 'binding_ref': envelope['binding_ref']}
 
     previous = directory.parent / PREVIOUS_PROFILE_NAME
+    if development_builtin_catalog:
+        previous=next((directory.parent/name for name in ('local-research-v7','local-research-v6','local-research-v5')
+            if (directory.parent/name/'config.json').exists() or (directory.parent/name/'bootstrap.json').exists()),previous)
     if (previous / 'config.json').exists() or (previous / 'bootstrap.json').exists():
         # This generation changes checking bindings, not operator governance.
         # Keep every prior Ref and original file; capture only the revised
@@ -79,46 +118,56 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         installed_static = files('jiuwenswarm.research_assets').joinpath('planner/static-template.json').read_bytes()
         if store.read_blob(operator.snapshot()['cc']['static_template_ref']) != installed_static:
             raise ResearchError('local_profile_conflict', 'Checking-only refresh cannot change the captured static release')
+        if development_builtin_catalog:
+            # Explicit local development installs exact shipped builtins. It
+            # performs no calibration capture, call, PASS or strict-table edit.
+            binding=copy.deepcopy(prior)
+            binding['previous_binding_ref']=locator['binding_ref']
+            binding['binding_generation']=PROFILE_NAME
+            options=binding['protected_options']
+            for key in list(options):
+                if key.startswith('calibration_'):options.pop(key)
+            options['development_builtin_catalog']=True
+            binding_ref=store.put_blob(json_bytes(binding),media_type='application/json')
+            _write_once(config_path,operator.snapshot());_write_once(binding_path,{'binding_ref':binding_ref})
+            return {'configuration_path':str(config_path),'binding_path':str(binding_path),'binding_ref':binding_ref}
         from .catalog_calibration import capture_catalog_calibration
-        calibration = asyncio.run(capture_catalog_calibration(store,
-            configuration_ref=prior['configuration_ref'],
-            model_selection_profile_ref=prior['model_selection_profile_ref'],
-            deployment_ref=prior['deployment_ref'],
-            profile_generations={'search': 'cancelled-v5-1', 'screening': 'cancelled-v5-1'}))
-        supersessions=[]
         old_runtime=store.read_record(prior['protected_options']['calibration_runtime_ref'])
-        for stage in ('search','screening'):
-            def selected(profiles):
-                matches=[ref for ref in profiles if store.read_record(store.read_record(ref)['bundle_ref'])['target_cc_name']=='research.'+stage]
-                if len(matches)!=1:raise ResearchError('local_profile_conflict','Superseded checking profile is absent or ambiguous')
-                return matches[0]
-            old_profile=selected(old_runtime['approved_profile_refs']);new_profile=selected(calibration['profile_refs'])
-            requests=[]
+        old_profiles=_profile_stages(store,old_runtime['approved_profile_refs'])
+        generations={stage:value['id'].split(':generation:',1)[1] for stage,(_,value) in old_profiles.items()
+            if ':generation:' in value['id']}
+        history=_previous_calibration_requests(store,prior['protected_options']['calibration_runtime_ref'])
+        def capture_checking():
+            return asyncio.run(capture_catalog_calibration(store,
+                configuration_ref=prior['configuration_ref'],model_selection_profile_ref=prior['model_selection_profile_ref'],
+                deployment_ref=prior['deployment_ref'],profile_generations=generations))
+        calibration=capture_checking();current=_profile_stages(store,calibration['profile_refs']);fresh=[]
+        if set(current)!=set(old_profiles):
+            raise ResearchError('local_profile_conflict','Checking-only refresh cannot silently change the stage inventory')
+        for stage,(old_ref,_) in old_profiles.items():
+            if current[stage][0]!=old_ref:continue
+            incomplete=[item for item in history.get(old_ref['sha256'],[]) if item['state']!='completed']
             with store._lock:
-                if store.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='private_calibration_requests'").fetchone():
-                    rows=store.connection.execute('SELECT * FROM private_calibration_requests').fetchall()
-                else:rows=[]
-            for row in rows:
-                request_ref=json.loads(row['request_ref']);request=store.read_record(request_ref)
-                if (request.get('calibration_profile_ref')!=old_profile
-                        or request.get('runtime_ref')!=prior['protected_options']['calibration_runtime_ref']):continue
-                if row['state']!='cancelled' or not row['cancel_id']:
-                    raise ResearchError('local_profile_conflict','Superseded issued calibration lacks confirmed scoped cancellation')
-                containment_ref=store.record_ref(row['cancel_id']);containment=store.read_record(containment_ref)
-                run_id='calibration-run:'+request['id'].split(':',1)[1]
-                if (store.record_kind(containment_ref)!='calibration-containment'
-                        or containment.get('request_ref')!=request_ref or containment.get('contained') is not True
-                        or containment.get('owner_ack')!={'contained':True,'run_id':run_id,'request_id':row['cancel_id']}):
-                    raise ResearchError('local_profile_conflict','Original scoped cancellation acknowledgement is unavailable')
-                requests.append({'request_ref':request_ref,'containment_ref':containment_ref})
-            supersessions.append({'stage':stage,'previous_profile_ref':old_profile,'profile_ref':new_profile,
-                'previous_requests':requests,'reason':'Explicit operator-authorized new calibration generation; prior issued attempts remain immutable and are never replayed'})
+                issued=store.connection.execute('SELECT 1 FROM calibration_attempts WHERE profile_sha=? LIMIT 1',
+                    (old_ref['sha256'],)).fetchone() if incomplete else None
+            if not issued:continue
+            if any(item['state']!='cancelled' or item['containment_ref'] is None for item in incomplete):
+                raise ResearchError('local_profile_conflict','An unchanged issued profile requires confirmed scoped containment before supersession')
+            generations[stage]='superseded-'+PREVIOUS_PROFILE_NAME+'-to-'+PROFILE_NAME
+            fresh.append(stage)
+        if fresh:
+            calibration=capture_checking();current=_profile_stages(store,calibration['profile_refs'])
+        supersessions=[{'stage':stage,'previous_profile_ref':old_ref,'profile_ref':current[stage][0],
+            'previous_requests':history.get(old_ref['sha256'],[]),
+            'reason':('Explicit fresh calibration identity after contained incomplete issued work; original claims are retained'
+                if stage in fresh else 'Authored checking contract or fixture changed; original outcomes remain unchanged')}
+            for stage,(old_ref,_) in old_profiles.items() if old_ref!=current[stage][0]]
         binding = copy.deepcopy(prior)
         binding['previous_binding_ref'] = locator['binding_ref']
         binding['binding_generation'] = PROFILE_NAME
         binding['protected_options'].update(calibration_runtime_ref=calibration['runtime_ref'],
             calibration_profile_refs=calibration['profile_refs'], calibration_limitations=calibration['limitations'],
-            calibration_supersessions=supersessions)
+            calibration_supersessions=supersessions,calibration_profile_generations=generations)
         binding_ref = store.put_blob(json_bytes(binding), media_type='application/json')
         _write_once(config_path, operator.snapshot())
         _write_once(binding_path, {'binding_ref': binding_ref})
@@ -155,9 +204,11 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
     from .local_science import capture_local_science_resources
     science = capture_local_science_resources(store)
     inventory = science['resource_inventory_ref']
-    from .catalog_calibration import capture_catalog_calibration
-    calibration = asyncio.run(capture_catalog_calibration(store, configuration_ref=configuration,
-        model_selection_profile_ref=selection, deployment_ref=deployment))
+    calibration=None
+    if not development_builtin_catalog:
+        from .catalog_calibration import capture_catalog_calibration
+        calibration=asyncio.run(capture_catalog_calibration(store,configuration_ref=configuration,
+            model_selection_profile_ref=selection,deployment_ref=deployment))
     bounds = capture('search-bounds', {'id': GOVERNANCE_PROFILE_NAME + '.search', 'connectors': ['local_documents'], 'max_queries': 3, 'max_hits_per_query': 3})
     # The source-owned Search bound has its own closed shape.
     bounds_value = store.read_record(bounds)
@@ -176,9 +227,10 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'run_inputs': science['run_inputs'], 'host_records': science['host_records'],
         'local_example_ref': science['local_example_ref'],
         'local_science_resources_ref': store.put_blob(json_bytes(science), media_type='application/json'),
-        'calibration_runtime_ref': calibration['runtime_ref'],
-        'calibration_profile_refs': calibration['profile_refs'],
-        'calibration_limitations': calibration['limitations']}
+        'development_builtin_catalog':development_builtin_catalog}
+    if calibration is not None:
+        options.update(calibration_runtime_ref=calibration['runtime_ref'],
+            calibration_profile_refs=calibration['profile_refs'],calibration_limitations=calibration['limitations'])
     binding = store.put_blob(json_bytes({'workspace_id': 'local', 'host_id': 'local', 'configuration_ref': configuration,
         'model_selection_profile_ref': selection, 'deployment_ref': deployment, 'protected_options': options}), media_type='application/json')
     _write_once(config_path, operator)

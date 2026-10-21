@@ -1,7 +1,9 @@
 # Feature Specification: M1-SYSTEM - Complete integrated M1 verification
+
+> M1-C022 / 2026-10-21: Build the connected local-development workflow first. Do not run audits, tests, experiments, model-based qualification batches or further fixture-quality work for this delivery. Explicit operator authorization of exact shipped built-ins is separate from independent qualification (`qualification_status=NOT_RUN`); runtime deterministic checks, declaration/output-only Capsule verifiers, mechanical assessment checks and committed gates remain mandatory. Earlier results and strict-mode requirements are preserved.
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r4 / 2026-10-16
+**Revision / date**: r5 / 2026-10-21
 **Feature Branch**: ai4r_M1
 **Input**: [Source baseline](../source-baseline.json); supplied PRD §§1, 2, 6 and their references to mandatory stage exits; supplied architecture 3-build-plan.md, method/phases.md, method/clause-coverage.md and nonblocking criteria; invoked prompt Final Verification; QA implementation prompt. Approved amendments M1-C001/C002 are embedded in TASK/TASKS.
 **Status**: Specified; no integrated candidate has passed
@@ -127,3 +129,9 @@ Current authority/allocation: TASKS/TASK C019. Existing AC identities remain; ad
 ## M1-C020 declaration/output-only verification
 
 AC-C020-01: Semantic assessor payload has exactly subject_declaration and subject_output. Neither fixed instructions nor payload may contain separately supplied user/upstream input contents, producer history, runtime/policy/manifests, or resolved contents of output-carried references. Exact output content remains unchanged. AC-C020-02: Declaration/output criteria assess semantic/structural conformance and coherence; host-only identity/source/runtime checks and protected gates remain enforced. Input-aware comparison is deferred and not a fallback.
+
+### C022 current delivery boundary
+
+The current user requires a functional connected local-development build before any further agent-run audit/test/experiment/qualification campaign. Consume owning M1-IF-014 r3: exact shipped built-ins can be explicitly authorized locally with qualification_status NOT_RUN, while normal strict independent qualification remains separate. All actual user-run deterministic checks, declaration/output-only Capsule verifiers, mechanical assessment checks and protected gates remain required functional behavior.
+
+Existing system ACs and their identities are preserved. A produced image or local operator permission satisfies no unexecuted system/scientific/security/hardware assertion. Current skipped qualification and verification procedures remain NOT_RUN under C022, with historical failed/blocked/cancelled and genuine qualified records retained. Keep the four benchmark cases implemented; no additional case execution is authorized by this amendment.

@@ -108,6 +108,13 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
         memory_ceiling=policy['aggregate_limits']['memory_mb']
         from .capsules.assets import build_research_assets,register_research_capsules
         assets=build_research_assets(store)
+        if options.get('development_builtin_catalog') is True:
+            import os
+            if finite is not None or os.environ.get('JIUWENSWARM_M1_LOCAL_RESEARCH')!='1':
+                raise ResearchError('development_builtin_binding','Development built-ins require explicit local research startup')
+            from .compiler import prepare_compiler_assets
+            compiler_assets=await prepare_compiler_assets(store)
+            library.select_development_builtins([*compiler_assets.values(),*assets.values()],memory_mb=memory_ceiling)
         if finite is None:
             result.installed=await register_compiler_capsules(registry,checks,library,store,actor,activate=initialize,initialize=initialize,memory_mb=memory_ceiling)
         else:

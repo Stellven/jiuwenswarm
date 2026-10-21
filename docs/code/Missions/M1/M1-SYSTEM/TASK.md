@@ -1,11 +1,13 @@
 # TASK: M1-SYSTEM - Complete integrated M1 verification
 
+> M1-C022 / 2026-10-21: Build the connected local-development workflow first. Do not run audits, tests, experiments, model-based qualification batches or further fixture-quality work for this delivery. Explicit operator authorization of exact shipped built-ins is separate from independent qualification (`qualification_status=NOT_RUN`); runtime deterministic checks, declaration/output-only Capsule verifiers, mechanical assessment checks and committed gates remain mandatory. Earlier results and strict-mode requirements are preserved.
+
 > M1-C010 / 2026-10-20: The user explicitly instructed: "IN REMAINING TIME, FOCUS ON DEVELOPING ACTUAL FUNCTIONS" and "FOR BENCHMARKING/VERIFICATION, JUST MAKE SURE 4 benchmark test cases is still IMPLEMENTED, OTHERS, SKIP". Current delivery prioritizes actual functionality and retains the four executable benchmark case implementations (Capability Capsules, Evaluator/Verifier, Model Routing and RSI). Other new benchmark/verification campaigns are user-directed SKIP, recorded as NOT_RUN with this reason; no further execution is required for this delivery. Necessary syntax compilation and builds may produce usable code/artifacts. Preserve all historical outcomes and unmet product obligations; skipped, partial and stale checks are never PASS or a claim of verified full-M1 acceptance. This explicit current instruction overrides earlier required-execution directions only for the delivery verification scope. The six-hour deadline is 2026-10-20T19:53:52Z; reserve the last30minutes for integration status and a resumable checkpoint.
 
 ## 1. Identity
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-SYSTEM / r7 / 2026-10-20 |
+| TASK ID / revision / date | M1-SYSTEM / r8 / 2026-10-21 |
 | Parent TASKS | [M1 register](../TASKS.md) |
 | Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
 | Requested outcome and instruction/source | One identified integrated candidate: complete Phase 1 journeys/ten verifier cases, security/persistence, side-system nonblocking tests; separate Phase 2/3 and QA outcomes; [invoked user prompt](../source/Code/prompt.txt) |
@@ -18,9 +20,9 @@
 | Artifact | Exact path | Authority |
 | --- | --- | --- |
 | Feature directory | docs/code/Missions/M1/M1-SYSTEM/ | One directory for this TASK |
-| spec.md | [spec.md](spec.md) | r4; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
-| plan.md | [plan.md](plan.md) | r5; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
-| tasks.md | [tasks.md](tasks.md) | r5; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
+| spec.md | [spec.md](spec.md) | r5; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
+| plan.md | [plan.md](plan.md) | r6; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
+| tasks.md | [tasks.md](tasks.md) | r6; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
 | evidence/ | evidence/ | Actual runs only; no runtime acceptance from registration |
 | Supporting artifacts | [Program source baseline](../source-baseline.json) | Source identity; subordinate to registered authorities |
 
@@ -76,3 +78,9 @@ M1-C020 / 2026-10-21: Explicit user decision: semantic verification uses only pi
 ### M1-C021 assigned-source functional delivery
 
 M1-C021 / 2026-10-21: The user explicitly selects docs/code/Missions/M1/source/Architecture_Design for completing the entire user journey in the one existing app chat, and explicitly requests subagents for acceleration. This assignment supersedes C019's package selection for this work; frozen inputs remain unmodified and explicit authorized C001-C020 decisions remain in force, especially GPT-6.1 Sol and declaration/output-only semantic assessor inputs. Continue existing C019 AC/work identities and owner TASKs; no parallel feature or standalone report. Exact source clarification: reference/node-execution.md fixes one work group per research node, while reference/run-plan.md fixes separate Builder/Benchmark nodes; POC is the task grouping, not a newly invented enclosing parent. Existing per-node gates and predecessor commits must actually control execution. Local functional development may use an immutable tool-free Builder release (bounded file-text model output, trusted mechanical packaging; no generated tools or exposed credentials) and an explicitly CPU-compatible local Benchmark release/profile; old tool-using/GPU-required releases remain pinned and native GB10/ARM64 qualification remains unaccepted. This is no permission to fabricate a measurement, admission, host observation or qualification. Independently preregistered guard calibration and actual model provenance remain required. A versioned private static calibration fixture can carry authored input/output case bytes without claiming a product invocation; its limitations and unexercised physical predicates remain explicit. Owners: 001 scientific/local startup and model, 002 activation/calibration/binder/scheduling, 003 compiler, 004 research CCs, 005 frozen routing, 006 native chat, SYSTEM final actual user journey. Avoid broad test campaigns and large D-drive artifacts.
+
+### M1-C022 build-only system consumer
+
+Consume M1-002's M1-IF-014 additive r3 without duplicating its record schema. Explicit local-development operator permission for exact shipped built-ins is distinct from independent qualification and carries qualification_status NOT_RUN. It may remove the startup calibration batch prerequisite for that opted-in development mode; it does not establish full-system, security, scientific or hardware acceptance. Runtime deterministic checks, declaration/output-only Capsule verifiers, mechanical checks and committed gates stay in the functional workflow.
+
+For this delivery do not execute verification matrices, audits, tests, experiments, model qualification or fixture campaigns. Build the connected product first with necessary syntax/build steps only; keep all four benchmark cases implemented. Retain the system procedures and historical failures/qualifications for later explicitly authorized work, with current unexecuted status NOT_RUN. No unchecked acceptance or prior failed evidence becomes PASS because a local user is permitted to run the product.

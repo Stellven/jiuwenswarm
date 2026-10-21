@@ -1,7 +1,9 @@
 # Feature Specification: M1-002 - Protected research governance and evidence
+
+> M1-C022 / 2026-10-21: Build the connected local-development workflow first. Do not run audits, tests, experiments, model-based qualification batches or further fixture-quality work for this delivery. Explicit operator authorization of exact shipped built-ins is separate from independent qualification (`qualification_status=NOT_RUN`); runtime deterministic checks, declaration/output-only Capsule verifiers, mechanical assessment checks and committed gates remain mandatory. Earlier results and strict-mode requirements are preserved.
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r17 / 2026-10-20
+**Revision / date**: r18 / 2026-10-21
 **Feature Branch**: ai4r_M1
 **Input**: [Exact source baseline](../source-baseline.json); docs/code/Missions/M1/TASKS.md sections 2, 3, 4, 6; docs/code/Missions/M1/M1-002/TASK.md; source/PRD/PRD_Oct_15.md sections 4.1, 4.1.1-4.1.5; 4.2, 4.2.1-4.2.10; 4.5, 4.5.1-4.5.5; 4.6, 4.6.1-4.6.5; TASK supporting section 6.4; source/Architecture_Design/1-system.md; 2-capability-capsules.md; checking/README.md; reference/declaration.md; reference/run-plan.md; reference/checking.md; reference/node-execution.md; reference/capsules/verifier.md; reference/derived-records.md; reference/import-boundary.md; platform/failure-and-recovery.md. Architecture references mean only the assigned source/Architecture_Design snapshot.
 **Status**: Specified; formal Clarify source resolutions and reviewed Plan/Tasks artifacts recorded; no runtime result implied
@@ -162,3 +164,9 @@ Existing AC004/005/006/009/011/013 require IF003r3/IF016r2 original whole-attemp
 ### M1-I033 acceptance precision for existing frozen-resource ACs
 
 Existing FR003/004/005/009/011/013 and AC004/005/006/009/011/013 retain their exact source outcomes while consuming IF001r3. A valid ordinary run-input capture remains pinned as the actual frozen inventory through Binder/Scheduler/Runner; classification may not substitute the startup base or relax equality. Only the actual001 installed resolver can turn the unique original004 base/current proof into matching native registration, with unchanged scientific resource/permission/limit/policy/body/factory/operation closure. The core reader is finite read-only evidence, not authority. Private use joins its original canonical run and approved assignment union, without capture, canonical masquerade or new grant. Missing/mismatched/ambiguous originals fail before worker/start/effect. No FR/AC/IF003/IF016 or public/source field is added. Existing base-only paths and historical outcomes remain; new runtime checks are NOT_RUN (M1-C010).
+
+### C022 local-development requirement amendment
+
+Under owning M1-IF-014 r3, the protected operator can explicitly select a local-development mode that starts the complete shipped built-in workflow without first running a model-based calibration/qualification batch. This authorization is pinned to exact installed declarations, bodies/helpers, deterministic bundles and checking profiles; altered or arbitrary Capsules do not qualify for the path. Its qualification_status is NOT_RUN. Permission to execute and independently established quality/qualification are distinct facts. This exception applies only to the opted-in local built-ins; original strict qualification requirements and their evidence remain intact.
+
+Existing AC002/005/006/009/013 continue to require truthful identities, complete runtime deterministic checks, independent declaration/output-only Capsule review, mechanical assessment validation and protected gates. Local authorization cannot fabricate a passing measurement, suppress a verifier or release an uncommitted output. A functional build with skipped initialization/tests/experiments is not a claim that these ACs or full M1 passed. The four benchmark cases stay implemented; new agent-run campaigns are NOT_RUN under C022. No existing AC/FR identity or historical outcome is removed.

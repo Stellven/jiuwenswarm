@@ -1,6 +1,8 @@
 # Implementation Plan: M1-SYSTEM - Complete integrated M1 verification
-**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r4](spec.md)
-**Revision / date**: r5 / 2026-10-19 | **Branch**: ai4r_M1
+
+> M1-C022 / 2026-10-21: Build the connected local-development workflow first. Do not run audits, tests, experiments, model-based qualification batches or further fixture-quality work for this delivery. Explicit operator authorization of exact shipped built-ins is separate from independent qualification (`qualification_status=NOT_RUN`); runtime deterministic checks, declaration/output-only Capsule verifiers, mechanical assessment checks and committed gates remain mandatory. Earlier results and strict-mode requirements are preserved.
+**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r5](spec.md)
+**Revision / date**: r6 / 2026-10-21 | **Branch**: ai4r_M1
 **Input sources**: [Exact receipts](../source-baseline.json); supplied PRD §§1,2,4.2.9,6; supplied Architecture_Design/3-build-plan.md, method/phases.md, platform/README.md, platform/failure-and-recovery.md, reference/import-boundary.md; all three QA documents; M1-C001/C002.
 
 ## Summary
@@ -112,3 +114,9 @@ No second engine, silent static fallback, fake eligibility, synthetic scientific
 ## M1-C020 declaration/output-only verification
 
 B-C020-01: Restore the existing two-port VerifierBindings and two-key SemanticVerifier payload; remove the uncompleted review_evidence expansion without touching unrelated C019 work. Preserve static pinned profiles/instructions, mechanical assessment and gate bindings. B-C020-02: Verify this disclosure boundary with a focused read-denying store/payload check, including an output-carried input Ref that must not be dereferenced. This is transport/authority evidence, not measured model quality or full POC acceptance.
+
+### C022 build-first execution override
+
+Current execution is construction and production-image build, with necessary syntax compilation only. Do not run the verification-design commands, audits/tests/experiments, independent initialization/qualification batches or further fixture work in this delivery. This supersedes earlier C021 execution directions without deleting procedures, changing their expected outcomes or improving historical statuses.
+
+Consume IF014 r3's exact shipped-pin local-development authorization and report qualification_status NOT_RUN independently of permission/standing. The runtime functional path retains its managed model, deterministic predicates, declaration/output-only semantic review, mechanical validation and committed gates. No startup model-qualification campaign is required for the explicitly opted-in local build, but this produces no independent checking, confinement, hardware, scientific or complete-M1 PASS. Root owns implementation/build; record only actual candidate/build facts and preserved limitations in tasks.md.

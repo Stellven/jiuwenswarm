@@ -35,7 +35,7 @@ def build_research_assets(store, *, verify_catalog=True):
     runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.stages', 'files': checker_closure}), media_type='application/json')
     base_instructions = resources.joinpath('verifier_implementation.txt').read_bytes()
     from ..checks.schema_context import frozen_output_instructions
-    generic = [('declared_output_conformance', 'Does the output contain what the declaration says this CC produces, in the declared shape and ports?'),
+    generic = [('declared_output_conformance', 'Does this exact reviewed output conform to its corresponding declared output port and shape, without requiring sibling output ports in this single-output subject?'),
                ('internal_consistency', 'Does the output avoid contradicting itself, for example a field that disagrees with another field in the same output?'),
                ('limitations_consistency', 'Are the limitations and uncertainties the output states consistent with the output content and with the declaration\'s stated limits?')]
     result = {}
@@ -104,8 +104,8 @@ def build_research_assets(store, *, verify_catalog=True):
                   'target_cc_version_range': identity['version_label'] + '.x' if stage == 'screening' else identity['version_label'],
                   'checks': checks, 'owner_role': 'verifier_owner'}
         instruction_ref = store.put_blob(frozen_output_instructions(base_instructions, declaration), media_type='text/plain')
-        profile = {'schema_version': '1.0.0', 'id': identity['name'] + '.profile:' + identity['version_label'] + '.schema_context_2', 'profile_id': identity['name'] + '.profile',
-                   'version': '1.1.0', 'target_cc_name': identity['name'],
+        profile = {'schema_version': '1.0.0', 'id': identity['name'] + '.profile:' + identity['version_label'] + '.response_contract_3', 'profile_id': identity['name'] + '.profile',
+                   'version': '1.2.0', 'target_cc_name': identity['name'],
                    'target_cc_version_range': identity['version_label'] + '.x' if stage == 'screening' else identity['version_label'],
                    'criteria': criteria, 'instruction_ref': instruction_ref, 'model_call_limit': 1, 'time_s': 180, 'owner_role': 'verifier_owner'}
         # The binder still derives mandatory checks independently. These producer

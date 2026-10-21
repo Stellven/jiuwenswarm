@@ -127,6 +127,9 @@ async def initialize_profile(*, calibrate=False, concurrency=2):
         executor=ExecutorClient(PrivateRPCClient('/run/ai4r-executor/executor.sock',protocol=PROTOCOL,
             peer_uid=0,socket_mode=0o660,**session))
         options=bindings['protected_options'];calibration_results=[]
+        development=options.get('development_builtin_catalog') is True
+        if development and calibrate:
+            raise ResearchError('initialization_blocked','Local development builtins are explicitly unqualified; use separate strict bindings for calibration')
         if calibrate:
             # The explicit operator action uses the same immutable profiles and
             # live owned model port that AgentServer registered at startup.
@@ -202,12 +205,14 @@ async def initialize_profile(*, calibrate=False, concurrency=2):
         record={'id':'catalog-init:'+uuid.uuid4().hex,'recorded_at':utc_now(),'binding_ref':envelope['binding_ref'],
             'configuration_ref':bindings['configuration_ref'],'actor':{'account_id':account,'os_uid':uid,'os_gid':gid,'operator_id':actor.account_id},
             'status':'blocked' if composition.diagnostics else 'initialized','runtime_ready':False,
+            'qualification_status':'not_run' if development else 'strict_checking_eligibility_required',
             'library_snapshot_ref':library_ref,'static_template_ref':composition.static_template_ref,
             'admission_refs':[row['admission_ref'] for row in composition.installed.values() if 'admission_ref' in row]+[
                 ref for diagnostic in composition.diagnostics for ref in diagnostic.get('evidence_refs',[])],
             'diagnostics':composition.diagnostics,
             'calibration_results':calibration_results,'science_runtime_ref':science_ref,
-            'limitations':['Explicit fixed-catalog installation only; runtime credentials, confinement, scientific resources and required verification remain separately qualified']}
+            'limitations':(['Local development builtins selected; model-based qualification is NOT_RUN and no qualification PASS is claimed; per-request verifiers and gates remain active']
+                if development else ['Explicit fixed-catalog installation only; runtime credentials, confinement, scientific resources and required verification remain separately qualified'])}
         receipt=store.append_record('catalog-initialization',record)
         return {**record,'receipt_ref':receipt}
     finally:

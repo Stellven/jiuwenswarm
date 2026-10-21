@@ -88,6 +88,8 @@ async def runtime_snapshot(channel, principal):
     captured = getattr(core, 'runner', None)
     configuration = getattr(channel, 'research_refusal_reason', None) is None and captured is not None
     return {'schema': 'ai4r-workflow-runtime:1', 'configured': configuration,
+            'development_mode':core is not None and core.library.development_mode,
+            'qualification_status':'not_run' if core is not None and core.library.development_mode else 'governed',
             'ready': readiness is not None and readiness['ready'] is True,
             'plan_source': defaults.get('plan_source') or getattr(service, 'captured_plan_source', None), 'capsules': capsules,
             'diagnostics': diagnostics, 'prerequisites': prerequisites, 'defaults': defaults,

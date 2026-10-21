@@ -259,6 +259,24 @@ async def capture_catalog_calibration(store, *, configuration_ref, model_selecti
             outputs = {'plan_proposal': planner_fixture(store, corpus, inputs)} if stage == 'planner' else (
                 delivery_fixture(store, corpus, inputs) if stage == 'delivery' else {
                 port: corpus.capture(filename) for port, filename in OUTPUTS[stage].items()})
+        if stage == 'benchmark' and store.read_record(asset['declaration_ref'])['identity']['version_label'] == 'm1-2-localcpu':
+            # This release promises CPU-only output. Derive its own authored
+            # specimen without changing the shared corpus or any other stage's
+            # case identities. It is still calibration-only, never an observed
+            # hardware receipt or positive physical-execution qualification.
+            receipt = copy.deepcopy(store.read_record(outputs['execution_receipt']))
+            hardware = receipt['hardware_inventory']
+            hardware.update(hardware_id='hw:calibration-cpu-example', gpu_model=None, gpu_count=0,
+                gpu_memory_mb=None, driver_version=None, cuda_version=None,
+                cpu_model='Authored calibration CPU example; not observed hardware')
+            for run in receipt['runs']:
+                run['hardware_ref'] = hardware['hardware_id']
+            validate('execution-receipt', receipt)
+            outputs['execution_receipt'] = corpus.record(receipt)
+            payload = copy.deepcopy(store.read_record(outputs['benchmark_payload']))
+            payload['execution_receipt_ref'] = outputs['execution_receipt']
+            validate('benchmark-payload', payload)
+            outputs['benchmark_payload'] = corpus.record(payload)
         bundle = store.read_record(asset['bundle_ref'], contract_id='check-bundle')
         checking = store.read_record(asset['profile_ref'], contract_id='checking-profile')
         declaration = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')

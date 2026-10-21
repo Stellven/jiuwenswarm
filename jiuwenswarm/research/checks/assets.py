@@ -26,6 +26,7 @@ class CheckAssetAdmissions:
         self.store = store
         self._runners = {}
         self._validated_profiles = {}
+        self._development_authorizations = {}
         with store.transaction() as db:
             db.execute('''CREATE TABLE IF NOT EXISTS calibration_profiles (
                 profile_sha TEXT PRIMARY KEY, profile_ref TEXT NOT NULL, registration_ref TEXT NOT NULL,
@@ -46,6 +47,17 @@ class CheckAssetAdmissions:
         return {'bundle_ref': dict(bundle_ref), 'profile_ref': dict(profile_ref),
                 'runner_refs': [runners[key] for key in sorted(runners)],
                 'instruction_ref': dict(profile['instruction_ref'])}
+
+    def authorize_development_builtin(self, bundle_ref, profile_ref, authorization_ref):
+        """Select shipped guards locally without claiming independent calibration."""
+        authorization=self.store.read_record(authorization_ref)
+        closure=self.closure(bundle_ref,profile_ref)
+        if (self.store.record_kind(authorization_ref)!='development-builtin-authorization'
+                or authorization.get('qualification_status')!='not_run'
+                or authorization.get('authorization_basis')!='user_C022'
+                or authorization.get('checking_closure')!=closure):
+            raise ResearchError('development_builtin_binding','Development authorization differs from shipped guards')
+        self._development_authorizations[json_bytes([bundle_ref,profile_ref])]=(closure,authorization_ref)
 
     def register_runner(self, implementation_ref, evaluate):
         """Protected composition seam, analogous to the installed CC registry.
@@ -422,6 +434,15 @@ class CheckAssetAdmissions:
             commit(db)
 
     def require(self, bundle_ref, profile_ref):
+        development=self._development_authorizations.get(json_bytes([bundle_ref,profile_ref]))
+        if development is not None:
+            closure,authorization_ref=development
+            authorization=self.store.read_record(authorization_ref)
+            if (self.closure(bundle_ref,profile_ref)!=closure
+                    or authorization.get('checking_closure')!=closure
+                    or authorization.get('qualification_status')!='not_run'):
+                raise ResearchError('development_builtin_binding','Selected development checking bytes changed')
+            return (authorization_ref,)
         import hashlib
         closure = self.closure(bundle_ref, profile_ref); closure_sha = hashlib.sha256(json_bytes(closure)).hexdigest()
         with self.store._lock:

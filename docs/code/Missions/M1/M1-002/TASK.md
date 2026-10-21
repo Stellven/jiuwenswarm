@@ -1,9 +1,11 @@
 # TASK: M1-002 - Protected research governance and evidence
 
+> M1-C022 / 2026-10-21: Build the connected local-development workflow first. Do not run audits, tests, experiments, model-based qualification batches or further fixture-quality work for this delivery. Explicit operator authorization of exact shipped built-ins is separate from independent qualification (`qualification_status=NOT_RUN`); runtime deterministic checks, declaration/output-only Capsule verifiers, mechanical assessment checks and committed gates remain mandatory. Earlier results and strict-mode requirements are preserved.
+
 ## 1. Identity
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-002 / r26 / 2026-10-20 |
+| TASK ID / revision / date | M1-002 / r27 / 2026-10-21 |
 | Parent TASKS | [M1 register](../TASKS.md) |
 | Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
 | Requested outcome and instruction/source | Admitted immutable CC library, binder/freeze, runner/checking/verifier/gate/scheduler, durable state and isolated derived-record builders; [invoked user prompt](../source/Code/prompt.txt) |
@@ -18,9 +20,9 @@ Current M1-I033 registers IF001r3 protected registration behavior and the revisi
 | Artifact | Exact path | Authority |
 | --- | --- | --- |
 | Feature directory | docs/code/Missions/M1/M1-002/ | One directory for this TASK |
-| spec.md | [spec.md](spec.md) | AC authority; r17 retains all AC IDs and adds I032/I033 precision |
-| plan.md | [plan.md](plan.md) | Technical authority; r26 preserves I032-I036 and adds I037 actual allocation custody in read-only attempt inspection |
-| tasks.md | [tasks.md](tasks.md) | Sole progress/evidence authority; r22 preserves work/history with I032/I033 UNBUILT supplement |
+| spec.md | [spec.md](spec.md) | AC authority; r18 retains all AC IDs and records the C022 local-development qualification distinction |
+| plan.md | [plan.md](plan.md) | Technical authority; r27 preserves prior construction and adds C022 explicit local-development authorization |
+| tasks.md | [tasks.md](tasks.md) | Sole progress/evidence authority; r23 preserves work/history and adds build-first C022 work |
 | evidence/ | evidence/ | Actual runs only; no runtime acceptance from registration |
 | Supporting artifacts | [Program source baseline](../source-baseline.json) | Source identity; subordinate to registered authorities |
 
@@ -382,3 +384,13 @@ M1-C021 / 2026-10-21: The user explicitly selects docs/code/Missions/M1/source/A
 This additive private implementation revision preserves every r1 runtime, request, grant, call-ledger, original measurement and final checking-asset admission field. The installed calibration authority and measurement adapter also accept an indexed `calibration-fixture` record whose closed schema discriminator is `ai4r-calibration-fixture:2`. Its exact fields are `schema`, `id`, `declaration_ref`, `bindings`, `run_id`, `node_id`, `subnode_id`, `attempt_id`, `inputs`, `input_refs`, `outputs`, `accepted`, `invalid_for_product`. `bindings` equals exactly `[{'declaration_ref': declaration_ref}]`; `run_id` is exactly `calibration-fixture`; `accepted` is false and `invalid_for_product` is true. Inputs bind actual captured authored bytes to the declaration's named ports, and flattened `input_refs` exactly equals their ordered inventory. Outputs use the declaration's named schema/required ports. The existing protected case-context capture remains exactly `{contract_ref, observation_ref, output_refs}`, with `observation_ref` necessarily null for this static version. No product Run, attempt allocation, invocation observation, execution authority, model-call receipt, gate or acceptance is invented.
 
 Only the installed private calibration measurement adapter normalizes these source-bound fixtures into the actual deterministic handler's input/output context, with observation None. Product Runner and physical host predicate requirements are unchanged. Actual semantic calibration still uses the existing separately claimed, attributable GPT-6.1 Sol model calls, exact fixed verifier and declaration/output-only payload; expected labels, case context and user inputs remain undisclosed. All five source challenge classes, complete required-ID coverage, preregistration, original outcome recomputation and two independent checking-asset admissions remain mandatory. Static Builder/Benchmark cases explicitly exercise absent-execution refusal and do not qualify actual execution provenance, confinement, GPU or hardware facts. Those require the later actual connected workflow. This is neither a fixed-catalog trust waiver nor permission to promote fixture artifacts into product inputs/results.
+
+### M1-IF-014@r3 - Explicit local-development built-in authorization
+
+Owner M1-002; consumers M1-001 and M1-SYSTEM. Authority is explicit user decision M1-C022, recorded in TASKS; this additive local-development amendment does not modify frozen architecture files or erase r1 independent calibration authority/r2 static-fixture contracts.
+
+An authenticated protected operator configuration may explicitly authorize the installed, exact shipped built-in catalog for local development without running the standalone model-based qualification batch. Resolve and pin every declaration, body/helper, deterministic check bundle and checking profile to its original installed bytes. Any changed or missing pin rejects; no caller-defined code, arbitrary uploaded Capsule, candidate mutation or RSI lineage inherits the authorization. The permission is a distinct operator authorization record, not independently measured checking eligibility. It carries literal qualification_status NOT_RUN and must not create or relabel a calibration measurement/admission PASS, claim self-tests executed, or imply hardware/scientific/full-system qualification. Existing genuine strict qualifications remain independently attributable and unchanged.
+
+The additive permission may satisfy the explicitly opted-in local built-in Library/startup selection path only. Default/ordinary strict independent qualification and original publication/standing rules remain available and unchanged outside that path. Startup prepares the exact required handlers and protected science/model/executor bindings without automatically launching calibration, audits, tests or model calls. Permission supplies no fabricated invocation, environment, runtime observation, benchmark value or product output. All real per-run declaration/output-only Capsule verifiers, declared deterministic checks, mechanical verifier checks and protected committed gates still execute and control successors. Missing or failed runtime evidence remains a halt, never a startup authorization PASS.
+
+Current execution scope is build-first: implement the connected functional backend and produce its image using necessary syntax/build steps only. Independent qualification, acceptance procedures and scientific execution are NOT_RUN under the current instruction. Preserve all original failed, blocked, cancelled and qualified records. Existing B03/B05/B07 and AC002/005/006/009/013 retain their identities; their strict-mode assertions remain, while local permission and independent qualification must be reported separately. Root owns the Library/check-assets/bootstrap/AgentServer source implementation.
