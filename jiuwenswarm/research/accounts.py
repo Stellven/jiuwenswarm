@@ -27,6 +27,7 @@ class AccountStore:
         os.chmod(path, 0o600)
         self.db.execute('CREATE TABLE IF NOT EXISTS accounts (slot TEXT PRIMARY KEY, account_id TEXT UNIQUE NOT NULL)')
         self.db.execute('CREATE TABLE IF NOT EXISTS preferences (account_id TEXT NOT NULL, scope TEXT NOT NULL, scope_id TEXT NOT NULL, value TEXT NOT NULL, PRIMARY KEY(account_id,scope,scope_id))')
+        self.db.execute("CREATE TABLE IF NOT EXISTS account_locales (account_id TEXT PRIMARY KEY, language TEXT NOT NULL CHECK(language IN ('zh','en')))")
         self.db.commit()
 
     def close(self):
@@ -41,6 +42,17 @@ class AccountStore:
     def _require_account(self, account_id):
         if self.db.execute('SELECT 1 FROM accounts WHERE account_id=?', (account_id,)).fetchone() is None:
             raise PreferenceError('unknown local product account')
+
+    def locale(self, account_id: str, language: str | None = None):
+        if language is not None and language not in {'zh', 'en'}:
+            raise PreferenceError('invalid language')
+        with self.lock, self.db:
+            self._require_account(account_id)
+            if language is not None:
+                self.db.execute('INSERT INTO account_locales VALUES(?,?) ON CONFLICT(account_id) DO UPDATE SET language=excluded.language',
+                                (account_id, language))
+            row = self.db.execute('SELECT language FROM account_locales WHERE account_id=?', (account_id,)).fetchone()
+        return row[0] if row else None
 
     def save_preferences(self, account_id: str, scope: str, scope_id: str, values: dict, *, root: Path):
         if scope not in {'account', 'host', 'project'} or not isinstance(scope_id, str) or not scope_id:
@@ -86,6 +98,10 @@ class PreferenceService:
                   for scope, scope_id in [('account', 'default'), ('host', self.host_id), ('project', self.project_id)]}
         return {'scopes': scopes, 'effective': self.store.resolve(principal.account_id, self.host_id, self.project_id, root=self.root),
                 'applies_on': 'next_start'}
+
+    def locale(self, principal, language=None):
+        self._authorize(principal)
+        return self.store.locale(principal.account_id, language)
 
     def save(self, principal, scope, values):
         self._authorize(principal)

@@ -2,6 +2,10 @@
 
 ## 1. Identity
 
+C018 upload follow-up: user identifies Markdown/PDF and supplies the generic failure notice, without exact filename/size. Original-file failure cause is not yet established. Fix confirmed human-filename rejection in the native upload client through safe generated storage names and an explicit saved-name notice; canonical backend filename/path schema and bytes remain unchanged. Add .markdown as a text alias in the sole extractor and doc allowlist. Specific bilingual client messages cover format, local size limit, auth, conflict and extraction. Retain native composer layout and test IDs; actual Markdown/PDF focused uploads establish their supported path, not acceptance of the unseen original file.
+
+C017 bounded bug correction: native Settings language switching must save and reload zh/en even while operator/research runtime is unavailable. IF007r4 native locale method names/payloads remain unchanged; M1-006 owns the account-scoped preference persisted in AccountStore and intercepts only locale.get_conf/set_conf after settings authentication. Preserve existing configured-language fallback when no account override exists, native frontend localization and all other admission checks. Do not modify the user's independent commands.txt edit. Actual reproduction returned get_conf zh successfully but set_conf en UNAUTHORIZED; this is a delivery bug, not missing user permission.
+
 C016 latest UI scope supersedes the Capsule exclusion below: integrate ChatGPT subscription controls into existing Settings → Models and two text-conversation Capsules into Settings → Agent, using shared SettingRow/Select and native localization. Document Analyst returns summary/evidence/limitations/questions; Research Brief returns objectives/questions/approach/risks/next steps. The browser remembers selection, sends capsule_id, and the server validates and appends its owned instruction to the actual6.1 invocation. Neither is a claim of governed scientific execution. Remove global chat account banner; maintain readiness invisibly. Enable existing UI-only session methods solely under local-chat opt-in and carry welcome-page document selections to the allocated session. Candidate/API work remains skipped. Source/version identity and C015 strict6.1 requirement remain.
 
 C015 FINAL SCOPE supersedes its earlier broader draft: user prioritizes one complete Codex conversation and explicitly skips candidate pool/API-key work if subscription is active, plus all non-blockers. Subsequent explicit correction makes GPT-6.1 Sol mandatory: no older-model fallback. IF007r4 defines authenticated `codex.chat`: session_id/content/owned upload refs and optional codex_model restricted to gpt-6.1-sol; Gateway resolves account and extracted document context; AgentServer calls the existing app-owned subscription service and verifies effective model identity before returning content/session/model. Native defaults add optional boolean local_chat_ready independent of operator execution readiness. Ordinary UI chat maps to this method only when explicitly enabled by the local launcher. Last messages persist privately by account/session for follow-up. No fake research run/accepted artifact is emitted. Upgrade the packaged CLI to0.163.0 and migrate only the exact application-owned legacy configuration; preserve login custody. Reuse the native composer/timeline and a compact theme-aware connection toolbar. No API settings or Capsule selector is introduced in this pass. Earlier broader C015 paragraphs below are historical and do not expand delivery scope.
@@ -9,7 +13,7 @@ C015 FINAL SCOPE supersedes its earlier broader draft: user prioritizes one comp
 C015 / IF007r4 (2026-10-21): one native composer selects model and Document Analyst or Research Brief Capsule, includes owned uploaded text, and returns an actual model reply. Default Codex requests gpt-6.1-sol through existing app-owned ChatGPT subscription; other models use inline private API Settings. Import all87 received routing inventory IDs with accurate executor/tool/reference kinds and source URLs. API configuration is separate from subscription credentials and research operator policy. Explicit local startup opt-in enables this bounded interactive path before full research admission; responses never represent gate-accepted full research runs. Retain scoped authentication and bounded inputs/outputs. User excludes broad scripted tests; record build/live-check limits.
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-006 / r15 / 2026-10-21 |
+| TASK ID / revision / date | M1-006 / r16 / 2026-10-21 |
 | Parent TASKS | [M1 register](../TASKS.md) |
 | Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
 | Requested outcome and instruction/source | Versioned control API, native CLI/web/TUI projection, uploads/deletion, account/profile durability, install/init/doctor and inspection; [invoked user prompt](../source/Code/prompt.txt) |
@@ -22,9 +26,9 @@ C015 / IF007r4 (2026-10-21): one native composer selects model and Document Anal
 | Artifact | Exact path | Authority |
 | --- | --- | --- |
 | Feature directory | docs/code/Missions/M1/M1-006/ | One directory for this TASK |
-| spec.md | [spec.md](spec.md) | r7; C015 strict6.1 native conversations plus retained C014 and existing AC identities |
-| plan.md | [plan.md](plan.md) | r15; C015 IF007r4 local conversation/CLI0.163.0 plus retained design and procedures |
-| tasks.md | [tasks.md](tasks.md) | r14; C015 work/evidence plus retained histories and C010 skipped verification |
+| spec.md | [spec.md](spec.md) | r8; C017/C018 locale/upload corrections plus C015 strict6.1 native conversations plus retained C014 and existing AC identities |
+| plan.md | [plan.md](plan.md) | r16; C017/C018 locale/upload corrections plus C015 IF007r4 local conversation/CLI0.163.0 plus retained design and procedures |
+| tasks.md | [tasks.md](tasks.md) | r15; C017/C018 work/evidence plus C015 work/evidence plus retained histories and C010 skipped verification |
 | evidence/ | evidence/ | Actual runs only; no runtime acceptance from registration |
 | Supporting artifacts | [Program source baseline](../source-baseline.json) | Source identity; subordinate to registered authorities |
 

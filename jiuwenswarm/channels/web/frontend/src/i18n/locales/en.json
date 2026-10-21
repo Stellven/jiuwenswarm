@@ -4631,6 +4631,13 @@
     }
   },
   "researchInputs": {
+    "savedAs": "Saved as {{name}}. A safe storage name was generated automatically.",
+    "documentType": "Choose a TXT, Markdown (.md/.markdown), or text-layer PDF document.",
+    "repositoryType": "Choose a ZIP file for a repository upload.",
+    "tooLarge": "This file exceeds the local 20 MB limit. Choose a smaller file.",
+    "authFailed": "Your local session could not be authorized. Reopen your saved full login link, then upload again.",
+    "conflict": "A file with this name already exists, or the file is in use. Select the saved file, or rename the new file.",
+    "unreadable": "The file could not be read. TXT/Markdown must be UTF-8; PDF must be unencrypted and contain selectable text. Scanned images require text extraction first.",
     "setupRequired": "Local file storage is not enabled. Update the app and launch with bash deploy/m1/start-local.sh --build.",
     "title": "Research inputs",
     "kind": "Input type",
@@ -4640,7 +4647,7 @@
     "upload": "Upload",
     "refresh": "Refresh",
     "delete": "Delete",
-    "hint": "Files are saved in your local workspace. Select files for your next research request. Local uploads: 20 MB per file; filenames use letters, numbers, dots, dashes or underscores.",
-    "failed": "The input operation failed. Check authentication, file type and whether a run is using this input."
+    "hint": "Files are saved locally. Selected documents accompany your next message. Up to 20 MB per file; names with spaces or non-Latin characters are converted to safe storage names automatically.",
+    "failed": "The file operation could not complete. Check the connection and try again."
   }
 }

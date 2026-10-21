@@ -32,7 +32,7 @@ with pdfplumber.open(io.BytesIO(raw)) as pdf:
 async def extract_document(filename: str, data: bytes, *, timeout_s: float) -> bytes:
     if not isinstance(data,bytes) or timeout_s<=0:raise ResearchError('validation','Extraction requires exact bytes and a positive protected deadline')
     suffix=Path(filename).suffix.lower()
-    if suffix in {'.txt','.md'}:
+    if suffix in {'.txt','.md','.markdown'}:
         try:data.decode('utf-8',errors='strict')
         except UnicodeError as exc:raise ResearchError('validation','Document is not strict UTF-8') from exc
         return data

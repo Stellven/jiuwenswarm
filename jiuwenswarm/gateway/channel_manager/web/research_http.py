@@ -313,6 +313,21 @@ async def native_research_message(channel, ws, method: str, params: dict):
         raise ResearchError('auth', 'Native mutation is unavailable in the protected research profile')
     operation = 'settings' if method in settings_methods else 'status'
     principal = authority.authenticate_ws(headers, operation)
+    if method in {'locale.get_conf', 'locale.set_conf'}:
+        preferences = getattr(channel, 'research_preferences', None)
+        if preferences is None:
+            raise ResearchError('unavailable', 'Native preference storage is unavailable')
+        if method == 'locale.set_conf':
+            if set(params) != {'preferred_language'} or params['preferred_language'] not in ('zh', 'en'):
+                raise ResearchError('validation', 'preferred_language must be zh or en')
+            language = preferences.locale(principal, params['preferred_language'])
+        else:
+            if params:
+                raise ResearchError('validation', 'Unsupported language preference request')
+            language = preferences.locale(principal)
+        setattr(ws, 'authenticated_user_id', principal.account_id)
+        # Preserve the existing native configured default until explicitly set.
+        return (True, {'preferred_language': language}) if language is not None else (False, None)
     local_ui_methods = ui_methods if os.environ.get('JIUWENSWARM_M1_LOCAL_CHAT') == '1' else set()
     if getattr(channel, 'research_refusal_reason', None) and method not in (
             read_methods | local_ui_methods | {'config.get', 'locale.get_conf', 'research.preferences.get',

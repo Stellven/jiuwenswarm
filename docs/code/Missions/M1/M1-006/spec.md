@@ -1,7 +1,7 @@
 # Feature Specification: M1-006 - Authenticated operational shell
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r7 / 2026-10-21
+**Revision / date**: r8 / 2026-10-21
 **Feature Branch**: ai4r_M1
 **Input**: [Exact source baseline](../source-baseline.json); docs/code/Missions/M1/source/PRD/PRD_Oct_15.md §§5.1–5.6, 6.10; US01, US05–US08, US12–US20 as allocated; docs/code/Missions/M1/source/Architecture_Design/platform/{README,inspection,failure-and-recovery}.md; docs/code/Missions/M1/source/Architecture_Design/reference/field-catalog.md#control-api, #node-lifecycle, #client-readiness, #client-submission, #client-status, #client-retrieval, #client-cancellation, #client-upload, #client-error, #operator-config; docs/code/Missions/M1/source/Architecture_Design/method/decisions.md D35/D36/D39/D48–D50; jiuwenswarm/channels/web/AGENTS.md; jiuwenswarm/channels/web/frontend/AGENTS.md; docs/code/Missions/M1/M1-006/TASK.md; docs/code/Missions/M1/TASKS.md. Architecture references mean only the assigned source/Architecture_Design snapshot.
 **Status**: Specified; formal Clarify source resolutions and reviewed Plan/Tasks artifacts recorded; no runtime result implied
@@ -9,6 +9,10 @@
 C016 user-authorized extension to AC-002/006/008: Settings → Models contains existing ChatGPT login/model/logout controls; Settings → Agent selects General, Document Analyst or Research Brief for the next real6.1 message. Use native shared rows/controls/theme, keep chat free of management banners, and remember this browser's Capsule selection. Uploaded documents selected before the first message must survive native session allocation. Ordinary session creation/switch/rename/pin/color is available under explicit local-chat mode without enabling research dispatch or project mutations. Text Capsule output must reflect the selected structure using actual supplied content; never imply experiments/tools ran. API/candidate scope remains excluded. Browser visuals require observation and cannot be inferred from a build.
 
 ## User Scenarios & Testing
+
+C018 correction to AC-002/006: native document upload accepts .txt/.md/.markdown and text-layer PDF. Human filenames containing spaces/Unicode are mapped to bounded safe canonical basenames before upload, with the stored name shown explicitly; exact file bytes are preserved. Invalid extensions, oversized local files, expired authentication, same-name conflicts and unreadable/unsupported text content have distinct bilingual messages. Preserve server path/account validation and canonical upload schema. The unseen user file is not claimed fixed without matching evidence.
+
+C017 correction to AC-006/008: an authenticated user can select English or Chinese in native Settings independently of research readiness. Saving returns the selected language, a new connection and app restart read it back, unsupported language or extra fields are rejected, and revoked/unauthenticated grants cannot access it. An account without an override retains the existing native configured default. No UI layout changes are required.
 
 ### User Story 1 - Obtain the supported outcome (Priority: P1)
 The authorized user initializes the server application, receives a session bootstrap, checks observed readiness, uploads permitted research resources, submits via native browser/CLI, observes committed progress, inspects halted or historical evidence, retrieves the final report and artifacts, and controls owned uploads/run data. Stable product identity persists separately from disposable execution workspaces. All clients share the authenticated versioned control boundary; native views project authoritative records.

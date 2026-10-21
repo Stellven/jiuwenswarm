@@ -6,9 +6,21 @@ description: "TASK-native work and acceptance/evidence correspondence"
 
 # Tasks: M1-006 - Authenticated operational shell
 
-**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r7 / r15 | **Tasks revision/date**: r14 / 2026-10-21
+**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r8 / r16 | **Tasks revision/date**: r15 / 2026-10-21
 
 **Feature directory**: docs/code/Missions/M1/M1-006/
+
+## C018 - Markdown/PDF upload usability
+
+- [x] M1-006/T-C018-1 Normalize human filenames visibly, accept .markdown text alias and show precise bilingual failure reasons in existing upload controls. Preserve canonical record/path validation and content bytes.
+- [x] M1-006/T-C018-2 Build/deploy, perform focused actual Markdown/PDF upload/extraction checks and record original-file uncertainty. No broad tests or model calls.
+- [x] M1-006/T-C018-3 Push scoped source/native updates while preserving unrelated user edits.
+
+## C017 - Native language preference correction
+
+- [x] M1-006/T-C017-1 Persist native language under authenticated account independently of execution readiness, preserving native default fallback and other refusal boundaries. AC-006/008 -> AccountStore/PreferenceService/native Gateway.
+- [x] M1-006/T-C017-2 Build/deploy with existing volumes and observe actual set/get, fresh connection and restart persistence; reject invalid inputs and unauthenticated access. Record exact candidate/results; no broad campaign, model calls or browser-visual acceptance.
+- [x] M1-006/T-C017-3 Push the authorized scoped fix; preserve the unrelated user edit in commands.txt.
 
 ## C014 - Local workspace completion (2026-10-21)
 
@@ -613,3 +625,15 @@ Actual focused observations used in-memory Python/httpx/websockets inside the ap
 Failures and corrections: old runtime first refused thread/start configuration; runtime0.163.0 removed untrusted approval and rejects built-in openai provider overrides. Migrate only exact legacy app config, enable experimental ephemeral contexts, and omit those overrides only for ordinary local conversation. A later real native session.create initially failed because the research execution runtime was unavailable; final local opt-in now creates/switches/renames native conversation metadata without prewarming scientific execution. A direct owned-metadata create/switch observation passed before the final frontend /ws allocation passed. Ordinary conversation uses native retries inside240s; full governed zero-retry/schema/runtime qualification remains outstanding and no research acceptance is inferred.
 
 Limits: native message projection, shared SettingRow/Select/Button integration and bilingual layouts are implemented/build-checked; actual browser click-through, light/dark/narrow visual inspection and provider device-login clicks remain NOT_RUN under the saved browser origin denial. Existing logged-in subscription was used without copying IDE credentials. Full scientific tools/research/RSI/GPU/ARM64/offline qualification remain unaccepted. No broad scripted test or benchmark campaign ran. Four existing benchmark case implementations and their historical outcomes are unchanged. Authorized GitHub delivery follows this checkpoint; no test logs, auth tokens or account files are staged.
+
+C017/C018 focused delivery checkpoint, 2026-10-21: source baseline f74f587eb plus this scoped change. The user independently appended a local PowerShell launch line to commands.txt; that file is preserved and excluded from this commit.
+
+Root cause reproduced on the existing app: authenticated frontend /ws locale.get_conf returned zh/ok=true, but locale.set_conf(en) returned UNAUTHORIZED with the generic "Research request is not authorized or valid". Missing-operator inspection incorrectly blocked a UI preference; it was not a missing ChatGPT subscription. The fix authenticates settings scope first, stores only validated zh/en in existing account custody and preserves native configured-language fallback until explicitly overridden.
+
+Build command from repository root in WSL Ubuntu root: docker build --progress=plain --platform linux/amd64 -f deploy/m1/Dockerfile.app --target production -t ai4r-m1-app:20261021-locale-uploads . . The final period is the build context argument (one period in the actual argv). Production tsc/vite, wheels, pinned runtime installation and installed source closure completed successfully. Final image sha256:1c268a0e058a0bd61377330d211becf31065e40d96a1e9a66d16e5cd777d2827; installed build_id baed4c5fb73305cc4ec50b2e0a85af113e4388d909779cb1cba8a3b8aa7c1183. The same image is ai4r-m1-app:local and runs in ai4r-web-play-app-1 via docker compose -p ai4r-web-play -f deploy/m1/compose.yaml up -d --no-build --pull never app with existing operator file, account/state/input volumes and AI4R_REUSABLE_LOGIN=1/AI4R_LOCAL_WORKSPACE=1/AI4R_LOCAL_CHAT=1. All three native panes report running.
+
+Language observations used in-memory Python/httpx/websockets inside the app as10001:10001, private reusable bootstrap, then real same-origin frontend /ws. Intermediate locale-only image: native default zh; set en -> true/en; invalid fr -> false; get en -> true/en; a fresh WebSocket still returned en. An unauthenticated WebSocket was rejected (InvalidMessage; no authenticated mutation response); no provider login/model request was sent. After final image replacement, locale.get_conf again returned en before any write, proving persistence across app recreation. Final round-trip set zh -> true/zh, set en -> true/en, invalid fr -> false/UNAUTHORIZED, prohibited config.set -> false/UNAUTHORIZED, final get -> true/en. Account is left in English as requested. Existing generic invalid-request error code is retained; it is not a claim that malformed language is a valid authorization failure. Native browser clicks/visuals remain unobserved under saved origin denial.
+
+Upload observation ran the exact current researchClient.ts uploadResearchInput function, stripped with Node22.23.3 node:module.stripTypeScriptTypes in memory, with a minimal non-browser session/location adapter and real fetch/FormData/File against actual protected HTTP input routes. No browser automation or origin-permission bypass was used. Two File objects had Unicode/space names: one UTF-8 .markdown document and one generated valid single-page text PDF. Both calls succeeded and reported renamed=true. Stored names were document-af46b827.markdown and document-51d50731.pdf. For each, returned content_sha256 matched the original File bytes exactly and text_sha256 matched the expected canonical extracted text. Unsupported .docx was refused client-side with UPLOAD_DOCUMENT_TYPE. Both uniquely identified diagnostic uploads were deleted through authenticated HTTP; user uploads were preserved. PDF parser remained pinned pdfplumber0.11.9. Backend canonical basename/path/account validation remains unchanged.
+
+The user only identified "markdown / pdf"; exact original filename, size and bytes are unavailable. Therefore this proves the supported path and fixes confirmed filename/usability defects; it does not assert that an unseen scanned/encrypted/non-UTF8/oversized original now meets the content contract. New UI identifies type/size/auth/conflict/extraction failures and explicitly reports generated storage names. PDF still requires selectable text. Browser click-through, narrow/dark visuals, broad verification and benchmark campaigns remain NOT_RUN. No model/scientific/RSI call was run; four benchmark case implementations and historical evidence are unchanged. git diff --check passed. Scoped authorized commit/push follows; no test artifacts, credentials or the unrelated commands.txt edit are staged.

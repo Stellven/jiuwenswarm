@@ -46,9 +46,10 @@ in Settings; the chat page uses the existing composer and message timeline.
 The launcher explicitly enables an automatically initialized **local input
 workspace**. In the composer, choose the input type, upload a file, refresh the
 saved list, and select or delete files. Text documents are UTF-8 `.txt`/`.md` or
-PDFs with selectable text; repositories are ZIPs. Local uploads are limited to
-20 MiB each. Filenames must start with an ASCII letter or number and contain
-only ASCII letters, numbers, dots, underscores or dashes. Saved files and account
+PDFs with selectable text (`.markdown` is also accepted); repositories are ZIPs. Local uploads are limited to
+20 MiB each. The upload control automatically converts filenames containing spaces
+or non-Latin characters to safe storage names and shows the saved name. File bytes
+are preserved. Saved files and account
 state survive app restarts and image rebuilds in the existing Docker volumes.
 
 Local input initialization creates storage only. It does not supply operator

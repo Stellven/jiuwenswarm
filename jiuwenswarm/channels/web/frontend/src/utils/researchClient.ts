@@ -139,9 +139,21 @@ export interface ResearchUpload {
   text_sha256: string | null;
 }
 export async function uploadResearchInput(kind: ResearchUpload['kind'], file: File): Promise<ResearchUpload> {
+  const extension = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : '';
+  if (kind === 'docs' && !['.txt', '.md', '.markdown', '.pdf'].includes(extension))
+    throw new Error('UPLOAD_DOCUMENT_TYPE');
+  if (kind === 'repo' && extension !== '.zip') throw new Error('UPLOAD_REPOSITORY_TYPE');
+  if (hasLocalChat() && file.size > 20 * 1024 * 1024) throw new Error('UPLOAD_TOO_LARGE');
+  let filename = file.name;
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(filename)) {
+    const stem = (extension ? filename.slice(0, -extension.length) : filename)
+      .normalize('NFKD').replace(/[^A-Za-z0-9_.-]+/g, '_').replace(/^[^A-Za-z0-9]+/, '').slice(0, 80) || 'document';
+    const suffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(16).padStart(8, '0');
+    filename = `${stem}-${suffix}${extension.replace(/[^a-z0-9.]/g, '').slice(0, 16)}`;
+  }
   const body = new FormData();
   body.set('scope_id', researchWorkspace());
-  body.set('file', file);
+  body.set('file', file, filename);
   return await researchRequest<ResearchUpload>(`/api/v1/inputs/${kind}`, { method: 'POST', body });
 }
 

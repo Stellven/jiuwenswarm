@@ -1,13 +1,17 @@
 # Implementation Plan: M1-006 - Authenticated operational shell
 
-**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r7](spec.md)
+**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r8](spec.md)
 
-**Revision / date**: r15 / 2026-10-21 | **Branch**: ai4r_M1
+**Revision / date**: r16 / 2026-10-21 | **Branch**: ai4r_M1
 
 **Input sources**: [Exact source receipts](../source-baseline.json), [TASKS allocation](../TASKS.md), this TASK §1/4 source clauses and canonical IF revisions; supplied PRD/Architecture_Design and applicable QA documents only. M1-C001/C002 apply where consumed.
 
 
 ## Summary
+
+C018 plan: uploadResearchInput normalizes only nonconforming filename stems to ASCII, bounds length and appends browser-generated random suffix while retaining extension and exact File bytes in multipart. UploadManager/canonical extractor recognize .markdown as .md. ResearchInputs retains existing structure/controls and shows the returned canonical filename when renamed. Map finite client codes and HTTP statuses to bilingual messages; never display arbitrary raw backend exceptions or credentials. Verify actual normalized Markdown and text-PDF upload/extraction and rejection cases; preserve existing diagnostic truth and user's unrelated commands.txt edit.
+
+C017 fix plan: keep native frontend locale source unchanged. Add an account_locales SQLite table to existing AccountStore (account_id key; language restricted to zh/en), with locked transactions and known-account validation. PreferenceService authorizes account/workspace settings access. native_research_message handles exact locale get/set after authentication and before missing-operator refusal, returning the existing preferred_language shape. If no account override exists, locale.get_conf retains native read fallback. Other settings mutations retain existing refusal. Build current app and observe real authenticated frontend /ws set/get, new connection and restart durability; invalid language/revoked access remain refusals. No model call or broad test campaign is needed.
 
 C016 latest UI plan: mount the existing CodexSubscriptionPanel through Settings module models as a custom shared SettingRow; use shared Select/Button, no nested decorative card or independent title. Hide API manager sections in subscription mode. Agent settings add one shared Capsule row, using browser-only persisted preference and a server-owned closed two-ID instruction map. Extend IF007r4 codex.chat with optional capsule_id; validation precedes invocation. Headless App connection component maintains account readiness without a chat banner. Explicit local-chat opt-in permits native UI-only session methods through missing-operator inspection; other mutations remain refused. WebClient migrates selected welcome-page upload refs after session.create before chat.send. Guides follow Settings → Models login, Settings → Agent Capsule, original composer question/reply/follow-up. No broad scripted campaign; production build and actual created-session/model observations only.
 

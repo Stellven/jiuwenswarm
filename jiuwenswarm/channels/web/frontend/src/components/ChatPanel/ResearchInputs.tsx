@@ -23,7 +23,8 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
   const [files, setFiles] = useState<ResearchUpload[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const generation = useRef(0);
   const configured = hasResearchInputs();
   const refresh = async () => {
@@ -38,7 +39,8 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
     generation.current += 1;
     setFiles([]);
     setBusy(false);
-    setError(false);
+    setError('');
+    setNotice('');
     setSelected(selectedResearchInputs(sessionId));
     const changed = (event: Event) => {
       const detail = (event as CustomEvent<{ sessionId: string; ids: string[] }>).detail;
@@ -52,7 +54,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
         if (ready && hasResearchInputs()) await refresh();
       })
       .catch(() => {
-        if (current) setError(true);
+        if (current) setError('researchInputs.authFailed');
       });
     return () => {
       current = false;
@@ -68,11 +70,21 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
     const attempt = generation.current;
     setBusy(true);
     markResearchUpload(sessionId, true);
-    setError(false);
+    setError('');
+    setNotice('');
     try {
       await operation();
-    } catch {
-      if (attempt === generation.current) setError(true);
+    } catch (cause) {
+      const failure = cause as Error & { status?: number };
+      const code = failure?.message;
+      const key = code === 'UPLOAD_DOCUMENT_TYPE' ? 'researchInputs.documentType'
+        : code === 'UPLOAD_REPOSITORY_TYPE' ? 'researchInputs.repositoryType'
+        : code === 'UPLOAD_TOO_LARGE' || failure?.status === 413 ? 'researchInputs.tooLarge'
+        : failure?.status === 401 || failure?.status === 403 ? 'researchInputs.authFailed'
+        : failure?.status === 409 ? 'researchInputs.conflict'
+        : failure?.status === 422 ? 'researchInputs.unreadable'
+        : 'researchInputs.failed';
+      if (attempt === generation.current) setError(key);
     } finally {
       if (attempt === generation.current) setBusy(false);
       markResearchUpload(sessionId, false);
@@ -105,7 +117,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
             type="file"
             disabled={busy || !configured}
             data-testid="chat-panel-research-upload"
-            accept={kind === 'docs' ? '.txt,.md,.pdf' : kind === 'repo' ? '.zip' : undefined}
+            accept={kind === 'docs' ? '.txt,.md,.markdown,.pdf' : kind === 'repo' ? '.zip' : undefined}
             onChange={(event) => {
               const file = event.target.files?.[0];
               event.target.value = '';
@@ -114,6 +126,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
                   const attempt = generation.current;
                   const uploaded = await uploadResearchInput(kind, file);
                   if (attempt !== generation.current) return;
+                  if (uploaded.filename !== file.name) setNotice(t('researchInputs.savedAs', { name: uploaded.filename }));
                   choose([...selected, uploaded.id]);
                   await refresh();
                 });
@@ -136,9 +149,10 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       </p>
       {error && (
         <p role="alert" className="text-warn" data-testid="chat-panel-research-input-error">
-          {t('researchInputs.failed')}
+          {t(error)}
         </p>
       )}
+      {notice && <p className="research-inputs__hint" role="status" data-testid="chat-panel-research-upload-notice">{notice}</p>}
       <ul className="research-inputs__list" data-testid="chat-panel-research-input-list">
         {files.map((file) => (
           <li
