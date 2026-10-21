@@ -10,7 +10,9 @@ description: "TASK-native work and acceptance/evidence correspondence"
 
 ## C014 local launcher consumer
 
-- [ ] M1-001/T-C014-1 Forward explicit local input initialization without altering protected execution resources; build/start existing named app volumes and observe actual input HTTP persistence. Detailed provider/consumer evidence lives in M1-006/tasks.md. Existing full-system gaps remain unresolved.
+- [x] M1-001/T-C014-1 Forward explicit local input initialization without altering protected execution resources; build/start existing named app volumes and observe actual input HTTP persistence. Detailed provider/consumer evidence lives in M1-006/tasks.md. Existing full-system gaps remain unresolved.
+
+C014 delivery on 2026-10-21: functional commit 02af78203 pushed to origin/ai4r_M1. Final production image sha256:4899799257cee55e64e0d0ca932b280d107e98466e45f6c72fb3c381e36c866c was deployed through updated local launcher, preserving original named volumes. Actual browser-bootstrap defaults advertised input storage with execution configuration null; document/ZIP/dataset uploads survived docker restart and their check files were deleted through authenticated HTTP. All three native panes run. This is bounded local input delivery, not full research execution acceptance. Detailed commands, harness failures, focused passing checks and browser-visual limitation are recorded by owning M1-006/tasks.md.
 
 **Feature directory**: docs/code/Missions/M1/M1-001/
 
