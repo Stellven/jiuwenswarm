@@ -169,6 +169,9 @@ class ResearchService:
             if inspect.isawaitable(value):value=await value
             if isinstance(value,dict) and value.get('linked_run_id'):
                 linked=value['linked_run_id']
+                from .planning import research_continuation
+                if research_continuation(self.store,run_id)['continuation_run_id']!=linked:
+                    raise ResearchError('integrity_fault','Scheduler continuation has no exact original planned allocation')
                 if linked in self._tasks:raise ResearchError('identity_conflict','Linked compiler work already started')
                 linked_protected=copy.deepcopy(protected)
                 if protected.get('finite_e1_binding_ref') is None and protected.get('profile_id') is None:

@@ -1,6 +1,6 @@
 """One scoring pass; consolidation never erases an incoming audit identity."""
 from ..contracts.types import ResearchError
-from ._common import ask, captured, produced
+from ._common import ask, captured, object_reply_schema, produced
 
 
 class ScreeningCarrier:
@@ -36,7 +36,9 @@ async def _execute(ctx, inputs, ranker, pinned_prompt):
                        'eligible, disposition and disposition_reason. Rank descending sum then ascending idea_id, select Top1. '
                        'No deferred disposition. The opportunity_statement names the bottleneck and mechanism. '
                        '\nPinned admitted scoring instruction:\n' + pinned_prompt,
-                       {'brief': brief, 'candidate_set': candidates, 'screening_rubric': rubric})
+                       {'brief': brief, 'candidate_set': candidates, 'screening_rubric': rubric},
+                       reply_schema=object_reply_schema({'scores': ('screening-result', 'scores'),
+                           'opportunity_statement': ('opportunity-card', 'opportunity_statement')}))
     scores = result.get('scores', [])
     selection = ranker(scores)
     ranking, selected_id = selection['ranking'], selection['selected_idea_id']

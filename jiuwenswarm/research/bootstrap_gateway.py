@@ -255,6 +255,7 @@ async def attach_native_research(web_channel,runtime_ports=None):
                 run_reconcile=lambda account_id,request_id:store.list_runs(account_id=account_id,request_id=request_id),
                 campaign_id=campaign_id,**history_pins)
     service.local_chat_ready=os.environ.get('JIUWENSWARM_M1_LOCAL_CHAT')=='1'
+    service.local_example_ref=bindings.get('protected_options',{}).get('local_example_ref') if bindings is not None else None
     service.captured_plan_source=operator.snapshot()['cc']['plan_source'] if operator is not None else None
     defaults_path=authority.token_path.parent/'client-defaults.json'
     # Same protected custody as the bearer token, without copying the token.

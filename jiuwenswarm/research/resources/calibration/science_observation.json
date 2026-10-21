@@ -1,0 +1,75 @@
+{
+  "schema_version": "3.0.0",
+  "id": "invocation:science",
+  "run_id": "run:science",
+  "attempt_id": "evaluation-a1",
+  "node_id": "evaluation",
+  "subnode_id": "evaluation",
+  "cc_name": "research.evaluation",
+  "cc_version": "example-1",
+  "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e",
+  "route_id": null,
+  "measurement_status": "unavailable",
+  "contract_ref": {
+    "id": "science_subnode_contract.json",
+    "sha256": "d6a8f74a4ad45953e18d2753905ae50df1452cb3696dd0bbf3d725adf7f2cc9f"
+  },
+  "binding_id": "binding:evaluation",
+  "input_refs": [
+    {
+      "id": "lifecycle_research_brief.json",
+      "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+    },
+    {
+      "id": "hypothesis_blueprint.json",
+      "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+    },
+    {
+      "id": "benchmark_payload.json",
+      "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+    }
+  ],
+  "model_identity": {
+    "requested": "synthetic teaching endpoint",
+    "effective": null,
+    "basis": "unobserved example"
+  },
+  "started_at": null,
+  "ended_at": null,
+  "outcome": "synthetic_example",
+  "effects": [],
+  "duration_s": null,
+  "model_calls": null,
+  "trace_refs": [],
+  "unavailable_reasons": [
+    "No runtime execution or observed effects are claimed"
+  ],
+  "observed_runtime": false,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic illustration; no tokens or attributable cost were observed"
+    ]
+  },
+  "node_contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
+  },
+  "body_files_sha256": "ddd8ba007139fc1e8985352fc173533bfb2ad5ff03f0a37695bc070cc885fb01",
+  "decision_source": null,
+  "failure_class": null,
+  "failure_reason_code": null,
+  "error_fingerprint": null,
+  "check_result_refs": [],
+  "verifier_assessment_ref": null,
+  "human_answer_ref": null
+}

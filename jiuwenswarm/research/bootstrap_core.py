@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import base64
+import copy
 from dataclasses import dataclass,field
 from importlib.resources import files
 
@@ -190,14 +191,31 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     try:
         for key,contract in refs.items():store.read_record(options[key],contract_id=contract)
         for key in ('profile_ref','workspace_ref','input_directory_ref')+(() if finite is not None else ('compiler_template_ref','planner_template_ref')):store.read_blob(options[key])
+        run_authority=copy.deepcopy(options['authority_ceiling'])
+        host_records=copy.deepcopy(options.get('host_records',{}))
+        if finite is None:
+            # These fixed host inputs come from the exact admitted release and
+            # captured operator record, never from a request or proposed graph.
+            screening=result.installed['screening']
+            declaration=store.read_record(screening['declaration_ref'],contract_id='capsule-declaration')
+            selected=library.get(declaration['identity']['name'],declaration['identity']['version_label'])
+            rubric=screening['body_refs']['screening_rubric.json']
+            if (selected['declaration_ref']!=screening['declaration_ref']
+                    or selected['body_refs'].get('screening_rubric.json')!=rubric
+                    or host_records.get('screening_rubric',rubric)!=rubric):
+                raise ResearchError('host_record_binding','Prepared Screening rubric differs from the exact admitted body')
+            store.read_record(rubric,contract_id='screening-rubric')
+            host_records['screening_rubric']=rubric
+            for ref in (rubric,configuration_ref):
+                if ref not in run_authority['resource_reads']:run_authority['resource_reads'].append(ref)
         factory=ContractFactory(store,library,verifier_pin=result.installed['verifier']['pin'],finalization_profile_ref=options['finalization_profile_ref'])
         compiler=planner=None
         if finite is None:
             compiler=IntentionCompiler(store,runner,factory,intent_pin=result.installed['intent']['pin'],requirements_pin=result.installed['requirements']['pin'],
                 default_policy_ref=options['default_policy_ref'],template_ref=options['compiler_template_ref'],node_limits=options['compiler_limits'],
-                policy_ref=operator.snapshot()['cc']['plan_policy_ref'],authority_ceiling=options['authority_ceiling'])
+                policy_ref=operator.snapshot()['cc']['plan_policy_ref'],authority_ceiling=run_authority)
             planner=PlanningCoordinator(store,runner,factory,planner_pin=result.installed['planner']['pin'],template_ref=options['planner_template_ref'],
-                node_limits=options['planner_limits'],authority_ceiling=options['authority_ceiling'])
+                node_limits=options['planner_limits'],authority_ceiling=run_authority)
         binder=Binder(store,library,checks,search_bounds_ref=options.get('search_bounds_ref'),finite_e1=finite)
         scheduler=Scheduler(store,runner,factory,binder,library=library,planning=planner,progress_sink=options.get('progress_sink'),evidence=evidence)
         service.finite_e1=finite
@@ -207,7 +225,7 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
         run_context={'configuration_ref':configuration_ref,'model_selection_profile_ref':model_selection_profile_ref,'deployment_ref':deployment_ref,
             'router':settings['router'],'run_limits':policy['aggregate_limits'],'profile_ref':options['profile_ref'],'workspace_ref':options['workspace_ref'],
             'input_directory_ref':options['input_directory_ref'],'profile_id':options.get('profile_id'),'resource_inventory_ref':options['resource_inventory_ref'],
-            'run_inputs':options.get('run_inputs',{}),'host_records':options.get('host_records',{}),'authority_ceiling':options['authority_ceiling'],
+            'run_inputs':options.get('run_inputs',{}),'host_records':host_records,'authority_ceiling':run_authority,
             'routing_context':options.get('routing_context'),
             'verifier_cc_ref':result.installed['verifier']['declaration_ref'],
             'candidate_pins':profiles._profile['candidate_pins'] if profiles is not None and profiles.profile_id is not None else options.get('candidate_pins',[])}

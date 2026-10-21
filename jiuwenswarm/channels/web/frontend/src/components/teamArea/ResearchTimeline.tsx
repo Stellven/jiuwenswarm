@@ -5,7 +5,7 @@ import { researchRequest } from '../../utils/researchClient';
 
 interface Check { check_id?: string; criterion_id?: string; outcome: string; reason: string }
 interface Entry {
-  kind: 'invocation' | 'gate';
+  kind: 'invocation' | 'model_call' | 'gate';
   ref: { id: string };
   node_id: string;
   subnode_id: string | null;
@@ -14,6 +14,10 @@ interface Entry {
   verdict?: string;
   action?: string;
   reason?: string;
+  effective_model?: string | null;
+  requested_model?: string | null;
+  function?: string;
+  route_source?: string | null;
   checks?: Check[];
   findings?: Check[];
 }
@@ -43,8 +47,11 @@ export function ResearchTimeline({ runId, revision }: { runId: string; revision:
       {events.map((entry) => <li key={entry.ref.id} data-testid="team-area-research-timeline-event" data-variant={entry.ref.id}>
         <div className="research-timeline__heading">
           <strong>{entry.subnode_id ?? entry.node_id}</strong>
-          <span>{entry.kind === 'gate' ? `${t('researchWorkflow.gate')}: ${entry.verdict} · ${entry.action}` : entry.outcome}</span>
+          <span>{entry.kind === 'gate' ? `${t('researchWorkflow.gate')}: ${entry.verdict} · ${entry.action}` : entry.kind === 'model_call' ? t('researchWorkflow.modelCall', { outcome: entry.outcome }) : entry.outcome}</span>
         </div>
+        {entry.kind === 'model_call' && <p className="text-text-secondary" data-testid="team-area-research-model-route" data-variant={entry.ref.id}>
+          {t('researchWorkflow.modelRoute', { model: entry.effective_model ?? t('researchWorkflow.modelUnobserved'), route: entry.requested_model ?? t('researchWorkflow.unconfigured') })}
+        </p>}
         {entry.reason && <p className="text-warn">{entry.reason}</p>}
         {[...(entry.checks ?? []), ...(entry.findings ?? [])].map((check) => <div key={check.check_id ?? check.criterion_id} className="research-timeline__check" data-testid="team-area-research-check" data-variant={check.check_id ?? check.criterion_id}>
           <span>{check.check_id ?? check.criterion_id}</span><strong>{check.outcome}</strong>

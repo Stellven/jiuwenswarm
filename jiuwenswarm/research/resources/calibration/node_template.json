@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.0.0",
+  "id": "template:intention-compiler",
+  "mode": "fixed",
+  "synthetic": true,
+  "external_output": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+  "internal_order": [
+    "intention",
+    "intention.verifier",
+    "requirements",
+    "requirements.verifier"
+  ]
+}

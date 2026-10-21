@@ -21,7 +21,11 @@ async def prepare_calibration_checks(store,registry,*,executor=None):
     scientific=build_research_assets(store)
     for stage,asset in scientific.items():
         bundle=store.read_record(asset['bundle_ref'],contract_id='check-bundle')
-        registry.register_bundle(bundle['bundle_id'],[row['check_id'] for row in bundle['checks']],ResearchChecks(stage,executor=executor),
+        if stage=='builder' and store.read_record(asset['declaration_ref'])['identity']['version_label']=='m1-2':
+            from .builder_text import TextBuilderChecks
+            handler=TextBuilderChecks('builder',executor=executor)
+        else:handler=ResearchChecks(stage,executor=executor)
+        registry.register_bundle(bundle['bundle_id'],[row['check_id'] for row in bundle['checks']],handler,
             implementation_ref=asset['runner_ref'],profile_ref=asset['profile_ref'])
     return {**prepared,**scientific}
 
@@ -50,6 +54,11 @@ class CalibrationModelPort:
                     'request_ref':self.request_ref,'grant_ref':grant_ref,'execution_id':grant['execution_id'],'invocation_id':grant['invocation_id'],
                     'call_id':call['id'],'call_ref':result['call_ref'],'returned_epoch':returned})
                 self.authority.mark([receipt])
-            self.authority.capture_produced(self.request_ref)
+
+    async def capture_returned_evidence(self):
+        # The observed IPC return is stamped above immediately. Complete the
+        # exact audit before accepting an assessment, outside the model-call
+        # timer and inside the enclosing absolute request deadline.
+        await self.authority.capture_produced_async(self.request_ref)
 
     async def contain(self):return await self.authority.cancel_calibration({'request_ref':self.request_ref})

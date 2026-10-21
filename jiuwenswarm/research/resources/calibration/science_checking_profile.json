@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "id": "checking-profile:research.evaluation:1",
+  "profile_id": "research.evaluation.profile",
+  "version": "1.0.0",
+  "target_cc_name": "research.evaluation",
+  "target_cc_version_range": "example-1",
+  "criteria": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "question": "Does the output contain what the declaration says this CC produces, in the declared shape and ports?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "question": "Does the output avoid contradicting itself, for example a field that disagrees with another field in the same output?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "question": "Are the limitations and uncertainties the output states consistent with the output content and with the declaration's stated limits?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "classification_consistent_with_findings",
+      "question": "Does `classification` equal what the `aggregation_rule` named in the verdict gives for the listed findings and the plausibility status?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "evaluation_verdict"
+    },
+    {
+      "criterion_id": "finding_names_metric",
+      "question": "Does every finding name a distinct `metric_id`?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "evaluation_verdict"
+    },
+    {
+      "criterion_id": "finding_consistent_with_values",
+      "question": "For each finding, do `classification`, `rule_applied`, the two values, `threshold` and `rule_text` agree with each other?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "evaluation_verdict"
+    },
+    {
+      "criterion_id": "rationale_states_values_and_rule",
+      "question": "Does each rationale name the values, the threshold or rule, and the outcome that its finding states?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "evaluation_verdict"
+    },
+    {
+      "criterion_id": "blockers_match_findings",
+      "question": "Are blockers present exactly when a finding is unmeasured or plausibility is implausible, and do they say why?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "evaluation_verdict"
+    },
+    {
+      "criterion_id": "followups_are_recommendations",
+      "question": "Is every follow-up a recommendation, not an instruction to rerun a node or change code?",
+      "blocking": false,
+      "answerable_from": "declaration_and_output",
+      "target_port": "evaluation_verdict"
+    },
+    {
+      "criterion_id": "no_unregistered_criteria",
+      "question": "Does the verdict avoid new success or failure thresholds that its `rule_text` fields do not state?",
+      "blocking": false,
+      "answerable_from": "declaration_and_output",
+      "target_port": "evaluation_verdict"
+    }
+  ],
+  "instruction_ref": {
+    "id": "verifier_implementation.txt",
+    "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+  },
+  "model_call_limit": 1,
+  "time_s": 180,
+  "owner_role": "verifier_owner"
+}

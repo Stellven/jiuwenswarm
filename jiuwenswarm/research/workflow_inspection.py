@@ -15,14 +15,19 @@ STAGES = ('intent', 'requirements', 'planner', 'search', 'screening', 'hypothesi
           'builder', 'benchmark', 'evaluation', 'delivery', 'verifier')
 
 
-def _declarations():
+def _declarations(store, core):
     root = files('jiuwenswarm.research_assets')
     catalog = json.loads(root.joinpath('catalog.json').read_text('utf-8'))
     result = {stage: json.loads(root.joinpath(entry['declaration_path']).read_text('utf-8'))
               for stage, entry in catalog['capsules'].items()}
-    from .capsules.assets import source_metadata
+    from .capsules.assets import source_metadata, STAGE_VERSIONS
     for stage, entry in source_metadata().items():
-        result[stage] = dict(entry['declaration'], identity=dict(entry['declaration']['identity'], version_label='m1-1'))
+        result[stage] = dict(entry['declaration'], identity=dict(entry['declaration']['identity'], version_label=STAGE_VERSIONS[stage]))
+    # Show the exact prepared/installed declarations, including a new authored
+    # local release. Display must not silently substitute an older version.
+    for stage, asset in getattr(core, 'installed', {}).items():
+        if stage in result:
+            result[stage] = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')
     return result
 
 
@@ -31,7 +36,7 @@ async def runtime_snapshot(channel, principal):
     service = channel.research_service
     attachment = channel.research_composition
     core = attachment.composition
-    declarations = _declarations()
+    declarations = _declarations(service.store, core)
     capsules = []
     for stage in STAGES:
         declaration = declarations[stage]
@@ -85,7 +90,24 @@ async def runtime_snapshot(channel, principal):
     return {'schema': 'ai4r-workflow-runtime:1', 'configured': configuration,
             'ready': readiness is not None and readiness['ready'] is True,
             'plan_source': defaults.get('plan_source') or getattr(service, 'captured_plan_source', None), 'capsules': capsules,
-            'diagnostics': diagnostics, 'prerequisites': prerequisites}
+            'diagnostics': diagnostics, 'prerequisites': prerequisites, 'defaults': defaults,
+            'example_available': getattr(service, 'local_example_ref', None) is not None}
+
+
+def workflow_example(service, principal):
+    """An operator-captured tutorial is source material, never run evidence."""
+    from .contracts import validate
+    principal.require('status')
+    ref = getattr(service, 'local_example_ref', None)
+    if ref is None:
+        raise ResearchError('unavailable', 'This deployment has no captured research example')
+    example = service.store.read_record(ref)
+    if example.get('schema') != 'ai4r-local-research-example:1':
+        raise ResearchError('unavailable', 'Captured research example is invalid')
+    validate('Ref', example['guide_ref'])
+    return {'schema': example['schema'], 'title': example['title'], 'description': example['description'],
+            'filename': example['filename'], 'request': example['request'], 'guide_ref': example['guide_ref'],
+            'guide': service.store.read_blob(example['guide_ref']).decode('utf-8')}
 
 
 def run_timeline(service, principal, run_id):
@@ -93,12 +115,49 @@ def run_timeline(service, principal, run_id):
     run = service.store.get_run(run_id, account_id=principal.account_id)
     principal.require('status', run['workspace_id'])
     events = []
-    for envelope in service.store.iter_records(run_id=run_id):
+    records = list(service.store.iter_records(run_id=run_id))
+    # Public ModelCall records carry an invocation ID, not a run ID. Resolve
+    # only exact call Refs captured by observations of this owned run.
+    seen_calls = {entry['ref']['id'] for entry in records if entry['kind'] == 'model-call'}
+    for entry in list(records):
+        if entry['kind'] != 'invocation-observation':
+            continue
+        for ref in entry['record']['trace_refs']:
+            if ref['id'] in seen_calls:
+                continue
+            try:
+                kind = service.store.record_kind(ref)
+            except ResearchError as exc:
+                if exc.code != 'evidence_unavailable':
+                    raise
+                continue  # Raw native trace blobs have no record kind.
+            if kind == 'model-call':
+                call = service.store.read_record(ref, contract_id='model-call')
+                records.append({'kind': 'model-call', 'ref': ref, 'record': call})
+                seen_calls.add(ref['id'])
+    routes = {entry['record']['route_id']: entry for entry in records if entry['kind'] == 'route-record'}
+    starts = {(entry['record']['call_id'], entry['record']['invocation_id'], entry['record']['execution_id']): entry['record']
+              for entry in records if entry['kind'] == 'model-call-start'}
+    for envelope in records:
         kind, record = envelope['kind'], envelope['record']
         if kind == 'invocation-observation':
             events.append({'kind': 'invocation', 'ref': envelope['ref'], 'node_id': record['node_id'],
                            'subnode_id': record.get('subnode_id'), 'outcome': record['outcome'],
                            'reason': record.get('failure_reason_code'), 'accepted': False})
+        elif kind == 'model-call':
+            # ModelCall deliberately has no node/route fields. Join the exact
+            # host-captured start and RouteRecord, rather than inventing them.
+            start = starts.get((record['id'], record['invocation_id'], record['execution_id']))
+            routed = routes.get(start['route_id']) if start else None
+            if routed is None or routed['ref'] != start['route_ref']:
+                raise ResearchError('integrity_fault', 'Model call has no exact captured route')
+            route = routed['record']
+            identity = record.get('identity', {})
+            events.append({'kind': 'model_call', 'ref': envelope['ref'], 'node_id': route['node_id'],
+                'subnode_id': route.get('subnode_id'), 'outcome': record['outcome'],
+                'function': record.get('call_function'), 'requested_model': identity.get('requested'),
+                'effective_model': identity.get('effective'), 'route_source': route.get('decision_source'),
+                'route_id': route.get('route_id'), 'reason': record.get('provider_error_code')})
         elif kind == 'gate-decision':
             checks = []
             ref = record.get('deterministic_result_ref')

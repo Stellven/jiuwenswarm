@@ -132,6 +132,20 @@ def mount_research_routes(app, channel) -> None:
         from jiuwenswarm.research.workflow_inspection import run_timeline
         return await invoke(request, 'status', lambda p: run_timeline(service, p, run_id), run_id=run_id)
 
+    @app.get('/api/v1/workflow/example')
+    async def research_example(request: Request):
+        from jiuwenswarm.research.workflow_inspection import workflow_example
+        return await invoke(request, 'status', lambda p: workflow_example(service, p))
+
+    @app.get('/api/v1/runs/{run_id}/continuation')
+    async def workflow_continuation(request: Request, run_id: str):
+        from jiuwenswarm.research.planning import research_continuation
+        def inspect(principal):
+            run = service.store.get_run(run_id, account_id=principal.account_id)
+            principal.require('status', run['workspace_id'])
+            return research_continuation(service.store, run_id)
+        return await invoke(request, 'status', inspect, run_id=run_id)
+
     @app.get('/api/v1/runs/{run_id}/result')
     async def workflow_result(request: Request, run_id: str):
         from jiuwenswarm.research.workflow_inspection import run_result

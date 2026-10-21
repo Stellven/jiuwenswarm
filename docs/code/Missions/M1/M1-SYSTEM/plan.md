@@ -4,6 +4,8 @@
 **Input sources**: [Exact receipts](../source-baseline.json); supplied PRD §§1,2,4.2.9,6; supplied Architecture_Design/3-build-plan.md, method/phases.md, platform/README.md, platform/failure-and-recovery.md, reference/import-boundary.md; all three QA documents; M1-C001/C002.
 
 ## Summary
+
+C021 execution allocation: independent agents implement (1) exact fixed-catalog guard calibration/admission and activation, (2) immutable tool-free Builder plus confined CPU-local scientific runtime, and (3) source-correct Planner/binder/scheduler/static-release pins. Root owns native chat/control/result integration and the final actual workflow. Preserve all runtime checks and declaration/output-only semantic review. Use the assigned source's seven research nodes, with Builder and Benchmark as separate gated nodes. Execute one meaningful connected journey after integration; do not replace it with broad campaigns or fixture PASS records.
 Verify one exact assembled native JiuwenSwarm candidate through authenticated product interfaces in Docker. Observe committed gate decisions and actual successor effects; independently reconcile raw science and isolation evidence. Report Phase1, advanced implementation/integration/verification, hardware qualification and four-case QA separately. Child TASKs retain ownership of product behavior. All 15 ACs have required SYSTEM procedures below.
 
 ## Technical Context

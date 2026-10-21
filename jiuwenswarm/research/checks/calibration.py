@@ -59,9 +59,16 @@ class CalibrationMeasurements:
         else:
             require(set(bound)=={'contract_ref','observation_ref','output_refs'},'Unknown protected calibration context fields')
             contract_ref=bound['contract_ref'];contract=self.store.read_record(contract_ref)
-            private=contract.get('schema')=='ai4r-calibration-subject:1'
-            observation=self.store.read_record(bound['observation_ref'],contract_id='invocation-observation') if bound['observation_ref'] is not None else {}
-            require(observation.get('contract_ref')==contract_ref or private and not observation and not contract.get('inputs') and not contract.get('input_refs'),'Calibration observation belongs to another subject or is unavailable')
+            fixture=contract.get('schema')=='ai4r-calibration-fixture:2'
+            private=contract.get('schema')=='ai4r-calibration-subject:1' or fixture
+            observation=self.store.read_record(bound['observation_ref'],contract_id='invocation-observation') if bound['observation_ref'] is not None else None
+            require(observation is not None and observation.get('contract_ref')==contract_ref
+                or private and observation is None and (fixture or not contract.get('inputs') and not contract.get('input_refs')),
+                'Calibration observation belongs to another subject or is unavailable')
+            if fixture:
+                require(self.store.record_kind(contract_ref)=='calibration-fixture' and contract.get('invalid_for_product') is True
+                    and contract.get('accepted') is False and bound['observation_ref'] is None,
+                    'Static fixture cannot supply a product invocation observation')
             require((contract.get('declaration_ref') if private else contract['bindings'][0]['declaration_ref'])==case['declaration_ref'],'Calibration context names another declaration')
             output_refs=copy.deepcopy(bound['output_refs']);require(not observation or observation['output_refs']==list(output_refs.values()),'Calibration output capture was swapped')
             def decode(ref):
@@ -132,7 +139,15 @@ class CalibrationMeasurements:
                 if not isinstance(ack,dict) or ack.get('contained') is not True:raise ResearchError('calibration_containment_uncertain','Actual calibration model containment is unconfirmed')
                 raise
             require(isinstance(value,dict) and isinstance(value.get('text'),str) and value.get('call_ref'),'Calibration model lacks actual captured text/call identity')
-            call_refs.append(value['call_ref']);return value['text']
+            call_refs.append(value['call_ref'])
+            capture=getattr(port,'capture_returned_evidence',None)
+            if capture is not None:
+                # This is awaited before assessment publication. It remains
+                # under the whole-request deadline, while allowing concurrent
+                # IPC returns/deadline callbacks to run on this event loop.
+                captured=capture()
+                if inspect.isawaitable(captured):await captured
+            return value['text']
         review={'schema_version':'2.0.0','id':plan['id'].replace(':checks',':review'),
             'subject_ref':case['subject_ref'],'contract_ref':contract_ref,'check_plan_ref':plan_ref,'input_refs':context.contract.get('input_refs',[]),
             'deterministic_result_ref':checked,'criteria':plan['mandatory_semantic'],'observations':[],

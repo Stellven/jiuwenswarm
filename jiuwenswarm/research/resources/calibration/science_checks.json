@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "evaluation_verdict.json",
+    "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+  },
+  "check_plan_ref": {
+    "id": "science_check_plan.json",
+    "sha256": "9e4483c6e294bd9a8dab2636c67de77b5bdec336698a27df1e07cb34e2f0de35"
+  },
+  "results": [
+    {
+      "check_id": "evaluation_verdict_schema",
+      "outcome": "PASS",
+      "reason": "Verdict matches the field table, enums and lengths (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "check_id": "refs_match_inputs",
+      "outcome": "PASS",
+      "reason": "brief_ref, blueprint_ref and benchmark_ref equal the input refs (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "check_id": "blueprint_rules_disjoint",
+      "outcome": "PASS",
+      "reason": "Success and falsification regions do not both hold on the payload values (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "check_id": "rule_recomputation",
+      "outcome": "PASS",
+      "reason": "Findings, threshold, completeness and overall classification recompute from the blueprint and payload (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "check_id": "finding_coverage",
+      "outcome": "PASS",
+      "reason": "One finding per blueprint metric (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "check_id": "registered_rule_only",
+      "outcome": "PASS",
+      "reason": "Every rule text restates a registered rule and no conditional result appears (synthetic illustration)",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    }
+  ]
+}

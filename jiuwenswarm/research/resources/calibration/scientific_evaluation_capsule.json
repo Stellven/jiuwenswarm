@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.evaluation",
+    "version_label": "example-1",
+    "kind": "agent",
+    "summary": "Applies the registered rules to the benchmark measurements and records a scientific verdict with per-metric findings.",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "hypothesis_blueprint",
+        "artifact_type": "hypothesis_blueprint",
+        "schema_ref": "hypothesis-blueprint:field-contract:2",
+        "required": true,
+        "description": "Registered rules",
+        "check_ids": []
+      },
+      {
+        "name": "benchmark_payload",
+        "artifact_type": "benchmark_payload",
+        "schema_ref": "benchmark-payload:field-contract:2",
+        "required": true,
+        "description": "Gate-admitted measurements",
+        "check_ids": []
+      },
+      {
+        "name": "brief",
+        "artifact_type": "research_brief",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+        "required": true,
+        "description": "Objective and constraints for context only",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "evaluation_verdict",
+        "artifact_type": "evaluation_verdict",
+        "schema_ref": "evaluation-verdict:field-contract:2",
+        "required": true,
+        "description": "Scientific verdict with per-metric findings",
+        "check_ids": [
+          "evaluation_verdict_schema"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "evaluation_verdict_schema",
+        "kind": "deterministic",
+        "target": "outputs.evaluation_verdict",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      }
+    ],
+    "acceptance": [
+      "evaluation_verdict_schema"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Rule application against undisclosed inputs is established by the host rule_recomputation check"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 180,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "Mandatory host checks and verifier criteria are assigned by the protected binder, not declared here."
+    ]
+  }
+}

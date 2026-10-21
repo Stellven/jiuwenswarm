@@ -119,7 +119,8 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
     from .state import json_bytes
     package=files('jiuwenswarm');assets=package.joinpath('research_assets')
     catalog=json.loads(assets.joinpath('catalog.json').read_text('utf-8'))
-    instructions_ref=store.put_blob(assets.joinpath('compiler','verifier.txt').read_bytes(),media_type='text/plain')
+    base_instructions=assets.joinpath('compiler','verifier.txt').read_bytes()
+    from .checks.schema_context import frozen_output_instructions
     generic=[('declared_output_conformance','Does this exact output conform to the declared type, fields and shape?'),
              ('internal_consistency','Do output fields and local ID references agree internally?'),
              ('limitations_consistency','Are stated uncertainties and limitations coherent with the output?')]
@@ -128,7 +129,7 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
            'planner':[('graph_self_consistent','Is the declared predecessor/future graph internally acyclic and resolved?'),
                       ('output_ports_named','Does every future output name a compatible listed producer port?'),
                       ('coverage_tags_present','Does every node have a requirement or deliverable tag?'),
-                      ('coverage_map_consistent','Is coverage the exact inverse of the node tags?'),
+                      ('coverage_map_consistent','For requirement and deliverable entries, is coverage the exact inverse of the corresponding node tags? For evidence_obligation entries, do node_ids name existing nodes without requiring a matching node tag?'),
                       ('no_authority_claims','Do notes, objectives and suggested checks avoid commands or authority claims?')],
            'verifier':[]}
     checks={'intent':['intent_schema','source_spans','exact_identity'],
@@ -141,6 +142,13 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
         raw=assets.joinpath(entry['declaration_path']).read_bytes()
         if hashlib.sha256(raw).hexdigest()!=entry['declaration_sha256']:raise ResearchError('asset_integrity','Installed declaration changed after catalog pin')
         declaration_ref=store.put_blob(raw,media_type='application/json');declaration=store.read_record(declaration_ref,contract_id='capsule-declaration')
+        stage_instructions=base_instructions
+        if stage=='planner':
+            # CoverageEntry.item_kind explicitly excludes evidence obligations
+            # from the inverse-tag rule. This is fixed contract interpretation,
+            # independent of any request, Brief, fixture or observed output.
+            stage_instructions+=b'\nPlanner coverage contract: coverage entries with item_kind requirement must exactly invert nodes.requirement_ids; entries with item_kind deliverable must exactly invert nodes.deliverable_ids. An evidence_obligation coverage entry names the existing nodes intended to produce that evidence. Nodes carry no evidence-obligation tag, so such entries are outside the inverse-tag rule and are not inconsistent merely because no requirement_ids or deliverable_ids contains their item_id. Check these entries for internally resolved node_ids only; whether the item or evidence assignment agrees with the hidden Brief belongs to deterministic host checks and cannot be established from this pair. Apply this distinction to both internal_consistency and coverage_map_consistent.\n'
+        instructions_ref=store.put_blob(frozen_output_instructions(stage_instructions,declaration),media_type='text/plain')
         body_refs={}
         for body in entry['body']:
             data=package.joinpath(body['path']).read_bytes()
@@ -149,10 +157,16 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
         code_path='research/checks/compiler.py' if stage in {'intent','requirements'} else 'research/checks/verifier.py' if stage=='verifier' else 'research/planning.py'
         runner_ref=store.put_blob(package.joinpath(code_path).read_bytes())
         port=declaration['ports']['outputs'][0]['name'];cc=declaration['identity']['name']
-        bundle={'schema_version':'1.0.0','id':cc+'.checks.m1_1','bundle_id':cc+'.checks','version':'1.0.0','target_cc_name':cc,'target_cc_version_range':declaration['identity']['version_label'],
+        asset_release=declaration['identity']['version_label']
+        # Verifier remains the exact installed release. Changed work releases
+        # get distinct immutable artifact IDs, preserving prior captures.
+        asset_suffix='m1_1' if stage=='verifier' else asset_release
+        bundle={'schema_version':'1.0.0','id':cc+'.checks.'+asset_suffix,'bundle_id':cc+'.checks','version':'1.0.0','target_cc_name':cc,'target_cc_version_range':asset_release,
             'checks':[{'check_id':key,'target_port':port,'rule_summary':'Enforce the source-defined '+key+' invariant on exact bound artifacts and observed records',
                 'runner_ref':runner_ref,'reads':['output'] if key.endswith('_schema') else ['output','inputs','runtime_records'],'blocking':key!='suggested_checks_known'} for key in checks[stage]],'owner_role':'verifier_owner'}
-        profile={'schema_version':'1.0.0','id':cc+'.profile.m1_1','profile_id':cc+'.profile','version':'1.0.0','target_cc_name':cc,'target_cc_version_range':declaration['identity']['version_label'],
+        profile_suffix='.coverage_scope_3' if stage=='planner' else '.schema_context_2'
+        profile_version='1.2.0' if stage=='planner' else '1.1.0'
+        profile={'schema_version':'1.0.0','id':cc+'.profile.'+asset_suffix+profile_suffix,'profile_id':cc+'.profile','version':profile_version,'target_cc_name':cc,'target_cc_version_range':asset_release,
             'criteria':[{'criterion_id':key,'question':question,'blocking':True,'answerable_from':'declaration_and_output','target_port':None} for key,question in [*generic,*extra[stage]]],
             'instruction_ref':instructions_ref,'model_call_limit':1,'time_s':60,'owner_role':'verifier_owner'}
         bundle_ref=store.put_record('check-bundle',bundle);profile_ref=store.put_record('checking-profile',profile)

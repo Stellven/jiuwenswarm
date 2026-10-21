@@ -11,6 +11,7 @@ from __future__ import annotations
 import inspect
 import json
 import uuid
+import copy
 
 from ..contracts import ResearchError, validate
 from ..state import json_bytes, utc_now
@@ -24,6 +25,7 @@ class CheckAssetAdmissions:
     def __init__(self, store):
         self.store = store
         self._runners = {}
+        self._validated_profiles = {}
         with store.transaction() as db:
             db.execute('''CREATE TABLE IF NOT EXISTS calibration_profiles (
                 profile_sha TEXT PRIMARY KEY, profile_ref TEXT NOT NULL, registration_ref TEXT NOT NULL,
@@ -60,6 +62,16 @@ class CheckAssetAdmissions:
         self._runners[implementation_ref['sha256']] = (dict(implementation_ref), evaluate)
 
     def _profile(self, ref):
+        cache_key=json_bytes(ref)
+        cached=self._validated_profiles.get(cache_key)
+        if cached is not None:
+            # These facts derive solely from immutable exact-byte Refs. Verify
+            # current custody/hash for every distinct dependency, then reuse
+            # the already validated schema/coverage calculation. Registrations,
+            # issued claims, request state and deadlines are never cached.
+            value,closure,dependencies=cached
+            for dependency in dependencies:self.store.read_blob(dependency)
+            return copy.deepcopy(value),copy.deepcopy(closure)
         value = self.store.read_record(ref)
         fields = {'schema', 'id', 'bundle_ref', 'profile_ref', 'measurement_runner_ref', 'cases'}
         if (not isinstance(value, dict) or set(value) != fields or value['schema'] != 'ai4r-check-calibration:1'
@@ -96,6 +108,11 @@ class CheckAssetAdmissions:
             coverage[kind].update(expected); challenges[kind].add(case['challenge_class'])
         if any(not mandatory[kind].issubset(coverage[kind]) or challenges[kind] != CHALLENGES for kind in known):
             raise ResearchError('calibration_profile', 'Both independent assets need all five source challenge classes and mandatory ID coverage')
+        dependencies=[ref,value['bundle_ref'],value['profile_ref'],value['measurement_runner_ref'],
+            closure['instruction_ref'],*closure['runner_refs']]
+        dependencies.extend(case[key] for case in value['cases'] for key in ('declaration_ref','subject_ref','expected_ref'))
+        dependencies=list({json_bytes(dependency):copy.deepcopy(dependency) for dependency in dependencies}.values())
+        self._validated_profiles[cache_key]=(copy.deepcopy(value),copy.deepcopy(closure),dependencies)
         return value, closure
 
     def register_profile(self, profile_ref, actor):
@@ -304,7 +321,7 @@ class CheckAssetAdmissions:
         self._indexed_after(call_starts[0]['ref'],claim_ref,'model-call-start')
         return claim_ref
 
-    async def measure(self, profile_ref, actor):
+    async def measure(self, profile_ref, actor, *, stop_on_failure=False):
         actor.require('verifier_assets')
         profile, closure, registration_ref = self._registered(profile_ref)
         installed = self._runners.get(profile['measurement_runner_ref']['sha256'])
@@ -317,7 +334,9 @@ class CheckAssetAdmissions:
                 if old:
                     if old['receipt_ref'] is None:
                         raise ResearchError('calibration_uncertain', 'An issued calibration attempt is never implicitly replayed')
-                    receipts.append(json.loads(old['receipt_ref'])); continue
+                    prior=json.loads(old['receipt_ref']);receipts.append(prior)
+                    if stop_on_failure and self.store.read_record(prior)['status']!='matched':break
+                    continue
                 db.execute('INSERT INTO calibration_attempts VALUES(?,?,?,NULL)', (profile_ref['sha256'], case['case_id'], 'issued'))
             result = None; status = 'blocked'; reason = None
             try:
@@ -334,6 +353,7 @@ class CheckAssetAdmissions:
                 db.execute('UPDATE calibration_attempts SET state=?,receipt_ref=? WHERE profile_sha=? AND case_id=?',
                     (status, json_bytes(receipt).decode(), profile_ref['sha256'], case['case_id']))
             receipts.append(receipt)
+            if stop_on_failure and status!='matched':break
         return receipts
 
     def admit(self, profile_ref, actor, *, publish=True, guard=None):

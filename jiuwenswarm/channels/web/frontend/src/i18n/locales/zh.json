@@ -4670,6 +4670,13 @@
     "hideChecks": "收起工作、检查和门控",
     "gate": "门控",
     "noChecks": "尚未记录调用或门控结果。",
+    "modelCall": "模型调用：{{outcome}}",
+    "modelRoute": "{{model}} · 路由：{{route}}",
+    "modelUnobserved": "尚未观测到实际模型",
+    "continuationUnavailable": "暂时无法查看后续尝试。再次提交前，请先打开运行详情。",
+    "tryExample": "体验一次完整研究",
+    "examplePreparing": "正在准备研究示例…",
+    "exampleFailed": "暂时无法准备示例，请检查连接后重试。",
     "stages": {
       "intent": "意图胶囊",
       "requirements": "需求胶囊",

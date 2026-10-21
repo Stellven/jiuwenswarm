@@ -1,0 +1,49 @@
+{
+  "schema_version": "2.0.0",
+  "id": "poc_manifest",
+  "blueprint_ref": {
+    "id": "hypothesis_blueprint.json",
+    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+  },
+  "environment_ref": {
+    "id": "environment_lock.json",
+    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+  },
+  "archive_ref": {
+    "id": "poc_artifact_bundle.zip",
+    "sha256": "95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1"
+  },
+  "files": [
+    {
+      "path": "requirements.txt",
+      "artifact_ref": {
+        "id": "approved_requirements.txt",
+        "sha256": "b42023ae72eefd65f5091c3b051a46c4a5efee9aaaad7d1aed5ef159a767ed5f"
+      },
+      "media_type": "text/plain",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "poc_patch.py",
+      "artifact_ref": {
+        "id": "poc_patch.py",
+        "sha256": "cd23c5ffc4a30a1b5debad70de934c1763e74debeb586672568583177a878ec0"
+      },
+      "media_type": "text/x-python",
+      "audience": "authorized researcher"
+    },
+    {
+      "path": "run_benchmark.py",
+      "artifact_ref": {
+        "id": "run_benchmark.py",
+        "sha256": "56e286b8f79ae5b30ee1d4d5ccb8e863f9a8e2185e054b837b6bb971df358759"
+      },
+      "media_type": "text/x-python",
+      "audience": "authorized researcher"
+    }
+  ],
+  "dependencies": [],
+  "ext": {
+    "example.synthetic": true
+  }
+}

@@ -48,6 +48,115 @@ def selected_plan_source(submission):
     return value
 
 
+def research_continuation(store, run_id):
+    """Read the existing source-authorized replan allocation; never start work.
+
+    The authenticated caller must first own ``run_id`` and its workspace. A
+    proposed ID or a copied outcome is insufficient: the original allocation,
+    accepted Compiler Brief and exact one-hop clone must all agree. A genuine
+    child whose preparation failed is still returned so its failure stays
+    visible to the person waiting in chat.
+    """
+    from .binding import committed_output_proof
+    from .restart_recovery import _original, _ownership
+    from .state import SQLiteRunStore
+    import hashlib
+
+    if type(store) is not SQLiteRunStore:
+        raise ResearchError('continuation_unavailable', 'Continuation requires the original protected run store')
+
+    def require(condition, message):
+        if not condition:
+            raise ResearchError('integrity_fault', message)
+
+    result = {'schema': 'ai4r-workflow-continuation:1', 'run_id': run_id,
+              'continuation_run_id': None, 'outcome_ref': None,
+              'attempt_depth': None, 'max_attempt_depth': 2}
+    with store._lock:
+        db = store.connection
+        original = store.get_run(run_id)
+        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='plan_lineage'").fetchone() is None:
+            return result
+        lineage = db.execute('SELECT * FROM plan_lineage WHERE run_id=?', (run_id,)).fetchone()
+        if lineage is None:
+            return result
+        require(lineage['depth'] in (1, 2), 'Continuation depth exceeds the source two-attempt ceiling')
+        result['attempt_depth'] = lineage['depth']
+        child_id = lineage['linked_run_id']
+        if child_id is None:
+            return result
+        require(lineage['depth'] == 1 and lineage['root_run_id'] == run_id and child_id != run_id,
+                'Continuation is not the original one-hop planned allocation')
+        child_lineage = db.execute('SELECT * FROM plan_lineage WHERE run_id=?', (child_id,)).fetchone()
+        parents = db.execute('SELECT run_id FROM plan_lineage WHERE linked_run_id=?', (child_id,)).fetchall()
+        require(child_lineage is not None and len(parents) == 1 and parents[0]['run_id'] == run_id
+                and child_lineage['root_run_id'] == run_id and child_lineage['depth'] == 2
+                and child_lineage['linked_run_id'] is None,
+                'Continuation has an ambiguous parent, root or attempt budget')
+        child = store.get_run(child_id, account_id=original['account_id'])
+        require(child['workspace_id'] == original['workspace_id']
+                and original['submission'].get('plan_source') == child['submission'].get('plan_source') == 'planned'
+                and original['submission'].get('profile_id') is None and child['submission'].get('profile_id') is None,
+                'Continuation changed its account, workspace or selected product mode')
+        require(db.execute("SELECT 1 FROM records WHERE run_id IN (?,?) AND kind IN "
+                "('finite-e1-run-selection','finite-e1-plan-binding','evaluation-run-binding') LIMIT 1",
+                (run_id, child_id)).fetchone() is None, 'Private evaluation cannot become an ordinary chat continuation')
+        outcomes = list(store.iter_records(run_id=run_id, kinds=('plan-outcome',)))
+        require(len(outcomes) == 1, 'Continuation lacks its unique original plan outcome')
+        outcome_ref = outcomes[0]['ref']
+        outcome, outcome_order = _original(store, db, outcome_ref, 'plan-outcome', contract='plan-outcome')
+        require(outcome['id'] == outcome_ref['id'] and outcome['outcome'] == 'plan_infeasible'
+                and outcome['attempt_depth'] == 1 and outcome['linked_attempt_id'] == child_id
+                and outcome['next_stage'] == 'intention_compiler',
+                'Continuation outcome does not name the exact next Compiler attempt')
+        _ownership(store, db, original, outcome_order, allow_linked=False)
+        governing = committed_output_proof(store, run_id, 'intention_compiler')
+        require(governing['outputs'] == {'brief': outcome['brief_ref']} and len(governing['gates']) == 1,
+                'Continuation does not retain the original accepted Compiler Brief')
+        brief = store.read_record(outcome['brief_ref'], contract_id='research-brief')
+        require(brief['intake_ref'] == original['submission']['intake_ref'],
+                'Continuation governing Brief names another original intake')
+        compiler = store.read_record(governing['gates'][0][1]['node_contract_ref'], contract_id='node-execution-contract')
+        require(compiler['run_id'] == run_id and compiler['node_id'] == 'intention_compiler'
+                and compiler['configuration_ref'] == original['submission']['configuration_ref']
+                and compiler['required_outputs'] == ['brief'],
+                'Continuation Compiler release belongs to another original configuration')
+        original_intake_ref = original['submission']['intake_ref']
+        child_intake_ref = child['submission']['intake_ref']
+        original_intake, _ = _original(store, db, original_intake_ref, 'qualified-intake', contract='qualified-intake')
+        child_intake, intake_order = _original(store, db, child_intake_ref, 'qualified-intake', contract='qualified-intake')
+        require(outcome_order < intake_order and child_intake_ref != original_intake_ref
+                and child_intake['id'] == child_intake_ref['id'] and child_intake['id'] != original_intake['id']
+                and child['submission']['id'] != original['submission']['id']
+                and child['submission']['client_request_id'] != original['submission']['client_request_id'],
+                'Continuation reused an original request or intake identity')
+        expected_intake = dict(original_intake, id=child_intake['id'], prior_plan_outcome_ref=outcome_ref)
+        expected_submission = dict(original['submission'], id=child['submission']['id'],
+            client_request_id=child['submission']['client_request_id'], intake_ref=child_intake_ref)
+        validate('client-submission', child['submission'])
+        require(store.read_blob(child_intake_ref) == json_bytes(expected_intake)
+                and child['submission'] == expected_submission,
+                'Continuation changed original request, resources, configuration, policy or limits')
+        for ref, expected_run in ((outcome_ref, run_id), (child_intake_ref, child_id)):
+            metadata = db.execute('SELECT r.run_id,r.node_id,r.attempt_id,r.captured_at,a.captured_at AS artifact_captured_at '
+                'FROM records r JOIN artifacts a ON a.id=r.id WHERE r.id=?', (ref['id'],)).fetchone()
+            require(metadata is not None and metadata['run_id'] == expected_run
+                    and metadata['node_id'] is None and metadata['attempt_id'] is None
+                    and metadata['captured_at'] == metadata['artifact_captured_at'] == child['created_at'],
+                    'Continuation did not originate in the original protected allocation transaction')
+        requests = db.execute('SELECT * FROM requests WHERE run_id=?', (child_id,)).fetchall()
+        require(len(requests) == 1 and requests[0]['account_id'] == original['account_id']
+                and requests[0]['request_id'] == child['submission']['client_request_id']
+                and requests[0]['fingerprint'] == hashlib.sha256(json_bytes(expected_submission)).hexdigest(),
+                'Continuation lacks its exact idempotent allocated request')
+        expected_uploads = {store.read_record(ref, contract_id='client-upload')['id'] for ref in original_intake['upload_refs']}
+        for current in (run_id, child_id):
+            used = {row['upload_id'] for row in db.execute('SELECT upload_id FROM upload_uses WHERE run_id=?', (current,)).fetchall()}
+            require(used == expected_uploads, 'Continuation changed the originally retained uploaded documents')
+        result.update(continuation_run_id=child_id, outcome_ref=outcome_ref)
+        return result
+
+
 def parse_planner_reply(text):
     if not isinstance(text,str):raise ResearchError('planner_output_invalid','Planner reply is not text')
     if text.startswith('INFEASIBLE:'):

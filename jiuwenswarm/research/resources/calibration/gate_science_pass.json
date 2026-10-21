@@ -1,0 +1,98 @@
+{
+  "schema_version": "2.0.0",
+  "id": "decision:science",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:science",
+  "node_id": "evaluation",
+  "attempt_id": "evaluation-a1",
+  "contract_ref": {
+    "id": "science_subnode_contract.json",
+    "sha256": "d6a8f74a4ad45953e18d2753905ae50df1452cb3696dd0bbf3d725adf7f2cc9f"
+  },
+  "invocation_refs": [
+    {
+      "id": "science_observation.json",
+      "sha256": "6d9b210aa995d184fe81e51232639ae32d3c0691529c216372f8ff1128478f8e"
+    },
+    {
+      "id": "science_verifier_observation.json",
+      "sha256": "9f2bc0b4bcb67f7857c3ca8021c2ede40866f1d6cd447d40ae018b06fed63caa"
+    }
+  ],
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "check_plan_ref": {
+    "id": "science_check_plan.json",
+    "sha256": "9e4483c6e294bd9a8dab2636c67de77b5bdec336698a27df1e07cb34e2f0de35"
+  },
+  "input_refs": [
+    {
+      "id": "lifecycle_research_brief.json",
+      "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+    },
+    {
+      "id": "hypothesis_blueprint.json",
+      "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+    },
+    {
+      "id": "benchmark_payload.json",
+      "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "science_checks.json",
+    "sha256": "b18491f7f052a4858a966b416bf1985fb446ce2bece8429ff7e2982248cb0b2d"
+  },
+  "assessment_ref": {
+    "id": "science_assessment.json",
+    "sha256": "1d479f1dc62d756a0eeda5c6233c36e45f13518c2d19d98abd2b24d58a8aa5d8"
+  },
+  "verdict": "PASS",
+  "reasons": [
+    {
+      "code": "VALID_NEGATIVE",
+      "message": "Infrastructure acceptance permits delivery of the scientific FAIL",
+      "criterion_ids": [
+        "declared_output_conformance",
+        "internal_consistency",
+        "limitations_consistency",
+        "classification_consistent_with_findings",
+        "finding_names_metric",
+        "finding_consistent_with_values",
+        "rationale_states_values_and_rule",
+        "blockers_match_findings",
+        "followups_are_recommendations",
+        "no_unregistered_criteria"
+      ],
+      "evidence_refs": [
+        {
+          "id": "science_assessment.json",
+          "sha256": "1d479f1dc62d756a0eeda5c6233c36e45f13518c2d19d98abd2b24d58a8aa5d8"
+        }
+      ]
+    }
+  ],
+  "action": "advance",
+  "accepted_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+    }
+  ],
+  "node_contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
+  },
+  "subnode_id": "evaluation",
+  "output_port": "evaluation_verdict",
+  "scope_kind": "subnode",
+  "internal_decision_refs": []
+}

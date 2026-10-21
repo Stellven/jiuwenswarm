@@ -8,6 +8,7 @@ import {
   hasResearchInputs,
   hasLocalChat,
   researchInteraction,
+  refreshResearchRuntime,
   selectResearchInteraction,
   type ResearchInteraction,
   markResearchUpload,
@@ -32,7 +33,12 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
   const [interaction, setInteraction] = useState<ResearchInteraction>(() => researchInteraction(sessionId));
   const generation = useRef(0);
   const configured = hasResearchInputs();
-  useEffect(() => { setInteraction(researchInteraction(sessionId)); }, [sessionId, enabled]);
+  useEffect(() => {
+    const changed = () => setInteraction(researchInteraction(sessionId));
+    changed();
+    window.addEventListener('research.runtime.changed', changed);
+    return () => window.removeEventListener('research.runtime.changed', changed);
+  }, [sessionId, enabled]);
   const refresh = async () => {
     const attempt = generation.current;
     const value = await researchRequest<ResearchUpload[]>(
@@ -57,6 +63,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       .then(async (ready) => {
         if (!current) return;
         setEnabled(ready);
+        if (ready) void refreshResearchRuntime().catch(() => { /* Settings retains actual setup diagnostics. */ });
         if (ready && hasResearchInputs()) await refresh();
       })
       .catch(() => {

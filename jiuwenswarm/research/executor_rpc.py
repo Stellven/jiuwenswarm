@@ -131,10 +131,13 @@ class ExecutionOperations:
                         reasons = [*reasons, 'GPU_SCIENTIFIC_FACTORY_UNAVAILABLE']
                 except (ExecutorBlocked, ResearchError, OSError, ValueError, KeyError):
                     reasons = [*reasons, 'SCIENCE_START_REGISTRATION_UNAVAILABLE']
-        required = ("job_factory", "provisioner", "hardware_probe", "builder_collector", "builder_observer")
+        required = ("job_factory", "provisioner", "hardware_probe")
+        tool_free_builder = getattr(self.backend, 'tool_free_builder', False) is True
+        if not tool_free_builder:
+            required += ('builder_collector', 'builder_observer')
         if any(getattr(self.backend, name, None) is None for name in required):
             reasons = [*reasons, "PROTECTED_EXECUTION_FACTORIES_UNAVAILABLE"]
-        builder_qualified = False
+        builder_qualified = tool_free_builder
         launcher = getattr(self.backend, 'builder_launcher', None)
         if launcher is not None:
             try:
@@ -145,7 +148,8 @@ class ExecutionOperations:
                 builder_qualified = True
             except (ExecutorBlocked, OSError, ValueError, KeyError):
                 reasons = [*reasons, 'BUILDER_RUNTIME_QUALIFICATION_UNAVAILABLE']
-        return {"ready": not reasons, "builder_qualified": builder_qualified, "reasons": reasons}
+        return {"ready": not reasons, "builder_qualified": builder_qualified,
+                "builder_mode": 'tool_free' if tool_free_builder else 'isolated_tools', "reasons": reasons}
 
     async def _binding(self, payload, extras, *, operation=None):
         fields = {"contract_ref", "invocation_id", "execution_id"}

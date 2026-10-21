@@ -11,6 +11,7 @@ from typing import Mapping
 
 from .contracts import ResearchError
 from .executor import InvocationBinding, PreparedEnvironment, _await
+from .execution_jobs import _new_root_traversable
 from .state import json_bytes
 
 
@@ -99,9 +100,9 @@ class SameSandboxHardwareCapture:
         root.mkdir(parents=True, exist_ok=True, mode=0o711)
         key = hashlib.sha256(json_bytes({'contract_ref': binding.contract_ref, 'invocation_id': binding.invocation_id,
                                         'operation': 'hardware_observation'})).hexdigest()
-        parent = root / ('hardware-' + key); parent.mkdir(mode=0o711)
+        parent = root / ('hardware-' + key); _new_root_traversable(parent)
         work = parent / 'work'; work.mkdir(mode=0o700)
-        (work / '.venv').mkdir(mode=0o555)
+        _new_root_traversable(work / '.venv', mode=0o555)
         os.chown(work, self.executor.uid, self.executor.gid)
         job = _HardwareJob('hardware-' + uuid.uuid4().hex, binding.contract_ref, binding.invocation_id,
                            work, timeout_s, memory_mb, pids_max, prepared_environment)

@@ -5,7 +5,9 @@ import hashlib
 import inspect
 import json
 import math
+import threading
 import time
+import weakref
 from datetime import datetime,timezone
 from .contracts import ResearchError,validate
 from .state import json_bytes,utc_now
@@ -21,6 +23,68 @@ def epoch(value):
 
 
 def timestamp(value):return datetime.fromtimestamp(value,timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+_CAPTURE_KINDS = ('model-call','model-call-start','model-call-input','model-call-output',
+    'model-provider-observation','route-record','native-governed-trace','native-governed-trace-event')
+_AUDIT_CACHES = weakref.WeakKeyDictionary()
+_AUDIT_CACHES_LOCK = threading.RLock()
+
+
+class _CaptureAuditIndex:
+    """Process-local index of exact captures in one append-only Store.
+
+    Neither a cursor nor a cached marker supplies acceptance. They only avoid
+    rereading immutable bytes already verified in this exact Store instance.
+    Every new record is read through its original Ref before indexing, and
+    every newly attributed Ref still receives its original durable marker.
+    """
+    def __init__(self, store):
+        self.connection = store.connection
+        self.lock = threading.RLock()
+        self.frontier = 0
+        self.by_run, self.by_execution, self.by_call = {}, {}, {}
+        self.marked = set()
+
+    def refresh(self, store):
+        require(self.connection is store.connection, 'Calibration audit Store connection changed')
+        # Fence the append-only population first. A packet appended after this
+        # fence is inspected on the next joined audit, never skipped by a
+        # cursor advanced beyond a record which has not been read.
+        with store._lock:
+            fence = store.connection.execute('SELECT COALESCE(MAX(rowid),0) FROM records').fetchone()[0]
+            require(fence >= self.frontier, 'Calibration audit capture history regressed')
+            rows = store.connection.execute(
+                'SELECT r.rowid AS ordinal,r.kind,r.id,a.sha256 FROM records r '
+                'JOIN artifacts a ON a.id=r.id WHERE r.rowid>? AND r.rowid<=? AND r.kind IN (' +
+                ','.join('?' for _ in _CAPTURE_KINDS) + ') ORDER BY r.rowid',
+                (self.frontier, fence, *_CAPTURE_KINDS)).fetchall()
+        for row in rows:
+            ref = {'id':row['id'], 'sha256':row['sha256']}
+            value = store.read_record(ref)
+            scope = value.get('scope', {})
+            extras = []
+            if row['kind'] == 'model-call':extras.extend(value['evidence_refs'])
+            if row['kind'] == 'native-governed-trace':extras.extend(value['event_refs'])
+            if row['kind'] == 'native-governed-trace-event':extras.append(value['raw_ref'])
+            entry = (row['ordinal'], ref, extras)
+            key = json_bytes(ref)
+            for index, identity in ((self.by_run,value.get('run_id')),
+                    (self.by_execution,value.get('execution_id')),
+                    (self.by_execution,scope.get('execution_id')),
+                    (self.by_call,value.get('call_id',value.get('id')))):
+                if identity is not None:index.setdefault(identity,{})[key] = entry
+        self.frontier = fence
+
+
+def _audit_cache(store):
+    with _AUDIT_CACHES_LOCK:
+        cached = _AUDIT_CACHES.get(store)
+        if cached is None:
+            cached = _CaptureAuditIndex(store)
+            _AUDIT_CACHES[store] = cached
+        require(cached.connection is store.connection, 'Calibration audit Store connection changed')
+        return cached
 
 
 def semantic_prompt(store,case,profile):
@@ -54,6 +118,12 @@ class CalibrationAuthority:
         require(selection['policy_mode']=='fixed_baseline' and selection['approved_model_ids']==['codex-cli-default'],'Calibration requires the protected fixed subscription baseline')
         require(selection['policy_ref']==policy_ref,'Selection profile names another approved policy')
         self.selection=selection
+        try:deployment=store.read_record(deployment_ref)
+        except (ResearchError,ValueError,UnicodeError):deployment={}
+        self.requested_model=(deployment.get('requested_model')
+            if isinstance(deployment,dict) and deployment.get('schema')=='ai4r-fixed-subscription:1' else None)
+        if self.requested_model is not None:
+            require(self.requested_model=='gpt-6.1-sol','Local fixed deployment requires the exact GPT-6.1 Sol model')
         from importlib.resources import files
         catalog=json.loads(files('jiuwenswarm.research_assets').joinpath('catalog.json').read_text('utf-8'))
         entry=catalog['capsules']['verifier'];raw=store.read_blob(self.runtime['verifier_declaration_ref'])
@@ -85,7 +155,14 @@ class CalibrationAuthority:
         ref=self.runtime['case_context_refs'][profile_ref['sha256']][case['case_id']]
         value=self.store.read_record(ref)
         require(isinstance(value,dict) and set(value)=={'contract_ref','observation_ref','output_refs'},'Unknown protected case context fields')
-        contract=self.store.read_record(value['contract_ref']);private=contract.get('schema')=='ai4r-calibration-subject:1'
+        contract=self.store.read_record(value['contract_ref']);fixture=contract.get('schema')=='ai4r-calibration-fixture:2'
+        private=contract.get('schema')=='ai4r-calibration-subject:1' or fixture
+        if fixture:
+            require(value['observation_ref'] is None,'A static development fixture must not claim a product invocation observation')
+            require(set(contract)=={'schema','id','declaration_ref','bindings','run_id','node_id','subnode_id','attempt_id',
+                'inputs','input_refs','outputs','accepted','invalid_for_product'},'Static fixture fields are closed')
+            require(contract['bindings']==[{'declaration_ref':case['declaration_ref']}]
+                and contract['run_id']=='calibration-fixture','Static fixture cannot carry runtime authority or a product Run identity')
         if private:
             require(contract.get('declaration_ref')==case['declaration_ref'],'Private subject declaration differs from case')
         else:
@@ -94,7 +171,18 @@ class CalibrationAuthority:
         require(isinstance(value['output_refs'],dict) and value['output_refs'].get(case['output_port'])==case['subject_ref'],'Case subject differs from exact output capture')
         for output in value['output_refs'].values():validate('Ref',output);self.store.read_blob(output)
         if value['observation_ref'] is None:
-            require(private and not contract.get('inputs') and not contract.get('input_refs'),'Only output-only private subjects may omit actual host observation')
+            # Static development cases exercise the real installed predicates
+            # over captured inputs. They are not product invocations and must
+            # never invent an invocation-observation to stand in for one.
+            require(private and (fixture or not contract.get('inputs') and not contract.get('input_refs')),
+                'Only protected static fixtures or output-only private subjects may omit actual host observation')
+            if fixture:
+                require(self.store.record_kind(value['contract_ref'])=='calibration-fixture'
+                    and contract.get('invalid_for_product') is True and contract.get('accepted') is False,
+                    'Static fixture has no product execution or acceptance authority')
+                require(contract.get('input_refs')==[r for p in contract['inputs'] for r in p['artifact_refs']],
+                    'Static fixture input inventory differs from its captured bindings')
+                for ref in contract['input_refs']:self.store.read_blob(ref)
         else:
             observation=self.store.read_record(value['observation_ref'],contract_id='invocation-observation')
             require(observation['contract_ref']==value['contract_ref'] and observation['output_refs']==list(value['output_refs'].values()),'Original host observation/context/output differs')
@@ -215,6 +303,7 @@ class CalibrationAuthority:
             'model_selection_profile':copy.deepcopy(self.selection),'approved_model_ids':copy.deepcopy(self.selection['approved_model_ids']),
             'router':{'enabled':False,'deadline_s':30,'profile_ref':None},'limits':dict(grant['limits'],time_s=remaining),
             'execution_deadline_monotonic_s':time.monotonic()+remaining,'expected_prompt_sha256':grant['expected_prompt_sha256']}
+        if self.requested_model is not None:protected['requested_model']=self.requested_model
         claim_record=dict(protected,id=call_id+':claim',request_ref=grant['request_ref'],grant_ref=ref,
             case_id=grant['case_id'],ordinal=1,claimed_at=utc_now(),claimed_epoch=time.time())
         claim={'id':claim_record['id'],'sha256':hashlib.sha256(json_bytes(claim_record)).hexdigest()}
@@ -280,24 +369,51 @@ class CalibrationAuthority:
         self.mark([receipt]);return {'contained':True,'request_ref':payload['request_ref']}
 
     def mark(self,refs):
-        for ref in refs:
-            self.store.read_blob(ref);identity=hashlib.sha256(json_bytes(ref)).hexdigest()
-            self.store.append_record('calibration-material',{'id':'calibration-material:'+identity,'artifact_ref':ref,'calibration_only':True})
+        cached = _audit_cache(self.store)
+        with cached.lock:
+            for ref in refs:
+                key = json_bytes(ref)
+                if key in cached.marked:continue
+                self.store.read_blob(ref);identity=hashlib.sha256(key).hexdigest()
+                marker={'id':'calibration-material:'+identity,'artifact_ref':ref,'calibration_only':True}
+                with self.store._lock:
+                    present=self.store.connection.execute('SELECT 1 FROM records WHERE id=? AND kind=?',
+                        (marker['id'],'calibration-material')).fetchone()
+                if present:
+                    require(self.store.read_record(self.store.record_ref(marker['id']))==marker,
+                        'Existing calibration origin marker differs from its exact source')
+                else:self.store.append_record('calibration-material',marker)
+                # Cache only a successfully checked/persisted exact marker.
+                cached.marked.add(key)
 
     def capture_produced(self,request_ref):
         """Taint only new captures; original subject/context/instruction refs stay original."""
         request,_=self._request(request_ref,active=False)
         with self.store._lock:rows=self.store.connection.execute('SELECT * FROM private_calibration_calls WHERE request_id=?',(request['id'],)).fetchall()
-        executions={r['execution_id'] for r in rows};calls={r['call_id'] for r in rows};refs=[]
-        for envelope in self.store.iter_records(kinds=('model-call','model-call-start','model-call-input','model-call-output','model-provider-observation',
-                'route-record','native-governed-trace','native-governed-trace-event')):
-            value=envelope['record'];scope=value.get('scope',{})
-            if value.get('run_id')=='calibration-run:'+request['id'].split(':',1)[1] or value.get('execution_id') in executions or value.get('call_id',value.get('id')) in calls or scope.get('execution_id') in executions:
-                refs.append(envelope['ref'])
-                if envelope['kind']=='model-call':refs.extend(value['evidence_refs'])
-                if envelope['kind']=='native-governed-trace':refs.extend(value['event_refs'])
-                if envelope['kind']=='native-governed-trace-event':refs.append(value['raw_ref'])
-        if refs:self.mark(list({json_bytes(r):r for r in refs}.values()))
+        executions={r['execution_id'] for r in rows};calls={r['call_id'] for r in rows}
+        cached = _audit_cache(self.store)
+        with cached.lock:
+            cached.refresh(self.store)
+            matched = dict(cached.by_run.get('calibration-run:'+request['id'].split(':',1)[1], {}))
+            for identity in executions:matched.update(cached.by_execution.get(identity, {}))
+            for identity in calls:matched.update(cached.by_call.get(identity, {}))
+            refs = []
+            for _, ref, extras in sorted(matched.values(), key=lambda entry:entry[0]):
+                refs.extend((ref,*extras))
+            if refs:self.mark(list({json_bytes(r):r for r in refs}.values()))
+
+    async def capture_produced_async(self,request_ref):
+        """Join audit-only work without blocking other owned IPC returns."""
+        import asyncio
+        audit=asyncio.create_task(asyncio.to_thread(self.capture_produced,request_ref))
+        try:await asyncio.shield(audit)
+        except asyncio.CancelledError:
+            # Request expiry/cancellation still forbids acceptance. Join the
+            # finite capture worker before propagating it; no orphan task may
+            # keep writing after this operation reports containment.
+            try:await audit
+            except Exception:pass
+            raise
 
     def _mark_measurements(self,refs):
         self.mark(refs)
@@ -336,12 +452,12 @@ class CalibrationAuthority:
                 ports={(profile_ref['sha256'],case['case_id']):CalibrationModelPort(self,request,case['case_id']) for case in profile['cases'] if case['asset_kind']=='criteria'}
                 producer=CalibrationMeasurements(self.admissions,checks,case_contexts=contexts,model_ports=ports,private_request_ref=request)
                 producer.install(profile_ref,actor);self._request(request)
-                result['measurement_refs']=await self.admissions.measure(profile_ref,actor)
+                result['measurement_refs']=await self.admissions.measure(profile_ref,actor,stop_on_failure=True)
                 await asyncio.sleep(0);self._request(request)
                 admitted=self.admissions.admit(profile_ref,actor,publish=False,guard=lambda:self._request(request))
                 result.update(bundle_admission_ref=admitted['bundle'],criteria_admission_ref=admitted['criteria'])
                 result['status']='completed' if all(self.store.read_record(ref)['status']=='admitted' for ref in admitted.values()) else 'blocked'
-                self.capture_produced(request);self._mark_measurements(result['measurement_refs'])
+                await self.capture_produced_async(request);self._mark_measurements(result['measurement_refs'])
                 await asyncio.sleep(0);self._request(request)
                 receipt=self.store.append_record('calibration-request-result',result);self.mark([receipt])
                 self._request(request)
@@ -363,7 +479,7 @@ class CalibrationAuthority:
         registration=json.loads(registered['registration_ref']) if registered else None
         result['measurement_refs']=[row['ref'] for row in self.store.iter_records(kinds=('calibration-measurement',))
             if registration is not None and row['record'].get('profile_ref')==profile_ref and row['record'].get('registration_ref')==registration]
-        self.capture_produced(request);self._mark_measurements(result['measurement_refs'])
+        await self.capture_produced_async(request);self._mark_measurements(result['measurement_refs'])
         receipt=self.store.append_record('calibration-request-result',result);self.mark([receipt])
         current=self.inspect_calibration({'request_ref':request})['state']
         final_state=current if current in {'cancelled','containment_unknown','cancelling'} else result['status']

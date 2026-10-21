@@ -51,6 +51,7 @@ import beeFlyingIcon from '../../assets/bee-flying.webp';
 import beeStaticIcon from '../../assets/bee-static.png';
 import homeBanner from '../../assets/home-banner.svg';
 import { NEW_CONVERSATION_ID } from '../../multi-session/state/newConversationLifecycle';
+import { hasResearchSession, prepareResearchExample, refreshResearchRuntime } from '../../utils/researchClient';
 import loadSendIcon from '../../assets/load-send.svg';
 import editIcon from '../../assets/edit.svg';
 import deleteIcon from '../../assets/delete.svg';
@@ -194,13 +195,14 @@ interface ChatPanelProps {
 // mode === 'human' 闸门），所以这两处直接断言身份，不依赖成员名册是否已到齐。
 const HUMAN_SHARE_IDENTITY: TeamMemberIdentity = { role: 'human_agent' };
 
-function SuggestionCard({ text, onClick }: { text: string; onClick: () => void }) {
+function SuggestionCard({ text, onClick, disabled = false }: { text: string; onClick: () => void; disabled?: boolean }) {
   return (
     <button
       className="chat-suggestion-card"
       data-testid="chat-panel-welcome-suggestion"
       data-variant={text}
       onClick={onClick}
+      disabled={disabled}
     >
       <Sparkles className="chat-suggestion-card__icon" strokeWidth={2} />
       <span className="chat-suggestion-card__text">{text}</span>
@@ -1116,6 +1118,17 @@ export const ChatPanel = React.memo(function ChatPanel({
   } | null>(null);
   const stickToBottomUntilStableRef = useRef(false);
   const [isSending, setIsSending] = React.useState(false);
+  const [researchExampleAvailable, setResearchExampleAvailable] = useState(false);
+  const [researchExampleBusy, setResearchExampleBusy] = useState(false);
+  const [researchExampleError, setResearchExampleError] = useState(false);
+  useEffect(() => {
+    if (!hasResearchSession()) return;
+    let current = true;
+    void refreshResearchRuntime()
+      .then((runtime) => { if (current) setResearchExampleAvailable(runtime.example_available); })
+      .catch(() => { /* The ordinary welcome remains usable while setup is unavailable. */ });
+    return () => { current = false; };
+  }, [activeSessionId]);
   const isDesktopAttachmentDropEnabled = useDesktopLocalFilePickerReady();
   const hasTimelineContent = messages.length > 0 || toolExecutionOrder.length > 0;
   const hasConversation = Boolean(isHistoryRestoring || historyPager || hasTimelineContent);
@@ -1663,6 +1676,21 @@ export const ChatPanel = React.memo(function ChatPanel({
   }, [activeSessionId, isSending, updateHistoryLayoutSnapshot]);
 
   const handleSuggestion = useCallback((text: string) => handleSendMessage(text), [handleSendMessage]);
+  const handleResearchExample = async () => {
+    if (researchExampleBusy) return;
+    const sessionId = activeSessionId ?? NEW_CONVERSATION_ID;
+    setResearchExampleBusy(true);
+    setResearchExampleError(false);
+    try {
+      const prompt = await prepareResearchExample(sessionId);
+      useChatStore.getState().setInputValue(sessionId, prompt);
+      window.dispatchEvent(new CustomEvent('chat-input-sync', { detail: { sessionId, value: prompt } }));
+    } catch {
+      setResearchExampleError(true);
+    } finally {
+      setResearchExampleBusy(false);
+    }
+  };
 
   const markDesktopFileDropZoneActive = useCallback(() => {
     desktopFileDropAcceptUntilRef.current = Date.now() + 1200;
@@ -2065,10 +2093,16 @@ export const ChatPanel = React.memo(function ChatPanel({
                 </div>
               )}
               <div className="chat-suggestions" data-testid="chat-panel-welcome-suggestions">
+                {researchExampleAvailable && <SuggestionCard
+                  text={t(researchExampleBusy ? 'researchWorkflow.examplePreparing' : 'researchWorkflow.tryExample')}
+                  disabled={researchExampleBusy}
+                  onClick={() => void handleResearchExample()}
+                />}
                 {suggestions.map((text) => (
                   <SuggestionCard key={text} text={text} onClick={() => handleSuggestion(text)} />
                 ))}
               </div>
+              {researchExampleError && <p role="alert" className="text-warn" data-testid="chat-panel-research-example-error">{t('researchWorkflow.exampleFailed')}</p>}
             </div>
           )}
           <div />

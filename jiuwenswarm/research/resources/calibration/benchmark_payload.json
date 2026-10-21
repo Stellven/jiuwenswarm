@@ -1,0 +1,119 @@
+{
+  "schema_version": "2.0.0",
+  "id": "benchmark_payload",
+  "blueprint_ref": {
+    "id": "hypothesis_blueprint.json",
+    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+  },
+  "poc_ref": {
+    "id": "poc_manifest.json",
+    "sha256": "ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4"
+  },
+  "environment_lock_ref": {
+    "id": "environment_lock.json",
+    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+  },
+  "resource_refs": [
+    {
+      "id": "baseline_resource.json",
+      "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+    },
+    {
+      "id": "validation_resource.json",
+      "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+    }
+  ],
+  "configuration_ref": {
+    "id": "run_configuration.json",
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+  },
+  "execution_receipt_ref": {
+    "id": "execution_receipt.json",
+    "sha256": "cf67d205e56b8e7550b24e783fe2491fe9e192c5c164b732523cafcfcbd79aa1"
+  },
+  "provisioning_receipt_ref": {
+    "id": "provisioning_receipt.json",
+    "sha256": "83941f7f623ea1e4f3cafe8fe974a51aec7e75f184288a02e80ad4f3c7408312"
+  },
+  "repeat_count": 3,
+  "seed": 42,
+  "run_order": [
+    "baseline",
+    "baseline",
+    "baseline",
+    "treatment",
+    "treatment",
+    "treatment"
+  ],
+  "metrics": [
+    {
+      "metric_id": "latency_ms",
+      "unit": "ms",
+      "aggregation": "median",
+      "baseline": {
+        "repeats": [
+          100,
+          100,
+          100
+        ],
+        "value": 100,
+        "unmeasured_reason": null
+      },
+      "treatment": {
+        "repeats": [
+          105,
+          105,
+          105
+        ],
+        "value": 105,
+        "unmeasured_reason": null
+      },
+      "delta": 5
+    },
+    {
+      "metric_id": "quality",
+      "unit": "fraction",
+      "aggregation": "mean",
+      "baseline": {
+        "repeats": [
+          0.9,
+          0.9,
+          0.9
+        ],
+        "value": 0.9,
+        "unmeasured_reason": null
+      },
+      "treatment": {
+        "repeats": [
+          0.9,
+          0.9,
+          0.9
+        ],
+        "value": 0.9,
+        "unmeasured_reason": null
+      },
+      "delta": 0
+    }
+  ],
+  "raw_evidence_refs": [
+    {
+      "id": "execution_receipt_empirical_results.json",
+      "sha256": "5572476f18ecd1ecae3d393dd748333136b2d5307ddbc766f8925821afb47838"
+    },
+    {
+      "id": "baseline_execution.txt",
+      "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
+    },
+    {
+      "id": "treatment_execution.txt",
+      "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+    },
+    {
+      "id": "execution_receipt_stderr.txt",
+      "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

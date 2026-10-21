@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "id": "empirical_results",
+  "runs": [
+    {
+      "sequence": 1,
+      "metrics": {
+        "latency_ms": 100,
+        "quality": 0.9
+      }
+    },
+    {
+      "sequence": 2,
+      "metrics": {
+        "latency_ms": 100,
+        "quality": 0.9
+      }
+    },
+    {
+      "sequence": 3,
+      "metrics": {
+        "latency_ms": 100,
+        "quality": 0.9
+      }
+    },
+    {
+      "sequence": 4,
+      "metrics": {
+        "latency_ms": 105,
+        "quality": 0.9
+      }
+    },
+    {
+      "sequence": 5,
+      "metrics": {
+        "latency_ms": 105,
+        "quality": 0.9
+      }
+    },
+    {
+      "sequence": 6,
+      "metrics": {
+        "latency_ms": 105,
+        "quality": 0.9
+      }
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

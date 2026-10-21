@@ -17,7 +17,7 @@ import { createSessionEventGate } from './sessionEventGate';
 import { requestSettingsModule } from '../features/settings/settingsNavigation';
 import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, selectedResearchInputs, selectResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
 import { projectResearchWorkflow, type ResearchStatus } from '../components/teamArea/researchWorkflow';
-import { hasResearchConfiguration, researchInteraction, selectResearchInteraction } from '../utils/researchClient';
+import { hasResearchConfiguration, researchInteraction, selectResearchInteraction, refreshResearchRuntime, researchRunRequest } from '../utils/researchClient';
 
 type EventHandler = (event: WsEvent) => void;
 type TypedEventHandler<TPayload> = (event: WsEvent & { payload: TPayload }) => void;
@@ -103,6 +103,7 @@ class WebClient {
   private researchRevisions = new Map<string, number>();
   private researchSubmissions = new Map<string, { sessionId: string; requestId: string }>();
   private researchReplies = new Set<string>();
+  private completedResearchReplies = new Set<string>();
   private codexRequests = new Map<string, string>();
   private readonly sessionEventGate = createSessionEventGate((event) => {
     this.dispatchEventNow(event);
@@ -312,12 +313,12 @@ class WebClient {
 
     const interactionSession = typeof params?.session_id === 'string' ? params.session_id : 'new';
     const research = hasResearchSession() && method === 'chat.send' && (!hasLocalChat() || researchInteraction(interactionSession) === 'research');
-    if (research && !hasResearchConfiguration()) {
-      requestSettingsModule('agent');
-      throw this.createWebError(i18n.t('researchWorkflow.setupRequired'), 'RESEARCH_NOT_CONFIGURED');
-    }
     if (research) {
-      const runtime = await researchRequest<{ ready: boolean }>('/api/v1/workflow/runtime');
+      const runtime = await refreshResearchRuntime();
+      if (!hasResearchConfiguration()) {
+        requestSettingsModule('agent');
+        throw this.createWebError(i18n.t('researchWorkflow.setupRequired'), 'RESEARCH_NOT_CONFIGURED');
+      }
       if (!runtime.ready) {
         requestSettingsModule('agent');
         throw this.createWebError(i18n.t('researchWorkflow.blocked'), 'RESEARCH_NOT_READY');
@@ -461,7 +462,9 @@ class WebClient {
   }
 
   private followResearchRun(value: ResearchStatus, sessionId: string): void {
-    rememberResearchRun(sessionId, value.run_id);
+    const pending = this.researchSubmissions.get(value.run_id) ?? researchRunRequest(value.run_id);
+    if (pending && !this.completedResearchReplies.has(value.run_id)) this.researchSubmissions.set(value.run_id, pending);
+    rememberResearchRun(sessionId, value.run_id, pending?.requestId);
     const publish = (status: ResearchStatus) => {
       if (status.revision < (this.researchRevisions.get(status.run_id) ?? -1)) return;
       this.researchRevisions.set(status.run_id, status.revision);
@@ -494,6 +497,24 @@ class WebClient {
     if (!pending || this.researchReplies.has(status.run_id)) return;
     this.researchReplies.add(status.run_id);
     let content = i18n.t('researchWorkflow.stopped', { stage: status.stage, reasons: status.reasons.join('; ') });
+    if (status.status !== 'completed') {
+      try {
+        const next = await researchRequest<{ run_id: string; continuation_run_id: string | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/continuation`);
+        if (next.run_id !== status.run_id || next.continuation_run_id === status.run_id) throw new Error('Invalid continuation');
+        if (next.continuation_run_id) {
+          const child = await researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(next.continuation_run_id)}`);
+          if (child.run_id !== next.continuation_run_id) throw new Error('Continuation identity differs');
+          this.researchSubmissions.set(child.run_id, pending);
+          this.researchSubmissions.delete(status.run_id);
+          this.researchReplies.delete(status.run_id);
+          this.completedResearchReplies.add(status.run_id);
+          this.followResearchRun(child, pending.sessionId);
+          return;
+        }
+      } catch {
+        content += `\n\n${i18n.t('researchWorkflow.continuationUnavailable')}`;
+      }
+    }
     try {
       if (status.status === 'completed') {
         const result = await researchRequest<{ run_id: string; report: { content: string; redacted: boolean } | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
@@ -508,6 +529,7 @@ class WebClient {
     } });
     this.researchSubmissions.delete(status.run_id);
     this.researchReplies.delete(status.run_id);
+    this.completedResearchReplies.add(status.run_id);
   }
 
   /**

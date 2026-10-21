@@ -1,0 +1,21 @@
+{
+  "id": "template:requirements",
+  "role": "work",
+  "capsule_ref": {
+    "id": "requirements_capsule.json",
+    "sha256": "81503a19783f3497ad413c5aaa7a9ae6b3387884cacf6d26047937950a38a2b1"
+  },
+  "input_contracts": [
+    "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+    "qualified-intake:field-contract:2",
+    "default-policy:field-contract:1"
+  ],
+  "output_contracts": [
+    "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
+  ],
+  "checking_profile_ref": {
+    "id": "requirements_checking_profile.json",
+    "sha256": "8cb1a07789a0d2faa58816bce318167493157095efa2921a486ad1f6f142397a"
+  },
+  "synthetic": true
+}

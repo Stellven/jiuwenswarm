@@ -1,11 +1,14 @@
 """Explicit local operator capture, separate from admission and readiness.
 
-The launcher opt-in captures an immutable policy, fixed subscription deployment
-and workspace bindings. It does not invent scientific resources, calibrated
-guard eligibility, library admissions, credentials or observed hardware.
+The launcher opt-in captures an immutable policy, fixed subscription deployment,
+workspace bindings, explicitly authored tutorial resources and private guard
+fixtures. It creates no calibrated eligibility, admissions, credentials,
+experiment measurements or observed hardware.
 """
 from __future__ import annotations
 
+import asyncio
+import copy
 import json
 import os
 import stat
@@ -16,7 +19,9 @@ from .contracts import ResearchError, validate
 from .operator_config import OperatorConfiguration
 from .state import SQLiteRunStore, json_bytes
 
-PROFILE_NAME = 'local-research-v1'
+PROFILE_NAME = 'local-research-v6'
+PREVIOUS_PROFILE_NAME = 'local-research-v5'
+GOVERNANCE_PROFILE_NAME = PREVIOUS_PROFILE_NAME
 
 
 def _write_once(path, value):
@@ -55,9 +60,73 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
             raise ResearchError('local_profile_conflict', 'Local configuration differs from its captured identity')
         return {'configuration_path': str(config_path), 'binding_path': str(binding_path), 'binding_ref': envelope['binding_ref']}
 
+    previous = directory.parent / PREVIOUS_PROFILE_NAME
+    if (previous / 'config.json').exists() or (previous / 'bootstrap.json').exists():
+        # This generation changes checking bindings, not operator governance.
+        # Keep every prior Ref and original file; capture only the revised
+        # calibration profiles/runtime in a new immutable bootstrap directory.
+        from .bootstrap_gateway import _protected_file
+        locator = json.loads(_protected_file(str(previous / 'bootstrap.json')))
+        if set(locator) != {'binding_ref'}:
+            raise ResearchError('local_profile_conflict', 'Previous local bootstrap locator is invalid')
+        validate('Ref', locator['binding_ref'])
+        prior = store.read_record(locator['binding_ref'])
+        operator = OperatorConfiguration.load(previous / 'config.json', resolve_profile=store.read_record)
+        if store.read_record(prior['configuration_ref']) != operator.snapshot():
+            raise ResearchError('local_profile_conflict', 'Previous local governance capture is inconsistent')
+        for key in ('configuration_ref', 'model_selection_profile_ref', 'deployment_ref'):
+            validate('Ref', prior[key]); store.read_blob(prior[key])
+        installed_static = files('jiuwenswarm.research_assets').joinpath('planner/static-template.json').read_bytes()
+        if store.read_blob(operator.snapshot()['cc']['static_template_ref']) != installed_static:
+            raise ResearchError('local_profile_conflict', 'Checking-only refresh cannot change the captured static release')
+        from .catalog_calibration import capture_catalog_calibration
+        calibration = asyncio.run(capture_catalog_calibration(store,
+            configuration_ref=prior['configuration_ref'],
+            model_selection_profile_ref=prior['model_selection_profile_ref'],
+            deployment_ref=prior['deployment_ref'],
+            profile_generations={'search': 'cancelled-v5-1', 'screening': 'cancelled-v5-1'}))
+        supersessions=[]
+        old_runtime=store.read_record(prior['protected_options']['calibration_runtime_ref'])
+        for stage in ('search','screening'):
+            def selected(profiles):
+                matches=[ref for ref in profiles if store.read_record(store.read_record(ref)['bundle_ref'])['target_cc_name']=='research.'+stage]
+                if len(matches)!=1:raise ResearchError('local_profile_conflict','Superseded checking profile is absent or ambiguous')
+                return matches[0]
+            old_profile=selected(old_runtime['approved_profile_refs']);new_profile=selected(calibration['profile_refs'])
+            requests=[]
+            with store._lock:
+                if store.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='private_calibration_requests'").fetchone():
+                    rows=store.connection.execute('SELECT * FROM private_calibration_requests').fetchall()
+                else:rows=[]
+            for row in rows:
+                request_ref=json.loads(row['request_ref']);request=store.read_record(request_ref)
+                if (request.get('calibration_profile_ref')!=old_profile
+                        or request.get('runtime_ref')!=prior['protected_options']['calibration_runtime_ref']):continue
+                if row['state']!='cancelled' or not row['cancel_id']:
+                    raise ResearchError('local_profile_conflict','Superseded issued calibration lacks confirmed scoped cancellation')
+                containment_ref=store.record_ref(row['cancel_id']);containment=store.read_record(containment_ref)
+                run_id='calibration-run:'+request['id'].split(':',1)[1]
+                if (store.record_kind(containment_ref)!='calibration-containment'
+                        or containment.get('request_ref')!=request_ref or containment.get('contained') is not True
+                        or containment.get('owner_ack')!={'contained':True,'run_id':run_id,'request_id':row['cancel_id']}):
+                    raise ResearchError('local_profile_conflict','Original scoped cancellation acknowledgement is unavailable')
+                requests.append({'request_ref':request_ref,'containment_ref':containment_ref})
+            supersessions.append({'stage':stage,'previous_profile_ref':old_profile,'profile_ref':new_profile,
+                'previous_requests':requests,'reason':'Explicit operator-authorized new calibration generation; prior issued attempts remain immutable and are never replayed'})
+        binding = copy.deepcopy(prior)
+        binding['previous_binding_ref'] = locator['binding_ref']
+        binding['binding_generation'] = PROFILE_NAME
+        binding['protected_options'].update(calibration_runtime_ref=calibration['runtime_ref'],
+            calibration_profile_refs=calibration['profile_refs'], calibration_limitations=calibration['limitations'],
+            calibration_supersessions=supersessions)
+        binding_ref = store.put_blob(json_bytes(binding), media_type='application/json')
+        _write_once(config_path, operator.snapshot())
+        _write_once(binding_path, {'binding_ref': binding_ref})
+        return {'configuration_path': str(config_path), 'binding_path': str(binding_path), 'binding_ref': binding_ref}
+
     static_ref = store.put_blob(files('jiuwenswarm.research_assets').joinpath('planner/static-template.json').read_bytes(), media_type='application/json')
     required = ['research.' + stage for stage in ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')]
-    policy_ref = store.put_record('plan-policy', {'schema_version': '1.0.0', 'id': PROFILE_NAME + '.plan-policy',
+    policy_ref = store.put_record('plan-policy', {'schema_version': '1.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.plan-policy',
         'max_nodes': 12, 'allowed_effect_classes': ['pure', 'read_only', 'idempotent', 'compensable'],
         'allow_network': True, 'required_stages': required,
         'aggregate_limits': {'time_s': 10800, 'model_calls': 80, 'memory_mb': 16384}, 'max_attempts_per_node': 1})
@@ -68,38 +137,48 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'role_aliases': {role: 'codex-cli-default' for role in ('worker', 'planner', 'verifier')},
         'rsi': {'custodian_key_id': None, 'custodian_public_key': None}}).snapshot()
     configuration = store.put_blob(json_bytes(operator), media_type='application/json')
-    selection = store.put_record('model-selection-profile', {'schema_version': '1.0.0', 'id': PROFILE_NAME + '.selection',
+    selection = store.put_record('model-selection-profile', {'schema_version': '1.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.selection',
         'policy_mode': 'fixed_baseline', 'approved_model_ids': ['codex-cli-default'], 'extra_requirements': {},
         'selection_allowance': {'enabled': False, 'deployment_ref': None, 'model_calls': 0, 'time_s': 0, 'output_tokens': 0, 'disclosure_scope': []},
         'alternate_model_id': None, 'policy_ref': policy_ref})
-    deployment = store.put_blob(json_bytes({'schema': 'ai4r-fixed-subscription:1', 'id': PROFILE_NAME + '.deployment',
+    deployment = store.put_blob(json_bytes({'schema': 'ai4r-fixed-subscription:1', 'id': GOVERNANCE_PROFILE_NAME + '.deployment',
         'route_id': 'codex-cli-default', 'requested_model': 'gpt-6.1-sol', 'endpoint': 'local-protected-IPC'}), media_type='application/json')
-    defaults = store.put_record('default-policy', {'schema_version': '1.0.0', 'id': PROFILE_NAME + '.defaults',
+    defaults = store.put_record('default-policy', {'schema_version': '1.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.defaults',
         'hardware_profile': 'single_gpu', 'automatic_retries': 0})
-    finalization = store.put_record('node-finalization-profile', {'schema_version': '2.0.0', 'id': PROFILE_NAME + '.finalization',
+    finalization = store.put_record('node-finalization-profile', {'schema_version': '2.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.finalization',
         'mandatory_deterministic': ['internal_acceptance', 'external_output', 'aggregate_limits'],
         'semantic_assessment_reuse': 'accepted_requirements', 'additional_model_calls': 0})
     capture = lambda name, value: store.put_blob(json_bytes({'schema': 'ai4r-local-' + name + ':1', **value}), media_type='application/json')
-    profile = capture('profile', {'id': PROFILE_NAME, 'model': 'gpt-6.1-sol', 'hardware_ceiling': 'single_gpu'})
+    profile = capture('profile', {'id': GOVERNANCE_PROFILE_NAME, 'model': 'gpt-6.1-sol', 'hardware_ceiling': 'single_gpu'})
     workspace = capture('workspace', {'id': 'local', 'input_root': str(input_root), 'poc_root': '/workspace/poc'})
-    inputs = capture('input-directory', {'id': PROFILE_NAME + '.inputs', 'path': str(input_root), 'readable': os.access(input_root, os.R_OK)})
-    inventory = store.put_record('resource-inventory', {'schema_version': '1.0.0', 'id': PROFILE_NAME + '.resources', 'resources': []})
-    bounds = capture('search-bounds', {'id': PROFILE_NAME + '.search', 'connectors': ['local_documents'], 'max_queries': 3, 'max_hits_per_query': 3})
+    inputs = capture('input-directory', {'id': GOVERNANCE_PROFILE_NAME + '.inputs', 'path': str(input_root), 'readable': os.access(input_root, os.R_OK)})
+    from .local_science import capture_local_science_resources
+    science = capture_local_science_resources(store)
+    inventory = science['resource_inventory_ref']
+    from .catalog_calibration import capture_catalog_calibration
+    calibration = asyncio.run(capture_catalog_calibration(store, configuration_ref=configuration,
+        model_selection_profile_ref=selection, deployment_ref=deployment))
+    bounds = capture('search-bounds', {'id': GOVERNANCE_PROFILE_NAME + '.search', 'connectors': ['local_documents'], 'max_queries': 3, 'max_hits_per_query': 3})
     # The source-owned Search bound has its own closed shape.
     bounds_value = store.read_record(bounds)
     bounds_value['schema'] = 'ai4r-search-bounds:1'
     bounds = store.put_blob(json_bytes(bounds_value), media_type='application/json')
     options = {'profile_ref': profile, 'workspace_ref': workspace, 'input_directory_ref': inputs,
         'default_policy_ref': defaults, 'finalization_profile_ref': finalization,
-        'compiler_template_ref': capture('compiler-template', {'id': PROFILE_NAME + '.compiler', 'subnodes': ['intent', 'requirements']}),
-        'planner_template_ref': capture('planner-template', {'id': PROFILE_NAME + '.planner', 'required_stages': required}),
+        'compiler_template_ref': capture('compiler-template', {'id': GOVERNANCE_PROFILE_NAME + '.compiler', 'subnodes': ['intent', 'requirements']}),
+        'planner_template_ref': capture('planner-template', {'id': GOVERNANCE_PROFILE_NAME + '.planner', 'required_stages': required}),
         'compiler_limits': {'time_s': 600, 'model_calls': 4, 'memory_mb': 16384},
         'planner_limits': {'time_s': 600, 'model_calls': 2, 'memory_mb': 16384},
         'resource_inventory_ref': inventory, 'search_bounds_ref': bounds,
         'authority_ceiling': {'network': 'allowlist', 'network_allowlist': ['approved_package_index'],
-                              'resource_reads': [], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch']},
+                              'resource_reads': science['resource_reads'], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch']},
         'document_extraction_timeout_s': 30, 'max_upload_bytes': 20 * 1024 * 1024,
-        'run_inputs': {}, 'host_records': {}}
+        'run_inputs': science['run_inputs'], 'host_records': science['host_records'],
+        'local_example_ref': science['local_example_ref'],
+        'local_science_resources_ref': store.put_blob(json_bytes(science), media_type='application/json'),
+        'calibration_runtime_ref': calibration['runtime_ref'],
+        'calibration_profile_refs': calibration['profile_refs'],
+        'calibration_limitations': calibration['limitations']}
     binding = store.put_blob(json_bytes({'workspace_id': 'local', 'host_id': 'local', 'configuration_ref': configuration,
         'model_selection_profile_ref': selection, 'deployment_ref': deployment, 'protected_options': options}), media_type='application/json')
     _write_once(config_path, operator)

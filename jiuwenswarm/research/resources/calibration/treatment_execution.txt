@@ -1,0 +1,4 @@
+# Synthetic treatment stdout, one line per repeat. Not executed.
+{"metrics": {"latency_ms": 105, "quality": 0.9}}
+{"metrics": {"latency_ms": 105, "quality": 0.9}}
+{"metrics": {"latency_ms": 105, "quality": 0.9}}

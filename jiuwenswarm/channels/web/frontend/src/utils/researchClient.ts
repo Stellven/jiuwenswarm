@@ -68,6 +68,39 @@ export function hasResearchConfiguration(): boolean {
   return session()?.defaults.configuration_ref != null;
 }
 
+export interface ResearchRuntime {
+  configured: boolean;
+  ready: boolean;
+  defaults: ResearchDefaults;
+  example_available: boolean;
+}
+
+/** Refresh server-owned defaults after initialization without another login. */
+export async function refreshResearchRuntime(): Promise<ResearchRuntime> {
+  const value = await researchRequest<ResearchRuntime>('/api/v1/workflow/runtime');
+  const current = session();
+  const next = current && { ...current, defaults: value.defaults };
+  if (!current || !validSession(next) || value.defaults.account_id !== current.defaults.account_id)
+    throw new Error('Research runtime belongs to another or invalid session');
+  window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent('research.runtime.changed'));
+  return value;
+}
+
+/** Upload the real tutorial note and prefill a request; never dispatch a run. */
+export async function prepareResearchExample(sessionId: string): Promise<string> {
+  await refreshResearchRuntime();
+  const example = await researchRequest<{ filename: string; request: string; guide: string; guide_ref: ResearchRef }>('/api/v1/workflow/example');
+  const uploads = await researchRequest<ResearchUpload[]>(`/api/v1/inputs?scope_id=${encodeURIComponent(researchWorkspace())}`);
+  const existing = uploads.find((item) => item.status === 'uploaded' && item.kind === 'docs' && item.content_sha256 === example.guide_ref.sha256);
+  const uploaded = existing ?? await uploadResearchInput('docs', new File([example.guide], example.filename, { type: 'text/markdown' }));
+  if (uploaded.content_sha256 !== example.guide_ref.sha256) throw new Error('Research example upload identity differs');
+  selectResearchInputs(sessionId, [...selectedResearchInputs(sessionId), uploaded.id]);
+  selectResearchInteraction(sessionId, 'research');
+  window.dispatchEvent(new CustomEvent('research.runtime.changed'));
+  return example.request;
+}
+
 export function hasResearchInputs(): boolean {
   const defaults = session()?.defaults;
   return defaults?.inputs_ready ?? defaults?.configuration_ref != null;
@@ -103,9 +136,16 @@ function runHandleKey(): string {
   if (!current) throw new Error('Native research authentication required');
   return 'ai4r.run-handles:' + JSON.stringify([current.defaults.account_id, current.defaults.workspace_id]);
 }
+function savedRunHandles(key: string): string {
+  try {
+    const value = window.localStorage.getItem(key);
+    if (value !== null) return value;
+  } catch { /* Session storage remains usable when persistent storage is blocked. */ }
+  return window.sessionStorage.getItem(key) ?? '[]';
+}
 export function researchRunHandles(sessionId: string): string[] {
   try {
-    const rows: unknown = JSON.parse(window.sessionStorage.getItem(runHandleKey()) ?? '[]');
+    const rows: unknown = JSON.parse(savedRunHandles(runHandleKey()));
     if (!Array.isArray(rows)) return [];
     return rows
       .filter((row) => row && row.sessionId === sessionId && typeof row.runId === 'string')
@@ -114,18 +154,31 @@ export function researchRunHandles(sessionId: string): string[] {
     return [];
   }
 }
-export function rememberResearchRun(sessionId: string, runId: string): void {
+export function rememberResearchRun(sessionId: string, runId: string, requestId?: string): void {
   const key = runHandleKey();
-  let rows: { sessionId: string; runId: string }[] = [];
+  let rows: { sessionId: string; runId: string; requestId?: string }[] = [];
   try {
-    const value = JSON.parse(window.sessionStorage.getItem(key) ?? '[]');
+    const value = JSON.parse(savedRunHandles(key));
     if (Array.isArray(value))
       rows = value.filter((row) => row && typeof row.sessionId === 'string' && typeof row.runId === 'string');
   } catch {
     /* Corrupt local pointers never become research authority. */
   }
-  if (!rows.some((row) => row.sessionId === sessionId && row.runId === runId)) rows.push({ sessionId, runId });
-  window.sessionStorage.setItem(key, JSON.stringify(rows));
+  const prior = rows.find((row) => row.sessionId === sessionId && row.runId === runId);
+  if (!prior) rows.push({ sessionId, runId, ...(requestId ? { requestId } : {}) });
+  else if (requestId) prior.requestId = requestId;
+  // Local pointers contain no bearer, prompt, artifact bytes or authority.
+  try { window.localStorage.setItem(key, JSON.stringify(rows)); }
+  catch { window.sessionStorage.setItem(key, JSON.stringify(rows)); }
+}
+
+export function researchRunRequest(runId: string): { sessionId: string; requestId: string } | null {
+  try {
+    const rows = JSON.parse(savedRunHandles(runHandleKey()));
+    if (!Array.isArray(rows)) return null;
+    const row = rows.find((item) => item && item.runId === runId && typeof item.sessionId === 'string' && typeof item.requestId === 'string');
+    return row ? { sessionId: row.sessionId, requestId: row.requestId } : null;
+  } catch { return null; }
 }
 
 const inputSelections = new Map<string, string[]>();

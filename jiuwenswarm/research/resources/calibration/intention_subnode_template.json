@@ -1,0 +1,19 @@
+{
+  "id": "template:intention",
+  "role": "work",
+  "capsule_ref": {
+    "id": "capsule_declaration.json",
+    "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
+  },
+  "input_contracts": [
+    "qualified-intake:field-contract:2"
+  ],
+  "output_contracts": [
+    "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+  ],
+  "checking_profile_ref": {
+    "id": "intent_checking_profile.json",
+    "sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
+  },
+  "synthetic": true
+}

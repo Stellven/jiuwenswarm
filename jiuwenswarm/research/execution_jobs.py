@@ -29,6 +29,25 @@ from .inspection import safe_named_path
 from .state import json_bytes, utc_now
 
 
+def _new_root_traversable(path, *, mode=0o711):
+    """Create one new broker directory with traversal despite umask 077.
+
+    Existing paths are never adopted or repaired. The opened inode must still
+    have root custody before a non-writable search permission is granted.
+    """
+    if mode not in {0o711, 0o555}:
+        raise ResearchError('auth', 'Scientific directory mode is not authorized')
+    path.mkdir(mode=mode)
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != 0 or stat.S_IMODE(metadata.st_mode) & 0o022:
+            raise ResearchError('auth', 'New scientific directory lacks broker custody')
+        os.fchmod(descriptor, mode)
+    finally:
+        os.close(descriptor)
+
+
 def allocate_science_workspace(root, binding, sequence, role, *, uid=10002, gid=10002):
     """Broker-only finite allocator; callers never choose a filesystem path."""
     if os.name != 'posix' or os.geteuid() != 0 or not isinstance(binding, InvocationBinding):
@@ -44,9 +63,9 @@ def allocate_science_workspace(root, binding, sequence, role, *, uid=10002, gid=
     key = hashlib.sha256(json_bytes({'contract_ref': binding.contract_ref, 'invocation_id': binding.invocation_id,
                                     'sequence': sequence, 'role': role})).hexdigest()
     parent = root / key
-    parent.mkdir(mode=0o711)  # existing/replayed/foreign allocation is refused
+    _new_root_traversable(parent)  # existing/replayed/foreign allocation is refused
     work = parent / 'work'; work.mkdir(mode=0o700)
-    reserved = work / '.venv'; reserved.mkdir(mode=0o555)
+    reserved = work / '.venv'; _new_root_traversable(reserved, mode=0o555)
     os.chown(work, uid, gid)
     return work
 
@@ -191,7 +210,7 @@ class ScienceExecutionAdapter:
         root = supplied_root.resolve()
         root.mkdir(parents=True, exist_ok=True, mode=0o711)
         owned = root / ('env-' + uuid.uuid4().hex)
-        owned.mkdir(mode=0o711)
+        _new_root_traversable(owned)
         environment, wheelhouse = owned / 'venv', owned / 'wheelhouse'
         wheelhouse.mkdir(mode=0o700)
         effects, started = [], time.monotonic()

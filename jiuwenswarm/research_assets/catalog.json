@@ -4,11 +4,11 @@
   "capsules": {
     "intent": {
       "declaration_path": "compiler/intent.declaration.json",
-      "declaration_sha256": "cfad31534c5abd2ae3620323f4e8c91a2ace4fe22d8544a447343ff5b783c32f",
+      "declaration_sha256": "bce93620fa5b2cbee582d3fc3c2a1b4a413d8f3b275a34063077140b7e47278f",
       "body": [
         {
           "path": "research/capsules/intent.py",
-          "sha256": "b435b3768f7b8f8b2eff020646dfc6a18860838ed52ff424ba05db15e9fde4aa"
+          "sha256": "2e5d732974759be0eadd8a8579b06f04d09143b4fb16cd5f333ae048b8f68e56"
         },
         {
           "path": "research_assets/compiler/intent.txt",
@@ -16,17 +16,17 @@
         },
         {
           "path": "research/capsules/_common.py",
-          "sha256": "c9762ca9f85258b520c4185654ef691997a1830787212f04b0f54b8a725238fa"
+          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
         }
       ]
     },
     "requirements": {
       "declaration_path": "compiler/requirements.declaration.json",
-      "declaration_sha256": "4b297be4dbf5b7bb052a9440728f5b60b42d1da188973e60cd8f8eaf7edf756b",
+      "declaration_sha256": "65e5c599f4b8991e3619d2a6a2e3d9792f2f4d7c59253edfaa78bece9ef6f284",
       "body": [
         {
           "path": "research/capsules/requirements.py",
-          "sha256": "8246a365226b6428879e2eee18ec0d051414d231dd8263e21b662cead46fa324"
+          "sha256": "80adc9b59ea55975ff926dbb7917730ff668b512e694198b75caea41d9fb7acd"
         },
         {
           "path": "research_assets/compiler/requirements.txt",
@@ -34,7 +34,7 @@
         },
         {
           "path": "research/capsules/_common.py",
-          "sha256": "c9762ca9f85258b520c4185654ef691997a1830787212f04b0f54b8a725238fa"
+          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
         }
       ]
     },
@@ -54,7 +54,7 @@
     },
     "planner": {
       "declaration_path": "planner/planner.declaration.json",
-      "declaration_sha256": "460e6ce34e47048ec1c57a75326ffc001664ae127714df8722f78262efe40358",
+      "declaration_sha256": "0e3f3217ad1a10b6753afe96f4f5d32099feb74a13b8faecc19f375515ef8b78",
       "body": [
         {
           "path": "research/capsules/planner.py",
@@ -66,16 +66,16 @@
         },
         {
           "path": "research/capsules/_common.py",
-          "sha256": "c9762ca9f85258b520c4185654ef691997a1830787212f04b0f54b8a725238fa"
+          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
         }
       ]
     }
   },
   "static_template": {
     "path": "planner/static-template.json",
-    "sha256": "1a4fbc96823df72af9b7a919a2ad475de712ea7cf13b9815d571fa588f3034ab",
+    "sha256": "9288601400e0b067373a7b585b044c371047ef0c47306ad3e96dcbbe77b19be5",
     "interface_revision": "M1-IF-002@r2",
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
-    "meaning": "Explicitly authored release graph with current source-correct Screening dimension-set checking pins and unchanged aggregate worker/reviewer allowances; no runtime regeneration or supplied example override"
+    "meaning": "C021 explicit local deployment release: seven source-defined research nodes, tool-free Builder and captured CPU Benchmark; exact capsule pins and unchanged aggregate worker/reviewer allowances; no runtime regeneration or claim of GPU qualification"
   }
 }

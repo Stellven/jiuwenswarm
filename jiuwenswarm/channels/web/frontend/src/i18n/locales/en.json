@@ -4671,6 +4671,13 @@
     "hideChecks": "Hide work, checks and gates",
     "gate": "Gate",
     "noChecks": "No invocation or gate has been recorded yet.",
+    "modelCall": "Model call: {{outcome}}",
+    "modelRoute": "{{model}} · route: {{route}}",
+    "modelUnobserved": "Effective model unavailable",
+    "continuationUnavailable": "The follow-up attempt could not be inspected. Open the run details before submitting again.",
+    "tryExample": "Try a complete research example",
+    "examplePreparing": "Preparing the research example…",
+    "exampleFailed": "The example could not be prepared. Check the connection and try again.",
     "stages": {
       "intent": "Intent Capsule",
       "requirements": "Requirements Capsule",

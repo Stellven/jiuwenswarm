@@ -1,0 +1,71 @@
+{
+  "schema_version": "3.0.0",
+  "id": "observation:evaluation.verifier",
+  "run_id": "run:science",
+  "attempt_id": "evaluation-a1",
+  "node_id": "evaluation",
+  "subnode_id": "evaluation.verifier",
+  "cc_name": "research.verifier",
+  "cc_version": "example-1",
+  "declaration_sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f",
+  "route_id": null,
+  "measurement_status": "unavailable",
+  "contract_ref": {
+    "id": "science_verifier_subnode_contract.json",
+    "sha256": "ad3561aa00fbed41d33e94a81fc3a4a78d785ff16c7a690a9a3e580fc8403d3d"
+  },
+  "binding_id": "binding:evaluation.verifier",
+  "input_refs": [
+    {
+      "id": "scientific_evaluation_capsule.json",
+      "sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
+    },
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "science_assessment.json",
+      "sha256": "1d479f1dc62d756a0eeda5c6233c36e45f13518c2d19d98abd2b24d58a8aa5d8"
+    }
+  ],
+  "model_identity": {
+    "requested": "synthetic teaching endpoint",
+    "effective": null,
+    "basis": "unobserved example"
+  },
+  "started_at": null,
+  "ended_at": null,
+  "outcome": "synthetic_example",
+  "effects": [],
+  "duration_s": null,
+  "model_calls": null,
+  "trace_refs": [],
+  "unavailable_reasons": [
+    "No runtime execution or observed effects are claimed"
+  ],
+  "observed_runtime": false,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic illustration; no tokens or attributable cost were observed"
+    ]
+  },
+  "node_contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
+  },
+  "body_files_sha256": "66b5848b3c067f334e199497e79dec5b26a5b2838138ca969c375b1676f807b3",
+  "decision_source": null,
+  "failure_class": null,
+  "failure_reason_code": null,
+  "error_fingerprint": null,
+  "check_result_refs": [],
+  "verifier_assessment_ref": null,
+  "human_answer_ref": null
+}

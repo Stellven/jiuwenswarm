@@ -17,14 +17,14 @@ from .hardware import SameSandboxHardwareCapture
 from .science_runtime import decode_science_runtime_record
 
 
-def _locator(path):
+def _locator(path, *, expected_uid=0):
     supplied = Path(path)
     if not supplied.is_absolute() or any(p.is_symlink() for p in (supplied, *supplied.parents)):
         raise ExecutorBlocked("SCIENCE_BINDING_CUSTODY_INVALID")
     descriptor = os.open(supplied, os.O_RDONLY | os.O_NOFOLLOW)
     with os.fdopen(descriptor, 'rb') as stream:
         metadata = os.fstat(stream.fileno())
-        if (not stat.S_ISREG(metadata.st_mode) or metadata.st_uid != 0 or metadata.st_nlink != 1
+        if (not stat.S_ISREG(metadata.st_mode) or metadata.st_uid != expected_uid or metadata.st_nlink != 1
                 or metadata.st_mode & 0o022 or not 0 < metadata.st_size <= 65536):
             raise ExecutorBlocked("SCIENCE_BINDING_CUSTODY_INVALID")
         raw = stream.read(65537)
@@ -64,9 +64,21 @@ def decode_inputs(store, contract):
 
 def create_scientific_backend(*, store, authorize, environ, authorize_builder=None):
     locator = environ.get("JIUWENSWARM_M1_SCIENCE_BINDINGS")
-    if not locator:
+    if locator:
+        runtime_ref = _locator(locator)
+    elif environ.get('JIUWENSWARM_M1_LOCAL_RESEARCH') == '1':
+        # Explicit local operator capture uses the product writer. This fixed
+        # location supplies data only: all build, admission, policy, resource
+        # and per-invocation joins are rechecked by the root registration.
+        config = Path(environ.get('JIUWENSWARM_M1_CONFIG', ''))
+        if not config.is_absolute() or not config.is_relative_to('/var/lib/ai4r/operator'):
+            return None
+        local_locator = config.with_name('science.json')
+        if not local_locator.exists():
+            return None
+        runtime_ref = _locator(local_locator, expected_uid=10001)
+    else:
         return None
-    runtime_ref = _locator(locator)
     if store.record_kind(runtime_ref) != 'science-runtime':
         raise ExecutorBlocked('ORIGINAL_SCIENCE_RUNTIME_REQUIRED')
     record = decode_science_runtime_record(store.read_record(runtime_ref)).record
@@ -183,6 +195,21 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     executor.verify_mount = adapter.verify_mount
     executor.environment_verifier = adapter.environment_verifier
     executor.read_blob = store.read_blob
+    executor.tool_free_builder = False
+    for mapping in record['execution_bindings']:
+        declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
+        if (declared['identity']['name'] == 'research.builder'
+                and declared['identity']['version_label'] == 'm1-2'
+                and declared['needs']['model']['tool_calling'] is False
+                and declared['budget']['per_call']['tool_calls'] == 0):
+            from .capsules.assets import load_research_catalog
+            authored = load_research_catalog()['stages']['builder']
+            if mapping['declaration_ref'] != authored['declaration_ref']:
+                raise ExecutorBlocked('TOOL_FREE_BUILDER_RELEASE_MISMATCH')
+            admitted = store.read_record(mapping['admission_ref'], contract_id='library-admission')
+            if admitted['status'] != 'admitted' or admitted['candidate_ref'] != mapping['declaration_ref']:
+                raise ExecutorBlocked('TOOL_FREE_BUILDER_ADMISSION_REQUIRED')
+            executor.tool_free_builder = True
     if authorize_builder is not None:
         from .builder_launcher import create_builder_launcher
         try:

@@ -6,6 +6,8 @@
 **Input**: [Source baseline](../source-baseline.json); supplied PRD §§1, 2, 6 and their references to mandatory stage exits; supplied architecture 3-build-plan.md, method/phases.md, method/clause-coverage.md and nonblocking criteria; invoked prompt Final Verification; QA implementation prompt. Approved amendments M1-C001/C002 are embedded in TASK/TASKS.
 **Status**: Specified; no integrated candidate has passed
 
+**C021 source assignment**: The explicit 2026-10-21 user request selects `../source/Architecture_Design/`, with recorded C001–C020 decisions retained. Existing AC-C019-01..06 now apply to that assignment. Research uses the source's separate Builder and Benchmark nodes, real work/check/verifier/aggregate gates, frozen model routing and one native chat. A CPU-local development run is identified as such and establishes no native GB10 qualification. No checking admission or empirical evidence may be fabricated.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Complete an evidence-backed scientific investigation (Priority: P1)

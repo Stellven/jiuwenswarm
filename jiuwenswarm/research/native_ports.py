@@ -269,7 +269,9 @@ class NativePorts:
             self.composition, bindings, self.operator, library_pins=library, principal=principal, model_port=self.model_bridge)
         if finite_scope is None:
             prerequisites.append({'name':'builder','status':'ready' if status.get('builder_qualified') is True else 'unavailable',
-                'reason':'Dedicated Builder runtime, credential separation and confinement were qualified' if status.get('builder_qualified') is True else 'Dedicated Builder runtime and confinement qualification are unavailable'})
+                'reason':('Exact admitted tool-free Builder release; generated code executes only in the scientific sandbox'
+                    if status.get('builder_mode') == 'tool_free' else 'Dedicated Builder runtime, credential separation and confinement were qualified')
+                    if status.get('builder_qualified') is True else 'Required Builder release or isolated runtime qualification is unavailable'})
         else:
             prerequisites.append({'name':'finite_scope','status':'ready',
                 'reason':'Only the exact approved finite stages and shared verifier are selected; full workflow readiness is not claimed'})
@@ -399,6 +401,7 @@ async def start_agent_ports():
         except Exception:execution_status={}
         return {'state':status.get('state'),'enabled':status.get('enabled') is True,
                 'builder_qualified':isinstance(execution_status,dict) and execution_status.get('builder_qualified') is True,
+                'builder_mode':execution_status.get('builder_mode') if isinstance(execution_status,dict) else None,
                 'capture_healthy':capture_healthy() is True}
     status_server=PrivateRPCServer(root/'agent-status.sock',protocol=STATUS_PROTOCOL,**session,
         handlers={'subscription_status':subscription_status},allowed_uids={APP_UID})
