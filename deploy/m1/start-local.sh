@@ -36,10 +36,19 @@ if [[ ! -e "$AI4R_OPERATOR_CONFIG" ]]; then
 fi
 
 compose=(docker compose -p ai4r-web-play -f deploy/m1/compose.yaml)
+local_overlay_applied=0
 if [[ "$AI4R_LOCAL_RESEARCH" == 1 ]]; then
   export AI4R_EXECUTOR_CGROUP_HOST
   AI4R_EXECUTOR_CGROUP_HOST="$(bash deploy/m1/prepare-local-executor.sh)"
   compose+=(-f deploy/m1/compose.local-research.yaml)
+  local_patch_compose="${AI4R_LOCAL_PATCH_COMPOSE:-$HOME/.local/share/ai4r/local-patches/compose.yaml}"
+  if [[ -f "$local_patch_compose" ]]; then
+    compose+=(-f "$local_patch_compose")
+    local_overlay_applied=1
+  elif [[ -n "${AI4R_LOCAL_PATCH_COMPOSE:-}" ]]; then
+    printf 'The explicitly selected local patch Compose file does not exist: %s\n' "$local_patch_compose" >&2
+    exit 2
+  fi
 fi
 "${compose[@]}" up -d --no-build --pull never app
 printf '\nOpen the newest complete login URL below in Chrome or Edge. You can bookmark it.\n'
@@ -47,7 +56,7 @@ printf 'Your local input workspace is initialized automatically; upload document
 printf 'Sign in with ChatGPT, type a message and send. Local chat requires GPT-6.1 Sol; no API key is needed.\n'
 printf 'Selected reference documents can be included in chat.\n\n'
 container_id="$("${compose[@]}" ps -q app)"
-if [[ "$AI4R_LOCAL_RESEARCH" == 1 ]]; then
+if [[ "$AI4R_LOCAL_RESEARCH" == 1 && "$local_overlay_applied" == 0 ]]; then
   printf 'Preparing exact built-in research Capsules for local development; qualification is NOT_RUN.\n'
   printf 'Startup makes no model calls. Each research request still runs its checks, verifiers and gates.\n\n'
   # Wait only for the protected IPC owner to exist, not for subscription login
@@ -69,5 +78,8 @@ if [[ "$AI4R_LOCAL_RESEARCH" == 1 ]]; then
   container_id="$("${compose[@]}" ps -q app)"
   printf '\nLocal development research is installed. Sign in with ChatGPT in Settings, then choose the CPU research example in the normal chat.\n'
   printf 'The built-in Capsules are unqualified development assets; this startup claims no qualification PASS.\n'
+elif [[ "$AI4R_LOCAL_RESEARCH" == 1 ]]; then
+  printf 'Using the already installed local research catalog and captured runtime from the selected overlay.\n'
+  printf 'No reinitialization is performed. Each request still runs its checks, verifiers and gates.\n'
 fi
 docker logs --tail 20 -f "$container_id"

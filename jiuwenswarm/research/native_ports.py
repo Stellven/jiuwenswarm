@@ -230,17 +230,29 @@ class NativePorts:
         if self.operator is None:raise ResearchError('unavailable','Mandatory approved operator configuration is unavailable')
         bindings=self.bindings or {};options=bindings.get('protected_options',{})
         build=bindings.get('build_id');instance=bindings.get('instance_id')
-        if not isinstance(instance,str) or not instance:instance=self.session['session_id']
         installed=verify_installed_build(self.build_manifest,package_root=self.installed_package_root,component_roots=self.installed_component_roots)
         library_service=self.composition.library if self.composition is not None else self.inspection_library
         if library_service is None:raise ResearchError('unavailable','Protected library observation is unavailable')
+        local_development=(options.get('development_builtin_catalog') is True
+            and getattr(library_service,'development_mode',False) is True
+            and os.environ.get('JIUWENSWARM_M1_LOCAL_RESEARCH')=='1')
+        observed_build=local_development and build is None
+        observed_instance=local_development and instance is None
+        # A reusable local-development configuration predates this image/boot.
+        # Bind only absent identities to independently observed protected state;
+        # an explicit conflicting or malformed capture must still refuse.
+        if observed_build:build=installed
+        if observed_instance:instance=self.session['session_id']
+        identity_bound=(isinstance(build,str) and bool(build)
+            and isinstance(instance,str) and bool(instance))
+        if not isinstance(instance,str) or not instance:instance=self.session['session_id']
         inspection=getattr(library_service,'inspection_pins',None)
         library=(inspection or library_service.current_pins)(candidate_pins=options.get('candidate_pins',()))
         if library.get('unavailable_reason'):
             raise ResearchError('unavailable','No canonical selectable library snapshot is available; internal empty eligibility diagnostics cannot form RunPins')
         settings=self.operator.snapshot()['cc'];prerequisites=[]
         prerequisites.append({'name':'build_identity','status':'ready' if build is None or build==installed else 'unavailable',
-            'reason':'Independent installed build closure verified; no approved bootstrap comparison is available' if build is None else 'Captured build matches the verified installed closure' if build==installed else 'Captured bootstrap build differs from the independently verified installed build'})
+            'reason':'Explicit local-development build identity is the independently verified installed closure' if observed_build else 'Independent installed build closure verified; no approved bootstrap comparison is available' if build is None else 'Captured build matches the verified installed closure' if build==installed else 'Captured bootstrap build differs from the independently verified installed build'})
         prerequisites.append({'name':'storage','status':'ready','reason':'Protected store and current exact library/check pins were read successfully'})
         prerequisites.append({'name':'auth','status':'ready','reason':'Authenticated local product account grant was checked'})
         store=self.composition.library.store if self.composition is not None and hasattr(self.composition.library,'store') else self.inspection_store
@@ -253,8 +265,10 @@ class NativePorts:
         prerequisites.append({'name':'plan_policy','status':'ready' if policy_resolved else 'unavailable',
             'reason':'Declared approved policy Ref resolves to its exact adopted bytes' if policy_resolved else 'Approved operator declares this exact policy Ref; its original bytes are unavailable'})
         if not bindings:prerequisites.append({'name':'bootstrap','status':'unavailable','reason':'Protected captured bootstrap bindings are missing; only authenticated inspection is available'})
-        elif not isinstance(build,str) or not build or not isinstance(bindings.get('instance_id'),str) or not bindings['instance_id']:
+        elif not identity_bound:
             prerequisites.append({'name':'bootstrap_identity','status':'unavailable','reason':'Captured bootstrap build or instance binding is unavailable; the verified current build and actual boot identity are reported'})
+        elif observed_build or observed_instance:
+            prerequisites.append({'name':'bootstrap_identity','status':'ready','reason':'Explicit local development binds absent capture identities to the verified installed build and protected current boot session'})
         if library.get('unavailable_reason'):
             prerequisites.append({'name':'library','status':'unavailable','reason':'No work is eligible while its exact protected library/check binding is unresolved: '+library['unavailable_reason']})
         try:

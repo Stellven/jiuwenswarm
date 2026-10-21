@@ -340,7 +340,9 @@ class WebClient {
       if (params?.action === 'list') {
         const statuses = await Promise.all(researchRunHandles(sessionId).map((runId) => researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(runId)}`)));
         for (const status of statuses) this.followResearchRun(status, sessionId);
-        return { workflows: statuses.map(projectResearchWorkflow), total: statuses.length, has_more: false } as T;
+        // Reconnect the real background requests without adding their backend
+        // execution graph to the normal conversation's workflow panel.
+        return { workflows: [], total: 0, has_more: false } as T;
       }
       const status = await researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(String(params?.workflow_id))}`);
       this.followResearchRun(status, sessionId);
@@ -468,10 +470,8 @@ class WebClient {
     const publish = (status: ResearchStatus) => {
       if (status.revision < (this.researchRevisions.get(status.run_id) ?? -1)) return;
       this.researchRevisions.set(status.run_id, status.revision);
-      this.dispatchEventNow({ type: 'event', event: 'workflow.updated',
-        payload: { session_id: sessionId, workflow: projectResearchWorkflow(status) } });
       this.dispatchEventNow({ type: 'event', event: 'chat.processing_status',
-        payload: { session_id: sessionId, is_processing: status.status === 'in_progress', current_task: status.stage } });
+        payload: { session_id: sessionId, is_processing: status.status === 'in_progress' } });
       if (status.status !== 'in_progress' && status.status !== 'paused') void this.finishResearchReply(status);
     };
     publish(value);
@@ -496,7 +496,8 @@ class WebClient {
     const pending = this.researchSubmissions.get(status.run_id);
     if (!pending || this.researchReplies.has(status.run_id)) return;
     this.researchReplies.add(status.run_id);
-    let content = i18n.t('researchWorkflow.stopped', { stage: status.stage, reasons: status.reasons.join('; ') });
+    let content = i18n.t('researchWorkflow.incomplete', { reasons: status.reasons.join('; ') });
+    let hasAcceptedReport = false;
     if (status.status !== 'completed') {
       try {
         const next = await researchRequest<{ run_id: string; continuation_run_id: string | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/continuation`);
@@ -520,6 +521,7 @@ class WebClient {
         const result = await researchRequest<{ run_id: string; report: { content: string; redacted: boolean } | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
         if (result.run_id !== status.run_id || !result.report?.content) throw new Error('Accepted report unavailable');
         content = result.report.redacted ? `${i18n.t('researchWorkflow.redactedReport')}\n\n${result.report.content}` : result.report.content;
+        hasAcceptedReport = true;
       }
     } catch {
       content = i18n.t('researchWorkflow.reportUnavailable');
@@ -527,6 +529,14 @@ class WebClient {
     this.dispatchEventNow({ type: 'event', event: 'chat.final', payload: {
       session_id: pending.sessionId, request_id: pending.requestId, content, final_mode: 'replace_turn',
     } });
+    if (hasAcceptedReport) {
+      const exportPath = `/api/v1/runs/${encodeURIComponent(status.run_id)}/export?audience=researcher`;
+      this.dispatchEventNow({ type: 'event', event: 'chat.file', payload: {
+        session_id: pending.sessionId, request_id: pending.requestId,
+        files: [{ name: 'run_export.zip', size: 0, mime_type: 'application/zip',
+          download_url: exportPath, download_token: '', path: exportPath }],
+      } });
+    }
     this.researchSubmissions.delete(status.run_id);
     this.researchReplies.delete(status.run_id);
     this.completedResearchReplies.add(status.run_id);
