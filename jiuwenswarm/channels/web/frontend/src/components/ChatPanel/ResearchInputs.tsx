@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Select } from '../ui/Select/Select';
 import { Button } from '../ui/Button/Button';
 import '../../styles/research-shell.css';
 import {
   bootstrapResearchSession,
-  hasResearchConfiguration,
+  hasResearchInputs,
   markResearchUpload,
   researchRequest,
   researchWorkspace,
@@ -24,15 +24,21 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
-  const configured = hasResearchConfiguration();
+  const generation = useRef(0);
+  const configured = hasResearchInputs();
   const refresh = async () => {
+    const attempt = generation.current;
     const value = await researchRequest<ResearchUpload[]>(
       `/api/v1/inputs?scope_id=${encodeURIComponent(researchWorkspace())}`,
     );
-    setFiles(value.filter((item) => item.status === 'uploaded'));
+    if (attempt === generation.current) setFiles(value.filter((item) => item.status === 'uploaded'));
   };
   useEffect(() => {
     let current = true;
+    generation.current += 1;
+    setFiles([]);
+    setBusy(false);
+    setError(false);
     setSelected(selectedResearchInputs(sessionId));
     const changed = (event: Event) => {
       const detail = (event as CustomEvent<{ sessionId: string; ids: string[] }>).detail;
@@ -43,13 +49,14 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       .then(async (ready) => {
         if (!current) return;
         setEnabled(ready);
-        if (ready && hasResearchConfiguration()) await refresh();
+        if (ready && hasResearchInputs()) await refresh();
       })
       .catch(() => {
         if (current) setError(true);
       });
     return () => {
       current = false;
+      generation.current += 1;
       window.removeEventListener('research.inputs.changed', changed);
     };
   }, [sessionId]);
@@ -58,15 +65,16 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
     selectResearchInputs(sessionId, ids);
   };
   const perform = async (operation: () => Promise<void>) => {
+    const attempt = generation.current;
     setBusy(true);
     markResearchUpload(sessionId, true);
     setError(false);
     try {
       await operation();
     } catch {
-      setError(true);
+      if (attempt === generation.current) setError(true);
     } finally {
-      setBusy(false);
+      if (attempt === generation.current) setBusy(false);
       markResearchUpload(sessionId, false);
     }
   };
@@ -76,6 +84,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       <div className="research-inputs__toolbar">
         <span data-testid="chat-panel-research-inputs-title">{t('researchInputs.title')}</span>
         <Select
+          className="research-inputs__kind"
           value={kind}
           disabled={busy || !configured}
           data-testid="chat-panel-research-input-kind"
@@ -102,7 +111,9 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
               event.target.value = '';
               if (file)
                 void perform(async () => {
+                  const attempt = generation.current;
                   const uploaded = await uploadResearchInput(kind, file);
+                  if (attempt !== generation.current) return;
                   choose([...selected, uploaded.id]);
                   await refresh();
                 });
@@ -158,7 +169,9 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
               data-variant={file.id}
               onClick={() =>
                 void perform(async () => {
+                  const attempt = generation.current;
                   await researchRequest(`/api/v1/inputs/${encodeURIComponent(file.id)}`, { method: 'DELETE' });
+                  if (attempt !== generation.current) return;
                   choose(selected.filter((id) => id !== file.id));
                   await refresh();
                 })

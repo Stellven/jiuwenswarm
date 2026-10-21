@@ -1,5 +1,58 @@
 # Native M1 deployment and verification
 
+## Local web app: clone to launch
+
+On Windows, open PowerShell and enter WSL:
+
+```powershell
+wsl -d Ubuntu -u root
+```
+
+With Git installed and Docker running and accessible from Ubuntu:
+
+```bash
+git clone --branch ai4r_M1 https://github.com/Stellven/jiuwenswarm.git
+cd jiuwenswarm
+docker info
+bash deploy/m1/start-local.sh --build
+```
+
+Open the newest complete **Open JiuwenSwarm:** URL printed in the terminal in
+Chrome or Edge. Include the `#research_bootstrap=...` fragment; keep the link
+private and bookmark it for reuse. Sign in with **Use ChatGPT login** and enter
+the displayed device code on the provider page. Use **Open secure sign-in** if
+the browser blocks a popup.
+
+The launcher explicitly enables an automatically initialized **local input
+workspace**. In the composer, choose the input type, upload a file, refresh the
+saved list, and select or delete files. Text documents are UTF-8 `.txt`/`.md` or
+PDFs with selectable text; repositories are ZIPs. Local uploads are limited to
+20 MiB each. Filenames must start with an ASCII letter or number and contain
+only ASCII letters, numbers, dots, underscores or dashes. Saved files and account
+state survive app restarts and image rebuilds in the existing Docker volumes.
+
+Local input initialization creates storage only. It does not supply operator
+policy, catalog admissions or model/deployment/runtime bindings, and does not
+make governed research runs ready. Those execution requirements remain explicit.
+The base Compose deployment keeps local input initialization off; the local
+launcher opts in with `AI4R_LOCAL_WORKSPACE=1` on loopback only.
+
+For updates and restarts, from the same Ubuntu checkout:
+
+```bash
+git pull --ff-only
+bash deploy/m1/start-local.sh --build
+# Later starts without source changes:
+bash deploy/m1/start-local.sh
+# Stop the app (Ctrl+C only stops following logs):
+docker stop ai4r-web-play-app-1
+```
+
+Preserve the Docker volumes to keep your files and account. On native Linux,
+skip the PowerShell/WSL step. First-time builds require network access and may
+take several minutes. The brief command reference is
+[`commands.txt`](../../docs/code/Missions/commands.txt).
+
 These commands run on the identified Linux Docker host from the repository root.
 On this Windows workstation the observed development entry is `wsl -d Ubuntu -u root --exec docker`.
 Docker Desktop installation alone does not qualify a daemon, ARM64 or DGX Spark.

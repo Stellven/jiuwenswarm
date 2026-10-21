@@ -7,6 +7,7 @@ export interface ResearchDefaults {
   account_id: string;
   workspace_id: string | null;
   configuration_ref: ResearchRef | null;
+  inputs_ready?: boolean;
   plan_source?: 'static' | 'planned' | null;
   profile_id?: string | null;
 }
@@ -35,6 +36,7 @@ function validSession(value: unknown): value is ResearchSession {
   if (defaults.workspace_id !== null && (typeof defaults.workspace_id !== 'string' || !defaults.workspace_id))
     return false;
   const ref = defaults.configuration_ref;
+  if (defaults.inputs_ready !== undefined && typeof defaults.inputs_ready !== 'boolean') return false;
   return (
     ref === null ||
     (typeof ref === 'object' &&
@@ -63,6 +65,11 @@ export function hasResearchSession(): boolean {
 
 export function hasResearchConfiguration(): boolean {
   return session()?.defaults.configuration_ref != null;
+}
+
+export function hasResearchInputs(): boolean {
+  const defaults = session()?.defaults;
+  return defaults?.inputs_ready ?? defaults?.configuration_ref != null;
 }
 
 export function researchWorkspace(): string {

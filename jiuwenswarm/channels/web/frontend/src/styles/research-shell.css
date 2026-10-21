@@ -1,10 +1,8 @@
 /* Native research views use the same surfaces, controls and spacing as the shell. */
 .research-inputs {
-  margin: 4px 0 12px;
-  padding: 14px 16px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 14px;
-  background: var(--color-surface-card);
+  margin: 0;
+  padding: 12px 16px 0;
+  min-width: 0;
   color: var(--color-text-primary);
   font-size: 13px;
 }
@@ -16,10 +14,10 @@
 }
 .research-inputs__toolbar > span {
   font-weight: 600;
-  margin-right: auto;
+  color: var(--color-text-secondary);
 }
 .research-inputs__hint {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   color: var(--color-text-secondary);
   line-height: 1.6;
   font-size: 12px;
@@ -29,18 +27,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
-  padding: 6px 12px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 8px;
-  background: var(--color-surface-elevated);
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
   cursor: pointer;
   font-weight: 500;
   overflow: hidden;
 }
+.research-inputs__kind {
+  height: 28px;
+  font-size: 12px;
+  border-color: transparent;
+  background-color: transparent;
+}
 .research-inputs__upload:focus-within {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
+}
+.research-inputs__upload:hover {
+  background: var(--color-tool-tab-active-bg);
+  color: var(--color-text-primary);
 }
 .research-inputs__upload input {
   position: absolute;
@@ -58,7 +65,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -253,10 +260,9 @@
     padding: 12px;
   }
   .research-inputs {
-    padding: 12px;
+    padding: 12px 16px 0;
   }
   .research-inputs__toolbar > span {
-    flex-basis: 100%;
-    margin-bottom: 4px;
+    flex-shrink: 0;
   }
 }

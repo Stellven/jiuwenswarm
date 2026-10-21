@@ -3,7 +3,7 @@
 ## 1. Identity
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-001 / r19 / 2026-10-20 |
+| TASK ID / revision / date | M1-001 / r20 / 2026-10-21 |
 | Parent TASKS | [M1 register](../TASKS.md) |
 | Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
 | Requested outcome and instruction/source | Multiarchitecture app deployment, protected Codex IPC bridge, operator configuration and restricted executor readiness; [invoked user prompt](../source/Code/prompt.txt) |
@@ -18,15 +18,17 @@ Current M1-I033 registers IF001r3 protected registration behavior and the revisi
 | Artifact | Exact path | Authority |
 | --- | --- | --- |
 | Feature directory | docs/code/Missions/M1/M1-001/ | One directory for this TASK |
-| spec.md | [spec.md](spec.md) | AC authority; r7 retains all AC IDs and adds I032/I033 precision |
-| plan.md | [plan.md](plan.md) | Technical authority; r18 preserves current construction and adds I032/I033 |
-| tasks.md | [tasks.md](tasks.md) | Sole progress/evidence authority; r12 preserves work/history with I032/I033 UNBUILT supplement |
+| spec.md | [spec.md](spec.md) | AC authority; r8 adds C014 local input deployment; retains AC IDs and I032/I033 |
+| plan.md | [plan.md](plan.md) | Technical authority; r20 adds C014 IF007r3 consumer; preserves existing construction |
+| tasks.md | [tasks.md](tasks.md) | Sole progress/evidence authority; r14 adds C014; preserves work/history and remaining UNBUILT work |
 | evidence/ | evidence/ | Actual runs only; no runtime acceptance from registration |
 | Supporting artifacts | [Program source baseline](../source-baseline.json) | Source identity; subordinate to registered authorities |
 
 Native artifacts are created only during their corresponding Spec Kit phases. spec.md r5 and plan.md r13 now exist; tasks.md r7 preserves ordered work/progress, admission-test/native trace/calibration work and existing live/installation IDs. Owned IF001 r1 remains unchanged; the distinct private IF013 r1 is defined below. Consumed IF002 r2 incorporates approved C008. The protected-process design adds no public product or operator-config field. Registration or a specification does not establish implementation or acceptance.
 
 ## 3. Dependencies
+
+C014 consumer amendment: consume M1-006 IF-007r3 local input capability. The existing local launcher opts in with AI4R_LOCAL_WORKSPACE=1, passed by base Compose with default0. Preserve operator input, named volumes and all executor/model readiness boundaries. Only input storage is initialized; no policy/admission/runtime resources are generated. Current spec r8, plan r20, tasks r14. Actual progress is recorded in tasks.md.
 | Dependency TASK/block/IF ID and revision | Required behavior or artifact | Condition needed before dependent work | Affected block/work-item references |
 | --- | --- | --- | --- |
 | M1-002 / M1-IF-016@r1 | Canonical private evaluation runtime/request/scope/assignment and call/tool claim ownership, capture journal, terminal and export definitions | Definitions before local consumer construction; fresh core-owned authority/shared Runner composition plus actual model/check/kernel resources before connected verification; no ordinary Run or historical grant alias | B02/B03/B04/B06; T004/T005/T006/T008/T015/T018/T023/T028/T049 and V03/V04/V12/V14; ordinary and IF014 behavior retained |

@@ -1,6 +1,6 @@
 {
   "codexSubscription": {
-    "setupRequired": "Sign in to ChatGPT to connect your account. Research execution also requires workspace setup.",
+    "setupRequired": "ChatGPT sign-in connects your account. Local file uploads are available; research execution requires operator/runtime resources.",
     "title": "Codex subscription",
     "scope": "Preview: ordinary text chat. Teams, tools and media are pending integration. After a restart or sign-out, start a new conversation; saved history remains available.",
     "model": "Subscription model",
@@ -4625,7 +4625,7 @@
     }
   },
   "researchInputs": {
-    "setupRequired": "Research setup is required before attaching files or running a study. You can sign into ChatGPT above.",
+    "setupRequired": "Local file storage is not enabled. Update the app and launch with bash deploy/m1/start-local.sh --build.",
     "title": "Research inputs",
     "kind": "Input type",
     "docs": "Reference document",
@@ -4634,7 +4634,7 @@
     "upload": "Upload",
     "refresh": "Refresh",
     "delete": "Delete",
-    "hint": "Selected inputs attach to the next research request. Documents are decoded once; repositories and datasets remain captured resources. Active inputs cannot be deleted.",
+    "hint": "Files are saved in your local workspace. Select files for your next research request. Local uploads: 20 MB per file; filenames use letters, numbers, dots, dashes or underscores.",
     "failed": "The input operation failed. Check authentication, file type and whether a run is using this input."
   }
 }

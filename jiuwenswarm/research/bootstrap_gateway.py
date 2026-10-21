@@ -156,6 +156,9 @@ async def attach_native_research(web_channel,runtime_ports=None):
     workspace=bindings['workspace_id'] if bindings else 'local'
     principal=Principal(accounts.primary()['account_id'],frozenset({workspace}),frozenset({'status','readiness','submit','reconcile','cancel','export','upload','list_uploads','delete_upload','settings'}),frozenset({'researcher','reviewer'}))
     service=ResearchService(store,registry=Registry(),model=None)
+    if bindings is None and os.environ.get('JIUWENSWARM_M1_LOCAL_WORKSPACE')=='1':
+        from .local_workspace import initialize_local_inputs
+        service.upload_manager=initialize_local_inputs(store,account_id=principal.account_id,origin=origin)
     bind_inspection=getattr(runtime_ports,'bind_inspection',None)
     if bind_inspection is not None:
         observed=bind_inspection(store,operator,diagnostics)

@@ -1,7 +1,7 @@
 # Feature Specification: M1-006 - Authenticated operational shell
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r5 / 2026-10-20
+**Revision / date**: r6 / 2026-10-21
 **Feature Branch**: ai4r_M1
 **Input**: [Exact source baseline](../source-baseline.json); docs/code/Missions/M1/source/PRD/PRD_Oct_15.md §§5.1–5.6, 6.10; US01, US05–US08, US12–US20 as allocated; docs/code/Missions/M1/source/Architecture_Design/platform/{README,inspection,failure-and-recovery}.md; docs/code/Missions/M1/source/Architecture_Design/reference/field-catalog.md#control-api, #node-lifecycle, #client-readiness, #client-submission, #client-status, #client-retrieval, #client-cancellation, #client-upload, #client-error, #operator-config; docs/code/Missions/M1/source/Architecture_Design/method/decisions.md D35/D36/D39/D48–D50; jiuwenswarm/channels/web/AGENTS.md; jiuwenswarm/channels/web/frontend/AGENTS.md; docs/code/Missions/M1/M1-006/TASK.md; docs/code/Missions/M1/TASKS.md. Architecture references mean only the assigned source/Architecture_Design snapshot.
 **Status**: Specified; formal Clarify source resolutions and reviewed Plan/Tasks artifacts recorded; no runtime result implied
@@ -115,6 +115,10 @@ Explicit reusable local mode accepts the same designated fragment challenge in m
 ### M1-C012 extension to AC-001
 Authenticated local users can sign into the app-owned ChatGPT provider account while research readiness is blocked. Login opens a browser tab from the user gesture and navigates only to the existing allowlisted HTTPS provider URL. Popup blocking retains the explicit Open sign-in page fallback. Failed/stale attempts close any blank tab. No background research work is started.
 
+
+### M1-C014 - Local input workspace (2026-10-21)
+
+Extension of AC-002/AC-006/AC-011: the explicit local launcher must initialize an account-scoped persistent input workspace automatically. Upload, Refresh, select and Delete work without an execution operator configuration. Bootstrap advertises input capability separately, never a fabricated configuration reference. Reload/restart preserves uploaded files; foreign scope/owner, invalid documents and unsafe repository archives remain refused. Local mode refuses a non-loopback origin. Research execution without its actual prerequisites remains unavailable. The research attachment area shares the native composer's content alignment and surface, with bilingual errors and accessible controls. Supply an English fresh-clone/update/start/stop guide that states the actual execution limitation.
 
 ### M1-C013 ? Ten-minute user-facing integration pass (2026-10-20)
 User requests coherent, polished actual-use UI within ten minutes. Scope existing native sign-in, chat attachments, run inspection/cancel/export, artifact/measurement and settings surfaces. Reuse semantic theme tokens, shared controls and existing layout; preserve IDs, bilingual copy, authorization and source records. Add clear disabled/unavailable affordances and responsive styling. No invented data, execution readiness or scientific acceptance. Prioritize completing C011/C012 production integration. Build and targeted control checks; browser visual/auth completion stays unverified unless permitted/observed. Implementation progress goes in this feature tasks.md; existing AC ownership remains.

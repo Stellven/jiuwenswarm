@@ -37,6 +37,28 @@ globalThis.fetch = async (path, options = {}) => {
 };
 const client = await import('../node_modules/.cache/research-shell/utils/researchClient.js');
 
+test('input capability is separate from execution configuration and supports older servers', () => {
+  const key = 'ai4r.native-session';
+  const original = memory.get(key);
+  const saved = {
+    token: 'local',
+    defaults: { account_id: 'owner', workspace_id: 'local', configuration_ref: null, inputs_ready: true },
+  };
+  memory.set(key, JSON.stringify(saved));
+  assert.equal(client.hasResearchInputs(), true);
+  assert.equal(client.hasResearchConfiguration(), false);
+  saved.defaults.inputs_ready = false;
+  assert.equal(client.hasResearchInputs(), true);
+  memory.set(key, JSON.stringify(saved));
+  assert.equal(client.hasResearchInputs(), false);
+  delete saved.defaults.inputs_ready;
+  saved.defaults.configuration_ref = { id: 'config', sha256: 'a'.repeat(64) };
+  memory.set(key, JSON.stringify(saved));
+  assert.equal(client.hasResearchInputs(), true);
+  if (original === undefined) memory.delete(key);
+  else memory.set(key, original);
+});
+
 test('native bootstrap scrubs fragment and Bearer stays at same origin', async () => {
   await client.bootstrapResearchSession();
   assert.equal(window.location.hash, '');

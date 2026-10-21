@@ -1,13 +1,15 @@
 # Implementation Plan: M1-006 - Authenticated operational shell
 
-**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r5](spec.md)
+**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r6](spec.md)
 
-**Revision / date**: r13 / 2026-10-20 | **Branch**: ai4r_M1
+**Revision / date**: r14 / 2026-10-21 | **Branch**: ai4r_M1
 
 **Input sources**: [Exact source receipts](../source-baseline.json), [TASKS allocation](../TASKS.md), this TASK §1/4 source clauses and canonical IF revisions; supplied PRD/Architecture_Design and applicable QA documents only. M1-C001/C002 apply where consumed.
 
 
 ## Summary
+
+C014 / IF-007r3: `local_workspace.py` initializes only durable account-scoped input directories and a content-addressed local-input-workspace record when the startup-only local flag is explicit and the origin is loopback. Reuse UploadManager with a 30s extraction deadline and 20MiB upload ceiling. Gateway attaches it only when protected bootstrap bindings are absent; authenticated HTTP allows only upload/list/delete through execution refusal when this concrete capability exists. `client_defaults.inputs_ready` advertises that capability; browser uses it independently of execution configuration and supports older servers. Native composer owns width/surface/padding; research attachment toolbar has no nested card border/background. Focused checks exercise actual local composition, HTTP authentication, upload/list/delete and restart persistence, foreign scopes, unsafe ZIP and unchanged execution refusal. Run production frontend build and the updated launcher/image; browser visual checks remain subject to the existing origin permission. No broad benchmark campaign.
 
 Extend the existing native FastAPI/WebChannel, same-origin web proxy, CLI and default TUI/SwarmFlow surfaces. Thin client adapters call ResearchService in research/control.py, the sole protected coordination seam; they never manufacture gate state or operate directly on SQLite/filesystem volumes. Add scoped product session authentication, account/profile preferences, controlled uploads and audience-aware immutable inspection. Native startup validates observed prerequisites and remains inspectable when research execution is unavailable. No separate research application, bespoke workflow widgets or sidecar startup dependency. The ordinary product API stays fixed; separately scoped approved evaluation-profile E2/E3 routes follow the core-owned M1-I017 binding below.
 

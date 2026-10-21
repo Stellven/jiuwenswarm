@@ -1,17 +1,44 @@
-# PowerShell:
+JiuwenSwarm: local web app (Windows + WSL Ubuntu)
+
+Prerequisites: Git in Ubuntu, and a Docker daemon accessible from Ubuntu.
+Start Docker Desktop if that is your daemon and enable its WSL integration.
+The first build downloads dependencies and can take several minutes.
+
+# Open PowerShell:
 wsl -d Ubuntu -u root
 
-# Ubuntu: first checkout and launch (Docker must already be running).
+# In Ubuntu, clone and launch:
 git clone --branch ai4r_M1 https://github.com/Stellven/jiuwenswarm.git
 cd jiuwenswarm
-bash deploy/m1/start-local.sh
+docker info
+bash deploy/m1/start-local.sh --build
 
 # Open the newest complete Open JiuwenSwarm URL in Chrome/Edge.
 # You can bookmark this local login link and reuse it after restarts.
 # Sign in with ChatGPT opens the provider page; enter the code shown in the app.
 # If popups are blocked, click Open secure sign-in.
-# The default empty config starts inspection mode; research runs need workspace setup.
+# Your local input workspace is initialized automatically.
+# Choose Reference document, Repository ZIP or Validation dataset, then Upload.
+# Refresh lists saved files. Check files to attach; Delete removes unused files.
+# Documents: UTF-8 .txt/.md or a PDF containing selectable text.
+# Repository: .zip. Local upload limit: 20 MB per file.
+# Use ASCII letters/numbers/dots/dashes/underscores in filenames; start with
+# a letter or number. Files and account data persist in Docker volumes.
+# Local file storage and ChatGPT login do not configure research execution.
+# Full research runs still require actual operator policy, catalog and runtime
+# bindings. This launcher does not create those resources.
 
 # After pulling source updates:
 git pull --ff-only
 bash deploy/m1/start-local.sh --build
+
+# Start again without rebuilding (inside the same Ubuntu repository):
+bash deploy/m1/start-local.sh
+
+# Ctrl+C stops following terminal logs; the app keeps running.
+# Stop the app:
+docker stop ai4r-web-play-app-1
+
+# Do not delete Docker volumes if you want to retain your files and login.
+# If port 5173 is occupied, stop the other service before launching.
+# On native Linux, skip the PowerShell/WSL step and run the Ubuntu commands.

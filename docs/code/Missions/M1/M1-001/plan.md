@@ -1,8 +1,10 @@
 # Implementation Plan: M1-001 - Deployment, protected Codex bridge and confined execution
 
-**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r7](spec.md)
+**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r8](spec.md)
 
-**Revision / date**: r19 / 2026-10-20 | **Branch**: ai4r_M1
+**Revision / date**: r20 / 2026-10-21 | **Branch**: ai4r_M1
+
+C014 / IF-007r3 consumer: Compose forwards JIUWENSWARM_M1_LOCAL_WORKSPACE from AI4R_LOCAL_WORKSPACE default0; start-local.sh sets1 with the existing fixed loopback origin. It retains image/config selection and named volumes. The provider initializes input storage before publishing bootstrap defaults. Verify with a production image and actual authenticated frontend-proxied upload/list/delete plus restart persistence. Preserve complete execution prerequisites and C010 campaign skips.
 
 **Input sources**: [Exact source receipts](../source-baseline.json), [TASKS allocation](../TASKS.md), this TASK §1/4 source clauses and canonical IF revisions; supplied PRD/Architecture_Design and applicable QA documents only. M1-C001/C002 apply where consumed.
 

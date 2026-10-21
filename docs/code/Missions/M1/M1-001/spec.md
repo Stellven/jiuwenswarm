@@ -1,10 +1,12 @@
 # Feature Specification: M1-001 - Deployment, model bridge and confined executor
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r7 / 2026-10-20
+**Revision / date**: r8 / 2026-10-21
 **Feature Branch**: ai4r_M1; the registered directory does not change the branch
 **Input**: [Exact source baseline](../source-baseline.json); supplied PRD §§3.0, 4.3.3, 5.4.3, 5.6, 6.3; supplied architecture platform/README.md PLT-1/3/4/10/11, reference/model-routing-contract.md, reference/capsules/builder.md, development-tools/automation.md, D35/D43-D45; invoked prompt's x86-64/aarch64 requirement.
 **Status**: Specified; no runtime acceptance implied
+
+C014 deployment extension: explicit local launcher enables M1-006 IF-007r3 persistent input storage on loopback; base Compose remains opt-out. Starting/rebuilding preserves saved inputs/accounts. No research execution readiness is inferred from an initialized local input workspace.
 
 ## User Scenarios & Testing
 

@@ -3,7 +3,7 @@
 ## 1. Identity
 | Field | Value |
 | --- | --- |
-| TASK ID / revision / date | M1-006 / r13 / 2026-10-20 |
+| TASK ID / revision / date | M1-006 / r14 / 2026-10-21 |
 | Parent TASKS | [M1 register](../TASKS.md) |
 | Executor / collaborators | Codex; read-only source reviewers collaborate under the same scope |
 | Requested outcome and instruction/source | Versioned control API, native CLI/web/TUI projection, uploads/deletion, account/profile durability, install/init/doctor and inspection; [invoked user prompt](../source/Code/prompt.txt) |
@@ -16,9 +16,9 @@
 | Artifact | Exact path | Authority |
 | --- | --- | --- |
 | Feature directory | docs/code/Missions/M1/M1-006/ | One directory for this TASK |
-| spec.md | [spec.md](spec.md) | r5; C011/C012/C013 amendments; existing authority/IDs retained, I032 consumer compatibility and evidence correspondence |
-| plan.md | [plan.md](plan.md) | r13; C011/C012/C013; preserves I032 and adds thin CLI saved-session/default resolution and readable original-artifact inspection procedures |
-| tasks.md | [tasks.md](tasks.md) | r12; C011/C012/C013; existing work IDs and history retained; shell feature implementation progress and C010 skipped verification recorded |
+| spec.md | [spec.md](spec.md) | r6; C014 local workspace plus retained C011/C012/C013 amendments and existing AC identities |
+| plan.md | [plan.md](plan.md) | r14; C014 input-only initialization/IF007r3 plus retained design and procedures |
+| tasks.md | [tasks.md](tasks.md) | r13; C014 work/evidence plus retained histories and C010 skipped verification |
 | evidence/ | evidence/ | Actual runs only; no runtime acceptance from registration |
 | Supporting artifacts | [Program source baseline](../source-baseline.json) | Source identity; subordinate to registered authorities |
 
@@ -123,6 +123,10 @@ Current amendment supersedes only the designated one-time login provision when t
 ### M1-C012 ? Native provider sign-in usability
 User explicitly requests fixing ChatGPT login that does not redirect. Include existing CodexSubscriptionPanel click behavior and research_http inspection account control. Provider auth does not require a valid research operator config, grant research readiness or authorize model execution. M1-001 consumes account control before execution admission. Reuse dedicated existing get_service account custody; never IDE credentials. IF-007@r2 request shapes remain unchanged.
 
+
+### M1-C014 - Local input workspace and composer integration (2026-10-21)
+
+User requests finishing workspace setup after login leaves Upload/Refresh disabled, aligning the research inputs with the native composer, and an English clone-to-launch guide. Owning M1-006 extends M1-IF-007 to r3: native bootstrap defaults add optional boolean `inputs_ready`, independent of `configuration_ref` and execution readiness. The local launcher explicitly opts into loopback-only local input initialization; base deployments stay unchanged. Capture a durable account/workspace input record and initialize bounded existing UploadManager storage, without manufacturing operator policy, catalog admission, deployment/model pins or successful research execution. Authenticated upload/list/delete may operate in this input workspace while execution remains refused. M1-001 consumes the optional Compose environment and launcher wiring. Existing upload wire contracts, owner/scope checks, extraction, deletion rules and named volumes remain. Prior upload-disabled UI evidence is superseded for this path; frozen source and historical results remain unchanged.
 
 ### M1-C013 ? Ten-minute user-facing integration pass (2026-10-20)
 User requests coherent, polished actual-use UI within ten minutes. Scope existing native sign-in, chat attachments, run inspection/cancel/export, artifact/measurement and settings surfaces. Reuse semantic theme tokens, shared controls and existing layout; preserve IDs, bilingual copy, authorization and source records. Add clear disabled/unavailable affordances and responsive styling. No invented data, execution readiness or scientific acceptance. Prioritize completing C011/C012 production integration. Build and targeted control checks; browser visual/auth completion stays unverified unless permitted/observed. Implementation progress goes in this feature tasks.md; existing AC ownership remains.

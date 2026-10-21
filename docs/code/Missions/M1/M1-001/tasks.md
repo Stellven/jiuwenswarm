@@ -6,7 +6,11 @@ description: "TASK-native work and acceptance/evidence correspondence"
 
 # Tasks: M1-001 - Deployment, protected Codex bridge and confined execution
 
-**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r7 / r19 | **Tasks revision/date**: r13 / 2026-10-20
+**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r8 / r20 | **Tasks revision/date**: r14 / 2026-10-21
+
+## C014 local launcher consumer
+
+- [ ] M1-001/T-C014-1 Forward explicit local input initialization without altering protected execution resources; build/start existing named app volumes and observe actual input HTTP persistence. Detailed provider/consumer evidence lives in M1-006/tasks.md. Existing full-system gaps remain unresolved.
 
 **Feature directory**: docs/code/Missions/M1/M1-001/
 

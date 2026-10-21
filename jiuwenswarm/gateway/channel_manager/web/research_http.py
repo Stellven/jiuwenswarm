@@ -76,7 +76,8 @@ def mount_research_routes(app, channel) -> None:
                                                request.query_params.get('audience'))
             authority.authorize_evaluation(request.headers.get('authorization'), operation,
                 submission=submission, run_id=run_id, client_request_id=client_request_id)
-            if getattr(channel, 'research_refusal_reason', None) and operation not in {
+            input_operation = operation in {'upload', 'list_uploads', 'delete_upload'} and service.upload_manager is not None
+            if getattr(channel, 'research_refusal_reason', None) and not input_operation and operation not in {
                     'status', 'readiness', 'reconcile', 'export', 'cancel', 'list_uploads'}:
                 raise ResearchError('unavailable', 'Mandatory operator configuration is unavailable; inspection only')
             return JSONResponse(await _result(callback(principal)), headers={'Cache-Control': 'private, no-store'})
@@ -249,11 +250,13 @@ def mount_research_routes(app, channel) -> None:
     async def upload(request: Request, kind: str):
         # Authorize before reading attacker-supplied multipart bytes.
         async def publish(p):
-            form = await request.form()
-            if set(form) != {'file', 'scope_id'} or not hasattr(form['file'], 'read'):
-                raise ResearchError('validation')
-            file = form['file']
-            return await _result(service.upload(p, kind, str(form['scope_id']), file.filename, await file.read()))
+            async with request.form() as form:
+                if set(form) != {'file', 'scope_id'} or not hasattr(form['file'], 'read'):
+                    raise ResearchError('validation')
+                file = form['file']
+                limit = service.upload_manager.max_bytes if service.upload_manager is not None else None
+                data = await file.read(limit + 1) if limit is not None else await file.read()
+                return await _result(service.upload(p, kind, str(form['scope_id']), file.filename, data))
         return await invoke(request, 'upload', publish)
 
     @app.get('/api/v1/inputs')
