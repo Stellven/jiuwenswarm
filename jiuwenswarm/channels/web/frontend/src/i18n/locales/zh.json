@@ -1,5 +1,11 @@
 {
   "codexSubscription": {
+    "capsuleTitle": "对话 Capsule",
+    "capsuleDescription": "选择回复的组织方式，从下一条聊天消息开始生效。",
+    "capsuleGeneral": "普通对话",
+    "capsuleDocument": "文档分析 — 总结、证据与局限",
+    "capsuleBrief": "研究简报 — 问题、方法与下一步",
+    "localChat": "通过 ChatGPT 订阅使用 GPT-6.1 Sol，无需 API Key。",
     "setupRequired": "ChatGPT 登录用于连接账户。本地工作区支持文件上传；执行研究仍需要研究运行资源。",
     "title": "Codex 订阅",
     "scope": "预览阶段：普通文字聊天。团队、工具和媒体仍待接入。重启或退出账号后请新建会话，已保存的历史仍可查看。",
@@ -12,7 +18,7 @@
     "cancel": "取消登录",
     "refresh": "刷新状态",
     "error": "暂时无法确认连接或操作结果。请检查网络并刷新状态后再试，无需填写 API Key。",
-    "signInFirst": "请先登录 Codex 订阅账号，再发送消息。",
+    "signInFirst": "请到设置 → 模型中登录 ChatGPT，再发送消息。",
     "states": {
       "checking": "正在检查连接…",
       "ready": "已登录",

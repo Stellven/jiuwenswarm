@@ -1,5 +1,11 @@
 {
   "codexSubscription": {
+    "capsuleTitle": "Conversation Capsule",
+    "capsuleDescription": "Choose how replies are structured. Applies to your next message in the existing chat.",
+    "capsuleGeneral": "General conversation",
+    "capsuleDocument": "Document Analyst — summary, evidence and limitations",
+    "capsuleBrief": "Research Brief — questions, approach and next steps",
+    "localChat": "Use GPT-6.1 Sol with your ChatGPT subscription. No API key is required.",
     "setupRequired": "ChatGPT sign-in connects your account. Local file uploads are available; research execution requires operator/runtime resources.",
     "title": "Codex subscription",
     "scope": "Preview: ordinary text chat. Teams, tools and media are pending integration. After a restart or sign-out, start a new conversation; saved history remains available.",
@@ -12,7 +18,7 @@
     "cancel": "Cancel sign-in",
     "refresh": "Refresh status",
     "error": "The connection or action could not be confirmed. Check your connection and refresh status before trying again. No API key is required.",
-    "signInFirst": "Sign in to your Codex subscription before sending a message.",
+    "signInFirst": "Open Settings → Models and sign in with ChatGPT before sending a message.",
     "states": {
       "checking": "Checking connection…",
       "ready": "Signed in",

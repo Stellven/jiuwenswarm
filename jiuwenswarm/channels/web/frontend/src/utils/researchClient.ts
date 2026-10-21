@@ -8,6 +8,7 @@ export interface ResearchDefaults {
   workspace_id: string | null;
   configuration_ref: ResearchRef | null;
   inputs_ready?: boolean;
+  local_chat_ready?: boolean;
   plan_source?: 'static' | 'planned' | null;
   profile_id?: string | null;
 }
@@ -70,6 +71,10 @@ export function hasResearchConfiguration(): boolean {
 export function hasResearchInputs(): boolean {
   const defaults = session()?.defaults;
   return defaults?.inputs_ready ?? defaults?.configuration_ref != null;
+}
+
+export function hasLocalChat(): boolean {
+  return session()?.defaults.local_chat_ready === true;
 }
 
 export function researchWorkspace(): string {

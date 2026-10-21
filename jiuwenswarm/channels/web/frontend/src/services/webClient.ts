@@ -14,7 +14,8 @@ import { resolveUserId } from '../utils/userId';
 import i18n from '../i18n';
 import { GoalRecord } from '../types/goal';
 import { createSessionEventGate } from './sessionEventGate';
-import { bootstrapResearchSession, hasResearchSession, researchRequest, submitResearchIntake, selectedResearchInputs, selectResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
+import { requestSettingsModule } from '../features/settings/settingsNavigation';
+import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, selectedResearchInputs, selectResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
 import { projectResearchWorkflow, type ResearchStatus } from '../components/teamArea/researchWorkflow';
 
 type EventHandler = (event: WsEvent) => void;
@@ -306,6 +307,17 @@ class WebClient {
   ): Promise<T> {
     await this.ensureReady();
 
+    const localChat = hasLocalChat() && method === 'chat.send';
+    if (localChat) {
+      if (['signed_out', 'subscription_required'].includes(useCodexSubscription.getState().state)) {
+        requestSettingsModule('models');
+        throw this.createWebError(i18n.t('codexSubscription.signInFirst'), 'SIGN_IN_REQUIRED');
+      }
+      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
+      method = 'codex.chat';
+      params = { ...params, session_id: sessionId, upload_refs: selectedResearchInputs(sessionId), codex_model: useCodexSubscription.getState().model || undefined, capsule_id: useCodexSubscription.getState().capsule || undefined };
+    }
+
     if (hasResearchSession() && method === 'command.workflows') {
       const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
       if (params?.action === 'list') {
@@ -339,7 +351,7 @@ class WebClient {
         params = { ...params, target_request_id: this.codexRequests.get(sid) };
       }
     }
-    const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const timeoutMs = localChat ? 250_000 : options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     if (hasResearchSession() && method === 'chat.send') {
       const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
       params = { ...params, workspace_id: researchWorkspace(), upload_refs: selectedResearchInputs(sessionId) };
@@ -349,7 +361,7 @@ class WebClient {
       id,
       method,
       params: params ?? {},
-      ...(options.isStream ? { is_stream: true } : {}),
+      ...(!localChat && options.isStream ? { is_stream: true } : {}),
     };
 
     const response = await new Promise<T>((resolve, reject) => {
@@ -362,7 +374,7 @@ class WebClient {
         resolve: (value) => resolve(value as T),
         reject,
         timeoutId,
-        awaitRuntimeAccepted: options.awaitRuntimeAccepted === true && !hasResearchSession(),
+        awaitRuntimeAccepted: options.awaitRuntimeAccepted === true && !hasResearchSession() && !localChat,
       };
       this.pending.set(id, pending);
 
@@ -396,6 +408,27 @@ class WebClient {
         reject(error);
       }
     });
+    if (hasLocalChat() && method === 'session.create') {
+      const created = response as { session_id?: string };
+      if (created.session_id) {
+        selectResearchInputs(created.session_id, selectedResearchInputs('new'));
+        selectResearchInputs('new', []);
+      }
+    }
+    if (localChat) {
+      const reply = response as { content?: string; session_id?: string; model?: string };
+      if (typeof reply?.content !== 'string' || !reply.content) throw new Error('Codex returned no reply');
+      const sessionId = String(params?.session_id || 'new');
+      this.dispatchEventNow({ type: 'event', event: 'chat.final', payload: {
+        session_id: sessionId, content: reply.content, request_id: id,
+        final_mode: 'replace_turn', model: reply.model,
+      } });
+      this.dispatchEventNow({ type: 'event', event: 'chat.processing_status', payload: {
+        session_id: sessionId, is_processing: false,
+      } });
+      selectResearchInputs(sessionId, []);
+      return response;
+    }
     if (hasResearchSession() && method === 'chat.send') {
       const qualified = response as { intake_ref?: ResearchRef };
       if (!qualified?.intake_ref) throw new Error('Native research intake was not qualified');

@@ -1,8 +1,10 @@
 # Implementation Plan: M1-001 - Deployment, protected Codex bridge and confined execution
 
-**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r8](spec.md)
+**TASK**: [TASK.md](TASK.md) | **Spec**: [spec.md r9](spec.md)
 
-**Revision / date**: r20 / 2026-10-21 | **Branch**: ai4r_M1
+**Revision / date**: r21 / 2026-10-21 | **Branch**: ai4r_M1
+
+C015 / IF007r4 consumer: local launcher also opts into authenticated ordinary chat through AI4R_LOCAL_CHAT=1. Upgrade only openai-codex/openai-codex-cli-bin lock entries to0.163.0, pin Linux wheel hashes and packaged binary receipt/version. Preserve dedicated account custody and existing volumes. Exact legacy application config alone may migrate from removed untrusted policy to never; unexpected user configuration still refuses. Experimental API enables ephemeral contexts. Local conversations use native provider retry behavior inside240s and require actual gpt-6.1-sol identity. Full governed zero-retry/runtime/schema qualification is separate and is not established by local chat observations. Rebuild production, deploy using existing volumes, observe short authenticated frontend /ws reply/follow-up/document questions and record exact image/build identities in M1-006/tasks.md. No broad scripted campaign.
 
 C014 / IF-007r3 consumer: Compose forwards JIUWENSWARM_M1_LOCAL_WORKSPACE from AI4R_LOCAL_WORKSPACE default0; start-local.sh sets1 with the existing fixed loopback origin. It retains image/config selection and named volumes. The provider initializes input storage before publishing bootstrap defaults. Verify with a production image and actual authenticated frontend-proxied upload/list/delete plus restart persistence. Preserve complete execution prerequisites and C010 campaign skips.
 

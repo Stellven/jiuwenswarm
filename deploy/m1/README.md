@@ -19,9 +19,29 @@ bash deploy/m1/start-local.sh --build
 
 Open the newest complete **Open JiuwenSwarm:** URL printed in the terminal in
 Chrome or Edge. Include the `#research_bootstrap=...` fragment; keep the link
-private and bookmark it for reuse. Sign in with **Use ChatGPT login** and enter
+private and bookmark it for reuse. Open **Settings → Models**, click **Sign in with ChatGPT**, and enter
 the displayed device code on the provider page. Use **Open secure sign-in** if
 the browser blocks a popup.
+
+When the account shows **Signed in**, type in the existing chat composer and send.
+Ask follow-up questions in the same conversation. The local launcher enables
+ordinary subscription chat without requiring research operator bindings or an
+API key. Local chat requests GPT-6.1 Sol and checks the runtime-reported model
+identity. If6.1 is unavailable, it reports an error and never substitutes an
+older model. The packaged CLI is pinned to0.163.0 for this integration.
+
+To discuss a document, select **Reference document**, upload it, check its row,
+then type a question and send. Up to eight documents /100,000 extracted characters
+can accompany a message. Repository ZIPs and datasets remain stored resources;
+they cannot be selected as text-chat documents. Recent conversation context is
+stored privately in the existing account volume. Responses appear when complete.
+
+In **Settings → Agent**, choose a **Conversation Capsule**: General conversation,
+Document Analyst (summary, evidence and limitations), or Research Brief (questions,
+approach and next steps). The choice applies to the next message and is remembered
+in this browser. These two text Capsules structure replies; they do not run tools
+or represent a gate-accepted research pipeline. Account and Capsule controls live
+in Settings; the chat page uses the existing composer and message timeline.
 
 The launcher explicitly enables an automatically initialized **local input
 workspace**. In the composer, choose the input type, upload a file, refresh the
@@ -36,6 +56,7 @@ policy, catalog admissions or model/deployment/runtime bindings, and does not
 make governed research runs ready. Those execution requirements remain explicit.
 The base Compose deployment keeps local input initialization off; the local
 launcher opts in with `AI4R_LOCAL_WORKSPACE=1` on loopback only.
+It also explicitly enables `AI4R_LOCAL_CHAT=1`; base Compose keeps this off.
 
 For updates and restarts, from the same Ubuntu checkout:
 

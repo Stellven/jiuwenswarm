@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import secrets
 from types import SimpleNamespace
 
@@ -278,6 +279,14 @@ async def native_research_message(channel, ws, method: str, params: dict):
     """
     authority, service = channel.research_authority, channel.research_service
     headers = getattr(ws, 'request_headers', None) or getattr(getattr(ws, 'request', None), 'headers', {})
+    if method == 'codex.chat':
+        from jiuwenswarm.research.local_chat import enabled, document_context
+        principal = authority.authenticate_ws(headers, 'submit')
+        if not enabled():
+            raise ResearchError('unavailable', 'Local subscription chat is not enabled')
+        params['_local_documents'] = document_context(service.store, principal, params.get('upload_refs', []))
+        setattr(ws, 'authenticated_user_id', principal.account_id)
+        return False, None
     if method == 'chat.send':
         principal = authority.authenticate_ws(headers, 'submit')
         if getattr(channel, 'research_refusal_reason', None):
@@ -304,8 +313,9 @@ async def native_research_message(channel, ws, method: str, params: dict):
         raise ResearchError('auth', 'Native mutation is unavailable in the protected research profile')
     operation = 'settings' if method in settings_methods else 'status'
     principal = authority.authenticate_ws(headers, operation)
+    local_ui_methods = ui_methods if os.environ.get('JIUWENSWARM_M1_LOCAL_CHAT') == '1' else set()
     if getattr(channel, 'research_refusal_reason', None) and method not in (
-            read_methods | {'config.get', 'locale.get_conf', 'research.preferences.get',
+            read_methods | local_ui_methods | {'config.get', 'locale.get_conf', 'research.preferences.get',
                             'codex.auth.status', 'codex.auth.login', 'codex.auth.cancel',
                             'codex.auth.logout', 'codex.models.list'}):
         raise ResearchError('unavailable', 'Mandatory operator configuration is unavailable; inspection only')

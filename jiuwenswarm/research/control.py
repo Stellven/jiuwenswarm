@@ -56,11 +56,13 @@ class ResearchService:
         if not self._workspaces:
             return {'account_id':principal.account_id,'workspace_id':next(iter(principal.workspace_ids)) if len(principal.workspace_ids)==1 else None,
                     'configuration_ref':None,'plan_source':None,'profile_id':None,
-                    'inputs_ready':self.upload_manager is not None}
+                    'inputs_ready':self.upload_manager is not None,
+                    'local_chat_ready':getattr(self,'local_chat_ready',False)}
         workspace,protected=self._workspace(principal)
         return {'account_id':principal.account_id,'workspace_id':workspace,'configuration_ref':copy.deepcopy(protected['configuration_ref']),
                 'plan_source':protected.get('plan_source','static'),'profile_id':protected.get('profile_id'),
-                'inputs_ready':self.upload_manager is not None}
+                'inputs_ready':self.upload_manager is not None,
+                'local_chat_ready':getattr(self,'local_chat_ready',False)}
 
     async def ingest(self,principal,text,upload_refs=(),*,workspace_id=None):
         workspace,protected=self._workspace(principal,workspace_id);principal.require('submit',workspace)

@@ -15,16 +15,25 @@ bash deploy/m1/start-local.sh --build
 
 # Open the newest complete Open JiuwenSwarm URL in Chrome/Edge.
 # You can bookmark this local login link and reuse it after restarts.
-# Sign in with ChatGPT opens the provider page; enter the code shown in the app.
+# Open Settings -> Models -> Sign in with ChatGPT; enter the displayed code.
 # If popups are blocked, click Open secure sign-in.
+# Once the account shows Signed in, type a message in the normal composer and Send.
+# Ask a follow-up in the same conversation; recent context is retained.
+# Settings -> Agent -> Conversation Capsule selects Document Analyst or Research
+# Brief for your next message. General conversation turns the Capsule off.
+# Local chat requests GPT-6.1 Sol and verifies the returned model identity.
+# An unavailable 6.1 produces an error; it never silently uses an older model.
+# No API key is required for this subscription chat.
 # Your local input workspace is initialized automatically.
-# Choose Reference document, Repository ZIP or Validation dataset, then Upload.
+# For chat, choose Reference document, Upload, then check the document.
+# Type a question about it and Send. Selected reference documents are included.
+# Repository ZIPs and validation datasets can be stored but are not chat inputs.
 # Refresh lists saved files. Check files to attach; Delete removes unused files.
 # Documents: UTF-8 .txt/.md or a PDF containing selectable text.
 # Repository: .zip. Local upload limit: 20 MB per file.
 # Use ASCII letters/numbers/dots/dashes/underscores in filenames; start with
 # a letter or number. Files and account data persist in Docker volumes.
-# Local file storage and ChatGPT login do not configure research execution.
+# Ordinary subscription chat works independently of full research execution.
 # Full research runs still require actual operator policy, catalog and runtime
 # bindings. This launcher does not create those resources.
 

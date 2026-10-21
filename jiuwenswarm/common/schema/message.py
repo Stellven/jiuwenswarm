@@ -49,6 +49,7 @@ class ReqMethod(Enum):
     CODEX_AUTH_CANCEL = "codex.auth.cancel"
     CODEX_AUTH_LOGOUT = "codex.auth.logout"
     CODEX_MODELS_LIST = "codex.models.list"
+    CODEX_CHAT = "codex.chat"
     CONFIG_SET = "config.set"
     CONFIG_SAVE_ALL = "config.save_all"
     CONFIG_VALIDATE_MODEL = "config.validate_model"

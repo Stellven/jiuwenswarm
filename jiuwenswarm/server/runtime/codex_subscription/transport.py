@@ -1,4 +1,4 @@
-"""Bounded stdio transport for the packaged Codex 0.144.4 App Server.
+"""Bounded stdio transport for the packaged Codex 0.163.0 App Server.
 
 No raw protocol payloads, stderr or credentials are logged. Server requests are
 rejected: the M1 chat slice does not yet implement host tools or approvals.
@@ -69,7 +69,7 @@ class AppServerTransport:
                 await self.close()
             try:
                 from codex_cli_bin import bundled_codex_path
-                if version("openai-codex-cli-bin") != "0.144.4":
+                if version("openai-codex-cli-bin") != "0.163.0":
                     raise CodexError("RUNTIME_VERSION_MISMATCH")
                 self.home.mkdir(parents=True, exist_ok=True)
                 self.cwd.mkdir(parents=True, exist_ok=True)
@@ -79,7 +79,7 @@ class AppServerTransport:
                     'forced_login_method = "chatgpt"\n'
                     'cli_auth_credentials_store = "file"\n'
                     'model_provider = "openai"\n'
-                    'approval_policy = "untrusted"\n'
+                    'approval_policy = "never"\n'
                     'sandbox_mode = "read-only"\n'
                     'web_search = "disabled"\n'
                     '[tools]\nview_image = false\n'
@@ -91,8 +91,11 @@ class AppServerTransport:
                 config_path = self.home / "config.toml"
                 # Refuse an unexpected user-customized profile rather than silently
                 # enabling providers/tools or overwriting their configuration.
-                if config_path.exists() and config_path.read_text(encoding="utf-8") != config:
-                    raise CodexError("PROFILE_CONFIG_CONFLICT")
+                if config_path.exists():
+                    previous = config_path.read_text(encoding="utf-8")
+                    legacy = config.replace('approval_policy = "never"', 'approval_policy = "untrusted"')
+                    if previous not in {config, legacy}:
+                        raise CodexError("PROFILE_CONFIG_CONFLICT")
                 config_path.write_text(config, encoding="utf-8")
                 kwargs = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
                 self.process = await asyncio.create_subprocess_exec(
@@ -102,7 +105,7 @@ class AppServerTransport:
                     stderr=asyncio.subprocess.DEVNULL, limit=4 * 1024 * 1024, **kwargs,
                 )
                 self._reader = asyncio.create_task(self._read(self.process))
-                await self.request("initialize", {"clientInfo": {"name": "ai4r", "version": "0.1.0"}, "capabilities": {"experimentalApi": False}})
+                await self.request("initialize", {"clientInfo": {"name": "ai4r", "version": "0.1.0"}, "capabilities": {"experimentalApi": True}})
                 await self._send({"method": "initialized"})
             except BaseException as exc:
                 await self.close()
@@ -137,6 +140,9 @@ class AppServerTransport:
             # A timed-out mutation may have been accepted. Close instead of replay.
             await self.close()
             raise CodexError("DELIVERY_UNKNOWN") from None
+        except CodexError as error:
+            error.operation = method
+            raise
         finally:
             self.pending.pop(ident, None)
             self._wire_observers.pop(ident, None)
@@ -166,7 +172,18 @@ class AppServerTransport:
                         if observer is not None:
                             observer('in', line, message)
                         if "error" in message:
-                            future.set_exception(CodexError("RUNTIME_ERROR"))
+                            error = CodexError("RUNTIME_ERROR")
+                            problem = message.get('error') or {}
+                            detail = str(problem.get('message', '')).lower()
+                            # Only a finite classification leaves this private transport.
+                            error.diagnostic_class = ('ephemeral_requires_experimental' if 'ephemeral' in detail or 'experimental' in detail
+                                else 'configuration_rejected' if 'config' in detail
+                                else 'sandbox_rejected' if 'sandbox' in detail or 'permission' in detail
+                                else 'model_unavailable' if 'model' in detail and any(x in detail for x in ('support', 'available', 'unknown', 'found'))
+                                else 'invalid_protocol_parameters' if problem.get('code') == -32602
+                                else 'authentication' if any(x in detail for x in ('unauthoriz', 'authenticat', 'sign in'))
+                                else 'provider_rpc_error')
+                            future.set_exception(error)
                         else:
                             future.set_result(message.get("result") or {})
         except CodexError as error:

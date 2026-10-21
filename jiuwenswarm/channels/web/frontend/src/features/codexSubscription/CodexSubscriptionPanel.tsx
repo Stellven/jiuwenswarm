@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button/Button';
 import { useCodexSubscription } from './state';
-import { hasResearchSession, hasResearchConfiguration } from '../../utils/researchClient';
+import { hasResearchSession, hasResearchConfiguration, hasLocalChat } from '../../utils/researchClient';
 import './CodexSubscriptionPanel.css';
+import { SettingRow } from '../settings/components/SettingRow';
+import { Select } from '../../components/ui/Select/Select';
 
 type Status = {
   state: string;
@@ -18,6 +20,23 @@ type Props = {
   connected: boolean;
   request: (method: string, params?: Record<string, unknown>) => Promise<unknown>;
 };
+
+export function CodexSubscriptionConnection({ connected, request }: Props) {
+  useEffect(() => {
+    if (!connected) return;
+    let disposed = false;
+    const refresh = async () => {
+      try {
+        const status = await request('codex.auth.status') as Status;
+        if (!disposed) useCodexSubscription.getState().set({ state: status.state, ...(hasLocalChat() ? { model: 'gpt-6.1-sol' } : {}) });
+      } catch { if (!disposed) useCodexSubscription.getState().set({ state: 'unavailable' }); }
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 10000);
+    return () => { disposed = true; window.clearInterval(timer); };
+  }, [connected, request]);
+  return null;
+}
 
 export function CodexSubscriptionPanel({ connected, request }: Props) {
   const { t } = useTranslation();
@@ -54,8 +73,15 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
       useCodexSubscription.getState().set({ state: next.state });
       if (next.state === 'ready') {
         setLoginUrl('');
+        if (hasLocalChat()) {
+          setModels([{ id: 'gpt-6.1-sol', name: 'GPT-6.1 Sol', default: true }]);
+          useCodexSubscription.getState().set({ model: 'gpt-6.1-sol' });
+          return;
+        }
         const catalog = (await request('codex.models.list')) as { models: Model[] };
-        if (current === revision.current) setModels(catalog.models);
+        if (current === revision.current) {
+          setModels(catalog.models);
+        }
       } else if (next.state !== 'signing_in') {
         setLoginUrl('');
         setModels([]);
@@ -135,43 +161,44 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
   };
 
   return (
-    <section
-      className="codex-subscription"
+    <div
+      data-variant={status.state}
       data-testid="codex-subscription-panel"
       aria-label={t('codexSubscription.title')}
     >
-      <div className="codex-subscription__summary">
-        <strong data-testid="codex-subscription-title">{t('codexSubscription.title')}</strong>
-        <span role="status" data-testid="codex-subscription-status" data-variant={status.state}>
+      <SettingRow
+        title={<span data-testid="codex-subscription-title">{t('codexSubscription.title')}</span>}
+        meta={<span role="status" data-testid="codex-subscription-status" data-variant={status.state}>
           {t(`codexSubscription.states.${status.state}`)}
-        </span>
-        <span className="codex-subscription__hint" data-testid="codex-subscription-scope">
+        </span>}
+        description={<span data-testid="codex-subscription-scope">
           {t(
-            hasResearchSession() && !hasResearchConfiguration()
-              ? 'codexSubscription.setupRequired'
-              : 'codexSubscription.scope',
+            hasLocalChat()
+              ? 'codexSubscription.localChat'
+              : hasResearchSession() && !hasResearchConfiguration()
+                ? 'codexSubscription.setupRequired'
+                : 'codexSubscription.scope',
           )}
-        </span>
-      </div>
+        </span>}
+      >
       <div className="codex-subscription__actions">
         {status.state === 'ready' ? (
           <>
-            <select
+            <Select
               data-testid="codex-subscription-model"
               aria-label={t('codexSubscription.model')}
               value={model}
               disabled={busy || !connected}
-              onChange={(event) => useCodexSubscription.getState().set({ model: event.target.value })}
-            >
-              <option value="">{t('codexSubscription.defaultModel')}</option>
-              {models.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => useCodexSubscription.getState().set({ model: value })}
+              options={[
+                ...(!hasLocalChat() ? [{ value: '', label: t('codexSubscription.defaultModel') }] : []),
+                ...models.map((item) => ({ value: item.id, label: item.name })),
+              ]}
+            />
             <Button
               data-testid="codex-subscription-logout"
+              size="sm"
+              variant="quiet"
               disabled={busy || !connected}
               onClick={() => void action('logout')}
             >
@@ -214,15 +241,16 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
             {t('codexSubscription.login')}
           </Button>
         )}
-        <Button data-testid="codex-subscription-refresh" disabled={busy || !connected} onClick={() => void refresh()}>
+        <Button size="sm" variant="quiet" data-testid="codex-subscription-refresh" disabled={busy || !connected} onClick={() => void refresh()}>
           {t('codexSubscription.refresh')}
         </Button>
       </div>
+      </SettingRow>
       {error && (
         <p role="alert" className="codex-subscription__error" data-testid="codex-subscription-error">
           {t('codexSubscription.error')}
         </p>
       )}
-    </section>
+    </div>
   );
 }

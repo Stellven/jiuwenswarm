@@ -17,7 +17,7 @@ import uuid
 def install_packaged_codex(destination: Path, receipt: Path):
     from codex_cli_bin import bundled_codex_path
 
-    if importlib.metadata.version('openai-codex-cli-bin') != '0.144.4':
+    if importlib.metadata.version('openai-codex-cli-bin') != '0.163.0':
         raise ValueError('PINNED_CODEX_PACKAGE_REQUIRED')
     source = Path(bundled_codex_path())
     metadata = source.lstat()
@@ -50,9 +50,9 @@ def install_packaged_codex(destination: Path, receipt: Path):
         temporary.unlink(missing_ok=True)
     observed = subprocess.run([str(destination), '--version'], capture_output=True,
                               stdin=subprocess.DEVNULL, timeout=10, check=False)
-    if observed.returncode or observed.stdout.strip() != b'codex-cli 0.144.4':
+    if observed.returncode or observed.stdout.strip() != b'codex-cli 0.163.0':
         raise ValueError('PINNED_NATIVE_CODEX_EXECUTION_REQUIRED')
-    value = {'schema': 'ai4r-packaged-codex:1', 'package_version': '0.144.4',
+    value = {'schema': 'ai4r-packaged-codex:1', 'package_version': '0.163.0',
              'executable': str(destination), 'bytes': metadata.st_size,
              'sha256': digest.hexdigest(), 'mode': '0555',
              'version': observed.stdout.decode('utf-8').strip(),

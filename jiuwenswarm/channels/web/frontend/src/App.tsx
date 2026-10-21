@@ -1,4 +1,4 @@
-import { CodexSubscriptionPanel } from './features/codexSubscription/CodexSubscriptionPanel';
+import { CodexSubscriptionConnection } from './features/codexSubscription/CodexSubscriptionPanel';
 import { useCodexSubscription } from './features/codexSubscription/state';
 import { AssetPublishHost } from './components/AssetPublishDrawer';
 // Copyright (c) Huawei Technologies Co., Ltd. 2025-2026. All rights reserved.
@@ -3643,7 +3643,7 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       {/* Main Content */}
       <main className={`content ${activeNav === 'chat' ? 'content--chat' : ''} ${effectiveTeamAreaExpanded ? 'content--team-expanded' : ''}`}>
         {serverConfig?.runtime_mode === 'codex_subscription' && (
-          <CodexSubscriptionPanel connected={isConnected} request={request} />
+          <CodexSubscriptionConnection connected={isConnected} request={request} />
         )}
         {configError && (
           <div className="card mb-4" data-testid="app-config-error">

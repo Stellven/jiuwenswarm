@@ -253,6 +253,7 @@ async def attach_native_research(web_channel,runtime_ports=None):
                 run_lookup=lambda run_id:store.get_run(run_id),
                 run_reconcile=lambda account_id,request_id:store.list_runs(account_id=account_id,request_id=request_id),
                 campaign_id=campaign_id,**history_pins)
+    service.local_chat_ready=os.environ.get('JIUWENSWARM_M1_LOCAL_CHAT')=='1'
     defaults_path=authority.token_path.parent/'client-defaults.json'
     # Same protected custody as the bearer token, without copying the token.
     temporary=defaults_path.parent/('.client-defaults-'+__import__('secrets').token_hex(12))

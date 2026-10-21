@@ -6,9 +6,11 @@ description: "TASK-native work and acceptance/evidence correspondence"
 
 # Tasks: M1-001 - Deployment, protected Codex bridge and confined execution
 
-**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r8 / r20 | **Tasks revision/date**: r14 / 2026-10-21
+**TASK**: [TASK.md](TASK.md) | **Spec / Plan revisions**: r9 / r21 | **Tasks revision/date**: r15 / 2026-10-21
 
 ## C014 local launcher consumer
+
+- [x] M1-001/T-C015-CHAT Forward local chat opt-in and deploy current production image with existing volumes. Native MethodRouter/Codex subscription integration and exact focused observations are owned and recorded by M1-006/tasks.md; no full research completion or candidate/API integration is claimed.
 
 - [x] M1-001/T-C014-1 Forward explicit local input initialization without altering protected execution resources; build/start existing named app volumes and observe actual input HTTP persistence. Detailed provider/consumer evidence lives in M1-006/tasks.md. Existing full-system gaps remain unresolved.
 

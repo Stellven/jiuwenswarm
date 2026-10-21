@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import uuid
+from importlib.metadata import version
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -101,7 +102,7 @@ class SubscriptionService:
             'observed_at':datetime.now(timezone.utc).isoformat().replace('+00:00','Z'),
             'account_fingerprint':self.account_fingerprint if self._observation_identity_verified else None,
             'profile_id':hashlib.sha256(str(self.root).encode()).hexdigest(),'epoch':self.epoch,
-            'source':{'method':method,'runtime_version':'0.144.4','schema_sha256':
+            'source':{'method':method,'runtime_version':version('openai-codex-cli-bin'),'schema_sha256':
                 UPDATE_SCHEMA_SHA256 if sparse else READ_SCHEMA_SHA256},
             'informational_only':True,'sparse_update':sparse,
             'status':'unavailable' if values is None else 'partial' if missing else 'observed',
@@ -241,11 +242,12 @@ class SubscriptionService:
         return {"success": True, "interrupted": True, "session_id": session_id, "request_id": request_id}
 
     async def invoke_governed(self, prompt: str, *, model=None, timeout_s: float = 120,
-                              system: str | None = None, _trace=None):
+                              system: str | None = None, _trace=None, local_conversation=False):
         """One fresh, tool-free research turn through the existing owner.
 
-        Protocol fields are qualified against the packaged 0.144.4 generated
-        schema. No chat binding is read or written. The deadline covers account
+        Governed protocol qualification originally used the 0.144.4 schema;
+        local conversations use 0.163.0 without inheriting that qualification.
+        No chat binding is read or written. The deadline covers account
         admission, context creation, submission and every streamed notification.
         """
         if not isinstance(prompt, str) or not prompt.strip() or not 0 < timeout_s <= 600:
@@ -304,8 +306,12 @@ class SubscriptionService:
                         "sandbox": "read-only", "approvalPolicy": "never",
                         "modelProvider": "openai", "model": model, "ephemeral": True,
                         "developerInstructions": system or "Execute the supplied governed instruction. Tools are unavailable.",
-                        "config": {"model_providers.openai.request_max_retries": 0,
-                                   "model_providers.openai.stream_max_retries": 0},
+                        # Current Codex reserves built-in provider configuration.
+                        # Ordinary chat uses its native retry policy; governed
+                        # runs retain their strict admission until requalified.
+                        **({} if local_conversation else {"config": {
+                            "model_providers.openai.request_max_retries": 0,
+                            "model_providers.openai.stream_max_retries": 0}}),
                     })
                     run["thread"] = result["thread"]["id"]
                     if _trace is not None:
@@ -420,7 +426,7 @@ class SubscriptionService:
             if not self.account_fingerprint:
                 raise CodexError("ACCOUNT_IDENTITY_UNAVAILABLE")
             if not binding:
-                result = await self.transport.request("thread/start", {"cwd": str(self.root / "chat-workspace"), "sandbox": "read-only", "approvalPolicy": "untrusted", "allowProviderModelFallback": False, "modelProvider": "openai", "model": model, "developerInstructions": "Answer ordinary text conversations. Tools are unavailable in this milestone. Do not claim to have executed actions."})
+                result = await self.transport.request("thread/start", {"cwd": str(self.root / "chat-workspace"), "sandbox": "read-only", "approvalPolicy": "never", "allowProviderModelFallback": False, "modelProvider": "openai", "model": model, "developerInstructions": "Answer ordinary text conversations. Tools are unavailable in this milestone. Do not claim to have executed actions."})
                 binding = {"thread": result["thread"]["id"], "epoch": self.epoch, "owner": self.account_fingerprint}
                 self.bindings[session_id] = binding
                 self._save()

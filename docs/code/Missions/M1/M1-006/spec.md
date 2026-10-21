@@ -1,10 +1,12 @@
 # Feature Specification: M1-006 - Authenticated operational shell
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r6 / 2026-10-21
+**Revision / date**: r7 / 2026-10-21
 **Feature Branch**: ai4r_M1
 **Input**: [Exact source baseline](../source-baseline.json); docs/code/Missions/M1/source/PRD/PRD_Oct_15.md §§5.1–5.6, 6.10; US01, US05–US08, US12–US20 as allocated; docs/code/Missions/M1/source/Architecture_Design/platform/{README,inspection,failure-and-recovery}.md; docs/code/Missions/M1/source/Architecture_Design/reference/field-catalog.md#control-api, #node-lifecycle, #client-readiness, #client-submission, #client-status, #client-retrieval, #client-cancellation, #client-upload, #client-error, #operator-config; docs/code/Missions/M1/source/Architecture_Design/method/decisions.md D35/D36/D39/D48–D50; jiuwenswarm/channels/web/AGENTS.md; jiuwenswarm/channels/web/frontend/AGENTS.md; docs/code/Missions/M1/M1-006/TASK.md; docs/code/Missions/M1/TASKS.md. Architecture references mean only the assigned source/Architecture_Design snapshot.
 **Status**: Specified; formal Clarify source resolutions and reviewed Plan/Tasks artifacts recorded; no runtime result implied
+
+C016 user-authorized extension to AC-002/006/008: Settings → Models contains existing ChatGPT login/model/logout controls; Settings → Agent selects General, Document Analyst or Research Brief for the next real6.1 message. Use native shared rows/controls/theme, keep chat free of management banners, and remember this browser's Capsule selection. Uploaded documents selected before the first message must survive native session allocation. Ordinary session creation/switch/rename/pin/color is available under explicit local-chat mode without enabling research dispatch or project mutations. Text Capsule output must reflect the selected structure using actual supplied content; never imply experiments/tools ran. API/candidate scope remains excluded. Browser visuals require observation and cannot be inferred from a build.
 
 ## User Scenarios & Testing
 
@@ -117,6 +119,10 @@ Authenticated local users can sign into the app-owned ChatGPT provider account w
 
 
 ### M1-C014 - Local input workspace (2026-10-21)
+
+C015 FINAL SCOPE (supersedes broader draft below): current acceptance is login -> type -> real GPT-6.1 Sol subscription reply -> context-aware follow-up in the native timeline, independent of research operator prerequisites. Subsequent user correction requires gpt-6.1-sol and verified effective identity; an unavailable/different model errors instead of falling back. Existing selected owned reference documents may be included. Candidate pool/API credentials/Capsule UI are explicitly skipped. Reuse the native composer, messages, typography, theme and compact connection controls; no second chat application or floating research card. No full research acceptance is inferred. Verify one short real conversation and follow-up and build; no broad scripted tests.
+
+C015 acceptance extension (2026-10-21), AC-002/006/008/011: local users select an executor, configure API key/endpoint in native Settings (or use ChatGPT subscription for Codex), upload documents, type a request, choose either concrete interactive Capsule and receive generated text in the normal timeline. Codex explicitly defaults to gpt-6.1-sol; unavailable access errors rather than silently substituting. All87 inventory entries are visible with correct kind/source; scientific tools/references are not advertised as chat models. Private keys are masked by default and excluded from prompts, turn records and diagnostics. Provider failures are visible. This does not establish full-pipeline acceptance.
 
 Extension of AC-002/AC-006/AC-011: the explicit local launcher must initialize an account-scoped persistent input workspace automatically. Upload, Refresh, select and Delete work without an execution operator configuration. Bootstrap advertises input capability separately, never a fabricated configuration reference. Reload/restart preserves uploaded files; foreign scope/owner, invalid documents and unsafe repository archives remain refused. Local mode refuses a non-loopback origin. Research execution without its actual prerequisites remains unavailable. The research attachment area shares the native composer's content alignment and surface, with bilingual errors and accessible controls. Supply an English fresh-clone/update/start/stop guide that states the actual execution limitation.
 

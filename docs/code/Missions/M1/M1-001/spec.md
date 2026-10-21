@@ -1,10 +1,12 @@
 # Feature Specification: M1-001 - Deployment, model bridge and confined executor
 **TASK**: [TASK.md](TASK.md)
 **Parent TASKS**: [M1](../TASKS.md)
-**Revision / date**: r8 / 2026-10-21
+**Revision / date**: r9 / 2026-10-21
 **Feature Branch**: ai4r_M1; the registered directory does not change the branch
 **Input**: [Exact source baseline](../source-baseline.json); supplied PRD §§3.0, 4.3.3, 5.4.3, 5.6, 6.3; supplied architecture platform/README.md PLT-1/3/4/10/11, reference/model-routing-contract.md, reference/capsules/builder.md, development-tools/automation.md, D35/D43-D45; invoked prompt's x86-64/aarch64 requirement.
 **Status**: Specified; no runtime acceptance implied
+
+C015 deployment extension: the local launcher enables M1-006 IF007r4 ordinary subscription conversation independently of governed research prerequisites. The packaged0.163.0 CLI preserves the app-owned login across replacement; real answers and follow-up require verified gpt-6.1-sol identity without fallback. Optional existing owned documents accompany chat. This extension does not qualify the upgraded runtime for full governed execution, scientific tools or benchmark campaigns. Native UI acceptance remains owned by M1-006; broader candidate/API/Capsule work is user-directed SKIP.
 
 C014 deployment extension: explicit local launcher enables M1-006 IF-007r3 persistent input storage on loopback; base Compose remains opt-out. Starting/rebuilding preserves saved inputs/accounts. No research execution readiness is inferred from an initialized local input workspace.
 
