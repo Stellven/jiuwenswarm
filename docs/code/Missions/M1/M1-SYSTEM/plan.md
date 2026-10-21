@@ -92,3 +92,21 @@ C008 consumer revision alignment (2026-10-16): consume canonical M1-IF-002@r2 fr
 Full integrated acceptance consumes current IF001r2/IF003r3/IF016r2 with the unchanged historical/public contracts. Require one exact complete candidate and actual ordinary/private root peer, original frozen context, pre-worker whole-attempt global physical-resource exclusion and independently proven cessation before lease release. Read-only terminal/history proof or original completed result cannot establish process absence, current liveness, another start or an accepted scientific measurement. Explicit resource/confinement/model/Builder credential/service absence blocks the affected required journey; schema/controlled/native/HTTP subsets do not pass it. Model-only compatible paths remain independently verifiable.
 
 Source/authority: source ResourceUse208; run-plan97/138/460-542; platform/failure-and-recovery39-47; existing full Phase1 source allocation. Canonical fields are defined only in owning001/002 TASKs. Extend existing block-to-boundary-to-system journeys and cancellation/restart/security/scientific negative matrix with all new original protocol/lease/cessation premises, retaining exact candidate/source/IF/native/image/kernel/resource/test population pins. Old component passes remain scoped; changed affected full-system evidence is STALE/NOT_RUN, never overwritten or promoted. Existing complete-candidate scientific/security/cancellation/restart system ACs and their block/work/V mappings remain unchanged; no AC is added. No runtime result or implementation release follows from this native revision.
+
+
+## M1-C019 integration blocks
+
+Sources: maintained full README, m1-design, workflow, research-design and assigned reference clauses; current PRD 3.1-3.9/4.1-4.3/4.7-4.9. Historical receipts retain no current-source precedence.
+
+- B-C019-01 (001/002): explicit protected initialization, eligible installed catalog, governed runtime/zero-retry and actual executor/resource readiness. AC04/06.
+- B-C019-02 (003/005): compiler, accepted Brief, bounded Planner and frozen route bindings through existing factory/runner. AC01/02/04.
+- B-C019-03 (002/004): research/POC DAG ports, all declared checks/verifiers/gates and real executor receipts. AC03.
+- B-C019-04 (006): explicit research submission, native progress/reasons/artifacts/report; preserve normal conversation. AC01/05.
+- B-C019-05 (SYSTEM): focused block/boundary checks, production build and actual authenticated integrated journey using supplied references/baseline/validation with fixed expectations. Record exact commands/candidate/environment/outputs/limitations in tasks.md. All C019 ACs. Saved localhost browser permission is denied: API checks are not visual QA.
+
+No second engine, silent static fallback, fake eligibility, synthetic scientific results or broad unrelated benchmark campaign.
+
+
+## M1-C020 declaration/output-only verification
+
+B-C020-01: Restore the existing two-port VerifierBindings and two-key SemanticVerifier payload; remove the uncompleted review_evidence expansion without touching unrelated C019 work. Preserve static pinned profiles/instructions, mechanical assessment and gate bindings. B-C020-02: Verify this disclosure boundary with a focused read-denying store/payload check, including an output-carried input Ref that must not be dereferenced. This is transport/authority evidence, not measured model quality or full POC acceptance.

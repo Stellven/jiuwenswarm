@@ -6,6 +6,10 @@ import '../../styles/research-shell.css';
 import {
   bootstrapResearchSession,
   hasResearchInputs,
+  hasLocalChat,
+  researchInteraction,
+  selectResearchInteraction,
+  type ResearchInteraction,
   markResearchUpload,
   researchRequest,
   researchWorkspace,
@@ -25,8 +29,10 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [interaction, setInteraction] = useState<ResearchInteraction>(() => researchInteraction(sessionId));
   const generation = useRef(0);
   const configured = hasResearchInputs();
+  useEffect(() => { setInteraction(researchInteraction(sessionId)); }, [sessionId, enabled]);
   const refresh = async () => {
     const attempt = generation.current;
     const value = await researchRequest<ResearchUpload[]>(
@@ -94,6 +100,18 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
   return (
     <section className="research-inputs" data-testid="chat-panel-research-inputs">
       <div className="research-inputs__toolbar">
+        {hasLocalChat() && <Select
+          className="research-inputs__kind"
+          value={interaction}
+          aria-label={t('researchWorkflow.mode')}
+          data-testid="chat-panel-research-interaction"
+          options={(['conversation', 'research'] as const).map((value) => ({ value, label: t(`researchWorkflow.${value}`) }))}
+          onChange={(value) => {
+            const mode = value as ResearchInteraction;
+            selectResearchInteraction(sessionId, mode);
+            setInteraction(mode);
+          }}
+        />}
         <span data-testid="chat-panel-research-inputs-title">{t('researchInputs.title')}</span>
         <Select
           className="research-inputs__kind"
@@ -145,7 +163,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
         </Button>
       </div>
       <p className="research-inputs__hint" data-testid="chat-panel-research-input-hint">
-        {t(configured ? 'researchInputs.hint' : 'researchInputs.setupRequired')}
+        {t(interaction === 'research' ? 'researchWorkflow.researchHint' : configured ? 'researchInputs.hint' : 'researchInputs.setupRequired')}
       </p>
       {error && (
         <p role="alert" className="text-warn" data-testid="chat-panel-research-input-error">

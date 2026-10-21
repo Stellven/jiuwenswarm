@@ -108,3 +108,20 @@ Integrated candidate manifest; source/contract/fixture/profile pins; mandatory p
 - C006/C007 consumer clarification (2026-10-16): consume canonical M1-IF-009@r2 without restating it. New RSI observations/admission/QA/system evidence must preserve fractional mean-score totals, integer independent-fixture paired counts, every started proposed/rejected attempt, required rejected-attempt reason/failure support and proposed-only final selection. Versioned signatures, exact original bytes and all unchanged custody/qualification/activation constraints remain binding. Explicit v1 is historical decoding, never a substitute for current v2 proof.
 
 C008 consumer revision alignment (2026-10-16): consume canonical M1-IF-002@r2 from M1-002/TASK.md. Library entry/snapshot aggregate limits include work plus independently budgeted checking; unchanged worker declaration/body limits do not pool verifier authority. Exact frozen parent/check pins remain binding for isolated RSI and QA/system evidence. IF009r2/C006/C007 and all existing work/AC/V IDs remain unchanged. Preserve prior progress and frozen evidence identities; revalidate affected current evidence against the new dependency revision.
+
+
+## M1-C019 integrated user journey acceptance
+
+Current authority/allocation: TASKS/TASK C019. Existing AC identities remain; additional scoped ACs:
+
+- AC-C019-01: Native submission invokes actual Intent then Requirements, accepted-only bindings, and exposes accepted research_brief.json.
+- AC-C019-02: Accepted Brief, eligible library and resources feed bounded Planner; checked/verified/gated frozen DAG alone releases research work.
+- AC-C019-03: Search, Screening, Hypothesis, Builder/Benchmark, Evaluation and Delivery use the shared runner/check/verifier/gate/scheduler; rejection blocks successors; scientific results derive from actual execution.
+- AC-C019-04: All model calls, including Planner/verifiers, consume frozen routing with actual GPT-6.1 Sol provenance. Missing resources block explicitly.
+- AC-C019-05: Native bilingual chat exposes durable progress, readable rejection reasons, accepted outputs and report/evidence; ordinary conversation remains usable.
+- AC-C019-06: Explicit repeatable initialization captures actual resources and source-defined defaults and installs exact eligible assets; ordinary startup never fabricates admissions/policy.
+
+
+## M1-C020 declaration/output-only verification
+
+AC-C020-01: Semantic assessor payload has exactly subject_declaration and subject_output. Neither fixed instructions nor payload may contain separately supplied user/upstream input contents, producer history, runtime/policy/manifests, or resolved contents of output-carried references. Exact output content remains unchanged. AC-C020-02: Declaration/output criteria assess semantic/structural conformance and coherence; host-only identity/source/runtime checks and protected gates remain enforced. Input-aware comparison is deferred and not a fallback.

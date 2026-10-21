@@ -7,6 +7,7 @@ import type { ResearchStatus } from './researchWorkflow';
 import { researchExecutionDetails } from './researchWorkflow';
 import { ResearchArtifactView } from './ResearchArtifactView';
 import type { ResearchArtifact } from './researchArtifacts';
+import { ResearchTimeline } from './ResearchTimeline';
 
 export function ResearchRunControls({ run }: { run: ResearchStatus }) {
   const { t } = useTranslation();
@@ -129,6 +130,7 @@ export function ResearchRunControls({ run }: { run: ResearchStatus }) {
           </dd>
         </div>
       </dl>
+      <ResearchTimeline runId={run.run_id} revision={run.revision} />
       <p className="research-inspection__counts" data-testid="team-area-research-artifact-counts">
         {t('researchShell.artifactCounts', {
           accepted: run.accepted_refs.length,

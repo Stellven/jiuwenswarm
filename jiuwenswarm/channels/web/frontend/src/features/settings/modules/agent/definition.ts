@@ -2,6 +2,7 @@ import { settingsNavigationIcons } from '../../../../assets/settings';
 import type { SettingsModuleDefinition } from '../../registry/types';
 import { AgentMediaSettings, AgentSearchSettings, VideoGenSettings, VisualGenSettings } from './AgentSettings';
 import { ConversationCapsuleSettings } from './ConversationSettings';
+import { WorkflowCapsules } from './WorkflowCapsules';
 
 export const agentModule: SettingsModuleDefinition = {
   id: 'agent',
@@ -9,6 +10,7 @@ export const agentModule: SettingsModuleDefinition = {
   icon: settingsNavigationIcons.agent,
   source: 'config',
   sections: [
+    { id: 'research-workflow', titleKey: 'researchWorkflow.title', separatedRows: true, items: [{ id: 'workflow-capsules', component: 'custom', render: WorkflowCapsules }] },
     { id: 'conversation-capsules', items: [{ id: 'conversation-capsule', component: 'custom', render: ConversationCapsuleSettings }] },
     {
       id: 'skills',

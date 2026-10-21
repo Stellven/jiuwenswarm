@@ -122,6 +122,16 @@ def mount_research_routes(app, channel) -> None:
     async def readiness(request: Request):
         return await invoke(request, 'readiness', lambda p: service.readiness(p))
 
+    @app.get('/api/v1/workflow/runtime')
+    async def workflow_runtime(request: Request):
+        from jiuwenswarm.research.workflow_inspection import runtime_snapshot
+        return await invoke(request, 'status', lambda p: runtime_snapshot(channel, p))
+
+    @app.get('/api/v1/runs/{run_id}/timeline')
+    async def workflow_timeline(request: Request, run_id: str):
+        from jiuwenswarm.research.workflow_inspection import run_timeline
+        return await invoke(request, 'status', lambda p: run_timeline(service, p, run_id), run_id=run_id)
+
     @app.post('/api/v1/runs')
     async def submit(request: Request):
         try:

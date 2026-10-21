@@ -18,7 +18,7 @@ Every work invocation follows **capture → deterministic checks → semantic ve
 
 Fixed mandatory work has its output contracts and independently owned checking profiles assigned beforehand. Bound checks incorporate the actual objective, input identities, CC/dependency pins, policy and limits. They are not derived from a favorable producer claim after execution. Check the exact output on every attempt; an earlier pass cannot authorize a changed subject.
 
-Structure and meaning are separate obligations. Well-formed Intent that merely lists unknown purpose and result may be faithfully extracted yet unusable. The verifier checks whether the submitted interpretation is coherent and usable by Requirements, using the original request as evidence. It does not give a second independent answer to the user's request.
+Structure and meaning are separate obligations. Well-formed Intent that merely lists unknown purpose and result may be faithfully extracted yet unusable. Under the user-selected declaration/output-only mode, the verifier checks whether the submitted interpretation is coherent and usable by Requirements from its declaration and output; it does not see the original request. Hidden-input fidelity is not a claimed semantic guarantee. See [current disclosure decision](guard-design.md#current-verifier-disclosure-decision--2026-10-21). It does not give a second independent answer to the user's request.
 
 Only committed protected decisions publish accepted references to successors. Failed evidence persistence blocks release. A valid scientific negative can pass infrastructure verification and be delivered. A research conclusion and a workflow decision are different records.
 

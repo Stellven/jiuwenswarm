@@ -266,3 +266,25 @@
     flex-shrink: 0;
   }
 }
+
+.research-timeline {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.research-timeline > li {
+  border-left: 2px solid var(--color-border-default);
+  padding-left: 12px;
+  overflow-wrap: anywhere;
+}
+.research-timeline__heading, .research-timeline__check {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.research-timeline__heading { margin-bottom: 8px; }
+.research-timeline__check { font-size: 12px; color: var(--color-text-secondary); }
+.research-timeline__check p { flex-basis: 100%; margin: 0 0 6px; }

@@ -17,6 +17,7 @@ import { createSessionEventGate } from './sessionEventGate';
 import { requestSettingsModule } from '../features/settings/settingsNavigation';
 import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, selectedResearchInputs, selectResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
 import { projectResearchWorkflow, type ResearchStatus } from '../components/teamArea/researchWorkflow';
+import { hasResearchConfiguration, researchInteraction, selectResearchInteraction } from '../utils/researchClient';
 
 type EventHandler = (event: WsEvent) => void;
 type TypedEventHandler<TPayload> = (event: WsEvent & { payload: TPayload }) => void;
@@ -307,7 +308,13 @@ class WebClient {
   ): Promise<T> {
     await this.ensureReady();
 
-    const localChat = hasLocalChat() && method === 'chat.send';
+    const interactionSession = typeof params?.session_id === 'string' ? params.session_id : 'new';
+    const research = hasResearchSession() && method === 'chat.send' && researchInteraction(interactionSession) === 'research';
+    if (research && !hasResearchConfiguration()) {
+      requestSettingsModule('agent');
+      throw this.createWebError(i18n.t('researchWorkflow.setupRequired'), 'RESEARCH_NOT_CONFIGURED');
+    }
+    const localChat = hasLocalChat() && method === 'chat.send' && !research;
     if (localChat) {
       if (['signed_out', 'subscription_required'].includes(useCodexSubscription.getState().state)) {
         requestSettingsModule('models');
@@ -411,6 +418,7 @@ class WebClient {
     if (hasLocalChat() && method === 'session.create') {
       const created = response as { session_id?: string };
       if (created.session_id) {
+        selectResearchInteraction(created.session_id, researchInteraction('new'));
         selectResearchInputs(created.session_id, selectedResearchInputs('new'));
         selectResearchInputs('new', []);
       }

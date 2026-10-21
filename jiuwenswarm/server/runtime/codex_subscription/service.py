@@ -245,8 +245,9 @@ class SubscriptionService:
                               system: str | None = None, _trace=None, local_conversation=False):
         """One fresh, tool-free research turn through the existing owner.
 
-        Governed protocol qualification originally used the 0.144.4 schema;
-        local conversations use 0.163.0 without inheriting that qualification.
+        Governed calls use a private provider alias: current Codex reserves
+        built-in provider IDs, while a custom OpenAI-authenticated provider
+        can enforce zero HTTP/stream retries without changing normal chat.
         No chat binding is read or written. The deadline covers account
         admission, context creation, submission and every streamed notification.
         """
@@ -304,14 +305,15 @@ class SubscriptionService:
                     result = await native_request("thread/start", {
                         "cwd": str(self.root / "chat-workspace"),
                         "sandbox": "read-only", "approvalPolicy": "never",
-                        "modelProvider": "openai", "model": model, "ephemeral": True,
+                        "modelProvider": "openai" if local_conversation else "ai4r_governed",
+                        "model": model, "ephemeral": True,
                         "developerInstructions": system or "Execute the supplied governed instruction. Tools are unavailable.",
-                        # Current Codex reserves built-in provider configuration.
-                        # Ordinary chat uses its native retry policy; governed
-                        # runs retain their strict admission until requalified.
                         **({} if local_conversation else {"config": {
-                            "model_providers.openai.request_max_retries": 0,
-                            "model_providers.openai.stream_max_retries": 0}}),
+                            "model_providers.ai4r_governed.name": "AI4Research governed subscription",
+                            "model_providers.ai4r_governed.wire_api": "responses",
+                            "model_providers.ai4r_governed.requires_openai_auth": True,
+                            "model_providers.ai4r_governed.request_max_retries": 0,
+                            "model_providers.ai4r_governed.stream_max_retries": 0}}),
                     })
                     run["thread"] = result["thread"]["id"]
                     if _trace is not None:

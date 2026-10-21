@@ -270,3 +270,25 @@ Separate ARM64 build-only follow-on outcome: `BLOCKED_BUILD_PREREQUISITE`; origi
 | sidecar-production | `ai4r-m1-sidecar:20261020-functions06` | `sha256:b037d5beb15145a561a25a430c5df947243c8139971dbeef57a538c7b9737470` |
 | rsi-production | `ai4r-m1-rsi:20261020-functions06` | `sha256:3106eb2820f9400eb038e89bad79b27999a27106cc256359ef57c381b08d8bcf` |
 | rsi-worker | `ai4r-m1-rsi-worker:20261020-functions06` | `sha256:439bc6adeda8c7926a7adc94ac8089fadcc05a0e766fd6f89d2763f42e243ce1` |
+
+
+## M1-C019 connected workflow convergence (2026-10-21)
+
+Source: TASKS/TASK C019; spec AC-C019-01..06; plan B-C019-01..05.
+
+- [x] C019-T01 Reconcile current maintained architecture/PRD; identify unconditional web direct-chat bypass and missing protected startup bindings. Source inspection at 6637d8c754d2cd0e50fa4118803c745d4b4d5eba; empty local operator file.
+- [ ] C019-T02 Implement protected local initialization/runtime resource diagnostics (B01, AC04/06).
+- [ ] C019-T03 Repair compiler/Planner/frozen-routing boundaries (B02, AC01/02/04).
+- [ ] C019-T04 Connect complete research/POC DAG and executor/check/verifier/gate boundaries (B03, AC03).
+- [ ] C019-T05 Native submission/progress/reasons/accepted outputs/report (B04, AC01/05).
+- [ ] C019-T06 Build exact candidate and execute focused boundaries plus actual complete workflow; record outcomes here (B05, all ACs).
+
+Current acceptance NOT_RUN. Host RTX 4060 Laptop GPU (8188 MiB) is not GB10; container GPU/profile unqualified. CLI0.163 actual local conversation runs GPT-6.1 Sol, but governed zero-retry compatibility remains unresolved. Existing direct-chat checks establish none of these ACs.
+
+
+## M1-C020 declaration/output-only verification
+
+- [x] C020-T01 Remove uncompleted input-aware payload/port/authority expansion and synchronize the maintained full/compact design with the explicit user decision.
+- [ ] C020-T02 Run the focused verifier disclosure boundary check; record exact outcome here.
+
+C019 remains active and incomplete; this amendment establishes no complete-workflow PASS.

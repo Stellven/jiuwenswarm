@@ -1,7 +1,7 @@
 {
   "codexSubscription": {
-    "capsuleTitle": "Conversation Capsule",
-    "capsuleDescription": "Choose how replies are structured. Applies to your next message in the existing chat.",
+    "capsuleTitle": "Conversation style",
+    "capsuleDescription": "Optional instructions for ordinary conversation. Governed research uses the admitted workflow Capsules listed above.",
     "capsuleGeneral": "General conversation",
     "capsuleDocument": "Document Analyst — summary, evidence and limitations",
     "capsuleBrief": "Research Brief — questions, approach and next steps",
@@ -4649,5 +4649,37 @@
     "delete": "Delete",
     "hint": "Files are saved locally. Selected documents accompany your next message. Up to 20 MB per file; names with spaces or non-Latin characters are converted to safe storage names automatically.",
     "failed": "The file operation could not complete. Check the connection and try again."
+  },
+  "researchWorkflow": {
+    "title": "Research workflow and Capsules",
+    "mode": "Interaction mode",
+    "conversation": "Conversation",
+    "research": "Research workflow",
+    "researchHint": "Runs Intent ? Requirements ? Planner ? Search ? Screening ? Hypothesis ? POC ? Evaluation ? Delivery. Each release requires its checks, independent verifier and gate.",
+    "setupRequired": "Research execution needs an initialized operator configuration and admitted Capsule library. See Settings ? Agent for the current prerequisites.",
+    "ready": "The governed runtime is ready. Research requests use the installed Capsules and protected gates.",
+    "blocked": "Configuration is captured; required runtime resources are still unavailable.",
+    "planMode": "Planning mode: {{mode}}",
+    "unconfigured": "not configured",
+    "admitted": "Active and eligible",
+    "notInstalled": "Not eligible for execution",
+    "checkCounts": "{{checks}} deterministic checks ? {{criteria}} verifier criteria",
+    "showChecks": "Show work, checks and gates",
+    "hideChecks": "Hide work, checks and gates",
+    "gate": "Gate",
+    "noChecks": "No invocation or gate has been recorded yet.",
+    "stages": {
+      "intent": "Intent Capsule",
+      "requirements": "Requirements Capsule",
+      "planner": "DAG Planner",
+      "search": "Search and ideation",
+      "screening": "Opportunity screening",
+      "hypothesis": "Hypothesis and protocol",
+      "builder": "POC Builder",
+      "benchmark": "POC Benchmark",
+      "evaluation": "Scientific evaluation",
+      "delivery": "Report and evidence delivery",
+      "verifier": "Independent verifier"
+    }
   }
 }

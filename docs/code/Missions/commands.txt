@@ -51,3 +51,5 @@ docker stop ai4r-web-play-app-1
 # Do not delete Docker volumes if you want to retain your files and login.
 # If port 5173 is occupied, stop the other service before launching.
 # On native Linux, skip the PowerShell/WSL step and run the Ubuntu commands.
+
+wsl -d Ubuntu -u root -- bash -lc "cd /mnt/d/research/ai_for_research/runs/jiuwenswarm && bash deploy/m1/start-local.sh"

@@ -77,6 +77,21 @@ export function hasLocalChat(): boolean {
   return session()?.defaults.local_chat_ready === true;
 }
 
+export type ResearchInteraction = 'conversation' | 'research';
+
+/** A UI choice only; the server still binds policy, models and capabilities. */
+export function researchInteraction(sessionId: string): ResearchInteraction {
+  try {
+    const value = window.sessionStorage.getItem(`ai4r.interaction:${sessionId}`);
+    if (value === 'conversation' || value === 'research') return value;
+  } catch { /* Storage is optional; permission is never inferred from it. */ }
+  return hasResearchConfiguration() || !hasLocalChat() ? 'research' : 'conversation';
+}
+
+export function selectResearchInteraction(sessionId: string, mode: ResearchInteraction): void {
+  window.sessionStorage.setItem(`ai4r.interaction:${sessionId}`, mode);
+}
+
 export function researchWorkspace(): string {
   const workspace = session()?.defaults.workspace_id;
   if (!workspace) throw new Error('Approved native workspace is unavailable');

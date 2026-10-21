@@ -166,3 +166,16 @@ Research Brief 2.0 adds qualified-intake/context/input bindings, fixed research 
 ## R12 — Routing-owner integration and PRD adoption
 
 The user confirmed preservation of the Codex Phase 1 baseline, Phase 3 placement of the API router and adoption of PRD (4). Keep one shared Capsule–routing contract, separate routing-owner algorithm/catalog documents, unchanged declaration 1.0.0 and independently owned checking. The router consumes an upstream-selected Capsule; a frozen decision selects its model only. This avoids duplicating binding/permission/gate authority. Raw owner sources and earlier trial inputs remain immutable. D5 is now source-aligned; D6 remains the documented packaging departure. Unknown registry quality, missing dossiers and unqualified endpoints remain disclosed; documentation does not establish runtime acceptance.
+
+
+## Current verifier disclosure decision ? 2026-10-21
+
+The user explicitly selected declaration/output-only semantic verification for the current implementation. The assessor receives the pinned Capability Capsule declaration and exact produced output, with independently pinned, input-independent review instructions and criteria. It judges conformance to the declared purpose/outputs/guarantees, internal semantic and structural soundness, contradictions, and stated limitations.
+
+Do not separately disclose user request text, reference documents, accepted predecessor inputs, producer conversation/history, Research Brief as upstream context, runtime observations, policy records, or review-manifest contents. Do not dereference output-carried source references or enable evidence-retrieval tools. Contents already present in the produced subject remain part of that exact output; this decision does not authorize rewriting the subject to hide or improve it.
+
+The protected host retains original input identities, observations, bound checking plans and review-context references for deterministic checks, subject binding, budget/effect enforcement, mechanical assessment validation and gate decisions. These records are not assessor inputs. Every work Capsule still has its required deterministic checks, independent verifier, mechanical assessment checks and protected gate. There is no verifier-of-verifier semantic chain.
+
+Profiles for this mode ask only questions answerable from declaration and output. Do not claim that their semantic PASS proves fidelity to hidden user inputs, preservation of omitted constraints, external citation support or actual scientific truth. Unanswerable assigned questions return INCONCLUSIVE rather than invented support. Comparing with an input-aware assessor is future separately selected work; no automatic switch or input-aware fallback is enabled.
+
+Authority: explicit user instruction in this session, recorded as M1-C020 in the live coding register. This approved narrowing supersedes broader assessor-disclosure language elsewhere in this package for the current implementation; it leaves protected host checks and the POC workflow unchanged.
