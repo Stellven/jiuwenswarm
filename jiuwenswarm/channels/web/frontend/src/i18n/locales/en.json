@@ -4655,6 +4655,7 @@
     "repo": "Repository ZIP",
     "datasets": "Validation dataset",
     "upload": "Upload",
+    "attachSaved": "Attach a saved file…",
     "refresh": "Refresh",
     "delete": "Delete",
     "hint": "Files are saved locally. Selected documents accompany your next message. Up to 20 MB per file; names with spaces or non-Latin characters are converted to safe storage names automatically.",

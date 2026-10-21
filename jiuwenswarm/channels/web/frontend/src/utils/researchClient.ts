@@ -259,6 +259,10 @@ export function selectResearchInputs(sessionId: string, ids: string[]): void {
     new CustomEvent('research.inputs.changed', { detail: { sessionId, ids: inputSelections.get(sessionId) } }),
   );
 }
+/** Draft edits use the current selection even when an upload completes asynchronously. */
+export function updateResearchInputs(sessionId: string, update: (ids: string[]) => string[]): void {
+  selectResearchInputs(sessionId, update([...(inputSelections.get(sessionId) ?? [])]));
+}
 export function captureResearchInputs(
   sessionId: string, explicitRefs?: string[],
 ): import('../types/websocket').ResearchInputSnapshot {

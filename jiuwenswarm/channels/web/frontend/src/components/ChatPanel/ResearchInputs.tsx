@@ -15,7 +15,7 @@ import {
   researchRequest,
   researchWorkspace,
   selectedResearchInputs,
-  selectResearchInputs,
+  updateResearchInputs,
   rememberResearchUploads,
   forgetResearchUpload,
   uploadResearchInput,
@@ -80,9 +80,8 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       window.removeEventListener('research.inputs.changed', changed);
     };
   }, [sessionId]);
-  const choose = (ids: string[]) => {
-    setSelected(ids);
-    selectResearchInputs(sessionId, ids);
+  const choose = (update: (ids: string[]) => string[]) => {
+    updateResearchInputs(sessionId, update);
   };
   const perform = async (operation: () => Promise<void>) => {
     const attempt = generation.current;
@@ -157,12 +156,24 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
                   const uploaded = await uploadResearchInput(kind, file);
                   if (attempt !== generation.current) return;
                   if (uploaded.filename !== file.name) setNotice(t('researchInputs.savedAs', { name: uploaded.filename }));
-                  choose([...selected, uploaded.id]);
+                  choose((current) => [...current, uploaded.id]);
                   await refresh();
                 });
             }}
           />
         </label>
+        {files.some((file) => !selected.includes(file.id)) && <Select
+          className="research-inputs__kind"
+          value=""
+          disabled={busy || !configured}
+          aria-label={t('researchInputs.attachSaved')}
+          data-testid="chat-panel-research-attach-saved"
+          options={[
+            { value: '', label: t('researchInputs.attachSaved'), disabled: true },
+            ...files.filter((file) => !selected.includes(file.id)).map((file) => ({ value: file.id, label: file.filename })),
+          ]}
+          onChange={(id) => { if (id) choose((current) => [...current, id]); }}
+        />}
         <Button
           size="sm"
           variant="quiet"
@@ -184,7 +195,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
       )}
       {notice && <p className="research-inputs__hint" role="status" data-testid="chat-panel-research-upload-notice">{notice}</p>}
       <ul className="research-inputs__list" data-testid="chat-panel-research-input-list">
-        {files.map((file) => (
+        {files.filter((file) => selected.includes(file.id)).map((file) => (
           <li
             key={file.id}
             className="flex items-center gap-2"
@@ -199,7 +210,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
                 data-testid="chat-panel-research-input-selected"
                 data-variant={file.id}
                 onChange={(event) =>
-                  choose(event.target.checked ? [...selected, file.id] : selected.filter((id) => id !== file.id))
+                  choose((current) => event.target.checked ? [...current, file.id] : current.filter((id) => id !== file.id))
                 }
               />
               {file.filename}
@@ -217,7 +228,7 @@ export function ResearchInputs({ sessionId }: { sessionId: string }) {
                   await researchRequest(`/api/v1/inputs/${encodeURIComponent(file.id)}`, { method: 'DELETE' });
                   forgetResearchUpload(file.id);
                   if (attempt !== generation.current) return;
-                  choose(selected.filter((id) => id !== file.id));
+                  choose((current) => current.filter((id) => id !== file.id));
                   await refresh();
                 })
               }

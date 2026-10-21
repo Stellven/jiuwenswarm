@@ -143,16 +143,23 @@ def _data_inputs(store, parent, *, inventory_ref=None,original_run_id=None):
                 continue
             qualified = contract_schema('qualified-intake')
             brief_schema = contract_schema('research-brief')
+            direct_intake = schema == qualified
             if schema == brief_schema:
                 brief_refs.append(ref)
                 intake_ref = value['intake_ref']
                 value = store.read_record(intake_ref, contract_id='qualified-intake')
                 schema = qualified
             if schema == qualified:
-                request_ref = value['request_ref']; store.read_blob(request_ref)
-                _require(request_ref in parent['authority_ceiling']['resource_reads'],
-                         'Qualified original request exceeds the original read ceiling')
-                original_requests.add(_pair(request_ref))
+                request_ref = value['request_ref']
+                readable = request_ref in parent['authority_ceiling']['resource_reads']
+                if direct_intake:
+                    _require(readable,'Qualified original request exceeds the original read ceiling')
+                # Brief lineage does not transfer raw-input read permission.
+                # A declared original_request resource still needs an exact
+                # readable association below or the protected broker path.
+                if readable:
+                    store.read_blob(request_ref)
+                    original_requests.add(_pair(request_ref))
             if schema == contract_schema('resource-snapshot'):
                 for key in ('baseline_resource', 'validation_resource'):
                     if port['name'] == key or value['id'] == key:
