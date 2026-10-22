@@ -3,6 +3,10 @@ import asyncio
 import copy
 import math
 import os
+import hashlib
+import json
+import re
+import uuid
 from pathlib import Path
 from urllib.parse import urlsplit,quote
 import httpx
@@ -34,19 +38,36 @@ class DropSubmitReplyOnce(httpx.AsyncBaseTransport):
 
 
 class ResearchClient:
-    def __init__(self,base_url,token_file,*,transport=None,timeout=30):
+    def __init__(self,base_url,token_file,*,transport=None,timeout=30,http_authority=None):
         if type(timeout) not in (int,float) or not math.isfinite(timeout) or timeout<=0:raise ClientError('finite client deadline required')
         self.timeout=timeout
         self.transport=transport
         self.evaluation_http_captures=[]
         p=urlsplit(base_url)
         if p.scheme not in {'http','https'} or not p.hostname or p.username or p.password or p.query or p.fragment:raise ClientError('invalid protected target URL')
+        headers={}
+        if http_authority is not None:
+            if (not isinstance(http_authority,str) or not http_authority or len(http_authority)>253
+                    or not http_authority.isascii() or any(character.isspace() or ord(character)<33 or ord(character)==127 for character in http_authority)
+                    or any(character in http_authority for character in '/\\?#@,%')):
+                raise ClientError('HTTP authority must be an explicit host with optional port')
+            try:
+                authority=urlsplit('//'+http_authority)
+                if (not authority.hostname or authority.path or authority.query or authority.fragment or authority.username is not None
+                        or authority.password is not None or http_authority.endswith(':') or authority.port is not None and not 1<=authority.port<=65535):
+                    raise ValueError()
+                if ':' not in authority.hostname and re.fullmatch(r'[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?',authority.hostname) is None:
+                    raise ValueError()
+            except ValueError:raise ClientError('HTTP authority must be an explicit host with optional port') from None
+            headers['Host']=http_authority
         path=Path(token_file)
         if path.is_symlink() or not path.is_file() or path.stat().st_size>16384:raise ClientError('invalid token reference')
         if os.name!='nt' and path.stat().st_mode&0o077:raise ClientError('token file must be private')
         token=path.read_text(encoding='utf8').strip()
         if not token or '\n' in token or '\r' in token:raise ClientError('invalid token reference')
-        self.http=httpx.AsyncClient(base_url=base_url.rstrip('/'),headers={'Authorization':'Bearer '+token},timeout=timeout,transport=transport,follow_redirects=False,trust_env=False)
+        headers['Authorization']='Bearer '+token
+        self.http_authority=http_authority
+        self.http=httpx.AsyncClient(base_url=base_url.rstrip('/'),headers=headers,timeout=timeout,transport=transport,follow_redirects=False,trust_env=False)
         self.validate=ContractData().validate
     @property
     def transport_observations(self):return copy.deepcopy(getattr(self.transport,'observations',[]))
@@ -115,6 +136,101 @@ class ResearchClient:
                 return b''.join(chunks)
     async def readiness(self):
         value=await self._request('GET','/api/v1/readiness');self.validate('client-readiness',value);return value
+    async def context(self):
+        value=await self._request('GET','/api/v1/context')
+        if not isinstance(value,dict) or value.get('schema_version')!='1.0.0' or not isinstance(value.get('defaults'),dict):
+            raise ClientError('unsupported client context')
+        return value
+    async def prepare_intake(self,task,upload_refs=(),*,workspace_id=None):
+        if not isinstance(task,str) or not task.strip() or not isinstance(upload_refs,(list,tuple)) or any(not isinstance(ref,str) for ref in upload_refs):
+            raise ClientError('original task text and explicit upload identifiers required')
+        value=await self._request('POST','/api/v1/intakes',json={'task':task,'upload_refs':list(upload_refs),'workspace_id':workspace_id})
+        if (not isinstance(value,dict) or value.get('schema_version')!='1.0.0' or value.get('qualified') is not True
+                or not isinstance(value.get('submission_defaults'),dict)):
+            raise ClientError('unsupported qualified intake response')
+        self.validate('Ref',value['intake_ref'])
+        return value
+    async def events(self,run_id,after=0):
+        if type(after) is not int or after<0:raise ClientError('nonnegative event cursor required')
+        value=await self._request('GET','/api/v1/runs/'+quote(run_id,safe='')+'/events',params={'after':after})
+        if (not isinstance(value,dict) or value.get('schema_version')!='1.0.0' or value.get('run_id')!=run_id
+                or not isinstance(value.get('events'),list) or type(value.get('next_after')) is not int):
+            raise ClientError('unsupported events response')
+        return value
+    async def artifacts(self,run_id,audience='researcher'):
+        value=await self._request('GET','/api/v1/runs/'+quote(run_id,safe='')+'/artifacts',params={'audience':audience})
+        if (not isinstance(value,dict) or value.get('schema_version')!='1.0.0' or value.get('run_id')!=run_id
+                or value.get('audience')!=audience or not isinstance(value.get('artifacts'),list)):
+            raise ClientError('unsupported artifact manifest')
+        content={key:item for key,item in value.items() if key!='manifest_sha256'}
+        digest=hashlib.sha256(json.dumps(content,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+        if digest!=value.get('manifest_sha256'):raise ClientError('artifact manifest hash mismatch')
+        names=set();identities=set()
+        for item in value['artifacts']:
+            path=item.get('path','')
+            if (not isinstance(path,str) or re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)*',path) is None
+                    or any(part in {'.','..'} for part in path.split('/')) or ':' in path or path in names
+                    or not isinstance(item.get('artifact_id'),str) or item['artifact_id'] in identities
+                    or type(item.get('size')) is not int or item['size']<0 or not isinstance(item.get('sha256'),str)
+                    or re.fullmatch('[0-9a-f]{64}',item['sha256']) is None):
+                raise ClientError('unsafe artifact inventory')
+            names.add(path);identities.add(item['artifact_id'])
+        return value
+    async def _stream_file(self,path,destination,*,params=None,sha256=None,size=None,max_bytes=1024*1024*1024,headers=None):
+        if type(max_bytes) is not int or max_bytes<=0 or size is not None and (type(size) is not int or size<0 or size>max_bytes):
+            raise ClientError('bounded download size required')
+        if sha256 is not None and (not isinstance(sha256,str) or re.fullmatch('[0-9a-f]{64}',sha256) is None):
+            raise ClientError('expected SHA256 required')
+        target=Path(destination).absolute()
+        if any(parent.is_symlink() for parent in (target,*target.parents)) or not target.parent.is_dir():
+            raise ClientError('download destination must have existing safe directories')
+        if target.exists():
+            if not target.is_file() or sha256 is None or size is None or target.stat().st_size!=size:
+                raise ClientError('download destination conflicts with existing evidence')
+            digest=hashlib.sha256()
+            with target.open('rb') as stream:
+                for chunk in iter(lambda:stream.read(64*1024),b''):digest.update(chunk)
+            if digest.hexdigest()!=sha256:raise ClientError('existing evidence hash mismatch')
+            return {'path':str(target),'size':size,'sha256':sha256}
+        temporary=target.parent/('.download-'+uuid.uuid4().hex)
+        digest=hashlib.sha256();total=0
+        try:
+            descriptor=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),0o600)
+            with os.fdopen(descriptor,'wb') as stream:
+                async with asyncio.timeout(self.timeout):
+                    async with self.http.stream('GET',path,params=params,headers=headers) as response:
+                        if response.status_code!=200:raise ClientError('artifact download unavailable',status_code=response.status_code)
+                        declared=response.headers.get('content-length')
+                        if declared is not None and (not declared.isdigit() or int(declared)>max_bytes or size is not None and int(declared)!=size):
+                            raise ClientError('artifact response size mismatch')
+                        async for chunk in response.aiter_bytes(chunk_size=64*1024):
+                            total+=len(chunk)
+                            if total>max_bytes or size is not None and total>size:raise ClientError('artifact exceeds declared size')
+                            stream.write(chunk);digest.update(chunk)
+                if size is not None and total!=size or sha256 is not None and digest.hexdigest()!=sha256:
+                    raise ClientError('artifact byte identity mismatch')
+                stream.flush();os.fsync(stream.fileno())
+            # Link publishes atomically without overwriting a concurrent writer.
+            os.link(temporary,target)
+            if os.name=='posix':
+                fd=os.open(target.parent,os.O_RDONLY|getattr(os,'O_DIRECTORY',0))
+                try:os.fsync(fd)
+                finally:os.close(fd)
+            return {'path':str(target),'size':total,'sha256':digest.hexdigest()}
+        finally:temporary.unlink(missing_ok=True)
+    async def download_artifact(self,run_id,artifact_id,destination,*,sha256,size,max_bytes=1024*1024*1024,audience='researcher'):
+        return await self._stream_file('/api/v1/runs/'+quote(run_id,safe='')+'/artifacts/'+quote(artifact_id,safe=''),destination,
+            params={'audience':audience},sha256=sha256,size=size,max_bytes=max_bytes)
+    async def stream_export_archive(self,run_id,destination,*,audience='researcher',max_bytes=1024*1024*1024):
+        return await self._stream_file('/api/v1/runs/'+quote(run_id,safe='')+'/export',destination,
+            params={'audience':audience},max_bytes=max_bytes,headers={'Accept':'application/zip'})
+    async def confirm_collection(self,run_id,manifest_sha256,artifacts,audience='researcher'):
+        value=await self._request('POST','/api/v1/runs/'+quote(run_id,safe='')+'/collection-confirmation',
+            json={'manifest_sha256':manifest_sha256,'artifacts':artifacts,'audience':audience})
+        if (not isinstance(value,dict) or value.get('schema_version')!='1.0.0' or value.get('run_id')!=run_id
+                or value.get('manifest_sha256')!=manifest_sha256 or value.get('status')!='confirmed'):
+            raise ClientError('unsupported collection confirmation')
+        return value
     async def submit(self,payload):
         self.validate('client-submission',payload)
         value=await self._request('POST','/api/v1/runs',json=payload);self.validate('client-status',value);return value

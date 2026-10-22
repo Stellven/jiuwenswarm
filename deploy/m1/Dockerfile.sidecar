@@ -6,7 +6,7 @@ FROM ${PYTHON_IMAGE} AS dependencies
 COPY --from=uv /uv /usr/local/bin/uv
 COPY uv.lock /build/uv.lock
 COPY jiuwenswarm/research_sidecar/lock_requirements.py /build/lock_requirements.py
-RUN python /build/lock_requirements.py /build/uv.lock /build/requirements.txt httpx jsonschema psutil cryptography
+RUN python /build/lock_requirements.py /build/uv.lock /build/requirements.txt httpx jsonschema psutil cryptography pyyaml ruamel-yaml
 RUN uv pip install --system --require-hashes --only-binary=:all: -r /build/requirements.txt
 
 FROM dependencies AS router
@@ -30,3 +30,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/opt/ai4r
 RUN python -m jiuwenswarm.research_sidecar.install_cli
 USER 11001:11001
 ENTRYPOINT ["python", "-m", "jiuwenswarm.research_sidecar"]
+
+# The sequential client is one CLI process; legacy referee mode stays available.
+FROM production AS benchmark-runner
+USER root
+RUN printf '#!/usr/local/bin/python\nfrom jiuwenswarm.research_sidecar.sequential import main\nraise SystemExit(main())\n' > /usr/local/bin/benchmark-runner \
+    && chmod 0755 /usr/local/bin/benchmark-runner
+USER 11001:11001
+ENTRYPOINT ["benchmark-runner"]
+CMD ["--help"]

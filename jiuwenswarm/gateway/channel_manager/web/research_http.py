@@ -9,7 +9,7 @@ import secrets
 from types import SimpleNamespace
 
 from fastapi import Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, FileResponse
 
 from jiuwenswarm.research.contracts.types import ResearchError
 
@@ -121,7 +121,93 @@ def mount_research_routes(app, channel) -> None:
 
     @app.get('/api/v1/readiness')
     async def readiness(request: Request):
-        return await invoke(request, 'readiness', lambda p: service.readiness(p))
+        async def capabilities(principal):
+            value = dict(await _result(service.readiness(principal)))
+            if hasattr(service, 'ingest'):
+                operations = list(value.get('operations', []))
+                operations += ['context', 'events', 'artifacts', 'download_artifact', 'confirm_collection']
+                if value.get('ready'): operations.append('prepare_intake')
+                if service.upload_manager is not None: operations.append('upload')
+                value['operations'] = list(dict.fromkeys(operations))
+            return value
+        return await invoke(request, 'readiness', capabilities)
+
+    @app.get('/api/v1/context')
+    async def client_context(request: Request):
+        return await invoke(request, 'status', lambda p: {'schema_version': '1.0.0', 'defaults': service.client_defaults(p)})
+
+    @app.post('/api/v1/intakes')
+    async def prepare_intake(request: Request):
+        try:
+            authority.authenticate(request.headers.get('authorization'), 'submit')
+            value = _evaluation_json(await request.body())
+            if (set(value) != {'task', 'upload_refs', 'workspace_id'} or not isinstance(value['task'], str)
+                    or not value['task'].strip() or not isinstance(value['upload_refs'], list)
+                    or any(not isinstance(ref, str) for ref in value['upload_refs'])
+                    or value['workspace_id'] is not None and not isinstance(value['workspace_id'], str)):
+                raise ResearchError('validation')
+        except ResearchError as exc: return _error(exc)
+        async def capture(principal):
+            workspace, protected = service._workspace(principal, value['workspace_id'])
+            defaults = {'schema_version': '1.0.0', 'id': 'submission:' + secrets.token_hex(16),
+                'account_id': principal.account_id, 'workspace_id': workspace,
+                'configuration_ref': protected['configuration_ref'], 'plan_source': protected.get('plan_source', 'static'),
+                'profile_id': protected.get('profile_id'), 'interaction_mode': 'headless'}
+            # Qualification is identical to authenticated browser intake, without
+            # creating or mutating an ordinary conversation/session.
+            ref = await service.ingest(principal, value['task'], value['upload_refs'], workspace_id=workspace)
+            return {'schema_version': '1.0.0', 'intake_ref': ref, 'qualified': True,
+                    'workspace_id': workspace, 'submission_defaults': defaults}
+        # Evaluation grants retain their exact submission policy; this ordinary
+        # intake path cannot manufacture an evaluation campaign binding.
+        return await invoke(request, 'submit', capture, workspace_id=value['workspace_id'], submission={})
+
+    @app.get('/api/v1/runs/{run_id}/events')
+    async def events(request: Request, run_id: str):
+        from jiuwenswarm.research.workflow_inspection import run_timeline
+        try:
+            after = int(request.query_params.get('after', '0'))
+            if after < 0: raise ValueError()
+        except ValueError: return _error(ResearchError('validation'), run_id=run_id)
+        def observed(principal):
+            value = run_timeline(service, principal, run_id)
+            rows = value['events']
+            return {'schema_version': '1.0.0', 'run_id': run_id, 'revision': value['revision'],
+                    'events': rows[after:after + 1000], 'next_after': min(len(rows), after + 1000),
+                    'sampling': {'scope': 'owned_run_captured_workflow_events', 'contention': 'unknown'},
+                    'metrics': {'cpu': None, 'memory': None, 'disk': None, 'gpu': None,
+                                'model_usage': None},
+                    'unavailable_metrics': ['cpu', 'memory', 'disk', 'gpu', 'model_usage']}
+        return await invoke(request, 'status', observed, run_id=run_id)
+
+    @app.get('/api/v1/runs/{run_id}/artifacts')
+    async def artifact_list(request: Request, run_id: str):
+        from jiuwenswarm.research.collection import snapshot
+        audience = request.query_params.get('audience', 'researcher')
+        return await invoke(request, 'export', lambda p: asyncio.to_thread(snapshot, service, p, run_id, audience), run_id=run_id)
+
+    @app.get('/api/v1/runs/{run_id}/artifacts/{artifact_id}')
+    async def artifact_download(request: Request, run_id: str, artifact_id: str):
+        from jiuwenswarm.research.collection import artifact_path
+        try:
+            audience = request.query_params.get('audience', 'researcher')
+            principal = authority.authenticate(request.headers.get('authorization'), 'export', audience=audience)
+            authority.authorize_evaluation(request.headers.get('authorization'), 'export', run_id=run_id)
+            path, item = await asyncio.to_thread(artifact_path, service, principal, run_id, artifact_id, audience)
+            return FileResponse(path, media_type='application/octet-stream', headers={
+                'Cache-Control': 'private, no-store', 'X-Content-SHA256': item['sha256'],
+                'Content-Length': str(item['size'])})
+        except ResearchError as exc: return _error(exc, run_id=run_id)
+        except Exception: return _error(ResearchError('internal'), run_id=run_id)
+
+    @app.post('/api/v1/runs/{run_id}/collection-confirmation')
+    async def collection_confirmation(request: Request, run_id: str):
+        from jiuwenswarm.research.collection import confirm
+        try:
+            authority.authenticate(request.headers.get('authorization'), 'export')
+            value = _evaluation_json(await request.body())
+        except ResearchError as exc: return _error(exc, run_id=run_id)
+        return await invoke(request, 'export', lambda p: asyncio.to_thread(confirm, service, p, run_id, value), run_id=run_id)
 
     @app.get('/api/v1/workflow/runtime')
     async def workflow_runtime(request: Request):

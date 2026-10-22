@@ -1,5 +1,10 @@
 # Native M1 deployment and verification
 
+For the sequential two-image testing path (`ai4r` + `benchmark-runner`) and the
+existing final app on localhost5175, use [BENCHMARK_RUNNER.md](BENCHMARK_RUNNER.md).
+It covers explicit host mounts, scoped credentials, CLI commands and guarded
+recreation while retaining account/state volumes and collected files.
+
 ## Local web app: clone to launch
 
 On Windows, open PowerShell and enter WSL:

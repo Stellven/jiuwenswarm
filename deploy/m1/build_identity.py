@@ -23,6 +23,9 @@ def main():
             if not item.is_file() or item.is_symlink() or item.suffix == '.pyc' or '__pycache__' in item.parts:
                 continue
             relative = item.relative_to(source)
+            # The independently deployed benchmark CLI is not part of the app.
+            if relative.parts[0] == 'research_sidecar':
+                continue
             installed = package / relative
             if installed.is_file():
                 if item.read_bytes() != installed.read_bytes():

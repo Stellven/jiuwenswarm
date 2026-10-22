@@ -9,6 +9,7 @@ import secrets
 import stat
 import re
 import copy
+import time
 import sqlite3
 import threading
 from functools import wraps
@@ -80,6 +81,7 @@ class SessionAuthority:
         self.db.execute('CREATE TABLE IF NOT EXISTS challenges (digest TEXT PRIMARY KEY, family TEXT NOT NULL, consumed INTEGER NOT NULL DEFAULT 0)')
         self.db.execute('CREATE TABLE IF NOT EXISTS evaluation_context (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL, family TEXT NOT NULL)')
         self.db.execute('CREATE TABLE IF NOT EXISTS evaluation_grants (id TEXT PRIMARY KEY, digest TEXT UNIQUE NOT NULL, context TEXT NOT NULL, startup_sha256 TEXT NOT NULL)')
+        self.db.execute('CREATE TABLE IF NOT EXISTS runner_grants (id TEXT PRIMARY KEY, digest TEXT UNIQUE NOT NULL, parent_digest TEXT NOT NULL, expires_at REAL NOT NULL)')
         self.db.execute('CREATE TABLE IF NOT EXISTS authority_settings (key TEXT PRIMARY KEY,value TEXT NOT NULL)')
         self.db.execute("INSERT OR REPLACE INTO authority_settings VALUES('origin',?)",(self.origin,))
         self._run_lookup = None
@@ -182,12 +184,17 @@ class SessionAuthority:
     def _lookup(self, token: str, kind: str, operation: str, workspace_id: str | None, audience: str | None) -> Principal:
         if not isinstance(token, str) or not 20 <= len(token) <= 256:
             raise ResearchError('auth', 'Authentication required')
-        kinds = ('http', 'evaluation_http') if kind == 'http' else (kind,)
+        kinds = ('http', 'evaluation_http', 'runner_http') if kind == 'http' else (kind,)
         row = self.db.execute('SELECT principal,kind FROM grants WHERE digest=? AND kind IN (' + ','.join('?' for _ in kinds) + ') AND revoked=0', (_digest(token), *kinds)).fetchone()
         if row is None:
             raise ResearchError('auth', 'Authentication required')
         if row[1] == 'evaluation_http':
             self._evaluation_scope(token)
+        if row[1] == 'runner_http':
+            grant=self.db.execute('SELECT parent_digest,expires_at FROM runner_grants WHERE digest=?',(_digest(token),)).fetchone()
+            if (grant is None or grant[1]<=time.time() or self.db.execute(
+                    "SELECT 1 FROM grants WHERE digest=? AND kind='http' AND revoked=0",(grant[0],)).fetchone() is None):
+                raise ResearchError('auth','Runner grant expired or its native startup was revoked',{'http_status':403})
         data = json.loads(row[0])
         principal = Principal(data['account_id'], frozenset(data['workspace_ids']), frozenset(data['operations']), frozenset(data['audiences']))
         try:
@@ -348,11 +355,67 @@ class SessionAuthority:
         return {'grant_id':grant_id,'status':'revoked'}
 
     @_serialized
+    def issue_runner(self,binding,output):
+        """Root-only short-lived ordinary HTTP grant; never grants settings/WS."""
+        self._operator_only()
+        if (not isinstance(binding,dict) or set(binding)!={'schema','account_id','workspace_id','expires_in_s'}
+                or binding['schema']!='ai4r-runner-grant:1' or type(binding['expires_in_s']) is not int
+                or not 1<=binding['expires_in_s']<=7*86400):
+            raise ResearchError('validation','An exact finite runner binding is required')
+        rows=self.db.execute("SELECT digest,principal FROM grants WHERE kind='http' AND revoked=0").fetchall()
+        if len(rows)!=1:raise ResearchError('auth','One active native startup identity is required')
+        parent=json.loads(rows[0][1])
+        operations=frozenset({'readiness','submit','status','reconcile','cancel','export','upload','list_uploads'})
+        if (binding['account_id']!=parent['account_id'] or binding['workspace_id'] not in parent['workspace_ids']
+                or not operations<=set(parent['operations']) or 'researcher' not in parent['audiences']):
+            raise ResearchError('auth','Runner binding exceeds the actual native startup grant')
+        path=Path(output)
+        if not path.is_absolute() or any(p.is_symlink() for p in (path,*path.parents)):
+            raise ResearchError('auth','Credential output path is unsafe')
+        directory_info=path.parent.stat()
+        if not stat.S_ISDIR(directory_info.st_mode) or directory_info.st_uid!=0 or directory_info.st_mode&0o022:
+            raise ResearchError('auth','Credential output requires protected operator custody')
+        token=secrets.token_urlsafe(32);ident='runner:'+secrets.token_hex(16);family=secrets.token_hex(16)
+        expires=time.time()+binding['expires_in_s']
+        principal=Principal(binding['account_id'],frozenset({binding['workspace_id']}),operations,frozenset({'researcher'}))
+        created=False;descriptor=None
+        self.db.execute('BEGIN IMMEDIATE')
+        try:
+            descriptor=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),0o600);created=True
+            os.fchmod(descriptor,0o600);os.fchown(descriptor,11001,11001)
+            with os.fdopen(descriptor,'wb') as stream:
+                descriptor=None;stream.write(token.encode('ascii'));stream.flush();os.fsync(stream.fileno())
+            self.db.execute('INSERT INTO grants(digest,family,kind,principal) VALUES(?,?,?,?)',
+                (_digest(token),family,'runner_http',self._encode(principal)))
+            self.db.execute('INSERT INTO runner_grants VALUES(?,?,?,?)',(ident,_digest(token),rows[0][0],expires))
+            directory=os.open(path.parent,os.O_RDONLY|getattr(os,'O_DIRECTORY',0))
+            try:os.fsync(directory)
+            finally:os.close(directory)
+            self.db.commit()
+        except BaseException:
+            self.db.rollback()
+            if descriptor is not None:os.close(descriptor)
+            if created:path.unlink(missing_ok=True)
+            raise
+        return {'grant_id':ident,'status':'issued','token_file':str(path),'expires_at':expires}
+
+    @_serialized
+    def revoke_runner(self,grant_id):
+        self._operator_only()
+        row=self.db.execute('SELECT digest FROM runner_grants WHERE id=?',(grant_id,)).fetchone()
+        if row is None:raise ResearchError('not_found','Runner grant is unavailable')
+        self.db.execute("UPDATE grants SET revoked=1 WHERE digest=? AND kind='runner_http'",(row[0],))
+        return {'grant_id':grant_id,'status':'revoked'}
+
+    @_serialized
     def authorize_evaluation(self,authorization,operation,*,submission=None,run_id=None,client_request_id=None):
         """Bind this request to its actual token; shared account is insufficient."""
         principal=self.authenticate(authorization,operation)
         token=authorization[7:]
         row=self.db.execute('SELECT kind FROM grants WHERE digest=? AND revoked=0',(_digest(token),)).fetchone()
+        if row[0]=='runner_http' and operation=='submit' and submission is not None:
+            if submission.get('profile_id') is not None or submission.get('evaluation') is not None or submission.get('fault_id') is not None:
+                raise ResearchError('auth','Ordinary runner grants cannot submit evaluation work',{'http_status':403})
         if row[0]!='evaluation_http':return
         scope=self._evaluation_scope(token)
         def check(value,workspace,account):

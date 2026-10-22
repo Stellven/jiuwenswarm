@@ -95,6 +95,10 @@ async def run_campaign(args):
 
 def runner_main(argv=None):
     supplied=list(sys.argv[1:] if argv is None else argv)
+    if not supplied or (supplied[0] != 'launch' and not
+            (supplied[0] == 'run' and '--campaign' in supplied and '--case' in supplied)):
+        from .sequential import main
+        return main(supplied)
     if supplied and supplied[0]=='launch':
         from .launcher import launch_main
         return launch_main(supplied[1:])

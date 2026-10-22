@@ -1,6 +1,9 @@
 # Python
 # Generated local test output and execution evidence stay on this machine.
 /.test_logs/
+
+# User-selected benchmark cases, inputs and collected results stay local.
+/docs/code/Missions/docs/source/QA/Benchmark/
 /docs/code/**/evidence/
 __pycache__/
 *.py[cod]

@@ -1,5 +1,23 @@
 import asyncio
 import httpx
+
+
+def test_explicit_virtual_host_authority_preserves_transport_endpoint_and_validates(tmp_path):
+    import pytest
+    from jiuwenswarm.research_sidecar.client import ResearchClient, ClientError
+    token=tmp_path/'token';token.write_text('controlled-private-token');token.chmod(0o600)
+    seen=[]
+    def handle(request):
+        seen.append(request)
+        return httpx.Response(200,json={'schema_version':'1.0.0','defaults':{}})
+    async def work():
+        client=ResearchClient('http://private-service:5173',token,http_authority='127.0.0.1:5175',transport=httpx.MockTransport(handle))
+        try:await client.context()
+        finally:await client.close()
+        assert seen[0].url.host=='private-service' and seen[0].headers['host']=='127.0.0.1:5175'
+        for value in ('http://host','host/path','user@host','host\r\nX-Evil: true','host:0','host:65536','host:', 'bad host', '//host'):
+            with pytest.raises(ClientError):ResearchClient('http://private-service:5173',token,http_authority=value)
+    asyncio.run(work())
 from jiuwenswarm.research_sidecar.client import ResearchClient
 
 

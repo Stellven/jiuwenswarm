@@ -150,9 +150,6 @@ jiuwenswarm-acp = "jiuwenswarm.gateway.channel_manager.protocol.acp.acp_connect:
 jiuwenswarm-acp-chat = "jiuwenswarm.acp.cli:main"
 jiuwenbox = "jiuwenbox.cli.jiuwenbox:main"
 jiuwenbox-server = "jiuwenbox.server.launcher:main"
-benchmark-runner = "jiuwenswarm.research_sidecar.cli:runner_main"
-benchmark-referee = "jiuwenswarm.research_sidecar.cli:referee_main"
-benchmark-report = "jiuwenswarm.research_sidecar.cli:report_main"
 
 [tool.setuptools]
 # 入口脚本现在是 jiuwenswarm 包内的一部分，不需要 py-modules
@@ -164,7 +161,7 @@ package-dir = {"jiuwenbox" = "jiuwenbox/src/jiuwenbox"}
 [tool.setuptools.packages.find]
 where = [".", "jiuwenbox/src"]
 include = ["jiuwenswarm*", "jiuwenbox*"]
-exclude = ["jiuwenswarm.web*"]
+exclude = ["jiuwenswarm.web*", "jiuwenswarm.research_sidecar*"]
 namespaces = false
 
 [tool.setuptools.package-data]

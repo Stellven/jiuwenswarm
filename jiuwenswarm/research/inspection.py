@@ -22,7 +22,7 @@ def safe_named_path(path: str) -> bool:
 
 
 def build_retrieval(store, principal, run_id: str, run_account_id: str, audience: str, files, *, allowed_refs,
-                    redactor=None):
+                    redactor=None, include_contents=True):
     principal.require('export')
     if run_account_id != principal.account_id:
         raise ResearchError('not_found', 'Run is unavailable')
@@ -60,7 +60,8 @@ def build_retrieval(store, principal, run_id: str, run_account_id: str, audience
                                                     provenance={'redacted_from': ref, 'reason': reason})
                 redactions.append(reason or 'An artifact has an explicitly redacted identity.')
                 raw = replacement
-        returned.append(item); contents[path] = raw
+        returned.append(item)
+        if include_contents: contents[path] = raw
     refs, seen_refs = [], set()
     for item in returned:
         key = (item['artifact_ref']['id'], item['artifact_ref']['sha256'])

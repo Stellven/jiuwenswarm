@@ -609,12 +609,12 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
         if not self._research_origin_allowed(outer_host):
             self._write_proxy_error(403, "native origin is not authorized")
             return
-        # Original run exports reopen and hash all retained evidence before
-        # building their ZIP. Give this finite download its own proxy allowance.
-        export_request = self.command in {"GET", "HEAD"} and re.fullmatch(
-            r"/api/v1/runs/[^/]+/export", urlparse(self.path).path
+        # Original-byte downloads may hash retained evidence before responding.
+        # Stream this versioned boundary end to end with bounded proxy memory.
+        download_request = self.command in {"GET", "HEAD"} and re.fullmatch(
+            r"/api/v1/runs/[^/]+/(?:export|artifacts/[^/]+)", urlparse(self.path).path
         ) is not None
-        proxy_timeout = 300 if export_request else self._HTTP_PROXY_TIMEOUT
+        proxy_timeout = 300 if download_request else self._HTTP_PROXY_TIMEOUT
         parsed = urlparse(self.api_target)
         if parsed.scheme == "https":
             ssl_ctx = None if _get_ssl_verify() else _get_insecure_ssl_context()
@@ -631,6 +631,7 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
                 timeout=proxy_timeout,
             )
 
+        response_started = False
         try:
             body = b""
             if self.command not in ("GET", "HEAD"):
@@ -651,19 +652,38 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
 
             conn.request(self.command, self.path, body=body, headers=forward_headers)
             resp = conn.getresponse()
-            resp_body = resp.read()
+            # Other API replies retain their existing buffering/error behavior.
+            resp_body = None if download_request else resp.read()
 
+            response_started = True
             self.send_response(resp.status, resp.reason)
             for key, value in resp.getheaders():
                 if key.lower() in self._HOP_BY_HOP_HEADERS:
                     continue
                 self.send_header(key, value)
+            if download_request and resp.getheader("Content-Length") is None:
+                # http.client decodes upstream chunk framing. A close-delimited
+                # downstream response must not be reused as a persistent one.
+                self.close_connection = True
+                self.send_header("Connection", "close")
             self.end_headers()
             if self.command != "HEAD":
-                self.wfile.write(resp_body)
+                if download_request:
+                    while chunk := resp.read(64 * 1024):
+                        self.wfile.write(chunk)
+                else:
+                    self.wfile.write(resp_body)
+        except (BrokenPipeError, ConnectionResetError):
+            # Stop reading the upstream as soon as the collector disconnects.
+            self.close_connection = True
         except Exception as exc:  # noqa: BLE001
             self.log_error("proxy http error: %s", exc)
-            self._write_proxy_error(502, "proxy http error")
+            if response_started:
+                # A truncated artifact remains truncated; never append an error
+                # document after original bytes or send a second status line.
+                self.close_connection = True
+            else:
+                self._write_proxy_error(502, "proxy http error")
         finally:
             conn.close()
 

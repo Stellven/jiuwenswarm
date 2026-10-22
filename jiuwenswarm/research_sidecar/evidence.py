@@ -8,6 +8,7 @@ import stat
 import tempfile
 import zipfile
 import math
+import errno
 
 
 def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode('utf-8')
@@ -19,7 +20,37 @@ def relative(value):
     return p
 
 
-def _evidence_directory(path):
+def _owned_acl_directory_mode(path, mode):
+    """Permit inherited host ACLs only inside an explicitly owned output tree.
+
+    Some writable host filesystems map newly created directories to another UID
+    and reject chmod. Their ACL is the access authority. Never apply this to
+    credentials, old custody exports, foreign paths or a read-only mount.
+    """
+    path=Path(path)
+    if any(item.is_symlink() for item in (path,*path.parents)) or not path.is_dir():raise ValueError('unsafe owned ACL directory')
+    try:path.chmod(mode);return
+    except OSError as error:
+        if error.errno not in {errno.EPERM,errno.EACCES,errno.ENOTSUP,errno.EOPNOTSUPP}:raise
+        original=error
+    owned=False
+    for parent in (path,*path.parents):
+        marker=parent/'.runner-owner.json'
+        if marker.is_symlink():raise ValueError('unsafe output ownership marker')
+        if marker.is_file():
+            if marker.stat().st_size>4096 or marker.stat().st_nlink!=1:raise ValueError('invalid output ownership marker')
+            record=json.loads(marker.read_bytes())
+            if record=={'owner':'ai4r-sequential-runner:1','campaign_id':parent.name}:owned=True
+            break
+    if not owned:raise original
+    descriptor,probe=tempfile.mkstemp(prefix='.acl-access-',dir=path)
+    try:
+        with os.fdopen(descriptor,'wb') as stream:
+            stream.write(b'owned output ACL access probe');stream.flush();os.fsync(stream.fileno())
+    finally:os.unlink(probe)
+
+
+def _evidence_directory(path,*,portable=False):
     """Set group-read custody only on directories this invocation creates."""
     path=Path(path);missing=[];current=path
     while not current.exists():
@@ -28,7 +59,9 @@ def _evidence_directory(path):
     if any(item.is_symlink() for item in (current,*current.parents)) or not current.is_dir():raise ValueError('unsafe evidence parent')
     for directory in reversed(missing):
         directory.mkdir(mode=0o2750)
-        if os.name=='posix':directory.chmod(0o2750)
+        if os.name=='posix':
+            if portable:_owned_acl_directory_mode(directory,0o2750)
+            else:directory.chmod(0o2750)
     if path.is_symlink() or not path.is_dir():raise ValueError('unsafe evidence directory')
     return path
 

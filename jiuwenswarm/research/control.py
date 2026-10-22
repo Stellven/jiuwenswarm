@@ -286,7 +286,7 @@ class ResearchService:
         from .runner import _capture_off_loop
         return await _capture_off_loop(self._artifact_bytes,principal,run_id,audience=audience)
 
-    def _artifact_bytes(self,principal,run_id,*,audience='researcher'):
+    def _artifact_bytes(self,principal,run_id,*,audience='researcher',include_contents=True):
         principal.require('export');run=self.store.get_run(run_id,account_id=principal.account_id);principal.require('export',run['workspace_id'])
         if audience not in principal.audiences or audience not in {'researcher','reviewer'}:raise ResearchError('auth','Audience is outside the authenticated grant')
         from .inspection import build_retrieval
@@ -348,7 +348,7 @@ class ResearchService:
             if file['path'] in paths:raise ResearchError('disclosure_conflict','Delivery lists a duplicate export path')
             paths.add(file['path']);files.append(file);refs.append(file['artifact_ref'])
         seen_outputs=set();export_files={file['path']:file for file in files}
-        for index,envelope in enumerate(records):
+        for envelope in records:
             if envelope['kind']=='run-evidence-file' and envelope['record']['role'] in {'output','run_end','node_gate','capsule','prompt','trace','workspace','gate','check','verifier'}:
                 copied=envelope['record'];original=copied.get('source_ref');key=(original['id'],original['sha256']) if original else None
                 if key in restricted and restricted[key]!=audience:continue
@@ -369,7 +369,12 @@ class ResearchService:
                     file={**projected,'audience':audience};paths.add(path);files.append(file)
                     refs.append(file['artifact_ref']);export_files[path]=file
             if envelope['kind'] not in public:continue
-            ref=envelope['ref'];path=f'evidence/{index:04d}-{envelope["kind"]}.json'
+            ref=envelope['ref']
+            # Descriptive paths depend only on the exact immutable identity.
+            # Collection snapshots/receipts and genuinely late evidence must
+            # not rename an already published record by shifting its ordinal.
+            identity=hashlib.sha256(json_bytes(ref)).hexdigest()
+            path=f'evidence/{envelope["kind"]}-{identity}.json'
             files.append({'path':path,'artifact_ref':ref,'media_type':'application/json','audience':audience})
             refs.append(ref)
             if envelope['kind']=='invocation-observation':
@@ -379,7 +384,7 @@ class ResearchService:
                     seen_outputs.add(key);path='artifacts/'+output['sha256']
                     if path in paths:continue
                     paths.add(path);files.append({'path':path,'artifact_ref':output,'media_type':media.get(key,self.store.artifact_metadata(output)['media_type']),'audience':audience});refs.append(output)
-        manifest,data=build_retrieval(self.store,principal,run_id,run['account_id'],audience,files,allowed_refs=refs)
+        manifest,data=build_retrieval(self.store,principal,run_id,run['account_id'],audience,files,allowed_refs=refs,include_contents=include_contents)
         validate('client-retrieval',manifest);return manifest,data
 
     async def artifact(self,principal,run_id,*,audience='researcher'):

@@ -1,7 +1,6 @@
 # Deny by default for directory-context builds. The frozen TAR producer also
 # verifies its complete public input closure independently of this client file.
-# Public side-system modules share the native wheel; separate process/image,
-# import and credential boundaries govern their use. Private oracle inputs,
+# Runner code belongs only in the runner image. Private oracle inputs,
 # credentials and source-design documents are never packaging inputs.
 **
 !pyproject.toml
@@ -57,3 +56,5 @@ jiuwenswarm/resources/agent/workspace/**/*.pem
 jiuwenswarm/resources/agent/workspace/**/node_modules/**
 jiuwenswarm/resources/agent/workspace/**/__pycache__/**
 !jiuwenswarm/resources/.env.template
+jiuwenswarm/research_sidecar/**
+jiuwenswarm/research_sidecar/
