@@ -1,55 +1,5 @@
-JiuwenSwarm: local web app (Windows + WSL Ubuntu)
+$helper = "$env:LOCALAPPDATA\AI4Research\runtime\poc-clean-isolation.py"
+$bundle = "$PWD\docs\code\Missions\M1\source\QA\clean_dataset"
 
-Prerequisites: Git in Ubuntu, and a Docker daemon accessible from Ubuntu.
-Start Docker Desktop if that is your daemon and enable its WSL integration.
-The first build downloads dependencies and can take several minutes.
-
-# Open PowerShell:
-wsl -d Ubuntu -u root
-
-# In Ubuntu, clone and launch:
-git clone --branch ai4r_M1 https://github.com/Stellven/jiuwenswarm.git
-cd jiuwenswarm
-docker info
-bash deploy/m1/start-local.sh --build
-
-# Open the newest complete Open JiuwenSwarm URL in Chrome/Edge.
-# You can bookmark this local login link and reuse it after restarts.
-# Open Settings -> Models -> Sign in with ChatGPT; enter the displayed code.
-# If popups are blocked, click Open secure sign-in.
-# Once the account shows Signed in, type a message in the normal composer and Send.
-# Ask a follow-up in the same conversation; recent context is retained.
-# Settings -> Agent -> Conversation Capsule selects Document Analyst or Research
-# Brief for your next message. General conversation turns the Capsule off.
-# Local chat requests GPT-6.1 Sol and verifies the returned model identity.
-# An unavailable 6.1 produces an error; it never silently uses an older model.
-# No API key is required for this subscription chat.
-# Your local input workspace is initialized automatically.
-# For chat, choose Reference document, Upload, then check the document.
-# Type a question about it and Send. Selected reference documents are included.
-# Repository ZIPs and validation datasets can be stored but are not chat inputs.
-# Refresh lists saved files. Check files to attach; Delete removes unused files.
-# Documents: UTF-8 .txt/.md or a PDF containing selectable text.
-# Repository: .zip. Local upload limit: 20 MB per file.
-# Use ASCII letters/numbers/dots/dashes/underscores in filenames; start with
-# a letter or number. Files and account data persist in Docker volumes.
-# Ordinary subscription chat works independently of full research execution.
-# Full research runs still require actual operator policy, catalog and runtime
-# bindings. This launcher does not create those resources.
-
-# After pulling source updates:
-git pull --ff-only
-bash deploy/m1/start-local.sh --build
-
-# Start again without rebuilding (inside the same Ubuntu repository):
-bash deploy/m1/start-local.sh
-
-# Ctrl+C stops following terminal logs; the app keeps running.
-# Stop the app:
-docker stop ai4r-web-play-app-1
-
-# Do not delete Docker volumes if you want to retain your files and login.
-# If port 5173 is occupied, stop the other service before launching.
-# On native Linux, skip the PowerShell/WSL step and run the Ubuntu commands.
-
-wsl -d Ubuntu -u root -- bash -lc "cd /mnt/d/research/ai_for_research/runs/jiuwenswarm && bash deploy/m1/start-local.sh"
+python $helper import-dataset --public-dataset "$bundle\public\data.json" --private-holdout "$bundle\private\holdout.json"
+python $helper open

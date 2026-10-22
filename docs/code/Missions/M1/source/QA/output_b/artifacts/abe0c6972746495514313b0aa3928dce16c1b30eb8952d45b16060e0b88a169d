@@ -1,0 +1,553 @@
+{
+  "schema_version": "3.0.0",
+  "id": "local_classifier_plan",
+  "brief_ref": {
+    "id": "blob:457585abc82be47910571f018bbd07816ff6d606b15d13e37072a1f78fd5158e",
+    "sha256": "457585abc82be47910571f018bbd07816ff6d606b15d13e37072a1f78fd5158e"
+  },
+  "library_snapshot_ref": {
+    "id": "blob:967288336762d46ca186d2fcaedbfe5d8d8f9f947909d298c406f0fe52de7d34",
+    "sha256": "967288336762d46ca186d2fcaedbfe5d8d8f9f947909d298c406f0fe52de7d34"
+  },
+  "resource_inventory_ref": {
+    "id": "blob:5653978c7d73f2a82982dadc639e8c6fbbf6f1cf2f6276c795e075464a1f0255",
+    "sha256": "5653978c7d73f2a82982dadc639e8c6fbbf6f1cf2f6276c795e075464a1f0255"
+  },
+  "policy_ref": {
+    "id": "blob:0f26b6a602e638318d3a9d433d280f27f68bf06b664a15338f8f65d19bb32865",
+    "sha256": "0f26b6a602e638318d3a9d433d280f27f68bf06b664a15338f8f65d19bb32865"
+  },
+  "plan_source": "planned",
+  "nodes": [
+    {
+      "node_id": "search",
+      "cc": {
+        "cc_name": "research.search",
+        "cc_version": "m1-5",
+        "declaration_sha256": "f78118fd08fcba2d30b76637054a30cde288d44cd406128e17955ca6349f54d5"
+      },
+      "objective": "The candidate set will ground the specified midpoint classifier intervention in captured local documents within the Brief's resource constraints.",
+      "requirement_ids": ["requirement.intervention", "requirement.resources"],
+      "deliverable_ids": [],
+      "predecessors": [],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "search_scope",
+          "artifact_type": "search_scope",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "search_scope",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {"name": "candidate_set", "artifact_type": "candidate_set", "required": true}
+      ],
+      "limits": {"time_s": 360, "model_calls": 3, "memory_mb": 16384},
+      "suggested_checks": []
+    },
+    {
+      "node_id": "screening",
+      "cc": {
+        "cc_name": "research.screening",
+        "cc_version": "m1-3",
+        "declaration_sha256": "13ee451be226a4a357fc9ed028054ea825cf4a8af0cbf9c9c3720ca10e1b76ea"
+      },
+      "objective": "The screening result and opportunity card will identify a candidate consistent with the specified intervention and standard-library-only local CPU constraints.",
+      "requirement_ids": ["requirement.intervention", "requirement.resources"],
+      "deliverable_ids": [],
+      "predecessors": ["search"],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "search", "port": "candidate_set", "artifact_type": "candidate_set"}
+        },
+        {
+          "name": "screening_rubric",
+          "artifact_type": "screening_rubric",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "screening_rubric",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {"name": "screening_result", "artifact_type": "screening_result", "required": true},
+        {"name": "opportunity_card", "artifact_type": "opportunity_card", "required": true}
+      ],
+      "limits": {"time_s": 240, "model_calls": 3, "memory_mb": 16384},
+      "suggested_checks": []
+    },
+    {
+      "node_id": "hypothesis",
+      "cc": {
+        "cc_name": "research.hypothesis",
+        "cc_version": "m1-5",
+        "declaration_sha256": "6907f879647c7ca87a62eb3d063f8b361cee809c54bb9cf2b4e6ec86ef53bf2a"
+      },
+      "objective": "The blueprint will specify the midpoint classifier change, preserved evaluation, accuracy fraction with strict-greater success and less-than-or-equal falsification, and baseline-first execution with three repeats per arm and seed 42.",
+      "requirement_ids": [
+        "requirement.intervention",
+        "requirement.fixed_evaluation",
+        "requirement.resources",
+        "requirement.comparisons",
+        "requirement.run_protocol"
+      ],
+      "deliverable_ids": [],
+      "predecessors": ["screening"],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "opportunity",
+          "artifact_type": "opportunity_card",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "screening", "port": "opportunity_card", "artifact_type": "opportunity_card"}
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {"name": "blueprint", "artifact_type": "hypothesis_blueprint", "required": true}
+      ],
+      "limits": {"time_s": 240, "model_calls": 2, "memory_mb": 16384},
+      "suggested_checks": []
+    },
+    {
+      "node_id": "builder",
+      "cc": {
+        "cc_name": "research.builder",
+        "cc_version": "m1-10",
+        "declaration_sha256": "06694208780571cf3ef9e5e4548d17355a3312a15f3f868845797261edace4f2"
+      },
+      "objective": "The POC bundle will confine the classifier intervention to the designated patch file using captured training class means while preserving the baseline, held-out split and accuracy measurement without external dependencies.",
+      "requirement_ids": [
+        "requirement.intervention",
+        "requirement.fixed_evaluation",
+        "requirement.resources"
+      ],
+      "deliverable_ids": ["deliverable.poc"],
+      "predecessors": ["hypothesis"],
+      "inputs": [
+        {
+          "name": "blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "hypothesis", "port": "blueprint", "artifact_type": "hypothesis_blueprint"}
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "environment_lock",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {"name": "manifest", "artifact_type": "poc_manifest", "required": true},
+        {"name": "bundle", "artifact_type": "poc_artifact_bundle", "required": true}
+      ],
+      "limits": {"time_s": 720, "model_calls": 3, "memory_mb": 16384},
+      "suggested_checks": []
+    },
+    {
+      "node_id": "benchmark",
+      "cc": {
+        "cc_name": "research.benchmark",
+        "cc_version": "m1-3-localcpu",
+        "declaration_sha256": "957934083c8a4f75c628892f5ae29858f3d0ee2babb6e66e66c3c2418f095c66"
+      },
+      "objective": "The benchmark evidence will capture genuine accuracy fractions and raw records for three baseline runs followed by three treatment runs with seed 42 under unchanged local CPU evaluation and resource constraints.",
+      "requirement_ids": [
+        "requirement.fixed_evaluation",
+        "requirement.resources",
+        "requirement.comparisons",
+        "requirement.run_protocol"
+      ],
+      "deliverable_ids": ["deliverable.logs"],
+      "predecessors": ["builder", "hypothesis"],
+      "inputs": [
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "builder", "port": "manifest", "artifact_type": "poc_manifest"}
+        },
+        {
+          "name": "poc_artifact_bundle",
+          "artifact_type": "poc_artifact_bundle",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "builder", "port": "bundle", "artifact_type": "poc_artifact_bundle"}
+        },
+        {
+          "name": "build_receipt",
+          "artifact_type": "build_receipt",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "build_receipt",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "hypothesis", "port": "blueprint", "artifact_type": "hypothesis_blueprint"}
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "baseline_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "validation_resource",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "environment_lock",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {"name": "benchmark_payload", "artifact_type": "benchmark_payload", "required": true},
+        {"name": "execution_receipt", "artifact_type": "execution_receipt", "required": true},
+        {"name": "provisioning_receipt", "artifact_type": "provisioning_receipt", "required": true}
+      ],
+      "limits": {"time_s": 3780, "model_calls": 3, "memory_mb": 16384},
+      "suggested_checks": []
+    },
+    {
+      "node_id": "evaluation",
+      "cc": {
+        "cc_name": "research.evaluation",
+        "cc_version": "m1-4",
+        "declaration_sha256": "978912e4fd10d8b479ca124e95de119683c4f7786d52d18d508c0f23d361f0d3"
+      },
+      "objective": "The scientific verdict will assess measured accuracy using the fixed strict-greater success and less-than-or-equal falsification comparisons and describe evidence completeness and demonstration limitations.",
+      "requirement_ids": ["requirement.comparisons", "requirement.reporting"],
+      "deliverable_ids": [],
+      "predecessors": ["hypothesis", "benchmark"],
+      "inputs": [
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "hypothesis", "port": "blueprint", "artifact_type": "hypothesis_blueprint"}
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "benchmark", "port": "benchmark_payload", "artifact_type": "benchmark_payload"}
+        },
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {"name": "evaluation_verdict", "artifact_type": "evaluation_verdict", "required": true}
+      ],
+      "limits": {"time_s": 240, "model_calls": 2, "memory_mb": 16384},
+      "suggested_checks": []
+    },
+    {
+      "node_id": "delivery",
+      "cc": {
+        "cc_name": "research.delivery",
+        "cc_version": "m1-4",
+        "declaration_sha256": "a61567d2d348bfb4952f4c4cf967f5d1368cf8547d38ef895bc3b46298dfd68b"
+      },
+      "objective": "The delivery will provide the report, POC files and raw logs with measurements traceable to execution evidence, the scientific verdict and explicit limitations of the tiny authored demonstration.",
+      "requirement_ids": ["requirement.reporting"],
+      "deliverable_ids": ["deliverable.report", "deliverable.poc", "deliverable.logs"],
+      "predecessors": ["search", "screening", "hypothesis", "builder", "benchmark", "evaluation"],
+      "inputs": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "required": true,
+          "source_kind": "accepted_ref",
+          "run_input_key": "brief",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "search", "port": "candidate_set", "artifact_type": "candidate_set"}
+        },
+        {
+          "name": "opportunity_card",
+          "artifact_type": "opportunity_card",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "screening", "port": "opportunity_card", "artifact_type": "opportunity_card"}
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "hypothesis", "port": "blueprint", "artifact_type": "hypothesis_blueprint"}
+        },
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "builder", "port": "manifest", "artifact_type": "poc_manifest"}
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "benchmark", "port": "benchmark_payload", "artifact_type": "benchmark_payload"}
+        },
+        {
+          "name": "evaluation_verdict",
+          "artifact_type": "evaluation_verdict",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "evaluation", "port": "evaluation_verdict", "artifact_type": "evaluation_verdict"}
+        },
+        {
+          "name": "gate_decision_index",
+          "artifact_type": "gate_decision_index",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "gate_decision_index",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "screening", "port": "screening_result", "artifact_type": "screening_result"}
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "benchmark", "port": "execution_receipt", "artifact_type": "execution_receipt"}
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "required": true,
+          "source_kind": "future_output",
+          "run_input_key": null,
+          "accepted_ref": null,
+          "future": {"producer_node": "benchmark", "port": "provisioning_receipt", "artifact_type": "provisioning_receipt"}
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "environment_lock",
+          "accepted_ref": null,
+          "future": null
+        },
+        {
+          "name": "run_configuration",
+          "artifact_type": "run_configuration",
+          "required": true,
+          "source_kind": "host_record",
+          "run_input_key": "run_configuration",
+          "accepted_ref": null,
+          "future": null
+        }
+      ],
+      "outputs": [
+        {"name": "delivery_manifest", "artifact_type": "delivery_manifest", "required": true},
+        {"name": "research_report", "artifact_type": "research_report", "required": true}
+      ],
+      "limits": {"time_s": 240, "model_calls": 3, "memory_mb": 16384},
+      "suggested_checks": []
+    }
+  ],
+  "coverage": [
+    {
+      "item_id": "requirement.intervention",
+      "item_kind": "requirement",
+      "node_ids": ["search", "screening", "hypothesis", "builder"]
+    },
+    {
+      "item_id": "requirement.fixed_evaluation",
+      "item_kind": "requirement",
+      "node_ids": ["hypothesis", "builder", "benchmark"]
+    },
+    {
+      "item_id": "requirement.resources",
+      "item_kind": "requirement",
+      "node_ids": ["search", "screening", "hypothesis", "builder", "benchmark"]
+    },
+    {
+      "item_id": "requirement.comparisons",
+      "item_kind": "requirement",
+      "node_ids": ["hypothesis", "benchmark", "evaluation"]
+    },
+    {
+      "item_id": "requirement.run_protocol",
+      "item_kind": "requirement",
+      "node_ids": ["hypothesis", "benchmark"]
+    },
+    {
+      "item_id": "requirement.reporting",
+      "item_kind": "requirement",
+      "node_ids": ["evaluation", "delivery"]
+    },
+    {
+      "item_id": "deliverable.report",
+      "item_kind": "deliverable",
+      "node_ids": ["delivery"]
+    },
+    {
+      "item_id": "deliverable.poc",
+      "item_kind": "deliverable",
+      "node_ids": ["builder", "delivery"]
+    },
+    {
+      "item_id": "deliverable.logs",
+      "item_kind": "deliverable",
+      "node_ids": ["benchmark", "delivery"]
+    }
+  ],
+  "topic_hints": [
+    "Midpoint between training class means",
+    "Local CPU classification demonstration"
+  ],
+  "limits": {"time_s": 5820, "model_calls": 19, "memory_mb": 16384},
+  "notes": ""
+}
