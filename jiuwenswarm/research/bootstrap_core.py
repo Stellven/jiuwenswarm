@@ -58,6 +58,15 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     from .capsules.assets import load_research_catalog
     research_catalog=load_research_catalog()
     bootstrap_pins=tuple(v['declaration_sha256'] for v in catalog['capsules'].values())+tuple(v['declaration_ref']['sha256'] for v in research_catalog['stages'].values())
+    paper_assets={}
+    if options.get('paper_summary_workflow') is True:
+        from .summary_planning import is_document_summary_policy
+        policy=store.read_record(operator.snapshot()['cc']['plan_policy_ref'],contract_id='plan-policy')
+        if not is_document_summary_policy(policy) or operator.snapshot()['cc']['evaluation_profile_ref'] is not None:
+            raise ResearchError('paper_policy_binding','Paper workflow requires its exact protected document policy')
+        from .capsules.paper_assets import build_paper_assets
+        paper_assets=build_paper_assets(store)
+        bootstrap_pins+=tuple(v['declaration_ref']['sha256'] for v in paper_assets.values())
     public=operator.snapshot()['rsi']['custodian_public_key']
     public_bytes=base64.urlsafe_b64decode(public+'='*(-len(public)%4)) if public is not None else None
     rsi_guard=None;rsi_diagnostics=[]
@@ -110,6 +119,7 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
         memory_ceiling=policy['aggregate_limits']['memory_mb']
         from .capsules.assets import build_research_assets,register_research_capsules
         assets=build_research_assets(store)
+        assets.update(paper_assets)
         if options.get('development_builtin_catalog') is True:
             import os
             if finite is not None or os.environ.get('JIUWENSWARM_M1_LOCAL_RESEARCH')!='1':
@@ -179,7 +189,11 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             current=library.get(identity['name'],identity['version_label'])
             asset['admission_ref']=current['admission_ref']
             asset['pin']=store.read_record(current['admission_ref'],contract_id='library-admission')['cc']
-        register_research_capsules(registry,checks,library,store,connectors=connectors,executor=executor,assets=assets)
+        register_research_capsules(registry,checks,library,store,connectors=connectors,executor=executor,
+                                  assets={key:value for key,value in assets.items() if key not in paper_assets})
+        if paper_assets:
+            from .capsules.paper_assets import register_paper_capsules
+            register_paper_capsules(registry,checks,library,store,assets=paper_assets)
         result.installed.update(assets)
         if finite is None:
             from .planning import capture_static_template
@@ -223,7 +237,7 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             compiler=IntentionCompiler(store,runner,factory,intent_pin=result.installed['intent']['pin'],requirements_pin=result.installed['requirements']['pin'],
                 default_policy_ref=options['default_policy_ref'],template_ref=options['compiler_template_ref'],node_limits=options['compiler_limits'],
                 policy_ref=operator.snapshot()['cc']['plan_policy_ref'],authority_ceiling=run_authority)
-            planner=PlanningCoordinator(store,runner,factory,planner_pin=result.installed['planner']['pin'],template_ref=options['planner_template_ref'],
+            planner=PlanningCoordinator(store,runner,factory,planner_pin=result.installed['paper_planner' if paper_assets else 'planner']['pin'],template_ref=options['planner_template_ref'],
                 node_limits=options['planner_limits'],authority_ceiling=run_authority)
         binder=Binder(store,library,checks,search_bounds_ref=options.get('search_bounds_ref'),finite_e1=finite)
         scheduler=Scheduler(store,runner,factory,binder,library=library,planning=planner,progress_sink=options.get('progress_sink'),evidence=evidence)

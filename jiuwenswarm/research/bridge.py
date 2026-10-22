@@ -249,11 +249,11 @@ class GovernedBridge:
         # Keep this host-derived scalar independently of the route adapter's
         # view. Caller-supplied identity/ordinal never supplies payload authority.
         expected_prompt_sha256=protected.get('expected_prompt_sha256')
-        # The immutable m1-2 Builder is a tool-free text generator. Its trusted
+        # These immutable Builder releases are tool-free text generators. Their trusted
         # carrier packages returned file bytes; only the original tool-using
         # release enters the dedicated, credential-isolated Builder launcher.
         is_builder = (protected.get("cc_name") == "research.builder"
-                      and protected.get("cc_version") != "m1-2")
+                      and protected.get("cc_version") not in {"m1-2", "m1-3", "m1-4", "m1-5", "m1-6", "m1-7", "m1-8", "m1-9"})
         if is_builder and self.builder_launcher is None:
             raise BridgeError("ENVIRONMENT_BLOCKED")
         remaining=deadline-monotonic()

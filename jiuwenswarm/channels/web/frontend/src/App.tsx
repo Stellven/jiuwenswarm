@@ -70,7 +70,7 @@ import {
 import { readAgentTemplateName } from './features/agentIdentity';
 import { normalizeTeamLeaderIdentity } from './features/teamLeaderIdentity';
 import { useWebSocket, mergePersistedGoalCompletionMessages, stampGoalObjectiveMessages, useResponsiveLayout, useResponsivePanelResize } from './hooks';
-import { webRequest } from './services/webClient';
+import { webRequest, webClient } from './services/webClient';
 import type { WorkflowRun } from './components/teamArea/workflowTypes';
 import { useTeamPanelState } from './features/teamPanelState';
 import { useSingleAgentPanelState } from './features/singleAgentPanelState';
@@ -2138,6 +2138,19 @@ function AppContent({
       // 静默；未配置时后端返回投影，拉取失败不影响主流程
     });
   }, [isConnected, loadPersonalContextConfig]);
+
+  // Native owned research history also recovers when a cached conversation is revisited.
+  useEffect(() => {
+    if (!isConnected || !sessionId || sessionId === NEW_CONVERSATION_ID) return;
+    let current = true;
+    queueMicrotask(() => {
+      if (!current || useChatStore.getState().getRuntime(sessionId)?.isLoadingHistory) return;
+      void webClient.recoverResearchConversation(sessionId).catch(() => {
+        // A failed read never resubmits the original request or fabricates a reply.
+      });
+    });
+    return () => { current = false; };
+  }, [isConnected, sessionId, isLoadingHistory]);
 
   // 当会话 ID 变化或页面加载时，自动加载历史会话
   useEffect(() => {

@@ -8,6 +8,8 @@ import uuid
 from pathlib import Path
 
 from .contracts import ResearchError, validate
+from .summary_planning import (PAPER_CC_VERSION, PAPER_DELIVERY_CC, PAPER_PLANNER_CC, is_document_summary_policy,
+                               summary_layout_issues, validate_summary_documents)
 
 
 HOST_KEYS={'screening_rubric','build_receipt','gate_decision_index','screening_result',
@@ -64,8 +66,10 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
     structure='template_structure' if plan_source=='static' else 'plan_proposal_schema'
     checks={key:[] for key in (structure,*SHARED_CHECKS,*(() if plan_source=='static' else ('suggested_checks_known',)))}
     def fail(key,message):checks[key].append(message)
+    paper_summary = False
     try:
         validate('static-template' if plan_source=='static' else 'plan-proposal',source)
+        paper_summary = is_document_summary_policy(policy)
         if finite_context is not None:
             from .finite_evaluation import _FinitePlanContext
             if type(finite_context) is not _FinitePlanContext:
@@ -167,14 +171,18 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
                 expected={n['node_id'] for n in nodes if item in n[tag]}
                 if not expected or coverage.get((kind,item))!=expected:fail('brief_coverage','Coverage is not the exact inverse of tags')
         depended={p for n in nodes for p in n['predecessors']}; leaves=[n for n in nodes if n['node_id'] not in depended]
-        if len(leaves)!=1 or leaves[0]['cc']['cc_name']!='research.delivery' or not inventory['deliverable'].issubset(leaves[0]['deliverable_ids']):
+        delivery_cc = PAPER_DELIVERY_CC if paper_summary else 'research.delivery'
+        if len(leaves)!=1 or leaves[0]['cc']['cc_name']!=delivery_cc or not inventory['deliverable'].issubset(leaves[0]['deliverable_ids']):
             fail('delivery_leaf_coverage','Exactly one Delivery leaf must cover every deliverable')
-        else:
+        elif not paper_summary:
             ancestors=set();pending=list(leaves[0]['predecessors'])
             while pending:
                 key=pending.pop()
                 if key not in ancestors and key in by_id:ancestors.add(key);pending.extend(by_id[key]['predecessors'])
             if sum(by_id[key]['cc']['cc_name']=='research.evaluation' for key in ancestors)!=1:fail('delivery_leaf_coverage','Delivery needs exactly one Scientific Evaluation ancestor')
+        if paper_summary:
+            for issue in summary_layout_issues(bound):
+                fail('delivery_leaf_coverage', issue)
         for required in policy['required_stages']:
             if sum(n['cc']['cc_name']==required for n in nodes)!=1:fail('delivery_leaf_coverage','A required stage is missing or duplicated')
         for dimension in ('time_s','model_calls','memory_mb'):
@@ -315,6 +323,9 @@ class Binder:
 
     def _runner_refs(self,planner_decision=None,*,finite_context=None):
         refs=[self.store.put_blob(Path(__file__).read_bytes(),media_type='text/x-python')]
+        # The additional closed policy/graph rules are part of the exact host
+        # checker implementation, rather than an unpinned request-time label.
+        refs.append(self.store.put_blob(Path(__file__).with_name('summary_planning.py').read_bytes(),media_type='text/x-python'))
         if finite_context is not None:
             if self.finite_e1 is None:raise ResearchError('plan_acceptance','Finite checker owner is unavailable')
             self.finite_e1.validate_context(finite_context)
@@ -337,8 +348,11 @@ class Binder:
         if len(subjects)!=1:raise ResearchError('plan_acceptance','Planner node has no unique work assignment')
         declaration=self.store.read_record(subjects[0]['capsule_ref'],contract_id='capsule-declaration')
         entries=self.store.read_record(snapshot_ref,contract_id='library-snapshot')['entries']
-        matches=[e for e in entries if e['cc_name']=='research.planner' and e['declaration_sha256']==subjects[0]['capsule_ref']['sha256']]
-        if declaration['identity']['name']!='research.planner' or len(matches)!=1:
+        paper = is_document_summary_policy(self.store.read_record(policy_ref,contract_id='plan-policy'))
+        planner_name = PAPER_PLANNER_CC if paper else 'research.planner'
+        matches=[e for e in entries if e['cc_name']==planner_name and e['declaration_sha256']==subjects[0]['capsule_ref']['sha256']]
+        if (declaration['identity']['name']!=planner_name or len(matches)!=1
+                or (paper and declaration['identity']['version_label']!=PAPER_CC_VERSION)):
             raise ResearchError('plan_acceptance','Planner review is not the exact frozen library assignment')
         template=self.store.read_record(subjects[0]['template_ref']);profile=template['checking_profile_ref']
         if profile['sha256']!=matches[0]['check_pins']['checking_profile_sha256'] or template['check_bundle_ref']['sha256']!=matches[0]['check_pins']['check_bundle_sha256']:
@@ -364,6 +378,8 @@ class Binder:
                 return prior
         snapshot=self.store.read_record(library_snapshot_ref,contract_id='library-snapshot')
         resources=self.store.read_record(resource_inventory_ref,contract_id='resource-inventory');policy=self.store.read_record(policy_ref,contract_id='plan-policy')
+        if is_document_summary_policy(policy):
+            validate_summary_documents(self.store,brief,resources,resource_inventory_ref,authority_ceiling)
         refs={'brief_ref':brief_ref,'library_snapshot_ref':library_snapshot_ref,'resource_inventory_ref':resource_inventory_ref,'policy_ref':policy_ref}
         def pin_exists(pins):
             return all(any(row['ref']['sha256']==pins[key] for row in self.store.iter_records(kinds=(kind,))) for key,kind in [('check_bundle_sha256','check-bundle'),('checking_profile_sha256','checking-profile')])

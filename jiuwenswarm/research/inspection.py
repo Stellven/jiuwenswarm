@@ -61,9 +61,11 @@ def build_retrieval(store, principal, run_id: str, run_account_id: str, audience
                 redactions.append(reason or 'An artifact has an explicitly redacted identity.')
                 raw = replacement
         returned.append(item); contents[path] = raw
-    refs = []
+    refs, seen_refs = [], set()
     for item in returned:
-        if item['artifact_ref'] not in refs:
+        key = (item['artifact_ref']['id'], item['artifact_ref']['sha256'])
+        if key not in seen_refs:
+            seen_refs.add(key)
             refs.append(item['artifact_ref'])
     manifest = {'schema_version': '1.0.0', 'run_id': run_id, 'artifact_refs': refs,
                 'audience': audience, 'files': returned, 'redactions': redactions}
@@ -79,10 +81,12 @@ def encode_export_zip(manifest: dict, contents: dict[str, bytes]) -> bytes:
     if (len(paths) != len(set(paths)) or set(paths) != set(contents) or 'client_retrieval.json' in paths
             or any(not safe_named_path(path) for path in paths)):
         raise ResearchError('validation', 'Export path inventory is invalid')
+    allowed = {(ref['id'], ref['sha256']) for ref in manifest['artifact_refs']}
     for file in files:
         raw = contents[file['path']]
         if (not isinstance(raw, bytes) or hashlib.sha256(raw).hexdigest() != file['artifact_ref']['sha256']
-                or file['audience'] != manifest['audience'] or file['artifact_ref'] not in manifest['artifact_refs']):
+                or file['audience'] != manifest['audience']
+                or (file['artifact_ref']['id'], file['artifact_ref']['sha256']) not in allowed):
             raise ResearchError('internal', 'Export byte identity or audience differs from its manifest')
     output = io.BytesIO()
     with zipfile.ZipFile(output, 'w', compression=zipfile.ZIP_DEFLATED) as archive:

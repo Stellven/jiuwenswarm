@@ -224,10 +224,16 @@ def _preplan(store, db, run, parent_ref, parent, templates, declarations, start,
     _require(original['pins']['library_snapshot_sha256'] == snapshot_ref['sha256']
         and original['pins']['plan_policy_ref'] == parent['policy_ref'])
     fixed = {'intent': 'intent.compiler', 'requirements': 'requirements.compiler', 'planner': 'research.planner'}
+    from .summary_planning import PAPER_CC_VERSION, PAPER_PLANNER_CC, is_document_summary_policy
+    paper = is_document_summary_policy(_source(store, db, parent['policy_ref'], 'plan-policy'))
+    if paper:
+        fixed['planner'] = PAPER_PLANNER_CC
     expected = {}
     for key, template in templates.items():
         if template['role'] == 'work':
             _require(key in fixed and template['cc']['cc_name'] == fixed[key])
+            if paper and key == 'planner':
+                _require(template['cc']['cc_version'] == PAPER_CC_VERSION)
             depends = ['intent', 'intent.verifier'] if key == 'requirements' else []
             expected[key] = ('work', depends)
             for port in declarations[key]['ports']['outputs']:

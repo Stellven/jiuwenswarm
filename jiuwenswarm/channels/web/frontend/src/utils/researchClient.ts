@@ -172,9 +172,10 @@ function explicitResearchInteraction(sessionId: string): ResearchInteraction | n
   return null;
 }
 
-/** Ordinary chat stays ordinary when a research backend is installed. */
+/** A configured AI4R workspace uses its real workflow unless the user explicitly chooses direct chat. */
 export function researchInteraction(sessionId: string): ResearchInteraction {
-  return explicitResearchInteraction(sessionId) ?? (hasLocalChat() ? 'conversation' : 'research');
+  return explicitResearchInteraction(sessionId)
+    ?? (hasResearchConfiguration() || !hasLocalChat() ? 'research' : 'conversation');
 }
 
 export function selectResearchInteraction(sessionId: string, mode: ResearchInteraction, explicit = true): void {
@@ -188,6 +189,11 @@ export function researchWorkspace(): string {
   const workspace = session()?.defaults.workspace_id;
   if (!workspace) throw new Error('Approved native workspace is unavailable');
   return workspace;
+}
+export function researchAccount(): string {
+  const account = session()?.defaults.account_id;
+  if (!account) throw new Error('Native research authentication required');
+  return account;
 }
 
 function runHandleKey(): string {

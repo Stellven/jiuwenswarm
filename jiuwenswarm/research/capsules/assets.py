@@ -10,7 +10,8 @@ from ..contracts import ResearchError
 from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
-STAGE_VERSIONS = {stage: 'm1-2-localcpu' if stage == 'benchmark' else 'm1-2' for stage in STAGES}
+STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
+STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-9', benchmark='m1-3-localcpu', delivery='m1-4')
 
 
 def source_metadata():
@@ -54,6 +55,22 @@ def build_research_assets(store, *, verify_catalog=True):
             declaration['changes']['effect_class'] = 'read_only'
             declaration['changes']['effects'] = [row for row in declaration['changes']['effects'] if row['op'] == 'model_invoke']
             identity['summary'] = 'Frozen blueprint to bounded POC file texts and mechanical archive; no tools, generated execution, installation or credential disclosure'
+            for port in declaration['ports']['outputs']:
+                if port['name'] == 'bundle':
+                    port['description'] = ('Actual artifact is a ZIP archive, not a JSON object. The referenced bundle schema '
+                        'describes its logical parts: archive_format denotes ZIP, entry_names denotes its root file paths, '
+                        'and requirements_txt, poc_patch_py and run_benchmark_py denote the contents of requirements.txt, '
+                        'poc_patch.py and run_benchmark.py respectively. For text-only semantic review the host supplies '
+                        'the fixed archive projection: each entry has path, sha256, size and its exact UTF-8 content block. '
+                        'Map those displayed paths and content blocks to the logical schema parts; a JSON wrapper with '
+                        'those logical field names is not required in the ZIP or its projection. Assess the shown archive '
+                        'members and code contents under the declared constraints; do not execute or retrieve anything. '
+                        'The fixed execution protocol keeps captured baseline and validation resources read-only; protected '
+                        'Benchmark binds their exact identities and registered seed, runs all baseline repeats before '
+                        'treatment, and records actual execution. Output-only semantic review judges visible harness '
+                        'ordering and consistency of its shown data/seed configuration. It cannot establish the contents '
+                        'or runtime behavior of an external baseline/data reference and must not claim that assurance; '
+                        'those source/identity/execution checks belong to the protected host.')
             closure = dict(checker_closure)
             closure['checks/builder_text.py'] = store.put_blob((root / 'checks/builder_text.py').read_bytes(), media_type='text/x-python')
             stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.builder_text', 'files': closure}), media_type='application/json')
@@ -61,6 +78,18 @@ def build_research_assets(store, *, verify_catalog=True):
             declaration['needs']['resources'] = [row for row in declaration['needs']['resources'] if row['resource_key'] != 'gpu_device']
             declaration['needs']['network'] = {'mode': 'none', 'direction': 'none', 'allowlist': []}
             identity['summary'] = 'Local CPU scientific benchmark: frozen offline environment, actual baseline and treatment measurements, recorded zero-GPU hardware facts'
+        if stage == 'delivery':
+            for port in declaration['ports']['outputs']:
+                if port['name'] == 'research_report':
+                    port['description'] = ('Actual artifact is a UTF-8 Markdown report, not a JSON object. The logical '
+                        'research-report schema sections string denotes the complete decoded Markdown content shown as '
+                        'subject_output; no JSON wrapper or literal sections field is required in the report. The content '
+                        'still requires a # title followed by exactly nine nonempty ## headings, in this order: '
+                        '1. Objective; 2. Opportunity and citations; 3. Hypothesis and registered criteria; '
+                        '4. Method and POC; 5. Results: baseline vs treatment; 6. Scientific verdict and reasoning; '
+                        '7. Limitations and risks; 8. Follow-up recommendations; 9. Reproducibility. '
+                        'Assess this shown Markdown under all declared report constraints and criteria; no source lookup '
+                        'or execution is available. The separate delivery_manifest output remains JSON.')
         if stage == 'screening':
             for name in ['screening_rubric.json', 'screening_prompt.txt', 'ranking_parent.txt']:
                 body[name] = resources.joinpath(name).read_bytes()
@@ -99,6 +128,12 @@ def build_research_assets(store, *, verify_catalog=True):
             question = row[2] if row[1].strip('`') in ports else row[1]
             criteria.append({'criterion_id': row[0].strip('`'), 'question': question,
                              'blocking': row[-1] == 'yes', 'answerable_from': 'declaration_and_output', 'target_port': target})
+        if stage == 'builder':
+            for criterion in criteria:
+                if criterion['criterion_id'] == 'harness_orders_baseline_first':
+                    criterion['question'] += (' Judge the visible harness ordering and shared data/seed configuration only. '
+                        'External baseline/data contents and actual runtime fidelity are protected host checks, '
+                        'not claims that this declaration/output-only review can establish.')
         bundle = {'schema_version': '1.0.0', 'id': identity['name'] + '.checks:' + identity['version_label'], 'bundle_id': identity['name'] + '.checks',
                   'version': '1.0.0', 'target_cc_name': identity['name'],
                   'target_cc_version_range': identity['version_label'] + '.x' if stage == 'screening' else identity['version_label'],

@@ -280,8 +280,12 @@ def resolve_original_run_inputs(store,parent_ref):
     require(plan['resource_inventory_ref']==inventory_ref
         and plan['configuration_ref']==original['configuration_ref']
         and plan['policy_ref']==original['policy_ref'],'Original input plan pins differ')
-    require(store.record_kind(plan['brief_ref'])=='research-brief',
-        'Original input plan Brief has another kind')
+    # A produced Brief is captured JSON bytes, not a host record-kind row.
+    # Its current-run Compiler commit and advancing Gate establish custody.
+    from .binding import committed_output_proof
+    compiler=committed_output_proof(store,run_id,'intention_compiler')
+    require(compiler['outputs']=={'brief':plan['brief_ref']},
+        'Original input plan Brief lacks its exact committed Compiler output')
     brief=store.read_record(plan['brief_ref'],contract_id='research-brief')
     require(brief['intake_ref']==binding['intake_ref'],
         'Original input plan Brief belongs to another qualified intake')

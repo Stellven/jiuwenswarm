@@ -4,15 +4,15 @@
   "capsules": {
     "intent": {
       "declaration_path": "compiler/intent.declaration.json",
-      "declaration_sha256": "bce93620fa5b2cbee582d3fc3c2a1b4a413d8f3b275a34063077140b7e47278f",
+      "declaration_sha256": "3bb3d7f4a9e6b9e399dae8b684e06f42f6417641d898f3f52f393fab363fedac",
       "body": [
         {
           "path": "research/capsules/intent.py",
-          "sha256": "2e5d732974759be0eadd8a8579b06f04d09143b4fb16cd5f333ae048b8f68e56"
+          "sha256": "39dd4453b3002285a15a32f9a3ed537db734eaf331f8b1fd53c0175ca90e13ef"
         },
         {
           "path": "research_assets/compiler/intent.txt",
-          "sha256": "b6405d7e05f52be3887d620c8eb8056c4977a1f520ee6d5db5f31db2bb0a18e9"
+          "sha256": "4188e32b215676e557541b5c333deec82f1dfdd2ad028720eacf0f522112f295"
         },
         {
           "path": "research/capsules/_common.py",
@@ -22,15 +22,15 @@
     },
     "requirements": {
       "declaration_path": "compiler/requirements.declaration.json",
-      "declaration_sha256": "65e5c599f4b8991e3619d2a6a2e3d9792f2f4d7c59253edfaa78bece9ef6f284",
+      "declaration_sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6",
       "body": [
         {
           "path": "research/capsules/requirements.py",
-          "sha256": "80adc9b59ea55975ff926dbb7917730ff668b512e694198b75caea41d9fb7acd"
+          "sha256": "6976e50edc23407398fb05566b76d052e179d18bc156ca5c10f52fb0509ea74a"
         },
         {
           "path": "research_assets/compiler/requirements.txt",
-          "sha256": "0016eb120f9f4133f16a909150261b03ca312bdc58c08f5a155efb5a1dbc76f4"
+          "sha256": "2e85b19cad8cd78538294d511b9c74ae1152aa9b75c26a7c874236d616add2e4"
         },
         {
           "path": "research/capsules/_common.py",
@@ -54,15 +54,15 @@
     },
     "planner": {
       "declaration_path": "planner/planner.declaration.json",
-      "declaration_sha256": "0e3f3217ad1a10b6753afe96f4f5d32099feb74a13b8faecc19f375515ef8b78",
+      "declaration_sha256": "8ab15aa1e26ff4fa6088cc8857a61f9104c5a7f55d3abe3cc9ca01d959723c6c",
       "body": [
         {
           "path": "research/capsules/planner.py",
-          "sha256": "dc42c5acc321cdd40fca8b1c41525c1e2aaf34f56874e05ab3662d93cf30996e"
+          "sha256": "23a44fd3dc888a0af0015862d8bb5afca09a5e2e4c9521be33404ce27a0889e8"
         },
         {
           "path": "research_assets/planner/planner.txt",
-          "sha256": "f65422fa2fbfbfc2976e46d6fc60acb0c2661742f53890d2b596f53060243ad5"
+          "sha256": "4d857ed38cf4d7b630ca4d32753e7c8dc7707f96ec10147a86d812a9a121cab0"
         },
         {
           "path": "research/capsules/_common.py",
@@ -73,9 +73,9 @@
   },
   "static_template": {
     "path": "planner/static-template.json",
-    "sha256": "9288601400e0b067373a7b585b044c371047ef0c47306ad3e96dcbbe77b19be5",
+    "sha256": "513899082dfa63fa75d8ee2be76328d32425115744c0f1100789d67c2a778f46",
     "interface_revision": "M1-IF-002@r2",
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
-    "meaning": "C021 explicit local deployment release: seven source-defined research nodes, tool-free Builder and captured CPU Benchmark; exact capsule pins and unchanged aggregate worker/reviewer allowances; no runtime regeneration or claim of GPU qualification"
+    "meaning": "C022 immutable citation-fidelity release: Search m1-5 literal local-document strategy and full public idea obligations; seven source-defined research nodes with exact m1-3 checker/declaration pins, Hypothesis m1-5 public-contract authoring and derived metric index, tool-free Builder m1-9 public protocol and output-only assurance boundary and captured CPU Benchmark; unchanged aggregate worker/reviewer allowances and original source line endings; no runtime regeneration or qualification claim; Delivery m1-4 logical Markdown declaration"
   }
 }

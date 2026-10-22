@@ -23,7 +23,9 @@ raw=sys.stdin.buffer.read()
 with pdfplumber.open(io.BytesIO(raw)) as pdf:
  if getattr(pdf.doc,'is_extractable',False) is not True:raise ValueError('pdf_not_extractable')
  texts=[page.extract_text(layout=False) or '' for page in pdf.pages]
- text='\n'.join(texts)
+ # Preserve actual PDF page boundaries in new canonical captures so consumers
+ # can cite pages without reopening or guessing from flattened text.
+ text='\n\f\n'.join(texts)
  if not text.strip():raise ValueError('pdf_without_text_layer')
  sys.stdout.buffer.write(text.encode('utf-8',errors='strict'))
 '''

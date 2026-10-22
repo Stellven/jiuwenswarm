@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:paper-delivery-manifest:1.0.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "const": "delivery_manifest"
+    },
+    "brief_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "summary_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "report_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+      },
+      "minItems": 1,
+      "maxItems": 64
+    },
+    "gate_decision_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+      },
+      "minItems": 1
+    },
+    "files": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+          },
+          "media_type": {
+            "enum": [
+              "text/markdown",
+              "text/plain",
+              "application/json"
+            ]
+          },
+          "role": {
+            "enum": [
+              "report",
+              "brief",
+              "summary",
+              "source",
+              "gate_decision"
+            ]
+          },
+          "audience": {
+            "const": "researcher"
+          }
+        },
+        "required": [
+          "path",
+          "artifact_ref",
+          "media_type",
+          "role",
+          "audience"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "missing_evidence": {
+      "type": "array",
+      "maxItems": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "brief_ref",
+    "summary_ref",
+    "report_ref",
+    "source_refs",
+    "gate_decision_refs",
+    "files",
+    "missing_evidence"
+  ],
+  "additionalProperties": false
+}

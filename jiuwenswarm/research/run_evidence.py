@@ -6,8 +6,10 @@ import hashlib
 import json
 import os
 import platform
+import stat
 import uuid
 from importlib.resources import files
+from pathlib import PurePosixPath
 
 from .contracts import ResearchError, validate
 from .state import json_bytes, utc_now
@@ -54,10 +56,53 @@ class RunEvidence:
         return rows[0]
 
     def _file(self,run_id,relative,raw,*,role,media_type='application/octet-stream',source_ref=None,kind=None):
+        if isinstance(relative,str) and relative and isinstance(raw,bytes):
+            ref={'id':relative,'sha256':hashlib.sha256(raw).hexdigest()}
+            record={'id':'evidence-file:'+hashlib.sha256(relative.encode()).hexdigest(),
+                'run_id':run_id,'artifact_ref':ref,'role':role,'source_ref':source_ref,'media_type':media_type}
+            if self._reuse_file(run_id,relative,raw,ref,record,media_type,kind):return ref
         ref=self.store.capture_record_file(relative,raw,media_type=media_type,kind=kind,scope={'run_id':run_id})
         self.store.append_record('run-evidence-file',{'id':'evidence-file:'+hashlib.sha256(relative.encode()).hexdigest(),
             'run_id':run_id,'artifact_ref':ref,'role':role,'source_ref':source_ref,'media_type':media_type})
         return ref
+
+    def _reuse_file(self,run_id,relative,raw,ref,record,media_type,kind):
+        """Reopen an exact completed publication; never trust a cached success."""
+        path=PurePosixPath(relative)
+        if (path.is_absolute() or '\\' in relative
+                or any(part in {'.','..',''} or any(ord(char)<32 for char in part) for part in relative.split('/'))):
+            return False  # The original publisher reports malformed paths.
+        with self.store._lock:
+            rows=self.store.connection.execute(
+                'SELECT a.id,a.sha256,a.media_type,r.kind,r.run_id,r.node_id,r.attempt_id '
+                'FROM artifacts a LEFT JOIN records r ON r.id=a.id WHERE a.id IN (?,?)',
+                (relative,record['id'])).fetchall()
+            indexed={row['id']:row for row in rows}
+            if len(indexed)!=2:return False  # Missing/partial publications use the original path.
+            original=indexed[relative];evidence=indexed[record['id']]
+            if evidence['kind'] is None or kind is not None and original['kind'] is None:return False
+            expected_scope=(kind,run_id if kind else None,None,None)
+            require=(original['sha256']==ref['sha256'] and original['media_type']==media_type
+                and tuple(original[key] for key in ('kind','run_id','node_id','attempt_id'))==expected_scope
+                and evidence['media_type']=='application/json'
+                and tuple(evidence[key] for key in ('kind','run_id','node_id','attempt_id'))==('run-evidence-file',run_id,None,None))
+            evidence_ref={'id':record['id'],'sha256':evidence['sha256']}
+            if (not require or self.store.read_blob(ref)!=raw
+                    or self.store.read_blob(evidence_ref)!=json_bytes(record)):
+                raise ResearchError('identity_conflict','Existing evidence publication differs from exact bytes or original scope')
+            target=self.store.root/'records'
+            try:
+                for part in (None,*path.parts[:-1]):
+                    if part is not None:target=target/part
+                    if target.is_symlink():raise ResearchError('record_path','Records ancestry cannot be a symbolic link')
+                    if not target.is_dir():return False
+                target=target/path.name;metadata=target.lstat()
+                if (stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode)
+                        or metadata.st_nlink!=1 or target.read_bytes()!=raw):
+                    raise ResearchError('identity_conflict','Existing evidence file contains unsafe or different bytes')
+            except FileNotFoundError:
+                return False
+            return True
 
     def missing(self,run_id,item,reason,*,blocking=False):
         self.store.append_record('run-evidence-missing',{'id':'missing:'+uuid.uuid4().hex,'run_id':run_id,
@@ -124,10 +169,10 @@ class RunEvidence:
         prefix='/'.join(['runs',component(contract['run_id']),component(contract['node_id']),component(contract['attempt_id']),component(contract['subnode_id'])])+'/'
         return [r['record']['artifact_ref'] for r in self.store.iter_records(run_id=contract['run_id'],kinds=('run-evidence-file',))
             if r['record']['role'] in {'capsule','prompt','trace','workspace'} and r['record']['artifact_ref']['id'].startswith(prefix)
-            and ('/trace/native/' not in r['record']['artifact_ref']['id'] or r['record']['artifact_ref']['id'].endswith('/index.json'))]
+            and ('/trace/native/' not in r['record']['artifact_ref']['id'] or r['record']['artifact_ref']['id'].endswith(('/index.json','/index.v2.json')))]
 
     def capture_invocation_traces(self,contract,invocation_id):
-        records=self.records(contract['run_id'])
+        records=self.store.iter_records(run_id=contract['run_id'],kinds=('model-call-start',))
         for row in records:
             if row['kind']!='model-call-start' or row['record'].get('invocation_id')!=invocation_id:continue
             start=row['record']
@@ -140,7 +185,8 @@ class RunEvidence:
             for ref in call['evidence_refs']:
                 if self.store.record_kind(ref)=='native-governed-trace':self.capture_native_trace(observation,row['ref'],call_ref,ref)
 
-    def capture_native_trace(self,observation,start_ref,call_ref,summary_ref):
+    def _native_trace(self,observation,start_ref,call_ref,summary_ref):
+        """Reopen the complete original packet closure without making copies."""
         def require(condition):
             if not condition:raise ResearchError('capture_identity','Native trace is not the exact protected invocation/call packet closure')
         start=self.store.read_record(start_ref);call=self.store.read_record(call_ref);summary=self.store.read_record(summary_ref)
@@ -161,20 +207,59 @@ class RunEvidence:
                 and event['schema']=='ai4r-native-governed-trace-event:1' and event['scope']==scope
                 and type(event['sequence']) is int and event['sequence']==sequence
                 and event['direction'] in {'in','out'} and isinstance(event['method'],str))
-            validate('Ref',event['raw_ref']);captured.append((event_ref,event,self.store.read_blob(event['raw_ref'])))
+            validate('Ref',event['raw_ref']);self.store.read_blob(event['raw_ref'])
+            captured.append((event_ref,event))
         run_id=observation['run_id']
         prefix='/'.join(['runs',component(run_id),component(observation['node_id']),component(observation['attempt_id']),
             component(observation['subnode_id']),'trace','native',call_ref['sha256']])
-        result=[self._file(run_id,prefix+'/summary.json',self.store.read_blob(summary_ref),role='trace',source_ref=summary_ref,media_type='application/json')]
-        index=[]
-        for event_ref,event,raw in captured:
+        return prefix,summary,captured
+
+    def _native_trace_index(self,start_ref,call_ref,summary_ref,summary_file_ref,summary,captured):
+        return {'schema':'ai4r-native-trace-file-index:2','call_ref':call_ref,
+            'model_call_start_ref':start_ref,'summary_ref':summary_ref,'summary_file_ref':summary_file_ref,
+            'status':summary['status'],'events':[{'sequence':event['sequence'],
+                'event_ref':event_ref,'raw_ref':event['raw_ref']} for event_ref,event in captured]}
+
+    def capture_native_trace(self,observation,start_ref,call_ref,summary_ref):
+        prefix,summary,captured=self._native_trace(observation,start_ref,call_ref,summary_ref)
+        run_id=observation['run_id']
+        summary_file=self._file(run_id,prefix+'/summary.json',self.store.read_blob(summary_ref),
+            role='trace',source_ref=summary_ref,media_type='application/json')
+        # Original packets/events are already durable under their exact Refs.
+        # Optional readable copies must not delay checking or successor release.
+        # This versioned index states actual source Refs, never nonexistent files.
+        index=self._native_trace_index(start_ref,call_ref,summary_ref,summary_file,summary,captured)
+        index_file=self._file(run_id,prefix+'/index.v2.json',json_bytes(index),role='trace',media_type='application/json')
+        return [summary_file,index_file]
+
+    def native_trace_export_files(self,run_id,copied):
+        """Project original bytes only after the caller's disclosure check.
+
+        Legacy v1 indexes retain their existing physical-file export. Version 2
+        projects the same descriptive packet paths without modifying the Store.
+        """
+        ref=copied['artifact_ref']
+        if copied['role']!='trace' or '/trace/native/' not in ref['id'] or not ref['id'].endswith('/index.v2.json'):
+            return []
+        index=self.store.read_record(ref)
+        if (copied['run_id']!=run_id or not isinstance(index,dict)
+                or index.get('schema')!='ai4r-native-trace-file-index:2'):
+            raise ResearchError('capture_identity','Native source index differs from its owned run')
+        summary=self.store.read_record(index['summary_ref'])
+        observation={key:summary['scope'][key] for key in ('run_id','node_id','subnode_id','attempt_id','contract_ref')}
+        if observation['run_id']!=run_id:
+            raise ResearchError('capture_identity','Native source index names another run')
+        prefix,summary,captured=self._native_trace(observation,index['model_call_start_ref'],index['call_ref'],index['summary_ref'])
+        summary_file={'id':prefix+'/summary.json','sha256':index['summary_ref']['sha256']}
+        expected=self._native_trace_index(index['model_call_start_ref'],index['call_ref'],index['summary_ref'],summary_file,summary,captured)
+        if (ref['id']!=prefix+'/index.v2.json' or index!=expected
+                or self.store.read_blob(summary_file)!=self.store.read_blob(index['summary_ref'])):
+            raise ResearchError('capture_identity','Native source index is not the complete original packet closure')
+        result=[]
+        for event_ref,event in captured:
             filename=str(event['sequence']).zfill(8)
-            event_file=self._file(run_id,prefix+'/'+filename+'.event.json',self.store.read_blob(event_ref),role='trace',source_ref=event_ref,media_type='application/json')
-            raw_file=self._file(run_id,prefix+'/'+filename+'.packet',raw,role='trace',source_ref=event['raw_ref'])
-            result.extend([event_file,raw_file]);index.append({'sequence':event['sequence'],'event_file_ref':event_file,'raw_file_ref':raw_file})
-        result.append(self._file(run_id,prefix+'/index.json',json_bytes({'schema':'ai4r-native-trace-file-index:1',
-            'call_ref':call_ref,'model_call_start_ref':start_ref,'summary_ref':summary_ref,'summary_file_ref':result[0],
-            'status':summary['status'],'events':index}),role='trace',media_type='application/json'))
+            result.extend([{'path':'records/'+prefix+'/'+filename+'.event.json','artifact_ref':event_ref,'media_type':'application/json'},
+                {'path':'records/'+prefix+'/'+filename+'.packet','artifact_ref':event['raw_ref'],'media_type':'application/octet-stream'}])
         return result
 
     def capture_invocation_end(self,observation_ref):
@@ -183,7 +268,7 @@ class RunEvidence:
         for ref in observation['output_refs']:
             self._file(run_id,prefix+'/outputs/'+ref['sha256'],self.store.read_blob(ref),role='output',source_ref=ref,
                 media_type=self.store.artifact_metadata(ref)['media_type'])
-        records=self.records(run_id)
+        records=self.records(run_id,kinds=('model-call-start','gate-decision'))
         invocation_ids={row['record']['invocation_id'] for row in records if row['kind']=='model-call-start' and row['record'].get('contract_ref')==observation['contract_ref']}
         calls=[row for row in records if row['kind']=='model-call' and row['record']['invocation_id'] in invocation_ids]
         if calls:
@@ -248,8 +333,8 @@ class RunEvidence:
         return self._file(decision['run_id'],prefix+'/decision.json',self.store.read_blob(decision_ref),role='node_gate',
             source_ref=decision_ref,media_type='application/json')
 
-    def records(self,run_id):
-        rows=list(self.store.iter_records(run_id=run_id));seen={(row['ref']['id'],row['ref']['sha256']) for row in rows}
+    def records(self,run_id,*,kinds=None):
+        rows=list(self.store.iter_records(run_id=run_id,kinds=kinds));seen={(row['ref']['id'],row['ref']['sha256']) for row in rows}
         for row in tuple(rows):
             if row['kind']!='model-call-start':continue
             try:ref=self.store.record_ref(row['record']['call_id'])

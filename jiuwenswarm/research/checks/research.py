@@ -147,8 +147,8 @@ def validate_search(scope: Mapping, output: Mapping, read_blob) -> None:
         if citation['connector'] == 'local_documents' and ref not in scope['local_document_refs']:
             raise CheckError('citation_source_resolves')
         try:
-            # Universal newline decoding is prescribed by the Citation source table.
-            text = raw.decode('utf-8').replace('\r\n', '\n').replace('\r', '\n')
+            # Citation offsets count code points in UTF-8 with line endings unchanged.
+            text = raw.decode('utf-8')
         except UnicodeError as exc:
             raise CheckError('citation_source_resolves') from exc
         start, end = citation['char_start'], citation['char_end']

@@ -6,6 +6,7 @@ verdict. Private verifier instructions, model prompts and credentials stay out.
 from __future__ import annotations
 
 import json
+import re
 from importlib.resources import files
 
 from .contracts import ResearchError
@@ -215,8 +216,207 @@ def _public_plan_outcome(store, run):
     return {'outcome': 'plan_infeasible', 'reasons': reasons}
 
 
+def _public_compiler_outcome(store, run):
+    """Explain an original Compiler halt; never release its candidate output."""
+    from .attempt_inspection import _original
+    from .gate import assemble_assessment
+
+    def require(condition):
+        if not condition:
+            raise ResearchError('integrity_fault', 'Compiler explanation does not match its owned original attempt')
+
+    if run['submission'].get('profile_id') is not None or store.evaluation_binding(run['id']) is not None:
+        return None
+    states = [row for row in store.node_states(run['id']) if row['node_id'] == 'intention_compiler']
+    require(len(states) == 1 and states[0]['state'] == 'failed' and states[0]['attempt_id'])
+    scope = {key: states[0][key] for key in ('run_id', 'node_id', 'attempt_id')}
+    gates = [row for row in store.iter_records(run_id=run['id'], kinds=('gate-decision',))
+             if row['record'].get('node_id') == scope['node_id']
+             and row['record'].get('attempt_id') == scope['attempt_id']
+             and row['record'].get('scope_kind') == 'node']
+    require(len(gates) == 1)
+    gate = _original(store, gates[0]['ref'], 'gate-decision', 'gate-decision', scope=scope)
+    parent_ref = gate['contract_ref']
+    parent = _original(store, parent_ref, 'node-execution-contract', 'node-execution-contract', scope=scope)
+    require(all(parent[key] == gate[key] == value for key, value in scope.items())
+            and gate['action'] == 'halt' and not gate['accepted_refs']
+            and gate['node_contract_ref'] == parent_ref and gate['subnode_id'] is None
+            and parent['configuration_ref'] == run['submission']['configuration_ref']
+            and any(port['name'] == 'request' and port['artifact_refs'] == [run['submission']['intake_ref']]
+                    for port in parent['inputs'])
+            and not store.accepted_outputs(run['id'], scope['node_id']))
+    node_plan = _original(store, gate['check_plan_ref'], 'bound-check-plan', 'bound-check-plan', scope=scope)
+    node_checks = _original(store, gate['deterministic_result_ref'], 'deterministic-check-result',
+                            'deterministic-check-result', scope=scope)
+    require(node_plan['contract_ref'] == node_plan['node_contract_ref'] == parent_ref
+            and node_plan['profile_ref'] == parent['checking_profile_ref']
+            and node_plan['policy_ref'] == gate['policy_ref'] == parent['policy_ref']
+            and node_checks['check_plan_ref'] == gate['check_plan_ref']
+            and gate['internal_decision_refs'])
+    reasons = []
+
+    def add(reason):
+        # An identifier-only infrastructure failure is not a clarification.
+        text = reason.strip()
+        if text and not re.fullmatch(r'[a-z][a-z0-9_]*(?::[a-z0-9_]+)*', text):
+            text = text[:300]
+            if text not in reasons and len(reasons) < 20:
+                reasons.append(text)
+
+    for ref in gate['internal_decision_refs']:
+        child_gate = _original(store, ref, 'gate-decision', 'gate-decision', scope=scope)
+        require(child_gate['scope_kind'] == 'subnode' and child_gate['node_contract_ref'] == parent_ref
+                and all(child_gate[key] == value for key, value in scope.items()))
+        if child_gate['action'] == 'advance':
+            continue
+        require(child_gate['action'] == 'halt' and not child_gate['accepted_refs'])
+        child_ref = child_gate['contract_ref']
+        child = _original(store, child_ref, 'subnode-execution-contract', 'subnode-execution-contract', scope=scope)
+        assignments = [row for row in parent['subnodes'] if row['subnode_id'] == child['subnode_id']]
+        require(len(assignments) == 1 and assignments[0]['role'] == 'work'
+                and child['subnode_id'] in {'intent', 'requirements'}
+                and child['subnode_id'] == child_gate['subnode_id']
+                and child['node_contract_ref'] == parent_ref and len(child['bindings']) == 1
+                and child['bindings'][0]['role'] == 'work' and child['template_ref'] == assignments[0]['template_ref']
+                and child['bindings'][0]['declaration_ref'] == assignments[0]['capsule_ref']
+                and all(child[key] == parent[key] for key in (*scope, 'configuration_ref', 'policy_ref')))
+        template = _original(store, child['template_ref'], 'subnode-template')
+        plan = _original(store, child_gate['check_plan_ref'], 'bound-check-plan', 'bound-check-plan', scope=scope)
+        require(template['role'] == 'work' and template['subnode_id'] == child['subnode_id']
+                and template['capsule_ref'] == assignments[0]['capsule_ref']
+                and plan['contract_ref'] == child_ref and plan['node_contract_ref'] == parent_ref
+                and plan['subnode_id'] == child['subnode_id']
+                and plan['profile_ref'] == child['checking_profile_ref'] == template['checking_profile_ref']
+                and plan['policy_ref'] == child_gate['policy_ref'] == child['policy_ref']
+                and plan['input_refs'] == child_gate['input_refs'] == child['input_refs'])
+        checked = _original(store, child_gate['deterministic_result_ref'], 'deterministic-check-result',
+                            'deterministic-check-result', scope=scope)
+        subjects = checked.get('subject_refs', [checked['subject_ref']])
+        require(checked['check_plan_ref'] == child_gate['check_plan_ref']
+                and (subjects == child_gate['output_refs'] or not child_gate['output_refs']
+                     and subjects == child_gate['invocation_refs'][:1]))
+        observations = [_original(store, pin, 'invocation-observation', 'invocation-observation', scope=scope)
+                        for pin in child_gate['invocation_refs']]
+        workers = [row for row in observations if row['contract_ref'] == child_ref]
+        require(len(workers) == 1 and workers[0]['node_contract_ref'] == parent_ref
+                and workers[0]['subnode_id'] == child['subnode_id']
+                and all(pin in workers[0]['output_refs'] for pin in child_gate['output_refs']))
+        for pin in child_gate['output_refs']:
+            store.read_blob(pin)
+        for row in checked['results']:
+            if row['check_id'] in plan['mandatory_deterministic'] and row['outcome'] != 'PASS':
+                add(row['reason'])
+        if child_gate['assessment_ref'] is not None:
+            assessment = _original(store, child_gate['assessment_ref'], 'verifier-assessment', 'verifier-assessment')
+            review = _original(store, assessment['review_context_ref'], 'review-context', 'review-context')
+            profile = _original(store, plan['profile_ref'], 'checking-profile', 'checking-profile')
+            require(len(child_gate['output_refs']) == 1 and assessment['subject_ref'] == child_gate['output_refs'][0]
+                    and review['subject_ref'] == assessment['subject_ref'] and review['contract_ref'] == child_ref
+                    and review['node_contract_ref'] == parent_ref and review['subnode_id'] == child['subnode_id']
+                    and review['check_plan_ref'] == child_gate['check_plan_ref']
+                    and review['deterministic_result_ref'] == child_gate['deterministic_result_ref']
+                    and review['criteria'] == plan['mandatory_semantic']
+                    and plan['mandatory_semantic'] == [row['criterion_id'] for row in profile['criteria'] if row['blocking']])
+            criteria = [row for row in profile['criteria'] if row['target_port'] in (None, child_gate['output_port'])]
+            body = {key: assessment[key] for key in ('uncertainties', 'limitations', 'required_correction')}
+            body['findings'] = [{key: row[key] for key in ('criterion_id', 'outcome', 'reason')}
+                                for row in assessment['findings']]
+            require(assemble_assessment(body, criteria, child['bindings'][0]['declaration_ref'],
+                                        assessment['subject_ref'], assessment['review_context_ref']) == assessment)
+            blocking = {row['criterion_id'] for row in criteria if row['blocking']}
+            for row in assessment['findings']:
+                if row['criterion_id'] in blocking and row['outcome'] != 'PASS':
+                    add(row['reason'])
+        elif not reasons and any(row['message'] == 'blocking_uncertainty' for row in child_gate['reasons']):
+            require(len(child_gate['output_refs']) == 1 and len(child['outputs']) == 1)
+            candidate = store.read_record(child_gate['output_refs'][0], contract_id=child['outputs'][0]['contract_id'])
+            for row in [*candidate.get('uncertainties', []), *candidate.get('unresolved_items', [])]:
+                if row['blocking']:
+                    add(row['clarification'])
+            if not reasons and candidate.get('readiness', {}).get('status') == 'needs_clarification':
+                add(candidate['readiness']['reason'])
+    return {'outcome': 'compiler_halted', 'reasons': reasons} if reasons else None
+
+
+def accepted_paper_delivery_manifest(store, run_id):
+    """Read only the exact committed delivery of the protected paper workflow.
+
+    A manifest-shaped artifact or an installed Capsule never selects this path.
+    The original frozen policy, graph, declaration and acceptance select it.
+    """
+    from .binding import committed_output_proof
+
+    def require(condition):
+        if not condition:
+            raise ResearchError('integrity_fault', 'Paper delivery differs from its original frozen acceptance')
+
+    bindings = list(store.iter_records(run_id=run_id, kinds=('run-plan-binding',)))
+    if not bindings:
+        return None
+    require(len(bindings) == 1)
+    binding = bindings[0]['record']
+    require(binding['run_id'] == run_id)
+    plan = store.read_record(binding['plan_ref'], contract_id='run-plan')
+    policy = store.read_record(plan['policy_ref'], contract_id='plan-policy')
+    if policy.get('id') != 'paper_summary_policy_v1':
+        return None
+    from .summary_planning import PAPER_CC_VERSION, is_document_summary_policy
+    require(is_document_summary_policy(policy) and plan['frozen'] is True and plan['plan_source'] == 'planned')
+    run = store.get_run(run_id)
+    require(plan['configuration_ref'] == run['submission']['configuration_ref'])
+    summary_nodes = [node for node in plan['nodes'] if node['cc']['cc_name'] == 'research.paper_summary']
+    delivery_nodes = [node for node in plan['nodes'] if node['cc']['cc_name'] == 'research.paper_summary_delivery']
+    require(len(plan['nodes']) == 2 and len(summary_nodes) == len(delivery_nodes) == 1
+            and all(node['cc']['cc_version'] == PAPER_CC_VERSION for node in plan['nodes']))
+    summary_node, node = summary_nodes[0], delivery_nodes[0]
+    require(node['predecessors'] == [summary_node['node_id']]
+            and plan['topological_order'] == [summary_node['node_id'], node['node_id']])
+    states = [state for state in store.node_states(run_id) if state['node_id'] == node['node_id']]
+    require(len(states) == 1)
+    if states[0]['state'] != 'completed':
+        require(not store.accepted_outputs(run_id, node['node_id']))
+        return None
+    def committed(node, contracts, *, attempt_id=None):
+        proof = committed_output_proof(store, run_id, node['node_id'], attempt_id=attempt_id)
+        require(set(proof['outputs']) == set(contracts) and len(proof['gates']) == 1)
+        gate_ref, gate = proof['gates'][0]
+        parent_ref = gate['node_contract_ref']
+        require(store.record_kind(gate_ref) == 'gate-decision'
+                and store.record_kind(parent_ref) == 'node-execution-contract' and gate['contract_ref'] == parent_ref)
+        parent = store.read_record(parent_ref, contract_id='node-execution-contract')
+        work = [assignment for assignment in parent['subnodes'] if assignment['role'] == 'work']
+        require(parent['run_id'] == run_id and parent['node_id'] == node['node_id']
+                and parent['attempt_id'] == proof['receipt']['attempt_id']
+                and parent['configuration_ref'] == plan['configuration_ref'] and parent['policy_ref'] == plan['policy_ref']
+                and parent['template_ref'] == plan['source_ref'] and parent['node_limits'] == node['limits']
+                and set(parent['required_outputs']) == set(proof['outputs']) and len(work) == 1
+                and work[0]['subnode_id'] == node['node_id']
+                and work[0]['capsule_ref']['sha256'] == node['cc']['declaration_sha256'])
+        declaration = store.read_record(work[0]['capsule_ref'], contract_id='capsule-declaration')
+        template = store.read_record(work[0]['template_ref'])
+        require(declaration['identity']['name'] == node['cc']['cc_name']
+                and declaration['identity']['version_label'] == node['cc']['cc_version'] and template['cc'] == node['cc']
+                and {port['name']: port['contract_id'] for port in parent['outputs']} == contracts)
+        return proof, parent
+
+    proof, parent = committed(node, {'research_report': 'urn:ai4r:paper-report:1.0.0',
+                                    'delivery_manifest': 'urn:ai4r:paper-delivery-manifest:1.0.0'},
+                              attempt_id=states[0]['attempt_id'])
+    manifest_ref = proof['outputs']['delivery_manifest']
+    manifest = store.read_record(manifest_ref, contract_id='urn:ai4r:paper-delivery-manifest:1.0.0')
+    summary, _ = committed(summary_node, {'summary': 'urn:ai4r:paper-summary:1.0.0'})
+    require(manifest['id'] == 'delivery_manifest' and manifest['report_ref'] == proof['outputs']['research_report']
+            and manifest['brief_ref'] == plan['brief_ref'] and manifest['brief_ref'] in parent['input_refs']
+            and manifest['summary_ref'] in summary['outputs'].values()
+            and manifest['summary_ref'] in parent['input_refs'])
+    reports = [item for item in manifest['files'] if item['role'] == 'report']
+    require(len(reports) == 1 and reports[0]['artifact_ref'] == manifest['report_ref']
+            and reports[0]['media_type'] == 'text/markdown' and reports[0]['audience'] == 'researcher')
+    return {'manifest_ref': manifest_ref, 'manifest': manifest, 'report': reports[0]}
+
+
 async def run_result(service, principal, run_id):
-    """Return an accepted report or bounded original public plan infeasibility."""
+    """Return an accepted report or bounded original public halt explanation."""
     principal.require('export')
     store = service.store
     run = store.get_run(run_id, account_id=principal.account_id)
@@ -227,9 +427,14 @@ async def run_result(service, principal, run_id):
             outcome = _public_plan_outcome(store, run)
             if outcome is not None:
                 result['plan_outcome'] = outcome
+        elif run['state'] == 'halted' and run['reason'] == 'compiler_did_not_release':
+            outcome = _public_compiler_outcome(store, run)
+            if outcome is not None:
+                result['compiler_outcome'] = outcome
         return result
-    reports = []
-    for node in store.node_states(run_id):
+    paper = accepted_paper_delivery_manifest(store, run_id)
+    reports = [paper['report']] if paper is not None else []
+    for node in (() if paper is not None else store.node_states(run_id)):
         for ref in store.accepted_outputs(run_id, node['node_id']).values():
             try:
                 manifest = store.read_record(ref, contract_id='delivery-manifest')
@@ -245,7 +450,15 @@ async def run_result(service, principal, run_id):
                     reports.append(item)
     if len(reports) != 1:
         raise ResearchError('unavailable', 'Completed workflow has no unique accepted researcher report')
-    exported, contents = await service.artifact_bytes(principal, run_id, audience='researcher')
+    if paper is not None:
+        # Display/history needs this one released report, not a second complete
+        # technical trace export. The same retrieval rules still verify it.
+        from .inspection import build_retrieval
+        file = {key: paper['report'][key] for key in ('path', 'artifact_ref', 'media_type', 'audience')}
+        exported, contents = build_retrieval(store, principal, run_id, run['account_id'], 'researcher',
+                                             [file], allowed_refs=[file['artifact_ref']])
+    else:
+        exported, contents = await service.artifact_bytes(principal, run_id, audience='researcher')
     matches = [item for item in exported['files'] if item['path'] == reports[0]['path'] and item['media_type'] == 'text/markdown']
     if len(matches) != 1:
         raise ResearchError('unavailable', 'Accepted report is unavailable under the current disclosure policy')

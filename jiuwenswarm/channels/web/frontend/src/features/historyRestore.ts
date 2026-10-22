@@ -482,7 +482,7 @@ type HistoryTimelineEntry =
   | { kind: 'tool_result'; at: string; payload: Record<string, unknown> }
   | { kind: 'usage_summary'; at: string; usage: UsageSummary }
   | { kind: 'context_usage'; at: string; payload: Record<string, unknown> }
-  | { kind: 'file_items'; at: string; files: FileDownloadItem[] }
+  | { kind: 'file_items'; at: string; files: FileDownloadItem[]; researchRequestId?: string }
   | { kind: 'team_member'; at: string; payload: { event: Record<string, unknown> } }
   | { kind: 'team_task'; at: string; payload: { event: Record<string, unknown> } }
   | { kind: 'harness_message'; at: string; content: string; stage?: string }
@@ -1049,6 +1049,9 @@ function parseHistoryTimelineEntry(
     }
     const content = typeof rawContent === 'string' ? rawContent : String(rawContent ?? '');
     const mediaItems = extractHistoryMediaItems(record);
+    const researchAttachments = Array.isArray(record.research_files)
+      ? record.research_files.filter((file): file is { id: string; filename: string } =>
+        Boolean(file) && typeof file.id === 'string' && typeof file.filename === 'string') : [];
     if (!content.trim() && mediaItems.length === 0) {
       return null;
     }
@@ -1082,6 +1085,7 @@ function parseHistoryTimelineEntry(
         timestamp: at,
         ...(forkedFromSessionId ? { forkedFromSessionId } : {}),
         ...(mediaItems.length > 0 ? { mediaItems } : {}),
+        ...(researchAttachments.length > 0 ? { researchAttachments } : {}),
         ...(isGoalObjectiveMessage ? { isGoalObjectiveMessage: true } : {}),
         ...(skills && skills.length > 0 ? { skills } : {}),
         ...(userAutomation ? { automation: userAutomation } : {}),
@@ -1261,6 +1265,7 @@ function parseHistoryTimelineEntry(
         id,
         role: 'assistant',
         outputOrder: readOutputOrder(record) ?? readOutputOrder(payload),
+        ...(record.research_accepted === true ? { researchAccepted: true } : {}),
         outputPhaseId: typeof record.output_phase_id === 'string' ? record.output_phase_id : undefined,
         content,
         timestamp: at,
@@ -1367,6 +1372,8 @@ function parseHistoryTimelineEntry(
       kind: 'file_items',
       at,
       files,
+      ...(typeof record.research_request_id === 'string' && record.research_request_id
+        ? { researchRequestId: record.research_request_id } : {}),
     };
   }
 
@@ -1843,6 +1850,16 @@ function materializeHistoryTimeline(
       continue;
     }
     if (e.kind === 'file_items') {
+      if (e.researchRequestId) {
+        const id = `research-assistant:${e.researchRequestId}`;
+        const index = messages.findIndex((message) => message.id === id);
+        if (index >= 0) {
+          messages[index] = { ...messages[index], fileItems: mergeFileDownloadItems(messages[index].fileItems, e.files) };
+        } else {
+          messages.push({ ...createFileOnlyAssistantMessage(e.at, e.files), id, researchAccepted: true });
+        }
+        continue;
+      }
       if (!attachFilesToPreviousAssistant(messages, e.files)) {
         messages.push(createFileOnlyAssistantMessage(e.at, e.files));
       }

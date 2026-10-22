@@ -278,6 +278,7 @@ interface ChatState {
   removeRuntime: (sessionId: string) => void;
 
   addMessage: (sessionId: string, message: Message) => void;
+  upsertResearchMessage: (sessionId: string, message: Message) => void;
   replaceHistoryMessages: (sessionId: string, messages: Message[]) => void;
   updateMessage: (sessionId: string, id: string, updates: Partial<Message>) => void;
   appendStreamContent: (sessionId: string, content: string, streamKey?: string) => void;
@@ -475,6 +476,24 @@ export const useChatStore = create<ChatState>()(subscribeWithSelector((set, get)
           },  
         },
       };
+    });
+  },
+
+  upsertResearchMessage: (sessionId, message) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const existing = runtime.messages.find((item) => item.id === message.id);
+      if (existing?.researchAccepted && !message.researchAccepted) return state;
+      const merged = (existing
+        ? runtime.messages.map((item) => item.id === message.id ? { ...item, ...message } : item)
+        : [...runtime.messages, message]).filter((item) =>
+          message.role !== 'user' || !item.id.startsWith('history-restore-empty-'));
+      merged.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+      const assigned = assignMessageRenderKeys(runtime, merged);
+      return { runtimes: { ...state.runtimes, [sessionId]: {
+        ...runtime, messages: assigned.messages, messageRenderKeySeq: assigned.messageRenderKeySeq,
+      } } };
     });
   },
 

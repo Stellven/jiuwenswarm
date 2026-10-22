@@ -24,6 +24,28 @@ from .checks.records import body_files_sha256,complete_observation
 from .checks.assets import CheckAssetAdmissions
 
 
+async def _capture_off_loop(callback, *args, **kwargs):
+    """Finish finite durable custody without blocking or abandoning its writes."""
+    pending = asyncio.create_task(asyncio.to_thread(callback, *args, **kwargs))
+    cancellation = None
+    while not pending.done():
+        try:
+            await asyncio.shield(pending)
+        except asyncio.CancelledError as error:
+            cancellation = cancellation or error
+        except BaseException:
+            break
+    if cancellation is not None:
+        # Drain even repeated cancellation; the original cancellation wins over
+        # a later custody failure, and no worker continues after this returns.
+        try:
+            pending.result()
+        except BaseException:
+            pass
+        raise cancellation
+    return pending.result()
+
+
 @dataclass(frozen=True)
 class ProducedArtifact:
     data: bytes | dict | str
@@ -675,11 +697,11 @@ class CapsuleRunner:
                 if execution.get('observation_ref') is None and stop is not None:
                     execution['closed']=True
                     reason='cancelled' if isinstance(stop,asyncio.CancelledError) else getattr(stop,'code',type(stop).__name__)
-                    observed=self._observation(execution,execution['contract_ref'],execution.get('started_at',utc_now()),{},
+                    observed=await _capture_off_loop(self._observation,execution,execution['contract_ref'],execution.get('started_at',utc_now()),{},
                         'interrupted' if isinstance(stop,asyncio.CancelledError) else 'failed',reason)
                     execution['observation_ref']=self.store.put_record('invocation-observation',observed,scope=execution['contract'])
                 if execution.get('observation_ref') is not None:
-                    try:self._complete_execution(execution,stop)
+                    try:await _capture_off_loop(self._complete_execution,execution,stop)
                     except Exception as exc:
                         # Completed lines and derived hooks never grant release.
                         # Their failure is retained as missing optional evidence.
@@ -750,7 +772,7 @@ class CapsuleRunner:
                 raise ResearchError('fault_integrity','Protected fault hook returned an invalid output inventory')
             output_refs=copy.deepcopy(selected['output_refs'])
             for ref in output_refs.values():self.store.read_blob(ref)
-        observation=self._observation(execution,contract_ref,started,original_output_refs,outcome,failure)
+        observation=await _capture_off_loop(self._observation,execution,contract_ref,started,original_output_refs,outcome,failure)
         observation_ref=self.store.put_record('invocation-observation',observation,scope=contract)
         execution['observation_ref']=observation_ref;execution['failure']=failure
         if failure:
@@ -802,7 +824,7 @@ class CapsuleRunner:
                 finally:
                     if vctx is not None and self._executions[vctx.execution_id].get('phase')=='active':
                         self._executions[vctx.execution_id]['closed']=True
-                        vobs=self._observation(self._executions[vctx.execution_id],verifier_ref,verifier_started,{'verifier_assessment':assessment_ref} if assessment_ref else {},'failed' if verifier_failure else 'success',verifier_failure)
+                        vobs=await _capture_off_loop(self._observation,self._executions[vctx.execution_id],verifier_ref,verifier_started,{'verifier_assessment':assessment_ref} if assessment_ref else {},'failed' if verifier_failure else 'success',verifier_failure)
                         vobsref=self.store.put_record('invocation-observation',vobs,scope=vcontract)
                         self._executions[vctx.execution_id]['observation_ref']=vobsref
                         self._executions[vctx.execution_id]['failure']=verifier_failure
@@ -855,7 +877,8 @@ class CapsuleRunner:
         if self.evidence is not None:
             try:self.evidence.capture_invocation_end(raw_ref)
             except Exception as error:self.evidence.missing(raw['run_id'],'invocation-end:'+raw['id'],'Optional original-byte file copy failed: '+type(error).__name__)
-        all_rows=list(self.store.iter_records(run_id=raw['run_id']))
+        all_rows=list(self.store.iter_records(run_id=raw['run_id'],
+            kinds=('gate-decision','bound-check-plan','deterministic-check-result')))
         chosen=[row for row in all_rows if row['kind']=='gate-decision' and raw_ref in row['record']['invocation_refs'] and row['record']['scope_kind']=='subnode']
         decision_refs=[row['ref'] for row in chosen];decisions=[row['record'] for row in chosen]
         plans=[row for row in all_rows if row['kind']=='bound-check-plan' and row['record']['contract_ref']==raw['contract_ref']]

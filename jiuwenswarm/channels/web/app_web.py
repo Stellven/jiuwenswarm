@@ -609,20 +609,26 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
         if not self._research_origin_allowed(outer_host):
             self._write_proxy_error(403, "native origin is not authorized")
             return
+        # Original run exports reopen and hash all retained evidence before
+        # building their ZIP. Give this finite download its own proxy allowance.
+        export_request = self.command in {"GET", "HEAD"} and re.fullmatch(
+            r"/api/v1/runs/[^/]+/export", urlparse(self.path).path
+        ) is not None
+        proxy_timeout = 300 if export_request else self._HTTP_PROXY_TIMEOUT
         parsed = urlparse(self.api_target)
         if parsed.scheme == "https":
             ssl_ctx = None if _get_ssl_verify() else _get_insecure_ssl_context()
             conn: http.client.HTTPConnection = http.client.HTTPSConnection(
                 parsed.hostname,
                 parsed.port or self._DEFAULT_HTTPS_PORT,
-                timeout=self._HTTP_PROXY_TIMEOUT,
+                timeout=proxy_timeout,
                 context=ssl_ctx,
             )
         else:
             conn = http.client.HTTPConnection(
                 parsed.hostname,
                 parsed.port or self._DEFAULT_HTTP_PORT,
-                timeout=self._HTTP_PROXY_TIMEOUT,
+                timeout=proxy_timeout,
             )
 
         try:

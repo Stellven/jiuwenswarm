@@ -283,10 +283,16 @@ class ResearchService:
                 except Exception as error:self.evidence.missing(run_id,'run-bundle','Contained run manifest persistence failed: '+type(error).__name__,blocking=True)
 
     async def artifact_bytes(self,principal,run_id,*,audience='researcher'):
+        from .runner import _capture_off_loop
+        return await _capture_off_loop(self._artifact_bytes,principal,run_id,audience=audience)
+
+    def _artifact_bytes(self,principal,run_id,*,audience='researcher'):
         principal.require('export');run=self.store.get_run(run_id,account_id=principal.account_id);principal.require('export',run['workspace_id'])
         if audience not in principal.audiences or audience not in {'researcher','reviewer'}:raise ResearchError('auth','Audience is outside the authenticated grant')
         from .inspection import build_retrieval
         from .finite_evaluation import finite_evidence_refs
+        from .run_evidence import RunEvidence
+        native_evidence=RunEvidence(self.store,None)
         finite=finite_evidence_refs(self.store,run_id)
         public={'gate-decision','bound-check-plan','review-context','deterministic-check-result','verifier-assessment','invocation-observation','dispatch-record','dispatch-start','acceptance-commit','route-record','model-call','model-call-start','model-call-refused','plan-outcome','escalation','execution-contained','run-bundle','run-start','run-end','run-plan-binding','run-evidence-missing','run-evaluation-labels','fault-injection','fault-injection-outcome'}
         public|={'finite-e1-scope'}
@@ -321,12 +327,17 @@ class ResearchService:
         # Only an externally committed Delivery manifest assigns file disclosure.
         # Its audience remains binding even when the same Ref appears in an
         # invocation's candidate inventory.
+        from .workflow_inspection import accepted_paper_delivery_manifest
+        paper = accepted_paper_delivery_manifest(self.store,run_id)
         for node in self.store.node_states(run_id):
             for ref in self.store.accepted_outputs(run_id,node['node_id']).values():
                 try:value=self.store.read_record(ref)
                 except (ResearchError,ValueError,UnicodeError):continue
                 if isinstance(value,dict) and value.get('id')=='delivery_manifest':
-                    validate('delivery-manifest',value)
+                    if paper is not None and ref == paper['manifest_ref']:
+                        validate('urn:ai4r:paper-delivery-manifest:1.0.0',value)
+                    else:
+                        validate('delivery-manifest',value)
                     for file in value['files']:
                         if not isinstance(file,dict) or not {'path','artifact_ref','media_type','audience'}.issubset(file):continue
                         key=(file['artifact_ref']['id'],file['artifact_ref']['sha256'])
@@ -336,14 +347,27 @@ class ResearchService:
         for file in delivery_files:
             if file['path'] in paths:raise ResearchError('disclosure_conflict','Delivery lists a duplicate export path')
             paths.add(file['path']);files.append(file);refs.append(file['artifact_ref'])
-        seen_outputs=set()
+        seen_outputs=set();export_files={file['path']:file for file in files}
         for index,envelope in enumerate(records):
             if envelope['kind']=='run-evidence-file' and envelope['record']['role'] in {'output','run_end','node_gate','capsule','prompt','trace','workspace','gate','check','verifier'}:
                 copied=envelope['record'];original=copied.get('source_ref');key=(original['id'],original['sha256']) if original else None
                 if key in restricted and restricted[key]!=audience:continue
                 ref=copied['artifact_ref'];path='records/'+ref['id']
                 if path not in paths:
-                    paths.add(path);files.append({'path':path,'artifact_ref':ref,'media_type':copied['media_type'],'audience':audience});refs.append(ref)
+                    file={'path':path,'artifact_ref':ref,'media_type':copied['media_type'],'audience':audience}
+                    paths.add(path);files.append(file);refs.append(ref);export_files[path]=file
+                # Disclosure is resolved above before a native source index can
+                # authorize any original event or packet. Projection is read-only.
+                for projected in native_evidence.native_trace_export_files(run_id,copied):
+                    original=projected['artifact_ref'];key=(original['id'],original['sha256'])
+                    if key in restricted and restricted[key]!=audience:continue
+                    path=projected['path'];prior=export_files.get(path)
+                    if prior is not None:
+                        if prior['artifact_ref']['sha256']!=projected['artifact_ref']['sha256']:
+                            raise ResearchError('disclosure_conflict','Native export path names different original bytes')
+                        continue
+                    file={**projected,'audience':audience};paths.add(path);files.append(file)
+                    refs.append(file['artifact_ref']);export_files[path]=file
             if envelope['kind'] not in public:continue
             ref=envelope['ref'];path=f'evidence/{index:04d}-{envelope["kind"]}.json'
             files.append({'path':path,'artifact_ref':ref,'media_type':'application/json','audience':audience})

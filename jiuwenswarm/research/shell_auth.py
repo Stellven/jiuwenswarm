@@ -47,6 +47,10 @@ class SessionAuthority:
             raise ValueError('one exact native origin is required')
         self.origin = f'{parsed.scheme}://{parsed.netloc}'
         self.host = parsed.netloc
+        # Cookies are shared across ports on the same host. Keep the established
+        # production cookie while isolating parallel local app instances.
+        if parsed.port is not None and parsed.port != 5173:
+            self.cookie_name = 'ai4r_ws_' + str(parsed.port)
         self.reusable_bootstrap = reusable_bootstrap
         if reusable_bootstrap:
             try:

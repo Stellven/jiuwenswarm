@@ -1,6 +1,7 @@
 """Authenticated native M1 HTTP boundary; all research work stays in ResearchService."""
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 import os
@@ -151,6 +152,18 @@ def mount_research_routes(app, channel) -> None:
         from jiuwenswarm.research.workflow_inspection import run_result
         return await invoke(request, 'export', lambda p: run_result(service, p, run_id), run_id=run_id)
 
+    @app.get('/api/v1/sessions/{session_id}/research')
+    async def native_session_history(request: Request, session_id: str):
+        from jiuwenswarm.research.local_chat import native_session_research
+        async def owned_history(principal):
+            workspace_id = request.query_params.get('workspace_id')
+            if workspace_id is None:
+                if len(principal.workspace_ids) != 1:
+                    raise ResearchError('validation', 'Select one authorized conversation workspace')
+                workspace_id = next(iter(principal.workspace_ids))
+            return await native_session_research(service, principal, session_id, workspace_id=workspace_id)
+        return await invoke(request, 'status', owned_history)
+
     @app.post('/api/v1/runs')
     async def submit(request: Request):
         try:
@@ -162,7 +175,12 @@ def mount_research_routes(app, channel) -> None:
             return _error(exc)
         except Exception:
             return _error(ResearchError('validation'))
-        return await invoke(request, 'submit', lambda p: service.submit(p, value), workspace_id=value.get('workspace_id'), submission=value)
+        async def native_submit(principal):
+            status = await service.submit(principal, value)
+            from jiuwenswarm.research.local_chat import attach_native_research_run
+            await attach_native_research_run(service, principal, status['run_id'])
+            return status
+        return await invoke(request, 'submit', native_submit, workspace_id=value.get('workspace_id'), submission=value)
 
     async def evaluation(request: Request,entry_point: str):
         try:
@@ -255,7 +273,9 @@ def mount_research_routes(app, channel) -> None:
                 authority.authorize_evaluation(request.headers.get('authorization'), 'export', run_id=run_id)
                 manifest, contents = await _result(service.artifact_bytes(principal, run_id, audience=audience))
                 from jiuwenswarm.research.inspection import encode_export_zip
-                return Response(encode_export_zip(manifest, contents), media_type='application/zip',
+                from jiuwenswarm.research.runner import _capture_off_loop
+                archive = await _capture_off_loop(encode_export_zip, manifest, contents)
+                return Response(archive, media_type='application/zip',
                                 headers={'Cache-Control': 'private, no-store', 'Content-Disposition': 'attachment; filename="run_export.zip"'})
             except ResearchError as exc:
                 return _error(exc, run_id=run_id)
@@ -309,11 +329,17 @@ async def native_research_message(channel, ws, method: str, params: dict):
     authority, service = channel.research_authority, channel.research_service
     headers = getattr(ws, 'request_headers', None) or getattr(getattr(ws, 'request', None), 'headers', {})
     if method == 'codex.chat':
-        from jiuwenswarm.research.local_chat import enabled, document_context
+        from jiuwenswarm.research.local_chat import enabled, conversation_document_context
         principal = authority.authenticate_ws(headers, 'submit')
         if not enabled():
             raise ResearchError('unavailable', 'Local subscription chat is not enabled')
-        params['_local_documents'] = document_context(service.store, principal, params.get('upload_refs', []))
+        workspace_id = params.get('workspace_id')
+        if workspace_id is None:
+            if len(principal.workspace_ids) != 1:
+                raise ResearchError('validation', 'Select one authorized workspace for this conversation')
+            workspace_id = next(iter(principal.workspace_ids))
+        params['_local_documents'] = await asyncio.to_thread(conversation_document_context,
+            service.store, principal, params.get('session_id'), params.get('upload_refs', []), workspace_id=workspace_id)
         setattr(ws, 'authenticated_user_id', principal.account_id)
         return False, None
     if method == 'chat.send':
@@ -323,7 +349,14 @@ async def native_research_message(channel, ws, method: str, params: dict):
         text = params.get('content', params.get('message', ''))
         if not isinstance(text, str) or not text.strip():
             raise ResearchError('validation', 'A research prompt is required')
-        ref = await _result(service.ingest(principal, text, params.get('upload_refs', ()), workspace_id=params.get('workspace_id')))
+        from jiuwenswarm.research.local_chat import conversation_upload_refs
+        workspace_id, _ = service._workspace(principal, params.get('workspace_id'))
+        upload_refs = await asyncio.to_thread(conversation_upload_refs,
+            service.store, principal, params.get('session_id'), params.get('upload_refs', ()), workspace_id=workspace_id)
+        ref = await _result(service.ingest(principal, text, upload_refs, workspace_id=workspace_id))
+        from jiuwenswarm.research.local_chat import capture_conversation_intake
+        await asyncio.to_thread(capture_conversation_intake, service.store, principal,
+            params.get('session_id'), ref, workspace_id=workspace_id)
         return True, {'intake_ref': ref, 'qualified': True}
     # Existing Settings/model-account handlers retain their own semantics after
     # this scope check. Their user_id comes from this server grant, never query.

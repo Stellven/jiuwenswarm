@@ -126,7 +126,7 @@ def _data_inputs(store, parent, *, inventory_ref=None,original_run_id=None):
     never acquire a read-only exemption just by being labelled read.
     """
     original_requests = set()
-    associated = {};brief_refs=[];search_scopes=[]
+    associated = {};brief_refs=[];search_scopes=[];paper_buffers=[]
     for port in parent['inputs']:
         _require(type(port) is dict and type(port.get('artifact_refs')) is list,
                  'Parent input association is malformed')
@@ -171,6 +171,27 @@ def _data_inputs(store, parent, *, inventory_ref=None,original_run_id=None):
                     and ref in parent['authority_ceiling']['resource_reads'],
                     'Search scope lacks its original indexed input/read association')
                 search_scopes.append(value)
+            if port['contract_id'] == 'urn:ai4r:paper-document-buffer:1.0.0':
+                _require(port['name'] == 'documents' and port['required'] is True
+                    and len(port['artifact_refs']) == 1 and ref in parent['input_refs']
+                    and ref in parent['authority_ceiling']['resource_reads'],
+                    'Paper document buffer lacks its exact typed input/read association')
+                paper_buffers.append(ref)
+    if paper_buffers:
+        from .summary_planning import is_document_summary_policy, validate_summary_documents
+        _require(is_document_summary_policy(store.read_record(parent['policy_ref'], contract_id='plan-policy'))
+            and len(paper_buffers) == 1 and len(brief_refs) == 1 and inventory_ref is not None,
+            'Paper document input is outside the exact protected summary policy/Brief/inventory')
+        paper_inventory = store.read_record(inventory_ref, contract_id='resource-inventory')
+        buffers = [item for item in paper_inventory['resources'] if item['resource_key'] == 'local_document_buffer']
+        _require(len(buffers) == 1 and buffers[0]['ref'] == paper_buffers[0],
+            'Typed paper input differs from the original frozen buffer inventory')
+        brief = store.read_record(brief_refs[0], contract_id='research-brief')
+        validate_summary_documents(store, brief, paper_inventory, inventory_ref, parent['authority_ceiling'])
+        from .run_inputs import local_document_refs
+        local_document_refs(store,paper_buffers[0],inventory_ref=inventory_ref,
+            intake_ref=brief['intake_ref'],run_id=original_run_id)
+        associated.setdefault('local_document_buffer',set()).add(_pair(paper_buffers[0]))
     for scope in search_scopes:
         _require(scope['brief_ref'] in brief_refs,'Original Search scope names another bound Brief')
         brief=store.read_record(scope['brief_ref'],contract_id='research-brief')

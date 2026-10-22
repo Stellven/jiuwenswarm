@@ -37,24 +37,29 @@ class TextBuilderChecks(ResearchChecks):
         # No producer-authored runtime receipt establishes this claim. Re-read
         # the protected model owner records and compare the exact returned file
         # texts to the mechanically captured archive. The transport is tool-free.
-        calls = [ctx.read_json(ref) for ref in ctx.observation['trace_refs']
-            if ctx.store.record_kind(ref) == 'model-call']
-        require(len(calls) == 1 and calls[0]['outcome'] == 'completed' and calls[0]['observed_runtime'] is True,
-                'no_trial_no_install')
-        call = calls[0]
+        # ModelCall has no run_id field; its original protected start supplies
+        # run/contract custody. Trace file aliases need not have record kinds.
         starts = [row for row in ctx.store.iter_records(run_id=ctx.contract['run_id'], kinds=('model-call-start',))
-            if row['record'].get('contract_ref') == ctx.observation['contract_ref']
-            and row['record'].get('invocation_id') == call['invocation_id']
-            and row['record'].get('execution_id') == call['execution_id']
-            and row['record'].get('call_id') == call['id']]
+            if row['record'].get('contract_ref') == ctx.observation['contract_ref']]
+        require(len(starts) == 1, 'no_trial_no_install')
+        start = starts[0]['record']
+        call_ref = ctx.store.record_ref(start['call_id'])
+        require(call_ref in ctx.observation['trace_refs']
+            and ctx.store.record_kind(call_ref) == 'model-call', 'no_trial_no_install')
+        call = ctx.read_json(call_ref)
+        require(start.get('run_id') == ctx.contract['run_id']
+            and call['outcome'] == 'completed' and call['observed_runtime'] is True
+            and start.get('invocation_id') == call['invocation_id']
+            and start.get('execution_id') == call['execution_id']
+            and start.get('call_id') == call['id'], 'no_trial_no_install')
         returned = [row for row in ctx.store.iter_records(run_id=ctx.contract['run_id'], kinds=('model-call-output',))
             if row['record'].get('invocation_id') == call['invocation_id'] and row['record'].get('call_id') == call['id']]
-        require(len(starts) == len(returned) == 1 and returned[0]['ref'] in call['evidence_refs'], 'no_trial_no_install')
+        require(len(returned) == 1 and returned[0]['ref'] in call['evidence_refs'], 'no_trial_no_install')
         payload = json.loads(returned[0]['record']['text'])
         require(set(payload) == {'files'} and set(payload['files']) == BUNDLE_FILES, 'no_trial_no_install')
         require(all(type(text) is str and text.encode('utf-8') == checked['files'][name]
             for name, text in payload['files'].items()), 'no_trial_no_install')
         declaration = ctx.read_json(ctx.contract['bindings'][0]['declaration_ref'])
-        require(declaration['identity']['version_label'] == 'm1-2'
+        require(declaration['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9'}
             and declaration['needs']['model']['tool_calling'] is False
             and declaration['budget']['per_call']['tool_calls'] == 0, 'no_trial_no_install')

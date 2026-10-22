@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:paper-summary:1.0.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "const": "paper_summary"
+    },
+    "brief_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "documents_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^[^\\r\\n#]+$"
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "pattern": "^P[1-9][0-9]*$"
+          },
+          "source_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+          },
+          "page_count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "document_id",
+          "source_ref",
+          "page_count"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "sections": {
+      "type": "object",
+      "properties": {
+        "problem": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "supported",
+                "not_stated"
+              ]
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 6000
+            },
+            "citation_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "maxItems": 20
+            }
+          },
+          "required": [
+            "status",
+            "text",
+            "citation_ids"
+          ],
+          "additionalProperties": false
+        },
+        "method": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "supported",
+                "not_stated"
+              ]
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 6000
+            },
+            "citation_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "maxItems": 20
+            }
+          },
+          "required": [
+            "status",
+            "text",
+            "citation_ids"
+          ],
+          "additionalProperties": false
+        },
+        "results": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "supported",
+                "not_stated"
+              ]
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 6000
+            },
+            "citation_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "maxItems": 20
+            }
+          },
+          "required": [
+            "status",
+            "text",
+            "citation_ids"
+          ],
+          "additionalProperties": false
+        },
+        "contributions": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "supported",
+                "not_stated"
+              ]
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 6000
+            },
+            "citation_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "maxItems": 20
+            }
+          },
+          "required": [
+            "status",
+            "text",
+            "citation_ids"
+          ],
+          "additionalProperties": false
+        },
+        "limitations": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "supported",
+                "not_stated"
+              ]
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 6000
+            },
+            "citation_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "maxItems": 20
+            }
+          },
+          "required": [
+            "status",
+            "text",
+            "citation_ids"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "problem",
+        "method",
+        "results",
+        "contributions",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "citations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "properties": {
+          "citation_id": {
+            "type": "string",
+            "pattern": "^C[1-9][0-9]*$"
+          },
+          "document_id": {
+            "type": "string",
+            "pattern": "^P[1-9][0-9]*$"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "citation_id",
+          "document_id",
+          "page",
+          "start",
+          "end",
+          "quote"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "brief_ref",
+    "documents_ref",
+    "title",
+    "documents",
+    "sections",
+    "citations"
+  ],
+  "additionalProperties": false
+}

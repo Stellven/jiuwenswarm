@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:paper-document-buffer:1.0.0",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-local-document-buffer:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intake_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+      },
+      "minItems": 1,
+      "maxItems": 64
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "run_id",
+    "account_id",
+    "workspace_id",
+    "intake_ref",
+    "source_refs"
+  ],
+  "additionalProperties": false
+}

@@ -152,6 +152,69 @@ def _node_gate(store, envelope, run, state, parent_ref, parent):
     return value
 
 
+def _execution_node_gates(store, envelopes, run, state, parent_ref, parent):
+    """Separate the original node Gate from its protected Binder assessment reuse."""
+    execution, bound = [], []
+    for envelope in envelopes:
+        gate = _original(store, envelope['ref'], 'gate-decision', run_id=run['id'],
+                         node_id=state['node_id'], attempt_id=state['attempt_id'])
+        plan = _original(store, gate['check_plan_ref'], 'bound-check-plan')
+        target = execution if plan['contract_ref'] == plan['node_contract_ref'] == parent_ref else bound
+        target.append(envelope)
+    _require(len(execution) <= 1 and len(bound) <= 1)
+    if not bound:
+        return execution
+    _require(state['node_id'] == 'planner' and len(execution) == 1)
+    original_ref = execution[0]['ref']
+    original = _node_gate(store, execution[0], run, state, parent_ref, parent)
+    combined_ref = bound[0]['ref']
+    combined = _original(store, combined_ref, 'gate-decision', run_id=run['id'],
+                         node_id=state['node_id'], attempt_id=state['attempt_id'])
+    links = [row for row in store.iter_records(kinds=('plan-acceptance-binding',))
+             if row['record'].get('acceptance_ref') == combined_ref]
+    _require(len(links) == 1)
+    link = links[0]['record']
+    _require(set(link) == {'id', 'source_ref', 'acceptance_ref', 'planner_gate_ref'}
+             and link['id'] == links[0]['ref']['id'] and link['planner_gate_ref'] == original_ref)
+    source_ref = link['source_ref']
+    store.read_record(source_ref, contract_id='plan-proposal')
+    _require(original['action'] == 'advance' and source_ref in original['accepted_refs']
+             and store.is_accepted(source_ref, run_id=run['id']))
+    changed = {'id', 'recorded_at', 'check_plan_ref', 'deterministic_result_ref', 'reasons'}
+    _require({key: value for key, value in combined.items() if key not in changed}
+             == {key: value for key, value in original.items() if key not in changed}
+             and combined['id'] != original['id'] and combined['recorded_at'] >= original['recorded_at'])
+    plan = _original(store, combined['check_plan_ref'], 'bound-check-plan')
+    checked = store.read_record(combined['deterministic_result_ref'], contract_id='deterministic-check-result')
+    work = _templates(store, parent)
+    _require(len(work) == 1)
+    profile = _original(store, work[0]['checking_profile_ref'], 'checking-profile')
+    semantic = [criterion['criterion_id'] for criterion in profile['criteria']]
+    ids = [result['check_id'] for result in checked['results']]
+    from .binding import SHARED_CHECKS
+    expected = ['plan_proposal_schema', *SHARED_CHECKS, 'suggested_checks_known']
+    if any(check_id in {'finite_delivery_leaf_coverage_v1', 'finite_fixture_qualification_v1'} for check_id in ids):
+        from .finite_evaluation import FINITE_PLAN_CHECKS
+        expected = list(FINITE_PLAN_CHECKS)
+    _require(plan['contract_ref'] == plan['node_contract_ref'] == checked['subject_ref'] == source_ref
+             and checked['check_plan_ref'] == combined['check_plan_ref'] and plan['subnode_id'] is None
+             and plan['input_refs'] == parent['input_refs'] and plan['policy_ref'] == parent['policy_ref']
+             and plan['profile_ref'] == work[0]['checking_profile_ref']
+             and plan['mandatory_semantic'] == semantic and len(ids) == len(set(ids))
+             and set(ids) == set(expected) and plan['mandatory_deterministic'] == ids
+             and all(result['outcome'] == 'PASS' for result in checked['results']))
+    _require(combined['reasons'] == [{'code': 'plan_checks_pass',
+        'message': 'Bound host checks and the exact existing Planner assessment passed',
+        'criterion_ids': semantic, 'evidence_refs': [combined['deterministic_result_ref'], original_ref]}])
+    for ref in plan['runner_refs']:
+        store.read_blob(ref)
+    with store._lock:
+        positions = [store.connection.execute('SELECT rowid FROM records WHERE id=?', (ref['id'],)).fetchone()
+                     for ref in (original_ref, combined_ref, links[0]['ref'])]
+    _require(all(row is not None for row in positions) and positions[0][0] < positions[1][0] < positions[2][0])
+    return execution
+
+
 def _stopped_open(store, run, state, records, parent_ref, parent):
     if run['state'] == 'paused' and run['reason'] == 'interrupted':
         with store._lock:
@@ -226,8 +289,9 @@ def observed_stage(store, run, states, records):
                 _prestart_dispatch(store, own_dispatches[0], run, state)
                 finished.append((order[own_dispatches[0]['ref']['id']], node_id))
                 continue
-            _require(len(own_starts) == 1 and len(own_dispatches) <= 1 and len(own_gates) <= 1)
+            _require(len(own_starts) == 1 and len(own_dispatches) <= 1)
             start, parent = _start(store, own_starts[0], run, state)
+            own_gates = _execution_node_gates(store, own_gates, run, state, start['node_contract_ref'], parent)
             terminal = _dispatch(store, own_dispatches[0], run, state, start, parent) if own_dispatches else None
             gates = [_node_gate(store, row, run, state, start['node_contract_ref'], parent) for row in own_gates]
             _require(all(order[own_starts[0]['ref']['id']] < order[row['ref']['id']]

@@ -199,7 +199,7 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     for mapping in record['execution_bindings']:
         declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
         if (declared['identity']['name'] == 'research.builder'
-                and declared['identity']['version_label'] == 'm1-2'
+                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9'}
                 and declared['needs']['model']['tool_calling'] is False
                 and declared['budget']['per_call']['tool_calls'] == 0):
             from .capsules.assets import load_research_catalog

@@ -123,6 +123,8 @@ export interface Message {
   mediaItems?: MediaItem[];
   /** Exact uploaded filenames captured for this user turn; no download or execution claim. */
   researchAttachments?: { id: string; filename: string }[];
+  /** Display provenance from an accepted owned research result; never execution authority. */
+  researchAccepted?: boolean;
   fileItems?: FileDownloadItem[];
   // 工具调用相关
   toolCall?: ToolCall;

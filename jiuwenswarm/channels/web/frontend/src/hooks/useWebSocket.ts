@@ -5,7 +5,7 @@
  */
 
 import { readOutputOrder } from '../features/sessionOutput';
-import { captureResearchInputs, consumeResearchInputs, restoreResearchInputs } from '../utils/researchClient';
+import { captureResearchInputs, consumeResearchInputs, restoreResearchInputs, hasResearchSession } from '../utils/researchClient';
 import { useCodexSubscription } from '../features/codexSubscription/state';
 import { handleTaskInputReceipt, sendQueuedTaskInput, handleSessionOutputBoundary, shouldIgnoreSessionOutput } from '../features/sessionInput';
 import { useEffect, useRef, useCallback, useState } from 'react';
@@ -1954,8 +1954,9 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       // pruneEnabledExtensions）兜底重新核对一遍"我的插件/我的MCP里已连接的"，避免把早就失效的
       // 名字发给后端；被摘掉的项同步从 sessionStore 里移除，让"+"扩展面板的开关同步变回关闭。
       const extensionPayload = buildExtensionSendPayload(sessionId);
+      const userMessageId = prefixedMessageId('user-');
       useChatStore.getState().addMessage(sessionId, {
-        id: prefixedMessageId('user-'),
+        id: userMessageId,
         role: 'user',
         content: stripUploadDocumentBlocks(content) || content.replace(/\n*【上传文档[\s\S]*$/, '').trim() || content,
         mediaItems,
@@ -2062,7 +2063,12 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           ...(sessionRt?.enableSwarmflow && sessionRt.swarmflowBudget != null
             ? { swarmflow_budget: sessionRt.swarmflowBudget }
             : {}),
-        }, { researchInputSnapshot, onRequestId: () => { requestDispatched = true; } });
+        }, { researchInputSnapshot, onRequestId: (id) => {
+          requestDispatched = true;
+          if (hasResearchSession() && researchInputSnapshot.interaction === 'research') {
+            useChatStore.getState().updateMessage(sessionId, userMessageId, { id: `research-user:${id}` });
+          }
+        } });
         clearConnectionPresentationForUserAction(sessionId);
         if (sessionMetadata) {
           useSessionStore.getState().setSessionMetadata(sessionId, null);
@@ -3159,6 +3165,24 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
             ...(agentTemplateName ? { agentTemplateName } : {}),
           });
         }
+      }),
+      webClient.on('chat.research_message', ({ payload }) => {
+        const sessionId = resolveEventSessionId(payload);
+        const requestId = typeof payload.request_id === 'string' ? payload.request_id : '';
+        const role = payload.role;
+        if (!sessionId || !requestId || (role !== 'user' && role !== 'assistant') || typeof payload.content !== 'string') return;
+        ensureSessionRuntimes(sessionId);
+        const files = Array.isArray(payload.research_files)
+          ? payload.research_files.filter((file): file is { id: string; filename: string } =>
+            Boolean(file) && typeof file.id === 'string' && typeof file.filename === 'string') : [];
+        useChatStore.getState().upsertResearchMessage(sessionId, {
+          id: `research-${role}:${requestId}`, role, content: payload.content,
+          timestamp: normalizeEventTimestampIso(payload.timestamp), isStreaming: false,
+          ...(role === 'user' ? { researchAttachments: files } : {
+            researchAccepted: payload.accepted === true,
+            ...(Array.isArray(payload.files) ? { fileItems: payload.files as FileDownloadItem[] } : {}),
+          }),
+        });
       }),
       webClient.on('chat.final', ({ payload }) => {
         if (shouldIgnoreSessionOutput(payload)) return;

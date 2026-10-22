@@ -8,6 +8,7 @@ import {
   WsEvent,
   WsRequest,
   WsResponse,
+  FileDownloadItem,
 } from '../types';
 import { getWsBase } from '../utils/env';
 import { resolveUserId } from '../utils/userId';
@@ -15,7 +16,7 @@ import i18n from '../i18n';
 import { GoalRecord } from '../types/goal';
 import { createSessionEventGate } from './sessionEventGate';
 import { requestSettingsModule } from '../features/settings/settingsNavigation';
-import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, captureResearchInputs, consumeResearchInputs, migrateResearchInputs, researchWorkspace, researchRunHandles, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
+import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, captureResearchInputs, consumeResearchInputs, migrateResearchInputs, researchWorkspace, researchAccount, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
 import { projectResearchWorkflow, type ResearchStatus } from '../components/teamArea/researchWorkflow';
 import { hasResearchConfiguration, researchInteraction, refreshResearchRuntime, researchRunRequest } from '../utils/researchClient';
 
@@ -101,7 +102,9 @@ class WebClient {
   private requestSeq = 0;
   private researchPolls = new Map<string, number>();
   private researchRevisions = new Map<string, number>();
-  private researchSubmissions = new Map<string, { sessionId: string; requestId: string }>();
+  private researchSubmissions = new Map<string, { sessionId: string; requestId: string; resolvedRunId?: string; updatedAt?: string }>();
+  private researchRecoveries = new Map<string, Promise<void>>();
+  private researchActivity = new Map<string, { sessionId: string; stage: string }>();
   private researchReplies = new Set<string>();
   private completedResearchReplies = new Set<string>();
   private codexRequests = new Map<string, string>();
@@ -347,8 +350,7 @@ class WebClient {
     if (hasResearchSession() && method === 'command.workflows') {
       const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
       if (params?.action === 'list') {
-        const statuses = await Promise.all(researchRunHandles(sessionId).map((runId) => researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(runId)}`)));
-        for (const status of statuses) this.followResearchRun(status, sessionId);
+        await this.recoverResearchConversation(sessionId);
         // Reconnect the real background requests without adding their backend
         // execution graph to the normal conversation's workflow panel.
         return { workflows: [], total: 0, has_more: false } as T;
@@ -478,6 +480,40 @@ class WebClient {
     return response;
   }
 
+  async recoverResearchConversation(sessionId: string): Promise<void> {
+    if (!hasResearchSession() || sessionId === 'new') return;
+    const account = researchAccount();
+    const workspace = researchWorkspace();
+    const key = JSON.stringify([account, workspace, sessionId]);
+    const prior = this.researchRecoveries.get(key);
+    if (prior) return prior;
+    const recovery = (async () => {
+      const value = await researchRequest<{ schema: string; session_id: string; workspace_id: string; runs: {
+        run_id: string; client_request_id: string; updated_at: string; resolved_run_id: string; resolved_updated_at: string;
+        request: { content: string; timestamp: string; files: { id: string; filename: string }[] }; status: ResearchStatus;
+      }[] }>(`/api/v1/sessions/${encodeURIComponent(sessionId)}/research?workspace_id=${encodeURIComponent(workspace)}`);
+      if (researchAccount() !== account || researchWorkspace() !== workspace
+          || value.schema !== 'ai4r-native-session-research:1' || value.session_id !== sessionId
+          || value.workspace_id !== workspace || !Array.isArray(value.runs)) throw new Error('Owned conversation history unavailable');
+      for (const entry of value.runs) {
+        if (!entry.run_id || !entry.client_request_id || entry.status?.run_id !== entry.run_id
+            || entry.status.client_request_id !== entry.client_request_id || typeof entry.request?.content !== 'string'
+            || !Number.isFinite(Date.parse(entry.request.timestamp)) || !Array.isArray(entry.request.files)
+            || !entry.request.files.every((file) => typeof file.id === 'string' && typeof file.filename === 'string'))
+          throw new Error('Original conversation request unavailable');
+        this.sessionEventGate.dispatch({ type: 'event', event: 'chat.research_message', payload: {
+          session_id: sessionId, request_id: entry.client_request_id, role: 'user',
+          content: entry.request.content, timestamp: entry.request.timestamp, research_files: entry.request.files,
+        } });
+        this.researchSubmissions.set(entry.run_id, { sessionId, requestId: entry.client_request_id,
+          resolvedRunId: entry.resolved_run_id, updatedAt: entry.resolved_updated_at });
+        this.followResearchRun(entry.status, sessionId);
+      }
+    })();
+    this.researchRecoveries.set(key, recovery);
+    try { await recovery; } finally { if (this.researchRecoveries.get(key) === recovery) this.researchRecoveries.delete(key); }
+  }
+
   private followResearchRun(value: ResearchStatus, sessionId: string): void {
     const pending = this.researchSubmissions.get(value.run_id) ?? researchRunRequest(value.run_id);
     if (pending && !this.completedResearchReplies.has(value.run_id)) this.researchSubmissions.set(value.run_id, pending);
@@ -485,8 +521,15 @@ class WebClient {
     const publish = (status: ResearchStatus) => {
       if (status.revision < (this.researchRevisions.get(status.run_id) ?? -1)) return;
       this.researchRevisions.set(status.run_id, status.revision);
+      if (status.status === 'in_progress') {
+        const submission = this.researchSubmissions.get(status.run_id);
+        if (submission?.updatedAt) this.researchSubmissions.set(status.run_id, { ...submission, updatedAt: undefined });
+      }
+      if (status.status === 'in_progress') this.researchActivity.set(status.run_id, { sessionId, stage: status.stage });
+      else this.researchActivity.delete(status.run_id);
+      const active = [...this.researchActivity.values()].find((entry) => entry.sessionId === sessionId);
       this.dispatchEventNow({ type: 'event', event: 'chat.processing_status',
-        payload: { session_id: sessionId, is_processing: status.status === 'in_progress', research_stage: status.stage } });
+        payload: { session_id: sessionId, is_processing: Boolean(active), research_stage: active?.stage ?? '' } });
       if (status.status !== 'in_progress' && status.status !== 'paused') void this.finishResearchReply(status);
     };
     publish(value);
@@ -536,16 +579,20 @@ class WebClient {
       } catch {
         content += `\n\n${i18n.t('researchWorkflow.continuationUnavailable')}`;
       }
-      if (noContinuation && status.reasons.includes('plan_infeasible')) {
+      if (noContinuation && status.reasons.some((reason) =>
+        reason === 'plan_infeasible' || reason === 'compiler_did_not_release')) {
         try {
           const result = await researchRequest<{ run_id: string;
-            plan_outcome?: { outcome: string; reasons: string[] } }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
-          const outcome = result.plan_outcome;
-          if (result.run_id !== status.run_id || outcome?.outcome !== 'plan_infeasible'
+            plan_outcome?: { outcome: string; reasons: string[] };
+            compiler_outcome?: { outcome: string; reasons: string[] } }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
+          const compilerHalted = status.reasons.includes('compiler_did_not_release');
+          const outcome = compilerHalted ? result.compiler_outcome : result.plan_outcome;
+          if (result.run_id !== status.run_id || outcome?.outcome !== (compilerHalted ? 'compiler_halted' : 'plan_infeasible')
               || !Array.isArray(outcome.reasons) || outcome.reasons.length < 1 || outcome.reasons.length > 20
               || !outcome.reasons.every((reason) => typeof reason === 'string' && reason.trim() && reason.length <= 300))
-            throw new Error('Public planning explanation unavailable');
-          content = `${i18n.t('researchWorkflow.planInfeasible')}\n\n${outcome.reasons.join('\n\n')}\n\n${i18n.t('researchWorkflow.planFilesRetained')}`;
+            throw new Error('Public halt explanation unavailable');
+          const prefix = i18n.t(compilerHalted ? 'researchWorkflow.compilerHalted' : 'researchWorkflow.planInfeasible');
+          content = `${prefix}\n\n${outcome.reasons.join('\n\n')}\n\n${i18n.t('researchWorkflow.planFilesRetained')}`;
         } catch { /* Keep the truthful generic failure when the owned explanation is unavailable. */ }
       }
     }
@@ -559,17 +606,18 @@ class WebClient {
     } catch {
       content = i18n.t('researchWorkflow.reportUnavailable');
     }
-    this.dispatchEventNow({ type: 'event', event: 'chat.final', payload: {
-      session_id: pending.sessionId, request_id: pending.requestId, content, final_mode: 'replace_turn',
-    } });
+    const timestamp = pending.resolvedRunId === status.run_id && pending.updatedAt
+      && Number.isFinite(Date.parse(pending.updatedAt)) ? pending.updatedAt : new Date().toISOString();
+    const files: FileDownloadItem[] = [];
     if (hasAcceptedReport) {
       const exportPath = `/api/v1/runs/${encodeURIComponent(status.run_id)}/export?audience=researcher`;
-      this.dispatchEventNow({ type: 'event', event: 'chat.file', payload: {
-        session_id: pending.sessionId, request_id: pending.requestId,
-        files: [{ name: 'run_export.zip', size: 0, mime_type: 'application/zip',
-          download_url: exportPath, download_token: '', path: exportPath }],
-      } });
+      files.push({ name: 'run_export.zip', size: 0, mime_type: 'application/zip',
+        download_url: exportPath, download_token: '', path: exportPath });
     }
+    this.sessionEventGate.dispatch({ type: 'event', event: 'chat.research_message', payload: {
+      session_id: pending.sessionId, request_id: pending.requestId, role: 'assistant',
+      content, timestamp, accepted: hasAcceptedReport, files,
+    } });
     this.researchSubmissions.delete(status.run_id);
     this.researchReplies.delete(status.run_id);
     this.completedResearchReplies.add(status.run_id);

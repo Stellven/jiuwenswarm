@@ -200,7 +200,10 @@ def validate_prestart_failure(store, parent_ref, parent, dispatch_ref, dispatch)
     """
     scope={key:parent[key] for key in ('run_id','node_id','attempt_id')}
     require(_original(store,dispatch_ref,'dispatch-record','dispatch-record',scope=scope) == dispatch
-        and dispatch['schema_version'] == '2.0.0' and dispatch['id'] == dispatch_ref['id']
+        and dispatch['schema_version'] == '2.0.0'
+        # Runner.put_record preserves the body's ID inside a content-addressed
+        # capture. _original above independently verifies its bytes/kind/scope.
+        and (dispatch['id'] == dispatch_ref['id'] or dispatch_ref['id'] == 'blob:' + dispatch_ref['sha256'])
         and dispatch['node_contract_ref'] == parent_ref
         and all(dispatch[key] == parent[key] for key in scope)
         and dispatch['bound_input_refs'] == [{'name':port['name'],'ref':pin} for port in parent['inputs'] for pin in port['artifact_refs']]
@@ -223,7 +226,8 @@ def validate_prestart_failure(store, parent_ref, parent, dispatch_ref, dispatch)
     plan=_original(store,plan_ref,'bound-check-plan','bound-check-plan',scope=scope)
     profile=store.read_record(parent['checking_profile_ref'],contract_id='node-finalization-profile')
     mandatory=['internal_acceptance','external_output','aggregate_limits']
-    require(plan['id'] == plan_ref['id'] and plan['contract_ref'] == plan['node_contract_ref'] == parent_ref and plan['subnode_id'] is None
+    require((plan['id'] == plan_ref['id'] or plan_ref['id'] == 'blob:' + plan_ref['sha256'])
+        and plan['contract_ref'] == plan['node_contract_ref'] == parent_ref and plan['subnode_id'] is None
         and plan['input_refs'] == parent['input_refs'] and plan['profile_ref'] == parent['checking_profile_ref']
         and plan['policy_ref'] == parent['policy_ref'] and plan['mandatory_deterministic'] == profile['mandatory_deterministic'] == mandatory
         and plan['mandatory_semantic'] == [] and len(plan['runner_refs']) == 1
