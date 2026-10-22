@@ -418,6 +418,143 @@ def accepted_paper_delivery_manifest(store, run_id):
     return {'manifest_ref': manifest_ref, 'manifest': manifest, 'report': reports[0]}
 
 
+def accepted_research_delivery_manifest(store, run_id):
+    """Resolve one original accepted POC report without exporting native traces.
+
+    This reads immutable acceptance and frozen source links. It does not run
+    scientific checks again, alter their verdicts or infer an accepted output
+    from a filename. Full technical evidence retrieval remains independent.
+    """
+    from .binding import committed_output_proof, kahn_order
+    from .contracts import contract_schema
+
+    def require(condition):
+        if not condition:
+            raise ResearchError('integrity_fault', 'Research delivery differs from its original frozen acceptance')
+
+    run = store.get_run(run_id)
+    if run['submission'].get('profile_id') is not None or store.evaluation_binding(run_id) is not None:
+        return None
+    bindings = list(store.iter_records(run_id=run_id, kinds=('run-plan-binding',)))
+    if len(bindings) != 1:
+        return None
+    plan = store.read_record(bindings[0]['record']['plan_ref'], contract_id='run-plan')
+    stages = [item['cc']['cc_name'] for item in plan['nodes']]
+    known_poc = {'research.search', 'research.screening', 'research.hypothesis', 'research.builder',
+                 'research.benchmark', 'research.evaluation', 'research.delivery'}
+    if len(stages) != 7 or set(stages) != known_poc:
+        return None  # Preserve the existing generic path for other legitimate graphs.
+    require(bindings[0]['record']['run_id'] == run_id)
+    delivery = [node for node in plan['nodes'] if node['cc']['cc_name'] == 'research.delivery']
+    if not delivery:
+        return None
+    require(run['state'] == 'completed' and len(delivery) == 1
+            and plan['frozen'] is True and plan['configuration_ref'] == run['submission']['configuration_ref']
+            and plan['topological_order'] == kahn_order(plan['nodes']))
+    nodes = {node['node_id']: node for node in plan['nodes']}
+    node = delivery[0]
+    depended = {key for item in plan['nodes'] for key in item['predecessors']}
+    require([item['node_id'] for item in plan['nodes'] if item['node_id'] not in depended] == [node['node_id']])
+    ancestors = set()
+    pending = list(node['predecessors'])
+    while pending:
+        key = pending.pop()
+        require(key in nodes)
+        if key not in ancestors:
+            ancestors.add(key)
+            pending.extend(nodes[key]['predecessors'])
+    require(ancestors == set(nodes) - {node['node_id']})
+    evaluation = [nodes[key] for key in ancestors if nodes[key]['cc']['cc_name'] == 'research.evaluation']
+    require(len(evaluation) == 1)
+    policy = store.read_record(plan['policy_ref'], contract_id='plan-policy')
+    require(all(sum(item['cc']['cc_name'] == name for item in plan['nodes']) == 1
+                for name in policy['required_stages']))
+    accepted_plan = store.read_record(plan['acceptance_ref'])
+    if plan['plan_source'] == 'planned':
+        require(accepted_plan['run_id'] == run_id and accepted_plan['action'] == 'advance'
+                and accepted_plan['scope_kind'] == 'node' and accepted_plan['node_id'] == 'planner'
+                and plan['source_ref'] in accepted_plan['accepted_refs']
+                and store.is_accepted(plan['source_ref'], run_id=run_id))
+        plan_checks = store.read_record(accepted_plan['deterministic_result_ref'], contract_id='deterministic-check-result')
+    else:
+        plan_checks = store.read_record(plan['acceptance_ref'], contract_id='deterministic-check-result')
+    require(plan_checks['subject_ref'] == plan['source_ref']
+            and plan_checks['results'] and all(item['outcome'] == 'PASS' for item in plan_checks['results']))
+    snapshot = store.read_record(plan['library_snapshot_ref'], contract_id='library-snapshot')
+    compiler = committed_output_proof(store, run_id, 'intention_compiler')
+    require(compiler['outputs'] == {'brief': plan['brief_ref']} and len(compiler['gates']) == 1)
+    compiler_parent = store.read_record(compiler['gates'][0][1]['node_contract_ref'], contract_id='node-execution-contract')
+    brief = store.read_record(plan['brief_ref'], contract_id='research-brief')
+    require(compiler_parent['run_id'] == run_id
+            and compiler_parent['configuration_ref'] == plan['configuration_ref']
+            and compiler_parent['policy_ref'] == plan['policy_ref']
+            and brief['intake_ref'] == run['submission']['intake_ref']
+            and any(port['name'] == 'request' and port['artifact_refs'] == [brief['intake_ref']]
+                    for port in compiler_parent['inputs']))
+    states = {item['node_id']: item for item in store.node_states(run_id)}
+    proofs, parents = {}, {}
+    for key in plan['topological_order']:
+        item = nodes[key]
+        require(key in states and states[key]['state'] == 'completed')
+        proof = committed_output_proof(store, run_id, key, attempt_id=states[key]['attempt_id'])
+        require(len(proof['gates']) == 1 and set(proof['outputs']) == {port['name'] for port in item['outputs']})
+        gate = proof['gates'][0][1]
+        parent_ref = gate['node_contract_ref']
+        parent = store.read_record(parent_ref, contract_id='node-execution-contract')
+        work = [assignment for assignment in parent['subnodes'] if assignment['role'] == 'work']
+        entries = [entry for entry in snapshot['entries'] if all(entry[field] == item['cc'][field]
+                   for field in ('cc_name', 'cc_version', 'declaration_sha256'))]
+        require(gate['contract_ref'] == parent_ref and parent['run_id'] == run_id and parent['node_id'] == key
+                and parent['attempt_id'] == proof['receipt']['attempt_id']
+                and parent['configuration_ref'] == plan['configuration_ref'] and parent['policy_ref'] == plan['policy_ref']
+                and parent['template_ref'] == plan['source_ref'] and parent['node_limits'] == item['limits']
+                and set(parent['required_outputs']) == set(proof['outputs']) and len(work) == len(entries) == 1
+                and work[0]['subnode_id'] == key and work[0]['capsule_ref']['sha256'] == item['cc']['declaration_sha256']
+                and entries[0]['check_pins'] == item['check_pins'])
+        declaration = store.read_record(work[0]['capsule_ref'], contract_id='capsule-declaration')
+        template = store.read_record(work[0]['template_ref'])
+        require(declaration['identity']['name'] == item['cc']['cc_name']
+                and declaration['identity']['version_label'] == item['cc']['cc_version']
+                and template['cc'] == item['cc'] and template['capsule_ref'] == work[0]['capsule_ref']
+                and {port['name']: port['contract_id'] for port in parent['outputs']}
+                    == {port['name']: port['schema_ref'] for port in entries[0]['output_ports']})
+        inputs = {port['name']: port['artifact_refs'] for port in parent['inputs']}
+        for port in item['inputs']:
+            if port['source_kind'] == 'future_output':
+                future = port['future']
+                require(future['producer_node'] in proofs
+                        and inputs.get(port['name']) == [proofs[future['producer_node']]['outputs'][future['port']]])
+            elif port['source_kind'] == 'accepted_ref':
+                require(inputs.get(port['name']) == [port['accepted_ref']])
+        proofs[key], parents[key] = proof, parent
+    proof, parent = proofs[node['node_id']], parents[node['node_id']]
+    require(set(proof['outputs']) == {'research_report', 'delivery_manifest'})
+    report_contracts = {port['name']: port['contract_id'] for port in parent['outputs']}
+    require(contract_schema(report_contracts['research_report']) == contract_schema('research-report')
+            and contract_schema(report_contracts['delivery_manifest']) == contract_schema('delivery-manifest'))
+    manifest_ref = proof['outputs']['delivery_manifest']
+    manifest = store.read_record(manifest_ref, contract_id='delivery-manifest')
+    evaluation_proof = proofs[evaluation[0]['node_id']]
+    require(set(evaluation_proof['outputs']) == {'evaluation_verdict'})
+    verdict_ref = evaluation_proof['outputs']['evaluation_verdict']
+    verdict = store.read_record(verdict_ref, contract_id='evaluation-verdict')
+    gate_refs = [proofs[key]['gates'][0][0] for key in plan['topological_order'] if key in ancestors]
+    parent_inputs = {port['name']: port['artifact_refs'] for port in parent['inputs']}
+    require(manifest['id'] == 'delivery_manifest'
+            and manifest['brief_ref'] == plan['brief_ref'] == verdict['brief_ref']
+            and manifest['report_ref'] == proof['outputs']['research_report']
+            and manifest['verdict_ref'] == verdict_ref
+            and manifest['gate_decision_refs'] == gate_refs
+            and parent_inputs.get('brief') == [plan['brief_ref']]
+            and parent_inputs.get('evaluation_verdict') == [verdict_ref]
+            and parent_inputs.get('hypothesis_blueprint') == [verdict['blueprint_ref']]
+            and parent_inputs.get('benchmark_payload') == [verdict['benchmark_ref']])
+    reports = [file for file in manifest['files'] if file['role'] == 'report']
+    require(len(reports) == 1 and reports[0]['artifact_ref'] == manifest['report_ref']
+            and reports[0]['media_type'] == 'text/markdown' and reports[0]['audience'] == 'researcher')
+    return {'manifest_ref': manifest_ref, 'manifest': manifest, 'report': reports[0]}
+
+
 async def run_result(service, principal, run_id):
     """Return an accepted report or bounded original public halt explanation."""
     principal.require('export')
@@ -436,8 +573,9 @@ async def run_result(service, principal, run_id):
                 result['compiler_outcome'] = outcome
         return result
     paper = accepted_paper_delivery_manifest(store, run_id)
-    reports = [paper['report']] if paper is not None else []
-    for node in (() if paper is not None else store.node_states(run_id)):
+    delivery = paper if paper is not None else accepted_research_delivery_manifest(store, run_id)
+    reports = [delivery['report']] if delivery is not None else []
+    for node in (() if delivery is not None else store.node_states(run_id)):
         for ref in store.accepted_outputs(run_id, node['node_id']).values():
             try:
                 manifest = store.read_record(ref, contract_id='delivery-manifest')
@@ -453,11 +591,11 @@ async def run_result(service, principal, run_id):
                     reports.append(item)
     if len(reports) != 1:
         raise ResearchError('unavailable', 'Completed workflow has no unique accepted researcher report')
-    if paper is not None:
+    if delivery is not None:
         # Display/history needs this one released report, not a second complete
         # technical trace export. The same retrieval rules still verify it.
         from .inspection import build_retrieval
-        file = {key: paper['report'][key] for key in ('path', 'artifact_ref', 'media_type', 'audience')}
+        file = {key: delivery['report'][key] for key in ('path', 'artifact_ref', 'media_type', 'audience')}
         exported, contents = build_retrieval(store, principal, run_id, run['account_id'], 'researcher',
                                              [file], allowed_refs=[file['artifact_ref']])
     else:
