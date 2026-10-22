@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-10', benchmark='m1-3-localcpu', delivery='m1-4')
+STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-10', benchmark='m1-3-localcpu', evaluation='m1-4', delivery='m1-4')
 
 
 def source_metadata():
@@ -83,6 +83,25 @@ def build_research_assets(store, *, verify_catalog=True):
             declaration['needs']['resources'] = [row for row in declaration['needs']['resources'] if row['resource_key'] != 'gpu_device']
             declaration['needs']['network'] = {'mode': 'none', 'direction': 'none', 'allowlist': []}
             identity['summary'] = 'Local CPU scientific benchmark: frozen offline environment, actual baseline and treatment measurements, recorded zero-GPU hardware facts'
+        if stage == 'evaluation':
+            for port in declaration['ports']['outputs']:
+                if port['name'] == 'evaluation_verdict':
+                    port['description'] = ('Scientific verdict JSON. Fixed public aggregation_rule m1_conjunctive_v1 '
+                        'combines the listed finding classifications and plausibility.status by first match: '
+                        '(1) plausibility implausible gives INCONCLUSIVE; (2) otherwise any FAIL finding gives FAIL; '
+                        '(3) otherwise any INCONCLUSIVE finding gives INCONCLUSIVE; (4) otherwise any '
+                        'CONDITIONALLY_ACCEPTABLE finding gives CONDITIONALLY_ACCEPTABLE; (5) otherwise all findings '
+                        'PASS gives PASS. Plausibility plausible or not_assessable adds no separate override. '
+                        'Per metric, a null baseline or treatment value means INCONCLUSIVE with rule_applied '
+                        'unmeasured; success means PASS, falsification FAIL, registered conditional means '
+                        'CONDITIONALLY_ACCEPTABLE, and unresolved middle means INCONCLUSIVE. Findings state the '
+                        'applied rule_text, values and threshold. Completeness is incomplete exactly when a '
+                        'finding is unmeasured; blockers is nonempty exactly when a finding is unmeasured or '
+                        'plausibility is implausible. Residual risks may remain under a scientific PASS. These '
+                        'are fixed source semantics, not permission to alter thresholds or infer unseen inputs. '
+                        'Output-only review checks the shown findings/rules/values and aggregation consistency; '
+                        'protected host checks independently establish exact source bindings and recomputation. '
+                        'A scientific classification does not itself authorize application acceptance or execution.')
         if stage == 'delivery':
             for port in declaration['ports']['outputs']:
                 if port['name'] == 'research_report':
