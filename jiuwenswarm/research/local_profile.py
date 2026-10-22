@@ -19,7 +19,7 @@ from .contracts import ResearchError, validate
 from .operator_config import OperatorConfiguration
 from .state import SQLiteRunStore, json_bytes
 
-PROFILE_NAME = 'local-research-external-v2'
+PROFILE_NAME = 'local-research-unified-v1'
 PREVIOUS_PROFILE_NAME = 'local-research-v6'
 GOVERNANCE_PROFILE_NAME = 'local-research-v5'
 
@@ -175,11 +175,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         return {'configuration_path': str(config_path), 'binding_path': str(binding_path), 'binding_ref': binding_ref}
 
     static_ref = store.put_blob(files('jiuwenswarm.research_assets').joinpath('planner/static-template.json').read_bytes(), media_type='application/json')
-    required = ['research.' + stage for stage in ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')]
-    policy_ref = store.put_record('plan-policy', {'schema_version': '1.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.plan-policy',
-        'max_nodes': 12, 'allowed_effect_classes': ['pure', 'read_only', 'idempotent', 'compensable'],
-        'allow_network': True, 'required_stages': required,
-        'aggregate_limits': {'time_s': 10800, 'model_calls': 80, 'memory_mb': 16384}, 'max_attempts_per_node': 1})
+    from .unified_planning import integrated_plan_policy
+    policy_ref = store.put_record('plan-policy', integrated_plan_policy())
     operator = OperatorConfiguration.from_mapping({'schema_version': '1.0.0',
         'cc': {'plan_source': 'planned', 'plan_policy_ref': policy_ref, 'static_template_ref': static_ref,
                'evaluation_profile_ref': None, 'router': {'enabled': False, 'deadline_s': 30, 'profile_ref': None}},
@@ -228,7 +225,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
     options = {'profile_ref': profile, 'workspace_ref': workspace, 'input_directory_ref': inputs,
         'default_policy_ref': defaults, 'finalization_profile_ref': finalization,
         'compiler_template_ref': capture('compiler-template', {'id': GOVERNANCE_PROFILE_NAME + '.compiler', 'subnodes': ['intent', 'requirements']}),
-        'planner_template_ref': capture('planner-template', {'id': GOVERNANCE_PROFILE_NAME + '.planner', 'required_stages': required}),
+        'planner_template_ref': capture('planner-template', {'id': PROFILE_NAME + '.planner', 'available_workflows': ['paper_summary', 'classification_experiment']}),
         'compiler_limits': {'time_s': 600, 'model_calls': 4, 'memory_mb': 16384},
         'planner_limits': {'time_s': 600, 'model_calls': 2, 'memory_mb': 16384},
         'resource_inventory_ref': inventory, 'search_bounds_ref': bounds,
@@ -236,7 +233,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
                               'resource_reads': science['resource_reads'] if science else [], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch']},
         'document_extraction_timeout_s': 30, 'max_upload_bytes': 20 * 1024 * 1024,
         'run_inputs': science['run_inputs'] if science else {}, 'host_records': science['host_records'] if science else {},
-        'development_builtin_catalog':development_builtin_catalog}
+        'development_builtin_catalog':development_builtin_catalog, 'integrated_workflows':True}
     if science is not None:
         options['local_science_resources_ref'] = store.put_blob(json_bytes(science), media_type='application/json')
     if calibration is not None:

@@ -27,7 +27,7 @@ def _declarations(store, core):
     # Show the exact prepared/installed declarations, including a new authored
     # local release. Display must not silently substitute an older version.
     for stage, asset in getattr(core, 'installed', {}).items():
-        if stage in result:
+        if stage in result or stage in {'paper_summary', 'paper_delivery'}:
             result[stage] = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')
     return result
 
@@ -39,7 +39,8 @@ async def runtime_snapshot(channel, principal):
     core = attachment.composition
     declarations = _declarations(service.store, core)
     capsules = []
-    for stage in STAGES:
+    stages = STAGES + tuple(stage for stage in ('paper_summary', 'paper_delivery') if stage in declarations)
+    for stage in stages:
         declaration = declarations[stage]
         identity = declaration['identity']
         row = {'stage': stage, 'name': identity['name'], 'version': identity['version_label'],
@@ -71,17 +72,30 @@ async def runtime_snapshot(channel, principal):
     # These are status observations, never substitutes for complete readiness.
     ports = attachment.runtime_ports
     if readiness is None and ports is not None and 'readiness' in principal.operations:
+        integrated_scope = False
+        try:
+            from .unified_planning import is_integrated_policy
+            options = (ports.bindings or {}).get('protected_options', {})
+            policy = service.store.read_record(ports.operator.snapshot()['cc']['plan_policy_ref'], contract_id='plan-policy')
+            integrated_scope = options.get('integrated_workflows') is True and is_integrated_policy(policy)
+        except (ResearchError, AttributeError, KeyError, TypeError):
+            pass
         try:
             state = await ports.status_client.call('subscription_status', {}, timeout_s=10)
-            for name, ok in [('model', state.get('state') == 'ready'), ('builder', state.get('builder_qualified') is True)]:
+            observations = [('model', state.get('state') == 'ready')]
+            if not integrated_scope:
+                observations.append(('builder', state.get('builder_qualified') is True))
+            for name, ok in observations:
                 prerequisites.append({'name': name, 'status': 'ready' if ok else 'unavailable',
                     'reason': 'Observed by the native runtime owner.' if ok else 'The native runtime owner reports this prerequisite unavailable.'})
         except Exception:
             prerequisites.append({'name': 'model', 'status': 'unavailable', 'reason': 'Native runtime status could not be observed.'})
         try:
-            state = await ports.executor.prerequisites()
+            state = await (ports.executor.read_only_prerequisites() if integrated_scope else ports.executor.prerequisites())
+            reason = ('Protected executor broker is reachable; scientific qualification is checked for selected scientific work.'
+                if integrated_scope else 'Restricted executor prerequisites passed.')
             prerequisites.append({'name': 'isolation', 'status': 'ready' if state.get('ready') is True else 'unavailable',
-                'reason': 'Restricted executor prerequisites passed.' if state.get('ready') is True else 'Restricted executor prerequisites are incomplete.'})
+                'reason': reason if state.get('ready') is True else 'Restricted executor prerequisites are incomplete.'})
         except Exception:
             prerequisites.append({'name': 'isolation', 'status': 'unavailable', 'reason': 'Restricted executor status could not be observed.'})
     defaults = service.client_defaults(principal)
@@ -358,10 +372,10 @@ def accepted_paper_delivery_manifest(store, run_id):
     require(binding['run_id'] == run_id)
     plan = store.read_record(binding['plan_ref'], contract_id='run-plan')
     policy = store.read_record(plan['policy_ref'], contract_id='plan-policy')
-    if policy.get('id') != 'paper_summary_policy_v1':
+    from .unified_planning import paper_workflow_allowed, is_paper_graph
+    if not paper_workflow_allowed(policy) or not is_paper_graph(plan):
         return None
-    from .summary_planning import is_document_summary_policy
-    require(is_document_summary_policy(policy) and plan['frozen'] is True and plan['plan_source'] == 'planned')
+    require(plan['frozen'] is True and plan['plan_source'] == 'planned')
     run = store.get_run(run_id)
     require(plan['configuration_ref'] == run['submission']['configuration_ref'])
     summary_nodes = [node for node in plan['nodes'] if node['cc']['cc_name'] == 'research.paper_summary']

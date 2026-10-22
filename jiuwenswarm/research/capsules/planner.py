@@ -75,6 +75,9 @@ async def execute(ctx,inputs):
                  protected_host_bindings=_protected_host_bindings(),
                  protected_run_input_bindings=_protected_run_inputs(inputs['resource_inventory']))
     instructions=files('jiuwenswarm.research_assets').joinpath('planner','planner.txt').read_text('utf-8')
+    from ..unified_planning import is_integrated_policy, integrated_planner_instructions
+    if is_integrated_policy(inputs['plan_policy']):
+        instructions += '\n' + integrated_planner_instructions()
     instructions+='\nPinned output schema:\n'+json.dumps(contract_schema('plan-proposal'),ensure_ascii=False)
     raw=await NativePlanner().propose(payload,invoke=ctx.model,instructions=instructions)
     try:

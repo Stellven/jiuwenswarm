@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..contracts import ResearchError
 from ..state import json_bytes
+from ..summary_planning import PAPER_PLANNER_VERSION
 from ..checks.schema_context import frozen_output_instructions
 from ..checks.paper import SUMMARY_CHECKS, DELIVERY_CHECKS
 from .paper_summary import SUMMARY, BUFFER
@@ -50,9 +51,10 @@ def build_paper_assets(store, *, verify_catalog=True):
     runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.paper', 'files': closure}), media_type='application/json')
     result = {}
     for stage in NAMES:
+        release = PAPER_PLANNER_VERSION if stage == 'paper_planner' else VERSION
         declaration = copy.deepcopy(planner if stage == 'paper_planner' else base)
         identity = declaration['identity']
-        identity.update(name=NAMES[stage], version_label=VERSION,
+        identity.update(name=NAMES[stage], version_label=release,
             summary={'paper_summary': 'Summarize canonical PDF pages with exact source quotations and page coordinates',
                      'paper_delivery': 'Render accepted paper summary into Markdown and an exact evidence manifest',
                      'paper_planner': 'Propose exactly the protected two-node PDF summary workflow'}[stage])
@@ -60,7 +62,7 @@ def build_paper_assets(store, *, verify_catalog=True):
         if stage == 'paper_delivery':
             body_names.append('capsules/paper_summary.py')
         if stage == 'paper_planner':
-            body_names.append('summary_planning.py')
+            body_names.extend(('summary_planning.py', 'unified_planning.py'))
         body_refs = {name: store.put_blob((root / name).read_bytes(), media_type='text/x-python') for name in body_names}
         carrier = 'capsules/' + stage + '.py'
         identity['carrier'] = {'ref': carrier, 'sha256': body_refs[carrier]['sha256']}
@@ -98,7 +100,7 @@ def build_paper_assets(store, *, verify_catalog=True):
         stage_runner = runner_ref
         if stage == 'paper_planner':
             planning_closure = {name: store.put_blob((root / name).read_bytes(), media_type='text/x-python')
-                for name in ('planning.py', 'summary_planning.py', 'binding.py')}
+                for name in ('planning.py', 'summary_planning.py', 'unified_planning.py', 'binding.py')}
             stage_runner = store.put_blob(json_bytes({'implementation': 'research.planning.planner_checks', 'files': planning_closure}), media_type='application/json')
             questions = [
                 ('graph_self_consistent', 'Is the declared predecessor/future graph internally acyclic and resolved?'),
@@ -119,18 +121,18 @@ def build_paper_assets(store, *, verify_catalog=True):
             'written_before_body': True, 'held_out': False, 'signal_source': 'captured output and original run records',
             'owner': 'protected profile registry', 'assurance': 'deterministic host check'} for row in checks]
         declaration['guarantees']['acceptance'] = list(keys)
-        bundle = {'schema_version': '1.0.0', 'id': NAMES[stage] + '.checks:' + VERSION,
+        bundle = {'schema_version': '1.0.0', 'id': NAMES[stage] + '.checks:' + release,
             'bundle_id': NAMES[stage] + '.checks', 'version': '1.0.0', 'target_cc_name': NAMES[stage],
-            'target_cc_version_range': VERSION, 'checks': checks, 'owner_role': 'verifier_owner'}
+            'target_cc_version_range': release, 'checks': checks, 'owner_role': 'verifier_owner'}
         criteria = [{'criterion_id': key, 'question': question, 'blocking': True,
             'answerable_from': 'declaration_and_output', 'target_port': None} for key, question in [*generic, *questions]]
         review = base_review
         if stage == 'paper_planner':
             review += b'\nCoverage entries of item_kind requirement/deliverable invert matching node tags. Evidence obligations only name existing nodes; no evidence-obligation node tag exists, so do not require inverse matching for these entries. Hidden Brief fidelity belongs to protected host checks, not this output-only review.\n'
         instruction_ref = store.put_blob(frozen_output_instructions(review, declaration), media_type='text/plain')
-        profile = {'schema_version': '1.0.0', 'id': NAMES[stage] + '.profile:' + VERSION,
+        profile = {'schema_version': '1.0.0', 'id': NAMES[stage] + '.profile:' + release,
             'profile_id': NAMES[stage] + '.profile', 'version': '1.0.0', 'target_cc_name': NAMES[stage],
-            'target_cc_version_range': VERSION, 'criteria': criteria, 'instruction_ref': instruction_ref,
+            'target_cc_version_range': release, 'criteria': criteria, 'instruction_ref': instruction_ref,
             'model_call_limit': 1, 'time_s': 90, 'owner_role': 'verifier_owner'}
         result[stage] = {'declaration_ref': store.put_record('capsule-declaration', declaration),
             'body_refs': body_refs, 'bundle_ref': store.put_record('check-bundle', bundle),

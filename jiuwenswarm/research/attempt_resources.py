@@ -178,8 +178,9 @@ def _data_inputs(store, parent, *, inventory_ref=None,original_run_id=None):
                     'Paper document buffer lacks its exact typed input/read association')
                 paper_buffers.append(ref)
     if paper_buffers:
-        from .summary_planning import is_document_summary_policy, validate_summary_documents
-        _require(is_document_summary_policy(store.read_record(parent['policy_ref'], contract_id='plan-policy'))
+        from .summary_planning import validate_summary_documents
+        from .unified_planning import paper_workflow_allowed
+        _require(paper_workflow_allowed(store.read_record(parent['policy_ref'], contract_id='plan-policy'))
             and len(paper_buffers) == 1 and len(brief_refs) == 1 and inventory_ref is not None,
             'Paper document input is outside the exact protected summary policy/Brief/inventory')
         paper_inventory = store.read_record(inventory_ref, contract_id='resource-inventory')

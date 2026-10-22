@@ -54,19 +54,23 @@
     },
     "planner": {
       "declaration_path": "planner/planner.declaration.json",
-      "declaration_sha256": "8ab15aa1e26ff4fa6088cc8857a61f9104c5a7f55d3abe3cc9ca01d959723c6c",
+      "declaration_sha256": "00cf328563f8fd1ab9d3080119c1ff3d23200aa9c47e051be8ee4012f316c3da",
       "body": [
         {
           "path": "research/capsules/planner.py",
-          "sha256": "23a44fd3dc888a0af0015862d8bb5afca09a5e2e4c9521be33404ce27a0889e8"
+          "sha256": "4a0136a8e0d5c967bb4a7368106e0861d59c4f9ffa4a6729f8b9fca6efe987e3"
         },
         {
           "path": "research_assets/planner/planner.txt",
-          "sha256": "4d857ed38cf4d7b630ca4d32753e7c8dc7707f96ec10147a86d812a9a121cab0"
+          "sha256": "ce1125e34d6c51808effbee196ae63d3c66af6badb293f994e43361f8a8c7b6c"
         },
         {
           "path": "research/capsules/_common.py",
           "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+        },
+        {
+          "path": "research/unified_planning.py",
+          "sha256": "0fd7ce5188933e9f0ba6af6dcf84387442698d41762905bf8531cce225f4ec06"
         }
       ]
     }

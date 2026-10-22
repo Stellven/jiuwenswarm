@@ -255,6 +255,13 @@ async def attach_native_research(web_channel,runtime_ports=None):
                 run_reconcile=lambda account_id,request_id:store.list_runs(account_id=account_id,request_id=request_id),
                 campaign_id=campaign_id,**history_pins)
     service.local_chat_ready=os.environ.get('JIUWENSWARM_M1_LOCAL_CHAT')=='1'
+    if bindings is not None and bindings['protected_options'].get('integrated_workflows') is True:
+        from .unified_planning import is_integrated_policy
+        if operator is not None and is_integrated_policy(store.read_record(
+                operator.snapshot()['cc']['plan_policy_ref'], contract_id='plan-policy')):
+            # The integrated product always sends the existing chat composer
+            # through Compiler/Planner, including stale direct-chat choices.
+            service.local_chat_ready=False
     service.local_example_ref=bindings.get('protected_options',{}).get('local_example_ref') if bindings is not None else None
     service.captured_plan_source=operator.snapshot()['cc']['plan_source'] if operator is not None else None
     defaults_path=authority.token_path.parent/'client-defaults.json'

@@ -151,6 +151,14 @@ class ExecutionOperations:
         return {"ready": not reasons, "builder_qualified": builder_qualified,
                 "builder_mode": 'tool_free' if tool_free_builder else 'isolated_tools', "reasons": reasons}
 
+    async def read_only_prerequisites(self, payload):
+        """Observe the live broker only; this grants no scientific operation."""
+        if payload:
+            raise ExecutorBlocked("INVALID_EXECUTOR_REQUEST")
+        ready = callable(self.authorize) and self.ledger is not None
+        return {'ready': ready, 'scope': 'read_only',
+                'reasons': [] if ready else ['PROTECTED_EXECUTOR_OWNER_UNAVAILABLE']}
+
     async def _binding(self, payload, extras, *, operation=None):
         fields = {"contract_ref", "invocation_id", "execution_id"}
         if not isinstance(payload, dict) or set(payload) != fields | extras:
@@ -331,7 +339,9 @@ class ExecutionOperations:
             self.active_tasks.pop(task, None)
 
     def handlers(self):
-        table = {"prerequisites": self.prerequisites, 'contain': self.contain, 'invoke_builder': self.invoke_builder,
+        table = {"prerequisites": self.prerequisites,
+                 'read_only_prerequisites': self.read_only_prerequisites,
+                 'contain': self.contain, 'invoke_builder': self.invoke_builder,
                  'prepare_attempt_resources': self.prepare_attempt_resources,
                  'activate_attempt_resources': self.activate_attempt_resources}
         for operation in ("measure_job", "run", "provision", "hardware_inventory", "collect_builder", "builder_observation"):
@@ -353,6 +363,14 @@ class ExecutorClient:
 
     async def prerequisites(self):
         return await self.rpc.call("prerequisites", {}, timeout_s=30)
+
+    async def read_only_prerequisites(self):
+        state = await self.rpc.call('read_only_prerequisites', {}, timeout_s=30)
+        if (not isinstance(state, dict) or set(state) != {'ready', 'scope', 'reasons'}
+                or type(state['ready']) is not bool or state['scope'] != 'read_only'
+                or not isinstance(state['reasons'], list)):
+            raise ExecutorBlocked('INVALID_EXECUTOR_READINESS_RESPONSE')
+        return state
 
     async def _start_resources(self, operation, payload, fields, result_field):
         if type(payload) is not dict or set(payload) != fields:

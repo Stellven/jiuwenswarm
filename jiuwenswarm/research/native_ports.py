@@ -286,11 +286,15 @@ class NativePorts:
         from .execution_readiness import assess_execution_scope
         core_available, finite_scope, core_reason = assess_execution_scope(
             self.composition, bindings, self.operator, library_pins=library, principal=principal, model_port=self.model_bridge)
+        integrated_scope = finite_scope is not None and finite_scope.get('kind') == 'integrated_submission'
         if finite_scope is None:
             prerequisites.append({'name':'builder','status':'ready' if status.get('builder_qualified') is True else 'unavailable',
                 'reason':('Exact admitted tool-free Builder release; generated code executes only in the scientific sandbox'
                     if status.get('builder_mode') == 'tool_free' else 'Dedicated Builder runtime, credential separation and confinement were qualified')
                     if status.get('builder_qualified') is True else 'Required Builder release or isolated runtime qualification is unavailable'})
+        elif integrated_scope:
+            prerequisites.append({'name':'workflow_scope','status':'ready',
+                'reason':'Admitted Compiler, Planner and read-only paper workflow are available; scientific plans still require their selected resources and protected execution qualification'})
         else:
             prerequisites.append({'name':'finite_scope','status':'ready',
                 'reason':'Only the exact approved finite stages and shared verifier are selected; full workflow readiness is not claimed'})
@@ -301,10 +305,13 @@ class NativePorts:
         if self.executor is None:prerequisites.append({'name':'isolation','status':'unavailable','reason':'Protected restricted executor RPC is unavailable'})
         else:
             try:
-                state=self.executor.prerequisites()
+                state=(self.executor.read_only_prerequisites() if integrated_scope
+                    else self.executor.prerequisites())
                 if inspect.isawaitable(state):state=await state
                 isolated=state is True or isinstance(state,dict) and state.get('ready') is True or isinstance(state,list) and not state
-                prerequisites.append({'name':'isolation','status':'ready' if isolated else 'unavailable','reason':'Actual restricted executor prerequisites passed' if isolated else 'Actual restricted executor prerequisites did not pass'})
+                reason=('Protected executor broker is reachable for the read-only submission scope; scientific effects remain guarded'
+                    if integrated_scope else 'Actual restricted executor prerequisites passed')
+                prerequisites.append({'name':'isolation','status':'ready' if isolated else 'unavailable','reason':reason if isolated else 'Actual restricted executor prerequisites did not pass'})
             except Exception:prerequisites.append({'name':'isolation','status':'unavailable','reason':'Restricted executor prerequisite report is unavailable'})
         if not core_available:
             diagnostics=self.inspection_diagnostics+([] if self.composition is None else self.composition.diagnostics)
@@ -413,10 +420,15 @@ async def start_agent_ports():
                           revalidate=revalidate,builder_launcher=BrokerBuilderPort(),read_evidence=store.read_blob,
                           capture_native=lambda kind,record,*,context:capture_native_record(store,kind,record,context=context))
     model_server=ModelBridgeServer(bridge,root/'model.sock',allowed_peer_uids={APP_UID},authorize_containment=authorize_containment,**session)
+    from .unified_planning import is_integrated_policy
+    try:integrated_policy=is_integrated_policy(store.read_record(operator.snapshot()['cc']['plan_policy_ref'],contract_id='plan-policy'))
+    except ResearchError:integrated_policy=False
     async def subscription_status(payload):
         if payload:raise ResearchError('invalid_request','Status accepts no supplied identity or credential')
         status=await subscription.status()
-        try:execution_status=await executor.prerequisites()
+        # Managed-model availability must remain observable without scientific
+        # datasets or Builder qualification in the integrated read-only scope.
+        try:execution_status={} if integrated_policy else await executor.prerequisites()
         except Exception:execution_status={}
         return {'state':status.get('state'),'enabled':status.get('enabled') is True,
                 'builder_qualified':isinstance(execution_status,dict) and execution_status.get('builder_qualified') is True,

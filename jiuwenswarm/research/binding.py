@@ -8,8 +8,9 @@ import uuid
 from pathlib import Path
 
 from .contracts import ResearchError, validate
-from .summary_planning import (PAPER_CC_VERSION, PAPER_DELIVERY_CC, PAPER_PLANNER_CC, is_document_summary_policy,
+from .summary_planning import (PAPER_CC_VERSION, PAPER_PLANNER_VERSION, PAPER_DELIVERY_CC, PAPER_PLANNER_CC, is_document_summary_policy,
                                summary_layout_issues, validate_summary_documents)
+from .unified_planning import is_integrated_policy, is_paper_graph, integrated_layout_issues, paper_workflow_allowed
 
 
 HOST_KEYS={'screening_rubric','build_receipt','gate_decision_index','screening_result',
@@ -69,7 +70,8 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
     paper_summary = False
     try:
         validate('static-template' if plan_source=='static' else 'plan-proposal',source)
-        paper_summary = is_document_summary_policy(policy)
+        integrated = is_integrated_policy(policy)
+        paper_summary = is_document_summary_policy(policy) or (integrated and is_paper_graph(source))
         if finite_context is not None:
             from .finite_evaluation import _FinitePlanContext
             if type(finite_context) is not _FinitePlanContext:
@@ -182,6 +184,9 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
             if sum(by_id[key]['cc']['cc_name']=='research.evaluation' for key in ancestors)!=1:fail('delivery_leaf_coverage','Delivery needs exactly one Scientific Evaluation ancestor')
         if paper_summary:
             for issue in summary_layout_issues(bound):
+                fail('delivery_leaf_coverage', issue)
+        if integrated:
+            for issue in integrated_layout_issues(bound):
                 fail('delivery_leaf_coverage', issue)
         for required in policy['required_stages']:
             if sum(n['cc']['cc_name']==required for n in nodes)!=1:fail('delivery_leaf_coverage','A required stage is missing or duplicated')
@@ -325,7 +330,8 @@ class Binder:
         refs=[self.store.put_blob(Path(__file__).read_bytes(),media_type='text/x-python')]
         # The additional closed policy/graph rules are part of the exact host
         # checker implementation, rather than an unpinned request-time label.
-        refs.append(self.store.put_blob(Path(__file__).with_name('summary_planning.py').read_bytes(),media_type='text/x-python'))
+        for filename in ('summary_planning.py', 'unified_planning.py'):
+            refs.append(self.store.put_blob(Path(__file__).with_name(filename).read_bytes(),media_type='text/x-python'))
         if finite_context is not None:
             if self.finite_e1 is None:raise ResearchError('plan_acceptance','Finite checker owner is unavailable')
             self.finite_e1.validate_context(finite_context)
@@ -352,7 +358,7 @@ class Binder:
         planner_name = PAPER_PLANNER_CC if paper else 'research.planner'
         matches=[e for e in entries if e['cc_name']==planner_name and e['declaration_sha256']==subjects[0]['capsule_ref']['sha256']]
         if (declaration['identity']['name']!=planner_name or len(matches)!=1
-                or (paper and declaration['identity']['version_label']!=PAPER_CC_VERSION)):
+                or (paper and declaration['identity']['version_label'] not in {PAPER_CC_VERSION, PAPER_PLANNER_VERSION})):
             raise ResearchError('plan_acceptance','Planner review is not the exact frozen library assignment')
         template=self.store.read_record(subjects[0]['template_ref']);profile=template['checking_profile_ref']
         if profile['sha256']!=matches[0]['check_pins']['checking_profile_sha256'] or template['check_bundle_ref']['sha256']!=matches[0]['check_pins']['check_bundle_sha256']:
@@ -378,7 +384,7 @@ class Binder:
                 return prior
         snapshot=self.store.read_record(library_snapshot_ref,contract_id='library-snapshot')
         resources=self.store.read_record(resource_inventory_ref,contract_id='resource-inventory');policy=self.store.read_record(policy_ref,contract_id='plan-policy')
-        if is_document_summary_policy(policy):
+        if paper_workflow_allowed(policy) and is_paper_graph(source):
             validate_summary_documents(self.store,brief,resources,resource_inventory_ref,authority_ceiling)
         refs={'brief_ref':brief_ref,'library_snapshot_ref':library_snapshot_ref,'resource_inventory_ref':resource_inventory_ref,'policy_ref':policy_ref}
         def pin_exists(pins):
