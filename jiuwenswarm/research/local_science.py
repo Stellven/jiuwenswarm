@@ -124,13 +124,19 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
             'admission_ref': entry['admission_ref'],
             'operations': ['provision','hardware_inventory','measure_job','run']
                 if declaration['identity']['name'] == 'research.benchmark' else ['collect_builder']})
-    value = {'schema': 'ai4r-science-runtime:2', 'id': 'local-cpu-science-' + verify_installed_build()[:16],
+    value = {'schema': 'ai4r-science-runtime:2',
         'build_id': verify_installed_build(), 'gpu_required': False,
         'profile': {'asset_root': '/var/lib/ai4r-executor/assets',
             'environment_root': '/var/lib/ai4r-executor/environments', 'memory_mb': 1024, 'pids_max': 64,
             'run_timeout_s': 60, 'provision_timeout_s': 60, 'baseline_arguments': [], 'treatment_arguments': [],
             'uv_path': '/usr/local/bin/uv', 'python_path': sys._base_executable},
         'approved_environments': approved_environments, 'execution_bindings': bindings}
+    # One installed build can legitimately capture distinct protected operator
+    # configurations. Name the exact frozen context/body, preserving old records
+    # and idempotence without reusing a build-only ID for different bytes.
+    identity = {'configuration_ref': configuration_ref, 'policy_ref': policy_ref,
+                'resource_inventory_ref': resource_inventory_ref, 'runtime': value}
+    value['id'] = 'local-cpu-science-' + hashlib.sha256(json_bytes(identity)).hexdigest()
     from .science_runtime import decode_science_runtime_record
     decode_science_runtime_record(value)
     # The private schema is validated by the decoder above. ``science-runtime``

@@ -23,7 +23,9 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from .contracts import ResearchError, validate
+from .bridge import BridgeError
 from .executor import ExecutorBlocked, RestrictedExecutor
+from .router_client import PlatformIntegrityError
 from .science_runtime import decode_science_runtime_record
 from .state import json_bytes
 
@@ -328,9 +330,25 @@ class ScienceAttemptBroker:
                                                 for run in self.active_operations.values()):return False
         jobs=self.ledger.db.execute('SELECT * FROM jobs WHERE lease_id=?',(lease['id'],)).fetchall()
         if not jobs:
-            return (lease['state']=='held' and lease['broker_instance']==self.instance
-                    and lease['effects_started']==0
-                    and not any(item['invocation_id'] in invocations for item in backend.owned_groups.values()))
+            if (type(lease['effects_started']) is not int or lease['effects_started']!=0
+                    or any(item['invocation_id'] in invocations for item in backend.owned_groups.values())):
+                return False
+            if lease['state']=='held' and lease['broker_instance']==self.instance:
+                return True
+            # Only a proved terminal, never-activated old attempt may recover
+            # across broker loss. The exclusive ledger flock remains held;
+            # current empty maps alone cannot prove old kernel cessation.
+            if (lease['state']!='quarantined' or lease['broker_instance']==self.instance
+                    or not preparations or len(invocations)!=len(preparations) or any(row['state']!='prepared'
+                        or row['activation_body'] is not None or row['activation_ref'] is not None
+                        for row in preparations)):
+                return False
+            group=backend.cgroup_root
+            if (group is None or group.is_symlink() or not group.is_dir()
+                    or not self._kernel_cgroup(group) or any(path.is_dir() for path in group.iterdir())):
+                return False
+            events=dict(line.split() for line in (group/'cgroup.events').read_text().splitlines())
+            return events.get('populated')=='0' and not (group/'cgroup.procs').read_text().strip()
         for job in jobs:
             group=Path(job['group_path'])
             if (backend.cgroup_root is None or group.parent!=backend.cgroup_root or group.name!=job['id']
@@ -377,5 +395,6 @@ class ScienceAttemptBroker:
                 with self.ledger.transaction() as db:
                     db.execute("UPDATE leases SET state='released' WHERE id=? AND state=? AND effects_started=?",
                                (lease['id'],lease['state'],lease['effects_started']))
-            except (ResearchError,ExecutorBlocked,OSError,ValueError,KeyError,TypeError,sqlite3.Error):
+            except (ResearchError,ExecutorBlocked,BridgeError,PlatformIntegrityError,
+                    OSError,ValueError,KeyError,TypeError,sqlite3.Error):
                 continue  # unknown or contradictory ownership stays held

@@ -251,3 +251,16 @@ C023 current build: paper-v21 c5a578540c1cbb1294d75619e392ccbc77583214d8d3f3f1dc
 
 
 C023 positive connected observation complete: actual supplied-PDF run `run:a9fbc94a0f454630bb195551eafb173f` completed Compiler, real Planner, paper_summary and paper_delivery on isolated5174, original model build `b0f2e389fa84138b1808674e5391bc460bbf134bd211c45eccfc889947d0f7c6`. The original chat retains its uploaded document and accepted cited report. After source-only retrieval repair, build `78eea9bffb460b0a71f37ba68a66628f7940e2db75e9401bc75c190c0e159924` returns exactly the same accepted report/history/export. Exact request, refs, timings, commands and limitations are recorded in M1-SYSTEM/tasks.md C023 closure. Qualification, broad negative cases and browser rendering remain NOT_RUN; this does not accept the separate POC workflow. Main5173 remained untouched during isolated development.
+
+
+### C024/C025 active work
+- [ ] M1-003/T-C024 connect the normal POC profile and repair only observed scientific integration failures.
+- [ ] M1-003/V-C024 observe allocated positive boundary on the real native POC request; AC-C024 -> T-C024 -> original app Store/history/accepted report.
+- [x] M1-003/T-C025 trace and correct the exact latest uploaded-PDF failure.
+- [x] M1-003/V-C025 observe the corrected request boundary while preserving original failure; AC-C025 -> T-C025 -> original Store/gates/native result.
+No unrun check, qualification or scientific result is a pass.
+
+
+C025 fresh corrected plain-request journey completed: paper3build ef361bc6e4b612dc3c3bc0411f444abd478a539756f2bc516b281c82c57903b1, actual PDF2,485,499bytes, literal request "summarize this paper"; run:d023718b890942b98ecdcde980ae76f6, sessionchat-76b9f47d63481b74415a7368b9403fd1, upload4ee0d45fdfdd3d0fbd1fcaa117608d1d. Existing native client --run --origin http://127.0.0.1:5174 --paper /tmp/ai4r-user-paper.pdf --request "summarize this paper" --max-seconds1800 endedexit0. Compiler/Planner/Summary/Delivery allcompleted through required checks/independent blind verifiers/gates. Accepted report SHA2569bce618d25ccf748ab9ad4e04df9d5c57324d98de80e0737232556eda4f82871, unredacted. Direct native load_history_records confirmed same acceptedref/content, original user/upload and downloadrecord, allfiveheadings,45pagecitation appearances. Full authenticated ZIP17,386,967bytes SHAea51df2b4b1dec5b2379216ea8ccf907df3d9c46eb3704beaffd6e556ec19d28 streamed withoutdiskcopy. Earlier a9fbc acceptedreport remains HTTP200 with exact original f742...hash under newcode, and failed8f48... original retained. This establishes this positive corrected request only; arbitrary PDFs, browserrendering and broadqualification remain NOT_RUN.
+
+C024 current POC cb473... passed Compiler,Planner,Search,Screening,Hypothesis but stopped atBuilder01:16UTC before Benchmark; no actual measurement/Evaluation/Delivery passed. Rootmonitor26073 ended, originalfailure is retained. Executionowner diagnosesexactBuildercheck/assessment; no speculative acceptance or originalrecordrewrite.

@@ -12,7 +12,7 @@ from ..checks.paper import SUMMARY_CHECKS, DELIVERY_CHECKS
 from .paper_summary import SUMMARY, BUFFER
 from .paper_delivery import REPORT, MANIFEST
 
-VERSION = 'paper-m1-2'
+VERSION = 'paper-m1-4'
 NAMES = {'paper_summary': 'research.paper_summary', 'paper_delivery': 'research.paper_summary_delivery',
          'paper_planner': 'workflow.paper_planner'}
 
@@ -38,7 +38,7 @@ def build_paper_assets(store, *, verify_catalog=True):
         ('paper_synthesis_readable', 'Is the synthesis specific, readable and coherent, with distinct sections and useful scientific detail rather than generic filler?')]
     delivery_questions = [
         ('paper_delivery_sections', 'For the Markdown report, are the title and all five nonempty headings present? For the JSON manifest, are report, brief, summary, source and gate files coherently represented?'),
-        ('paper_delivery_citations', 'For the report, do visible source quotations have document/page markers and citation IDs? For the manifest, are source references and source file entries internally consistent?'),
+        ('paper_delivery_citations', 'For the report, are the sources represented by concise readable PDF/page citations without raw extracted quotation blocks? For the manifest, is the accepted structured summary evidence file listed with internally consistent source references and source file entries?'),
         ('paper_delivery_honesty', 'Does the output present a paper summary without claiming a new benchmark, experiment, scientific acceptance or unseen source inspection?'),
         ('paper_delivery_usable', 'Is the report readable and organized, or is this manifest an unambiguous, safe relative-path file inventory with no missing_evidence?')]
     base_review = (root / 'resources/capsules/verifier_implementation.txt').read_bytes()
@@ -77,7 +77,7 @@ def build_paper_assets(store, *, verify_catalog=True):
                 _port('brief', 'research_brief', 'urn:jiuwenswarm:m1-design:research-brief:2.0.0', 'Accepted governing Brief'),
                 _port('documents', 'local_document_buffer', BUFFER, 'Exact current-run qualified canonical PDF text buffer; form-feed separates original pages')],
                 'outputs': [_port('summary', 'paper_summary', SUMMARY,
-                    'Structured paper summary. Five sections use supported or not_stated status. Supported sections cite exact original text quotations, with P1 document IDs, one-based PDF pages and zero-based Unicode global half-open start/end coordinates. Model selects evidence separately for each section. Carrier mechanically assigns shared citation IDs/index from those section assignments, and resolves each unique whitespace-normalized quote match into exact original quote and offsets before publication. No non-whitespace source changes are allowed; scientific prose and section-to-evidence assignments remain model-authored. Source equality is checked by host, not inferred by blind review.')]}
+                    'Structured paper summary. Five sections use supported or not_stated status. Supported sections cite exact original text quotations, with P1 document IDs, one-based PDF pages and zero-based Unicode global half-open start/end coordinates. The complete canonical PDF text is provided as bounded contiguous source chunks with stable evidence IDs and exact page/offset metadata. Model selects supplied evidence IDs separately for each section and authors the synthesis. Carrier copies the selected original chunks without alteration and mechanically assigns shared citation IDs/index from those section assignments before publication. It never repairs or searches approximately for an authored quote. Source equality is checked by host, not inferred by blind review.')]}
             keys, questions = SUMMARY_CHECKS, summary_questions
         elif stage == 'paper_delivery':
             declaration['identity']['kind'] = 'tool'
@@ -88,7 +88,7 @@ def build_paper_assets(store, *, verify_catalog=True):
                 _port('summary', 'paper_summary', SUMMARY, 'Exact current-run accepted summary'),
                 _port('gate_decision_index', 'gate_decision_index', 'gate-decision-index:field-contract:1', 'Protected accepted predecessor gate index')],
                 'outputs': [_port('research_report', 'paper_report', REPORT,
-                    'Actual UTF-8 Markdown decoded text, not a JSON wrapper. A # title followed by exactly five nonempty ## headings Problem, Method, Results, Contributions, Limitations. All summary prose is rendered unchanged with [P1:p.N] citation markers, citation IDs and exact source quotes (linebreaks flattened for display). No new experiment, benchmark or unseen source inspection is claimed.'),
+                    'Actual UTF-8 Markdown decoded text, not a JSON wrapper. A # title followed by exactly five nonempty ## headings Problem, Method, Results, Contributions, Limitations. All accepted summary prose is rendered unchanged, followed within each supported section by one concise Sources line of deduplicated readable [PDF 1, p. 2] page citations. No raw extracted source quotation blocks or internal citation IDs are appended to the report. Exact original quotations, pages and Unicode spans remain in the accepted downloadable paper_summary.json evidence file named by the manifest. No new experiment, benchmark or unseen source inspection is claimed.'),
                     _port('delivery_manifest', 'paper_delivery_manifest', MANIFEST,
                     'JSON manifest of exact accepted Brief, summary, canonical source texts, prior advancing gates and Markdown report. All files have safe relative paths and researcher audience; missing_evidence is empty. Source-file identity is protected host assurance, not a blind reviewer lookup.') ]}
             keys, questions = DELIVERY_CHECKS, delivery_questions

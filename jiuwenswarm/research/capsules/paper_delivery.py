@@ -15,11 +15,11 @@ def render(summary):
     for name in SECTIONS:
         section = summary['sections'][name]
         lines = [section['text'].strip()]
-        if section['status'] == 'not_stated':
-            lines.append('Source status: not stated in the supplied paper text.')
-        for key in section['citation_ids']:
-            row = citations[key]
-            lines.append(f"[{row['document_id']}:p.{row['page']}] ({key}) Source quote: " + row['quote'].replace('\n', ' ').replace('\r', ' '))
+        source_pages = sorted({(int(citations[key]['document_id'][1:]), citations[key]['page'])
+                               for key in section['citation_ids']})
+        if source_pages:
+            lines.append('Sources: ' + ', '.join(f'[PDF {document}, p. {page}]'
+                                               for document, page in source_pages))
         sections.append('## ' + name.title() + '\n\n' + '\n\n'.join(lines))
     return ('# ' + summary['title'].strip() + '\n\n' + '\n\n'.join(sections) + '\n').encode('utf-8')
 

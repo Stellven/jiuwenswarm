@@ -60,6 +60,6 @@ class TextBuilderChecks(ResearchChecks):
         require(all(type(text) is str and text.encode('utf-8') == checked['files'][name]
             for name, text in payload['files'].items()), 'no_trial_no_install')
         declaration = ctx.read_json(ctx.contract['bindings'][0]['declaration_ref'])
-        require(declaration['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9'}
+        require(declaration['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10'}
             and declaration['needs']['model']['tool_calling'] is False
             and declaration['budget']['per_call']['tool_calls'] == 0, 'no_trial_no_install')

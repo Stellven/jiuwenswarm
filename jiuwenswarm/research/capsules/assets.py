@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-9', benchmark='m1-3-localcpu', delivery='m1-4')
+STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-10', benchmark='m1-3-localcpu', delivery='m1-4')
 
 
 def source_metadata():
@@ -65,12 +65,17 @@ def build_research_assets(store, *, verify_catalog=True):
                         'Map those displayed paths and content blocks to the logical schema parts; a JSON wrapper with '
                         'those logical field names is not required in the ZIP or its projection. Assess the shown archive '
                         'members and code contents under the declared constraints; do not execute or retrieve anything. '
-                        'The fixed execution protocol keeps captured baseline and validation resources read-only; protected '
-                        'Benchmark binds their exact identities and registered seed, runs all baseline repeats before '
-                        'treatment, and records actual execution. Output-only semantic review judges visible harness '
-                        'ordering and consistency of its shown data/seed configuration. It cannot establish the contents '
-                        'or runtime behavior of an external baseline/data reference and must not claim that assurance; '
-                        'those source/identity/execution checks belong to the protected host.')
+                        'The fixed execution protocol keeps captured baseline and validation resources read-only. '
+                        'Protected Benchmark runs the unchanged captured baseline command once per baseline job, '
+                        'completes all registered baseline repeats, then invokes run_benchmark.py once per treatment '
+                        'job and aggregates the actual receipts. Accordingly, run_benchmark.py is a one-job treatment '
+                        'harness: its default invocation computes exactly one treatment observation and emits one '
+                        'registered metrics JSON line. It must not invoke the baseline, nest cross-role/repeat '
+                        'experiments or average repeated measurements. Its visible validation path and seed '
+                        'configuration must be internally consistent. Semantic review checks those visible roles '
+                        'and settings under this fixed protocol; it cannot establish hidden baseline/data contents '
+                        'or exact source fidelity, actual baseline-first execution or measurement correctness. '
+                        'Those original identity/order/execution obligations remain protected Benchmark host checks.')
             closure = dict(checker_closure)
             closure['checks/builder_text.py'] = store.put_blob((root / 'checks/builder_text.py').read_bytes(), media_type='text/x-python')
             stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.builder_text', 'files': closure}), media_type='application/json')
@@ -131,9 +136,10 @@ def build_research_assets(store, *, verify_catalog=True):
         if stage == 'builder':
             for criterion in criteria:
                 if criterion['criterion_id'] == 'harness_orders_baseline_first':
-                    criterion['question'] += (' Judge the visible harness ordering and shared data/seed configuration only. '
-                        'External baseline/data contents and actual runtime fidelity are protected host checks, '
-                        'not claims that this declaration/output-only review can establish.')
+                    criterion['question'] = ('Does the visible harness take one treatment observation per default '
+                        'invocation, with consistent data/seed settings and no baseline calls, repeat experiments '
+                        'or averaging? Host Benchmark owns baseline-first scheduling; hidden baseline/data '
+                        'fidelity and actual execution remain host checks.')
         bundle = {'schema_version': '1.0.0', 'id': identity['name'] + '.checks:' + identity['version_label'], 'bundle_id': identity['name'] + '.checks',
                   'version': '1.0.0', 'target_cc_name': identity['name'],
                   'target_cc_version_range': identity['version_label'] + '.x' if stage == 'screening' else identity['version_label'],

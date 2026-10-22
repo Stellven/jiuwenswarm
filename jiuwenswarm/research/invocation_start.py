@@ -158,10 +158,15 @@ def validate_invocation_preparation(store, preparation_ref, response):
     attempt_resource_disposition(store,child['node_contract_ref'])
     deadline,remaining=response['execution_deadline_monotonic_s'],response['remaining_time_s']
     now=time.monotonic()
+    # The live callback captured remaining before this custody roundtrip and
+    # the original-source checks above. It is a duration snapshot, not a new
+    # allowance: compare it to the immutable prepared duration while requiring
+    # both absolute expiries to remain live. Start recomputes spendable time.
+    prepared_duration=(record['deadline_unix_ns']-record['recorded_unix_ns'])/1e9
     require(type(deadline) in (int,float) and math.isfinite(deadline)
         and type(remaining) in (int,float) and math.isfinite(remaining)
-        and deadline>now and 0<remaining<=deadline-now+.01
-        and remaining<=(record['deadline_unix_ns']-time.time_ns())/1e9+.01,
+        and deadline>now and record['deadline_unix_ns']>time.time_ns()
+        and 0<remaining<=prepared_duration,
         'Prepared response exceeds its finite original allowance','budget_exhausted')
     return copy.deepcopy(child)
 

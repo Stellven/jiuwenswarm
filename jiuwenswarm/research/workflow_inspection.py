@@ -360,14 +360,17 @@ def accepted_paper_delivery_manifest(store, run_id):
     policy = store.read_record(plan['policy_ref'], contract_id='plan-policy')
     if policy.get('id') != 'paper_summary_policy_v1':
         return None
-    from .summary_planning import PAPER_CC_VERSION, is_document_summary_policy
+    from .summary_planning import is_document_summary_policy
     require(is_document_summary_policy(policy) and plan['frozen'] is True and plan['plan_source'] == 'planned')
     run = store.get_run(run_id)
     require(plan['configuration_ref'] == run['submission']['configuration_ref'])
     summary_nodes = [node for node in plan['nodes'] if node['cc']['cc_name'] == 'research.paper_summary']
     delivery_nodes = [node for node in plan['nodes'] if node['cc']['cc_name'] == 'research.paper_summary_delivery']
+    versions = {node['cc']['cc_version'] for node in plan['nodes']}
+    # Reading a committed historical result must use its original frozen
+    # declarations. New planning separately requires the current release.
     require(len(plan['nodes']) == 2 and len(summary_nodes) == len(delivery_nodes) == 1
-            and all(node['cc']['cc_version'] == PAPER_CC_VERSION for node in plan['nodes']))
+            and len(versions) == 1 and versions <= {'paper-m1-1', 'paper-m1-2', 'paper-m1-3', 'paper-m1-4'})
     summary_node, node = summary_nodes[0], delivery_nodes[0]
     require(node['predecessors'] == [summary_node['node_id']]
             and plan['topological_order'] == [summary_node['node_id'], node['node_id']])

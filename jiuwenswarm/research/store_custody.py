@@ -6,6 +6,7 @@ The private inherited pipes are absent from every generated-code child.
 from __future__ import annotations
 import hashlib
 import json
+import logging
 import os
 import re
 import select
@@ -69,7 +70,9 @@ class CustodyStore:
             os.setuid(uid)
         self.worker = subprocess.Popen([sys.executable, "-m", "jiuwenswarm.research.store_custody",
             "--worker", str(Path(state)), str(self.transfers), str(input_root)], env=environment,
-            preexec_fn=identity, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            # Keep stdout exclusively framed; safe refusal diagnostics use the
+            # existing protected parent's stderr sink, without another log file.
+            preexec_fn=identity, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=None,
             close_fds=True)
         os.set_blocking(self.worker.stdin.fileno(), False)
         os.set_blocking(self.worker.stdout.fileno(), False)
@@ -272,6 +275,23 @@ def worker(state, transfers, input_root):
                         and error.message=='Supplied resource inventory differs from the original frozen plan'):
                     response={'error':'FROZEN_RESOURCE_INVENTORY_MISMATCH'}
                 else:
+                    operations = {'read_record', 'record_kind', 'put_record', 'append_record', 'read_blob', 'put_blob',
+                        'validate_evaluation_executor_binding', 'validate_invocation_preparation',
+                        'attempt_resource_disposition', 'resolve_original_run_inputs'}
+                    codes = {'budget_exhausted', 'executor_preparation_authorization', 'attempt_resources',
+                        'run_inputs', 'contract_invalid', 'evidence_unavailable', 'integrity_fault',
+                        'input_authority', 'check_binding', 'AUDIT_UNAVAILABLE'}
+                    types = {'ResearchError', 'ContractError', 'BridgeError', 'ValueError', 'TypeError',
+                        'KeyError', 'UnicodeError', 'UnicodeDecodeError', 'OSError', 'PermissionError',
+                        'FileNotFoundError', 'RuntimeError', 'TimeoutError', 'IntegrityError', 'OperationalError'}
+                    operation = request.get('operation') if isinstance(request, dict) else None
+                    code = getattr(error, 'code', None)
+                    error_type = type(error).__name__
+                    logging.getLogger(__name__).warning(
+                        'custody_validation_refused operation=%s code=%s type=%s',
+                        operation if type(operation) is str and operation in operations else 'invalid_operation',
+                        code if type(code) is str and code in codes else 'unclassified',
+                        error_type if error_type in types else 'Exception')
                     response = {"error": "AUDIT_UNAVAILABLE"}
             sys.stdout.buffer.write(encode_frame(response))
             sys.stdout.buffer.flush()
