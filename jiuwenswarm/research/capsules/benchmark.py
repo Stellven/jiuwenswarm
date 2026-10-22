@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from ..contracts.types import ResearchError
 from ..environment import validate_lock
-from ..science import ScienceError, empirical_row, metric_payload
+from ..science import metric_payload
+from ..trusted_scoring import BUILD_SCHEMA, scored_empirical_row, failed_empirical_row
+from ..contracts import validate
 from ..state import json_bytes
 from ._common import captured, produced
 
@@ -13,6 +15,9 @@ async def execute(ctx, inputs):
         raise ResearchError('unavailable', 'The scientific executor is unavailable')
     blueprint, manifest = inputs['hypothesis_blueprint'], inputs['poc_manifest']
     ready, lock = inputs['build_receipt'], inputs['environment_lock']
+    validate(BUILD_SCHEMA, ready)
+    if [metric['metric_id'] for metric in blueprint['metrics']] != ['accuracy']:
+        raise ResearchError('blind_scoring', 'The blind classification protocol measures only independently scored accuracy')
     if (ready['readiness'] != 'READY' or ready['trial_executed'] or ready['packages_installed']
             or ready['manifest_ref'] != ctx.input_ref('poc_manifest')
             or ready['archive_ref'] != manifest['archive_ref'] or ready['archive_ref'] != ctx.input_ref('poc_artifact_bundle')
@@ -30,7 +35,7 @@ async def execute(ctx, inputs):
     hardware = await ctx.executor.hardware_inventory(ctx.contract)
     hardware_ref = captured(ctx, hardware)
     metric_ids = [m['metric_id'] for m in blueprint['metrics']]
-    runs, rows = [], []
+    runs, rows, score_refs = [], [], []
     failure = None
     try:
         for role in ['baseline', 'treatment']:
@@ -50,16 +55,13 @@ async def execute(ctx, inputs):
                                               'started_at', 'wall_time_s', 'timeout_s', 'stdout_ref', 'stderr_ref']}
                 public.update(command=list(raw['argv']), hardware_ref=hardware['hardware_id'])
                 runs.append(public)
-                try:
-                    row = empirical_row(sequence, metric_ids, ctx.store.read_blob(raw['stdout_ref']), raw['exit_code'], raw.get('termination_reason'))
-                except ScienceError:
-                    # Even malformed output has a row for its actual receipt.
-                    # The invalid-output fault still rejects this candidate.
-                    row = empirical_row(sequence, metric_ids, '', raw['exit_code'], raw.get('termination_reason'))
-                    rows.append(row)
-                    raise ResearchError('invalid_benchmark_output', 'Actual log violates the single-record metric contract')
+                if 'trusted_scoring_ref' in raw:
+                    score_refs.append(raw['trusted_scoring_ref'])
+                row = (scored_empirical_row(raw, ctx.read_json(raw['trusted_scoring_ref']))
+                       if 'trusted_scoring_ref' in raw else failed_empirical_row(raw))
                 rows.append(row)
-                if role == 'baseline' and (raw['exit_code'] != 0 or raw.get('termination_reason') not in {None, '', 'completed', 'exited'}):
+                if role == 'baseline' and (raw['exit_code'] != 0 or raw.get('termination_reason') != 'completed'
+                                           or row['status'] != 'measured'):
                     raise ResearchError('baseline_failed', 'Failed baseline halts before treatment')
     except BaseException as exc:
         failure = exc
@@ -87,7 +89,8 @@ async def execute(ctx, inputs):
                'resource_refs': blueprint['resource_refs'], 'configuration_ref': ctx.configuration_ref,
                'execution_receipt_ref': receipt_ref, 'provisioning_receipt_ref': provision_ref,
                'repeat_count': blueprint['repeat_count'], 'seed': blueprint['seed'], 'run_order': [r['role'] for r in runs],
-               'metrics': metrics, 'raw_evidence_refs': [empirical_ref] + [r[k] for r in runs for k in ['stdout_ref', 'stderr_ref']]}
+               'metrics': metrics, 'raw_evidence_refs': [empirical_ref] + [r[k] for r in runs for k in ['stdout_ref', 'stderr_ref']]
+                    + score_refs}
     ctx.record_host('execution_receipt', receipt_ref)
     return {'benchmark_payload': produced(payload, 'benchmark-payload'),
             'execution_receipt': produced(receipt, 'execution-receipt'),

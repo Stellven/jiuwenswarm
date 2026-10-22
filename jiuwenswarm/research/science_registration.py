@@ -17,7 +17,7 @@ from .science_runtime import OPERATIONS,decode_science_runtime_record
 
 
 _SEAL=object()
-FACTORIES=('job_factory','provisioner','hardware_probe','verify_mount','environment_verifier')
+FACTORIES=('job_factory','provisioner','hardware_probe','verify_mount','environment_verifier','score_result')
 INPUT_ALIASES=frozenset(('original_request','local_document_buffer'))
 INVENTORY_MISMATCH='Supplied resource inventory differs from the original frozen plan'
 

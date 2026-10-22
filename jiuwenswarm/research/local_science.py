@@ -1,7 +1,7 @@
-"""Explicit, small local CPU research resources and exact runtime capture.
+"""Explicit external public data and independently scored runtime capture.
 
-This is a labelled educational project, not a surrogate for a user's uploaded
-dataset or an admission/qualification result. Metrics are measured by Benchmark.
+No dataset, solution or expected score is supplied by this module. Private
+holdout bytes are never captured as agent-readable artifacts.
 """
 from __future__ import annotations
 
@@ -20,56 +20,70 @@ from pathlib import Path
 data = json.loads(Path('/resources/validation/data.json').read_text())
 labels = [row['label'] for row in data['train']]
 majority = max(sorted(set(labels)), key=labels.count)
-accuracy = sum(row['label'] == majority for row in data['test']) / len(data['test'])
-print(json.dumps({'metrics': {'accuracy': accuracy}}))
+print(json.dumps({'predictions': [{'id': row['id'], 'label': majority} for row in data['test']]}))
 '''
 
 SAMPLE_REQUEST = (
-    'Using the built-in local CPU classification project and its captured train/test data, '
-    'replace the majority-class classifier with a threshold at the midpoint between training class means. '
-    'Keep the baseline, held-out test split and accuracy measurement unchanged. '
+    'Using the externally supplied classification training data, choose and justify one bounded '
+    'classifier improvement over the captured majority-class baseline. '
+    'Preserve the training data, test population, label vocabulary and trusted accuracy scoring. '
     'Use only the Python standard library, no network or GPU. Metric accuracy (fraction), higher is better; '
     'success if treatment accuracy > baseline accuracy, falsification if treatment accuracy <= baseline accuracy. '
-    'Run the baseline first then the treatment, 3 repeats each, fixed seed 42. '
-    'Deliver a report, POC files, raw logs and limitations.')
+    'Produce predictions only; hidden test labels are available solely to the trusted host scorer. '
+    'Run the baseline first then the treatment, 3 repeats each, fixed execution seed 42. '
+    'Deliver genuine measured results, POC files, raw logs, uncertainty and limitations, '
+    'including a negative or inconclusive result if the improvement does not succeed.')
 
 
-def capture_local_science_resources(store):
-    """Capture actual authored bytes and a stdlib-only, offline environment."""
+def capture_local_science_resources(store, *, public_path, scoring_pins):
+    """Capture an explicitly supplied public package; never create example data."""
+    from .trusted_scoring import parse_public_dataset
+    source = Path(public_path)
+    if (not source.is_absolute() or source.is_symlink() or not source.is_file()
+            or source.stat().st_size > 2 * 1024 * 1024):
+        raise ResearchError('external_dataset_invalid', 'An explicit bounded public data.json is required')
+    data = source.read_bytes()
+    parse_public_dataset(data)
+    expected_pins = {'holdout_sha256', 'scorer_sha256'}
+    if (type(scoring_pins) is not dict or set(scoring_pins) != expected_pins
+            or any(type(value) is not str or len(value) != 64
+                   or any(c not in '0123456789abcdef' for c in value) for value in scoring_pins.values())):
+        raise ResearchError('external_scoring_invalid', 'Protected external scoring commitments are required')
     requirements = store.put_blob(b'', media_type='text/plain')
     approval = store.put_blob(json_bytes({'schema': 'ai4r-local-environment-approval:1',
-        'purpose': 'Local CPU tutorial; Python standard library only; no third-party packages',
+        'purpose': 'Externally supplied classification; Python standard library only; no third-party packages',
         'platform_fact': [platform.system(), platform.machine(), platform.python_version()]}), media_type='application/json')
-    lock = {'schema_version': '1.0.0', 'id': 'local_cpu_stdlib_environment',
+    lock = {'schema_version': '1.0.0', 'id': 'external_classification_stdlib_environment',
         'platform': platform.system().lower() + '-' + platform.machine().lower(),
         'requirements_ref': requirements, 'package_refs': [], 'approval_ref': approval}
     validate('environment-lock', lock)
     lock_ref = store.put_record('environment-lock', lock)
-    data = json_bytes({'description': 'Authored educational one-dimensional binary classification data; not external evidence',
-        'train': [{'x': -3.0, 'label': 0}, {'x': -2.0, 'label': 0}, {'x': -1.0, 'label': 0},
-                  {'x': 1.0, 'label': 1}, {'x': 2.0, 'label': 1}, {'x': 3.0, 'label': 1}],
-        'test': [{'x': -2.5, 'label': 0}, {'x': -0.5, 'label': 0}, {'x': 0.5, 'label': 1}, {'x': 2.5, 'label': 1}]})
-    guide = b'''# Local CPU classification project
+    guide = b'''# Externally supplied classification project
 
-This built-in educational project has actual captured Python and JSON files.
-The baseline always predicts the training majority class. Improve only the
-classifier in poc_patch.py, for example by fitting the midpoint between class
-means on the training split. Preserve the held-out test split, the accuracy
-measurement, baseline, and registered success/falsification comparisons. The
-classifier cutoff is the intervention and may change. Metric ID is accuracy (fraction,
-higher is better). Use no dependencies, network, GPUs, or external data. Run the
-frozen baseline first and then the treatment, at least three repeats each. A
-successful result requires treatment accuracy > baseline accuracy; equality or
-lower falsifies the improvement claim. Report genuine measured values and the
-limitations of this tiny authored demonstration. Data is /resources/validation/data.json.
+Public data.json contains dataset_id, feature_names, classes, labelled train rows
+and unlabelled test rows. Each row has an opaque id and a finite numeric features
+array. Only train rows have label. Test labels and the generation seed are private
+to an independent evaluator and are unavailable to model or generated code.
+Choose and justify a classifier using the supplied training data. Keep the captured
+majority-class baseline and public data unchanged. Implement predict(train, test)
+in poc_patch.py, returning one declared string label per test row in test order.
+run_benchmark.py reads /resources/validation/data.json and prints exactly one JSON
+object: {"predictions": [{"id": "<test row id>", "label": "<declared class>"}]}.
+It must cover every test id exactly once and must not emit metrics or accuracy.
+The trusted host scores successful predictions after the sandbox has stopped.
+Use only the Python standard library, no network, GPU or external data. Baseline
+runs precede treatment runs, three repeats each, fixed execution seed 42. Accuracy
+is the fraction of correct predictions. Improvement succeeds only if treatment
+accuracy exceeds baseline accuracy; equality or lower falsifies the claim.
+Preserve negative and inconclusive outcomes and report uncertainty and limitations.
 '''
     def snapshot(key, kind, names):
         value = {'schema_version': '1.0.0', 'id': key, 'kind': kind,
-            'origin': 'AI4Research explicitly selected local educational project',
+            'origin': 'Explicitly imported external public classification package',
             'revision': hashlib.sha256(b''.join(raw for _, raw, _ in names)).hexdigest(),
             'files': [{'path': name, 'artifact_ref': store.put_blob(raw, media_type=media),
                        'media_type': media, 'audience': 'researcher'} for name, raw, media in names],
-            'access': 'read-only', 'license': 'CC0-1.0 (authored local example)',
+            'access': 'read-only', 'license': 'User-supplied dataset; retain its original usage conditions',
             'availability': 'available', 'environment_ref': lock_ref}
         validate('resource-snapshot', value)
         return store.put_record('resource-snapshot', value)
@@ -84,23 +98,21 @@ limitations of this tiny authored demonstration. Data is /resources/validation/d
         'resources': [{'resource_key': key, 'kind': kind, 'available': True, 'quantity': 1, 'ref': ref} for key, kind, ref in rows]}
     validate('resource-inventory', inventory)
     guide_ref = next(row['artifact_ref'] for row in store.read_record(baseline)['files'] if row['path'] == 'README.md')
-    example_ref = store.put_blob(json_bytes({'schema': 'ai4r-local-research-example:1',
-        'id': 'local-cpu-classification', 'title': 'Improve a small classifier',
-        'description': 'A real CPU experiment on explicitly authored educational data. No GPU or external dependencies required.',
-        'filename': 'local_cpu_classification.md', 'guide_ref': guide_ref, 'request': SAMPLE_REQUEST,
-        'baseline_resource_ref': baseline, 'validation_resource_ref': validation,
-        'environment_lock_ref': lock_ref}), media_type='application/json')
+    scoring_profile = {'protocol': 'ai4r-blind-classification:1', 'public_dataset_ref': validation,
+        'public_file': 'data.json', 'public_data_sha256': hashlib.sha256(data).hexdigest(),
+        'holdout_path': '/run/ai4r-private-qa/holdout.json', **scoring_pins, 'max_stdout_bytes': 8388608}
     return {'resource_inventory_ref': store.put_record('resource-inventory', inventory),
         'run_inputs': {'baseline_resource': baseline, 'validation_resource': validation},
         'host_records': {'environment_lock': lock_ref},
         'resource_reads': [ref for _, _, ref in rows],
         'approved_environments': [{'lock_ref': lock_ref, 'approval_ref': approval,
             'platform_fact': [platform.system(), platform.machine(), platform.python_version()], 'wheel_filenames': {}}],
-        'guide': guide.decode('utf-8'), 'guide_ref': guide_ref, 'local_example_ref': example_ref}
+        'guide': guide.decode('utf-8'), 'guide_ref': guide_ref, 'local_example_ref': None,
+        'scoring_profile': scoring_profile}
 
 
 def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resource_inventory_ref,
-                                  entries, approved_environments):
+                                  entries, approved_environments, scoring_profile=None):
     """Pin genuine active admissions; a captured record grants no execution."""
     from .native_ports import verify_installed_build
     bindings = []
@@ -131,6 +143,8 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
             'run_timeout_s': 60, 'provision_timeout_s': 60, 'baseline_arguments': [], 'treatment_arguments': [],
             'uv_path': '/usr/local/bin/uv', 'python_path': sys._base_executable},
         'approved_environments': approved_environments, 'execution_bindings': bindings}
+    if scoring_profile is not None:
+        value.update(schema='ai4r-science-runtime:3', scoring_profile=scoring_profile)
     # One installed build can legitimately capture distinct protected operator
     # configurations. Name the exact frozen context/body, preserving old records
     # and idempotence without reusing a build-only ID for different bytes.

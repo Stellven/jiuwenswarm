@@ -113,7 +113,8 @@ class CapsuleArtifacts:
         self.__store.mark_evaluation_material(self.__scope['run_id'],ref)
         return self._grant(ref)
     def put_record(self,contract_id,record,**metadata):
-        if contract_id!='build-receipt':raise ResearchError('authority_boundary','Capsules may publish candidate bytes, never host authority records')
+        if contract_id not in {'build-receipt', 'urn:ai4r:prediction-build-receipt:2.0.0'}:
+            raise ResearchError('authority_boundary','Capsules may publish candidate bytes, never host authority records')
         return self._grant(self.__store.put_record(contract_id,record,scope=self.__scope))
     def append_record(self,kind,record):
         if kind not in {'build_failure','scientific_execution','benchmark_attempt'}:raise ResearchError('authority_boundary','Capsule event kind is not permitted')

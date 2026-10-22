@@ -181,9 +181,13 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
         await authorize_binding(binding)
         bounded = replace(job, timeout_s=min(job.timeout_s, bindings[binding.invocation_id][1] - time.monotonic()))
         return await executor.run_provisioning(bounded, binding=binding)
+    scorer = None
+    if record['schema'] == 'ai4r-science-runtime:3':
+        from .trusted_scoring import RootClassificationScorer
+        scorer = RootClassificationScorer(store, record['scoring_profile'])
     adapter = ScienceExecutionAdapter(store, science_profile, approved_environments=entries,
         workspace_allocator=lambda binding, sequence, role: allocate_science_workspace(base / "work", binding, sequence, role),
-        hardware_capture=capture_hardware, provision_runner=provision)
+        hardware_capture=capture_hardware, provision_runner=provision, scorer=scorer)
     async def job_factory(contract, inputs, *, binding, **selection):
         await authorize_binding(binding)
         job = await adapter.job_factory(contract, inputs, binding=binding, **selection)
@@ -194,12 +198,13 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     executor.hardware_probe = adapter.hardware_probe
     executor.verify_mount = adapter.verify_mount
     executor.environment_verifier = adapter.environment_verifier
+    executor.score_result = adapter.score_result
     executor.read_blob = store.read_blob
     executor.tool_free_builder = False
     for mapping in record['execution_bindings']:
         declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
         if (declared['identity']['name'] == 'research.builder'
-                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10'}
+                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11'}
                 and declared['needs']['model']['tool_calling'] is False
                 and declared['budget']['per_call']['tool_calls'] == 0):
             from .capsules.assets import load_research_catalog

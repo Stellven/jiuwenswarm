@@ -118,7 +118,8 @@ class RestrictedExecutor:
                  allowed_asset_roots=(), verify_mount=None, job_factory=None,
                  provisioner=None, hardware_probe=None, builder_collector=None,
                  builder_observer=None, environment_verifier=None, broker=None,
-                 preparation_roots=(), authorize_provisioning=None, lifecycle_observer=None):
+                 preparation_roots=(), authorize_provisioning=None, lifecycle_observer=None,
+                 score_result=None):
         self.workspace_root = Path(workspace_root).resolve()
         self.cgroup_root = Path(cgroup_root).resolve() if cgroup_root else None
         self.authorize_job, self.capture = authorize_job, capture
@@ -134,6 +135,7 @@ class RestrictedExecutor:
         self.authorize_provisioning = authorize_provisioning
         self._provision_claims = set()
         self.lifecycle_observer = lifecycle_observer
+        self.score_result = score_result
 
     def bind_invocation(self, *, contract_ref, invocation_id, contract, execution_id=None):
         if not isinstance(invocation_id, str) or not invocation_id or not isinstance(contract_ref, Mapping):
@@ -570,7 +572,19 @@ class ExecutorInvocation:
         if job.job_id in self._claimed:
             raise ExecutorBlocked("EXECUTION_JOB_ALREADY_CLAIMED")
         self._claimed.add(job.job_id)
-        return await self._executor.run(copy.deepcopy(job))
+        raw = await self._executor.run(copy.deepcopy(job))
+        # The kernel runner has drained its process/cgroup before returning.
+        # An installed root scorer may append provenance, never replace stdout.
+        if self._executor.score_result is not None:
+            original = copy.deepcopy(raw)
+            scored = await _await(self._executor.score_result(copy.deepcopy(job), copy.deepcopy(raw),
+                binding=copy.deepcopy(self._binding)))
+            if (type(scored) is not dict or not set(original)<=set(scored)
+                    or any(scored[key] != value for key, value in original.items())
+                    or set(scored)-set(original) not in (set(), {'trusted_scoring_ref'})):
+                raise ExecutorBlocked('TRUSTED_SCORING_CHANGED_EXECUTION_RECEIPT')
+            return scored
+        return raw
 
     async def provision(self, contract, inputs, lock_pins):
         if self._executor.provisioner is None:

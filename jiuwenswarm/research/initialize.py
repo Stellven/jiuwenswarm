@@ -198,7 +198,8 @@ async def initialize_profile(*, calibrate=False, concurrency=2):
             entries=[composition.library.get(row['pin']['cc_name'],row['pin']['cc_version']) for row in composition.installed.values()]
             science_ref=capture_local_science_runtime(store,configuration_ref=bindings['configuration_ref'],
                 policy_ref=operator.snapshot()['cc']['plan_policy_ref'],resource_inventory_ref=options['resource_inventory_ref'],
-                entries=entries,approved_environments=resources['approved_environments'])
+                entries=entries,approved_environments=resources['approved_environments'],
+                scoring_profile=resources.get('scoring_profile'))
             _write_once(Path(configuration_path).parent/'science.json',{'binding_ref':science_ref})
         try:library_ref=composition.library.snapshot()
         except ResearchError:library_ref=None

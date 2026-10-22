@@ -36,7 +36,7 @@ def _ref_key(ref):
 
 
 def decode_science_runtime_record(record, *, historical=False):
-    """Decode v2 or explicitly historical v1 without installing a factory.
+    """Decode closed v2/v3 or historical v1 without installing a factory.
 
     Original v1 data stays readable. A v1 profile cannot create a new native
     execution capability. Numeric/schema success never supplies service proof.
@@ -48,8 +48,21 @@ def decode_science_runtime_record(record, *, historical=False):
         if version=='ai4r-science-runtime:1':
             _require(historical and set(record)==fields,'SCIENCE_RUNTIME_V1_HISTORICAL_ONLY')
         else:
-            _require(version=='ai4r-science-runtime:2' and set(record)==fields|{'execution_bindings'})
-            validate('urn:ai4r:private:science-runtime:2',record)
+            _require(version in {'ai4r-science-runtime:2','ai4r-science-runtime:3'})
+            extra={'execution_bindings'}|({'scoring_profile'} if version=='ai4r-science-runtime:3' else set())
+            _require(set(record)==fields|extra)
+            validate('urn:ai4r:private:science-runtime:'+version.rsplit(':',1)[1],record)
+        if version=='ai4r-science-runtime:3':
+            scoring=record['scoring_profile']
+            _ref_key(scoring['public_dataset_ref'])
+            _require(scoring['protocol']=='ai4r-blind-classification:1'
+                and scoring['public_file']=='data.json'
+                and scoring['holdout_path']=='/run/ai4r-private-qa/holdout.json'
+                and type(scoring['max_stdout_bytes']) is int and scoring['max_stdout_bytes']==8388608,
+                'SCIENCE_SCORING_PROFILE_INVALID')
+            for key in ('public_data_sha256','holdout_sha256','scorer_sha256'):
+                _require(type(scoring[key]) is str and re.fullmatch(r'[0-9a-f]{64}',scoring[key]),
+                    'SCIENCE_SCORING_PROFILE_INVALID')
         _require(all(isinstance(record[key],str) and record[key] for key in ('id','build_id')))
         _require(type(record['gpu_required']) is bool)
         profile=record['profile']
@@ -80,7 +93,7 @@ def decode_science_runtime_record(record, *, historical=False):
             _require(type(entry['wheel_filenames']) is dict and all(type(key) is str and type(value) is str
                 and key and value and '\0' not in key and '\0' not in value
                 for key,value in entry['wheel_filenames'].items()),'SCIENCE_ENVIRONMENT_CATALOG_INVALID')
-        if version=='ai4r-science-runtime:2':
+        if version in {'ai4r-science-runtime:2','ai4r-science-runtime:3'}:
             seen=set()
             for entry in record['execution_bindings']:
                 refs=tuple(_ref_key(entry[key]) for key in ('configuration_ref','policy_ref','resource_inventory_ref',

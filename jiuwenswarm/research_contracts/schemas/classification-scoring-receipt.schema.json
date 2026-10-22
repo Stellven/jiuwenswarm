@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:classification-scoring-receipt:1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-classification-scoring-receipt:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "node_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attempt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "invocation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "role": {
+      "enum": [
+        "baseline",
+        "treatment"
+      ]
+    },
+    "repeat_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "subject_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "validation_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "prediction_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "execution_identity_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "public_data_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "scorer_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "holdout_commitment": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "status": {
+      "enum": [
+        "scored",
+        "unmeasured"
+      ]
+    },
+    "failure_reason": {
+      "enum": [
+        null,
+        "execution_failed",
+        "prediction_invalid"
+      ]
+    },
+    "sample_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "correct_count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "accuracy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "run_id",
+    "node_id",
+    "attempt_id",
+    "contract_ref",
+    "invocation_id",
+    "job_id",
+    "sequence",
+    "role",
+    "repeat_index",
+    "seed",
+    "subject_ref",
+    "validation_ref",
+    "prediction_ref",
+    "execution_identity_sha256",
+    "public_data_sha256",
+    "scorer_sha256",
+    "holdout_commitment",
+    "status",
+    "failure_reason",
+    "sample_count",
+    "correct_count",
+    "metrics"
+  ],
+  "additionalProperties": false
+}

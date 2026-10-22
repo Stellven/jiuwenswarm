@@ -6,6 +6,7 @@ neither this factory nor authority to choose commands, approval pins or roots.
 from __future__ import annotations
 
 import asyncio
+import copy
 import hashlib
 import importlib.metadata
 import json
@@ -142,7 +143,8 @@ def _hash_tree(root):
 
 class ScienceExecutionAdapter:
     def __init__(self, store, profile: ScienceProfile, *, approved_environments,
-                 workspace_allocator: Callable, hardware_capture: Callable, provision_runner: Callable | None = None):
+                 workspace_allocator: Callable, hardware_capture: Callable, provision_runner: Callable | None = None,
+                 scorer=None):
         for value in [profile.memory_mb, profile.pids_max, profile.run_timeout_s, profile.provision_timeout_s]:
             if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
                 raise ValueError('Explicit positive protected scientific limits are required')
@@ -150,7 +152,23 @@ class ScienceExecutionAdapter:
         self.approved = {entry.lock_ref['sha256']: entry for entry in approved_environments}
         self.workspace_allocator, self.hardware_capture = workspace_allocator, hardware_capture
         self.provision_runner = provision_runner
+        self.scorer = scorer
+        self._measurement_jobs = {}
         self._prepared, self._mounts, self._hardware, self._started = {}, {}, {}, {}
+
+    def score_result(self, job, raw, *, binding):
+        """Root-only post-cessation scoring; preserve original child stdout."""
+        if self.scorer is None:
+            return raw  # Explicit legacy v2 execution remains unchanged.
+        _binding(binding.contract, binding)
+        known = self._measurement_jobs.pop(job.job_id, None)
+        if (known is None or known[0] != job or job.contract_ref != binding.contract_ref
+                or job.invocation_id != binding.invocation_id):
+            raise ResearchError('auth', 'Trusted scoring requires the original issued public-data job')
+        if (raw.get('observed_runtime') is not True or raw.get('exit_code') != 0
+                or raw.get('termination_reason') != 'completed'):
+            return raw  # Failed/unknown execution supplies no successful score.
+        return self.scorer.score(job, raw, known[1])
 
     def _remaining(self, contract, binding, cap):
         start = self._started.setdefault(binding.invocation_id, time.monotonic())
@@ -380,9 +398,13 @@ class ScienceExecutionAdapter:
         self.environment_verifier(prepared[0])
         baseline = self._resource(inputs['baseline_resource'], _input_ref(contract, 'baseline_resource'), '/resources/baseline')
         validation = self._resource(inputs['validation_resource'], _input_ref(contract, 'validation_resource'), '/resources/validation')
-        from .checks.research import inspect_bundle
+        if self.scorer is not None:
+            from .checks.prediction_bundle import inspect_bundle
+        else:
+            from .checks.research import inspect_bundle
         bundle = self.store.read_blob(manifest['archive_ref'])
-        checked = inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']], prepared[2])
+        protocol = {'output_protocol': 'ai4r-predictions:1'} if self.scorer is not None else {}
+        checked = inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']], prepared[2], **protocol)
         poc = {'schema_version': '1.0.0', 'id': 'prepared_poc', 'kind': 'accepted POC', 'origin': 'accepted POC archive',
                'revision': manifest['archive_ref']['sha256'], 'files': [{'path': name, 'artifact_ref': self.store.put_blob(raw),
                'media_type': 'text/plain', 'audience': 'researcher'} for name, raw in checked['files'].items()],
@@ -401,7 +423,7 @@ class ScienceExecutionAdapter:
         cwd = self.workspace_allocator(binding, sequence, role)
         if asyncio.iscoroutine(cwd): cwd = await cwd
         memory = min(self.profile.memory_mb, contract['subnode_limits']['memory_mb'], contract['bindings'][0]['limits']['memory_mb'])
-        return ExecutionJob(job_id='science-' + uuid.uuid4().hex, invocation_id=binding.invocation_id,
+        job = ExecutionJob(job_id='science-' + uuid.uuid4().hex, invocation_id=binding.invocation_id,
             contract_ref=binding.contract_ref, run_id=contract['run_id'], node_id=contract['node_id'], attempt_id=contract['attempt_id'],
             sequence=sequence, role=role, repeat_index=repeat_index, seed=seed,
             argv=('/environment/bin/python', script, *arguments), cwd=Path(cwd),
@@ -409,3 +431,6 @@ class ScienceExecutionAdapter:
             pids_max=self.profile.pids_max, baseline_ref=baseline.ref, validation_ref=validation.ref,
             environment_ref=prepared[0].ref, subject_ref=subject_ref, hardware_ref=hardware_ref,
             readonly_mounts=(baseline, validation, treatment), environment=prepared[0])
+        if self.scorer is not None:
+            self._measurement_jobs[job.job_id] = (copy.deepcopy(job), copy.deepcopy(inputs['validation_resource']))
+        return job

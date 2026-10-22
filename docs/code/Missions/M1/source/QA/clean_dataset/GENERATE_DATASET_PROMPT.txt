@@ -1,0 +1,55 @@
+Create a fresh classification dataset as downloadable files for an independently scored AI4Research run. You are the external dataset author. Do not solve the task for AI4Research, prescribe a classifier, promise improvement, or manufacture an expected score. Generate the data yourself using a new cryptographically random secret generation seed. Do not use 42 as the generation seed: 42 is reserved for the later research execution protocol.
+
+Deliver this directory as a downloadable archive, keeping public and private files separate:
+
+  public/data.json
+  public/project.md
+  private/holdout.json
+  private/generation_record.json
+  private/generate_dataset.py
+
+Do not paste dataset rows, holdout labels, the secret seed, generation rule or generator code into your chat answer. Give the download link and a short file/count/size checklist only. The user will retain the private files outside the AI4Research chat and will import the two data files through a protected operator command.
+
+DATA DESIGN
+
+Use 256 labeled training rows, 512 independently sampled held-out test rows, four finite numeric features and two opaque string class labels. Generate train and test from the same undisclosed, nontrivial noisy relationship. Include useful feature signal, but do not optimize or regenerate the dataset until some chosen classifier wins. Do not calculate or publish an expected baseline/treatment accuracy, a reference solution, a best threshold, or a guaranteed improvement.
+
+Avoid an intentionally trivial one-dimensional sign/decimal cutoff task, a feature that directly stores the target, duplicate train/test observations, or any relation between class labels and row identifiers, ordering, rounding patterns, split membership or filenames. Use anonymous feature names. Draw opaque row IDs independently of features and labels; IDs must be unique across BOTH splits. Independently shuffle train and test. All declared classes must occur in training. Do not hide instructions, oracle information or label clues in strings, metadata or the neutral project guide.
+
+PUBLIC FILE: public/data.json
+
+Write one compact UTF-8 JSON object with EXACTLY these keys:
+
+  schema: the string "ai4r-classification-data:1"
+  dataset_id: a nonempty opaque string, at most 128 characters
+  feature_names: four unique nonempty strings, each at most 128 characters
+  classes: two unique nonempty string labels, each at most 128 characters
+  train: 256 objects with EXACTLY {id, features, label}
+  test: 512 objects with EXACTLY {id, features}
+
+Each id is a nonempty opaque string of at most 128 characters. Each features value is an array of exactly four finite JSON numbers. Each training label is one of classes. Test rows MUST NOT contain label, target, answer, score, oracle or any other key. Use ordinary finite decimals; no NaN, Infinity, duplicate JSON keys or JSON comments. Keep public/data.json below 2 MiB, preferably below 100 KB, without sacrificing the specified row counts. Do not add a description, seed, formula, private-file reference, expected result or generator metadata to the public JSON.
+
+Finalize the exact public/data.json bytes BEFORE computing its SHA-256. Hash those bytes, including any final newline. Do not reformat or rewrite the file after hashing it.
+
+PRIVATE FILE: private/holdout.json
+
+Write one UTF-8 JSON object with EXACTLY these keys:
+
+  schema: the string "ai4r-classification-holdout:1"
+  dataset_id: exactly public/data.json's dataset_id
+  public_data_sha256: the lowercase 64-character SHA-256 of the final public/data.json bytes
+  labels: 512 objects with EXACTLY {id, label}
+
+Every id must name one public test row, each exactly once. Every label must be a string in the public classes vocabulary. No training IDs, duplicate IDs, extra IDs or missing test IDs are allowed. Do not add the seed or formula to this closed JSON object. Keep it below 4 MiB.
+
+PRIVATE AUDIT MATERIAL
+
+Keep the cryptographic generation seed, undisclosed oracle/rule, noise mechanism, provenance and reproducible generator code ONLY in private/generation_record.json and private/generate_dataset.py. These are for the user's separate custody, not AI4Research uploads or model context. The generator must reproduce the delivered files from its retained private seed without consulting an AI4Research output or adjusting the data to a successful treatment. Do not encode holdout answers in the public files.
+
+NEUTRAL GUIDE: public/project.md
+
+Write a short, plain-language project note stating the dataset's opaque name, its dimensions and row counts, the public JSON schema and that training labels are available while test labels are withheld. State that AI4Research should choose and justify one bounded classifier intervention from the available training evidence, compare it with the unchanged captured baseline, and report the actual result even if negative or inconclusive. Explain only the generic predict(train, test) interface: input rows use the public format, and the function returns string labels in test-row order. Trusted host scoring owns the held-out labels and accuracy computation. Include no classifier recommendation, threshold, sign rule, formula, generation seed, expected score or promise of success. Do not include absolute paths or instructions to alter checks, permissions or scoring.
+
+FINAL FILE VALIDATION
+
+Before delivering, validate the closed key sets, row counts, dimensions, finite values, global ID uniqueness, declared labels, absence of labels/private material from public test rows, exact public SHA join and exact private test-ID coverage. Confirm these checks in a short checklist without exposing records or secrets. These format checks do not prove that a later model generalizes or that its execution boundary is secure; the actual AI4Research run must establish its own attributable evidence.

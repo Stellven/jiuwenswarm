@@ -242,7 +242,9 @@ class Scheduler:
                             or producing['bindings'][0]['declaration_ref']['sha256'] != selected['cc']['declaration_sha256']
                             or len(starts) != 1):
                         raise ResearchError('host_record_unavailable', 'Host proposal differs from the actual source/native producing attempt')
-                    receipt = self.store.read_record(offered['ref'], contract_id='build-receipt')
+                    receipt_contract = ('urn:ai4r:prediction-build-receipt:2.0.0'
+                        if selected['cc']['cc_version'] == 'm1-11' else 'build-receipt')
+                    receipt = self.store.read_record(offered['ref'], contract_id=receipt_contract)
                     if (receipt['manifest_ref'] != proof['outputs'].get('manifest') or receipt['archive_ref'] != proof['outputs'].get('bundle')
                             or receipt['blueprint_ref'] != producer_inputs.get('blueprint') or receipt['environment_ref'] != producer_inputs.get('lock')
                             or receipt['readiness'] != 'READY' or receipt['trial_executed'] or receipt['packages_installed']):

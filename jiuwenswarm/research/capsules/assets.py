@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-10', benchmark='m1-3-localcpu', evaluation='m1-4', delivery='m1-4')
+STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-11', benchmark='m1-4-blindcpu', evaluation='m1-4', delivery='m1-4')
 
 
 def source_metadata():
@@ -47,6 +47,10 @@ def build_research_assets(store, *, verify_catalog=True):
         carrier_name = 'builder_text.py' if stage == 'builder' else stage + '.py'
         body = {carrier_name: (root / 'capsules' / carrier_name).read_bytes(),
                 '_common.py': (root / 'capsules/_common.py').read_bytes()}
+        if stage in {'builder', 'benchmark'}:
+            body['trusted_scoring.py'] = (root / 'trusted_scoring.py').read_bytes()
+            if stage == 'builder':
+                body['prediction_bundle.py'] = (root / 'checks/prediction_bundle.py').read_bytes()
         stage_runner_ref = runner_ref
         if stage == 'builder':
             declaration['needs']['resources'] = []
@@ -69,8 +73,14 @@ def build_research_assets(store, *, verify_catalog=True):
                         'Protected Benchmark runs the unchanged captured baseline command once per baseline job, '
                         'completes all registered baseline repeats, then invokes run_benchmark.py once per treatment '
                         'job and aggregates the actual receipts. Accordingly, run_benchmark.py is a one-job treatment '
-                        'harness: its default invocation computes exactly one treatment observation and emits one '
-                        'registered metrics JSON line. It must not invoke the baseline, nest cross-role/repeat '
+                        'harness: its default invocation calls predict(train,test) once and emits exactly '
+                        '{"predictions":[{"id":"test ID","label":"declared string class"}]} with all test IDs '
+                        'once. The patch returns string labels aligned with the test rows. Public data.json '
+                        'contains feature_names, classes, labeled train rows and unlabeled test feature rows; '
+                        'it contains no held-out labels. Generated code emits no metrics or accuracy; a separately '
+                        'installed root scorer computes accuracy after sandbox exit against a private holdout '
+                        'that is absent from model/worker/generated-code inputs and mounts. No classifier or '
+                        'expected score is prescribed. It must not invoke the baseline, nest cross-role/repeat '
                         'experiments or average repeated measurements. Its visible validation path and seed '
                         'configuration must be internally consistent. Semantic review checks those visible roles '
                         'and settings under this fixed protocol; it cannot establish hidden baseline/data contents '
@@ -78,11 +88,32 @@ def build_research_assets(store, *, verify_catalog=True):
                         'Those original identity/order/execution obligations remain protected Benchmark host checks.')
             closure = dict(checker_closure)
             closure['checks/builder_text.py'] = store.put_blob((root / 'checks/builder_text.py').read_bytes(), media_type='text/x-python')
+            closure['checks/prediction_bundle.py'] = store.put_blob((root / 'checks/prediction_bundle.py').read_bytes(), media_type='text/x-python')
+            closure['trusted_scoring.py'] = store.put_blob((root / 'trusted_scoring.py').read_bytes(), media_type='text/x-python')
+            closure['schemas/prediction-build-receipt.v2.schema.json'] = store.put_blob((root.parent / 'research_contracts/schemas/prediction-build-receipt.v2.schema.json').read_bytes(), media_type='application/json')
             stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.builder_text', 'files': closure}), media_type='application/json')
         if stage == 'benchmark':
             declaration['needs']['resources'] = [row for row in declaration['needs']['resources'] if row['resource_key'] != 'gpu_device']
             declaration['needs']['network'] = {'mode': 'none', 'direction': 'none', 'allowlist': []}
-            identity['summary'] = 'Local CPU scientific benchmark: frozen offline environment, actual baseline and treatment measurements, recorded zero-GPU hardware facts'
+            identity['summary'] = 'Blind CPU classification benchmark: raw predictions, root-only held-out scoring, actual baseline-first jobs and protected scoring receipts'
+            for port in declaration['ports']['inputs']:
+                if port['name'] == 'build_receipt':
+                    port['schema_ref'] = 'urn:ai4r:prediction-build-receipt:2.0.0'
+            for port in declaration['ports']['outputs']:
+                port['description'] = ('Blind classification protocol: generated baseline/treatment stdout contains '
+                    'predictions only, never authoritative metrics. Root computes accuracy=correct_count/sample_count '
+                    'after sandbox exit with private held-out labels unavailable to models, workers and generated '
+                    'code. Public raw stdout refs remain the exact original predictions. Protected scoring receipt '
+                    'Refs in benchmark_payload.raw_evidence_refs separately identify trusted observations and join '
+                    'job/contract/sequence/role/seed/dataset/stream/scorer identities. Unmeasured jobs retain explicit '
+                    'C002 reasons, not invented values. Host alone checks private scoring custody and actual '
+                    'execution; output-only semantic review checks visible fields, arithmetic and consistency.')
+            closure = dict(checker_closure)
+            for name in ('checks/blind_benchmark.py', 'trusted_scoring.py'):
+                closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
+            for name in ('classification-scoring-receipt.schema.json', 'prediction-build-receipt.v2.schema.json'):
+                closure['schemas/' + name] = store.put_blob((root.parent / 'research_contracts/schemas' / name).read_bytes(), media_type='application/json')
+            stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.blind_benchmark', 'files': closure}), media_type='application/json')
         if stage == 'evaluation':
             for port in declaration['ports']['outputs']:
                 if port['name'] == 'evaluation_verdict':
@@ -144,7 +175,7 @@ def build_research_assets(store, *, verify_catalog=True):
             for key, summary in [('empirical_sequence_contiguous', 'C002: every actual receipt sequence has exactly one empirical row, contiguous from 1.'),
                                  ('empirical_values_finite', 'C002: finite metrics and missing-reason maps are disjoint and jointly cover the blueprint metric set.')]:
                 checks.append({'check_id': key, 'target_port': 'benchmark_payload', 'rule_summary': summary,
-                               'runner_ref': runner_ref, 'reads': ['output', 'inputs', 'runtime_records'], 'blocking': True})
+                               'runner_ref': stage_runner_ref, 'reads': ['output', 'inputs', 'runtime_records'], 'blocking': True})
         criteria = [{'criterion_id': key, 'question': question, 'blocking': True,
                      'answerable_from': 'declaration_and_output', 'target_port': None} for key, question in generic]
         for row in source['criteria']:
@@ -155,7 +186,7 @@ def build_research_assets(store, *, verify_catalog=True):
         if stage == 'builder':
             for criterion in criteria:
                 if criterion['criterion_id'] == 'harness_orders_baseline_first':
-                    criterion['question'] = ('Does the visible harness take one treatment observation per default '
+                    criterion['question'] = ('Does the visible harness emit one batch of ID/string-label predictions per default '
                         'invocation, with consistent data/seed settings and no baseline calls, repeat experiments '
                         'or averaging? Host Benchmark owns baseline-first scheduling; hidden baseline/data '
                         'fidelity and actual execution remain host checks.')
@@ -214,6 +245,9 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
         if stage == 'builder':
             from ..checks.builder_text import TextBuilderChecks
             checks = TextBuilderChecks(stage, executor=executor)
+        elif stage == 'benchmark':
+            from ..checks.blind_benchmark import BlindBenchmarkChecks
+            checks = BlindBenchmarkChecks(stage, executor=executor)
         else:
             checks = ResearchChecks(stage, executor=executor)
         check_registry.register_bundle(bundle['bundle_id'], [check['check_id'] for check in bundle['checks']],

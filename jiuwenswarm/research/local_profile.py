@@ -1,7 +1,7 @@
 """Explicit local operator capture, separate from admission and readiness.
 
 The launcher opt-in captures an immutable policy, fixed subscription deployment,
-workspace bindings, explicitly authored tutorial resources and private guard
+workspace bindings, explicitly imported external resources and private guard
 fixtures. It creates no calibrated eligibility, admissions, credentials,
 experiment measurements or observed hardware.
 """
@@ -19,7 +19,7 @@ from .contracts import ResearchError, validate
 from .operator_config import OperatorConfiguration
 from .state import SQLiteRunStore, json_bytes
 
-PROFILE_NAME = 'local-research-development-v1'
+PROFILE_NAME = 'local-research-external-v2'
 PREVIOUS_PROFILE_NAME = 'local-research-v6'
 GOVERNANCE_PROFILE_NAME = 'local-research-v5'
 
@@ -74,7 +74,8 @@ def _previous_calibration_requests(store, runtime_ref):
     return result
 
 
-def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True):
+def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
+                          public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False):
     directory = Path(directory)
     if not directory.is_absolute() or directory.is_symlink() or input_root.is_symlink() or not input_root.is_dir():
         raise ResearchError('local_profile_custody', 'Local operator and input directories must be real absolute directories')
@@ -100,7 +101,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
     if development_builtin_catalog:
         previous=next((directory.parent/name for name in ('local-research-v7','local-research-v6','local-research-v5')
             if (directory.parent/name/'config.json').exists() or (directory.parent/name/'bootstrap.json').exists()),previous)
-    if (previous / 'config.json').exists() or (previous / 'bootstrap.json').exists():
+    if legacy_checking_refresh and ((previous / 'config.json').exists() or (previous / 'bootstrap.json').exists()):
         # This generation changes checking bindings, not operator governance.
         # Keep every prior Ref and original file; capture only the revised
         # calibration profiles/runtime in a new immutable bootstrap directory.
@@ -201,9 +202,19 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
     profile = capture('profile', {'id': GOVERNANCE_PROFILE_NAME, 'model': 'gpt-6.1-sol', 'hardware_ceiling': 'single_gpu'})
     workspace = capture('workspace', {'id': 'local', 'input_root': str(input_root), 'poc_root': '/workspace/poc'})
     inputs = capture('input-directory', {'id': GOVERNANCE_PROFILE_NAME + '.inputs', 'path': str(input_root), 'readable': os.access(input_root, os.R_OK)})
-    from .local_science import capture_local_science_resources
-    science = capture_local_science_resources(store)
-    inventory = science['resource_inventory_ref']
+    public_dataset_path = public_dataset_path or os.environ.get('JIUWENSWARM_M1_EXTERNAL_DATASET')
+    scoring_pins_path = os.environ.get('JIUWENSWARM_M1_EXTERNAL_SCORING_PINS')
+    if scoring_pins is None and scoring_pins_path:
+        from .bootstrap_gateway import _protected_file
+        scoring_pins = json.loads(_protected_file(scoring_pins_path))
+    science = None
+    if public_dataset_path is not None:
+        from .local_science import capture_local_science_resources
+        science = capture_local_science_resources(store, public_path=public_dataset_path, scoring_pins=scoring_pins)
+        inventory = science['resource_inventory_ref']
+    else:
+        inventory = store.put_record('resource-inventory', {'schema_version': '1.0.0',
+            'id': 'external_dataset_not_imported', 'resources': []})
     calibration=None
     if not development_builtin_catalog:
         from .catalog_calibration import capture_catalog_calibration
@@ -222,12 +233,12 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'planner_limits': {'time_s': 600, 'model_calls': 2, 'memory_mb': 16384},
         'resource_inventory_ref': inventory, 'search_bounds_ref': bounds,
         'authority_ceiling': {'network': 'allowlist', 'network_allowlist': ['approved_package_index'],
-                              'resource_reads': science['resource_reads'], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch']},
+                              'resource_reads': science['resource_reads'] if science else [], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch']},
         'document_extraction_timeout_s': 30, 'max_upload_bytes': 20 * 1024 * 1024,
-        'run_inputs': science['run_inputs'], 'host_records': science['host_records'],
-        'local_example_ref': science['local_example_ref'],
-        'local_science_resources_ref': store.put_blob(json_bytes(science), media_type='application/json'),
+        'run_inputs': science['run_inputs'] if science else {}, 'host_records': science['host_records'] if science else {},
         'development_builtin_catalog':development_builtin_catalog}
+    if science is not None:
+        options['local_science_resources_ref'] = store.put_blob(json_bytes(science), media_type='application/json')
     if calibration is not None:
         options.update(calibration_runtime_ref=calibration['runtime_ref'],
             calibration_profile_refs=calibration['profile_refs'],calibration_limitations=calibration['limitations'])

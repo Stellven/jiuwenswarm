@@ -214,7 +214,8 @@ async def start(runner, context, *, dispatch=None):
             require(runner.store.record_kind(preflight['science_runtime_ref']) == 'science-runtime',
                 'Original scientific runtime kind differs')
             runtime = runner.store.read_record(preflight['science_runtime_ref'])
-            validate('urn:ai4r:private:science-runtime:2', runtime)
+            from .science_runtime import decode_science_runtime_record
+            decode_science_runtime_record(runtime)
             execution['preflight_ref'] = copy.deepcopy(preflight_ref)
             owner = execution.get('evaluation_owner')
             if owner is not None:

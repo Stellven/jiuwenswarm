@@ -41,7 +41,8 @@ def publish_scientific_start_receipt(runner,kind,record,preparation_ref):
             _require(record['preparation_ref']==preparation_ref,'Preflight targets another original preparation')
             runtime=record['science_runtime_ref']
             _require(store.record_kind(runtime)=='science-runtime','Scientific runtime has another indexed kind')
-            validate('urn:ai4r:private:science-runtime:2',store.read_record(runtime))
+            from .science_runtime import decode_science_runtime_record
+            decode_science_runtime_record(store.read_record(runtime))
         else:
             preflight_ref=record['preflight_ref']
             _require(store.record_kind(preflight_ref)=='scientific-attempt-preflight','Activation has no original indexed preflight')

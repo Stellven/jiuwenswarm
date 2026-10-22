@@ -7,6 +7,7 @@ from .stages import ResearchChecks, require
 from .research import BUNDLE_FILES, inspect_bundle
 from ..contracts import validate
 from ..environment import validate_lock
+from ..trusted_scoring import BUILD_SCHEMA
 
 
 class TextBuilderChecks(ResearchChecks):
@@ -15,8 +16,15 @@ class TextBuilderChecks(ResearchChecks):
         blueprint, lock = inputs['blueprint'], inputs['lock']
         require(manifest['blueprint_ref'] == ctx.input_ref('blueprint'), 'blueprint_unchanged')
         require(manifest['environment_ref'] == blueprint['environment_ref'] == ctx.input_ref('lock'), 'environment_unchanged')
-        checked = inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']],
-                                 validate_lock(lock, ctx.read_blob, lock['platform']))
+        declaration = ctx.read_json(ctx.contract['bindings'][0]['declaration_ref'])
+        prediction = declaration['identity']['version_label'] == 'm1-11'
+        if prediction:
+            from .prediction_bundle import inspect_bundle as inspect_predictions
+            checked = inspect_predictions(bundle, [metric['metric_id'] for metric in blueprint['metrics']],
+                validate_lock(lock, ctx.read_blob, lock['platform']))
+        else:
+            checked = inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']],
+                                     validate_lock(lock, ctx.read_blob, lock['platform']))
         require(manifest['archive_ref'] == ctx.output_refs['bundle'], 'bundle_hash_matches')
         require({row['path'] for row in manifest['files']} == BUNDLE_FILES and len(manifest['files']) == 3, 'required_files_present')
         for row in manifest['files']:
@@ -27,7 +35,7 @@ class TextBuilderChecks(ResearchChecks):
             and row['record'].get('subnode_id') == ctx.contract['subnode_id']]
         require(len(proposals) == 1, 'build_receipt_ready')
         receipt = ctx.read_json(proposals[0]['ref'])
-        validate('build-receipt', receipt)
+        validate(BUILD_SCHEMA if prediction else 'build-receipt', receipt)
         require(receipt['manifest_ref'] == ctx.output_refs['manifest'] and receipt['archive_ref'] == ctx.output_refs['bundle']
             and receipt['blueprint_ref'] == ctx.input_ref('blueprint') and receipt['environment_ref'] == ctx.input_ref('lock'), 'build_receipt_ready')
         require(receipt['file_checks'] == checked['file_checks'] and receipt['output_format_check'] == checked['output_format_check']
@@ -60,6 +68,6 @@ class TextBuilderChecks(ResearchChecks):
         require(all(type(text) is str and text.encode('utf-8') == checked['files'][name]
             for name, text in payload['files'].items()), 'no_trial_no_install')
         declaration = ctx.read_json(ctx.contract['bindings'][0]['declaration_ref'])
-        require(declaration['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10'}
+        require(declaration['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11'}
             and declaration['needs']['model']['tool_calling'] is False
             and declaration['budget']['per_call']['tool_calls'] == 0, 'no_trial_no_install')

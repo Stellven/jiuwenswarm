@@ -295,7 +295,7 @@ class ResearchService:
         native_evidence=RunEvidence(self.store,None)
         finite=finite_evidence_refs(self.store,run_id)
         public={'gate-decision','bound-check-plan','review-context','deterministic-check-result','verifier-assessment','invocation-observation','dispatch-record','dispatch-start','acceptance-commit','route-record','model-call','model-call-start','model-call-refused','plan-outcome','escalation','execution-contained','run-bundle','run-start','run-end','run-plan-binding','run-evidence-missing','run-evaluation-labels','fault-injection','fault-injection-outcome'}
-        public|={'finite-e1-scope'}
+        public|={'finite-e1-scope','classification-scoring-receipt'}
         files=[];refs=[];restricted={};delivery_files=[];records=list(self.store.iter_records(run_id=run_id))
         if finite is not None:
             for ref in finite['artifact_refs']:
