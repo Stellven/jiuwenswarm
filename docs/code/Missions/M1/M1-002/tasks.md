@@ -774,8 +774,8 @@ C023 positive connected observation complete: actual supplied-PDF run `run:a9fbc
 
 
 ### C024/C025 active work
-- [ ] M1-002/T-C024 connect the normal POC profile and repair only observed scientific integration failures.
-- [ ] M1-002/V-C024 observe allocated positive boundary on the real native POC request; AC-C024 -> T-C024 -> original app Store/history/accepted report.
+- [x] M1-002/T-C024 connect the normal POC profile and repair only observed scientific integration failures.
+- [x] M1-002/V-C024 observe allocated positive boundary on the real native POC request; AC-C024 -> T-C024 -> original app Store/history/accepted report.
 - [x] M1-002/T-C025 trace and correct the exact latest uploaded-PDF failure.
 - [x] M1-002/V-C025 observe the corrected request boundary while preserving original failure; AC-C025 -> T-C025 -> original Store/gates/native result.
 No unrun check, qualification or scientific result is a pass.
@@ -823,3 +823,6 @@ C024 source-review correction before guarded rebind: accepted reports may legiti
 
 
 C024 optimization compatibility boundary before rebind: the POC-only report helper now returns None before strict internal proof for profile/evaluation-bound runs, absent or ambiguous original plan bindings, and graphs outside the exact seven unique Search/Screening/Hypothesis/Builder/Benchmark/Evaluation/Delivery Capsule-name set. Those paths retain existing generic result/export behavior, including historical finite/custom graph support. Only the known full seven-stage POC shape selects the optimized original accepted-report proof; all its frozen/committed/scientific/disclosure predicates remain unchanged. Current genuine7cd graph has exactly this shape. Final workflow_inspection.py SHA256 d028e07d3689b9e0a6dd4e4f992158fffbf6a3400733afc04fb5ae624ce434a4, AST valid, superseding prior6c9b source for pending rebind. No original reread, test/model, runtime rebind or record change was performed for this compatibility correction.
+
+
+2026-10-22 C024 positive connected read-side/native-history observation closed for original run:7cdedab88098490ca093c1355e84ce1f on current read buildd5f656 after workflow_inspection SHA256d028e07d3689b9e0a6dd4e4f992158fffbf6a3400733afc04fb5ae624ce434a4: root's existing-result GET succeeded with the same original unredacted report0d0140fb1414513114d95b547a436b15c1f139c119a331f409af49bf1e4b0cd2,8,812bytes. Original native-session GET returned HTTP200 in6.839seconds, and direct persisted history retained the same user/upload, accepted report and download link. Authenticated original evidence ZIP streamed without disk copy:46,337,622bytes, SHA25682bbf2d4ffafcca6428017de54c31d8af1f8ed83899df851c58179c44cea7edd; root GET resume27666 ended0. This closes only the existing C024 positive original accepted-report/result/native-history/export boundary observation. No scientific result was regenerated, prior failure overwritten, broad qualification/negative/browser check promoted, or source/runtime/additional read performed by this progress update.

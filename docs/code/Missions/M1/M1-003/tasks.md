@@ -254,10 +254,11 @@ C023 positive connected observation complete: actual supplied-PDF run `run:a9fbc
 
 
 ### C024/C025 active work
-- [ ] M1-003/T-C024 connect the normal POC profile and repair only observed scientific integration failures.
-- [ ] M1-003/V-C024 observe allocated positive boundary on the real native POC request; AC-C024 -> T-C024 -> original app Store/history/accepted report.
+- [x] M1-003/T-C024 connect the normal POC profile and repair only observed scientific integration failures.
+- [x] M1-003/V-C024 observe allocated positive boundary on the real native POC request; AC-C024 -> T-C024 -> original app Store/history/accepted report.
 - [x] M1-003/T-C025 trace and correct the exact latest uploaded-PDF failure.
 - [x] M1-003/V-C025 observe the corrected request boundary while preserving original failure; AC-C025 -> T-C025 -> original Store/gates/native result.
+C024 positive allocated compiler boundary: original run7cdedab88098490ca093c1355e84ce1f accepted the actual911-byte uploaded guide through Intent/Requirements and released its Brief to the real Planner/full POC. All stages completed; SYSTEM observed the same accepted report, original user/upload, assistant and download record. Compiler-specific source changes for C024 were unnecessary(N/A). Exact current request/commands/refs and limitations are in SYSTEM C024 closure; broad qualification/arbitrary tasks/browser rendering remain NOT_RUN. Historical failed records remain unchanged.
 No unrun check, qualification or scientific result is a pass.
 
 
