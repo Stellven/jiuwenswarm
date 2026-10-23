@@ -174,6 +174,10 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
             for item in inventory[kind]:
                 expected={n['node_id'] for n in nodes if item in n[tag]}
                 if not expected or coverage.get((kind,item))!=expected:fail('brief_coverage','Coverage is not the exact inverse of tags')
+        if capability:
+            for item in inventory['evidence_obligation']:
+                if not coverage.get(('evidence_obligation', item)):
+                    fail('brief_coverage', 'Every evidence obligation needs an explicit nonempty node assignment')
         depended={p for n in nodes for p in n['predecessors']}; leaves=[n for n in nodes if n['node_id'] not in depended]
         delivery_cc = PAPER_DELIVERY_CC if paper_summary else 'research.delivery'
         if len(leaves)!=1 or (not capability and leaves[0]['cc']['cc_name']!=delivery_cc) or not inventory['deliverable'].issubset(leaves[0]['deliverable_ids']):

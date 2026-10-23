@@ -42,7 +42,8 @@ def graph():
         node['deliverable_ids'] = ['all_deliverables'] if i == 1 else []
     source['coverage'] = [
         {'selector': 'all_mandatory_requirements', 'node_ids': ['work_0', 'work_1']},
-        {'selector': 'all_deliverables', 'node_ids': ['work_1']}]
+        {'selector': 'all_deliverables', 'node_ids': ['work_1']},
+        {'selector': 'all_evidence_obligations', 'node_ids': ['work_0', 'work_1']}]
     library['entries'] = library['entries'][:2]
     for node, entry in zip(nodes, library['entries']):
         entry.update(**node['cc'], selectable_by_planner=True, input_ports=[],
@@ -122,3 +123,21 @@ async def test_optional_checks_are_available_to_existing_protected_calibration(t
         bundle = store.read_record(asset['bundle_ref'])
         assert bundle['bundle_id'] in registry._bundles
         assert LibraryService(store).entries() == []
+
+
+def test_new_policy_requires_evidence_assignments_and_exact_future_port_schemas():
+    values = graph()
+    values[0]['coverage'] = [r for r in values[0]['coverage'] if r.get('selector') != 'all_evidence_obligations']
+    _, results = plan_checks(*values, capability_plan_policy(), plan_source='static')
+    assert any(r['check_id'] == 'brief_coverage' and r['outcome'] == 'FAIL' for r in results)
+    values = graph()
+    values[0]['nodes'][1]['inputs'] = [{'name': 'packet', 'artifact_type': 'work_packet', 'required': True,
+        'source_kind': 'future_output', 'run_input_key': None, 'accepted_ref': None,
+        'future': {'producer_node': 'work_0', 'port': 'result', 'artifact_type': 'work_packet'}}]
+    values[2]['entries'][1]['input_ports'] = [{'name': 'packet', 'artifact_type': 'work_packet',
+        'required': True, 'schema_ref': 'urn:ai4r:work-packet:1.0.0'}]
+    _, results = plan_checks(*values, capability_plan_policy(), plan_source='static')
+    assert all(r['outcome'] == 'PASS' for r in results), results
+    values[2]['entries'][1]['input_ports'][0]['schema_ref'] = 'incompatible-schema'
+    _, results = plan_checks(*values, capability_plan_policy(), plan_source='static')
+    assert any(r['check_id'] == 'port_type_compatibility' and r['outcome'] == 'FAIL' for r in results)

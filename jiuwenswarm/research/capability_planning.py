@@ -60,4 +60,16 @@ mean INFEASIBLE. Generalist output remains low trust after successful checking.
 Packet-based capsules use urn:ai4r:work-packet:1.0.0 for packet/result ports;
 packet data is supplied through an actual compatible inventory artifact or
 predecessor output, never invented as a literal Ref or converted implicitly.
+Each supplied packet must already carry the explicit operation settings; do not
+invent a packet Ref or silently create settings. utility.table_normalize needs
+ data.table_request={file,format:csv|json,columns:[names],delimiter:character|null};
+CSV has an exact header and JSON is an array of records. It adds data.table.
+utility.calculate needs data.table and data.calculation={columns:[names],
+operations:[count|sum|mean|min|max],numeric_mode:json_numbers|decimal_strings};
+it adds data.calculation_result. utility.markdown_report needs data.report=
+{path,title,sections:[{heading,text}],data_keys:[existing keys]}; it adds a
+report file and data.report_manifest without authoring new claims. Generalist
+reads a packet and its frozen node objective, generates data/files and optionally
+executes a restricted pure JSON expression; arbitrary Python/OS code is unavailable.
+These descriptions explain interfaces, never make an uninstalled capsule eligible.
 No automatic repair, live graph mutation or automatic capsule admission.'''
