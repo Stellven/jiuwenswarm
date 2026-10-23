@@ -1,9 +1,7 @@
-$wslUser = (wsl -d Ubuntu -- whoami).Trim()
-wsl -d Ubuntu -u root -- usermod -aG docker $wslUser
-wsl --terminate Ubuntu
+cd D:\research\ai_for_research\runs\jiuwenswarm
+
 wsl -d Ubuntu -u root -- service docker start
 
 $helper = "$env:LOCALAPPDATA\AI4Research\runtime\poc-clean-isolation.py"
-$helper = "$env:LOCALAPPDATA\AI4Research\runtime\poc-clean-isolation.py"
 python $helper resume
-if ($LASTEXITCODE -eq 0) { python $helper open }
+python $helper open

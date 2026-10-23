@@ -1,6 +1,7 @@
 """Real compiler/runner/gates/freeze with controlled transport and model content."""
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
@@ -23,7 +24,7 @@ async def test_planner_through_independent_gate_and_freeze(tmp_path, monkeypatch
         generated.append(copy.deepcopy(payload))
         if mode == 'exhausted' or mode == 'repair' and len(generated) == 1:
             return '{invalid'
-        source = expand_selectors(json.loads((FIXTURES / 'static_template.json').read_text()), payload['brief'])
+        source = expand_selectors(json.loads(Path('jiuwenswarm/research_assets/planner/static-template.json').read_text()), payload['brief'])
         source.pop('template_name')
         source.update(schema_version='3.0.0', plan_source='planned', topic_hints=[], notes='', **{
             key: payload[key] for key in ('brief_ref', 'library_snapshot_ref', 'resource_inventory_ref', 'policy_ref')})

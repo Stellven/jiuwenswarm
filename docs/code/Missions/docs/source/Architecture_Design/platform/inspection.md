@@ -40,3 +40,8 @@ References must resolve to the exact immutable content in the authorized export,
 Users can inspect saved Brief, ideas/citations, opportunity/reasons, hypothesis/test plan, measurements, scientific verdict and report. Viewing a historical run is read-only and never starts another experiment. An in-progress export states its stage/status and which artifacts have not yet been produced; it is not a completed result. A failed run retains the candidate, checking results, halt reason and available evidence. If storage fails, show the operational error without claiming that missing evidence was saved.
 
 An interrupted attempt, unavailable measurement, unsupported seed or token/cost gap stays visible. A scientific verdict contains reasoning tied to recorded measurements and registered criteria; the final report preserves that verdict and separates recommendations from measured facts. Removing local research data follows authenticated user scope and cannot silently mutate retained accepted evidence in another run. [Failure policy](failure-and-recovery.md) defines fresh corrected work and [client boundary](../development-tools/automation.md) defines retrieval/reconnection.
+
+
+## Frozen contracts in every export (D53)
+
+Every run export exposes contracts/index.json and exact contract JSON files, each with its original Ref and SHA-256. Include accepted or candidate Briefs, frozen run plans, node/subnode execution contracts and bound checking plans available in that owned run. Report contracts not yet created explicitly, including compiler halts before a plan exists. This inspection output grants no release authority and retains existing audience/redaction rules. Historical artifacts are never rewritten.

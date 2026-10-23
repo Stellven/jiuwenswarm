@@ -13,7 +13,7 @@ from ..checks.paper import SUMMARY_CHECKS, DELIVERY_CHECKS
 from .paper_summary import SUMMARY, BUFFER
 from .paper_delivery import REPORT, MANIFEST
 
-VERSION = 'paper-m1-4'
+VERSION = 'paper-m1-5'
 NAMES = {'paper_summary': 'research.paper_summary', 'paper_delivery': 'research.paper_summary_delivery',
          'paper_planner': 'workflow.paper_planner'}
 
@@ -76,7 +76,7 @@ def build_paper_assets(store, *, verify_catalog=True):
         if stage == 'paper_summary':
             declaration['needs']['resources'] = [{'resource_key': 'local_document_buffer', 'mode': 'read'}]
             declaration['ports'] = {'inputs': [
-                _port('brief', 'research_brief', 'urn:jiuwenswarm:m1-design:research-brief:2.0.0', 'Accepted governing Brief'),
+                _port('brief', 'research_brief', 'urn:jiuwenswarm:m1-design:research-brief:3.0.0', 'Accepted governing Brief'),
                 _port('documents', 'local_document_buffer', BUFFER, 'Exact current-run qualified canonical PDF text buffer; form-feed separates original pages')],
                 'outputs': [_port('summary', 'paper_summary', SUMMARY,
                     'Structured paper summary. Five sections use supported or not_stated status. Supported sections cite exact original text quotations, with P1 document IDs, one-based PDF pages and zero-based Unicode global half-open start/end coordinates. The complete canonical PDF text is provided as bounded contiguous source chunks with stable evidence IDs and exact page/offset metadata. Model selects supplied evidence IDs separately for each section and authors the synthesis. Carrier copies the selected original chunks without alteration and mechanically assigns shared citation IDs/index from those section assignments before publication. It never repairs or searches approximately for an authored quote. Source equality is checked by host, not inferred by blind review.')]}
@@ -86,7 +86,7 @@ def build_paper_assets(store, *, verify_catalog=True):
             declaration['needs']['injects'] = []
             declaration['changes']['effects'] = []
             declaration['ports'] = {'inputs': [
-                _port('brief', 'research_brief', 'urn:jiuwenswarm:m1-design:research-brief:2.0.0', 'Accepted governing Brief'),
+                _port('brief', 'research_brief', 'urn:jiuwenswarm:m1-design:research-brief:3.0.0', 'Accepted governing Brief'),
                 _port('summary', 'paper_summary', SUMMARY, 'Exact current-run accepted summary'),
                 _port('gate_decision_index', 'gate_decision_index', 'gate-decision-index:field-contract:1', 'Protected accepted predecessor gate index')],
                 'outputs': [_port('research_report', 'paper_report', REPORT,

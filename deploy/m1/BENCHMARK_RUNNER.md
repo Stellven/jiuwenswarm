@@ -30,3 +30,15 @@ execution image remains pinned for traceability. Final readiness, repeated stabl
 artifact manifests, and a matching summary download were verified after recreation.
 The fixed privileged supervisor exception above remains; optional telemetry is
 reported only when exposed, and no GPU or unavailable usage is inferred as zero.
+
+## Reusing retained input uploads
+
+When a later campaign references an input already uploaded to the same workspace,
+the runner reuses it only when scope, kind, filename, byte size and SHA-256 all
+match. Reusing the upload preserves its existing ID for intake and avoids sending
+the same bytes again.
+
+If that filename is already occupied by different bytes, or the server reports a
+concurrent upload and no single exact match can be confirmed, preparation fails
+with a conflict. The runner never overwrites or deletes retained inputs. Use a
+different filename when the intended input bytes change.

@@ -64,7 +64,7 @@ output to independently verified scientific evidence.
 
 Deployment commands remain `python deploy/m1/ai4r.py`; see
 [operations](../../deploy/m1/OPERATIONS.md). New local captures use
-`local-research-unified-v2`, core integrated policy v2 and the newly authored
+`local-research-unified-v3`, core integrated policy v2 and the newly authored
 Planner release. Existing configuration/state is preserved: use a fresh named
 deployment profile or a reviewed explicit migration and requalification. Do not
 edit captured declarations, manifests, credentials or accepted plans in place.

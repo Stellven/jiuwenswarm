@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import math
 import statistics
+from decimal import Decimal
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
@@ -69,7 +70,9 @@ def threshold(rule: Mapping[str, Any], baseline: float) -> float:
     else:
         if not finite(baseline):
             raise ScienceError("baseline threshold requires a finite baseline")
-        result = rule["factor"] * baseline + rule["offset"]
+        # Preserve the decimal contract boundary: .8 + .05 must be .85,
+        # not .8500000000000001, when applying an inclusive additive target.
+        result = float(Decimal(str(rule['factor'])) * Decimal(str(baseline)) + Decimal(str(rule['offset'])))
     if not finite(result):
         raise ScienceError("nonfinite threshold")
     return result

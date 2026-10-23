@@ -15,12 +15,22 @@ class CapsuleAssetsTests(unittest.TestCase):
             self.assertEqual(set(assets), {'search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery'})
             library = LibraryService(store)
             owner = Principal('verifier-owner', operations=frozenset({'verifier_assets'}))
+            expected_versions = {
+                'search': 'm1-6',
+                'screening': 'm1-4',
+                'hypothesis': 'm1-6',
+                'builder': 'm1-12',
+                'benchmark': 'm1-5-blindcpu',
+                'evaluation': 'm1-5',
+                'delivery': 'm1-5',
+            }
             for stage, asset in assets.items():
                 declaration = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')
                 self.assertEqual(declaration['identity']['name'], 'research.' + stage)
+                self.assertEqual(declaration['identity']['version_label'], expected_versions[stage])
                 library.associate_checks(asset['declaration_ref'], asset['bundle_ref'], asset['profile_ref'], owner)
                 bundle = store.read_record(asset['bundle_ref'], contract_id='check-bundle')
-                expected_range = 'm1-1.x' if stage == 'screening' else 'm1-1'
+                expected_range = expected_versions[stage] + '.x' if stage == 'screening' else expected_versions[stage]
                 self.assertEqual(bundle['target_cc_version_range'], expected_range)
                 self.assertEqual(len(bundle['checks']), len({c['check_id'] for c in bundle['checks']}))
                 profile = store.read_record(asset['profile_ref'], contract_id='checking-profile')

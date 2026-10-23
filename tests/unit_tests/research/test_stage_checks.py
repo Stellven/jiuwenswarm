@@ -25,7 +25,15 @@ class StageChecksTests(unittest.TestCase):
                 return store.put_blob(raw), json.loads(raw)
             inputs, bound = {}, []
             for port, file in [('brief', 'lifecycle_research_brief'), ('candidate_set', 'candidate_set'), ('screening_rubric', 'screening_rubric')]:
-                ref, value = capture(file); inputs[port] = value
+                ref, value = capture(file)
+                if port == 'screening_rubric':
+                    # The runtime requires the exact admitted rubric bytes;
+                    # retain the independent fixture's scoring expectations.
+                    ref = assets['screening']['body_refs']['screening_rubric.json']
+                    admitted = json.loads(store.read_blob(ref))
+                    self.assertEqual(value, admitted)
+                    value = admitted
+                inputs[port] = value
                 bound.append({'name': port, 'artifact_refs': [ref]})
             outputs, refs = {}, {}
             for port in ['screening_result', 'opportunity_card']:

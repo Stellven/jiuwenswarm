@@ -19,7 +19,7 @@ from .contracts import ResearchError, validate
 from .operator_config import OperatorConfiguration
 from .state import SQLiteRunStore, json_bytes
 
-PROFILE_NAME = 'local-research-unified-v2'
+PROFILE_NAME = 'local-research-unified-v3'
 PREVIOUS_PROFILE_NAME = 'local-research-v6'
 GOVERNANCE_PROFILE_NAME = 'local-research-v5'
 

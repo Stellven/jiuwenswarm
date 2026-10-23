@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-5', hypothesis='m1-5', builder='m1-11', benchmark='m1-4-blindcpu', evaluation='m1-4', delivery='m1-4')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-6', builder='m1-12', benchmark='m1-5-blindcpu', evaluation='m1-5', delivery='m1-5')
 
 
 def source_metadata():
@@ -31,7 +31,7 @@ def build_research_assets(store, *, verify_catalog=True):
     root = Path(__file__).parents[1]
     resources = files('jiuwenswarm.research').joinpath('resources/capsules')
     metadata = source_metadata()
-    checker_files = ['checks/stages.py', 'checks/research.py', 'science.py', 'environment.py']
+    checker_files = ['checks/stages.py', 'checks/research.py', 'science.py', 'environment.py', 'target_comparisons.py']
     checker_closure = {name: store.put_blob((root / name).read_bytes(), media_type='text/x-python') for name in checker_files}
     runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.stages', 'files': checker_closure}), media_type='application/json')
     base_instructions = resources.joinpath('verifier_implementation.txt').read_bytes()
@@ -42,6 +42,9 @@ def build_research_assets(store, *, verify_catalog=True):
     result = {}
     for stage in STAGES:
         source = metadata[stage]; declaration = copy.deepcopy(source['declaration'])
+        for port in declaration['ports']['inputs']:
+            if port['schema_ref'] == 'urn:jiuwenswarm:m1-design:research-brief:2.0.0':
+                port['schema_ref'] = 'urn:jiuwenswarm:m1-design:research-brief:3.0.0'
         identity = declaration['identity']; identity['version_label'] = STAGE_VERSIONS[stage]
         identity['summary'] = identity['summary'].replace('Synthetic declaration: ', '')
         carrier_name = 'builder_text.py' if stage == 'builder' else stage + '.py'

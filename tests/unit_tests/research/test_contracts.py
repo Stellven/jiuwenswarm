@@ -3,6 +3,7 @@
 import copy
 import json
 from importlib.resources import files
+from pathlib import Path
 
 import pytest
 
@@ -21,9 +22,28 @@ def test_ref_is_exact_and_hash_is_lowercase():
 def test_catalog_is_packaged_and_pinned():
     root = files("jiuwenswarm.research_contracts")
     manifest = json.loads(root.joinpath("source_manifest.json").read_text("utf-8"))
-    assert manifest["interfaces"]["M1-IF-003"] == "r1"
+    assert manifest["interfaces"]["M1-IF-003"] == "r3"
     assert manifest["sources"]
     assert json.loads(root.joinpath("catalog.json").read_text("utf-8"))["contracts"]
+
+
+def test_research_brief_v3_and_historical_v2_are_versioned_explicitly():
+    package = files("jiuwenswarm.research")
+    current = json.loads((Path(__file__).parents[3] / "tests/fixtures/research/compiler/research_brief.json").read_text("utf-8"))
+    historical = json.loads(package.joinpath("resources/calibration/research_brief.json").read_text("utf-8"))
+    assert current["schema_version"] == "3.0.0"
+    assert historical["schema_version"] == "2.0.0"
+
+    # The short name follows each artifact's declared version, while explicit
+    # URNs continue to enforce the requested version exactly.
+    validate("research-brief", current)
+    validate("research-brief", historical)
+    validate("urn:jiuwenswarm:m1-design:research-brief:3.0.0", current)
+    validate("urn:jiuwenswarm:m1-design:research-brief:2.0.0", historical)
+    with pytest.raises(ContractError):
+        validate("urn:jiuwenswarm:m1-design:research-brief:3.0.0", historical)
+    with pytest.raises(ContractError):
+        validate("urn:jiuwenswarm:m1-design:research-brief:2.0.0", current)
 
 
 def test_unknown_contract_is_never_an_unchecked_pass():
