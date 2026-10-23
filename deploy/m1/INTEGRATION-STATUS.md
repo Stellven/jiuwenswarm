@@ -18,8 +18,11 @@ explicitly authorizes merging after the new AI4R was supplied.
   contract exports and safe retained-upload reuse.
 - Retained the required catalog-driven typed Planner, one bounded pre-acceptance
   candidate correction, protected independent checking, gates and Binder freeze.
-  The merged core Planner is a new immutable `m1-12` release. The PDF work release
-  stays upstream `paper-m1-5`; its affected Planner is reauthored as `paper-m1-8`.
+  The merged core Planner is a new immutable `m1-13` release. The PDF work release
+  stays upstream `paper-m1-5`; its affected Planner is reauthored as `paper-m1-9`.
+- Planner catalog input is bound from the exact admitted declaration instead of
+  a hardcoded core name. This also supplies the required catalog to the retained
+  legacy PDF Planner; both paths have a real Factory pre-dispatch regression.
 - Both Compiler target-comparison checker closure and Planner graph-checker closure
   are preserved. Earlier optional `workflow.capability_planner` is not restored;
   new Library snapshots continue to mark its legacy identity non-selectable.
@@ -46,8 +49,8 @@ update of the shared branch is needed.
 
 ## Verification extent
 
-Fresh Windows checkout at code commit `72005270`: **222 passed, 4 deselected,
-3 subtests passed in 170.56 seconds**. This includes Compiler/Planner acceptance,
+Fresh Windows checkout at code commit `07c7abdf`: **225 passed, 4 deselected,
+3 subtests passed in 67.78 seconds**. This includes Compiler/Planner acceptance,
 Brief v3 targets, pinned assets, capsule workers, source checks, deployment,
 sequential runner and upload reuse. No new cases were excluded.
 
