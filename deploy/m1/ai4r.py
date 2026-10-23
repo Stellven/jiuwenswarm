@@ -49,7 +49,7 @@ def docker_prefix(config, *, build=False):
     distro = config.get('build_wsl_distro') if build else config.get('wsl_distro')
     context = config.get('build_context') if build else config.get('docker_context')
     if distro:
-        return ['wsl.exe', '-d', distro, '-u', 'root', '--exec', 'docker']
+        return ['wsl.exe', '-d', distro, '--exec', 'docker']
     return ['docker'] + (['--context', context] if context else [])
 
 
@@ -66,7 +66,7 @@ class Transport:
         if self.config.get('ssh'):
             args = ['ssh', *SSH_OPTIONS, self.config['ssh'], 'python3 -c ' + shlex.quote(REMOTE)]
         else:
-            args = ['wsl.exe', '-d', self.config['wsl_distro'], '-u', 'root', '--exec', 'python3', '-c', REMOTE]
+            args = ['wsl.exe', '-d', self.config['wsl_distro'], '--exec', 'python3', '-c', REMOTE]
         result = subprocess.run(args, input=envelope, stdout=subprocess.PIPE, stderr=sys.stderr)
         if result.returncode:
             raise ValueError('Host connection failed; check SSH trust/access or the selected WSL distribution')
@@ -107,6 +107,13 @@ class Transport:
 
 
 def setup(args):
+    # Relative paths are convenient locally; remote/WSL paths belong to that
+    # host and must never be resolved as workstation paths.
+    if not args.ssh and not args.wsl_distro:
+        for key in ('root', 'output'):
+            value = getattr(args, key)
+            if value is not None:
+                setattr(args, key, str(host.checked(Path(value).expanduser())))
     path = args.profile
     if path.exists():
         config = load(path)
@@ -270,6 +277,66 @@ def selected_files(case, inputs):
     return rows, hashlib.sha256(host.canonical(manifest)).hexdigest()
 
 
+def select_images(config, app_image, runner_image):
+    """Use already-built/loaded images; do not claim their source was rebuilt."""
+    selected = {}
+    for role, reference in [('ai4r', app_image), ('benchmark-runner', runner_image)]:
+        if not isinstance(reference, str) or not reference.strip() or reference.startswith('-'):
+            raise ValueError('Supply a Docker image name or immutable ID for ' + role)
+        image = json.loads(host.run(docker_prefix(config, build=True) + ['image', 'inspect', reference]))[0]
+        if ('linux/' + image['Architecture'] != config['deployment']['platform']
+                or image.get('Os', 'linux') != 'linux'):
+            raise ValueError('Selected ' + role + ' image does not match the deployment platform')
+        if not re.fullmatch(r'sha256:[a-f0-9]{64}', image['Id']) or type(image['Size']) is not int or image['Size'] < 0:
+            raise ValueError('Docker returned an invalid image identity')
+        selected[role] = {'image_id': image['Id'], 'tag': reference, 'unpacked_bytes': image['Size'],
+            'source_revision': (image.get('Config', {}).get('Labels') or {}).get('org.opencontainers.image.revision')}
+    config['builds'] = {'schema': 'ai4r-build:1', 'platform': config['deployment']['platform'],
+        'provenance': 'existing Docker images; source build not performed', 'images': selected}
+    for role, key in [('ai4r', 'app_image'), ('benchmark-runner', 'runner_image')]:
+        config['deployment'][key] = selected[role]['image_id']
+
+
+def stage_selection(config, args):
+    if args.receipt and (args.app_image or args.runner_image):
+        raise ValueError('Select a build receipt or an image pair, not both')
+    if bool(args.app_image) != bool(args.runner_image):
+        raise ValueError('Supply both --app-image and --runner-image')
+    if args.receipt:
+        receipt = json.loads(args.receipt.read_bytes())
+        if receipt['schema'] != 'ai4r-build:1' or receipt['platform'] != config['deployment']['platform']:
+            raise ValueError('Build receipt differs from the target platform')
+        if set(receipt['images']) != {'ai4r', 'benchmark-runner'}:
+            raise ValueError('Build receipt must contain the app and runner images')
+        config['builds'] = receipt
+        for role, key in [('ai4r', 'app_image'), ('benchmark-runner', 'runner_image')]:
+            config['deployment'][key] = receipt['images'][role]['image_id']
+    elif args.app_image:
+        select_images(config, args.app_image, args.runner_image)
+    return stage(config, args)
+
+
+def up(args):
+    """One local/SSH entry point using existing images; never build implicitly."""
+    if args.ttl_days is not None and args.ttl_days < 1:
+        raise ValueError('TTL must be at least one day')
+    setup(args)
+    config = load(args.profile)
+    if not config.get('builds', {}).get('images') and not (args.receipt or args.app_image or args.runner_image):
+        args.app_image, args.runner_image = 'ai4r:local', 'benchmark-runner:local'
+    try:
+        staged = stage_selection(config, args)
+        result = Transport(config).request('start', refresh_credential=args.refresh_credential,
+            template=(HERE / 'compose.benchmark-runner.yaml').read_text())
+        config['deployment'] = result.pop('deployment')
+        return {'profile': str(args.profile), 'compose_file': str(Path(config['deployment']['root']) / 'compose.json'), 'stage': staged, **result,
+            'host_setup': 'No sudo, host cgroup preparation or service installation; app execution prerequisites remain enforced'}
+    finally:
+        # Retain exact selected image/input identities if startup needs login
+        # or fails. A retry resumes this deployment rather than losing staging.
+        save(args.profile, config)
+
+
 def stage(config, args):
     transport = Transport(config)
     if not config.get('builds', {}).get('images'):
@@ -410,6 +477,15 @@ def parser():
     b = sub.add_parser('build'); b.add_argument('--output', type=Path, required=True)
     s = sub.add_parser('stage'); s.add_argument('--cases', type=Path, required=True); s.add_argument('--inputs', type=Path, required=True)
     s.add_argument('--receipt', type=Path)
+    s.add_argument('--app-image'); s.add_argument('--runner-image')
+    s = sub.add_parser('up', help='Stage existing images and supplied cases/inputs, then start; no sudo or implicit builds')
+    for flag in ('ssh', 'wsl-distro', 'docker-context', 'build-context', 'build-wsl-distro', 'root', 'output', 'project'):
+        s.add_argument('--' + flag)
+    s.add_argument('--platform', choices=('linux/amd64', 'linux/arm64'))
+    s.add_argument('--ttl-days', type=int)
+    s.add_argument('--cases', type=Path, required=True); s.add_argument('--inputs', type=Path, required=True)
+    s.add_argument('--receipt', type=Path); s.add_argument('--app-image'); s.add_argument('--runner-image')
+    s.add_argument('--refresh-credential', action='store_true')
     s = sub.add_parser('start'); s.add_argument('--refresh-credential', action='store_true')
     sub.add_parser('stop')
     s = sub.add_parser('logs'); s.add_argument('--service', choices=('ai4r', 'benchmark-runner'), default='ai4r'); s.add_argument('--tail', type=int, default=100)
@@ -439,26 +515,20 @@ def main(argv=None):
 
 def execute(args):
     try:
-        if args.command == 'setup':
+        if args.command == 'up':
+            result = up(args)
+        elif args.command == 'setup':
             if args.ttl_days is not None and args.ttl_days < 1: raise ValueError('TTL must be at least one day')
             result = setup(args)
         else:
             config = load(args.profile); transport = Transport(config)
             if args.command == 'build': result = build(config, args)
-            elif args.command == 'stage':
-                if args.receipt:
-                    receipt = json.loads(args.receipt.read_bytes())
-                    if receipt['schema'] != 'ai4r-build:1' or receipt['platform'] != config['deployment']['platform']:
-                        raise ValueError('Build receipt platform/schema differs')
-                    config['builds'] = receipt
-                    config['deployment'].update(app_image=receipt['images']['ai4r']['image_id'], runner_image=receipt['images']['benchmark-runner']['image_id'])
-                result = stage(config, args)
+            elif args.command == 'stage': result = stage_selection(config, args)
             elif args.command == 'fetch': result = fetch(config, args)
             elif args.command == 'maintenance': result = maintenance(config, args)
             elif args.command == 'start':
                 result = transport.request('start', refresh_credential=args.refresh_credential,
-                    template=(HERE / 'compose.benchmark-runner.yaml').read_text(),
-                    cgroup_script=(HERE / 'prepare-local-executor.sh').read_text())
+                    template=(HERE / 'compose.benchmark-runner.yaml').read_text())
                 config['deployment'] = result.pop('deployment')
             elif args.command == 'runner':
                 forwarded = args.args

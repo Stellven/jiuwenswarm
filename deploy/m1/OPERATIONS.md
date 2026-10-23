@@ -5,6 +5,85 @@ All executable source is in this repository. Start with `python deploy/m1/ai4r.p
 the app and benchmark CLI run in the two separate containers. The benchmark CLI
 keeps its existing authenticated interface and sequential queue.
 
+## Start here: ordinary Docker, no sudo
+
+Use existing `ai4r:local` and `benchmark-runner:local` images. Load supplied
+archives with ordinary Docker if needed:
+
+```sh
+docker load -i ai4r.tar
+docker load -i benchmark-runner.tar
+python deploy/m1/ai4r.py up --cases ./cases.json --inputs ./inputs --output ./results
+```
+
+Use `--app-image NAME --runner-image NAME` if the supplied images have other
+names. `up` never builds or pulls implicitly. It creates a profile, pins the
+actual image IDs/platform, stages only selected data, and starts the app. Use `python deploy/m1/ai4r.py logs` to find the private bootstrap/login
+URL on localhost:5175, open that full URL, and complete the app's model
+authentication. Then:
+
+```sh
+python deploy/m1/ai4r.py start --refresh-credential
+python deploy/m1/ai4r.py runner doctor --json
+python deploy/m1/ai4r.py runner run --campaign-id trial-001 --json
+python deploy/m1/ai4r.py logs
+```
+
+If images need building from this checkout, ordinary Docker commands work:
+
+```sh
+docker build -f deploy/m1/Dockerfile.app --target production -t ai4r:local .
+docker build -f deploy/m1/Dockerfile.sidecar --target benchmark-runner -t benchmark-runner:local .
+```
+
+Build for the execution machine's architecture. For Spark, build/load
+`linux/arm64` images on the workstation using `docker buildx build --platform
+linux/arm64 --load` in place of `docker build`. Do not infer ARM64 compatibility
+from an AMD64 image name. Running existing images needs Docker/Compose, not a
+Buildx installation.
+
+For Spark from a workstation with the image pair already available locally:
+
+```sh
+python deploy/m1/ai4r.py --profile ./spark.json up --ssh spark --platform linux/arm64 --cases ./cases.json --inputs ./inputs --output /home/YOUR_USER/ai4r-results
+ssh -N -L 5175:127.0.0.1:5175 spark
+```
+
+The same command transfers missing images and data, loads the images and starts
+the app. The checked-in helper travels over SSH; no Spark source checkout,
+registry, private scripts, build or host service installation is required.
+Remote output paths are absolute paths on Spark. Replace `YOUR_USER` with your
+actual writable location. After authentication, use `start --refresh-credential`
+and `runner run` with `--profile ./spark.json` before the subcommand. Retrieve:
+
+```sh
+python deploy/m1/ai4r.py --profile ./spark.json fetch --campaign trial-001 --output ./retrieved-trial-001
+```
+
+`up` prints the generated `compose_file` path, so standard Docker inspection is
+available on the execution host too:
+
+```sh
+docker compose -p ai4r-bench -f /path/from/up/compose.json ps
+docker compose -p ai4r-bench -f /path/from/up/compose.json logs --tail 100 ai4r
+docker compose -p ai4r-bench -f /path/from/up/compose.json exec benchmark-runner benchmark-runner --help
+```
+
+Normal `up`/`start` makes no host cgroup changes, invokes no sudo, and requests
+no privileged container or Docker socket mount. WSL uses its configured default
+user. Existing app/root-broker identities *inside* the image are unchanged.
+The app can start without a delegated executor cgroup. Read-only tasks can use
+the existing app path; tasks needing sandboxed code execution still require the
+app's actual executor prerequisites and report a blocked result if unavailable.
+This delivery does not claim all scientific/code-execution tasks now run on a
+restricted host. Existing preconfigured delegation remains usable. Full executor
+portability is separate work; no unsafe fallback is substituted.
+
+Re-run `up` with the same paths/profile to resume setup. Inputs, results and app
+state are preserved. Use a new project/profile for a different app image; existing
+installations are not silently upgraded. Scheduling remains optional (`maintenance
+install`); ordinary launch installs no service.
+
 ## Design
 
 ```mermaid
@@ -37,8 +116,9 @@ are imported. A remote host receives the checked-in helper source over SSH stdin
 ## Prerequisites
 
 - Python 3.10+; Docker with Compose and Buildx on the build machine.
-- A Linux Docker execution host with cgroup v2, the existing AI4R executor
-  prerequisites and Docker access. Preserve the host's NVIDIA environment.
+- Docker access, Compose and writable deployment/input/output locations on the
+  execution host. Linux executor prerequisites are needed only for tasks that
+  actually use that executor. Preserve the host's NVIDIA environment.
 - SSH trust/access and Python 3 on a remote host. Use an SSH config alias for
   hostname, user, key and port. Authentication is never bypassed.
 - Buildx support for the requested platform. Spark uses `linux/arm64`;
@@ -91,13 +171,10 @@ renewed after app recreation or expiry. Linux non-root operators run the runner
 under their UID/GID so its host files remain accessible; other targets use the
 image's UID11001. The private credential volume always enforces mode0600.
 
-The executor preparer uses a project-specific cgroup branch. If noninteractive
-sudo is unavailable, `start` provides this explicit preparation command, which
-must run on the actual Docker host:
-
-```sh
-sudo env AI4R_EXECUTOR_PROJECT=ai4r-bench bash deploy/m1/prepare-local-executor.sh
-```
+Host executor provisioning is outside ordinary launch. The repository retains
+`prepare-local-executor.sh` for previously managed installations, but `up` and
+`start` never call it. No elevated host setup is required to start the containers.
+The app continues reporting which execution capabilities are actually available.
 
 For separate image build machines, use `stage --receipt PATH/receipt.json` after
 making the receipt's exact images available in the selected local Docker engine.

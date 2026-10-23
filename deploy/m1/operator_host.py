@@ -570,16 +570,9 @@ def start(p, r):
         except ValueError: continue
         if values[0].get('Labels', {}).get('ai4r.deployment') != p['deployment_id']:
             raise ValueError('Foreign existing ' + kind + '; choose a new project or migrate explicitly')
-    # Populate a project-specific cgroup branch using the existing guarded script.
-    if os.name == 'posix' and not p.get('cgroup_root'):
-        env = os.environ.copy(); env['AI4R_EXECUTOR_PROJECT'] = p['project']
-        command = ['bash', '-s'] if os.geteuid() == 0 else [
-            'sudo', '-n', 'env', 'AI4R_EXECUTOR_PROJECT=' + p['project'], 'bash', '-s']
-        try:
-            p['cgroup_root'] = run(command, data=r['cgroup_script'].encode(), env=env).decode().strip()
-        except ValueError:
-            raise ValueError('Executor needs an owned host cgroup: run sudo env AI4R_EXECUTOR_PROJECT=' +
-                             p['project'] + ' bash deploy/m1/prepare-local-executor.sh on the Docker host') from None
+    # Ordinary Docker launch never changes host cgroups or invokes elevation.
+    # A separately provisioned bounded delegation can still be recorded in an
+    # existing profile; unavailable execution features retain their app guards.
     initialized = root / 'initialized.json'
     if initialized.exists() and json.loads(initialized.read_bytes())['app_image'] != p['app_image']:
         raise ValueError('App image changed; use another deployment or an explicit reviewed app upgrade')

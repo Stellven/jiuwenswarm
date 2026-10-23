@@ -161,7 +161,86 @@ class OperatorTests(unittest.TestCase):
 
     def test_selected_docker_and_explicit_wsl_are_preserved(self):
         self.assertEqual(ai4r.docker_prefix({'docker_context': 'chosen'}), ['docker', '--context', 'chosen'])
-        self.assertEqual(ai4r.docker_prefix({'wsl_distro': 'Ubuntu-24.04'})[:3], ['wsl.exe', '-d', 'Ubuntu-24.04'])
+        self.assertEqual(ai4r.docker_prefix({'wsl_distro': 'Ubuntu-24.04'}), ['wsl.exe', '-d', 'Ubuntu-24.04', '--exec', 'docker'])
+
+    def test_existing_image_pair_is_pinned_without_build_or_source_claim(self):
+        def inspect(args, **kwargs):
+            self.assertEqual(args[:3], ['docker', 'image', 'inspect'])
+            return h.canonical([{'Id': 'sha256:' + ('1' if args[-1] == 'ai4r:local' else '2') * 64,
+                'Architecture': 'amd64', 'Os': 'linux', 'Size': 100, 'Config': {'Labels': None}}])
+        with patch.object(h, 'run', inspect):
+            ai4r.select_images(self.config, 'ai4r:local', 'benchmark-runner:local')
+        self.assertEqual(self.config['deployment']['app_image'], 'sha256:' + '1' * 64)
+        self.assertIn('not performed', self.config['builds']['provenance'])
+        self.assertIsNone(self.config['builds']['images']['ai4r']['source_revision'])
+        before = copy.deepcopy(self.config)
+        with patch.object(h, 'run', return_value=h.canonical([{'Architecture': 'arm64'}])):
+            with self.assertRaises(ValueError): ai4r.select_images(self.config, 'app', 'runner')
+        self.assertEqual(self.config, before)
+
+    def test_stage_receipt_selects_images_and_rejects_partial_image_flags(self):
+        receipt = self.base / 'receipt.json'
+        images = {role: {'image_id': 'sha256:' + digit * 64} for role, digit in [('ai4r', '1'), ('benchmark-runner', '2')]}
+        receipt.write_text(json.dumps({'schema': 'ai4r-build:1', 'platform': 'linux/amd64', 'images': images}))
+        args = argparse.Namespace(receipt=receipt, app_image=None, runner_image=None)
+        with patch.object(ai4r, 'stage', return_value={'staged': True}):
+            self.assertTrue(ai4r.stage_selection(self.config, args)['staged'])
+        self.assertEqual(self.config['deployment']['runner_image'], images['benchmark-runner']['image_id'])
+        args.receipt = None; args.app_image = 'only-app'
+        with self.assertRaises(ValueError): ai4r.stage_selection(self.config, args)
+
+    def test_up_stages_existing_images_preserves_inputs_and_repeats_without_build(self):
+        cases_root = self.base / 'selected'; cases_root.mkdir()
+        inputs = self.base / 'user-inputs'; inputs.mkdir()
+        cases = cases_root / 'cases.json'; cases.write_text('{"supplied":"cases"}')
+        sentinel = inputs / 'user.txt'; sentinel.write_bytes(b'original user bytes')
+        profile = self.base / 'operator.json'
+        original = ai4r.Transport.request
+        starts = []
+        def request(transport, action, **kwargs):
+            if action == 'image-check': return {'matches': True}
+            if action == 'start':
+                self.assertNotIn('cgroup_script', kwargs)
+                self.assertNotIn('cgroup_root', transport.config['deployment'])
+                starts.append(copy.deepcopy(transport.config['deployment']))
+                return {'deployment': transport.config['deployment'], 'app_started': True,
+                    'next': 'Complete authentication before starting a campaign'}
+            return original(transport, action, **kwargs)
+        def inspect(args, **kwargs):
+            self.assertEqual(args[:3], ['docker', 'image', 'inspect'])
+            return h.canonical([{'Id': 'sha256:' + ('1' if args[-1] == 'ai4r:local' else '2') * 64,
+                'Architecture': 'amd64', 'Os': 'linux', 'Size': 100, 'Config': {'Labels': None}}])
+        args = ['--profile', str(profile), 'up', '--cases', str(cases), '--inputs', str(inputs),
+            '--root', self.p['root'], '--output', self.p['output'], '--project', self.p['project'], '--platform', 'linux/amd64']
+        with patch.object(ai4r.Transport, 'request', request), patch.object(h, 'run', inspect), redirect_stdout(io.StringIO()):
+            self.assertEqual(ai4r.main(args), 0)
+            self.assertEqual(ai4r.main(args), 0)
+        self.assertEqual(len(starts), 2)
+        self.assertEqual(starts[0]['deployment_id'], starts[1]['deployment_id'])
+        self.assertEqual(sentinel.read_bytes(), b'original user bytes')
+        self.assertEqual(ai4r.load(profile)['deployment']['app_image'], 'sha256:' + '1' * 64)
+
+    def test_local_relative_output_is_resolved_but_remote_path_is_not(self):
+        profile = self.base / 'relative-profile.json'
+        args = ai4r.parser().parse_args(['--profile', str(profile), 'setup',
+            '--project', 'ai4r-relative', '--root', str(self.base / 'another-host'), '--output', './results'])
+        with patch('os.getcwd', return_value=str(self.base)):
+            ai4r.setup(args)
+        self.assertEqual(ai4r.load(profile)['deployment']['output'], str(self.base / 'results'))
+        remote = ai4r.parser().parse_args(['--profile', str(self.base / 'remote.json'), 'setup',
+            '--ssh', 'spark', '--output', '/home/researcher/results'])
+        def request(transport, action, **values):
+            self.assertEqual(transport.config['deployment']['output'], '/home/researcher/results')
+            return transport.config['deployment']
+        with patch.object(ai4r.Transport, 'request', request): ai4r.setup(remote)
+
+    def test_wsl_transport_uses_default_user_without_forced_root(self):
+        reply = argparse.Namespace(returncode=0, stdout=b'{"ok":true,"result":{}}')
+        with patch.object(ai4r.subprocess, 'run', return_value=reply) as call:
+            ai4r.Transport({**self.config, 'wsl_distro': 'chosen-distro'}).request('doctor')
+        command = call.call_args.args[0]
+        self.assertEqual(command[:4], ['wsl.exe', '-d', 'chosen-distro', '--exec'])
+        self.assertNotIn('root', command)
         self.assertEqual(ai4r.docker_prefix({}, build=True), ['docker'])
 
     def test_ssh_arguments_are_not_shell_interpolated(self):
@@ -228,8 +307,7 @@ class OperatorTests(unittest.TestCase):
         self.assertEqual(json.loads(profile.read_bytes())['deployment']['deployment_id'], config['deployment']['deployment_id'])
 
     def test_start_initializes_once_then_reuses_state_and_refreshes_scope(self):
-        self.p.update(app_image='sha256:' + '1' * 64, runner_image='sha256:' + '2' * 64,
-                      cgroup_root='/already-owned-cgroup')
+        self.p.update(app_image='sha256:' + '1' * 64, runner_image='sha256:' + '2' * 64)
         events = []
         def docker(profile, *args, **kwargs):
             if args[:2] == ('ps', '-aq'): return b''
@@ -246,7 +324,7 @@ class OperatorTests(unittest.TestCase):
         def grant(profile):
             profile.update(credential_ready=True, grant={'expires_at': time.time() + 1000}, build_id='build')
         request = {'template': '', 'cgroup_script': '', 'refresh_credential': False}
-        with patch.object(h, 'docker', docker), patch.object(h, 'compose', compose), patch.object(h, 'render'), patch.object(h, 'issue_credential', grant), patch.object(h, 'mount_probe'):
+        with patch.object(h, 'run', side_effect=AssertionError('No host commands or elevation expected')), patch.object(h, 'docker', docker), patch.object(h, 'compose', compose), patch.object(h, 'render'), patch.object(h, 'issue_credential', grant), patch.object(h, 'mount_probe'):
             first = h.start(self.p, request)
             second = h.start(self.p, request)
             self.assertTrue(first['app_started']); self.assertTrue(second['runner_started'])
