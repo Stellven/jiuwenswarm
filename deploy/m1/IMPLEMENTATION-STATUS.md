@@ -75,3 +75,13 @@ Next: enable a working Docker engine, build/load the matching image pair, use
 artifacts. Separately qualify no-admin code-executor support and merge/test the
 Planner and desired admitted capsules. Spark execution can then establish its
 own hardware evidence; it is not required to complete the local software work.
+
+## Later supervised integration candidate
+
+The source branches listed below were combined locally in
+`m1/reviewed-integration-20261023`; see
+[supervised integration status](INTEGRATION-STATUS.md). Shared `ai4r_M1` later
+advanced to `1fd17ab`, deliberately reverting deployment while M1 work continues.
+The earlier delivered/pushed statements above describe their original checkpoints,
+not current shared deployment contents. The combined candidate is preserved for
+later reconciliation; it was not pushed, activated or accepted as complete M1.

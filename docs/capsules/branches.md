@@ -23,3 +23,11 @@ Source/fixture checks are distinct from real model, independent calibration,
 live Docker, ARM64 and native Spark checks. These latter checks need connected
 runtime evidence and are not claimed complete. Docker Desktop was unavailable
 on this workstation. See the [validation receipt](validation.md) for actual checks.
+
+## Later integration supersession
+
+This page records the original branch handoff. The foundation's optional-Planner
+framing is superseded by the required core `research.planner`.
+[Current candidate status](../../deploy/m1/INTEGRATION-STATUS.md) records combined
+local source, the shared M1 deployment revert, exact verification and future merge
+order. Do not follow this historical table as the current deployment state.

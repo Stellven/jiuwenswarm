@@ -32,3 +32,42 @@ async def test_source_bound_installed_catalog_has_actual_carrier_and_independent
     assert len(store.read_record(changed)['entries'])==3
     # An existing frozen capture retains the original exact four entries.
     assert len(store.read_record(first)['entries'])==4
+
+
+@pytest.mark.asyncio
+async def test_retired_optional_planner_remains_admitted_but_is_not_selectable(tmp_path):
+    store=SQLiteRunStore(tmp_path);library=LibraryService(store);checks=CheckRegistry();registry=Registry()
+    actor=Principal('operator',operations=frozenset({'verifier_assets','library_admit','library_standing'}))
+    try:
+        installed=await register_compiler_capsules(registry,checks,library,store,actor,activate=True)
+        frozen=library.snapshot()
+        frozen_value=store.read_record(frozen,contract_id='library-snapshot')
+
+        # Reuse a fully qualified/admitted Planner release with a legacy optional
+        # name to model a persisted Library row without carrying its retired worker.
+        source=installed['planner']
+        version=store.read_record(source['declaration_ref'])['identity']['version_label']
+        declaration=store.read_record(source['declaration_ref'])
+        declaration['identity']['name']='workflow.capability_planner'
+        declaration_ref=store.put_record('capsule-declaration',declaration)
+        bundle=store.read_record(source['bundle_ref']);bundle['bundle_id']='workflow.capability_planner.checks';bundle['target_cc_name']='workflow.capability_planner';bundle['target_cc_version_range']=version
+        bundle_ref=store.put_record('check-bundle',bundle)
+        profile=store.read_record(source['profile_ref']);profile['profile_id']='workflow.capability_planner.profile';profile['target_cc_name']='workflow.capability_planner';profile['target_cc_version_range']=version
+        profile_ref=store.put_record('checking-profile',profile)
+
+        library.associate_checks(declaration_ref,bundle_ref,profile_ref,actor)
+        admission_ref=await library.admit(declaration_ref,source['body_refs'],actor,memory_mb=4096)
+        admission=store.read_record(admission_ref)
+        assert admission['status']=='admitted', admission['reasons']
+        pin=admission['cc']
+        library.set_standing(pin['cc_name'],pin['cc_version'],'active',actor,reason='Legacy compatibility fixture')
+
+        current=library.snapshot()
+        snapshot=store.read_record(current,contract_id='library-snapshot')
+        legacy=next(entry for entry in snapshot['entries'] if entry['cc_name']=='workflow.capability_planner')
+
+        assert legacy['selectable_by_planner'] is False
+        assert library.get('workflow.capability_planner',pin['cc_version'])['standing']=='active'
+        assert store.read_record(frozen,contract_id='library-snapshot')==frozen_value
+    finally:
+        store.close()
