@@ -1,5 +1,6 @@
 # Capability capsules
 
+- [Current scientific Builder](builder-current-flow.md): generation, Codex transport, checks and Benchmark handoff.
 - [Core typed Planner for M1](typed-planner-m1.md): catalog assembly, bounded correction, checks, gates and operation.
 - [Capability admission and interoperability](capability-dag.md): optional capsule candidates and trust boundaries.
 - [Development process](development.md): building and independently checking a candidate.
