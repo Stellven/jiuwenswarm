@@ -1,0 +1,75 @@
+"""Opt-in typed DAG policy. Existing POC policies retain their exact meaning."""
+from .contracts import ResearchError
+
+POLICY_ID = 'ai4r_capability_dag_v1'
+PLANNER = 'workflow.capability_planner'
+
+
+def capability_plan_policy():
+    return {'schema_version': '1.0.0', 'id': POLICY_ID, 'max_nodes': 12,
+            'allowed_effect_classes': ['pure', 'read_only', 'idempotent', 'compensable'],
+            'allow_network': True, 'required_stages': [],
+            'aggregate_limits': {'time_s': 10800, 'model_calls': 80, 'memory_mb': 16384},
+            'max_attempts_per_node': 1}
+
+
+def is_capability_policy(policy):
+    if not isinstance(policy, dict) or policy.get('id') != POLICY_ID:
+        return False
+    if policy != capability_plan_policy():
+        raise ResearchError('capability_policy', 'Capability DAG policy differs from its protected version')
+    return True
+
+
+def layout_issues(source):
+    nodes = source['nodes']
+    generalists = [n for n in nodes if n['cc']['cc_name'] == 'research.generalist']
+    issues = []
+    if len(generalists) > 2:
+        issues.append('At most two Generalist assignments are permitted')
+    # Scientific outputs retain the scientific release path. Generic work may
+    # terminate at any typed, checked leaf covering all deliverables.
+    scientific = {'research.' + s for s in ('hypothesis', 'builder', 'benchmark', 'evaluation')}
+    if any(n['cc']['cc_name'] in scientific for n in nodes):
+        leaves = [n for n in nodes if not any(n['node_id'] in m['predecessors'] for m in nodes)]
+        if len(leaves) != 1 or leaves[0]['cc']['cc_name'] != 'research.delivery':
+            issues.append('Scientific work requires the scientific Delivery leaf')
+        by_id = {n['node_id']: n for n in nodes}
+        seen = set()
+        pending = list(leaves[0]['predecessors']) if len(leaves) == 1 else []
+        while pending:
+            key = pending.pop()
+            if key in seen or key not in by_id:
+                continue
+            seen.add(key)
+            pending.extend(by_id[key]['predecessors'])
+        if sum(by_id[k]['cc']['cc_name'] == 'research.evaluation' for k in seen) != 1:
+            issues.append('Scientific delivery requires exactly one Scientific Evaluation ancestor')
+    return issues
+
+
+INSTRUCTIONS = '''Choose any finite acyclic graph from the exact selectable catalog.
+There is no prescribed capsule order: actual compatible ports and predecessor
+dependencies determine it. Use one leaf covering all deliverables. Scientific
+work retains scientific Evaluation and Delivery. Prefer specialists; use
+research.generalist only for an uncovered task, with at most two assignments.
+Its objective is a concrete bounded intended outcome, frozen before work, not
+permission or executable code. Preserve input types, exact pins, coverage,
+mandatory checks, effects and budgets. Unknown tools or missing capabilities
+mean INFEASIBLE. Generalist output remains low trust after successful checking.
+Packet-based capsules use urn:ai4r:work-packet:1.0.0 for packet/result ports;
+packet data is supplied through an actual compatible inventory artifact or
+predecessor output, never invented as a literal Ref or converted implicitly.
+Each supplied packet must already carry the explicit operation settings; do not
+invent a packet Ref or silently create settings. utility.table_normalize needs
+ data.table_request={file,format:csv|json,columns:[names],delimiter:character|null};
+CSV has an exact header and JSON is an array of records. It adds data.table.
+utility.calculate needs data.table and data.calculation={columns:[names],
+operations:[count|sum|mean|min|max],numeric_mode:json_numbers|decimal_strings};
+it adds data.calculation_result. utility.markdown_report needs data.report=
+{path,title,sections:[{heading,text}],data_keys:[existing keys]}; it adds a
+report file and data.report_manifest without authoring new claims. Generalist
+reads a packet and its frozen node objective, generates data/files and optionally
+executes a restricted pure JSON expression; arbitrary Python/OS code is unavailable.
+These descriptions explain interfaces, never make an uninstalled capsule eligible.
+No automatic repair, live graph mutation or automatic capsule admission.'''

@@ -193,6 +193,7 @@ jiuwenswarm = [
     "research_contracts/**/*.json",
     "research_assets/**/*",
     "research/resources/**/*",
+    "research/capsule_extensions/**/*.json",
 ]
 jiuwenbox = [
     "configs/**/*",

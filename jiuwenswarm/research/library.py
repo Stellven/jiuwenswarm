@@ -532,7 +532,7 @@ class LibraryService:
         entries = [];admission_refs=[];budget_entries=[]
         selected=[r for r in self.entries() if r['standing']=='active' and r['effect_scope']=='live_plans' or any(r['name']==c[0] and r['version']==c[1] for c in candidates)]
         verifier=self._snapshot_verifier() if selected else None
-        fixed = {'intent.compiler','requirements.compiler','research.verifier','research.planner','workflow.paper_planner'}
+        fixed = {'intent.compiler','requirements.compiler','research.verifier','research.planner','workflow.paper_planner','workflow.capability_planner'}
         for raw in self.entries():
             row = self.get(raw['name'],raw['version'])
             admission = self.store.read_record(row['admission_ref'],contract_id='library-admission')

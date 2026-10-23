@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 
 from .contracts import ResearchError, validate
+from .capability_planning import is_capability_policy, layout_issues as capability_layout_issues, PLANNER as CAPABILITY_PLANNER
 from .summary_planning import (PAPER_CC_VERSION, PAPER_PLANNER_VERSION, PAPER_DELIVERY_CC, PAPER_PLANNER_CC, is_document_summary_policy,
                                summary_layout_issues, validate_summary_documents)
 from .unified_planning import is_integrated_policy, is_paper_graph, integrated_layout_issues, paper_workflow_allowed
@@ -71,7 +72,8 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
     try:
         validate('static-template' if plan_source=='static' else 'plan-proposal',source)
         integrated = is_integrated_policy(policy)
-        paper_summary = is_document_summary_policy(policy) or (integrated and is_paper_graph(source))
+        capability = is_capability_policy(policy)
+        paper_summary = is_document_summary_policy(policy) or ((integrated or capability) and is_paper_graph(source))
         if finite_context is not None:
             from .finite_evaluation import _FinitePlanContext
             if type(finite_context) is not _FinitePlanContext:
@@ -172,11 +174,15 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
             for item in inventory[kind]:
                 expected={n['node_id'] for n in nodes if item in n[tag]}
                 if not expected or coverage.get((kind,item))!=expected:fail('brief_coverage','Coverage is not the exact inverse of tags')
+        if capability:
+            for item in inventory['evidence_obligation']:
+                if not coverage.get(('evidence_obligation', item)):
+                    fail('brief_coverage', 'Every evidence obligation needs an explicit nonempty node assignment')
         depended={p for n in nodes for p in n['predecessors']}; leaves=[n for n in nodes if n['node_id'] not in depended]
         delivery_cc = PAPER_DELIVERY_CC if paper_summary else 'research.delivery'
-        if len(leaves)!=1 or leaves[0]['cc']['cc_name']!=delivery_cc or not inventory['deliverable'].issubset(leaves[0]['deliverable_ids']):
+        if len(leaves)!=1 or (not capability and leaves[0]['cc']['cc_name']!=delivery_cc) or not inventory['deliverable'].issubset(leaves[0]['deliverable_ids']):
             fail('delivery_leaf_coverage','Exactly one Delivery leaf must cover every deliverable')
-        elif not paper_summary:
+        elif not paper_summary and not capability:
             ancestors=set();pending=list(leaves[0]['predecessors'])
             while pending:
                 key=pending.pop()
@@ -184,6 +190,9 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
             if sum(by_id[key]['cc']['cc_name']=='research.evaluation' for key in ancestors)!=1:fail('delivery_leaf_coverage','Delivery needs exactly one Scientific Evaluation ancestor')
         if paper_summary:
             for issue in summary_layout_issues(bound):
+                fail('delivery_leaf_coverage', issue)
+        if capability:
+            for issue in capability_layout_issues(bound):
                 fail('delivery_leaf_coverage', issue)
         if integrated:
             for issue in integrated_layout_issues(bound):
@@ -330,7 +339,7 @@ class Binder:
         refs=[self.store.put_blob(Path(__file__).read_bytes(),media_type='text/x-python')]
         # The additional closed policy/graph rules are part of the exact host
         # checker implementation, rather than an unpinned request-time label.
-        for filename in ('summary_planning.py', 'unified_planning.py'):
+        for filename in ('summary_planning.py', 'unified_planning.py', 'capability_planning.py'):
             refs.append(self.store.put_blob(Path(__file__).with_name(filename).read_bytes(),media_type='text/x-python'))
         if finite_context is not None:
             if self.finite_e1 is None:raise ResearchError('plan_acceptance','Finite checker owner is unavailable')
@@ -355,7 +364,7 @@ class Binder:
         declaration=self.store.read_record(subjects[0]['capsule_ref'],contract_id='capsule-declaration')
         entries=self.store.read_record(snapshot_ref,contract_id='library-snapshot')['entries']
         paper = is_document_summary_policy(self.store.read_record(policy_ref,contract_id='plan-policy'))
-        planner_name = PAPER_PLANNER_CC if paper else 'research.planner'
+        planner_name = CAPABILITY_PLANNER if is_capability_policy(self.store.read_record(policy_ref,contract_id='plan-policy')) else PAPER_PLANNER_CC if paper else 'research.planner'
         matches=[e for e in entries if e['cc_name']==planner_name and e['declaration_sha256']==subjects[0]['capsule_ref']['sha256']]
         if (declaration['identity']['name']!=planner_name or len(matches)!=1
                 or (paper and declaration['identity']['version_label'] not in {PAPER_CC_VERSION, PAPER_PLANNER_VERSION})):
@@ -384,7 +393,7 @@ class Binder:
                 return prior
         snapshot=self.store.read_record(library_snapshot_ref,contract_id='library-snapshot')
         resources=self.store.read_record(resource_inventory_ref,contract_id='resource-inventory');policy=self.store.read_record(policy_ref,contract_id='plan-policy')
-        if paper_workflow_allowed(policy) and is_paper_graph(source):
+        if (paper_workflow_allowed(policy) or is_capability_policy(policy)) and is_paper_graph(source):
             validate_summary_documents(self.store,brief,resources,resource_inventory_ref,authority_ceiling)
         refs={'brief_ref':brief_ref,'library_snapshot_ref':library_snapshot_ref,'resource_inventory_ref':resource_inventory_ref,'policy_ref':policy_ref}
         def pin_exists(pins):
