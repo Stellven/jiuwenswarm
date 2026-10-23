@@ -1147,7 +1147,7 @@ class CapsuleRunner:
                 route=self.store.read_record(route_ref);route_id=route.get('route_id');decision_source=route.get('decision_source')
         model_injected=any(i['service_key']=='audited_model_bridge' for i in execution['declaration']['needs']['injects'])
         calls_observed=len(starts) if starts else len(calls) if calls and all(r.get('observed_runtime') is True for r in calls) else (None if model_injected else 0)
-        return {'schema_version':'3.0.0','id':'observation:'+uuid.uuid4().hex,**{k:c[k] for k in ('run_id','node_id','subnode_id','attempt_id')},
+        return {'schema_version':'4.0.0' if decision_source=='user_api' else '3.0.0','id':'observation:'+uuid.uuid4().hex,**{k:c[k] for k in ('run_id','node_id','subnode_id','attempt_id')},
             'cc_name':identity['name'],'cc_version':identity['version_label'],'declaration_sha256':b['declaration_ref']['sha256'],
             'route_id':route_id,'measurement_status':'observed' if calls_observed is not None else 'unavailable','contract_ref':contract_ref,'binding_id':b['id'],'input_refs':c['input_refs'],
             'output_refs':list(outputs.values()),'model_identity':model_identity,'started_at':started,'ended_at':utc_now(),'outcome':outcome,

@@ -409,6 +409,7 @@ export async function bootstrapResearchSession(): Promise<boolean> {
       SESSION_KEY,
       JSON.stringify({ ...value, ...(reusable ? { bootstrap: challenge } : {}) }),
     );
+      window.dispatchEvent(new CustomEvent('research.runtime.changed'));
     return true;
   })();
   try {

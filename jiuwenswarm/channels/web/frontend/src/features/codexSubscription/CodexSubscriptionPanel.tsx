@@ -19,6 +19,7 @@ type Model = { id: string; name: string; default: boolean };
 type Props = {
   connected: boolean;
   request: (method: string, params?: Record<string, unknown>) => Promise<unknown>;
+  showModelSelector?: boolean;
 };
 
 export function CodexSubscriptionConnection({ connected, request }: Props) {
@@ -27,18 +28,26 @@ export function CodexSubscriptionConnection({ connected, request }: Props) {
     let disposed = false;
     const refresh = async () => {
       try {
-        const status = await request('codex.auth.status') as Status;
-        if (!disposed) useCodexSubscription.getState().set({ state: status.state, ...(hasLocalChat() ? { model: 'gpt-6.1-sol' } : {}) });
-      } catch { if (!disposed) useCodexSubscription.getState().set({ state: 'unavailable' }); }
+        const status = (await request('codex.auth.status')) as Status;
+        if (!disposed)
+          useCodexSubscription
+            .getState()
+            .set({ state: status.state, ...(hasLocalChat() ? { model: 'gpt-6.1-sol' } : {}) });
+      } catch {
+        if (!disposed) useCodexSubscription.getState().set({ state: 'unavailable' });
+      }
     };
     void refresh();
     const timer = window.setInterval(() => void refresh(), 10000);
-    return () => { disposed = true; window.clearInterval(timer); };
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+    };
   }, [connected, request]);
   return null;
 }
 
-export function CodexSubscriptionPanel({ connected, request }: Props) {
+export function CodexSubscriptionPanel({ connected, request, showModelSelector = true }: Props) {
   const { t } = useTranslation();
   const [status, setStatus] = useState<Status>({ state: 'checking' });
   const [busy, setBusy] = useState(false);
@@ -161,90 +170,98 @@ export function CodexSubscriptionPanel({ connected, request }: Props) {
   };
 
   return (
-    <div
-      data-variant={status.state}
-      data-testid="codex-subscription-panel"
-      aria-label={t('codexSubscription.title')}
-    >
+    <div data-variant={status.state} data-testid="codex-subscription-panel" aria-label={t('codexSubscription.title')}>
       <SettingRow
         title={<span data-testid="codex-subscription-title">{t('codexSubscription.title')}</span>}
-        meta={<span role="status" data-testid="codex-subscription-status" data-variant={status.state}>
-          {t(`codexSubscription.states.${status.state}`)}
-        </span>}
-        description={<span data-testid="codex-subscription-scope">
-          {t(
-            hasLocalChat()
-              ? 'codexSubscription.localChat'
-              : hasResearchSession() && !hasResearchConfiguration()
-                ? 'codexSubscription.setupRequired'
-                : 'codexSubscription.scope',
-          )}
-        </span>}
+        meta={
+          <span role="status" data-testid="codex-subscription-status" data-variant={status.state}>
+            {t(`codexSubscription.states.${status.state}`)}
+          </span>
+        }
+        description={
+          <span data-testid="codex-subscription-scope">
+            {t(
+              hasLocalChat()
+                ? 'codexSubscription.localChat'
+                : hasResearchSession() && !hasResearchConfiguration()
+                  ? 'codexSubscription.setupRequired'
+                  : 'codexSubscription.scope',
+            )}
+          </span>
+        }
       >
-      <div className="codex-subscription__actions">
-        {status.state === 'ready' ? (
-          <>
-            <Select
-              data-testid="codex-subscription-model"
-              aria-label={t('codexSubscription.model')}
-              value={model}
-              disabled={busy || !connected}
-              onChange={(value) => useCodexSubscription.getState().set({ model: value })}
-              options={[
-                ...(!hasLocalChat() ? [{ value: '', label: t('codexSubscription.defaultModel') }] : []),
-                ...models.map((item) => ({ value: item.id, label: item.name })),
-              ]}
-            />
-            <Button
-              data-testid="codex-subscription-logout"
-              size="sm"
-              variant="quiet"
-              disabled={busy || !connected}
-              onClick={() => void action('logout')}
-            >
-              {t('codexSubscription.logout')}
-            </Button>
-          </>
-        ) : status.state === 'signing_in' ? (
-          <>
-            {userCode && (
-              <span className="codex-subscription__device" data-testid="codex-subscription-device-code">
-                {t('codexSubscription.deviceCode')} <code>{userCode}</code>
-              </span>
-            )}
-            {loginUrl && (
-              <a
-                data-testid="codex-subscription-login-link"
-                href={loginUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                referrerPolicy="no-referrer"
+        <div className="codex-subscription__actions">
+          {status.state === 'ready' ? (
+            <>
+              {showModelSelector && (
+                <Select
+                  data-testid="codex-subscription-model"
+                  aria-label={t('codexSubscription.model')}
+                  value={model}
+                  disabled={busy || !connected}
+                  onChange={(value) => useCodexSubscription.getState().set({ model: value })}
+                  options={[
+                    ...(!hasLocalChat() ? [{ value: '', label: t('codexSubscription.defaultModel') }] : []),
+                    ...models.map((item) => ({ value: item.id, label: item.name })),
+                  ]}
+                />
+              )}
+              <Button
+                data-testid="codex-subscription-logout"
+                size="sm"
+                variant="quiet"
+                disabled={busy || !connected}
+                onClick={() => void action('logout')}
               >
-                {t('codexSubscription.openLogin')}
-              </a>
-            )}
+                {t('codexSubscription.logout')}
+              </Button>
+            </>
+          ) : status.state === 'signing_in' ? (
+            <>
+              {userCode && (
+                <span className="codex-subscription__device" data-testid="codex-subscription-device-code">
+                  {t('codexSubscription.deviceCode')} <code>{userCode}</code>
+                </span>
+              )}
+              {loginUrl && (
+                <a
+                  data-testid="codex-subscription-login-link"
+                  href={loginUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  referrerPolicy="no-referrer"
+                >
+                  {t('codexSubscription.openLogin')}
+                </a>
+              )}
+              <Button
+                data-testid="codex-subscription-cancel"
+                disabled={busy || !connected}
+                onClick={() => void action('cancel')}
+              >
+                {t('codexSubscription.cancel')}
+              </Button>
+            </>
+          ) : (
             <Button
-              data-testid="codex-subscription-cancel"
-              disabled={busy || !connected}
-              onClick={() => void action('cancel')}
+              data-testid="codex-subscription-login"
+              variant="primary"
+              disabled={busy || !connected || status.state === 'checking'}
+              onClick={() => void action('login')}
             >
-              {t('codexSubscription.cancel')}
+              {t('codexSubscription.login')}
             </Button>
-          </>
-        ) : (
+          )}
           <Button
-            data-testid="codex-subscription-login"
-            variant="primary"
-            disabled={busy || !connected || status.state === 'checking'}
-            onClick={() => void action('login')}
+            size="sm"
+            variant="quiet"
+            data-testid="codex-subscription-refresh"
+            disabled={busy || !connected}
+            onClick={() => void refresh()}
           >
-            {t('codexSubscription.login')}
+            {t('codexSubscription.refresh')}
           </Button>
-        )}
-        <Button size="sm" variant="quiet" data-testid="codex-subscription-refresh" disabled={busy || !connected} onClick={() => void refresh()}>
-          {t('codexSubscription.refresh')}
-        </Button>
-      </div>
+        </div>
       </SettingRow>
       {error && (
         <p role="alert" className="codex-subscription__error" data-testid="codex-subscription-error">

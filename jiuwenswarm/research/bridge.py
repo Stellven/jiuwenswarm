@@ -86,7 +86,7 @@ class GovernedBridge:
     def __init__(self, *, persist, authorize, subscription_service, router_port=None,
                  providers=None, fixed_route_id="codex-cli-default", validate_record=None,
                  builder_launcher=None, health_check=None, revalidate=None, read_evidence=None,
-                 capture_native=None):
+                 capture_native=None, manual_models=None):
         self.persist, self.authorize = persist, authorize
         self.subscription = subscription_service
         self.router = router_port or CodexRouter(fixed_route_id)
@@ -98,6 +98,7 @@ class GovernedBridge:
         self.revalidate = revalidate
         self.read_evidence = read_evidence
         self.capture_native = capture_native
+        self.manual_models = manual_models
         self._active_calls={};self._contained_runs=set();self._uncertain_runs=set()
 
     async def _require_capture(self):
@@ -253,20 +254,28 @@ class GovernedBridge:
         # carrier packages returned file bytes; only the original tool-using
         # release enters the dedicated, credential-isolated Builder launcher.
         is_builder = (protected.get("cc_name") == "research.builder"
-                      and protected.get("cc_version") not in {"m1-2", "m1-3", "m1-4", "m1-5", "m1-6", "m1-7", "m1-8", "m1-9", "m1-10", "m1-11", "m1-12"})
+                      and protected.get("cc_version") not in {"m1-2", "m1-3", "m1-4", "m1-5", "m1-6", "m1-7", "m1-8", "m1-9", "m1-10", "m1-11", "m1-12", "m1-13"})
         if is_builder and self.builder_launcher is None:
             raise BridgeError("ENVIRONMENT_BLOCKED")
         remaining=deadline-monotonic()
         if remaining<=0:raise BridgeError('timeout')
+        manual = self.manual_models.for_call(protected) if self.manual_models is not None else None
         try:
             async with asyncio.timeout(min(30,remaining)):
-                choice = await self.router.select(protected)
+                if manual is not None:
+                    if is_builder:
+                        raise BridgeError('invalid_request')
+                    deployment = self.read_evidence(manual['deployment_ref'])
+                    deployment = json.loads(await _resolved(deployment))
+                    choice = RouteChoice(deployment['model_id'], 'user_api', None)
+                else:
+                    choice = await self.router.select(protected)
         except TimeoutError:
             choice=RouteChoice(self.fixed_route_id,'codex_router_failed','timeout')
         route_id = "route-" + uuid.uuid4().hex
-        route = {"schema_version": "1.0.0", "route_id": route_id,
+        route = {"schema_version": "2.0.0" if manual is not None else "1.0.0", "route_id": route_id,
                  **{k: protected[k] for k in ("run_id", "node_id", "subnode_id", "invocation_id")},
-                 "router_enabled": choice.decision_source != "codex_router_disabled",
+                 "router_enabled": choice.decision_source not in {"codex_router_disabled", "user_api"},
                  "decision_source": choice.decision_source, "router_failure": choice.router_failure,
                  "router_halt_code": choice.router_halt_code, "model_id": choice.model_id,
                  "route_decision_ref": choice.route_decision_ref, "recorded_at": utc_now()}
@@ -288,6 +297,8 @@ class GovernedBridge:
             if self.revalidate is None:
                 raise PlatformIntegrityError('DISPATCH_AUTHORIZATION_UNAVAILABLE')
             async with asyncio.timeout_at(deadline):
+                if manual is not None:
+                    self.manual_models.preflight(manual)
                 if choice.decision_source=='router':
                     if not isinstance(choice.decision,dict):
                         raise PlatformIntegrityError('FROZEN_ROUTE_INVALID')
@@ -306,6 +317,8 @@ class GovernedBridge:
                 live=await _resolved(self.revalidate({key:protected[key] for key in
                     ('execution_id','invocation_id','call_id','call_claim_ref','contract_ref')}))
                 self._check_context(live)
+                if manual is not None and self.manual_models.for_call(live) != manual:
+                    raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
                 if (live.get('expected_prompt_sha256')!=expected_prompt_sha256
                         or protected.get('expected_prompt_sha256')!=expected_prompt_sha256):
                     raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
@@ -367,7 +380,7 @@ class GovernedBridge:
                 "route_id": route_id, "route_ref": route_ref, "input_ref": evidence_ref, "started_at": started_at}, context=protected)
         except Exception:
             raise BridgeError('AUDIT_UNAVAILABLE',route_ref=route_ref) from None
-        deployment_ref = choice.decision["deployment_ref"] if choice.decision else protected["deployment_ref"]
+        deployment_ref = manual['deployment_ref'] if manual is not None else choice.decision["deployment_ref"] if choice.decision else protected["deployment_ref"]
         call_record = {"schema_version": "1.0.0", "id": protected["call_id"],
                        "route_attempt_id": "attempt:" + uuid.uuid4().hex,
                        "route_decision_ref": choice.route_decision_ref,
@@ -393,7 +406,10 @@ class GovernedBridge:
                 'execution_deadline_monotonic_s':deadline,'route_ref':route_ref,'route_decision_ref':choice.route_decision_ref,
                 'selected_deployment_ref':deployment_ref,'model_call_start_ref':start_ref,'input_ref':evidence_ref}
             async with asyncio.timeout_at(deadline):
-                if choice.model_id == self.fixed_route_id:
+                if manual is not None:
+                    result = await self.manual_models.invoke(manual, prompt, timeout_s=timeout_s,
+                        call_function=protected['call_function'])
+                elif choice.model_id == self.fixed_route_id:
                     if is_builder:
                         result = await self._invoke_builder(dispatch_context,prompt,timeout_s,call_record)
                     else:

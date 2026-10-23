@@ -4715,5 +4715,31 @@
       "delivery": "报告与证据交付",
       "verifier": "独立验证胶囊"
     }
+  },
+  "researchModels": {
+    "option": "{{model}}（{{platform}} API key）",
+    "platformKey": "{{platform}} API key",
+    "claudeKeyHint": "请使用绑定 Anthropic 工作区的 API key。此处暂不支持需要额外工作区请求头的个人或服务账户 key。",
+    "authenticationRequired": "API 模型在这里配置。请使用本地启动器打开带登录信息的应用链接，才能加载和保存模型设置；在新标签页直接输入地址不会携带该登录信息。",
+    "title": "研究模型",
+    "description": "选择 AI4R 研究流程使用的模型。",
+    "model": "模型",
+    "codex": "Codex（ChatGPT 订阅）",
+    "current": "当前使用：{{model}}",
+    "apiKey": "API 密钥",
+    "keyPrivacy": "保存一份 OpenRouter API key 即可切换使用全部八个 API 模型。密钥仅在本机私密保存，不会写入提示词或运行导出文件。",
+    "keySaved": "密钥已保存；留空即可保留",
+    "keyPlaceholder": "输入模型提供商的 API 密钥",
+    "showKey": "显示输入的密钥",
+    "hideKey": "隐藏输入的密钥",
+    "modelName": "模型名称",
+    "apiAddress": "API 地址",
+    "addressHint": "请使用与你的密钥所属提供商及地区一致的接口地址。",
+    "apply": "使用此模型",
+    "newRuns": "应用于新的研究请求。正在运行的任务保持原来的模型。",
+    "saveUse": "保存并使用",
+    "refresh": "刷新",
+    "error": "无法保存或加载模型。请检查应用连接和 OpenRouter API key。",
+    "saved": "已保存。新的研究请求将使用此模型。"
   }
 }

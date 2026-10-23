@@ -112,6 +112,14 @@ class ResearchService:
         run,fresh=self.store.allocate_run(principal.account_id,normalized['client_request_id'],fingerprint,
             'run:'+uuid.uuid4().hex,normalized['workspace_id'],normalized,uploads)
         if fresh:
+            freeze_model = getattr(self, 'freeze_model_selection', None)
+            if freeze_model is not None and not protected.get('profile_id') and protected.get('finite_e1_binding_ref') is None:
+                try:
+                    value = freeze_model(principal, run['id'])
+                    if inspect.isawaitable(value): await value
+                except Exception:
+                    self.store.set_run_state(run['id'], 'halted', reason='model_selection_unavailable')
+                    raise ResearchError('unavailable', 'The selected model could not be frozen for this run') from None
             # Retain the actual authenticated pre-capture context only for the
             # source-defined single new linked replan; it grants no replay.
             submission_context=copy.deepcopy(protected)
@@ -178,6 +186,10 @@ class ResearchService:
                     raise ResearchError('integrity_fault','Scheduler continuation has no exact original planned allocation')
                 if linked in self._tasks:raise ResearchError('identity_conflict','Linked compiler work already started')
                 linked_protected=copy.deepcopy(protected)
+                freeze_model = getattr(self, 'freeze_model_selection', None)
+                if freeze_model is not None:
+                    value = freeze_model(principal, linked, parent_run_id=run_id)
+                    if inspect.isawaitable(value): await value
                 if protected.get('finite_e1_binding_ref') is None and protected.get('profile_id') is None:
                     phase='run_input_preparation_failed'
                     try:

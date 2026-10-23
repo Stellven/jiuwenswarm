@@ -45,3 +45,5 @@ An interrupted attempt, unavailable measurement, unsupported seed or token/cost 
 ## Frozen contracts in every export (D53)
 
 Every run export exposes contracts/index.json and exact contract JSON files, each with its original Ref and SHA-256. Include accepted or candidate Briefs, frozen run plans, node/subnode execution contracts and bound checking plans available in that owned run. Report contracts not yet created explicitly, including compiler halts before a plan exists. This inspection output grants no release authority and retains existing audience/redaction rules. Historical artifacts are never rewritten.
+
+For prediction POC attempts (D54), also include the exact versioned metric-protocol snapshot pinned in the protected Hypothesis execution contract before its model call. Its fixed measurement vocabulary contains no user data or private labels. A run that never reached Hypothesis lists this contract as not created.

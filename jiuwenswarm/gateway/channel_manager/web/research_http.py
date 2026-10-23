@@ -450,7 +450,8 @@ async def native_research_message(channel, ws, method: str, params: dict):
                         'models.list', 'models.get', 'models.replace_all', 'models.validate', 'models.upsert', 'models.delete', 'models.references',
                         'model_groups.list', 'model_groups.upsert', 'model_groups.delete', 'session.selection.set',
                         'codex.auth.status', 'codex.auth.login', 'codex.auth.cancel', 'codex.auth.logout', 'codex.models.list',
-                        'locale.get_conf', 'locale.set_conf', 'research.preferences.get', 'research.preferences.save'}
+                        'locale.get_conf', 'locale.set_conf', 'research.preferences.get', 'research.preferences.save',
+                        'research.models.get','research.models.save','research.models.select','research.models.remove'}
     read_methods = {'initialize', 'channel.get', 'history.get', 'history.list_turns', 'session.list', 'session.get_metadata',
                     'session.preview', 'session.plan_status', 'session.archived.list', 'project.info', 'project.list',
                     'project.get_sessions', 'project.pinned_sessions', 'project.git.status', 'project.git.probe'}
@@ -483,6 +484,11 @@ async def native_research_message(channel, ws, method: str, params: dict):
                             'codex.auth.logout', 'codex.models.list'}):
         raise ResearchError('unavailable', 'Mandatory operator configuration is unavailable; inspection only')
     setattr(ws, 'authenticated_user_id', principal.account_id)
+    if method.startswith('research.models.'):
+        model_settings=getattr(service,'model_settings',None)
+        if model_settings is None:
+            raise ResearchError('unavailable','Model settings are unavailable')
+        return True, await _result(model_settings(principal,method.rsplit('.',1)[1],params))
     if method in {'research.preferences.get', 'research.preferences.save'}:
         preferences = getattr(channel, 'research_preferences', None)
         if preferences is None:

@@ -66,3 +66,8 @@ Exact rules: [RouterPort seam](../reference/model-routing-contract.md#routerport
 ## Decisions
 
 [D40](../method/decisions.md#d40), [D44](../method/decisions.md#d44) and the [integration rulings](owner-rulings.md#routing-v21).
+
+
+## Explicit user choice (D55)
+
+Settings > Model also offers a manual API alternative to Codex subscription. This is not automatic development-profile selection: the user selects one model and the host freezes it for the complete new run. The same existing compiler, planner, work capsules, independent verifier capsules and gates execute. Keys remain private to the bridge and are resolved from opaque credential revisions at dispatch; failed API calls halt without fallback. Manually selected API runs use the selected API for verifier calls as well, under the explicit D55 exception, so subscription login is unnecessary. Automatic routing retains RTR-1 through RTR-8. The initial eight presets are convenience entries, not benchmark-qualified rankings: DeepSeek V4 Pro, DeepSeek Flash, Qwen3.8 Max, Qwen Plus, Kimi K2.5, Grok 4.7, Gemini 4 Argon and Claude Fable 5. All eight use the official OpenRouter API endpoint and an OpenRouter API key. The user only selects a model and enters the key; model IDs and endpoint URLs are fixed server-side. The key is shared across presets in the same account, while in-progress runs retain their original credential revisions. The legacy Qwen-Max page has no active endpoints; Qwen3.8 Max uses the available qwen/qwen3.8-max-0902 deployment. The public catalog at https://openrouter.ai/api/v1/models supplies the exact model slugs.

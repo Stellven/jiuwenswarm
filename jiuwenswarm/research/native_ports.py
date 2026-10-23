@@ -109,6 +109,16 @@ def _session(root,uid):
 
 
 class NativePorts:
+    async def model_settings(self, principal, action, values=None):
+        principal.require('settings')
+        return await self.status_client.call('model_settings', {
+            'account_id': principal.account_id, 'action': action, 'values': values or {}}, timeout_s=30)
+
+    async def freeze_model_selection(self, principal, run_id, *, parent_run_id=None):
+        principal.require('submit')
+        return await self.status_client.call('freeze_model_selection', {
+            'account_id': principal.account_id, 'run_id': run_id, 'parent_run_id': parent_run_id}, timeout_s=30)
+
     def __init__(self,*,executor=None,connectors=None,ipc_root='/run/ai4r',app_uid=APP_UID,build_manifest=BUILD_MANIFEST,installed_package_root=None,installed_component_roots=None):
         self.root=Path(ipc_root);self.uid=app_uid;self.session=_session(self.root,self.uid)
         if executor is None:
@@ -278,8 +288,14 @@ class NativePorts:
             prerequisites.append({'name':'library','status':'unavailable','reason':'No work is eligible while its exact protected library/check binding is unresolved: '+library['unavailable_reason']})
         try:
             status=await self.status_client.call('subscription_status',{},timeout_s=30)
-            ready=status.get('state')=='ready'
-            prerequisites.append({'name':'model','status':'ready' if ready else 'unavailable','reason':'Managed subscription is ready' if ready else 'Managed subscription authentication or transport is unavailable'})
+            selected=await self.status_client.call('model_settings', {
+                'account_id':principal.account_id,'action':'get','values':{}},timeout_s=30)
+            api_selected=selected.get('selected_id') != 'codex'
+            ready=selected.get('api_ready') is True if api_selected else status.get('state')=='ready'
+            if api_selected:
+                status=dict(status,state='ready' if ready else 'unavailable',enabled=ready)
+            prerequisites.append({'name':'model','status':'ready' if ready else 'unavailable',
+                'reason':'Selected API model has a configured private credential; provider authentication is checked at dispatch' if api_selected and ready else 'Managed subscription is ready' if ready else 'Selected model authentication or transport is unavailable'})
         except Exception:
             status={}
             prerequisites.append({'name':'model','status':'unavailable','reason':'AgentServer model status could not be established'})
@@ -413,12 +429,15 @@ async def start_agent_ports():
     subscription.set_governed_trace_writer(lambda kind,record:capture_governed_trace_record(store,kind,record),store.put_blob)
     from .routing_authority import create_routing_runtime,UnavailableRoutingPort
     router,providers,routing_authority=create_routing_runtime(store=store,operator=operator,environ=os.environ)
+    from .model_settings import ModelSettingsOwner
+    manual_models=ModelSettingsOwner(store)
     if type(router) is UnavailableRoutingPort:
         print(json.dumps({'event':'optional-routing-unavailable','reason':router.installation_failure.value}),flush=True)
     bridge=GovernedBridge(persist=store.append_record,authorize=authorize,subscription_service=subscription,
                          router_port=router,providers=providers,fixed_route_id=operator.codex_route_id,validate_record=validate,health_check=capture_healthy,
                           revalidate=revalidate,builder_launcher=BrokerBuilderPort(),read_evidence=store.read_blob,
-                          capture_native=lambda kind,record,*,context:capture_native_record(store,kind,record,context=context))
+                          capture_native=lambda kind,record,*,context:capture_native_record(store,kind,record,context=context),
+                          manual_models=manual_models)
     model_server=ModelBridgeServer(bridge,root/'model.sock',allowed_peer_uids={APP_UID},authorize_containment=authorize_containment,**session)
     from .unified_planning import is_integrated_policy
     try:integrated_policy=is_integrated_policy(store.read_record(operator.snapshot()['cc']['plan_policy_ref'],contract_id='plan-policy'))
@@ -435,7 +454,8 @@ async def start_agent_ports():
                 'builder_mode':execution_status.get('builder_mode') if isinstance(execution_status,dict) else None,
                 'capture_healthy':capture_healthy() is True}
     status_server=PrivateRPCServer(root/'agent-status.sock',protocol=STATUS_PROTOCOL,**session,
-        handlers={'subscription_status':subscription_status},allowed_uids={APP_UID})
+        handlers={'subscription_status':subscription_status,'model_settings':manual_models.settings,
+                  'freeze_model_selection':manual_models.freeze},allowed_uids={APP_UID})
     try:
         await model_server.start();await status_server.start()
     except BaseException:

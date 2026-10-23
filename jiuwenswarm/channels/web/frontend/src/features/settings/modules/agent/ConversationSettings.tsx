@@ -6,10 +6,12 @@ import { useCodexSubscription } from '../../../codexSubscription/state';
 import { hasLocalChat } from '../../../../utils/researchClient';
 import { Select } from '../../../../components/ui/Select/Select';
 
-export function SubscriptionSettings() {
+export function SubscriptionSettings({ showModelSelector = true }: { showModelSelector?: boolean } = {}) {
   const { isConnected, request } = useSettingsServices();
   const enabled = useCodexSubscription((state) => state.enabled);
-  return enabled ? <CodexSubscriptionPanel connected={isConnected} request={request} /> : null;
+  return enabled ? (
+    <CodexSubscriptionPanel connected={isConnected} request={request} showModelSelector={showModelSelector} />
+  ) : null;
 }
 
 export function ConversationCapsuleSettings({ disabled }: { disabled: boolean }) {

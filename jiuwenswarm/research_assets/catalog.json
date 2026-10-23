@@ -77,9 +77,9 @@
   },
   "static_template": {
     "path": "planner/static-template.json",
-    "sha256": "233aac3fa9025ff60af0ae96ad810a39d77c4070727cfc82b0b799fa039890a4",
+    "sha256": "2dd0d6ffe1dcd69e350d2f3d8b958405883f287512dad4427e5058f17b945688",
     "interface_revision": "M1-IF-002@r2",
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
-    "meaning": "Brief 3.0.0 typed ports, current frozen work/check releases; unchanged blind-classification execution, verifier disclosure and gates."
+    "meaning": "Brief 3.0.0 and versioned canonical metric protocol; current frozen capsule and check releases; unchanged protected scoring, verifier disclosure and gates."
   }
 }

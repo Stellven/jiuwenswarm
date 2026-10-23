@@ -4716,5 +4716,31 @@
       "delivery": "Report and evidence delivery",
       "verifier": "Independent verifier"
     }
+  },
+  "researchModels": {
+    "option": "{{model}} ({{platform}} API key)",
+    "platformKey": "{{platform}} API key",
+    "claudeKeyHint": "Use an Anthropic workspace-scoped API key. Personal or service-account keys that require a separate workspace header are not supported here yet.",
+    "authenticationRequired": "API models are configured here. Open this app with the local launcher login link to load and save your model settings; a plain address in a new tab does not carry that login.",
+    "title": "Research model",
+    "description": "Choose the model used by the AI4R research workflow.",
+    "model": "Model",
+    "codex": "Codex (ChatGPT subscription)",
+    "current": "Currently selected: {{model}}",
+    "apiKey": "API key",
+    "keyPrivacy": "Save one OpenRouter API key to use all eight API models. Stored privately on this machine; never included in prompts or run exports.",
+    "keySaved": "Key saved; leave blank to keep it",
+    "keyPlaceholder": "Enter your provider API key",
+    "showKey": "Show entered key",
+    "hideKey": "Hide entered key",
+    "modelName": "Model name",
+    "apiAddress": "API address",
+    "addressHint": "Use the endpoint for your API key's provider and region.",
+    "apply": "Use this model",
+    "newRuns": "Applies to new research runs. Running work keeps its original model.",
+    "saveUse": "Save and use",
+    "refresh": "Refresh",
+    "error": "Could not save or load the model. Check your app connection and OpenRouter API key.",
+    "saved": "Saved. New research runs will use this model."
   }
 }

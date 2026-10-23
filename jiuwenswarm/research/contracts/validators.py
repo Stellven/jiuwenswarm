@@ -171,6 +171,10 @@ def _validator(contract_id: str) -> Draft202012Validator:
 
 
 def validate(contract_id: str, value: Any) -> None:
+    if contract_id == 'route-record' and isinstance(value, dict) and value.get('schema_version') == '2.0.0':
+        contract_id = 'urn:ai4r:manual-route-record:2.0.0'
+    if contract_id == 'invocation-observation' and isinstance(value, dict) and value.get('schema_version') == '4.0.0':
+        contract_id = 'urn:ai4r:invocation-observation:4.0.0'
     # Short-name reads retain historical evidence semantics; an explicit URN
     # still requires its exact version. New producers use the catalog's v3.
     if contract_id == 'research-brief' and isinstance(value, dict):

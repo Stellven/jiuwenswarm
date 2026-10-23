@@ -268,7 +268,7 @@ async def capture_catalog_calibration(store, *, configuration_ref, model_selecti
             outputs = {'plan_proposal': planner_fixture(store, corpus, inputs)} if stage == 'planner' else (
                 delivery_fixture(store, corpus, inputs) if stage == 'delivery' else {
                 port: corpus.capture(filename) for port, filename in OUTPUTS[stage].items()})
-        if stage == 'benchmark' and store.read_record(asset['declaration_ref'])['identity']['version_label'] in {'m1-2-localcpu', 'm1-3-localcpu', 'm1-4-blindcpu', 'm1-5-blindcpu'}:
+        if stage == 'benchmark' and store.read_record(asset['declaration_ref'])['identity']['version_label'] in {'m1-2-localcpu', 'm1-3-localcpu', 'm1-4-blindcpu', 'm1-5-blindcpu', 'm1-6-blindcpu'}:
             # This release promises CPU-only output. Derive its own authored
             # specimen without changing the shared corpus or any other stage's
             # case identities. It is still calibration-only, never an observed

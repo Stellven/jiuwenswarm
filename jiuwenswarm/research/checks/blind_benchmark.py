@@ -6,6 +6,7 @@ from .stages import ResearchChecks, require, resolve_all
 from .research import validate_benchmark
 from ..contracts import ResearchError, validate
 from ..environment import validate_lock
+from ..metric_contract import validate_metric_declarations, validate_empirical_metric_ids
 from ..trusted_scoring import BUILD_SCHEMA, SCORE_KIND, scored_empirical_row, failed_empirical_row
 
 
@@ -13,7 +14,7 @@ class BlindBenchmarkChecks(ResearchChecks):
     async def _benchmark(self, ctx, inputs, outputs):
         blueprint, manifest = inputs['hypothesis_blueprint'], inputs['poc_manifest']
         payload, receipt, provisioning = outputs['benchmark_payload'], outputs['execution_receipt'], outputs['provisioning_receipt']
-        require([metric['metric_id'] for metric in blueprint['metrics']] == ['accuracy'], 'metric_coverage')
+        validate_metric_declarations(blueprint['metrics'])
         ready = inputs['build_receipt']; validate(BUILD_SCHEMA, ready)
         require(ready['readiness'] == 'READY' and not ready['trial_executed'] and not ready['packages_installed']
                 and ready['manifest_ref'] == ctx.input_ref('poc_manifest') and ready['archive_ref'] == ctx.input_ref('poc_artifact_bundle'), 'build_receipt_ready')
@@ -54,5 +55,6 @@ class BlindBenchmarkChecks(ResearchChecks):
                 actual = scored_empirical_row(raw, score)
             else:
                 actual = failed_empirical_row(raw)
+            validate_empirical_metric_ids(actual)
             require(actual == row, 'values_match_empirical_results')
             require(raw['observed_limits'].get('network') == 'none', 'network_policy_respected')

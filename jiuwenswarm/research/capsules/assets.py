@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-6', builder='m1-12', benchmark='m1-5-blindcpu', evaluation='m1-5', delivery='m1-5')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-13', benchmark='m1-6-blindcpu', evaluation='m1-5', delivery='m1-5')
 
 
 def source_metadata():
@@ -50,11 +50,30 @@ def build_research_assets(store, *, verify_catalog=True):
         carrier_name = 'builder_text.py' if stage == 'builder' else stage + '.py'
         body = {carrier_name: (root / 'capsules' / carrier_name).read_bytes(),
                 '_common.py': (root / 'capsules/_common.py').read_bytes()}
+        metric_closure = {}
+        if stage in {'hypothesis', 'builder', 'benchmark'}:
+            from ..metric_contract import PROTOCOL_FILE, metric_protocol
+            body['metric_contract.py'] = (root / 'metric_contract.py').read_bytes()
+            body[PROTOCOL_FILE] = (root.parent / 'research_contracts' / PROTOCOL_FILE).read_bytes()
+            metric_closure = {name: store.put_blob(raw, media_type='application/json' if name.endswith('.json') else 'text/x-python')
+                              for name, raw in body.items() if name in {'metric_contract.py', PROTOCOL_FILE}}
+            metric_closure['schemas/metric-protocol.schema.json'] = store.put_blob(
+                (root.parent / 'research_contracts/schemas/metric-protocol.schema.json').read_bytes(), media_type='application/json')
+            metric_closure['schemas/classification-scoring-receipt.schema.json'] = store.put_blob(
+                (root.parent / 'research_contracts/schemas/classification-scoring-receipt.schema.json').read_bytes(), media_type='application/json')
+            description = (' Fixed measurement protocol: ' + json.dumps(metric_protocol(), separators=(',', ':')) +
+                '. Use these exact metric IDs, units, definitions, directions and physical bounds. '
+                'Aggregation and Brief target_id remain separately registered. No aliases or silent renaming.')
         if stage in {'builder', 'benchmark'}:
             body['trusted_scoring.py'] = (root / 'trusted_scoring.py').read_bytes()
             if stage == 'builder':
                 body['prediction_bundle.py'] = (root / 'checks/prediction_bundle.py').read_bytes()
         stage_runner_ref = runner_ref
+        if stage == 'hypothesis':
+            closure = dict(checker_closure, **metric_closure)
+            closure['checks/prediction_hypothesis.py'] = store.put_blob(
+                (root / 'checks/prediction_hypothesis.py').read_bytes(), media_type='text/x-python')
+            stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.prediction_hypothesis', 'files': closure}), media_type='application/json')
         if stage == 'builder':
             declaration['needs']['resources'] = []
             declaration['needs']['model']['tool_calling'] = False
@@ -89,7 +108,7 @@ def build_research_assets(store, *, verify_catalog=True):
                         'and settings under this fixed protocol; it cannot establish hidden baseline/data contents '
                         'or exact source fidelity, actual baseline-first execution or measurement correctness. '
                         'Those original identity/order/execution obligations remain protected Benchmark host checks.')
-            closure = dict(checker_closure)
+            closure = dict(checker_closure, **metric_closure)
             closure['checks/builder_text.py'] = store.put_blob((root / 'checks/builder_text.py').read_bytes(), media_type='text/x-python')
             closure['checks/prediction_bundle.py'] = store.put_blob((root / 'checks/prediction_bundle.py').read_bytes(), media_type='text/x-python')
             closure['trusted_scoring.py'] = store.put_blob((root / 'trusted_scoring.py').read_bytes(), media_type='text/x-python')
@@ -111,7 +130,7 @@ def build_research_assets(store, *, verify_catalog=True):
                     'job/contract/sequence/role/seed/dataset/stream/scorer identities. Unmeasured jobs retain explicit '
                     'C002 reasons, not invented values. Host alone checks private scoring custody and actual '
                     'execution; output-only semantic review checks visible fields, arithmetic and consistency.')
-            closure = dict(checker_closure)
+            closure = dict(checker_closure, **metric_closure)
             for name in ('checks/blind_benchmark.py', 'trusted_scoring.py'):
                 closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
             for name in ('classification-scoring-receipt.schema.json', 'prediction-build-receipt.v2.schema.json'):
@@ -153,6 +172,9 @@ def build_research_assets(store, *, verify_catalog=True):
                 body[name] = resources.joinpath(name).read_bytes()
             if body['ranking_parent.txt'] != (root / 'capsules/ranking.py').read_bytes():
                 raise ResearchError('helper_pin_mismatch', 'Installed pure helper differs from the packaged admitted body')
+        if metric_closure:
+            for port in declaration['ports']['outputs']:
+                port['description'] += description
         body_refs = {name: store.put_blob(raw, media_type='application/json' if name.endswith('.json') else 'text/plain') for name, raw in body.items()}
         identity['carrier'] = {'ref': carrier_name, 'sha256': body_refs[carrier_name]['sha256']}
         identity['body'] = [{'path': name, 'sha256': ref['sha256']} for name, ref in body_refs.items() if name != '_common.py']
@@ -179,6 +201,10 @@ def build_research_assets(store, *, verify_catalog=True):
                                  ('empirical_values_finite', 'C002: finite metrics and missing-reason maps are disjoint and jointly cover the blueprint metric set.')]:
                 checks.append({'check_id': key, 'target_port': 'benchmark_payload', 'rule_summary': summary,
                                'runner_ref': stage_runner_ref, 'reads': ['output', 'inputs', 'runtime_records'], 'blocking': True})
+        if stage == 'hypothesis':
+            checks.append({'check_id': 'metric_protocol_supported', 'target_port': 'blueprint',
+                'rule_summary': 'Metric identities, units, measurement definitions, directions and bounds match the pinned execution protocol before Builder.',
+                'runner_ref': stage_runner_ref, 'reads': ['output'], 'blocking': True})
         criteria = [{'criterion_id': key, 'question': question, 'blocking': True,
                      'answerable_from': 'declaration_and_output', 'target_port': None} for key, question in generic]
         for row in source['criteria']:
@@ -253,6 +279,9 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
             checks = BlindBenchmarkChecks(stage, executor=executor)
         else:
             checks = ResearchChecks(stage, executor=executor)
+            if stage == 'hypothesis':
+                from ..checks.prediction_hypothesis import PredictionHypothesisChecks
+                checks = PredictionHypothesisChecks(stage, executor=executor)
         check_registry.register_bundle(bundle['bundle_id'], [check['check_id'] for check in bundle['checks']],
                                        checks, implementation_ref=asset['runner_ref'], profile_ref=asset['profile_ref'])
         handler = screening.ScreeningCarrier(rank_opportunities, asset['body_refs']['ranking_parent.txt'],

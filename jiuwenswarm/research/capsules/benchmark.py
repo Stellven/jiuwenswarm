@@ -7,6 +7,7 @@ from ..science import metric_payload
 from ..trusted_scoring import BUILD_SCHEMA, scored_empirical_row, failed_empirical_row
 from ..contracts import validate
 from ..state import json_bytes
+from ..metric_contract import validate_metric_declarations, validate_empirical_metric_ids
 from ._common import captured, produced
 
 
@@ -16,8 +17,7 @@ async def execute(ctx, inputs):
     blueprint, manifest = inputs['hypothesis_blueprint'], inputs['poc_manifest']
     ready, lock = inputs['build_receipt'], inputs['environment_lock']
     validate(BUILD_SCHEMA, ready)
-    if [metric['metric_id'] for metric in blueprint['metrics']] != ['accuracy']:
-        raise ResearchError('blind_scoring', 'The blind classification protocol measures only independently scored accuracy')
+    validate_metric_declarations(blueprint['metrics'])
     if (ready['readiness'] != 'READY' or ready['trial_executed'] or ready['packages_installed']
             or ready['manifest_ref'] != ctx.input_ref('poc_manifest')
             or ready['archive_ref'] != manifest['archive_ref'] or ready['archive_ref'] != ctx.input_ref('poc_artifact_bundle')
@@ -59,6 +59,7 @@ async def execute(ctx, inputs):
                     score_refs.append(raw['trusted_scoring_ref'])
                 row = (scored_empirical_row(raw, ctx.read_json(raw['trusted_scoring_ref']))
                        if 'trusted_scoring_ref' in raw else failed_empirical_row(raw))
+                validate_empirical_metric_ids(row)
                 rows.append(row)
                 if role == 'baseline' and (raw['exit_code'] != 0 or raw.get('termination_reason') != 'completed'
                                            or row['status'] != 'measured'):

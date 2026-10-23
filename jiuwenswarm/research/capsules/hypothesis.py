@@ -1,8 +1,7 @@
 """Freeze one scientific intervention before any generated code or measurement."""
-import copy
-
-from ..contracts import contract_schema
 from ..contracts.types import ResearchError
+from ..metric_contract import (metric_protocol, hypothesis_reply_schema,
+                               validate_metric_declarations)
 from ._common import ask, produced
 
 
@@ -10,13 +9,19 @@ async def execute(ctx, inputs):
     baseline, validation = inputs['baseline_resource'], inputs['validation_resource']
     if baseline['availability'] != 'available' or validation['availability'] != 'available' or not baseline['environment_ref'] or baseline['environment_ref'] != validation['environment_ref']:
         raise ResearchError('unavailable', 'Both captured resources require the same prepared environment')
-    reply_schema = copy.deepcopy(contract_schema('hypothesis-blueprint'))
-    reply_schema['properties'].pop('dependent_variables')
-    reply_schema['required'].remove('dependent_variables')
+    protocol = metric_protocol()
+    # The protected execution contract already pins this public body file.
+    # Export reads that exact binding; capsules never create authority records.
+    reply_schema = hypothesis_reply_schema()
     blueprint = await ask(ctx, 'Hypothesis', 'Write hypothesis-blueprint2.0.0 with one claim, mechanism and independent_variable; '
                           'return its scientific fields except dependent_variables, which the carrier assembles as an exact index of '
                           'your metrics[].metric_id values before publication. Do not return that carrier-owned field. '
-                          'Write1..8 metric declarations, baseline_identity, resource_refs, environment_ref, '
+                          'Use exactly the supplied measurement_protocol.metrics declarations, in their registered order. '
+                          'Copy metric_id, unit, measurement, direction and bounds verbatim; do not invent aliases, '
+                          'split-prefixed IDs, other metrics or a different scoring procedure. Choose only aggregation '
+                          'and target_id for each registered measurement. The measurement is held-out test accuracy, '
+                          'not training or validation accuracy. Preserve the user target through target_id and exact '
+                          'unit conversion in the registered outcome rules. Write baseline_identity, resource_refs, environment_ref, '
                           'one outcome_rule per metric, repeat_count3..30, seed0..2147483647 and fixed_same_for_all_runs. '
                           'Each metric_id is a unique lowercase identifier matching ^[a-z][a-z0-9_]*$; write exactly one outcome_rule '
                           'for each such ID and no undeclared IDs. Use the same exact identifiers in every metric reference. '
@@ -54,6 +59,8 @@ async def execute(ctx, inputs):
                           'Before returning, self-review all exact input identities, target and constraint coverage, unique metric/rule '
                           'IDs, rule-direction families, disjoint boundaries, conditional nullability and scope/seed/repeat bounds. '
                           'No trials, invented data, dependencies or post-hoc thresholds.',
-                          dict(inputs, input_refs={p: ctx.input_ref(p) for p in inputs}), reply_schema=reply_schema)
+                          dict(inputs, measurement_protocol=protocol,
+                               input_refs={p: ctx.input_ref(p) for p in inputs}), reply_schema=reply_schema)
+    validate_metric_declarations(blueprint['metrics'])
     blueprint['dependent_variables'] = [metric['metric_id'] for metric in blueprint['metrics']]
     return {'blueprint': produced(blueprint, 'hypothesis-blueprint')}

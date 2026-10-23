@@ -1,9 +1,10 @@
 """Readable exact contract inventory for an already authorized run export."""
 from .state import json_bytes
+from .metric_contract import PROTOCOL_FILE, PROTOCOL_SCHEMA
 
 
 KINDS = {'research-brief', 'run-plan', 'node-execution-contract',
-         'subnode-execution-contract', 'bound-check-plan'}
+         'subnode-execution-contract', 'bound-check-plan', 'metric-protocol', 'run-model-selection'}
 
 
 def contract_export_files(store, run, records, audience, restricted):
@@ -13,6 +14,28 @@ def contract_export_files(store, run, records, audience, restricted):
         value = row['record']
         if row['kind'] in KINDS:
             originals[row['ref']['sha256']] = (row['kind'], row['ref'], value)
+        if row['kind'] == PROTOCOL_SCHEMA:
+            originals[row['ref']['sha256']] = ('metric-protocol', row['ref'], value)
+        if row['kind'] == 'run-model-selection' and value.get('deployment_ref'):
+            ref=value['deployment_ref']
+            deployment=store.read_record(ref)
+            originals[ref['sha256']]=('manual-model-deployment',ref,deployment)
+            endpoint_ref=deployment['endpoint_ref']
+            originals[endpoint_ref['sha256']]=('manual-model-endpoint',endpoint_ref,store.read_record(endpoint_ref))
+        if row['kind'] == 'subnode-execution-contract':
+            for binding in value['bindings']:
+                declaration = store.read_record(binding['declaration_ref'], contract_id='capsule-declaration')
+                for item in declaration['identity']['body']:
+                    if item['path'] != PROTOCOL_FILE:
+                        continue
+                    # Only a body Ref pinned into this owned execution is eligible.
+                    # Never substitute the currently installed registry for old runs.
+                    refs = [ref for ref in binding['implementation_refs'] if ref['sha256'] == item['sha256']]
+                    if len(refs) != 1:
+                        continue
+                    ref = refs[0]
+                    protocol = store.read_record(ref, contract_id=PROTOCOL_SCHEMA)
+                    originals[ref['sha256']] = ('metric-protocol', ref, protocol)
         if row['kind'] == 'gate-decision':
             accepted.update(ref['sha256'] for ref in value['accepted_refs'])
         if row['kind'] == 'invocation-observation':

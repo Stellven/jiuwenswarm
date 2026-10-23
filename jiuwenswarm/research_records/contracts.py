@@ -28,5 +28,10 @@ class ContractData:
             self.schemas[name]={'$ref':ref}
         self.registry=registry
     def validate(self,name,value):
+        if isinstance(value,dict):
+            if name=='route-record' and value.get('schema_version')=='2.0.0':
+                name='urn:ai4r:manual-route-record:2.0.0'
+            elif name=='invocation-observation' and value.get('schema_version')=='4.0.0':
+                name='urn:ai4r:invocation-observation:4.0.0'
         if name not in self.schemas:raise ValueError('unknown contract identity')
         if next(Draft202012Validator(self.schemas[name],registry=self.registry).iter_errors(value),None) is not None:raise ValueError('contract validation failed: '+name)

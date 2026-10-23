@@ -10,14 +10,16 @@ from ..checks.prediction_bundle import inspect_bundle
 from ..environment import parse_requirements
 from ._common import ask, captured, produced
 from ..contracts import ResearchError
-from ..trusted_scoring import parse_public_dataset
+from ..trusted_scoring import BUILD_SCHEMA, parse_public_dataset
+from ..metric_contract import validate_metric_declarations
 
 
-PREDICTION_BUILD_RECEIPT = 'urn:ai4r:prediction-build-receipt:2.0.0'
+PREDICTION_BUILD_RECEIPT = BUILD_SCHEMA
 
 
 async def execute(ctx, inputs):
     blueprint = inputs['blueprint']
+    validate_metric_declarations(blueprint['metrics'])
     # Only the closed public dataset enters model context. The validation
     # resource is not an arbitrary file sweep or a source of holdout labels.
     data_files = inputs['validation_resource']['files']

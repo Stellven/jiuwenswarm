@@ -7,10 +7,12 @@ import zipfile
 
 from .research import BUNDLE_FILES, CheckError, _python_check
 from ..environment import parse_requirements
+from ..metric_contract import metric_protocol, validate_metric_ids
 
 
 def inspect_bundle(content, metric_ids, lock_pins, *, output_protocol='ai4r-predictions:1'):
-    if output_protocol != 'ai4r-predictions:1' or list(metric_ids) != ['accuracy']:
+    validate_metric_ids(metric_ids)
+    if output_protocol != metric_protocol()['prediction_protocol']:
         raise CheckError('output_log_format')
     if len(content) > 1024 * 1024:
         raise CheckError('archive_size')

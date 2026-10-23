@@ -204,6 +204,9 @@ async def attach_native_research(web_channel,runtime_ports=None):
             bound=bind(composition.runner)
             if inspect.isawaitable(bound):await bound
     service._readiness=readiness
+    if runtime_ports is not None:
+        service.model_settings=getattr(runtime_ports,'model_settings',None)
+        service.freeze_model_selection=getattr(runtime_ports,'freeze_model_selection',None)
     service.evaluation_provider=None
     service.evaluation_reader=None
     service.evaluation_diagnostics=[]
