@@ -97,3 +97,46 @@ async def test_planner_through_independent_gate_and_freeze(tmp_path, monkeypatch
                 protected['configuration_ref'], plan_source='planned', acceptance_ref=outcome['decision_ref'])
     finally:
         store.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('planner_kind', ['core', 'paper'])
+async def test_each_admitted_planner_binds_its_declared_catalog_before_dispatch(tmp_path, monkeypatch, planner_kind):
+    from jiuwenswarm.research.capsules.paper_assets import build_paper_assets
+    from jiuwenswarm.research.planner_catalog import SCHEMA
+
+    app = await controlled_compiler(tmp_path)
+    store, library, actor = app['store'], app['library'], app['actor']
+    try:
+        library.configure_verifier(app['installed']['verifier']['pin'])
+        pin = app['installed']['planner']['pin']
+        if planner_kind == 'paper':
+            asset = build_paper_assets(store)['paper_planner']
+            library.associate_checks(asset['declaration_ref'], asset['bundle_ref'], asset['profile_ref'], actor)
+            admission = store.read_record(await library.admit(asset['declaration_ref'], asset['body_refs'], actor, memory_mb=256))
+            assert admission['status'] == 'admitted', admission['reasons']
+            pin = admission['cc']
+            library.set_standing(pin['cc_name'], pin['cc_version'], 'active', actor, reason='Controlled legacy Planner compatibility')
+        snapshot_ref = library.snapshot()
+        resources_ref = store.put_record('resource-inventory', {'schema_version': '1.0.0', 'id': 'empty', 'resources': []})
+        policy_ref = store.put_record('plan-policy', integrated_plan_policy())
+
+        def stop_after_real_binding(parent_ref):
+            parent = store.read_record(parent_ref)
+            ports = {port['name']: port for port in parent['inputs']}
+            assert ports['capsule_contracts']['contract_id'] == SCHEMA
+            catalog = store.read_record(ports['capsule_contracts']['artifact_refs'][0])
+            assert catalog['library_snapshot_ref'] == snapshot_ref
+            raise ResearchError('bound_before_dispatch', 'Intentional test boundary after real Factory binding')
+
+        monkeypatch.setattr(app['runner'], 'prepare_node_check_plan', stop_after_real_binding)
+        coordinator = PlanningCoordinator(store, app['runner'], app['factory'], planner_pin=pin,
+            template_ref=store.put_blob(b'controlled template'),
+            node_limits={'time_s': 600, 'model_calls': 3, 'memory_mb': 256},
+            authority_ceiling={'network': 'none', 'network_allowlist': [], 'resource_reads': [], 'write_roots': [], 'tools': []})
+        with pytest.raises(ResearchError, match='bound_before_dispatch'):
+            await coordinator.run('run:compiler', app['brief_ref'], snapshot_ref, resources_ref, policy_ref, app['protected'])
+        assert not list(store.iter_records(kinds=('planner_attempt',)))
+        assert app['calls'] == ['worker', 'verifier', 'worker', 'verifier']
+    finally:
+        store.close()

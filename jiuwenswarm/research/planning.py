@@ -253,7 +253,8 @@ class PlanningCoordinator:
         if not self.store.is_accepted(brief_ref,run_id=run_id):raise ResearchError('unaccepted_input','Planner requires the externally committed Brief')
         refs={'brief':brief_ref,'library_snapshot':snapshot_ref,'resource_inventory':resources_ref,'plan_policy':policy_ref}
         contracts={'brief':'research-brief','library_snapshot':'library-snapshot','resource_inventory':'resource-inventory','plan_policy':'plan-policy'}
-        if self.planner_pin['cc_name'] == 'research.planner':
+        declaration = self.factory._entry(self.planner_pin)[1]
+        if any(port['name'] == 'capsule_contracts' for port in declaration['ports']['inputs']):
             from .planner_catalog import capture_catalog, SCHEMA
             refs['capsule_contracts'] = capture_catalog(self.store, self.factory.library, snapshot_ref)
             contracts['capsule_contracts'] = SCHEMA
