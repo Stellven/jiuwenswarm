@@ -156,6 +156,11 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
             body_refs[body['path']]=store.put_blob(data)
         code_path='research/checks/compiler.py' if stage in {'intent','requirements'} else 'research/checks/verifier.py' if stage=='verifier' else 'research/planning.py'
         runner_ref=store.put_blob(package.joinpath(code_path).read_bytes())
+        if stage == 'planner':
+            paths = ['research/planning.py', 'research/binding.py', 'research/unified_planning.py',
+                     'research/summary_planning.py', 'research/capability_planning.py', 'research/planner_catalog.py']
+            closure = {path: store.put_blob(package.joinpath(path).read_bytes()) for path in paths}
+            runner_ref = store.put_blob(json_bytes({'implementation': 'research.planning.planner_checks', 'files': closure}))
         port=declaration['ports']['outputs'][0]['name'];cc=declaration['identity']['name']
         asset_release=declaration['identity']['version_label']
         # Verifier remains the exact installed release. Changed work releases

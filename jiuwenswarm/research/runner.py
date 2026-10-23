@@ -117,7 +117,15 @@ class CapsuleArtifacts:
             raise ResearchError('authority_boundary','Capsules may publish candidate bytes, never host authority records')
         return self._grant(self.__store.put_record(contract_id,record,scope=self.__scope))
     def append_record(self,kind,record):
-        if kind not in {'build_failure','scientific_execution','benchmark_attempt'}:raise ResearchError('authority_boundary','Capsule event kind is not permitted')
+        if kind not in {'build_failure','scientific_execution','benchmark_attempt','planner_attempt'}:raise ResearchError('authority_boundary','Capsule event kind is not permitted')
+        if kind == 'planner_attempt':
+            if (self.__scope['node_id'] != 'planner' or self.__scope['subnode_id'] != 'planner'
+                    or set(record) != {'ordinal','candidate_ref','diagnostics_ref','advisory','repair_requested'}
+                    or type(record['ordinal']) is not int or record['ordinal'] not in (1, 2)
+                    or record['advisory'] is not True or type(record['repair_requested']) is not bool):
+                raise ResearchError('authority_boundary', 'Invalid advisory Planner attempt event')
+            for key in ('candidate_ref','diagnostics_ref'):
+                self.read_blob(record[key])
         safe=dict(record,**self.__scope,id='capsule-event:'+uuid.uuid4().hex)
         return self._grant(self.__store.append_record(kind,safe))
 

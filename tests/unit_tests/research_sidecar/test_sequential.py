@@ -244,3 +244,15 @@ def test_secret_environment_is_referenced_and_stdout_is_redacted(tmp_path, monke
 ])
 def test_invalid_untrusted_or_unbounded_cases_are_rejected(case):
     with pytest.raises(ValueError): validate_cases({'schema_version': 'sequential-cases:1', 'cases': [case]})
+
+
+def test_case_plan_source_is_preselected_and_persists_across_resume(tmp_path):
+    folder, value = campaign(tmp_path, [{'id': 'planned', 'task': 'Planned task', 'plan_source': 'planned'},
+        {'id': 'static', 'task': 'Static task', 'plan_source': 'static'}, {'id': 'default', 'task': 'Use app default'}])
+    client = InterfaceFixture()
+    assert drive(client, folder, value) == 0
+    assert [r.get('plan_source') for r in client.submissions] == ['planned', 'static', None]
+    assert drive(client, folder, value) == 0
+    assert len(client.submissions) == 3
+    with pytest.raises(ValueError, match='plan_source'):
+        validate_cases({'schema_version': 'sequential-cases:1', 'cases': [{'id': 'bad', 'task': 'x', 'plan_source': 'fallback'}]})

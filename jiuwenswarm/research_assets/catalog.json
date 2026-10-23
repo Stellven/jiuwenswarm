@@ -1,10 +1,6 @@
 {
-  "schema_version": "1.0.0",
-  "source_snapshot": "M1/source/Architecture_Design",
   "capsules": {
     "intent": {
-      "declaration_path": "compiler/intent.declaration.json",
-      "declaration_sha256": "3bb3d7f4a9e6b9e399dae8b684e06f42f6417641d898f3f52f393fab363fedac",
       "body": [
         {
           "path": "research/capsules/intent.py",
@@ -18,11 +14,45 @@
           "path": "research/capsules/_common.py",
           "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
         }
-      ]
+      ],
+      "declaration_path": "compiler/intent.declaration.json",
+      "declaration_sha256": "3bb3d7f4a9e6b9e399dae8b684e06f42f6417641d898f3f52f393fab363fedac"
+    },
+    "planner": {
+      "body": [
+        {
+          "path": "research/capsules/planner.py",
+          "sha256": "bcdc2e3b983f4b2f6d121c3a7da31f41950b72d797ec9b8cad7458808534eb46"
+        },
+        {
+          "path": "research_assets/planner/planner.txt",
+          "sha256": "f5a9aae1a67050ffc8e9a7f499d72b27f54ecca9c8fdad53c1dbc0ce04a2e01a"
+        },
+        {
+          "path": "research/capsules/_common.py",
+          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+        },
+        {
+          "path": "research/unified_planning.py",
+          "sha256": "c1b5b0ff0dd6a4e3f7a44b8809f0c8b733fcbc7894444a599575f8c510d54b2b"
+        },
+        {
+          "path": "research/capability_planning.py",
+          "sha256": "2c7b48f519a3a448e1c3f9bc9e00c29a0307454401a5e89a2eb03b2c6a1cd62c"
+        },
+        {
+          "path": "research/summary_planning.py",
+          "sha256": "8ca05d157389c734a6af9c5e7754ffd5c1689092819b01a3df3eb4e159107e1e"
+        },
+        {
+          "path": "research/planner_catalog.py",
+          "sha256": "c8bce2f34d0ac6c11848f83e6cb42e5a9b1e7fdef6f821f45607872d58ef34d1"
+        }
+      ],
+      "declaration_path": "planner/planner.declaration.json",
+      "declaration_sha256": "654fec81e4046dda5620b565d822701f608c181c36e1caed5596063d5471235b"
     },
     "requirements": {
-      "declaration_path": "compiler/requirements.declaration.json",
-      "declaration_sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6",
       "body": [
         {
           "path": "research/capsules/requirements.py",
@@ -36,11 +66,11 @@
           "path": "research/capsules/_common.py",
           "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
         }
-      ]
+      ],
+      "declaration_path": "compiler/requirements.declaration.json",
+      "declaration_sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6"
     },
     "verifier": {
-      "declaration_path": "compiler/verifier.declaration.json",
-      "declaration_sha256": "e16e59a51f93751116bf1a210ff6188a87c3e8b396335a603896d9e0177c5e66",
       "body": [
         {
           "path": "research/gate.py",
@@ -50,36 +80,18 @@
           "path": "research_assets/compiler/verifier.txt",
           "sha256": "89018d720c6ce3dffdcd4da1da6af0af39e1e45ee951e4f8bb12b9095d0251c8"
         }
-      ]
-    },
-    "planner": {
-      "declaration_path": "planner/planner.declaration.json",
-      "declaration_sha256": "00cf328563f8fd1ab9d3080119c1ff3d23200aa9c47e051be8ee4012f316c3da",
-      "body": [
-        {
-          "path": "research/capsules/planner.py",
-          "sha256": "4a0136a8e0d5c967bb4a7368106e0861d59c4f9ffa4a6729f8b9fca6efe987e3"
-        },
-        {
-          "path": "research_assets/planner/planner.txt",
-          "sha256": "ce1125e34d6c51808effbee196ae63d3c66af6badb293f994e43361f8a8c7b6c"
-        },
-        {
-          "path": "research/capsules/_common.py",
-          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
-        },
-        {
-          "path": "research/unified_planning.py",
-          "sha256": "0fd7ce5188933e9f0ba6af6dcf84387442698d41762905bf8531cce225f4ec06"
-        }
-      ]
+      ],
+      "declaration_path": "compiler/verifier.declaration.json",
+      "declaration_sha256": "e16e59a51f93751116bf1a210ff6188a87c3e8b396335a603896d9e0177c5e66"
     }
   },
+  "schema_version": "1.0.0",
+  "source_snapshot": "M1/source/Architecture_Design",
   "static_template": {
-    "path": "planner/static-template.json",
-    "sha256": "edeb6292c209bda92f28406ea18a4bb6ff75b87dc9f6783d8efd909233dae4e2",
-    "interface_revision": "M1-IF-002@r2",
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
-    "meaning": "C027 external classification: Builder m1-11 prediction-only BuildReceipt2 and Benchmark m1-4-blindcpu protected root post-exit held-out scoring; unchanged other CCs, budgets, verifier disclosure and gates. No generated dataset, model/product run or blind qualification claim."
+    "interface_revision": "M1-IF-002@r2",
+    "meaning": "C027 external classification: Builder m1-11 prediction-only BuildReceipt2 and Benchmark m1-4-blindcpu protected root post-exit held-out scoring; unchanged other CCs, budgets, verifier disclosure and gates. No generated dataset, model/product run or blind qualification claim.",
+    "path": "planner/static-template.json",
+    "sha256": "edeb6292c209bda92f28406ea18a4bb6ff75b87dc9f6783d8efd909233dae4e2"
   }
 }

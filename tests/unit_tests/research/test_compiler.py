@@ -18,6 +18,10 @@ from jiuwenswarm.research.state import SQLiteRunStore,json_bytes
 @pytest.mark.parametrize('fault',[None,'bad_span','malformed_verifier','acceptance_storage_failure','record_hook_failure'])
 @pytest.mark.parametrize('route_mode',['fixed_baseline','development_profile'])
 async def test_compiler_requires_internal_acceptance_and_commits_one_external_brief(tmp_path,fault,route_mode):
+    await controlled_compiler(tmp_path, fault, route_mode)
+
+
+async def controlled_compiler(tmp_path, fault=None, route_mode='fixed_baseline', *, planner_model=None, run_model_calls=4, review_reject_node=None):
     store=SQLiteRunStore(tmp_path);registry=Registry();checks=CheckRegistry();library=LibraryService(store)
     actor=Principal('operator',operations=frozenset({'verifier_assets','library_admit','library_standing'}))
     installed=await register_compiler_capsules(registry,checks,library,store,actor,activate=True)
@@ -26,7 +30,7 @@ async def test_compiler_requires_internal_acceptance_and_commits_one_external_br
     user=Principal('alice',frozenset({'project'}),frozenset({'ingest'}));fixtures=Path('tests/fixtures/research/compiler')
     intake_ref=qualify_intake(store,user,(fixtures/'request.txt').read_text('utf-8'),[],workspace_id='project',profile_ref=opaque,workspace_ref=opaque,input_directory_ref=opaque)
     intake=store.read_record(intake_ref)
-    store.create_run('run:compiler',account_id='alice',workspace_id='project',submission={'intake_ref':intake_ref})
+    store.create_run('run:compiler',account_id='alice',workspace_id='project',submission={'schema_version':'1.0.0','id':'submission:controlled','client_request_id':'controlled-request','workspace_id':'project','account_id':'alice','intake_ref':intake_ref,'configuration_ref':opaque,'plan_source':'planned'})
     calls=[]
     class ControlledBridge:
         async def call(self,context,prompt):
@@ -62,23 +66,27 @@ async def test_compiler_requires_internal_acceptance_and_commits_one_external_br
                     if isinstance(v,list):return [rewrite(x) for x in v]
                     return v
                 value=rewrite(value);value['in_scope'][0]['id']='scope:1';text=json.dumps(value)
+            elif cc == 'research.planner' and planner_model is not None:
+                text = planner_model(prompt)
             else:
                 payload=json.loads(prompt.split('<subject_payload>\n',1)[1].split('\n</subject_payload>',1)[0])
                 assert set(payload)=={'subject_declaration','subject_output'}
                 profile=json.loads(prompt.split('Criteria for this output:\n',1)[1].split('\n\n<subject_payload>',1)[0])
                 text=json.dumps({'findings':[] if fault=='malformed_verifier' else [{'criterion_id':c['criterion_id'],'outcome':'PASS','reason':'Controlled output-shape fixture'} for c in profile],
                                  'uncertainties':[],'limitations':[],'required_correction':None})
+                if protected['node_id'] == review_reject_node:
+                    value=json.loads(text);value['findings'][0].update(outcome='FAIL',reason='Controlled independent rejection');text=json.dumps(value)
             return {'text':text,'identity':{'requested':'fixture','effective':None,'basis':'Controlled transport, not endpoint evidence'},'observed_runtime':True}
     runner=CapsuleRunner(store,registry,checks,model=ControlledBridge(),check_assets=library.check_assets)
     factory=ContractFactory(store,library,verifier_pin=installed['verifier']['pin'],finalization_profile_ref=finalization)
     compiler=IntentionCompiler(store,runner,factory,intent_pin=installed['intent']['pin'],requirements_pin=installed['requirements']['pin'],default_policy_ref=defaults,
-        template_ref=opaque,node_limits={'time_s':240,'model_calls':4,'memory_mb':256},policy_ref=defaults,
+        template_ref=opaque,node_limits={'time_s':600,'model_calls':4,'memory_mb':256},policy_ref=defaults,
         authority_ceiling={'network':'none','network_allowlist':[],'resource_reads':[],'write_roots':[],'tools':[]})
     model_profile=store.put_record('model-selection-profile',{'schema_version':'1.0.0','id':'fixed:test','policy_mode':route_mode,
         'approved_model_ids':['codex-cli-default'],'extra_requirements':{},'selection_allowance':{'enabled':False,'deployment_ref':None,'model_calls':0,'time_s':0,'output_tokens':0,'disclosure_scope':[]},'alternate_model_id':None,'policy_ref':defaults})
     protected={'model_selection_profile_ref':model_profile,'deployment_ref':opaque,'router':{'enabled':route_mode=='development_profile','deadline_s':30,'profile_ref':model_profile if route_mode=='development_profile' else None},
         'routing_context':{'workflow_id':'workflow:fixture','task_id':'task:fixture','task_category':'experimental_evaluation_and_technical_data','requirements':{},'preferences':{}},
-        'configuration_ref':opaque,'run_limits':{'time_s':240,'model_calls':4,'memory_mb':256}}
+        'configuration_ref':opaque,'run_limits':{'time_s':3600,'model_calls':run_model_calls,'memory_mb':256}}
     if fault=='acceptance_storage_failure':
         def crash(point):
             if point=='before_acceptance':raise OSError('Controlled acceptance storage failure')
@@ -109,3 +117,6 @@ async def test_compiler_requires_internal_acceptance_and_commits_one_external_br
         raw=list(store.iter_records(kinds=('invocation-observation',)))
         assert all(row['record']['failure_class'] is None for row in raw)
         assert all(row['record']['check_result_refs'] for row in completed)
+
+    return {'store': store, 'registry': registry, 'checks': checks, 'library': library, 'actor': actor,
+        'installed': installed, 'runner': runner, 'factory': factory, 'protected': protected, 'brief_ref': result['brief_ref'], 'calls': calls}

@@ -88,8 +88,10 @@ def validate_cases(document):
     result = []; seen = set()
     base_limits = limits(document.get('limits', {}))
     for row in rows:
-        if not isinstance(row, dict) or set(row) - {'id', 'task', 'inputs', 'repeats', 'setup', 'steps', 'collection', 'limits', 'deadline_at'}:
+        if not isinstance(row, dict) or set(row) - {'id', 'task', 'inputs', 'repeats', 'setup', 'steps', 'collection', 'limits', 'deadline_at', 'plan_source'}:
             raise ValueError('unknown case field')
+        if 'plan_source' in row and row['plan_source'] not in ('static', 'planned'):
+            raise ValueError('plan_source must be static or planned')
         ident = identifier(row.get('id'))
         if ident in seen:
             raise ValueError('duplicate case ID')
