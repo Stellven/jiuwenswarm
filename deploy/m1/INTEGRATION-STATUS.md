@@ -1,122 +1,92 @@
-# Supervised M1 integration candidate — October 23, 2026
+# Final M1 source integration — October 23, 2026
 
-This is a local integration candidate on `m1/reviewed-integration-20261023`,
-starting at `14a69a0`. It is not current shared M1, a deployment, production
-qualification, or M1 acceptance. No candidate was pushed or automatically
-admitted/activated by this review.
+The new upstream AI4R baseline `125dafc57437700dc32005f5e2403a0aa00a519f`
+is combined with the reviewed deployment, required typed Planner, four optional
+capsule candidates and capsule development guidance. The final integration branch
+is `m1/final-integration-20261023`. This is source integration, not a deployment,
+production checking-asset qualification or completed M1 runtime acceptance.
 
-## Current shared branch matters
+The original candidate and source branch commits remain preserved. See the
+[earlier candidate record](../../docs/capsules/history/2026-10-23-supervised-integration-candidate.md)
+for the original merge table and bounded review. The user's later instruction
+explicitly authorizes merging after the new AI4R was supplied.
 
-During review, shared/local `ai4r_M1` advanced to
-`1fd17ab1254b6c1f62d9c24e457d0a4cb835fe8a`, deliberately reverting the deployment
-changes while ongoing M1 work continues. Its commit message explicitly preserves
-the deployment, capsule, Planner and reviewed integration branches for later.
-This candidate preserves the earlier combined work; it does not undo that revert.
-A merge-tree rehearsal against `1fd17ab` reports a modify/delete conflict in
-`deploy/m1/OPERATIONS.md`. A plain future merge must not silently discard or
-restore deployment changes without reconciling that deliberate decision.
+## Final reconciliation
 
-## Source combined here
+- Preserved upstream Brief v3, target comparison arithmetic (factor and unit-aware
+  offset), historical Brief v2 reads, output-specific assessment behavior, exact
+  contract exports and safe retained-upload reuse.
+- Retained the required catalog-driven typed Planner, one bounded pre-acceptance
+  candidate correction, protected independent checking, gates and Binder freeze.
+  The merged core Planner is a new immutable `m1-12` release. The PDF work release
+  stays upstream `paper-m1-5`; its affected Planner is reauthored as `paper-m1-8`.
+- Both Compiler target-comparison checker closure and Planner graph-checker closure
+  are preserved. Earlier optional `workflow.capability_planner` is not restored;
+  new Library snapshots continue to mark its legacy identity non-selectable.
+- Static remains the default plan source under design decision D39; planned
+  execution is explicitly selected before a run. The incoming planned-default
+  capture was not allowed to override that maintained design requirement.
+- New local captures use `local-research-unified-v3` to avoid silently reusing an
+  older captured configuration. Existing state, accepted plans and historical
+  snapshots are not rewritten or automatically upgraded.
+- Seven narrow Git EOL rules reproduce upstream CRLF-pinned declaration, prompt,
+  Hypothesis and checker bytes on every platform. Other source stays LF under its
+  existing rules. Upstream compiler/scientific/PDF work hashes were preserved;
+  no hash guard was weakened to make validation pass.
+- Corrected test fixtures for current release versions, Brief v3 input ports,
+  protected actor scope, exact admitted rubric bytes and the full static-checker
+  source closure. Historical fixture files remain intact.
 
-| Input | Exact source | Disposition |
-| --- | --- | --- |
-| Existing deployment and documentation | `14a69a0` (includes `e296d2b`, `6a70305`) | Candidate base; now reverted on shared M1 |
-| Required typed Planner | `9d8f21b140119ccec05f1a4f3cd5fa302cc01df5` | Merged locally; core `research.planner` |
-| Generalist | `fe34b360322d38bdf6adb9744d4f16138925c277` | Candidate source merged; optional release |
-| Table normalization | `53e63011382e15dfc4d02a4532592b56cdd8e647` | Candidate source merged; optional release |
-| Calculation | `3a538f49072de3bb544a2064f039a1820414e499` | Candidate source merged; optional release |
-| Markdown report | `69bc0937b5729c2eeac5d85720b73d953076ad75` | Candidate source merged; optional release |
-| Development guide | `aaf0fe8102d989902842916778ff86c4bc15a473` | Merged; README add/add conflict resolved in favor of required core Planner plus capsule reading links |
+Upstream replaced the paused line with a new history from `bfc30ba`. The pause
+commit `1fd17ab` has exactly the same tree as that common base. Integration commit
+`b0d05471` joins the new upstream and reviewed features. `20aaa94c` then records
+that superseded pause ancestry using the already integrated tree unchanged. This
+preserves both histories without replaying the old deployment removal. No force
+update of the shared branch is needed.
 
-Shared foundation `cb589aa` is inherited. The old optional
-`workflow.capability_planner` implementation is not restored. Its historical
-proposal remains explicitly historical. Merging code does not grant admission,
-checking-asset qualification, activation, provider access, or execution authority.
+## Verification extent
 
-## Review findings and corrections
+Fresh Windows checkout at code commit `72005270`: **222 passed, 4 deselected,
+3 subtests passed in 170.56 seconds**. This includes Compiler/Planner acceptance,
+Brief v3 targets, pinned assets, capsule workers, source checks, deployment,
+sequential runner and upload reuse. No new cases were excluded.
 
-- Required typed planning was absent from the earlier shared deployment revision:
-  that policy accepted only summary or seven-stage scientific shapes. This
-  candidate includes catalog-driven typed graphs and protected freeze.
-- A persisted active old optional Planner row could remain selectable after its
-  worker was removed. New Library snapshots now mark that identity non-selectable;
-  standing and historical snapshots remain unchanged. The regression fixture
-  models a legacy admission, rather than claiming an actual old production DB
-  migration was exercised. Frozen historical runs are not upgraded or repaired.
-- Static acceptance tests omitted three policy/checker files from the required
-  implementation closure. The fixture now binds the complete four-file closure,
-  retains swapped-source rejection and adds missing-file rejection. Scheduler
-  stop tests now supply the required resource-read ceiling so they reach the
-  actual stop check. Production acceptance rules were not relaxed.
-- A fresh worktree created *before* merging the new `.gitattributes` retained
-  unchanged CRLF files, causing seven integrity failures. Compared working bytes
-  with Git blobs, refreshed only unchanged line-converted files to exact Git
-  bytes, and retained the explicit legacy CRLF verifier exception. No declaration
-  or release hash was changed to fit the failure. Fresh checkout at this
-  candidate is preferred when integrating; verify release pins before building.
-- One Luna reviewer initially called bounded Planner correction unauthorized.
-  Supervisor checked the later user prompt and rejected that finding: one
-  validation-guided candidate correction is explicitly authorized before final
-  independent acceptance. Executed-node retries are a different boundary.
+Fresh Windows source pins verified all 7 scientific, 3 paper and 4 optional
+catalog entries. An independently materialized Linux source-subset checkout also
+verified those exact catalogs and the Planner/PDF checker pins. The attempted
+full-history clone of the local partial repository failed on a missing promisor
+object and is not represented as a successful clone or Linux application run.
 
-## Verification and remaining extent
+A separate shared-fixture regression run passed 26 checks and failed one
+connected private-measurement case with `audit_unavailable`. Its XML is retained;
+RSI/private execution is not claimed accepted. The three partial-output stop
+cases pass after adapting the current-release input fixture to Brief v3.
 
-Final combined Windows run: **187 passed, 4 deselected in 46.16 seconds**.
-The exact command and JUnit receipt identify every selected file and exclusion.
-This includes the legacy-selection fix and both corrected acceptance/stop fixtures.
+The final additional Luna read-only review could not run because workspace
+credits were exhausted. Earlier scoped Luna reviews completed; the supervisor
+performed final source/conflict review and verification instead.
 
-The wider exploratory boundary run was interrupted after failures; it is not a
-passing suite. Its stale acceptance/scheduler fixture issues were corrected and
-checked separately. The Windows routing-authority fixture expects a qualification
-error but gets `Unsafe protected record custody`; the same exact failure was
-reproduced in the shared M1 checkout. Its routing-authority source and test are
-unchanged between `14a69a0` and `1fd17ab` (confirmed by Git diff). No protected
-custody guard was weakened to pass that test. Three connected scheduler cases
-are excluded from the final bounded run; the pinned OpenJiuwen environment and
-connected execution remain unqualified here. Exact final selection, exclusions,
-logs and JUnit live in the notebook evidence receipt.
+Exact commands, JUnit, logs and final refs are retained in the notebook's
+`Resources/review-batches/2026-10-23-final-merge/` receipt. The previous 187 checks
+and intermediate failures remain historical runs, not a combined final total.
 
-`freeze_planner_release.py --check` verifies the Planner and affected PDF release
-pins. Git whitespace checks pass. The earlier 115-check combined suite passed
-after refreshing working bytes; it preceded the final expanded selection.
+The same four exclusions remain explicit: three connected scheduler cases need
+qualification of their pinned native environment, and one existing Windows
+routing-custody fixture fails before its expected qualification assertion. No
+new cases were excluded to make the final merge pass. The custody guard remains.
 
-A genuinely non-seven-node Planner proposal has not been demonstrated through
-Planner, accepted freeze, real Scheduler dispatch, independent output checks and
-terminal delivery in this review. Generic graph validation and controlled
-Planner freeze are narrower evidence. Authenticated model quality, Docker/SSH,
-ARM64/Spark, scientific execution and production calibration remain unverified.
+A live authenticated campaign, genuinely dynamic generic DAG through real
+execution and terminal delivery, scientific execution, actual SSH deployment,
+ARM64/Spark and model quality are still unverified. No capsule was qualified,
+admitted or activated merely by merging its code. RSI and model-router
+implementation remain outside this work; their existing authority and frozen
+contract boundaries are preserved.
 
-## Integration with work owned elsewhere
+## Next operational step
 
-| Boundary | Preserve | Check when the owner's branch arrives |
-| --- | --- | --- |
-| RSI / Library | Candidate generation cannot grant standing; independent qualification, sandbox versus live effect scope, explicit promotion, immutable versions and run pins | Candidate bytes and interfaces at actual incoming SHA; negative unqualified/unauthorized promotion; new snapshot sees eligible release while old frozen plan stays unchanged |
-| Model router | Binder/runner owns protected selected-Capsule export; route owner selects model/provider; finalized contract precedes route decision; call evidence joins exact pins | Router absent/off fallback, timeout/invalid reply fallback before call, invalid bound-context halt, failure after call begins without changing model; route/call evidence |
-| Planner and both owners | Accepted Brief, exact selectable catalog, protected checks, D20 declaration/output-only semantic review, budgets and effects | A small generic connected success, rejected output cannot advance, dependent-node blocking and protected-stop behavior |
-
-RSI and router are not implemented here. Existing seam checks do not qualify
-future branches or make an unknown incoming implementation merge-ready. The
-maintained architecture authority remains the separate `jiuwenswarm` design-owner
-checkout; branch-local received design snapshots do not supersede it.
-
-## Later integration sequence
-
-1. Pin the completed shared M1 and the incoming owners' actual branch commits;
-   inspect their changed interfaces and tests. Keep the deliberate revert in history.
-2. Agree the deployment restoration point after ongoing M1 changes. Reintroduce
-   the desired deployment delta as a new reviewed change from that current base;
-   do not assume merging old already-reverted ancestry restores it.
-3. Reconcile this combined Planner/capsule candidate with that base, preserving
-   the required core Planner. Resolve the known OPERATIONS modify/delete conflict
-   using the chosen deployment behavior; do not revive the optional Planner.
-4. Recheck exact release bytes and affected source closures on a fresh checkout.
-   Qualify selected checking assets and activate only desired optional releases.
-5. Run the connected generic success/failure scenarios and one actual campaign.
-   Record environment, source/image pins, outputs and independent gates; only then
-   decide runtime acceptance and deployment.
-
-Two bounded `gpt-6-luna` reviewers handled workflow review and merge/state review;
-the supervisor checked authority, contradictions, source deltas and test results.
-Follow-up fixes stayed in named files. This is a focused integration review, not
-an exhaustive comparison of every PRD clause or proof all implementation mistakes
-have been found.
+Use [the runbook](OPERATIONS.md) and explicit matching app/runner images. Existing
+installations require a deliberate new configuration/release qualification;
+source integration is not an automatic state migration. Run a small campaign,
+retain exact source/image/plan and output/check/gate evidence, and inspect the
+real results before claiming runtime acceptance. Optional capsule adoption
+continues through independent checking-asset qualification and human activation.
