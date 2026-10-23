@@ -109,3 +109,16 @@ def test_packet_paths_hashes_limits_and_low_trust_propagation():
     result['files'][0]['text'] = 'tampered'
     with pytest.raises(ResearchError):
         validate_packet(result)
+
+
+@pytest.mark.asyncio
+async def test_optional_checks_are_available_to_existing_protected_calibration(tmp_path):
+    from jiuwenswarm.research.checks.calibration_runtime import prepare_calibration_checks
+    with closing(SQLiteRunStore(tmp_path)) as store:
+        registry = CheckRegistry()
+        fixed = await prepare_calibration_checks(store, registry)
+        assert 'workflow.capability_planner' not in fixed  # not a fixed POC corpus stage
+        asset, _ = candidates(store)['workflow.capability_planner']
+        bundle = store.read_record(asset['bundle_ref'])
+        assert bundle['bundle_id'] in registry._bundles
+        assert LibraryService(store).entries() == []

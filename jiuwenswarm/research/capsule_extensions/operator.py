@@ -32,7 +32,7 @@ def main():
     parser.add_argument('--store', required=True)
     parser.add_argument('--name')
     args = parser.parse_args()
-    with closing(SQLiteRunStore(Path(args.store))) as store:
+    with closing(SQLiteRunStore(Path(args.store), recover=False)) as store:
         result = sorted(candidates(store)) if args.command == 'list' else prepare_requests(store, args.name)
         print(json.dumps(result, sort_keys=True, indent=2))
 
