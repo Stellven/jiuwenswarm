@@ -181,11 +181,13 @@ export function CodexSubscriptionPanel({ connected, request, showModelSelector =
         description={
           <span data-testid="codex-subscription-scope">
             {t(
-              hasLocalChat()
-                ? 'codexSubscription.localChat'
-                : hasResearchSession() && !hasResearchConfiguration()
-                  ? 'codexSubscription.setupRequired'
-                  : 'codexSubscription.scope',
+              !showModelSelector
+                ? 'researchModels.chatgptDescription'
+                : hasLocalChat()
+                  ? 'codexSubscription.localChat'
+                  : hasResearchSession() && !hasResearchConfiguration()
+                    ? 'codexSubscription.setupRequired'
+                    : 'codexSubscription.scope',
             )}
           </span>
         }

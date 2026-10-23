@@ -6,6 +6,7 @@ import { hasResearchSession } from '../../../../utils/researchClient';
 import { SettingRow, SettingsSection } from '../../components';
 import { useSettingsServices } from '../../services/SettingsServicesProvider';
 import { SubscriptionSettings } from '../agent/ConversationSettings';
+import { useCodexSubscription } from '../../../codexSubscription/state';
 import './ResearchModelsSettings.css';
 
 interface Choice {
@@ -21,6 +22,8 @@ interface Snapshot {
   selected_id: string;
   choices: Choice[];
   api_ready: boolean;
+  chatgpt_model: string | null;
+  chatgpt_models: { id: string; name: string; default: boolean }[];
 }
 
 export function ResearchModelsSettings() {
@@ -33,6 +36,7 @@ export function ResearchModelsSettings() {
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
   const [enabled, setEnabled] = useState(hasResearchSession);
+  const subscriptionState = useCodexSubscription((state) => state.state);
   useEffect(() => {
     const update = () => setEnabled(hasResearchSession());
     window.addEventListener('research.runtime.changed', update);
@@ -44,11 +48,18 @@ export function ResearchModelsSettings() {
   }, []);
   const choices: Choice[] = snapshot?.choices ?? modelPresets.map((item) => ({ ...item, configured: false }));
   const choice = choices.find((item) => item.id === choiceId);
-  const dirty = Boolean(snapshot && (choiceId !== snapshot.selected_id || apiKey));
+  const isChatGPT = choiceId === 'codex' || choiceId.startsWith('codex:');
+  const selectedId =
+    snapshot?.selected_id === 'codex' && snapshot.chatgpt_model
+      ? `codex:${snapshot.chatgpt_model}`
+      : snapshot?.selected_id;
+  const dirty = Boolean(snapshot && (choiceId !== selectedId || apiKey));
 
   const apply = useCallback((value: Snapshot) => {
     setSnapshot(value);
-    setChoiceId(value.selected_id);
+    setChoiceId(
+      value.selected_id === 'codex' && value.chatgpt_model ? `codex:${value.chatgpt_model}` : value.selected_id,
+    );
     setApiKey('');
   }, []);
 
@@ -68,7 +79,7 @@ export function ResearchModelsSettings() {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, subscriptionState]);
   useEffect(() => {
     unsavedChanges.set('research-model-choice', dirty);
     return () => unsavedChanges.clear('research-model-choice');
@@ -80,8 +91,11 @@ export function ResearchModelsSettings() {
     setSaved(false);
     try {
       const value = await saveQueue.enqueue('research-model-choice', () =>
-        choiceId === 'codex'
-          ? request<Snapshot>('research.models.select', { preset_id: 'codex' })
+        isChatGPT
+          ? request<Snapshot>('research.models.select', {
+              preset_id: 'codex',
+              chatgpt_model: choiceId.startsWith('codex:') ? choiceId.slice(6) : null,
+            })
           : request<Snapshot>('research.models.save', {
               preset_id: choiceId,
               api_key: apiKey,
@@ -98,7 +112,11 @@ export function ResearchModelsSettings() {
 
   const disabled = busy || !isConnected || !snapshot;
   const currentName =
-    snapshot?.choices.find((item) => item.id === snapshot.selected_id)?.name ?? t('researchModels.codex');
+    snapshot?.selected_id === 'codex'
+      ? (snapshot.chatgpt_models?.find((item) => item.id === snapshot.chatgpt_model)?.name ??
+        snapshot.chatgpt_model ??
+        t('researchModels.codex'))
+      : (snapshot?.choices.find((item) => item.id === snapshot.selected_id)?.name ?? t('researchModels.codex'));
   return (
     <>
       <SettingsSection title={t('researchModels.title')} description={t('researchModels.description')} separatedRows>
@@ -116,6 +134,19 @@ export function ResearchModelsSettings() {
               disabled={busy || !isConnected}
               options={[
                 { value: 'codex', label: t('researchModels.codex') },
+                ...(snapshot?.chatgpt_models ?? []).map((item) => ({
+                  value: `codex:${item.id}`,
+                  label: t('researchModels.chatgptOption', { model: item.name }),
+                })),
+                ...(snapshot?.chatgpt_model &&
+                !snapshot.chatgpt_models?.some((item) => item.id === snapshot.chatgpt_model)
+                  ? [
+                      {
+                        value: `codex:${snapshot.chatgpt_model}`,
+                        label: t('researchModels.chatgptOption', { model: snapshot.chatgpt_model }),
+                      },
+                    ]
+                  : []),
                 ...choices.map((item) => ({
                   value: item.id,
                   label: t('researchModels.option', { model: item.name, platform: item.platform_name }),
@@ -130,7 +161,7 @@ export function ResearchModelsSettings() {
               data-testid="settings-research-model-select"
             />
           </SettingRow>
-          {choiceId !== 'codex' && (
+          {!isChatGPT && (
             <>
               <SettingRow
                 title={t('researchModels.platformKey', { platform: choice?.platform_name ?? 'OpenRouter' })}
@@ -156,7 +187,7 @@ export function ResearchModelsSettings() {
             <Button
               onClick={() => void save()}
               loading={busy}
-              disabled={disabled || !dirty || (choiceId !== 'codex' && !apiKey.trim() && !choice?.configured)}
+              disabled={disabled || !dirty || (!isChatGPT && !apiKey.trim() && !choice?.configured)}
               variant="primary"
               data-testid="settings-research-model-save"
             >
@@ -177,12 +208,12 @@ export function ResearchModelsSettings() {
               data-testid="settings-research-model-status"
               data-variant={error ? 'error' : 'saved'}
             >
-              {t(error ? 'researchModels.error' : 'researchModels.saved')}
+              {t(error ? (isChatGPT ? 'researchModels.chatgptError' : 'researchModels.error') : 'researchModels.saved')}
             </p>
           )}
         </div>
       </SettingsSection>
-      {choiceId === 'codex' && <SubscriptionSettings showModelSelector={false} />}
+      {isChatGPT && <SubscriptionSettings showModelSelector={false} />}
     </>
   );
 }

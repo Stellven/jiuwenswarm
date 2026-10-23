@@ -260,9 +260,14 @@ class GovernedBridge:
         remaining=deadline-monotonic()
         if remaining<=0:raise BridgeError('timeout')
         manual = self.manual_models.for_call(protected) if self.manual_models is not None else None
+        chatgpt = self.manual_models.chatgpt_for_call(protected) if self.manual_models is not None else None
         try:
             async with asyncio.timeout(min(30,remaining)):
-                if manual is not None:
+                if chatgpt is not None:
+                    if is_builder:
+                        raise BridgeError('invalid_request')
+                    choice = RouteChoice(chatgpt['chatgpt_model'], 'codex_router_disabled', None)
+                elif manual is not None:
                     if is_builder:
                         raise BridgeError('invalid_request')
                     deployment = self.read_evidence(manual['deployment_ref'])
@@ -318,6 +323,8 @@ class GovernedBridge:
                     ('execution_id','invocation_id','call_id','call_claim_ref','contract_ref')}))
                 self._check_context(live)
                 if manual is not None and self.manual_models.for_call(live) != manual:
+                    raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
+                if chatgpt is not None and self.manual_models.chatgpt_for_call(live) != chatgpt:
                     raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
                 if (live.get('expected_prompt_sha256')!=expected_prompt_sha256
                         or protected.get('expected_prompt_sha256')!=expected_prompt_sha256):
@@ -380,7 +387,7 @@ class GovernedBridge:
                 "route_id": route_id, "route_ref": route_ref, "input_ref": evidence_ref, "started_at": started_at}, context=protected)
         except Exception:
             raise BridgeError('AUDIT_UNAVAILABLE',route_ref=route_ref) from None
-        deployment_ref = manual['deployment_ref'] if manual is not None else choice.decision["deployment_ref"] if choice.decision else protected["deployment_ref"]
+        deployment_ref = chatgpt['deployment_ref'] if chatgpt is not None else manual['deployment_ref'] if manual is not None else choice.decision["deployment_ref"] if choice.decision else protected["deployment_ref"]
         call_record = {"schema_version": "1.0.0", "id": protected["call_id"],
                        "route_attempt_id": "attempt:" + uuid.uuid4().hex,
                        "route_decision_ref": choice.route_decision_ref,
@@ -409,16 +416,16 @@ class GovernedBridge:
                 if manual is not None:
                     result = await self.manual_models.invoke(manual, prompt, timeout_s=timeout_s,
                         call_function=protected['call_function'])
-                elif choice.model_id == self.fixed_route_id:
+                elif chatgpt is not None or choice.model_id == self.fixed_route_id:
                     if is_builder:
                         result = await self._invoke_builder(dispatch_context,prompt,timeout_s,call_record)
                     else:
                         traced=getattr(self.subscription,'invoke_governed_traced',None)
                         native_trace_expected=traced is not None
                         if traced is not None:
-                            result=await traced(native_scope,prompt,model=protected.get('requested_model'),timeout_s=timeout_s)
+                            result=await traced(native_scope,prompt,model=chatgpt['chatgpt_model'] if chatgpt else protected.get('requested_model'),timeout_s=timeout_s)
                         else:
-                            result = await self.subscription.invoke_governed(prompt, model=protected.get("requested_model"), timeout_s=timeout_s)
+                            result = await self.subscription.invoke_governed(prompt, model=chatgpt['chatgpt_model'] if chatgpt else protected.get("requested_model"), timeout_s=timeout_s)
                 else:
                     if self.providers is None:
                         raise BridgeError("auth_failed")

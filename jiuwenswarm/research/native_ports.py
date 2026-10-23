@@ -453,8 +453,17 @@ async def start_agent_ports():
                 'builder_qualified':isinstance(execution_status,dict) and execution_status.get('builder_qualified') is True,
                 'builder_mode':execution_status.get('builder_mode') if isinstance(execution_status,dict) else None,
                 'capture_healthy':capture_healthy() is True}
+    async def model_settings(payload):
+        catalog=[]
+        try:
+            async with asyncio.timeout(5):
+                catalog=(await subscription.models())['models']
+        except Exception:
+            pass  # Signed-out users can still configure OpenRouter or choose the subscription default.
+        result=manual_models.settings(payload,chatgpt_models={m['id'] for m in catalog})
+        return dict(result,chatgpt_models=catalog)
     status_server=PrivateRPCServer(root/'agent-status.sock',protocol=STATUS_PROTOCOL,**session,
-        handlers={'subscription_status':subscription_status,'model_settings':manual_models.settings,
+        handlers={'subscription_status':subscription_status,'model_settings':model_settings,
                   'freeze_model_selection':manual_models.freeze},allowed_uids={APP_UID})
     try:
         await model_server.start();await status_server.start()

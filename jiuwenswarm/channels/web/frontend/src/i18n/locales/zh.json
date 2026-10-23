@@ -7,7 +7,7 @@
     "capsuleBrief": "研究简报 — 问题、方法与下一步",
     "localChat": "通过 ChatGPT 订阅使用 GPT-6.1 Sol，无需 API Key。",
     "setupRequired": "ChatGPT 登录用于连接账户。本地工作区支持文件上传；执行研究仍需要研究运行资源。",
-    "title": "Codex 订阅",
+    "title": "ChatGPT 订阅",
     "scope": "预览阶段：普通文字聊天。团队、工具和媒体仍待接入。重启或退出账号后请新建会话，已保存的历史仍可查看。",
     "model": "订阅模型",
     "defaultModel": "账号默认模型",
@@ -4717,6 +4717,9 @@
     }
   },
   "researchModels": {
+    "chatgptDescription": "使用 ChatGPT 订阅登录后，在上方选择具体 GPT 型号并保存，应用于新的 AI4R 研究请求，无需 API key。",
+    "chatgptOption": "{{model}}（ChatGPT 订阅）",
+    "chatgptError": "无法保存或加载 ChatGPT 模型。请登录后刷新模型列表。",
     "option": "{{model}}（{{platform}} API key）",
     "platformKey": "{{platform}} API key",
     "claudeKeyHint": "请使用绑定 Anthropic 工作区的 API key。此处暂不支持需要额外工作区请求头的个人或服务账户 key。",
@@ -4724,7 +4727,7 @@
     "title": "研究模型",
     "description": "选择 AI4R 研究流程使用的模型。",
     "model": "模型",
-    "codex": "Codex（ChatGPT 订阅）",
+    "codex": "ChatGPT（订阅默认模型）",
     "current": "当前使用：{{model}}",
     "apiKey": "API 密钥",
     "keyPrivacy": "保存一份 OpenRouter API key 即可切换使用全部八个 API 模型。密钥仅在本机私密保存，不会写入提示词或运行导出文件。",

@@ -94,3 +94,32 @@ def test_revoked_api_credential_blocks_without_falling_back_to_codex(owned):
     with pytest.raises(BridgeError, match='auth_failed'):
         asyncio.run(bridge.call({}, 'Bounded request'))
     assert not list(store.iter_records(run_id='run:api', kinds=('model-call-start',)))
+
+
+@pytest.mark.parametrize('function', ['worker', 'planner', 'verifier'])
+def test_chatgpt_model_selection_is_frozen_and_reaches_subscription(owned, function):
+    store, owner = owned
+    catalog = {'gpt-6-sol', 'gpt-6.1-sol'}
+    def select(model):
+        return owner.settings({'account_id': 'account:user', 'action': 'select', 'values': {
+            'preset_id': 'codex', 'chatgpt_model': model}}, chatgpt_models=catalog)
+    select('gpt-6-sol')
+    store.allocate_run('account:user', 'request:chatgpt', 'c' * 64, 'run:chatgpt', 'local', {}, [])
+    owner.freeze({'account_id': 'account:user', 'run_id': 'run:chatgpt', 'parent_run_id': None})
+    select('gpt-6.1-sol')
+    observed = []
+    class Subscription:
+        async def invoke_governed(self, prompt, *, model, timeout_s):
+            observed.append(model)
+            return {'text': 'controlled answer', 'identity': {
+                'requested': model, 'effective': model, 'basis': 'controlled subscription'}}
+    context = authorized_context()
+    context.update(run_id='run:chatgpt', call_function=function, requested_model='gpt-6.1-sol')
+    bridge = GovernedBridge(persist=store.append_record, authorize=lambda _: context,
+        revalidate=lambda _: context, subscription_service=Subscription(), manual_models=owner,
+        read_evidence=store.read_blob, validate_record=validate)
+    result = asyncio.run(bridge.call({}, 'Declaration and output only.'))
+    assert result['text'] == 'controlled answer' and observed == ['gpt-6-sol']
+    call = store.read_record(result['call_ref'])
+    assert call['identity']['requested'] == 'gpt-6-sol'
+    assert store.read_record(call['deployment_ref'])['provider_model_name'] == 'gpt-6-sol'

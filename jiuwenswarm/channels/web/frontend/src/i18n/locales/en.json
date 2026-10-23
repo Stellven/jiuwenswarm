@@ -7,7 +7,7 @@
     "capsuleBrief": "Research Brief — questions, approach and next steps",
     "localChat": "Use GPT-6.1 Sol with your ChatGPT subscription. No API key is required.",
     "setupRequired": "ChatGPT sign-in connects your account. Local file uploads are available; research execution requires operator/runtime resources.",
-    "title": "Codex subscription",
+    "title": "ChatGPT subscription",
     "scope": "Preview: ordinary text chat. Teams, tools and media are pending integration. After a restart or sign-out, start a new conversation; saved history remains available.",
     "model": "Subscription model",
     "defaultModel": "Account default model",
@@ -4718,6 +4718,9 @@
     }
   },
   "researchModels": {
+    "chatgptDescription": "Sign in with your ChatGPT subscription, then choose a GPT model above and save it for new AI4R research requests. No API key is required.",
+    "chatgptOption": "{{model}} (ChatGPT subscription)",
+    "chatgptError": "Could not save or load the ChatGPT model. Sign in and refresh the model list.",
     "option": "{{model}} ({{platform}} API key)",
     "platformKey": "{{platform}} API key",
     "claudeKeyHint": "Use an Anthropic workspace-scoped API key. Personal or service-account keys that require a separate workspace header are not supported here yet.",
@@ -4725,7 +4728,7 @@
     "title": "Research model",
     "description": "Choose the model used by the AI4R research workflow.",
     "model": "Model",
-    "codex": "Codex (ChatGPT subscription)",
+    "codex": "ChatGPT (subscription default)",
     "current": "Currently selected: {{model}}",
     "apiKey": "API key",
     "keyPrivacy": "Save one OpenRouter API key to use all eight API models. Stored privately on this machine; never included in prompts or run exports.",

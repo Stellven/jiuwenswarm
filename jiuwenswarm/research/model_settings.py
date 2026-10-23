@@ -81,9 +81,10 @@ class ModelSettingsOwner:
                     and credential.get('platform_id') == preset['platform_id']))
             selected = account['selected_id']
             return {'selected_id': selected, 'choices': choices, 'applies_to': 'new_runs',
+                'chatgpt_model': account.get('chatgpt_model'),
                 'api_ready': any(c['id'] == selected and c['configured'] for c in choices)}
 
-    def settings(self, request):
+    def settings(self, request, *, chatgpt_models=()):
         _require(isinstance(request, dict) and set(request) == {'account_id', 'action', 'values'}, 'Invalid model settings request')
         account_id, action, values = request['account_id'], request['action'], request['values']
         _require(isinstance(account_id, str) and 0 < len(account_id) <= 256 and isinstance(values, dict), 'Invalid account or model settings')
@@ -115,7 +116,8 @@ class ModelSettingsOwner:
                         account['entries'][item['id']] = {'credential_id': credential_id}
                 account['selected_id'] = preset_id
             else:
-                _require(set(values) == {'preset_id'}, 'Unexpected model choice fields')
+                _require(set(values) == {'preset_id'} or (action == 'select' and preset_id == 'codex'
+                    and set(values) == {'preset_id', 'chatgpt_model'}), 'Unexpected model choice fields')
                 if action == 'remove':
                     _require(preset_id != 'codex', 'Codex is the built-in choice')
                     platform = next(p['platform_id'] for p in PRESETS if p['id'] == preset_id)
@@ -126,6 +128,11 @@ class ModelSettingsOwner:
                     if account['selected_id'] != 'codex' and account['selected_id'] not in account['entries']:
                         account['selected_id'] = 'codex'
                 else:
+                    if preset_id == 'codex' and 'chatgpt_model' in values:
+                        model = values['chatgpt_model']
+                        _require(model is None or isinstance(model, str) and model in chatgpt_models,
+                            'Choose a model from the signed-in ChatGPT model catalog')
+                        account['chatgpt_model'] = model
                     if preset_id != 'codex':
                         preset = next(p for p in PRESETS if p['id'] == preset_id)
                         credential = data['credentials'].get(account['entries'].get(preset_id, {}).get('credential_id'), {})
@@ -155,6 +162,14 @@ class ModelSettingsOwner:
                 account = self._load()['accounts'].get(account_id, {'selected_id': 'codex', 'entries': {}})
                 selected = account['selected_id']
                 selection = {'mode': 'codex' if selected == 'codex' else 'api', 'preset_id': selected}
+                if selected == 'codex' and account.get('chatgpt_model'):
+                    model = account['chatgpt_model']
+                    endpoint = {'provider_id': 'chatgpt', 'transport': 'packaged-app-server-subscription'}
+                    endpoint_ref = self.store.put_blob(json.dumps(endpoint, sort_keys=True).encode(), media_type='application/json')
+                    deployment = {'model_id': model, 'provider_model_name': model, 'provider': 'chatgpt',
+                        'endpoint_ref': endpoint_ref, 'adapter_id': 'native-chatgpt-subscription-v1', 'revision': 'manual-chatgpt:1'}
+                    selection.update(chatgpt_model=model,
+                        deployment_ref=self.store.put_blob(json.dumps(deployment, sort_keys=True).encode(), media_type='application/json'))
                 if selected != 'codex':
                     entry = copy.deepcopy(account['entries'][selected])
                     preset = next(p for p in PRESETS if p['id'] == selected)
@@ -182,6 +197,15 @@ class ModelSettingsOwner:
         if selection['mode'] == 'codex':
             return None
         return copy.deepcopy(selection)
+
+    def chatgpt_for_call(self, context):
+        rows = list(self.store.iter_records(run_id=context['run_id'], kinds=('run-model-selection',)))
+        if not rows:
+            return None
+        _require(len(rows) == 1, 'Ambiguous frozen model selection')
+        selection = rows[0]['record']
+        self.store.get_run(context['run_id'], account_id=selection['account_id'])
+        return copy.deepcopy(selection) if selection['mode'] == 'codex' and selection.get('chatgpt_model') else None
 
     def preflight(self, selection):
         with self.lock:
