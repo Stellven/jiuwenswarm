@@ -1,12 +1,5 @@
 # Native M1 deployment and verification
 
-**Current integrated workflow:** [OPERATIONS.md](OPERATIONS.md) covers clean-checkout
-setup, two image builds, local/SSH staging, commands, verified result return and
-temporary expiry. `python deploy/m1/ai4r.py --help` is the common entry point.
-The local launch scripts now forward to that operator; they no longer use private
-workstation scripts. Sections below retain native/advanced profile context and
-historical command examples; use OPERATIONS for the current quick start.
-
 For the sequential two-image testing path (`ai4r` + `benchmark-runner`) and the
 existing final app on localhost5175, use [BENCHMARK_RUNNER.md](BENCHMARK_RUNNER.md).
 It covers explicit host mounts, scoped credentials, CLI commands and guarded

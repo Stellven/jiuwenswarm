@@ -72,7 +72,7 @@ def main(argv=None):
     parser.add_argument('--json', action='store_true')
     args = parser.parse_args(argv)
     command = ['docker']
-    wsl_host = bool(os.environ.get('AI4R_WSL_DISTRO')) and not args.docker_context
+    wsl_host = os.name == 'nt' and not args.docker_context
     if wsl_host:
         from build_two_images import docker_prefix
         command = docker_prefix()
@@ -94,7 +94,7 @@ def main(argv=None):
                     or ',' in value or any(ord(c) < 32 for c in value)):
                 raise ValueError('ABSOLUTE_CANONICAL_DOCKER_HOST_PATH_REQUIRED:' + name)
             if wsl_host:
-                canonical = subprocess.check_output(['wsl', '-d', os.environ['AI4R_WSL_DISTRO'], '-u', 'root', '--exec',
+                canonical = subprocess.check_output(['wsl', '-d', 'Ubuntu', '-u', 'root', '--exec',
                     'readlink', '-e', '--', value], text=True).strip()
                 if canonical != value:
                     raise ValueError('EXISTING_CANONICAL_DOCKER_HOST_PATH_REQUIRED:' + name)

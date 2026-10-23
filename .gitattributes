@@ -1,7 +1,4 @@
 *.mp4 filter=lfs diff=lfs merge=lfs -text
-# Deployment entrypoints execute across Windows, WSL and Linux.
-deploy/m1/*.sh text eol=lf
-deploy/m1/*.py text eol=lf
 # Local evidence contains byte-pinned artifacts; preserve exact bytes in Git.
 /.test_logs/** -text
 jiuwenswarm/server/runtime/agent_adapter/browser_runtime_network_guard.js text eol=lf
