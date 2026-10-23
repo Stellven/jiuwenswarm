@@ -5,9 +5,13 @@ set -euo pipefail
 [[ "$(id -u)" == 0 ]] || { printf 'Run local executor preparation as the Linux host root.\n' >&2; exit 2; }
 
 root=/sys/fs/cgroup
-target=/sys/fs/cgroup/ai4r-web-play-executor
-owner=/run/ai4r-web-play-executor.owner
-identity='ai4r-web-play:cgroup-v2:1'
+project="${AI4R_EXECUTOR_PROJECT:-ai4r-web-play}"
+[[ "$project" =~ ^ai4r-[a-z0-9_-]+$ && ${#project} -le 48 ]] || {
+  printf 'Invalid owned executor project.\n' >&2; exit 2;
+}
+target="$root/$project-executor"
+owner="/run/$project-executor.owner"
+identity="$project:cgroup-v2:1"
 [[ "$(stat -f -c %T "$root")" == cgroup2fs ]] || { printf 'A real cgroup-v2 host is required.\n' >&2; exit 2; }
 [[ ! -L "$root" && "$(readlink -f "$root")" == "$root" ]] || exit 2
 

@@ -10,16 +10,15 @@ import hashlib
 import io
 import json
 import os
+import platform
 from pathlib import Path
 import subprocess
 import tarfile
 
 
 def docker_prefix():
-    if os.name == 'nt':
-        return ['wsl', '-d', 'Ubuntu', '-u', 'root', '--exec', 'env', '-u', 'DOCKER_CONTEXT',
-                '-u', 'DOCKER_TLS_VERIFY', '-u', 'DOCKER_CERT_PATH',
-                'DOCKER_HOST=unix:///var/run/docker.sock', 'docker']
+    if os.environ.get('AI4R_WSL_DISTRO'):
+        return ['wsl', '-d', os.environ['AI4R_WSL_DISTRO'], '-u', 'root', '--exec', 'docker']
     return ['docker']
 
 
@@ -30,6 +29,8 @@ def main(argv=None):
     parser.add_argument('--tag', required=True)
     parser.add_argument('--dependency-image', required=True)
     parser.add_argument('--expected-dependency-id', required=True)
+    parser.add_argument('--platform', choices=('linux/amd64', 'linux/arm64'),
+                        default='linux/arm64' if platform.machine().lower() in {'arm64', 'aarch64'} else 'linux/amd64')
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[2]
     output = args.output.resolve()
@@ -85,7 +86,7 @@ def main(argv=None):
             info.size, info.mode, info.mtime = len(raw), 0o644, 0
             archive.addfile(info, io.BytesIO(raw))
     dockerfile = 'deploy/m1/Dockerfile.app-cached' if app else 'deploy/m1/Dockerfile.runner-cached'
-    command = docker + ['build', '--platform', 'linux/amd64', '--file', dockerfile,
+    command = docker + ['build', '--platform', args.platform, '--file', dockerfile,
                         '--target', 'production' if app else 'benchmark-runner',
                         '--build-arg', 'DEPENDENCY_IMAGE=' + args.dependency_image,
                         '--build-arg', 'DEPENDENCY_IMAGE_ID=' + observed,
