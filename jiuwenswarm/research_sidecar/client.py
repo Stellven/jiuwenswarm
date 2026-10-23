@@ -256,8 +256,27 @@ class ResearchClient:
         value=await self._request('POST','/api/v1/runs/'+quote(run_id,safe='')+'/cancel',json={'request_id':request_id});self.validate('client-cancellation',value);return value
     async def upload(self,kind,scope_id,path):
         if kind not in {'docs','repo','datasets'}:raise ClientError('unsupported upload kind')
-        with Path(path).open('rb') as stream:
-            value=await self._request('POST','/api/v1/inputs/'+kind,data={'scope_id':scope_id},files={'file':(Path(path).name,stream)})
+        path=Path(path)
+        digest=hashlib.sha256(path.read_bytes()).hexdigest();size=path.stat().st_size
+        async def existing():
+            matches=[value for value in await self.list_uploads(scope_id)
+                     if value['scope_id']==scope_id and value['kind']==kind
+                     and value['filename']==path.name and value['status']=='uploaded']
+            if not matches:return None
+            if len(matches)!=1 or matches[0]['content_sha256']!=digest or matches[0]['size_bytes']!=size:
+                raise ClientError('upload filename is occupied by different retained input bytes',status_code=409)
+            return matches[0]
+        value=await existing()
+        if value is not None:return value
+        try:
+            with path.open('rb') as stream:
+                value=await self._request('POST','/api/v1/inputs/'+kind,data={'scope_id':scope_id},files={'file':(path.name,stream)})
+        except ClientError as exc:
+            if exc.status_code!=409:raise
+            # Reconcile an identical concurrent upload; never overwrite/delete
+            # inputs or replay product work to recover a filename collision.
+            value=await existing()
+            if value is None:raise
         self.validate('client-upload',value);return value
     async def list_uploads(self,scope_id):
         values=await self._request('GET','/api/v1/inputs',params={'scope_id':scope_id})

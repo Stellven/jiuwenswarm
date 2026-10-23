@@ -171,6 +171,10 @@ def _validator(contract_id: str) -> Draft202012Validator:
 
 
 def validate(contract_id: str, value: Any) -> None:
+    # Short-name reads retain historical evidence semantics; an explicit URN
+    # still requires its exact version. New producers use the catalog's v3.
+    if contract_id == 'research-brief' and isinstance(value, dict):
+        contract_id = 'urn:jiuwenswarm:m1-design:research-brief:' + str(value.get('schema_version'))
     if not _finite(value):
         raise ContractError("invalid_json", "Values must be finite JSON data")
     schemas, _ = _contracts()

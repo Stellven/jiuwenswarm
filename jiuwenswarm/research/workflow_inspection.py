@@ -384,7 +384,7 @@ def accepted_paper_delivery_manifest(store, run_id):
     # Reading a committed historical result must use its original frozen
     # declarations. New planning separately requires the current release.
     require(len(plan['nodes']) == 2 and len(summary_nodes) == len(delivery_nodes) == 1
-            and len(versions) == 1 and versions <= {'paper-m1-1', 'paper-m1-2', 'paper-m1-3', 'paper-m1-4'})
+            and len(versions) == 1 and versions <= {'paper-m1-1', 'paper-m1-2', 'paper-m1-3', 'paper-m1-4', 'paper-m1-5'})
     summary_node, node = summary_nodes[0], delivery_nodes[0]
     require(node['predecessors'] == [summary_node['node_id']]
             and plan['topological_order'] == [summary_node['node_id'], node['node_id']])

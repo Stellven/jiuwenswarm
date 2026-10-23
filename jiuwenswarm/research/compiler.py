@@ -5,10 +5,12 @@ from __future__ import annotations
 from .binding import ContractFactory
 from .contracts import ResearchError
 from .state import utc_now
+from .target_comparisons import BRIEF_CONTRACT, BRIEF_VERSION
 import time
 
 
 def input_port(name,contract,ref):
+    if contract == 'research-brief':contract = BRIEF_CONTRACT
     return {'name':name,'contract_id':contract,'version':ContractFactory._version(contract),'required':True,'artifact_refs':[ref]}
 
 
@@ -38,7 +40,7 @@ class IntentionCompiler:
         intake=self.store.read_record(intake_ref,contract_id='qualified-intake')
         self.runner.configure_run(run_id,**{key:protected[key] for key in ('model_selection_profile_ref','deployment_ref','router','configuration_ref','run_limits')},routing_context=protected.get('routing_context'))
         inputs=[input_port('request','qualified-intake:field-contract:2',intake_ref),input_port('defaults','default-policy:field-contract:1',self.default_policy_ref)]
-        outputs=[{'name':'brief','contract_id':'urn:jiuwenswarm:m1-design:research-brief:2.0.0','version':'2.0.0','required':True}]
+        outputs=[{'name':'brief','contract_id':BRIEF_CONTRACT,'version':BRIEF_VERSION,'required':True}]
         work=[{'subnode_id':'intent','cc':self.intent_pin,'depends_on':[]},
               {'subnode_id':'requirements','cc':self.requirements_pin,'depends_on':['intent','intent.verifier']}]
         authority=dict(self.authority_ceiling,resource_reads=[intake_ref,self.default_policy_ref,intake['request_ref'],*intake['source_refs'],*intake['resource_refs']])
@@ -155,12 +157,16 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
             if hashlib.sha256(data).hexdigest()!=body['sha256']:raise ResearchError('asset_integrity','Installed carrier/prompt changed after catalog pin')
             body_refs[body['path']]=store.put_blob(data)
         code_path='research/checks/compiler.py' if stage in {'intent','requirements'} else 'research/checks/verifier.py' if stage=='verifier' else 'research/planning.py'
-        runner_ref=store.put_blob(package.joinpath(code_path).read_bytes())
+        runner_bytes=package.joinpath(code_path).read_bytes()
+        if stage in {'intent','requirements'}:
+            runner_bytes=json_bytes({'implementation':code_path,'files':{code_path:store.put_blob(runner_bytes),
+                'research/target_comparisons.py':store.put_blob(package.joinpath('research/target_comparisons.py').read_bytes())}})
+        runner_ref=store.put_blob(runner_bytes)
         port=declaration['ports']['outputs'][0]['name'];cc=declaration['identity']['name']
         asset_release=declaration['identity']['version_label']
         # Verifier remains the exact installed release. Changed work releases
         # get distinct immutable artifact IDs, preserving prior captures.
-        asset_suffix='m1_1' if stage=='verifier' else asset_release
+        asset_suffix=asset_release
         bundle={'schema_version':'1.0.0','id':cc+'.checks.'+asset_suffix,'bundle_id':cc+'.checks','version':'1.0.0','target_cc_name':cc,'target_cc_version_range':asset_release,
             'checks':[{'check_id':key,'target_port':port,'rule_summary':'Enforce the source-defined '+key+' invariant on exact bound artifacts and observed records',
                 'runner_ref':runner_ref,'reads':['output'] if key.endswith('_schema') else ['output','inputs','runtime_records'],'blocking':key!='suggested_checks_known'} for key in checks[stage]],'owner_role':'verifier_owner'}

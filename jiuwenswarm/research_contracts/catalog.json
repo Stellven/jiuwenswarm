@@ -41,9 +41,9 @@
     },
     {
       "name": "research-brief",
-      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
-      "schema": "schemas/research-brief.schema.json",
-      "version": "2.0.0",
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:3.0.0",
+      "schema": "schemas/research-brief-v3.schema.json",
+      "version": "3.0.0",
       "producer": "Requirements CC",
       "consumers": [
         "Requirements verification",
@@ -73,8 +73,7 @@
         "input_bindings"
       ],
       "examples": [
-        "research_brief.json",
-        "lifecycle_research_brief.json"
+        "research_brief_v3.json"
       ],
       "applicable_phases": [
         "Phase 1",
@@ -254,6 +253,48 @@
       "applicable_phases": [
         "Phase 1",
         "Phase 2",
+        "Phase 3"
+      ]
+    },
+    {
+      "name": "research-brief-v2",
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+      "schema": "schemas/research-brief.schema.json",
+      "version": "2.0.0",
+      "producer": "Requirements CC",
+      "consumers": [
+        "Requirements verification",
+        "static binder/planner",
+        "research CCs"
+      ],
+      "required_fields": [
+        "schema_version",
+        "intent_ref",
+        "objective",
+        "in_scope",
+        "out_of_scope",
+        "mandatory_requirements",
+        "optional_preferences",
+        "constraints",
+        "target_metrics",
+        "deliverables",
+        "acceptance_expectations",
+        "evidence_obligations",
+        "assumptions",
+        "unresolved_items",
+        "resource_refs",
+        "confirmation",
+        "intake_ref",
+        "context_refs",
+        "domain_lane",
+        "input_bindings"
+      ],
+      "examples": [
+        "research_brief.json",
+        "lifecycle_research_brief.json"
+      ],
+      "applicable_phases": [
+        "Phase 1",
         "Phase 3"
       ]
     }

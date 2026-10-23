@@ -15,7 +15,7 @@ from jiuwenswarm.research.state import SQLiteRunStore,json_bytes
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('fault',[None,'bad_span','malformed_verifier','acceptance_storage_failure','record_hook_failure'])
+@pytest.mark.parametrize('fault',[None,'bad_span','malformed_verifier','semantic_failure','acceptance_storage_failure','record_hook_failure'])
 @pytest.mark.parametrize('route_mode',['fixed_baseline','development_profile'])
 async def test_compiler_requires_internal_acceptance_and_commits_one_external_brief(tmp_path,fault,route_mode):
     store=SQLiteRunStore(tmp_path);registry=Registry();checks=CheckRegistry();library=LibraryService(store)
@@ -66,19 +66,22 @@ async def test_compiler_requires_internal_acceptance_and_commits_one_external_br
                 payload=json.loads(prompt.split('<subject_payload>\n',1)[1].split('\n</subject_payload>',1)[0])
                 assert set(payload)=={'subject_declaration','subject_output'}
                 profile=json.loads(prompt.split('Criteria for this output:\n',1)[1].split('\n\n<subject_payload>',1)[0])
-                text=json.dumps({'findings':[] if fault=='malformed_verifier' else [{'criterion_id':c['criterion_id'],'outcome':'PASS','reason':'Controlled output-shape fixture'} for c in profile],
-                                 'uncertainties':[],'limitations':[],'required_correction':None})
+                text=json.dumps({'findings':[] if fault=='malformed_verifier' else [{'criterion_id':c['criterion_id'],
+                                 'outcome':'FAIL' if fault=='semantic_failure' else 'PASS',
+                                 'reason':'Controlled semantic contradiction' if fault=='semantic_failure' else 'Controlled output-shape fixture'} for c in profile],
+                                 'uncertainties':[],'limitations':[],
+                                 'required_correction':'Resolve the contradiction' if fault=='semantic_failure' else None})
             return {'text':text,'identity':{'requested':'fixture','effective':None,'basis':'Controlled transport, not endpoint evidence'},'observed_runtime':True}
     runner=CapsuleRunner(store,registry,checks,model=ControlledBridge(),check_assets=library.check_assets)
     factory=ContractFactory(store,library,verifier_pin=installed['verifier']['pin'],finalization_profile_ref=finalization)
     compiler=IntentionCompiler(store,runner,factory,intent_pin=installed['intent']['pin'],requirements_pin=installed['requirements']['pin'],default_policy_ref=defaults,
-        template_ref=opaque,node_limits={'time_s':240,'model_calls':4,'memory_mb':256},policy_ref=defaults,
+        template_ref=opaque,node_limits={'time_s':600,'model_calls':4,'memory_mb':256},policy_ref=defaults,
         authority_ceiling={'network':'none','network_allowlist':[],'resource_reads':[],'write_roots':[],'tools':[]})
     model_profile=store.put_record('model-selection-profile',{'schema_version':'1.0.0','id':'fixed:test','policy_mode':route_mode,
         'approved_model_ids':['codex-cli-default'],'extra_requirements':{},'selection_allowance':{'enabled':False,'deployment_ref':None,'model_calls':0,'time_s':0,'output_tokens':0,'disclosure_scope':[]},'alternate_model_id':None,'policy_ref':defaults})
     protected={'model_selection_profile_ref':model_profile,'deployment_ref':opaque,'router':{'enabled':route_mode=='development_profile','deadline_s':30,'profile_ref':model_profile if route_mode=='development_profile' else None},
         'routing_context':{'workflow_id':'workflow:fixture','task_id':'task:fixture','task_category':'experimental_evaluation_and_technical_data','requirements':{},'preferences':{}},
-        'configuration_ref':opaque,'run_limits':{'time_s':240,'model_calls':4,'memory_mb':256}}
+        'configuration_ref':opaque,'run_limits':{'time_s':600,'model_calls':4,'memory_mb':256}}
     if fault=='acceptance_storage_failure':
         def crash(point):
             if point=='before_acceptance':raise OSError('Controlled acceptance storage failure')
@@ -95,6 +98,13 @@ async def test_compiler_requires_internal_acceptance_and_commits_one_external_br
         assert result['accepted'] is False
         assert calls==(['worker'] if fault=='bad_span' else ['worker','verifier'])
         assert store.accepted_outputs('run:compiler','intention_compiler')=={}
+        if fault=='semantic_failure':
+            gates=[r['record'] for r in store.iter_records(run_id='run:compiler',kinds=('gate-decision',))
+                   if r['record']['scope_kind']=='subnode']
+            assert gates and all(g['action']=='halt' for g in gates)
+            messages=[reason['message'] for gate in gates for reason in gate['reasons']]
+            assert any('Controlled semantic contradiction' in message for message in messages)
+            assert not any('All mandatory checks and semantic criteria passed' in message for message in messages)
         return
     assert result['accepted'], [row for r in store.iter_records(kinds=('deterministic-check-result',)) for row in r['record']['results'] if row['outcome']!='PASS']
     assert calls==['worker','verifier','worker','verifier']
@@ -109,3 +119,12 @@ async def test_compiler_requires_internal_acceptance_and_commits_one_external_br
         raw=list(store.iter_records(kinds=('invocation-observation',)))
         assert all(row['record']['failure_class'] is None for row in raw)
         assert all(row['record']['check_result_refs'] for row in completed)
+    if fault is None:
+        from jiuwenswarm.research.control import ResearchService
+        service=ResearchService(store,registry=registry,model=None)
+        actor=Principal('alice',workspace_ids=frozenset({'project'}),operations=frozenset({'export'}))
+        _,contents=await service.artifact_bytes(actor,'run:compiler')
+        index=json.loads(contents['contracts/index.json'])
+        assert {'research-brief','node-execution-contract','subnode-execution-contract','bound-check-plan'} <= {e['kind'] for e in index['contracts']}
+        assert any(e['kind']=='research-brief' and e['schema_version']=='3.0.0' and e['accepted'] for e in index['contracts'])
+        assert any(e['kind']=='run-plan' and e['reason']=='not_created_at_this_run_stage' for e in index['missing'])

@@ -4,7 +4,7 @@
   "capsules": {
     "intent": {
       "declaration_path": "compiler/intent.declaration.json",
-      "declaration_sha256": "3bb3d7f4a9e6b9e399dae8b684e06f42f6417641d898f3f52f393fab363fedac",
+      "declaration_sha256": "8ba03613c616c32a8fdaf80729ffbb68cad7d9160d8d539275dd1a933ccdf216",
       "body": [
         {
           "path": "research/capsules/intent.py",
@@ -22,7 +22,7 @@
     },
     "requirements": {
       "declaration_path": "compiler/requirements.declaration.json",
-      "declaration_sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6",
+      "declaration_sha256": "84b40893e3a9ad514ea06bcc7311a66b1f4f8318313985b3171adffdd90d3604",
       "body": [
         {
           "path": "research/capsules/requirements.py",
@@ -30,7 +30,7 @@
         },
         {
           "path": "research_assets/compiler/requirements.txt",
-          "sha256": "2e85b19cad8cd78538294d511b9c74ae1152aa9b75c26a7c874236d616add2e4"
+          "sha256": "84e87546a59222368949dd78e570b3a5a3157c452634c58e70970841d221a065"
         },
         {
           "path": "research/capsules/_common.py",
@@ -40,11 +40,11 @@
     },
     "verifier": {
       "declaration_path": "compiler/verifier.declaration.json",
-      "declaration_sha256": "e16e59a51f93751116bf1a210ff6188a87c3e8b396335a603896d9e0177c5e66",
+      "declaration_sha256": "c77ce64a119ef4a54100ea17b59422a5971afe95db8ccf822929320b7bbafbf7",
       "body": [
         {
           "path": "research/gate.py",
-          "sha256": "9a3ead19679d170fda062c394591b579c38916f8186c02af935852fecc8a039a"
+          "sha256": "be6b075f91153106c45ba535e0ec97fdbb901442e490ea494fc648b4c6ea9c6b"
         },
         {
           "path": "research_assets/compiler/verifier.txt",
@@ -54,7 +54,7 @@
     },
     "planner": {
       "declaration_path": "planner/planner.declaration.json",
-      "declaration_sha256": "00cf328563f8fd1ab9d3080119c1ff3d23200aa9c47e051be8ee4012f316c3da",
+      "declaration_sha256": "1d791f383add77c53c89afe02b7d545b7f6dc3cbd6afc3b9dc020b73ee346f46",
       "body": [
         {
           "path": "research/capsules/planner.py",
@@ -70,16 +70,16 @@
         },
         {
           "path": "research/unified_planning.py",
-          "sha256": "0fd7ce5188933e9f0ba6af6dcf84387442698d41762905bf8531cce225f4ec06"
+          "sha256": "6fa878879d29f84b15331fa74ce7ec04bea8c2939d1a974d51528a3cd57200c8"
         }
       ]
     }
   },
   "static_template": {
     "path": "planner/static-template.json",
-    "sha256": "edeb6292c209bda92f28406ea18a4bb6ff75b87dc9f6783d8efd909233dae4e2",
+    "sha256": "233aac3fa9025ff60af0ae96ad810a39d77c4070727cfc82b0b799fa039890a4",
     "interface_revision": "M1-IF-002@r2",
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
-    "meaning": "C027 external classification: Builder m1-11 prediction-only BuildReceipt2 and Benchmark m1-4-blindcpu protected root post-exit held-out scoring; unchanged other CCs, budgets, verifier disclosure and gates. No generated dataset, model/product run or blind qualification claim."
+    "meaning": "Brief 3.0.0 typed ports, current frozen work/check releases; unchanged blind-classification execution, verifier disclosure and gates."
   }
 }

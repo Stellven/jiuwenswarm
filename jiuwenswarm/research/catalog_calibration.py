@@ -124,6 +124,15 @@ class Corpus:
             raw = output.getvalue()
         elif name.endswith('.json'):
             value = self.rewrite(json.loads(raw))
+            if name in {'research_brief.json', 'lifecycle_research_brief.json'}:
+                # New calibration captures use the current interface; original
+                # authored fixtures and historical run evidence remain intact.
+                from .target_comparisons import comparison_rule, BRIEF_VERSION
+                value['schema_version'] = BRIEF_VERSION
+                for target in value['target_metrics']:
+                    rule = comparison_rule(target)
+                    target['comparison_status'] = 'quantitative' if rule else 'qualitative'
+                    if rule:target['comparison'] = {k: v for k, v in rule.items() if k != 'operand'}
             if name == 'research_brief.json':
                 value['resource_refs'] = self.store.read_record(self.capture('qualified_intake.json'))['resource_refs']
                 # Preserve the accepted Intent's item identity; the source
@@ -259,7 +268,7 @@ async def capture_catalog_calibration(store, *, configuration_ref, model_selecti
             outputs = {'plan_proposal': planner_fixture(store, corpus, inputs)} if stage == 'planner' else (
                 delivery_fixture(store, corpus, inputs) if stage == 'delivery' else {
                 port: corpus.capture(filename) for port, filename in OUTPUTS[stage].items()})
-        if stage == 'benchmark' and store.read_record(asset['declaration_ref'])['identity']['version_label'] in {'m1-2-localcpu', 'm1-3-localcpu', 'm1-4-blindcpu'}:
+        if stage == 'benchmark' and store.read_record(asset['declaration_ref'])['identity']['version_label'] in {'m1-2-localcpu', 'm1-3-localcpu', 'm1-4-blindcpu', 'm1-5-blindcpu'}:
             # This release promises CPU-only output. Derive its own authored
             # specimen without changing the shared corpus or any other stage's
             # case identities. It is still calibration-only, never an observed

@@ -262,8 +262,8 @@ def _preplan(store, db, run, parent_ref, parent, templates, declarations, start,
         _require([item['subnode_id'] for item in parent['subnodes'] if item['role'] == 'work'] == ['intent', 'requirements']
             and [port['name'] for port in parent['inputs']] == ['request', 'defaults']
             and _port(parent, 'request', 'qualified-intake') == run['submission']['intake_ref']
-            and parent['outputs'] == [{'name': 'brief', 'contract_id': 'urn:jiuwenswarm:m1-design:research-brief:2.0.0',
-                'version': '2.0.0', 'required': True}] and parent['required_outputs'] == ['brief']
+            and parent['outputs'] in [[{'name': 'brief', 'contract_id': 'urn:jiuwenswarm:m1-design:research-brief:' + version,
+                'version': version, 'required': True}] for version in ('2.0.0', '3.0.0')] and parent['required_outputs'] == ['brief']
             and parent['objective'] == 'Compile qualified user meaning into an accepted Research Brief'
             and parent['requirement_ids'] == ['qualified_intent', 'research_brief'] and start['predecessor_commits'] == [])
         policy = _source(store, db, _port(parent, 'defaults', 'default-policy'), 'default-policy')

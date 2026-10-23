@@ -2,7 +2,7 @@
 from decimal import Decimal
 
 
-BRIEF_VERSION = '2.1.0'
+BRIEF_VERSION = '3.0.0'
 BRIEF_CONTRACT = 'urn:jiuwenswarm:m1-design:research-brief:' + BRIEF_VERSION
 
 # Offsets have the target's unit; factors are dimensionless. Unknown units

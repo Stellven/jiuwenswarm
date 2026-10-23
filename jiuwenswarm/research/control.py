@@ -313,6 +313,8 @@ class ResearchService:
         while queue:
             envelope=queue.pop();value=envelope['record'];kind=envelope['kind']
             if kind=='gate-decision':
+                related('node-execution-contract',value['node_contract_ref'])
+                related('node-execution-contract' if value['scope_kind']=='node' else 'subnode-execution-contract',value['contract_ref'])
                 for key,target in [('check_plan_ref','bound-check-plan'),('deterministic_result_ref','deterministic-check-result'),('assessment_ref','verifier-assessment')]:related(target,value.get(key))
                 for reason in value.get('reasons',[]):
                     for ref in reason.get('evidence_refs',[]):
@@ -320,6 +322,11 @@ class ResearchService:
                         if 'check_plan_ref' in candidate and 'results' in candidate:related('deterministic-check-result',ref)
             elif kind=='deterministic-check-result':related('bound-check-plan',value['check_plan_ref'])
             elif kind=='verifier-assessment':related('review-context',value['review_context_ref'])
+            elif kind in {'dispatch-record','dispatch-start'}:
+                related('node-execution-contract',value.get('node_contract_ref'))
+                related('run-plan',value.get('run_plan_ref'))
+            elif kind=='run-plan-binding':related('run-plan',value.get('plan_ref'))
+            elif kind=='subnode-execution-contract':related('node-execution-contract',value['node_contract_ref'])
             elif kind=='model-call-start':
                 try:related('model-call',self.store.record_ref(value['call_id']))
                 except ResearchError as exc:
@@ -384,6 +391,10 @@ class ResearchService:
                     seen_outputs.add(key);path='artifacts/'+output['sha256']
                     if path in paths:continue
                     paths.add(path);files.append({'path':path,'artifact_ref':output,'media_type':media.get(key,self.store.artifact_metadata(output)['media_type']),'audience':audience});refs.append(output)
+        from .run_contracts import contract_export_files
+        for file in contract_export_files(self.store,run,records,audience,restricted):
+            if file['path'] in paths:raise ResearchError('disclosure_conflict','Contract export path is already assigned')
+            files.append(file);refs.append(file['artifact_ref']);paths.add(file['path'])
         manifest,data=build_retrieval(self.store,principal,run_id,run['account_id'],audience,files,allowed_refs=refs,include_contents=include_contents)
         validate('client-retrieval',manifest);return manifest,data
 

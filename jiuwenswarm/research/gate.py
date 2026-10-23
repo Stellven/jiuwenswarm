@@ -177,6 +177,13 @@ class ProtectedGate:
             rebuilt=assemble_assessment(reply,criteria,declaration_ref,assessment['subject_ref'],assessment['review_context_ref'])
             if rebuilt!=assessment:raise ResearchError('integrity_fault','Assessment identities, evidence or verdict do not follow the exact pinned profile')
             verdict = assessment["verdict"]
+            if verdict not in ADVANCING:
+                reasons.extend(f["criterion_id"] + ': ' + f["reason"] for f in assessment["findings"]
+                               if f["outcome"] != 'PASS')
+                if assessment.get('required_correction'):
+                    reasons.append('Required correction: ' + assessment['required_correction'])
+                if not reasons:
+                    reasons.append('Semantic assessment did not authorize advancement: ' + verdict)
         internal_decision_refs = internal_decision_refs or []
         if scope_kind == "node":
             if not internal_decision_refs:
@@ -193,7 +200,8 @@ class ProtectedGate:
         action = "advance" if verdict in ADVANCING and not reasons else "halt"
         if action == "halt" and verdict in ADVANCING:
             verdict = "FAIL"
-        reasons = reasons or ["All mandatory checks and semantic criteria passed"]
+        reasons = reasons or (["All mandatory checks and semantic criteria passed"] if action == 'advance'
+                              else ["No advancing semantic assessment is available"])
         for ref in [*output_refs, *invocation_refs]:
             self.store.read_blob(ref)
         record = {"schema_version": "2.0.0", "id": "gate:" + uuid.uuid4().hex,

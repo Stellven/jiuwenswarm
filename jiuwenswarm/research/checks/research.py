@@ -262,9 +262,9 @@ def validate_blueprint(blueprint: Mapping, brief: Mapping, baseline: Mapping, va
         m = target_metrics[target['id']]
         if target.get('comparison'):
             comparison = target['comparison']
-            expected = {'operand': 'treatment', 'comparator': comparison['comparator'], 'reference': comparison['reference'],
-                        'factor': comparison['value'] if comparison['reference'] == 'baseline' else 0,
-                        'offset': comparison['value'] if comparison['reference'] == 'constant' else 0}
+            from ..target_comparisons import comparison_rule
+            try:expected = comparison_rule(target, m['unit'])
+            except ValueError as exc:raise CheckError('brief_comparison_consistent', str(exc)) from exc
             if next(r for r in rules if r['metric_id'] == m['metric_id'])['success'] != expected:
                 raise CheckError('brief_comparison_consistent')
     for metric in blueprint['metrics']:

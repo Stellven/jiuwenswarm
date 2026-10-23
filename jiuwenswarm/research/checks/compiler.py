@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .engine import CheckError
 from ..contracts import validate
+from ..target_comparisons import check_target_comparisons
 
 
 def walk(value):
@@ -43,6 +44,8 @@ def _pointer(value,pointer):
 
 def check_brief(brief,intent,intake,store,*,intent_ref,intake_ref,policy,policy_ref):
     validate('research-brief',brief);unique_ids(brief,'brief_schema')
+    try:check_target_comparisons(brief)
+    except ValueError as exc:raise CheckError('brief_schema',str(exc)) from exc
     if brief['intake_ref']!=intake_ref or brief['intent_ref']!=intent_ref:
         raise CheckError('source_identity','Brief is not bound to exact accepted Intent/intake')
     allowed=[intent_ref,intake_ref,policy_ref,intake['request_ref'],*intake['source_refs'],*intake['resource_refs']]

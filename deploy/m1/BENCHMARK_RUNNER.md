@@ -139,6 +139,19 @@ python $helper open
 Reports leave Assessment, Evidence references and Review notes for humans.
 Exit codes describe execution or prerequisites, never scientific correctness.
 
+Every app run export now contains `contracts/index.json` plus the exact available
+Research Brief, frozen run plan, node/subnode execution contracts and bound check
+plans under `contracts/`. The index carries original references, hashes and Brief
+acceptance status. Artifacts not created before a halt are explicitly missing;
+no plan or accepted Brief is fabricated. In sequential results these files remain
+inside `artifacts/originals.zip`, indexed by its verified inventory. Brief 3.0.0
+supports factor-plus-offset targets and explicit quantitative, qualitative and
+unsupported status; historical 2.0.0 contracts keep their original bytes.
+
+Repeated cases reuse an authenticated existing upload only when scope, kind,
+filename, size and content hash match. Different bytes at an occupied filename
+block preparation; the runner never overwrites or deletes retained inputs.
+
 ## Local connected evidence
 
 `smoke-20261022-02` completed two supplied synthetic PDF tasks in sequence on the
