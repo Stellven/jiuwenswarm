@@ -26,5 +26,13 @@
   "pins_verified": [
     "deploy/m1/freeze_builder_release.py",
     "deploy/m1/freeze_planner_release.py --check"
-  ]
+  ],
+  "tested_source_commit": "5bc3ca70ecddecbfd5a9d2dffe1aaf739bb5d603",
+  "fresh_windows_checkout": {
+    "commit": "5bc3ca70ecddecbfd5a9d2dffe1aaf739bb5d603",
+    "passed": 15,
+    "time_s": 1.61,
+    "pins": "Builder/Benchmark, core Planner and PDF checker closures verified; worktree clean",
+    "command": "uv run --no-project --with pytest --with pytest-asyncio --with jsonschema==4.26.0 --with cryptography==47.0.0 --with pyyaml --with ruamel.yaml --with httpx --with pydantic --with loguru python -m pytest -o addopts='' -o log_cli=false -q tests/unit_tests/research/test_builder_loop.py tests/unit_tests/research/test_builder_testing.py tests/unit_tests/research/test_capsule_assets.py --basetemp C:/Temp/ai4r-builder-fresh --tb=short"
+  }
 }

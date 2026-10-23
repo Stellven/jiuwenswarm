@@ -130,7 +130,10 @@ operation mapping. No running DAG is changed by this branch.
 
 **121 passed, 3 deselected** in the final Linux run (61.49 seconds). The
 [Linux check evidence](builder-upgrade-linux-checks.xml) records the selected
-unit/connected-component suite. It exercises repair/exhaustion, failure feedback,
+unit/connected-component suite. A fresh Windows checkout of `5bc3ca70` also
+passed 15 focused checks and both release-pin checks; its worktree was clean.
+See the [verification receipt](builder-upgrade-verification.json) for exact commands.
+The checks exercise repair/exhaustion, failure feedback,
 wrong identity/bytes, protected smoke parsing, missing isolation proof, cancellation,
 durable replay, static release pins and verifier-budget reservations. Controlled
 model and kernel fixtures are clearly labelled in the tests. Three previously
