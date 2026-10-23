@@ -7,10 +7,14 @@ from contextlib import closing
 from .catalog import candidates
 from ..capability_planning import capability_plan_policy
 from ..state import SQLiteRunStore
+from ..contracts import ResearchError
 
 
 def prepare_requests(store, name, *, memory_mb=4096):
-    asset, _ = candidates(store)[name]
+    available = candidates(store)
+    if name not in available:
+        raise ResearchError('extension_unavailable', 'No installed optional capsule with that name')
+    asset, _ = available[name]
     declaration = store.read_record(asset['declaration_ref'])
     version = declaration['identity']['version_label']
     identity = asset['declaration_ref']['sha256']

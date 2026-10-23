@@ -8,10 +8,10 @@ import uuid
 from pathlib import Path
 
 from .contracts import ResearchError, validate
-from .capability_planning import is_capability_policy, layout_issues as capability_layout_issues, PLANNER as CAPABILITY_PLANNER
+from .capability_planning import is_capability_policy, layout_issues as capability_layout_issues
 from .summary_planning import (PAPER_CC_VERSION, PAPER_PLANNER_VERSION, PAPER_DELIVERY_CC, PAPER_PLANNER_CC, is_document_summary_policy,
                                summary_layout_issues, validate_summary_documents)
-from .unified_planning import is_integrated_policy, is_paper_graph, integrated_layout_issues, paper_workflow_allowed
+from .unified_planning import is_integrated_policy, is_paper_graph, integrated_layout_issues, paper_workflow_allowed, AI4R_POLICY_ID
 
 
 HOST_KEYS={'screening_rubric','build_receipt','gate_decision_index','screening_result',
@@ -72,7 +72,7 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
     try:
         validate('static-template' if plan_source=='static' else 'plan-proposal',source)
         integrated = is_integrated_policy(policy)
-        capability = is_capability_policy(policy)
+        capability = is_capability_policy(policy) or (integrated and policy['id'] == AI4R_POLICY_ID)
         paper_summary = is_document_summary_policy(policy) or ((integrated or capability) and is_paper_graph(source))
         if finite_context is not None:
             from .finite_evaluation import _FinitePlanContext
@@ -195,7 +195,7 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
             for issue in capability_layout_issues(bound):
                 fail('delivery_leaf_coverage', issue)
         if integrated:
-            for issue in integrated_layout_issues(bound):
+            for issue in integrated_layout_issues(bound, policy):
                 fail('delivery_leaf_coverage', issue)
         for required in policy['required_stages']:
             if sum(n['cc']['cc_name']==required for n in nodes)!=1:fail('delivery_leaf_coverage','A required stage is missing or duplicated')
@@ -364,7 +364,7 @@ class Binder:
         declaration=self.store.read_record(subjects[0]['capsule_ref'],contract_id='capsule-declaration')
         entries=self.store.read_record(snapshot_ref,contract_id='library-snapshot')['entries']
         paper = is_document_summary_policy(self.store.read_record(policy_ref,contract_id='plan-policy'))
-        planner_name = CAPABILITY_PLANNER if is_capability_policy(self.store.read_record(policy_ref,contract_id='plan-policy')) else PAPER_PLANNER_CC if paper else 'research.planner'
+        planner_name = PAPER_PLANNER_CC if paper else 'research.planner'
         matches=[e for e in entries if e['cc_name']==planner_name and e['declaration_sha256']==subjects[0]['capsule_ref']['sha256']]
         if (declaration['identity']['name']!=planner_name or len(matches)!=1
                 or (paper and declaration['identity']['version_label'] not in {PAPER_CC_VERSION, PAPER_PLANNER_VERSION})):

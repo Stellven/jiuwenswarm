@@ -57,6 +57,23 @@ async def test_run_start_is_once_and_preplan_bundle_names_missing_evidence(tmp_p
 
 
 @pytest.mark.asyncio
+async def test_bundle_retains_rejected_planner_candidate_and_advisory_diagnostics(tmp_path):
+    store, _, evidence, context = await prepared_run(tmp_path)
+    try:
+        evidence.start('run:evidence', context)
+        candidate = store.put_blob(b'{invalid')
+        diagnostics = store.put_blob(b'{"advisory":true,"results":[]}')
+        event = store.append_record('planner_attempt', {'run_id': 'run:evidence', 'node_id': 'planner',
+            'subnode_id': 'planner', 'attempt_id': 'a1', 'ordinal': 1, 'candidate_ref': candidate,
+            'diagnostics_ref': diagnostics, 'advisory': True, 'repair_requested': True})
+        bundle = store.read_record(evidence.build('run:evidence'), contract_id='run-bundle')
+        assert all(ref in bundle['artifact_refs'] for ref in (event, candidate, diagnostics))
+        assert not store.is_accepted(candidate)
+    finally:
+        store.close()
+
+
+@pytest.mark.asyncio
 async def test_terminal_capture_preserves_actual_logs_and_unknown_call_omission(tmp_path):
     store, _, evidence, context = await prepared_run(tmp_path)
     evidence.start('run:evidence', context)
@@ -138,8 +155,14 @@ async def test_native_trace_copies_original_packets_and_rejects_swapped_capture(
         assert not [r for r in store.iter_records(kinds=('run-evidence-file',)) if '/trace/native/' in r['record']['artifact_ref']['id']]
     else:
         files=evidence.capture_native_trace(observation,start,call,summary)
-        assert len(files)==4 and any(store.read_blob(ref)==packet for ref in files)
-        assert any(store.read_blob(ref)==store.read_blob(event_ref) for ref in files)
+        assert len(files)==2  # v2 retains an index, projecting packets at export
+        copied = next(r['record'] for r in store.iter_records(kinds=('run-evidence-file',))
+            if r['record']['artifact_ref'] == files[-1])
+        exported = evidence.native_trace_export_files('run:evidence', copied)
+        assert len(exported) == 2
+        assert any(store.read_blob(item['artifact_ref']) == packet for item in exported)
+        assert any(store.read_blob(item['artifact_ref']) == store.read_blob(event_ref) for item in exported)
+        with pytest.raises(ResearchError): evidence.native_trace_export_files('run:foreign', copied)
         assert any(store.read_blob(ref)==store.read_blob(summary) for ref in files)
         bundle=store.read_record(evidence.build('run:evidence'))
         assert not any(ref in bundle['artifact_refs'] for ref in files)

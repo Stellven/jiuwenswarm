@@ -1,8 +1,8 @@
-"""Opt-in typed DAG policy. Existing POC policies retain their exact meaning."""
+"""Compatibility policy for captured capability profiles; core Planner owns synthesis."""
 from .contracts import ResearchError
 
 POLICY_ID = 'ai4r_capability_dag_v1'
-PLANNER = 'workflow.capability_planner'
+PLANNER = 'research.planner'
 
 
 def capability_plan_policy():
@@ -48,28 +48,17 @@ def layout_issues(source):
     return issues
 
 
-INSTRUCTIONS = '''Choose any finite acyclic graph from the exact selectable catalog.
-There is no prescribed capsule order: actual compatible ports and predecessor
-dependencies determine it. Use one leaf covering all deliverables. Scientific
-work retains scientific Evaluation and Delivery. Prefer specialists; use
-research.generalist only for an uncovered task, with at most two assignments.
-Its objective is a concrete bounded intended outcome, frozen before work, not
-permission or executable code. Preserve input types, exact pins, coverage,
-mandatory checks, effects and budgets. Unknown tools or missing capabilities
-mean INFEASIBLE. Generalist output remains low trust after successful checking.
-Packet-based capsules use urn:ai4r:work-packet:1.0.0 for packet/result ports;
-packet data is supplied through an actual compatible inventory artifact or
-predecessor output, never invented as a literal Ref or converted implicitly.
-Each supplied packet must already carry the explicit operation settings; do not
-invent a packet Ref or silently create settings. utility.table_normalize needs
- data.table_request={file,format:csv|json,columns:[names],delimiter:character|null};
-CSV has an exact header and JSON is an array of records. It adds data.table.
-utility.calculate needs data.table and data.calculation={columns:[names],
-operations:[count|sum|mean|min|max],numeric_mode:json_numbers|decimal_strings};
-it adds data.calculation_result. utility.markdown_report needs data.report=
-{path,title,sections:[{heading,text}],data_keys:[existing keys]}; it adds a
-report file and data.report_manifest without authoring new claims. Generalist
-reads a packet and its frozen node objective, generates data/files and optionally
-executes a restricted pure JSON expression; arbitrary Python/OS code is unavailable.
-These descriptions explain interfaces, never make an uninstalled capsule eligible.
-No automatic repair, live graph mutation or automatic capsule admission.'''
+INSTRUCTIONS = """Choose a finite acyclic graph from all exact selectable catalog declarations.
+There is no prescribed capsule order: compatible typed ports and predecessor
+edges determine dependencies. One checked leaf covers every deliverable.
+Scientific experiment work retains Scientific Evaluation and scientific Delivery.
+Prefer specialists; research.generalist, when admitted, is a low-trust fallback
+for an uncovered task, with at most two assignments. Its frozen node objective
+is an intended outcome, never permission or executable code. Read each supplied
+capsule declaration for purpose, ports, operating preconditions and guarantees.
+Do not assume an unlisted capsule, synthesize artifact Refs, invent operation
+settings or convert types implicitly. Missing capabilities/resources means
+INFEASIBLE. All mandatory checks, effects, budgets and independent gates remain.
+One host-requested correction may use public deterministic diagnostics against
+the unchanged inputs. No live graph mutation or automatic capsule admission.
+Passing conformance checks does not certify Generalist output as science."""

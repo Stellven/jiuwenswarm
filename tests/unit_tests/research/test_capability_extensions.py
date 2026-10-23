@@ -52,12 +52,12 @@ def graph():
     return source, brief, library, resources
 
 
-def test_open_dag_preserves_old_policy_and_rejects_cycles_and_incomplete_coverage():
+def test_open_dag_preserves_legacy_policy_and_rejects_cycles_and_incomplete_coverage():
     values = graph()
     _, results = plan_checks(*values, capability_plan_policy(), plan_source='static')
     assert all(r['outcome'] == 'PASS' for r in results), results
-    from jiuwenswarm.research.unified_planning import integrated_plan_policy
-    _, results = plan_checks(*values, integrated_plan_policy(), plan_source='static')
+    from jiuwenswarm.research.unified_planning import legacy_integrated_plan_policy
+    _, results = plan_checks(*values, legacy_integrated_plan_policy(), plan_source='static')
     assert any(r['check_id'] == 'delivery_leaf_coverage' and r['outcome'] == 'FAIL' for r in results)
     values[0]['nodes'][0]['predecessors'] = ['work_1']
     _, results = plan_checks(*values, capability_plan_policy(), plan_source='static')
@@ -80,7 +80,7 @@ def test_policy_is_exact_and_science_cannot_bypass_evaluation():
 def test_candidates_are_pinned_valid_and_never_auto_admitted(tmp_path):
     with closing(SQLiteRunStore(tmp_path)) as store:
         assets = candidates(store)
-        assert 'workflow.capability_planner' in assets
+        assert 'workflow.capability_planner' not in assets
         for name, (asset, _) in assets.items():
             declaration = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')
             results = declaration_checks(declaration, {k: store.read_blob(v) for k, v in asset['body_refs'].items()})
@@ -90,8 +90,8 @@ def test_candidates_are_pinned_valid_and_never_auto_admitted(tmp_path):
         library = LibraryService(store)
         assert register_active(Registry(), CheckRegistry(), library, store) == {}
         assert library.entries() == []
-        receipt = prepare_requests(store, 'workflow.capability_planner')
-        assert receipt['status'] == 'candidate_only'
+        with pytest.raises(ResearchError):
+            prepare_requests(store, 'workflow.capability_planner')
         assert library.entries() == []
 
 
@@ -119,7 +119,7 @@ async def test_optional_checks_are_available_to_existing_protected_calibration(t
         registry = CheckRegistry()
         fixed = await prepare_calibration_checks(store, registry)
         assert 'workflow.capability_planner' not in fixed  # not a fixed POC corpus stage
-        asset, _ = candidates(store)['workflow.capability_planner']
+        asset = fixed['planner']
         bundle = store.read_record(asset['bundle_ref'])
         assert bundle['bundle_id'] in registry._bundles
         assert LibraryService(store).entries() == []

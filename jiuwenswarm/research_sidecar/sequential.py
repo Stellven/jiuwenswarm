@@ -416,6 +416,8 @@ class SequentialRunner:
             row['errors'].append({'at': utc(), 'category': 'human_action_required', 'detail': intake})
             self.save(row); return False
         row['submission'] = {**intake['submission_defaults'], 'client_request_id': row['request_id'], 'intake_ref': intake['intake_ref']}
+        if 'plan_source' in case:
+            row['submission']['plan_source'] = case['plan_source']
         self.save(row, 'submission_prepared'); return True
 
     def observe_status(self, row, value):

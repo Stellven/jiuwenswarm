@@ -162,7 +162,7 @@ manager/host-managed lingering is required for Linux operation after logout. If
 scheduling is unavailable, commands continue with opportunistic expiry and report
 that limitation. Local build-context expiry on a workstation also runs with `gc`.
 
-Container logs rotate at 3 × 10MiB; GC receipts rotate; the dedicated builder cache
+Container logs rotate at 3 Ã— 10MiB; GC receipts rotate; the dedicated builder cache
 has a 10GB GC target. Filesystem growth checks retain 20% headroom, including
 transfer and fetch overlap. Builds monitor the client filesystem while active;
 Docker Desktop's separate virtual disk still needs operator capacity monitoring.
@@ -192,3 +192,12 @@ Docker Desktop on this machine failed to start because its ingest socket could
 not be renamed. Image builds, live two-container campaigns, native ARM64 builds,
 real SSH/Docker execution, scheduler activation and actual Spark operation remain
 **NOT RUN**. Source/fixture checks do not establish these outcomes.
+
+## Planned benchmark cases
+
+Use `plan_source: planned` on a supplied `sequential-cases:1` case to exercise the
+normal core typed Planner. `static` is also accepted; omission keeps the app
+default. The choice is frozen before submission and preserved on resume. Read
+[Planner operation and migration](../../docs/capsules/typed-planner-m1.md) before
+reusing a deployment with an older captured catalog. Setup does not overwrite
+existing app state or silently qualify a changed release.
