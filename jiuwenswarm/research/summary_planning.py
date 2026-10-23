@@ -16,7 +16,7 @@ PAPER_SUMMARY_CC = 'research.paper_summary'
 PAPER_DELIVERY_CC = 'research.paper_summary_delivery'
 PAPER_PLANNER_CC = 'workflow.paper_planner'
 PAPER_CC_VERSION = 'paper-m1-4'
-PAPER_PLANNER_VERSION = 'paper-m1-5'
+PAPER_PLANNER_VERSION = 'paper-m1-6'
 
 
 def document_summary_policy():
