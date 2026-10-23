@@ -22,4 +22,4 @@ result, not an extra required feature or a replacement for the maintained M1.
 Source/fixture checks are distinct from real model, independent calibration,
 live Docker, ARM64 and native Spark checks. These latter checks need connected
 runtime evidence and are not claimed complete. Docker Desktop was unavailable
-on this workstation. See the accompanying validation receipt for actual checks.
+on this workstation. See the [validation receipt](validation.md) for actual checks.
