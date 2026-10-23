@@ -45,6 +45,12 @@ async def trial_fixture(root):
         'Compare an exact visible index with repeated lookup.',[],workspace_id='isolated',
         profile_ref=opaque,workspace_ref=opaque,input_directory_ref=opaque)
     brief_value=rewrite(json.loads((source/'lifecycle_research_brief.json').read_bytes()))
+    # Current Screening declares Brief v3. The historical source fixture keeps
+    # its qualitative target; adapt only this current-release test input.
+    assert all(target['comparison'] is None for target in brief_value['target_metrics'])
+    brief_value['schema_version']='3.0.0'
+    for target in brief_value['target_metrics']:
+        target['comparison_status']='qualitative'
     brief_value['intake_ref']=intake_ref
     brief=fixture['put'](brief_value)
     candidates=rewrite(json.loads((source/'candidate_set.json').read_bytes()));candidates.pop('ext',None);candidates['brief_ref']=brief
