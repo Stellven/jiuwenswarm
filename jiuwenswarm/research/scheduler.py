@@ -240,14 +240,16 @@ class Scheduler:
                     if (producing['node_contract_ref'] != proof['parent_ref'] or producing['subnode_id'] != name
                             or producing['bindings'][0]['role'] != 'work'
                             or producing['bindings'][0]['declaration_ref']['sha256'] != selected['cc']['declaration_sha256']
-                            or len(starts) != 1):
+                            or not (1 <= len(starts) <= 3 if selected['cc']['cc_version'] == 'm1-13' else len(starts) == 1)):
                         raise ResearchError('host_record_unavailable', 'Host proposal differs from the actual source/native producing attempt')
-                    receipt_contract = ('urn:ai4r:prediction-build-receipt:2.0.0'
+                    receipt_contract = ('urn:ai4r:prediction-build-receipt:3.0.0' if selected['cc']['cc_version'] == 'm1-13' else 'urn:ai4r:prediction-build-receipt:2.0.0'
                         if selected['cc']['cc_version'] in {'m1-11', 'm1-12'} else 'build-receipt')
                     receipt = self.store.read_record(offered['ref'], contract_id=receipt_contract)
                     if (receipt['manifest_ref'] != proof['outputs'].get('manifest') or receipt['archive_ref'] != proof['outputs'].get('bundle')
                             or receipt['blueprint_ref'] != producer_inputs.get('blueprint') or receipt['environment_ref'] != producer_inputs.get('lock')
-                            or receipt['readiness'] != 'READY' or receipt['trial_executed'] or receipt['packages_installed']):
+                            or receipt['readiness'] != 'READY'
+                            or (receipt['schema_version'] != '3.0.0' and (receipt['trial_executed'] or receipt['packages_installed']))
+                            or (receipt['schema_version'] == '3.0.0' and receipt['candidate_count'] != len(starts))):
                         raise ResearchError('host_record_unavailable', 'Host receipt differs from accepted manifest/bundle/input closure')
                     matches.append(offered['ref'])
             if len(matches) == 1:

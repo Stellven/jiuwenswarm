@@ -370,13 +370,17 @@ def _host_input(store, db, run_id, ref, key, plan_ref, plan, node, template, pro
                 _require(producing['node_contract_ref'] == proof['parent_ref'] and producing['subnode_id'] == name
                     and producing['bindings'][0]['role'] == 'work'
                     and producing['bindings'][0]['declaration_ref']['sha256'] == selected['cc']['declaration_sha256']
-                    and len(starts) == 1)
-                receipt = _source(store, db, offered['ref'], 'build-receipt')
+                    and (1 <= len(starts) <= 3 if selected['cc']['cc_version'] == 'm1-13' else len(starts) == 1))
+                receipt_kind = ('urn:ai4r:prediction-build-receipt:3.0.0' if selected['cc']['cc_version'] == 'm1-13'
+                    else 'urn:ai4r:prediction-build-receipt:2.0.0' if selected['cc']['cc_version'] in {'m1-11', 'm1-12'} else 'build-receipt')
+                receipt = _source(store, db, offered['ref'], receipt_kind)
                 _require(receipt['manifest_ref'] == proof['outputs'].get('manifest')
                     and receipt['archive_ref'] == proof['outputs'].get('bundle')
                     and receipt['blueprint_ref'] == producer_inputs.get('blueprint')
                     and receipt['environment_ref'] == producer_inputs.get('lock')
-                    and receipt['readiness'] == 'READY' and not receipt['trial_executed'] and not receipt['packages_installed'])
+                    and receipt['readiness'] == 'READY'
+                    and (receipt['schema_version'] == '3.0.0' or (not receipt['trial_executed'] and not receipt['packages_installed']))
+                    and (receipt['schema_version'] != '3.0.0' or receipt['candidate_count'] == len(starts)))
                 matches.append(offered['ref'])
         _require(matches == [ref])
     else:

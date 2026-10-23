@@ -19,8 +19,8 @@ class CapsuleAssetsTests(unittest.TestCase):
                 'search': 'm1-6',
                 'screening': 'm1-4',
                 'hypothesis': 'm1-6',
-                'builder': 'm1-12',
-                'benchmark': 'm1-5-blindcpu',
+                'builder': 'm1-13',
+                'benchmark': 'm1-6-builder-tests',
                 'evaluation': 'm1-5',
                 'delivery': 'm1-5',
             }

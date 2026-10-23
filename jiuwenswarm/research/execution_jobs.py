@@ -53,7 +53,7 @@ def allocate_science_workspace(root, binding, sequence, role, *, uid=10002, gid=
     """Broker-only finite allocator; callers never choose a filesystem path."""
     if os.name != 'posix' or os.geteuid() != 0 or not isinstance(binding, InvocationBinding):
         raise ResearchError('unavailable', 'Protected root broker allocation is required')
-    if type(sequence) is not int or sequence < 1 or role not in {'baseline', 'treatment'}:
+    if type(sequence) is not int or sequence < 1 or role not in {'baseline', 'treatment', 'builder_test'}:
         raise ResearchError('validation', 'Invalid scientific allocation identity')
     supplied = Path(root)
     if supplied.is_symlink():
@@ -179,9 +179,9 @@ class ScienceExecutionAdapter:
         return remaining
 
     def _approved_lock(self, contract, inputs):
-        ref = _input_ref(contract, 'environment_lock')
+        ref = _input_ref(contract, 'lock' if 'blueprint' in inputs else 'environment_lock')
         entry = self.approved.get(ref['sha256'])
-        lock = inputs['environment_lock']
+        lock = inputs['lock' if 'blueprint' in inputs else 'environment_lock']
         if entry is None or dict(entry.lock_ref) != ref or dict(entry.approval_ref) != lock['approval_ref']:
             raise ResearchError('unavailable', 'Environment is absent from the protected approved catalog')
         actual = (platform.system(), platform.machine(), platform.python_version())
@@ -213,11 +213,16 @@ class ScienceExecutionAdapter:
             raise ResearchError('provisioning_failed', 'Trusted offline provisioning failed', {'evidence_refs': refs})
         return refs
 
-    async def provisioner(self, contract, inputs, lock_pins, *, binding):
+    async def provisioner(self, contract, inputs, lock_pins, *, binding, builder_manifest_ref=None):
         _binding(contract, binding)
         if os.name != 'posix' or os.geteuid() != 0:
             raise ResearchError('unavailable', 'Protected Linux broker provisioning is required')
         entry, pins = self._approved_lock(contract, inputs)
+        lock_port = 'lock' if builder_manifest_ref is not None else 'environment_lock'
+        if builder_manifest_ref is not None:
+            declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
+            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] != 'm1-13':
+                raise ResearchError('auth', 'Development provisioning requires the exact Builder release')
         if pins != dict(lock_pins):
             raise ResearchError('validation', 'Provisioner pins differ from exact complete lock')
         if binding.invocation_id in self._prepared:
@@ -235,7 +240,7 @@ class ScienceExecutionAdapter:
         active_effect = 'create_venv'
         active_target = '/workspace/poc/.venv'
         receipt = {'schema_version': '1.0.0', 'id': 'provisioning_receipt',
-            'environment_lock_ref': _input_ref(contract, 'environment_lock'), 'poc_manifest_ref': _input_ref(contract, 'poc_manifest'),
+            'environment_lock_ref': _input_ref(contract, lock_port), 'poc_manifest_ref': builder_manifest_ref if builder_manifest_ref is not None else _input_ref(contract, 'poc_manifest'),
             'status': 'failed', 'python_version': platform.python_version(), 'venv_path': '/workspace/poc/.venv',
             'runner_user': 'executor:10002', 'packages': [], 'network_policy_used': 'none',
             'network_allowlist': [], 'unlisted_network_requests': 0,
@@ -247,7 +252,7 @@ class ScienceExecutionAdapter:
             venv.EnvBuilder(with_pip=False, symlinks=True).create(environment)
             effects.append({'op': 'create_venv', 'target': active_target, 'outcome': 'ok'})
             hashed, wheel_refs = [], {}
-            for ref in inputs['environment_lock']['package_refs']:
+            for ref in inputs[lock_port]['package_refs']:
                 raw = self.store.read_blob(ref); name, version, _ = inspect_wheel(raw)
                 filename = entry.wheel_filenames.get(ref['sha256'])
                 if not filename or not safe_named_path(filename) or '/' in filename or not filename.endswith('.whl'):
@@ -292,7 +297,7 @@ class ScienceExecutionAdapter:
                     # tree. External executable links name only pinned Python.
                     if not destination.is_relative_to(environment.resolve()) and destination != self.profile.python_path.resolve():
                         raise ResearchError('validation', 'Unapproved environment symlink')
-            prepared = PreparedEnvironment(environment, _input_ref(contract, 'environment_lock'))
+            prepared = PreparedEnvironment(environment, _input_ref(contract, lock_port))
             for item in environment.rglob('*'):
                 if not item.is_symlink():
                     item.chmod(0o555 if item.is_dir() or os.access(item, os.X_OK) else 0o444)

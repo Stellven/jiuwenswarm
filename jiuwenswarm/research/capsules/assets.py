@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-6', builder='m1-12', benchmark='m1-5-blindcpu', evaluation='m1-5', delivery='m1-5')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-6', builder='m1-13', benchmark='m1-6-builder-tests', evaluation='m1-5', delivery='m1-5')
 
 
 def source_metadata():
@@ -47,7 +47,7 @@ def build_research_assets(store, *, verify_catalog=True):
                 port['schema_ref'] = 'urn:jiuwenswarm:m1-design:research-brief:3.0.0'
         identity = declaration['identity']; identity['version_label'] = STAGE_VERSIONS[stage]
         identity['summary'] = identity['summary'].replace('Synthetic declaration: ', '')
-        carrier_name = 'builder_text.py' if stage == 'builder' else stage + '.py'
+        carrier_name = 'builder_loop.py' if stage == 'builder' else stage + '.py'
         body = {carrier_name: (root / 'capsules' / carrier_name).read_bytes(),
                 '_common.py': (root / 'capsules/_common.py').read_bytes()}
         if stage in {'builder', 'benchmark'}:
@@ -56,12 +56,14 @@ def build_research_assets(store, *, verify_catalog=True):
                 body['prediction_bundle.py'] = (root / 'checks/prediction_bundle.py').read_bytes()
         stage_runner_ref = runner_ref
         if stage == 'builder':
-            declaration['needs']['resources'] = []
+            declaration['needs']['resources'] = [{'resource_key': 'poc_workspace', 'mode': 'write'}]
             declaration['needs']['model']['tool_calling'] = False
             declaration['budget']['per_call']['tool_calls'] = 0
-            declaration['changes']['effect_class'] = 'read_only'
+            declaration['budget']['per_call']['invocations'] = 3
+            declaration['changes']['effect_class'] = 'compensable'
             declaration['changes']['effects'] = [row for row in declaration['changes']['effects'] if row['op'] == 'model_invoke']
-            identity['summary'] = 'Frozen blueprint to bounded POC file texts and mechanical archive; no tools, generated execution, installation or credential disclosure'
+            declaration['changes']['effects'].append(copy.deepcopy(metadata['benchmark']['declaration']['changes']['effects'][0]))
+            identity['summary'] = 'Frozen intervention implemented with up to three Codex text candidates and protected offline development tests; independent gate and Benchmark retain acceptance and scoring'
             for port in declaration['ports']['outputs']:
                 if port['name'] == 'bundle':
                     port['description'] = ('Actual artifact is a ZIP archive, not a JSON object. The referenced bundle schema '
@@ -90,18 +92,18 @@ def build_research_assets(store, *, verify_catalog=True):
                         'or exact source fidelity, actual baseline-first execution or measurement correctness. '
                         'Those original identity/order/execution obligations remain protected Benchmark host checks.')
             closure = dict(checker_closure)
-            closure['checks/builder_text.py'] = store.put_blob((root / 'checks/builder_text.py').read_bytes(), media_type='text/x-python')
+            closure['checks/builder_loop.py'] = store.put_blob((root / 'checks/builder_loop.py').read_bytes(), media_type='text/x-python')
             closure['checks/prediction_bundle.py'] = store.put_blob((root / 'checks/prediction_bundle.py').read_bytes(), media_type='text/x-python')
             closure['trusted_scoring.py'] = store.put_blob((root / 'trusted_scoring.py').read_bytes(), media_type='text/x-python')
-            closure['schemas/prediction-build-receipt.v2.schema.json'] = store.put_blob((root.parent / 'research_contracts/schemas/prediction-build-receipt.v2.schema.json').read_bytes(), media_type='application/json')
-            stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.builder_text', 'files': closure}), media_type='application/json')
+            closure['schemas/prediction-build-receipt.v3.schema.json'] = store.put_blob((root.parent / 'research_contracts/schemas/prediction-build-receipt.v3.schema.json').read_bytes(), media_type='application/json')
+            stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.builder_loop', 'files': closure}), media_type='application/json')
         if stage == 'benchmark':
             declaration['needs']['resources'] = [row for row in declaration['needs']['resources'] if row['resource_key'] != 'gpu_device']
             declaration['needs']['network'] = {'mode': 'none', 'direction': 'none', 'allowlist': []}
             identity['summary'] = 'Blind CPU classification benchmark: raw predictions, root-only held-out scoring, actual baseline-first jobs and protected scoring receipts'
             for port in declaration['ports']['inputs']:
                 if port['name'] == 'build_receipt':
-                    port['schema_ref'] = 'urn:ai4r:prediction-build-receipt:2.0.0'
+                    port['schema_ref'] = 'urn:ai4r:prediction-build-receipt:3.0.0'
             for port in declaration['ports']['outputs']:
                 port['description'] = ('Blind classification protocol: generated baseline/treatment stdout contains '
                     'predictions only, never authoritative metrics. Root computes accuracy=correct_count/sample_count '
@@ -114,7 +116,7 @@ def build_research_assets(store, *, verify_catalog=True):
             closure = dict(checker_closure)
             for name in ('checks/blind_benchmark.py', 'trusted_scoring.py'):
                 closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
-            for name in ('classification-scoring-receipt.schema.json', 'prediction-build-receipt.v2.schema.json'):
+            for name in ('classification-scoring-receipt.schema.json', 'prediction-build-receipt.v2.schema.json', 'prediction-build-receipt.v3.schema.json'):
                 closure['schemas/' + name] = store.put_blob((root.parent / 'research_contracts/schemas' / name).read_bytes(), media_type='application/json')
             stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.blind_benchmark', 'files': closure}), media_type='application/json')
         if stage == 'evaluation':
@@ -166,13 +168,22 @@ def build_research_assets(store, *, verify_catalog=True):
         checks = []
         for row in source['checks']:
             check_id = row[0].strip('`')
+            if stage == 'builder' and check_id == 'no_trial_no_install':
+                check_id = 'bounded_development_tests'
             target = old.get(check_id, {}).get('target', '')
             target_port = target.removeprefix('outputs.') if target.startswith('outputs.') else ports[0]
             if target_port not in ports:
                 target_port = ports[0]
             if check_id.endswith('_schema') and check_id[:-7] in ports:
                 target_port = check_id[:-7]
-            checks.append({'check_id': check_id, 'target_port': target_port, 'rule_summary': row[1][:300],
+            summary = row[1][:300]
+            if stage == 'builder':
+                summary = {
+                    'bounded_development_tests': 'Protected development-test executions join final candidate bytes, public inputs and bounded invocation records; no scientific acceptance authority',
+                    'build_receipt_ready': 'Version 3 receipt records actual development execution, exact candidate and successful protected tests; independent checks and gate remain mandatory',
+                    'output_log_format': 'Static prediction-output AST contract plus independently parsed raw smoke predictions; no scores accepted from generated code',
+                }.get(check_id, summary)
+            checks.append({'check_id': check_id, 'target_port': target_port, 'rule_summary': summary,
                            'runner_ref': stage_runner_ref, 'reads': ['output'] if check_id.endswith('_schema') else ['output', 'inputs', 'runtime_records'], 'blocking': True})
         if stage == 'benchmark':
             for key, summary in [('empirical_sequence_contiguous', 'C002: every actual receipt sequence has exactly one empirical row, contiguous from 1.'),
@@ -188,6 +199,11 @@ def build_research_assets(store, *, verify_catalog=True):
                              'blocking': row[-1] == 'yes', 'answerable_from': 'declaration_and_output', 'target_port': target})
         if stage == 'builder':
             for criterion in criteria:
+                if criterion['criterion_id'] == 'manifest_claims_no_execution':
+                    criterion['criterion_id'] = 'manifest_no_unsupported_acceptance'
+                    criterion['question'] = 'Does this manifest avoid unsupported scientific measurements or acceptance claims? Development tests do not establish scientific success.'
+                elif criterion['criterion_id'] == 'no_embedded_results':
+                    criterion['question'] = 'Does the visible code compute predictions at runtime without embedded answers, self-scoring, or unsupported scientific success claims?'
                 if criterion['criterion_id'] == 'harness_orders_baseline_first':
                     criterion['question'] = ('Does the visible harness emit one batch of ID/string-label predictions per default '
                         'invocation, with consistent data/seed settings and no baseline calls, repeat experiments '
@@ -230,11 +246,11 @@ def build_research_assets(store, *, verify_catalog=True):
 
 def register_research_capsules(registry, check_registry, library, store, *, connectors=None, executor=None, assets=None):
     """Register only already-admitted active candidates under their exact pins."""
-    from . import search, screening, hypothesis, builder_text, benchmark, evaluation, delivery
+    from . import search, screening, hypothesis, builder_loop, benchmark, evaluation, delivery
     from .ranking import rank_opportunities
     from ..checks.stages import ResearchChecks
     assets = assets or build_research_assets(store)
-    handlers = {'search': search.execute, 'hypothesis': hypothesis.execute, 'builder': builder_text.execute,
+    handlers = {'search': search.execute, 'hypothesis': hypothesis.execute, 'builder': builder_loop.execute,
                 'benchmark': benchmark.execute, 'evaluation': evaluation.execute, 'delivery': delivery.execute}
     for stage, asset in assets.items():
         declaration = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')
@@ -246,8 +262,8 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
             raise ResearchError('check_pin_mismatch', 'Installed independent checks differ from admission')
         bundle = store.read_record(asset['bundle_ref'], contract_id='check-bundle')
         if stage == 'builder':
-            from ..checks.builder_text import TextBuilderChecks
-            checks = TextBuilderChecks(stage, executor=executor)
+            from ..checks.builder_loop import LoopBuilderChecks
+            checks = LoopBuilderChecks(stage, executor=executor)
         elif stage == 'benchmark':
             from ..checks.blind_benchmark import BlindBenchmarkChecks
             checks = BlindBenchmarkChecks(stage, executor=executor)

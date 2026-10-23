@@ -156,7 +156,8 @@
                 "run",
                 "collect_builder",
                 "builder_observation",
-                "invoke_builder"
+                "invoke_builder",
+                  "builder_test"
               ]
             },
             "minItems": 1,

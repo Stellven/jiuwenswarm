@@ -113,11 +113,18 @@ class CapsuleArtifacts:
         self.__store.mark_evaluation_material(self.__scope['run_id'],ref)
         return self._grant(ref)
     def put_record(self,contract_id,record,**metadata):
-        if contract_id not in {'build-receipt', 'urn:ai4r:prediction-build-receipt:2.0.0'}:
+        if contract_id not in {'build-receipt', 'urn:ai4r:prediction-build-receipt:2.0.0', 'urn:ai4r:prediction-build-receipt:3.0.0'}:
             raise ResearchError('authority_boundary','Capsules may publish candidate bytes, never host authority records')
         return self._grant(self.__store.put_record(contract_id,record,scope=self.__scope))
     def append_record(self,kind,record):
-        if kind not in {'build_failure','scientific_execution','benchmark_attempt','planner_attempt'}:raise ResearchError('authority_boundary','Capsule event kind is not permitted')
+        if kind not in {'build_failure','scientific_execution','benchmark_attempt','planner_attempt','builder_attempt'}:raise ResearchError('authority_boundary','Capsule event kind is not permitted')
+        if kind == 'builder_attempt':
+            if (set(record) != {'ordinal','candidate_ref','diagnostics_ref','advisory','repair_requested'}
+                    or type(record['ordinal']) is not int or record['ordinal'] not in (1,2,3)
+                    or record['advisory'] is not True or type(record['repair_requested']) is not bool):
+                raise ResearchError('authority_boundary', 'Invalid advisory Builder event')
+            for key in ('candidate_ref','diagnostics_ref'):
+                self.read_blob(record[key])
         if kind == 'planner_attempt':
             if (self.__scope['node_id'] != 'planner' or self.__scope['subnode_id'] != 'planner'
                     or set(record) != {'ordinal','candidate_ref','diagnostics_ref','advisory','repair_requested'}
@@ -133,7 +140,7 @@ class CapsuleArtifacts:
 class BoundExecutorAccess:
     def __init__(self,facade,artifacts):self.__facade,self.__artifacts=facade,artifacts
     def __getattr__(self,name):
-        if name not in {'measure_job','provision','hardware_inventory','collect_builder','run'}:raise AttributeError(name)
+        if name not in {'measure_job','provision','hardware_inventory','collect_builder','run','builder_test'}:raise AttributeError(name)
         method=getattr(self.__facade,name)
         async def invoke(*args,**kwargs):
             value=method(*args,**kwargs)

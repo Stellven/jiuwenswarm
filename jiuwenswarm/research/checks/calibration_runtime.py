@@ -21,7 +21,10 @@ async def prepare_calibration_checks(store,registry,*,executor=None):
     scientific=build_research_assets(store)
     for stage,asset in scientific.items():
         bundle=store.read_record(asset['bundle_ref'],contract_id='check-bundle')
-        if stage=='builder' and store.read_record(asset['declaration_ref'])['identity']['version_label'] in {'m1-2','m1-3','m1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12'}:
+        if stage == 'builder' and store.read_record(asset['declaration_ref'])['identity']['version_label'] == 'm1-13':
+            from .builder_loop import LoopBuilderChecks
+            handler=LoopBuilderChecks('builder',executor=executor)
+        elif stage=='builder' and store.read_record(asset['declaration_ref'])['identity']['version_label'] in {'m1-2','m1-3','m1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12'}:
             from .builder_text import TextBuilderChecks
             handler=TextBuilderChecks('builder',executor=executor)
         else:handler=ResearchChecks(stage,executor=executor)

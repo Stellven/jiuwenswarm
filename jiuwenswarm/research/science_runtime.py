@@ -13,7 +13,7 @@ from .executor import ExecutorBlocked
 
 
 OPERATIONS = frozenset(('provision','hardware_inventory','measure_job','run',
-                        'collect_builder','builder_observation','invoke_builder'))
+                        'collect_builder','builder_observation','invoke_builder','builder_test'))
 
 
 @dataclass(frozen=True)

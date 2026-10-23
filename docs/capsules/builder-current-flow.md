@@ -1,4 +1,7 @@
-# Current Builder capsule
+# Builder before the upgrade
+
+Historical inspection of `60f65abe`. On `builder/bounded-build-test-20261023`,
+[the Builder upgrade](builder-upgrade.md) supersedes the behavior below.
 
 Source inspection: 2026-10-23, based on M1 commit `60f65abe`.
 Work branch: `builder/current-flow-20261023`.

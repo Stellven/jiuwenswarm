@@ -290,7 +290,7 @@ class NativePorts:
         if finite_scope is None:
             prerequisites.append({'name':'builder','status':'ready' if status.get('builder_qualified') is True else 'unavailable',
                 'reason':('Exact admitted tool-free Builder release; generated code executes only in the scientific sandbox'
-                    if status.get('builder_mode') == 'tool_free' else 'Dedicated Builder runtime, credential separation and confinement were qualified')
+                    if status.get('builder_mode') in {'tool_free', 'bounded_tests'} else 'Dedicated Builder runtime, credential separation and confinement were qualified')
                     if status.get('builder_qualified') is True else 'Required Builder release or isolated runtime qualification is unavailable'})
         elif integrated_scope:
             prerequisites.append({'name':'workflow_scope','status':'ready',
