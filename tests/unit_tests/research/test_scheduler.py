@@ -94,10 +94,10 @@ async def test_scheduler_stops_independent_dispatch_on_exact_protected_receipt(m
     scheduler=Scheduler(Store(),Runner(),Factory(),SimpleNamespace(validate_acceptance=lambda _:None),library=None)
     if reason:
         with pytest.raises(ResearchError,match='protected_stop'):
-            await scheduler.execute_plan('run',ref('plan'),{'authority_ceiling':{}})
+            await scheduler.execute_plan('run',ref('plan'),{'authority_ceiling':{'resource_reads':[]}})
         assert dispatched==['a'] and states==['halted']
     else:
-        result=await scheduler.execute_plan('run',ref('plan'),{'authority_ceiling':{}})
+        result=await scheduler.execute_plan('run',ref('plan'),{'authority_ceiling':{'resource_reads':[]}})
         assert dispatched==['a','independent'] and result['status']=='partial'
 
 

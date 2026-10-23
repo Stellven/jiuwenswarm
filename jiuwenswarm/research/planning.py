@@ -173,6 +173,14 @@ def planner_checks(ctx,inputs,outputs):
           'resource_inventory_ref':ctx.input_ref('resource_inventory'),'policy_ref':ctx.input_ref('plan_policy')}
     _,results=plan_checks(outputs['plan_proposal'],inputs['brief'],inputs['library_snapshot'],inputs['resource_inventory'],inputs['plan_policy'],
                          plan_source='planned',expected_refs=refs,check_exists=ctx.store.check_exists if hasattr(ctx.store,'check_exists') else lambda key:False)
+    if 'capsule_contracts' in inputs:
+        from .planner_catalog import verify_captured_catalog
+        try:
+            verify_captured_catalog(ctx.store, inputs['capsule_contracts'], inputs['library_snapshot'], refs['library_snapshot_ref'])
+        except ResearchError as error:
+            for result in results:
+                if result['check_id'] == 'library_membership':
+                    result.update(outcome='FAIL', reason=str(error))
     # Source proposal port is named proposal in some admitted declarations. The
     # carrier registration binds one exact name; no fallback schema is guessed.
     return results
@@ -245,6 +253,11 @@ class PlanningCoordinator:
         if not self.store.is_accepted(brief_ref,run_id=run_id):raise ResearchError('unaccepted_input','Planner requires the externally committed Brief')
         refs={'brief':brief_ref,'library_snapshot':snapshot_ref,'resource_inventory':resources_ref,'plan_policy':policy_ref}
         contracts={'brief':'research-brief','library_snapshot':'library-snapshot','resource_inventory':'resource-inventory','plan_policy':'plan-policy'}
+        declaration = self.factory._entry(self.planner_pin)[1]
+        if any(port['name'] == 'capsule_contracts' for port in declaration['ports']['inputs']):
+            from .planner_catalog import capture_catalog, SCHEMA
+            refs['capsule_contracts'] = capture_catalog(self.store, self.factory.library, snapshot_ref)
+            contracts['capsule_contracts'] = SCHEMA
         ports=[input_port(key,contracts[key],ref) for key,ref in refs.items()]
         parent_ref=self.factory.prepare_parent(run_id,'planner',[{'subnode_id':'planner','cc':self.planner_pin,'depends_on':[]}],inputs=ports,
             outputs=[{'name':'plan_proposal','contract_id':'plan-proposal:field-contract:3','version':'3.0.0','required':True}],

@@ -63,8 +63,9 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     if options.get('paper_summary_workflow') is True or integrated:
         from .summary_planning import is_document_summary_policy
         from .unified_planning import is_integrated_policy
+        from .capability_planning import is_capability_policy
         policy=store.read_record(operator.snapshot()['cc']['plan_policy_ref'],contract_id='plan-policy')
-        permitted = is_integrated_policy(policy) if integrated else is_document_summary_policy(policy)
+        permitted = (is_integrated_policy(policy) or is_capability_policy(policy)) if integrated else is_document_summary_policy(policy)
         if not permitted or operator.snapshot()['cc']['evaluation_profile_ref'] is not None:
             raise ResearchError('paper_policy_binding','Paper workflow requires its exact protected document policy')
         from .capsules.paper_assets import build_paper_assets
@@ -200,6 +201,8 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             from .capsules.paper_assets import register_paper_capsules
             register_paper_capsules(registry,checks,library,store,assets=paper_assets)
         result.installed.update(assets)
+        from .capsule_extensions.catalog import register_active
+        result.installed.update(register_active(registry, checks, library, store))
         if finite is None:
             from .planning import capture_static_template
             result.static_template_ref=capture_static_template(store,library)

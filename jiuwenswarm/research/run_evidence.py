@@ -395,6 +395,10 @@ class RunEvidence:
                 attempts.add(value['attempt_id']);previous_end=value['ended_at']
                 dispatches.append({key:value[key] for key in ('node_id','attempt_id','started_at','ended_at','outcome')}|{'dispatch_record_ref':ref})
             elif kind=='invocation-observation':validate(kind,value);observations.append(ref)
+            elif kind=='planner_attempt':
+                artifacts.append(ref)
+                for key in ('candidate_ref', 'diagnostics_ref'):
+                    self.store.read_blob(value[key]);artifacts.append(value[key])
             elif kind=='model-call':calls.append(ref)
             elif kind=='route-record':validate(kind,value);routes.append(ref)
             elif kind=='run-evidence-file' and value['role'] in {'input','output','run_end','node_gate'}:

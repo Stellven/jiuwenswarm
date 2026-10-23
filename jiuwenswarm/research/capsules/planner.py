@@ -1,4 +1,4 @@
-"""Actual one-shot native LEADER produces data only; the protected binder decides."""
+"""Bounded native proposals are advisory; independent checks and gates decide."""
 
 import json
 from importlib.resources import files
@@ -77,9 +77,39 @@ async def execute(ctx,inputs):
     instructions=files('jiuwenswarm.research_assets').joinpath('planner','planner.txt').read_text('utf-8')
     from ..unified_planning import is_integrated_policy, integrated_planner_instructions
     if is_integrated_policy(inputs['plan_policy']):
-        instructions += '\n' + integrated_planner_instructions()
+        instructions += '\n' + integrated_planner_instructions(inputs['plan_policy'])
+    from ..capability_planning import is_capability_policy, INSTRUCTIONS
+    if is_capability_policy(inputs['plan_policy']):
+        instructions += '\n' + INSTRUCTIONS
     instructions+='\nPinned output schema:\n'+json.dumps(contract_schema('plan-proposal'),ensure_ascii=False)
-    raw=await NativePlanner().propose(payload,invoke=ctx.model,instructions=instructions)
+    from ..planner_catalog import verify_catalog
+    verify_catalog(inputs['capsule_contracts'], inputs['library_snapshot'], ctx.input_ref('library_snapshot'))
+    from ..binding import plan_checks
+    from ..state import json_bytes
+    expected = {key: payload[key] for key in ('brief_ref', 'library_snapshot_ref', 'resource_inventory_ref', 'policy_ref')}
+    # Two generations inside one work invocation. This is not a retry of an
+    # executed DAG, a dispatch retry, a verifier waiver or an unbounded loop.
+    for ordinal in (1, 2):
+        raw = await NativePlanner().propose(payload, invoke=ctx.model, instructions=instructions)
+        candidate_ref = ctx.store.put_blob(raw.encode('utf-8'), media_type='text/plain')
+        try:
+            kind, candidate = parse_planner_reply(raw)
+            diagnostics = [] if kind == 'infeasible' else plan_checks(
+                candidate, inputs['brief'], inputs['library_snapshot'], inputs['resource_inventory'],
+                inputs['plan_policy'], plan_source='planned', expected_refs=expected)[1]
+        except ResearchError as error:
+            if error.code not in {'planner_output_invalid', 'contract_invalid', 'invalid_json'}:
+                raise
+            kind = 'proposal'
+            diagnostics = [{'check_id': 'plan_proposal_schema', 'outcome': 'FAIL', 'reason': str(error), 'evidence_refs': []}]
+        failed = [result for result in diagnostics if result['outcome'] == 'FAIL' and result['check_id'] != 'suggested_checks_known']
+        diagnostic_ref = ctx.store.put_blob(json_bytes({'advisory': True, 'results': diagnostics}), media_type='application/json')
+        ctx.store.append_record('planner_attempt', {'ordinal': ordinal, 'candidate_ref': candidate_ref,
+            'diagnostics_ref': diagnostic_ref, 'advisory': True, 'repair_requested': bool(failed and ordinal == 1)})
+        if not failed or ordinal == 2:
+            break
+        payload = dict(payload, repair={'previous_candidate': raw, 'validation_errors': failed,
+            'instruction': 'Return one corrected complete proposal against the unchanged frozen inputs. These are advisory diagnostics, not authority or acceptance.'})
     try:
         kind,_=parse_planner_reply(raw)
     except ResearchError as error:

@@ -1,0 +1,13 @@
+{
+  "files": {
+    "assets.py": "f78f05dbeb5cfa1dd41080e242fa6a62fc8c8e6d3989c9038642b7a954e7dac2",
+    "generalist/__init__.py": "2e066e3fb8b9c9a0f7356ad303a71dd873ccef88f2dce3baf3ee444fc4cc2790",
+    "generalist/checks.py": "fb55eb23e840f7e2771857880622eb391e19c732ceeee8859041a4aada1ce3bf",
+    "generalist/expression.py": "a7f17cfcc5b0a00b5d2723fa619446823319ecc3cb16765e991c925f394647cc",
+    "generalist/release.py": "3b889d1e96a751ab27eee69a3559dc1df3268f1caf4d57ff19a96c9d1a57014f",
+    "generalist/worker.py": "59828922f1cdd8d992844865b955880c7c62a4f7fa55c917fa8c3fff9571c79d",
+    "packet.py": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  },
+  "module": "generalist",
+  "name": "research.generalist"
+}

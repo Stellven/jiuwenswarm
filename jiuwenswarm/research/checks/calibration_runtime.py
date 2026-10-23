@@ -27,6 +27,14 @@ async def prepare_calibration_checks(store,registry,*,executor=None):
         else:handler=ResearchChecks(stage,executor=executor)
         registry.register_bundle(bundle['bundle_id'],[row['check_id'] for row in bundle['checks']],handler,
             implementation_ref=asset['runner_ref'],profile_ref=asset['profile_ref'])
+    # Optional candidates participate in explicit protected calibration, never
+    # in the fixed POC corpus or automatic admission. Independent owners supply
+    # their preregistered profiles/contexts through the existing authority.
+    from ..capsule_extensions.catalog import candidates
+    for asset, module in candidates(store).values():
+        bundle=store.read_record(asset['bundle_ref'],contract_id='check-bundle')
+        registry.register_bundle(bundle['bundle_id'],[row['check_id'] for row in bundle['checks']],module.check,
+            implementation_ref=asset['runner_ref'],profile_ref=asset['profile_ref'])
     return {**prepared,**scientific}
 
 
