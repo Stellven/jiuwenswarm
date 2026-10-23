@@ -260,12 +260,15 @@ API: keep the dedicated deployment idle while requesting lifecycle changes.
 
 ## Current validation
 
+See [delivery status and verification extent](IMPLEMENTATION-STATUS.md) for the
+exact pushed revisions, separate feature branches and remaining checks.
+
 Host tests run with `python -m unittest discover -s tests/deployment -v`. They cover
 real filesystem transfers/recovery and Compose rendering without a daemon, plus
 transport/ownership/expiry boundaries. Existing sequential runner/report/archive
 checks run separately. Windows and Linux/WSL were exercised during development.
 
-Docker Desktop on this machine failed to start because its ingest socket could
-not be renamed. Image builds, live two-container campaigns, native ARM64 builds,
+The user reported a Docker ingest socket rename error. The latest direct probe
+could not connect to the Linux engine pipe; the exact cause was not diagnosed. Image builds, live two-container campaigns, native ARM64 builds,
 real SSH/Docker execution, scheduler activation and actual Spark operation remain
 **NOT RUN**. Source/fixture checks do not establish these outcomes.
