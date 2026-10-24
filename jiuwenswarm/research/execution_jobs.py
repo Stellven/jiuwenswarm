@@ -229,7 +229,7 @@ class ScienceExecutionAdapter:
         lock_port = 'lock' if builder_manifest_ref is not None else 'environment_lock'
         if builder_manifest_ref is not None:
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] not in {'m1-13','m1-14'}:
+            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] not in {'m1-13','m1-14','m1-15'}:
                 raise ResearchError('auth', 'Development provisioning requires the exact Builder release')
         if pins != dict(lock_pins):
             raise ResearchError('validation', 'Provisioner pins differ from exact complete lock')

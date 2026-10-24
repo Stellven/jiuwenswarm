@@ -367,7 +367,7 @@ def _host_input(store, db, run_id, ref, key, plan_ref, plan, node, template, pro
                 starts = [item for item in _rows(store, db, run_id, ('model-call-start',), node_id=name)
                     if item['record'].get('contract_ref') == observed['contract_ref']
                     and item['record'].get('invocation_id') == offered.get('invocation_id')]
-                agent_builder = selected['cc']['cc_version'] == 'm1-14'
+                agent_builder = selected['cc']['cc_version'] in {'m1-14','m1-15'}
                 _require(producing['node_contract_ref'] == proof['parent_ref'] and producing['subnode_id'] == name
                     and producing['bindings'][0]['role'] == 'work'
                     and producing['bindings'][0]['declaration_ref']['sha256'] == selected['cc']['declaration_sha256']

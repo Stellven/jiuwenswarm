@@ -217,9 +217,9 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     for mapping in record['execution_bindings']:
         declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
         if (declared['identity']['name'] == 'research.builder'
-                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13', 'm1-14'}
+                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13', 'm1-14', 'm1-15'}
                 and declared['needs']['model']['tool_calling'] is False
-                and (declared['budget']['per_call']['tool_calls'] == 0 or declared['identity']['version_label'] == 'm1-14')):
+                and (declared['budget']['per_call']['tool_calls'] == 0 or declared['identity']['version_label'] in {'m1-14','m1-15'})):
             from .capsules.assets import load_research_catalog
             authored = load_research_catalog()['stages']['builder']
             if mapping['declaration_ref'] != authored['declaration_ref']:
@@ -231,7 +231,7 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
             executor.builder_test_required = declared['identity']['version_label'] == 'm1-13'
             if executor.builder_test_required and mapping['operations'] != ['builder_test']:
                 raise ExecutorBlocked('BUILDER_TEST_OPERATION_MAPPING_REQUIRED')
-            if declared['identity']['version_label'] == 'm1-14':
+            if declared['identity']['version_label'] in {'m1-14','m1-15'}:
                 executor.builder_agent_required = True
                 if mapping['operations'] != ['builder_action']:
                     raise ExecutorBlocked('BUILDER_AGENT_OPERATION_MAPPING_REQUIRED')

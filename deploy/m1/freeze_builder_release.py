@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT))
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--write', action='store_true', help='Author Builder m1-14 and its schema-routed Benchmark receipt consumer')
+    parser.add_argument('--write', action='store_true', help='Author Builder m1-15 and its schema-routed Benchmark receipt consumer')
     args = parser.parse_args()
     from jiuwenswarm.research.capsules.assets import build_research_assets, build_pi_benchmark_asset
     from jiuwenswarm.research.contracts import validate
@@ -41,7 +41,7 @@ def main():
     for node in template['nodes']:
         stage = node['node_id']
         if stage in {'builder', 'benchmark'}:
-            node['cc'].update(cc_version='m1-14' if stage == 'builder' else 'm1-7-agent-pi',
+            node['cc'].update(cc_version='m1-15' if stage == 'builder' else 'm1-7-agent-pi',
                               declaration_sha256=stages[stage]['declaration_ref']['sha256'])
             if stage == 'builder':
                 node['limits']['model_calls'] = 22  # bounded Builder actions plus both independent output reviews

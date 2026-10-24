@@ -8,9 +8,13 @@ governed model socket, executor socket or installed VCS-qualified SDK distributi
 Native tests use the real SDK source at the exact reviewed commit; they do not
 establish an authenticated build or measured Pi improvement.
 
+The earlier native candidate `m1-14` is preserved at `8e096ef9`. Release `m1-15`
+also prevents the SDK from treating protected tool failures or cancellation as
+a reason to make another model call. Historical receipt readers remain supported.
+
 ## Runtime and custody
 
-Builder `m1-14` uses the native OpenJiuwen `ReActAgent` underlying Jiuwenswarm's
+Builder `m1-15` uses the native OpenJiuwen `ReActAgent` underlying Jiuwenswarm's
 code harness, at `9e3390195a9ea15235b2b5f7412cb2aa440622cc`. The invocation-scoped
 model client serializes native conversation history and tool definitions into
 the existing governed Codex subscription call. It translates a strict action
@@ -66,7 +70,7 @@ The normal classification pipeline remains the default. Its new Benchmark
 consumer is `m1-7-agent-pi`, accepting Builder receipt 4 while retaining its
 original output contract and downstream Evaluation compatibility. Pi is an
 explicitly authored separate `research.benchmark` release, `pi-m1-1`, recorded
-under `capsule_catalog.json` → `protocols.pi.benchmark`. It requires separate
+under `capsule_catalog.json` â†’ `protocols.pi.benchmark`. It requires separate
 admission/activation; authoring and registration never create admission.
 The root Pi job factory refuses other Benchmark release identities.
 
@@ -84,24 +88,24 @@ Both Benchmark releases take exactly these roles:
 
 `capture_pi_task` creates a prepared frozen assignment without claiming Search
 or Screening occurred. It captures a standard-library lock, a correct Decimal
-Gauss–Legendre baseline, the public request and a timing blueprint. Builder
+Gaussâ€“Legendre baseline, the public request and a timing blueprint. Builder
 inputs use its existing `blueprint`, `lock`, `baseline_resource` and
 `validation_resource` names. Accepted candidate refs fill the remaining three
 Benchmark inputs through the protected caller; supplying refs to this authoring
 helper alone grants no acceptance or execution authority.
 
 The candidate chooses its algorithm. `approximate_pi(digits)` must return `3.`
-plus exactly `digits` decimal places, truncated, for integer precision 0–100000.
+plus exactly `digits` decimal places, truncated, for integer precision 0â€“100000.
 The harness reads `/resources/validation/data.json` and prints exactly
 `{"digits": N, "decimal": "3...."}`. Timing fields and duplicate JSON keys are
 rejected. Public development cases include 0, 1, 2, 17, 10000 and 100000.
 
 The host generates its 100000-place reference before measurement using two
-independent implementations: Decimal Gauss–Legendre and integer Chudnovsky
+independent implementations: Decimal Gaussâ€“Legendre and integer Chudnovsky
 binary splitting. They must agree; source and reference bytes are hashed.
 Reference bytes remain in a root-owned private file, outside artifact inputs,
 Builder tools and generated-code mounts. Three distinct additional precisions
-in 20000–100000 are selected and frozen in the protected profile before execution.
+in 20000â€“100000 are selected and frozen in the protected profile before execution.
 
 The separate Benchmark performs 27 fresh-process jobs: five baseline then five
 candidate harness runs at 10000 places, the same at 100000, then three unseen

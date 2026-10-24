@@ -43,6 +43,8 @@ class _BuilderClient(BaseModelClient):
         scope = _CALLBACKS.get(self.model_client_config.client_id)
         if scope is None:
             raise RuntimeError("Builder model callback scope has ended")
+        if scope.get('failure') is not None:
+            raise scope['failure']
         if scope["terminal"] is not None:
             value = scope["terminal"]
             display = {key: item for key, item in value.items() if key != "bundle_bytes"} if isinstance(value, dict) else value
@@ -52,6 +54,10 @@ class _BuilderClient(BaseModelClient):
             scope["terminal"] = {"blocked": True, "reason": "model_call_limit"}
             return AssistantMessage(content=json.dumps(scope["terminal"]), finish_reason="stop",
                                     metadata={"runtime_source": "localfinalization"})
+        if scope['tool_calls'] >= scope['max_tools']:
+            scope['terminal']={'blocked':True,'reason':'tool_call_limit'}
+            return AssistantMessage(content=json.dumps(scope['terminal']),finish_reason='stop',
+                                    metadata={'runtime_source':'localfinalization'})
         scope["model_calls"] += 1
         system, prompt = _messages_to_prompt(messages, kwargs.get("tools"))
         raw = await scope["model_call"](prompt, system)
@@ -101,6 +107,8 @@ class _DispatchTool(Tool):
         self.scope = scope
 
     async def invoke(self, inputs, **kwargs):
+        if self.scope.get('failure') is not None:
+            raise self.scope['failure']
         self.scope["tool_calls"] += 1
         if self.scope["tool_calls"] > self.scope["max_tools"]:
             raise RuntimeError("Builder tool-call limit reached")
@@ -109,7 +117,13 @@ class _DispatchTool(Tool):
             diagnostic = self.scope.pop("invalid_diagnostic")
             return diagnostic
         ordinal = self.scope["model_calls"]
-        output = await self.scope["dispatch"](name, inputs or {}, ordinal)
+        try:
+            output = await self.scope["dispatch"](name, inputs or {}, ordinal)
+        except BaseException as exc:
+            # The SDK converts tool exceptions into conversation messages.
+            # Keep protected stops fatal before it can ask the model again.
+            self.scope['failure']=exc
+            raise
         rendered = json.dumps(output, ensure_ascii=False, default=str)
         if len(rendered.encode("utf-8")) > MAX_TOOL_OUTPUT_BYTES:
             rendered = rendered.encode("utf-8")[:MAX_TOOL_OUTPUT_BYTES].decode("utf-8", "ignore")
@@ -211,7 +225,7 @@ async def run_builder_agent(*, model_call, dispatch, task: dict, session_id: str
     client_id = "builder:" + uuid.uuid4().hex
     scope = {"model_call": model_call, "dispatch": dispatch, "terminal": None,
              "model_calls": 0, "tool_calls": 0, "max_model_calls": max_model_calls,
-             "max_tools": max_tools, "invalid_diagnostic": None}
+             "max_tools": max_tools, "invalid_diagnostic": None, 'failure':None}
     _CALLBACKS[client_id] = scope
     try:
         # Native setup and one ReAct iteration per action ensure provider
@@ -251,6 +265,8 @@ async def run_builder_agent(*, model_call, dispatch, task: dict, session_id: str
                 agent.invoke({"query": query, "conversation_id": session_id}), timeout=remaining)
         except asyncio.TimeoutError:
             return {"blocked": True, "reason": "timeout", "session_id": session_id}
+        if scope.get('failure') is not None:
+            raise scope['failure']
         if scope["terminal"] is not None:
             return scope["terminal"]
         output = result.get("output") if isinstance(result, dict) else None

@@ -1,5 +1,6 @@
 """Focused tests for the native bounded Builder agent adapter."""
 import json
+import asyncio
 
 import pytest
 
@@ -10,6 +11,20 @@ from jiuwenswarm.research.builder_agent_runtime import (  # noqa: E402
     _tool_arguments,
     run_builder_agent,
 )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('failure',[RuntimeError('executor unavailable'),asyncio.CancelledError()])
+async def test_protected_tool_failure_stops_without_another_model_call(failure):
+    calls=[]
+    async def model_call(prompt,system):
+        calls.append(prompt)
+        return json.dumps({'action':'list_files','arguments':{}})
+    async def dispatch(*args):raise failure
+    with pytest.raises(type(failure)):
+        await run_builder_agent(model_call=model_call,dispatch=dispatch,task={'objective':'stop on host failure'},
+            session_id='native-tool-failure-'+type(failure).__name__,max_model_calls=2,timeout_s=10)
+    assert len(calls)==1
 
 
 def _history(prompt):

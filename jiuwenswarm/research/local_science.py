@@ -135,7 +135,7 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
             'implementation_refs': implementations, 'dependency_refs': dependencies,
             'admission_ref': entry['admission_ref'],
             'operations': ['provision','hardware_inventory','measure_job','run']
-                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if declaration['identity']['version_label'] == 'm1-14' else ['builder_test'] if declaration['identity']['version_label'] == 'm1-13' else ['collect_builder'])})
+                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if declaration['identity']['version_label'] in {'m1-14','m1-15'} else ['builder_test'] if declaration['identity']['version_label'] == 'm1-13' else ['collect_builder'])})
     value = {'schema': 'ai4r-science-runtime:2',
         'build_id': verify_installed_build(), 'gpu_required': False,
         'profile': {'asset_root': '/var/lib/ai4r-executor/assets',
