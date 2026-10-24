@@ -1,0 +1,91 @@
+{
+  "schema": "ai4r-agentic-builder-verification:1",
+  "tested_source_commit": "2890421cf6990eb624591b5d330e657d324d91a0",
+  "branch": "builder/bounded-build-test-20261023",
+  "source_fingerprint_sha256": "e7382702b8a072fc16e8fc6f7bb318518a3cd4aa966d7a9491da7988d56d22b6",
+  "source_file_count": 531,
+  "test_suites": {
+    "focused": {
+      "passed": 62,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 0,
+      "seconds": 71.781,
+      "junit": "agentic-builder-final.xml",
+      "command": "wsl -d Ubuntu-24.04 -u root -- bash -lc 'cd /mnt/c/Temp/ai4r-agentic-builder-8e096ef9 && PYTHONPATH=/mnt/c/Users/m50066326/huawei/AI4Research-Development/openjiuwen-builder-sdk-9e339 /home/m50066326/ai4r-final-pin-env-07c7abdf/bin/python -m pytest -o addopts= -o log_cli=false -q tests/unit_tests/research/test_builder_agent_runtime.py tests/unit_tests/research/test_builder_agent_service.py tests/unit_tests/research/test_builder_agent_integration.py tests/unit_tests/research/test_agent_builder_custody.py tests/unit_tests/research/test_builder_action_rpc.py tests/unit_tests/research/test_builder_agent_host.py tests/unit_tests/research/test_trusted_pi.py tests/unit_tests/research/test_pi_task.py tests/unit_tests/research/test_pi_protocol.py tests/unit_tests/research/test_pi_benchmark.py tests/unit_tests/research/test_pi_execution_jobs.py --tb=short --junitxml=/mnt/c/Users/m50066326/huawei/AI4Research-Development/jiuwenswarm-m1-current/docs/capsules/agentic-builder-final.xml'"
+    },
+    "regression": {
+      "passed": 129,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 3,
+      "seconds": 98.168,
+      "junit": "agentic-builder-regression.xml",
+      "command": "wsl -d Ubuntu-24.04 -u root -- bash -lc 'cd /mnt/c/Temp/ai4r-agentic-builder-8e096ef9 && /home/m50066326/ai4r-final-pin-env-07c7abdf/bin/python -m pytest -o addopts= -o log_cli=false -q tests/unit_tests/research/test_builder_test_rpc.py tests/unit_tests/research/test_builder_testing.py tests/unit_tests/research/test_builder_loop.py tests/unit_tests/research/test_execution_jobs.py tests/unit_tests/research/test_executor_rpc.py tests/unit_tests/research/test_static_template_release.py tests/unit_tests/research/test_budget_ceiling.py tests/unit_tests/research/test_capsule_assets.py tests/unit_tests/research/test_bridge.py tests/unit_tests/research/test_scheduler.py tests/unit_tests/research/test_runner.py tests/unit_tests/research/test_runner_grants.py tests/unit_tests/research/test_planning.py tests/unit_tests/research/test_typed_planner.py tests/unit_tests/research/test_planner_pipeline.py tests/unit_tests/research/test_native_readiness.py tests/unit_tests/research/test_science.py tests/unit_tests/research/test_state_cancellation_claim.py -k \"not scheduler_does_not_publish_start_before_awaited_owner_boundary\" --basetemp /var/tmp/ai4r-agentic-builder-2890421c-regression --tb=short --junitxml=/mnt/c/Users/m50066326/huawei/AI4Research-Development/jiuwenswarm-m1-current/docs/capsules/agentic-builder-regression.xml'"
+    }
+  },
+  "native_runtime": {
+    "sdk_commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+    "source_import_native_tests": 12,
+    "complete_installed_distribution_qualified": false,
+    "environment": "WSL Ubuntu-24.04; Python 3.12.3; Linux 6.18.33.2-microsoft-standard-WSL2",
+    "packages": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "pydantic": "2.14.1",
+      "pymilvus": "2.5.6",
+      "fastmcp": "4.1.3",
+      "jsonschema": "4.26.0",
+      "cryptography": "47.0.0",
+      "httpx": "0.28.1"
+    },
+    "qualification_limit": "Targeted imports exercise pinned native runtime source. Inactive SDK imports have dependency versions outside SDK distribution constraints; this does not qualify an installed production distribution."
+  },
+  "design_authority": {
+    "commit": "889682f0afc3d06c2ad88e71534483a31d2eb560",
+    "files": {
+      "docs/architecture/design-package/reference/capsules/builder.md": "a0a6b3dddf11b366717e9d1755e248438a88c819d99d6d3f621e71eaf474e902",
+      "docs/architecture/design-package/reference/capsules/research-benchmark.md": "d4d46d56ab1b06e77eecc42bab917b3229e8fd0add58ec810ac39b60295c03b3"
+    },
+    "amendment": "User-approved agentic Builder plan supersedes no-execution/no-repair/single coding-process clauses on this candidate branch only."
+  },
+  "releases": {
+    "builder": "m1-15",
+    "classification_benchmark": "m1-7-agent-pi",
+    "pi_benchmark": "pi-m1-1",
+    "pins": "Validated explicit freeze_builder_release and freeze_planner_release --check against tested commit; immutable asset refs in research_assets/catalog.json"
+  },
+  "live_acceptance": {
+    "schema": "ai4r-agentic-builder-live-preflight:1",
+    "sdk_commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+    "native_runtime": "native_unavailable",
+    "bubblewrap_available": true,
+    "cgroup_v2_present": true,
+    "service_endpoints": {
+      "model": {
+        "path": "/run/ai4r/model.sock",
+        "socket_present": false,
+        "qualified": false
+      },
+      "executor": {
+        "path": "/run/ai4r-executor/executor.sock",
+        "socket_present": false,
+        "qualified": false
+      }
+    },
+    "status": "blocked",
+    "reasons": [
+      "native_unavailable",
+      "model_service_unavailable",
+      "executor_service_unavailable"
+    ],
+    "authenticated_build_performed": false,
+    "benchmark_performed": false
+  },
+  "scientific_results": null,
+  "shared_m1_commit": "60f65abe64eb8294f6de6b0413dfb032e2cf86b9",
+  "integration_status": "Source candidate only; no push, merge, deployment or admission performed.",
+  "historical_evidence": "history/agentic-builder-iterations contains previous revisions and failed iterations, not final source acceptance."
+}
