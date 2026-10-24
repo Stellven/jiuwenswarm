@@ -157,7 +157,8 @@
                 "collect_builder",
                 "builder_observation",
                 "invoke_builder",
-                  "builder_test"
+                "builder_test",
+                "builder_action"
               ]
             },
             "minItems": 1,

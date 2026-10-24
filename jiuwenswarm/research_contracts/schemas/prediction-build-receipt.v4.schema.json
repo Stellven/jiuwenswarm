@@ -1,0 +1,244 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "4.0.0"
+    },
+    "id": {
+      "type": "string"
+    },
+    "manifest_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "blueprint_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "environment_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "archive_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "checker": {
+      "type": "string"
+    },
+    "file_checks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BuildFileCheck"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "forbidden_scan_result": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail"
+      ]
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Dependency"
+      },
+      "maxItems": 50
+    },
+    "dependencies_all_pinned": {
+      "type": "boolean"
+    },
+    "trial_executed": {
+      "const": true
+    },
+    "packages_installed": {
+      "type": "boolean"
+    },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "NOT_READY"
+      ]
+    },
+    "readiness_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "development_only": {
+      "const": true
+    },
+    "test_report_refs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "journal_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "workspace_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "submitted_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "model_call_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "tool_operation_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 40
+    },
+    "execution_job_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 12
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "manifest_ref",
+    "blueprint_ref",
+    "environment_ref",
+    "archive_ref",
+    "checker",
+    "file_checks",
+    "forbidden_scan_result",
+    "dependencies",
+    "dependencies_all_pinned",
+    "trial_executed",
+    "packages_installed",
+    "readiness",
+    "readiness_reasons",
+    "development_only",
+    "test_report_refs",
+    "journal_ref",
+    "workspace_sha256",
+    "submitted_snapshot_sha256",
+    "model_call_count",
+    "tool_operation_count",
+    "execution_job_count"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:prediction-build-receipt:4.0.0",
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "BuildFileCheck": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "syntax_result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "not_applicable"
+          ]
+        },
+        "syntax_detail": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "forbidden_imports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "syntax_result",
+        "syntax_detail",
+        "forbidden_imports"
+      ],
+      "additionalProperties": false
+    },
+    "OutputFormatCheck": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "json_print_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_protocol": {
+          "const": "ai4r-predictions:1"
+        },
+        "predictions_key_found": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "result",
+        "json_print_calls",
+        "output_protocol",
+        "predictions_key_found"
+      ],
+      "additionalProperties": false
+    },
+    "Dependency": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)*$"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

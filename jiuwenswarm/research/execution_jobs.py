@@ -154,6 +154,7 @@ class ScienceExecutionAdapter:
         self.provision_runner = provision_runner
         self.scorer = scorer
         self._measurement_jobs = {}
+        self._pi_last, self._pi_pending = {}, set()
         self._prepared, self._mounts, self._hardware, self._started = {}, {}, {}, {}
 
     def score_result(self, job, raw, *, binding):
@@ -163,8 +164,15 @@ class ScienceExecutionAdapter:
         _binding(binding.contract, binding)
         known = self._measurement_jobs.pop(job.job_id, None)
         if (known is None or known[0] != job or job.contract_ref != binding.contract_ref
-                or job.invocation_id != binding.invocation_id):
+                or job.invocation_id != binding.invocation_id
+                or raw.get('job_id') != job.job_id or raw.get('contract_ref') != dict(job.contract_ref)
+                or raw.get('invocation_id') != job.invocation_id):
             raise ResearchError('auth', 'Trusted scoring requires the original issued public-data job')
+        if getattr(self.scorer,'protocol',None)=='ai4r-pi:1':
+            self._pi_last[binding.invocation_id]=job.sequence
+            self._pi_pending.discard(binding.invocation_id)
+        if getattr(self.scorer,'protocol',None)=='ai4r-pi:1':
+            return self.scorer.score(job,raw,known[1])
         if (raw.get('observed_runtime') is not True or raw.get('exit_code') != 0
                 or raw.get('termination_reason') != 'completed'):
             return raw  # Failed/unknown execution supplies no successful score.
@@ -221,7 +229,7 @@ class ScienceExecutionAdapter:
         lock_port = 'lock' if builder_manifest_ref is not None else 'environment_lock'
         if builder_manifest_ref is not None:
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] != 'm1-13':
+            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] not in {'m1-13','m1-14'}:
                 raise ResearchError('auth', 'Development provisioning requires the exact Builder release')
         if pins != dict(lock_pins):
             raise ResearchError('validation', 'Provisioner pins differ from exact complete lock')
@@ -388,12 +396,41 @@ class ScienceExecutionAdapter:
         self._hardware[binding.invocation_id] = dict(inventory)
         return dict(inventory)
 
-    async def job_factory(self, contract, inputs, *, binding, role, repeat_index, seed, sequence, subject_ref, hardware_ref):
+    async def job_factory(self, contract, inputs, *, binding, role, repeat_index, seed, sequence, subject_ref, hardware_ref, case_id=None):
         _binding(contract, binding)
         blueprint = inputs['hypothesis_blueprint']; manifest = inputs['poc_manifest']
-        expected_sequence = repeat_index + 1 + (blueprint['repeat_count'] if role == 'treatment' else 0)
+        pi = getattr(self.scorer, 'protocol', None) == 'ai4r-pi:1'
+        case_public = None
+        if pi:
+            from .pi_protocol import validate_pi_request
+            declaration=self.store.read_record(contract['bindings'][0]['declaration_ref'])
+            if declaration['identity']['name']!='research.benchmark' or declaration['identity']['version_label']!='pi-m1-1':
+                raise ResearchError('auth','Pi requires its separately admitted immutable Benchmark release')
+            if (blueprint['repeat_count'] != 5 or _input_ref(contract,'validation_resource') != self.scorer.profile['public_dataset_ref']):
+                raise ResearchError('auth','Pi measurements require the exact frozen host task')
+            if (binding.invocation_id in self._pi_pending or sequence != self._pi_last.get(binding.invocation_id,0)+1
+                    or _input_ref(contract,'baseline_resource') != blueprint['baseline_identity']['resource_ref']
+                    or _input_ref(contract,'validation_resource') != blueprint['validation_resource_ref']
+                    or _input_ref(contract,'poc_artifact_bundle') != manifest['archive_ref']
+                    or manifest['blueprint_ref'] != _input_ref(contract,'hypothesis_blueprint')):
+                raise ResearchError('auth','Pi requires original accepted inputs and completed baseline-first sequence')
+            validate_pi_request(self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref']))
+            digits = self.scorer.digits_for(case_id)
+            if case_id in ('pi-10000','pi-100000'):
+                expected_sequence = (0 if case_id=='pi-10000' else 10) + (0 if role=='baseline' else 5) + repeat_index + 1
+                valid_repeat = type(repeat_index) is int and 0 <= repeat_index < 5
+            else:
+                expected_sequence = (20 + int(case_id[-1]) if case_id.startswith('pi-unseen-') else
+                    24 + ('pi-boundary-0','pi-boundary-1','pi-boundary-2','pi-boundary-17').index(case_id))
+                valid_repeat = repeat_index == 0 and role == 'treatment'
+            case_public = {'case_id':case_id,'digits':digits}
+        else:
+            if case_id is not None:
+                raise ResearchError('auth','Pi case selection is unavailable in the classification host profile')
+            expected_sequence = repeat_index + 1 + (blueprint['repeat_count'] if role == 'treatment' else 0)
+            valid_repeat = type(repeat_index) is int and 0 <= repeat_index < blueprint['repeat_count']
         expected_subject = blueprint['baseline_identity']['resource_ref'] if role == 'baseline' else manifest['archive_ref']
-        if (role not in {'baseline', 'treatment'} or type(repeat_index) is not int or not 0 <= repeat_index < blueprint['repeat_count']
+        if (role not in {'baseline', 'treatment'} or not valid_repeat
                 or sequence != expected_sequence or seed != blueprint['seed'] or subject_ref != expected_subject):
             raise ResearchError('validation', 'Job selection differs from frozen protocol')
         prepared = self._prepared.get(binding.invocation_id)
@@ -403,13 +440,23 @@ class ScienceExecutionAdapter:
         self.environment_verifier(prepared[0])
         baseline = self._resource(inputs['baseline_resource'], _input_ref(contract, 'baseline_resource'), '/resources/baseline')
         validation = self._resource(inputs['validation_resource'], _input_ref(contract, 'validation_resource'), '/resources/validation')
-        if self.scorer is not None:
+        if pi:
+            # One host-selected request replaces the public precision. Neither
+            # reference answers nor their private directory are mounted.
+            public = copy.deepcopy(inputs['validation_resource'])
+            request = self.store.put_blob(json_bytes({'schema':'ai4r-pi-cases:1','digits':digits}))
+            public.update(id='pi-case-'+case_id,revision=request['sha256'])
+            public['files'] = [dict(public['files'][0],artifact_ref=request)]
+            public_ref = self.store.put_record('resource-snapshot',public)
+            validation = self._resource(public,public_ref,'/resources/validation')
+            from .pi_protocol import inspect_pi_bundle
+        elif self.scorer is not None:
             from .checks.prediction_bundle import inspect_bundle
         else:
             from .checks.research import inspect_bundle
         bundle = self.store.read_blob(manifest['archive_ref'])
-        protocol = {'output_protocol': 'ai4r-predictions:1'} if self.scorer is not None else {}
-        checked = inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']], prepared[2], **protocol)
+        protocol = {'output_protocol': 'ai4r-predictions:1'} if self.scorer is not None and not pi else {}
+        checked = inspect_pi_bundle(bundle,prepared[2]) if pi else inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']], prepared[2], **protocol)
         poc = {'schema_version': '1.0.0', 'id': 'prepared_poc', 'kind': 'accepted POC', 'origin': 'accepted POC archive',
                'revision': manifest['archive_ref']['sha256'], 'files': [{'path': name, 'artifact_ref': self.store.put_blob(raw),
                'media_type': 'text/plain', 'audience': 'researcher'} for name, raw in checked['files'].items()],
@@ -425,17 +472,28 @@ class ScienceExecutionAdapter:
         try: arguments = tuple(value.format_map(replacements) for value in template)
         except (KeyError, ValueError) as exc: raise ResearchError('unavailable', 'Qualified entry-point adapter is unavailable') from exc
         script = '/resources/baseline/' + entry if role == 'baseline' else '/resources/poc/run_benchmark.py'
+        argv=('/environment/bin/python',script,*arguments)
+        if pi and case_id not in ('pi-10000','pi-100000'):
+            # Independent post-submission cases exercise the declared function
+            # directly, so a harness cannot conceal an inert interface.
+            runner=('import sys,json;from pathlib import Path;sys.path.insert(0,"/resources/poc");'
+                    'from poc_patch import approximate_pi;'
+                    'n=json.loads(Path("/resources/validation/data.json").read_text())["digits"];'
+                    'print(json.dumps({"digits":n,"decimal":approximate_pi(n)}))')
+            argv=('/environment/bin/python','-c',runner)
         cwd = self.workspace_allocator(binding, sequence, role)
         if asyncio.iscoroutine(cwd): cwd = await cwd
         memory = min(self.profile.memory_mb, contract['subnode_limits']['memory_mb'], contract['bindings'][0]['limits']['memory_mb'])
         job = ExecutionJob(job_id='science-' + uuid.uuid4().hex, invocation_id=binding.invocation_id,
             contract_ref=binding.contract_ref, run_id=contract['run_id'], node_id=contract['node_id'], attempt_id=contract['attempt_id'],
             sequence=sequence, role=role, repeat_index=repeat_index, seed=seed,
-            argv=('/environment/bin/python', script, *arguments), cwd=Path(cwd),
-            timeout_s=self._remaining(contract, binding, self.profile.run_timeout_s), memory_mb=memory,
-            pids_max=self.profile.pids_max, baseline_ref=baseline.ref, validation_ref=validation.ref,
+            argv=argv, cwd=Path(cwd),
+            timeout_s=self._remaining(contract, binding, min(30,self.profile.run_timeout_s) if pi else self.profile.run_timeout_s), memory_mb=memory,
+            pids_max=min(64,self.profile.pids_max) if pi else self.profile.pids_max, baseline_ref=baseline.ref, validation_ref=validation.ref,
             environment_ref=prepared[0].ref, subject_ref=subject_ref, hardware_ref=hardware_ref,
-            readonly_mounts=(baseline, validation, treatment), environment=prepared[0])
+            readonly_mounts=(baseline, validation, treatment), environment=prepared[0],
+            output_limit_bytes=1048576 if pi else None)
         if self.scorer is not None:
-            self._measurement_jobs[job.job_id] = (copy.deepcopy(job), copy.deepcopy(inputs['validation_resource']))
+            self._measurement_jobs[job.job_id] = (copy.deepcopy(job), case_public if pi else copy.deepcopy(inputs['validation_resource']))
+            if pi:self._pi_pending.add(binding.invocation_id)
         return job

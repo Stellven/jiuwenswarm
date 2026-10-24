@@ -542,7 +542,8 @@ class RestrictedExecutor:
                     "identity": {"executor_uid": self.uid, "executor_gid": self.gid},
                     "observed_limits": {"memory_max": (group / "memory.max").read_text().strip(),
                                         "pids_max": (group / "pids.max").read_text().strip(),
-                                        "network": proof.get("network"), "isolation_probe_ref": proof_ref},
+                                        "network": proof.get("network"), "isolation_probe_ref": proof_ref,
+                                        "cpu_affinity": proof.get('cpu_affinity')},
                     "memory_events": memory_events, "pids_events": pids_events, "observed_runtime": True}
         finally:
             if gate_read >= 0: os.close(gate_read)
@@ -632,3 +633,12 @@ class ExecutorInvocation:
         actual = self._contract(contract)
         return await service.test(actual, await _await(resolver(actual)), binding=copy.deepcopy(self._binding),
             manifest_ref=manifest_ref, tests_ref=tests_ref, ordinal=ordinal)
+
+    async def builder_action(self, contract, *, action, arguments, ordinal, model_ordinal):
+        service = getattr(self._executor, 'builder_agent_service', None)
+        resolver = getattr(self._executor, 'builder_input_resolver', None)
+        if service is None or resolver is None:
+            raise ExecutorBlocked('BUILDER_AGENT_SERVICE_UNAVAILABLE')
+        actual = self._contract(contract)
+        return await service.action(actual, await _await(resolver(actual)), binding=copy.deepcopy(self._binding),
+            action=action, arguments=arguments, ordinal=ordinal, model_ordinal=model_ordinal)

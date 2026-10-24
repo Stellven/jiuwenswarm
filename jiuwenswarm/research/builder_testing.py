@@ -177,6 +177,11 @@ class BuilderTestService:
             readonly_mounts=tuple(mounts), environment=environment, output_limit_bytes=1024 * 1024)
         await _await(self.register_job(job, binding))
         raw = await self.executor.run(job)
+        # Retain the complete drained receipt even when cancellation or a
+        # containment failure prevents a development report from completing.
+        self.store.append_record('builder_kernel_execution',{
+            'run_id':contract['run_id'],'node_id':contract['node_id'],'attempt_id':contract['attempt_id'],
+            'contract_ref':dict(binding.contract_ref),'invocation_id':binding.invocation_id,'receipt':raw})
         self._receipt_ok(raw, binding, job)
         if raw.get('termination_reason') == 'cancelled':
             # The shared kernel runner retains a drained cancellation receipt.

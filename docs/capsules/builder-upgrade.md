@@ -1,5 +1,9 @@
 # Builder upgrade branch
 
+Historical three-candidate implementation (`m1-13`). The current branch upgrade
+is documented in [Native agentic Builder](agentic-builder.md); keep the evidence
+below separate from the newer implementation's verification.
+
 Branch `builder/bounded-build-test-20261023`, based on merged M1 `60f65abe`.
 This is a source candidate for one eventual AI4R integration. It has not been
 merged into `ai4r_M1`, admitted in an installed library, deployed or qualified by

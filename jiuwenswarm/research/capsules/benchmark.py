@@ -15,10 +15,10 @@ async def execute(ctx, inputs):
         raise ResearchError('unavailable', 'The scientific executor is unavailable')
     blueprint, manifest = inputs['hypothesis_blueprint'], inputs['poc_manifest']
     ready, lock = inputs['build_receipt'], inputs['environment_lock']
-    validate('urn:ai4r:prediction-build-receipt:3.0.0' if ready['schema_version'] == '3.0.0' else BUILD_SCHEMA, ready)
+    validate('urn:ai4r:prediction-build-receipt:'+ready['schema_version'] if ready['schema_version'] in {'3.0.0','4.0.0'} else BUILD_SCHEMA, ready)
     if [metric['metric_id'] for metric in blueprint['metrics']] != ['accuracy']:
         raise ResearchError('blind_scoring', 'The blind classification protocol measures only independently scored accuracy')
-    if (ready['readiness'] != 'READY' or (ready['schema_version'] != '3.0.0' and (ready['trial_executed'] or ready['packages_installed']))
+    if (ready['readiness'] != 'READY' or (ready['schema_version'] not in {'3.0.0','4.0.0'} and (ready['trial_executed'] or ready['packages_installed']))
             or ready['manifest_ref'] != ctx.input_ref('poc_manifest')
             or ready['archive_ref'] != manifest['archive_ref'] or ready['archive_ref'] != ctx.input_ref('poc_artifact_bundle')
             or manifest['blueprint_ref'] != ctx.input_ref('hypothesis_blueprint')

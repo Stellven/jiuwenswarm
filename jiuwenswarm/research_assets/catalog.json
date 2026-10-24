@@ -90,8 +90,8 @@
   "static_template": {
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
     "interface_revision": "M1-IF-002@r2",
-    "meaning": "Bounded Builder development candidates and protected self-tests; independent reviews, gates and blind Benchmark retained.",
+    "meaning": "Bounded native Builder actions and protected compile/unit/smoke checks; independent reviews, gates and schema-routed Benchmark retained.",
     "path": "planner/static-template.json",
-    "sha256": "42eb01c0412bfce5fbceccfd70ab85ebe33c46ab1cebe03f18fb60a98b06acbf"
+    "sha256": "d34860ee3d34881b3e1b4d8d6c8fbef4382491b80e0b2107a0f639a9cff576f6"
   }
 }

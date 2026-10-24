@@ -66,6 +66,10 @@ class InstalledScienceRuntime:
         self._record_pin=definition.record
         self.factories={name:getattr(backend,name,None) for name in FACTORIES}
         _require(all(callable(value) for value in self.factories.values()),'PROTECTED_EXECUTION_FACTORIES_UNAVAILABLE')
+        self._agent_service=None
+        if any('builder_action' in row['operations'] for row in self._record_pin.get('execution_bindings',[])):
+            self._agent_service=getattr(backend,'builder_agent_service',None)
+            _require(callable(getattr(self._agent_service,'action',None)),'BUILDER_AGENT_SERVICE_UNAVAILABLE')
 
     def _current(self):
         _require(os.geteuid()==0 and self.store is self._installed_store
@@ -76,6 +80,9 @@ class InstalledScienceRuntime:
                  'SCIENCE_REGISTRATION_NOT_INSTALLED')
         _require(all(getattr(self.backend,name,None) is value for name,value in self.factories.items()),
                  'SCIENCE_INSTALLED_FACTORY_CHANGED')
+        if self._agent_service is not None:
+            _require(getattr(self.backend,'builder_agent_service',None) is self._agent_service,
+                     'SCIENCE_INSTALLED_BUILDER_AGENT_CHANGED')
         _require(self.store.record_kind(self.runtime_ref)=='science-runtime'
                  and self.store.read_record(self.runtime_ref)==self.definition.record,'SCIENCE_RUNTIME_CAPTURE_CHANGED')
 

@@ -183,7 +183,9 @@ async def test_builder_test_runs_selftest_then_smoke_and_records_raw_unscored_ev
     assert [job.argv[1] for job in executor.jobs] == ['-I', '/resources/poc/run_benchmark.py']
     assert all(job.output_limit_bytes == 1024 * 1024 for job in executor.jobs)
     assert len(registrations) == 2 and len(adapter.provision_calls) == 1
-    kind, recorded, recorded_ref = store.appended[0]
+    kernel=[row for row in store.appended if row[0]=='builder_kernel_execution']
+    assert len(kernel)==2 and [row[1]['receipt'] for row in kernel]==result['runs']
+    kind, recorded, recorded_ref = next(row for row in store.appended if row[0]=='builder_test_execution')
     assert kind == 'builder_test_execution' and recorded == {k: v for k, v in result.items() if k not in {'evidence_ref', 'report_ref'}}
     assert result['evidence_ref'] == result['report_ref'] == recorded_ref
     assert recorded['scoring_performed'] is False
