@@ -252,6 +252,20 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
             'observed model/effort and declared per-arm ceilings. Counts include the entire CC compiler, requirements, '
             'planner, task workers and shared verifier. Ties and cases where native uses fewer calls remain visible. '
             'They are development demonstrations, not held-out estimates.', '']
+        part_b += ['| Case | Native input tokens | CC input tokens | Input reduction with CC | Native output tokens | CC output tokens |',
+                   '| --- | ---: | ---: | ---: | ---: | ---: |']
+        for pair in primary_pairs:
+            value = pair['value']
+            native_usage = value['arms']['native-skills'].get('usage') or {}
+            cc_usage = value['arms']['cc'].get('usage') or {}
+            a, b = native_usage.get('input_tokens'), cc_usage.get('input_tokens')
+            reduction = (f'{100 * (a-b) / a:.1f}%' if value['comparison_eligible']
+                and type(a) is int and a > 0 and type(b) is int and b >= 0 else 'unavailable')
+            part_b.append(f"| {value['case_id']} | {a} | {b} | {reduction} | "
+                f"{native_usage.get('output_tokens')} | {cc_usage.get('output_tokens')} |")
+        part_b += ['', 'Input reductions and increases are both retained. These are provider-reported whole-arm token totals. '
+            'Output-token tradeoffs remain visible; cached-token billing and dollar cost are unavailable. '
+            'Fewer input tokens alone do not establish lower cost or higher correctness.', '']
     else:
         part_b += ['No completed and independently graded full-native/CC pair has been imported.', '']
     part_b += ['### Deterministic components versus native application batches', '']

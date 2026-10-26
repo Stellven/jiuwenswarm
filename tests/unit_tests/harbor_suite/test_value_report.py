@@ -154,3 +154,21 @@ def test_failed_native_attempt_without_usage_remains_unavailable(tmp_path):
     assert rows[0]['correct'] is None and rows[0]['model_calls'] is None
     assert rows[0]['ledger_model_call_attempts'] == 4
     assert 'failed-batch' in (output / 'report.md').read_text()
+
+
+def test_primary_token_tradeoffs_keep_increases_and_missing_values(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    for ident, native_input, cc_input, eligible in [('reduced', 100, 60, True),
+            ('increased', 100, 120, True), ('missing', None, 60, True), ('mismatch', 100, 60, False)]:
+        data.append('native_cc_pair', {'case_id': ident, 'task_sha256': 'a' * 64,
+            'comparison_eligible': eligible, 'arms': {
+                'native-skills': {'correct': True, 'model_calls': 2, 'usage': {'input_tokens': native_input, 'output_tokens': 10}},
+                'cc': {'correct': True, 'model_calls': 2, 'usage': {'input_tokens': cc_input, 'output_tokens': 20}}}})
+    output = tmp_path / 'report'
+    render(data.root, output, charts=False)
+    text = (output / 'report.md').read_text()
+    assert '| reduced | 100 | 60 | 40.0% | 10 | 20 |' in text
+    assert '| increased | 100 | 120 | -20.0% | 10 | 20 |' in text
+    assert '| missing | None | 60 | unavailable | 10 | 20 |' in text
+    assert '| mismatch | 100 | 60 | unavailable | 10 | 20 |' in text
+    assert 'do not establish lower cost' in text
