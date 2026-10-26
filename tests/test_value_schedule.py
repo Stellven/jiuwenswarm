@@ -4,6 +4,30 @@ import sqlite3
 from benchmarks.harbor_suite.value_schedule import Schedule
 
 
+def test_explicit_time_extension_preserves_calls_original_start_and_unknowns(tmp_path):
+    ledger = Schedule.create(tmp_path / 'extended.sqlite3', now=100)
+    try:
+        ledger.reserve('pair', 'a' * 64, {'cc': 2}, now=101)
+        ledger.claim('pair', 'cc', 'pending', now=102)
+        before = ledger.status()
+        result = ledger.extend_time_authorized('user-approved-one-hour', 3600,
+            evidence='user-approval.json', now=103)
+        after = ledger.status()
+        assert after['policy']['deadline'] == before['policy']['deadline'] + 3600
+        assert after['policy']['started'] == before['policy']['started']
+        assert after['policy']['max_calls'] == before['policy']['max_calls'] == 256
+        assert after['calls_charged'] == before['calls_charged'] == 1
+        assert after['attempts'] == before['attempts'] and after['pairs'] == before['pairs']
+        assert result['max_calls_unchanged'] == 256
+        with pytest.raises(sqlite3.IntegrityError):
+            ledger.extend_time_authorized('user-approved-one-hour', 3600, evidence='same.json', now=104)
+        assert ledger.status()['policy'] == after['policy']
+        with pytest.raises(ValueError):
+            ledger.extend_time_authorized('oversized', 3601, evidence='not-authorized.json')
+    finally:
+        ledger.close()
+
+
 def test_luna_pair_requires_same_requested_and_effective_model_for_both_arms(tmp_path):
     ledger = Schedule.create(tmp_path / 'same-ledger.sqlite3', now=100)
     try:

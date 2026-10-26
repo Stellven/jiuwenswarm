@@ -39,6 +39,9 @@ class Schedule:
         for column in ('effective_model', 'effective_effort'):
             if column not in envelope_columns:
                 self.db.execute('ALTER TABLE external_envelopes ADD COLUMN ' + column + ' TEXT')
+        self.db.execute('''CREATE TABLE IF NOT EXISTS time_extensions(
+            id TEXT PRIMARY KEY, additional_s INTEGER NOT NULL, authorized_at REAL NOT NULL,
+            evidence TEXT NOT NULL, previous_deadline REAL NOT NULL, new_deadline REAL NOT NULL)''')
         self.db.commit()
 
     @classmethod
@@ -78,6 +81,32 @@ class Schedule:
 
     def _begin(self):
         self.db.execute('BEGIN IMMEDIATE')
+
+    def extend_time_authorized(self, authorization_id, additional_s, *, evidence, now=None):
+        """Host coordinator only, after explicit user approval; never a reset.
+
+        The evidence locator records that approval. This method grants no calls,
+        resolves no unknown effects and does not expose a worker/HTTP operation.
+        Replaying the same authorization fails instead of adding more time.
+        """
+        if (not isinstance(authorization_id, str) or not 1 <= len(authorization_id) <= 128
+                or type(additional_s) is not int or not 1 <= additional_s <= 3600
+                or not isinstance(evidence, str) or not evidence.strip()):
+            raise ValueError('explicit bounded user time authorization and evidence required')
+        instant = time.time() if now is None else now
+        try:
+            self._begin()
+            policy = self.db.execute('SELECT * FROM policy').fetchone()
+            previous = policy['deadline']; updated = previous + additional_s
+            self.db.execute('INSERT INTO time_extensions VALUES(?,?,?,?,?,?)',
+                (authorization_id, additional_s, instant, evidence, previous, updated))
+            self.db.execute('UPDATE policy SET deadline=?', (updated,))
+            self.db.commit()
+            return {'previous_deadline': previous, 'new_deadline': updated,
+                    'max_calls_unchanged': policy['max_calls'], 'started_unchanged': policy['started']}
+        except BaseException:
+            self.db.rollback()
+            raise
 
     def reserve(self, pair_id, task_sha256, caps, *, requested_model='gpt-6.1-sol', now=None):
         if (not isinstance(pair_id, str) or not pair_id or len(pair_id) > 128
