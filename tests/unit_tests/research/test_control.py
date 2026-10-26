@@ -10,7 +10,12 @@ from jiuwenswarm.research.state import json_bytes
 
 
 @pytest.mark.asyncio
-async def test_submit_claims_before_compiler_once_and_normalizes_actor(tmp_path):
+async def test_submit_claims_before_compiler_once_and_normalizes_actor(tmp_path, monkeypatch):
+    # This tests durable request allocation, not run-input qualification (which
+    # has its own connected tests). The original blob placeholders are not a
+    # valid protected resource capture and must never grant product execution.
+    monkeypatch.setattr('jiuwenswarm.research.run_inputs.prepare_run_inputs',
+        lambda store, run_id, principal, protected: dict(protected))
     store=SQLiteRunStore(tmp_path);ref=store.put_blob(b'protected')
     configuration=store.put_blob(json_bytes({'schema_version':'1.0.0','cc':{'plan_source':'static','plan_policy_ref':ref,'static_template_ref':ref,'evaluation_profile_ref':None,
         'router':{'enabled':False,'deadline_s':30,'profile_ref':None}},'rsi':{'custodian_key_id':None,'custodian_public_key':None},'codex':{'route_id':'codex-cli-default'},'role_aliases':{}}))
@@ -24,7 +29,8 @@ async def test_submit_claims_before_compiler_once_and_normalizes_actor(tmp_path)
     intake=await service.ingest(principal,'Investigate retrieval latency',workspace_id='project')
     request={'schema_version':'1.0.0','id':'submit:one','client_request_id':'request-1','account_id':'forged',
              'workspace_id':'project','configuration_ref':configuration,'intake_ref':intake}
-    first=await service.submit(principal,request);await entered.wait()
+    first=await service.submit(principal,request)
+    await asyncio.wait_for(entered.wait(), timeout=2)
     second=await service.submit(principal,request)
     assert first['run_id']==second['run_id'] and len(calls)==1
     with pytest.raises(ResearchError,match='identity_conflict'):

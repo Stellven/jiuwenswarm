@@ -1,4 +1,5 @@
 """Readable exact contract inventory for an already authorized run export."""
+import json
 from .state import json_bytes
 from .metric_contract import PROTOCOL_FILE, PROTOCOL_SCHEMA
 
@@ -42,7 +43,11 @@ def contract_export_files(store, run, records, audience, restricted):
             for ref in value['output_refs']:
                 # This is an existing candidate output already in the owned run
                 # export closure, never a source-ref or arbitrary blob lookup.
-                try:output = store.read_record(ref)
+                # Validate byte custody first. Non-JSON reports and ZIP outputs
+                # are ordinary artifacts, while missing/substituted blobs must
+                # still fail export rather than becoming an ignored parse error.
+                raw = store.read_blob(ref)
+                try:output = json.loads(raw)
                 except (ValueError, UnicodeError):continue
                 if isinstance(output, dict) and output.get('domain_lane') == 'scientific_research' and 'target_metrics' in output:
                     originals[ref['sha256']] = ('research-brief', ref, output)
