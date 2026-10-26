@@ -97,6 +97,21 @@ docker compose -p "$PROJECT" -f "$DEPLOYMENT/compose.json" exec -T --user 0:0 \
 ```
 
 Use the existing native runner readiness/doctor command before measured work.
+Run it as the root supervisor that owns `/results`, with the exact frozen case:
+
+```sh
+docker compose -p "$PROJECT" -f "$DEPLOYMENT/compose.json" exec -T --user 0:0 \
+  root-runner /opt/venv/bin/python -m jiuwenswarm.research_sidecar.sequential doctor \
+  --cases "/suite/bundle/cases/$FROZEN_TASK_KEY.json" --inputs /suite/bundle/inputs \
+  --output /results --json
+```
+
 Initialization, container liveness, or a created grant never establishes an
 accepted research result. The helper neither creates accepted receipts nor
 claims activation/readiness based on directory or service presence.
+
+If a native gate stops the workflow before the planned fault, the controller
+captures the actual terminal status and artifact manifest, then releases the same
+observer to collect the original run. It records `fault_not_applied` and reports
+`controller_complete: false`; it creates no fault effect or signed fault custody.
+Preserve that partial outcome and report the recovery condition as unexercised.

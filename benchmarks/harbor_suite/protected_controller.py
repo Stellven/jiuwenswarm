@@ -121,6 +121,61 @@ class NativeController:
             await asyncio.sleep(.05)
         return read_json(regular(path))
 
+    async def wait_app_barrier(self, path, request, app):
+        """Wait for the real trigger, or collect a workflow that ended first.
+
+        An upstream governed rejection is an original case outcome. It must
+        release the held observer to collect, without manufacturing a fault.
+        """
+        from jiuwenswarm.research_sidecar.client import ResearchClient
+        from ..harbor_pilot.bridge import TERMINAL
+        client = ResearchClient(self.bridge.endpoint, self.bridge.token_file,
+                                http_authority=self.bridge.http_authority)
+        captures = []
+        async def capture(response):
+            raw = await response.aread()
+            captures.append({'method': response.request.method, 'path': response.request.url.path,
+                             'status_code': response.status_code, 'body_utf8': raw.decode('utf-8'),
+                             'sha256': hashlib.sha256(raw).hexdigest()})
+        client.http.event_hooks['response'] = [capture]
+        deadline = asyncio.get_running_loop().time() + 900
+        try:
+            while not path.exists():
+                require(self.process.returncode is None, 'native observer exited before protected trigger')
+                require(asyncio.get_running_loop().time() < deadline, 'protected trigger deadline exceeded')
+                captures.clear()
+                status = await client.status(app)
+                require(status.get('run_id') == app and status.get('client_request_id') == request,
+                        'early-terminal observation has foreign request/run identity')
+                if status.get('status') in TERMINAL:
+                    manifest = await client.artifacts(app)
+                    require(manifest.get('run_id') == app and manifest.get('execution_terminal') is True,
+                            'early-terminal API status lacks terminal artifact proof')
+                    self.store('early-terminal.json', {'request_id': request, 'app_run_id': app,
+                        'status': status, 'manifest': manifest, 'http_captures': captures,
+                        'observed_at': now()})
+                    return None
+                await asyncio.sleep(2)
+            return read_json(regular(path))
+        finally:
+            await client.close()
+
+    async def collect_before_fault(self, hook, request, app):
+        """Release only the existing observer; no restart, POST or fault effect."""
+        self.event('fault_not_applied', request_id=request, app_run_id=app,
+                   fault=self.plan['fault'], reason='app_terminal_before_fault_trigger')
+        release = hook / 'after_submit.release'
+        atomic(release, b'released'); os.chmod(release, 0o644)
+        code = await self.process.wait()
+        observed = observation(self.folder)
+        require(observed.get('request_id') == request and observed.get('app_run_id') == app
+                and observed['evidence_complete'], 'early-terminal original collection remains unresolved')
+        self.store('fault-not-applied.json', {'request_id': request, 'app_run_id': app,
+            'reason': 'app_terminal_before_fault_trigger', 'worker_exit_code': code,
+            'terminal_collection': observed, 'observed_at': now()})
+        self.event('early_terminal_collected', request_id=request, app_run_id=app)
+        return code, {'protected_recovered': False, 'protected_cancelled': False}
+
     async def start(self, command, hook):
         executable = Path(sys.executable).resolve(strict=True)
         executable_pin = pin(executable)
@@ -228,7 +283,9 @@ class NativeController:
             if self.plan['fault'] in {'dependency_failure', 'cancel'}:
                 # Observer remains paused; product progresses to its real barrier.
                 app_event = Path(self.config['hook_root']) / 'app' / 'events' / (request + '.json')
-                barrier = await self.wait_file(app_event)
+                barrier = await self.wait_app_barrier(app_event, request, app)
+                if barrier is None:
+                    return await self.collect_before_fault(hook, request, app)
                 require(app_event.stat().st_uid == self.config['app_uid']
                         and all(barrier.get(k) == v for k, v in {'request_id': request,
                             'app_run_id': app, 'node_id': 'benchmark'}.items())
