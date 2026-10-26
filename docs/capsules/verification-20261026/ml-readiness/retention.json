@@ -1,0 +1,167 @@
+[
+  {
+    "path": "preflight-01/junit.xml",
+    "sha256": "60ed144672c520f04493bdbbb9deb49f8a35b43e2df941b3980ed5836d0d7469",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-01\\junit.xml"
+  },
+  {
+    "path": "preflight-01/launch.json",
+    "sha256": "a54a6fa0eb145d9dd3d26de9c1ce89a77a9747a312b928a755628c966b173533",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-01\\launch.json"
+  },
+  {
+    "path": "preflight-01/pytest.log",
+    "sha256": "a163a8f5d1d078e8235d8c7e59d846fc678727b1d65a144ad3b5e403939d1ff6",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-01\\pytest.log"
+  },
+  {
+    "path": "preflight-01/result.json",
+    "sha256": "0b4a434e45c399a6b0bcdf031f1548cf695e6ad497376f271779e76a4299984f",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-01\\result.json"
+  },
+  {
+    "path": "preflight-01/source-manifest.json",
+    "sha256": "a990b38d607fd9c2483a7ba156f8d889b0824127afe665699a53c178c4047e10",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-01\\source-manifest.json"
+  },
+  {
+    "path": "preflight-02/junit.xml",
+    "sha256": "a5dba8ae568d4b206df8900b96b04e909cff82037b6dd2d978d1247ac2165503",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-02\\junit.xml"
+  },
+  {
+    "path": "preflight-02/pytest.log",
+    "sha256": "6ed35ec55fafcad35af1a09ec106815100a0e7d9135dd4a2250a64de4016cf3f",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-02\\pytest.log"
+  },
+  {
+    "path": "preflight-02/result.json",
+    "sha256": "913de16f2eb271f4f7c52b487cd51d356ea3e7ce2f1ecc0e2609c16617e64e4c",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-02\\result.json"
+  },
+  {
+    "path": "preflight-02/source-manifest.json",
+    "sha256": "0d4ca44c4cc51aff81b048935a029a9370a4536c9de628168bb78cc8ce7af291",
+    "source": "C:\\Temp\\ai4r-ml-readiness-preflight-20261026\\repeat-02\\source-manifest.json"
+  },
+  {
+    "path": "interrupted-portability/launch.json",
+    "sha256": "4d55deafa3bbf3a25893aa8f5be26698ec4d78997926992dad293e8aefd2f3e7",
+    "source": "C:\\Temp\\ai4r-ml-readiness-final-20261026\\repeat-01\\launch.json"
+  },
+  {
+    "path": "interrupted-portability/pytest.log",
+    "sha256": "b277d0ad01167e303e119841b4ffbac27dcf2be0b6af699749a203c956d77156",
+    "source": "C:\\Temp\\ai4r-ml-readiness-final-20261026\\repeat-01\\pytest.log"
+  },
+  {
+    "path": "interrupted-portability/result.json",
+    "sha256": "c2d42a77ab474f2d4004060046b88cebacfb833db0c0e8974b94f4306daf1ac7",
+    "source": "C:\\Temp\\ai4r-ml-readiness-final-20261026\\repeat-01\\result.json"
+  },
+  {
+    "path": "interrupted-portability/source-manifest.json",
+    "sha256": "0b85d59e1a536a765e9bf358f1a71c77d73894fd670c6742739cf78051cc9e1d",
+    "source": "C:\\Temp\\ai4r-ml-readiness-final-20261026\\repeat-01\\source-manifest.json"
+  },
+  {
+    "path": "historical-finite-baseline/junit.xml",
+    "sha256": "e2c478a157813e4d886eda347704a457d8d3d9f871e58b671545fb78510e4257",
+    "source": "C:\\Users\\M50066~1\\AppData\\Local\\Temp\\ai4r-finite-baseline-20261025-results-9db3b22235c649cc8746013f43f34a59\\junit.xml"
+  },
+  {
+    "path": "historical-finite-baseline/pytest.log",
+    "sha256": "f4047171bad7fe46b812ed77264df12d21a5af5b690b15384e7c2c8deed1f7ce",
+    "source": "C:\\Users\\M50066~1\\AppData\\Local\\Temp\\ai4r-finite-baseline-20261025-results-9db3b22235c649cc8746013f43f34a59\\pytest.log"
+  },
+  {
+    "path": "final/junit.xml",
+    "sha256": "8b5d3397fabd884c51feb11fe7bf7f59a798e8496bcb29df8881e58f90002fae",
+    "source": "C:\\Temp\\ai4r-ml-readiness-publish-20261026\\repeat-01\\junit.xml"
+  },
+  {
+    "path": "final/launch.json",
+    "sha256": "cb0ae54d5741a60c6759d754a81faace6e561c9301616ca44fac37b544418c74",
+    "source": "C:\\Temp\\ai4r-ml-readiness-publish-20261026\\repeat-01\\launch.json"
+  },
+  {
+    "path": "final/pytest.log",
+    "sha256": "21d8dea0e913f28406e63a9d03d9df7e9a9f5c35b55a5e1f9cc346251dc35f3f",
+    "source": "C:\\Temp\\ai4r-ml-readiness-publish-20261026\\repeat-01\\pytest.log"
+  },
+  {
+    "path": "final/result.json",
+    "sha256": "3e52f205a1a6fedff2799b88aad35639664ea54d002d73408d9bf8f23488c7cd",
+    "source": "C:\\Temp\\ai4r-ml-readiness-publish-20261026\\repeat-01\\result.json"
+  },
+  {
+    "path": "final/source-manifest.json",
+    "sha256": "a99fe901910815aefe093a7526bbabf67e8097c0780e7e99654faac5c5af62c1",
+    "source": "C:\\Temp\\ai4r-ml-readiness-publish-20261026\\repeat-01\\source-manifest.json"
+  },
+  {
+    "path": "fresh-archive/freeze-planner.log",
+    "sha256": "10feb28539371429650f80f8d2974e41536bfa358c0220aac10a6e5cd3885979",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry02\\freeze-planner.log"
+  },
+  {
+    "path": "fresh-archive/junit.xml",
+    "sha256": "aebde287a33da59d0ca3503920b32a3702c7a0fff948049b04688ebd5fa08c8e",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry02\\junit.xml"
+  },
+  {
+    "path": "fresh-archive/pytest-command.json",
+    "sha256": "49aecabf52040e258151efcdb94687e4b3e66cd7ba26914b939c86b9a170b11a",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry02\\pytest-command.json"
+  },
+  {
+    "path": "fresh-archive/pytest.log",
+    "sha256": "8e22d073644a7efa97b87915df08ccff7ed31f1a964cf01b186fe0291cd87f3a",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry02\\pytest.log"
+  },
+  {
+    "path": "fresh-archive/receipt.json",
+    "sha256": "482769b7253b39695eba956d2cad32e7fa5b0d29ed18ebaf33d09b386861935d",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry02\\receipt.json"
+  },
+  {
+    "path": "fresh-archive-launch-failure-01/freeze-planner.log",
+    "sha256": "10feb28539371429650f80f8d2974e41536bfa358c0220aac10a6e5cd3885979",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence\\freeze-planner.log"
+  },
+  {
+    "path": "fresh-archive-launch-failure-01/pytest-command.json",
+    "sha256": "e70dce974a73e3cf05260249d8fc7881242c618705d75ab8d461722d23901686",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence\\pytest-command.json"
+  },
+  {
+    "path": "fresh-archive-launch-failure-01/pytest.log",
+    "sha256": "35fc1119f7705e4bf2f7b13e243e60dcf986796f9fa324dc120da32f714f3c36",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence\\pytest.log"
+  },
+  {
+    "path": "fresh-archive-launch-failure-01/receipt.json",
+    "sha256": "dde584b98cc92c90aa7c650c207a5a09d3a8d29181ccdedef999e08a2116e49b",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence\\receipt.json"
+  },
+  {
+    "path": "fresh-archive-launch-failure-02/freeze-planner.log",
+    "sha256": "10feb28539371429650f80f8d2974e41536bfa358c0220aac10a6e5cd3885979",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry01\\freeze-planner.log"
+  },
+  {
+    "path": "fresh-archive-launch-failure-02/pytest-command.json",
+    "sha256": "7224756dfc6dfd30fbeb026a9b8f8ca0dd8f54293c701f06da9435b43f724ced",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry01\\pytest-command.json"
+  },
+  {
+    "path": "fresh-archive-launch-failure-02/pytest.log",
+    "sha256": "b125f59a6b8f396d70c85f1d478f9b910821461dcf85aa2448c0d4b6239c963b",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry01\\pytest.log"
+  },
+  {
+    "path": "fresh-archive-launch-failure-02/receipt.json",
+    "sha256": "4085097255820cd843857dd912ac80625120aab040f2404f8d52ef6ab1bd81fb",
+    "source": "C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry01\\receipt.json"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  "run",
+  "--rm",
+  "--network",
+  "none",
+  "--memory",
+  "4g",
+  "--pids-limit",
+  "256",
+  "--tmpfs",
+  "/workspace:rw,nosuid,nodev,size=512m",
+  "--mount",
+  "type=bind,source=C:\\Temp\\ai4r-final-verify-a138e435,target=/source,readonly",
+  "--mount",
+  "type=bind,source=C:\\Temp\\ai4r-final-verify-a138e435-evidence-retry01,target=/evidence",
+  "ai4r-verify:20261025",
+  "/bin/sh",
+  "-lc",
+  "cp -a /source/. /workspace/ && PYTHONPATH=/workspace PYTHONDONTWRITEBYTECODE=1 python -m pytest -o addopts= -o log_cli=false -p no:cacheprovider -W ignore::SyntaxWarning -q /workspace/tests/unit_tests/research/test_capability_extensions.py /workspace/tests/unit_tests/research/test_capsule_composition.py /workspace/tests/unit_tests/research/test_pilot_catalog.py /workspace/tests/unit_tests/research/test_ml_pilot.py /workspace/tests/unit_tests/research/test_pilot_budget.py /workspace/tests/unit_tests/research/test_gate.py --tb=short --junitxml=/evidence/junit.xml"
+]
