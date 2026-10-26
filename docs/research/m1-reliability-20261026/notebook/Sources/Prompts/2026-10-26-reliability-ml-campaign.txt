@@ -1,0 +1,52 @@
+PLEASE IMPLEMENT THIS PLAN:
+# M1 reliability and ML readiness campaign
+
+## Goal and limits
+
+Improve M1 before the next benchmark session through small live tests, defect reproduction and bounded fixes. Use PRD V10 stories to prioritize grounded summaries, runnable POCs, measured conclusions, understandable halts and reproducible evidence.
+
+- Use Luna agents for implementation, case generation and independent checks; the supervising agent reviews changes and verifies retained results.
+- Default application model calls to `gpt-6-luna`; use separately frozen `gpt-6.1-sol` runs for difficult cases and reviewer comparisons. Preserve observed model identity. No model router or silent fallback.
+- Stop live testing at **900 governed completion attempts or three hours from the first live call**, whichever comes first. Count failed attempts and repairs. This is a ceiling, not a spending target.
+- ML is the primary scientific demonstration. π is optional.
+- Leave official benchmark selection and statistical significance to the benchmark owner.
+
+## Focused implementation
+
+**Enable legitimate isolated testing.** Add Docker-only preparation tooling for the existing protected evaluation machinery. It must freeze task inputs, capsule/check versions, model selection, budgets and expected outcomes; prepare scoped credentials through the existing mechanism; and support fresh single-capsule trials and exact node replay. Keep evaluation outputs separate from product acceptance. Reconcile interrupted requests rather than resubmitting uncertain work. Preserve existing frozen configurations and runs.
+
+**Improve verification.** Introduce the approved, separately versioned evidence-aware review profile and record its departure from D20/D24 before enabling it.
+
+- Host-bind the task requirements, relevant source material and execution/score evidence. Producers cannot select or rewrite the review basis.
+- Keep deterministic schema, reference, quotation, arithmetic and custody checks first.
+- Review each output independently; retain separate verifier calls and host acceptance gates.
+- Permit supported abstention when evidence cannot settle a claim. Distinguish it from provider failure, malformed output and unjustified refusal.
+- Preserve the output-only profile and historical readers. Neither profile gives the verifier repair tools, private answers or authority to accept its own assessment.
+
+**Reduce capsule coupling.** Preserve exact schema matching and the existing work-packet contract. Separate immutable shared-contract/runtime dependencies from mutable authoring helpers so an unrelated capsule addition does not invalidate existing releases. Keep semantic input requirements explicit: sharing an envelope does not imply that every consumer can use every packet.
+
+Add checked adapters for demonstrated representation gaps, beginning with accepted paper-summary output to a provenance-preserving work packet. Do not introduce implicit coercion, unchecked schema compatibility or a universal untyped bus. Publish affected changes as new immutable releases.
+
+## Test and repair campaign
+
+Run small batches, retaining each failure before changing code. Assign implementation and checking to different agents. Allow two repair/retest cycles per defect; retain unresolved cases rather than consuming the campaign indefinitely.
+
+**Verifier and summary cases:** supported facts, incorrect numbers or units, fabricated citations, contradictory sources, missing evidence, overstated conclusions, malformed outputs and instructions embedded in source documents. Check both incorrect acceptance and unnecessary refusal. A provider error never counts as a successful verifier rejection.
+
+**Composition cases:** execute actual bound and gated DAGs, rather than only calling worker functions directly. Cover normalizer → calculator → report, Generalist → report, summary → checked adapter → report, and independently upgraded producers/consumers using an unchanged contract. Reject incompatible schemas, missing semantic fields, lost provenance and improper trust promotion.
+
+**ML POCs:** use two small frozen classification tasks with public training data and private held-out labels. Capture the majority-class baseline and let Builder choose its implementation. Exercise the bounded build/test/repair loop, then hand only its accepted immutable bytes to independent Benchmark scoring. Include malformed predictions, missing/duplicate IDs, forged accuracy claims and unsupported improvement claims. A correct negative scientific result is valid.
+
+Run one small complete ML journey after the relevant components work independently. Reuse frozen boundaries for other investigations; do not repeat the full pipeline for every bug.
+
+**Internal opponent check:** compare a small fixed set of summary, calculation and tiny-POC tasks against the upstream Jiuwenswarm harness pinned at `aa8489799f2e62eae89ef608b7ec1676ede47ad7`. Use the same task materials, selected model, requested deliverables and bounded tool/model allowances. Keep Codex completion-only and OpenJiuwen responsible for agent behavior. Record any transport adaptations. If upstream integration requires more than a small transport adaptation, report it blocked and use an explicitly labelled ungated-native diagnostic—not a claimed upstream result.
+
+Assess supported correctness, required-fact coverage, numerical precision, citation fidelity, runnable code and reproduction completeness. Report losses, abstentions and infrastructure failures alongside gains; do not tune until a comparison “wins.”
+
+## Evidence, integration and completion
+
+Extend the existing Docker check launcher and retain exact commands, source/image identities, prompts, outputs, model-call records, checks, verifier findings and measurements. Keep original failures and repair results linked.
+
+Update notebook notes with backups and a scoped checkpoint. Include a PRD-story matrix showing what passed, how to reproduce it, and what remains unverified.
+
+Integrate fixes into `ai4r_M1` after relevant regression checks and live reproductions pass. Completion means a documented bug-finding campaign, stronger verified M1 behavior, working isolated-test preparation and an independently scored ML POC. It does not mean official benchmark acceptance or proven general superiority. No RSI, model-router or M2 sandbox implementation is included.

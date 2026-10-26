@@ -1,0 +1,42 @@
+{
+  "schema": "ai4r-curated-notebook-export:1",
+  "source_code_commit": "a138e435fe0f6e33a0684ac0458404e3d3d1700b",
+  "published_m1_commit": "ab0d9c7fe8ceadf45c61d04e94e2dd9b44b867a7",
+  "original_m1_report_sha256": "b7d26a3f9ce7b4495bdacae15bb9eb19dc169aad2ef7d084ff922e0eb499ce88",
+  "report_export_change": "Relative Markdown links changed to immutable M1 URLs; report claims otherwise preserved.",
+  "export_scope": "Current activity, three exact prompts and validation/backup receipts only; not a full notebook or private runtime export.",
+  "files": [
+    {
+      "path": "verification-summary.json",
+      "sha256": "61d6c0bcf96ebf9c6e13ba0f4b6b2e7c5a296b5375244fd00deb7d5dcd3a2825"
+    },
+    {
+      "path": "notebook/Activities/2026-10-26 M1 Reliability and ML Readiness Checkpoint.md",
+      "sha256": "923ba7f569128d7f2e9da7c370d106e356ad70ca1d7b125d2fccf9d32680c8b9"
+    },
+    {
+      "path": "notebook/pre-edit-receipts.json",
+      "sha256": "28f4c2f65d1ed9b5eadefb77450311306b7eada4b1335c7236f723d4df4cdf33"
+    },
+    {
+      "path": "notebook/validation.json",
+      "sha256": "46a53941351db73f0e05ce07e7b0db9faba6dd1ed947843384cbc579d5e33fc6"
+    },
+    {
+      "path": "notebook/prompt-captures.json",
+      "sha256": "7be76877ca41a106f0592a525808e0f774d7652e396b19d110b3accdf9cf307e"
+    },
+    {
+      "path": "notebook/Sources/Prompts/2026-10-26-ml-priority.txt",
+      "sha256": "c0ee17c814ccdb35f4db54bf96630a6c12562c5f90ddcf4755581ab9b1808d71"
+    },
+    {
+      "path": "notebook/Sources/Prompts/2026-10-26-publish-working-checkpoint.txt",
+      "sha256": "b48cbc64be7d00daaec1d79955887bfb015df868c0a2d0ce474f72c9e94086f0"
+    },
+    {
+      "path": "notebook/Sources/Prompts/2026-10-26-reliability-ml-campaign.txt",
+      "sha256": "5d59db2aa1df5419b2b6c9ef1aafb7e280f182b2b68fad28397f4b64a5d07c23"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "path": "Home.md",
+    "sha256": "166b0d3bec969819d4437434d8afe70c911c7b28d87590b8df57f1173a8b34d8",
+    "backup": "Resources/review-batches/2026-10-26-ml-readiness-campaign/pre-edit/Home.md.snapshot"
+  },
+  {
+    "path": "Active Stage.md",
+    "sha256": "8e5fcce811d257146e76fc54c0b8d484d249598511ac3e15a2371f4e9bc11fed",
+    "backup": "Resources/review-batches/2026-10-26-ml-readiness-campaign/pre-edit/Active Stage.md.snapshot"
+  },
+  {
+    "path": "Activities/Activity Register.md",
+    "sha256": "a3a5cb752c6323e8172830825e497ce2bc2621f00a8c8b77f6872b465ea8f24d",
+    "backup": "Resources/review-batches/2026-10-26-ml-readiness-campaign/pre-edit/Activities/Activity Register.md.snapshot"
+  },
+  {
+    "path": "Sources/Prompt Register.md",
+    "sha256": "dee03ce9076999ed4af7d8f3aef2ea2cbcf324dcfa202878f199f750c6ae15e6",
+    "backup": "Resources/review-batches/2026-10-26-ml-readiness-campaign/pre-edit/Sources/Prompt Register.md.snapshot"
+  },
+  {
+    "path": "Sources/capture-manifest.json",
+    "sha256": "0057c33b7c32cbc1af24e5009ac320a38b6ce3a531702abc01cc4ca8f69f8b29",
+    "backup": "Resources/review-batches/2026-10-26-ml-readiness-campaign/pre-edit/Sources/capture-manifest.json.snapshot"
+  },
+  {
+    "path": "Resources/Current Baseline.md",
+    "sha256": "a200e8af429d2ed2db0ba1fd01306957870ef16d09deee8afa3e74e643bdf974",
+    "backup": "Resources/review-batches/2026-10-26-ml-readiness-campaign/pre-edit/Resources/Current Baseline.md.snapshot"
+  },
+  {
+    "path": "Resources/M1 Readiness.md",
+    "sha256": "103e5e40f6cb4bc88a5f48e917b28b8af1c1a8d64baba67673314e4c9ec7ec7a",
+    "backup": "Resources/review-batches/2026-10-26-ml-readiness-campaign/pre-edit/Resources/M1 Readiness.md.snapshot"
+  }
+]

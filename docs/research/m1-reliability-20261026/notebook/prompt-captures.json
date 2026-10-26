@@ -1,0 +1,20 @@
+[
+  {
+    "path": "Sources/Prompts/2026-10-26-ml-priority.txt",
+    "sha256": "c0ee17c814ccdb35f4db54bf96630a6c12562c5f90ddcf4755581ab9b1808d71",
+    "captured_date": "2026-10-26",
+    "capture_method": "Manual exact visible user message; UTF-8 LF with final newline; not a chat export"
+  },
+  {
+    "path": "Sources/Prompts/2026-10-26-publish-working-checkpoint.txt",
+    "sha256": "b48cbc64be7d00daaec1d79955887bfb015df868c0a2d0ce474f72c9e94086f0",
+    "captured_date": "2026-10-26",
+    "capture_method": "Manual exact visible user message; UTF-8 LF with final newline; not a chat export"
+  },
+  {
+    "path": "Sources/Prompts/2026-10-26-reliability-ml-campaign.txt",
+    "sha256": "5d59db2aa1df5419b2b6c9ef1aafb7e280f182b2b68fad28397f4b64a5d07c23",
+    "captured_date": "2026-10-26",
+    "capture_method": "Manual exact visible user message; UTF-8 LF with final newline; not a chat export"
+  }
+]
