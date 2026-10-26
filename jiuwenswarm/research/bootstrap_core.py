@@ -258,8 +258,9 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
         from .capsule_extensions.catalog import register_active
         result.installed.update(register_active(registry, checks, library, store))
         if finite is None:
-            from .planning import capture_static_template
-            result.static_template_ref=capture_static_template(store,library)
+            from .screening_static_capture import capture_static_template
+            result.static_template_ref=capture_static_template(store,library,
+                screening_version=screening_version,expected_ref=operator.snapshot()['cc']['static_template_ref'])
             if result.static_template_ref!=operator.snapshot()['cc']['static_template_ref']:
                 raise ResearchError('static_template_pin','Approved configuration must explicitly capture the current authored static release')
         else:result.static_template_ref=finite._binding['template_ref']

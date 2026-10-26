@@ -91,7 +91,7 @@ def _screening_static_template(store, screening_version):
     matches[0]['cc'] = {'cc_name':declaration['identity']['name'],'cc_version':screening_version,
                         'declaration_sha256':asset['declaration_ref']['sha256']}
     template['id'] += '.screening-m1-5'
-    template['template_name'] += '_screening_m1_5'
+    template['template_name'] = 'm1_screening_m1_5'
     return store.put_blob(json_bytes(template),media_type='application/json')
 
 
