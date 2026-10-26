@@ -13,7 +13,7 @@ from pathlib import Path
 import subprocess
 import time
 
-from .contracts import canonical, load_cases, read_json, regular
+from .contracts import EXTENDED, canonical, load_cases, read_json, regular
 from .report import summarize
 from .value_data import Dataset, public_record, utc_now, write_once
 
@@ -25,10 +25,11 @@ CHARTS = [
     {'id': 'propagation', 'question': 'Which faulty artifacts reach successors and incur actual downstream work?'}]
 
 
-def plan(destination, *, cases_root=None, case_ids=DEFAULT_CASES, repeats=3):
+def plan(destination, *, cases_root=None, case_ids=DEFAULT_CASES, repeats=1):
     if type(repeats) is not int or not 1 <= repeats <= 100:
         raise ValueError('repeats must be 1..100')
-    cases = load_cases(cases_root)
+    cases = (load_cases(cases_root, case_ids=case_ids) if any(c in EXTENDED for c in case_ids)
+             else load_cases(cases_root))
     if not case_ids or len(set(case_ids)) != len(case_ids) or set(case_ids) - {c['id'] for c in cases}:
         raise ValueError('select unique existing cases')
     selected = [c for c in cases if c['id'] in case_ids]
@@ -45,7 +46,7 @@ def plan(destination, *, cases_root=None, case_ids=DEFAULT_CASES, repeats=3):
     return result
 
 
-def import_job(dataset, bundle, job_results, *, arm='ai4r', revision=None):
+def import_job(dataset, bundle, job_results, *, arm='ai4r', revision=None, source_json=()):
     """Use existing strict task/model/single-job accounting before adoption."""
     data = Dataset(dataset)
     index = read_json(regular(Path(bundle) / 'task-index.json'))
@@ -81,21 +82,49 @@ def import_job(dataset, bundle, job_results, *, arm='ai4r', revision=None):
                'critical_violations': result.get('critical_violations', []) if result else [],
                'missing_measurements': 'Usage, timings and resources require original exported telemetry; never infer zero.'}
         rows.append(row)
+    retained = [data.artifact(p) for p in source_json]
+    for name in ('bundle-manifest.json', 'job.json'):
+        path = Path(bundle) / name
+        if path.is_file():
+            retained.append(data.artifact(path))
     return data.append('harbor_job', {'job_id': identity, 'index': index_ref,
-                       'summary': summary, 'rows': rows}, record_id=ident)
+        'summary': summary, 'rows': rows, 'retained_sources': retained,
+        'evidence_scope': 'Assessment/index import plus explicit retained JSON sources; '
+            'not a complete replayable product export or independent provider authentication.'}, record_id=ident)
 
 
-def import_comparison(dataset, path):
-    """Retain an existing comparator result, never fabricate a matched pair."""
+def import_comparison(dataset, path, *, assignment=None, baseline=None, cc=None, criteria=None,
+                      variant=None, quality_port=None):
+    """Recompute from retained inputs, or retain summary-only without gain credit."""
     data = Dataset(dataset)
     result = read_json(regular(path))
     if result.get('schema') != 'native-codex-ai4r-paired-comparison:1':
         raise ValueError('expected original comparison.compare result')
     public_record(result)
+    if (set(result.get('arms', {})) != {'native_codex_tool_free', 'ai4r_cc'}
+            or result.get('sample_pairs') != 1
+            or not isinstance(result.get('assignment_sha256'), str)
+            or len(result['assignment_sha256']) != 64
+            or any(c not in '0123456789abcdef' for c in result['assignment_sha256'])):
+        raise ValueError('incomplete or invalid paired comparison summary')
+    inputs = (assignment, baseline, cc, criteria, variant, quality_port)
+    sources = []
+    verified = all(item is not None for item in inputs)
+    if any(item is not None for item in inputs) and not verified:
+        raise ValueError('all frozen comparison inputs are required for recomputation')
+    if verified:
+        from .comparison import compare
+        recomputed = compare(read_json(assignment), read_json(baseline), read_json(cc),
+            variant=read_json(criteria)['variants'][variant], quality_port=quality_port)
+        if canonical(recomputed) != canonical(result):
+            raise ValueError('comparison summary differs from original inputs and shared oracle')
+        sources = [data.artifact(p) for p in (assignment, baseline, cc, criteria)]
     source = data.artifact(path)
-    return data.append('comparison', {'source': source, 'result': result,
-        'provenance': 'Imported comparator output; original private provider/custody receipts remain separately required.'},
-        record_id='pair-' + source['sha256'])
+    return data.append('comparison' if verified else 'comparison_summary',
+        {'source': source, 'result': result, 'retained_inputs': sources, 'recomputed': verified,
+         'provenance': 'Offline recomputation only; original private provider/custody receipts remain separately required.'
+                       if verified else 'Unvalidated summary, excluded from paired-gain analysis.'},
+        record_id=('pair-' if verified else 'summary-') + source['sha256'])
 
 
 def launch_once(dataset, job_config, *, harbor_executable='harbor', timeout_s=900, suite_config=None):
@@ -157,32 +186,45 @@ def main(argv=None):
     prep.add_argument('--output', type=Path, required=True)
     prep.add_argument('--cases-root', type=Path)
     prep.add_argument('--case', action='append', dest='case_ids')
-    prep.add_argument('--repeats', type=int, default=3)
+    prep.add_argument('--repeats', type=int, default=1)
     imp = commands.add_parser('import-job')
     for key in ('dataset', 'bundle', 'job-results'):
         imp.add_argument('--' + key, type=Path, required=True)
     imp.add_argument('--arm', default='ai4r')
     imp.add_argument('--revision')
+    imp.add_argument('--source-json', type=Path, action='append', default=[])
     pair = commands.add_parser('import-comparison')
     pair.add_argument('--dataset', type=Path, required=True)
     pair.add_argument('--source', type=Path, required=True)
+    for key in ('assignment', 'baseline', 'cc', 'criteria'):
+        pair.add_argument('--' + key, type=Path)
+    pair.add_argument('--variant')
+    pair.add_argument('--quality-port')
     launch = commands.add_parser('launch')
     launch.add_argument('--dataset', type=Path, required=True)
     launch.add_argument('--job-config', type=Path, required=True)
     launch.add_argument('--suite-config', type=Path)
     launch.add_argument('--harbor-executable', default='harbor')
     launch.add_argument('--timeout-s', type=float, default=900)
+    backup = commands.add_parser('backup')
+    backup.add_argument('--dataset', type=Path, required=True)
+    backup.add_argument('--destination', type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == 'plan':
         result = plan(args.output, cases_root=args.cases_root,
                       case_ids=args.case_ids or DEFAULT_CASES, repeats=args.repeats)
         print(json.dumps({'scheduled': len(result['scheduled']), 'output': str(args.output)}))
     elif args.command == 'import-job':
-        result = import_job(args.dataset, args.bundle, args.job_results, arm=args.arm, revision=args.revision)
+        result = import_job(args.dataset, args.bundle, args.job_results, arm=args.arm,
+                            revision=args.revision, source_json=args.source_json)
         print(json.dumps({'record_id': result['id'], 'summary': result['value']['summary']}))
     elif args.command == 'import-comparison':
-        result = import_comparison(args.dataset, args.source)
+        result = import_comparison(args.dataset, args.source, assignment=args.assignment,
+            baseline=args.baseline, cc=args.cc, criteria=args.criteria,
+            variant=args.variant, quality_port=args.quality_port)
         print(json.dumps({'record_id': result['id']}))
+    elif args.command == 'backup':
+        print(json.dumps(Dataset(args.dataset).mirror(args.destination)))
     else:
         result = launch_once(args.dataset, args.job_config, harbor_executable=args.harbor_executable,
                              timeout_s=args.timeout_s, suite_config=args.suite_config)

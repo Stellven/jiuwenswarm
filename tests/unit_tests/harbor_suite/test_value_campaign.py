@@ -88,12 +88,32 @@ def test_csv_formula_text_is_escaped_and_missing_is_blank():
     assert "'=HYPERLINK" in raw and 'None' not in raw
 
 
+def test_verified_mirror_can_resume_but_never_overwrite(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    record = data.append('fixture', {'observed': 1})
+    first = data.mirror(tmp_path / 'mirror')
+    assert first['files'] == 1
+    assert data.mirror(tmp_path / 'mirror') == first
+    (tmp_path / 'mirror/records' / (record['id'] + '.json')).write_text('{}')
+    with pytest.raises(ValueError, match='never overwrite'):
+        data.mirror(tmp_path / 'mirror')
+
+
 def test_comparison_import_uses_actual_existing_schema(tmp_path):
     path = tmp_path / 'pair.json'
-    write_once(path, {'schema': 'native-codex-ai4r-paired-comparison:1', 'arms': {}, 'sample_pairs': 1})
+    write_once(path, {'schema': 'native-codex-ai4r-paired-comparison:1',
+                     'arms': {'native_codex_tool_free': {}, 'ai4r_cc': {}},
+                     'sample_pairs': 1, 'assignment_sha256': 'a' * 64})
     result = import_comparison(tmp_path / 'data', path)
-    assert result['kind'] == 'comparison'
+    assert result['kind'] == 'comparison_summary'
     with pytest.raises(FileExistsError):
+        import_comparison(tmp_path / 'data', path)
+
+
+def test_hand_authored_incomplete_comparison_is_not_credited(tmp_path):
+    path = tmp_path / 'pair.json'
+    write_once(path, {'schema': 'native-codex-ai4r-paired-comparison:1', 'arms': {}, 'sample_pairs': 1})
+    with pytest.raises(ValueError, match='incomplete'):
         import_comparison(tmp_path / 'data', path)
 
 
@@ -124,7 +144,7 @@ def test_launch_rejects_retry_before_any_effect(tmp_path, monkeypatch):
 def test_plan_reuses_29_existing_variants_without_product_calls(tmp_path):
     from benchmarks.harbor_suite.value_campaign import plan
     result = plan(tmp_path / 'plan.json')
-    assert len(result['scheduled']) == 87
+    assert len(result['scheduled']) == 29
     assert len(result['cases']) == 4
     assert all(c['module'] in ('cc', 'verifier') for c in result['cases'])
     with pytest.raises(FileExistsError):

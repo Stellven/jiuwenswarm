@@ -15,7 +15,7 @@ from pathlib import Path
 import re
 import uuid
 
-from .contracts import canonical, read_json, regular
+from .contracts import canonical, read_json, regular, strict_json
 
 IDENT = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}\Z")
 SENSITIVE = {'authorization', 'api_key', 'access_token', 'refresh_token', 'id_token',
@@ -94,8 +94,14 @@ class Dataset:
     def artifact(self, path):
         path = regular(path)
         raw = path.read_bytes()
+        return self.json_artifact(raw)
+
+    def json_artifact(self, raw):
+        """Retain exact UTF-8 JSON bytes from an explicitly validated export."""
+        if not isinstance(raw, bytes) or len(raw) > 16 * 1024 * 1024:
+            raise ValueError('bounded original JSON bytes required')
         # Only explicit JSON benchmark exports, never arbitrary logs/auth files.
-        public_record(read_json(path))
+        public_record(strict_json(raw))
         digest = hashlib.sha256(raw).hexdigest()
         target = self.root / 'artifacts' / (digest + '.json')
         try:
@@ -151,3 +157,32 @@ class Dataset:
                               'sha256': hashlib.sha256(raw).hexdigest(), 'size': len(raw)})
         return {'schema': 'ai4r-value-snapshot:1', 'files': files,
                 'sha256': hashlib.sha256(canonical(files)).hexdigest()}
+
+    def mirror(self, destination):
+        """Copy a stable snapshot without overwriting or deleting either copy."""
+        self.records()  # Validate retained source references before copying.
+        target = Dataset(destination)
+        if target.root.is_relative_to(self.root) or self.root.is_relative_to(target.root):
+            raise ValueError('dataset mirror must have a separate root')
+        before = self.snapshot()
+        for item in before['files']:
+            source = regular(self.root / item['path'])
+            raw = source.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != item['sha256'] or len(raw) != item['size']:
+                raise ValueError('source changed during mirror')
+            path = target.root / item['path']
+            try:
+                write_once(path, raw, raw=True)
+            except FileExistsError:
+                if regular(path).read_bytes() != raw:
+                    raise ValueError('mirror contains different retained bytes; never overwrite') from None
+        if self.snapshot() != before:
+            raise ValueError('source changed during mirror; partial copy retained without a completed snapshot')
+        target.records()
+        snapshot_path = target.root / ('snapshot-' + before['sha256'] + '.json')
+        try:
+            write_once(snapshot_path, before)
+        except FileExistsError:
+            if read_json(snapshot_path) != before:
+                raise ValueError('mirror snapshot differs') from None
+        return {'snapshot_sha256': before['sha256'], 'files': len(before['files']), 'destination': str(target.root)}
