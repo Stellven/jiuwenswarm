@@ -64,7 +64,29 @@ async def test_builder_parent_probe_never_claims_tool_network_qualification(actu
 
 
 @pytest.mark.asyncio
-async def test_explicit_containment_waits_for_actual_owned_kernel_tree(actual_executor, tmp_path):
+async def test_cancellation_waits_for_actual_owned_kernel_tree(actual_executor):
+    executor, make, captured, work = actual_executor
+    job = make("from pathlib import Path; import time; Path('started').write_text('1'); time.sleep(20)", timeout=30)
+    task = asyncio.create_task(executor.run(job))
+    try:
+        async with asyncio.timeout(5):
+            while not (work / 'started').is_file():
+                await asyncio.sleep(0.01)
+        task.cancel()
+        result = await task
+        assert result['termination_reason'] == 'cancelled'
+        assert not executor.active
+        group = executor.cgroup_root / job.job_id
+        assert not (group / 'cgroup.procs').read_text().strip()
+        assert 'populated 0' in (group / 'cgroup.events').read_text()
+    finally:
+        if not task.done():
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_rpc_refuses_kernel_execution_without_original_attempt_resources(actual_executor, tmp_path):
     from jiuwenswarm.research.executor_rpc import ClaimLedger, ExecutionOperations
     executor, make, captured, work = actual_executor
     job = make("from pathlib import Path; import time; Path('started').write_text('1'); time.sleep(20)", timeout=30)
@@ -83,28 +105,17 @@ async def test_explicit_containment_waits_for_actual_owned_kernel_tree(actual_ex
     owner = ExecutionOperations(backend=executor, authorize=authorize, resolve_inputs=lambda _: {}, ledger=ledger,
                                 authorize_containment=containment)
     selection = {key: getattr(job, key) for key in ('role', 'repeat_index', 'seed', 'sequence', 'subject_ref', 'hardware_ref')}
-    issued = await owner.perform('measure_job', {**request, 'selection': selection})
-    task = asyncio.create_task(owner.perform('run', {**request, **issued}))
+    from jiuwenswarm.research.executor import ExecutorBlocked
     try:
-        async with asyncio.timeout(5):
-            while not (work / 'started').is_file():
-                await asyncio.sleep(0.01)
-        result = await owner.contain({'run_id': job.run_id, 'request_id': 'controlled-cancel'})
-        assert result == {'contained': True, 'run_id': job.run_id, 'request_id': 'controlled-cancel'}
-        assert task.done() and (await task)['termination_reason'] == 'cancelled'
-        assert not executor.active
-        group = executor.cgroup_root / job.job_id
-        assert not (group / 'cgroup.procs').read_text().strip()
-        assert 'populated 0' in (group / 'cgroup.events').read_text()
+        with pytest.raises(ExecutorBlocked, match='ORIGINAL_ACTIVE_ATTEMPT_RESOURCES_REQUIRED'):
+            await owner.perform('measure_job', {**request, 'selection': selection})
+        assert not executor.active and not (work / 'started').exists()
     finally:
-        if not task.done():
-            task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
         ledger.close()
 
 
 @pytest.fixture
-def actual_executor():
+def actual_executor(request):
     configured = os.environ.get('AI4R_EXECUTOR_CGROUP_ROOT')
     if not configured:
         pytest.fail('Job-owned Linux cgroup delegation is required; use compose.executor-verify.yaml')
@@ -121,6 +132,14 @@ def actual_executor():
         return ref
     executor = RestrictedExecutor(workspace_root=root, cgroup_root=configured,
         authorize_job=lambda job: job, capture=capture)
+    # Optional raw host-mechanics evidence; never used as product acceptance.
+    results = []
+    original_kernel = executor._run_kernel
+    async def retain_kernel(*args, **kwargs):
+        result = await original_kernel(*args, **kwargs)
+        results.append(result)
+        return result
+    executor._run_kernel = retain_kernel
     assert executor.prerequisites() == []
     jobs = []
     def make(program, timeout=2, memory=64, pids=16):
@@ -133,6 +152,14 @@ def actual_executor():
             timeout_s=timeout, memory_mb=memory, pids_max=pids, baseline_ref=ref, validation_ref=ref,
             environment_ref=ref, subject_ref=ref, hardware_ref=ref)
     yield executor, make, captured, work
+    if evidence := os.environ.get('AI4R_EXECUTOR_EVIDENCE_ROOT'):
+        target = Path(evidence) / hashlib.sha256(request.node.nodeid.encode()).hexdigest()
+        target.mkdir(mode=0o700, parents=True, exist_ok=False)
+        (target / 'receipts.json').write_text(json.dumps({'test': request.node.nodeid,
+            'scope': 'Controlled actual Linux kernel mechanics; no installed app or model acceptance',
+            'results': results}, indent=2))
+        for ref, data in captured.items():
+            (target / ref.removeprefix('blob:')).write_bytes(data)
     for identifier in jobs:
         group = Path(configured) / identifier
         if group.exists():

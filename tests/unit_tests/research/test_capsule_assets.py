@@ -19,8 +19,8 @@ class CapsuleAssetsTests(unittest.TestCase):
                 'search': 'm1-6',
                 'screening': 'm1-4',
                 'hypothesis': 'm1-8',
-                'builder': 'm1-13',
-                'benchmark': 'm1-6-blindcpu',
+                'builder': 'm1-16',
+                'benchmark': 'm1-8-agent-pi',
                 'evaluation': 'm1-5',
                 'delivery': 'm1-5',
             }
@@ -41,3 +41,22 @@ class CapsuleAssetsTests(unittest.TestCase):
             self.assertEqual(screening['evolution']['may_change'], ['files:ranking_*.txt', 'files:screening_prompt.txt', 'files:screening_rubric.json'])
             self.assertEqual(store.read_record(assets['search']['declaration_ref'])['budget']['per_call'], {'wall_s': 300, 'invocations': 2, 'tool_calls': 20})
             self.assertEqual(store.read_record(assets['benchmark']['declaration_ref'])['needs']['injects'], [])
+
+
+def test_pi_release_preserves_default_classification_consumer_contracts(tmp_path):
+    from jiuwenswarm.research.capsules.assets import build_research_assets,build_pi_benchmark_asset
+    with closing(SQLiteRunStore(tmp_path/'assets')) as store:
+        assets=build_research_assets(store)
+        pi=build_pi_benchmark_asset(store,base=assets['benchmark'])
+        default=store.read_record(assets['benchmark']['declaration_ref'])
+        consumer=store.read_record(assets['evaluation']['declaration_ref'])
+        special=store.read_record(pi['declaration_ref'])
+        output=next(p for p in default['ports']['outputs'] if p['name']=='benchmark_payload')
+        input_port=next(p for p in consumer['ports']['inputs'] if p['name']=='benchmark_payload')
+        assert output['schema_ref']==input_port['schema_ref']
+        assert special['identity']['name']==default['identity']['name']=='research.benchmark'
+        assert special['identity']['version_label']=='pi-m1-2'
+        assert len(special['ports']['inputs'])==len(default['ports']['inputs'])==7
+        assert next(p for p in special['ports']['outputs'] if p['name']=='benchmark_payload')['schema_ref']=='urn:ai4r:pi-benchmark-payload:1.0.0'
+        assert pi['declaration_ref']!=assets['benchmark']['declaration_ref']
+        assert store.read_record(pi['bundle_ref'])['bundle_id']!=store.read_record(assets['benchmark']['bundle_ref'])['bundle_id']

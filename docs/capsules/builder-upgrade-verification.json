@@ -1,0 +1,38 @@
+{
+  "schema": "ai4r-builder-upgrade-verification:1",
+  "branch": "builder/bounded-build-test-20261023",
+  "base": "60f65abe64eb8294f6de6b0413dfb032e2cf86b9",
+  "date": "2026-10-23",
+  "environment": "WSL Ubuntu-24.04, Linux root; Python 3.12; controlled model/kernel fixtures, not a live campaign",
+  "result": {
+    "passed": 121,
+    "deselected": 3,
+    "time_s": 61.49
+  },
+  "excluded": "test_scheduler_does_not_publish_start_before_awaited_owner_boundary: allow/refuse/cancel; previously excluded connected qualification boundary",
+  "command": "/home/m50066326/ai4r-final-pin-env-07c7abdf/bin/python -m pytest -o addopts= -o log_cli=false -q tests/unit_tests/research/test_builder_test_rpc.py tests/unit_tests/research/test_builder_testing.py tests/unit_tests/research/test_builder_loop.py tests/unit_tests/research/test_execution_jobs.py tests/unit_tests/research/test_executor_rpc.py tests/unit_tests/research/test_static_template_release.py tests/unit_tests/research/test_budget_ceiling.py tests/unit_tests/research/test_capsule_assets.py tests/unit_tests/research/test_bridge.py tests/unit_tests/research/test_scheduler.py tests/unit_tests/research/test_runner.py tests/unit_tests/research/test_runner_grants.py tests/unit_tests/research/test_planning.py tests/unit_tests/research/test_typed_planner.py tests/unit_tests/research/test_planner_pipeline.py tests/unit_tests/research/test_native_readiness.py -k \"not scheduler_does_not_publish_start_before_awaited_owner_boundary\" --basetemp /var/tmp/ai4r-builder-linux-final --tb=short --junitxml=docs/capsules/builder-upgrade-linux-checks.xml",
+  "not_demonstrated": [
+    "authenticated Codex-to-executor campaign",
+    "new Builder namespace/cgroup qualification",
+    "target deployment",
+    "private-label scientific result"
+  ],
+  "bwrap_available": false,
+  "releases": {
+    "research.builder": "m1-13",
+    "research.benchmark": "m1-6-builder-tests",
+    "research.planner": "m1-14"
+  },
+  "pins_verified": [
+    "deploy/m1/freeze_builder_release.py",
+    "deploy/m1/freeze_planner_release.py --check"
+  ],
+  "tested_source_commit": "5bc3ca70ecddecbfd5a9d2dffe1aaf739bb5d603",
+  "fresh_windows_checkout": {
+    "commit": "5bc3ca70ecddecbfd5a9d2dffe1aaf739bb5d603",
+    "passed": 15,
+    "time_s": 1.61,
+    "pins": "Builder/Benchmark, core Planner and PDF checker closures verified; worktree clean",
+    "command": "uv run --no-project --with pytest --with pytest-asyncio --with jsonschema==4.26.0 --with cryptography==47.0.0 --with pyyaml --with ruamel.yaml --with httpx --with pydantic --with loguru python -m pytest -o addopts='' -o log_cli=false -q tests/unit_tests/research/test_builder_loop.py tests/unit_tests/research/test_builder_testing.py tests/unit_tests/research/test_capsule_assets.py --basetemp C:/Temp/ai4r-builder-fresh --tb=short"
+  }
+}

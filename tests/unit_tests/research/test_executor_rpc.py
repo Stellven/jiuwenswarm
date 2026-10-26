@@ -108,7 +108,7 @@ async def test_builder_readiness_requires_current_qualification_not_package_pres
     operations = ExecutionOperations(backend=backend, authorize=None, resolve_inputs=None, ledger=ledger)
     assert (await operations.prerequisites({}))['builder_qualified'] is False
     launcher.valid = True
-    assert await operations.prerequisites({}) == {'ready': True, 'builder_qualified': True, 'reasons': []}
+    assert await operations.prerequisites({}) == {'ready': True, 'builder_qualified': True, 'builder_mode': 'isolated_tools', 'reasons': []}
     launcher.valid = False
     assert (await operations.prerequisites({}))['ready'] is False
     ledger.close()

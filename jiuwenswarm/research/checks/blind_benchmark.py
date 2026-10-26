@@ -15,8 +15,8 @@ class BlindBenchmarkChecks(ResearchChecks):
         blueprint, manifest = inputs['hypothesis_blueprint'], inputs['poc_manifest']
         payload, receipt, provisioning = outputs['benchmark_payload'], outputs['execution_receipt'], outputs['provisioning_receipt']
         validate_metric_declarations(blueprint['metrics'])
-        ready = inputs['build_receipt']; validate(BUILD_SCHEMA, ready)
-        require(ready['readiness'] == 'READY' and not ready['trial_executed'] and not ready['packages_installed']
+        ready = inputs['build_receipt']; validate('urn:ai4r:prediction-build-receipt:'+ready['schema_version'] if ready['schema_version'] in {'3.0.0','4.0.0'} else BUILD_SCHEMA, ready)
+        require(ready['readiness'] == 'READY' and (ready['schema_version'] in {'3.0.0','4.0.0'} or (not ready['trial_executed'] and not ready['packages_installed']))
                 and ready['manifest_ref'] == ctx.input_ref('poc_manifest') and ready['archive_ref'] == ctx.input_ref('poc_artifact_bundle'), 'build_receipt_ready')
         require(payload['blueprint_ref'] == receipt['blueprint_ref'] == ctx.input_ref('hypothesis_blueprint')
                 and payload['poc_ref'] == receipt['poc_ref'] == ctx.input_ref('poc_manifest'), 'protocol_matches_blueprint')

@@ -13,7 +13,7 @@ from .executor import ExecutorBlocked
 
 
 OPERATIONS = frozenset(('provision','hardware_inventory','measure_job','run',
-                        'collect_builder','builder_observation','invoke_builder'))
+                        'collect_builder','builder_observation','invoke_builder','builder_test','builder_action'))
 
 
 @dataclass(frozen=True)
@@ -48,8 +48,8 @@ def decode_science_runtime_record(record, *, historical=False):
         if version=='ai4r-science-runtime:1':
             _require(historical and set(record)==fields,'SCIENCE_RUNTIME_V1_HISTORICAL_ONLY')
         else:
-            _require(version in {'ai4r-science-runtime:2','ai4r-science-runtime:3'})
-            extra={'execution_bindings'}|({'scoring_profile'} if version=='ai4r-science-runtime:3' else set())
+            _require(version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4'})
+            extra={'execution_bindings'}|({'scoring_profile'} if version in {'ai4r-science-runtime:3','ai4r-science-runtime:4'} else set())
             _require(set(record)==fields|extra)
             validate('urn:ai4r:private:science-runtime:'+version.rsplit(':',1)[1],record)
         if version=='ai4r-science-runtime:3':
@@ -93,7 +93,7 @@ def decode_science_runtime_record(record, *, historical=False):
             _require(type(entry['wheel_filenames']) is dict and all(type(key) is str and type(value) is str
                 and key and value and '\0' not in key and '\0' not in value
                 for key,value in entry['wheel_filenames'].items()),'SCIENCE_ENVIRONMENT_CATALOG_INVALID')
-        if version in {'ai4r-science-runtime:2','ai4r-science-runtime:3'}:
+        if version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4'}:
             seen=set()
             for entry in record['execution_bindings']:
                 refs=tuple(_ref_key(entry[key]) for key in ('configuration_ref','policy_ref','resource_inventory_ref',

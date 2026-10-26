@@ -22,7 +22,7 @@
       "body": [
         {
           "path": "research/capsules/planner.py",
-          "sha256": "bcdc2e3b983f4b2f6d121c3a7da31f41950b72d797ec9b8cad7458808534eb46"
+          "sha256": "2e78499540b991d79fca08b314e097cab6a1855b323d7a3dcdb4f32a343918a1"
         },
         {
           "path": "research_assets/planner/planner.txt",
@@ -50,7 +50,7 @@
         }
       ],
       "declaration_path": "planner/planner.declaration.json",
-      "declaration_sha256": "28b8d05784685ea28b0c5d59066826af3ad817fa01bcaf9ddffcf3829b9bad8d"
+      "declaration_sha256": "edbbbef61522b6794298ccefa336165d8298d8a66bd756974eaa75c8d4085a5e"
     },
     "requirements": {
       "body": [
@@ -88,10 +88,10 @@
   "schema_version": "1.0.0",
   "source_snapshot": "M1/source/Architecture_Design",
   "static_template": {
-    "path": "planner/static-template.json",
-    "sha256": "2dd0d6ffe1dcd69e350d2f3d8b958405883f287512dad4427e5058f17b945688",
-    "interface_revision": "M1-IF-002@r2",
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
-    "meaning": "Brief 3.0.0 and versioned canonical metric protocol; current frozen capsule and check releases; unchanged protected scoring, verifier disclosure and gates."
+    "interface_revision": "M1-IF-002@r2",
+    "meaning": "Bounded native Builder actions and protected compile/unit/smoke checks; independent reviews, gates and schema-routed Benchmark retained.",
+    "path": "planner/static-template.json",
+    "sha256": "8db21897908181f23dc8c089ec94c29fc567c01046a8b101ad8d0a51497496bc"
   }
 }

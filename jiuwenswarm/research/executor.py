@@ -77,6 +77,7 @@ class ExecutionJob:
     hardware_ref: Mapping
     readonly_mounts: tuple[ReadonlyMount, ...] = field(default_factory=tuple)
     environment: PreparedEnvironment | None = None
+    output_limit_bytes: int | None = None
 
 
 @dataclass(frozen=True)
@@ -411,6 +412,9 @@ class RestrictedExecutor:
     async def _run_kernel(self, job, command, *, output_parent, stdin_bytes=None,
                           stdout_line_observer=None, stdout_line_limit=None):
         """Shared broker-only lifecycle: gate, identity drop, cgroup and proof."""
+        output_limit = getattr(job, 'output_limit_bytes', None)
+        if output_limit is not None and (type(output_limit) is not int or not 0 < output_limit <= 8388608):
+            raise ExecutorBlocked('OUTPUT_CAPTURE_LIMIT_INVALID')
         group = self._cgroup(job)
         gate_read, gate_write = os.pipe()
         manifest = tempfile.TemporaryFile(mode="w+b")
@@ -440,17 +444,26 @@ class RestrictedExecutor:
             async def capture_stream(stream, path, *, observe=False):
                 nonlocal proof_bytes, observation_stop
                 with path.open("xb") as output:
+                    captured_bytes = 0
+                    def write_bounded(chunk):
+                        nonlocal captured_bytes, observation_stop
+                        available = len(chunk) if output_limit is None else max(0, output_limit - captured_bytes)
+                        output.write(chunk[:available])
+                        captured_bytes += min(len(chunk), available)
+                        if len(chunk) > available and observation_stop is None:
+                            observation_stop = 'output_limit_exceeded'
+                            (group / 'cgroup.kill').write_text('1')
                     if observe:
                         frame = await stream.readline()
                         prefix = b'AI4R_EXECUTOR_PROBE_V1 '
                         if frame.startswith(prefix) and len(frame) <= 4096 + len(prefix) + 1:
                             proof_bytes = frame[len(prefix):].rstrip(b'\n')
                         else:
-                            output.write(frame)
+                            write_bounded(frame)
                     pending = b''
                     line_overflow = False
                     while chunk := await stream.read(65536):
-                        output.write(chunk)
+                        write_bounded(chunk)
                         if observe and stdout_line_observer is not None and not line_overflow:
                             pending += chunk
                             while b'\n' in pending:
@@ -529,7 +542,8 @@ class RestrictedExecutor:
                     "identity": {"executor_uid": self.uid, "executor_gid": self.gid},
                     "observed_limits": {"memory_max": (group / "memory.max").read_text().strip(),
                                         "pids_max": (group / "pids.max").read_text().strip(),
-                                        "network": proof.get("network"), "isolation_probe_ref": proof_ref},
+                                        "network": proof.get("network"), "isolation_probe_ref": proof_ref,
+                                        "cpu_affinity": proof.get('cpu_affinity')},
                     "memory_events": memory_events, "pids_events": pids_events, "observed_runtime": True}
         finally:
             if gate_read >= 0: os.close(gate_read)
@@ -606,3 +620,25 @@ class ExecutorInvocation:
         if self._executor.builder_observer is None:
             raise ExecutorBlocked("BUILDER_RUNTIME_OBSERVATION_UNAVAILABLE")
         return await _await(self._executor.builder_observer(self._contract(contract), binding=copy.deepcopy(self._binding)))
+
+    async def builder_test(self, contract, *, manifest_ref, tests_ref, ordinal):
+        service = getattr(self._executor, 'builder_test_service', None)
+        if service is None:
+            raise ExecutorBlocked('BUILDER_TEST_SERVICE_UNAVAILABLE')
+        # Native clients use the durable broker RPC. This in-process seam is
+        # available only with a protected host-installed input resolver.
+        resolver = getattr(self._executor, 'builder_input_resolver', None)
+        if resolver is None:
+            raise ExecutorBlocked('BUILDER_INPUT_RESOLVER_UNAVAILABLE')
+        actual = self._contract(contract)
+        return await service.test(actual, await _await(resolver(actual)), binding=copy.deepcopy(self._binding),
+            manifest_ref=manifest_ref, tests_ref=tests_ref, ordinal=ordinal)
+
+    async def builder_action(self, contract, *, action, arguments, ordinal, model_ordinal):
+        service = getattr(self._executor, 'builder_agent_service', None)
+        resolver = getattr(self._executor, 'builder_input_resolver', None)
+        if service is None or resolver is None:
+            raise ExecutorBlocked('BUILDER_AGENT_SERVICE_UNAVAILABLE')
+        actual = self._contract(contract)
+        return await service.action(actual, await _await(resolver(actual)), binding=copy.deepcopy(self._binding),
+            action=action, arguments=arguments, ordinal=ordinal, model_ordinal=model_ordinal)

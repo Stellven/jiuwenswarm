@@ -28,7 +28,7 @@ def _protected_host_bindings():
             'condition': 'Host supplies the unchanged protected configuration Ref frozen into this run plan.'},
         'build_receipt': {
             'producer_cc': 'research.builder', 'producer_output_port': None, 'direct_predecessor_required': True,
-            'condition': 'Exactly one Builder predecessor must advance. Host resolves its original build_receipt proposal by joining the actual producing invocation, model-call start, accepted manifest and bundle, blueprint and environment. Receipt readiness must be READY with trial_executed=false and packages_installed=false. This is not a public Builder output port.'},
+            'condition': 'Exactly one Builder predecessor must advance. Host resolves its original build_receipt proposal by joining the actual producing invocation, model-call start, accepted manifest and bundle, blueprint and environment. Receipt readiness must be READY under the selected Builder receipt schema. Legacy static builds prohibit execution/install; prediction receipt v3 records bounded development tests and frozen offline provisioning, without scientific acceptance. This is not a public Builder output port.'},
         'screening_result': {
             'producer_cc': 'research.screening', 'producer_output_port': 'screening_result', 'direct_predecessor_required': True,
             'condition': 'Exactly one Screening predecessor must advance; host supplies its committed screening_result output.'},

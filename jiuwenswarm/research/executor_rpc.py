@@ -137,7 +137,14 @@ class ExecutionOperations:
             required += ('builder_collector', 'builder_observer')
         if any(getattr(self.backend, name, None) is None for name in required):
             reasons = [*reasons, "PROTECTED_EXECUTION_FACTORIES_UNAVAILABLE"]
-        builder_qualified = tool_free_builder
+        development = getattr(self.backend, 'builder_test_required', False) is True
+        agentic = getattr(self.backend, 'builder_agent_required', False) is True
+        if agentic and getattr(self.backend,'builder_agent_service',None) is None:
+            reasons=[*reasons,'BUILDER_AGENT_SERVICE_UNAVAILABLE']
+        if development and getattr(self.backend, 'builder_test_service', None) is None:
+            reasons = [*reasons, 'BUILDER_TEST_SERVICE_UNAVAILABLE']
+        builder_qualified = (tool_free_builder and (not development or getattr(self.backend, 'builder_test_service', None) is not None)
+                             and (not agentic or getattr(self.backend,'builder_agent_service',None) is not None))
         launcher = getattr(self.backend, 'builder_launcher', None)
         if launcher is not None:
             try:
@@ -149,7 +156,7 @@ class ExecutionOperations:
             except (ExecutorBlocked, OSError, ValueError, KeyError):
                 reasons = [*reasons, 'BUILDER_RUNTIME_QUALIFICATION_UNAVAILABLE']
         return {"ready": not reasons, "builder_qualified": builder_qualified,
-                "builder_mode": 'tool_free' if tool_free_builder else 'isolated_tools', "reasons": reasons}
+                "builder_mode": 'native_agent' if agentic else 'bounded_tests' if development else 'tool_free' if tool_free_builder else 'isolated_tools', "reasons": reasons}
 
     async def read_only_prerequisites(self, payload):
         """Observe the live broker only; this grants no scientific operation."""
@@ -230,7 +237,8 @@ class ExecutionOperations:
             if operation == "measure_job":
                 selection = payload["selection"]
                 expected = {"role", "repeat_index", "seed", "sequence", "subject_ref", "hardware_ref"}
-                if not isinstance(selection, dict) or set(selection) != expected:
+                if (not isinstance(selection, dict) or set(selection) not in (expected, expected|{'case_id'})
+                        or ('case_id' in selection and type(selection['case_id']) is not str)):
                     raise ExecutorBlocked("INVALID_EXECUTOR_SELECTION")
                 identity, previous = self.ledger.claim({**request, "operation": operation, "selection": selection})
                 if previous is not None:
@@ -303,6 +311,64 @@ class ExecutionOperations:
         self.ledger.complete(identity, result)
         return result
 
+    async def builder_test(self, payload):
+        fields = {'manifest_ref', 'tests_ref', 'ordinal'}
+        request, contract, bound, lock, deadline = await self._binding(payload, fields, operation='builder_test')
+        validate('Ref', payload['manifest_ref']); validate('Ref', payload['tests_ref'])
+        if type(payload['ordinal']) is not int or not 1 <= payload['ordinal'] <= 3:
+            raise ExecutorBlocked('INVALID_BUILDER_TEST_ORDINAL')
+        service = getattr(self.backend, 'builder_test_service', None)
+        if service is None:
+            raise ExecutorBlocked('BUILDER_TEST_SERVICE_UNAVAILABLE')
+        task = asyncio.current_task()
+        self.active_tasks[task] = contract['run_id']
+        try:
+            async with asyncio.timeout_at(deadline), lock:
+                # Ordinal is the effect identity: changed candidate bytes cannot
+                # create additional jobs under the same development allowance.
+                identity, previous = self.ledger.claim({**request, 'operation': 'builder_test', 'ordinal': payload['ordinal']})
+                if previous is not None:
+                    report = self.backend.read_blob(previous['report_ref'])
+                    captured = json.loads(report)
+                    if any(captured[key] != payload[key] for key in ('manifest_ref', 'tests_ref', 'ordinal')):
+                        raise ExecutorBlocked('BUILDER_TEST_REPLAY_CHANGED')
+                    return previous
+                result = await service.test(contract, await _await(self.resolve_inputs(contract)),
+                    binding=bound._binding, **{key: payload[key] for key in fields})
+                self.ledger.complete(identity, result)
+                return result
+        finally:
+            self.active_tasks.pop(task, None)
+
+    async def builder_action(self, payload):
+        fields = {'action','arguments','ordinal','model_ordinal'}
+        request, contract, bound, lock, deadline = await self._binding(payload, fields, operation='builder_action')
+        if (type(payload['ordinal']) is not int or not 1 <= payload['ordinal'] <= 40
+                or type(payload['model_ordinal']) is not int or not 1 <= payload['model_ordinal'] <= 20
+                or type(payload['action']) is not str or type(payload['arguments']) is not dict):
+            raise ExecutorBlocked('INVALID_BUILDER_AGENT_ACTION')
+        service = getattr(self.backend, 'builder_agent_service', None)
+        if service is None:
+            raise ExecutorBlocked('BUILDER_AGENT_SERVICE_UNAVAILABLE')
+        task = asyncio.current_task()
+        self.active_tasks[task] = contract['run_id']
+        try:
+            async with asyncio.timeout_at(deadline), lock:
+                # Include the complete action digest, but claim by ordinal: a
+                # changed retry can never acquire another effect allowance.
+                identity, previous = self.ledger.claim({**request,'operation':'builder_action','ordinal':payload['ordinal']})
+                selection = {key: payload[key] for key in fields}
+                if previous is not None:
+                    if previous['selection'] != selection:
+                        raise ExecutorBlocked('BUILDER_ACTION_REPLAY_CHANGED')
+                    return previous['result']
+                result = await service.action(contract,await _await(self.resolve_inputs(contract)),
+                    binding=bound._binding,**selection)
+                self.ledger.complete(identity,{'selection':selection,'result':result})
+                return result
+        finally:
+            self.active_tasks.pop(task,None)
+
     async def invoke_builder(self, payload):
         if (not isinstance(payload, dict) or set(payload) != {'protected', 'prompt', 'timeout_s'}
                 or not isinstance(payload['protected'], dict)
@@ -341,7 +407,8 @@ class ExecutionOperations:
     def handlers(self):
         table = {"prerequisites": self.prerequisites,
                  'read_only_prerequisites': self.read_only_prerequisites,
-                 'contain': self.contain, 'invoke_builder': self.invoke_builder,
+                 'contain': self.contain, 'invoke_builder': self.invoke_builder, 'builder_test': self.builder_test,
+                 'builder_action': self.builder_action,
                  'prepare_attempt_resources': self.prepare_attempt_resources,
                  'activate_attempt_resources': self.activate_attempt_resources}
         for operation in ("measure_job", "run", "provision", "hardware_inventory", "collect_builder", "builder_observation"):
@@ -443,6 +510,16 @@ class RemoteInvocation:
 
     async def builder_observation(self, contract):
         return await self.rpc.call("builder_observation", self._request(contract), timeout_s=30)
+
+    async def builder_test(self, contract, *, manifest_ref, tests_ref, ordinal):
+        return await self.rpc.call('builder_test', {**self._request(contract),
+            'manifest_ref': manifest_ref, 'tests_ref': tests_ref, 'ordinal': ordinal},
+            timeout_s=min(600, contract['subnode_limits']['time_s']))
+
+    async def builder_action(self, contract, *, action, arguments, ordinal, model_ordinal):
+        return await self.rpc.call('builder_action',{**self._request(contract),'action':action,
+            'arguments':arguments,'ordinal':ordinal,'model_ordinal':model_ordinal},
+            timeout_s=min(600,contract['subnode_limits']['time_s']))
 
 
 async def serve():

@@ -19,6 +19,7 @@ def main():
     try:
         status = dict(line.split(':', 1) for line in open('/proc/self/status', encoding='utf-8') if ':' in line)
         proof['cap_effective'] = status['CapEff'].strip()
+        proof['cpu_affinity'] = sorted(os.sched_getaffinity(0))
         proof['no_new_privileges'] = status['NoNewPrivs'].strip()
         if (proof['executor_uid'] != expected['uid'] or proof['executor_gid'] != expected['gid']
                 or int(proof['cap_effective'], 16) != 0 or proof['no_new_privileges'] != '1'

@@ -1,5 +1,7 @@
 # Capability capsules
 
+- [Builder upgrade branch](builder-upgrade.md): bounded edits, protected development tests, independent checks and Benchmark handoff.
+- [Builder before the upgrade](builder-current-flow.md): inspected M1 baseline at `60f65abe`.
 - [Core typed Planner for M1](typed-planner-m1.md): catalog assembly, bounded correction, checks, gates and operation.
 - [Capability admission and interoperability](capability-dag.md): optional capsule candidates and trust boundaries.
 - [Development process](development.md): building and independently checking a candidate.

@@ -185,6 +185,9 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     if record['schema'] == 'ai4r-science-runtime:3':
         from .trusted_scoring import RootClassificationScorer
         scorer = RootClassificationScorer(store, record['scoring_profile'])
+    elif record['schema'] == 'ai4r-science-runtime:4':
+        from .trusted_pi import RootPiScorer
+        scorer = RootPiScorer(store, record['scoring_profile'])
     adapter = ScienceExecutionAdapter(store, science_profile, approved_environments=entries,
         workspace_allocator=lambda binding, sequence, role: allocate_science_workspace(base / "work", binding, sequence, role),
         hardware_capture=capture_hardware, provision_runner=provision, scorer=scorer)
@@ -200,13 +203,23 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     executor.environment_verifier = adapter.environment_verifier
     executor.score_result = adapter.score_result
     executor.read_blob = store.read_blob
+    from .builder_testing import BuilderTestService
+    def register_builder_job(job, binding):
+        issued[job.job_id] = (copy.deepcopy(job), copy.deepcopy(binding))
+    executor.builder_test_service = BuilderTestService(store, adapter, executor,
+        authorize_binding, register_builder_job)
+    from .builder_agent_host import BuilderAgentHost
+    executor.builder_agent_service = BuilderAgentHost(store, adapter, executor,
+        authorize_binding, register_builder_job)
+    executor.builder_input_resolver = lambda contract: decode_inputs(store, contract)
     executor.tool_free_builder = False
+    executor.builder_test_required = False
     for mapping in record['execution_bindings']:
         declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
         if (declared['identity']['name'] == 'research.builder'
-                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13'}
+                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13', 'm1-14', 'm1-15', 'm1-16'}
                 and declared['needs']['model']['tool_calling'] is False
-                and declared['budget']['per_call']['tool_calls'] == 0):
+                and (declared['budget']['per_call']['tool_calls'] == 0 or declared['identity']['version_label'] in {'m1-14','m1-15','m1-16'})):
             from .capsules.assets import load_research_catalog
             authored = load_research_catalog()['stages']['builder']
             if mapping['declaration_ref'] != authored['declaration_ref']:
@@ -215,6 +228,13 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
             if admitted['status'] != 'admitted' or admitted['candidate_ref'] != mapping['declaration_ref']:
                 raise ExecutorBlocked('TOOL_FREE_BUILDER_ADMISSION_REQUIRED')
             executor.tool_free_builder = True
+            executor.builder_test_required = declared['identity']['carrier']['ref'] == 'builder_loop.py'
+            if executor.builder_test_required and mapping['operations'] != ['builder_test']:
+                raise ExecutorBlocked('BUILDER_TEST_OPERATION_MAPPING_REQUIRED')
+            if declared['identity']['version_label'] in {'m1-14','m1-15','m1-16'}:
+                executor.builder_agent_required = True
+                if mapping['operations'] != ['builder_action']:
+                    raise ExecutorBlocked('BUILDER_AGENT_OPERATION_MAPPING_REQUIRED')
     if authorize_builder is not None:
         from .builder_launcher import create_builder_launcher
         try:

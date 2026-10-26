@@ -1,5 +1,7 @@
 # Final M1 source integration — October 23, 2026
 
+Builder upgrade branch: `builder/bounded-build-test-20261023` now uses the native agent loop with protected development actions and a separately pinned Pi benchmark. See [scope, design amendment and verification](../../docs/capsules/agentic-builder.md). This candidate is not merged into `ai4r_M1` or live runtime-qualified. The earlier three-candidate implementation and its tests remain historical evidence.
+
 The new upstream AI4R baseline `125dafc57437700dc32005f5e2403a0aa00a519f`
 is combined with the reviewed deployment, required typed Planner, four optional
 capsule candidates and capsule development guidance. The final integration branch
