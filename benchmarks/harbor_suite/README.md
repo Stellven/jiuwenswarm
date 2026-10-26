@@ -32,6 +32,11 @@ CC01 `evaluate-boundary` and CC02 `valid-pinned` have passed individual live
 development trials at the recorded checkpoint. Other variants still require
 their documented bindings/resources. The complete suite is not yet validated.
 
+For a public-input Codex-generated cache worker and real local fault analogues,
+see [Pipeline02 baseline protocol](STANDALONE-PIPELINE02.md) and
+[results](STANDALONE-PIPELINE02-RESULTS.md). Native AI4Research acceptance remains
+separate from these standalone common-behavior checks.
+
 ## 1. Set up and extract the cases
 
 Use Python 3.12 and Harbor **0.24.0**. A Linux controller with Docker is
