@@ -1,0 +1,51 @@
+{
+  "command": [
+    "/opt/venv/bin/python",
+    "-m",
+    "pytest",
+    "-o",
+    "addopts=",
+    "-o",
+    "log_cli=false",
+    "-p",
+    "no:cacheprovider",
+    "-W",
+    "ignore::SyntaxWarning",
+    "-q",
+    "tests/unit_tests/research/test_generalist_capsule.py",
+    "tests/unit_tests/research/test_table_normalize_capsule.py",
+    "tests/unit_tests/research/test_calculate_capsule.py",
+    "tests/unit_tests/research/test_markdown_report_capsule.py",
+    "--tb=short",
+    "--junitxml=/evidence/junit.xml"
+  ],
+  "counts": {
+    "errors": 0,
+    "failures": 0,
+    "passed": 38,
+    "skipped": 0,
+    "tests": 38
+  },
+  "elapsed_s": 5.583655218999411,
+  "exit_code": 0,
+  "files": {
+    "junit.xml": "dfc58a9e9b84a876cdbd010284203c8a2e22383ef104c1b1b914924ba77a2fee",
+    "launch.json": "dfe7c7cb2e795249a2fe8766cea6f47172b802939a690cf57d23faa47fc3dedd",
+    "pytest.log": "757bbc66fa6c7e5b0a9f35168a4545f75ea229a5a10bbf28670cdf45d4aa1b49",
+    "source-manifest.json": "fe66eb86279a85488216a6d0c8a4cc3617a1084cf12e2868155c3a1f5d245fd2"
+  },
+  "group": "capabilities",
+  "python": "3.12.15 (main, Oct  6 2026, 02:02:31) [GCC 12.2.0]",
+  "schema": "ai4r-development-checks:1",
+  "scope": "Development mechanics; controlled model responses except completion profile inspection; no live model-quality claim",
+  "source_changes": [],
+  "source_manifest_sha256": "0498c8e5341a87deb9739c630bd49e4a0f6e60c45cf85eb217d015d8baf697fb",
+  "status": "passed",
+  "targets": [
+    "tests/unit_tests/research/test_generalist_capsule.py",
+    "tests/unit_tests/research/test_table_normalize_capsule.py",
+    "tests/unit_tests/research/test_calculate_capsule.py",
+    "tests/unit_tests/research/test_markdown_report_capsule.py"
+  ],
+  "timeout_s": 600
+}

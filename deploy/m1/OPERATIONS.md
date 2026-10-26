@@ -173,6 +173,19 @@ human responsibilities. Routine invocations require no further browser driving.
 
 ## Isolated capability and verifier checks
 
+Prefer [check-capsules.ps1](check-capsules.ps1) for retained, bounded checks:
+
+```powershell
+./deploy/m1/check-capsules.ps1 -Group all -Build
+./deploy/m1/check-capsules.ps1 -Group capabilities -RepeatCount 2
+./deploy/m1/check-capsules.ps1 -Group replay
+```
+
+It saves commands, image/source identities, logs, JUnit and result counts. See
+[the reproduction guide](../../docs/capsules/reliability-reproduction.md) for
+individual tests, failure controls and the limits of the recorded results.
+The direct commands below remain available.
+
 Build the existing verification target once. The following PowerShell commands
 run individual capsules and their independent checks, without a research DAG,
 login or network. Python and test dependencies stay in the image.

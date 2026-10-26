@@ -1,5 +1,13 @@
 # M1 Docker development and test preparation
 
+**October 26 reliability update:** the interrupted-attempt custody gap is fixed;
+all 31 status/recovery checks and the combined 215 selected development checks
+pass. The previously recorded legacy failures below are historical. Use the
+[reproduction guide](reliability-reproduction.md) for exact commands, source/image
+identities, negative controls and current limits. The rebuilt app passed
+authenticated readiness and status retrieval; live Pi/scientific acceptance
+remains pending.
+
 The October 25 user decision selects ordinary generated processes **inside the
 app container**. M2 lab sandboxing is deferred. This replaces the nested
 bubblewrap/cgroup prerequisite for newly captured M1 runs; retained sandboxed

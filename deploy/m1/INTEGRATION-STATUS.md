@@ -1,5 +1,12 @@
 # Final M1 source integration — October 23, 2026
 
+**October 26 reliability update:** [reproducible Docker checks](../../docs/capsules/reliability-reproduction.md)
+record 215 selected passing tests, including 31 status/recovery cases and the
+interrupted-child custody fix. The app was rebuilt; authenticated readiness and
+existing completed-run status passed. This supersedes the old pending status-test
+failure. Live isolated semantic quality, accepted Pi/timings and full scientific
+acceptance remain separate and pending.
+
 **October 25 update:** [current M1 Docker execution](../../docs/capsules/m1-local-process.md) supersedes the separate-Builder and nested-sandbox status below. All feature histories are merged into the integration line. The user selected ordinary jobs inside the app container for M1; OpenJiuwen owns agents and Codex supplies governed text completions. Current source checks and image startup are recorded separately from pending authenticated scientific acceptance. Earlier sections retain their original dates and scope.
 
 Builder upgrade branch: `builder/bounded-build-test-20261023` now uses the native agent loop with protected development actions and a separately pinned Pi benchmark. See [scope, design amendment and verification](../../docs/capsules/agentic-builder.md). This candidate is not merged into `ai4r_M1` or live runtime-qualified. The earlier three-candidate implementation and its tests remain historical evidence.

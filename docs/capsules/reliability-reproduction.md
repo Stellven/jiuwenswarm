@@ -70,3 +70,24 @@ in [the M1 execution note](m1-local-process.md). Live repeated single-capsule
 quality testing still needs the protected E2/E3 profile/assets/runtime authoring
 path. The current product capture has no evaluation profile; passing development
 checks do not activate one or turn test outputs into product results.
+
+## Recorded October 26 result
+
+Source `176a0ae8` passed **215 selected tests**, with no failures, errors or skips:
+capabilities 38; replay 8; status/recovery 31; Planner 26; Builder 42;
+Benchmark/protocol 32; completion boundary 28; M1 executor/provenance 10.
+The groups partition this run; earlier overlapping totals are not added.
+[Exact receipt and evidence](verification-20261026/reliability/summary.json).
+
+Both negative controls behaved as required: a 10-second group timeout returned
+124; a temporary source change invalidated a test-passing run and returned 2.
+The probe was removed. Earlier two capability repetitions each passed 38 checks
+on matching captured source, before the final custody correction.
+
+The app image was rebuilt and restarted. Authenticated readiness and status of
+the existing completed PDF run passed without new model calls. Wait for app
+initialization before issuing a runner grant: native startup replaces the parent
+session and revokes earlier grants. An early grant in this check returned HTTP401;
+a fresh scoped grant after startup passed. Keep credentials in the private volume
+and use the existing issuer/refresh mechanism. A successful frontend HTTP200
+alone does not establish authenticated research readiness.
