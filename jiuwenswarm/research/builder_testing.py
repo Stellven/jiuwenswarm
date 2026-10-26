@@ -20,6 +20,7 @@ from .environment import parse_requirements
 from .executor import ExecutionJob, InvocationBinding, ReadonlyMount
 from .state import json_bytes
 from .trusted_scoring import parse_predictions, parse_public_dataset
+from .process_evidence import validate_process_evidence
 
 
 SCHEMA = 'ai4r-builder-test:1'
@@ -140,6 +141,13 @@ class BuilderTestService:
                 or raw.get('job_id') != job.job_id):
             raise ResearchError('builder_test_runtime', 'Kernel receipt is not joined to this exact test invocation')
         limits = raw.get('observed_limits', {})
+        if raw.get('execution_mode') == 'm1_app_process':
+            if not validate_process_evidence(self.store, raw, expected_uid=self.executor.uid,
+                    expected_gid=self.executor.gid, contract_ref=dict(binding.contract_ref),
+                    invocation_id=binding.invocation_id, job_id=job.job_id,
+                    expected_runtime_ref=getattr(self.adapter, 'runtime_ref', None)):
+                raise ResearchError('builder_test_process', 'M1 process evidence is not joined to its frozen runtime and invocation')
+            return self.store.read_record(limits['process_observation_ref'])
         proof_ref = limits.get('isolation_probe_ref')
         proof = self.store.read_record(proof_ref) if isinstance(proof_ref, dict) else None
         try:

@@ -7,6 +7,8 @@ services:
       target: production
       platforms: [linux/amd64, linux/arm64]
     init: true
+    mem_limit: 4g
+    pids_limit: 256
     read_only: true
     cap_drop: [ALL]
     cap_add: [SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE, KILL]
@@ -18,10 +20,11 @@ services:
       JIUWENSWARM_M1_REUSABLE_BOOTSTRAP: ${AI4R_REUSABLE_LOGIN:-0}
       JIUWENSWARM_M1_LOCAL_WORKSPACE: ${AI4R_LOCAL_WORKSPACE:-0}
       JIUWENSWARM_M1_LOCAL_CHAT: ${AI4R_LOCAL_CHAT:-0}
-      JIUWENSWARM_M1_LOCAL_RESEARCH: ${AI4R_LOCAL_RESEARCH:-0}
+      JIUWENSWARM_M1_LOCAL_RESEARCH: ${AI4R_LOCAL_RESEARCH:-1}
+      AI4R_EXECUTION_MODE: m1_app_process
       JIUWENSWARM_M1_ORIGIN: ${JIUWENSWARM_M1_ORIGIN:-http://127.0.0.1:5173}
       JIUWENSWARM_M1_BIND_ADDRESS: ${AI4R_BIND_ADDRESS:-127.0.0.1}
-      JIUWENSWARM_M1_CONFIG: /etc/ai4r/config.yaml
+      JIUWENSWARM_M1_CONFIG: /var/lib/ai4r/operator/local-research-unified-v4/config.json
       JIUWENSWARM_M1_STATE: /var/lib/ai4r
       JIUWENSWARM_M1_ACCOUNTS: /var/lib/ai4r-accounts
       JIUWENSWARM_DATA_DIR: /var/lib/ai4r/native
@@ -34,11 +37,6 @@ services:
         host_ip: ${AI4R_BIND_ADDRESS:-127.0.0.1}
         protocol: tcp
     volumes:
-      - type: bind
-        source: ${AI4R_OPERATOR_CONFIG:-./config.local.yaml}
-        target: /etc/ai4r/config.yaml
-        read_only: true
-        bind: {create_host_path: false}
       - state:/var/lib/ai4r
       - accounts:/var/lib/ai4r-accounts
       - ipc:/run/ai4r
@@ -51,6 +49,7 @@ services:
       - /run/ai4r-supervisor:rw,nosuid,nodev,size=1m,mode=0700
       - /run/ai4r-executor:rw,nosuid,nodev,size=8m,mode=0710,gid=10001
       - /run/ai4r-store:rw,nosuid,nodev,size=64m,mode=0710,gid=10001
+      - /resources:rw,nosuid,nodev,size=128m,mode=0711,uid=0,gid=0
     networks: [private]
     labels:
       ai4r.owner: ${AI4R_JOB_ID:-operator-m1}

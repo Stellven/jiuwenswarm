@@ -17,6 +17,7 @@ class FakeTransport:
         self.counter = 0
         self.fail_turn = False
         self.hold_turn = False
+        self.turn_items = []
 
     async def start(self):
         pass
@@ -41,7 +42,10 @@ class FakeTransport:
             return {"data": [{"id": "fixture", "model": "fixture", "displayName": "Fixture", "isDefault": True}], "nextCursor": None}
         if method == "thread/start":
             self.counter += 1
-            return {"thread": {"id": f"thread-{self.counter}"}}
+            result = {"thread": {"id": f"thread-{self.counter}"}}
+            if params.get("model") is not None:
+                result["model"] = params["model"]
+            return result
         if method == "thread/resume":
             return {"thread": {"id": params["threadId"]}}
         if method == "turn/start":
@@ -53,7 +57,7 @@ class FakeTransport:
             self.emit("item/agentMessage/delta", {"threadId": "foreign", "turnId": turn, "delta": "LEAK"})
             self.emit("item/agentMessage/delta", {"threadId": tid, "turnId": turn, "delta": "Hello"})
             if not self.hold_turn:
-                self.emit("turn/completed", {"threadId": tid, "turn": {"id": turn, "status": "completed"}})
+                self.emit("turn/completed", {"threadId": tid, "turn": {"id": turn, "status": "completed", "items": self.turn_items}})
             return {"turn": {"id": turn}}
         if method == "turn/interrupt":
             self.emit("turn/completed", {"threadId": params["threadId"], "turn": {"id": params["turnId"], "status": "interrupted"}})
@@ -74,8 +78,8 @@ class SubscriptionTests(unittest.IsolatedAsyncioTestCase):
         return [event async for event in self.service.stream(sid, rid, "Hi")]
 
     async def test_governed_calls_always_create_fresh_threads_without_chat_bindings(self):
-        first = await self.service.invoke_governed("one", model="fixture", timeout_s=1)
-        second = await self.service.invoke_governed("two", model="fixture", timeout_s=1)
+        first = await self.service.invoke_governed("one", timeout_s=1)
+        second = await self.service.invoke_governed("two", timeout_s=1)
         self.assertEqual(first["text"], "Hello")
         self.assertEqual(second["text"], "Hello")
         self.assertNotEqual(first["thread_id"], second["thread_id"])
@@ -89,7 +93,7 @@ class SubscriptionTests(unittest.IsolatedAsyncioTestCase):
     async def test_governed_deadline_is_whole_call_and_does_not_replay(self):
         self.transport.hold_turn = True
         with self.assertRaisesRegex(CodexError, "RUNTIME_TIMEOUT"):
-            await self.service.invoke_governed("one", model="fixture", timeout_s=0.02)
+            await self.service.invoke_governed("one", timeout_s=0.02)
         self.assertEqual(sum(m == "turn/start" for m, _ in self.transport.calls), 1)
         self.assertTrue(any(m == "turn/interrupt" for m, _ in self.transport.calls))
         self.assertFalse(self.service.active)
@@ -134,7 +138,7 @@ class SubscriptionTests(unittest.IsolatedAsyncioTestCase):
 
         self.transport.hold_turn = True
         self.transport.request = request
-        result = await self.service.invoke_governed("one", model="fixture", timeout_s=1)
+        result = await self.service.invoke_governed("one", model="observed-model", timeout_s=1)
         self.assertEqual(result["usage"]["input_tokens"], 13)
         self.assertEqual(result["usage"]["output_tokens"], 5)
         self.assertIsNone(result["usage"]["cost_amount"])
@@ -178,6 +182,54 @@ class SubscriptionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(events[-1]["event_type"], "chat.final")
         self.assertEqual(events[-1]["content"], "Hello")
         self.assertEqual(events[-1]["session_id"], "one")
+
+    async def test_unexpected_tool_item_in_completed_stream_fails_closed(self):
+        self.transport.turn_items = [{"type": "commandExecution", "command": "echo forbidden"}]
+        with self.assertRaisesRegex(CodexError, "TOOLS_UNAVAILABLE"):
+            await self.collect()
+        self.assertEqual(sum(m == "turn/start" for m, _ in self.transport.calls), 1)
+        self.assertFalse(self.service.active)
+
+    async def test_governed_call_rejects_completed_tool_item_without_returning_text(self):
+        self.transport.turn_items = [{"type": "mcpToolCall", "name": "unexpected"}]
+        with self.assertRaisesRegex(CodexError, "TOOLS_UNAVAILABLE"):
+            await self.service.invoke_governed("one", timeout_s=1)
+        self.assertEqual(sum(m == "turn/start" for m, _ in self.transport.calls), 1)
+        self.assertFalse(self.service.active)
+
+    async def test_tool_activity_event_fails_closed_and_interrupts_owned_turn(self):
+        self.transport.hold_turn = True
+        original = self.transport.request
+
+        async def request(method, params=None):
+            result = await original(method, params)
+            if method == "turn/start":
+                self.transport.emit("item/commandExecution/outputDelta", {
+                    "threadId": params["threadId"], "turnId": result["turn"]["id"], "delta": "unexpected"})
+            return result
+
+        self.transport.request = request
+        with self.assertRaisesRegex(CodexError, "TOOLS_UNAVAILABLE"):
+            await self.collect()
+        self.assertEqual(sum(m == "turn/start" for m, _ in self.transport.calls), 1)
+        # Ordinary stream failures contain by closing this owned runtime; they
+        # do not issue the governed-call interrupt protocol.
+        self.assertFalse(any(m == "turn/interrupt" for m, _ in self.transport.calls))
+        self.assertFalse(self.service.active)
+
+    async def test_reasoning_and_usage_notifications_remain_supported(self):
+        original = self.transport.request
+
+        async def request(method, params=None):
+            result = await original(method, params)
+            if method == "turn/start":
+                self.transport.emit("item/reasoning/summaryTextDelta", {
+                    "threadId": params["threadId"], "turnId": result["turn"]["id"], "delta": "private reasoning"})
+            return result
+
+        self.transport.request = request
+        events = await self.collect()
+        self.assertEqual(events[-1]["content"], "Hello")
 
     async def test_sessions_get_distinct_threads_and_same_session_reuses(self):
         await self.collect("one", "r1")

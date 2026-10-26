@@ -21,7 +21,8 @@ ENTRYPOINT ["python", "-m", "jiuwenswarm.research_router"]
 
 FROM dependencies AS production
 RUN groupadd --gid 11001 benchmark_runner && useradd --uid 11001 --gid 11001 --no-create-home benchmark_runner \
-    && groupadd --gid 11002 benchmark_referee && useradd --uid 11002 --gid 11002 --groups benchmark_runner --no-create-home benchmark_referee
+    && groupadd --gid 11002 benchmark_referee && useradd --uid 11002 --gid 11002 --groups benchmark_runner --no-create-home benchmark_referee \
+    && mkdir -p /results && chown 11001:11001 /results
 WORKDIR /opt/ai4r
 COPY jiuwenswarm/research_sidecar/ ./jiuwenswarm/research_sidecar/
 COPY jiuwenswarm/research_records/ ./jiuwenswarm/research_records/

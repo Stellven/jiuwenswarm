@@ -156,6 +156,7 @@ class ExecutionOperations:
             except (ExecutorBlocked, OSError, ValueError, KeyError):
                 reasons = [*reasons, 'BUILDER_RUNTIME_QUALIFICATION_UNAVAILABLE']
         return {"ready": not reasons, "builder_qualified": builder_qualified,
+                **({'execution_mode': 'm1_app_process'} if getattr(self.backend, 'execution_mode', None) == 'm1_app_process' else {}),
                 "builder_mode": 'native_agent' if agentic else 'bounded_tests' if development else 'tool_free' if tool_free_builder else 'isolated_tools', "reasons": reasons}
 
     async def read_only_prerequisites(self, payload):
@@ -295,8 +296,15 @@ class ExecutionOperations:
                 await asyncio.gather(*tasks, return_exceptions=True)
         if self.backend is not None:
             invocations = set(grant['invocation_ids'])
+            if getattr(self.backend, 'execution_mode', None) == 'm1_app_process':
+                from .m1_process import process_members
+                for observation in self.backend.owned_groups.values():
+                    if observation['invocation_id'] in invocations and process_members(observation['pgid']):
+                        raise ExecutorBlocked('M1_PROCESS_CLEANUP_UNCONFIRMED')
             for observation in self.backend.owned_groups.values():
                 if observation['invocation_id'] not in invocations:
+                    continue
+                if observation.get('execution_mode') == 'm1_app_process':
                     continue
                 group = observation['path']
                 if not group.exists():

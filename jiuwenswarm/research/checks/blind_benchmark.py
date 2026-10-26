@@ -8,6 +8,7 @@ from ..contracts import ResearchError, validate
 from ..environment import validate_lock
 from ..metric_contract import validate_metric_declarations, validate_empirical_metric_ids
 from ..trusted_scoring import BUILD_SCHEMA, SCORE_KIND, scored_empirical_row, failed_empirical_row
+from ..process_evidence import validate_process_evidence
 
 
 class BlindBenchmarkChecks(ResearchChecks):
@@ -57,4 +58,9 @@ class BlindBenchmarkChecks(ResearchChecks):
                 actual = failed_empirical_row(raw)
             validate_empirical_metric_ids(actual)
             require(actual == row, 'values_match_empirical_results')
-            require(raw['observed_limits'].get('network') == 'none', 'network_policy_respected')
+            if raw.get('execution_mode') == 'm1_app_process':
+                require(validate_process_evidence(ctx.store, raw, expected_uid=10002, expected_gid=10002,
+                    contract_ref=ctx.observation['contract_ref'], invocation_id=ctx.observation.get('invocation_id'),
+                    job_id=raw.get('job_id')), 'raw_repeats_present')
+            else:
+                require(raw['observed_limits'].get('network') == 'none', 'network_policy_respected')

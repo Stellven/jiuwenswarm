@@ -288,19 +288,28 @@ class ScienceAttemptBroker:
 
     def observe_kernel(self,event,job,group,pid):
         """Durable group ownership is captured BEFORE any child gate opens."""
-        _require(event in {'group_created','process_created'},'UNKNOWN_KERNEL_LIFECYCLE_EVENT')
+        process_mode = self.registration.backend.execution_mode == 'm1_app_process'
+        _require(event in ({'process_scope_prepared','process_created'} if process_mode else
+                          {'group_created','process_created'}),'UNKNOWN_KERNEL_LIFECYCLE_EVENT')
         rows=self.ledger.db.execute('SELECT * FROM preparations').fetchall()
         matches=[row for row in rows if (binding:=json.loads(row['binding']))['invocation_id']==job.invocation_id
                  and binding['contract_ref']==dict(job.contract_ref)]
         _require(len(matches)==1,'KERNEL_JOB_HAS_NO_EXACT_ACTIVATED_OWNER')
         binding=json.loads(matches[0]['binding']);lease=self.ledger.require_effect(binding)
         root=self.registration.backend.cgroup_root
-        _require(root is not None and group.parent==root and group.name==job.job_id and not group.is_symlink(),
-                 'KERNEL_GROUP_IDENTITY_INVALID')
+        if process_mode:
+            roots = (self.registration.backend.workspace_root, *self.registration.backend.preparation_roots)
+            _require(group.name == job.job_id+'.capture' and not group.is_symlink()
+                and any(group.is_relative_to(path) for path in roots)
+                and group.stat().st_uid == 0 and stat.S_IMODE(group.stat().st_mode) == 0o700,
+                'M1_PROCESS_SCOPE_IDENTITY_INVALID')
+        else:
+            _require(root is not None and group.parent==root and group.name==job.job_id and not group.is_symlink(),
+                     'KERNEL_GROUP_IDENTITY_INVALID')
         metadata=group.stat()
         with self.ledger.transaction() as db:
             row=db.execute('SELECT * FROM jobs WHERE id=?',(job.job_id,)).fetchone()
-            if event=='group_created':
+            if event in {'group_created','process_scope_prepared'}:
                 _require(row is None,'KERNEL_JOB_REPLAY_DENIED')
                 db.execute('INSERT INTO jobs(id,lease_id,invocation_id,group_path,group_device,group_inode) VALUES(?,?,?,?,?,?)',
                            (job.job_id,lease,job.invocation_id,str(group),metadata.st_dev,metadata.st_ino))
@@ -329,6 +338,23 @@ class ScienceAttemptBroker:
         if self.active_operations is None or any(run==json.loads(lease['parent_identity'])[0]
                                                 for run in self.active_operations.values()):return False
         jobs=self.ledger.db.execute('SELECT * FROM jobs WHERE lease_id=?',(lease['id'],)).fetchall()
+        if backend.execution_mode == 'm1_app_process':
+            from .m1_process import process_members
+            if not jobs:
+                return lease['state']=='held' and lease['broker_instance']==self.instance
+            for job in jobs:
+                scope = Path(job['group_path'])
+                if scope.is_symlink() or not scope.is_dir() or scope.stat().st_ino != job['group_inode']:
+                    return False
+                marker = scope/'finished.json'
+                if not marker.is_file() or marker.is_symlink() or marker.stat().st_uid != 0:
+                    return False
+                finished = json.loads(marker.read_text())
+                if (finished.get('job_id') != job['id'] or finished.get('pgid') != job['pid']
+                        or finished.get('invocation_id') != job['invocation_id']
+                        or finished.get('process_group_cleanup') is not True or process_members(job['pid'])):
+                    return False
+            return True
         if not jobs:
             if (type(lease['effects_started']) is not int or lease['effects_started']!=0
                     or any(item['invocation_id'] in invocations for item in backend.owned_groups.values())):

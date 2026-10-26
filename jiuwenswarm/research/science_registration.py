@@ -72,6 +72,10 @@ class InstalledScienceRuntime:
             _require(callable(getattr(self._agent_service,'action',None)),'BUILDER_AGENT_SERVICE_UNAVAILABLE')
 
     def _current(self):
+        _require(self.backend.execution_mode == self.definition.record.get('execution_mode','restricted'),
+                 'SCIENCE_EXECUTION_MODE_CHANGED')
+        if self.backend.execution_mode == 'm1_app_process':
+            _require(self.backend.runtime_ref == self.runtime_ref, 'SCIENCE_RUNTIME_CAPTURE_CHANGED')
         _require(os.geteuid()==0 and self.store is self._installed_store
                  and self.backend is self._installed_backend
                  and self.runtime_ref==self._runtime_pin and self.definition is self._definition_pin

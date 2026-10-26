@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-16', benchmark='m1-8-agent-pi', evaluation='m1-5', delivery='m1-5')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-17', benchmark='m1-9-agent-pi', evaluation='m1-5', delivery='m1-5')
 
 
 def source_metadata():
@@ -72,11 +72,11 @@ def build_research_assets(store, *, verify_catalog=True):
         if stage == 'benchmark':
             for name in ('benchmark.py', 'pi_benchmark.py'):
                 body[name] = (root / 'capsules' / name).read_bytes()
-            for name in ('trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py'):
+            for name in ('trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py', 'process_evidence.py'):
                 body[name] = (root / name).read_bytes()
         if stage == 'builder':
             for name in ('builder_agent_runtime.py', 'builder_agent_service.py', 'builder_agent_host.py',
-                         'builder_testing.py', 'native.py', 'pi_protocol.py', 'trusted_pi.py', 'trusted_scoring.py'):
+                         'builder_testing.py', 'process_evidence.py', 'm1_process.py', '_m1_process_child.py', 'native.py', 'pi_protocol.py', 'trusted_pi.py', 'trusted_scoring.py'):
                 body[name] = (root / name).read_bytes()
         stage_runner_ref = runner_ref
         if stage == 'hypothesis':
@@ -86,6 +86,7 @@ def build_research_assets(store, *, verify_catalog=True):
             stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.prediction_hypothesis', 'files': closure}), media_type='application/json')
         if stage == 'builder':
             declaration['needs']['resources'] = [{'resource_key': 'poc_workspace', 'mode': 'write'}]
+            declaration['needs']['network'] = {'mode': 'none', 'direction': 'none', 'allowlist': []}
             declaration['needs']['model']['tool_calling'] = False
             declaration['budget']['per_call']['tool_calls'] = 40
             declaration['budget']['per_call']['invocations'] = 20
@@ -112,7 +113,7 @@ def build_research_assets(store, *, verify_catalog=True):
                         'once. The patch returns string labels aligned with the test rows. Public data.json '
                         'contains feature_names, classes, labeled train rows and unlabeled test feature rows; '
                         'it contains no held-out labels. Generated code emits no metrics or accuracy; a separately '
-                        'installed root scorer computes accuracy after sandbox exit against a private holdout '
+                        'installed root scorer computes accuracy after generated-process exit against a private holdout '
                         'that is absent from model/worker/generated-code inputs and mounts. No classifier or '
                         'expected score is prescribed. It must not invoke the baseline, nest cross-role/repeat '
                         'experiments or average repeated measurements. Its visible validation path and seed '
@@ -123,7 +124,7 @@ def build_research_assets(store, *, verify_catalog=True):
                         ' The separately registered Pi task uses approximate_pi(digits), returning exactly the truncated decimal prefix; its harness emits closed digits/decimal JSON. Private reference answers remain in root custody.')
             closure = dict(checker_closure, **metric_closure)
             for name in ('checks/builder_agent.py', 'checks/prediction_bundle.py', 'pi_protocol.py',
-                         'trusted_pi.py', 'trusted_scoring.py', 'environment.py'):
+                         'trusted_pi.py', 'trusted_scoring.py', 'environment.py', 'process_evidence.py'):
                 closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
             closure['schemas/prediction-build-receipt.v4.schema.json'] = store.put_blob((root.parent / 'research_contracts/schemas/prediction-build-receipt.v4.schema.json').read_bytes(), media_type='application/json')
             stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.builder_agent', 'files': closure}), media_type='application/json')
@@ -137,7 +138,7 @@ def build_research_assets(store, *, verify_catalog=True):
             for port in declaration['ports']['outputs']:
                 port['description'] = ('Schema-routed protocol, with classification as the default: generated baseline/treatment stdout contains '
                     'predictions only, never authoritative metrics. Root computes accuracy=correct_count/sample_count '
-                    'after sandbox exit with private held-out labels unavailable to models, workers and generated '
+                    'after generated-process exit with private held-out labels unavailable to models, workers and generated '
                     'code. Public raw stdout refs remain the exact original predictions. Protected scoring receipt '
                     'Refs in benchmark_payload.raw_evidence_refs separately identify trusted observations and join '
                     'job/contract/sequence/role/seed/dataset/stream/scorer identities. Unmeasured jobs retain explicit '
@@ -147,7 +148,7 @@ def build_research_assets(store, *, verify_catalog=True):
             closure = dict(checker_closure, **metric_closure)
             for name in ('checks/benchmark_dispatch.py', 'checks/blind_benchmark.py', 'checks/pi_benchmark.py',
                          'capsules/benchmark_dispatch.py', 'capsules/benchmark.py', 'capsules/pi_benchmark.py',
-                         'trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py'):
+                         'trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py', 'process_evidence.py'):
                 closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
             for name in ('classification-scoring-receipt.schema.json', 'prediction-build-receipt.v2.schema.json', 'prediction-build-receipt.v3.schema.json', 'prediction-build-receipt.v4.schema.json', 'pi-benchmark-payload.schema.json'):
                 closure['schemas/' + name] = store.put_blob((root.parent / 'research_contracts/schemas' / name).read_bytes(), media_type='application/json')
@@ -188,6 +189,9 @@ def build_research_assets(store, *, verify_catalog=True):
                 body[name] = resources.joinpath(name).read_bytes()
             if body['ranking_parent.txt'] != (root / 'capsules/ranking.py').read_bytes():
                 raise ResearchError('helper_pin_mismatch', 'Installed pure helper differs from the packaged admitted body')
+        if stage in {'builder','benchmark'}:
+            for port in declaration['ports']['outputs']:
+                port['description'] += ' M1 may execute ordinary non-root processes within the app container. Network and namespaces are shared with the app; per-job cgroup isolation is not claimed. The frozen runtime and protected execution records identify the selected enforcement mode.'
         if metric_closure:
             if stage == 'builder':
                 description = ' Classification tasks only:' + description + ' The separately frozen Pi task instead uses its exact declared precision and elapsed-time protocol.'
@@ -301,17 +305,17 @@ def build_pi_benchmark_asset(store, *, base=None, verify_catalog=True):
     """Explicit separate Pi release; default M1 consumer contracts stay intact."""
     base=base or build_research_assets(store,verify_catalog=verify_catalog)['benchmark']
     declaration=copy.deepcopy(store.read_record(base['declaration_ref']))
-    declaration['identity']['version_label']='pi-m1-2'
+    declaration['identity']['version_label']='pi-m1-3'
     declaration['identity']['summary']='Frozen Pi benchmark: independent root reference, baseline-first fresh processes and protected timing'
     for port in declaration['ports']['outputs']:
         port['description'] = 'Pi benchmark output under the frozen host precision profile; baseline-first fresh processes, protected elapsed time, exact prefix correctness and retained execution evidence. This output does not use classification metrics.'
         if port['name']=='benchmark_payload':port['schema_ref']='urn:ai4r:pi-benchmark-payload:1.0.0'
     bundle=copy.deepcopy(store.read_record(base['bundle_ref']))
-    bundle.update(id='research.benchmark.checks:pi-m1-2',target_cc_version_range='pi-m1-2')
+    bundle.update(id='research.benchmark.checks:pi-m1-3',target_cc_version_range='pi-m1-3')
     # Bundle IDs must be distinct when both versions are installed together.
     bundle['bundle_id']='research.benchmark.pi.checks'
     profile=copy.deepcopy(store.read_record(base['profile_ref']))
-    profile.update(id='research.benchmark.profile:pi-m1-2',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-2')
+    profile.update(id='research.benchmark.profile:pi-m1-3',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-3')
     from ..checks.schema_context import frozen_output_instructions
     instructions=files('jiuwenswarm.research').joinpath('resources/capsules/verifier_implementation.txt').read_bytes()
     profile['instruction_ref']=store.put_blob(frozen_output_instructions(instructions,declaration),media_type='text/plain')
@@ -331,7 +335,7 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
     handlers = {'search': search.execute, 'hypothesis': hypothesis.execute, 'builder': builder_agent.execute,
                 'benchmark': benchmark_dispatch.execute, 'evaluation': evaluation.execute, 'delivery': delivery.execute}
     selected=list(assets.items())
-    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-2'
+    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-3'
            and row['standing']=='active' for row in library.entries()):
         selected.append(('benchmark',build_pi_benchmark_asset(store,base=assets['benchmark'])))
     for stage, asset in selected:

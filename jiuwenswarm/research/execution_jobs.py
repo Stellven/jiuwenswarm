@@ -27,6 +27,7 @@ from .contracts import ResearchError, contract_schema, validate
 from .environment import inspect_wheel, normalize_name, validate_lock, verify_inventory
 from .executor import ExecutionJob, InvocationBinding, PreparedEnvironment, ReadonlyMount
 from .inspection import safe_named_path
+from .process_evidence import validate_process_evidence
 from .state import json_bytes, utc_now
 
 
@@ -208,6 +209,14 @@ class ScienceExecutionAdapter:
         refs = [observed['stdout_ref'], observed['stderr_ref']]
         for ref in refs: self.store.read_blob(ref)
         limits = observed['observed_limits']
+        if observed.get('execution_mode') == 'm1_app_process':
+            if not validate_process_evidence(self.store, observed, expected_uid=10002, expected_gid=10002,
+                    contract_ref=dict(binding.contract_ref), invocation_id=binding.invocation_id,
+                    job_id=job.job_id, expected_runtime_ref=getattr(self, 'runtime_ref', None)):
+                raise ResearchError('unavailable', 'M1 provisioning process evidence is not joined to its frozen runtime')
+            if observed['exit_code'] != 0 or observed['termination_reason'] != 'completed':
+                raise ResearchError('provisioning_failed', 'Trusted offline provisioning failed', {'evidence_refs': refs})
+            return refs
         proof = self.store.read_record(limits['isolation_probe_ref'])
         if (observed.get('contract_ref') != binding.contract_ref or observed.get('invocation_id') != binding.invocation_id
                 or observed.get('observed_runtime') is not True or proof.get('ready') is not True
@@ -229,7 +238,7 @@ class ScienceExecutionAdapter:
         lock_port = 'lock' if builder_manifest_ref is not None else 'environment_lock'
         if builder_manifest_ref is not None:
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] not in {'m1-13','m1-14','m1-15','m1-16'}:
+            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] not in {'m1-13','m1-14','m1-15','m1-16','m1-17'}:
                 raise ResearchError('auth', 'Development provisioning requires the exact Builder release')
         if pins != dict(lock_pins):
             raise ResearchError('validation', 'Provisioner pins differ from exact complete lock')
@@ -404,7 +413,7 @@ class ScienceExecutionAdapter:
         if pi:
             from .pi_protocol import validate_pi_request
             declaration=self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name']!='research.benchmark' or declaration['identity']['version_label']not in {'pi-m1-1','pi-m1-2'}:
+            if declaration['identity']['name']!='research.benchmark' or declaration['identity']['version_label']not in {'pi-m1-1','pi-m1-2','pi-m1-3'}:
                 raise ResearchError('auth','Pi requires its separately admitted immutable Benchmark release')
             if (blueprint['repeat_count'] != 5 or _input_ref(contract,'validation_resource') != self.scorer.profile['public_dataset_ref']):
                 raise ResearchError('auth','Pi measurements require the exact frozen host task')

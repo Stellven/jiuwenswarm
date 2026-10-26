@@ -122,6 +122,7 @@ def test_missing_cgroup_containment_is_a_prerequisite_failure(tmp_path, monkeypa
     if os.geteuid() != 0:
         pytest.skip("protected containment probe requires root")
     executor = object.__new__(RestrictedExecutor)
+    executor.execution_mode = 'restricted'
     executor.broker = None
     executor.cgroup_root = tmp_path / "empty-cgroup"
     executor.cgroup_root.mkdir()

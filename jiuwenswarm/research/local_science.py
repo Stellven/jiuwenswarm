@@ -135,7 +135,7 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
             'implementation_refs': implementations, 'dependency_refs': dependencies,
             'admission_ref': entry['admission_ref'],
             'operations': ['provision','hardware_inventory','measure_job','run']
-                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if declaration['identity']['version_label'] in {'m1-14','m1-15','m1-16'} else ['builder_test'] if declaration['identity']['carrier']['ref'] == 'builder_loop.py' else ['collect_builder'])})
+                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if declaration['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17'} else ['builder_test'] if declaration['identity']['carrier']['ref'] == 'builder_loop.py' else ['collect_builder'])})
     value = {'schema': 'ai4r-science-runtime:2',
         'build_id': verify_installed_build(), 'gpu_required': False,
         'profile': {'asset_root': '/var/lib/ai4r-executor/assets',
@@ -145,6 +145,11 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
         'approved_environments': approved_environments, 'execution_bindings': bindings}
     if scoring_profile is not None:
         value.update(schema='ai4r-science-runtime:4' if scoring_profile.get('protocol') == 'ai4r-pi:1' else 'ai4r-science-runtime:3', scoring_profile=scoring_profile)
+    mode = os.environ.get('AI4R_EXECUTION_MODE', 'restricted')
+    if mode not in {'restricted','m1_app_process'}:
+        raise ResearchError('configuration','Unsupported scientific execution mode')
+    if mode == 'm1_app_process':
+        value.update(schema='ai4r-science-runtime:5',execution_mode=mode,scoring_profile=scoring_profile)
     # One installed build can legitimately capture distinct protected operator
     # configurations. Name the exact frozen context/body, preserving old records
     # and idempotence without reusing a build-only ID for different bytes.

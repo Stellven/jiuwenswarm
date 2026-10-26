@@ -10,6 +10,7 @@ from ..environment import validate_lock
 from ..trusted_scoring import parse_public_dataset, parse_predictions
 from ..pi_protocol import parse_pi_output
 from .prediction_bundle import inspect_bundle as inspect_predictions
+from ..process_evidence import validate_process_evidence
 
 BUILD_SCHEMA = 'urn:ai4r:prediction-build-receipt:4.0.0'
 DELIVERY_FILES = {'requirements.txt', 'poc_patch.py', 'run_benchmark.py'}
@@ -167,12 +168,18 @@ class AgentBuilderChecks(ResearchChecks):
                         and run.get('termination_reason') == 'completed'
                         and run.get('contract_ref') == journal['contract_ref']
                         and run.get('invocation_id') == journal['invocation_id'], 'bounded_development')
-                proof=ctx.read_json(run.get('observed_limits',{}).get('isolation_probe_ref'))
-                require(proof.get('ready') is True and proof.get('executor_uid')==10002
-                    and proof.get('executor_gid')==10002 and proof.get('no_new_privileges')=='1'
-                    and int(proof.get('cap_effective','-1'),16)==0
-                    and proof.get('network')=='none' and run['observed_limits'].get('network')=='none',
-                    'bounded_development')
+                limits=run.get('observed_limits',{})
+                if run.get('execution_mode') == 'm1_app_process':
+                    require(validate_process_evidence(ctx.store, run, expected_uid=10002, expected_gid=10002,
+                        contract_ref=ctx.observation['contract_ref'], invocation_id=journal['invocation_id'],
+                        job_id=run.get('job_id')), 'bounded_development')
+                else:
+                    proof=ctx.read_json(limits.get('isolation_probe_ref'))
+                    require(proof.get('ready') is True and proof.get('executor_uid')==10002
+                        and proof.get('executor_gid')==10002 and proof.get('no_new_privileges')=='1'
+                        and int(proof.get('cap_effective','-1'),16)==0
+                        and proof.get('network')=='none' and limits.get('network')=='none',
+                        'bounded_development')
                 tested=ctx.read_json(report['manifest_ref'])
                 require(tested['archive_ref']==ctx.output_refs['bundle'] and run['subject_ref']==ctx.output_refs['bundle'],
                     'bounded_development')

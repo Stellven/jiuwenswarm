@@ -288,11 +288,20 @@ class OperatorTests(unittest.TestCase):
         self.assertNotIn('build', app)
         self.assertEqual(app['ports'][0]['published'], '5175')
         self.assertEqual(app['ports'][0]['host_ip'], '127.0.0.1')
+        self.assertEqual(app['environment']['AI4R_EXECUTION_MODE'], 'm1_app_process')
+        self.assertEqual(app['environment']['JIUWENSWARM_M1_LOCAL_RESEARCH'], '1')
+        self.assertEqual(app['mem_limit'], 4 * 1024 ** 3)
+        self.assertEqual(app['pids_limit'], 256)
+        self.assertFalse(any(m.get('target') == '/etc/ai4r/config.yaml' for m in app['volumes']))
+        self.assertFalse(any(m.get('target') == '/run/benchmark-runner' for m in app['volumes']))
+        self.assertTrue(any('/resources:rw,nosuid,nodev,size=128m,mode=0711,uid=0,gid=0' in v for v in app['tmpfs']))
         self.assertEqual(runner['labels']['ai4r.deployment'], self.p['deployment_id'])
         mounts = {m['target']: m for m in runner['volumes']}
         self.assertTrue(mounts['/inputs']['read_only']); self.assertTrue(mounts['/cases']['read_only'])
         self.assertNotIn('docker.sock', json.dumps(rendered))
         self.assertNotIn('/var/lib/ai4r-accounts', json.dumps(runner))
+        self.assertEqual(mounts['/run/benchmark-runner']['type'], 'volume')
+        self.assertEqual(mounts['/results']['type'], 'bind')
         self.assertEqual(runner['logging']['options']['max-size'], '10m')
 
     def test_cli_setup_is_repeatable_without_any_private_runtime(self):

@@ -16,6 +16,36 @@ from .transport import AppServerTransport, CodexError
 from .account_telemetry import safe_limits, missing_fields, READ_SCHEMA_SHA256, UPDATE_SCHEMA_SHA256
 
 
+_TEXT_ONLY_ITEM_TYPES = frozenset({"userMessage", "agentMessage", "reasoning", "plan"})
+
+
+def _validate_text_only_event(method, params):
+    """Reject native tool activity while allowing text, reasoning and usage events."""
+    if method == "turn/completed":
+        turn = params.get("turn")
+        if not isinstance(turn, dict):
+            raise CodexError("INVALID_OUTPUT")
+        items = turn.get("items", [])
+        if not isinstance(items, list):
+            raise CodexError("INVALID_OUTPUT")
+        if any(not isinstance(item, dict) or item.get("type") not in _TEXT_ONLY_ITEM_TYPES for item in items):
+            raise CodexError("TOOLS_UNAVAILABLE")
+        return
+
+    if not method.startswith("item/"):
+        return
+    parts = method.split("/")
+    # Item lifecycle packets are generic; their item type is authoritative.
+    if len(parts) == 2 and parts[1] in {"started", "completed"}:
+        item = params.get("item")
+        if not isinstance(item, dict) or item.get("type") not in _TEXT_ONLY_ITEM_TYPES:
+            raise CodexError("TOOLS_UNAVAILABLE")
+        return
+    # Preserve text/reasoning deltas, reject every other item event family.
+    if len(parts) < 3 or parts[1] not in {"userMessage", "agentMessage", "reasoning", "plan"}:
+        raise CodexError("TOOLS_UNAVAILABLE")
+
+
 class SubscriptionService:
     def __init__(self, root: Path, *, transport=None):
         self.root = root.resolve()
@@ -280,7 +310,7 @@ class SubscriptionService:
                 'usage':observed_usage,'provider_request_id':None,'observed_runtime':True}
 
         def receive(method, params):
-            if params.get("threadId") == run["thread"] or method in {"transport/closed", "account/changed"}:
+            if params.get("threadId") == run["thread"] or method in {"transport/closed", "account/changed", "transport/unsupported-request"}:
                 if queue.full():
                     while not queue.empty():
                         queue.get_nowait()
@@ -329,11 +359,14 @@ class SubscriptionService:
                 run["turn"] = result["turn"]["id"]
                 while True:
                     method, params = await queue.get()
+                    if method == "transport/unsupported-request":
+                        raise CodexError("TOOLS_UNAVAILABLE")
                     if method in {"transport/closed", "account/changed"}:
                         raise CodexError("RUNTIME_DISCONNECTED")
                     turn_id = params.get("turnId") or (params.get("turn") or {}).get("id")
                     if turn_id != run["turn"]:
                         continue
+                    _validate_text_only_event(method, params)
                     if method == "model/rerouted":
                         # Preserve the fact in the exception's stable reason;
                         # never accept an unexpected server-side model change.
@@ -439,7 +472,7 @@ class SubscriptionService:
             self.active[session_id] = run
 
         def receive(method, params):
-            if params.get("threadId") == run["thread"] or method in {"transport/closed", "account/changed"}:
+            if params.get("threadId") == run["thread"] or method in {"transport/closed", "account/changed", "transport/unsupported-request"}:
                 if queue.full():
                     # Stop admission/stream on overflow rather than silently losing
                     # a terminal notification and leaving the UI running forever.
@@ -462,11 +495,14 @@ class SubscriptionService:
                     method, params = await asyncio.wait_for(queue.get(), 180)
                 except asyncio.TimeoutError:
                     raise CodexError("RUNTIME_TIMEOUT") from None
+                if method == "transport/unsupported-request":
+                    raise CodexError("TOOLS_UNAVAILABLE")
                 if method in {"transport/closed", "account/changed"}:
                     raise CodexError("RUNTIME_DISCONNECTED")
                 turn_id = params.get("turnId") or (params.get("turn") or {}).get("id")
                 if turn_id != run["turn"]:
                     continue
+                _validate_text_only_event(method, params)
                 if method == "item/agentMessage/delta":
                     delta = params.get("delta", "")
                     if isinstance(delta, str):

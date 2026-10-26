@@ -120,7 +120,12 @@ class RestrictedExecutor:
                  provisioner=None, hardware_probe=None, builder_collector=None,
                  builder_observer=None, environment_verifier=None, broker=None,
                  preparation_roots=(), authorize_provisioning=None, lifecycle_observer=None,
-                 score_result=None):
+                 score_result=None, execution_mode='restricted', runtime_ref=None):
+        if execution_mode not in {'restricted', 'm1_app_process'}:
+            raise ExecutorBlocked('EXECUTION_MODE_INVALID')
+        self.execution_mode, self.runtime_ref = execution_mode, copy.deepcopy(runtime_ref)
+        self._process_lock = asyncio.Lock()
+        self.process_receipt_capture = None
         self.workspace_root = Path(workspace_root).resolve()
         self.cgroup_root = Path(cgroup_root).resolve() if cgroup_root else None
         self.authorize_job, self.capture = authorize_job, capture
@@ -150,6 +155,10 @@ class RestrictedExecutor:
             return ["LINUX_REQUIRED"]
         if self.broker is None and os.geteuid() != 0:
             reasons.append("PROTECTED_ROOT_BROKER_UNAVAILABLE")
+        if self.execution_mode == 'm1_app_process':
+            if self.runtime_ref is None:
+                reasons.append('M1_FROZEN_RUNTIME_REQUIRED')
+            return reasons
         if not shutil.which("bwrap"):
             reasons.append("BUBBLEWRAP_UNAVAILABLE")
         if self.cgroup_root is None or not self.cgroup_root.is_dir():
@@ -213,6 +222,9 @@ class RestrictedExecutor:
         return result
 
     def _sandbox(self, job):
+        if self.execution_mode == 'm1_app_process':
+            from .m1_process import prepare_command
+            return prepare_command(self, job)
         work = self._workspace(job.cwd)
         argv = tuple(job.argv)
         # No caller shell, package manager, arbitrary executable or escape CWD.
@@ -377,6 +389,16 @@ class RestrictedExecutor:
                     raise ExecutorBlocked('PROVISIONING_DESTINATION_SYMLINK_DENIED')
         for entry in entries:
             os.chown(entry, self.uid, self.gid, follow_symlinks=False)
+        if self.execution_mode == 'm1_app_process':
+            replacements = {'/environment': str(environment), '/wheelhouse': str(wheelhouse),
+                            '/resources/requirements.txt': str(requirements)}
+            command = list(job.argv)
+            for index, argument in enumerate(command):
+                for prefix, target in replacements.items():
+                    if argument == prefix or argument.startswith(prefix+'/'):
+                        command[index] = target+argument[len(prefix):]
+                        break
+            return await self._run_kernel(job, command, output_parent=environment.parent)
         command = [shutil.which('bwrap'), '--unshare-all', '--unshare-user', '--die-with-parent', '--new-session', '--clearenv',
                    '--uid', str(self.uid), '--gid', str(self.gid), '--cap-drop', 'ALL',
                    '--ro-bind', '/usr', '/usr', '--ro-bind', '/usr/local', '/usr/local', '--ro-bind', '/lib', '/lib',
@@ -412,6 +434,13 @@ class RestrictedExecutor:
     async def _run_kernel(self, job, command, *, output_parent, stdin_bytes=None,
                           stdout_line_observer=None, stdout_line_limit=None):
         """Shared broker-only lifecycle: gate, identity drop, cgroup and proof."""
+        if self.execution_mode == 'm1_app_process':
+            from .m1_process import run
+            result = await run(self, job, command, output_parent=output_parent, stdin_bytes=stdin_bytes,
+                stdout_line_observer=stdout_line_observer, stdout_line_limit=stdout_line_limit)
+            if self.process_receipt_capture is not None:
+                await _await(self.process_receipt_capture(copy.deepcopy(result)))
+            return result
         output_limit = getattr(job, 'output_limit_bytes', None)
         if output_limit is not None and (type(output_limit) is not int or not 0 < output_limit <= 8388608):
             raise ExecutorBlocked('OUTPUT_CAPTURE_LIMIT_INVALID')

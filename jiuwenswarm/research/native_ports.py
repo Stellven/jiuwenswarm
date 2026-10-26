@@ -305,8 +305,10 @@ class NativePorts:
         integrated_scope = finite_scope is not None and finite_scope.get('kind') == 'integrated_submission'
         if finite_scope is None:
             prerequisites.append({'name':'builder','status':'ready' if status.get('builder_qualified') is True else 'unavailable',
-                'reason':('Exact admitted tool-free Builder release; generated code executes only in the scientific sandbox'
-                    if status.get('builder_mode') in {'tool_free', 'bounded_tests'} else 'Dedicated Builder runtime, credential separation and confinement were qualified')
+                'reason':('Exact admitted Builder; generated jobs run as ordinary non-root processes in the app container'
+                    if status.get('execution_mode') == 'm1_app_process' else
+                    'Exact admitted tool-free Builder release; generated code executes only in the scientific sandbox'
+                    if status.get('builder_mode') in {'tool_free', 'bounded_tests', 'native_agent'} else 'Dedicated Builder runtime, credential separation and confinement were qualified')
                     if status.get('builder_qualified') is True else 'Required Builder release or isolated runtime qualification is unavailable'})
         elif integrated_scope:
             prerequisites.append({'name':'workflow_scope','status':'ready',
@@ -452,6 +454,7 @@ async def start_agent_ports():
         return {'state':status.get('state'),'enabled':status.get('enabled') is True,
                 'builder_qualified':isinstance(execution_status,dict) and execution_status.get('builder_qualified') is True,
                 'builder_mode':execution_status.get('builder_mode') if isinstance(execution_status,dict) else None,
+                'execution_mode':execution_status.get('execution_mode') if isinstance(execution_status,dict) else None,
                 'capture_healthy':capture_healthy() is True}
     async def model_settings(payload):
         catalog=[]

@@ -48,11 +48,13 @@ def decode_science_runtime_record(record, *, historical=False):
         if version=='ai4r-science-runtime:1':
             _require(historical and set(record)==fields,'SCIENCE_RUNTIME_V1_HISTORICAL_ONLY')
         else:
-            _require(version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4'})
-            extra={'execution_bindings'}|({'scoring_profile'} if version in {'ai4r-science-runtime:3','ai4r-science-runtime:4'} else set())
-            _require(set(record)==fields|extra)
+            _require(version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5'})
+            extra={'execution_bindings'}|({'scoring_profile'} if version in {'ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5'} else set())
+            _require(set(record)==fields|extra|({'execution_mode'} if version=='ai4r-science-runtime:5' else set()))
             validate('urn:ai4r:private:science-runtime:'+version.rsplit(':',1)[1],record)
-        if version=='ai4r-science-runtime:3':
+        if version=='ai4r-science-runtime:5':
+            _require(record['execution_mode']=='m1_app_process','SCIENCE_EXECUTION_MODE_INVALID')
+        if version=='ai4r-science-runtime:3' or (version=='ai4r-science-runtime:5' and (record.get('scoring_profile') or {}).get('protocol')=='ai4r-blind-classification:1'):
             scoring=record['scoring_profile']
             _ref_key(scoring['public_dataset_ref'])
             _require(scoring['protocol']=='ai4r-blind-classification:1'
@@ -93,7 +95,7 @@ def decode_science_runtime_record(record, *, historical=False):
             _require(type(entry['wheel_filenames']) is dict and all(type(key) is str and type(value) is str
                 and key and value and '\0' not in key and '\0' not in value
                 for key,value in entry['wheel_filenames'].items()),'SCIENCE_ENVIRONMENT_CATALOG_INVALID')
-        if version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4'}:
+        if version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5'}:
             seen=set()
             for entry in record['execution_bindings']:
                 refs=tuple(_ref_key(entry[key]) for key in ('configuration_ref','policy_ref','resource_inventory_ref',

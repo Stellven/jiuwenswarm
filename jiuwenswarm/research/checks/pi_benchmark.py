@@ -4,6 +4,7 @@ import json
 
 from .stages import ResearchChecks, require
 from ..contracts import validate
+from ..process_evidence import validate_process_evidence
 
 
 class PiBenchmarkChecks(ResearchChecks):
@@ -60,11 +61,18 @@ class PiBenchmarkChecks(ResearchChecks):
                 "subject_ref", "exit_code", "started_at", "wall_time_s", "timeout_s", "stdout_ref", "stderr_ref"))
                 and raw.get("argv") == public.get("command"),
                 "protocol_matches_blueprint")
-            require(raw.get("observed_limits", {}).get("network") == "none", "network_policy_respected")
             limits = raw.get("observed_limits", {})
             try:
-                memory_max, pids_max = int(limits.get("memory_max", "0")), int(limits.get("pids_max", "0"))
-                proof = ctx.read_json(limits["isolation_probe_ref"])
+                is_m1 = raw.get('execution_mode') == 'm1_app_process'
+                if is_m1:
+                    process_ok = validate_process_evidence(ctx.store, raw, expected_uid=10002, expected_gid=10002,
+                        contract_ref=ctx.observation['contract_ref'], invocation_id=raw.get('invocation_id'), job_id=raw.get('job_id'))
+                    proof = ctx.read_json(limits['process_observation_ref']) if process_ok else {}
+                    memory_max = pids_max = 0
+                else:
+                    process_ok = False
+                    memory_max, pids_max = int(limits.get("memory_max", "0")), int(limits.get("pids_max", "0"))
+                    proof = ctx.read_json(limits["isolation_probe_ref"])
                 no_effective_caps = int(proof.get("cap_effective", "-1"), 16) == 0
                 hardware_bytes = ctx.store.read_blob(raw["hardware_ref"])
                 hardware_value = json.loads(hardware_bytes.decode("utf-8"))
@@ -76,18 +84,20 @@ class PiBenchmarkChecks(ResearchChecks):
                     and type(raw.get("invocation_id")) is str and bool(raw["invocation_id"])
                     and raw.get("identity", {}).get("executor_uid") == 10002
                     and raw.get("identity", {}).get("executor_gid") == 10002
-                    and memory_max > 0 and memory_max <= memory_ceiling
-                    and 0 < pids_max <= 64
+                    and (process_ok if is_m1 else memory_max > 0 and memory_max <= memory_ceiling
+                         and 0 < pids_max <= 64)
                     and type(affinity) is list and bool(affinity)
                     and all(type(cpu) is int and cpu >= 0 for cpu in affinity)
                     and affinity == sorted(set(affinity))
                     and hardware_value == hardware
                     and hardware.get("hardware_id") == public.get("hardware_ref")
                     and proof.get("ready") is True and proof.get("executor_uid") == 10002
-                    and proof.get("executor_gid") == 10002 and proof.get("network") == "none"
+                    and proof.get("executor_gid") == 10002
+                    and (is_m1 or proof.get("network") == "none")
                     and proof.get("no_new_privileges") == "1"
                     and no_effective_caps
-                    and proof.get("cpu_affinity") == affinity,
+                    and proof.get("cpu_affinity") == affinity
+                    and (is_m1 or limits.get('network') == 'none'),
                     "pi_scores_protected")
             affinities.add(tuple(affinity))
             if score_ref:

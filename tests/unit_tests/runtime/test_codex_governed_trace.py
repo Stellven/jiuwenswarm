@@ -154,6 +154,20 @@ async def test_real_transport_audit_failure_never_reports_success(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_rejected_server_request_is_reported_as_unsupported_tool_activity(tmp_path):
+    from jiuwenswarm.server.runtime.codex_subscription.transport import AppServerTransport
+    transport=AppServerTransport(tmp_path);process=PacketProcess();transport.process=process
+    observed=[];transport.listeners.add(lambda method,params: observed.append((method,params)))
+    process.stdout.feed_data(b'{"id":7,"method":"item/commandExecution/requestApproval","params":{"threadId":"owned"}}\n')
+    process.stdout.feed_eof()
+    await transport._read(process)
+    # EOF closes the reader after the request, so the owned-turn observer also
+    # receives the transport terminal event.
+    assert observed==[("transport/unsupported-request",{}),("transport/closed",{})]
+    assert json.loads(process.writes[0])['error']['code']==-32601
+
+
+@pytest.mark.asyncio
 async def test_large_payload_is_original_evidence_beyond_display_truncation(traced):
     store,service,transport,scope=traced
     original_emit=transport.emit;large='original controlled text '*16000

@@ -194,10 +194,9 @@ def render(p, template):
             env.pop(key)
     env.update(COMPOSE_PROJECT_NAME=p['project'], AI4R_APP_IMAGE=p.get('app_image', 'ai4r:local'),
         AI4R_RUNNER_IMAGE=p.get('runner_image', 'benchmark-runner:local'),
-        AI4R_OPERATOR_CONFIG=str(root / 'config.json'), AI4R_SECCOMP_PROFILE=str(root / 'seccomp.json'),
+        AI4R_SECCOMP_PROFILE=str(root / 'seccomp.json'),
         AI4R_REUSABLE_LOGIN='1', AI4R_LOCAL_WORKSPACE='1', AI4R_LOCAL_CHAT='1', AI4R_LOCAL_RESEARCH='1',
         AI4R_BENCH_CASES=str(root / 'cases'), AI4R_BENCH_INPUTS=str(root / 'inputs' / p.get('input_stage', '')),
-        AI4R_BENCH_OUTPUT=p['output'], AI4R_BENCH_CREDENTIAL=str(root / 'credentials' / 'runner-token'),
         AI4R_EXPECTED_BUILD=p.get('build_id', 'unconfigured'))
     source = root / 'compose.source.yaml'
     publish(source, template.encode(), replace=True)
@@ -222,9 +221,11 @@ def render(p, template):
     runner['platform'] = p['platform']
     runner['user'] = str(p['runner_uid']) + ':' + str(p['runner_gid'])
     runner['tmpfs'] = ['/tmp:rw,nosuid,nodev,size=128m,uid=' + str(p['runner_uid']) + ',gid=' + str(p['runner_gid'])]
-    runner['volumes'] = [m for m in runner['volumes'] if m['target'] != '/run/benchmark-runner/token']
+    runner['volumes'] = [m for m in runner['volumes'] if m['target'] not in {'/run/benchmark-runner', '/results'}]
     runner['volumes'].append({'type': 'volume', 'source': 'runner_credentials', 'target': '/run/benchmark-runner',
                               'read_only': True, 'volume': {'nocopy': True}})
+    runner['volumes'].append({'type': 'bind', 'source': p['output'], 'target': '/results',
+                              'bind': {'create_host_path': False}})
     result['volumes']['runner_credentials'] = {'name': p['project'] + '_runner_credentials',
         'labels': {'ai4r.deployment': p['deployment_id']}}
     publish(root / 'compose.json', canonical(result), replace=True)

@@ -1,14 +1,80 @@
 # AI4R build, run and benchmark operations
 
-All executable source is in this repository. Start with `python deploy/m1/ai4r.py
---help`. Host tooling uses only Python's standard library. It controls Docker;
-the app and benchmark CLI run in the two separate containers. The benchmark CLI
-keeps its existing authenticated interface and sequential queue.
+The default local path uses Docker Compose and the existing app and
+benchmark-runner images. No host Python launcher or private operator config is
+required. The optional `python deploy/m1/ai4r.py` workflow remains available for
+managed staging and SSH deployments. The benchmark CLI keeps its existing
+authenticated interface and sequential queue.
 
 ## Start here: ordinary Docker, no sudo
 
-Use existing `ai4r:local` and `benchmark-runner:local` images. Load supplied
-archives with ordinary Docker if needed:
+Build the images, then start the existing app. Its explicit local-research mode
+captures the authored local operator config and bootstrap bindings in the app's
+state volume. This initializes local wiring only; it does not admit science
+resources, establish readiness or qualify a research result.
+
+```sh
+export AI4R_LOCAL_WORKSPACE=1
+export AI4R_LOCAL_CHAT=1
+docker compose -p ai4r-local -f deploy/m1/compose.benchmark-runner.yaml \
+  --profile benchmark build ai4r benchmark-runner
+docker compose -p ai4r-local -f deploy/m1/compose.benchmark-runner.yaml \
+  up -d ai4r
+docker compose -p ai4r-local -f deploy/m1/compose.benchmark-runner.yaml \
+  logs --tail 100 ai4r
+```
+
+Open the complete private bootstrap URL from the app log at
+`http://127.0.0.1:5175` and complete the existing model sign-in. Keep the URL
+private. Do not place provider credentials in Compose environment variables.
+Sign in before issuing the runner grant. The grant command runs the existing
+app image as a short-lived root provisioning container with the app account
+volume and private runner-credential volume attached; it has no network and no
+Docker socket. The app service itself never mounts the runner credential
+volume. The token is written mode `0600`, owned by runner UID `11001`, and
+mounted read-only at `/run/benchmark-runner/token`.
+
+The public synthetic example is included below. Replace its case and input paths
+with your selected files and create the output directory first.
+
+```sh
+mkdir -p ./results
+docker volume create ai4r-local_runner_credentials
+docker run --rm --network none --read-only --cap-drop ALL \
+  --cap-add SETUID --cap-add CHOWN --cap-add DAC_OVERRIDE \
+  --security-opt no-new-privileges:true \
+  --mount source=ai4r-local_accounts,target=/var/lib/ai4r-accounts \
+  --mount source=ai4r-local_runner_credentials,target=/credential \
+  --tmpfs /tmp:rw,nosuid,nodev,size=16m \
+  --entrypoint /opt/venv/bin/python ai4r:local \
+  -m jiuwenswarm.research.runner_grants issue-runner --output /credential/token
+
+export AI4R_BENCH_CASES="$PWD/deploy/m1/examples/cases.json"
+export AI4R_BENCH_INPUTS="$PWD/deploy/m1/examples/inputs"
+export AI4R_EXPECTED_BUILD="$(docker compose -p ai4r-local \
+  -f deploy/m1/compose.benchmark-runner.yaml exec -T ai4r python -c \
+  "import json; print(json.load(open('/usr/local/share/ai4r-build-identity.json'))['build_id'])")"
+docker compose -p ai4r-local -f deploy/m1/compose.benchmark-runner.yaml \
+  --profile benchmark up -d benchmark-runner
+docker compose -p ai4r-local -f deploy/m1/compose.benchmark-runner.yaml \
+  exec benchmark-runner benchmark-runner doctor --cases /cases/cases.json \
+  --inputs /inputs --output /results --json
+docker compose -p ai4r-local -f deploy/m1/compose.benchmark-runner.yaml \
+  exec benchmark-runner benchmark-runner run --cases /cases/cases.json \
+  --inputs /inputs --output /results --campaign-id trial-001 --json
+mkdir -p ./results
+docker cp "$(docker compose -p ai4r-local \
+  -f deploy/m1/compose.benchmark-runner.yaml ps -q benchmark-runner):/results/." ./results/
+```
+
+The Compose app publishes only `127.0.0.1:5175`. Runner inputs/cases are
+read-only binds; results persist in the deployment's named `results` volume and
+the final command copies them to the selected host directory. Use a fresh campaign
+ID for each run. Generated jobs use `AI4R_EXECUTION_MODE=m1_app_process` and
+ordinary app-container processes. The app container has a 4 GiB / 256 PID
+envelope; generated per-job resources use the fixed app runtime controls.
+
+To load supplied images instead of building from this checkout:
 
 ```sh
 docker load -i ai4r.tar

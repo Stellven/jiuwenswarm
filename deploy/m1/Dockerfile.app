@@ -42,6 +42,7 @@ WORKDIR /build
 COPY scripts/ ./scripts/
 COPY jiuwenswarm/scripts/ ./jiuwenswarm/scripts/
 COPY jiuwenswarm/resources/agent/ ./jiuwenswarm/resources/agent/
+COPY jiuwenswarm/research_contracts/ ./jiuwenswarm/research_contracts/
 COPY jiuwenswarm/channels/web/frontend/ ./jiuwenswarm/channels/web/frontend/
 WORKDIR /build/jiuwenswarm/channels/web/frontend
 RUN npm run build

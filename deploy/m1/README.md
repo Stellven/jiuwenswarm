@@ -2,7 +2,8 @@
 
 **Current integrated workflow:** [OPERATIONS.md](OPERATIONS.md) covers clean-checkout
 setup, two image builds, local/SSH staging, commands, verified result return and
-temporary expiry. `python deploy/m1/ai4r.py --help` is the common entry point.
+temporary expiry. Docker Compose is the default local entry point; the optional
+`python deploy/m1/ai4r.py --help` launcher supports managed staging and SSH.
 The local launch scripts now forward to that operator; they no longer use private
 workstation scripts. Sections below retain native/advanced profile context and
 historical command examples; use OPERATIONS for the current quick start.
@@ -11,6 +12,12 @@ For the sequential two-image testing path (`ai4r` + `benchmark-runner`) and the
 existing final app on localhost5175, use [BENCHMARK_RUNNER.md](BENCHMARK_RUNNER.md).
 It covers explicit host mounts, scoped credentials, CLI commands and guarded
 recreation while retaining account/state volumes and collected files.
+For the shortest Docker-only build and app launch, see the first section of
+[OPERATIONS.md](OPERATIONS.md); it uses the same Compose file, app image and
+runner image and keeps the app bound to `127.0.0.1:5175`. Local research mode
+captures the authored local operator configuration in the existing app state
+volume; no host config file is required. This capture is not science-resource
+admission or qualification.
 
 ## Local web app: clone to launch
 
@@ -67,9 +74,9 @@ state survive app restarts and image rebuilds in the existing Docker volumes.
 Local input initialization creates storage only. It does not supply operator
 policy, catalog admissions or model/deployment/runtime bindings, and does not
 make governed research runs ready. Those execution requirements remain explicit.
-The base Compose deployment keeps local input initialization off; the local
-launcher opts in with `AI4R_LOCAL_WORKSPACE=1` on loopback only.
-It also explicitly enables `AI4R_LOCAL_CHAT=1`; base Compose keeps this off.
+The Docker launch opts into local input and chat with
+`AI4R_LOCAL_WORKSPACE=1` and `AI4R_LOCAL_CHAT=1` on loopback only. Local
+research config capture is an explicit Compose default for the M1 benchmark path.
 
 For updates and restarts, from the same Ubuntu checkout:
 

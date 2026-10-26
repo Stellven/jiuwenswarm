@@ -86,6 +86,14 @@ class AppServerTransport:
                     '[features]\nshell_tool = false\napps = false\n'
                     'js_repl = false\napply_patch_freeform = false\n'
                     'unified_exec = false\nskill_mcp_dependency_install = false\n'
+                    'multi_agent = false\nmulti_agent_v2 = false\n'
+                    'browser_use = false\nbrowser_use_external = false\nbrowser_use_full_cdp_access = false\n'
+                    'computer_use = false\ncode_mode_host = false\ncode_mode_interrupt = false\n'
+                    'image_generation = false\nview_image = false\nin_app_browser = false\n'
+                    'plugins = false\nremote_plugin = false\nskill_search = false\n'
+                    'sleep_tool = false\ngoals = false\nhooks = false\n'
+                    'workspace_dependencies = false\nworktrees = false\nshell_snapshot = false\n'
+                    'tool_suggest = false\nunbounded_connection_retries = false\n'
                     '[mcp_servers]\n'
                 )
                 config_path = self.home / "config.toml"
@@ -94,7 +102,11 @@ class AppServerTransport:
                 if config_path.exists():
                     previous = config_path.read_text(encoding="utf-8")
                     legacy = config.replace('approval_policy = "never"', 'approval_policy = "untrusted"')
-                    if previous not in {config, legacy}:
+                    # Migrate only our exact earlier tool-free profile. Never
+                    # import a user's desktop profile or accept arbitrary edits.
+                    older = config[:config.index('multi_agent = false\n')] + '[mcp_servers]\n'
+                    older_untrusted = older.replace('approval_policy = "never"', 'approval_policy = "untrusted"')
+                    if previous not in {config, legacy, older, older_untrusted}:
                         raise CodexError("PROFILE_CONFIG_CONFLICT")
                 config_path.write_text(config, encoding="utf-8")
                 kwargs = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
@@ -162,6 +174,10 @@ class AppServerTransport:
                     for observe in tuple(self.wire_listeners):
                         observe('in', line, message)
                     if "id" in message:
+                        # No client-side tool or interaction handler is exposed.
+                        # Surface the rejected request to any owned turn so it
+                        # cannot be mistaken for a successful text completion.
+                        self._notify("transport/unsupported-request", {})
                         await self._send({"id": message["id"], "error": {"code": -32601, "message": "Tools and interactions are unavailable in this milestone."}})
                     else:
                         self._notify(message["method"], message.get("params") or {})

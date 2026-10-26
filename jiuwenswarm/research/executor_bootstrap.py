@@ -171,6 +171,7 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
 
     executor = RestrictedExecutor(workspace_root=base / "work", cgroup_root=environ.get("AI4R_EXECUTOR_CGROUP_ROOT"),
         authorize_job=authorize_job, capture=store.put_blob, allowed_asset_roots=[base / "assets"],
+        execution_mode=record.get("execution_mode", "restricted"),runtime_ref=runtime_ref,
         preparation_roots=[base / "environments"], authorize_provisioning=authorize_provisioning)
     hardware = SameSandboxHardwareCapture(store, executor, authorize_binding=authorize_binding, gpu_required=record["gpu_required"])
     async def capture_hardware(binding, **options):
@@ -182,15 +183,22 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
         bounded = replace(job, timeout_s=min(job.timeout_s, bindings[binding.invocation_id][1] - time.monotonic()))
         return await executor.run_provisioning(bounded, binding=binding)
     scorer = None
-    if record['schema'] == 'ai4r-science-runtime:3':
+    if (record.get('scoring_profile') or {}).get('protocol') == 'ai4r-blind-classification:1':
         from .trusted_scoring import RootClassificationScorer
         scorer = RootClassificationScorer(store, record['scoring_profile'])
-    elif record['schema'] == 'ai4r-science-runtime:4':
+    elif (record.get('scoring_profile') or {}).get('protocol') == 'ai4r-pi:1':
         from .trusted_pi import RootPiScorer
         scorer = RootPiScorer(store, record['scoring_profile'])
     adapter = ScienceExecutionAdapter(store, science_profile, approved_environments=entries,
         workspace_allocator=lambda binding, sequence, role: allocate_science_workspace(base / "work", binding, sequence, role),
         hardware_capture=capture_hardware, provision_runner=provision, scorer=scorer)
+    adapter.runtime_ref = runtime_ref
+    def capture_process(receipt):
+        child=store.read_record(receipt['contract_ref'])
+        return store.append_record('m1_process_execution',dict(run_id=child['run_id'],
+            job_id=receipt['job_id'],contract_ref=receipt['contract_ref'],invocation_id=receipt['invocation_id'],
+            runtime_ref=runtime_ref,receipt=receipt))
+    executor.process_receipt_capture = capture_process
     async def job_factory(contract, inputs, *, binding, **selection):
         await authorize_binding(binding)
         job = await adapter.job_factory(contract, inputs, binding=binding, **selection)
@@ -217,9 +225,9 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     for mapping in record['execution_bindings']:
         declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
         if (declared['identity']['name'] == 'research.builder'
-                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13', 'm1-14', 'm1-15', 'm1-16'}
+                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13', 'm1-14', 'm1-15', 'm1-16', 'm1-17'}
                 and declared['needs']['model']['tool_calling'] is False
-                and (declared['budget']['per_call']['tool_calls'] == 0 or declared['identity']['version_label'] in {'m1-14','m1-15','m1-16'})):
+                and (declared['budget']['per_call']['tool_calls'] == 0 or declared['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17'})):
             from .capsules.assets import load_research_catalog
             authored = load_research_catalog()['stages']['builder']
             if mapping['declaration_ref'] != authored['declaration_ref']:
@@ -231,7 +239,7 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
             executor.builder_test_required = declared['identity']['carrier']['ref'] == 'builder_loop.py'
             if executor.builder_test_required and mapping['operations'] != ['builder_test']:
                 raise ExecutorBlocked('BUILDER_TEST_OPERATION_MAPPING_REQUIRED')
-            if declared['identity']['version_label'] in {'m1-14','m1-15','m1-16'}:
+            if declared['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17'}:
                 executor.builder_agent_required = True
                 if mapping['operations'] != ['builder_action']:
                     raise ExecutorBlocked('BUILDER_AGENT_OPERATION_MAPPING_REQUIRED')
