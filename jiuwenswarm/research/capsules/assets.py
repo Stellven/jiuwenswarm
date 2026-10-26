@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-17', benchmark='m1-9-agent-pi', evaluation='m1-5', delivery='m1-5')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-17', benchmark='m1-10-agent-pi', evaluation='m1-5', delivery='m1-5')
 
 
 def source_metadata():
@@ -219,6 +219,9 @@ def build_research_assets(store, *, verify_catalog=True):
             if check_id.endswith('_schema') and check_id[:-7] in ports:
                 target_port = check_id[:-7]
             summary = row[1][:300]
+            if stage == 'benchmark' and check_id == 'network_policy_respected':
+                summary = ('Execution matches its frozen mode: restricted runs prove network denial; '
+                    'M1 app processes report inherited networking without claiming denial.')
             if stage == 'builder':
                 summary = {
                     'bounded_development': 'Protected development tests join submitted snapshot, public inputs, bounded native action records and compile/unit/smoke evidence; no scientific acceptance authority',
@@ -305,17 +308,17 @@ def build_pi_benchmark_asset(store, *, base=None, verify_catalog=True):
     """Explicit separate Pi release; default M1 consumer contracts stay intact."""
     base=base or build_research_assets(store,verify_catalog=verify_catalog)['benchmark']
     declaration=copy.deepcopy(store.read_record(base['declaration_ref']))
-    declaration['identity']['version_label']='pi-m1-3'
+    declaration['identity']['version_label']='pi-m1-4'
     declaration['identity']['summary']='Frozen Pi benchmark: independent root reference, baseline-first fresh processes and protected timing'
     for port in declaration['ports']['outputs']:
         port['description'] = 'Pi benchmark output under the frozen host precision profile; baseline-first fresh processes, protected elapsed time, exact prefix correctness and retained execution evidence. This output does not use classification metrics.'
         if port['name']=='benchmark_payload':port['schema_ref']='urn:ai4r:pi-benchmark-payload:1.0.0'
     bundle=copy.deepcopy(store.read_record(base['bundle_ref']))
-    bundle.update(id='research.benchmark.checks:pi-m1-3',target_cc_version_range='pi-m1-3')
+    bundle.update(id='research.benchmark.checks:pi-m1-4',target_cc_version_range='pi-m1-4')
     # Bundle IDs must be distinct when both versions are installed together.
     bundle['bundle_id']='research.benchmark.pi.checks'
     profile=copy.deepcopy(store.read_record(base['profile_ref']))
-    profile.update(id='research.benchmark.profile:pi-m1-3',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-3')
+    profile.update(id='research.benchmark.profile:pi-m1-4',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-4')
     from ..checks.schema_context import frozen_output_instructions
     instructions=files('jiuwenswarm.research').joinpath('resources/capsules/verifier_implementation.txt').read_bytes()
     profile['instruction_ref']=store.put_blob(frozen_output_instructions(instructions,declaration),media_type='text/plain')
@@ -335,7 +338,7 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
     handlers = {'search': search.execute, 'hypothesis': hypothesis.execute, 'builder': builder_agent.execute,
                 'benchmark': benchmark_dispatch.execute, 'evaluation': evaluation.execute, 'delivery': delivery.execute}
     selected=list(assets.items())
-    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-3'
+    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-4'
            and row['standing']=='active' for row in library.entries()):
         selected.append(('benchmark',build_pi_benchmark_asset(store,base=assets['benchmark'])))
     for stage, asset in selected:

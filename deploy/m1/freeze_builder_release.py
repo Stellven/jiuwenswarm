@@ -41,7 +41,7 @@ def main():
     for node in template['nodes']:
         stage = node['node_id']
         if stage in {'builder', 'benchmark'}:
-            node['cc'].update(cc_version='m1-17' if stage == 'builder' else 'm1-9-agent-pi',
+            node['cc'].update(cc_version='m1-17' if stage == 'builder' else 'm1-10-agent-pi',
                               declaration_sha256=stages[stage]['declaration_ref']['sha256'])
             if stage == 'builder':
                 node['objective'] = 'Build and test the frozen intervention through bounded native development actions'

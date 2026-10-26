@@ -20,7 +20,7 @@ class CapsuleAssetsTests(unittest.TestCase):
                 'screening': 'm1-4',
                 'hypothesis': 'm1-8',
                 'builder': 'm1-17',
-                'benchmark': 'm1-9-agent-pi',
+                'benchmark': 'm1-10-agent-pi',
                 'evaluation': 'm1-5',
                 'delivery': 'm1-5',
             }
@@ -55,7 +55,7 @@ def test_pi_release_preserves_default_classification_consumer_contracts(tmp_path
         input_port=next(p for p in consumer['ports']['inputs'] if p['name']=='benchmark_payload')
         assert output['schema_ref']==input_port['schema_ref']
         assert special['identity']['name']==default['identity']['name']=='research.benchmark'
-        assert special['identity']['version_label']=='pi-m1-3'
+        assert special['identity']['version_label']=='pi-m1-4'
         assert len(special['ports']['inputs'])==len(default['ports']['inputs'])==7
         assert next(p for p in special['ports']['outputs'] if p['name']=='benchmark_payload')['schema_ref']=='urn:ai4r:pi-benchmark-payload:1.0.0'
         assert pi['declaration_ref']!=assets['benchmark']['declaration_ref']

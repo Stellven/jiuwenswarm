@@ -1,5 +1,7 @@
 # Capability capsules
 
+- [Current M1 Docker execution](m1-local-process.md): completion-only Codex, OpenJiuwen agents, ordinary app-container jobs, current tests and live acceptance limits.
+
 - [Builder upgrade branch](builder-upgrade.md): bounded edits, protected development tests, independent checks and Benchmark handoff.
 - [Builder before the upgrade](builder-current-flow.md): inspected M1 baseline at `60f65abe`.
 - [Core typed Planner for M1](typed-planner-m1.md): catalog assembly, bounded correction, checks, gates and operation.

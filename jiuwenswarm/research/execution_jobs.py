@@ -413,7 +413,7 @@ class ScienceExecutionAdapter:
         if pi:
             from .pi_protocol import validate_pi_request
             declaration=self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name']!='research.benchmark' or declaration['identity']['version_label']not in {'pi-m1-1','pi-m1-2','pi-m1-3'}:
+            if declaration['identity']['name']!='research.benchmark' or declaration['identity']['version_label']not in {'pi-m1-1','pi-m1-2','pi-m1-3','pi-m1-4'}:
                 raise ResearchError('auth','Pi requires its separately admitted immutable Benchmark release')
             if (blueprint['repeat_count'] != 5 or _input_ref(contract,'validation_resource') != self.scorer.profile['public_dataset_ref']):
                 raise ResearchError('auth','Pi measurements require the exact frozen host task')

@@ -24,7 +24,7 @@ services:
       AI4R_EXECUTION_MODE: m1_app_process
       JIUWENSWARM_M1_ORIGIN: ${JIUWENSWARM_M1_ORIGIN:-http://127.0.0.1:5173}
       JIUWENSWARM_M1_BIND_ADDRESS: ${AI4R_BIND_ADDRESS:-127.0.0.1}
-      JIUWENSWARM_M1_CONFIG: /var/lib/ai4r/operator/local-research-unified-v4/config.json
+      JIUWENSWARM_M1_CONFIG: /var/lib/ai4r/operator/local-research-unified-v5/config.json
       JIUWENSWARM_M1_STATE: /var/lib/ai4r
       JIUWENSWARM_M1_ACCOUNTS: /var/lib/ai4r-accounts
       JIUWENSWARM_DATA_DIR: /var/lib/ai4r/native
