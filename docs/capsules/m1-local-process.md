@@ -90,3 +90,20 @@ It uploads selected inputs, prepares intake, submits/polls/cancels/reconciles ru
 and retrieves verified evidence. Compose starts the app container. Neither the
 runner nor its invoking agent needs direct store access or a Docker socket inside
 the runner. See the operation/interface table in the operations guide.
+
+### October 26 live summary and status correction
+
+Run `run:67c206c472b74ed39a7548607dbffa09` completed Compiler, Planner,
+Summary and Delivery: 11 completed governed model calls (5 worker, 6 verifier).
+The report preserves that its PDF source is fictional and has no measurements.
+Status retrieval exposed a scope comparison bug: the Planner's inputs include
+its capsule catalog, whereas Binder independently checks four proposal resources.
+The reader now joins those four exact proposal refs to their original parent
+ports. Original custody, gate, chronology and check-result validation remain.
+
+The old runner campaign paused on HTTP503 and remains pinned to its original
+build. After deploying the reader fix, an authenticated client recovered the
+completed run without repeating model calls. Collection verified 19,769 archive
+members / 23,085,765 uncompressed bytes. Archive SHA256:
+`ddc425ec2435c99db9ad8b67e209e4e295f03f926319bf089f7bca84554474fa`.
+This is read-only workflow acceptance, not Builder/Pi or scientific acceptance.

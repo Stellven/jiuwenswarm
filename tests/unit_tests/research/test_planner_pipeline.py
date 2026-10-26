@@ -88,6 +88,12 @@ async def test_planner_through_independent_gate_and_freeze(tmp_path, monkeypatch
         plan = store.read_record(plan_ref, contract_id='run-plan')
         assert len(plan['nodes']) == 7
         binder.validate_acceptance(plan)
+        # Status must distinguish the Planner's extra catalog input from the
+        # four resources independently rechecked by Binder after acceptance.
+        from jiuwenswarm.research.status_stage import observed_stage
+        run = store.get_run('run:compiler')
+        assert observed_stage(store, run, store.node_states(run['id']),
+                              list(store.iter_records(run_id=run['id']))) == 'planner'
         # Source tampering after acceptance cannot borrow the accepted gate.
         source = store.read_record(outcome['proposal_ref'])
         source['nodes'][0]['cc']['declaration_sha256'] = 'f' * 64

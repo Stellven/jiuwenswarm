@@ -177,7 +177,7 @@ def _execution_node_gates(store, envelopes, run, state, parent_ref, parent):
     _require(set(link) == {'id', 'source_ref', 'acceptance_ref', 'planner_gate_ref'}
              and link['id'] == links[0]['ref']['id'] and link['planner_gate_ref'] == original_ref)
     source_ref = link['source_ref']
-    store.read_record(source_ref, contract_id='plan-proposal')
+    proposal = store.read_record(source_ref, contract_id='plan-proposal')
     _require(original['action'] == 'advance' and source_ref in original['accepted_refs']
              and store.is_accepted(source_ref, run_id=run['id']))
     changed = {'id', 'recorded_at', 'check_plan_ref', 'deterministic_result_ref', 'reasons'}
@@ -196,9 +196,18 @@ def _execution_node_gates(store, envelopes, run, state, parent_ref, parent):
     if any(check_id in {'finite_delivery_leaf_coverage_v1', 'finite_fixture_qualification_v1'} for check_id in ids):
         from .finite_evaluation import FINITE_PLAN_CHECKS
         expected = list(FINITE_PLAN_CHECKS)
+    # Binder checks the four proposal resources. The producer additionally reads
+    # its frozen capsule catalog; that is not a Binder input. Join each original
+    # resource by its declared port rather than equating these different scopes.
+    resource_ports = [('brief', 'brief_ref'), ('library_snapshot', 'library_snapshot_ref'),
+                      ('resource_inventory', 'resource_inventory_ref'), ('plan_policy', 'policy_ref')]
+    ports = {port['name']: port['artifact_refs'] for port in parent['inputs']}
+    binder_inputs = [proposal[key] for _, key in resource_ports]
+    _require(len(ports) == len(parent['inputs'])
+             and all(ports.get(name) == [proposal[key]] for name, key in resource_ports))
     _require(plan['contract_ref'] == plan['node_contract_ref'] == checked['subject_ref'] == source_ref
              and checked['check_plan_ref'] == combined['check_plan_ref'] and plan['subnode_id'] is None
-             and plan['input_refs'] == parent['input_refs'] and plan['policy_ref'] == parent['policy_ref']
+             and plan['input_refs'] == binder_inputs and plan['policy_ref'] == parent['policy_ref']
              and plan['profile_ref'] == work[0]['checking_profile_ref']
              and plan['mandatory_semantic'] == semantic and len(ids) == len(set(ids))
              and set(ids) == set(expected) and plan['mandatory_deterministic'] == ids

@@ -171,6 +171,49 @@ the configured HTTP authority `127.0.0.1:5175`; a host client uses
 or logs. Docker availability, browser sign-in/MFA and explicit activation remain
 human responsibilities. Routine invocations require no further browser driving.
 
+## Isolated capability and verifier checks
+
+Build the existing verification target once. The following PowerShell commands
+run individual capsules and their independent checks, without a research DAG,
+login or network. Python and test dependencies stay in the image.
+
+```powershell
+docker build -f deploy/m1/Dockerfile.app --target verify -t ai4r-verify:local .
+$checks = @(
+  'tests/unit_tests/research/test_generalist_capsule.py',
+  'tests/unit_tests/research/test_table_normalize_capsule.py',
+  'tests/unit_tests/research/test_calculate_capsule.py',
+  'tests/unit_tests/research/test_markdown_report_capsule.py',
+  'tests/unit_tests/research/test_evaluation_replay.py'
+)
+docker run --rm --network none --workdir /workspace `
+  --tmpfs /workspace/logs:rw,nosuid,nodev,size=64m `
+  --mount "type=bind,source=$PWD,target=/workspace,readonly" `
+  -e PYTHONPATH=/workspace ai4r-verify:local python -m pytest `
+  -o addopts= -o log_cli=false -p no:cacheprovider `
+  -W ignore::SyntaxWarning -q @checks
+```
+
+Select one file or `file.py::test_name` for a smaller test. These tests execute
+actual capsule/check code with controlled model responses. They cover wrong
+computed results, changed task identity/provenance, malformed tables, path
+escapes, and replay custody failures. They verify mechanics, not live model
+quality. An upstream SDK dependency emits the filtered Python SyntaxWarning.
+
+For live repeated tests, the existing E3 single-capsule and E2 node-replay API
+paths require a separately frozen evaluation profile, assets and runtime.
+The local product capture has no evaluation profile, and this checkout has no
+production command to prepare that closure from a captured run. That preparation
+is still required; do not replace a product run's accepted output bytes.
+Evaluation results are explicitly excluded from product acceptance.
+
+A live campaign should retain each frozen input boundary and capsule/check pins,
+then give every repeat a fresh bounded request and evidence record. Test valid
+outputs alongside malformed evidence (Tier1 stops before inference) and
+well-formed unsupported claims (independent semantic verifier must reject).
+Record incorrect acceptance and incorrect rejection separately. A replayed gate
+does not establish live scheduler locking or downstream release.
+
 Re-run `up` with the same paths/profile to resume setup. Inputs, results and app
 state are preserved. Use a new project/profile for a different app image; existing
 installations are not silently upgraded. Scheduling remains optional (`maintenance
