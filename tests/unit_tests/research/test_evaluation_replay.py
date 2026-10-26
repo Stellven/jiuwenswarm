@@ -26,7 +26,7 @@ from tests.unit_tests.research.controlled_assets import ControlledLibraryService
 
 
 async def replay_fixture(root, *, bad_span=True, record_gate=False, host_duration=None,
-                         verifier_mismatch=False, review_failure=False):
+                         verifier_mismatch=False, review_failure=False, verifier_reject=False):
     store = SQLiteRunStore(root)
     registry, checks = Registry(), CheckRegistry()
     # Explicit test checking authority, never a production calibrated admission.
@@ -80,7 +80,7 @@ async def replay_fixture(root, *, bad_span=True, record_gate=False, host_duratio
         objective='Frozen source-span replay fixture', requirement_ids=['intent'],
         limits={'time_s': 120, 'model_calls': 2, 'memory_mb': 256}, policy_ref=policy,
         configuration_ref=configuration, template_ref=opaque,
-        authority_ceiling={'network': 'none', 'network_allowlist': [], 'resource_reads': [intake_ref],
+        authority_ceiling={'network': 'none', 'network_allowlist': [], 'resource_reads': [intake_ref, intake['request_ref']],
                            'write_roots': [], 'tools': []})
     contract_ref, plan_ref, _ = factory.bind_subnode(parent_ref, 'intent', ports)
     selection = store.put_record('model-selection-profile', {
@@ -107,9 +107,9 @@ async def replay_fixture(root, *, bad_span=True, record_gate=False, host_duratio
                 if review_failure:
                     raise RuntimeError('Controlled independent-review provider failure')
                 criteria = json.loads(prompt.split('Criteria for this output:\n', 1)[1].split('\n\n<subject_payload>', 1)[0])
-                value = {'findings': [{'criterion_id': c['criterion_id'], 'outcome': 'PASS',
+                value = {'findings': [{'criterion_id': c['criterion_id'], 'outcome': 'FAIL' if verifier_reject else 'PASS',
                     'reason': 'Controlled structural reply, not semantic quality evidence'} for c in criteria],
-                    'uncertainties': [], 'limitations': [], 'required_correction': None}
+                    'uncertainties': [], 'limitations': [], 'required_correction': 'Controlled rejection' if verifier_reject else None}
             else:
                 value = json.loads((fixtures / 'intent_ir.json').read_bytes())
                 def rewrite(v):
@@ -329,6 +329,36 @@ async def test_failed_independent_review_retains_actual_model_call_and_once_stat
     finally:
         store.close()
 
+
+@pytest.mark.asyncio
+async def test_actual_verifier_rejection_halts_valid_replay_with_call_evidence(tmp_path):
+    store, provider, actor, request, prompts, _ = await replay_fixture(
+        tmp_path, bad_span=False, record_gate=True, verifier_reject=True)
+    bind_request_runtime(store, provider, request, 'E2')
+    try:
+        before = authority_state(store)
+        result = await provider.node_replay(actor, request)
+        assert result['tier1_verdict'] == 'PASS'
+        assert result['tier2_verdict'] == 'FAIL'
+        assert result['advanced'] is False and result['downstream_action'] == 'halted'
+        assert result['invalid_for_product'] is True and result['reason'] is None
+        assert len(prompts) == 2 and len(result['model_calls']) == 1
+        call = result['model_calls'][0]
+        assert call['role'] == 'verifier' and call['outcome'] == 'completed'
+        captured = store.read_record(call['call_ref'], contract_id='model-call')
+        assert captured['call_function'] == 'verifier' and captured['outcome'] == 'completed'
+        measured = store.read_record(result['evidence_refs'][0])
+        assert measured['accepted'] is False
+        actions = list(store.iter_records(kinds=('evaluation-recording-downstream-action',)))
+        assert len(actions) == 1 and actions[0]['record']['action'] == 'halted'
+        assert actions[0]['record']['scheduler_kind'] == 'recording'
+        assert not list(store.iter_records(kinds=('gate-decision', 'acceptance-commit')))
+        # Fixture setup already activated the reviewed capsule. Replay must
+        # preserve that authority exactly, rather than assert it never existed.
+        assert before == authority_state(store)
+        assert await provider.node_replay(actor, request) == result and len(prompts) == 2
+    finally:
+        store.close()
 
 @pytest.mark.asyncio
 async def test_eligible_replay_sends_only_declaration_and_output_to_actual_reviewer(tmp_path):
