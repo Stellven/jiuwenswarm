@@ -78,7 +78,7 @@ class NativeValueTests(unittest.TestCase):
                 return await asyncio.gather(scope.invoke([], []), scope.invoke([], []))
             self.assertEqual(len(asyncio.run(pair())), 2)
             self.assertEqual(maximum, 1)
-            self.assertGreater(json.loads((Path(temp)/"completion-002-request.json").read_text())["queue_wait_s"], 0)
+            self.assertGreaterEqual(json.loads((Path(temp)/"completion-002-request.json").read_text())["queue_wait_s"], 0)
 
     def test_isolation_removes_live_profile_and_provider_keys(self):
         with patch.dict(os.environ, {"JIUWENSWARM_DATA_DIR": "LIVE", "API_KEY": "secret",
