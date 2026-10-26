@@ -41,6 +41,7 @@ services:
       - poc:/workspace/poc
       - inputs:/workspace/input
       - executor:/var/lib/ai4r-executor
+      - private_qa:/run/ai4r-private-qa
     tmpfs:
       - /tmp:rw,nosuid,nodev,size=256m
       - /home/ai4r/.cache:rw,nosuid,nodev,size=64m,uid=10001,gid=10001
@@ -118,6 +119,8 @@ volumes:
     name: ${AI4R_INPUTS_VOLUME:-${COMPOSE_PROJECT_NAME}_inputs}
   executor:
     name: ${AI4R_EXECUTOR_VOLUME:-${COMPOSE_PROJECT_NAME}_executor}
+  private_qa:
+    name: ${COMPOSE_PROJECT_NAME}_private_qa
   runner_credentials:
     name: ${AI4R_RUNNER_CREDENTIALS_VOLUME:-${COMPOSE_PROJECT_NAME}_runner_credentials}
   results:

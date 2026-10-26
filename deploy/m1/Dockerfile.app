@@ -86,6 +86,7 @@ COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY deploy/m1/entrypoint.sh /usr/local/bin/ai4r-entrypoint
 RUN chmod 0755 /usr/local/bin/ai4r-entrypoint \
     && mkdir -p /var/lib/ai4r /var/lib/ai4r-accounts /run/ai4r /workspace/poc \
+    && mkdir -p /run/ai4r-private-qa && chmod 0700 /run/ai4r-private-qa \
     && chown ai4r:ai4r /var/lib/ai4r /var/lib/ai4r-accounts /run/ai4r
 ENV JIUWENSWARM_M1_PROFILE=1 FRONTEND_HOST=0.0.0.0 FRONTEND_PORT=5173
 WORKDIR /var/lib/ai4r/native

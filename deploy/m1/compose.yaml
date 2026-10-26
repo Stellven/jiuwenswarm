@@ -43,6 +43,7 @@ services:
       - poc:/workspace/poc
       - inputs:/workspace/input
       - executor:/var/lib/ai4r-executor
+      - private_qa:/run/ai4r-private-qa
     tmpfs:
       - /tmp:rw,nosuid,nodev,size=256m
       - /home/ai4r/.cache:rw,nosuid,nodev,size=64m,uid=10001,gid=10001
@@ -64,4 +65,5 @@ volumes:
   ipc: {}
   poc: {}
   executor: {}
+  private_qa: {}
   inputs: {}
