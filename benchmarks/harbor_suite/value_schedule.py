@@ -108,6 +108,7 @@ class Schedule:
             self.db.execute('INSERT INTO attempts VALUES(?,?,?,?,?,?,?,?)',
                             (request_id, pair_id, arm, instant, 'dispatched', None, None, None))
             self.db.commit()
+            return policy['deadline'] - instant
         except BaseException:
             self.db.rollback()
             raise

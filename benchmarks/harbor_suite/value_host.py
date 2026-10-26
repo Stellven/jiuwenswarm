@@ -85,7 +85,8 @@ async def complete(request, *, binary, working, fingerprint, ledger, pair, arm, 
     payload = {'model': policy, 'prompt': request['prompt'], 'timeout_s': request['timeout_s'],
                **{k: backend[k] for k in ('codex_executable', 'working_directory',
                                          'codex_sha256', 'account_fingerprint')}}
-    ledger.claim(pair, arm, ident)
+    remaining_s = ledger.claim(pair, arm, ident)
+    payload['timeout_s'] = min(payload['timeout_s'], remaining_s)
     began = time.monotonic()
     # If the process dies here the dispatched ledger entry remains unresolved.
     original = await execute_async(payload)
