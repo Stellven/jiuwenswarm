@@ -29,10 +29,17 @@ GROUPS = {
                    'tests/unit_tests/runtime/test_codex_subscription.py'],
     'executor': ['tests/integration/research/test_m1_process.py',
                  *unit('process_evidence')],
+    'ml-readiness': [*unit('ml_pilot', 'pilot_budget', 'evaluation_pilot', 'capsule_composition',
+                          'evaluation_pilot_cli', 'pilot_catalog', 'gate', 'check_asset_admission',
+                          'runner', 'compiler_registration', 'bootstrap_gateway', 'evaluation_bootstrap',
+                          'static_template_release', 'measurement'),
+                     'tests/unit_tests/runtime/test_pilot_subscription_budget.py',
+                     'tests/unit_tests/research_sidecar/test_native_diagnostic.py'],
 }
 SCOPES = ['jiuwenswarm/research', 'jiuwenswarm/research_assets', 'jiuwenswarm/research_contracts',
           'jiuwenswarm/server/runtime/codex_subscription', 'research_contracts', 'tests/unit_tests/research',
-          'tests/unit_tests/runtime', 'tests/integration/research', 'tests/fixtures/research', 'deploy/m1',
+          'tests/unit_tests/runtime', 'tests/unit_tests/research_sidecar', 'jiuwenswarm/research_sidecar',
+          'tests/integration/research', 'tests/fixtures/research', 'deploy/m1',
           'pyproject.toml', 'uv.lock', 'pytest.ini', '.gitattributes']
 
 

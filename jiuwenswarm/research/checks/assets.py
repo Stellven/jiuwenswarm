@@ -19,6 +19,73 @@ from ..state import json_bytes, utc_now
 
 CHALLENGES = frozenset({'instruction_injection', 'omissions', 'unsupported_claims', 'ambiguity', 'scope_escape'})
 OUTCOMES = frozenset({'PASS', 'FAIL', 'ENVIRONMENT_BLOCKED', 'INCONCLUSIVE'})
+EVIDENCE_REVIEW_MODE = 'task_sources_tier1_v1'
+EVIDENCE_REVIEW_PROFILE_VERSION = '2.0.0'
+MAX_REVIEW_EVIDENCE_BYTES = 131072
+
+
+def prepare_evidence_aware_release(store, asset, *, version_label, evidence_criterion_ids,
+                                   evidence_input_names, reviewer_instructions,
+                                   max_evidence_bytes=65536):
+    """Create a new immutable CC/checking release with bounded source-aware review.
+
+    The original refs and profile remain untouched. The returned asset has a
+    distinct declaration identity and exact v2 bundle/profile pins so callers
+    can admit it only in an explicitly prepared pilot catalog.
+    """
+    def require(condition, message):
+        if not condition:
+            raise ResearchError('evidence_review_profile', message)
+    require(isinstance(asset, dict) and all(key in asset for key in
+        ('declaration_ref', 'bundle_ref', 'profile_ref')), 'A complete admitted source asset is required')
+    require(isinstance(version_label, str) and version_label and len(version_label) <= 64,
+            'A distinct target CC release label is required')
+    require(isinstance(reviewer_instructions, str) and reviewer_instructions.strip(),
+            'The new release needs complete fixed reviewer instructions')
+    require(1 <= max_evidence_bytes <= MAX_REVIEW_EVIDENCE_BYTES,
+            'Evidence disclosure limit exceeds the fixed host ceiling')
+    declaration = copy.deepcopy(store.read_record(asset['declaration_ref'], contract_id='capsule-declaration'))
+    prior_label = declaration['identity']['version_label']
+    require(version_label != prior_label, 'Evidence-aware review must use a new immutable CC identity')
+    bundle = copy.deepcopy(store.read_record(asset['bundle_ref'], contract_id='check-bundle'))
+    profile = copy.deepcopy(store.read_record(asset['profile_ref'], contract_id='checking-profile'))
+    known = {row['criterion_id'] for row in profile['criteria']}
+    require(isinstance(evidence_criterion_ids, (list, tuple)) and
+            isinstance(evidence_input_names, (list, tuple)), 'Evidence criteria and input ports must be explicit lists')
+    selected = list(evidence_criterion_ids)
+    input_names = list(evidence_input_names)
+    require(selected and len(selected) == len(set(selected)) and set(selected) <= known,
+            'Evidence criteria must be unique members of the exact existing profile')
+    require(input_names and len(input_names) == len(set(input_names)) and
+            all(isinstance(name, str) and name for name in input_names),
+            'Evidence input ports must be a nonempty unique list')
+    forbidden = ('gold', 'expected', 'answer_key', 'reference_answer', 'solution', 'private', 'worker', 'conversation')
+    require(not any(any(word in name.lower() for word in forbidden) for name in input_names),
+            'Evidence input selection includes a private-answer or worker-conversation port')
+    generic = {'declared_output_conformance', 'internal_consistency', 'limitations_consistency'}
+    require(not (set(selected) & generic), 'Generic structural criteria remain output-only')
+    for criterion in profile['criteria']:
+        if criterion['criterion_id'] in selected:
+            criterion['answerable_from'] = 'selected_task_sources_and_tier1'
+    declaration['identity']['version_label'] = version_label
+    declaration['identity']['summary'] = declaration['identity']['summary'].rstrip() + \
+        ' Uses a separately pinned bounded task-source and Tier 1 semantic review profile.'
+    bundle.update(id=bundle['bundle_id'] + ':' + version_label,
+                  version=EVIDENCE_REVIEW_PROFILE_VERSION,
+                  target_cc_version_range=version_label)
+    profile.update(id=profile['profile_id'] + ':' + version_label,
+                   version=EVIDENCE_REVIEW_PROFILE_VERSION, target_cc_version_range=version_label,
+                   instruction_ref=store.put_blob(reviewer_instructions.encode('utf-8'), media_type='text/plain'),
+                   review_mode=EVIDENCE_REVIEW_MODE, review_evidence_max_bytes=max_evidence_bytes,
+                   review_evidence_input_names=input_names, evidence_criterion_ids=selected)
+    validate('capsule-declaration', declaration)
+    validate('check-bundle', bundle)
+    validate('checking-profile', profile)
+    result = copy.deepcopy(asset)
+    result.update(declaration_ref=store.put_record('capsule-declaration', declaration),
+                  bundle_ref=store.put_record('check-bundle', bundle),
+                  profile_ref=store.put_record('checking-profile', profile))
+    return result
 
 
 class CheckAssetAdmissions:

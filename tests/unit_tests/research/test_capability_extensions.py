@@ -7,7 +7,7 @@ import pytest
 
 from jiuwenswarm.research.binding import plan_checks
 from jiuwenswarm.research.capability_planning import capability_plan_policy, is_capability_policy, layout_issues
-from jiuwenswarm.research.capsule_extensions.catalog import candidates, register_active
+from jiuwenswarm.research.capsule_extensions.catalog import candidates, historical_candidates, register_active
 from jiuwenswarm.research.capsule_extensions.operator import prepare_requests
 from jiuwenswarm.research.capsule_extensions.packet import inherited, output_packet, validate_packet
 from jiuwenswarm.research.checks import CheckRegistry
@@ -93,6 +93,26 @@ def test_candidates_are_pinned_valid_and_never_auto_admitted(tmp_path):
         with pytest.raises(ResearchError):
             prepare_requests(store, 'workflow.capability_planner')
         assert library.entries() == []
+
+
+def test_historical_manifests_are_hash_checked_without_bypassing_current_admission(tmp_path):
+    with closing(SQLiteRunStore(tmp_path)) as store:
+        historical = historical_candidates(store)
+        assert set(historical) == {(name, 'm1-1') for name in ('utility.table_normalize',
+            'utility.calculate', 'utility.markdown_report', 'research.generalist')}
+        active = candidates(store)
+        for name, version in historical:
+            old_asset, _ = historical[(name, version)]
+            declaration = store.read_record(old_asset['declaration_ref'], contract_id='capsule-declaration')
+            assert declaration['identity']['version_label'] == version
+            assert name in active
+        # The archived v1 worker/check bytes remain readable, but their legacy
+        # packet_schema identifier does not pass the current independent output
+        # schema admission rule. Startup must not grandfather that mismatch.
+        legacy_asset, _ = historical[('utility.calculate', 'm1-1')]
+        with pytest.raises(ResearchError, match='Every output needs its independent blocking schema check'):
+            LibraryService(store)._validate_association(legacy_asset['declaration_ref'],
+                legacy_asset['bundle_ref'], legacy_asset['profile_ref'])
 
 
 def test_packet_paths_hashes_limits_and_low_trust_propagation():

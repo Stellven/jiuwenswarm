@@ -51,20 +51,24 @@ class CheckRegistry:
     def register_bundle(self, bundle_id: str, check_ids, handler: Callable, *,
                         implementation_ref: Ref, profile_ref: Ref) -> None:
         ids = tuple(check_ids)
-        if not ids or len(ids) != len(set(ids)) or bundle_id in self._bundles:
+        validate("Ref", profile_ref)
+        existing = [value for value in self._bundles.values() if value['bundle_id'] == bundle_id]
+        if (not ids or len(ids) != len(set(ids))
+                or any(value['profile_ref'] == dict(profile_ref) for value in existing)):
             raise ResearchError("check_registration", "Bundle and check identities must be unique")
         validate("Ref", implementation_ref)
-        validate("Ref", profile_ref)
-        self._bundles[bundle_id] = {"ids": ids, "handler": handler,
+        key = bundle_id if not existing else bundle_id + '#' + profile_ref['sha256']
+        self._bundles[key] = {"bundle_id": bundle_id, "ids": ids, "handler": handler,
                                    "implementation_ref": dict(implementation_ref), "profile_ref": dict(profile_ref)}
 
     def contains(self, check_id: str) -> bool:
         return any(check_id in value["ids"] for value in self._bundles.values())
 
     async def run(self, bound_plan: Mapping, ctx: CheckContext, *, bundle_id: str) -> list[dict]:
-        bundle = self._bundles.get(bundle_id)
-        if (not bundle or bundle["implementation_ref"] not in bound_plan["runner_refs"]
-                or bundle["profile_ref"] != bound_plan["profile_ref"]):
+        matches = [value for value in self._bundles.values()
+                   if value['bundle_id'] == bundle_id and value['profile_ref'] == bound_plan['profile_ref']]
+        bundle = matches[0] if len(matches) == 1 else None
+        if (not bundle or bundle["implementation_ref"] not in bound_plan["runner_refs"]):
             raise ResearchError("check_pin_mismatch", "No exact registered implementation/profile for this bound bundle")
         ctx.read_blob(bundle["implementation_ref"])
         mandatory = tuple(bound_plan["mandatory_deterministic"])

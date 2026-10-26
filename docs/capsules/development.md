@@ -64,11 +64,14 @@ uncovered work and retain its low-trust provenance.
 ## The implemented examples
 
 The optional packages are independent examples, not prerequisites for every
-capsule: `research.generalist` produces low-trust files/data against a frozen
-objective and can run a restricted pure expression; `utility.table_normalize`
-preserves JSON/CSV values; `utility.calculate` computes explicit decimal
-statistics; `utility.markdown_report` renders supplied content and manifests.
-Their individual feature branches contain their own detailed guides/tests.
+capsule: active releases `research.generalist m1-2`,
+`utility.table_normalize m1-2`, `utility.calculate m1-2`, and
+`utility.markdown_report m1-2` respectively provide a low-trust fallback,
+explicit JSON/CSV normalization, decimal statistics, and escaped Markdown
+rendering. Their v1 source files remain unchanged, and their original manifests
+are archived under `capsule_extensions/history/v1/`. The v2 releases pin those
+worker/check bytes as external dependencies and use corrected result-schema
+check IDs, so each is admitted by the same Library gate as other capsules.
 
 Generalist has a stable small declaration and a per-run frozen task contract.
 Host checks authenticate its task projection and actual expression result
@@ -82,6 +85,12 @@ claim that every transformation accepts every packet. Operation-specific fields
 must already be supplied; actual inputs are checked at execution. Arbitrary
 scientific ports need explicit adapters. Generalist authoring code as file text
 does not mean arbitrary Python execution is supported.
+
+`utility.summary_to_packet` is one explicit adapter from the exact
+`urn:ai4r:paper-summary:1.0.0` contract to the existing
+`urn:ai4r:work-packet:1.0.0` envelope. It preserves all summary and source refs,
+adds low-trust provenance, and has deterministic output checks. It does not
+imply compatibility between other schema versions or certify the summary.
 
 ## Release and collaboration rules
 

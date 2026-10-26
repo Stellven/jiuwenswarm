@@ -561,6 +561,11 @@ class InstalledEvaluationResources:
                 contract, checks, replay = self._subject(case)
                 self.admitted._validate(contract, checks, replay=replay is not None)
                 if replay is not None:
+                    check_plan = self.store.read_record(checks, contract_id='bound-check-plan')
+                    review_profile = self.store.read_record(check_plan['profile_ref'], contract_id='checking-profile')
+                    from .evidence_review import MODE
+                    require(review_profile.get('review_mode') != MODE,
+                        'Evidence-aware v2 review is not wired into evaluation replay', 'entry_point_unavailable')
                     self.admitted._host_records(replay['host_records'])
                     observed = self.store.read_record(replay['original_observation_ref'],contract_id='invocation-observation')
                     require(observed['contract_ref']==contract,'Replay has no exact original observation identity')
@@ -579,6 +584,11 @@ class InstalledEvaluationResources:
             require(resolved['binding_ref']==contract, 'Externally supplied binding is not the exact canonical subject')
             grant=self.admitted.prepare(contract,checks,semantic_review=False)
         else:
+            check_plan = self.store.read_record(checks, contract_id='bound-check-plan')
+            review_profile = self.store.read_record(check_plan['profile_ref'], contract_id='checking-profile')
+            from .evidence_review import MODE
+            require(review_profile.get('review_mode') != MODE,
+                'Evidence-aware v2 review is not wired into evaluation replay', 'entry_point_unavailable')
             port=replay.get('selected_output_port') or next(iter(replay['output_refs']))
             require(replay['output_refs'][port]==resolved['output_ref']
                     and replay['host_records']==resolved['host_records'], 'Request changed the frozen replay closure')

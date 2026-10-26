@@ -1194,6 +1194,10 @@ class EvaluationMeasurementContext:
         return await self.owner.contain_failure(self,reason)
 
     async def review(self,port,output_ref,deterministic_ref,observation_ref):
+        profile=self.store.read_record(self.basis['profile_ref'],contract_id='checking-profile')
+        from .evidence_review import MODE
+        require(profile.get('review_mode') != MODE,
+            'Evidence-aware v2 review is not wired into evaluation replay', 'entry_point_unavailable')
         require(self.grant is None and port==self.replay_output_port and self.replay_output_refs[port]==output_ref,
             'Only the exact selected original output may be reviewed')
         grant_ref=self.owner.prepare_assignment(self.scope_ref,'verifier',port)
@@ -1211,9 +1215,10 @@ class EvaluationMeasurementContext:
             review_ref=self.store.append_record('evaluation-review-context',review)
             self.owner.register_capture(grant_ref,'review_context',review_ref)
             from .gate import SemanticVerifier,assemble_assessment,zip_projection
-            require(type(self.runner.verifier) is SemanticVerifier and self.runner.verifier.store is self.store,
+            from .evidence_review import EvidenceAwareSemanticVerifier
+            require(type(self.runner.verifier) in (SemanticVerifier, EvidenceAwareSemanticVerifier)
+                and self.runner.verifier.store is self.store,
                 'Actual installed verifier mechanics unavailable','entry_point_unavailable')
-            profile=self.store.read_record(self.basis['profile_ref'],contract_id='checking-profile')
             require(profile['model_call_limit']==1,'One selected semantic call required')
             criteria=[c for c in profile['criteria'] if c['target_port'] in (None,port)]
             instructions=self.store.read_blob(profile['instruction_ref']).decode('utf-8')

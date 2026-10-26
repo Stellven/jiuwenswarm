@@ -93,11 +93,14 @@ class VerifierBindings:
     def __init__(self,factory,parent_ref,work_ref,assignments):
         self.factory,self.parent_ref,self.work_ref,self.assignments=factory,parent_ref,work_ref,assignments
 
-    def bind(self,port,output_ref):
+    def bind(self,port,output_ref,review_evidence_ref=None):
         work=self.factory.store.read_record(self.work_ref)
         declaration_ref=work['bindings'][0]['declaration_ref']
-        ref,_,_=self.factory.bind_subnode(self.parent_ref,self.assignments[port],[
-            input_port('subject_declaration','capsule-declaration',declaration_ref),input_port('subject_output','opaque-bytes',output_ref)],role='verifier')
+        inputs=[input_port('subject_declaration','capsule-declaration',declaration_ref),
+                input_port('subject_output','opaque-bytes',output_ref)]
+        if review_evidence_ref is not None:
+            inputs.append(input_port('review_evidence','opaque-bytes',review_evidence_ref))
+        ref,_,_=self.factory.bind_subnode(self.parent_ref,self.assignments[port],inputs,role='verifier')
         return ref
 
 
@@ -106,7 +109,7 @@ async def prepare_compiler_assets(store):
     return await register_compiler_capsules(None,None,None,store,None,prepare_only=True)
 
 
-async def register_compiler_capsules(registry,check_registry,library,store,actor,*,activate=False,bootstrap=False,initialize=True,memory_mb=256,prepare_only=False):
+async def register_compiler_capsules(registry,check_registry,library,store,actor,*,activate=False,bootstrap=False,initialize=True,memory_mb=256,prepare_only=False,prepared_assets=None):
     """Trusted installation from the bounded byte-pinned packaged catalog.
 
     The caller supplies an authenticated operator identity. Asset ownership and
@@ -141,6 +144,8 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
     handlers={'intent':intent.execute,'requirements':requirements.execute,'planner':planner.execute}
     installed={};prepared={}
     for stage,entry in catalog['capsules'].items():
+        if prepared_assets is not None:
+            continue
         raw=assets.joinpath(entry['declaration_path']).read_bytes()
         if hashlib.sha256(raw).hexdigest()!=entry['declaration_sha256']:raise ResearchError('asset_integrity','Installed declaration changed after catalog pin')
         declaration_ref=store.put_blob(raw,media_type='application/json');declaration=store.read_record(declaration_ref,contract_id='capsule-declaration')
@@ -184,10 +189,78 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
         bundle_ref=store.put_record('check-bundle',bundle);profile_ref=store.put_record('checking-profile',profile)
         prepared[stage]={'declaration_ref':declaration_ref,'declaration':declaration,'body_refs':body_refs,
             'bundle_ref':bundle_ref,'profile_ref':profile_ref,'bundle':bundle,'runner_ref':runner_ref,'cc':cc}
+    if prepared_assets is not None:
+        if not isinstance(prepared_assets, dict) or set(prepared_assets) != set(catalog['capsules']):
+            raise ResearchError('prepared_catalog_invalid', 'Prepared catalog must explicitly cover every packaged compiler stage')
+        for stage, supplied in prepared_assets.items():
+            required = {'declaration_ref', 'bundle_ref', 'profile_ref', 'body_refs', 'runner_ref', 'cc'}
+            candidates = supplied if isinstance(supplied, list) else [supplied]
+            if not candidates or (stage != 'verifier' and len(candidates) != 1):
+                raise ResearchError('prepared_catalog_invalid', 'Only the verifier stage may have multiple explicit releases')
+            packaged = candidates[0]
+            entry = catalog['capsules'][stage]
+            raw_declaration = assets.joinpath(entry['declaration_path']).read_bytes()
+            if hashlib.sha256(raw_declaration).hexdigest() != entry['declaration_sha256']:
+                raise ResearchError('asset_integrity', 'Installed declaration changed after catalog pin')
+            original = json.loads(raw_declaration.decode('utf-8'))
+            original_body = {row['path']: row['sha256'] for row in entry['body']}
+            base_decl = store.read_record(packaged.get('declaration_ref'), contract_id='capsule-declaration')
+            if (base_decl != original or packaged.get('declaration_ref', {}).get('sha256') != entry['declaration_sha256']
+                    or packaged.get('cc') != original['identity']['name']
+                    or set(packaged.get('body_refs', {})) != set(original_body)
+                    or any(packaged['body_refs'][path].get('sha256') != digest for path, digest in original_body.items())):
+                raise ResearchError('prepared_catalog_invalid', 'Prepared baseline does not match the exact packaged compiler release')
+            validated_candidates = []
+            for candidate in candidates:
+                if not isinstance(candidate, dict) or not required.issubset(candidate):
+                    raise ResearchError('prepared_catalog_invalid', 'Prepared compiler release is incomplete')
+                declaration = store.read_record(candidate['declaration_ref'], contract_id='capsule-declaration')
+                bundle = store.read_record(candidate['bundle_ref'], contract_id='check-bundle')
+                profile = store.read_record(candidate['profile_ref'], contract_id='checking-profile')
+                body_refs = candidate['body_refs']
+                body_paths = {item['path'] for item in declaration['identity']['body']}
+                packaged_body_paths = set(packaged['body_refs'])
+                packaged_decl_paths = {item['path'] for item in packaged['declaration']['identity']['body']}
+                expected_body_paths = packaged_body_paths | (body_paths - packaged_decl_paths)
+                problems = []
+                if candidate.get('declaration', declaration) != declaration:
+                    problems.append('declaration')
+                if candidate.get('bundle', bundle) != bundle:
+                    problems.append('bundle')
+                if candidate.get('profile', profile) != profile:
+                    problems.append('profile')
+                if candidate['cc'] != declaration['identity']['name'] or candidate['cc'] != packaged['cc']:
+                    problems.append('cc')
+                if candidate['runner_ref'] != packaged['runner_ref']:
+                    problems.append('runner')
+                if stage != 'verifier' and any(candidate[key] != packaged[key] for key in
+                        ('declaration_ref', 'bundle_ref', 'profile_ref', 'body_refs')):
+                    problems.append('non-verifier-override')
+                if set(body_refs) != expected_body_paths or not body_paths.issubset(body_refs):
+                    problems.append('body-paths')
+                if stage == 'verifier' and (not packaged_body_paths.issubset(body_refs)
+                        or any(body_refs.get(path) != packaged['body_refs'][path] for path in packaged_body_paths)):
+                    problems.append('packaged-body-pins')
+                if body_paths.issubset(body_refs) and any(body_refs[item['path']].get('sha256') != item['sha256']
+                        for item in declaration['identity']['body']):
+                    problems.append('body-hashes')
+                expected_implementation_refs = tuple(body_refs[item['path']] for item in declaration['identity']['body'])
+                if tuple(candidate.get('implementation_refs', expected_implementation_refs)) != expected_implementation_refs:
+                    problems.append('implementation-refs')
+                if problems:
+                    raise ResearchError('prepared_catalog_invalid',
+                                        'Prepared release metadata or implementation pins are stale: ' + ', '.join(problems),
+                                        {'stage': stage, 'problems': problems,
+                                         'body_paths': sorted(body_refs), 'declared_body_paths': sorted(body_paths)})
+                for item in declaration['identity']['body']:
+                    store.read_blob(body_refs[item['path']])
+                validated_candidates.append({**candidate, 'declaration': declaration, 'bundle': bundle, 'profile': profile})
+            prepared[stage] = validated_candidates if len(validated_candidates) > 1 else validated_candidates[0]
     if prepare_only:return prepared
     # Immutable preparation has no model/calibration dependency. Eligibility is
     # evaluated only after the complete bounded compiler catalog is captured.
-    for stage,value in prepared.items():
+    for stage,releases in prepared.items():
+      for value in (releases if isinstance(releases, list) else [releases]):
         declaration_ref=value['declaration_ref'];declaration=value['declaration'];body_refs=value['body_refs']
         bundle_ref=value['bundle_ref'];profile_ref=value['profile_ref'];bundle=value['bundle'];runner_ref=value['runner_ref'];cc=value['cc']
         existing=None

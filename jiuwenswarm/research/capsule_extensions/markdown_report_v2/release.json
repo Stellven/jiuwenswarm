@@ -1,0 +1,24 @@
+{
+  "files": {
+    "markdown_report_v2/__init__.py": "2c0910b777b23b462a85db25cd453ddfaf1de074c7f6cc0833ca5612bd77e1c4",
+    "markdown_report_v2/checks.py": "b548648b267e7303bfa1f3def42e8e55dec9bf18fb9d727f59d5d583308e7734",
+    "markdown_report_v2/release.py": "7a95f4cb837a97200e6133abed124c34d8cfa4a1372144074892b695ba786d69",
+    "markdown_report_v2/worker.py": "d3c07674b205169a80360d262c1f83b7a9286c110d1d2e2872e7e7e4d771a54d"
+  },
+  "module": "markdown_report_v2",
+  "name": "utility.markdown_report",
+  "shared_dependencies": [
+    {
+      "path": "markdown_report/worker.py",
+      "sha256": "0d38def6eaa1cc647144ba70e6f8e3bbcc297bbc4360012a07ba5e397d31f455"
+    },
+    {
+      "path": "markdown_report/checks.py",
+      "sha256": "f14fe7246b4c07168d0777b3c122d0a1379e35d0b27630ace7a661ca985c205a"
+    }
+  ],
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}

@@ -16,7 +16,9 @@ from typing import Any, Mapping
 
 from .checks import CheckContext
 from .contracts import Ref, ResearchError, validate
-from .gate import ADVANCING, ProtectedGate, SemanticVerifier
+from .gate import ADVANCING
+from .evidence_review import (EvidenceAwareGate, EvidenceAwareSemanticVerifier,
+                              build_review_evidence)
 from .checks.verifier import verifier_predicates,contract_is
 from .state import json_bytes, utc_now
 from .router_client import PlatformIntegrityError
@@ -255,7 +257,7 @@ class CapsuleRunner:
     def __init__(self,store,registry,check_registry,*,model,executor=None,connectors=None,check_assets=None,evidence=None,faults=None):
         self.store,self.registry,self.check_registry=store,registry,check_registry
         self.model,self.executor,self.connectors=model,executor,connectors
-        self.gate=ProtectedGate(store);self.verifier=SemanticVerifier(store)
+        self.gate=EvidenceAwareGate(store);self.verifier=EvidenceAwareSemanticVerifier(store)
         self._executions={};self._run_contexts={}
         self._preparations={}
         self._node_check_plans={}
@@ -820,22 +822,34 @@ class CapsuleRunner:
         if eligible:
             for port,ref in output_refs.items():
                 assessment_ref=None;vctx=None;vobsref=None;verifier_check_ref=None;verifier_failure=None
-                verifier_ref=verifier_contract_refs.bind(port,ref) if hasattr(verifier_contract_refs,'bind') else (verifier_contract_refs or {}).get(port)
+                manifest={'schema_version':'2.0.0','id':'review:'+uuid.uuid4().hex,'subject_ref':ref,'contract_ref':contract_ref,
+                    'check_plan_ref':check_plan_ref,'input_refs':contract['input_refs'],'deterministic_result_ref':deterministic_ref,
+                    'criteria':plan['mandatory_semantic'],'observations':[observation_ref],'evidence_classes':['captured_input_and_output','invocation_observation'],
+                    'node_contract_ref':contract['node_contract_ref'],'subnode_id':contract['subnode_id']}
+                checking_profile=self.store.read_record(plan['profile_ref'],contract_id='checking-profile')
+                review_evidence_ref=None
+                if checking_profile.get('review_mode')=='task_sources_tier1_v1':
+                    evidence=build_review_evidence(self.store,manifest,checking_profile)
+                    review_evidence_ref=self.store.put_blob(json_bytes(evidence),media_type='application/json')
+                    manifest['review_evidence_ref']=review_evidence_ref
+                manifest_ref=self.store.put_record('review-context',manifest)
+                if hasattr(verifier_contract_refs,'bind'):
+                    verifier_ref=verifier_contract_refs.bind(port,ref,review_evidence_ref=review_evidence_ref)
+                else:
+                    verifier_ref=(verifier_contract_refs or {}).get(port)
                 try:
                     if verifier_ref is None:raise ResearchError('verifier_unavailable','No separately budgeted verifier binding')
                     vcontract=self.store.read_record(verifier_ref,contract_id='subnode-execution-contract')
                     if vcontract['node_contract_ref']!=contract['node_contract_ref']:raise ResearchError('verifier_binding','Verifier belongs to another node')
+                    if review_evidence_ref is not None and review_evidence_ref not in vcontract['input_refs']:
+                        raise ResearchError('review_evidence_binding','Evidence projection is outside the separately budgeted verifier inputs')
                     self._require_child_authority(verifier_ref,vcontract)
                     vctx=self._start_context(verifier_ref,vcontract,{},call_function='verifier')
                     await self._await_start(vctx)
                     verifier_started=utc_now()
-                    manifest={'schema_version':'2.0.0','id':'review:'+uuid.uuid4().hex,'subject_ref':ref,'contract_ref':contract_ref,
-                        'check_plan_ref':check_plan_ref,'input_refs':contract['input_refs'],'deterministic_result_ref':deterministic_ref,
-                        'criteria':plan['mandatory_semantic'],'observations':[observation_ref],'evidence_classes':['captured_input_and_output','invocation_observation'],
-                        'node_contract_ref':contract['node_contract_ref'],'subnode_id':contract['subnode_id']}
-                    manifest_ref=self.store.put_record('review-context',manifest)
                     assessment_ref=await self.verifier.review(contract['bindings'][0]['declaration_ref'],ref,plan['profile_ref'],manifest_ref,port,vctx.model,
-                        zip_output=contract_is(next(p for p in contract['outputs'] if p['name']==port)['contract_id'],'poc-artifact-bundle'))
+                        zip_output=contract_is(next(p for p in contract['outputs'] if p['name']==port)['contract_id'],'poc-artifact-bundle'),
+                        review_evidence_ref=review_evidence_ref)
                     assessments.append(assessment_ref)
                 except BaseException as exc:
                     verifier_failure='integrity_fault' if isinstance(exc,PlatformIntegrityError) else getattr(exc,'code',type(exc).__name__);failure=verifier_failure

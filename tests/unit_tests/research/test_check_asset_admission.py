@@ -5,6 +5,7 @@ import pytest
 from jiuwenswarm.research.capsules.assets import build_research_assets
 from jiuwenswarm.research.contracts import Principal, ResearchError
 from jiuwenswarm.research.library import LibraryService
+from jiuwenswarm.research.checks.assets import prepare_evidence_aware_release
 from jiuwenswarm.research.state import SQLiteRunStore
 
 
@@ -73,6 +74,80 @@ def test_catalog_preparation_needs_no_model_and_grants_no_eligibility(tmp_path):
                for asset in assets.values())
     assert LibraryService(store).entries() == []
     assert list(store.iter_records(kinds=('library-admission', 'model-call'))) == []
+
+
+def test_evidence_aware_asset_is_a_distinct_opt_in_release(tmp_path):
+    store = SQLiteRunStore(tmp_path)
+    library = LibraryService(store)
+    base = build_research_assets(store)['screening']
+    profile = store.read_record(base['profile_ref'], contract_id='checking-profile')
+    selected = next(row['criterion_id'] for row in profile['criteria']
+                    if row['criterion_id'] not in {'declared_output_conformance','internal_consistency','limitations_consistency'})
+    evidence = prepare_evidence_aware_release(store, base, version_label='example-2',
+        evidence_criterion_ids=[selected], evidence_input_names=['brief'],
+        reviewer_instructions='Use the selected original task source and Tier 1 scores only for the named criterion.',
+        max_evidence_bytes=32768)
+    assert evidence['declaration_ref'] != base['declaration_ref']
+    assert evidence['profile_ref'] != base['profile_ref']
+    assert evidence['bundle_ref'] != base['bundle_ref']
+    old_label = store.read_record(base['declaration_ref'])['identity']['version_label']
+    assert old_label != 'example-2'
+    new_declaration = store.read_record(evidence['declaration_ref'], contract_id='capsule-declaration')
+    new_profile = store.read_record(evidence['profile_ref'], contract_id='checking-profile')
+    assert new_declaration['identity']['version_label'] == 'example-2'
+    assert new_profile['version'] == '2.0.0' and new_profile['review_mode'] == 'task_sources_tier1_v1'
+    assert new_profile['evidence_criterion_ids'] == [selected]
+    assert new_profile['review_evidence_input_names'] == ['brief']
+    # Legacy and evidence-aware pairs are independently admissible and exact.
+    library._validate_association(base['declaration_ref'], base['bundle_ref'], base['profile_ref'])
+    library._validate_association(evidence['declaration_ref'], evidence['bundle_ref'], evidence['profile_ref'])
+    store.close()
+
+
+@pytest.mark.asyncio
+async def test_new_evidence_verifier_release_does_not_rewrite_frozen_release(tmp_path):
+    from jiuwenswarm.research.compiler import register_compiler_capsules
+    from jiuwenswarm.research.evidence_review import prepare_evidence_aware_verifier_release
+    from tests.unit_tests.research.controlled_assets import ControlledLibraryService
+    from jiuwenswarm.research.checks import CheckRegistry
+    from jiuwenswarm.research.runner import Registry
+
+    store = SQLiteRunStore(tmp_path)
+    actor = Principal('operator', operations=frozenset({'verifier_assets','library_admit','library_standing'}))
+    library = ControlledLibraryService(store)
+    installed = await register_compiler_capsules(Registry(), CheckRegistry(), library, store, actor, activate=True)
+    base = installed['verifier']
+    new = prepare_evidence_aware_verifier_release(store, base, version_label='m1-3')
+    old_decl = store.read_record(base['declaration_ref'], contract_id='capsule-declaration')
+    new_decl = store.read_record(new['declaration_ref'], contract_id='capsule-declaration')
+    assert old_decl['identity']['version_label'] == 'm1-2'
+    assert new_decl['identity']['version_label'] == 'm1-3'
+    assert base['body_refs'] != new['body_refs']
+    assert new['body_refs']['research/evidence_review.py']['sha256'] == new_decl['identity']['carrier']['sha256']
+    assert new['declaration'] == new_decl
+    assert new['implementation_refs'] == tuple(new['body_refs'][body['path']]
+                                                for body in new_decl['identity']['body'])
+    assert store.read_record(base['profile_ref'])['target_cc_version_range'] == 'm1-2'
+    assert store.read_record(new['profile_ref'])['target_cc_version_range'] == 'm1-3'
+    library.associate_checks(new['declaration_ref'], new['bundle_ref'], new['profile_ref'], actor)
+    admission_ref = await library.admit(new['declaration_ref'], new['body_refs'], actor, memory_mb=256)
+    admission = store.read_record(admission_ref)
+    assert admission['status'] == 'admitted', admission['reasons']
+    pin = admission['cc']
+    library.set_standing(pin['cc_name'], pin['cc_version'], 'active', actor,
+                          reason='Explicit opt-in bounded evidence-aware verifier release')
+    prepared = await register_compiler_capsules(None, None, None, store, None, prepare_only=True)
+    prepared_verifier = dict(prepared['verifier'])
+    prepared_verifier.update(new)
+    prepared['verifier'] = [prepared['verifier'], prepared_verifier]
+    installed_v3 = await register_compiler_capsules(Registry(), CheckRegistry(), library, store, actor,
+        activate=True, prepared_assets=prepared)
+    assert installed_v3['verifier']['pin'] == pin
+    library.configure_verifier(pin)
+    assert library.get('research.verifier', 'm1-3')['declaration_ref'] == new['declaration_ref']
+    assert library.get('research.verifier', 'm1-2')['declaration_ref'] == base['declaration_ref']
+    registry = Registry()
+    store.close()
 
 
 @pytest.mark.asyncio

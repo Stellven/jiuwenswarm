@@ -38,6 +38,7 @@ class CoreComposition:
     calibration_authority: object | None = None
     calibration_diagnostics: list[dict] = field(default_factory=list)
     rsi_diagnostics: list[dict] = field(default_factory=list)
+    evidence_aware_pilot_catalog_ref: dict | None = None
 
 
 async def compose_core(*,store,operator,model,executor,readiness,upload_manager,principal,
@@ -57,6 +58,13 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     catalog=json.loads(files('jiuwenswarm.research_assets').joinpath('catalog.json').read_text('utf-8'))
     from .capsules.assets import load_research_catalog
     research_catalog=load_research_catalog()
+    from .compiler import prepare_compiler_assets
+    compiler_assets=await prepare_compiler_assets(store)
+    from .capsules.assets import build_research_assets
+    research_assets=build_research_assets(store)
+    evidence_aware_review=options.get('evidence_aware_review') is True
+    if evidence_aware_review and options.get('finite_e1_binding_ref') is not None:
+        raise ResearchError('evidence_pilot_assets','Evidence-aware pilot releases are unavailable to the finite E1 shortcut')
     bootstrap_pins=tuple(v['declaration_sha256'] for v in catalog['capsules'].values())+tuple(v['declaration_ref']['sha256'] for v in research_catalog['stages'].values())
     paper_assets={}
     integrated = options.get('integrated_workflows') is True
@@ -73,6 +81,23 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
         if integrated:
             paper_assets.pop('paper_planner', None)
         bootstrap_pins+=tuple(v['declaration_ref']['sha256'] for v in paper_assets.values())
+    evidence_pilot_assets=None
+    evidence_verifier_asset=None
+    if evidence_aware_review:
+        if not paper_assets:
+            from .capsules.paper_assets import build_paper_assets
+            paper_assets=build_paper_assets(store)
+            paper_assets.pop('paper_planner', None)
+            bootstrap_pins+=tuple(v['declaration_ref']['sha256'] for v in paper_assets.values())
+        from .pilot_catalog import prepare_evidence_aware_pilot_assets
+        evidence_pilot_assets=prepare_evidence_aware_pilot_assets(store,compiler_assets=compiler_assets,
+            research_assets=research_assets,paper_assets=paper_assets)
+        evidence_verifier_asset=evidence_pilot_assets['compiler_assets']['verifier']
+        compiler_assets=copy.deepcopy(compiler_assets)
+        compiler_assets['verifier']=[compiler_assets['verifier'],evidence_verifier_asset]
+        bootstrap_pins+=tuple(asset['declaration_ref']['sha256'] for asset in [
+            evidence_verifier_asset,*evidence_pilot_assets['research_assets'].values(),
+            *evidence_pilot_assets['paper_assets'].values()])
     public=operator.snapshot()['rsi']['custodian_public_key']
     public_bytes=base64.urlsafe_b64decode(public+'='*(-len(public)%4)) if public is not None else None
     rsi_guard=None;rsi_diagnostics=[]
@@ -123,22 +148,30 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
         runner.faults=profiles
         policy=store.read_record(operator.snapshot()['cc']['plan_policy_ref'],contract_id='plan-policy')
         memory_ceiling=policy['aggregate_limits']['memory_mb']
-        from .capsules.assets import build_research_assets,register_research_capsules
-        assets=build_research_assets(store)
+        from .capsules.assets import register_research_capsules
+        assets=research_assets
         assets.update(paper_assets)
+        install_assets=dict(assets)
+        if evidence_pilot_assets is not None:
+            install_assets.update(evidence_pilot_assets['research_assets'])
+            install_assets.update(evidence_pilot_assets['paper_assets'])
         if options.get('development_builtin_catalog') is True:
             import os
             if finite is not None or os.environ.get('JIUWENSWARM_M1_LOCAL_RESEARCH')!='1':
                 raise ResearchError('development_builtin_binding','Development built-ins require explicit local research startup')
-            from .compiler import prepare_compiler_assets
-            compiler_assets=await prepare_compiler_assets(store)
-            library.select_development_builtins([*compiler_assets.values(),*assets.values()],memory_mb=memory_ceiling)
+            selected_compiler_assets=[asset for value in compiler_assets.values()
+                                      for asset in (value if isinstance(value,list) else [value])]
+            selected_assets={**research_assets,**paper_assets}
+            if evidence_pilot_assets is not None:
+                selected_assets.update(evidence_pilot_assets['research_assets'])
+                selected_assets.update(evidence_pilot_assets['paper_assets'])
+            library.select_development_builtins([*selected_compiler_assets,*selected_assets.values()],memory_mb=memory_ceiling)
         if finite is None:
-            result.installed=await register_compiler_capsules(registry,checks,library,store,actor,activate=initialize,initialize=initialize,memory_mb=memory_ceiling)
+            result.installed=await register_compiler_capsules(registry,checks,library,store,actor,
+                activate=initialize,initialize=initialize,memory_mb=memory_ceiling,prepared_assets=compiler_assets)
         else:
             # Pure immutable body preparation does not require Compiler work/resources.
-            from .compiler import prepare_compiler_assets
-            asset=(await prepare_compiler_assets(store))['verifier']
+            asset=compiler_assets['verifier']
             declaration=asset['declaration'];identity=declaration['identity']
             existing=None
             try:existing=library.get(identity['name'],identity['version_label'])
@@ -165,11 +198,12 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             library.configure_verifier(admission['cc'])
             names=[name.removeprefix('research.') for name in finite._qualification['stages']]
             assets={name:assets[name] for name in names}
+            install_assets=dict(assets)
 
-        for stage,asset in assets.items():
+        for stage,asset in install_assets.items():
             declaration=store.read_record(asset['declaration_ref']);identity=declaration['identity']
             if initialize:
-                memory=options.get('research_memory_mb',{}).get(stage,memory_ceiling)
+                memory=options.get('research_memory_mb',{}).get(stage.removesuffix('_evidence'),memory_ceiling)
                 if type(memory) is not int or not 0<memory<=memory_ceiling:raise ResearchError('memory_binding_invalid','Installed admission memory must narrow the approved policy ceiling')
                 existing=None
                 try:existing=library.get(identity['name'],identity['version_label'])
@@ -201,6 +235,21 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             from .capsules.paper_assets import register_paper_capsules
             register_paper_capsules(registry,checks,library,store,assets=paper_assets)
         result.installed.update(assets)
+        if evidence_pilot_assets is not None:
+            evidence_research=evidence_pilot_assets['research_assets']
+            evidence_paper=evidence_pilot_assets['paper_assets']
+            register_research_capsules(registry,checks,library,store,connectors=connectors,executor=executor,
+                assets={'evaluation':evidence_research['evaluation_evidence'],
+                        'delivery':evidence_research['delivery_evidence']})
+            from .capsules.paper_assets import register_paper_capsules
+            register_paper_capsules(registry,checks,library,store,assets={
+                'paper_summary':evidence_paper['paper_summary_evidence'],
+                'paper_delivery':evidence_paper['paper_delivery_evidence']})
+            result.installed.update(evidence_research)
+            result.installed.update(evidence_paper)
+            from .pilot_catalog import capture_evidence_aware_pilot_catalog
+            result.evidence_aware_pilot_catalog_ref=capture_evidence_aware_pilot_catalog(store,library,
+                evidence_assets=evidence_pilot_assets,original_assets=assets)
         from .capsule_extensions.catalog import register_active
         result.installed.update(register_active(registry, checks, library, store))
         if finite is None:
@@ -245,7 +294,8 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             compiler=IntentionCompiler(store,runner,factory,intent_pin=result.installed['intent']['pin'],requirements_pin=result.installed['requirements']['pin'],
                 default_policy_ref=options['default_policy_ref'],template_ref=options['compiler_template_ref'],node_limits=options['compiler_limits'],
                 policy_ref=operator.snapshot()['cc']['plan_policy_ref'],authority_ceiling=run_authority)
-            planner=PlanningCoordinator(store,runner,factory,planner_pin=result.installed['paper_planner' if paper_assets and not integrated else 'planner']['pin'],template_ref=options['planner_template_ref'],
+            planner_stage='paper_planner' if paper_assets and not integrated and 'paper_planner' in result.installed else 'planner'
+            planner=PlanningCoordinator(store,runner,factory,planner_pin=result.installed[planner_stage]['pin'],template_ref=options['planner_template_ref'],
                 node_limits=options['planner_limits'],authority_ceiling=run_authority)
         binder=Binder(store,library,checks,search_bounds_ref=options.get('search_bounds_ref'),finite_e1=finite)
         scheduler=Scheduler(store,runner,factory,binder,library=library,planning=planner,progress_sink=options.get('progress_sink'),evidence=evidence)

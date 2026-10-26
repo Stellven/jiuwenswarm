@@ -81,9 +81,33 @@ class LibraryService:
         generic = {'declared_output_conformance', 'internal_consistency', 'limitations_consistency'}
         if len(set(ids)) != len(ids) or len(set(criteria)) != len(criteria) or not generic.issubset(criteria):
             raise ResearchError('check_compatibility', 'Duplicate or missing mandatory check criteria')
+        review_mode = profile.get('review_mode')
+        evidence_ids = profile.get('evidence_criterion_ids', [])
+        if review_mode is None:
+            if any(key in profile for key in ('review_evidence_max_bytes', 'review_evidence_input_names', 'evidence_criterion_ids')):
+                raise ResearchError('verifier_boundary', 'Evidence settings require an explicitly versioned review mode')
+            if any(c['answerable_from'] != 'declaration_and_output' or
+                   any(word in c['criterion_id'] for word in ('fidelity', 'preservation', 'faithfulness', 'source_support'))
+                   for c in profile['criteria']):
+                raise ResearchError('verifier_boundary', 'Legacy semantic criteria may use declaration and output only')
+        else:
+            inputs = profile.get('review_evidence_input_names')
+            maximum = profile.get('review_evidence_max_bytes')
+            selected = [c['criterion_id'] for c in profile['criteria']
+                        if c['answerable_from'] == 'selected_task_sources_and_tier1']
+            if (review_mode != 'task_sources_tier1_v1' or profile['version'] != '2.0.0'
+                    or not isinstance(inputs, list) or not inputs or len(inputs) != len(set(inputs))
+                    or any(not isinstance(name, str) or not name for name in inputs)
+                    or type(maximum) is not int or not 1 <= maximum <= 131072
+                    or not isinstance(evidence_ids, list) or not evidence_ids
+                    or len(evidence_ids) != len(set(evidence_ids)) or set(evidence_ids) != set(selected)
+                    or set(evidence_ids) & generic
+                    or any(c['answerable_from'] not in {'declaration_and_output', 'selected_task_sources_and_tier1'}
+                           for c in profile['criteria'])):
+                raise ResearchError('verifier_boundary', 'Evidence-aware review needs an exact bounded v2 evidence policy')
         for criterion in profile['criteria']:
-            if criterion['answerable_from'] != 'declaration_and_output' or any(word in criterion['criterion_id'] for word in ('fidelity','preservation','faithfulness','source_support')):
-                raise ResearchError('verifier_boundary', 'Semantic criteria may use declaration and output only')
+            if review_mode is None and any(word in criterion['criterion_id'] for word in ('fidelity','preservation','faithfulness','source_support')):
+                raise ResearchError('verifier_boundary', 'Legacy semantic criteria may not claim source review')
             if criterion['criterion_id'] in generic and not criterion['blocking']:
                 raise ResearchError('check_compatibility', 'Generic criteria are blocking')
         for port in declaration['ports']['outputs']:

@@ -2340,7 +2340,8 @@
           "required": true,
           "meaning": "Fixed value",
           "enum": [
-            "declaration_and_output"
+            "declaration_and_output",
+            "selected_task_sources_and_tier1"
           ]
         },
         "target_port": {
@@ -7907,9 +7908,38 @@
           "enum": [
             "verifier_owner"
           ]
+        },
+        "review_mode": {
+          "type": "string",
+          "required": false,
+          "meaning": "Optional separately versioned semantic review mode. Omitted profiles retain declaration/output-only review.",
+          "enum": [
+            "task_sources_tier1_v1"
+          ]
+        },
+        "review_evidence_max_bytes": {
+          "type": "integer",
+          "required": false,
+          "meaning": "Maximum original source-input bytes disclosed to the evidence-aware reviewer.",
+          "min": 1,
+          "max": 131072
+        },
+        "review_evidence_input_names": {
+          "type": "string[]",
+          "required": false,
+          "meaning": "Exact original input ports authorized for the evidence-aware reviewer.",
+          "min_items": 1,
+          "max_items": 16
+        },
+        "evidence_criterion_ids": {
+          "type": "string[]",
+          "required": false,
+          "meaning": "Exact criteria permitted to use the selected task sources and Tier 1 result.",
+          "min_items": 1,
+          "max_items": 32
         }
       },
-      "failure": "Any criterion with answerable_from other than declaration_and_output, or a missing generic criterion, rejects admission"
+      "failure": "Criteria using task evidence require the immutable v2 review mode, exact named task inputs, and a bounded host-built Tier 1 evidence projection; all other profiles remain declaration/output-only."
     },
     {
       "id": "review-context:field-contract:2",
@@ -7951,6 +7981,11 @@
           "type": "Ref[]",
           "required": true,
           "meaning": "Original and accepted inputs of the subject. For audit and the gate only. Never sent to the verifier model."
+        },
+        "review_evidence_ref": {
+          "type": "nullable-Ref",
+          "required": false,
+          "meaning": "Host-built, size-bounded evidence projection for an explicitly pinned evidence-aware profile. It contains only named original task/source inputs and Tier 1 results; never worker conversation, observations or private answers."
         },
         "deterministic_result_ref": {
           "type": "Ref",

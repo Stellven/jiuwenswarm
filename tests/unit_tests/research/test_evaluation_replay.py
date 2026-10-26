@@ -380,3 +380,30 @@ async def test_eligible_replay_sends_only_declaration_and_output_to_actual_revie
         assert await provider.node_replay(actor, request) == result and len(prompts) == 2
     finally:
         store.close()
+
+
+@pytest.mark.asyncio
+async def test_evaluation_replay_rejects_evidence_aware_profile_before_review_call(tmp_path):
+    from jiuwenswarm.research.capsules.assets import build_research_assets
+    from jiuwenswarm.research.checks.assets import prepare_evidence_aware_release
+    from jiuwenswarm.research.evaluation_authority import EvaluationMeasurementContext
+
+    store = SQLiteRunStore(tmp_path)
+    asset = build_research_assets(store)['screening']
+    base = store.read_record(asset['profile_ref'], contract_id='checking-profile')
+    selected = next(row['criterion_id'] for row in base['criteria']
+                    if row['criterion_id'] not in {
+                        'declared_output_conformance', 'internal_consistency', 'limitations_consistency'})
+    evidence_release = prepare_evidence_aware_release(store, asset, version_label='replay-v2-test',
+        evidence_criterion_ids=[selected], evidence_input_names=['brief'],
+        reviewer_instructions='Use only the selected task evidence for the named criterion.')
+
+    context = object.__new__(EvaluationMeasurementContext)
+    context.store = store
+    context.basis = {'profile_ref': evidence_release['profile_ref']}
+    with pytest.raises(ResearchError, match='not wired into evaluation replay') as caught:
+        await context.review('intent', {'id': 'output', 'sha256': '0' * 64},
+            {'id': 'deterministic', 'sha256': '0' * 64}, {'id': 'observation', 'sha256': '0' * 64})
+    assert caught.value.code == 'entry_point_unavailable'
+    assert not list(store.iter_records(kinds=('model-call',)))
+    store.close()

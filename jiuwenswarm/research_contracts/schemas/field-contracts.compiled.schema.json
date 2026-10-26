@@ -1480,6 +1480,33 @@
           "enum": [
             "verifier_owner"
           ]
+        },
+        "review_mode": {
+          "type": "string",
+          "enum": [
+            "task_sources_tier1_v1"
+          ]
+        },
+        "review_evidence_max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 131072
+        },
+        "review_evidence_input_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "maxItems": 16
+        },
+        "evidence_criterion_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "maxItems": 32
         }
       },
       "required": [
@@ -2408,7 +2435,8 @@
         "answerable_from": {
           "type": "string",
           "enum": [
-            "declaration_and_output"
+            "declaration_and_output",
+            "selected_task_sources_and_tier1"
           ]
         },
         "target_port": {
@@ -6693,6 +6721,16 @@
               "type": "string"
             }
           ]
+        },
+        "review_evidence_ref": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/Ref"
+            }
+          ]
         }
       },
       "required": [
@@ -10161,6 +10199,33 @@
           "enum": [
             "verifier_owner"
           ]
+        },
+        "review_mode": {
+          "type": "string",
+          "enum": [
+            "task_sources_tier1_v1"
+          ]
+        },
+        "review_evidence_max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 131072
+        },
+        "review_evidence_input_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "maxItems": 16
+        },
+        "evidence_criterion_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "maxItems": 32
         }
       },
       "required": [
@@ -11586,6 +11651,16 @@
           "items": {
             "$ref": "#/$defs/Ref"
           }
+        },
+        "review_evidence_ref": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/Ref"
+            }
+          ]
         },
         "output_refs": {
           "type": "array",

@@ -42,7 +42,7 @@
         },
         {
           "path": "research/summary_planning.py",
-          "sha256": "2d8634b21654946527f62c9c0ce4169af75d65815b748a26b32801175e9353f0"
+          "sha256": "23ff36172158e642ff344af4036171ff06b40d2bae8e04dbcba5bbb06eb9c9f4"
         },
         {
           "path": "research/planner_catalog.py",
@@ -50,7 +50,7 @@
         }
       ],
       "declaration_path": "planner/planner.declaration.json",
-      "declaration_sha256": "edbbbef61522b6794298ccefa336165d8298d8a66bd756974eaa75c8d4085a5e"
+      "declaration_sha256": "6b9885c39d6ad87969a9a259e4f6f2d7fa2f39fe1ee60a1caf5208cd8eb2efc5"
     },
     "requirements": {
       "body": [

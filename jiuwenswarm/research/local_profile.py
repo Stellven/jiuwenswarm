@@ -75,7 +75,10 @@ def _previous_calibration_requests(store, runtime_ref):
 
 
 def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
-                          public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False):
+                          public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False,
+                          requested_model='gpt-6.1-sol', evidence_aware_review=False):
+    if requested_model not in {'gpt-6-luna', 'gpt-6.1-sol'} or type(evidence_aware_review) is not bool:
+        raise ResearchError('local_profile_conflict', 'Pilot model and review mode must be explicit supported selections')
     directory = Path(directory)
     if not directory.is_absolute() or directory.is_symlink() or input_root.is_symlink() or not input_root.is_dir():
         raise ResearchError('local_profile_custody', 'Local operator and input directories must be real absolute directories')
@@ -92,6 +95,9 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
             raise ResearchError('local_profile_conflict', 'Local bootstrap locator is invalid')
         validate('Ref', envelope['binding_ref'])
         binding = store.read_record(envelope['binding_ref'])
+        if (store.read_record(binding['deployment_ref']).get('requested_model') != requested_model
+                or binding['protected_options'].get('evidence_aware_review', False) != evidence_aware_review):
+            raise ResearchError('local_profile_conflict', 'Frozen model or review mode changed; use a fresh profile directory')
         operator = OperatorConfiguration.load(config_path, resolve_profile=store.read_record)
         if store.read_record(binding['configuration_ref']) != operator.snapshot():
             raise ResearchError('local_profile_conflict', 'Local configuration differs from its captured identity')
@@ -193,7 +199,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'selection_allowance': {'enabled': False, 'deployment_ref': None, 'model_calls': 0, 'time_s': 0, 'output_tokens': 0, 'disclosure_scope': []},
         'alternate_model_id': None, 'policy_ref': policy_ref})
     deployment = store.put_blob(json_bytes({'schema': 'ai4r-fixed-subscription:1', 'id': GOVERNANCE_PROFILE_NAME + '.deployment',
-        'route_id': 'codex-cli-default', 'requested_model': 'gpt-6.1-sol', 'endpoint': 'local-protected-IPC'}), media_type='application/json')
+        'route_id': 'codex-cli-default', 'requested_model': requested_model, 'endpoint': 'local-protected-IPC'}), media_type='application/json')
     defaults = store.put_record('default-policy', {'schema_version': '1.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.defaults',
         'hardware_profile': 'single_gpu', 'automatic_retries': 0})
     finalization = store.put_record('node-finalization-profile', {'schema_version': '2.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.finalization',
@@ -238,6 +244,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'document_extraction_timeout_s': 30, 'max_upload_bytes': 20 * 1024 * 1024,
         'run_inputs': science['run_inputs'] if science else {}, 'host_records': science['host_records'] if science else {},
         'development_builtin_catalog':development_builtin_catalog, 'integrated_workflows':True}
+    if evidence_aware_review:
+        options['evidence_aware_review'] = True
     if science is not None:
         options['local_science_resources_ref'] = store.put_blob(json_bytes(science), media_type='application/json')
     if calibration is not None:

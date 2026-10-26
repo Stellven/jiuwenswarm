@@ -570,7 +570,9 @@ def validate_child_authority(store, parent_ref, subnode_id, inputs, *, effective
         if source is None or source['role'] != 'work' or assignment['depends_on'] != [subject]:
             raise ResearchError('input_authority', 'Verifier lacks its exact assigned work subject')
         by_name = {port['name']: port['artifact_refs'] for port in inputs}
-        if (set(by_name) != {'subject_declaration', 'subject_output'}
+        allowed_names = {'subject_declaration', 'subject_output'}
+        evidence_ref = None
+        if (not allowed_names.issubset(by_name) or set(by_name) - allowed_names - {'review_evidence'}
                 or by_name['subject_declaration'] != [source['capsule_ref']] or len(by_name['subject_output']) != 1):
             raise ResearchError('input_authority', 'Verifier has another declaration/output subject')
         output_ref = by_name['subject_output'][0]
@@ -601,7 +603,42 @@ def validate_child_authority(store, parent_ref, subnode_id, inputs, *, effective
                 proofs.append(row)
         if len(proofs) != 1:
             raise ResearchError('input_authority', 'Verifier subject lacks exact passing original Tier1 proof')
+        from .evidence_review import MODE, PROFILE_VERSION
+        source_template = store.read_record(source['template_ref'])
+        source_profile_ref = source_template.get('checking_profile_ref')
+        if source_profile_ref is None:
+            raise ResearchError('input_authority', 'Verifier subject has no exact checking profile')
+        source_profile = store.read_record(source_profile_ref, contract_id='checking-profile')
+        source_is_evidence_aware = (source_profile.get('version') == PROFILE_VERSION
+                                    and source_profile.get('review_mode') == MODE)
+        if source_is_evidence_aware and 'review_evidence' not in by_name:
+            raise ResearchError('input_authority', 'Evidence-aware subject requires its host-built verifier projection')
+        if 'review_evidence' in by_name and not source_is_evidence_aware:
+            raise ResearchError('input_authority', 'Legacy source profile cannot grant verifier access to evidence')
+        if 'review_evidence' in by_name:
+            # The optional third verifier input is accepted only for an exact
+            # v2 work profile and only when its bytes reproduce the host's
+            # projection from the original bound inputs and passing Tier 1.
+            # This prevents caller-supplied evidence from widening review.
+            from .evidence_review import build_review_evidence
+            evidence_port = declared.get('review_evidence')
+            if (evidence_port is None or evidence_port.get('required') is not False
+                    or evidence_port.get('schema_ref') != 'opaque-bytes' or len(by_name['review_evidence']) != 1):
+                raise ResearchError('input_authority', 'Evidence input is outside the exact optional v2 verifier boundary')
+            evidence_ref = by_name['review_evidence'][0]
+            try:
+                evidence = json.loads(store.read_blob(evidence_ref).decode('utf-8'))
+            except (UnicodeError, ValueError, TypeError):
+                raise ResearchError('input_authority', 'Evidence projection is not valid retained JSON') from None
+            proof_row = proofs[0]
+            review_context = {'contract_ref': observed['contract_ref'], 'input_refs': work['input_refs'],
+                              'check_plan_ref': proof_row['record']['check_plan_ref'],
+                              'deterministic_result_ref': proof_row['ref']}
+            if evidence != build_review_evidence(store, review_context, source_profile):
+                raise ResearchError('input_authority', 'Evidence projection differs from original inputs and passing Tier 1 checks')
         allowed.extend([source['capsule_ref'], output_ref])
+        if evidence_ref is not None:
+            allowed.append(evidence_ref)
     else:
         raise ResearchError('input_authority', 'Unknown assigned child role')
     concrete = [ref for port in inputs for ref in port['artifact_refs']]

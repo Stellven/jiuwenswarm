@@ -293,6 +293,19 @@ class SubscriptionService:
                  "cost_amount": None, "currency": None, "unavailable_reasons": []}
         parts = {}
         failure = None
+        pilot_budget = None
+        if os.environ.get('AI4R_PILOT_BUDGET_DIRECTORY'):
+            from jiuwenswarm.research.pilot_budget import PilotBudget, PilotLimitReached
+            try:
+                pilot_budget = PilotBudget(os.environ['AI4R_PILOT_BUDGET_DIRECTORY'])
+                timeout_s = min(timeout_s, pilot_budget.claim(key[1], model))
+            except PilotLimitReached:
+                pilot_budget.close()
+                raise CodexError('PILOT_BUDGET_EXHAUSTED') from None
+            except Exception:
+                if pilot_budget is not None:
+                    pilot_budget.close()
+                raise CodexError('PILOT_BUDGET_UNAVAILABLE') from None
 
         async def native_request(method, params):
             if _trace is None:
@@ -445,6 +458,11 @@ class SubscriptionService:
                     self.transport.wire_listeners.discard(_trace.notification)
                 self.active.pop(key, None)
                 run["done"].set()
+                if pilot_budget is not None:
+                    try:
+                        pilot_budget.finish(key[1], 'completed' if completed and failure is None else type(failure).__name__, effective_model)
+                    finally:
+                        pilot_budget.close()
 
     async def stream(self, session_id, request_id, text, model=None):
         if not session_id or not request_id or not isinstance(text, str) or not text.strip():

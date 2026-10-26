@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('capabilities','replay','status','planner','builder','benchmark','completion','executor','all')]
+    [ValidateSet('capabilities','replay','status','planner','builder','benchmark','completion','executor','ml-readiness','all')]
     [string]$Group = 'capabilities',
     [string]$Image = 'ai4r-verify:local',
     [string]$Output,
