@@ -1,0 +1,28 @@
+{
+  "project": "CPython",
+  "upstream_tag": "v3.13.0",
+  "upstream_commit": "60403a5409ff2c3f3b07dd2ca91a7a3e096839c7",
+  "tag_object": "3f27099d916c7b885e3daf1fabedcc119462014d",
+  "upstream_files": {
+    "Lib/test/test_csv.py": {
+      "url": "https://raw.githubusercontent.com/python/cpython/60403a5409ff2c3f3b07dd2ca91a7a3e096839c7/Lib/test/test_csv.py",
+      "sha256": "37be9144ab9838f7b385172571a26dadaed0b1cd45d6a8f731003ac7e9883939"
+    },
+    "Lib/test/test_decimal.py": {
+      "url": "https://raw.githubusercontent.com/python/cpython/60403a5409ff2c3f3b07dd2ca91a7a3e096839c7/Lib/test/test_decimal.py",
+      "sha256": "a7acb691a0a4911b02d427bdd48cd27e4c54f06fdebac03a62eb32b9d6cd7f52"
+    },
+    "LICENSE": {
+      "url": "https://raw.githubusercontent.com/python/cpython/60403a5409ff2c3f3b07dd2ca91a7a3e096839c7/LICENSE",
+      "sha256": "78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb"
+    }
+  },
+  "license": "PSF-2.0; full upstream LICENSE retained in upstream/CPython-LICENSE.txt",
+  "copyright": "Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved.",
+  "source_copyright_headers": [
+    "Copyright (C) 2001,2002 Python Software Foundation",
+    "Copyright (c) 2004 Python Software Foundation. All rights reserved."
+  ],
+  "retrieved_at": "2026-10-26",
+  "adaptation": "Selected upstream literals/edge patterns wrapped in explicit work-packet requests with required headers; extra negative mutations identified per case. Expected answers authored as literals independently of workers and helper. No official upstream suite or benchmark score claimed."
+}

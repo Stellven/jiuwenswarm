@@ -118,6 +118,20 @@ def bank():
     return result
 
 
+def supplemental_cases():
+    """Opt-in CPython-source adaptations; never silently enlarge the original 80."""
+    specifications = json.loads((ASSETS / 'public_source_cases.json').read_text('utf-8'))
+    provenance = json.loads((ASSETS / 'public_source_provenance.json').read_text('utf-8'))
+    cases = []
+    for specification in specifications:
+        case = _case(specification['family'], specification['slug'], specification['objective'],
+                     specification['inputs'], specification['expected'], module=specification['module'])
+        case['source'] = {**provenance, **specification['source'],
+                          'kind': 'public_primary_source_adaptation', 'official_benchmark_result': False}
+        cases.append(case)
+    return cases
+
+
 def grade(case, response):
     """Common content score: no CC binding penalty and no fuzzy model grader."""
     well_formed = (type(response) is dict and set(response) == {'status', 'content'}
@@ -129,14 +143,14 @@ def grade(case, response):
             'grader': case['oracle'], 'binding_conformance': 'not_assessed'}
 
 
-def freeze(destination):
+def freeze(destination, *, cases=None):
     """Public tasks never contain private expected answers; outputs are immutable."""
     root = Path(destination)
     root.mkdir(parents=True, exist_ok=False)
     for name in ('public', 'private', 'native_skill'):
         (root / name).mkdir()
     manifest = []
-    for case in bank():
+    for case in bank() if cases is None else cases:
         key = case['task']['id'].replace('/', '--') + '.json'
         (root / 'public' / key).write_bytes(canonical(case['task']))
         (root / 'private' / key).write_bytes(canonical(case))
@@ -175,17 +189,20 @@ async def direct_cc(case, *, typed=False):
         return {'status': 'halt', 'content': {}}, {'error_code': error.code, 'error': str(error), 'module': module}
 
 
-def run_offline(destination, *, typed=False):
+def run_offline(destination, *, typed=False, cases=None):
     """Retain every direct response/error; availability is separate from grade."""
     target = Path(destination)
     target.mkdir(parents=True, exist_ok=False)
     source_paths = [Path(__file__), ASSETS / 'design.json', ASSETS / 'native_skill' / 'helper.py',
                     ASSETS / 'native_skill' / 'SKILL.md']
+    source_paths.extend(ASSETS.glob('public_source*.json'))
+    source_paths.extend((ASSETS / 'upstream').glob('*'))
     source_paths.extend((Path(__file__).parents[2] / 'jiuwenswarm' / 'research').rglob('*.py'))
     hashes = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in source_paths}
     rows = []
+    selected = bank() if cases is None else list(cases)
     with (target / 'observations.jsonl').open('x', encoding='utf-8') as stream:
-        for case in bank():
+        for case in selected:
             if not case['worker_module']:
                 row = {'id': case['task']['id'], 'status': 'not_run', 'reason': case['readiness']}
                 stream.write(json.dumps(row) + '\n'); stream.flush(); rows.append(row)
@@ -214,7 +231,7 @@ def run_offline(destination, *, typed=False):
     changed = [p for p, value in hashes.items() if hashlib.sha256(Path(p).read_bytes()).hexdigest() != value]
     summary = {'schema': 'ai4r-value-offline-observation:1', 'scope': __doc__, 'source_hashes': hashes,
                'source_changed': changed, 'rows': len(rows), 'quality_credit_valid': not changed,
-               'model_calls': 0, 'cases': 80, 'default_repeats': 1}
+               'model_calls': 0, 'cases': len(selected), 'default_repeats': 1}
     (target / 'summary.json').write_bytes(canonical(summary))
     return summary
 
@@ -224,13 +241,15 @@ def main(argv=None):
     parser.add_argument('command', choices=['inventory', 'freeze', 'offline'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--typed', action='store_true')
+    parser.add_argument('--public-source', action='store_true', help='Select only the eight opt-in CPython-source adaptations')
     args = parser.parse_args(argv)
+    selected = supplemental_cases() if args.public_source else None
     if args.command == 'inventory':
-        print(json.dumps([{'id': c['task']['id'], 'readiness': c['readiness']} for c in bank()], indent=2))
+        print(json.dumps([{'id': c['task']['id'], 'readiness': c['readiness']} for c in (bank() if selected is None else selected)], indent=2))
     elif args.output is None:
         parser.error('--output is required')
     else:
-        print(json.dumps(freeze(args.output) if args.command == 'freeze' else run_offline(args.output, typed=args.typed), indent=2))
+        print(json.dumps(freeze(args.output, cases=selected) if args.command == 'freeze' else run_offline(args.output, typed=args.typed, cases=selected), indent=2))
 
 
 if __name__ == '__main__':

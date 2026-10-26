@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from benchmarks.harbor_suite.value_cases import ASSETS, bank, direct_cc, exact, freeze, grade, run_offline
+from benchmarks.harbor_suite.value_cases import ASSETS, bank, direct_cc, exact, freeze, grade, run_offline, supplemental_cases
 
 
 def helper():
@@ -86,3 +86,32 @@ def test_offline_retains_both_arms_and_design_denominator(tmp_path):
     assert all(not r['native_agent_measured'] and not r['protected_cc_unit_measured'] for r in observed)
     with pytest.raises(FileExistsError):
         run_offline(root)
+
+
+@pytest.mark.parametrize('case', supplemental_cases(), ids=lambda c: c['task']['id'])
+def test_public_source_adaptations_against_same_helper_and_real_workers(case):
+    original = copy.deepcopy(case)
+    assert grade(case, helper().solve(case['task']))['content_correct']
+    for typed in (False, True):
+        response, raw = asyncio.run(direct_cc(case, typed=typed))
+        assert grade(case, response)['content_correct'], (response, raw)
+    assert case == original
+    assert case['source']['upstream_commit'] == '60403a5409ff2c3f3b07dd2ca91a7a3e096839c7'
+    assert case['source']['official_benchmark_result'] is False
+    assert case['source']['upstream_anchor']
+
+
+def test_supplement_is_opt_in_and_freeze_retains_provenance(tmp_path):
+    cases = supplemental_cases()
+    assert len(cases) == 8 and len(bank()) == 80
+    assert not {c['task']['id'] for c in cases} & {c['task']['id'] for c in bank()}
+    root = tmp_path / 'source_freeze'
+    manifest = freeze(root, cases=cases)
+    assert len(manifest) == 8
+    assert all(row['source']['kind'] == 'public_primary_source_adaptation' for row in manifest)
+    assert len(list((root / 'public').glob('*.json'))) == 8
+    # A wrong parser that splits physical lines loses the embedded LF and fails.
+    case = next(c for c in cases if c['task']['id'].endswith('cpython-multiline'))
+    bad = copy.deepcopy(case['expected'])
+    bad['content']['table']['rows'][0][0] = 'ab'
+    assert not grade(case, bad)['content_correct']

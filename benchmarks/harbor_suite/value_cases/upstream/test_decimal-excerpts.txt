@@ -1,0 +1,34 @@
+Source: https://raw.githubusercontent.com/python/cpython/60403a5409ff2c3f3b07dd2ca91a7a3e096839c7/Lib/test/test_decimal.py
+Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved.
+Adapted excerpts; see CPython-LICENSE.txt. Original line numbers follow.
+494: 
+495: class ExplicitConstructionTest:
+496:     '''Unit tests for Explicit Construction cases of Decimal.'''
+497: 
+498:     def test_explicit_empty(self):
+499:         Decimal = self.decimal.Decimal
+500:         self.assertEqual(Decimal(), Decimal("0"))
+501: 
+502:     def test_explicit_from_None(self):
+503:         Decimal = self.decimal.Decimal
+504:         self.assertRaises(TypeError, Decimal, None)
+505: 
+506:     def test_explicit_from_int(self):
+507:         Decimal = self.decimal.Decimal
+508: 
+509:         #positive
+510:         d = Decimal(45)
+511:         self.assertEqual(str(d), '45')
+512: 
+513:         #very large positive
+514:         d = Decimal(500000123)
+515:         self.assertEqual(str(d), '500000123')
+516: 
+517:         #negative
+518:         d = Decimal(-45)
+519:         self.assertEqual(str(d), '-45')
+539:         self.assertEqual(str(Decimal('')), 'NaN')
+540: 
+541:         #int
+542:         self.assertEqual(str(Decimal('45')), '45')
+543: 

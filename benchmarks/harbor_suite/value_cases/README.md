@@ -42,3 +42,20 @@ none is an upstream benchmark result. The skill/helper receives public tasks
 only and has no oracle, expected-answer, CC or verifier imports. When executing
 native agent comparisons, retain these files and ordinary tools as available
 assistance; do not restrict the baseline to tool-free prompting.
+
+## Opt-in adaptations of public CPython tests
+
+Add `--public-source` to `inventory`, `freeze` or `offline` to select eight
+additional runnable cases instead of the original 80. `supplemental_cases()`
+exposes the same selection to integrations. Default case IDs and task hashes
+remain unchanged. The supplement reuses CPython CSV quote/newline/empty-field
+patterns and decimal literal cases pinned to the `v3.13.0` commit
+`60403a5409ff2c3f3b07dd2ca91a7a3e096839c7`. Duplicate-header and ragged-row
+negative mutations are explicitly local adaptations of upstream CSV examples.
+
+`public_source_provenance.json` records commit URLs, original full-source hashes,
+copyright, license and changes. `upstream/` retains attributed source excerpts
+and the full upstream license. Expected outputs remain literal and independent
+of production parsers/checks. These are development adaptations, not an execution
+of the official CPython suite or an official benchmark score. Ordinary helper
+and actual-worker ties are valid observations, not evidence of a CC quality gain.

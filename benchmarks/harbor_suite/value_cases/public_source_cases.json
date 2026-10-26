@@ -1,0 +1,450 @@
+[
+  {
+    "family": "utility.table_normalize",
+    "slug": "cpython-multiline",
+    "module": "table_normalize_v2",
+    "objective": "Normalize selected CSV with strict parsing, unique header and rectangular rows; preserve quoted newlines, quotes, spaces and empty strings. Refuse malformed input without repair.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table_request": {
+          "file": "source",
+          "format": "csv",
+          "columns": [
+            "id",
+            "v"
+          ],
+          "delimiter": ","
+        }
+      },
+      "files": [
+        {
+          "path": "source",
+          "text": "id,v\r\n\"a\nb\", 7\r\n",
+          "sha256": "5f6438c14d09213698c9b2b1c95cd7b4a62ddab4ebc1167f8a8b74baf07b4061"
+        }
+      ],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "complete",
+      "content": {
+        "table": {
+          "columns": [
+            "id",
+            "v"
+          ],
+          "rows": [
+            [
+              "a\nb",
+              " 7"
+            ]
+          ]
+        }
+      }
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_csv.py",
+      "upstream_anchor": "test_read_quoting:412",
+      "adaptation_detail": "Add explicit two-column header and CRLF record terminators; preserve quoted LF and leading space."
+    }
+  },
+  {
+    "family": "utility.table_normalize",
+    "slug": "cpython-quote-trailing",
+    "module": "table_normalize_v2",
+    "objective": "Normalize selected CSV with strict parsing, unique header and rectangular rows; preserve quoted newlines, quotes, spaces and empty strings. Refuse malformed input without repair.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table_request": {
+          "file": "source",
+          "format": "csv",
+          "columns": [
+            "id",
+            "v",
+            "tail"
+          ],
+          "delimiter": ","
+        }
+      },
+      "files": [
+        {
+          "path": "source",
+          "text": "id,v,tail\n1,\"p,\"\"q\"\"\",\n",
+          "sha256": "ed1fca8e2bcc1ea4f9ab8614913919bf099b450eccba8cf1ea68b5fd56333311"
+        }
+      ],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "complete",
+      "content": {
+        "table": {
+          "columns": [
+            "id",
+            "v",
+            "tail"
+          ],
+          "rows": [
+            [
+              "1",
+              "p,\"q\"",
+              ""
+            ]
+          ]
+        }
+      }
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_csv.py",
+      "upstream_anchor": "test_write_escape:219-224; test_read_quoting:393",
+      "adaptation_detail": "Combine upstream comma/doubled-quote pattern with a trailing empty field and explicit header; parse rather than write."
+    }
+  },
+  {
+    "family": "utility.table_normalize",
+    "slug": "cpython-empty-fields",
+    "module": "table_normalize_v2",
+    "objective": "Normalize selected CSV with strict parsing, unique header and rectangular rows; preserve quoted newlines, quotes, spaces and empty strings. Refuse malformed input without repair.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table_request": {
+          "file": "source",
+          "format": "csv",
+          "columns": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "delimiter": ","
+        }
+      },
+      "files": [
+        {
+          "path": "source",
+          "text": "a,b,c,d\n,,\"\",\n",
+          "sha256": "b75e60456ab37b77a2e5183990c609af170701ef722c0d5c6b05fccc0f2cb9ba"
+        }
+      ],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "complete",
+      "content": {
+        "table": {
+          "columns": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "rows": [
+            [
+              "",
+              "",
+              "",
+              ""
+            ]
+          ]
+        }
+      }
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_csv.py",
+      "upstream_anchor": "test_read_quoting:405",
+      "adaptation_detail": "Prepend four required header names; retain exact four empty strings."
+    }
+  },
+  {
+    "family": "utility.table_normalize",
+    "slug": "cpython-duplicate-header",
+    "module": "table_normalize_v2",
+    "objective": "Normalize selected CSV with strict parsing, unique header and rectangular rows; preserve quoted newlines, quotes, spaces and empty strings. Refuse malformed input without repair.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table_request": {
+          "file": "source",
+          "format": "csv",
+          "columns": [
+            "id",
+            "id"
+          ],
+          "delimiter": ","
+        }
+      },
+      "files": [
+        {
+          "path": "source",
+          "text": "id,id\na,b\n",
+          "sha256": "3c2ed0abbabfcc915d2bcf14503044ff55e16d1625a1ef7b7ed4b06732c5298b"
+        }
+      ],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "halt",
+      "content": {}
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_csv.py",
+      "upstream_anchor": "test_read_eol:352",
+      "adaptation_detail": "Locally added duplicate-header negative mutation of ordinary two-column CSV; expected refusal comes from existing capsule uniqueness contract, not upstream test."
+    }
+  },
+  {
+    "family": "utility.table_normalize",
+    "slug": "cpython-ragged",
+    "module": "table_normalize_v2",
+    "objective": "Normalize selected CSV with strict parsing, unique header and rectangular rows; preserve quoted newlines, quotes, spaces and empty strings. Refuse malformed input without repair.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table_request": {
+          "file": "source",
+          "format": "csv",
+          "columns": [
+            "id",
+            "v"
+          ],
+          "delimiter": ","
+        }
+      },
+      "files": [
+        {
+          "path": "source",
+          "text": "id,v\na,b\nc\n",
+          "sha256": "2a78fe691c909c9e464fd55c5c3a767ca04a71df77b95a098173b201ca11ac1e"
+        }
+      ],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "halt",
+      "content": {}
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_csv.py",
+      "upstream_anchor": "test_read_eol:352",
+      "adaptation_detail": "Locally delete the last field from the second ordinary row; existing capsule requires rectangular data."
+    }
+  },
+  {
+    "family": "utility.table_normalize",
+    "slug": "cpython-unclosed-quote",
+    "module": "table_normalize_v2",
+    "objective": "Normalize selected CSV with strict parsing, unique header and rectangular rows; preserve quoted newlines, quotes, spaces and empty strings. Refuse malformed input without repair.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table_request": {
+          "file": "source",
+          "format": "csv",
+          "columns": [
+            "id",
+            "v"
+          ],
+          "delimiter": ","
+        }
+      },
+      "files": [
+        {
+          "path": "source",
+          "text": "id,v\na,\"",
+          "sha256": "13ab9e786bef7ea7a7129e09f89ce02576d7aba2b9776871ce1ca782fac51238"
+        }
+      ],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "halt",
+      "content": {}
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_csv.py",
+      "upstream_anchor": "test_read_eof:367",
+      "adaptation_detail": "Prepend required header to upstream strict EOF rejection example; no permissive repair allowed."
+    }
+  },
+  {
+    "family": "utility.calculate",
+    "slug": "cpython-decimal-exponent",
+    "module": "calculate_v2",
+    "objective": "Compute only requested count, sum, mean, min and max with explicit decimal strings and decimal128 arithmetic; reject invalid numeric strings.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table": {
+          "columns": [
+            "v"
+          ],
+          "rows": [
+            [
+              "45.34"
+            ],
+            [
+              "45e2"
+            ]
+          ]
+        },
+        "calculation": {
+          "columns": [
+            "v"
+          ],
+          "operations": [
+            "count",
+            "sum",
+            "mean",
+            "min",
+            "max"
+          ],
+          "numeric_mode": "decimal_strings"
+        }
+      },
+      "files": [],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "complete",
+      "content": {
+        "calculation_result": {
+          "arithmetic": "decimal128_half_even",
+          "columns": {
+            "v": {
+              "count": 2,
+              "sum": "4545.34",
+              "mean": "2272.67",
+              "min": "45.34",
+              "max": "4.5E+3"
+            }
+          }
+        }
+      }
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_decimal.py",
+      "upstream_anchor": "ExplicitConstructionTest.test_explicit_from_string:505-508",
+      "adaptation_detail": "Reuse upstream finite decimal and engineering-notation literals; request aggregate statistics with independent exact expected literals and decimal128 context."
+    }
+  },
+  {
+    "family": "utility.calculate",
+    "slug": "cpython-decimal-nul",
+    "module": "calculate_v2",
+    "objective": "Compute only requested count, sum, mean, min and max with explicit decimal strings and decimal128 arithmetic; reject invalid numeric strings.",
+    "inputs": {
+      "schema_version": "1.0.0",
+      "data": {
+        "table": {
+          "columns": [
+            "v"
+          ],
+          "rows": [
+            [
+              "12\u00003"
+            ]
+          ]
+        },
+        "calculation": {
+          "columns": [
+            "v"
+          ],
+          "operations": [
+            "count",
+            "sum",
+            "mean",
+            "min",
+            "max"
+          ],
+          "numeric_mode": "decimal_strings"
+        }
+      },
+      "files": [],
+      "trust": "low",
+      "provenance": [
+        {
+          "id": "fixture:source",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "limitations": [
+        "Development fixture; no external execution or scientific truth established."
+      ]
+    },
+    "expected": {
+      "status": "halt",
+      "content": {}
+    },
+    "source": {
+      "upstream_path": "Lib/test/test_decimal.py",
+      "upstream_anchor": "ExplicitConstructionTest.test_explicit_from_string:539-540",
+      "adaptation_detail": "Reuse upstream embedded-NUL invalid numeric literal as explicit decimal_strings input; expect existing numeric grammar refusal."
+    }
+  }
+]
