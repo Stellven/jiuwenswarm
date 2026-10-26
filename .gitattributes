@@ -83,3 +83,7 @@ docs/capsules/verification-20261026/** -text
 tests/fixtures/research/pipeline/source-valid/research_report.md text eol=lf
 # Frozen development banks retain a source hash of their independent grader.
 benchmarks/harbor_suite/value_core_complex.py text eol=lf
+
+# Additive Requirements m1-9 release pins its authored CRLF bytes on every host.
+jiuwenswarm/research/capsules/requirements_m1_9.py text eol=crlf
+jiuwenswarm/research_assets/compiler/requirements_m1_9.txt text eol=crlf
