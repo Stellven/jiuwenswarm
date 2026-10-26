@@ -100,3 +100,79 @@ Known limits: live VF01/VF02 still require their documented actual schemas,
 admissions, source observations and transport. Evidence-aware E2 remains
 unavailable in the core path. Costs, semantic quality, downstream propagation
 and full JiuwenSwarm lift remain unmeasured until their actual evidence exists.
+
+## Native skills and bounded development campaigns
+
+`value_cases freeze --output NEW_DIRECTORY` freezes 80 graph-first case designs,
+public tasks, private criteria and a competent ordinary Python helper skill.
+Sixteen cases have actual runnable utility workers; the remaining designs retain
+their explicit product-binding prerequisite. `value_cases offline` runs the
+ordinary helper and actual worker, not a native agent or protected CC unit.
+Add `--public-source` for eight opt-in cases adapted from pinned CPython CSV and
+decimal tests. Exact source links, upstream hashes, licensing and modifications
+are in `value_cases/public_source/`; no upstream benchmark score is implied.
+
+`native_value preflight --spec SPEC` checks the native runtime. `native_value run
+--spec SPEC --output NEW_DIRECTORY` runs the real JiuwenSwarm facade in a fresh
+process with ordinary tools and SkillManager. Use `variant=native-skills` with
+explicit `skill_dirs`, or `native` for the ordinary bundled inventory without an
+additional task skill. Both preserve bundled skills; bodies load through the
+native `skill_tool`. Text-only configuration disables speculative image probes.
+Agent mode has offline tool/skill-cycle qualification; team modes require their
+own live qualification before any team claim.
+
+Supply either an existing governed relay `binding`, or a private
+`completion_directory` with explicit `model=gpt-6.1-sol` and
+`reasoning_effort=medium`. The latter is serviced by `value_host`, which uses the
+existing host Codex helper and validates original model/effort receipts. Never
+mount credentials, private criteria, complete case banks or the whole checkout
+in a measured native worker. A small runtime overlay plus public inputs/skills
+is sufficient with the dependency-equipped app image. Preserve the actual image,
+overlay, skill inventory, source hashes and every failed initialization attempt.
+
+Initialize one shared `value_schedule` ledger with at most 256 calls and three
+hours. Reserve whole pairs before dispatch; every actual completion must claim
+its original request ID and reconcile against original evidence. Unknown
+delivery blocks further dispatch. The host broker caps each invocation against
+the remaining campaign wall time. Developer agents and offline checks run in
+parallel; model dispatch and Harbor remain serial. Do not run concurrent tests
+with a shared coverage database (`-o addopts=` avoids default coverage writes).
+
+For existing app runs, `value_product` prepares the existing sequential runner's
+uploads/intakes and exposes persisted request IDs without model dispatch. Reserve
+the exact protected aggregate call ceiling with `Schedule.claim_envelope` before
+using the existing `benchmark-runner resume`. Do not infer a ceiling from a case
+name: the current integrated policy allows 80 calls; the separate document policy
+allows 12. Unknown external runs retain their entire charge. Only validated
+terminal exports, including linked runs if present, may release capacity through
+`finish_envelope`. Report actual observed calls separately from charged bounds.
+The existing sequential runner owns cancellation and same-request reconciliation.
+
+`value_evaluation` emits effect-free commands for the existing evaluation-pilot
+profile → real source execution → sources → scope lifecycle. It does not create
+admissions or observations. E3 measures worker and deterministic checks; E2 is
+the separate exact-output semantic replay. Paper-summary shortcuts cannot be
+pilot sources under that profile. The usual per-output runtime review is another
+distinct path. Never combine these into a fabricated end-to-end gate result.
+
+Use `value_collect --dataset DATA --source OFFLINE_EXPORT` for original case-bank
+exports, or add `--native-case CASE_ID --image ACTUAL_IMAGE_ID` for native saved
+artifacts. Native terminal status is separate from independent content grading.
+The report includes selected checker improvements, competent helper ties, real
+native qualification, full missing-result denominators and all project-health
+evidence even when experimental selections are narrow.
+
+`value_core_complex --output FRESH_BANK` freezes four full Research Brief
+production-contract tasks with original request/source files, public instructions
+and schema, an ordinary native skill, and separately pinned private finite
+oracles. The grader records unrecognized semantic paraphrases as manual review,
+not a successful entailment claim. It separates useful completion, qualified
+conflict, invalid promotion and false rejection. The production `check_brief`
+diagnostic remains separate from the independent oracle.
+
+These authored upstream Intent fixtures do not establish accepted predecessors,
+admission or full-node execution. Their fixed IDs/Refs are valid only for the
+specified Requirements component task. A whole-compiler comparison must use
+real `IntentionCompiler.run` lineage and a separately frozen original-source
+projection of actual run IDs/Refs. Existing single-CC E3 execution disables
+semantic review and cannot alone establish worker-plus-checks-plus-review scope.
