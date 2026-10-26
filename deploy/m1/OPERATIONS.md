@@ -34,8 +34,10 @@ Docker socket. The app service itself never mounts the runner credential
 volume. The token is written mode `0600`, owned by runner UID `11001`, and
 mounted read-only at `/run/benchmark-runner/token`.
 
-The public synthetic example is included below. Replace its case and input paths
-with your selected files and create the output directory first.
+The public synthetic example explicitly selects the planned workflow and supplies
+one PDF to the installed Summary and Delivery capsules. The static scientific
+workflow requires additional experimental resources and cannot fulfill this
+summary smoke. Replace the case and input paths with your selected files.
 
 ```sh
 mkdir -p ./results
@@ -49,7 +51,7 @@ docker run --rm --network none --read-only --cap-drop ALL \
   --entrypoint /opt/venv/bin/python ai4r:local \
   -m jiuwenswarm.research.runner_grants issue-runner --output /credential/token
 
-export AI4R_BENCH_CASES="$PWD/deploy/m1/examples/cases.json"
+export AI4R_BENCH_CASES="$PWD/deploy/m1/examples"
 export AI4R_BENCH_INPUTS="$PWD/deploy/m1/examples/inputs"
 export AI4R_EXPECTED_BUILD="$(docker compose -p ai4r-local \
   -f deploy/m1/compose.benchmark-runner.yaml exec -T ai4r python -c \
@@ -138,12 +140,36 @@ docker compose -p ai4r-bench -f /path/from/up/compose.json exec benchmark-runner
 Normal `up`/`start` makes no host cgroup changes, invokes no sudo, and requests
 no privileged container or Docker socket mount. WSL uses its configured default
 user. Existing app/root-broker identities *inside* the image are unchanged.
-The app can start without a delegated executor cgroup. Read-only tasks can use
-the existing app path; tasks needing sandboxed code execution still require the
-app's actual executor prerequisites and report a blocked result if unavailable.
-This delivery does not claim all scientific/code-execution tasks now run on a
-restricted host. Existing preconfigured delegation remains usable. Full executor
-portability is separate work; no unsafe fallback is substituted.
+The app can start and run explicitly selected M1 process jobs without a delegated
+executor cgroup. This mode uses ordinary app-container processes and reports its
+shared namespaces and inherited network honestly. Existing restricted-mode
+captures retain their original requirements; they are never silently downgraded.
+
+## Driving AI4R from another agent
+
+Compose starts the application; the benchmark runner is an authenticated HTTP
+client which starts research runs. It has neither a Docker socket nor direct
+access to the application store. An external agent can execute the same runner
+commands and inspect their JSON results, or use the typed HTTP interface:
+
+| Operation | HTTP interface |
+| --- | --- |
+| Inspect context/readiness | `GET /api/v1/context`, `GET /api/v1/readiness` |
+| Upload selected files | `POST /api/v1/inputs/{docs,repo,datasets}` |
+| Qualify task and inputs | `POST /api/v1/intakes` |
+| Submit research run | `POST /api/v1/runs` |
+| Poll status/events | `GET /api/v1/runs/{id}`, `GET /api/v1/runs/{id}/events` |
+| Reconcile uncertain submission | `GET /api/v1/runs?client_request_id=...` |
+| Cancel | `POST /api/v1/runs/{id}/cancel` |
+| Retrieve artifacts/evidence | `GET /api/v1/runs/{id}/artifacts`, `GET /api/v1/runs/{id}/export` |
+
+Use the existing finite workspace-scoped runner grant and `ResearchClient`
+contract validation. Prefer the CLI for campaign scheduling, reconciliation and
+verified collection. Inside Compose the endpoint is `http://ai4r:5173`, with
+the configured HTTP authority `127.0.0.1:5175`; a host client uses
+`http://127.0.0.1:5175`. Tokens stay in private volumes and must not enter prompts
+or logs. Docker availability, browser sign-in/MFA and explicit activation remain
+human responsibilities. Routine invocations require no further browser driving.
 
 Re-run `up` with the same paths/profile to resume setup. Inputs, results and app
 state are preserved. Use a new project/profile for a different app image; existing
@@ -305,7 +331,7 @@ manager/host-managed lingering is required for Linux operation after logout. If
 scheduling is unavailable, commands continue with opportunistic expiry and report
 that limitation. Local build-context expiry on a workstation also runs with `gc`.
 
-Container logs rotate at 3 Ã— 10MiB; GC receipts rotate; the dedicated builder cache
+Container logs rotate at 3 Ãƒâ€” 10MiB; GC receipts rotate; the dedicated builder cache
 has a 10GB GC target. Filesystem growth checks retain 20% headroom, including
 transfer and fetch overlap. Builds monitor the client filesystem while active;
 Docker Desktop's separate virtual disk still needs operator capacity monitoring.

@@ -69,13 +69,24 @@ ephemeral SDK logs and a filter for an upstream dependency's Python SyntaxWarnin
 Older interrupted suites/legacy CLI failures remain historical, not passes.
 
 Both production images built; the app served HTTP200 on localhost5175. An actual
-runner process wrote to its named results volume as UID11001. Local development
-builtins remain visibly NOT_RUN for model-based catalog qualification. Sign-in,
-authenticated inference, accepted Pi build/timings and the complete research
-campaign are separate live outcomes, not established by these tests.
+runner process wrote to its named results volume as UID11001. The user completed
+sign-in; authenticated runner readiness passed. The first live run recorded four
+completed governed Codex calls with observed model `gpt-6.1-sol`, including two
+independent verifier calls. It halted at static-plan feasibility because the
+bundled summary example omitted scientific resources. The example now explicitly
+selects the planned workflow with a synthetic PDF, preserving the failed run.
+Local development builtins remain visibly NOT_RUN for model-based catalog
+qualification. Accepted Pi build/timings and the complete scientific campaign
+remain separate live outcomes, not established by these tests.
 
-After sign-in, start with the included summary smoke campaign. Scientific runs
+After sign-in, start with the included planned PDF summary smoke campaign. Scientific runs
 also need frozen public resources, root scorer profile and matching runtime
 binding. The prepared Pi task helper supplies task material; it does not create
 an accepted run or activate Pi Benchmark. The smoke does not substitute for the
 Builder/Pi and full-system demonstrations.
+
+The runner drives the authenticated typed HTTP API from outside the app process.
+It uploads selected inputs, prepares intake, submits/polls/cancels/reconciles runs
+and retrieves verified evidence. Compose starts the app container. Neither the
+runner nor its invoking agent needs direct store access or a Docker socket inside
+the runner. See the operation/interface table in the operations guide.

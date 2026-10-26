@@ -3,8 +3,9 @@
   "cases": [
     {
       "id": "public-summary-smoke",
+      "plan_source": "planned",
       "task": "Summarize the supplied reference document and save the summary as a downloadable artifact. Identify the reference used and any limitations.",
-      "inputs": [{"path": "note.md", "kind": "docs"}],
+      "inputs": [{"path": "note.pdf", "kind": "docs"}],
       "repeats": 1
     }
   ]
