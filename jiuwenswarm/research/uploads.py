@@ -57,7 +57,7 @@ class UploadManager:
                 raise ResearchError('validation', 'Repository upload requires a ZIP')
             self._archive(data)
         elif kind == 'docs':
-            if Path(filename).suffix.lower() not in {'.txt', '.md', '.markdown', '.pdf'}:
+            if Path(filename).suffix.lower() not in {'.txt', '.md', '.markdown', '.json', '.pdf'}:
                 raise ResearchError('validation', 'Document type is unsupported')
             try:
                 # The sole decoder is M1-003's canonical intake extractor.

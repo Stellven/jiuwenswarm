@@ -227,6 +227,40 @@ def encoded(value):
     return json_bytes(value).decode('utf-8')
 
 
+def _model_endpoint_shape(endpoint):
+    """Bound non-secret original endpoint metadata to the native finite shapes."""
+    from urllib.parse import urlsplit
+    require(isinstance(endpoint, dict), 'Original model endpoint is not metadata', 'integrity_fault')
+    if endpoint.get('provider_id') == 'operator-local':
+        require(set(endpoint) == {'provider_id','transport','gateway_id','binding_sha256','backend','model'}
+            and endpoint['transport'] == 'authenticated-unix-rpc', 'Original local endpoint shape differs', 'integrity_fault')
+        backend = endpoint['backend']; model = endpoint['model']
+        codex = backend.get('kind') == 'host-codex-app-server'
+        fields = {'kind','codex_sha256','account_fingerprint'} if codex else {'kind','target','base_url'}
+        model_fields = {'id','name','model_name','revision','enabled','context_window','max_prompt_bytes','timeout_s'}
+        model_fields |= {'reasoning_effort'} if codex else {'max_output_tokens','temperature','enable_thinking'}
+        require(set(backend) == fields and set(model) == model_fields,
+            'Original local endpoint contains unsupported private fields', 'integrity_fault')
+        if not codex:
+            parsed = urlsplit(backend['base_url'])
+            require(backend['kind'] == 'ssh-loopback-openai' and parsed.scheme == 'http'
+                and parsed.hostname in {'127.0.0.1','::1'} and parsed.path == '/v1'
+                and not (parsed.username or parsed.password or parsed.query or parsed.fragment),
+                'Original local endpoint contains private address credentials', 'integrity_fault')
+    elif endpoint.get('provider_id') == 'chatgpt':
+        require(set(endpoint) == {'provider_id','transport'}
+            and endpoint['transport'] == 'packaged-app-server-subscription', 'Original subscription endpoint shape differs', 'integrity_fault')
+    else:
+        require(set(endpoint) == {'provider_id','base_url','models','credential_env_var','timeout_s','enabled'}
+            and endpoint['credential_env_var'] == 'AI4R_SELECTED_API_KEY'
+            and isinstance(endpoint['models'], list) and all(set(m) == {'model_id','provider_model_name'} for m in endpoint['models']),
+            'Original API endpoint contains unsupported private fields', 'integrity_fault')
+        parsed = urlsplit(endpoint['base_url'])
+        require(parsed.scheme in {'http','https'} and parsed.hostname
+            and not (parsed.username or parsed.password or parsed.query or parsed.fragment),
+            'Original API endpoint contains private address credentials', 'integrity_fault')
+
+
 def validate_preparation_binding(store, value, grant_ref, grant):
     """Original Binding3 and remaining child allowance, without a live claim."""
     child = private_record(store, grant['contract_ref'], 'evaluation-subnode-context')
@@ -750,11 +784,46 @@ class EvaluationReader:
                 return False
             add(kind, ref, evidence_id=evidence_id, raw=raw)
             return True
+        selection_ref = self.runtime.get('account_model_selection_ref')
+        if selection_ref is not None:
+            from .evaluation_model_binding import source_model_selection
+            selection = self.store.read_record(selection_ref)
+            source_run_id = (self.store.read_record(scope['source_contract_ref'])['run_id']
+                             if scope else selection.get('run_id'))
+            selection = source_model_selection(self.store, selection_ref,
+                account_id=self.runtime['account_id'], source_run_id=source_run_id)
+            add('source_model_selection', selection_ref, evidence_id='source:account-model-selection')
+            if selection.get('deployment_ref') is not None:
+                deployment = self.store.read_record(selection['deployment_ref'])
+                endpoint = self.store.read_record(deployment['endpoint_ref'])
+                # These are original public routing metadata, never the private
+                # catalog transport/session or credential contents.
+                _model_endpoint_shape(endpoint)
+                add('source_model_deployment', selection['deployment_ref'], evidence_id='source:account-model-deployment')
+                add('source_model_endpoint', deployment['endpoint_ref'], evidence_id='source:account-model-endpoint')
         if scope:
             # Source provenance is typed and finite. Original E2 observations,
             # complete outputs and permitted host records stay separate from
             # the actual private reviewer evidence and measured usage.
             source=self.store.read_record(scope['source_contract_ref'],contract_id='subnode-execution-contract')
+            # Capture the two exact immutable eligibility records selected by
+            # this runtime, never an inventory of the current live Library.
+            profile_ref=self.runtime['profile_ref'];snapshot_ref=self.runtime['library_snapshot_ref']
+            for kind,ref in [('evaluation-profile',profile_ref),('library-snapshot',snapshot_ref)]:
+                require(self.store.record_kind(ref)==kind,
+                    'Original frozen eligibility kind differs','integrity_fault')
+                if source_add(kind,ref,evidence_id='source:'+kind+':'+ref['sha256']):
+                    self.store.read_record(ref,contract_id=kind)
+            if ('library-snapshot',encoded(snapshot_ref)) not in missing_sources:
+                profile=self.store.read_record(profile_ref,contract_id='evaluation-profile')
+                snapshot=self.store.read_record(snapshot_ref,contract_id='library-snapshot')
+                declaration_ref=source['bindings'][0]['declaration_ref']
+                declaration=self.store.read_record(declaration_ref,contract_id='capsule-declaration')
+                pin={'cc_name':declaration['identity']['name'],'cc_version':declaration['identity']['version_label'],
+                    'declaration_sha256':declaration_ref['sha256']}
+                require(snapshot_ref['sha256']==profile['library_snapshot_sha256']
+                    and sum(all(entry.get(k)==v for k,v in pin.items()) for entry in snapshot['entries'])==1,
+                    'Original frozen snapshot/profile subject differs','integrity_fault')
             require(self.store.record_kind(scope['source_check_plan_ref'])=='bound-check-plan'
                 and self.store.record_kind(source['node_contract_ref'])=='node-execution-contract',
                 'Original checking/parent provenance kind differs','integrity_fault')

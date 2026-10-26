@@ -32,6 +32,14 @@ SSH_OPTIONS = ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10',
 REMOTE = "import sys,json; e=json.load(sys.stdin); n={'__name__':'ai4r_rpc'};exec(compile(e['source'],'<repository-ai4r-host>','exec'),n);\ntry: print(json.dumps({'ok':True,'result':n['dispatch'](e['request'])}))\nexcept Exception as x: print(json.dumps({'ok':False,'error':str(x) if isinstance(x,ValueError) else type(x).__name__+': host operation failed'}))"
 
 
+def host_source():
+    helper = (HERE / 'local_model_operator.py').read_text(encoding='utf-8')
+    source = (HERE / 'operator_host.py').read_text(encoding='utf-8')
+    # Keep future imports first; host RPC needs no separately installed module.
+    marker = 'from __future__ import annotations'
+    return source.replace(marker, marker + '\nLOCAL_MODEL_OPERATOR_SOURCE = ' + repr(helper), 1)
+
+
 def load(path):
     if not Path(path).exists():
         raise ValueError('Operator profile not found; run setup first (use --profile PATH before the command)')
@@ -61,10 +69,10 @@ class Transport:
         request = {'action': action, 'profile': self.config['deployment'], **values}
         if not self.config.get('ssh') and not self.config.get('wsl_distro'):
             return host.dispatch(request)
-        code = (HERE / 'operator_host.py').read_text(encoding='utf-8')
+        code = host_source()
         envelope = host.canonical({'source': code, 'request': request})
         if self.config.get('ssh'):
-            args = ['ssh', *SSH_OPTIONS, self.config['ssh'], 'python3 -c ' + shlex.quote(REMOTE)]
+            args = [self.config.get('ssh_executable') or 'ssh', *SSH_OPTIONS, self.config['ssh'], 'python3 -c ' + shlex.quote(REMOTE)]
         else:
             args = ['wsl.exe', '-d', self.config['wsl_distro'], '--exec', 'python3', '-c', REMOTE]
         result = subprocess.run(args, input=envelope, stdout=subprocess.PIPE, stderr=sys.stderr)
@@ -84,10 +92,10 @@ class Transport:
             return {'skipped': True}
         folder = self.request('begin-transfer', size=info['size'])['id']
         copied = False
-        if self.config.get('ssh'):
+        if self.config.get('ssh') and self.config.get('scp_executable', True) is not False:
             target = str(Path(self.config['deployment']['root']) / 'temporary' / folder / 'payload').replace('\\', '/')
             # Force SFTP: remote paths are data, never evaluated by a shell.
-            result = subprocess.run(['scp', '-s', *SSH_OPTIONS, '--', str(source), self.config['ssh'] + ':' + target],
+            result = subprocess.run([self.config.get('scp_executable') or 'scp', '-s', *SSH_OPTIONS, '--', str(source), self.config['ssh'] + ':' + target],
                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             copied = result.returncode == 0
             if not copied:
@@ -439,7 +447,7 @@ def local_gc(config, dry_run=False):
 
 def maintenance(config, args):
     if config.get('ssh') or config.get('wsl_distro') or os.name != 'nt':
-        result = Transport(config).request('install-maintenance', source=(HERE / 'operator_host.py').read_text())
+        result = Transport(config).request('install-maintenance', source=host_source())
         return result
     invocation = [sys.executable, str(HERE / 'ai4r.py'), '--profile', str(args.profile.resolve()), 'gc']
     name = config['deployment']['project'] + '-expiry-' + hashlib.sha256(str(args.profile.resolve()).encode()).hexdigest()[:8]
@@ -487,6 +495,12 @@ def parser():
     s.add_argument('--receipt', type=Path); s.add_argument('--app-image'); s.add_argument('--runner-image')
     s.add_argument('--refresh-credential', action='store_true')
     s = sub.add_parser('start'); s.add_argument('--refresh-credential', action='store_true')
+    s = sub.add_parser('local-model', help='Configure optional private model mounts without activating a relay')
+    lm = s.add_subparsers(dest='local_model_command', required=True)
+    c = lm.add_parser('configure')
+    c.add_argument('--catalog', required=True)
+    c.add_argument('--session-file', required=True)
+    c.add_argument('--socket-directory', required=True)
     sub.add_parser('stop')
     s = sub.add_parser('logs'); s.add_argument('--service', choices=('ai4r', 'benchmark-runner'), default='ai4r'); s.add_argument('--tail', type=int, default=100)
     s = sub.add_parser('fetch'); s.add_argument('--campaign', required=True); s.add_argument('--output', type=Path, required=True)
@@ -494,6 +508,18 @@ def parser():
     s = sub.add_parser('maintenance'); s.add_argument('operation', choices=('install',))
     s = sub.add_parser('runner', description='Forward doctor, run, status, resume, cancel, export or cleanup to the separate runner container.')
     s.add_argument('args', nargs=argparse.REMAINDER)
+    s = sub.add_parser('harbor', help='Prepare, stage, inspect and run Harbor above this deployment')
+    hs = s.add_subparsers(dest='harbor_command', required=True)
+    b = hs.add_parser('prepare', help='Create a new local control workspace; no target contact')
+    b.add_argument('--bundle', type=Path, required=True)
+    b.add_argument('--workspace', type=Path, required=True)
+    b.add_argument('--mode', choices=('preflight','live'), default='preflight')
+    b.add_argument('--case', dest='cases', action='append', default=[])
+    b.add_argument('--ssh-executable', type=Path)
+    for name in ('stage','doctor','run'):
+        b = hs.add_parser(name)
+        b.add_argument('--workspace', type=Path, required=True)
+        if name in ('doctor','run'): b.add_argument('--python', default=sys.executable)
     return p
 
 
@@ -503,7 +529,7 @@ def main(argv=None):
     args.profile.parent.mkdir(parents=True, exist_ok=True)
     # Serialize profile edits and local GC; runner cancellation/status stay
     # available while its controlling process is active.
-    if args.command == 'runner':
+    if args.command in {'runner', 'harbor'}:
         return execute(args)
     try:
         with host.lock(args.profile.with_name(args.profile.name + '.lock')):
@@ -515,7 +541,23 @@ def main(argv=None):
 
 def execute(args):
     try:
-        if args.command == 'up':
+        if args.command == 'harbor':
+            if str(REPO) not in sys.path: sys.path.insert(0,str(REPO))
+            from benchmarks.harbor_suite import deployment
+            if args.harbor_command == 'prepare':
+                result = deployment.prepare(args.profile,args.bundle,args.workspace,mode=args.mode,
+                                            cases=args.cases,ssh_executable=args.ssh_executable)
+            else:
+                value,_ = deployment.workspace_config(args.workspace)
+                if Path(value['operator_profile']) != args.profile:
+                    raise ValueError('Selected --profile differs from the Harbor workspace')
+                if args.harbor_command == 'stage': result = deployment.stage(args.workspace)
+                elif args.harbor_command == 'doctor': result = deployment.doctor(args.workspace,python=args.python)
+                else: result = deployment.run(args.workspace,python=args.python)
+            print(json.dumps(result,indent=2))
+            if args.harbor_command == 'doctor': return 0 if result['ready'] else 2
+            return result.get('returncode',0)
+        elif args.command == 'up':
             result = up(args)
         elif args.command == 'setup':
             if args.ttl_days is not None and args.ttl_days < 1: raise ValueError('TTL must be at least one day')
@@ -526,6 +568,10 @@ def execute(args):
             elif args.command == 'stage': result = stage_selection(config, args)
             elif args.command == 'fetch': result = fetch(config, args)
             elif args.command == 'maintenance': result = maintenance(config, args)
+            elif args.command == 'local-model':
+                result = transport.request('local-model-configure', catalog=args.catalog,
+                    session_file=args.session_file, socket_directory=args.socket_directory)
+                config['deployment'] = result.pop('deployment')
             elif args.command == 'start':
                 result = transport.request('start', refresh_credential=args.refresh_credential,
                     template=(HERE / 'compose.benchmark-runner.yaml').read_text())
@@ -542,7 +588,7 @@ def execute(args):
                 result['local'] = local_gc(config, args.dry_run)
             elif args.command == 'logs': result = transport.request('logs', service=args.service, tail=args.tail)
             else: result = transport.request(args.command)
-            if args.command in {'build', 'stage', 'start'}:
+            if args.command in {'build', 'stage', 'start', 'local-model'}:
                 save(args.profile, config)
         print(json.dumps(result, indent=2))
         return 2 if args.command == 'doctor' and result.get('prerequisite_error') else 0

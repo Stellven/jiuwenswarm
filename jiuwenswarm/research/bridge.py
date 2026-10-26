@@ -414,8 +414,9 @@ class GovernedBridge:
                 'selected_deployment_ref':deployment_ref,'model_call_start_ref':start_ref,'input_ref':evidence_ref}
             async with asyncio.timeout_at(deadline):
                 if manual is not None:
+                    options = {'context':dispatch_context} if manual.get('platform_id')=='operator-local' else {}
                     result = await self.manual_models.invoke(manual, prompt, timeout_s=timeout_s,
-                        call_function=protected['call_function'])
+                        call_function=protected['call_function'],**options)
                 elif chatgpt is not None or choice.model_id == self.fixed_route_id:
                     if is_builder:
                         result = await self._invoke_builder(dispatch_context,prompt,timeout_s,call_record)
@@ -440,7 +441,7 @@ class GovernedBridge:
             await self._require_capture()
             if not isinstance(result, Mapping) or not isinstance(result.get("text"), str) or not result["text"]:
                 raise BridgeError("invalid_output")
-            if native_trace_expected:
+            if native_trace_expected or manual is not None and manual.get('platform_id')=='operator-local':
                 await self._join_native_trace(result.get('native_trace_ref'),native_scope,call_record)
             identity = result.get("identity", {})
             call_record["identity"] = {"requested": choice.model_id, "effective": identity.get("effective"),
@@ -470,6 +471,8 @@ class GovernedBridge:
                 call_record["outcome"] = "failed"
                 call_record["provider_error_code"] = 'invalid_request' if failure_code=='budget_exceeded' else failure_code if failure_code in {'auth_failed','rate_limited','timeout','provider_error','invalid_request','network_error','invalid_output'} else 'provider_error'
         finally:
+            if call_record['outcome'] == 'outcome_unknown':
+                self._uncertain_runs.add(protected['run_id'])
             call_record["ended_at"] = None if call_record["outcome"] == "outcome_unknown" else utc_now()
         if failure is not None:
             trace_ref=getattr(failure,'native_trace_ref',None)
@@ -477,8 +480,9 @@ class GovernedBridge:
                 try:await self._join_native_trace(trace_ref,native_scope,call_record)
                 except BridgeError:
                     failure_code='AUDIT_UNAVAILABLE'
-                    call_record['outcome']='failed'
-                    call_record['ended_at']=utc_now()
+                    if call_record['outcome']!='outcome_unknown':
+                        call_record['outcome']='failed'
+                        call_record['ended_at']=utc_now()
             observation=failure_observation(failure,choice.model_id)
             if observation is not None:
                 call_record.update({key:observation[key] for key in ('identity','usage','provider_request_id')})

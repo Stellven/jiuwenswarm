@@ -4722,9 +4722,13 @@
     "chatgptOption": "{{model}} (ChatGPT subscription)",
     "chatgptError": "Could not save or load the ChatGPT model. Sign in and refresh the model list.",
     "option": "{{model}} ({{platform}} API key)",
+    "localOption": "{{model}} (Local endpoint)",
+    "localEndpoint": "Local endpoint",
+    "localError": "Could not save or load the local model. Check your app connection and refresh the model list. If the problem persists, contact your administrator.",
+    "localManaged": "Model: {{model}}. This endpoint is approved and managed by your administrator. No API key is required; save to use it for new research runs.",
     "platformKey": "{{platform}} API key",
     "claudeKeyHint": "Use an Anthropic workspace-scoped API key. Personal or service-account keys that require a separate workspace header are not supported here yet.",
-    "authenticationRequired": "API models are configured here. Open this app with the local launcher login link to load and save your model settings; a plain address in a new tab does not carry that login.",
+    "authenticationRequired": "Open this app with the local launcher login link to load and save your model settings; a plain address in a new tab does not carry that login.",
     "title": "Research model",
     "description": "Choose the model used by the AI4R research workflow.",
     "model": "Model",
@@ -4743,7 +4747,7 @@
     "newRuns": "Applies to new research runs. Running work keeps its original model.",
     "saveUse": "Save and use",
     "refresh": "Refresh",
-    "error": "Could not save or load the model. Check your app connection and OpenRouter API key.",
+    "error": "Could not save or load the model. Check your app connection and refresh the model list. If the problem persists, contact your administrator or check the selected provider's credentials.",
     "saved": "Saved. New research runs will use this model."
   }
 }

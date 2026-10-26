@@ -29,7 +29,7 @@ class PrivateRPCServer:
                 or any(not uids or not uids<=self.allowed_uids for uids in self.operation_uids.values())):
             raise ValueError('PRIVATE_RPC_OPERATION_POLICY_INVALID')
         self.socket_mode, self.directory_mode, self.gid = socket_mode, directory_mode, group_id
-        if not self.handlers or not self.allowed_uids or socket_mode not in {0o600, 0o660} or directory_mode not in {0o700, 0o710}:
+        if not self.handlers or not self.allowed_uids or socket_mode not in {0o600, 0o660} or directory_mode not in {0o700, 0o710, 0o2710}:
             raise ValueError('PRIVATE_RPC_POLICY_INVALID')
         self.server = None
         self.tasks = set()

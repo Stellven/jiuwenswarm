@@ -6,6 +6,12 @@ required. The optional `python deploy/m1/ai4r.py` workflow remains available for
 managed staging and SSH deployments. The benchmark CLI keeps its existing
 authenticated interface and sequential queue.
 
+For benchmark runs, Harbor adds trial orchestration and independent grading
+above this deployment workflow. See
+[HARBOR-INTEGRATION.md](HARBOR-INTEGRATION.md). It covers separate application,
+Harbor and inference hosts, public-only staging and recovery over SSH.
+Standard application runs do not require Harbor.
+
 ## Start here: ordinary Docker, no sudo
 
 Build the images, then start the existing app. Its explicit local-research mode

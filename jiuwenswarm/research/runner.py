@@ -1167,7 +1167,7 @@ class CapsuleRunner:
         if not isinstance(model_identity,dict) or not {'requested','effective','basis'}.issubset(model_identity):model_identity={'requested':'not_observed','effective':None,'basis':'No provider-reported model identity'}
         traces=[r[key] for r in calls for key in ('call_ref','route_ref') if r.get(key)]
         evidence=getattr(self,'evidence',None)
-        if evidence is not None:
+        if evidence is not None and execution.get('evaluation_owner') is None:
             try:evidence.capture_invocation_traces(c,execution['invocation_id'])
             except Exception as error:evidence.missing(c['run_id'],'native-trace:'+execution['invocation_id'],'Original native trace file capture failed: '+type(error).__name__)
             for ref in evidence.invocation_trace_refs(c):

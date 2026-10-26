@@ -88,8 +88,11 @@ def validate_cases(document):
     result = []; seen = set()
     base_limits = limits(document.get('limits', {}))
     for row in rows:
-        if not isinstance(row, dict) or set(row) - {'id', 'task', 'inputs', 'repeats', 'setup', 'steps', 'collection', 'limits', 'deadline_at', 'plan_source'}:
+        if not isinstance(row, dict) or set(row) - {'id', 'task', 'inputs', 'repeats', 'setup', 'steps', 'collection', 'limits', 'deadline_at', 'plan_source', 'collection_mode'}:
             raise ValueError('unknown case field')
+        collection_mode = row.get('collection_mode', 'auto')
+        if collection_mode not in ('auto', 'archive'):
+            raise ValueError('collection_mode must be auto or archive')
         if 'plan_source' in row and row['plan_source'] not in ('static', 'planned'):
             raise ValueError('plan_source must be static or planned')
         ident = identifier(row.get('id'))
@@ -135,7 +138,8 @@ def validate_cases(document):
             from datetime import datetime
             if not isinstance(deadline, str) or datetime.fromisoformat(deadline.replace('Z', '+00:00')).tzinfo is None:
                 raise ValueError('deadline_at must be an absolute timestamp with timezone')
-        result.append({**row, **phases, 'id': ident, 'inputs': normalized, 'repeats': repeats, 'limits': case_limits})
+        result.append({**row, **phases, 'id': ident, 'inputs': normalized, 'repeats': repeats,
+                       'limits': case_limits, 'collection_mode': collection_mode})
     if sum(r['repeats'] for r in result) > 10000:
         raise ValueError('campaign exceeds 10000 sequential runs')
     return {'schema_version': VERSION, 'policy': policy, 'limits': base_limits, 'cases': result}

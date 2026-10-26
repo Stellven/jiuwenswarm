@@ -529,7 +529,7 @@ class SequentialRunner:
                     raise ValueError('duplicate, invalid or oversized artifact')
                 names.add(name); total += item['size']
                 if total > limits['max_total_bytes']: raise ValueError('artifact total bytes exceeded')
-            if len(files) > min(128, limits['max_files']):
+            if case.get('collection_mode', 'auto') == 'archive' or len(files) > min(128, limits['max_files']):
                 if limits['max_files'] < 2:
                     raise ValueError('archive collection requires two physical files for original archive and verified inventory')
                 from .archive_collection import collect_archive
