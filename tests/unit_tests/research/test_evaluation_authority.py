@@ -131,7 +131,10 @@ def test_twelve_private_schemas_are_closed_and_tainted(kind):
     from jiuwenswarm.research.evaluation_projection import private_schema
     schema = private_schema(kind)
     assert schema['additionalProperties'] is False
-    assert set(schema['required']) == set(schema['properties'])
+    # The optional frozen account selection extends existing runtime records;
+    # legacy fixed-subscription captures remain valid without this field.
+    optional = {'account_model_selection_ref'} if kind == 'evaluation-runtime' else set()
+    assert set(schema['required']) == set(schema['properties']) - optional
     assert schema['properties']['accepted'] == {'const': False}
     assert schema['properties']['invalid_for_product'] == {'const': True}
     assert schema['properties']['schema']['const'] == 'ai4r-' + kind + ':1'

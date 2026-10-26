@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
+import math
 import sys
 import uuid
 from pathlib import Path
@@ -38,7 +40,28 @@ async def extract_document(filename: str, data: bytes, *, timeout_s: float) -> b
         try:data.decode('utf-8',errors='strict')
         except UnicodeError as exc:raise ResearchError('validation','Document is not strict UTF-8') from exc
         return data
-    if suffix!='.pdf':raise ResearchError('validation','Only TXT, Markdown and text-layer PDF are supported')
+    if suffix=='.json':
+        def unique_object(pairs):
+            result={}
+            for key,value in pairs:
+                if key in result:raise ValueError('Duplicate JSON field')
+                result[key]=value
+            return result
+        def reject_constant(value):
+            raise ValueError('Nonfinite JSON number')
+        def finite_float(value):
+            number=float(value)
+            if not math.isfinite(number):raise ValueError('Nonfinite JSON number')
+            return number
+        try:
+            text=data.decode('utf-8',errors='strict')
+            json.loads(text,object_pairs_hook=unique_object,parse_constant=reject_constant,parse_float=finite_float)
+        except (UnicodeError,ValueError,RecursionError) as exc:
+            raise ResearchError('validation','Document is not strict UTF-8 JSON with unique fields and finite numbers') from exc
+        # Validation never reserializes the reference document: offsets and
+        # extraction hashes continue to describe the exact uploaded UTF-8.
+        return data
+    if suffix!='.pdf':raise ResearchError('validation','Only TXT, Markdown, JSON and text-layer PDF are supported')
     process=await asyncio.create_subprocess_exec(sys.executable,'-I','-c',_PDF_WORKER,
         stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
     try:

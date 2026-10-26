@@ -17,6 +17,7 @@ interface Choice {
   platform_id: string;
   platform_name: string;
   configured: boolean;
+  requires_api_key?: boolean;
 }
 interface Snapshot {
   selected_id: string;
@@ -49,6 +50,7 @@ export function ResearchModelsSettings() {
   const choices: Choice[] = snapshot?.choices ?? modelPresets.map((item) => ({ ...item, configured: false }));
   const choice = choices.find((item) => item.id === choiceId);
   const isChatGPT = choiceId === 'codex' || choiceId.startsWith('codex:');
+  const requiresApiKey = !isChatGPT && choice?.requires_api_key !== false;
   const selectedId =
     snapshot?.selected_id === 'codex' && snapshot.chatgpt_model
       ? `codex:${snapshot.chatgpt_model}`
@@ -96,10 +98,12 @@ export function ResearchModelsSettings() {
               preset_id: 'codex',
               chatgpt_model: choiceId.startsWith('codex:') ? choiceId.slice(6) : null,
             })
-          : request<Snapshot>('research.models.save', {
-              preset_id: choiceId,
-              api_key: apiKey,
-            }),
+          : requiresApiKey
+            ? request<Snapshot>('research.models.save', {
+                preset_id: choiceId,
+                api_key: apiKey,
+              })
+            : request<Snapshot>('research.models.select', { preset_id: choiceId }),
       );
       apply(value);
       setSaved(true);
@@ -122,7 +126,7 @@ export function ResearchModelsSettings() {
       <SettingsSection title={t('researchModels.title')} description={t('researchModels.description')} separatedRows>
         <div className="research-model-settings" data-testid="settings-research-models">
           {!enabled && (
-            <SettingRow title={t('researchModels.apiKey')} description={t('researchModels.authenticationRequired')} />
+            <SettingRow title={t('researchModels.title')} description={t('researchModels.authenticationRequired')} />
           )}
           <SettingRow
             title={t('researchModels.model')}
@@ -149,7 +153,10 @@ export function ResearchModelsSettings() {
                   : []),
                 ...choices.map((item) => ({
                   value: item.id,
-                  label: t('researchModels.option', { model: item.name, platform: item.platform_name }),
+                  label: t(item.requires_api_key === false ? 'researchModels.localOption' : 'researchModels.option', {
+                    model: item.name,
+                    platform: item.platform_name,
+                  }),
                 })),
               ]}
               onChange={(id) => {
@@ -161,7 +168,13 @@ export function ResearchModelsSettings() {
               data-testid="settings-research-model-select"
             />
           </SettingRow>
-          {!isChatGPT && (
+          {!isChatGPT && !requiresApiKey && (
+            <SettingRow
+              title={t('researchModels.localEndpoint')}
+              description={t('researchModels.localManaged', { model: choice?.model_name })}
+            />
+          )}
+          {requiresApiKey && (
             <>
               <SettingRow
                 title={t('researchModels.platformKey', { platform: choice?.platform_name ?? 'OpenRouter' })}
@@ -187,7 +200,7 @@ export function ResearchModelsSettings() {
             <Button
               onClick={() => void save()}
               loading={busy}
-              disabled={disabled || !dirty || (!isChatGPT && !apiKey.trim() && !choice?.configured)}
+              disabled={disabled || !dirty || (requiresApiKey && !apiKey.trim() && !choice?.configured)}
               variant="primary"
               data-testid="settings-research-model-save"
             >
@@ -208,7 +221,15 @@ export function ResearchModelsSettings() {
               data-testid="settings-research-model-status"
               data-variant={error ? 'error' : 'saved'}
             >
-              {t(error ? (isChatGPT ? 'researchModels.chatgptError' : 'researchModels.error') : 'researchModels.saved')}
+              {t(
+                error
+                  ? isChatGPT
+                    ? 'researchModels.chatgptError'
+                    : requiresApiKey
+                      ? 'researchModels.error'
+                      : 'researchModels.localError'
+                  : 'researchModels.saved',
+              )}
             </p>
           )}
         </div>

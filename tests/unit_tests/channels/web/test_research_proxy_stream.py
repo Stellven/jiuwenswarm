@@ -41,8 +41,10 @@ class ProxyStreamingTests(unittest.TestCase):
         return Upstream()
 
     def test_artifact_and_archive_preserve_exact_bytes_headers_and_context(self):
-        for path in ('/api/v1/runs/run%3Aone/artifacts/artifact','/api/v1/runs/run%3Aone/export?audience=researcher'):
+        for path in ('/api/v1/runs/run%3Aone/artifacts/artifact','/api/v1/runs/run%3Aone/export?audience=researcher',
+                     '/api/v1/evaluation/requests/request%3Aone?audience=researcher'):
             handler=self.handler(path);raw=b'original bytes\x00'*14000;upstream=self.upstream(handler,raw)
+            handler.headers['Accept']='application/zip'
             with patch.dict(os.environ,{'JIUWENSWARM_M1_PROFILE':'1','JIUWENSWARM_M1_ORIGIN':'http://127.0.0.1:5175'}), patch.object(app_web.http.client,'HTTPConnection') as connection:
                 connection.return_value.getresponse.return_value=upstream
                 handler._proxy_http()
@@ -54,7 +56,42 @@ class ProxyStreamingTests(unittest.TestCase):
                 self.assertEqual(forwarded['Host'],'127.0.0.1:5175')
                 self.assertEqual(forwarded['Authorization'],'Bearer controlled-fixture')
                 self.assertNotIn('X-Forwarded-Host',forwarded)
+                self.assertEqual(connection.call_args.kwargs['timeout'],300)
                 connection.return_value.close.assert_called_once()
+
+    def test_only_exact_bearer_evaluation_posts_receive_finite_transport_window(self):
+        cases=[('POST','/api/v1/evaluation/single-cc',True,660),
+               ('POST','/api/v1/evaluation/node-replay?fixed=1',True,660),
+               ('GET','/api/v1/evaluation/single-cc',True,30),
+               ('POST','/api/v1/evaluation/single-cc/extra',True,30),
+               ('POST','/api/evaluation/single-cc',True,30),
+               ('POST','/api/v1/evaluation/single-cc',False,30),
+               ('GET','/api/v1/evaluation/requests/one',True,30),
+               ('POST','/api/v1/runs',True,30)]
+        for method,path,bearer,timeout in cases:
+            with self.subTest(method=method,path=path,bearer=bearer):
+                handler=self.handler(path);handler.command=method
+                if not bearer:del handler.headers['Authorization']
+                with patch.dict(os.environ,{'JIUWENSWARM_M1_PROFILE':'1','JIUWENSWARM_M1_ORIGIN':'http://127.0.0.1:5175'}),patch.object(app_web.http.client,'HTTPConnection') as connection:
+                    upstream=connection.return_value.getresponse.return_value
+                    upstream.status=200;upstream.reason='OK';upstream.getheaders.return_value=[];upstream.read.return_value=b'{}'
+                    handler._proxy_http()
+                    self.assertEqual(connection.call_args.kwargs['timeout'],timeout)
+                    self.assertEqual(handler.wfile.getvalue(),b'{}')
+
+    def test_evaluation_archive_requires_exact_get_or_head_route_and_zip_accept(self):
+        for method,path,bearer,accept in [('POST','/api/v1/evaluation/requests/one',True,'application/zip'),
+                                         ('GET','/api/v1/evaluation/requests/one/export',True,'application/zip'),
+                                         ('GET','/api/v1/evaluation/requests/one',False,'application/zip'),
+                                         ('GET','/api/v1/evaluation/requests/one',True,'application/json')]:
+            handler=self.handler(path);handler.command=method;handler.headers['Accept']=accept
+            if not bearer:del handler.headers['Authorization']
+            with patch.dict(os.environ,{'JIUWENSWARM_M1_PROFILE':'1','JIUWENSWARM_M1_ORIGIN':'http://127.0.0.1:5175'}),patch.object(app_web.http.client,'HTTPConnection') as connection:
+                upstream=connection.return_value.getresponse.return_value
+                upstream.status=200;upstream.reason='OK';upstream.getheaders.return_value=[];upstream.read.return_value=b'{}'
+                handler._proxy_http()
+                self.assertEqual(connection.call_args.kwargs['timeout'],30)
+                upstream.read.assert_called_once_with()
 
     def test_disconnect_stops_upstream_without_appending_error_response(self):
         handler=self.handler();upstream=self.upstream(handler,b'bytes'*50000)

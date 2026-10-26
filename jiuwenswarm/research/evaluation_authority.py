@@ -278,6 +278,13 @@ class EvaluationAuthority:
         require(selection['policy_mode']=='fixed_baseline' and p.operator['cc']['router']['enabled'] is False,
                 'Qualified evaluation routing adapter is unavailable', 'entry_point_unavailable')
         slots = r['slots']
+        if r.get('account_model_selection_ref') is not None:
+            from .evaluation_model_binding import source_model_selection
+            for case in p.assets['cases']:
+                source_ref = self.resources._subject(case)[0]
+                source = self.store.read_record(source_ref, contract_id='subnode-execution-contract')
+                source_model_selection(self.store, r['account_model_selection_ref'],
+                    account_id=r['account_id'], source_run_id=source['run_id'])
         require(len({s['slot_id'] for s in slots})==len(slots) and len({s['request_id'] for s in slots})==len(slots),
                 'Approved request slots are ambiguous')
         self.store.read_blob(r['schedule_ref'])
@@ -715,6 +722,9 @@ class EvaluationAuthority:
             'contract_ref':grant['contract_ref'],'input_refs':context['input_refs'],'limits':dict(grant['limits'],time_s=remaining),
             'execution_deadline_monotonic_s':execution['deadline'],**{k:runtime[k] for k in ('configuration_ref','model_selection_profile_ref','deployment_ref')},
             'router':copy.deepcopy(self.provider.operator['cc']['router']),'model_selection_profile':selection,'approved_model_ids':selection['approved_model_ids']}
+        if runtime.get('account_model_selection_ref') is not None:
+            protected.update(evaluation_runtime_ref=copy.deepcopy(self.runtime_ref),
+                             account_model_selection_ref=copy.deepcopy(runtime['account_model_selection_ref']))
         call_id=identity('call')
         claim={'schema':'ai4r-evaluation-call-claim:1','id':identity('evaluation-call-claim'),'request_ref':grant['request_ref'],'scope_ref':grant['scope_ref'],
             'assignment_grant_ref':execution['evaluation_grant_ref'],'execution_id':grant['execution_id'],'invocation_id':grant['invocation_id'],'call_ordinal':ordinal,'call_id':call_id,

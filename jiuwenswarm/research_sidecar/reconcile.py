@@ -51,8 +51,13 @@ async def evaluation_once(client,entry_mode,payload,ledger,attempt_id):
         value=await client.evaluate(entry_mode,payload)
         ledger.event(attempt_id,'evaluation_acknowledged',{'response':value});return value
     except ClientError as error:
-        if error.status_code!=200:
+        if error.status_code is not None and 400<=error.status_code<500:
             ledger.event(attempt_id,'evaluation_refused',{'http_status':error.status_code,'client_error':error.response_record});raise
+        # A gateway/server error can follow successful upstream dispatch and
+        # even completion. Preserve the reply, reconcile the same request ID,
+        # and never infer refusal or issue another POST from this response.
+        ledger.event(attempt_id,'evaluation_response_ambiguous',
+            {'http_status':error.status_code,'client_error':error.response_record})
     except (httpx.TransportError,TimeoutError):pass
     ledger.event(attempt_id,'evaluation_delivery_ambiguous',{'request_id':identity,'launched':True})
     value=await _evaluation_reconcile(client,identity)

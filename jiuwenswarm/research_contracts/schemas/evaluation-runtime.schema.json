@@ -48,6 +48,9 @@
     "schedule_ref": {
       "$ref": "#/$defs/Ref"
     },
+    "account_model_selection_ref": {
+      "$ref": "#/$defs/Ref"
+    },
     "slots": {
       "type": "array",
       "items": {

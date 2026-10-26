@@ -330,6 +330,10 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
     }
     _WS_LOG_MAX_CHARS = 2000
     _HTTP_PROXY_TIMEOUT = 30
+    # Transport allowance for an authenticated finite evaluation, including
+    # completion serialization after a 600-second native slot. Native frozen
+    # runtime/policy deadlines still own execution; this is not a worker limit.
+    _EVALUATION_PROXY_TIMEOUT = 660
     _WS_CONNECT_TIMEOUT = 10
     _WS_SELECT_TIMEOUT = 60
     _WS_RECV_BUFFER = 65536
@@ -611,10 +615,19 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
             return
         # Original-byte downloads may hash retained evidence before responding.
         # Stream this versioned boundary end to end with bounded proxy memory.
-        download_request = self.command in {"GET", "HEAD"} and re.fullmatch(
-            r"/api/v1/runs/[^/]+/(?:export|artifacts/[^/]+)", urlparse(self.path).path
-        ) is not None
-        proxy_timeout = 300 if download_request else self._HTTP_PROXY_TIMEOUT
+        request_path = urlparse(self.path).path
+        authorization = self.headers.get("Authorization", "").split(None, 1)
+        bearer_request = len(authorization) == 2 and authorization[0].lower() == "bearer" and bool(authorization[1].strip())
+        evaluation_path = re.fullmatch(r"/api/v1/evaluation/requests/[^/]+", request_path) is not None
+        evaluation_archive = (bearer_request and evaluation_path
+                              and self.headers.get("Accept", "").split(";", 1)[0].strip().lower() == "application/zip")
+        download_request = self.command in {"GET", "HEAD"} and (
+            re.fullmatch(r"/api/v1/runs/[^/]+/(?:export|artifacts/[^/]+)", request_path) is not None
+            or evaluation_archive)
+        finite_evaluation = (bearer_request and self.command == "POST"
+                             and request_path in {"/api/v1/evaluation/single-cc", "/api/v1/evaluation/node-replay"})
+        proxy_timeout = (self._EVALUATION_PROXY_TIMEOUT if finite_evaluation
+                         else 300 if download_request else self._HTTP_PROXY_TIMEOUT)
         parsed = urlparse(self.api_target)
         if parsed.scheme == "https":
             ssl_ctx = None if _get_ssl_verify() else _get_insecure_ssl_context()

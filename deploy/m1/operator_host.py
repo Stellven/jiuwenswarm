@@ -24,25 +24,83 @@ NAME = re.compile(r'^[a-z0-9][a-z0-9_-]{0,47}$')
 SHA = re.compile(r'^[a-f0-9]{64}$')
 CHUNK = 4 * 1024 * 1024
 
+
+def local_model_operator():
+    """Load repository source, including the bundled copy in host RPC/timers."""
+    source = globals().get('LOCAL_MODEL_OPERATOR_SOURCE')
+    if source is None:
+        source = Path(__file__).with_name('local_model_operator.py').read_text(encoding='utf-8')
+    namespace = {'__name__': 'ai4r_local_model_operator'}
+    exec(compile(source, '<repository-local-model-operator>', 'exec'), namespace)
+    return namespace
+
 # Read-only, operator-only inspection inside the owned app/container or its
 # stopped volumes. Never mounted into the runner; never invokes store recovery.
-IDLE_PROBE = '''import json,sqlite3,sys
+IDLE_PROBE = '''import hashlib,json,os,sqlite3,stat,sys,tempfile
 from pathlib import Path
 root=Path(sys.argv[1] if len(sys.argv)>1 else '/var/lib/ai4r')
 executor=Path(sys.argv[2] if len(sys.argv)>2 else '/var/lib/ai4r-executor')
+snapshot=len(sys.argv)>3 and sys.argv[3]=='--stopped-snapshot'
 checks=[(root/'state/research.sqlite3',"SELECT count(*) FROM runs WHERE state NOT IN ('completed','halted','partial')"),
         (executor/'ledger/claims.sqlite3',"SELECT count(*) FROM claims WHERE state!='completed'"),
         (executor/'attempts/attempts.sqlite3',"SELECT count(*) FROM leases WHERE state!='released'")]
+budget=48*1024*1024
+def fingerprint(path):
+ if not path.exists():return None
+ assert not any(p.is_symlink() for p in (path,*path.parents))
+ fd=os.open(path,os.O_RDONLY|getattr(os,'O_NOFOLLOW',0))
+ try:
+  meta=os.fstat(fd);assert stat.S_ISREG(meta.st_mode) and meta.st_nlink==1 and meta.st_size<=budget
+  digest=hashlib.sha256();size=0
+  with os.fdopen(fd,'rb',closefd=False) as stream:
+   while True:
+    block=stream.read(1024*1024)
+    if not block:break
+    size+=len(block);assert size<=budget;digest.update(block)
+  return size,digest.hexdigest()
+ finally:os.close(fd)
+def observe(folder=None):
+ paths=[];optional=checks[-1][0].parent
+ absent=not optional.exists()
+ for path,query in checks:
+  if path==checks[-1][0] and absent:continue
+  assert path.is_file() and not any(p.is_symlink() for p in (path,*path.parents))
+  paths.extend(Path(str(path)+suffix) for suffix in ('','-wal','-shm'))
+ before={p:fingerprint(p) for p in paths} if folder else {}
+ assert sum(value[0] for value in before.values() if value is not None)<=budget
+ copied={}
+ if folder:
+  for index,(path,query) in enumerate(checks):
+   if path==checks[-1][0] and absent:continue
+   target=folder/str(index)/path.name;target.parent.mkdir(mode=0o700)
+   for suffix in ('','-wal','-shm'):
+    source=Path(str(path)+suffix)
+    if before[source] is None:continue
+    destination=Path(str(target)+suffix)
+    fd=os.open(destination,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+    with os.fdopen(fd,'wb') as output,source.open('rb') as stream:
+     total=0
+     while True:
+      block=stream.read(1024*1024)
+      if not block:break
+      total+=len(block);assert total<=before[source][0];output.write(block)
+    assert fingerprint(destination)==before[source]
+   copied[path]=target
+  assert before=={p:fingerprint(p) for p in paths},'Stopped database changed during inspection'
+  assert absent==(not optional.exists()),'Stopped database topology changed during inspection'
+ counts=[]
+ for path,query in checks:
+  if path==checks[-1][0] and absent:counts.append(0);continue
+  # Query the complete copied WAL view. Never ignore WAL via immutable=1.
+  target=copied.get(path,path)
+  db=sqlite3.connect(target.as_uri()+'?mode=ro',uri=True)
+  try:counts.append(db.execute(query).fetchone()[0])
+  finally:db.close()
+ return counts
 counts=[]
-for path,query in checks:
- if path==executor/'attempts/attempts.sqlite3' and not path.parent.exists():
-  # This optional broker creates its directory/database before accepting work.
-  # A missing DB in an existing directory is still an unknown/corrupt state.
-  counts.append(0);continue
- assert path.is_file() and not any(p.is_symlink() for p in (path,*path.parents))
- db=sqlite3.connect(path.as_uri()+'?mode=ro',uri=True)
- try:counts.append(db.execute(query).fetchone()[0])
- finally:db.close()
+if snapshot:
+ with tempfile.TemporaryDirectory(prefix='ai4r-idle-') as directory:counts=observe(Path(directory))
+else:counts=observe()
 assert not any(counts),'Active/unknown research execution refuses lifecycle changes'
 print(json.dumps({'idle':True,'active_runs':counts[0],'unfinished_claims':counts[1],'unreleased_leases':counts[2]}))
 '''
@@ -176,9 +234,11 @@ def assert_app_idle(p):
         else:
             result = json.loads(docker(p, 'run', '--rm', '--network', 'none', '--read-only',
                 '--user', '0:0', '--cap-drop', 'ALL', '--cap-add', 'DAC_READ_SEARCH',
+                '--tmpfs', '/tmp:rw,noexec,nosuid,size=64m',
                 '--mount', 'type=volume,src=' + p['project'] + '_state,dst=/var/lib/ai4r,readonly',
                 '--mount', 'type=volume,src=' + p['project'] + '_executor,dst=/var/lib/ai4r-executor,readonly',
-                '--entrypoint', '/opt/venv/bin/python', container['Image'], '-c', IDLE_PROBE))
+                '--entrypoint', '/opt/venv/bin/python', container['Image'], '-c', IDLE_PROBE,
+                '/var/lib/ai4r', '/var/lib/ai4r-executor', '--stopped-snapshot'))
         if result.get('idle') is not True: raise ValueError('App is not idle')
     except (OSError, ValueError):
         raise ValueError('App has active/unknown runs, executor claims or leases, or inspection is unavailable; reconcile through the app before lifecycle changes') from None
@@ -228,6 +288,8 @@ def render(p, template):
                               'bind': {'create_host_path': False}})
     result['volumes']['runner_credentials'] = {'name': p['project'] + '_runner_credentials',
         'labels': {'ai4r.deployment': p['deployment_id']}}
+    if p.get('local_model') is not None:
+        local_model_operator()['apply_compose'](p, result)
     publish(root / 'compose.json', canonical(result), replace=True)
 
 
@@ -422,6 +484,18 @@ def dispatch(r):
                     (root / 'inputs' / p['input_stage']).mkdir(mode=0o755, exist_ok=True)
                 publish(root / 'deployment.json', canonical(p), replace=True)
                 return {'configured': True, 'deployment': p}
+        if action == 'local-model-configure':
+            with lock(root / 'execution.lock'):
+                assert_idle(p)
+                assert_app_idle(p)
+                if set(r) != {'action', 'profile', 'catalog', 'session_file', 'socket_directory'}:
+                    raise ValueError('Invalid local-model configuration request')
+                selected, _, _ = local_model_operator()['inspect_sources'](
+                    r['catalog'], r['session_file'], r['socket_directory'])
+                previous = json.loads((root / 'deployment.json').read_bytes())
+                previous['local_model'] = selected
+                publish(root / 'deployment.json', canonical(previous), replace=True)
+                return {'configured': True, 'deployment': previous, 'activated': False}
         if action == 'begin-transfer':
             with lock(root / 'execution.lock'):
                 assert_idle(p)
@@ -578,6 +652,8 @@ def start(p, r):
     if initialized.exists() and json.loads(initialized.read_bytes())['app_image'] != p['app_image']:
         raise ValueError('App image changed; use another deployment or an explicit reviewed app upgrade')
     assert_app_idle(p)
+    if p.get('local_model') is not None:
+        local_model_operator()['provision'](p, docker)
     render(p, r['template'])
     for key in ('app_image', 'runner_image'):
         image = json.loads(docker(p, 'image', 'inspect', p[key]))[0]

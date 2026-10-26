@@ -31,6 +31,7 @@ PRIVATE = {
     'check_plan':'evaluation-checking-basis',
 }
 SOURCE_SHAPES = {
+    'library-snapshot':'library-snapshot', 'evaluation-profile':'evaluation-profile',
     'source_contract':'subnode-execution-contract', 'source_node':'node-execution-contract',
     'source_check_plan':'bound-check-plan', 'source_observation':'invocation-observation',
     'source_host_record':'invocation-observation', 'observation':'invocation-observation',
@@ -43,7 +44,8 @@ SOURCE_SHAPES = {
 CONTROL = {'request','scope','terminal','event','assignment_grant'}
 PROVENANCE = {'source_check_plan','source_node','source_template','source_observation','source_host_record',
     'source_declaration','source_admission','source_check_profile','source_check_bundle',
-    'source_instructions','source_body','source_runner','source_input'}
+    'source_instructions','source_body','source_runner','source_input','library-snapshot','evaluation-profile'}
+MODEL_PROVENANCE = {'source_model_selection','source_model_deployment','source_model_endpoint'}
 START_SCHEMAS = {'execution_preparation':'urn:ai4r:private:invocation-preparation:1',
     'execution_preflight':'urn:ai4r:private:scientific-attempt-preflight:1',
     'execution_activation':'urn:ai4r:private:scientific-attempt-activation:1'}
@@ -244,6 +246,21 @@ class EvaluationRecords:
             ref_key(ref);allowed.add((kind,ref_key(ref)))
             return self.source_record(ref,kind)
         source=self.source=original(scope['source_contract_ref'],'source_contract')
+        eligibility_kinds={kind for kind in ('evaluation-profile','library-snapshot') if self.rows(kind)}
+        require(not eligibility_kinds or len(eligibility_kinds)==2,'partial original frozen eligibility closure')
+        if eligibility_kinds:
+            profile=original(self.runtime['profile_ref'],'evaluation-profile')
+            snapshot=self.library_snapshot=original(self.runtime['library_snapshot_ref'],'library-snapshot')
+            declaration_ref=source['bindings'][0]['declaration_ref']
+            declaration=original(declaration_ref,'source_declaration')
+            pin={'cc_name':declaration['identity']['name'],'cc_version':declaration['identity']['version_label'],
+                'declaration_sha256':declaration_ref['sha256']}
+            require(self.runtime['library_snapshot_ref']['sha256']==profile['library_snapshot_sha256']
+                and profile['profile_id']==self.json_ref(self.request['normalized_request_ref'],'normalized_request')['evaluation_profile_id']
+                and self.request['entry_point'] in profile['allowed_entry_points']
+                and profile['invalid_for_product'] is True
+                and sum(all(entry.get(k)==v for k,v in pin.items()) for entry in snapshot['entries'])==1,
+                'original frozen snapshot/profile subject differs')
         parent=self.source_parent=original(source['node_contract_ref'],'source_node')
         plan=self.source_plan=original(scope['source_check_plan_ref'],'source_check_plan')
         # The enclosing source template is captured provenance; only the
@@ -434,6 +451,7 @@ class EvaluationRecords:
         grant_refs={ref_key(event['assignment_grant_ref']) for _,event in events if event['assignment_grant_ref'] is not None}
         require(grant_refs=={ref_key(row['artifact_ref']) for row in self.rows('assignment_grant')}, 'unbound private assignment grants')
         self._source_closure()
+        self._model_selection_closure()
         self._grants(request_ref,scope_ref)
         captured={(e['capture_kind'],ref_key(e['capture_ref'])) for _,e in events if e['kind']=='captured'}
         capture_names=set()
@@ -448,13 +466,64 @@ class EvaluationRecords:
         require(all((kind,ref_key(ref)) in captured for kind,ref in (
             ('original_request',request['original_request_ref']),('normalized_request',request['normalized_request_ref']),
             ('runtime',request['runtime_ref']),('source_binding',manifest['source_binding_ref']))), 'missing original evaluation control captures')
-        allowed=CONTROL|PROVENANCE|capture_names|{'native_packet'}
+        allowed=CONTROL|PROVENANCE|MODEL_PROVENANCE|capture_names|{'native_packet'}
         require(all(kind in allowed for kind,_ in self.by_kind),'unknown or canonical-kind evaluation member')
         self._native_closure()
         self._measurements()
         self._terminal(request_ref,scope_ref)
         self._response_closure()
         self._scientific_order()
+
+    def _model_selection_closure(self):
+        """Read only exact optional runtime-owned account selection edges."""
+        self.account_model_deployment=None
+        actual={(kind,key) for kind,key in self.by_kind if kind in MODEL_PROVENANCE}
+        ref=self.runtime.get('account_model_selection_ref')
+        if ref is None:
+            require(not actual,'unbound original account model selection');return
+        expected={('source_model_selection',ref_key(ref))}
+        selection=self.json_ref(ref,'source_model_selection')
+        common={'schema_version','id','run_id','account_id','mode','preset_id'}
+        if selection.get('mode')=='codex':
+            extra={'chatgpt_model','deployment_ref'} if selection.get('chatgpt_model') else set()
+            require(selection.get('preset_id')=='codex','original subscription model choice differs')
+        elif selection.get('platform_id')=='operator-local':
+            extra={'local_binding_id','local_binding_sha256','platform_id','deployment_ref'}
+            require(isinstance(selection.get('preset_id'),str) and selection['preset_id'].startswith('local-'),
+                'original local model choice differs')
+        else:extra={'credential_id','platform_id','deployment_ref'}
+        require(set(selection)==common|extra and selection.get('schema_version')=='1.0.0'
+            and selection.get('id')==ref['id'] and selection.get('account_id')==self.runtime['account_id']
+            and selection.get('mode') in {'codex','api'}
+            and (self.source is None or selection.get('run_id')==self.source['run_id']),
+            'original account model choice belongs to another source/account')
+        if selection.get('deployment_ref') is not None:
+            pin=selection['deployment_ref'];expected.add(('source_model_deployment',ref_key(pin)))
+            deployment=self.json_ref(pin,'source_model_deployment')
+            require(set(deployment)=={'model_id','provider_model_name','provider','endpoint_ref','adapter_id','revision'},
+                'original account model deployment shape differs')
+            self.account_model_deployment=deployment
+            pin=deployment['endpoint_ref'];expected.add(('source_model_endpoint',ref_key(pin)))
+            endpoint=self.json_ref(pin,'source_model_endpoint')
+            require(isinstance(endpoint,dict),'original account model endpoint is not metadata')
+            if selection.get('platform_id')=='operator-local':
+                require(set(endpoint)=={'provider_id','transport','gateway_id','binding_sha256','backend','model'}
+                    and endpoint['provider_id']=='operator-local' and endpoint['transport']=='authenticated-unix-rpc'
+                    and endpoint['binding_sha256']==selection['local_binding_sha256']
+                    and endpoint['model']['id']==selection['preset_id']
+                    and deployment['provider_model_name']==endpoint['model']['model_name'],
+                    'original local model deployment/endpoint binding differs')
+            elif selection.get('chatgpt_model'):
+                require(endpoint=={'provider_id':'chatgpt','transport':'packaged-app-server-subscription'}
+                    and deployment['model_id']==deployment['provider_model_name']==selection['chatgpt_model'],
+                    'original subscription model deployment/endpoint differs')
+            else:
+                require(set(endpoint)=={'provider_id','base_url','models','credential_env_var','timeout_s','enabled'}
+                    and endpoint['provider_id']==selection['platform_id']
+                    and deployment['provider']==selection['platform_id']
+                    and endpoint['credential_env_var']=='AI4R_SELECTED_API_KEY',
+                    'original API model deployment/endpoint differs')
+        require(actual==expected,'unbound or missing finite original account model provenance')
 
     def _grants(self,request_ref,scope_ref):
         assignments=set()
@@ -635,6 +704,9 @@ class EvaluationRecords:
             grant=self.private(grant_ref,'assignment_grant');child=self.json_ref(grant['contract_ref'],'actual_contract')
             value=self.json_ref(event['capture_ref'],kind)
             require(isinstance(value,dict),'native evidence is not a record')
+            if kind=='route' and self.account_model_deployment is not None:
+                require(value.get('model_id')==self.account_model_deployment['model_id'],
+                    'original private route differs from the frozen account model choice')
             if kind=='trace':continue
             if kind=='prompt':require(set(value)=={'id','run_id','invocation_id','call_id','prompt'},'original prompt shape differs')
             if kind=='model_start':require(set(value)=={'id','run_id','invocation_id','execution_id','call_id','call_claim_ref','contract_ref',

@@ -351,7 +351,74 @@ class NativePorts:
             if ready:
                 report['operations']+=['node_replay' if p=='E2' else 'single_cc'
                     for p in provider.available_entry_points]
+            elif await self._independent_single_cc_ready(prerequisites, identity_bound=identity_bound):
+                report['operations'].append('single_cc')
         validate('client-readiness',report);return report
+
+    async def _independent_single_cc_ready(self, prerequisites, *, identity_bound):
+        """Observe the actual tool-free E3 owner independently of E1 science.
+
+        Ordinary submit readiness is unchanged. This grants no assignment: the
+        provider still validates the separate credential, frozen slot, exact
+        subject and current authority at the existing protected E3 boundary.
+        """
+        from .admitted_measurement import AdmittedResourceContext
+        from .evaluation_provider import EvaluationProvider, InstalledEvaluationResources
+        try:
+            provider = self.evaluation_provider
+            if type(provider) is not EvaluationProvider or not identity_bound or not self.bindings:
+                return False
+            required = {'build_identity', 'storage', 'auth', 'plan_policy', 'model', 'trajectory'}
+            shared = [p for p in prerequisites if p['name'] in required]
+            if {p['name'] for p in shared} != required or any(p['status'] != 'ready' for p in shared):
+                return False
+            # An explicit unavailable bootstrap condition cannot be masked by
+            # a library owner captured under some earlier composition.
+            if any(p['status'] != 'ready' for p in prerequisites if p['name'].startswith('bootstrap')):
+                return False
+            installed = provider.resources
+            if type(installed) is not InstalledEvaluationResources:
+                return False
+            actual = installed.admitted.resources
+            if (type(actual) is not AdmittedResourceContext or actual.composition is not self.composition
+                    or actual.operator is not self.operator or provider.store is not self.composition.runner.store
+                    or self.model_bridge is None or self.composition.runner.model is not self.model_bridge
+                    or actual.executor is not self.executor or self.composition.runner.executor is not self.executor
+                    or self.executor is None):
+                return False
+            options = self.bindings['protected_options']
+            if (any(actual.exact_binding_refs[key] != self.bindings[key] for key in
+                    ('configuration_ref', 'model_selection_profile_ref', 'deployment_ref', 'workspace_id'))
+                    or options.get('evaluation_runtime_ref') != installed.authority.runtime_ref
+                    or options.get('evaluation_assets_ref') != provider.assets_ref
+                    or options.get('library_snapshot_ref') != installed.snapshot_ref
+                    or 'E3' not in provider.available_entry_points):
+                return False
+            cases = [case for case in provider.assets['cases'] if case['entry_point'] == 'E3']
+            if not cases:
+                return False
+            for case in cases:
+                source, checks, _ = installed._subject(case)
+                contract = installed.admitted._validate(source, checks)[0]
+                declaration = provider.store.read_record(contract['bindings'][0]['declaration_ref'],
+                                                         contract_id='capsule-declaration')
+                authority = contract['bindings'][0]['effective_authority']
+                if (declaration['needs']['network']['mode'] != 'none'
+                        or declaration['budget']['per_call']['tool_calls'] != 0
+                        or authority['network'] != 'none' or authority['network_allowlist']
+                        or authority['tools'] or authority['write_roots']):
+                    return False
+                from .attempt_resources import attempt_resource_disposition
+                disposition = attempt_resource_disposition(provider.store, contract['node_contract_ref'])
+                if disposition.requires_broker:
+                    return False
+            probe = self.executor.read_only_prerequisites()
+            if inspect.isawaitable(probe):
+                probe = await probe
+            return (probe is True or isinstance(probe, dict) and probe.get('ready') is True
+                    or isinstance(probe, list) and not probe)
+        except (ResearchError, AttributeError, KeyError, TypeError, ValueError, OSError):
+            return False
 
     async def close(self):
         if self.authorization_server is not None:await self.authorization_server.close()
@@ -432,7 +499,8 @@ async def start_agent_ports():
     from .routing_authority import create_routing_runtime,UnavailableRoutingPort
     router,providers,routing_authority=create_routing_runtime(store=store,operator=operator,environ=os.environ)
     from .model_settings import ModelSettingsOwner
-    manual_models=ModelSettingsOwner(store)
+    from .local_models import LocalModelCatalog
+    manual_models=ModelSettingsOwner(store,local_catalog=LocalModelCatalog(os.environ.get('AI4R_LOCAL_MODEL_CATALOG')))
     if type(router) is UnavailableRoutingPort:
         print(json.dumps({'event':'optional-routing-unavailable','reason':router.installation_failure.value}),flush=True)
     bridge=GovernedBridge(persist=store.append_record,authorize=authorize,subscription_service=subscription,

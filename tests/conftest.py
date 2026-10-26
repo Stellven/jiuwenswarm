@@ -11,6 +11,9 @@ from typing import Generator
 import pytest
 
 
+pytest_plugins = ("tests.benchmark_case_assets",)
+
+
 @pytest.fixture
 def temp_workspace() -> Generator[Path, None, None]:
     """Create a temporary workspace directory for testing."""
