@@ -26,7 +26,7 @@ def load_research_catalog():
     return value
 
 
-def build_research_assets(store, *, verify_catalog=True):
+def build_research_assets(store, *, verify_catalog=True, screening_version='m1-4'):
     """Return immutable candidate assets; grant no library standing or authority."""
     root = Path(__file__).parents[1]
     resources = files('jiuwenswarm.research').joinpath('resources/capsules')
@@ -301,6 +301,44 @@ def build_research_assets(store, *, verify_catalog=True):
         # identities, all implementation bytes and independent assets stay fixed.
         if json.loads(json_bytes(result)) != expected:
             raise ResearchError('catalog_pin_mismatch', 'Installed research bytes differ from the frozen release catalog')
+    if screening_version not in {'m1-4', 'm1-5'}:
+        raise ResearchError('catalog_invalid', 'Unknown explicit Screening release')
+    if screening_version == 'm1-5':
+        result['screening'] = build_screening_asset(store, base=result['screening'], verify_catalog=verify_catalog)
+    return result
+
+
+def build_screening_asset(store, *, base=None, verify_catalog=True):
+    """Explicit additive m1-5 instruction release; preserves m1-4 and all checks.
+
+    Capture grants no admission/activation. The campaign must select, admit and
+    bind these exact immutable pins through the ordinary protected setup.
+    """
+    base = base or build_research_assets(store, verify_catalog=verify_catalog)['screening']
+    resources = files('jiuwenswarm.research').joinpath('resources/capsules')
+    declaration = copy.deepcopy(store.read_record(base['declaration_ref']))
+    if declaration['identity']['version_label'] != 'm1-4':
+        raise ResearchError('catalog_invalid', 'Screening m1-5 requires the exact m1-4 base release')
+    body_refs = dict(base['body_refs'])
+    body_refs['screening_prompt.txt'] = store.put_blob(resources.joinpath('screening_prompt_m1_5.txt').read_bytes(), media_type='text/plain')
+    declaration['identity']['version_label'] = 'm1-5'
+    declaration['identity']['body'] = [{'path': name, 'sha256': ref['sha256']} for name, ref in body_refs.items() if name != '_common.py']
+    bundle = copy.deepcopy(store.read_record(base['bundle_ref']))
+    bundle.update(id='research.screening.checks:m1-5', target_cc_version_range='m1-5.x')
+    bundle['bundle_id'] = 'research.screening.m1-5.checks'
+    profile = copy.deepcopy(store.read_record(base['profile_ref']))
+    profile.update(id='research.screening.profile:m1-5.response_contract_3',
+                   profile_id='research.screening.m1-5.profile', target_cc_version_range='m1-5.x')
+    from ..checks.schema_context import frozen_output_instructions
+    instructions = resources.joinpath('verifier_implementation.txt').read_bytes()
+    profile['instruction_ref'] = store.put_blob(frozen_output_instructions(instructions, declaration), media_type='text/plain')
+    result = dict(base, declaration_ref=store.put_record('capsule-declaration', declaration), body_refs=body_refs,
+                  bundle_ref=store.put_record('check-bundle', bundle), profile_ref=store.put_record('checking-profile', profile),
+                  implementation_refs=tuple(ref for name, ref in body_refs.items() if name != '_common.py'))
+    if verify_catalog:
+        expected = json.loads(resources.joinpath('screening_m1_5_catalog.json').read_text(encoding='utf-8'))
+        if json.loads(json_bytes(result)) != expected:
+            raise ResearchError('catalog_pin_mismatch', 'Screening m1-5 differs from its explicit immutable release pin')
     return result
 
 
