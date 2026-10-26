@@ -18,6 +18,34 @@ TOOLS = [{"type": "function", "function": {"name": "read_file", "parameters": {
 
 
 class NativeValueTests(unittest.TestCase):
+    def test_matched_eighty_call_ceiling_preserves_default_and_rejects_eighty_one(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "spec.json"
+            spec = {"variant": "native", "task": "Bounded public task",
+                    "binding": str(Path(temp) / "existing-binding.json")}
+            path.write_text(json.dumps(spec))
+            self.assertEqual(subject.load_spec(path)["max_model_calls"], 12)
+            spec["max_model_calls"] = 80
+            path.write_text(json.dumps(spec))
+            self.assertEqual(subject.load_spec(path)["max_model_calls"], 80)
+            spec["max_model_calls"] = 81
+            path.write_text(json.dumps(spec))
+            with self.assertRaisesRegex(ValueError, "max_model_calls"):
+                subject.load_spec(path)
+
+    def test_larger_local_ceiling_cannot_override_host_campaign_denial(self):
+        with tempfile.TemporaryDirectory() as temp:
+            claims = []
+            async def host_guard(*args):
+                claims.append(1)
+                raise RuntimeError("HOST_CAMPAIGN_BUDGET_EXHAUSTED")
+            scope = subject.CompletionScope(host_guard,
+                {"max_model_calls": 80, "max_tool_calls": 80, "wall_time_s": 600}, temp)
+            for _ in range(2):
+                with self.assertRaisesRegex(RuntimeError, "HOST_CAMPAIGN_BUDGET_EXHAUSTED"):
+                    asyncio.run(scope.invoke([], []))
+            self.assertEqual(len(claims), 1)
+
     def test_text_bridge_disables_speculative_vision_probe_without_removing_tools(self):
         import yaml
         with tempfile.TemporaryDirectory() as temp:

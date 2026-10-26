@@ -70,7 +70,10 @@ def load_spec(path):
     spec.setdefault("mode", "agent.work.normal")
     if spec["mode"] not in MODES:
         raise ValueError("Unsupported native application mode")
-    for key, default, maximum in (("max_model_calls", 12, 20), ("max_tool_calls", 30, 80),
+    # Per-arm ceilings can match the integrated policy's aggregate 80 calls.
+    # This local ceiling grants no dispatch authority: the host's shared
+    # campaign reservation/claim remains authoritative for every completion.
+    for key, default, maximum in (("max_model_calls", 12, 80), ("max_tool_calls", 30, 80),
                                   ("wall_time_s", 300, 600)):
         spec.setdefault(key, default)
         if type(spec[key]) is not int or not 1 <= spec[key] <= maximum:
