@@ -85,6 +85,37 @@ class ComparisonTests(unittest.TestCase):
             subject.prepare(assignment(), self.root / "too-long", private_config=self.config,
                             control=self.control, timeout_s=121)
 
+    def test_plain_skill_arm_shares_assignment_but_is_a_distinct_frozen_arm(self):
+        skill = "Apply inclusive thresholds exactly.  Equality counts as success."
+        bare = self.prepare("bare")
+        skilled = self.root / "skilled"
+        with patch("jiuwenswarm.research.local_model_codex.execute", side_effect=AssertionError("no inference")):
+            frozen = subject.prepare(assignment(), skilled, private_config=self.config,
+                                     control=self.control, skill_text=skill)
+        base = json.loads((bare / "frozen.json").read_text())
+        self.assertEqual(base["assignment_sha256"], frozen["assignment_sha256"])
+        self.assertEqual(base["arm"], subject.ARM_BARE)
+        self.assertIsNone(base["skill_sha256"])
+        self.assertEqual(frozen["arm"], subject.ARM_PLAIN_SKILL)
+        self.assertNotEqual(base["prompt_sha256"], frozen["prompt_sha256"])
+        prompt = (skilled / "prompt.txt").read_text()
+        self.assertTrue(prompt.startswith("Skill instructions"))
+        self.assertIn("Equality counts as success", prompt)
+        self.assertNotIn("Skill instructions", (bare / "prompt.txt").read_text())
+        self.assertEqual((skilled / "skill.txt").read_text(), skill)
+
+    def test_plain_skill_cannot_change_after_freeze_and_must_be_text(self):
+        skilled = self.root / "skilled"
+        subject.prepare(assignment(), skilled, private_config=self.config,
+                        control=self.control, skill_text="Original skill.")
+        (skilled / "skill.txt").write_text("Edited skill.")
+        with patch("jiuwenswarm.research.local_model_codex.execute", side_effect=AssertionError("no inference")):
+            with self.assertRaises(ValueError):
+                subject.run(skilled, private_config=self.config)
+        for bad in ("", "   ", 7):
+            with self.assertRaises(ValueError):
+                subject.make_prompt(assignment(), bad)
+
     def test_original_v2_receipt_exact_answer_and_public_privacy(self):
         workspace = self.prepare()
         text = ' \n{"screening_result":{"answer":4},"card":"é — original"}\n'

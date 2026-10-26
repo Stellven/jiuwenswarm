@@ -17,6 +17,10 @@ import time
 import uuid
 
 
+ARM_BARE = "native_codex_tool_free"
+ARM_PLAIN_SKILL = "native_codex_plain_skill"
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
                       allow_nan=False).encode("utf-8")
@@ -114,11 +118,25 @@ def validate_assignment(assignment):
     return assignment
 
 
-def make_prompt(assignment):
+def _skill(skill_text):
+    if skill_text is not None and (not isinstance(skill_text, str) or not skill_text.strip()):
+        raise ValueError("A plain skill must be non-empty text")
+    return skill_text
+
+
+def make_prompt(assignment, skill_text=None):
+    """Bare prompt, or the same prompt preceded by one undeclared plain skill.
+
+    The skill is ordinary instruction text: no declaration, check, verifier or
+    gate. It never changes the assignment, so every arm shares one digest.
+    """
     validate_assignment(assignment)
+    skill_text = _skill(skill_text)
     # Whitelist construction: no capsule body, criteria, oracle, gold or profile.
     public = {key: assignment[key] for key in ("task", "inputs", "output_contracts")}
-    return ("Perform the following public assignment using only its supplied inputs. "
+    head = ("Skill instructions (apply them while doing the assignment):\n"
+            + skill_text.strip() + "\n\n") if skill_text is not None else ""
+    return (head + "Perform the following public assignment using only its supplied inputs. "
             "Return one JSON object whose keys are exactly the declared output ports, "
             "with each value satisfying that port's full declared JSON schema. "
             "Return the original answer directly, without Markdown fences or commentary.\n"
@@ -150,7 +168,7 @@ def _config(path):
     return config
 
 
-def prepare(assignment, workspace, *, private_config, control, timeout_s=120):
+def prepare(assignment, workspace, *, private_config, control, timeout_s=120, skill_text=None):
     """Freeze public assignment and private command pins; perform no model I/O."""
     validate_assignment(assignment)
     config = _config(private_config)
@@ -158,7 +176,8 @@ def prepare(assignment, workspace, *, private_config, control, timeout_s=120):
             or not 0 < timeout_s <= min(120, assignment["limits"]["wall_time_s"],
                                       config["timeout_s"], config["model"]["timeout_s"])):
         raise ValueError("One native call must fit the common and qualified call budgets")
-    prompt = make_prompt(assignment)
+    skill_text = _skill(skill_text)
+    prompt = make_prompt(assignment, skill_text)
     if len(prompt.encode("utf-8")) > config["model"]["max_prompt_bytes"]:
         raise ValueError("Frozen public prompt exceeds the qualified prompt-byte cap")
     workspace, control = Path(workspace).absolute(), Path(control).absolute()
@@ -173,7 +192,11 @@ def prepare(assignment, workspace, *, private_config, control, timeout_s=120):
         raise ValueError("Private control cannot be a symlink")
     frozen = {"schema": "native-codex-baseline-freeze:1", "assignment_sha256": assignment_digest(assignment),
               "private_config_sha256": assignment_digest(config), "timeout_s": timeout_s,
-              "control": str(control.resolve()), "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest()}
+              "control": str(control.resolve()), "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+              "arm": ARM_BARE if skill_text is None else ARM_PLAIN_SKILL,
+              "skill_sha256": None if skill_text is None else hashlib.sha256(skill_text.encode()).hexdigest()}
+    if skill_text is not None:
+        _write(workspace / "skill.txt", skill_text.encode(), raw=True)
     _write(workspace / "assignment.json", assignment)
     _write(workspace / "prompt.txt", prompt.encode(), raw=True)
     _write(workspace / "frozen.json", frozen)
@@ -208,10 +231,15 @@ def run(workspace, *, private_config, execute_fn=None):
     frozen, assignment = _read(workspace / "frozen.json"), _read(workspace / "assignment.json")
     config = _config(private_config)
     prompt = (workspace / "prompt.txt").read_bytes().decode("utf-8")
+    skill_text = None
+    if frozen.get("skill_sha256") is not None:
+        skill_text = (workspace / "skill.txt").read_bytes().decode("utf-8")
+        if hashlib.sha256(skill_text.encode()).hexdigest() != frozen["skill_sha256"]:
+            raise ValueError("Frozen plain skill changed")
     if (assignment_digest(assignment) != frozen["assignment_sha256"]
             or assignment_digest(config) != frozen["private_config_sha256"]
             or hashlib.sha256(prompt.encode()).hexdigest() != frozen["prompt_sha256"]
-            or prompt != make_prompt(assignment)):
+            or prompt != make_prompt(assignment, skill_text)):
         raise ValueError("Frozen assignment, prompt or private command pins changed")
     if not 0 < frozen["timeout_s"] <= min(120, assignment["limits"]["wall_time_s"],
                                          config["timeout_s"], config["model"]["timeout_s"]):
@@ -226,7 +254,8 @@ def run(workspace, *, private_config, execute_fn=None):
     _write(control / "active.json", claim)
     private = control / ("request-" + request_id)
     private.mkdir(mode=0o700)
-    report = {"schema": "native-codex-baseline-result:1", "arm": "native_codex_tool_free",
+    report = {"schema": "native-codex-baseline-result:1", "arm": frozen.get("arm", ARM_BARE),
+              "skill_sha256": frozen.get("skill_sha256"),
               "assignment_sha256": frozen["assignment_sha256"], "status": "outcome_unknown",
               "outputs": None, "format": None, "usage": None, "effective_model": None,
               "reasoning_effort": None, "native_terminal": None, "cost_usd": None,
@@ -298,7 +327,7 @@ def compare(assignment, baseline, cc, *, variant, quality_port, content_evaluato
         spec.loader.exec_module(module)
         content_evaluator = module.evaluate_content
     arms = {}
-    for name, source in (("native_codex_tool_free", baseline), ("ai4r_cc", cc)):
+    for name, source in ((baseline.get("arm", ARM_BARE), baseline), ("ai4r_cc", cc)):
         outputs = source.get("outputs")
         quality = None
         if source.get("status") == "completed" and isinstance(outputs, dict) and isinstance(outputs.get(quality_port), dict):
@@ -363,6 +392,8 @@ def main():
     prep.add_argument("--private-config", type=Path, required=True)
     prep.add_argument("--control", type=Path, required=True)
     prep.add_argument("--timeout-s", type=float, default=120)
+    prep.add_argument("--skill-file", type=Path, default=None,
+                      help="Optional plain skill text; omit for the bare arm")
     launch = commands.add_parser("run")
     launch.add_argument("--workspace", type=Path, required=True)
     launch.add_argument("--private-config", type=Path, required=True)
@@ -374,7 +405,8 @@ def main():
     args = parser.parse_args()
     if args.command == "prepare":
         result = prepare(_read(args.assignment), args.workspace, private_config=args.private_config,
-                         control=args.control, timeout_s=args.timeout_s)
+                         control=args.control, timeout_s=args.timeout_s,
+                         skill_text=args.skill_file.read_text(encoding="utf-8") if args.skill_file else None)
         print(json.dumps({"workspace": str(args.workspace), "assignment_sha256": result["assignment_sha256"]}))
     elif args.command == "run":
         result = run(args.workspace, private_config=args.private_config)
