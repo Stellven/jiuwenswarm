@@ -290,7 +290,7 @@ class OperatorTests(unittest.TestCase):
         self.assertEqual(app['ports'][0]['host_ip'], '127.0.0.1')
         self.assertEqual(app['environment']['AI4R_EXECUTION_MODE'], 'm1_app_process')
         self.assertEqual(app['environment']['JIUWENSWARM_M1_LOCAL_RESEARCH'], '1')
-        self.assertEqual(app['mem_limit'], 4 * 1024 ** 3)
+        self.assertEqual(int(app['mem_limit']), 4 * 1024 ** 3)
         self.assertEqual(app['pids_limit'], 256)
         self.assertFalse(any(m.get('target') == '/etc/ai4r/config.yaml' for m in app['volumes']))
         self.assertFalse(any(m.get('target') == '/run/benchmark-runner' for m in app['volumes']))
