@@ -80,6 +80,25 @@ async def test_exact_owned_packets_are_retained_without_local_scope_on_provider_
 
 
 @pytest.mark.asyncio
+async def test_governed_medium_pin_and_resolution_are_preserved_in_original_trace(traced, monkeypatch):
+    store, service, transport, scope = traced
+    monkeypatch.setenv('JIUWENSWARM_GOVERNED_REASONING_EFFORT', 'medium')
+    transport.reasoning_effort = 'medium'
+    service.set_governed_trace_writer(store.append_record, store.put_blob)
+    result = await service.invoke_governed_traced(scope, 'controlled prompt', timeout_s=2)
+    trace = store.read_record(result['native_trace_ref'])
+    packets = [json.loads(store.read_blob(store.read_record(ref)['raw_ref'])) for ref in trace['event_refs']]
+    start = next(row for row in packets if row.get('method') == 'thread/start')
+    resolved = next(row['result'] for row in packets if isinstance(row.get('result'), dict)
+                    and 'reasoningEffort' in row['result'])
+    turn = next(row for row in packets if row.get('method') == 'turn/start')
+    assert start['params']['config']['model_reasoning_effort'] == 'medium'
+    assert resolved['reasoningEffort'] == 'medium'
+    assert turn['params']['effort'] == 'medium'
+    assert set(result['identity']) == {'requested', 'effective', 'basis'}
+
+
+@pytest.mark.asyncio
 async def test_trace_write_failure_before_thread_request_prevents_dispatch(traced):
     store,service,transport,scope=traced
     def fail(*_args,**_kwargs):raise OSError('controlled storage failure')

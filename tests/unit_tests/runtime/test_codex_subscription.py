@@ -1,5 +1,6 @@
 """M1 behavioral fixtures: no account or network required."""
 import asyncio
+import os
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -18,6 +19,7 @@ class FakeTransport:
         self.fail_turn = False
         self.hold_turn = False
         self.turn_items = []
+        self.reasoning_effort = None
 
     async def start(self):
         pass
@@ -45,6 +47,8 @@ class FakeTransport:
             result = {"thread": {"id": f"thread-{self.counter}"}}
             if params.get("model") is not None:
                 result["model"] = params["model"]
+            if self.reasoning_effort is not None:
+                result["reasoningEffort"] = self.reasoning_effort
             return result
         if method == "thread/resume":
             return {"thread": {"id": params["threadId"]}}
@@ -76,6 +80,62 @@ class SubscriptionTests(unittest.IsolatedAsyncioTestCase):
 
     async def collect(self, sid="one", rid="r1"):
         return [event async for event in self.service.stream(sid, rid, "Hi")]
+
+    async def test_governed_explicit_medium_pin_resolves_before_turn_and_keeps_result_contract(self):
+        self.transport.reasoning_effort = "medium"
+        result = await self.service.invoke_governed("one", model="selected", reasoning_effort="medium", timeout_s=1)
+        start = next(p for m, p in self.transport.calls if m == "thread/start")
+        turn = next(p for m, p in self.transport.calls if m == "turn/start")
+        self.assertEqual(start["config"]["model_reasoning_effort"], "medium")
+        self.assertEqual(turn["effort"], "medium")
+        self.assertEqual(result["identity"], {"requested": "selected", "effective": "selected",
+            "basis": "packaged app-server thread/start resolved model"})
+
+    async def test_governed_environment_medium_pin_is_explicit_on_both_requests(self):
+        self.transport.reasoning_effort = "medium"
+        with patch.dict(os.environ, {"JIUWENSWARM_GOVERNED_REASONING_EFFORT": "medium"}):
+            await self.service.invoke_governed("one", timeout_s=1)
+        self.assertEqual(next(p for m, p in self.transport.calls if m == "thread/start")["config"]["model_reasoning_effort"], "medium")
+        self.assertEqual(next(p for m, p in self.transport.calls if m == "turn/start")["effort"], "medium")
+
+    async def test_governed_unresolved_or_mismatched_effort_never_starts_turn(self):
+        for observed in (None, "high"):
+            with self.subTest(observed=observed):
+                transport = FakeTransport()
+                transport.reasoning_effort = observed
+                service = SubscriptionService(Path(self.tmp.name) / str(observed), transport=transport)
+                with self.assertRaisesRegex(CodexError, "REASONING_EFFORT_MISMATCH"):
+                    await service.invoke_governed("one", reasoning_effort="medium", timeout_s=1)
+                self.assertTrue(any(m == "thread/start" for m, _ in transport.calls))
+                self.assertFalse(any(m == "turn/start" for m, _ in transport.calls))
+                self.assertFalse(service.active)
+
+    async def test_invalid_effort_pin_fails_before_account_or_native_effect(self):
+        for invalid in ("high", "MEDIUM", " medium ", 1):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(CodexError, "INVALID_REASONING_EFFORT"):
+                    await self.service.invoke_governed("one", reasoning_effort=invalid, timeout_s=1)
+        with patch.dict(os.environ, {"JIUWENSWARM_GOVERNED_REASONING_EFFORT": "unsupported"}):
+            with self.assertRaisesRegex(CodexError, "INVALID_REASONING_EFFORT"):
+                await self.service.invoke_governed("one", timeout_s=1)
+        self.assertEqual(self.transport.calls, [])
+
+    async def test_unconfigured_governed_effort_preserves_existing_requests(self):
+        with patch.dict(os.environ, {"JIUWENSWARM_GOVERNED_REASONING_EFFORT": ""}):
+            await self.service.invoke_governed("one", timeout_s=1)
+        start = next(p for m, p in self.transport.calls if m == "thread/start")
+        turn = next(p for m, p in self.transport.calls if m == "turn/start")
+        self.assertNotIn("model_reasoning_effort", start["config"])
+        self.assertNotIn("effort", turn)
+
+    async def test_governed_environment_pin_does_not_change_local_conversation(self):
+        with patch.dict(os.environ, {"JIUWENSWARM_GOVERNED_REASONING_EFFORT": "unsupported"}):
+            await self.service.invoke_governed("one", local_conversation=True, timeout_s=1)
+        start = next(p for m, p in self.transport.calls if m == "thread/start")
+        turn = next(p for m, p in self.transport.calls if m == "turn/start")
+        self.assertEqual(start["modelProvider"], "openai")
+        self.assertNotIn("config", start)
+        self.assertNotIn("effort", turn)
 
     async def test_governed_calls_always_create_fresh_threads_without_chat_bindings(self):
         first = await self.service.invoke_governed("one", timeout_s=1)
