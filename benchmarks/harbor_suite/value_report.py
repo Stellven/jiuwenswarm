@@ -19,7 +19,7 @@ def flatten(records):
     rows = []
     for record in records:
         value = record['value']
-        if record['kind'] in ('harbor_job', 'capability_probe', 'case_bank_observation'):
+        if record['kind'] in ('harbor_job', 'capability_probe', 'case_bank_observation', 'native_trial'):
             for ordinal, original in enumerate(value['rows']):
                 row = {k: v for k, v in original.items() if k not in ('input', 'output')}
                 row.update(record_id=record['id'], row_id=record['id'] + ':' + str(ordinal),
@@ -150,8 +150,9 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
     write_once(destination / 'analysis.json', {'full_rows': len(rows), 'selected_rows': len(selected),
         'probe_summary': probes, 'paired_checker_improvements': improvements, 'paired_content_deltas': gains,
         'suite_jobs': [r['value']['summary'] for r in records if r['kind'] == 'harbor_job']})
-    health = [r for r in records if r['kind'] == 'health'
-              and (not selected_records or r['id'] in selected_records)]
+    # Presentation filters select experimental outcomes. Project health always
+    # uses the full retained health evidence, including current blockers.
+    health = [r for r in records if r['kind'] == 'health']
     part_a = ['## Part A — Project health and quality', '',
         'This development campaign supports a decision about continued CC and verifier work. '
         'Selected gains are shown with their measured scope; the complete dataset remains available.', '',
@@ -194,6 +195,16 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
     else:
         part_b.append('No original paired live result has been imported. Existing narrative checkpoints are historical context, not new measurements.')
     helper_rows = [r for r in selected if r['record_kind'] == 'case_bank_observation']
+    native_rows = [r for r in rows if r['record_kind'] == 'native_trial']
+    if native_rows:
+        part_b += ['', '### Real native JiuwenSwarm qualification', '',
+            '| Task | Arm | Native execution | Content correct | Model calls | Selected tool calls | Model / effort verified |',
+            '| --- | --- | --- | --- | ---: | ---: | --- |']
+        for row in native_rows:
+            part_b.append(f"| {row['case_id']} | {row['arm']} | {row['status']} | {row['correct']} | "
+                f"{row['model_calls']} | {row['selected_tool_calls']} | {row['model_and_effort_verified']} |")
+        part_b += ['', 'These are native application qualification observations. They do not establish a CC-unit gain. '
+            'The native baseline retains ordinary bundled skills; native-skills adds the supplied task skill.', '']
     if helper_rows:
         part_b += ['', '### Matched ordinary helpers and capsule workers', '',
             '| Observation | Arm | Correct / observed | Unavailable | Not run |',
