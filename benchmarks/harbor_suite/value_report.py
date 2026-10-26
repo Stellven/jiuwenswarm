@@ -9,6 +9,7 @@ import argparse
 from collections import defaultdict
 import hashlib
 import json
+import math
 from pathlib import Path
 
 from .contracts import canonical
@@ -59,6 +60,21 @@ def flatten(records):
                     'scientific_success': original.get('scientific_success'),
                     'model_calls': original.get('model_calls'), 'usage': original.get('usage'),
                     'cost_usd': None})
+        elif record['kind'] == 'cost_scenario':
+            checked = cost_scenario_analysis(record)
+            for arm in ('cc', 'native-skills'):
+                original = value.get('arms', {}).get(arm) or {}
+                rows.append({'record_id': record['id'], 'row_id': record['id'] + ':' + arm,
+                    'record_kind': record['kind'], 'recorded_at': record['recorded_at'],
+                    'case_id': value.get('case_id'), 'arm': arm, 'trial_id': original.get('trial_id'),
+                    'mode': 'estimated_tariff_scenario_existing_trials', 'correct': None,
+                    'cost_usd': None, 'estimated_cost_usd': checked['costs_usd'][arm],
+                    'model_calls': None, 'referenced_model_calls': original.get('model_calls'),
+                    'new_model_calls': 0, 'new_trials': 0,
+                    'comparison_eligible': value.get('comparison_eligible'),
+                    'scenario': value.get('scenario'), 'provenance': value.get('provenance'),
+                    'quality_scope': value.get('quality_scope'),
+                    'estimate_validated': checked['estimate_validated']})
         elif record['kind'] == 'component_native_pair':
             for ordinal, decision in enumerate(value['rows']):
                 for arm in ('cc', 'native'):
@@ -81,6 +97,60 @@ def _cell(value):
         return 'unavailable'
     text = json.dumps(value, ensure_ascii=False, sort_keys=True) if isinstance(value, (dict, list)) else str(value)
     return text.replace('|', '\\|').replace('\r', ' ').replace('\n', ' ')
+
+
+def cost_scenario_analysis(record):
+    """Validate explicit estimate inputs; never infer price or actual billing."""
+    value = record['value']
+    validation = value.get('validation') or {}
+    arms = value.get('arms') or {}
+    costs = {arm: (arms.get(arm) or {}).get('estimated_cost_usd') for arm in ('cc', 'native-skills')}
+    valid = (bool(value.get('scenario')) and bool(value.get('provenance'))
+        and value.get('not_actual_bill') is True
+        and all(validation.get(key) is True for key in
+                ('full_call_populations_verified', 'observed_cached_usage_complete', 'model_effort_match'))
+        and all(type(cost) in (int, float) and math.isfinite(cost) and cost >= 0 for cost in costs.values())
+        and all(isinstance((arms.get(arm) or {}).get('trial_id'), str)
+                and bool(arms[arm]['trial_id'])
+                and type(arms[arm].get('model_calls')) is int and arms[arm]['model_calls'] >= 0
+                for arm in ('cc', 'native-skills')))
+    comparable_quality = (value.get('comparison_eligible') is True
+        and value.get('quality_comparable') is True
+        and all((arms.get(arm) or {}).get('quality_correct') is True for arm in ('cc', 'native-skills')))
+    reduction = (100 * (costs['native-skills'] - costs['cc']) / costs['native-skills']
+                 if valid and comparable_quality and costs['native-skills'] > 0 else None)
+    return {'record_id': record['id'], 'case_id': value.get('case_id'),
+        'scope': value.get('scope'), 'scenario': value.get('scenario'),
+        'provenance': value.get('provenance'), 'rates': value.get('rates'),
+        'estimate_validated': bool(valid), 'comparable_correct_quality': comparable_quality,
+        'costs_usd': costs if valid else {'cc': None, 'native-skills': None},
+        'cc_reduction_percent': reduction, 'quality_scope': value.get('quality_scope'),
+        'referenced_trial_ids': {arm: (arms.get(arm) or {}).get('trial_id') for arm in ('cc', 'native-skills')},
+        'referenced_model_calls': {arm: (arms.get(arm) or {}).get('model_calls') for arm in ('cc', 'native-skills')},
+        'new_trials': 0, 'new_model_calls': 0, 'actual_cost_usd': None,
+        'actual_service_tier': None, 'not_actual_bill': True}
+
+
+def cost_scenario_section(scenarios):
+    text = ['### Tariff estimates for existing trials', '']
+    if not scenarios:
+        return text + ['No explicit cost scenario is selected; actual dollar costs remain unavailable.', '']
+    text += ['| Scope / case | CC estimate USD | Native estimate USD | CC reduction on comparable correct outputs | Referenced calls CC / native | Quality scope |',
+             '| --- | ---: | ---: | ---: | ---: | --- |']
+    for row in scenarios:
+        costs = row['costs_usd']
+        money = lambda x: 'unavailable' if x is None else f'{x:.8f}'
+        reduction = 'unavailable' if row['cc_reduction_percent'] is None else f"{row['cc_reduction_percent']:.3f}%"
+        calls = row['referenced_model_calls']
+        text.append('| ' + ' | '.join([_cell(row.get('scope')) + ' / ' + _cell(row.get('case_id')),
+            money(costs['cc']), money(costs['native-skills']), reduction,
+            _cell(calls['cc']) + '/' + _cell(calls['native-skills']), _cell(row.get('quality_scope'))]) + ' |')
+        text += ['', 'Scenario: ' + _cell(row['scenario']) + '. Provenance: ' + _cell(row['provenance']) + '.', '']
+        if not row['estimate_validated']:
+            text += ['Full-population/cache/identity validation or explicit numeric inputs are missing; the estimate remains unavailable.', '']
+        elif not row['comparable_correct_quality']:
+            text += ['These costs do not establish a comparable successful-output efficiency gain. Cheaper failed work is not a value win.', '']
+    return text + ['These are chosen tariff scenarios using supplied observed cache counts, not actual service-tier observations, subscription charges or bills. Fees and invoice reconciliation remain unknown. Existing stable trial IDs identify reused evidence: these estimate rows add zero trials and zero model calls. Auxiliary paper quality ties and failed main-PoC costs remain separate.', '']
 
 
 def poc_sections(pairs):
@@ -265,12 +335,20 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
     improvements = probe_improvements(selected)
     primary_pairs = [r for r in records if r['kind'] == 'native_cc_pair' and r['id'] in selected_ids]
     poc_pairs = [r for r in records if r['kind'] == 'poc_comparison' and r['id'] in selected_ids]
+    cost_scenarios = [cost_scenario_analysis(r) for r in records
+                      if r['kind'] == 'cost_scenario' and r['id'] in selected_ids]
+    estimate_rows = [row for row in selected if row['record_kind'] == 'cost_scenario']
+    write_once(destination / 'estimated-cost-scenarios.csv', csv_bytes(estimate_rows,
+        ['record_id', 'case_id', 'arm', 'trial_id', 'scenario', 'estimated_cost_usd',
+         'cost_usd', 'estimate_validated', 'referenced_model_calls', 'new_model_calls',
+         'new_trials', 'quality_scope', 'provenance']), raw=True)
     components = component_batches(records, selected)
     write_once(destination / 'analysis.json', {'full_rows': len(rows), 'selected_rows': len(selected),
         'probe_summary': probes, 'paired_checker_improvements': improvements, 'paired_content_deltas': gains,
         'native_skills_cc_pairs': [{'record_id': r['id'], **r['value']} for r in primary_pairs],
         'component_native_batches': components,
         'poc_comparisons': [{'record_id': r['id'], **r['value']} for r in poc_pairs],
+        'estimated_cost_scenarios': cost_scenarios,
         'suite_jobs': [r['value']['summary'] for r in records if r['kind'] == 'harbor_job']})
     # Presentation filters select experimental outcomes. Project health always
     # uses the full retained health evidence, including current blockers.
@@ -297,7 +375,8 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
         part_a += ['', f'- Primary PoC evidence: {len(poc_pairs)} selected case/revision records. '
             'Useful completion, correct handling, scientific outcome and stopped phase are reported separately below; '
             'earlier failed revisions and setup exclusions remain in the full dataset.']
-    part_b = ['## Part B — CC and verifier value', '', *poc_sections(poc_pairs)]
+    part_b = ['## Part B — CC and verifier value', '', *poc_sections(poc_pairs),
+              *cost_scenario_section(cost_scenarios)]
     for gain in improvements:
         part_b += [f"**A reusable checking fix increased detected corruptions from {gain['before_caught']}/{gain['invalid']} "
             f"to {gain['after_caught']}/{gain['invalid']} on identical artifacts.** "

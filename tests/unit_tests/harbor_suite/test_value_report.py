@@ -113,6 +113,80 @@ def test_poc_honest_scientific_failure_can_be_useful_completion(tmp_path):
     assert 'does not imply a Harbor suite run' in text
 
 
+def cost_scenario():
+    return {'case_id': 'paper-injection', 'scope': 'Auxiliary paper workflow',
+        'scenario': 'Chosen Standard tariff, short-context observed cached counts',
+        'provenance': {'original_cache_audit_sha256': 'a' * 64},
+        'not_actual_bill': True, 'comparison_eligible': True, 'quality_comparable': True,
+        'quality_scope': 'Bounded content correctness tie; not main PoC success',
+        'validation': {'full_call_populations_verified': True,
+            'observed_cached_usage_complete': True, 'model_effort_match': True},
+        'arms': {'cc': {'trial_id': 'original-cc', 'model_calls': 10,
+                       'quality_correct': True, 'estimated_cost_usd': .6794988},
+                 'native-skills': {'trial_id': 'original-native', 'model_calls': 10,
+                       'quality_correct': True, 'estimated_cost_usd': .8874612}}}
+
+
+def test_cost_scenario_selectable_rows_preserve_actual_unknown_and_no_new_trials(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    cost = data.append('cost_scenario', cost_scenario())
+    data.append('poc_comparison', poc_pair())
+    rows = flatten(data.records())
+    estimates = [r for r in rows if r['record_kind'] == 'cost_scenario']
+    assert len(estimates) == 2
+    assert all(r['correct'] is None and r['cost_usd'] is None and r['model_calls'] is None for r in estimates)
+    assert all(r['new_trials'] == r['new_model_calls'] == 0 for r in estimates)
+    output = tmp_path / 'selected'
+    render(data.root, output, selected_records=[cost['id']], charts=False)
+    analysis = json.loads((output / 'analysis.json').read_text())
+    assert analysis['selected_rows'] == 2 and analysis['full_rows'] == 4
+    scenario = analysis['estimated_cost_scenarios'][0]
+    assert scenario['cc_reduction_percent'] == pytest.approx(23.4334075676)
+    assert scenario['actual_cost_usd'] is None and scenario['actual_service_tier'] is None
+    text = (output / 'report.md').read_text('utf-8')
+    assert '23.433%' in text and '0.67949880' in text and '0.88746120' in text
+    assert 'Auxiliary paper workflow' in text
+    assert 'not actual service-tier observations' in text
+    assert 'original-cc' in (output / 'estimated-cost-scenarios.csv').read_text('utf-8-sig')
+    selection = json.loads((output / 'selection.json').read_text())
+    assert len(selection['selected_row_ids']) == 2
+
+
+@pytest.mark.parametrize('mutation', ['missing_cache', 'missing_cost', 'unproven', 'bool_cost'])
+def test_cost_scenario_missing_unvalidated_numbers_remain_unavailable(tmp_path, mutation):
+    data = Dataset(tmp_path / 'data')
+    value = cost_scenario()
+    if mutation == 'missing_cache': value['validation']['observed_cached_usage_complete'] = False
+    elif mutation == 'missing_cost': value['arms']['cc'].pop('estimated_cost_usd')
+    elif mutation == 'unproven': value.pop('provenance')
+    else: value['arms']['cc']['estimated_cost_usd'] = True
+    data.append('cost_scenario', value)
+    output = tmp_path / 'report'
+    render(data.root, output, charts=False)
+    scenario = json.loads((output / 'analysis.json').read_text())['estimated_cost_scenarios'][0]
+    assert scenario['estimate_validated'] is False
+    assert scenario['costs_usd'] == {'cc': None, 'native-skills': None}
+    assert scenario['cc_reduction_percent'] is None
+    assert '23.433%' not in (output / 'report.md').read_text('utf-8')
+
+
+def test_cheap_failed_cost_scenario_never_reports_successful_efficiency_gain(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    value = cost_scenario()
+    value['case_id'] = 'failed-main-poc'
+    value['scope'] = 'Main PoC failed compiler versus useful completion'
+    value['arms']['cc'].update(quality_correct=False, estimated_cost_usd=.01)
+    value['quality_comparable'] = False
+    value['quality_scope'] = 'CC failed; native useful completion'
+    data.append('cost_scenario', value)
+    render(data.root, tmp_path / 'report', charts=False)
+    scenario = json.loads((tmp_path / 'report/analysis.json').read_text())['estimated_cost_scenarios'][0]
+    assert scenario['estimate_validated'] is True and scenario['costs_usd']['cc'] == .01
+    assert scenario['cc_reduction_percent'] is None
+    text = (tmp_path / 'report/report.md').read_text('utf-8')
+    assert 'Cheaper failed work is not a value win' in text
+
+
 def probe():
     return {'case_id': 'sample', 'module': 'test_checker', 'known_valid': False,
             'checker_accepted': False, 'checker_elapsed_s': .01}
