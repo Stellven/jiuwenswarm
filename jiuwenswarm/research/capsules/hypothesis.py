@@ -2,7 +2,7 @@
 from ..contracts.types import ResearchError
 from ..metric_contract import (metric_protocol, hypothesis_reply_schema,
                                validate_metric_declarations, protocol_for_resource)
-from ._common import ask, produced
+from ._common import ask, produced, compact_schema
 
 
 async def execute(ctx, inputs):
@@ -13,7 +13,7 @@ async def execute(ctx, inputs):
     protocol = metric_protocol(protocol_id)
     # The protected execution contract already pins this public body file.
     # Export reads that exact binding; capsules never create authority records.
-    reply_schema = hypothesis_reply_schema(protocol_id)
+    reply_schema = compact_schema(hypothesis_reply_schema(protocol_id))
     blueprint = await ask(ctx, 'Hypothesis', 'Write hypothesis-blueprint2.0.0 with one claim, mechanism and independent_variable; '
                           'return its scientific fields except dependent_variables, which the carrier assembles as an exact index of '
                           'your metrics[].metric_id values before publication. Do not return that carrier-owned field. '

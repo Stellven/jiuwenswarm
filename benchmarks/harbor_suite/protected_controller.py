@@ -349,7 +349,9 @@ class NativeController:
     def finalize(self, result):
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
         require(self.custody is not None and result.folder == self.folder, 'controller finalization scope differs')
-        if not result.receipt.get('evidence_complete'):
+        if (not result.receipt.get('evidence_complete')
+                or not (self.custody / 'finished.json').is_file()
+                or not any(event.get('event') == 'fault_applied' for event in self.audit)):
             # A retained failed/unresolved attempt has no complete controller
             # projection. Its original bridge receipt remains authoritative;
             # do not open/create a missing ledger or manufacture effect Refs.

@@ -1,5 +1,6 @@
 """Literal core scientific runtime factory from protected captured resources."""
 from __future__ import annotations
+from .builder_release import builder_mode
 import asyncio
 import copy
 import json
@@ -227,10 +228,10 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     executor.builder_test_required = False
     for mapping in record['execution_bindings']:
         declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
-        if (declared['identity']['name'] == 'research.builder'
-                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13', 'm1-14', 'm1-15', 'm1-16', 'm1-17'}
+        mode = builder_mode(declared)
+        if (mode in {'text', 'loop', 'agent'}
                 and declared['needs']['model']['tool_calling'] is False
-                and (declared['budget']['per_call']['tool_calls'] == 0 or declared['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17'})):
+                and (declared['budget']['per_call']['tool_calls'] == 0 or mode == 'agent')):
             from .capsules.assets import load_research_catalog
             authored = load_research_catalog()['stages']['builder']
             if mapping['declaration_ref'] != authored['declaration_ref']:
@@ -239,10 +240,10 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
             if admitted['status'] != 'admitted' or admitted['candidate_ref'] != mapping['declaration_ref']:
                 raise ExecutorBlocked('TOOL_FREE_BUILDER_ADMISSION_REQUIRED')
             executor.tool_free_builder = True
-            executor.builder_test_required = declared['identity']['carrier']['ref'] == 'builder_loop.py'
+            executor.builder_test_required = mode == 'loop'
             if executor.builder_test_required and mapping['operations'] != ['builder_test']:
                 raise ExecutorBlocked('BUILDER_TEST_OPERATION_MAPPING_REQUIRED')
-            if declared['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17'}:
+            if mode == 'agent':
                 executor.builder_agent_required = True
                 if mapping['operations'] != ['builder_action']:
                     raise ExecutorBlocked('BUILDER_AGENT_OPERATION_MAPPING_REQUIRED')

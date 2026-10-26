@@ -5,6 +5,7 @@ claims a model-call ordinal in the protected store. A producer never supplies
 its own model authority, route or budget. Side selection is IPC-only.
 """
 from __future__ import annotations
+from .builder_release import builder_uses_launcher
 
 import asyncio
 import hashlib
@@ -331,7 +332,7 @@ class GovernedBridge:
         # carrier packages returned file bytes; only the original tool-using
         # release enters the dedicated, credential-isolated Builder launcher.
         is_builder = (protected.get("cc_name") == "research.builder"
-                      and protected.get("cc_version") not in {"m1-2", "m1-3", "m1-4", "m1-5", "m1-6", "m1-7", "m1-8", "m1-9", "m1-10", "m1-11", "m1-12", "m1-13", "m1-14", "m1-15", "m1-16", "m1-17", "m1-18"})
+                      and builder_uses_launcher(protected.get("cc_version")))
         if is_builder and self.builder_launcher is None:
             raise BridgeError("ENVIRONMENT_BLOCKED")
         remaining=deadline-monotonic()

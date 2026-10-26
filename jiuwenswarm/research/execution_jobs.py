@@ -4,6 +4,7 @@ Profiles are host inputs admitted with the resource catalog. Capsules receive
 neither this factory nor authority to choose commands, approval pins or roots.
 """
 from __future__ import annotations
+from .builder_release import builder_supports_provisioning
 
 import asyncio
 import copy
@@ -238,7 +239,7 @@ class ScienceExecutionAdapter:
         lock_port = 'lock' if builder_manifest_ref is not None else 'environment_lock'
         if builder_manifest_ref is not None:
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] not in {'m1-13','m1-14','m1-15','m1-16','m1-17','m1-18'}:
+            if not builder_supports_provisioning(declaration):
                 raise ResearchError('auth', 'Development provisioning requires the exact Builder release')
         if pins != dict(lock_pins):
             raise ResearchError('validation', 'Provisioner pins differ from exact complete lock')
@@ -414,7 +415,15 @@ class ScienceExecutionAdapter:
         if pi:
             from .pi_protocol import validate_pi_request
             declaration=self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name']!='research.benchmark' or declaration['identity']['version_label']not in {'pi-m1-1','pi-m1-2','pi-m1-3','pi-m1-4'}:
+            identity = declaration['identity']
+            legacy_pi = identity['version_label'] in {'pi-m1-1','pi-m1-2','pi-m1-3','pi-m1-4'}
+            revision = re.fullmatch(r'pi-m1-([1-9][0-9]*)-cache', identity['version_label'])
+            same_pi_protocol = (revision is not None and int(revision[1]) >= 5
+                and identity.get('carrier', {}).get('ref') == 'benchmark_dispatch.py'
+                and any(port.get('name') == 'benchmark_payload'
+                    and port.get('schema_ref') == 'urn:ai4r:pi-benchmark-payload:1.0.0'
+                    for port in declaration.get('ports', {}).get('outputs', [])))
+            if identity['name'] != 'research.benchmark' or not (legacy_pi or same_pi_protocol):
                 raise ResearchError('auth','Pi requires its separately admitted immutable Benchmark release')
             if (blueprint['repeat_count'] != 5 or _input_ref(contract,'validation_resource') != self.scorer.profile['public_dataset_ref']):
                 raise ResearchError('auth','Pi measurements require the exact frozen host task')

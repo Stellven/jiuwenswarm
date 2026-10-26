@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-9-cache', builder='m1-20-cache', benchmark='m1-11-cache', evaluation='m1-5', delivery='m1-7-cache')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-10-cache', builder='m1-22-cache', benchmark='m1-12-cache', evaluation='m1-5', delivery='m1-7-cache')
 
 
 def source_metadata():
@@ -84,7 +84,7 @@ def build_research_assets(store, *, verify_catalog=True):
             for name in ('trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py', 'process_evidence.py'):
                 body[name] = (root / name).read_bytes()
         if stage == 'builder':
-            for name in ('builder_agent_runtime.py', 'builder_agent_service.py', 'builder_agent_host.py',
+            for name in ('builder_agent_runtime.py', 'builder_agent_service.py', 'builder_agent_host.py', 'builder_release.py',
                          'builder_testing.py', 'process_evidence.py', 'm1_process.py', '_m1_process_child.py', 'native.py', 'pi_protocol.py', 'trusted_pi.py', 'trusted_scoring.py'):
                 body[name] = (root / name).read_bytes()
         stage_runner_ref = runner_ref
@@ -132,7 +132,7 @@ def build_research_assets(store, *, verify_catalog=True):
                         'Those original identity/order/execution obligations remain protected Benchmark host checks.'
                         ' The separately registered Pi task uses approximate_pi(digits), returning exactly the truncated decimal prefix; its harness emits closed digits/decimal JSON. Private reference answers remain in root custody.')
             closure = dict(checker_closure, **metric_closure)
-            for name in ('checks/builder_agent.py', 'checks/prediction_bundle.py', 'pi_protocol.py',
+            for name in ('checks/builder_agent.py', 'checks/prediction_bundle.py', 'builder_release.py', 'pi_protocol.py',
                          'trusted_pi.py', 'trusted_scoring.py', 'cache_protocol.py', 'environment.py', 'process_evidence.py'):
                 closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
             closure['schemas/prediction-build-receipt.v4.schema.json'] = store.put_blob((root.parent / 'research_contracts/schemas/prediction-build-receipt.v4.schema.json').read_bytes(), media_type='application/json')
@@ -327,17 +327,17 @@ def build_pi_benchmark_asset(store, *, base=None, verify_catalog=True):
     """Explicit separate Pi release; default M1 consumer contracts stay intact."""
     base=base or build_research_assets(store,verify_catalog=verify_catalog)['benchmark']
     declaration=copy.deepcopy(store.read_record(base['declaration_ref']))
-    declaration['identity']['version_label']='pi-m1-5-cache'
+    declaration['identity']['version_label']='pi-m1-6-cache'
     declaration['identity']['summary']='Frozen Pi benchmark: independent root reference, baseline-first fresh processes and protected timing'
     for port in declaration['ports']['outputs']:
         port['description'] = 'Pi benchmark output under the frozen host precision profile; baseline-first fresh processes, protected elapsed time, exact prefix correctness and retained execution evidence. This output does not use classification metrics.'
         if port['name']=='benchmark_payload':port['schema_ref']='urn:ai4r:pi-benchmark-payload:1.0.0'
     bundle=copy.deepcopy(store.read_record(base['bundle_ref']))
-    bundle.update(id='research.benchmark.checks:pi-m1-5-cache',target_cc_version_range='pi-m1-5-cache')
+    bundle.update(id='research.benchmark.checks:pi-m1-6-cache',target_cc_version_range='pi-m1-6-cache')
     # Bundle IDs must be distinct when both versions are installed together.
     bundle['bundle_id']='research.benchmark.pi.checks'
     profile=copy.deepcopy(store.read_record(base['profile_ref']))
-    profile.update(id='research.benchmark.profile:pi-m1-5-cache',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-5-cache')
+    profile.update(id='research.benchmark.profile:pi-m1-6-cache',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-6-cache')
     from ..checks.schema_context import frozen_output_instructions
     instructions=files('jiuwenswarm.research').joinpath('resources/capsules/verifier_implementation.txt').read_bytes()
     profile['instruction_ref']=store.put_blob(frozen_output_instructions(instructions,declaration),media_type='text/plain')
@@ -357,7 +357,7 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
     handlers = {'search': search.execute, 'hypothesis': hypothesis.execute, 'builder': builder_agent.execute,
                 'benchmark': benchmark_dispatch.execute, 'evaluation': evaluation.execute, 'delivery': delivery.execute}
     selected=list(assets.items())
-    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-5-cache'
+    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-6-cache'
            and row['standing']=='active' for row in library.entries()):
         selected.append(('benchmark',build_pi_benchmark_asset(store,base=assets['benchmark'])))
     for stage, asset in selected:

@@ -1,6 +1,7 @@
 """Serial frozen-plan execution through native SwarmFlow and committed gates."""
 
 from __future__ import annotations
+from .builder_release import builder_mode, builder_receipt_contract
 
 import time
 import asyncio
@@ -237,18 +238,16 @@ class Scheduler:
                     starts = [item['record'] for item in self.store.iter_records(run_id=run_id,kinds=('model-call-start',))
                         if item['record'].get('contract_ref') == observed['contract_ref']
                         and item['record'].get('invocation_id') == offered.get('invocation_id')]
-                    agent_builder = selected['cc']['cc_version'] in {'m1-14','m1-15','m1-16','m1-17','m1-18'}
-                    loop_builder = (selected['cc']['cc_version'] == 'm1-13' and
-                        self.store.read_record(producing['bindings'][0]['declaration_ref'])['identity']['carrier']['ref'] == 'builder_loop.py')
+                    builder_declaration = self.store.read_record(producing['bindings'][0]['declaration_ref'])
+                    agent_builder = builder_mode(builder_declaration) == 'agent'
+                    loop_builder = builder_mode(builder_declaration) == 'loop'
                     if (producing['node_contract_ref'] != proof['parent_ref'] or producing['subnode_id'] != name
                             or producing['bindings'][0]['role'] != 'work'
                             or producing['bindings'][0]['declaration_ref']['sha256'] != selected['cc']['declaration_sha256']
                             or not (1 <= len(starts) <= 20 if agent_builder else
                                     1 <= len(starts) <= 3 if loop_builder else len(starts) == 1)):
                         raise ResearchError('host_record_unavailable', 'Host proposal differs from the actual source/native producing attempt')
-                    receipt_contract = ('urn:ai4r:prediction-build-receipt:4.0.0' if agent_builder else
-                        'urn:ai4r:prediction-build-receipt:3.0.0' if loop_builder else 'urn:ai4r:prediction-build-receipt:2.0.0'
-                        if selected['cc']['cc_version'] in {'m1-11', 'm1-12', 'm1-13'} else 'build-receipt')
+                    receipt_contract = builder_receipt_contract(builder_declaration)
                     receipt = self.store.read_record(offered['ref'], contract_id=receipt_contract)
                     if (receipt['manifest_ref'] != proof['outputs'].get('manifest') or receipt['archive_ref'] != proof['outputs'].get('bundle')
                             or receipt['blueprint_ref'] != producer_inputs.get('blueprint') or receipt['environment_ref'] != producer_inputs.get('lock')

@@ -1,5 +1,6 @@
 """Protected broker integration for native Builder actions and exact snapshots."""
 from __future__ import annotations
+from .builder_release import builder_supports_actions
 
 import asyncio
 import copy
@@ -165,7 +166,7 @@ class BuilderAgentHost(BuilderTestService):
             if await self.authorize_binding(binding) != binding or binding.contract != contract:
                 raise ResearchError('auth','Exact live Builder invocation required')
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name']!='research.builder' or declaration['identity']['version_label'] not in {'m1-17','m1-18'}:
+            if not builder_supports_actions(declaration):
                 raise ResearchError('auth','Agent tools require the exact admitted Builder release')
             call_ref, output_ref = self._model_action(binding,action,arguments,model_ordinal)
             if binding.invocation_id not in self.sessions:

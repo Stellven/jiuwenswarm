@@ -33,6 +33,8 @@ def test_cache_family_selected_from_captured_bytes_and_bound_in_hypothesis(monke
     async def answer(*args,**kwargs):
         assert args[3]['measurement_protocol']==metric_protocol(PROTOCOL)
         assert kwargs['reply_schema']['properties']['metrics']['prefixItems'][0]['properties']['metric_id']=={'const':'miss_ratio'}
+        assert len(json.dumps(kwargs['reply_schema']).encode()) < 8192
+        assert 'MetricDeclaration' not in kwargs['reply_schema'].get('$defs',{})
         return copy.deepcopy(reply)
     monkeypatch.setattr(hypothesis,'ask',answer)
     ctx=SimpleNamespace(store=SimpleNamespace(read_blob=lambda _:raw),input_ref=lambda _:ref)

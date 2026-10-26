@@ -31,7 +31,7 @@ def main():
     core=json.loads(core_path.read_bytes())
     root=core_path.parent
     template=json.loads((root/'planner/static-template.json').read_bytes())
-    template.update(id='static_template_m1_cache_study_v3',template_name='m1_cache_study_v3')
+    template.update(id='static_template_m1_cache_study_v6',template_name='m1_cache_study_v6')
     for node in template['nodes']:
         stage=node['node_id']
         if stage in stages:
@@ -39,8 +39,8 @@ def main():
             node['cc'].update(cc_version=STAGE_VERSIONS[stage],declaration_sha256=stages[stage]['declaration_ref']['sha256'])
     validate('static-template',template)
     raw=json_bytes(template)
-    template_path=root/'planner/static-template-cache-v3.json'
-    core['static_template'].update(path='planner/static-template-cache-v3.json',sha256=hashlib.sha256(raw).hexdigest(),
+    template_path=root/'planner/static-template-cache-v6.json'
+    core['static_template'].update(path='planner/static-template-cache-v6.json',sha256=hashlib.sha256(raw).hexdigest(),
         meaning='Registered cache study with genuine scoped Builder implementation, original stdout and independent request-count scoring; original typed graph and gates retained.')
     if args.write:
         if not history.exists():

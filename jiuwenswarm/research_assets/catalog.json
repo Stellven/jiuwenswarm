@@ -91,7 +91,7 @@
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
     "interface_revision": "M1-IF-002@r2",
     "meaning": "Registered cache study with genuine scoped Builder implementation, original stdout and independent request-count scoring; original typed graph and gates retained.",
-    "path": "planner/static-template-cache-v3.json",
-    "sha256": "3852bee3be37055cd9b36e442cd71e598fcdb9ab43f7de3d39393701adaacf18"
+    "path": "planner/static-template-cache-v6.json",
+    "sha256": "7267e35b1235ae84b19b688c180f829cb4500690455e42f0dee600775ddf44be"
   }
 }

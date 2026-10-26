@@ -5,6 +5,7 @@ This module never reconstructs a worker completion, Gate, physical cessation,
 native lease release or permission to replay an effect.
 """
 from __future__ import annotations
+from .builder_release import builder_mode, builder_receipt_contract
 
 import hashlib
 import json
@@ -367,17 +368,15 @@ def _host_input(store, db, run_id, ref, key, plan_ref, plan, node, template, pro
                 starts = [item for item in _rows(store, db, run_id, ('model-call-start',), node_id=name)
                     if item['record'].get('contract_ref') == observed['contract_ref']
                     and item['record'].get('invocation_id') == offered.get('invocation_id')]
-                agent_builder = selected['cc']['cc_version'] in {'m1-14','m1-15','m1-16','m1-17','m1-18'}
-                loop_builder = (selected['cc']['cc_version'] == 'm1-13' and
-                    store.read_record(producing['bindings'][0]['declaration_ref'])['identity']['carrier']['ref'] == 'builder_loop.py')
+                builder_declaration = store.read_record(producing['bindings'][0]['declaration_ref'])
+                agent_builder = builder_mode(builder_declaration) == 'agent'
+                loop_builder = builder_mode(builder_declaration) == 'loop'
                 _require(producing['node_contract_ref'] == proof['parent_ref'] and producing['subnode_id'] == name
                     and producing['bindings'][0]['role'] == 'work'
                     and producing['bindings'][0]['declaration_ref']['sha256'] == selected['cc']['declaration_sha256']
                     and (1 <= len(starts) <= 20 if agent_builder else
                          1 <= len(starts) <= 3 if loop_builder else len(starts) == 1))
-                receipt_kind = ('urn:ai4r:prediction-build-receipt:4.0.0' if agent_builder else
-                    'urn:ai4r:prediction-build-receipt:3.0.0' if loop_builder
-                    else 'urn:ai4r:prediction-build-receipt:2.0.0' if selected['cc']['cc_version'] in {'m1-11', 'm1-12', 'm1-13'} else 'build-receipt')
+                receipt_kind = builder_receipt_contract(builder_declaration)
                 receipt = _source(store, db, offered['ref'], receipt_kind)
                 _require(receipt['manifest_ref'] == proof['outputs'].get('manifest')
                     and receipt['archive_ref'] == proof['outputs'].get('bundle')
