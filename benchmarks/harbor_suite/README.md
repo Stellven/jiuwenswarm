@@ -32,6 +32,11 @@ CC01 `evaluate-boundary` and CC02 `valid-pinned` have passed individual live
 development trials at the recorded checkpoint. Other variants still require
 their documented bindings/resources. The complete suite is not yet validated.
 
+A [standalone Pipeline01 CPU rehearsal](STANDALONE-PIPELINE01-README.md) and
+[retained results](STANDALONE-PIPELINE01-RESULTS.md) exercise the public reference
+workloads without AI4Research, Docker or an application port. Their scientific
+findings do not constitute a scored native Pipeline01 workflow run.
+
 ## 1. Set up and extract the cases
 
 Use Python 3.12 and Harbor **0.24.0**. A Linux controller with Docker is
