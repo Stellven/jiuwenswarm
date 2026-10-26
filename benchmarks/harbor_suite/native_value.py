@@ -281,12 +281,26 @@ def copy_tree(source, target):
     shutil.copytree(source, target, dirs_exist_ok=True)
 
 
+def config_template(spec):
+    """Resolve resources beside the actual native package, including overlays."""
+    if spec.get("config_template"):
+        template = Path(spec["config_template"])
+    else:
+        package = importlib.util.find_spec("jiuwenswarm")
+        if package is None or not package.origin:
+            raise RuntimeError("Native JiuwenSwarm package location is unavailable")
+        template = Path(package.origin).parent / "resources" / "config.yaml"
+    if not template.is_file():
+        raise FileNotFoundError("Native config template unavailable: " + str(template))
+    return template
+
+
 def configure(spec, root, model):
     import yaml
     from jiuwenswarm.common.utils import prepare_workspace, get_agent_workspace_dir, get_agent_skills_dir
     state = root / "state"
     prepare_workspace(overwrite=False, workspace_dir=state)
-    template = Path(spec.get("config_template", Path(__file__).resolve().parents[2] / "jiuwenswarm/resources/config.yaml"))
+    template = config_template(spec)
     config = yaml.safe_load(template.read_text(encoding="utf-8"))
     # Keep native ordinary tools/rails; only inference selection and background
     # lifecycle are changed. Neither variant receives CC code or a CC verifier.

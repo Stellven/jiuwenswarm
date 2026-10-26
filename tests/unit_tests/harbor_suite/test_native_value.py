@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -16,6 +17,22 @@ TOOLS = [{"type": "function", "function": {"name": "read_file", "parameters": {
 
 
 class NativeValueTests(unittest.TestCase):
+    def test_config_template_resolves_installed_package_outside_benchmark_overlay(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            package = root / "site-packages" / "jiuwenswarm"
+            template = package / "resources" / "config.yaml"
+            template.parent.mkdir(parents=True)
+            template.write_text("models: {}", encoding="utf-8")
+            with patch.object(subject.importlib.util, "find_spec", return_value=SimpleNamespace(
+                    origin=str(package / "__init__.py"))) as resolve:
+                self.assertEqual(subject.config_template({}), template)
+                resolve.assert_called_once_with("jiuwenswarm")
+            override = root / "custom.yaml"
+            override.write_text("models: {}", encoding="utf-8")
+            with patch.object(subject.importlib.util, "find_spec", side_effect=AssertionError("unneeded resolution")):
+                self.assertEqual(subject.config_template({"config_template": str(override)}), override)
+
     def test_tool_results_and_multiple_native_tool_selections_preserved(self):
         with tempfile.TemporaryDirectory() as temp:
             seen = []
