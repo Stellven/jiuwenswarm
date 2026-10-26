@@ -42,6 +42,23 @@ def flatten(records):
                     'record_kind': record['kind'], 'case_id': value['case_id'], 'arm': arm,
                     'mode': 'full_native_skills_vs_full_cc_pipeline', 'task_sha256': value['task_sha256'],
                     'comparison_eligible': value['comparison_eligible'], 'recorded_at': record['recorded_at']})
+        elif record['kind'] == 'poc_comparison':
+            for arm in ('cc', 'native-skills'):
+                original = value.get('arms', {}).get(arm) or {}
+                completion = original.get('correct_usable_completion')
+                rows.append({**original, 'record_id': record['id'],
+                    'row_id': record['id'] + ':' + arm, 'record_kind': record['kind'],
+                    'recorded_at': record['recorded_at'], 'case_id': value.get('case_id'),
+                    'revision': value.get('revision'), 'arm': arm,
+                    'mode': 'primary_poc_full_workflow_comparison',
+                    'task_sha256': value.get('task_sha256'),
+                    'comparison_eligible': value.get('comparison_eligible'),
+                    'comparison_scope': value.get('comparison_scope'),
+                    'correct': completion if type(completion) is bool else None,
+                    'valid_response': original.get('valid_response'),
+                    'scientific_success': original.get('scientific_success'),
+                    'model_calls': original.get('model_calls'), 'usage': original.get('usage'),
+                    'cost_usd': None})
         elif record['kind'] == 'component_native_pair':
             for ordinal, decision in enumerate(value['rows']):
                 for arm in ('cc', 'native'):
@@ -57,6 +74,56 @@ def flatten(records):
                         'measurement_scope': value['scope'],
                         'comparison_eligible': value.get('comparison_eligible')})
     return rows
+
+
+def _cell(value):
+    if value is None:
+        return 'unavailable'
+    text = json.dumps(value, ensure_ascii=False, sort_keys=True) if isinstance(value, (dict, list)) else str(value)
+    return text.replace('|', '\\|').replace('\r', ' ').replace('\n', ' ')
+
+
+def poc_sections(pairs):
+    """Keep handling, useful delivery, science and scoped claims independent."""
+    text = ['### Primary PoC workflow comparisons', '']
+    if not pairs:
+        return text + ['No PoC comparison is selected.', '']
+    text += ['| Case / revision | Arm | Eligible | Valid response / handling | Useful completion | Scientific success | Baseline accuracy | Treatment accuracy | Calls | Unsupported / assessed claims | Claim type / scope | Stopped phase |',
+             '| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |']
+    for record in pairs:
+        value = record['value']
+        for arm in ('cc', 'native-skills'):
+            original = value.get('arms', {}).get(arm) or {}
+            unsupported, assessed = original.get('unsupported_claims'), original.get('assessed_claims')
+            claims = (_cell(unsupported) + '/' + _cell(assessed)
+                      if type(unsupported) is int and type(assessed) is int else 'unavailable')
+            cells = [str(value.get('case_id')) + ' / ' + _cell(value.get('revision')), arm,
+                value.get('comparison_eligible'), original.get('valid_response'),
+                original.get('correct_usable_completion'), original.get('scientific_success'),
+                original.get('baseline_accuracy'), original.get('treatment_accuracy'),
+                original.get('model_calls'), claims, original.get('claim_scope'), original.get('stopped_phase')]
+            text.append('| ' + ' | '.join(_cell(cell) for cell in cells) + ' |')
+        text += ['', f"- `{_cell(value.get('case_id'))}` revision `{_cell(value.get('revision'))}` "
+                 f"(record `{record['id']}`): {_cell(value.get('comparison_scope'))}."]
+        arms = value.get('arms', {})
+        cc, native = arms.get('cc') or {}, arms.get('native-skills') or {}
+        if (value.get('comparison_eligible') is True
+                and cc.get('correct_usable_completion') is False
+                and native.get('correct_usable_completion') is True):
+            text.append('  This eligible revision shows a useful-completion advantage for native. The failed CC revision remains evidence; a repaired or pending revision does not replace it.')
+        if (cc.get('valid_response') is True and native.get('valid_response') is True
+                and cc.get('correct_usable_completion') is False
+                and native.get('correct_usable_completion') is False):
+            text.append('  Both responses are valid handling; neither is completed useful research. Correct impossibility handling is not PoC success.')
+        for limitation in value.get('limitations') or []:
+            text.append('  Limitation: ' + _cell(limitation))
+        estimate = value.get('estimated_cost')
+        if isinstance(estimate, dict) and estimate.get('scenario') and estimate.get('provenance'):
+            text += ['  Explicit estimated cost scenario (not an actual bill): ' + _cell(estimate)]
+        text.append('')
+    text += ['Handling, useful artifact completion and scientific outcome are separate. A scientific FAIL can be a useful completed study; an honest impossibility response is valid handling without completed research. Missing measurements remain unavailable.', '',
+             'Claim counts use only each stated assessed-claim population and type. Different scopes or rubric subsets are not a shared denominator; no population or unsupported rate is inferred from missing counts. Revisions remain separate observations, not independent repeated trials. All original records and evidence remain in `all-records.jsonl` and `analysis.json`.', '']
+    return text
 
 
 def component_batches(records, selected):
@@ -197,11 +264,13 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
     gains = paired_gains([r for r in records if r['id'] in selected_ids])
     improvements = probe_improvements(selected)
     primary_pairs = [r for r in records if r['kind'] == 'native_cc_pair' and r['id'] in selected_ids]
+    poc_pairs = [r for r in records if r['kind'] == 'poc_comparison' and r['id'] in selected_ids]
     components = component_batches(records, selected)
     write_once(destination / 'analysis.json', {'full_rows': len(rows), 'selected_rows': len(selected),
         'probe_summary': probes, 'paired_checker_improvements': improvements, 'paired_content_deltas': gains,
         'native_skills_cc_pairs': [{'record_id': r['id'], **r['value']} for r in primary_pairs],
         'component_native_batches': components,
+        'poc_comparisons': [{'record_id': r['id'], **r['value']} for r in poc_pairs],
         'suite_jobs': [r['value']['summary'] for r in records if r['kind'] == 'harbor_job']})
     # Presentation filters select experimental outcomes. Project health always
     # uses the full retained health evidence, including current blockers.
@@ -211,7 +280,9 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
         'Selected gains are shown with their measured scope; the complete dataset remains available.', '',
         f'- Dataset: {len(records)} content-hashed records and {len(rows)} result rows; the tools never overwrite an earlier record.',
         f'- Presentation selection: {len(selected)} rows; selection filters are saved in `selection.json`.',
-        '- Suite source: the included Harbor development release; existing grading and acceptance rules are unchanged.']
+        ('- Suite source: the included Harbor development release; existing grading and acceptance rules are unchanged.'
+         if any(r['kind'] == 'harbor_job' for r in records) else
+         '- Evidence sources and grading scope are retained per observation; a PoC comparison does not imply a Harbor suite run.')]
     if health:
         for record in health:
             value = record['value']
@@ -221,7 +292,11 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
                           f" (record `{record['id']}`; {evidence}).")
     else:
         part_a.append('- Current deployment readiness and live quality have not been imported into this dataset.')
-    part_b = ['## Part B — CC and verifier value', '']
+    if poc_pairs:
+        part_a += ['', f'- Primary PoC evidence: {len(poc_pairs)} selected case/revision records. '
+            'Useful completion, correct handling, scientific outcome and stopped phase are reported separately below; '
+            'earlier failed revisions and setup exclusions remain in the full dataset.']
+    part_b = ['## Part B — CC and verifier value', '', *poc_sections(poc_pairs)]
     for gain in improvements:
         part_b += [f"**A reusable checking fix increased detected corruptions from {gain['before_caught']}/{gain['invalid']} "
             f"to {gain['after_caught']}/{gain['invalid']} on identical artifacts.** "

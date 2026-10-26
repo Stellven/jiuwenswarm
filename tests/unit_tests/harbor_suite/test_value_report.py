@@ -7,6 +7,112 @@ from benchmarks.harbor_suite.value_data import Dataset
 from benchmarks.harbor_suite.value_report import flatten, paired_gains, probe_improvements, render
 
 
+def poc_pair(revision='before', *, impossible=False):
+    common = {'valid_response': True, 'correct_usable_completion': False,
+        'scientific_success': None, 'model_calls': 1,
+        'usage': {'input_tokens': 100, 'output_tokens': 10},
+        'baseline_accuracy': None, 'treatment_accuracy': None,
+        'unsupported_claims': 0, 'supported_claims': 3, 'assessed_claims': 3,
+        'claim_scope': 'same-rubric observable completion claims', 'stopped_phase': 'compiler'}
+    native = copy.deepcopy(common)
+    if not impossible:
+        native.update(correct_usable_completion=True, scientific_success=True,
+            model_calls=13, baseline_accuracy=.5, treatment_accuracy=1., stopped_phase=None)
+    return {'case_id': 'impossible' if impossible else 'feasible', 'revision': revision,
+        'comparison_eligible': True, 'comparison_scope': 'Full original E1 versus ordinary native skills',
+        'task_sha256': 'a' * 64, 'arms': {'cc': common, 'native-skills': native},
+        'evidence': {'original_refs': ['originals-retained']}, 'limitations': ['One development task.']}
+
+
+def test_poc_flatten_separates_valid_impossibility_from_useful_completion(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    data.append('poc_comparison', poc_pair(impossible=True))
+    rows = flatten(data.records())
+    assert len(rows) == 2 and all(row['valid_response'] is True for row in rows)
+    assert all(row['correct'] is False and row['scientific_success'] is None for row in rows)
+    assert all(row['cost_usd'] is None for row in rows)
+    output = tmp_path / 'report'
+    render(data.root, output, charts=False)
+    text = (output / 'report.md').read_text('utf-8')
+    assert 'Correct impossibility handling is not PoC success' in text
+    assert 'Unsupported / assessed claims' in text and '0/3' in text
+    assert 'Explicit estimated cost scenario' not in text
+
+
+def test_poc_report_retains_failed_revision_native_win_and_pending_repair(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    failed = data.append('poc_comparison', poc_pair('fair03-before'))
+    pending = poc_pair('repaired-rerun-pending')
+    pending['comparison_eligible'] = False
+    pending['arms'] = {'cc': {'stopped_phase': 'not_run'}, 'native-skills': {}}
+    data.append('poc_comparison', pending)
+    data.append('poc_comparison', dict(poc_pair('setup-visibility-excluded'), comparison_eligible=False))
+    output = tmp_path / 'report'
+    render(data.root, output, charts=False)
+    analysis = json.loads((output / 'analysis.json').read_text())
+    assert len(analysis['poc_comparisons']) == 3
+    text = (output / 'report.md').read_text('utf-8')
+    assert 'fair03-before' in text and 'repaired-rerun-pending' in text
+    assert text.count('This eligible revision shows a useful-completion advantage for native') == 1
+    rows = [json.loads(line) for line in (output / 'all-results.jsonl').read_text().splitlines()]
+    assert len(rows) == 6
+    assert next(r for r in rows if r['revision'] == 'repaired-rerun-pending' and r['arm'] == 'cc')['correct'] is None
+    selected = tmp_path / 'selected'
+    render(data.root, selected, selected_records=[failed['id']], charts=False)
+    assert len((selected / 'all-results.jsonl').read_text().splitlines()) == 6
+    selection = json.loads((selected / 'selection.json').read_text())
+    assert selection['selected_rows'] == 2 and selection['all_outcomes_retained'] is True
+
+
+def test_poc_estimated_cost_requires_explicit_scenario_and_provenance(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    value = poc_pair()
+    value['estimated_cost'] = {'scenario': 'Chosen Standard tariff with observed cache',
+        'provenance': 'original trace cache-cost-audit.json', 'cc_usd': .1, 'native_usd': .2,
+        'actual_bill': False}
+    data.append('poc_comparison', value)
+    render(data.root, tmp_path / 'explicit', charts=False)
+    text = (tmp_path / 'explicit/report.md').read_text('utf-8')
+    assert 'Explicit estimated cost scenario (not an actual bill)' in text
+    assert 'original trace cache-cost-audit.json' in text
+    second = Dataset(tmp_path / 'other')
+    value['estimated_cost'].pop('provenance')
+    second.append('poc_comparison', value)
+    render(second.root, tmp_path / 'no-provenance', charts=False)
+    assert 'Explicit estimated cost scenario' not in (tmp_path / 'no-provenance/report.md').read_text('utf-8')
+
+
+def test_poc_missing_arm_fields_and_claim_denominators_stay_unavailable(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    value = poc_pair()
+    value['arms']['cc'] = {'valid_response': None, 'unsupported_claims': 0,
+        'claim_scope': 'Only compiler source-attribution subset'}
+    data.append('poc_comparison', value)
+    output = tmp_path / 'report'
+    render(data.root, output, charts=False)
+    rows = [json.loads(line) for line in (output / 'all-results.jsonl').read_text().splitlines()]
+    cc = next(row for row in rows if row['arm'] == 'cc')
+    assert cc['correct'] is None and cc['model_calls'] is None and cc['usage'] is None
+    text = (output / 'report.md').read_text('utf-8')
+    assert 'Only compiler source-attribution subset' in text
+    assert 'Different scopes or rubric subsets are not a shared denominator' in text
+    assert '0/unavailable' not in text
+
+
+def test_poc_honest_scientific_failure_can_be_useful_completion(tmp_path):
+    data = Dataset(tmp_path / 'data')
+    value = poc_pair()
+    value['arms']['native-skills'].update(scientific_success=False,
+        baseline_accuracy=.5, treatment_accuracy=.5)
+    data.append('poc_comparison', value)
+    native = next(row for row in flatten(data.records()) if row['arm'] == 'native-skills')
+    assert native['correct'] is True and native['scientific_success'] is False
+    render(data.root, tmp_path / 'report', charts=False)
+    text = (tmp_path / 'report/report.md').read_text('utf-8')
+    assert 'A scientific FAIL can be a useful completed study' in text
+    assert 'does not imply a Harbor suite run' in text
+
+
 def probe():
     return {'case_id': 'sample', 'module': 'test_checker', 'known_valid': False,
             'checker_accepted': False, 'checker_elapsed_s': .01}
