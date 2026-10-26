@@ -10,6 +10,19 @@ from jiuwenswarm.research.checks.research import rank_opportunities, CheckError
 
 
 class ScreeningReleaseTests(unittest.TestCase):
+    def test_repaired_release_passes_real_library_check_association_validation(self):
+        from jiuwenswarm.research.library import LibraryService
+        with tempfile.TemporaryDirectory() as temp:
+            store = SQLiteRunStore(temp)
+            try:
+                asset = build_research_assets(store, screening_version='m1-5')['screening']
+                library = LibraryService(store)
+                library._validate_association(asset['declaration_ref'], asset['bundle_ref'], asset['profile_ref'])
+                self.assertEqual(store.read_record(asset['bundle_ref'])['bundle_id'], 'research.screening.checks')
+                self.assertEqual(store.read_record(asset['profile_ref'])['profile_id'], 'research.screening.profile')
+            finally:
+                store.close()
+
     def test_additive_release_preserves_base_and_independent_checks(self):
         with tempfile.TemporaryDirectory() as temp:
             store = SQLiteRunStore(temp)

@@ -325,10 +325,9 @@ def build_screening_asset(store, *, base=None, verify_catalog=True):
     declaration['identity']['body'] = [{'path': name, 'sha256': ref['sha256']} for name, ref in body_refs.items() if name != '_common.py']
     bundle = copy.deepcopy(store.read_record(base['bundle_ref']))
     bundle.update(id='research.screening.checks:m1-5', target_cc_version_range='m1-5.x')
-    bundle['bundle_id'] = 'research.screening.m1-5.checks'
     profile = copy.deepcopy(store.read_record(base['profile_ref']))
     profile.update(id='research.screening.profile:m1-5.response_contract_3',
-                   profile_id='research.screening.m1-5.profile', target_cc_version_range='m1-5.x')
+                   target_cc_version_range='m1-5.x')
     from ..checks.schema_context import frozen_output_instructions
     instructions = resources.joinpath('verifier_implementation.txt').read_bytes()
     profile['instruction_ref'] = store.put_blob(frozen_output_instructions(instructions, declaration), media_type='text/plain')
