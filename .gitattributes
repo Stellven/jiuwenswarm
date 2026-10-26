@@ -73,3 +73,4 @@ jiuwenswarm/research/checks/builder_text.py text eol=crlf
 docs/capsules/history/** -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
 
 docs/capsules/verification-20261025/** -text
+deploy/m1/examples/inputs/*.pdf -text
