@@ -257,6 +257,7 @@ async def visible_run(tmp_path, *, ambient_ref=False, archive=False, segment=Fal
         item['source_spans'] = [{'source_ref': request_ref, 'start': 0, 'end': len(request.decode())}]
     intent_ref = visible('intent.json', intent, contract='intent-ir')
     brief = replace_refs(json.loads(Path('tests/fixtures/research/planning/lifecycle_research_brief.json').read_bytes()))
+    brief['schema_version'] = '3.0.0'
     brief.update(intent_ref=intent_ref, intake_ref=original_intake, constraints=[], target_metrics=[], input_bindings=[], resource_refs=[])
     brief['mandatory_requirements'] = [{'id': 'requirement:ranking', 'text': 'Score and rank the visible ideas and preserve their identities',
         'origin': 'user', 'source_refs': [request_ref]}]
@@ -555,7 +556,7 @@ async def finite_execution_fixture(tmp_path, fault, *, segment=False, injected_f
             'output_tokens': 0, 'disclosure_scope': []}, 'alternate_model_id': None, 'policy_ref': owner._binding['policy_ref']})
     protected.update(model_selection_profile_ref=selection, deployment_ref=store.put_blob(b'Actual controlled subscription binding'),
         router=copy.deepcopy(owner._operator['cc']['router']), run_limits=copy.deepcopy(owner._policy['aggregate_limits']),
-        authority_ceiling={'network': 'none', 'network_allowlist': [], 'resource_reads': [inputs['brief'], inputs['candidate_set'], inputs['original_request'], row['body_refs']['screening_rubric.json']], 'write_roots': [], 'tools': []},
+        authority_ceiling={'network': 'none', 'network_allowlist': [], 'resource_reads': [inputs['brief'], inputs['candidate_set'], inputs['original_request'], store.read_record(store.get_run('run:finite-visible')['submission']['intake_ref'])['request_ref'], row['body_refs']['screening_rubric.json']], 'write_roots': [], 'tools': []},
         host_records=dict(protected.get('host_records', {}), screening_rubric=row['body_refs']['screening_rubric.json']))
     if segment:
         protected['authority_ceiling']['resource_reads'].extend([*inputs.values(), protected['host_records']['environment_lock']])

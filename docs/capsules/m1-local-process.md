@@ -107,3 +107,13 @@ completed run without repeating model calls. Collection verified 19,769 archive
 members / 23,085,765 uncompressed bytes. Archive SHA256:
 `ddc425ec2435c99db9ad8b67e209e4e295f03f926319bf089f7bca84554474fa`.
 This is read-only workflow acceptance, not Builder/Pi or scientific acceptance.
+
+Isolated follow-up: 45 capability/Planner checks passed before stale replay
+fixtures failed setup. Their protected read ceiling now includes the actual
+qualified request, and all 8 replay checks pass. A new controlled-verifier FAIL
+case proves Tier1 can pass while Tier2 rejects, records the independent call and
+recording-only halt, preserves prior activation, and creates no product gate or
+acceptance. It does not establish live semantic rejection quality. Legacy finite
+status-fixture failures and interrupted broader follow-ups remain visible in the
+evidence; they are not counted as passes. The local product has no E2/E3 profile
+and lacks production authoring tooling to freeze one from an existing run.
