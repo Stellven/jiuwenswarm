@@ -257,7 +257,9 @@ class GovernedBridge:
         call_record['evidence_refs'].append(ref)
 
     async def _automatic_choice(self, protected, prompt, deadline):
-        key=tuple(protected[k] for k in ('run_id','execution_id','invocation_id'))
+        # Serialize choice reservation per run: concurrent DAG nodes cannot
+        # overbook the frozen subscription-invocation cap.
+        key=(protected['run_id'],)
         lock=self._routing_locks.setdefault(key,asyncio.Lock())
         async with lock:
             return await self._automatic_choice_locked(protected,prompt,deadline)
@@ -278,7 +280,7 @@ class GovernedBridge:
             method, reason = 'pinned_invocation', 'Retain the executor selected for this exact Capsule invocation'
             selection_call_ref=origin['record'].get('selection_call_ref')
         elif len(prepared['eligible']) == 1:
-            method, reason = 'single_candidate', 'Only one authorized compatible executor'
+            method, reason = 'single_candidate', prepared.get('policy_reason') or 'Only one authorized compatible executor'
         elif prepared['selector'] is None:
             failure = 'LIGHTWEIGHT_SELECTOR_UNAVAILABLE'
         else:
@@ -293,7 +295,8 @@ class GovernedBridge:
                 selection_deadline = min(deadline, selection_context['execution_deadline_monotonic_s'])
                 result = await self._call_protected(selection_context, prepared['prompt'], selection_deadline)
                 selection_call_ref = result['call_ref']
-                selected, reason = owner.decode(result['text'], prepared['eligible'])
+                selected, reason = owner.decode(result['text'], prepared['eligible'],
+                    policy=prepared['snapshot']['routing_policy'])
                 method = 'bounded_llm_selection'
             except asyncio.CancelledError:
                 raise
@@ -373,7 +376,9 @@ class GovernedBridge:
             choice=RouteChoice(self.fixed_route_id,'codex_router_failed','timeout')
         route_id = "route-" + uuid.uuid4().hex
         auto_route = automatic is not None or pinned_selector is not None
-        route = {"schema_version": "3.0.0" if auto_route else "2.0.0" if manual is not None else "1.0.0", "route_id": route_id,
+        hybrid_route = auto_route and ((automatic[0]['snapshot']['routing_policy'].get('executor_ids') is not None)
+            if automatic else False)
+        route = {"schema_version": "4.0.0" if hybrid_route else "3.0.0" if auto_route else "2.0.0" if manual is not None else "1.0.0", "route_id": route_id,
                  **{k: protected[k] for k in ("run_id", "node_id", "subnode_id", "invocation_id")},
                  "router_enabled": choice.decision_source not in {"codex_router_disabled", "user_api"},
                  "decision_source": choice.decision_source, "router_failure": choice.router_failure,
@@ -431,7 +436,7 @@ class GovernedBridge:
                             'call_claim_ref','contract_ref','model_selection_profile_ref','deployment_ref','call_function'):
                     if live[key]!=protected[key]:raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
                 if automatic is not None:
-                    self.automatic_routing.revalidate(automatic[0], automatic[1], live, automatic[2])
+                    await _resolved(self.automatic_routing.revalidate(automatic[0], automatic[1], live, automatic[2]))
                 if pinned_selector is not None and live.get('routing_selection_candidate') != pinned_selector:
                     raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
                 deadline=min(deadline,live['execution_deadline_monotonic_s'],monotonic()+live['limits']['time_s'])
@@ -503,6 +508,7 @@ class GovernedBridge:
                        "evidence_refs": [evidence_ref], "observed_runtime": True}
         result = None
         failure = None
+        failure_code = None
         native_scope={key:protected[key] for key in ('run_id','node_id','subnode_id','attempt_id',
             'execution_id','invocation_id','call_id','contract_ref')}
         native_scope['model_call_start_ref']=start_ref
@@ -525,10 +531,13 @@ class GovernedBridge:
                     else:
                         traced=getattr(self.subscription,'invoke_governed_traced',None)
                         native_trace_expected=traced is not None
+                        subscription_options = ({'reasoning_effort': chatgpt['reasoning_effort'],
+                            'expected_account_fingerprint': chatgpt['account_fingerprint']}
+                            if chatgpt is not None and chatgpt.get('access_way') == 'chatgpt_subscription' else {})
                         if traced is not None:
-                            result=await traced(native_scope,prompt,model=chatgpt['chatgpt_model'] if chatgpt else protected.get('requested_model'),timeout_s=timeout_s)
+                            result=await traced(native_scope,prompt,model=chatgpt['chatgpt_model'] if chatgpt else protected.get('requested_model'),timeout_s=timeout_s,**subscription_options)
                         else:
-                            result = await self.subscription.invoke_governed(prompt, model=chatgpt['chatgpt_model'] if chatgpt else protected.get("requested_model"), timeout_s=timeout_s)
+                            result = await self.subscription.invoke_governed(prompt, model=chatgpt['chatgpt_model'] if chatgpt else protected.get("requested_model"), timeout_s=timeout_s,**subscription_options)
                 else:
                     if self.providers is None:
                         raise BridgeError("auth_failed")
@@ -574,7 +583,21 @@ class GovernedBridge:
                 call_record["provider_error_code"] = 'invalid_request' if failure_code=='budget_exceeded' else failure_code if failure_code in {'auth_failed','rate_limited','timeout','provider_error','invalid_request','network_error','invalid_output'} else 'provider_error'
         finally:
             if call_record['outcome'] == 'outcome_unknown':
-                self._uncertain_runs.add(protected['run_id'])
+                # A bounded local selector is read-only inference with no task
+                # execution/acceptance authority. Its HTTP timeout/disconnect
+                # permits the frozen pre-dispatch baseline policy, including
+                # the subsequent independent verifier. Keep its original
+                # unknown call and budget debit, but do not poison executor
+                # containment. Unknown worker/verifier effects and explicit
+                # containment faults remain terminal and cannot be replayed.
+                selector_transport_unknown = (
+                    pinned_selector is not None and not is_builder
+                    and protected.get('purpose') == 'routing_selection'
+                    and protected['call_function'] == 'routing_selection'
+                    and pinned_selector.get('access_way') == 'local'
+                    and failure_code in {'timeout', 'network_error'})
+                if not selector_transport_unknown:
+                    self._uncertain_runs.add(protected['run_id'])
             call_record["ended_at"] = None if call_record["outcome"] == "outcome_unknown" else utc_now()
         if failure is not None:
             trace_ref=getattr(failure,'native_trace_ref',None)

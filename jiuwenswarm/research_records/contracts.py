@@ -29,6 +29,8 @@ class ContractData:
         self.registry=registry
     def validate(self,name,value):
         if isinstance(value,dict):
+            if name=='route-record' and value.get('schema_version')=='4.0.0':
+                name='urn:ai4r:automatic-route-record:4.0.0'
             if name=='route-record' and value.get('schema_version')=='3.0.0':
                 name='urn:ai4r:automatic-route-record:3.0.0'
             if name=='route-record' and value.get('schema_version')=='2.0.0':

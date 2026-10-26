@@ -110,7 +110,7 @@ export function ResearchModelsSettings() {
           </SettingRow>
           {mode === 'auto' && (
             <>
-              {(snapshot?.local_models ?? []).map((model) => (
+              {(snapshot?.local_models ?? []).filter((model) => model.id === 'qwen').map((model) => (
                 <SettingRow
                   key={model.id}
                   title={model.name}
@@ -179,7 +179,7 @@ export function ResearchModelsSettings() {
           )}
         </div>
       </SettingsSection>
-      {mode === 'codex' && <SubscriptionSettings showModelSelector={false} />}
+      <SubscriptionSettings showModelSelector={false} />
     </>
   );
 }

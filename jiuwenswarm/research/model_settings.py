@@ -245,7 +245,7 @@ class ModelSettingsOwner:
                 selection = {'mode': 'codex' if selected == 'codex' else 'api', 'preset_id': selected}
                 if selected == 'auto':
                     _require(automatic_pool is not None and automatic_pool.get('candidates'),
-                        'Start the local E4B and Qwen inference services before starting research')
+                        'Start the required local Qwen executor and verifier service before starting research')
                     selection = dict(copy.deepcopy(automatic_pool), mode='automatic', preset_id='auto')
                 if selected == 'codex' and account.get('chatgpt_model'):
                     model = account['chatgpt_model']

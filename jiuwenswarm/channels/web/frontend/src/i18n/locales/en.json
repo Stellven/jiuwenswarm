@@ -4718,17 +4718,17 @@
     }
   },
   "researchModels": {
-    "localDescription": "Run research on your own models. No commercial API key is required.",
+    "localDescription": "Use local Qwen and your ChatGPT subscription. No API key is required.",
     "executionMode": "Execution mode",
-    "localModeHint": "AI4R selects a local model for each capsule. E4B can route and execute; Qwen independently verifies outputs.",
-    "localMode": "AI4R · local automatic routing",
+    "localModeHint": "Direct processing uses Qwen; planning, experiment protocols, code building and scientific evaluation prefer GPT-6.1-Sol. Qwen briefly assesses other tasks. At most four capsule invocations per research run use ChatGPT. Verification stays on a separate Qwen call. Without sign-in, only Qwen is available.",
+    "localMode": "AI4R · Qwen / ChatGPT routing",
     "chatgptBaseline": "ChatGPT · comparison mode",
     "chatgptModel": "ChatGPT model",
-    "baselineHint": "Uses ChatGPT throughout the AI4R workflow as a separate comparison. It is outside the local routing pool.",
+    "baselineHint": "Pins every capsule to your selected ChatGPT model for comparison. Automatic mode instead chooses between Qwen and GPT-6.1-Sol for each task.",
     "localRole": {
-      "e4b": "Router and lightweight executor",
-      "qwen": "General executor and independent verifier",
-      "bolt": "Executor for more demanding planning, reasoning and code"
+      "e4b": "Shared model; excluded from the current execution policy",
+      "qwen": "Default executor, difficulty assessor and separate verifier",
+      "bolt": "Shared model; excluded from the current execution policy"
     },
     "localReady": "Connected",
     "localUnavailable": "Unavailable",
@@ -4739,12 +4739,12 @@
       "model_not_served": "Model not loaded",
       "configuration_invalid": "Configuration needs attention"
     },
-    "localPrerequisite": "Start the local E4B and Qwen services on your Spark, then refresh. Model endpoints are configured on the server.",
+    "localPrerequisite": "Start the required Qwen service on your Spark, then refresh. Model endpoints are configured on the server.",
     "applyMode": "Use this mode",
     "frozenPool": "Applies to new research. Running work keeps its original model pool and decisions.",
     "localError": "Could not load or save model settings. Check the app connection and local model services.",
     "modeSaved": "Saved. New research will use this execution mode.",
-    "chatgptDescription": "Sign in with your ChatGPT subscription, then choose a GPT model above and save it for new AI4R research requests. No API key is required.",
+    "chatgptDescription": "This subscription connection serves automatic routing and the separate ChatGPT comparison mode. Automatic routing pins GPT-6.1-Sol; comparison mode uses the model selected above. No API key is required.",
     "chatgptOption": "{{model}} (ChatGPT subscription)",
     "chatgptError": "Could not save or load the ChatGPT model. Sign in and refresh the model list.",
     "option": "{{model}} ({{platform}} API key)",

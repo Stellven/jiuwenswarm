@@ -435,6 +435,8 @@ class CapsuleRunner:
         snapshot = routing_policy(self.store, subject['run_id'])
         if snapshot is None:
             raise ResearchError('invalid_request', 'No frozen automatic routing policy')
+        if snapshot['routing_policy']['selection_calls_per_capsule_invocation'] == 0:
+            raise ResearchError('invalid_request', 'The frozen primary-executor policy forbids model selection calls')
         candidate = next((c for c in snapshot['candidates'] if c['id'] == snapshot['selector_id']), None)
         if candidate is None:
             raise ResearchError('invalid_request', 'No pinned selection model')
@@ -442,7 +444,7 @@ class CapsuleRunner:
         contract = execution['contract']
         budget = self._budget_state(contract, execution)
         deadline = min(subject['execution_deadline_monotonic_s'],
-            time.monotonic() + AUTOMATIC_ROUTING_POLICY['selection_time_s'])
+            time.monotonic() + snapshot['routing_policy']['selection_time_s'])
         if deadline <= time.monotonic():
             raise ResearchError('budget_exhausted', 'No time remains for routing selection')
         selection = {key: copy.deepcopy(value) for key, value in subject.items()
@@ -1185,7 +1187,7 @@ class CapsuleRunner:
         if allowance:
             self.store.append_record('node-routing-budget', {'id':'node-routing-budget:'+uuid.uuid4().hex,
                 'run_id':parent['run_id'], 'node_id':parent['node_id'], 'node_contract_ref':parent_ref,
-                'routing_policy':dict(AUTOMATIC_ROUTING_POLICY), 'worker_and_verifier_ceiling':limits['model_calls'],
+                'routing_policy':dict(routing_policy(self.store, parent['run_id'])['routing_policy']), 'worker_and_verifier_ceiling':limits['model_calls'],
                 'routing_call_ceiling':allowance, 'aggregate_call_ceiling':limits['model_calls']+allowance,
                 'routing_calls_started':len(routing_starts), 'recorded_at':utc_now()})
         planref=self.prepare_node_check_plan(parent_ref)

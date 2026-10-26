@@ -272,7 +272,8 @@ class SubscriptionService:
         return {"success": True, "interrupted": True, "session_id": session_id, "request_id": request_id}
 
     async def invoke_governed(self, prompt: str, *, model=None, timeout_s: float = 120,
-                              system: str | None = None, _trace=None, local_conversation=False):
+                              system: str | None = None, _trace=None, local_conversation=False,
+                              reasoning_effort=None, expected_account_fingerprint=None):
         """One fresh, tool-free research turn through the existing owner.
 
         Governed calls use a private provider alias: current Codex reserves
@@ -281,7 +282,8 @@ class SubscriptionService:
         No chat binding is read or written. The deadline covers account
         admission, context creation, submission and every streamed notification.
         """
-        if not isinstance(prompt, str) or not prompt.strip() or not 0 < timeout_s <= 600:
+        if (not isinstance(prompt, str) or not prompt.strip() or not 0 < timeout_s <= 600
+                or reasoning_effort not in {None, 'medium'}):
             raise CodexError("INVALID_INPUT")
         key = ("governed", uuid.uuid4().hex)
         queue = asyncio.Queue(maxsize=4096)
@@ -339,6 +341,8 @@ class SubscriptionService:
                         raise CodexError("SUBSCRIPTION_REQUIRED" if status["state"] == "subscription_required" else "SIGN_IN_REQUIRED")
                     if not self.account_fingerprint:
                         raise CodexError("ACCOUNT_IDENTITY_UNAVAILABLE")
+                    if expected_account_fingerprint is not None and self.account_fingerprint != expected_account_fingerprint:
+                        raise CodexError('ACCOUNT_IDENTITY_MISMATCH')
                     self.active[key] = run
                     run["epoch"] = self.epoch
                     # Per-thread config prevents CLI network retries for governed
@@ -352,6 +356,7 @@ class SubscriptionService:
                         "model": model, "ephemeral": True,
                         "developerInstructions": system or "Execute the supplied governed instruction. Tools are unavailable.",
                         **({} if local_conversation else {"config": {
+                            **({'model_reasoning_effort': reasoning_effort} if reasoning_effort else {}),
                             "model_providers.ai4r_governed.name": "AI4Research governed subscription",
                             "model_providers.ai4r_governed.wire_api": "responses",
                             "model_providers.ai4r_governed.requires_openai_auth": True,
@@ -364,6 +369,8 @@ class SubscriptionService:
                     effective_model = result.get("model")
                     if model and effective_model != model:
                         raise CodexError('MODEL_IDENTITY_MISMATCH')
+                    if reasoning_effort and result.get('reasoningEffort') != reasoning_effort:
+                        raise CodexError('REASONING_EFFORT_MISMATCH')
                     self.transport.listeners.add(receive)
                 result = await native_request("turn/start", {
                     "threadId": run["thread"], "input": [{"type": "text", "text": prompt}],

@@ -302,7 +302,7 @@ class NativePorts:
             if api_selected or automatic:
                 status=dict(status,state='ready' if ready else 'unavailable',enabled=ready)
             prerequisites.append({'name':'model','status':'ready' if ready else 'unavailable',
-                'reason':('Local E4B router and independent Qwen verifier services are ready' if ready else 'Local E4B router or Qwen verifier service is unavailable') if automatic
+                'reason':('Qwen routing, execution and independent verifier service is ready; signed-in ChatGPT may serve difficult tasks' if ready else 'Required Qwen routing, executor or verifier service is unavailable') if automatic
                     else 'Selected API model has a configured private credential; provider authentication is checked at dispatch' if api_selected and ready else 'Managed subscription is ready' if ready else 'Selected model authentication or transport is unavailable'})
         except Exception:
             status={}
@@ -552,9 +552,15 @@ async def start_agent_ports():
                 pass  # The comparison catalog never blocks local model settings.
         result=manual_models.settings(payload,chatgpt_models={m['id'] for m in catalog})
         return dict(result,chatgpt_models=catalog,**(await automatic_routing.status()))
+    from .subscription_baseline import SubscriptionBaseline
+    baseline = SubscriptionBaseline(store, subscription)
+    from .hybrid_benchmark import HybridBenchmark
+    hybrid_benchmark = HybridBenchmark(store.root/'hybrid-benchmark', subscription)
     status_server=PrivateRPCServer(root/'agent-status.sock',protocol=STATUS_PROTOCOL,**session,
         handlers={'subscription_status':subscription_status,'model_settings':model_settings,
-                  'freeze_model_selection':automatic_routing.freeze},allowed_uids={APP_UID})
+                  'freeze_model_selection':automatic_routing.freeze,
+                  'benchmark_chatgpt_baseline':baseline.invoke,
+                  'benchmark_hybrid_route':hybrid_benchmark.invoke},allowed_uids={APP_UID})
     try:
         await model_server.start();await status_server.start()
     except BaseException:

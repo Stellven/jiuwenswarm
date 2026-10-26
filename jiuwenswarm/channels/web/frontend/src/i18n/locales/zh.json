@@ -4717,17 +4717,17 @@
     }
   },
   "researchModels": {
-    "localDescription": "使用自己部署的模型运行研究，无需商业 API Key。",
+    "localDescription": "结合本地 Qwen 和你的 ChatGPT 订阅运行研究，无需 API Key。",
     "executionMode": "执行模式",
-    "localModeHint": "AI4R 为每个胶囊选择本地模型。E4B 可选路也可执行，Qwen 独立验证输出。",
-    "localMode": "AI4R · 本地自动路由",
+    "localModeHint": "提取、检索与整理默认 Qwen；规划、实验协议、代码构建和科学评估优先 GPT-6.1-Sol；其他任务由 Qwen 简短判断。每次研究最多 4 个胶囊调用使用 ChatGPT，验证仍由独立 Qwen 调用完成。未登录时仅使用 Qwen。",
+    "localMode": "AI4R · Qwen / ChatGPT 自动路由",
     "chatgptBaseline": "ChatGPT · 对照模式",
     "chatgptModel": "ChatGPT 模型",
-    "baselineHint": "在 AI4R 流程中统一使用 ChatGPT 进行独立对照，不进入本地路由候选池。",
+    "baselineHint": "将全部胶囊固定到你选择的 ChatGPT 模型进行对照；自动路由模式则按任务选择 Qwen 或 GPT-6.1-Sol。",
     "localRole": {
-      "e4b": "路由选择器与轻量执行模型",
-      "qwen": "通用执行模型与独立验证模型",
-      "bolt": "承担较复杂的规划、推理和代码任务"
+      "e4b": "共享模型；当前执行策略不使用",
+      "qwen": "默认执行模型、难度判断模型与独立验证调用",
+      "bolt": "共享模型；当前执行策略不使用"
     },
     "localReady": "已连接",
     "localUnavailable": "未就绪",
@@ -4738,12 +4738,12 @@
       "model_not_served": "指定模型未加载",
       "configuration_invalid": "模型配置需要检查"
     },
-    "localPrerequisite": "请启动 Spark 上的本地 E4B 和 Qwen 服务后刷新。模型地址由服务端配置。",
+    "localPrerequisite": "请启动 Spark 上必需的 Qwen 服务后刷新。模型地址由服务端配置。",
     "applyMode": "使用此模式",
     "frozenPool": "仅应用于新研究；运行中的研究保留原模型池及已作出的选择。",
     "localError": "无法读取或保存模型设置，请检查应用连接及本地模型服务。",
     "modeSaved": "已保存，新研究将使用此执行模式。",
-    "chatgptDescription": "使用 ChatGPT 订阅登录后，在上方选择具体 GPT 型号并保存，应用于新的 AI4R 研究请求，无需 API key。",
+    "chatgptDescription": "同一个订阅连接可用于自动路由和独立 ChatGPT 对照。自动路由固定使用 GPT-6.1-Sol；对照模式使用上方选择的型号。无需 API Key。",
     "chatgptOption": "{{model}}（ChatGPT 订阅）",
     "chatgptError": "无法保存或加载 ChatGPT 模型。请登录后刷新模型列表。",
     "option": "{{model}}（{{platform}} API key）",
