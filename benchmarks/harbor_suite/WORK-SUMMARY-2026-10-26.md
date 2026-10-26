@@ -66,7 +66,7 @@ RSI/MR live cases were excluded. All 374 inventoried related files, including
 349 original RSI source/artifact hashes, remained unchanged. No Spark/Qwen
 inference run or remote service change is claimed for this session.
 
-Created the [operator handoff](BENCHMARK-HANDOFF.md) and a separate ZIP of all
+Created a local operator handoff and a separate ZIP of all
 ten authored cases / 69 variants with per-file hashes and installation guidance.
 Added external case-root selection for preparation, validation and comparison
 tools so assets can live outside the product checkout. Original case copies
@@ -78,4 +78,6 @@ one CC task froze successfully from that external root. External-loading,
 selection and comparison regression checks passed 34 tests (one platform skip).
 These are offline checks, not additional live benchmark results.
 See [current validation status](SERIAL-VALIDATION-STATUS.md)
-and the handoff for exact result paths, deployment identities and next steps.
+for historical results. The public [benchmark README](README.md) replaces the
+agent handoff in the integration branch and documents general setup and use.
+The ten-case ZIP is included as public development material, not held out.
