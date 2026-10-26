@@ -64,9 +64,11 @@ def main():
     result["offline_fixture"] = True
     result["native_skill_body_observed"] = any("NATIVE_VALUE_SKILL_LOADED" in json.dumps(row["messages"])
                                                for row in observed)
+    result["image_probe_calls"] = sum("What color is this image?" in json.dumps(row["messages"])
+                                      for row in observed)
     native_value.write(root / "offline-result.json", result)
     print(json.dumps(result))
-    okay = result["actual_native_tool_cycle"] and result["tool_result_reentered_model"]
+    okay = result["actual_native_tool_cycle"] and result["tool_result_reentered_model"] and result["image_probe_calls"] == 0
     if spec["variant"] == "native-skills":
         okay &= result["native_skill_body_observed"]
     return 0 if okay else 1

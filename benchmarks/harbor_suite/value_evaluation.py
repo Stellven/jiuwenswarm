@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from pathlib import PurePosixPath
 import re
 
 from .contracts import strict_json
@@ -29,6 +30,15 @@ def _identity(value: str, label: str) -> tuple[str, str]:
     if not isinstance(value, str) or not _IDENTITY.fullmatch(value):
         raise ValueError(f"{label} must be an exact cc_name@cc_version identity")
     return tuple(value.rsplit("@", 1))
+
+
+def _container_path(value: str, label: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{label} must be an absolute Docker path")
+    path = PurePosixPath(value)
+    if not path.is_absolute() or ".." in path.parts or str(path) != value:
+        raise ValueError(f"{label} must be a canonical absolute Docker path")
+    return value
 
 
 def _read_inventory(path: Path) -> tuple[dict, str]:
@@ -69,6 +79,15 @@ def build_manifest(*, inventory_path: Path, candidate: str, verifier: str,
     """Return ordered argv vectors; no shell interpolation and no side effects."""
     if not _SAFE_ID.fullmatch(profile_id) or not _SAFE_ID.fullmatch(campaign_id):
         raise ValueError("profile_id and campaign_id must be lowercase safe identifiers")
+    state_root = _container_path(state_root, "state_root")
+    config = _container_path(config, "config")
+    bootstrap = _container_path(bootstrap, "bootstrap")
+    operator_root = _container_path(operator_root, "operator_root")
+    expected_operator = PurePosixPath(state_root) / "operator"
+    try:
+        PurePosixPath(operator_root).relative_to(expected_operator)
+    except ValueError as error:
+        raise ValueError("operator_root must remain under state_root/operator") from error
     inventory, digest = _read_inventory(Path(inventory_path))
     candidate_pin = _pinned_capsule(inventory, candidate, "candidate")
     verifier_pin = _pinned_capsule(inventory, verifier, "verifier")

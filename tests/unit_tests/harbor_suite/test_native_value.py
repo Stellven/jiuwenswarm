@@ -3,6 +3,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -17,6 +18,23 @@ TOOLS = [{"type": "function", "function": {"name": "read_file", "parameters": {
 
 
 class NativeValueTests(unittest.TestCase):
+    def test_text_bridge_disables_speculative_vision_probe_without_removing_tools(self):
+        import yaml
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "state" / "config").mkdir(parents=True)
+            template = root / "template.yaml"
+            template.write_text("react: {}\nmodes:\n  agent:\n    tools: [bash, skill_tool]\n", encoding="utf-8")
+            utils = SimpleNamespace(prepare_workspace=lambda **kwargs: None,
+                get_agent_workspace_dir=lambda: root / "state" / "agent" / "workspace",
+                get_agent_skills_dir=lambda: root / "state" / "agent" / "workspace" / "skills")
+            with patch.dict(sys.modules, {"jiuwenswarm.common.utils": utils}):
+                subject.configure({"config_template": str(template), "max_model_calls": 4,
+                                   "skill_dirs": []}, root, "gpt-6.1-sol")
+            config = yaml.safe_load((root / "state" / "config" / "config.yaml").read_text())
+            self.assertIs(config["react"]["enable_read_image_multimodal"], False)
+            self.assertEqual(config["modes"]["agent"]["tools"], ["bash", "skill_tool"])
+
     def test_config_template_resolves_installed_package_outside_benchmark_overlay(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

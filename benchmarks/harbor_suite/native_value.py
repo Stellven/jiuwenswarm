@@ -314,6 +314,10 @@ def configure(spec, root, model):
             "max_retries": 0, "timeout": 120}, "model_config_obj": {}}]}
     config.setdefault("react", {})["workspace_dir"] = str(get_agent_workspace_dir())
     config["react"]["max_iterations"] = spec["max_model_calls"]
+    # This completion bridge is text-only. The explicit native switch also
+    # suppresses its speculative image-support startup probe (which otherwise
+    # starts a real completion and cancels it on the SDK's shorter deadline).
+    config["react"]["enable_read_image_multimodal"] = False
     config["auto_recap"] = {"enabled": False}
     config["task_memory"] = {"enabled": False}
     # Background evolution/dreaming are outside the bounded foreground job.

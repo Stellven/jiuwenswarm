@@ -67,3 +67,11 @@ def test_manifest_requires_research_verifier_identity(tmp_path):
         build_manifest(inventory_path=path, candidate="research.screening@m1-4",
             verifier="research.search@m1-6", profile_id="review-pilot",
             campaign_id="review-campaign")
+
+
+def test_manifest_keeps_pilot_outputs_inside_app_operator_root(tmp_path):
+    with pytest.raises(ValueError, match="state_root/operator"):
+        build_manifest(inventory_path=inventory(tmp_path),
+            candidate="research.screening@m1-4", verifier="research.verifier@m1-2",
+            profile_id="review-pilot", campaign_id="review-campaign",
+            operator_root="/tmp/evaluation-pilot")
