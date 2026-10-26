@@ -274,7 +274,7 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
         'suite_jobs': [r['value']['summary'] for r in records if r['kind'] == 'harbor_job']})
     # Presentation filters select experimental outcomes. Project health always
     # uses the full retained health evidence, including current blockers.
-    health = [r for r in records if r['kind'] == 'health']
+    health = sorted((r for r in records if r['kind'] == 'health'), key=lambda r: (r['recorded_at'], r['id']))
     part_a = ['## Part A — Project health and quality', '',
         'This development campaign supports a decision about continued CC and verifier work. '
         'Selected gains are shown with their measured scope; the complete dataset remains available.', '',
@@ -284,11 +284,12 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
          if any(r['kind'] == 'harbor_job' for r in records) else
          '- Evidence sources and grading scope are retained per observation; a PoC comparison does not imply a Harbor suite run.')]
     if health:
+        part_a.append('- Health observations below are chronological history; later deployment observations supersede earlier runtime state.')
         for record in health:
             value = record['value']
             source = value.get('source')
             evidence = ('source SHA-256 `' + source['sha256'] + '`') if source else 'operator note; no original evidence attached'
-            part_a.append('- ' + str(value.get('summary', 'Health observation')) +
+            part_a.append('- [' + record['recorded_at'] + '] ' + str(value.get('summary', 'Health observation')) +
                           f" (record `{record['id']}`; {evidence}).")
     else:
         part_a.append('- Current deployment readiness and live quality have not been imported into this dataset.')
