@@ -1,0 +1,67 @@
+{
+  "test": "tests/integration/research/test_executor.py::test_private_stdin_event_budget_hook_retains_raw_logs_and_empties_tree",
+  "scope": "Controlled actual Linux kernel mechanics; no installed app or model acceptance",
+  "results": [
+    {
+      "job_id": "probe-aee929b9e34248d3a66837562135cfb2",
+      "contract_ref": {
+        "id": "controlled-fixture",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "invocation_id": "controlled-invocation",
+      "argv": [
+        "/usr/local/bin/python3",
+        "-c",
+        "import json,sys,time\nfrom pathlib import Path\ndata=sys.stdin.buffer.read()\nPath('received-input').write_bytes(data)\nprint('partial controlled stderr',file=sys.stderr,flush=True)\nfor i in range(2):\n    print(json.dumps({'type':'item.started','item':{'id':str(i),'type':'command_execution','command':'pwd'}}),flush=True)\ntime.sleep(30)\n"
+      ],
+      "started_at": "2026-10-26T02:46:56Z",
+      "ended_at": "2026-10-26T02:46:56Z",
+      "wall_time_s": 0.0975855439999691,
+      "timeout_s": 3,
+      "exit_code": -9,
+      "termination_reason": "budget_exceeded",
+      "stdout_ref": {
+        "id": "blob:3852a8e01e63af280f3b4e5b00417ae8516f6d6ec936bf0ad3ad909fbf9ec9f8",
+        "sha256": "3852a8e01e63af280f3b4e5b00417ae8516f6d6ec936bf0ad3ad909fbf9ec9f8"
+      },
+      "stderr_ref": {
+        "id": "blob:48dca70b3d3ccbe54bbe1a746f6cde3713b8db5a1b55eb7f8c2d1c975a3eccc9",
+        "sha256": "48dca70b3d3ccbe54bbe1a746f6cde3713b8db5a1b55eb7f8c2d1c975a3eccc9"
+      },
+      "identity": {
+        "executor_uid": 10002,
+        "executor_gid": 10002
+      },
+      "observed_limits": {
+        "memory_max": "67108864",
+        "pids_max": "16",
+        "network": "none",
+        "isolation_probe_ref": {
+          "id": "blob:ee962325f3baad5f163838f2596afbb034a2e111f7e9fc5168835d7850d8da43",
+          "sha256": "ee962325f3baad5f163838f2596afbb034a2e111f7e9fc5168835d7850d8da43"
+        },
+        "cpu_affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "pids_events": "max 0\n",
+      "observed_runtime": true
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "test": "tests/integration/research/test_executor.py::test_existing_host_canaries_and_live_listeners_remain_unreachable",
+  "scope": "Controlled actual Linux kernel mechanics; no installed app or model acceptance",
+  "results": [
+    {
+      "job_id": "probe-10f264b605fc4dfea0bdd4399c3e6334",
+      "contract_ref": {
+        "id": "controlled-fixture",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "invocation_id": "controlled-invocation",
+      "argv": [
+        "/usr/local/bin/python3",
+        "-c",
+        "import json,os,socket\npaths = {'state': '/tmp/ai4r-executor-3ysfz77k/protected-host/state', 'account': '/tmp/ai4r-executor-3ysfz77k/protected-host/account', 'library': '/tmp/ai4r-executor-3ysfz77k/protected-host/library', 'fixture': '/tmp/ai4r-executor-3ysfz77k/protected-host/fixture'}\nobserved = {}\nfor role,path in paths.items():\n    os.symlink(path, 'escape-' + role)\n    try:\n        with open('escape-' + role, 'rb') as stream: stream.read(1)\n        observed[role] = 'READABLE'\n    except (FileNotFoundError,PermissionError): observed[role] = 'denied'\nfor kind,address in [('broker','/tmp/ai4r-executor-3ysfz77k/protected-host/controlled-broker.sock'),('network',('127.0.0.1', 47417))]:\n    with socket.socket(socket.AF_UNIX if kind == 'broker' else socket.AF_INET) as probe:\n        probe.settimeout(.2)\n        try: probe.connect(address); observed[kind] = 'CONNECTED'\n        except OSError: observed[kind] = 'denied'\nprint(json.dumps(observed,sort_keys=True))\n"
+      ],
+      "started_at": "2026-10-26T02:46:58Z",
+      "ended_at": "2026-10-26T02:46:58Z",
+      "wall_time_s": 0.10201998899998443,
+      "timeout_s": 3,
+      "exit_code": 0,
+      "termination_reason": "completed",
+      "stdout_ref": {
+        "id": "blob:3f54abc8d9a529ce1aa2167e1f1bd57942eee46bcc38c1b08f02e57464c44d29",
+        "sha256": "3f54abc8d9a529ce1aa2167e1f1bd57942eee46bcc38c1b08f02e57464c44d29"
+      },
+      "stderr_ref": {
+        "id": "blob:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "identity": {
+        "executor_uid": 10002,
+        "executor_gid": 10002
+      },
+      "observed_limits": {
+        "memory_max": "67108864",
+        "pids_max": "16",
+        "network": "none",
+        "isolation_probe_ref": {
+          "id": "blob:b8a0b6c024133c1ed6978fb73390c796086933bd37105ef8b9138810953ad700",
+          "sha256": "b8a0b6c024133c1ed6978fb73390c796086933bd37105ef8b9138810953ad700"
+        },
+        "cpu_affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "pids_events": "max 0\n",
+      "observed_runtime": true
+    }
+  ]
+}

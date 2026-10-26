@@ -1,0 +1,67 @@
+{
+  "test": "tests/integration/research/test_executor.py::test_actual_namespace_identity_network_and_workspace_write",
+  "scope": "Controlled actual Linux kernel mechanics; no installed app or model acceptance",
+  "results": [
+    {
+      "job_id": "probe-45c722e4e6364953a00183e3378fc5c4",
+      "contract_ref": {
+        "id": "controlled-fixture",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "invocation_id": "controlled-invocation",
+      "argv": [
+        "/usr/local/bin/python3",
+        "-c",
+        "from pathlib import Path; Path('allowed').write_text('allowed'); print('actual permitted write')"
+      ],
+      "started_at": "2026-10-26T02:46:57Z",
+      "ended_at": "2026-10-26T02:46:57Z",
+      "wall_time_s": 0.1105433600000083,
+      "timeout_s": 2,
+      "exit_code": 0,
+      "termination_reason": "completed",
+      "stdout_ref": {
+        "id": "blob:8fcfa70bbc26e0a24540a8e2e0d3831f9d80460810b1cc6a5e3237efcb60f572",
+        "sha256": "8fcfa70bbc26e0a24540a8e2e0d3831f9d80460810b1cc6a5e3237efcb60f572"
+      },
+      "stderr_ref": {
+        "id": "blob:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "identity": {
+        "executor_uid": 10002,
+        "executor_gid": 10002
+      },
+      "observed_limits": {
+        "memory_max": "67108864",
+        "pids_max": "16",
+        "network": "none",
+        "isolation_probe_ref": {
+          "id": "blob:5c091309e6ad917697812f1f3be0c740101dafcc9a778c993e7f24d7832d5b1b",
+          "sha256": "5c091309e6ad917697812f1f3be0c740101dafcc9a778c993e7f24d7832d5b1b"
+        },
+        "cpu_affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "pids_events": "max 0\n",
+      "observed_runtime": true
+    }
+  ]
+}

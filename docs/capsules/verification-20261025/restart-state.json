@@ -1,0 +1,32 @@
+{
+  "source_commit": "ffa0b381",
+  "merge_commit": "c737213b",
+  "remote_baseline": "809351f8",
+  "branch": "m1/all-features-20261025",
+  "status": "User requested restart before Docker live testing; incomplete unit shards stopped",
+  "stopped_pids": [
+    468,
+    469,
+    470
+  ],
+  "actual_executor_tests": 10,
+  "actual_executor_failures": 0,
+  "completed_unit_shard_3": {
+    "passed": 89,
+    "failed": 12,
+    "limit_reached": true
+  },
+  "incomplete_shards": [
+    0,
+    1,
+    2
+  ],
+  "full_system": "blocked: AI4R_FOUNDATION_TARGET_REQUIRED",
+  "native_sdk": "Installed exact Git 9e3390195a9ea15235b2b5f7412cb2aa440622cc; no-deps install does not qualify complete dependency closure",
+  "remaining_services": [
+    "/run/ai4r/model.sock",
+    "/run/ai4r-executor/executor.sock"
+  ],
+  "docker": "Desktop service stopped; Start-Service denied; user selected Docker and will restart machine",
+  "promotion": "integration branch committed; local ai4r_M1 and remote not advanced by this task"
+}
