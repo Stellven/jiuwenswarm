@@ -87,11 +87,14 @@ async def test_status_stage_actual_single_node_history_needs_no_current_owner(tm
 @pytest.mark.asyncio
 async def test_status_stage_real_finite_freeze_pending_placeholders_are_not_execution(tmp_path, monkeypatch):
     async with stage_fixture(tmp_path, segment=True) as f:
-        def interrupt_before_first_dispatch(*args, **kwargs):
+        async def interrupt_before_first_dispatch(*args, **kwargs):
             assert {n['state'] for n in f.store.node_states(f.run_id)} == {'pending'}
             assert not original_rows(f, 'dispatch-start')
             raise ResearchError('controlled_before_dispatch', 'Actual frozen plan interrupted before any start')
-        monkeypatch.setattr(f.store, 'authorize_dispatch', interrupt_before_first_dispatch)
+        # The current runner starts prepared attempts, rather than using the
+        # historical authorize_dispatch entry point. Stop the real workflow
+        # before its first callback so all frozen nodes are still pending.
+        monkeypatch.setattr('jiuwenswarm.research.scheduler.run_native_workflow', interrupt_before_first_dispatch)
         with pytest.raises(ResearchError, match='controlled_before_dispatch'):
             await f.owner.execute(f.run_id, f.protected, scheduler=f.scheduler)
         bindings=original_rows(f,'finite-e1-plan-binding')
@@ -267,17 +270,23 @@ async def test_status_stage_stopped_open_attempt_history_keeps_prior_finished_or
             snapshot=SimpleNamespace(store=history,owner=None,prompts=[],service=reader,
                 principal=f.principal,run_id=f.run_id)
             before_nodes=history.node_states(f.run_id)
-            assert next(n for n in before_nodes if n['node_id']==stopped_node)['state']=='running'
-            assert not any(e['record']['node_id']==stopped_node for e in history.iter_records(run_id=f.run_id,kinds=('dispatch-record',)))
+            assert next(n for n in before_nodes if n['node_id']==stopped_node)['state']=='failed'
+            interrupted = [e['record'] for e in history.iter_records(run_id=f.run_id,kinds=('dispatch-record',))
+                           if e['record']['node_id']==stopped_node]
+            assert len(interrupted)==1 and interrupted[0]['outcome']=='interrupted'
+            assert interrupted[0]['ended_at'] is None and interrupted[0]['model_calls_used'] is None
+            assert interrupted[0]['gate_decision_ref'] is None and interrupted[0]['output_refs']==[]
+            if stop=='paused_recovery':
+                assert interrupted[0]['elapsed_s'] is None
             assert not any(e['record']['node_id']==stopped_node and e['record']['subnode_id']==''
                 for e in history.iter_records(run_id=f.run_id,kinds=('acceptance-commit',)))
             status=await readonly_status(snapshot)
-            assert status['stage']==('' if stopped_node=='screening' else 'screening')
+            assert status['stage']==stopped_node
             assert status['status']==run['state'] and status['reasons']==[run['reason']]
             assert history.node_states(f.run_id)==before_nodes
-            assert next(n for n in status['node_statuses'] if n['node_id']==stopped_node)['lifecycle_status']=='Running'
-            # This retained row is the separately unmet recovery/lifecycle producer
-            # duty, not proof of a live process or a newly completed attempt.
+            assert next(n for n in status['node_statuses'] if n['node_id']==stopped_node)['lifecycle_status']=='Failed'
+            # The original start and interrupted record identify where work
+            # stopped. They prove neither completion nor terminal containment.
         finally:
             if task is not None and not task.done(): task.cancel()
             release.set()
@@ -353,12 +362,15 @@ async def test_status_stage_recovery_keeps_finished_sibling_and_paused_inflight_
             assert not any(row['state']=='running' for row in after)
             assert history.get_run(f.run_id)['state']=='paused' and history.get_run(f.run_id)['reason']=='interrupted'
             assert not history.accepted_outputs(f.run_id,'screening')
-            assert not list(history.iter_records(run_id=f.run_id,kinds=('dispatch-record',)))
+            interrupted = list(history.iter_records(run_id=f.run_id,kinds=('dispatch-record',)))
+            assert len(interrupted)==1 and interrupted[0]['record']['outcome']=='interrupted'
+            assert interrupted[0]['record']['ended_at'] is None
+            assert interrupted[0]['record']['output_refs']==[]
             reader=ResearchService(history,registry=None,model=None)
             snapshot=SimpleNamespace(store=history,owner=None,prompts=[],service=reader,principal=f.principal,run_id=f.run_id)
             status=await readonly_status(snapshot)
-            assert status['stage']=='' and status['status']=='paused' and status['reasons']==['interrupted']
-            assert status['node_statuses'][0]['lifecycle_status']=='Running'  # Separate unmet producer duty.
+            assert status['stage']=='screening' and status['status']=='paused' and status['reasons']==['interrupted']
+            assert status['node_statuses'][0]['lifecycle_status']=='Failed'
         finally:
             if task is not None and not task.done():task.cancel()
             release.set()

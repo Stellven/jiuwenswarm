@@ -573,12 +573,24 @@ async def finite_execution_fixture(tmp_path, fault, *, segment=False, injected_f
             elif 'input_refs' in payload and 'opportunity' in payload:
                 reply = json.loads(Path('tests/fixtures/research/pipeline/source-valid/hypothesis_blueprint.json').read_bytes())
                 reply.pop('ext', None)
+                reply.pop('dependent_variables')
                 reply.update(brief_ref=payload['input_refs']['brief'], opportunity_ref=payload['input_refs']['opportunity'],
                     validation_resource_ref=payload['input_refs']['validation_resource'],
                     resource_refs=[payload['input_refs']['baseline_resource'], payload['input_refs']['validation_resource']],
                     environment_ref=payload['baseline_resource']['environment_ref'], constraints=[])
                 reply['baseline_identity'].update(resource_ref=payload['input_refs']['baseline_resource'], revision='controlled-v1', entry_point='baseline.txt')
-                for metric in reply['metrics']: metric['target_id'] = None
+                # Generate the controlled reply for the current registered
+                # protocol; the historical latency/quality fixture stays intact.
+                reply['metrics'] = [dict(metric, aggregation='mean', target_id=None)
+                                    for metric in payload['measurement_protocol']['metrics']]
+                reply['outcome_rules'] = [
+                    {'metric_id': metric['metric_id'],
+                     'success': {'operand': 'treatment', 'comparator': 'gt' if metric['direction'] == 'higher_better' else 'lt',
+                                 'reference': 'baseline', 'factor': 1, 'offset': 0},
+                     'falsification': {'operand': 'treatment', 'comparator': 'le' if metric['direction'] == 'higher_better' else 'ge',
+                                       'reference': 'baseline', 'factor': 1, 'offset': 0},
+                     'middle': 'INCONCLUSIVE', 'conditional_rule': None, 'conditional_meaning': None}
+                    for metric in reply['metrics']]
             else:
                 scores = json.loads(Path('tests/fixtures/research/pipeline/source-valid/screening_result.json').read_bytes())['scores'][:1]
                 if fault == 'invalid_score': scores[0]['total'] = 15

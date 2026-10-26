@@ -224,6 +224,28 @@ def _execution_node_gates(store, envelopes, run, state, parent_ref, parent):
     return execution
 
 
+def _claim_assignments(store, run, state, parent_ref, parent):
+    """A terminal interruption cannot hide a substituted child claim."""
+    with store._lock:
+        rows = store.connection.execute(
+            'SELECT subnode_id,state,contract_ref FROM attempts WHERE run_id=? AND node_id=? AND attempt_id=?',
+            (run['id'], state['node_id'], state['attempt_id'])).fetchall()
+    _require(rows)
+    assigned = {item['subnode_id']: item for item in parent['subnodes']}
+    for row in rows:
+        child = _original(store, json.loads(row['contract_ref']), 'subnode-execution-contract',
+                          run_id=run['id'], node_id=state['node_id'], attempt_id=state['attempt_id'])
+        _require(row['subnode_id'] in assigned and child['subnode_id'] == row['subnode_id']
+                 and child['node_contract_ref'] == parent_ref)
+        assignment = assigned[row['subnode_id']]
+        template = _original(store, assignment['template_ref'], 'subnode-template')
+        _require(child['template_ref'] == assignment['template_ref'] and len(child['bindings']) == 1
+                 and child['bindings'][0]['role'] == assignment['role']
+                 and child['bindings'][0]['declaration_ref'] == assignment['capsule_ref']
+                 and child['bindings'][0]['admission_ref'] == template['admission_ref']
+                 and child['checking_profile_ref'] == template['checking_profile_ref'])
+
+
 def _stopped_open(store, run, state, records, parent_ref, parent):
     if run['state'] == 'paused' and run['reason'] == 'interrupted':
         with store._lock:
@@ -232,19 +254,7 @@ def _stopped_open(store, run, state, records, parent_ref, parent):
                 (run['id'], state['node_id'], state['attempt_id'])).fetchall()
         _require(rows and any(row['state'] == 'paused' for row in rows)
                  and all(row['state'] in {'paused', 'accepted', 'rejected', 'observed', 'interrupted'} for row in rows))
-        assigned = {item['subnode_id']: item for item in parent['subnodes']}
-        for row in rows:
-            child = _original(store, json.loads(row['contract_ref']), 'subnode-execution-contract',
-                              run_id=run['id'], node_id=state['node_id'], attempt_id=state['attempt_id'])
-            _require(row['subnode_id'] in assigned and child['subnode_id'] == row['subnode_id']
-                     and child['node_contract_ref'] == parent_ref)
-            assignment = assigned[row['subnode_id']]
-            template = _original(store, assignment['template_ref'], 'subnode-template')
-            _require(child['template_ref'] == assignment['template_ref'] and len(child['bindings']) == 1
-                     and child['bindings'][0]['role'] == assignment['role']
-                     and child['bindings'][0]['declaration_ref'] == assignment['capsule_ref']
-                     and child['bindings'][0]['admission_ref'] == template['admission_ref']
-                     and child['checking_profile_ref'] == template['checking_profile_ref'])
+        _claim_assignments(store, run, state, parent_ref, parent)
         return True
     if run['state'] in {'halted', 'failed', 'cancelled'}:
         # This is durable stopped-run provenance, never an owner/cessation claim.
@@ -302,6 +312,8 @@ def observed_stage(store, run, states, records):
             start, parent = _start(store, own_starts[0], run, state)
             own_gates = _execution_node_gates(store, own_gates, run, state, start['node_contract_ref'], parent)
             terminal = _dispatch(store, own_dispatches[0], run, state, start, parent) if own_dispatches else None
+            if terminal is not None and terminal['outcome'] == 'interrupted':
+                _claim_assignments(store, run, state, start['node_contract_ref'], parent)
             gates = [_node_gate(store, row, run, state, start['node_contract_ref'], parent) for row in own_gates]
             _require(all(order[own_starts[0]['ref']['id']] < order[row['ref']['id']]
                          for row in [*own_gates, *own_commits, *own_dispatches]))
