@@ -78,3 +78,8 @@ docs/capsules/verification-20261025/** -text
 deploy/m1/examples/inputs/*.pdf -text
 deploy/m1/*.ps1 text eol=lf
 docs/capsules/verification-20261026/** -text
+
+# Delivery's fixture manifest pins the report's original LF bytes.
+tests/fixtures/research/pipeline/source-valid/research_report.md text eol=lf
+# Frozen development banks retain a source hash of their independent grader.
+benchmarks/harbor_suite/value_core_complex.py text eol=lf
