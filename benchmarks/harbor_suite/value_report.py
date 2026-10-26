@@ -36,7 +36,56 @@ def flatten(records):
                     'assignment_sha256': result['assignment_sha256'], 'arm': arm,
                     'correct': bool(correct) if type(correct) in (int, bool) and correct in (0, 1) else None,
                     'source': value['source'], 'recorded_at': record['recorded_at']})
+        elif record['kind'] == 'native_cc_pair':
+            for arm, original in value['arms'].items():
+                rows.append({**original, 'record_id': record['id'], 'row_id': record['id'] + ':' + arm,
+                    'record_kind': record['kind'], 'case_id': value['case_id'], 'arm': arm,
+                    'mode': 'full_native_skills_vs_full_cc_pipeline', 'task_sha256': value['task_sha256'],
+                    'comparison_eligible': value['comparison_eligible'], 'recorded_at': record['recorded_at']})
+        elif record['kind'] == 'component_native_pair':
+            for ordinal, decision in enumerate(value['rows']):
+                for arm in ('cc', 'native'):
+                    original = decision[arm]
+                    rows.append({**original, 'record_id': record['id'],
+                        'row_id': record['id'] + ':' + str(ordinal) + ':' + arm,
+                        'record_kind': record['kind'], 'recorded_at': record['recorded_at'],
+                        'component': value['component'], 'case_id': decision['case_id'],
+                        'component_case_ordinal': ordinal, 'task_sha256': decision.get('task_sha256'),
+                        'arm': arm, 'mode': 'deterministic_component_vs_native_batch',
+                        'batch_record_id': record['id'], 'model_calls': None, 'cost_usd': None,
+                        'per_case_call_allocation': None,
+                        'measurement_scope': value['scope'],
+                        'comparison_eligible': value.get('comparison_eligible')})
     return rows
+
+
+def component_batches(records, selected):
+    """Keep selected decision scores and indivisible whole-batch costs separate."""
+    ordinals = defaultdict(set)
+    for row in selected:
+        if row['record_kind'] == 'component_native_pair':
+            ordinals[row['record_id']].add(row['component_case_ordinal'])
+    result = []
+    for record in records:
+        if record['kind'] != 'component_native_pair' or record['id'] not in ordinals:
+            continue
+        value = record['value']
+        decisions = [row for index, row in enumerate(value['rows']) if index in ordinals[record['id']]]
+        scores = {arm: {'correct': sum(row[arm].get('correct') is True for row in decisions),
+                       'available': sum(row[arm].get('available') is True for row in decisions),
+                       'unavailable': sum(row[arm].get('available') is not True for row in decisions)}
+                  for arm in ('cc', 'native')}
+        cost = value['batch_cost']
+        result.append({'record_id': record['id'], 'component': value['component'],
+            'selected_case_ids': [row['case_id'] for row in decisions],
+            'selected_decisions': len(decisions), 'batch_decisions': len(value['rows']),
+            'selected_scores': scores, 'batch_cost': cost,
+            'ordinary_helper_control': value.get('ordinary_helper_control'),
+            'native_status': value['native_status'], 'population': value['population'],
+            'alignment': value['alignment'], 'comparison_eligible': value.get('comparison_eligible'),
+            'scope': value['scope'], 'per_case_call_allocation': None,
+            'algorithm_gain_claim': False})
+    return result
 
 
 def probe_summary(rows):
@@ -147,8 +196,12 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
     selected_ids = {r['record_id'] for r in selected}
     gains = paired_gains([r for r in records if r['id'] in selected_ids])
     improvements = probe_improvements(selected)
+    primary_pairs = [r for r in records if r['kind'] == 'native_cc_pair' and r['id'] in selected_ids]
+    components = component_batches(records, selected)
     write_once(destination / 'analysis.json', {'full_rows': len(rows), 'selected_rows': len(selected),
         'probe_summary': probes, 'paired_checker_improvements': improvements, 'paired_content_deltas': gains,
+        'native_skills_cc_pairs': [{'record_id': r['id'], **r['value']} for r in primary_pairs],
+        'component_native_batches': components,
         'suite_jobs': [r['value']['summary'] for r in records if r['kind'] == 'harbor_job']})
     # Presentation filters select experimental outcomes. Project health always
     # uses the full retained health evidence, including current blockers.
@@ -186,14 +239,53 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
         part_b.append('| No probe observations selected | — | — | — | — |')
     part_b += ['', 'These are direct worker/checker probes on deliberately corrupted artifacts. '
         'They measure detection and clean acceptance, not live semantic-verifier accuracy or superiority over an agent.', '',
-        '### Paired CC content results', '']
+        '### Native skills versus full CC pipeline', '']
+    if primary_pairs:
+        part_b += ['| Case | Identity/input/budget eligible | Native correct | CC correct | Native calls | CC calls (worker + verifier) |',
+                   '| --- | --- | --- | --- | ---: | ---: |']
+        for pair in primary_pairs:
+            value = pair['value']; native_arm = value['arms']['native-skills']; cc_arm = value['arms']['cc']
+            functions = cc_arm.get('call_functions', {})
+            part_b.append(f"| {value['case_id']} | {value['comparison_eligible']} | {native_arm['correct']} | {cc_arm['correct']} | "
+                f"{native_arm['model_calls']} | {cc_arm['model_calls']} ({functions.get('worker', '?')} + {functions.get('verifier', '?')}) |")
+        part_b += ['', 'These pairs use the same frozen public request, PDF/canonical text, output contract, '
+            'observed model/effort and declared per-arm ceilings. Counts include the entire CC compiler, requirements, '
+            'planner, task workers and shared verifier. Ties and cases where native uses fewer calls remain visible. '
+            'They are development demonstrations, not held-out estimates.', '']
+    else:
+        part_b += ['No completed and independently graded full-native/CC pair has been imported.', '']
+    part_b += ['### Deterministic components versus native application batches', '']
+    if components:
+        part_b += ['| Component | Selected decisions / batch | CC correct / available selected | Native correct / available selected | Unavailable selected (CC / native) | Ordinary helper correct / total (whole batch) | CC calls (whole batch) | Native calls (whole batch) |',
+                   '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
+        for batch in components:
+            scores, cost = batch['selected_scores'], batch['batch_cost']
+            control = batch.get('ordinary_helper_control') or {}
+            helper = (f"{control['correct']}/{control['decisions']} ({control['model_calls']} calls)"
+                      if control.get('measurement_status') == 'observed_original_helper_receipt' else 'Not measured')
+            part_b.append(f"| {batch['component']} | {batch['selected_decisions']}/{batch['batch_decisions']} | "
+                f"{scores['cc']['correct']}/{scores['cc']['available']} | "
+                f"{scores['native']['correct']}/{scores['native']['available']} | "
+                f"{scores['cc']['unavailable']}/{scores['native']['unavailable']} | {helper} | "
+                f"{cost.get('cc_model_calls')} | {cost.get('native_model_calls')} |")
+        part_b += ['', 'These compare actual deterministic checking components with complete native application batches. '
+            'They do not measure a worker plus semantic verifier, E3, admission, or a full CC unit. '
+            'Each native batch is one trial; its artifact decisions are not independent native trials. '
+            'Selection changes the displayed decision scores, while calls and helper-control scores remain for the entire original batch. '
+            'No calls or monetary costs are allocated to individual decisions.', '',
+            'A quality tie with a zero-call ordinary Python helper is retained as a competent algorithm control. '
+            'The native model calls measure agent orchestration overhead here; they establish no intrinsic algorithm or quality advantage. '
+            'Original check rows, missing/duplicate/unexpected IDs, model receipts and batch populations remain in the dataset and `analysis.json`.', '']
+    else:
+        part_b += ['No component/native batch pair is selected.', '']
+    part_b += ['### Supplemental tool-free Codex comparisons', '']
     if gains:
         for gain in gains:
             part_b.append(f"- Assignment `{gain['assignment_sha256']}`: CC content {gain['cc_content']}, "
                 f"tool-free native Codex content {gain['baseline_content']}; delta {gain['delta']}. "
                 'Full format, binding and usage are retained separately.')
     else:
-        part_b.append('No original paired live result has been imported. Existing narrative checkpoints are historical context, not new measurements.')
+        part_b.append('No original supplemental tool-free pair has been imported. Historical narrative checkpoints are not new measurements.')
     helper_rows = [r for r in selected if r['record_kind'] == 'case_bank_observation']
     native_rows = [r for r in rows if r['record_kind'] == 'native_trial']
     if native_rows:
@@ -202,7 +294,7 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
             '| --- | --- | --- | --- | ---: | ---: | --- |']
         for row in native_rows:
             part_b.append(f"| {row['case_id']} | {row['arm']} | {row['status']} | {row['correct']} | "
-                f"{row['model_calls']} | {row['selected_tool_calls']} | {row['model_and_effort_verified']} |")
+                f"{row.get('model_calls')} | {row.get('selected_tool_calls')} | {row.get('model_and_effort_verified')} |")
         part_b += ['', 'These are native application qualification observations. They do not establish a CC-unit gain. '
             'The native baseline retains ordinary bundled skills; native-skills adds the supplied task skill.', '']
     if helper_rows:
