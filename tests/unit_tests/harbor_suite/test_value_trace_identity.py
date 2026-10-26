@@ -1,8 +1,10 @@
 import hashlib
+import io
 import json
+import zipfile
 
 from benchmarks.harbor_suite.contracts import canonical
-from benchmarks.harbor_suite.value_trace_identity import project_call, project_run
+from benchmarks.harbor_suite.value_trace_identity import project_archive, project_call, project_run
 
 
 def _ref(ident, raw):
@@ -146,3 +148,85 @@ def test_valid_trace_with_more_than_4096_events_is_still_projected():
     trace["summary_ref"] = _ref("summary-call-1", canonical(trace["summary"]))
     projected = project_call(**trace, expected_call_id="call-1")
     assert projected["comparison_eligible"] is True
+
+
+def _archive(path, *, call_ids, trace_ids):
+    """Write a tiny exact-Ref run-evidence archive for archive projector tests."""
+    members = {}
+    files = []
+
+    def add(zip_path, artifact_id, raw):
+        ref = _ref(artifact_id, raw)
+        members[zip_path] = raw
+        files.append({"artifact_ref": ref, "audience": "researcher",
+            "media_type": "application/json", "path": zip_path})
+        return ref
+
+    original_refs = {}
+    for call_id in call_ids:
+        raw = canonical({"id": call_id, "call_function": "worker"})
+        original_refs[call_id] = add("evidence/model-call-" + call_id + ".json", call_id, raw)
+
+    starts = {}
+    for call_id in sorted(set(call_ids) | set(trace_ids)):
+        start_id = call_id + ":start"
+        raw = canonical({"id": start_id, "call_id": call_id})
+        starts[call_id] = add("evidence/model-call-start-" + call_id + ".json", start_id, raw)
+
+    for call_id in trace_ids:
+        trace = _trace(call_id)
+        scope = trace["summary"]["scope"]
+        scope["model_call_start_ref"] = starts[call_id]
+        for row in trace["events"]:
+            row["event"]["scope"] = scope
+            row["event_ref"] = _ref("native-governed-trace-event:" + str(row["event"]["sequence"]),
+                                    canonical(row["event"]))
+        trace["summary"]["event_refs"] = [row["event_ref"] for row in trace["events"]]
+        trace["summary_ref"] = _ref("native-governed-trace:" + call_id, canonical(trace["summary"]))
+        event_index = []
+        for row in trace["events"]:
+            seq = row["event"]["sequence"]
+            add("records/" + call_id + "/" + f"{seq:08d}.event.json", row["event_ref"]["id"],
+                canonical(row["event"]))
+            add("records/" + call_id + "/" + f"{seq:08d}.packet", row["event"]["raw_ref"]["id"],
+                row["packet"])
+            event_index.append({"event_ref": row["event_ref"], "raw_ref": row["event"]["raw_ref"],
+                "sequence": seq})
+        summary_file_ref = add("records/" + call_id + "/summary.json",
+            "runs/run-1/trace/" + call_id + "/summary.json", canonical(trace["summary"]))
+        index = {"call_ref": original_refs.get(call_id, trace["call_ref"]),
+            "events": event_index, "model_call_start_ref": starts[call_id],
+            "schema": "ai4r-native-trace-file-index:2", "status": "completed",
+            "summary_file_ref": summary_file_ref, "summary_ref": trace["summary_ref"]}
+        index_path = "records/" + call_id + "/index.v2.json"
+        add(index_path, "runs/run-1/trace/" + call_id + "/index.v2.json", canonical(index))
+
+    retrieval = {"artifact_refs": [entry["artifact_ref"] for entry in files],
+        "audience": "researcher", "files": files, "id": "client-retrieval:1",
+        "redactions": [], "run_id": "run-1", "schema_version": "1.0.0"}
+    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("client_retrieval.json", canonical(retrieval))
+        for name, raw in members.items():
+            archive.writestr(name, raw)
+
+
+def test_project_archive_resolves_exact_model_call_trace_and_packet_refs(tmp_path):
+    source = tmp_path / "closed.zip"
+    _archive(source, call_ids=["call-1"], trace_ids=["call-1"])
+    result = project_archive(source)
+    assert result["original_model_calls"] == result["trace_indices"] == 1
+    assert result["projection"]["comparison_eligible"] is True
+    assert result["roles"] == {"worker": 1}
+    assert result["projection"]["calls"][0]["effective_effort"] == "medium"
+    assert result["closure_issues"] == []
+
+
+def test_project_archive_reports_missing_and_unexpected_trace_call_ids(tmp_path):
+    source = tmp_path / "incomplete.zip"
+    _archive(source, call_ids=["call-1", "call-2"], trace_ids=["call-1", "call-extra"])
+    result = project_archive(source)
+    assert result["projection"]["comparison_eligible"] is False
+    assert result["projection"]["missing_call_ids"] == ["call-2"]
+    assert result["unexpected_trace_call_ids"] == ["call-extra"]
+    assert "unassociated_trace_rows" in result["projection"]["reasons"]
+    assert "unexpected_model_call_start:call-extra" in result["closure_issues"]

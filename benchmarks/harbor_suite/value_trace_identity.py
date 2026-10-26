@@ -9,7 +9,11 @@ same-effort comparison.
 from __future__ import annotations
 
 import hashlib
+import argparse
+from collections import Counter
+from pathlib import Path, PurePosixPath
 from typing import Any
+import zipfile
 
 from .contracts import canonical, strict_json
 
@@ -24,6 +28,9 @@ SCOPE_FIELDS = {"run_id", "node_id", "subnode_id", "attempt_id", "execution_id",
 MAX_EVENTS = 8192
 MAX_PACKET_BYTES = 1024 * 1024
 MAX_TRACE_BYTES = 16 * 1024 * 1024
+MAX_ARCHIVE_MEMBERS = 100_000
+MAX_ARCHIVE_BYTES = 512 * 1024 * 1024
+MAX_MANIFEST_BYTES = 64 * 1024 * 1024
 
 
 def _ref(value: Any, label: str) -> dict:
@@ -302,3 +309,199 @@ def project_run(*, expected_call_ids: list[str], expected_call_refs: list[dict],
         "unexpected_call_ids": unexpected, "comparison_eligible": eligible,
         "reasons": reasons,
         "scope": "Original call-level native thread/start resolution and turn terminal only; not output-quality evidence."}
+
+
+def project_archive(path, *, expected_model="gpt-6.1-sol", expected_effort="medium") -> dict:
+    """Project model/effort identity directly from an original run-evidence ZIP.
+
+    The archive's client retrieval manifest is treated as an index only. Every
+    call, start, trace index, summary, event, and packet is resolved through an
+    exact exported Ref and digest-checked before the native call projector sees
+    it. No files are extracted and no model/provider summary is trusted.
+    """
+    archive = Path(path).absolute()
+    if archive.is_symlink() or not archive.is_file() or archive.stat().st_size > MAX_ARCHIVE_BYTES:
+        raise ValueError("bounded regular original run archive required")
+    try:
+        container = zipfile.ZipFile(archive)
+    except (OSError, zipfile.BadZipFile) as error:
+        raise ValueError("original run archive is unreadable") from error
+    with container as zf:
+        infos = zf.infolist()
+        names = [item.filename for item in infos]
+        if (len(infos) > MAX_ARCHIVE_MEMBERS or len(names) != len(set(names))
+                or sum(item.file_size for item in infos) > MAX_ARCHIVE_BYTES
+                or any(item.is_dir() or item.flag_bits & 1 for item in infos)):
+            raise ValueError("archive members are duplicated, encrypted, directories, or over bounded limits")
+        for name in names:
+            candidate = PurePosixPath(name)
+            if (candidate.is_absolute() or ".." in candidate.parts or "\\" in name
+                    or not candidate.parts):
+                raise ValueError("archive contains a noncanonical member path")
+        if names.count("client_retrieval.json") != 1:
+            raise ValueError("archive must contain one client_retrieval.json")
+        if zf.getinfo("client_retrieval.json").file_size > MAX_MANIFEST_BYTES:
+            raise ValueError("client retrieval manifest exceeds its byte bound")
+        manifest = strict_json(zf.read("client_retrieval.json"))
+        if type(manifest) is not dict or type(manifest.get("files")) is not list:
+            raise ValueError("client retrieval manifest has no files list")
+        entries = manifest["files"]
+        by_path = {}
+        by_id: dict[str, dict[str, list[dict]]] = {}
+        for entry in entries:
+            if type(entry) is not dict or not isinstance(entry.get("path"), str):
+                raise ValueError("client manifest contains a malformed file entry")
+            rel = PurePosixPath(entry["path"])
+            ref = _ref(entry.get("artifact_ref"), "client manifest artifact")
+            if (rel.is_absolute() or ".." in rel.parts or "\\" in entry["path"]
+                    or entry["path"] not in names or entry["path"] == "client_retrieval.json"
+                    or entry["path"] in by_path):
+                raise ValueError("client manifest path is missing, duplicated, or noncanonical")
+            by_path[entry["path"]] = entry
+            by_id.setdefault(ref["id"], {}).setdefault(ref["sha256"], []).append(entry)
+        if set(by_path) != set(names) - {"client_retrieval.json"}:
+            raise ValueError("client manifest does not cover exactly the archive members")
+
+        def read_ref(ref, label, *, max_bytes=MAX_TRACE_BYTES):
+            ref = _ref(ref, label)
+            options = by_id.get(ref["id"], {}).get(ref["sha256"], [])
+            if not options:
+                raise ValueError(f"{label} Ref is absent from the exported client manifest")
+            for option in options:
+                info = zf.getinfo(option["path"])
+                if info.file_size > max_bytes:
+                    continue
+                raw = zf.read(option["path"])
+                if _digest(raw) == ref["sha256"]:
+                    return raw
+            raise ValueError(f"{label} bytes do not match the exact exported Ref")
+
+        # These are the original terminal model-call records. Start records are
+        # deliberately excluded from the measured call inventory.
+        call_entries = [entry for entry in entries
+            if entry["path"].startswith("evidence/model-call-")
+            and entry["path"].endswith(".json")
+            and not entry["path"].startswith("evidence/model-call-start-")]
+        call_records = []
+        for entry in call_entries:
+            ref = entry["artifact_ref"]
+            record = strict_json(read_ref(ref, "original model-call", max_bytes=1024 * 1024))
+            if type(record) is not dict or record.get("id") != ref["id"]:
+                raise ValueError("original model-call record does not match its artifact Ref")
+            call_records.append((ref, record))
+        call_records.sort(key=lambda pair: pair[0]["id"])
+        call_ids = [ref["id"] for ref, _ in call_records]
+        call_refs = [ref for ref, _ in call_records]
+        if not call_ids or len(set(call_ids)) != len(call_ids):
+            raise ValueError("archive has no unique original model-call inventory")
+
+        start_entries = [entry for entry in entries
+            if entry["path"].startswith("evidence/model-call-start-")
+            and entry["path"].endswith(".json")]
+        starts: dict[str, list[dict]] = {}
+        for entry in start_entries:
+            ref = entry["artifact_ref"]
+            record = strict_json(read_ref(ref, "original model-call start", max_bytes=1024 * 1024))
+            if type(record) is not dict or record.get("id") != ref["id"]:
+                raise ValueError("original model-call start does not match its artifact Ref")
+            start_id = record.get("call_id")
+            if not isinstance(start_id, str) or not start_id or ref["id"] != start_id + ":start":
+                raise ValueError("original model-call start is not attached to its exact call ID")
+            starts.setdefault(start_id, []).append(ref)
+
+        closure_issues = []
+        expected_set = set(call_ids)
+        for call_id in call_ids:
+            if len(starts.get(call_id, [])) != 1:
+                closure_issues.append("model_call_start_missing_or_duplicate:" + call_id)
+        for call_id in sorted(set(starts) - expected_set):
+            closure_issues.append("unexpected_model_call_start:" + call_id)
+
+        trace_indices = []
+        trace_index_call_ids = []
+        for entry in entries:
+            if not entry["path"].endswith("/index.v2.json"):
+                continue
+            index_raw = read_ref(entry["artifact_ref"], "native trace index", max_bytes=4 * 1024 * 1024)
+            index = strict_json(index_raw)
+            required = {"call_ref", "events", "model_call_start_ref", "schema", "status",
+                        "summary_file_ref", "summary_ref"}
+            if type(index) is not dict or set(index) != required or index.get("schema") != "ai4r-native-trace-file-index:2":
+                raise ValueError("native trace index has an unsupported schema or shape")
+            call_ref = _ref(index["call_ref"], "native trace index call")
+            call_id = call_ref["id"]
+            trace_index_call_ids.append(call_id)
+            start_ref = _ref(index["model_call_start_ref"], "native trace index start")
+            known_starts = starts.get(call_id, [])
+            if len(known_starts) != 1 or known_starts[0] != start_ref:
+                closure_issues.append("trace_model_call_start_ref_mismatch:" + call_id)
+
+            summary_file_ref = _ref(index["summary_file_ref"], "native trace summary file")
+            summary_raw = read_ref(summary_file_ref, "native trace summary file", max_bytes=4 * 1024 * 1024)
+            summary = strict_json(summary_raw)
+            summary_ref = _ref(index["summary_ref"], "native trace summary")
+            if summary_ref["sha256"] != summary_file_ref["sha256"]:
+                raise ValueError("native trace summary Refs disagree on their content digest")
+            scope = summary.get("scope") if type(summary) is dict else None
+            if type(scope) is not dict or scope.get("model_call_start_ref") != start_ref:
+                closure_issues.append("summary_model_call_start_ref_mismatch:" + call_id)
+            if index["status"] != summary.get("status"):
+                raise ValueError("native trace index and summary statuses disagree")
+            indexed_events = index["events"]
+            if type(indexed_events) is not list or len(indexed_events) > MAX_EVENTS:
+                raise ValueError("native trace index exceeds its bounded event count")
+            event_rows = []
+            for sequence, indexed in enumerate(indexed_events):
+                if (type(indexed) is not dict or set(indexed) != {"event_ref", "raw_ref", "sequence"}
+                        or type(indexed["sequence"]) is not int or indexed["sequence"] != sequence):
+                    raise ValueError("native trace index has a malformed event row")
+                event_ref = _ref(indexed["event_ref"], "native trace event")
+                event_raw = read_ref(event_ref, "native trace event", max_bytes=1024 * 1024)
+                event = strict_json(event_raw)
+                raw_ref = _ref(indexed["raw_ref"], "native packet")
+                packet = read_ref(raw_ref, "native packet", max_bytes=MAX_PACKET_BYTES)
+                if type(event) is not dict or event.get("raw_ref") != raw_ref:
+                    raise ValueError("native trace event packet Ref differs from the index")
+                event_rows.append({"event_ref": event_ref, "event": event, "packet": packet})
+            trace_indices.append({"call_ref": call_ref, "summary_ref": summary_ref,
+                "summary": summary, "events": event_rows})
+
+        projection = project_run(expected_call_ids=call_ids, expected_call_refs=call_refs,
+            traces=trace_indices, expected_model=expected_model, expected_effort=expected_effort)
+        if closure_issues:
+            projection["comparison_eligible"] = False
+            projection["reasons"] = list(dict.fromkeys(projection["reasons"] + ["model_call_start_closure_invalid"]))
+        role_by_id = {ref["id"]: record.get("call_function") for ref, record in call_records}
+        projection["calls"] = [{**call, "call_function": role_by_id.get(call.get("call_id"))}
+                                for call in projection["calls"]]
+        return {"schema": "ai4r-native-trace-archive-projection:1",
+            "source_archive": {"filename": archive.name, "sha256": _digest(archive.read_bytes()),
+                "bytes": archive.stat().st_size, "zip_members": len(names),
+                "manifest_files": len(entries)},
+            "original_model_calls": len(call_ids), "trace_indices": len(trace_indices),
+            "trace_index_call_ids": trace_index_call_ids,
+            "unexpected_trace_call_ids": sorted(set(trace_index_call_ids) - expected_set),
+            "closure_issues": closure_issues,
+            "roles": dict(Counter(role_by_id.values())), "projection": projection}
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--archive", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args(argv)
+    if args.archive.resolve() == args.output.resolve():
+        parser.error("projection output must be separate from the immutable source archive")
+    result = project_archive(args.archive)
+    from .value_data import write_once
+    output = (canonical(result) + b"\n")
+    write_once(args.output, output, raw=True)
+    print(__import__("json").dumps({"output": str(args.output),
+        "comparison_eligible": result["projection"]["comparison_eligible"],
+        "original_model_calls": result["original_model_calls"],
+        "trace_indices": result["trace_indices"], "reasons": result["projection"]["reasons"]}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
