@@ -1,0 +1,23 @@
+{
+  "schema": "ai4r-demo-manifest:1",
+  "demo": "case2-gpu",
+  "campaign_id": null,
+  "runner_case_file": "/cases/demos-20261023/case2-gpu.json",
+  "case_sha256": "aaf4f78703022156c912f2e58ae0f8ed9ce8d49bc13c35ebecf4e5f72867f3aa",
+  "checkout_commit": "f7b31c6796191c5a80804a9484b031bc671bc6db",
+  "app_build_id": "db45a807a314ef5aab1f69090b1a5bd8d0f7c1eed878cc857885518ef4780ca4",
+  "app_image": "sha256:c8eeba69e0d45968d1e18dfe281f6c66f91053ff8e258d231295eb552dd1a613",
+  "runner_image": "sha256:193c0ae0cffb95557424faec618bc944fb87d2b08cac78921f1190f8e0358992",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "model_requested": "gpt-6.1-sol",
+  "model_observed": null,
+  "status": "NOT_RUN",
+  "reason": "User explicitly deferred GPU execution; build only.",
+  "reviewer_material_sent_to_app": false,
+  "quality_assessment": null,
+  "runtime_metadata_source": "host-preflight.json and per-run runtime-environment.json; actual model must be read from saved events",
+  "execution_host": null,
+  "timings_measured": false,
+  "app_run_id": null,
+  "host_inventory_only": "LAPTOP-MFQ6O7IF has an RTX 4060 Laptop GPU; no experiment ran on this host. The current app container lacks a GPU device binding and PyTorch."
+}

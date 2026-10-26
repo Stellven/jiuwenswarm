@@ -1,0 +1,5 @@
+{
+  "status": "NOT_SCORED",
+  "reason": "The app halted at the Requirements gate before training, predictions or blind-test scoring. No predictions.csv exists in the collected run. Reviewer reference predictions are calibration only.",
+  "human_quality_assessment": null
+}

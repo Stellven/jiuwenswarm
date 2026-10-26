@@ -1,0 +1,45 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "subject_output matches research_report: a nonempty Markdown string within the length limit, with a # title and exactly five nonempty H2 sections named Problem, Method, Results, Contributions, and Limitations."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "Method and Results consistently distinguish 120 primary revision pairs from 116 common-success articles; Results accounts for the difference with four Chinese CDC failures. Results also distinguishes the 68.4% common-success value from the 67.1% all-primary value. No conflicting local ID references appear."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "Limitations agrees with Method and Results about frozen-setting retrieval evaluation, parameter-dependent workload rankings, unaudited token alignment, and the diagnostic rather than causal interpretation of boundary drift."
+    },
+    {
+      "criterion_id": "paper_delivery_sections",
+      "outcome": "PASS",
+      "reason": "subject_output contains a Markdown title and all five required nonempty sections: Problem, Method, Results, Contributions, and Limitations."
+    },
+    {
+      "criterion_id": "paper_delivery_citations",
+      "outcome": "PASS",
+      "reason": "Problem, Method, Results, Contributions, and Limitations each end with one concise Sources line containing deduplicated readable PDF/page citations. subject_output contains no raw extracted quotation blocks or appended internal citation IDs."
+    },
+    {
+      "criterion_id": "paper_delivery_honesty",
+      "outcome": "PASS",
+      "reason": "Problem, Method, Results, and Contributions present the benchmark and experiments as work reported by the paper. Limitations qualifies the conclusions; subject_output claims no new reviewer experiment, scientific acceptance, or unseen source inspection."
+    },
+    {
+      "criterion_id": "paper_delivery_usable",
+      "outcome": "PASS",
+      "reason": "subject_output is readable Markdown with descriptive paragraphs organized under Problem, Method, Results, Contributions, and Limitations, and clearly separated Sources lines."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Review is limited to the declaration and subject_output text; source fidelity, prose preservation, citation entailment, experimental truth, and permissions are not assessed.",
+    "References in Contributions to a research artifact do not establish that artifact's contents or successful delivery."
+  ],
+  "required_correction": null
+}

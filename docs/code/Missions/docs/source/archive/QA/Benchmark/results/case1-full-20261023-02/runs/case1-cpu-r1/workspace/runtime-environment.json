@@ -1,0 +1,28 @@
+{
+  "schema": "demo-runtime-provenance:1",
+  "captured_at": "2026-10-23T18:51:29.373835+00:00",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "host_os": "Windows-11-10.0.22631-SP0",
+  "host_architecture": "AMD64",
+  "checkout_commit": "125dafc57437700dc32005f5e2403a0aa00a519f",
+  "checkout_dirty": true,
+  "app_build_id": "000f7b585cb496bd685276838c55499c5ae46904d1fb33a7502f38c70aeac425",
+  "app_image": "sha256:d0a83e9a298302c6685f3d28a702785d02a89ad8b1c91c6d046d4cfe1ec7ca57",
+  "runner_image": "sha256:faab1f7b5350d5bc53e4cb6065247af909609d6e17603b65c52379f0987bc09a",
+  "declared_model": "gpt-6.1-sol",
+  "observed_model": null,
+  "source_note": "Full Case 1 rerun after canonical metric-contract deployment. Task and three uploaded public inputs are unchanged. Reviewer labels are not uploaded. Source checkout has uncommitted metric-contract changes; deployed build identity records exact installed bytes. No further app changes during this rerun.",
+  "runner_hostname": "c4966a14caff",
+  "runner_os": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+  "runner_architecture": "x86_64",
+  "runner_python": "3.12.15",
+  "runner_uid": 11001,
+  "runner_package_versions": {
+    "httpx": "0.28.1",
+    "jsonschema": "4.26.0",
+    "psutil": "7.2.2",
+    "numpy": null,
+    "scikit-learn": null,
+    "torch": null
+  }
+}

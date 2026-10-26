@@ -1,0 +1,1 @@
+Gaussian ten-feature data; binary noisy linear decision boundary; random split 1400 train / 600 blind test. Seed and reference measurements are reviewer-only. No seed selection loop or app solution was supplied.

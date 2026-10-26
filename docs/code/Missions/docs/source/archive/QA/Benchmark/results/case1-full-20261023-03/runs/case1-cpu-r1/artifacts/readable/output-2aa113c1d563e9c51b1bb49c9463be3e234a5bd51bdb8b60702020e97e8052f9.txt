@@ -1,0 +1,30 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, request_ref, interpretation, context, in_scope, out_of_scope, constraints, preferences, user_targets, context_refs, uncertainties and readiness satisfy the declared fields and shapes. interpretation.problem permits null; source_spans and reference objects have the required structure."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "interpretation.desired_change, in_scope and user_targets agree on the comparison and accuracy target. interpretation.requested_result and constraints agree on deliverables. source_spans.source_ref consistently matches request_ref or context_refs, and local IDs are distinct."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "context.role describes unlabelled test data; constraints explicitly describe validation comparison and prohibit invented test accuracy. These limitations are coherent with interpretation.desired_change, user_targets and the empty uncertainties array."
+    },
+    {
+      "criterion_id": "uncertainty_consistency",
+      "outcome": "PASS",
+      "reason": "readiness.status is ready, readiness.reason states that no blocking uncertainty is identified, and uncertainties is empty."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Assessment is limited to the supplied declaration and output; request_ref, context_refs and source_spans were assessed only for visible structure and internal agreement.",
+    "readiness was assessed only for consistency with uncertainties and other output fields."
+  ],
+  "required_correction": null
+}

@@ -1,0 +1,32 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "The id field identifies the opportunity_card port. All required fields are present, with valid types, lengths, ranges and reference shapes; no extra fields appear."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "scores.total equals scores.novelty + scores.feasibility + scores.compute_alignment (10). rank and other_dispositions agree on first and second placement, and summary, opportunity_statement and constraints describe compatible preprocessing boundaries."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "assumptions explicitly marks preprocessing sensitivity and representativeness as unproved. summary uses conditional language, risks acknowledges instability and validation reuse, and opportunity_statement proposes an assessment without claiming measured accuracy or established score correctness."
+    },
+    {
+      "criterion_id": "opportunity_statement_complete",
+      "outcome": "PASS",
+      "reason": "opportunity_statement names held-out information contaminating the accuracy comparison as the bottleneck and training-partition-only preprocessing fitting with frozen validation transformations as the mechanism."
+    }
+  ],
+  "uncertainties": [
+    "other_dispositions describes a score tie whose underlying second score is not included in this output."
+  ],
+  "limitations": [
+    "candidate_ref, screening_ref and brief_ref are references only; their contents and cross-artifact agreement cannot be assessed.",
+    "Review is limited to the declared shape and visible consistency of this single output."
+  ],
+  "required_correction": null
+}

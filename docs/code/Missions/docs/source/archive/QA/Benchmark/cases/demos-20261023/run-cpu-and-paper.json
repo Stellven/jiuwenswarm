@@ -1,0 +1,106 @@
+{
+  "schema_version": "sequential-cases:1",
+  "policy": "continue",
+  "cases": [
+    {
+      "id": "case1-cpu",
+      "task": "Using only the attached data, test whether logistic regression beats a 1-nearest-neighbour baseline by at least 5 points accuracy. Train on train.csv, write predictions for test.csv to predictions.csv, and report your conclusion and limitations.",
+      "inputs": [
+        {
+          "path": "demos-20261023/case1-cpu/test.csv",
+          "destination": "test.csv",
+          "kind": "datasets"
+        },
+        {
+          "path": "demos-20261023/case1-cpu/train.csv",
+          "destination": "train.csv",
+          "kind": "datasets"
+        },
+        {
+          "path": "demos-20261023/case1-cpu/data-description.md",
+          "destination": "data-description.md",
+          "kind": "docs"
+        },
+        {
+          "path": "demos-20261023/case1-cpu/provenance.py",
+          "destination": "provenance.py",
+          "upload": false
+        },
+        {
+          "path": "demos-20261023/case1-cpu/runtime-meta.json",
+          "destination": "runtime-meta.json",
+          "upload": false
+        }
+      ],
+      "setup": [
+        {
+          "id": "capture-runtime",
+          "trusted": true,
+          "command": [
+            "python",
+            "inputs/provenance.py"
+          ],
+          "outputs": [
+            "runtime-environment.json"
+          ],
+          "timeout_s": 20
+        }
+      ],
+      "repeats": 1,
+      "limits": {
+        "deadline_s": 600,
+        "poll_s": 2,
+        "command_timeout_s": 30,
+        "command_cpu_s": 30,
+        "command_memory_mb": 512,
+        "max_total_bytes": 134217728,
+        "max_artifact_bytes": 67108864
+      }
+    },
+    {
+      "id": "case3-paper",
+      "task": "Using only the attached paper (chunk-recomputation-2610.31019.pdf), summarize its main claims, the evidence for each with section or table references, and the limitations the authors state. Then answer: (1) On how many of the Chinese articles did content-defined chunking fail? (2) What fraction of the embedding workload did fixed-size chunking recompute for Chinese and for English articles? (3) How many revision pairs are in the primary benchmark, and how many articles are in the common-success pool processed by all three chunkers?",
+      "inputs": [
+        {
+          "path": "demos-20261023/case3-paper/chunk-recomputation-2610.31019.pdf",
+          "destination": "chunk-recomputation-2610.31019.pdf",
+          "kind": "docs"
+        },
+        {
+          "path": "demos-20261023/case3-paper/provenance.py",
+          "destination": "provenance.py",
+          "upload": false
+        },
+        {
+          "path": "demos-20261023/case3-paper/runtime-meta.json",
+          "destination": "runtime-meta.json",
+          "upload": false
+        }
+      ],
+      "setup": [
+        {
+          "id": "capture-runtime",
+          "trusted": true,
+          "command": [
+            "python",
+            "inputs/provenance.py"
+          ],
+          "outputs": [
+            "runtime-environment.json"
+          ],
+          "timeout_s": 20
+        }
+      ],
+      "repeats": 1,
+      "limits": {
+        "deadline_s": 600,
+        "poll_s": 2,
+        "command_timeout_s": 30,
+        "command_cpu_s": 30,
+        "command_memory_mb": 512,
+        "max_total_bytes": 134217728,
+        "max_artifact_bytes": 67108864
+      }
+    }
+  ]
+}

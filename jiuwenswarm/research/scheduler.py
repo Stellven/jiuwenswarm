@@ -237,7 +237,7 @@ class Scheduler:
                     starts = [item['record'] for item in self.store.iter_records(run_id=run_id,kinds=('model-call-start',))
                         if item['record'].get('contract_ref') == observed['contract_ref']
                         and item['record'].get('invocation_id') == offered.get('invocation_id')]
-                    agent_builder = selected['cc']['cc_version'] in {'m1-14','m1-15','m1-16','m1-17'}
+                    agent_builder = selected['cc']['cc_version'] in {'m1-14','m1-15','m1-16','m1-17','m1-18'}
                     loop_builder = (selected['cc']['cc_version'] == 'm1-13' and
                         self.store.read_record(producing['bindings'][0]['declaration_ref'])['identity']['carrier']['ref'] == 'builder_loop.py')
                     if (producing['node_contract_ref'] != proof['parent_ref'] or producing['subnode_id'] != name

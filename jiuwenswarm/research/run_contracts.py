@@ -5,7 +5,8 @@ from .metric_contract import PROTOCOL_FILE, PROTOCOL_SCHEMA
 
 
 KINDS = {'research-brief', 'run-plan', 'node-execution-contract',
-         'subnode-execution-contract', 'bound-check-plan', 'metric-protocol', 'run-model-selection'}
+         'subnode-execution-contract', 'bound-check-plan', 'metric-protocol', 'run-model-selection',
+         'automatic-route-decision', 'node-routing-budget'}
 
 
 def contract_export_files(store, run, records, audience, restricted):
@@ -23,6 +24,13 @@ def contract_export_files(store, run, records, audience, restricted):
             originals[ref['sha256']]=('manual-model-deployment',ref,deployment)
             endpoint_ref=deployment['endpoint_ref']
             originals[endpoint_ref['sha256']]=('manual-model-endpoint',endpoint_ref,store.read_record(endpoint_ref))
+        if row['kind'] == 'run-model-selection' and value.get('mode') == 'automatic':
+            for candidate in value['candidates']:
+                ref = candidate['deployment_ref']
+                deployment = store.read_record(ref)
+                originals[ref['sha256']] = ('routing-model-deployment', ref, deployment)
+                endpoint = deployment['endpoint_ref']
+                originals[endpoint['sha256']] = ('routing-model-endpoint', endpoint, store.read_record(endpoint))
         if row['kind'] == 'subnode-execution-contract':
             for binding in value['bindings']:
                 declaration = store.read_record(binding['declaration_ref'], contract_id='capsule-declaration')

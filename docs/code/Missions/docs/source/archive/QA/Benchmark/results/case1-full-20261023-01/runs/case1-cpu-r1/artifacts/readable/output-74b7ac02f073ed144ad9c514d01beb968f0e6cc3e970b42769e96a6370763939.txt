@@ -1,0 +1,51 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, nodes, coverage, references, topic_hints, limits and notes satisfy the declared required fields, types, patterns and bounds, with no extra fields."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "nodes.node_id values are unique; predecessors, inputs.future and coverage.node_ids resolve internally. coverage agrees with node tags, and limits.time_s and limits.model_calls equal the node totals."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "nodes.objective distinguishes measured validation results from unavailable test labels and avoids asserting a test accuracy; notes is empty and introduces no conflicting limitation."
+    },
+    {
+      "criterion_id": "graph_self_consistent",
+      "outcome": "PASS",
+      "reason": "nodes.predecessors and inputs.future.producer_node form a resolved acyclic graph; every future producer is a listed predecessor."
+    },
+    {
+      "criterion_id": "output_ports_named",
+      "outcome": "PASS",
+      "reason": "Every inputs.future.port matches the referenced producer's outputs.name, and inputs.artifact_type, inputs.future.artifact_type and producer outputs.artifact_type agree."
+    },
+    {
+      "criterion_id": "coverage_tags_present",
+      "outcome": "PASS",
+      "reason": "Every nodes entry has nonempty requirement_ids; builder, benchmark, evaluation and delivery also have deliverable_ids."
+    },
+    {
+      "criterion_id": "coverage_map_consistent",
+      "outcome": "PASS",
+      "reason": "coverage.node_ids exactly invert nodes.requirement_ids and nodes.deliverable_ids for each listed item_id. coverage contains no evidence_obligation entries."
+    },
+    {
+      "criterion_id": "no_authority_claims",
+      "outcome": "PASS",
+      "reason": "nodes.objective describes planned results without commands or authority claims; notes and every nodes.suggested_checks are empty."
+    }
+  ],
+  "uncertainties": [
+    "brief_ref, library_snapshot_ref, resource_inventory_ref and policy_ref cannot be resolved from the supplied pair."
+  ],
+  "limitations": [
+    "Assessment covers only the supplied declaration and subject_output; external bindings for inputs.run_input_key and cc pins are not established."
+  ],
+  "required_correction": null
+}

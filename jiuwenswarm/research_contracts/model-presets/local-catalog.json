@@ -1,0 +1,32 @@
+[
+  {
+    "id": "e4b",
+    "name": "Nemotron 3.5 Bolt E4B",
+    "weights": "nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-4GB",
+    "precision": "Q4_K_M",
+    "family": "nvidia",
+    "selector": true,
+    "verifier": false,
+    "description": "Small local model for routing, extraction, classification and simple capsule work. Also eligible as an executor."
+  },
+  {
+    "id": "qwen",
+    "name": "Qwen3.8 27B FP8",
+    "weights": "Qwen/Qwen3.8-27B-FP8",
+    "precision": "FP8",
+    "family": "qwen",
+    "selector": false,
+    "verifier": true,
+    "description": "General local model for document analysis, requirements, coding and independent verification."
+  },
+  {
+    "id": "bolt",
+    "name": "Nemotron 3.5 Bolt 74B",
+    "weights": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-GGUF",
+    "precision": "IQ2_XXS (official 24GB release)",
+    "family": "nvidia",
+    "selector": false,
+    "verifier": false,
+    "description": "Larger local MoE model for harder planning, reasoning and code tasks. Not a measured performance ranking."
+  }
+]

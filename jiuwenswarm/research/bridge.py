@@ -16,6 +16,7 @@ import secrets
 import stat
 import uuid
 import json
+import weakref
 from datetime import datetime, timezone
 from time import monotonic
 from typing import Mapping
@@ -23,6 +24,7 @@ from pathlib import Path
 
 from .router_client import (CodexRouter, RouteChoice, PlatformIntegrityError, MAX_IPC_FRAME_BYTES,
                             close_writer, encode_frame, peer_credentials, read_frame)
+from .contracts import ResearchError
 
 
 class BridgeError(RuntimeError):
@@ -86,7 +88,8 @@ class GovernedBridge:
     def __init__(self, *, persist, authorize, subscription_service, router_port=None,
                  providers=None, fixed_route_id="codex-cli-default", validate_record=None,
                  builder_launcher=None, health_check=None, revalidate=None, read_evidence=None,
-                 capture_native=None, manual_models=None):
+                 capture_native=None, manual_models=None, automatic_routing=None,
+                 authorize_routing_selection=None):
         self.persist, self.authorize = persist, authorize
         self.subscription = subscription_service
         self.router = router_port or CodexRouter(fixed_route_id)
@@ -99,7 +102,10 @@ class GovernedBridge:
         self.read_evidence = read_evidence
         self.capture_native = capture_native
         self.manual_models = manual_models
+        self.automatic_routing = automatic_routing
+        self.authorize_routing_selection = authorize_routing_selection
         self._active_calls={};self._contained_runs=set();self._uncertain_runs=set()
+        self._routing_locks=weakref.WeakValueDictionary()
 
     async def _require_capture(self):
         if self.health_check is not None and await _resolved(self.health_check()) is not True:
@@ -121,7 +127,7 @@ class GovernedBridge:
         required = ("run_id", "node_id", "subnode_id", "attempt_id", "invocation_id", "execution_id", "call_id")
         if not isinstance(context, Mapping) or any(not isinstance(context.get(k), str) or not context[k] for k in required):
             raise PlatformIntegrityError("PROTECTED_CALL_CONTEXT_INVALID")
-        if context.get("call_function") not in {"worker", "verifier", "planner"}:
+        if context.get("call_function") not in {"worker", "verifier", "planner", "routing_selection"}:
             raise PlatformIntegrityError("CALL_FUNCTION_INVALID")
         for field in ("model_selection_profile_ref", "deployment_ref", "call_claim_ref", "contract_ref"):
             if not _is_ref(context.get(field)):
@@ -159,6 +165,10 @@ class GovernedBridge:
         except BridgeError as exc:
             if exc.code=='CONTAINMENT_UNCERTAIN':self._uncertain_runs.add(run_id)
             raise
+        except ResearchError as exc:
+            if exc.code in {'invalid_request', 'integrity_fault'}:
+                raise PlatformIntegrityError('AUTOMATIC_ROUTING_CONTEXT_INVALID') from None
+            raise BridgeError(exc.code) from None
         finally:
             self._active_calls[run_id].discard(task)
 
@@ -246,24 +256,108 @@ class GovernedBridge:
         except Exception:raise BridgeError('AUDIT_UNAVAILABLE') from None
         call_record['evidence_refs'].append(ref)
 
+    async def _automatic_choice(self, protected, prompt, deadline):
+        key=tuple(protected[k] for k in ('run_id','execution_id','invocation_id'))
+        lock=self._routing_locks.setdefault(key,asyncio.Lock())
+        async with lock:
+            return await self._automatic_choice_locked(protected,prompt,deadline)
+
+    async def _automatic_choice_locked(self, protected, prompt, deadline):
+        owner = self.automatic_routing
+        prepared = owner.prepare(protected, prompt)
+        if prepared is None:
+            return None
+        selected = prepared['baseline']
+        reason = 'Fixed compatible baseline'
+        method, failure, selection_call_ref = 'compatible_baseline', None, None
+        prior=owner.invocation_choice(prepared,protected)
+        if protected['call_function'] == 'verifier':
+            method, reason = 'fixed_verifier', 'Independent verifier uses the frozen compatible baseline'
+        elif prior is not None:
+            selected, origin = prior
+            method, reason = 'pinned_invocation', 'Retain the executor selected for this exact Capsule invocation'
+            selection_call_ref=origin['record'].get('selection_call_ref')
+        elif len(prepared['eligible']) == 1:
+            method, reason = 'single_candidate', 'Only one authorized compatible executor'
+        elif prepared['selector'] is None:
+            failure = 'LIGHTWEIGHT_SELECTOR_UNAVAILABLE'
+        else:
+            try:
+                if self.authorize_routing_selection is None:
+                    raise BridgeError('invalid_request')
+                selection_context = await _resolved(self.authorize_routing_selection({
+                    **{key: protected[key] for key in ('execution_id', 'invocation_id', 'call_id', 'call_claim_ref', 'contract_ref')},
+                    'prompt_sha256': hashlib.sha256(prepared['prompt'].encode()).hexdigest(),
+                }))
+                self._check_context(selection_context)
+                selection_deadline = min(deadline, selection_context['execution_deadline_monotonic_s'])
+                result = await self._call_protected(selection_context, prepared['prompt'], selection_deadline)
+                selection_call_ref = result['call_ref']
+                selected, reason = owner.decode(result['text'], prepared['eligible'])
+                method = 'bounded_llm_selection'
+            except asyncio.CancelledError:
+                raise
+            except Exception as error:
+                code = getattr(error, 'code', None)
+                if isinstance(error, ResearchError) and code in {'invalid_request', 'integrity_fault'}:
+                    raise PlatformIntegrityError('ROUTING_SELECTION_CONTEXT_INVALID') from None
+                if isinstance(error, PlatformIntegrityError) or code in {'AUDIT_UNAVAILABLE', 'CONTAINMENT_UNCERTAIN', 'cancelled'}:
+                    raise
+                selection_call_ref = getattr(error, 'call_ref', None) or selection_call_ref
+                failure = 'INVALID_SELECTOR_REPLY' if isinstance(error, ValueError) else code or 'SELECTOR_UNAVAILABLE'
+                reason = 'Compatible baseline selected before executor dispatch; selector could not return a valid choice'
+        decision = {
+            'schema': 'ai4r-automatic-route:1', 'id': 'automatic-route:' + uuid.uuid4().hex,
+            **{key: protected[key] for key in ('run_id', 'node_id', 'subnode_id', 'invocation_id', 'execution_id')},
+            'subject_call_id': protected['call_id'], 'contract_ref': protected['contract_ref'],
+            'run_model_selection_id': prepared['snapshot']['id'],
+            'eligible_candidate_ids': [c['id'] for c in prepared['eligible']], 'exclusions': prepared['rejected'],
+            'selected_candidate_id': selected['id'], 'selected_model_id': selected['model_id'],
+            'access_way': selected['access_way'], 'deployment_ref': selected['deployment_ref'],
+            'selection_method': method, 'reason': reason, 'selector_failure': failure,
+            'selection_call_ref': selection_call_ref, 'recorded_at': utc_now(),
+            'invocation_decision_ref': prior[1]['ref'] if prior is not None else None,
+        }
+        ref = await self._capture('automatic-route-decision', decision, context=protected)
+        return prepared, selected, ref, method
+
     async def _call_protected(self,protected,prompt,deadline):
         # Keep this host-derived scalar independently of the route adapter's
         # view. Caller-supplied identity/ordinal never supplies payload authority.
         expected_prompt_sha256=protected.get('expected_prompt_sha256')
+        if expected_prompt_sha256 is not None and hashlib.sha256(prompt.encode('utf-8')).hexdigest() != expected_prompt_sha256:
+            raise PlatformIntegrityError('MODEL_PROMPT_BINDING_INVALID')
         # These immutable Builder releases are tool-free text generators. Their trusted
         # carrier packages returned file bytes; only the original tool-using
         # release enters the dedicated, credential-isolated Builder launcher.
         is_builder = (protected.get("cc_name") == "research.builder"
-                      and protected.get("cc_version") not in {"m1-2", "m1-3", "m1-4", "m1-5", "m1-6", "m1-7", "m1-8", "m1-9", "m1-10", "m1-11", "m1-12", "m1-13", "m1-14", "m1-15", "m1-16", "m1-17"})
+                      and protected.get("cc_version") not in {"m1-2", "m1-3", "m1-4", "m1-5", "m1-6", "m1-7", "m1-8", "m1-9", "m1-10", "m1-11", "m1-12", "m1-13", "m1-14", "m1-15", "m1-16", "m1-17", "m1-18"})
         if is_builder and self.builder_launcher is None:
             raise BridgeError("ENVIRONMENT_BLOCKED")
         remaining=deadline-monotonic()
         if remaining<=0:raise BridgeError('timeout')
         manual = self.manual_models.for_call(protected) if self.manual_models is not None else None
         chatgpt = self.manual_models.chatgpt_for_call(protected) if self.manual_models is not None else None
+        automatic = None
+        pinned_selector = protected.get('routing_selection_candidate')
+        if pinned_selector is not None:
+            if (protected.get('purpose') != 'routing_selection' or protected['call_function'] != 'routing_selection'
+                    or self.automatic_routing is None):
+                raise PlatformIntegrityError('INVALID_ROUTING_SELECTION_CONTEXT')
+            manual, chatgpt = self.automatic_routing.transport(pinned_selector)
+        elif self.automatic_routing is not None:
+            automatic = await self._automatic_choice(protected, prompt, deadline)
+            if automatic is not None:
+                manual, chatgpt = self.automatic_routing.transport(automatic[1])
         try:
             async with asyncio.timeout(min(30,remaining)):
-                if chatgpt is not None:
+                if automatic is not None or pinned_selector is not None:
+                    selected = automatic[1] if automatic is not None else pinned_selector
+                    if is_builder:
+                        raise BridgeError('invalid_request')
+                    choice = RouteChoice(selected['model_id'], 'router', None,
+                        route_decision_ref=automatic[2] if automatic is not None else None)
+                elif chatgpt is not None:
                     if is_builder:
                         raise BridgeError('invalid_request')
                     choice = RouteChoice(chatgpt['chatgpt_model'], 'codex_router_disabled', None)
@@ -278,12 +372,16 @@ class GovernedBridge:
         except TimeoutError:
             choice=RouteChoice(self.fixed_route_id,'codex_router_failed','timeout')
         route_id = "route-" + uuid.uuid4().hex
-        route = {"schema_version": "2.0.0" if manual is not None else "1.0.0", "route_id": route_id,
+        auto_route = automatic is not None or pinned_selector is not None
+        route = {"schema_version": "3.0.0" if auto_route else "2.0.0" if manual is not None else "1.0.0", "route_id": route_id,
                  **{k: protected[k] for k in ("run_id", "node_id", "subnode_id", "invocation_id")},
                  "router_enabled": choice.decision_source not in {"codex_router_disabled", "user_api"},
                  "decision_source": choice.decision_source, "router_failure": choice.router_failure,
                  "router_halt_code": choice.router_halt_code, "model_id": choice.model_id,
                  "route_decision_ref": choice.route_decision_ref, "recorded_at": utc_now()}
+        if auto_route:
+            route.update(access_way=(automatic[1] if automatic else pinned_selector)['access_way'],
+                selection_method=automatic[3] if automatic else 'pinned_selector')
         # Host capture IDs are separate from public RouteRecord fields.
         try:
             route_ref = await self._capture("route-record", route, context=protected)
@@ -304,7 +402,7 @@ class GovernedBridge:
             async with asyncio.timeout_at(deadline):
                 if manual is not None:
                     self.manual_models.preflight(manual)
-                if choice.decision_source=='router':
+                if choice.decision_source=='router' and not auto_route:
                     if not isinstance(choice.decision,dict):
                         raise PlatformIntegrityError('FROZEN_ROUTE_INVALID')
                     if self.providers is None:
@@ -322,9 +420,9 @@ class GovernedBridge:
                 live=await _resolved(self.revalidate({key:protected[key] for key in
                     ('execution_id','invocation_id','call_id','call_claim_ref','contract_ref')}))
                 self._check_context(live)
-                if manual is not None and self.manual_models.for_call(live) != manual:
+                if manual is not None and not auto_route and self.manual_models.for_call(live) != manual:
                     raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
-                if chatgpt is not None and self.manual_models.chatgpt_for_call(live) != chatgpt:
+                if chatgpt is not None and not auto_route and self.manual_models.chatgpt_for_call(live) != chatgpt:
                     raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
                 if (live.get('expected_prompt_sha256')!=expected_prompt_sha256
                         or protected.get('expected_prompt_sha256')!=expected_prompt_sha256):
@@ -332,6 +430,10 @@ class GovernedBridge:
                 for key in ('run_id','node_id','subnode_id','attempt_id','execution_id','invocation_id','call_id',
                             'call_claim_ref','contract_ref','model_selection_profile_ref','deployment_ref','call_function'):
                     if live[key]!=protected[key]:raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
+                if automatic is not None:
+                    self.automatic_routing.revalidate(automatic[0], automatic[1], live, automatic[2])
+                if pinned_selector is not None and live.get('routing_selection_candidate') != pinned_selector:
+                    raise PlatformIntegrityError('DISPATCH_CONTEXT_CHANGED')
                 deadline=min(deadline,live['execution_deadline_monotonic_s'],monotonic()+live['limits']['time_s'])
                 # A supported asynchronous audit-health callback can consume
                 # ready validity, so it must finish before the final decision
@@ -392,7 +494,7 @@ class GovernedBridge:
                        "route_attempt_id": "attempt:" + uuid.uuid4().hex,
                        "route_decision_ref": choice.route_decision_ref,
                        "execution_id": protected["execution_id"], "invocation_id": protected["invocation_id"],
-                       "purpose": "task_execution", "call_function": protected["call_function"],
+                       "purpose": protected.get('purpose', 'task_execution'), "call_function": protected["call_function"],
                        "deployment_ref": deployment_ref, "model_selection_profile_ref": protected["model_selection_profile_ref"],
                        "provider_request_id": None, "identity": {"requested": choice.model_id, "effective": None,
                                                                     "basis": "effective model not observed"},

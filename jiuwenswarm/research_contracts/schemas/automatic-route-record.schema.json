@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:automatic-route-record:3.0.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "3.0.0"},
+    "route_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "node_id": {"type": "string", "minLength": 1},
+    "subnode_id": {"type": "string", "minLength": 1},
+    "invocation_id": {"type": "string", "minLength": 1},
+    "router_enabled": {"const": true},
+    "decision_source": {"const": "router"},
+    "router_failure": {"const": null},
+    "router_halt_code": {"const": null},
+    "model_id": {"type": "string", "minLength": 1},
+    "route_decision_ref": {"anyOf": [{"type": "null"}, {"type": "object", "properties": {
+      "id": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+    }, "required": ["id", "sha256"], "additionalProperties": false}]},
+    "access_way": {"const": "local"},
+    "selection_method": {"enum": ["bounded_llm_selection", "single_candidate", "compatible_baseline", "fixed_verifier", "pinned_selector", "pinned_invocation"]},
+    "recorded_at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"}
+  },
+  "required": ["schema_version", "route_id", "run_id", "node_id", "subnode_id", "invocation_id", "router_enabled", "decision_source", "router_failure", "router_halt_code", "model_id", "route_decision_ref", "access_way", "selection_method", "recorded_at"],
+  "additionalProperties": false
+}

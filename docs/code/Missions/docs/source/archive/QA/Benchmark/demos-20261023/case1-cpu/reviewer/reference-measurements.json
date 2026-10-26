@@ -1,0 +1,17 @@
+{
+  "logistic_regression": {
+    "accuracy": 0.9916666666666667,
+    "correct": 595,
+    "n": 600
+  },
+  "one_nearest_neighbour": {
+    "accuracy": 0.8116666666666666,
+    "correct": 487,
+    "n": 600
+  },
+  "gap_points": 18.000000000000004,
+  "seed_reviewer_only": 11382596923333882551,
+  "numpy": "2.2.6",
+  "scikit_learn": "1.6.1",
+  "scope": "Reviewer fixture calibration only, not AI4R output or an automatic quality judge."
+}

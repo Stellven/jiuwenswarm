@@ -1,0 +1,15 @@
+{
+  "schema": "demo-runtime-provenance:1",
+  "captured_at": "2026-10-23T16:07:19.468594+00:00",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "host_os": "Windows-11-10.0.22631-SP0",
+  "host_architecture": "AMD64",
+  "checkout_commit": "456fa578357cc916de44a534501ff57bbf0c93b0",
+  "checkout_dirty": true,
+  "app_build_id": "02947b968893eda882bd3a950b03d617fd2a5ba20d0c015a7a0be4d7ba973ac2",
+  "app_image": "sha256:9196a0cd4341c934d691fdeb4751e1ba896e935bee404182c2adbe35a1ec45df",
+  "runner_image": "sha256:193c0ae0cffb95557424faec618bc944fb87d2b08cac78921f1190f8e0358992",
+  "declared_model": "gpt-6.1-sol",
+  "observed_model": null,
+  "source_note": "Code includes authorized uncommitted Brief v3 fixes. Installed build/image identify the exact executed bytes. Actual model must come from native events. CPU case only; no GPU execution."
+}

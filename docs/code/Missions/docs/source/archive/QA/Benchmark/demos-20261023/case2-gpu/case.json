@@ -1,0 +1,68 @@
+{
+  "schema_version": "sequential-cases:1",
+  "policy": "stop",
+  "limits": {
+    "deadline_s": 600,
+    "poll_s": 2,
+    "command_timeout_s": 30,
+    "command_cpu_s": 30,
+    "command_memory_mb": 512,
+    "max_total_bytes": 134217728,
+    "max_artifact_bytes": 67108864
+  },
+  "cases": [
+    {
+      "id": "case2-gpu",
+      "task": "Using the attached spec, test whether FP16 inference reduces per-batch latency by at least 30% versus FP32 on the local GPU. Report raw timings, the ratio, your conclusion and limitations.",
+      "inputs": [
+        {
+          "path": "demos-20261023/case2-gpu/transformer-spec.md",
+          "destination": "transformer-spec.md",
+          "kind": "docs"
+        },
+        {
+          "path": "demos-20261023/case2-gpu/provenance.py",
+          "destination": "provenance.py",
+          "upload": false
+        },
+        {
+          "path": "demos-20261023/case2-gpu/runtime-meta.json",
+          "destination": "runtime-meta.json",
+          "upload": false
+        },
+        {
+          "path": "demos-20261023/case2-gpu/gpu-preflight.py",
+          "destination": "gpu-preflight.py",
+          "upload": false
+        }
+      ],
+      "setup": [
+        {
+          "id": "capture-runtime",
+          "trusted": true,
+          "command": [
+            "python",
+            "inputs/provenance.py"
+          ],
+          "outputs": [
+            "runtime-environment.json"
+          ],
+          "timeout_s": 20
+        },
+        {
+          "id": "require-gpu",
+          "trusted": true,
+          "command": [
+            "python",
+            "inputs/gpu-preflight.py"
+          ],
+          "outputs": [
+            "gpu-environment.json"
+          ],
+          "timeout_s": 20
+        }
+      ],
+      "repeats": 1
+    }
+  ]
+}

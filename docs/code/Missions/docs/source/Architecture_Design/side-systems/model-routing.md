@@ -1,5 +1,55 @@
 # Model routing
 
+## Approved local product policy, 26 October 2026
+
+The owner approved an additional, versioned product mode:
+`ai4r-local-bounded-routing:1`. The historical Codex baseline and evaluation-only
+API-router rules below remain descriptions of those modes, not restrictions on
+this newly approved local mode. Existing runs retain their frozen policy.
+
+- Each worker/Planner Capsule invocation filters the frozen local pool against the
+  current Capsule declaration, adapter capabilities, context and access.
+  A bounded E4B call selects one eligible executor using declaration, node task
+  summary, candidate cards and remaining budgets. It never plans or swaps CCs.
+  It also receives a bounded projection of an already bound Research Brief or
+  Intent; the first Intent call can use a short original-request excerpt. It
+  receives no attached document contents. Verifier calls receive none of these
+  task-context fields and never invoke the selector.
+  That executor remains pinned across all internal model turns in the invocation.
+  A later turn that exceeds its context/access limits blocks instead of switching
+  models. The next Capsule invocation makes its own selection.
+- E4B is both the fixed selector and an eligible executor. Its selector call
+  dispatches directly, without recursively invoking selection.
+- The pool contains Nemotron 3.5 Bolt E4B Q4_K_M, Qwen3.8-27B FP8 and the official
+  Nemotron 3.5 Bolt 74B-A9B 24GB GGUF. Model revisions and actual service aliases
+  are pinned by the operator. Automatic mode never uses ChatGPT or commercial
+  API credentials. ChatGPT remains an explicitly selected comparison mode.
+- The three inference services are shared with all Spark OS users and users
+  permitted by the administrator's Tailscale network policy. Shared endpoints
+  bind loopback and the explicit Tailscale address, never a public interface.
+  Stopping AI4R retains these shared services; model context/concurrency limits
+  still apply to every caller. AI4R accounts and research state remain separate.
+- A verifier call always uses compatible Qwen, with no selector call. The
+  verifier Capsule still receives only the subject declaration and output.
+  Deterministic checks and existing gates retain acceptance authority.
+- Selection has its own call claim, invocation, 15-second ceiling and 256-token
+  output ceiling. Node accounting records this allowance separately; original
+  worker/verifier limits and the overall run call ceiling remain unchanged.
+  Insufficient selection budget leaves the verifier reserve untouched.
+- A selector failure can choose the frozen compatible baseline (prefer Qwen)
+  before execution starts. No compatible executor/verifier blocks explicitly.
+  Integrity/capture failures halt. Executor failures are never replayed on a
+  different model. No response is silently obtained from ChatGPT.
+- Run selection snapshots are version 2; local automatic route records are
+  version 3. Exports retain the pool, deployments, decisions and accounting.
+  The implementation is in `research/automatic_routing.py` and the existing
+  governed bridge/runner. This bounded inference step is separate from the
+  older isolated API-router process and its evaluation contracts.
+
+Deployment commands and current hardware limitations are in
+`deploy/m1/SPARK-LOCAL-MODELS.md`. Hardware availability and an actual successful
+research run are required before calling the Spark deployment complete.
+
 `Tier 2 · Part of: [Side systems](README.md) · Serves: Knowledge and Standard`
 
 ## What it is

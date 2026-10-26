@@ -1,0 +1,1 @@
+Synthetic Screening work prompt (example). Score each idea once on novelty, feasibility and compute alignment, using only the rubric anchors. Give a reason for every score. Do not add dimensions or change the scale.

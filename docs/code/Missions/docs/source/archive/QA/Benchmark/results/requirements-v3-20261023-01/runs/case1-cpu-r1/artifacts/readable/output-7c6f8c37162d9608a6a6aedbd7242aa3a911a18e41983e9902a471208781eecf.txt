@@ -1,0 +1,30 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, request_ref, interpretation, context, in_scope, out_of_scope, constraints, preferences, user_targets, context_refs, uncertainties and readiness satisfy the declared fields, types and nested shapes; interpretation.desired_change may be null."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "request_ref, context_refs and source_spans.source_ref use consistent IDs and hashes. Statement IDs are distinct, source_spans have ordered nonnegative bounds, and interpretation, in_scope, constraints and user_targets contain no internal contradiction."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "constraints distinguish validation measurements from blind test predictions and state that test labels are unavailable; readiness.reason acknowledges this limitation. uncertainties is empty without contradicting those stated limitations."
+    },
+    {
+      "criterion_id": "uncertainty_consistency",
+      "outcome": "PASS",
+      "reason": "readiness.status is ready and readiness.reason states that no blocking uncertainty remains, consistent with uncertainties being empty."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Assessment is limited to the supplied declaration and output; referenced sources and source_spans contents were not retrieved or verified.",
+    "readiness was assessed only for internal agreement with uncertainties and stated limitations."
+  ],
+  "required_correction": null
+}

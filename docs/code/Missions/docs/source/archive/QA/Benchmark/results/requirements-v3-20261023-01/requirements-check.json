@@ -1,0 +1,25 @@
+{
+  "schema_version": "requirements-regression:1",
+  "recorded_at": "2026-10-23T16:16:01.120229+00:00",
+  "scope": "Targeted Requirements regression; not a completed CPU experiment or M1 acceptance",
+  "app_build_id": "02947b968893eda882bd3a950b03d617fd2a5ba20d0c015a7a0be4d7ba973ac2",
+  "app_image": "sha256:9196a0cd4341c934d691fdeb4751e1ba896e935bee404182c2adbe35a1ec45df",
+  "runner_image": "sha256:faab1f7b5350d5bc53e4cb6065247af909609d6e17603b65c52379f0987bc09a",
+  "app_run_id": "run:6cfba611e7ef4f42b3fa3451a8573245",
+  "request_id": "request-2beee70ae4ac46c6ac0859090163bb9a",
+  "compiler_state": "Completed",
+  "requirements_gate": "PASS_WITH_KNOWN_LIMITATIONS / advance",
+  "accepted_brief": {
+    "id": "blob:2673b2ab1ccf53ff5da395f2b388d62e47e197e27c0c8e0b7f37395d193fb56e",
+    "sha256": "2673b2ab1ccf53ff5da395f2b388d62e47e197e27c0c8e0b7f37395d193fb56e"
+  },
+  "brief_version": "3.0.0",
+  "target_equation": "treatment >= baseline + 5 percentage points; fraction-unit offset = 0.05",
+  "target_status": "quantitative",
+  "execution_state": "halted",
+  "stop_reason": "Explicitly cancelled at Planner after the targeted compiler check succeeded. The configured majority-class baseline is a separate limitation; this run makes no experiment-completion or accuracy claim.",
+  "contract_index": "runs/case1-cpu-r1/contracts/index.json",
+  "contract_files_copied_for_review": 15,
+  "copy_provenance": "Exact original members from artifacts/originals.zip, each checked against its indexed SHA-256. Future app run exports include contracts/ automatically; this direct host copy is for convenient review.",
+  "quality_assessment": null
+}

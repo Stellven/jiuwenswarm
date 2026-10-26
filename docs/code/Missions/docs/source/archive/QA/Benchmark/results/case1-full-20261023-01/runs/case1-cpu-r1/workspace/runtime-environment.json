@@ -1,0 +1,28 @@
+{
+  "schema": "demo-runtime-provenance:1",
+  "captured_at": "2026-10-23T18:12:47.493347+00:00",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "host_os": "Windows-11-10.0.22631-SP0",
+  "host_architecture": "AMD64",
+  "checkout_commit": "125dafc57437700dc32005f5e2403a0aa00a519f",
+  "checkout_dirty": false,
+  "app_build_id": "02947b968893eda882bd3a950b03d617fd2a5ba20d0c015a7a0be4d7ba973ac2",
+  "app_image": "sha256:9196a0cd4341c934d691fdeb4751e1ba896e935bee404182c2adbe35a1ec45df",
+  "runner_image": "sha256:faab1f7b5350d5bc53e4cb6065247af909609d6e17603b65c52379f0987bc09a",
+  "declared_model": "gpt-6.1-sol",
+  "observed_model": null,
+  "source_note": "Full Case 1 execution on the existing 5175 app. Same task and public dataset. Actual model comes from native events. Reviewer labels remain excluded. Observer ceiling is 7800s to cover the full protected app budget; native budgets are unchanged.",
+  "runner_hostname": "ea0ad83b4189",
+  "runner_os": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+  "runner_architecture": "x86_64",
+  "runner_python": "3.12.15",
+  "runner_uid": 11001,
+  "runner_package_versions": {
+    "httpx": "0.28.1",
+    "jsonschema": "4.26.0",
+    "psutil": "7.2.2",
+    "numpy": null,
+    "scikit-learn": null,
+    "torch": null
+  }
+}

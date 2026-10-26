@@ -1,0 +1,41 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, id, brief_ref, scope_ref, queries, connector_outcomes, citations and ideas conform to the candidate_set schema, including required fields, types, bounds and identifier patterns."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "connector_outcomes.citations_captured matches the two citations; citations.query values appear in queries; ideas.citation_ids resolve to citations.id; ideas.idea_id values are unique. No contradiction is apparent among ideas.summary, assumptions and risks."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "ideas.assumptions explicitly identify unproved premises, ideas.risks describe validation uncertainty, and ideas.summary makes conditional benefit claims without claiming measured results or established citation support, consistent with the declaration's stated limits."
+    },
+    {
+      "criterion_id": "idea_states_mechanism",
+      "outcome": "PASS",
+      "reason": "ideas[0].summary proposes fitting and freezing preprocessing on training rows to prevent held-out information leakage. ideas[1].summary proposes identical seeded stratified validation rows to reduce comparison differences caused by sample selection."
+    },
+    {
+      "criterion_id": "ideas_are_distinct",
+      "outcome": "PASS",
+      "reason": "ideas[0].summary changes how preprocessing is fitted; ideas[1].summary changes how evaluation rows are selected and shared. These address different mechanisms."
+    },
+    {
+      "criterion_id": "assumptions_and_risks_specific",
+      "outcome": "PASS",
+      "reason": "ideas[0].assumptions and risks address learned preprocessing estimates, representativeness and repeated validation selection. ideas[1].assumptions and risks address class counts, split variability and differences between training and blind test distributions."
+    }
+  ],
+  "uncertainties": [
+    "brief_ref and scope_ref identify unavailable documents; their contents cannot be inferred from these references."
+  ],
+  "limitations": [
+    "Review is limited to the supplied declaration and candidate_set output. No referenced artifacts or run records were inspected, and source fidelity, entailment, experimental truth and permissions were not assessed."
+  ],
+  "required_correction": null
+}

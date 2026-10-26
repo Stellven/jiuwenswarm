@@ -4718,6 +4718,32 @@
     }
   },
   "researchModels": {
+    "localDescription": "Run research on your own models. No commercial API key is required.",
+    "executionMode": "Execution mode",
+    "localModeHint": "AI4R selects a local model for each capsule. E4B can route and execute; Qwen independently verifies outputs.",
+    "localMode": "AI4R · local automatic routing",
+    "chatgptBaseline": "ChatGPT · comparison mode",
+    "chatgptModel": "ChatGPT model",
+    "baselineHint": "Uses ChatGPT throughout the AI4R workflow as a separate comparison. It is outside the local routing pool.",
+    "localRole": {
+      "e4b": "Router and lightweight executor",
+      "qwen": "General executor and independent verifier",
+      "bolt": "Executor for more demanding planning, reasoning and code"
+    },
+    "localReady": "Connected",
+    "localUnavailable": "Unavailable",
+    "localStatus": {
+      "not_configured": "Not configured",
+      "disabled": "Disabled",
+      "service_unavailable": "Service unavailable",
+      "model_not_served": "Model not loaded",
+      "configuration_invalid": "Configuration needs attention"
+    },
+    "localPrerequisite": "Start the local E4B and Qwen services on your Spark, then refresh. Model endpoints are configured on the server.",
+    "applyMode": "Use this mode",
+    "frozenPool": "Applies to new research. Running work keeps its original model pool and decisions.",
+    "localError": "Could not load or save model settings. Check the app connection and local model services.",
+    "modeSaved": "Saved. New research will use this execution mode.",
     "chatgptDescription": "Sign in with your ChatGPT subscription, then choose a GPT model above and save it for new AI4R research requests. No API key is required.",
     "chatgptOption": "{{model}} (ChatGPT subscription)",
     "chatgptError": "Could not save or load the ChatGPT model. Sign in and refresh the model list.",

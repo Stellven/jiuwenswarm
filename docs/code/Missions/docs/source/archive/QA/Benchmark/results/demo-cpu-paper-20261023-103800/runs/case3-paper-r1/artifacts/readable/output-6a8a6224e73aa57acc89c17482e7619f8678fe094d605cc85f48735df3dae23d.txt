@@ -1,0 +1,30 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "All required brief fields are present with permitted shapes and values. schema_version and domain_lane match their constants; constraints satisfy qualitative operator rules; reference objects have valid id and sha256 shapes. No undeclared fields appear."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "acceptance_expectations.requirement_ids and evidence_obligations.requirement_ids resolve to mandatory_requirements.id. Local IDs are distinct, and objective, in_scope, constraints, out_of_scope and deliverables express compatible obligations."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "assumptions and unresolved_items are empty without contradicting other fields. acceptance_expectations and evidence_obligations consistently qualify cohort scope, parameter dependence, workload interpretation and retrieval uncertainty."
+    },
+    {
+      "criterion_id": "requirement_link_completeness",
+      "outcome": "PASS",
+      "reason": "Every mandatory_requirements.id has both an acceptance_expectations.requirement_ids link and an evidence_obligations.requirement_ids link."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Assessment covers only the supplied declaration and output structure, local references and internal coherence.",
+    "Reference contents and scientific assertions were not evaluated; no source lookup was available."
+  ],
+  "required_correction": null
+}
