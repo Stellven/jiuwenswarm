@@ -4,16 +4,17 @@ import json
 import subprocess
 import sys
 
-from .contracts import EXPECTED, load_cases, resolve_cases_root
+from .contracts import EXPECTED, EXTENDED, load_cases, resolve_cases_root
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cases-root")
-    parser.add_argument("--case", dest="case_ids", action="append", choices=sorted(EXPECTED), default=[])
+    parser.add_argument("--case", dest="case_ids", action="append", choices=sorted({**EXPECTED, **EXTENDED}), default=[])
     args = parser.parse_args(argv)
     root = resolve_cases_root(args.cases_root)
-    cases = load_cases(root)
+    cases = (load_cases(root, case_ids=args.case_ids) if any(c in EXTENDED for c in args.case_ids)
+             else load_cases(root))
     if args.case_ids:
         cases = [case for case in cases if case["id"] in args.case_ids]
     failed = []

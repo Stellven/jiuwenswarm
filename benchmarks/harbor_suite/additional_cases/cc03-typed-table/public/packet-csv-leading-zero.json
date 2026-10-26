@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "data": {
+    "table_request": {
+      "file": "source",
+      "format": "csv",
+      "columns": [
+        "name",
+        "value"
+      ],
+      "delimiter": ","
+    }
+  },
+  "files": [
+    {
+      "path": "source",
+      "text": "name,value\r\n\"a,b\",001\r\n\"line\nbreak\",002\r\n",
+      "sha256": "d50da9a2410ebabae8297c30f50e97dcd691bd6e25eacbba4c70df8566997e85"
+    }
+  ],
+  "trust": "low",
+  "provenance": [],
+  "limitations": [
+    "Source truth is not established by normalization."
+  ]
+}

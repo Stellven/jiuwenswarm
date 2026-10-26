@@ -47,6 +47,8 @@ docs/architecture/experiments/** -text
 docs/product/received-prds/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
 
 # Capsule releases hash source bytes; Windows checkouts must preserve LF.
+# Optional benchmark cases pin the exact public JSON bytes.
+benchmarks/harbor_suite/additional_cases/** text eol=lf
 jiuwenswarm/research/**/*.py text eol=lf
 jiuwenswarm/research/**/*.txt text eol=lf
 jiuwenswarm/research/**/*.json text eol=lf
