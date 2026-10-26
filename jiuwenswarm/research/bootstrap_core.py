@@ -50,6 +50,9 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     or a client payload. No callable or graph arrives through submit.
     """
     options=dict(protected_options or {});actor=operator_actor or principal
+    screening_version=options.get('screening_version','m1-4')
+    if not isinstance(screening_version,str) or screening_version not in {'m1-4','m1-5'}:
+        raise ResearchError('configuration_override','Unsupported explicit Screening release')
     configuration=store.read_record(configuration_ref)
     if configuration.get('operator',configuration)!=operator.snapshot():
         raise ResearchError('configuration_override','Captured configuration differs from validated operator settings')
@@ -61,11 +64,13 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     from .compiler import prepare_compiler_assets
     compiler_assets=await prepare_compiler_assets(store)
     from .capsules.assets import build_research_assets
-    research_assets=build_research_assets(store)
+    research_assets=build_research_assets(store,screening_version=screening_version)
     evidence_aware_review=options.get('evidence_aware_review') is True
     if evidence_aware_review and options.get('finite_e1_binding_ref') is not None:
         raise ResearchError('evidence_pilot_assets','Evidence-aware pilot releases are unavailable to the finite E1 shortcut')
     bootstrap_pins=tuple(v['declaration_sha256'] for v in catalog['capsules'].values())+tuple(v['declaration_ref']['sha256'] for v in research_catalog['stages'].values())
+    if screening_version != 'm1-4':
+        bootstrap_pins+=(research_assets['screening']['declaration_ref']['sha256'],)
     paper_assets={}
     integrated = options.get('integrated_workflows') is True
     if options.get('paper_summary_workflow') is True or integrated:

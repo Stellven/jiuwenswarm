@@ -74,9 +74,34 @@ def _previous_calibration_requests(store, runtime_ref):
     return result
 
 
+def _screening_static_template(store, screening_version):
+    """Capture a new opt-in template without changing installed historical bytes."""
+    if not isinstance(screening_version,str) or screening_version not in {'m1-4','m1-5'}:
+        raise ResearchError('local_profile_conflict','Unsupported explicit Screening release')
+    raw = files('jiuwenswarm.research_assets').joinpath('planner/static-template.json').read_bytes()
+    if screening_version == 'm1-4':
+        return store.put_blob(raw,media_type='application/json')
+    from .capsules.assets import build_screening_asset
+    asset = build_screening_asset(store)
+    declaration = store.read_record(asset['declaration_ref'])
+    template = json.loads(raw)
+    matches = [node for node in template['nodes'] if node['node_id']=='screening']
+    if len(matches) != 1 or matches[0]['cc']['cc_version'] != 'm1-4':
+        raise ResearchError('local_profile_conflict','Installed static Screening base is not exact m1-4')
+    matches[0]['cc'] = {'cc_name':declaration['identity']['name'],'cc_version':screening_version,
+                        'declaration_sha256':asset['declaration_ref']['sha256']}
+    template['id'] += '.screening-m1-5'
+    template['template_name'] += '_screening_m1_5'
+    return store.put_blob(json_bytes(template),media_type='application/json')
+
+
 def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
                           public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False,
-                          requested_model='gpt-6.1-sol', evidence_aware_review=False):
+                          requested_model='gpt-6.1-sol', evidence_aware_review=False, screening_version='m1-4'):
+    if not isinstance(screening_version,str) or screening_version not in {'m1-4','m1-5'}:
+        raise ResearchError('local_profile_conflict','Unsupported explicit Screening release')
+    if legacy_checking_refresh and screening_version != 'm1-4':
+        raise ResearchError('local_profile_conflict','Checking-only refresh cannot change the captured Screening release; use a fresh profile')
     if requested_model not in {'gpt-6-luna', 'gpt-6.1-sol'} or type(evidence_aware_review) is not bool:
         raise ResearchError('local_profile_conflict', 'Pilot model and review mode must be explicit supported selections')
     directory = Path(directory)
@@ -95,6 +120,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
             raise ResearchError('local_profile_conflict', 'Local bootstrap locator is invalid')
         validate('Ref', envelope['binding_ref'])
         binding = store.read_record(envelope['binding_ref'])
+        if binding['protected_options'].get('screening_version','m1-4') != screening_version:
+            raise ResearchError('local_profile_conflict','Frozen Screening release changed; use a fresh profile directory')
         if (store.read_record(binding['deployment_ref']).get('requested_model') != requested_model
                 or binding['protected_options'].get('evidence_aware_review', False) != evidence_aware_review):
             raise ResearchError('local_profile_conflict', 'Frozen model or review mode changed; use a fresh profile directory')
@@ -183,7 +210,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         _write_once(binding_path, {'binding_ref': binding_ref})
         return {'configuration_path': str(config_path), 'binding_path': str(binding_path), 'binding_ref': binding_ref}
 
-    static_ref = store.put_blob(files('jiuwenswarm.research_assets').joinpath('planner/static-template.json').read_bytes(), media_type='application/json')
+    static_ref = _screening_static_template(store,screening_version)
     from .unified_planning import integrated_plan_policy
     from .capability_planning import capability_plan_policy
     policy_ref = store.put_record('plan-policy', capability_plan_policy() if capability_dag else integrated_plan_policy())
@@ -243,7 +270,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
                               'resource_reads': science['resource_reads'] if science else [], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch']},
         'document_extraction_timeout_s': 30, 'max_upload_bytes': 20 * 1024 * 1024,
         'run_inputs': science['run_inputs'] if science else {}, 'host_records': science['host_records'] if science else {},
-        'development_builtin_catalog':development_builtin_catalog, 'integrated_workflows':True}
+        'development_builtin_catalog':development_builtin_catalog, 'integrated_workflows':True,
+        'screening_version':screening_version}
     if evidence_aware_review:
         options['evidence_aware_review'] = True
     if science is not None:
