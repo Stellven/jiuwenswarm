@@ -19,7 +19,7 @@ def flatten(records):
     rows = []
     for record in records:
         value = record['value']
-        if record['kind'] in ('harbor_job', 'capability_probe'):
+        if record['kind'] in ('harbor_job', 'capability_probe', 'case_bank_observation'):
             for ordinal, original in enumerate(value['rows']):
                 row = {k: v for k, v in original.items() if k not in ('input', 'output')}
                 row.update(record_id=record['id'], row_id=record['id'] + ':' + str(ordinal),
@@ -174,6 +174,8 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
             f"Clean acceptance was {gain['before_clean_accepted']}/{gain['clean']} before and "
             f"{gain['after_clean_accepted']}/{gain['clean']} after. "
             'The additive candidates preserve JSON primitive types; earlier releases and results remain intact.', '']
+    if improvements:
+        part_b += ['![Selected before/after checker results](checker-improvement.png)', ''] if charts else []
     part_b += ['### Measured deterministic checking capability', '',
         '| Source module | Clean accepted / clean | Corruptions caught / injected | False accepts | False rejects |',
         '| --- | ---: | ---: | ---: | ---: |']
@@ -191,6 +193,22 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
                 'Full format, binding and usage are retained separately.')
     else:
         part_b.append('No original paired live result has been imported. Existing narrative checkpoints are historical context, not new measurements.')
+    helper_rows = [r for r in selected if r['record_kind'] == 'case_bank_observation']
+    if helper_rows:
+        part_b += ['', '### Matched ordinary helpers and capsule workers', '',
+            '| Observation | Arm | Correct / observed | Unavailable | Not run |',
+            '| --- | --- | ---: | ---: | ---: |']
+        groups = defaultdict(list)
+        for row in helper_rows:
+            groups[(row['record_id'], row.get('arm', 'design inventory'))].append(row)
+        for (record_id, arm), values in sorted(groups.items()):
+            observed = [r for r in values if r['status'] == 'observed']
+            correct = sum(r.get('correct') is True for r in observed)
+            unavailable = sum(r['status'] == 'unavailable' for r in values)
+            not_run = sum(r['status'] == 'not_run' for r in values)
+            part_b.append(f'| `{record_id[:17]}` | {arm} | {correct}/{len(observed)} | {unavailable} | {not_run} |')
+        part_b += ['', 'These rows test the task fixtures and reusable algorithms. Ordinary helpers are competent controls; '
+            'equal scores are retained. This is not a native JiuwenSwarm or full CC-unit comparison.', '']
     part_b += ['', '### Work justified by these observations', '',
         '- Keep the strongest measured detection or content examples and expand the corresponding task family.',
         '- Fix observed checker weaknesses and rerun the exact same artifacts, preserving earlier results.',
@@ -221,6 +239,23 @@ def render(dataset, output, *, selected_records=(), selected_cases=(), template=
                  color='#cb6843', label='Corruption accepted')
         axis.set_ylabel('Injected artifacts'); axis.set_title('Direct deterministic checker probes')
         axis.legend(); figure.savefig(destination / 'fault-detection.png', dpi=160); plt.close(figure)
+        if improvements:
+            labels = [f'Selected pair {i+1}' for i in range(len(improvements))]
+            figure, axes = plt.subplots(1, 2, figsize=(9, 4), layout='constrained')
+            positions = list(range(len(improvements)))
+            for axis, before_key, after_key, denominator, title in (
+                (axes[0], 'before_caught', 'after_caught', 'invalid', 'Injected faults detected'),
+                (axes[1], 'before_clean_accepted', 'after_clean_accepted', 'clean', 'Valid artifacts accepted')):
+                for offset, key, color, legend in ((-.18, before_key, '#75869a', 'Original'),
+                                                    (.18, after_key, '#237a57', 'Typed candidate')):
+                    bars = axis.bar([p + offset for p in positions],
+                        [100 * r[key] / r[denominator] if r[denominator] else 0 for r in improvements],
+                        width=.34, color=color, label=legend)
+                    axis.bar_label(bars, labels=[f'{r[key]}/{r[denominator]}' for r in improvements], padding=3)
+                axis.set_xticks(positions, labels); axis.set_ylim(0, 115); axis.set_ylabel('Percent')
+                axis.set_title(title); axis.legend(loc='lower right')
+            figure.suptitle('Selected deterministic checking improvement — identical artifacts')
+            figure.savefig(destination / 'checker-improvement.png', dpi=180); plt.close(figure)
     return {'report': str(destination / 'report.md'), 'rows': len(rows), 'selected': len(selected)}
 
 
