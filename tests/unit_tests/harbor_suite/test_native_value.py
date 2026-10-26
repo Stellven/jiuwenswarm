@@ -7,7 +7,7 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from benchmarks.harbor_suite import native_value as subject
 
@@ -18,6 +18,42 @@ TOOLS = [{"type": "function", "function": {"name": "read_file", "parameters": {
 
 
 class NativeValueTests(unittest.TestCase):
+    def test_controller_timeout_records_actual_terminal_returncode_and_containment_requirement(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            spec_path = root / "spec.json"
+            spec_path.write_text(json.dumps({"variant": "native", "task": "Public task",
+                "binding": str(root / "existing-binding.json")}))
+            output = root / "run"
+            child = SimpleNamespace(pid=12345, returncode=-9, wait=Mock(side_effect=[
+                subject.subprocess.TimeoutExpired("worker", 345), -9]))
+            with patch.object(subject.subprocess, "Popen", return_value=child), \
+                    patch.object(subject.subprocess, "run"), patch.object(subject.os, "killpg", create=True):
+                self.assertEqual(subject.run(spec_path, output), 2)
+            end = json.loads((output / "controller-finished.json").read_text())
+            self.assertEqual(end["returncode"], -9)
+            self.assertEqual(end["status"], "containment_required")
+            self.assertGreaterEqual(end["elapsed_s"], 0)
+
+    def test_controller_records_caps_before_spawn_and_actual_elapsed_after_exit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            spec_path = root / "spec.json"
+            spec_path.write_text(json.dumps({"variant": "native", "task": "Public task",
+                "binding": str(root / "existing-binding.json"), "max_model_calls": 80, "wall_time_s": 600}))
+            output = root / "run"
+            def spawn(*args, **kwargs):
+                start = json.loads((output / "controller-start.json").read_text())
+                self.assertEqual(start["assigned_caps"], {"max_model_calls": 80, "max_tool_calls": 30, "wall_time_s": 600})
+                self.assertTrue(start["started_at"].endswith("+00:00"))
+                return SimpleNamespace(wait=lambda **kw: 0)
+            with patch.object(subject.subprocess, "Popen", side_effect=spawn):
+                self.assertEqual(subject.run(spec_path, output), 0)
+            end = json.loads((output / "controller-finished.json").read_text())
+            self.assertEqual(end["returncode"], 0)
+            self.assertEqual(end["status"], "completed")
+            self.assertGreaterEqual(end["elapsed_s"], 0)
+
     def test_matched_eighty_call_ceiling_preserves_default_and_rejects_eighty_one(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "spec.json"

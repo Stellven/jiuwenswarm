@@ -11,6 +11,7 @@ import argparse
 import asyncio
 from contextlib import contextmanager
 from dataclasses import asdict, is_dataclass
+from datetime import datetime, timezone
 import hashlib
 import importlib.metadata
 import importlib.util
@@ -427,6 +428,8 @@ def worker(spec_path, root):
 
 
 def run(spec_path, output):
+    began = time.monotonic()
+    started_at = datetime.now(timezone.utc).isoformat()
     spec = load_spec(spec_path)
     root = Path(output).resolve()
     root.mkdir(parents=True, exist_ok=False)
@@ -435,9 +438,20 @@ def run(spec_path, output):
     write(root / "assignment.json", spec)
     command = [sys.executable, "-m", "benchmarks.harbor_suite.native_value", "_worker",
                "--spec", str(root / "assignment.json"), "--output", str(root)]
+    write(root / "controller-start.json", {"schema": "native-value-controller-start:1",
+        "started_at": started_at, "assigned_caps": {key: spec[key] for key in
+            ("max_model_calls", "max_tool_calls", "wall_time_s")}})
+    def finish(returncode, status):
+        write(root / "controller-finished.json", {"schema": "native-value-controller-finished:1",
+            "finished_at": datetime.now(timezone.utc).isoformat(),
+            "elapsed_s": time.monotonic() - began, "returncode": returncode, "status": status})
     with (root / "stdout.log").open("xb") as stdout, (root / "stderr.log").open("xb") as stderr:
-        child = subprocess.Popen(command, env=child_environment(root), stdout=stdout, stderr=stderr,
-                                 start_new_session=os.name == "posix")
+        try:
+            child = subprocess.Popen(command, env=child_environment(root), stdout=stdout, stderr=stderr,
+                                     start_new_session=os.name == "posix")
+        except OSError:
+            finish(None, "launch_failed")
+            raise
         try:
             code = child.wait(timeout=spec["wall_time_s"] + 45)
         except subprocess.TimeoutExpired:
@@ -448,7 +462,9 @@ def run(spec_path, output):
             child.wait()
             write(root / "controller-timeout.json", {"status": "containment_required",
                   "reason": "worker deadline exceeded; reconcile model relay before next dispatch"})
+            finish(child.returncode, "containment_required")
             return 2
+    finish(code, "completed" if code == 0 else "failed")
     return code
 
 
