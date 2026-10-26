@@ -15,10 +15,25 @@ def request():
 def test_request_identity_and_policy():
     value = request()
     assert validate_request(value, 'a' * 32 + '.request.json') == value
+    luna = value | {'model': 'gpt-6-luna'}
+    assert validate_request(luna, 'a' * 32 + '.request.json') == luna
     for change in ({'request_id': '../escape'}, {'model': 'fallback'}, {'reasoning_effort': 'low'},
                    {'timeout_s': float('nan')}, {'timeout_s': True}):
         with pytest.raises(ValueError):
             validate_request(value | change, 'a' * 32 + '.request.json')
+
+
+@pytest.mark.parametrize('size', [256 * 1024 + 1, 1024 * 1024])
+def test_request_accepts_full_bounded_helper_prompt_above_old_transport_limit(size):
+    value = request() | {'prompt': 'x' * size}
+    assert validate_request(value, 'a' * 32 + '.request.json') == value
+
+
+@pytest.mark.parametrize('character,count', [('x', 1024 * 1024 + 1), ('\u00e9', 512 * 1024 + 1)],
+                         ids=['ascii-over-byte-limit', 'multibyte-utf8-over-byte-limit'])
+def test_request_rejects_prompt_above_one_mib_utf8_bytes(character, count):
+    with pytest.raises(ValueError):
+        validate_request(request() | {'prompt': character * count}, 'a' * 32 + '.request.json')
 
 
 @pytest.mark.asyncio

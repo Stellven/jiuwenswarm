@@ -61,9 +61,9 @@ def validate_request(value, filename):
             or not isinstance(value['request_id'], str)
             or not re.fullmatch('[a-f0-9]{32}', value['request_id'])
             or filename != value['request_id'] + '.request.json'
-            or value['model'] != 'gpt-6.1-sol' or value['reasoning_effort'] != 'medium'
+            or value['model'] not in {'gpt-6.1-sol', 'gpt-6-luna'} or value['reasoning_effort'] != 'medium'
             or not isinstance(value['prompt'], str) or not value['prompt'].strip()
-            or len(value['prompt'].encode()) > 256 * 1024
+            or len(value['prompt'].encode()) > 1024 * 1024
             or type(value['timeout_s']) not in (float, int)
             or not 0 < value['timeout_s'] <= 600):
         raise ValueError('invalid frozen completion request')
@@ -76,7 +76,7 @@ async def complete(request, *, binary, working, fingerprint, ledger, pair, arm, 
     ident = request['request_id']
     policy = {'id': 'local-value-codex', 'name': 'Value campaign Codex',
               'model_name': request['model'], 'revision': 'native-app-server-pinned',
-              'enabled': True, 'context_window': 262144, 'max_prompt_bytes': 262144,
+              'enabled': True, 'context_window': 262144, 'max_prompt_bytes': 1024 * 1024,
               'timeout_s': 600, 'reasoning_effort': request['reasoning_effort']}
     backend = {'kind': 'host-codex-app-server', 'host_python': '/usr/bin/python3',
                'codex_executable': str(binary), 'working_directory': str(working),
@@ -85,7 +85,7 @@ async def complete(request, *, binary, working, fingerprint, ledger, pair, arm, 
     payload = {'model': policy, 'prompt': request['prompt'], 'timeout_s': request['timeout_s'],
                **{k: backend[k] for k in ('codex_executable', 'working_directory',
                                          'codex_sha256', 'account_fingerprint')}}
-    remaining_s = ledger.claim(pair, arm, ident)
+    remaining_s = ledger.claim(pair, arm, ident, model=request['model'], effort=request['reasoning_effort'])
     payload['timeout_s'] = min(payload['timeout_s'], remaining_s)
     began = time.monotonic()
     # If the process dies here the dispatched ledger entry remains unresolved.
@@ -129,7 +129,7 @@ async def serve(args):
                 response = root / path.name.replace('.request.json', '.response.json')
                 if response.exists():
                     continue
-                if path.is_symlink() or path.stat().st_size > 300 * 1024:
+                if path.is_symlink() or path.stat().st_size > 2 * 1024 * 1024:
                     raise ValueError('invalid broker request file')
                 request = validate_request(json.loads(path.read_text('utf-8')), path.name)
                 result = await complete(request, binary=args.binary.resolve(), working=working,

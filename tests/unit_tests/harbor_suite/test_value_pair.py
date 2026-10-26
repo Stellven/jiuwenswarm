@@ -96,6 +96,20 @@ class PairCollectorTests(unittest.TestCase):
         self.assertIsNone(value["arms"]["native-skills"]["controller_elapsed_s"])
         self.assertIsNone(value["arms"]["cc"]["cost_usd"])
 
+    def test_luna_evidence_requires_explicit_same_model_pin(self):
+        ident = "f" * 32
+        submitted_path = self.broker / (ident + ".request.json")
+        submitted = json.loads(submitted_path.read_text())
+        put(submitted_path, {**submitted, "model": "gpt-6-luna"})
+        for path in (self.broker / (ident + ".response.json"), self.native / "evidence/completion-001-response.json"):
+            value = json.loads(path.read_text())
+            put(path, {**value, "identity": {"effective": "gpt-6-luna"}})
+        with self.assertRaises(ValueError):
+            subject.native_evidence(self.native, self.broker)
+        evidence, _ = subject.native_evidence(self.native, self.broker, expected_model="gpt-6-luna")
+        self.assertTrue(evidence["model_and_effort_verified"])
+        self.assertEqual(evidence["model_calls"], 1)
+
     def test_mismatched_request_and_canonical_sources_are_rejected(self):
         path = self.native / "assignment.json"
         original = json.loads(path.read_text())

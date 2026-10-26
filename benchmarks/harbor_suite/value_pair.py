@@ -21,7 +21,9 @@ def _sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def native_evidence(run, broker):
+def native_evidence(run, broker, *, expected_model="gpt-6.1-sol"):
+    if expected_model not in {"gpt-6.1-sol", "gpt-6-luna"}:
+        raise ValueError("Explicit approved comparison model required")
     run, broker = Path(run), Path(broker)
     result = read_json(run / "result.json")
     requests = sorted((run / "evidence").glob("completion-*-request.json"))
@@ -39,12 +41,12 @@ def native_evidence(run, broker):
         ids.add(ident)
         submitted_path, received_path = broker / (ident + ".request.json"), broker / (ident + ".response.json")
         submitted, received = read_json(submitted_path), read_json(received_path)
-        if (submitted.get("request_id") != ident or submitted.get("model") != "gpt-6.1-sol"
+        if (submitted.get("request_id") != ident or submitted.get("model") != expected_model
                 or submitted.get("reasoning_effort") != "medium" or canonical(received) != canonical(response)
                 or canonical(strict_json(submitted["prompt"].rsplit("\n", 1)[-1].encode())) != canonical(
                     {key: packet[key] for key in ("messages", "tools")})):
             raise ValueError("Native broker and original packet do not join exactly")
-        if (response.get("status") != "completed" or response.get("identity", {}).get("effective") != "gpt-6.1-sol"
+        if (response.get("status") != "completed" or response.get("identity", {}).get("effective") != expected_model
                 or response.get("reasoning_effort") != "medium"):
             raise ValueError("Native call lacks completed exact model/effort identity")
         calls.append(response)

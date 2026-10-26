@@ -1,6 +1,100 @@
 import pytest
+import sqlite3
 
 from benchmarks.harbor_suite.value_schedule import Schedule
+
+
+def test_luna_pair_requires_same_requested_and_effective_model_for_both_arms(tmp_path):
+    ledger = Schedule.create(tmp_path / 'same-ledger.sqlite3', now=100)
+    try:
+        policy = ledger.status()['policy']
+        ledger.reserve('luna-pair', 'a' * 64, {'native-skills': 1, 'cc': 1},
+                       requested_model='gpt-6-luna', now=101)
+        assert ledger.status()['pairs'][0]['requested_model'] == 'gpt-6-luna'
+        with pytest.raises(ValueError, match='model/effort mismatch'):
+            ledger.claim('luna-pair', 'native-skills', 'wrong-sol-request', now=102)
+        assert ledger.status()['calls_charged'] == 0
+        ledger.claim('luna-pair', 'native-skills', 'luna-native', model='gpt-6-luna', now=103)
+        with pytest.raises(ValueError, match='verified model and effort'):
+            ledger.finish('luna-native', 'completed', evidence='original.json',
+                          effective_model='gpt-6.1-sol', effective_effort='medium')
+        ledger.finish('luna-native', 'completed', evidence='original.json',
+                      effective_model='gpt-6-luna', effective_effort='medium')
+        with pytest.raises(ValueError, match='model/effort mismatch'):
+            ledger.claim('luna-pair', 'cc', 'wrong-cc-model', model='gpt-6.1-sol', now=104)
+        ledger.claim('luna-pair', 'cc', 'luna-cc', model='gpt-6-luna', now=105)
+        ledger.finish('luna-cc', 'completed', evidence='cc-original.json',
+                      effective_model='gpt-6-luna', effective_effort='medium')
+        status = ledger.status()
+        assert status['calls_consumed'] == status['calls_charged'] == 2
+        assert status['policy'] == policy
+        assert all(row['effective_model'] == 'gpt-6-luna' for row in status['attempts'])
+        ledger.finish_pair('luna-pair')
+        ledger.reserve('legacy-default', 'b' * 64, {'cc': 1}, now=106)
+        assert ledger.status()['pairs'][-1]['requested_model'] == 'gpt-6.1-sol'
+    finally:
+        ledger.close()
+
+
+def test_luna_external_envelope_requires_observed_identity_without_releasing_charge(tmp_path):
+    ledger = Schedule.create(tmp_path / 'external-model.sqlite3', now=100)
+    try:
+        ledger.reserve('pair', 'a' * 64, {'cc': 8}, requested_model='gpt-6-luna', now=101)
+        with pytest.raises(ValueError, match='model/effort mismatch'):
+            ledger.claim_envelope('pair', 'cc', 'wrong-model', 8, now=102)
+        ledger.claim_envelope('pair', 'cc', 'original', 8, model='gpt-6-luna', now=103)
+        for identity in ({}, {'effective_model': 'gpt-6.1-sol', 'effective_effort': 'medium'},
+                         {'effective_model': 'gpt-6-luna', 'effective_effort': 'high'}):
+            with pytest.raises(ValueError, match='verified pair model and effort'):
+                ledger.finish_envelope('original', 'completed', actual_calls=2,
+                                       evidence='original-export.json', **identity)
+            assert ledger.status()['calls_charged'] == 8
+            assert ledger.status()['external_envelopes'][0]['state'] == 'dispatched'
+        ledger.finish_envelope('original', 'completed', actual_calls=2, evidence='original-export.json',
+                               effective_model='gpt-6-luna', effective_effort='medium')
+        status = ledger.status()
+        assert status['calls_charged'] == status['calls_consumed'] == 2
+        assert status['calls_remaining'] == 254
+        assert status['external_envelopes'][0]['effective_model'] == 'gpt-6-luna'
+    finally:
+        ledger.close()
+
+
+def test_existing_ledger_additive_migration_preserves_policy_pending_effect_and_charges(tmp_path):
+    path = tmp_path / 'original-ledger.sqlite3'
+    with sqlite3.connect(path) as db:
+        db.executescript('''
+            CREATE TABLE policy(max_calls INTEGER, deadline REAL, started REAL, model TEXT, effort TEXT);
+            INSERT INTO policy VALUES(256,10900,100,'gpt-6.1-sol','medium');
+            CREATE TABLE pairs(id TEXT PRIMARY KEY, task_sha256 TEXT, caps TEXT, state TEXT, created REAL);
+            INSERT INTO pairs VALUES('original','frozen-sha','{"cc": 2}','active',101);
+            CREATE TABLE attempts(id TEXT PRIMARY KEY, pair_id TEXT, arm TEXT, started REAL, state TEXT,
+                                  effective_model TEXT,effective_effort TEXT,evidence TEXT);
+            INSERT INTO attempts VALUES('pending-original','original','cc',102,'dispatched',NULL,NULL,NULL);
+        ''')
+    ledger = Schedule(path)
+    try:
+        status = ledger.status()
+        assert status['policy'] == {'max_calls': 256, 'deadline': 10900, 'started': 100,
+                                    'model': 'gpt-6.1-sol', 'effort': 'medium'}
+        assert status['pairs'][0]['requested_model'] == 'gpt-6.1-sol'
+        assert status['calls_consumed'] == status['calls_charged'] == 1
+        assert status['calls_remaining'] == 255
+        assert status['attempts'][0]['id'] == 'pending-original'
+        with pytest.raises(ValueError, match='active or outcome is unknown'):
+            ledger.claim('original', 'cc', 'new-must-wait', now=103)
+    finally:
+        ledger.close()
+
+
+def test_pair_rejects_unsupported_model_without_reservation(tmp_path):
+    ledger = Schedule.create(tmp_path / 'unsupported.sqlite3', now=100)
+    try:
+        with pytest.raises(ValueError, match='supported campaign model'):
+            ledger.reserve('wrong', 'a' * 64, {'cc': 1}, requested_model='fallback-model', now=101)
+        assert ledger.status()['pairs'] == []
+    finally:
+        ledger.close()
 
 
 def test_whole_pair_reservation_and_unknown_reconciliation(tmp_path):
