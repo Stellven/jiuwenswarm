@@ -13,6 +13,7 @@ import sqlite3
 import time
 
 ARMS = {'native', 'native-skills', 'cc'}
+EXTERNAL_RUN_CALL_CEILING = 80
 
 
 class Schedule:
@@ -24,6 +25,11 @@ class Schedule:
             raise ValueError('initialize campaign explicitly')
         self.db = sqlite3.connect(self.path, timeout=10)
         self.db.row_factory = sqlite3.Row
+        self.db.execute('''CREATE TABLE IF NOT EXISTS external_envelopes(
+            id TEXT PRIMARY KEY, pair_id TEXT NOT NULL, arm TEXT NOT NULL,
+            started REAL NOT NULL, call_bound INTEGER NOT NULL,
+            actual_calls INTEGER, state TEXT NOT NULL, evidence TEXT)''')
+        self.db.commit()
 
     @classmethod
     def create(cls, path, *, max_calls=256, wall_s=10800, now=None):
@@ -46,6 +52,10 @@ class Schedule:
             CREATE TABLE attempts(id TEXT PRIMARY KEY, pair_id TEXT, arm TEXT,
                                   started REAL, state TEXT, effective_model TEXT,
                                   effective_effort TEXT, evidence TEXT);
+            CREATE TABLE IF NOT EXISTS external_envelopes(
+                id TEXT PRIMARY KEY, pair_id TEXT NOT NULL, arm TEXT NOT NULL,
+                started REAL NOT NULL, call_bound INTEGER NOT NULL,
+                actual_calls INTEGER, state TEXT NOT NULL, evidence TEXT);
         ''')
         instant = time.time() if now is None else now
         obj.db.execute('INSERT INTO policy VALUES(?,?,?,?,?)',
@@ -73,9 +83,11 @@ class Schedule:
             policy = self.db.execute('SELECT * FROM policy').fetchone()
             if instant >= policy['deadline']:
                 raise ValueError('wall-clock budget exhausted')
-            if self.db.execute("SELECT 1 FROM pairs WHERE state='active'").fetchone():
+            if (self.db.execute("SELECT 1 FROM pairs WHERE state='active'").fetchone()
+                    or self.db.execute("SELECT 1 FROM attempts WHERE state IN ('dispatched','unknown')").fetchone()
+                    or self.db.execute("SELECT 1 FROM external_envelopes WHERE state IN ('dispatched','unknown')").fetchone()):
                 raise ValueError('finish or reconcile the active pair first')
-            used = self.db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0]
+            used = self._calls_charged()
             if used + sum(caps.values()) > policy['max_calls']:
                 raise ValueError('whole-pair reservation exceeds remaining call budget')
             self.db.execute('INSERT INTO pairs VALUES(?,?,?,?,?)',
@@ -99,16 +111,96 @@ class Schedule:
                 raise ValueError('wall-clock budget exhausted')
             if pair is None or pair['state'] != 'active' or arm not in json.loads(pair['caps']):
                 raise ValueError('active reserved arm required')
-            if self.db.execute("SELECT 1 FROM attempts WHERE state IN ('dispatched','unknown')").fetchone():
+            if (self.db.execute("SELECT 1 FROM attempts WHERE state IN ('dispatched','unknown')").fetchone()
+                    or self.db.execute("SELECT 1 FROM external_envelopes WHERE state IN ('dispatched','unknown')").fetchone()):
                 raise ValueError('another request is active or outcome is unknown')
-            used = self.db.execute('SELECT COUNT(*) FROM attempts WHERE pair_id=? AND arm=?',
-                                   (pair_id, arm)).fetchone()[0]
+            if self.db.execute('SELECT 1 FROM external_envelopes WHERE id=?', (request_id,)).fetchone():
+                raise ValueError('request ID was already used by an external run')
+            used = self._arm_calls_charged(pair_id, arm)
             if used >= json.loads(pair['caps'])[arm]:
                 raise ValueError('arm call cap exhausted')
             self.db.execute('INSERT INTO attempts VALUES(?,?,?,?,?,?,?,?)',
                             (request_id, pair_id, arm, instant, 'dispatched', None, None, None))
             self.db.commit()
             return policy['deadline'] - instant
+        except BaseException:
+            self.db.rollback()
+            raise
+
+    def claim_envelope(self, pair_id, arm, request_id, call_bound, *, model='gpt-6.1-sol',
+                       effort='medium', now=None):
+        """Reserve a whole external app run before dispatching its one POST.
+
+        The bound is charged as model calls until a caller validates a terminal
+        original run export and reconciles its actual call count. No per-call IDs
+        are invented for the external run.
+        """
+        instant = time.time() if now is None else now
+        if (not isinstance(request_id, str) or not request_id or len(request_id) > 256
+                or type(call_bound) is not int or not 1 <= call_bound <= EXTERNAL_RUN_CALL_CEILING):
+            raise ValueError('persist one bounded external request ID and a call bound in 1..80')
+        try:
+            self._begin()
+            policy = self.db.execute('SELECT * FROM policy').fetchone()
+            pair = self.db.execute('SELECT * FROM pairs WHERE id=?', (pair_id,)).fetchone()
+            if model != policy['model'] or effort != policy['effort']:
+                raise ValueError('model/effort mismatch; fallback forbidden')
+            if instant >= policy['deadline']:
+                raise ValueError('wall-clock budget exhausted')
+            if pair is None or pair['state'] != 'active' or arm not in json.loads(pair['caps']):
+                raise ValueError('active reserved arm required')
+            if (self.db.execute("SELECT 1 FROM attempts WHERE state IN ('dispatched','unknown')").fetchone()
+                    or self.db.execute("SELECT 1 FROM external_envelopes WHERE state IN ('dispatched','unknown')").fetchone()):
+                raise ValueError('another request is active or outcome is unknown')
+            if (self.db.execute('SELECT 1 FROM attempts WHERE id=?', (request_id,)).fetchone()
+                    or self.db.execute('SELECT 1 FROM external_envelopes WHERE id=?', (request_id,)).fetchone()):
+                raise ValueError('request ID was already used; external submissions are never replayed')
+            used = self._arm_calls_charged(pair_id, arm)
+            arm_cap = json.loads(pair['caps'])[arm]
+            if used + call_bound > arm_cap:
+                raise ValueError('external run call bound exceeds its reserved arm cap')
+            self.db.execute('INSERT INTO external_envelopes VALUES(?,?,?,?,?,?,?,?)',
+                (request_id, pair_id, arm, instant, call_bound, None, 'dispatched', None))
+            self.db.commit()
+            return policy['deadline'] - instant
+        except BaseException:
+            self.db.rollback()
+            raise
+
+    def finish_envelope(self, request_id, state, *, actual_calls=None, evidence):
+        """Reconcile only from a caller-validated terminal original run export.
+
+        For completed/failed/contained outcomes, ``actual_calls`` is required
+        and the caller is responsible for validating that export. Unknown or
+        uncounted outcomes retain the entire original reservation and block all
+        other dispatch until a later validated reconciliation.
+        """
+        if state not in {'completed', 'failed', 'unknown', 'contained'}:
+            raise ValueError('invalid external run outcome')
+        if not isinstance(evidence, str) or not evidence:
+            raise ValueError('original run evidence location required')
+        if state == 'unknown':
+            if actual_calls is not None:
+                raise ValueError('unknown outcome cannot release a partial call count')
+        elif type(actual_calls) is not int or actual_calls < 0:
+            raise ValueError('validated terminal evidence must provide a nonnegative actual call count')
+        try:
+            self._begin()
+            old = self.db.execute('SELECT * FROM external_envelopes WHERE id=?', (request_id,)).fetchone()
+            if old is None or old['state'] not in {'dispatched', 'unknown'}:
+                raise ValueError('only original active/unknown external run can be reconciled')
+            if actual_calls is not None and actual_calls > old['call_bound']:
+                raise ValueError('validated external run exceeded its pre-dispatch call bound')
+            stored_state = state
+            # A terminal label without a reconciled count must remain fully
+            # charged. The public API requires counts for terminals, but retain
+            # this guard should a later caller add an uncounted terminal state.
+            if state != 'unknown' and actual_calls is None:
+                stored_state = 'unknown'
+            self.db.execute('''UPDATE external_envelopes
+                SET state=?,actual_calls=?,evidence=? WHERE id=?''',
+                (stored_state, actual_calls, evidence, request_id))
+            self.db.commit()
         except BaseException:
             self.db.rollback()
             raise
@@ -137,8 +229,10 @@ class Schedule:
             raise ValueError('invalid pair outcome')
         try:
             self._begin()
-            if self.db.execute("SELECT 1 FROM attempts WHERE pair_id=? AND state IN ('dispatched','unknown')",
-                               (pair_id,)).fetchone():
+            if (self.db.execute("SELECT 1 FROM attempts WHERE pair_id=? AND state IN ('dispatched','unknown')",
+                               (pair_id,)).fetchone()
+                    or self.db.execute("SELECT 1 FROM external_envelopes WHERE pair_id=? AND state IN ('dispatched','unknown')",
+                                       (pair_id,)).fetchone()):
                 raise ValueError('reconcile unknown requests before releasing reservation')
             cursor = self.db.execute("UPDATE pairs SET state=? WHERE id=? AND state='active'", (state, pair_id))
             if cursor.rowcount != 1:
@@ -151,11 +245,32 @@ class Schedule:
     def status(self):
         policy = dict(self.db.execute('SELECT * FROM policy').fetchone())
         attempts = [dict(r) for r in self.db.execute('SELECT * FROM attempts ORDER BY started,id')]
+        envelopes = [dict(r) for r in self.db.execute('SELECT * FROM external_envelopes ORDER BY started,id')]
         pairs = [dict(r) for r in self.db.execute('SELECT * FROM pairs ORDER BY created,id')]
+        calls_consumed = len(attempts) + sum(row['actual_calls'] or 0 for row in envelopes)
+        calls_charged = len(attempts) + sum(self._envelope_charge(row) for row in envelopes)
         return {'schema': 'ai4r-value-schedule:1', 'policy': policy,
-                'attempts': attempts, 'pairs': pairs, 'calls_consumed': len(attempts),
-                'calls_remaining': policy['max_calls'] - len(attempts),
+                'attempts': attempts, 'external_envelopes': envelopes, 'pairs': pairs,
+                'calls_consumed': calls_consumed, 'calls_charged': calls_charged,
+                'calls_remaining': policy['max_calls'] - calls_charged,
+                'external_run_call_ceiling': EXTERNAL_RUN_CALL_CEILING,
                 'engineering_agent_usage': 'outside experimental arm measurements'}
+
+    @staticmethod
+    def _envelope_charge(row):
+        return row['actual_calls'] if row['actual_calls'] is not None else row['call_bound']
+
+    def _calls_charged(self):
+        attempts = self.db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0]
+        envelopes = self.db.execute('SELECT call_bound,actual_calls FROM external_envelopes').fetchall()
+        return attempts + sum(self._envelope_charge(row) for row in envelopes)
+
+    def _arm_calls_charged(self, pair_id, arm):
+        attempts = self.db.execute('SELECT COUNT(*) FROM attempts WHERE pair_id=? AND arm=?',
+                                   (pair_id, arm)).fetchone()[0]
+        envelopes = self.db.execute('SELECT call_bound,actual_calls FROM external_envelopes WHERE pair_id=? AND arm=?',
+                                    (pair_id, arm)).fetchall()
+        return attempts + sum(self._envelope_charge(row) for row in envelopes)
 
 
 def main():
