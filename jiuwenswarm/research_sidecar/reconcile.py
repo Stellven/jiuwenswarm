@@ -14,18 +14,19 @@ async def _reconcile_once(client,identity):
 async def submit_once(client,payload,ledger,attempt_id):
     if not ledger.claim(attempt_id,payload):
         return await _reconcile_once(client,payload['client_request_id'])
-    ledger.event(attempt_id,'submitting',{'client_request_id':payload['client_request_id']})
+    identity = {'client_request_id':payload['client_request_id'], 'request_id':payload['client_request_id']}
+    ledger.event(attempt_id,'submitting',{**identity, 'app_run_id':None})
     try:
         value=await client.submit(payload)
-        ledger.event(attempt_id,'acknowledged',{'response':value});return value
+        ledger.event(attempt_id,'acknowledged',{**identity,'app_run_id':value.get('run_id'),'response':value});return value
     except ClientError as exc:
-        ledger.event(attempt_id,'refused',{'http_status':exc.status_code,'client_error':exc.response_record})
+        ledger.event(attempt_id,'refused',{**identity,'app_run_id':None,'http_status':exc.status_code,'client_error':exc.response_record})
         raise
     except (httpx.TransportError,TimeoutError):
-        ledger.event(attempt_id,'delivery_ambiguous',{'launched':True})
+        ledger.event(attempt_id,'delivery_ambiguous',{**identity,'app_run_id':None,'launched':True})
         # Exactly one read-only reconciliation. Unknown is retained, never resent.
         value=await _reconcile_once(client,payload['client_request_id'])
-        ledger.event(attempt_id,'reconciled',{'response':value});return value
+        ledger.event(attempt_id,'reconciled',{**identity,'app_run_id':value.get('run_id'),'response':value});return value
 
 
 async def _evaluation_reconcile(client,identity):

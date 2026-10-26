@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import hashlib
 import json
 import os
 import stat
@@ -76,7 +77,7 @@ def _previous_calibration_requests(store, runtime_ref):
 
 def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
                           public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False,
-                          requested_model='gpt-6.1-sol', evidence_aware_review=False):
+                          requested_model='gpt-6.1-sol', evidence_aware_review=False, cache_dataset_path=None):
     if requested_model not in {'gpt-6-luna', 'gpt-6.1-sol'} or type(evidence_aware_review) is not bool:
         raise ResearchError('local_profile_conflict', 'Pilot model and review mode must be explicit supported selections')
     directory = Path(directory)
@@ -87,6 +88,9 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
     if stat.S_IMODE(metadata.st_mode) != 0o700 or metadata.st_uid != os.geteuid():
         raise ResearchError('local_profile_custody', 'Local operator directory has another owner or unsafe permissions')
     config_path, binding_path = directory / 'config.json', directory / 'bootstrap.json'
+    cache_dataset_path = cache_dataset_path or os.environ.get('JIUWENSWARM_M1_CACHE_DATASET')
+    if cache_dataset_path and (public_dataset_path or os.environ.get('JIUWENSWARM_M1_EXTERNAL_DATASET')):
+        raise ResearchError('local_profile_conflict', 'Select one scientific resource protocol')
     if config_path.exists() or binding_path.exists():
         # Ordinary recreation retains the captured policy and immutable refs.
         from .bootstrap_gateway import _protected_file
@@ -95,6 +99,13 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
             raise ResearchError('local_profile_conflict', 'Local bootstrap locator is invalid')
         validate('Ref', envelope['binding_ref'])
         binding = store.read_record(envelope['binding_ref'])
+        resource_ref = binding['protected_options'].get('local_science_resources_ref')
+        existing_science = store.read_record(resource_ref) if resource_ref is not None else {}
+        existing_cache = existing_science.get('scoring_profile', {}).get('protocol') == 'ai4r-cache-study:1'
+        if bool(cache_dataset_path) != existing_cache:
+            raise ResearchError('local_profile_conflict', 'Scientific protocol changed; use a fresh profile directory')
+        if cache_dataset_path and hashlib.sha256(Path(cache_dataset_path).read_bytes()).hexdigest() != existing_science['scoring_profile']['public_data_sha256']:
+            raise ResearchError('local_profile_conflict', 'Frozen cache study input changed; use a fresh profile directory')
         if (store.read_record(binding['deployment_ref']).get('requested_model') != requested_model
                 or binding['protected_options'].get('evidence_aware_review', False) != evidence_aware_review):
             raise ResearchError('local_profile_conflict', 'Frozen model or review mode changed; use a fresh profile directory')
@@ -183,7 +194,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         _write_once(binding_path, {'binding_ref': binding_ref})
         return {'configuration_path': str(config_path), 'binding_path': str(binding_path), 'binding_ref': binding_ref}
 
-    static_ref = store.put_blob(files('jiuwenswarm.research_assets').joinpath('planner/static-template.json').read_bytes(), media_type='application/json')
+    catalog = json.loads(files('jiuwenswarm.research_assets').joinpath('catalog.json').read_text('utf-8'))
+    static_ref = store.put_blob(files('jiuwenswarm.research_assets').joinpath(catalog['static_template']['path']).read_bytes(), media_type='application/json')
     from .unified_planning import integrated_plan_policy
     from .capability_planning import capability_plan_policy
     policy_ref = store.put_record('plan-policy', capability_plan_policy() if capability_dag else integrated_plan_policy())
@@ -215,7 +227,11 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         from .bootstrap_gateway import _protected_file
         scoring_pins = json.loads(_protected_file(scoring_pins_path))
     science = None
-    if public_dataset_path is not None:
+    if cache_dataset_path:
+        from .cache_science import capture_cache_science_resources
+        science = capture_cache_science_resources(store, public_path=cache_dataset_path)
+        inventory = science['resource_inventory_ref']
+    elif public_dataset_path is not None:
         from .local_science import capture_local_science_resources
         science = capture_local_science_resources(store, public_path=public_dataset_path, scoring_pins=scoring_pins)
         inventory = science['resource_inventory_ref']
@@ -246,6 +262,10 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'development_builtin_catalog':development_builtin_catalog, 'integrated_workflows':True}
     if evidence_aware_review:
         options['evidence_aware_review'] = True
+    control_root = os.environ.get('AI4R_PROTECTED_DISPATCH_CONTROL')
+    if control_root:
+        from .protected_barrier import validate_control_root
+        options['dispatch_control_root'] = str(validate_control_root(control_root))
     if science is not None:
         options['local_science_resources_ref'] = store.put_blob(json_bytes(science), media_type='application/json')
     if calibration is not None:

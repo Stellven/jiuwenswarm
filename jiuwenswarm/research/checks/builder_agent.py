@@ -9,6 +9,8 @@ from ..pi_protocol import inspect_pi_bundle, validate_pi_request
 from ..environment import validate_lock
 from ..trusted_scoring import parse_public_dataset, parse_predictions
 from ..pi_protocol import parse_pi_output
+from ..metric_contract import protocol_for_resource
+from ..cache_protocol import PROTOCOL as CACHE_PROTOCOL, parse_cache_dataset, parse_cache_output, inspect_cache_bundle
 from .prediction_bundle import inspect_bundle as inspect_predictions
 from ..process_evidence import validate_process_evidence
 
@@ -36,7 +38,8 @@ class AgentBuilderChecks(ResearchChecks):
             is_pi = validate_pi_request(public_raw) >= 0
         except ValueError:
             pass
-        checked = (inspect_pi_bundle(bundle, pins) if is_pi else
+        is_cache = protocol_for_resource(inputs['validation_resource'], ctx.read_blob) == CACHE_PROTOCOL
+        checked = (inspect_cache_bundle(bundle, pins) if is_cache else inspect_pi_bundle(bundle, pins) if is_pi else
                    inspect_predictions(bundle, [item['metric_id'] for item in blueprint['metrics']], pins))
         require(manifest['archive_ref'] == ctx.output_refs['bundle'], 'bundle_hash_matches')
         files = {row['path']: row for row in manifest['files']}
@@ -185,7 +188,9 @@ class AgentBuilderChecks(ResearchChecks):
                     'bounded_development')
                 if phase == 'smoke':
                     stdout = ctx.read_blob(run['stdout_ref'])
-                    if is_pi:
+                    if is_cache:
+                        parse_cache_output(stdout, parse_cache_dataset(public_raw))
+                    elif is_pi:
                         digits = validate_pi_request(public_raw)
                         parse_pi_output(stdout, digits)
                     else:

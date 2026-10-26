@@ -74,15 +74,15 @@
       "body": [
         {
           "path": "research/gate.py",
-          "sha256": "be6b075f91153106c45ba535e0ec97fdbb901442e490ea494fc648b4c6ea9c6b"
+          "sha256": "d4b45fb28202af2fc28f8708c639118f6a905957adc465340cf8b2381fdade66"
         },
         {
           "path": "research_assets/compiler/verifier.txt",
           "sha256": "89018d720c6ce3dffdcd4da1da6af0af39e1e45ee951e4f8bb12b9095d0251c8"
         }
       ],
-      "declaration_path": "compiler/verifier.declaration.json",
-      "declaration_sha256": "c77ce64a119ef4a54100ea17b59422a5971afe95db8ccf822929320b7bbafbf7"
+      "declaration_path": "compiler/verifier-host-dependency-v1.declaration.json",
+      "declaration_sha256": "c15f00cc26ad5ef76c8301693f2d6954a3752b75eeb002d9c6f904310c3ce0c3"
     }
   },
   "schema_version": "1.0.0",
@@ -90,8 +90,8 @@
   "static_template": {
     "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
     "interface_revision": "M1-IF-002@r2",
-    "meaning": "Bounded native Builder actions and protected compile/unit/smoke checks; independent reviews, gates and schema-routed Benchmark retained.",
-    "path": "planner/static-template.json",
-    "sha256": "ad0838578b9e7cd49590854d2e3d0713c509f87412b4624bf6b5ffabadd84ce9"
+    "meaning": "Registered cache study with genuine scoped Builder implementation, original stdout and independent request-count scoring; original typed graph and gates retained.",
+    "path": "planner/static-template-cache-v3.json",
+    "sha256": "3852bee3be37055cd9b36e442cd71e598fcdb9ab43f7de3d39393701adaacf18"
   }
 }

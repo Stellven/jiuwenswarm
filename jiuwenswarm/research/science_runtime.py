@@ -48,9 +48,9 @@ def decode_science_runtime_record(record, *, historical=False):
         if version=='ai4r-science-runtime:1':
             _require(historical and set(record)==fields,'SCIENCE_RUNTIME_V1_HISTORICAL_ONLY')
         else:
-            _require(version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5'})
-            extra={'execution_bindings'}|({'scoring_profile'} if version in {'ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5'} else set())
-            _require(set(record)==fields|extra|({'execution_mode'} if version=='ai4r-science-runtime:5' else set()))
+            _require(version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5','ai4r-science-runtime:6'})
+            extra={'execution_bindings'}|({'scoring_profile'} if version in {'ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5','ai4r-science-runtime:6'} else set())
+            _require(set(record)==fields|extra|({'execution_mode'} if version in {'ai4r-science-runtime:5','ai4r-science-runtime:6'} else set()))
             validate('urn:ai4r:private:science-runtime:'+version.rsplit(':',1)[1],record)
         if version=='ai4r-science-runtime:5':
             _require(record['execution_mode']=='m1_app_process','SCIENCE_EXECUTION_MODE_INVALID')
@@ -65,6 +65,10 @@ def decode_science_runtime_record(record, *, historical=False):
             for key in ('public_data_sha256','holdout_sha256','scorer_sha256'):
                 _require(type(scoring[key]) is str and re.fullmatch(r'[0-9a-f]{64}',scoring[key]),
                     'SCIENCE_SCORING_PROFILE_INVALID')
+        if version=='ai4r-science-runtime:6':
+            from .trusted_cache import validate_cache_profile
+            validate_cache_profile(record['scoring_profile'])
+            _require(record['execution_mode'] in {'restricted','m1_app_process'}, 'SCIENCE_EXECUTION_MODE_INVALID')
         _require(all(isinstance(record[key],str) and record[key] for key in ('id','build_id')))
         _require(type(record['gpu_required']) is bool)
         profile=record['profile']
@@ -95,7 +99,7 @@ def decode_science_runtime_record(record, *, historical=False):
             _require(type(entry['wheel_filenames']) is dict and all(type(key) is str and type(value) is str
                 and key and value and '\0' not in key and '\0' not in value
                 for key,value in entry['wheel_filenames'].items()),'SCIENCE_ENVIRONMENT_CATALOG_INVALID')
-        if version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5'}:
+        if version in {'ai4r-science-runtime:2','ai4r-science-runtime:3','ai4r-science-runtime:4','ai4r-science-runtime:5','ai4r-science-runtime:6'}:
             seen=set()
             for entry in record['execution_bindings']:
                 refs=tuple(_ref_key(entry[key]) for key in ('configuration_ref','policy_ref','resource_inventory_ref',

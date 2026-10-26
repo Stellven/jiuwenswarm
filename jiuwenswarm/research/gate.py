@@ -113,6 +113,33 @@ class ProtectedGate:
     def __init__(self, store):
         self.store = store
 
+    def block_unstarted_node(self, contract_ref, check_plan_ref, effect_ref):
+        """Record an actual host dependency refusal; do not invent an invocation."""
+        contract = self.store.read_record(contract_ref, contract_id='node-execution-contract')
+        plan = self.store.read_record(check_plan_ref, contract_id='bound-check-plan')
+        effect = self.store.read_record(effect_ref)
+        if (plan['contract_ref'] != contract_ref or plan['node_contract_ref'] != contract_ref
+                or effect.get('response', {}).get('action') != 'deny_dependency'
+                or effect.get('reached', {}).get('app_run_id') != contract['run_id']
+                or effect['reached'].get('node_id') != contract['node_id']):
+            raise ResearchError('integrity_fault', 'Host dependency refusal belongs to another node')
+        checked = self.store.put_record('deterministic-check-result', {
+            'schema_version':'1.0.0', 'subject_ref':contract_ref, 'check_plan_ref':check_plan_ref,
+            'results':[{'check_id':key, 'outcome':'ENVIRONMENT_BLOCKED',
+                        'reason':'Node did not start: dependency_unavailable', 'evidence_refs':[effect_ref]}
+                       for key in plan['mandatory_deterministic']]})
+        decision = {'schema_version':'2.0.0', 'id':'gate:'+uuid.uuid4().hex, 'recorded_at':utc_now(),
+            'run_id':contract['run_id'], 'node_id':contract['node_id'], 'attempt_id':contract['attempt_id'],
+            'contract_ref':contract_ref, 'node_contract_ref':contract_ref, 'scope_kind':'node',
+            'subnode_id':None, 'output_port':None, 'internal_decision_refs':[], 'invocation_refs':[],
+            'policy_ref':contract['policy_ref'], 'check_plan_ref':check_plan_ref, 'input_refs':contract['input_refs'],
+            'output_refs':[], 'deterministic_result_ref':checked, 'assessment_ref':None,
+            'verdict':'ENVIRONMENT_BLOCKED', 'action':'halt', 'accepted_refs':[],
+            'reasons':[{'code':'dependency_unavailable', 'message':'Protected host denied required dispatch dependency',
+                        'criterion_ids':[], 'evidence_refs':[effect_ref]}]}
+        validate('gate-decision', decision)
+        return self.store.put_record('gate-decision', decision)
+
     def decide(self, contract_ref: Ref, check_plan_ref: Ref, deterministic_ref: Ref,
                assessment_ref: Ref | None, output_refs: list[Ref], invocation_refs: list[Ref], *,
                output_port: str | None = None, scope_kind: str = "subnode",

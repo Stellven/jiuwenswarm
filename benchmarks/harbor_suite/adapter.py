@@ -28,7 +28,7 @@ def load_config(path):
     value = read_json(path)
     required = {"schema", "bundle_root", "output_root", "mode"}
     if (not isinstance(value, dict) or not required <= set(value)
-            or set(value)-required-{"runner_config", "operator_config", "evaluation_config"}
+            or set(value)-required-{"runner_config", "operator_config", "evaluation_config", "controller_config"}
             or value["schema"] != "ai4r-harbor-suite-config:1"
             or value["mode"] not in {"preflight", "live"}):
         raise ValueError("unsupported host-only suite config")
@@ -42,7 +42,7 @@ def load_config(path):
     bundle, output = value["bundle_root"], value["output_root"]
     if bundle.is_relative_to(output) or output.is_relative_to(bundle):
         raise ValueError("bundle and outputs must be separate")
-    for key in ("runner_config", "operator_config", "evaluation_config"):
+    for key in ("runner_config", "operator_config", "evaluation_config", "controller_config"):
         if key not in value:
             continue
         ref = Path(value[key])
@@ -68,7 +68,10 @@ def preflight_blockers(task, config):
         return ["supported protected module campaign/job/profile binding and validated projection are absent",
                 *task["case"]["product_prerequisites"]]
     if task["case_id"] == "pipeline02-recovery":
-        return ["protected frozen fault controller and interruption/negative-capture binding are absent"]
+        if not (config.get('controller_config') and config.get('runner_config') and task.get('pipeline02_controller_public_key')):
+            return ["protected frozen native fault controller and anchored custody configuration are absent"]
+        from .protected_controller import load_config as load_controller_config
+        load_controller_config(config['controller_config'], task, config)
     if not config.get("runner_config") and not config.get("operator_config"):
         return ["authenticated existing runner config is absent"]
     return []
@@ -96,6 +99,11 @@ async def dispatch(config, task, identity, *, runner=run_trial):
         execute = OperatorExecutor(bridge)
     else:
         bridge = Config.load(config["runner_config"])
+    controller = None
+    if task['case_id'] == 'pipeline02-recovery':
+        from .protected_controller import NativeController, load_config as load_controller_config
+        controller = NativeController(load_controller_config(config['controller_config'], task, config), bridge, task)
+        execute = controller
     if bridge.bundle_root != config["bundle_root"] or bridge.output_root != config["output_root"]:
         raise ValueError("runner target roots differ from frozen suite config")
     cancelled = None
@@ -103,6 +111,8 @@ async def dispatch(config, task, identity, *, runner=run_trial):
         run = await runner(bridge, task["task_key"], identity, **({"execute": execute} if execute else {}))
     except BridgeCancelled as error:
         run = error.result; cancelled = error
+    if controller is not None:
+        controller.finalize(run)
     result = receipt(task, status="observed", launched=bool(run.receipt.get("app_run_id")),
                      campaign_id=run.receipt["campaign_id"], custody="live")
     atomic(run.folder / "suite-receipt.json", result)

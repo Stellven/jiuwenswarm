@@ -189,6 +189,9 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     elif (record.get('scoring_profile') or {}).get('protocol') == 'ai4r-pi:1':
         from .trusted_pi import RootPiScorer
         scorer = RootPiScorer(store, record['scoring_profile'])
+    elif (record.get('scoring_profile') or {}).get('protocol') == 'ai4r-cache-study:1':
+        from .trusted_cache import RootCacheScorer
+        scorer = RootCacheScorer(store, record['scoring_profile'])
     adapter = ScienceExecutionAdapter(store, science_profile, approved_environments=entries,
         workspace_allocator=lambda binding, sequence, role: allocate_science_workspace(base / "work", binding, sequence, role),
         hardware_capture=capture_hardware, provision_runner=provision, scorer=scorer)

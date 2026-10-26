@@ -135,7 +135,7 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
             'implementation_refs': implementations, 'dependency_refs': dependencies,
             'admission_ref': entry['admission_ref'],
             'operations': ['provision','hardware_inventory','measure_job','run']
-                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if declaration['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17','m1-18'} else ['builder_test'] if declaration['identity']['carrier']['ref'] == 'builder_loop.py' else ['collect_builder'])})
+                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if declaration['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17','m1-18','m1-19','m1-20-cache'} else ['builder_test'] if declaration['identity']['carrier']['ref'] == 'builder_loop.py' else ['collect_builder'])})
     value = {'schema': 'ai4r-science-runtime:2',
         'build_id': verify_installed_build(), 'gpu_required': False,
         'profile': {'asset_root': '/var/lib/ai4r-executor/assets',
@@ -150,6 +150,8 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
         raise ResearchError('configuration','Unsupported scientific execution mode')
     if mode == 'm1_app_process':
         value.update(schema='ai4r-science-runtime:5',execution_mode=mode,scoring_profile=scoring_profile)
+    if (scoring_profile or {}).get('protocol') == 'ai4r-cache-study:1':
+        value.update(schema='ai4r-science-runtime:6', execution_mode=mode, scoring_profile=scoring_profile)
     # One installed build can legitimately capture distinct protected operator
     # configurations. Name the exact frozen context/body, preserving old records
     # and idempotence without reusing a build-only ID for different bytes.

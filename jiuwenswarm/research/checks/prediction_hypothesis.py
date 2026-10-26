@@ -1,6 +1,6 @@
 """Protocol-specific independent checks, before Builder can be dispatched."""
 from .stages import ResearchChecks
-from ..metric_contract import validate_metric_declarations
+from ..metric_contract import validate_metric_declarations, protocol_for_resource
 
 
 class PredictionHypothesisChecks(ResearchChecks):
@@ -9,5 +9,6 @@ class PredictionHypothesisChecks(ResearchChecks):
         self.check_ids.append('metric_protocol_supported')
 
     async def _hypothesis(self, ctx, inputs, outputs):
-        validate_metric_declarations(outputs['blueprint']['metrics'])
+        validate_metric_declarations(outputs['blueprint']['metrics'],
+            protocol_for_resource(inputs['validation_resource'], ctx.read_blob))
         await super()._hypothesis(ctx, inputs, outputs)

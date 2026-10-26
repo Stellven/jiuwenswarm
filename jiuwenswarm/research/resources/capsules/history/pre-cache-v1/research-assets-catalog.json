@@ -1,0 +1,97 @@
+{
+  "capsules": {
+    "intent": {
+      "body": [
+        {
+          "path": "research/capsules/intent.py",
+          "sha256": "39dd4453b3002285a15a32f9a3ed537db734eaf331f8b1fd53c0175ca90e13ef"
+        },
+        {
+          "path": "research_assets/compiler/intent.txt",
+          "sha256": "4188e32b215676e557541b5c333deec82f1dfdd2ad028720eacf0f522112f295"
+        },
+        {
+          "path": "research/capsules/_common.py",
+          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+        }
+      ],
+      "declaration_path": "compiler/intent.declaration.json",
+      "declaration_sha256": "8ba03613c616c32a8fdaf80729ffbb68cad7d9160d8d539275dd1a933ccdf216"
+    },
+    "planner": {
+      "body": [
+        {
+          "path": "research/capsules/planner.py",
+          "sha256": "2e78499540b991d79fca08b314e097cab6a1855b323d7a3dcdb4f32a343918a1"
+        },
+        {
+          "path": "research_assets/planner/planner.txt",
+          "sha256": "f5a9aae1a67050ffc8e9a7f499d72b27f54ecca9c8fdad53c1dbc0ce04a2e01a"
+        },
+        {
+          "path": "research/capsules/_common.py",
+          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+        },
+        {
+          "path": "research/unified_planning.py",
+          "sha256": "1a941f3f29b5e3663b97e224574a1615495ae19ffa96107fe7bf66bf4f8c7e68"
+        },
+        {
+          "path": "research/capability_planning.py",
+          "sha256": "2c7b48f519a3a448e1c3f9bc9e00c29a0307454401a5e89a2eb03b2c6a1cd62c"
+        },
+        {
+          "path": "research/summary_planning.py",
+          "sha256": "23ff36172158e642ff344af4036171ff06b40d2bae8e04dbcba5bbb06eb9c9f4"
+        },
+        {
+          "path": "research/planner_catalog.py",
+          "sha256": "c8bce2f34d0ac6c11848f83e6cb42e5a9b1e7fdef6f821f45607872d58ef34d1"
+        }
+      ],
+      "declaration_path": "planner/planner.declaration.json",
+      "declaration_sha256": "6b9885c39d6ad87969a9a259e4f6f2d7fa2f39fe1ee60a1caf5208cd8eb2efc5"
+    },
+    "requirements": {
+      "body": [
+        {
+          "path": "research/capsules/requirements.py",
+          "sha256": "6976e50edc23407398fb05566b76d052e179d18bc156ca5c10f52fb0509ea74a"
+        },
+        {
+          "path": "research_assets/compiler/requirements.txt",
+          "sha256": "84e87546a59222368949dd78e570b3a5a3157c452634c58e70970841d221a065"
+        },
+        {
+          "path": "research/capsules/_common.py",
+          "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+        }
+      ],
+      "declaration_path": "compiler/requirements.declaration.json",
+      "declaration_sha256": "84b40893e3a9ad514ea06bcc7311a66b1f4f8318313985b3171adffdd90d3604"
+    },
+    "verifier": {
+      "body": [
+        {
+          "path": "research/gate.py",
+          "sha256": "be6b075f91153106c45ba535e0ec97fdbb901442e490ea494fc648b4c6ea9c6b"
+        },
+        {
+          "path": "research_assets/compiler/verifier.txt",
+          "sha256": "89018d720c6ce3dffdcd4da1da6af0af39e1e45ee951e4f8bb12b9095d0251c8"
+        }
+      ],
+      "declaration_path": "compiler/verifier.declaration.json",
+      "declaration_sha256": "c77ce64a119ef4a54100ea17b59422a5971afe95db8ccf822929320b7bbafbf7"
+    }
+  },
+  "schema_version": "1.0.0",
+  "source_snapshot": "M1/source/Architecture_Design",
+  "static_template": {
+    "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
+    "interface_revision": "M1-IF-002@r2",
+    "meaning": "Bounded native Builder actions and protected compile/unit/smoke checks; independent reviews, gates and schema-routed Benchmark retained.",
+    "path": "planner/static-template.json",
+    "sha256": "ad0838578b9e7cd49590854d2e3d0713c509f87412b4624bf6b5ffabadd84ce9"
+  }
+}

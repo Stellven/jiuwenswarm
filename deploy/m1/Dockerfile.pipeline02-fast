@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1.7
+# Offline derived layers; preserves the pinned base and avoids scratch copies.
+ARG DEPENDENCY_IMAGE=ai4r-pipeline02-dependencies:f31901c0
+FROM ${DEPENDENCY_IMAGE} AS app
+USER root
+WORKDIR /tmp
+ARG DEPENDENCY_IMAGE_ID=sha256:f31901c0b25c0856399b17c56bc50f9971d6bc86a7e07e00d57418cd0d7ab9ba
+RUN --network=none --mount=type=bind,source=.,target=/context,readonly --mount=type=tmpfs,target=/build \
+    /opt/venv/bin/python /context/deploy/m1/pipeline02_fast_rebuild.py --mode app --dependency-image-id "$DEPENDENCY_IMAGE_ID"
+WORKDIR /var/lib/ai4r/native
+ENTRYPOINT ["/usr/local/bin/ai4r-entrypoint"]
+
+FROM app AS root-runner
+USER root
+WORKDIR /tmp
+ARG DEPENDENCY_IMAGE_ID=sha256:f31901c0b25c0856399b17c56bc50f9971d6bc86a7e07e00d57418cd0d7ab9ba
+RUN --network=none --mount=type=bind,source=.,target=/context,readonly --mount=type=tmpfs,target=/build \
+    /opt/venv/bin/python /context/deploy/m1/pipeline02_fast_rebuild.py --mode runner --dependency-image-id "$DEPENDENCY_IMAGE_ID"
+WORKDIR /var/lib/ai4r-runner
+ENTRYPOINT ["/opt/venv/bin/python", "-m", "jiuwenswarm.research_sidecar.sequential"]
+CMD ["--help"]

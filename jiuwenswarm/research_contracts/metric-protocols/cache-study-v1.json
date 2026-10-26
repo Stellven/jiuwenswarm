@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "protocol_id": "ai4r-cache-study:1",
+  "prediction_protocol": "ai4r-cache-observations:1",
+  "scoring_schema": "urn:ai4r:private:cache-scoring-receipt:1",
+  "metrics": [
+    {
+      "metric_id": "miss_ratio",
+      "unit": "fraction",
+      "measurement": "role-specific cache misses / total requests across the frozen public traces, independently recomputed by the protected scorer after sandbox exit; baseline uses unbounded misses and treatment uses bounded LRU misses",
+      "direction": "lower_better",
+      "valid_min": 0,
+      "valid_max": 1
+    }
+  ]
+}

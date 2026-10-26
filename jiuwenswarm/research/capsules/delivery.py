@@ -61,6 +61,29 @@ async def execute(ctx, inputs):
             rule_text(rule, 'success'), rule_text(rule, 'falsification'), rule['middle']])
     results = [[metric['metric_id'], metric['unit'], _number(metric['baseline']['value']),
         _number(metric['treatment']['value']), _number(metric['delta'])] for metric in payload['metrics']]
+    trace_results = []
+    cache_sources = []
+    for evidence_ref in payload['raw_evidence_refs']:
+        try:
+            score = json.loads(ctx.store.read_blob(evidence_ref))
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if not isinstance(score, dict) or score.get('schema') != 'ai4r-cache-scoring-receipt:1':
+            continue
+        cache_sources.append(score['source_id'])
+        if score['status'] == 'scored':
+            for trace_id, counts in score['observations'].items():
+                trace_results.append([score['role'], score['repeat_index'], trace_id,
+                    counts['hits'], counts['misses'], counts['unbounded_misses'], score['unit']])
+    results_text = _table(['Metric', 'Unit', 'Baseline', 'Treatment', 'Delta'], results)
+    if trace_results:
+        results_text += '\n\nSource IDs: ' + ', '.join(dict.fromkeys(cache_sources)) + '.\n\n'
+        results_text += '\n'.join(
+            f'- {role} repeat {repeat}, trace {trace}: LRU hits={hits}, LRU misses={misses}, '
+            f'unbounded misses={unbounded} {unit}.'
+            for role, repeat, trace, hits, misses, unbounded, unit in trace_results)
+        results_text += ('\n\nBaseline miss_ratio uses unbounded misses; treatment miss_ratio uses LRU misses. '
+                         'Counts describe requests and do not establish elapsed-time speedup.')
     verdict_lines = ['Classification: ' + verdict['classification'],
         'Completeness: ' + verdict['completeness']['status'], 'Plausibility: ' + verdict['plausibility']['status'],
         *[f"- {row['metric_id']}: {row['classification']}. {row['rationale']}" for row in verdict['findings']]]
@@ -89,7 +112,7 @@ async def execute(ctx, inputs):
         ('3. Hypothesis and registered criteria', blueprint['claim'] + '\n\n' +
             _table(['Metric', 'Unit', 'Aggregation', 'Success rule', 'Falsification rule', 'Otherwise'], criteria)),
         ('4. Method and POC', method),
-        ('5. Results: baseline vs treatment', _table(['Metric', 'Unit', 'Baseline', 'Treatment', 'Delta'], results)),
+        ('5. Results: baseline vs treatment', results_text),
         ('6. Scientific verdict and reasoning', '\n'.join(verdict_lines)),
         ('7. Limitations and risks', '\n'.join(limitation_lines)),
         ('8. Follow-up recommendations', '\n'.join(followups)),

@@ -409,6 +409,7 @@ class ScienceExecutionAdapter:
         _binding(contract, binding)
         blueprint = inputs['hypothesis_blueprint']; manifest = inputs['poc_manifest']
         pi = getattr(self.scorer, 'protocol', None) == 'ai4r-pi:1'
+        cache = getattr(self.scorer, 'protocol', None) == 'ai4r-cache-study:1'
         case_public = None
         if pi:
             from .pi_protocol import validate_pi_request
@@ -438,6 +439,16 @@ class ScienceExecutionAdapter:
                 raise ResearchError('auth','Pi case selection is unavailable in the classification host profile')
             expected_sequence = repeat_index + 1 + (blueprint['repeat_count'] if role == 'treatment' else 0)
             valid_repeat = type(repeat_index) is int and 0 <= repeat_index < blueprint['repeat_count']
+        if cache:
+            from .metric_contract import validate_metric_declarations
+            validate_metric_declarations(blueprint['metrics'], 'ai4r-cache-study:1')
+            if (_input_ref(contract,'validation_resource') != self.scorer.profile['public_dataset_ref']
+                    or blueprint['validation_resource_ref'] != self.scorer.profile['public_dataset_ref']
+                    or _input_ref(contract,'baseline_resource') != blueprint['baseline_identity']['resource_ref']
+                    or _input_ref(contract,'poc_artifact_bundle') != manifest['archive_ref']
+                    or manifest['blueprint_ref'] != _input_ref(contract,'hypothesis_blueprint')
+                    or blueprint['repeat_count'] != 3):
+                raise ResearchError('auth','Cache measurements require exact frozen accepted resources and three repeats')
         expected_subject = blueprint['baseline_identity']['resource_ref'] if role == 'baseline' else manifest['archive_ref']
         if (role not in {'baseline', 'treatment'} or not valid_repeat
                 or sequence != expected_sequence or seed != blueprint['seed'] or subject_ref != expected_subject):
@@ -459,13 +470,15 @@ class ScienceExecutionAdapter:
             public_ref = self.store.put_record('resource-snapshot',public)
             validation = self._resource(public,public_ref,'/resources/validation')
             from .pi_protocol import inspect_pi_bundle
+        elif cache:
+            from .cache_protocol import inspect_cache_bundle
         elif self.scorer is not None:
             from .checks.prediction_bundle import inspect_bundle
         else:
             from .checks.research import inspect_bundle
         bundle = self.store.read_blob(manifest['archive_ref'])
-        protocol = {'output_protocol': 'ai4r-predictions:1'} if self.scorer is not None and not pi else {}
-        checked = inspect_pi_bundle(bundle,prepared[2]) if pi else inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']], prepared[2], **protocol)
+        protocol = {'output_protocol': 'ai4r-predictions:1'} if self.scorer is not None and not pi and not cache else {}
+        checked = inspect_pi_bundle(bundle,prepared[2]) if pi else inspect_cache_bundle(bundle,prepared[2]) if cache else inspect_bundle(bundle, [metric['metric_id'] for metric in blueprint['metrics']], prepared[2], **protocol)
         poc = {'schema_version': '1.0.0', 'id': 'prepared_poc', 'kind': 'accepted POC', 'origin': 'accepted POC archive',
                'revision': manifest['archive_ref']['sha256'], 'files': [{'path': name, 'artifact_ref': self.store.put_blob(raw),
                'media_type': 'text/plain', 'audience': 'researcher'} for name, raw in checked['files'].items()],
@@ -501,7 +514,7 @@ class ScienceExecutionAdapter:
             pids_max=min(64,self.profile.pids_max) if pi else self.profile.pids_max, baseline_ref=baseline.ref, validation_ref=validation.ref,
             environment_ref=prepared[0].ref, subject_ref=subject_ref, hardware_ref=hardware_ref,
             readonly_mounts=(baseline, validation, treatment), environment=prepared[0],
-            output_limit_bytes=1048576 if pi else None)
+            output_limit_bytes=1048576 if pi or cache else None)
         if self.scorer is not None:
             self._measurement_jobs[job.job_id] = (copy.deepcopy(job), case_public if pi else copy.deepcopy(inputs['validation_resource']))
             if pi:self._pi_pending.add(binding.invocation_id)

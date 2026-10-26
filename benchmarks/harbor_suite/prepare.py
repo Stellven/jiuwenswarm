@@ -57,7 +57,8 @@ def runner_case(key, case, variant, *, inputs=None):
 
 
 def prepare(destination, *, python_image, profile="smoke", expected_model="gpt-6.1-sol",
-            harbor_version="0.24.0", cases_root=None, case_ids=(), variant_ids=(), evaluation_overlay=None):
+            harbor_version="0.24.0", cases_root=None, case_ids=(), variant_ids=(), evaluation_overlay=None,
+            controller_public_key=None):
     destination = Path(destination).absolute()
     if destination.exists() or not destination.parent.is_dir() or any(p.is_symlink() for p in (destination, *destination.parents)):
         raise ValueError("new non-symlink destination with existing parent required")
@@ -95,6 +96,8 @@ def prepare(destination, *, python_image, profile="smoke", expected_model="gpt-6
         if overlay.get('prepared_inputs') and set(overlay['prepared_inputs']) != {i['path'] for i in matches[0][1]['inputs']}:
             raise ValueError('prepared public inventory differs from selected assignment')
     repeats = 1 if profile == "smoke" else 3
+    if controller_public_key is not None and not re.fullmatch('[a-f0-9]{64}', controller_public_key):
+        raise ValueError('raw Ed25519 public key hex required')
     payloads = {}; protected = set(); tasks = []
     def add(name, raw, *, secret=False):
         relative(name)
@@ -156,6 +159,10 @@ def prepare(destination, *, python_image, profile="smoke", expected_model="gpt-6
                         "public_inputs": public, "case_pin": pin(folder / "case.json"),
                         "criteria_pin": pin(folder / "referee/criteria.json"), "oracle_pin": pin(folder / "oracle.py")}
                 criteria_raw = (folder / "referee/criteria.json").read_bytes()
+                if case['id'] == 'pipeline02-recovery' and controller_public_key is not None:
+                    from .protected_controller import SOURCES
+                    task['pipeline02_controller_public_key'] = controller_public_key
+                    task['pipeline02_controller_sources'] = {name: pin(repo / name) for name in SOURCES}
                 if overlay:
                     criteria_raw = encode(overlay['criteria'])
                     task['criteria_pin'] = {'sha256': hashlib.sha256(criteria_raw).hexdigest(), 'size': len(criteria_raw)}
@@ -232,6 +239,8 @@ network_mode = "no-network"
                 # Pinned packages install at image build; runtime has no network.
                 files["requirements.txt"] = ("jsonschema==4.26.0\nreferencing==0.37.0\nattrs==26.1.0\n"
                     "jsonschema-specifications==2025.9.1\nrpds-py==2026.9.1\n").encode()
+                if task.get('pipeline02_controller_public_key'):
+                    files['requirements.txt'] += b'cryptography==47.0.0\n'
                 files["Dockerfile"] = (f"FROM {python_image}\nWORKDIR /tests\nCOPY requirements.txt /tests/requirements.txt\n"
                     "RUN pip install --no-cache-dir -r /tests/requirements.txt\nCOPY . /tests/\n"
                     "RUN chmod 0555 /tests/test.sh\n").encode()
@@ -277,6 +286,7 @@ def main(argv=None):
                         help="Freeze only this authored case ID; repeat for more cases (default: all ten)")
     parser.add_argument("--variant", dest="variant_ids", action="append", default=[])
     parser.add_argument("--evaluation-overlay", type=Path)
+    parser.add_argument('--controller-public-key', help='Freeze operator Ed25519 public key for native protected controller')
     args = parser.parse_args(argv)
     manifest = prepare(**vars(args))
     print(json.dumps({k: manifest[k] for k in ("case_count", "task_count", "profile", "expected_model")}))

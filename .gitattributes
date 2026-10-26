@@ -76,3 +76,27 @@ docs/capsules/verification-20261025/** -text
 deploy/m1/examples/inputs/*.pdf -text
 deploy/m1/*.ps1 text eol=lf
 docs/capsules/verification-20261026/** -text
+
+# Native cache/host releases pin these exact source bytes across all checkout hosts.
+jiuwenswarm/research/builder_agent_host.py text eol=crlf
+jiuwenswarm/research/builder_testing.py text eol=crlf
+jiuwenswarm/research/capsules/assets.py text eol=crlf
+jiuwenswarm/research/capsules/benchmark.py text eol=crlf
+jiuwenswarm/research/capsules/builder_agent.py text eol=crlf
+jiuwenswarm/research/capsules/delivery.py text eol=crlf
+jiuwenswarm/research/checks/blind_benchmark.py text eol=crlf
+jiuwenswarm/research/checks/builder_agent.py text eol=crlf
+jiuwenswarm/research/checks/prediction_hypothesis.py text eol=crlf
+jiuwenswarm/research/compiler.py text eol=crlf
+jiuwenswarm/research/execution_jobs.py text eol=crlf
+jiuwenswarm/research/executor_bootstrap.py text eol=crlf
+jiuwenswarm/research/local_science.py text eol=crlf
+jiuwenswarm/research/metric_contract.py text eol=crlf
+jiuwenswarm/research/science_runtime.py text eol=crlf
+jiuwenswarm/research/cache_science.py text eol=crlf
+jiuwenswarm/research/cache_protocol.py -text !eol
+jiuwenswarm/research/trusted_cache.py -text !eol
+# These new protocol/schema files are also byte-pinned with CRLF.
+jiuwenswarm/research_contracts/metric-protocols/cache-study-v1.json text eol=crlf
+jiuwenswarm/research_contracts/schemas/cache-scoring-receipt.schema.json text eol=crlf
+jiuwenswarm/research_contracts/schemas/science-runtime.v6.schema.json text eol=crlf

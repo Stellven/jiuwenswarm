@@ -139,7 +139,130 @@ def normalize_run(root, task):
         refs[identity] = (kind, record)
         normalized["records"].append({"kind": kind, "ref": ref, "record": record})
     project_declared_outputs(normalized, ref_text, contracts)
+    if task.get('case_id') == 'pipeline02-recovery':
+        project_native_controller(root, task, normalized, run)
     return normalized
+
+
+def project_native_controller(root, task, normalized, run):
+    """Authenticate a complete root-controller closure before exposing Refs.
+
+    The key is frozen in the task, never selected by the received evidence.
+    Signatures authenticate operator custody; original record joins establish
+    which native request, barrier and accepted builder artifacts were affected.
+    """
+    import json
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    from cryptography.exceptions import InvalidSignature
+    key = task.get('pipeline02_controller_public_key')
+    if not key or not (root / 'controller-custody.json').exists():
+        raise Unavailable('authenticated native fault-controller closure is absent')
+    envelope = read_json(regular(root / 'controller-custody.json'))
+    require(set(envelope) == {'payload', 'signature'}, 'unexpected controller envelope')
+    payload = envelope['payload']
+    try:
+        Ed25519PublicKey.from_public_bytes(bytes.fromhex(key)).verify(
+            bytes.fromhex(envelope['signature']), canonical(payload))
+    except (InvalidSignature, ValueError, TypeError):
+        raise ValueError('native controller custody signature is invalid') from None
+    require(payload.get('schema') == 'ai4r-protected-custody:1'
+            and payload.get('task_sha256') == hashlib.sha256(canonical(task)).hexdigest()
+            and all(payload.get(k) == run[k] for k in ('campaign_id', 'request_id', 'app_run_id')),
+            'controller closure has foreign task/request identity')
+    raw_files = {}
+    for name, expected in payload['files'].items():
+        path = Path(name)
+        require(not path.is_absolute() and '..' not in path.parts and '\\' not in name,
+                'unsafe controller closure path')
+        raw = regular(root / name).read_bytes()
+        require(expected == {'sha256': hashlib.sha256(raw).hexdigest(), 'size': len(raw)},
+                'signed native custody bytes changed: ' + name)
+        raw_files[name] = raw
+    needed = {'controller/plan.json', 'controller/frozen.json', 'controller/audit.json',
+              'controller/effect.json', 'controller/driver-receipt.json', 'controller/events.json',
+              'controller/claims.json', 'controller/worker-trigger.json', 'campaign.json',
+              'controller/trigger-api-capture.json',
+              'pilot-receipt.json', 'bridge-pins.json', 'target_identity.json',
+              'runs/' + run['run_id'] + '/run_record.json'}
+    require(needed <= set(raw_files), 'incomplete signed controller audit closure')
+    data = lambda name: json.loads(raw_files[name])
+    frozen = data('controller/frozen.json'); plan = data('controller/plan.json')
+    require(frozen['task_sha256'] == payload['task_sha256']
+            and frozen['sources'] == task.get('pipeline02_controller_sources')
+            and frozen['build'] == data('bridge-pins.json')['expected_build']
+            and frozen['input_pins'] == task['public_inputs']
+            and frozen['plan_sha256'] == hashlib.sha256(canonical(plan)).hexdigest(),
+            'native controller source/build/input/plan pins differ')
+    effect = data('controller/effect.json'); audit = data('controller/audit.json')
+    require(all(effect.get(k) == run[k] for k in ('request_id', 'app_run_id'))
+            and plan['variant_id'] == task['variant_id'] and effect['fault'] == plan['fault'],
+            'native effect request/plan differs')
+    events = data('controller/events.json')
+    require(data('controller/claims.json') == [[run['run_id'], hashlib.sha256(canonical(run['submission'])).hexdigest()]],
+            'native durable attempt claim differs')
+    require(sum(e['kind'] == 'dispatch_planned' for e in events) == 1
+            and all(e['payload'].get('request_id') == run['request_id']
+                    and e['payload'].get('app_run_id') in {None, run['app_run_id']} for e in events),
+            'native recovery changed request or repeated dispatch')
+    pilot = data('pilot-receipt.json')
+    require(pilot['terminal_confirmed'] is True and pilot['collection_state'] == 'complete'
+            and pilot['campaign_id'] == run['campaign_id'] and pilot['app_run_id'] == run['app_run_id'],
+            'native bridge closed before terminal collection')
+    starts = [e['process'] for e in audit if e.get('event') == 'process_started']
+    require(starts and all(p.get('uid', 0) > 0 and p.get('pid', 0) > 0 and p.get('pgid') == p['pid'] and p.get('stat')
+                          and p.get('executable_pin') for p in starts), 'owned native process capture absent')
+    trigger = data('controller/worker-trigger.json')
+    capture = data('controller/trigger-api-capture.json')
+    require(capture['request_id'] == run['request_id'] and capture['app_run_id'] == run['app_run_id']
+            and capture['status']['client_request_id'] == run['request_id']
+            and capture['status']['run_id'] == run['app_run_id'], 'independent native trigger API capture differs')
+    require(trigger['pid'] == starts[0]['pid'] and trigger['request_id'] == run['request_id']
+            and trigger['app_run_id'] == run['app_run_id'], 'native trigger bound to foreign process')
+    if plan['fault'] in {'observer_interruption', 'collection_interruption'}:
+        require(effect.get('exit_code') == -9 and effect.get('process') == starts[0]
+                and len(starts) == 2 and starts[0]['pid'] != starts[1]['pid']
+                and pilot['recovered'] is True, 'native process exit/resume custody differs')
+        require(trigger['event'] == ('during_collection' if plan['fault'] == 'collection_interruption' else 'after_submit'),
+                'native interruption timing differs')
+        if plan['fault'] == 'collection_interruption':
+            require(capture.get('manifest', {}).get('execution_terminal') is True,
+                    'interrupted collection has no actual terminal manifest')
+    else:
+        barrier = data('controller/app-barrier.json'); response = data('controller/app-response.json')
+        require(all(barrier.get(k) == run[k] for k in ('request_id', 'app_run_id'))
+                and barrier['node_id'] == 'benchmark', 'native barrier scope differs')
+        builders = [r['record'] for r in normalized['records'] if r['kind'] == 'gate-decision'
+                    and r['record'].get('scope_kind') == 'node' and r['record'].get('node_id') == 'builder'
+                    and r['record'].get('action') == 'advance']
+        require(len(builders) == 1 and barrier['accepted_refs'] == builders[0]['accepted_refs'],
+                'native barrier does not follow original accepted Builder artifacts')
+        require(all(response.get(k) == run[k] for k in ('request_id', 'app_run_id')), 'native barrier response scope differs')
+        if plan['fault'] == 'dependency_failure':
+            require(effect['operation'] == 'dependency_access_denied' and response['action'] == 'deny_dependency'
+                    and effect['barrier'] == barrier and effect['response'] == response,
+                    'native dependency denial action is absent')
+        else:
+            http = effect.get('http_capture', {})
+            require(effect['operation'] == 'cancel_api_acknowledged' and pilot['cancellation_requested'] is True
+                    and http.get('status_code') in {200, 202}
+                    and http.get('method') == 'POST'
+                    and http.get('path') == '/api/v1/runs/' + run['app_run_id'] + '/cancel'
+                    and hashlib.sha256(http.get('body_utf8', '').encode()).hexdigest() == http.get('sha256')
+                    and json.loads(http['body_utf8']) == effect['response'],
+                    'authenticated cancel HTTP acknowledgement absent')
+    def source_ref(name):
+        raw = raw_files[name]
+        normalized['artifacts']['protected-host/' + name] = raw.decode('utf-8')
+        short = name.removeprefix('controller/')
+        return {'id': 'protected-controller:' + short, 'sha256': hashlib.sha256(raw).hexdigest()}
+    for name in raw_files:
+        source_ref(name)
+    normalized['module_observations']['pipeline02'] = {
+        'driver_receipt_ref': source_ref('controller/driver-receipt.json'),
+        'campaign_ref': source_ref('campaign.json'),
+        'run_record_ref': source_ref('runs/' + run['run_id'] + '/run_record.json'),
+        'events_ref': source_ref('controller/events.json'),
+        'pilot_receipt_ref': source_ref('pilot-receipt.json')}
 
 
 def project_declared_outputs(normalized, ref_text, contracts):

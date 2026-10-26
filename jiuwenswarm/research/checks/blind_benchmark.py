@@ -6,7 +6,7 @@ from .stages import ResearchChecks, require, resolve_all
 from .research import validate_benchmark
 from ..contracts import ResearchError, validate
 from ..environment import validate_lock
-from ..metric_contract import validate_metric_declarations, validate_empirical_metric_ids
+from ..metric_contract import validate_metric_declarations, validate_empirical_metric_ids, protocol_for_resource
 from ..trusted_scoring import BUILD_SCHEMA, SCORE_KIND, scored_empirical_row, failed_empirical_row
 from ..process_evidence import validate_process_evidence
 
@@ -15,7 +15,13 @@ class BlindBenchmarkChecks(ResearchChecks):
     async def _benchmark(self, ctx, inputs, outputs):
         blueprint, manifest = inputs['hypothesis_blueprint'], inputs['poc_manifest']
         payload, receipt, provisioning = outputs['benchmark_payload'], outputs['execution_receipt'], outputs['provisioning_receipt']
-        validate_metric_declarations(blueprint['metrics'])
+        protocol = protocol_for_resource(inputs['validation_resource'], ctx.read_blob)
+        if protocol == 'ai4r-cache-study:1':
+            from .. import trusted_cache as scorer
+        else:
+            from .. import trusted_scoring as scorer
+        scored_empirical_row, failed_empirical_row = scorer.scored_empirical_row, scorer.failed_empirical_row
+        validate_metric_declarations(blueprint['metrics'], protocol)
         ready = inputs['build_receipt']; validate('urn:ai4r:prediction-build-receipt:'+ready['schema_version'] if ready['schema_version'] in {'3.0.0','4.0.0'} else BUILD_SCHEMA, ready)
         require(ready['readiness'] == 'READY' and (ready['schema_version'] in {'3.0.0','4.0.0'} or (not ready['trial_executed'] and not ready['packages_installed']))
                 and ready['manifest_ref'] == ctx.input_ref('poc_manifest') and ready['archive_ref'] == ctx.input_ref('poc_artifact_bundle'), 'build_receipt_ready')
@@ -33,8 +39,7 @@ class BlindBenchmarkChecks(ResearchChecks):
         require(len(protected) == len(receipt['runs']), 'raw_repeats_present')
         expected_data = [row for row in inputs['validation_resource']['files'] if row['path'] == 'data.json']
         require(len(expected_data) == 1 and len(inputs['validation_resource']['files']) == 1, 'protocol_matches_blueprint')
-        from .. import trusted_scoring
-        scorer_digest = hashlib.sha256(Path(trusted_scoring.__file__).read_bytes()).hexdigest()
+        scorer_digest = hashlib.sha256(Path(scorer.__file__).read_bytes()).hexdigest()
         for public, row in zip(receipt['runs'], empirical['runs']):
             matching = [raw for raw in protected if raw['sequence'] == public['sequence']]
             require(len(matching) == 1, 'raw_repeats_present'); raw = matching[0]
@@ -44,7 +49,7 @@ class BlindBenchmarkChecks(ResearchChecks):
             require(ctx.read_json(raw['hardware_ref']) == receipt['hardware_inventory'], 'hardware_inventory_captured')
             if 'trusted_scoring_ref' in raw:
                 ref = raw['trusted_scoring_ref']
-                require(ref in payload['raw_evidence_refs'] and ctx.store.record_kind(ref) == SCORE_KIND,
+                require(ref in payload['raw_evidence_refs'] and ctx.store.record_kind(ref) == scorer.SCORE_KIND,
                         'values_match_empirical_results')
                 score = ctx.read_json(ref)
                 require(ctx.store.record_ref(score['id']) == ref and score['run_id'] == ctx.contract['run_id']
@@ -53,10 +58,21 @@ class BlindBenchmarkChecks(ResearchChecks):
                     and score['validation_ref'] == ctx.input_ref('validation_resource')
                     and score['public_data_sha256'] == expected_data[0]['artifact_ref']['sha256']
                     and score['scorer_sha256'] == scorer_digest, 'values_match_empirical_results')
+                if protocol == 'ai4r-cache-study:1':
+                    from .. import cache_protocol
+                    require(score['protocol_sha256'] == hashlib.sha256(Path(cache_protocol.__file__).read_bytes()).hexdigest(),
+                            'values_match_empirical_results')
+                    public_data = cache_protocol.parse_cache_dataset(ctx.read_blob(expected_data[0]['artifact_ref']))
+                    require(score['source_id'] == public_data['source_id'] and score['unit'] == 'requests'
+                            and score['sample_count'] == sum(len(trace) for trace in public_data['traces'].values()),
+                            'values_match_empirical_results')
+                    if score['status'] == 'scored':
+                        observed = cache_protocol.parse_cache_output(ctx.read_blob(raw['stdout_ref']), public_data)
+                        require(observed['results'] == score['observations'], 'values_match_empirical_results')
                 actual = scored_empirical_row(raw, score)
             else:
                 actual = failed_empirical_row(raw)
-            validate_empirical_metric_ids(actual)
+            validate_empirical_metric_ids(actual, protocol)
             require(actual == row, 'values_match_empirical_results')
             if raw.get('execution_mode') == 'm1_app_process':
                 require(validate_process_evidence(ctx.store, raw, expected_uid=10002, expected_gid=10002,

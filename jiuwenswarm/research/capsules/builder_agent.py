@@ -6,9 +6,10 @@ import json
 
 from ..contracts import ResearchError
 from ..environment import validate_lock
-from ..metric_contract import validate_metric_declarations
+from ..metric_contract import validate_metric_declarations, protocol_for_resource
 from ..pi_protocol import MAX_DIGITS, inspect_pi_bundle, validate_pi_request
 from ..trusted_scoring import parse_public_dataset
+from ..cache_protocol import PROTOCOL as CACHE_PROTOCOL, parse_cache_dataset, inspect_cache_bundle
 from ..checks.prediction_bundle import inspect_bundle
 from ._common import produced
 
@@ -32,16 +33,23 @@ private labels. The harness emits exactly the closed predictions JSON protocol. 
 owns baseline-first repeats and private scoring.'''
 
 
-def _public_task(inputs, public, *, pi=False):
+CACHE_SYSTEM = 'Implement the frozen cache intervention through scoped Builder actions. Use only the blueprint,\napproved lock, public validation traces and captured baseline source. Implement genuine bounded\nLRU simulation and unbounded cache observations for every trace at runtime. Preserve source_id,\nrequest units, trace identifiers and all unfavorable results. Never embed trace counts or expected\nanswers. Define simulate_cache(data) in poc_patch.py returning a dict with exactly source_id, unit,\nresults; results maps every trace ID to hits, misses, unbounded_misses integer counts. Harness reads\n/resources/validation/data.json, calls simulate_cache once and prints its JSON result once. Do not\nemit scores, metrics or acceptance fields. Protected Benchmark owns baseline-first repeats and\nindependent scoring. Tests must substantively exercise eviction, recency and repeated accesses on\nsynthetic inputs. No baseline calls, private files, unrelated state, network or experiment loops.\nInspect protected compile, unit and smoke evidence and submit the exact tested snapshot.'
+
+
+def _public_task(inputs, public, *, pi=False, cache=False):
     """Project bound inputs into agent context without forwarding resource refs."""
     contract = ({'interface': 'approximate_pi(digits)', 'min_digits': 0,
                  'max_digits': MAX_DIGITS, 'rounding': 'truncate',
                  'development_cases': [0,1,2,17,10000,100000],
                  'output': {'digits': 'integer', 'decimal': 'string'}} if pi else
-                {'interface': 'predict(train, test)', 'classes': public['classes'],
+                {'interface': 'predict(train, test)', 'classes': public.get('classes', []),
                  'output': 'list of declared string labels in test order'})
+    if cache:
+        contract = {'interface': 'simulate_cache(data)', 'protocol': CACHE_PROTOCOL,
+                    'output': {'source_id': 'copied string', 'unit': 'requests',
+                               'results': 'all trace IDs mapped to hits, misses, unbounded_misses integers'}}
     return {'blueprint': inputs['blueprint'], 'lock': inputs['lock'],
-            'public_validation': public, 'instructions': SYSTEM if pi else CLASSIFICATION_SYSTEM,
+            'public_validation': public, 'instructions': CACHE_SYSTEM if cache else SYSTEM if pi else CLASSIFICATION_SYSTEM,
             'contract': contract}
 
 
@@ -55,6 +63,7 @@ async def execute(ctx, inputs):
         raise ResearchError('builder_public_data', 'Public validation request must be data.json')
     raw_public = ctx.store.read_blob(row['artifact_ref'])
     pi = False
+    cache = False
     try:
         raw_value = json.loads(raw_public)
     except (ValueError, TypeError, UnicodeDecodeError) as exc:
@@ -65,15 +74,18 @@ async def execute(ctx, inputs):
         except ValueError as exc:
             raise ResearchError('builder_public_data', 'Invalid public Pi request') from exc
         pi = True
+    elif protocol_for_resource(inputs['validation_resource'], ctx.store.read_blob) == CACHE_PROTOCOL:
+        public = parse_cache_dataset(raw_public)
+        cache = True
     else:
         try:
             public = parse_public_dataset(raw_public)
         except Exception as exc:
             raise ResearchError('builder_public_data', 'Invalid public classification data') from exc
     if not pi:
-        validate_metric_declarations(inputs['blueprint']['metrics'])
+        validate_metric_declarations(inputs['blueprint']['metrics'], CACHE_PROTOCOL if cache else None)
     lock = inputs['lock']
-    task = _public_task(inputs, public, pi=pi)
+    task = _public_task(inputs, public, pi=pi, cache=cache)
     task['baseline_source']={row['path']:ctx.store.read_blob(row['artifact_ref']).decode('utf-8')
                              for row in inputs['baseline_resource']['files']}
     task['contract']['limits']={'time_s':600,'model_calls':20,'tool_operations':40,'development_jobs':12}
@@ -107,7 +119,7 @@ async def execute(ctx, inputs):
     if manifest.get('archive_ref') != bundle_ref or hashlib.sha256(bundle).hexdigest() != bundle_ref.get('sha256'):
         raise ResearchError('builder_invalid_submission', 'Submitted archive does not match its manifest')
     pins = validate_lock(lock, ctx.read_blob, lock['platform'])
-    checked = inspect_pi_bundle(bundle, pins) if pi else inspect_bundle(
+    checked = inspect_cache_bundle(bundle, pins) if cache else inspect_pi_bundle(bundle, pins) if pi else inspect_bundle(
         bundle, [metric['metric_id'] for metric in inputs['blueprint']['metrics']], pins)
     files = {row['path']: row for row in manifest.get('files', [])}
     if set(files) != set(checked['files']) or any(

@@ -95,7 +95,11 @@ class BuilderTestService:
         blueprint = inputs['blueprint']
         metric_ids = [metric['metric_id'] for metric in blueprint.get('metrics', [])]
         try:
-            checked = inspect_bundle(bundle, metric_ids, lock_pins, output_protocol='ai4r-predictions:1')
+            if getattr(self.adapter.scorer, 'protocol', None) == 'ai4r-cache-study:1':
+                from .cache_protocol import inspect_cache_bundle
+                checked = inspect_cache_bundle(bundle, lock_pins)
+            else:
+                checked = inspect_bundle(bundle, metric_ids, lock_pins, output_protocol='ai4r-predictions:1')
         except (CheckError, ValueError, TypeError) as exc:
             raise ResearchError('builder_test_bundle', 'Candidate bundle failed its frozen prediction package checks') from exc
         files = checked['files']
@@ -241,7 +245,14 @@ class BuilderTestService:
         if self.store.read_record(validation_ref) != validation:
             raise ResearchError('builder_test_validation', 'Validation resource differs from the frozen public input')
         _, public_raw = _resource_file(self.store, validation, 'data.json')
-        public = parse_public_dataset(public_raw)
+        cache = getattr(self.adapter.scorer, 'protocol', None) == 'ai4r-cache-study:1'
+        if cache:
+            from .cache_protocol import parse_cache_dataset, parse_cache_output
+            if validation_ref != self.adapter.scorer.profile['public_dataset_ref']:
+                raise ResearchError('auth','Cache public task differs from frozen profile')
+            public = parse_cache_dataset(public_raw)
+        else:
+            public = parse_public_dataset(public_raw)
         if any(row['path'] != 'data.json' for row in validation.get('files', [])):
             raise ResearchError('builder_test_validation', 'Only the closed public data.json may enter the test sandbox')
 
@@ -304,7 +315,10 @@ class BuilderTestService:
         stdout = self.store.read_blob(smoke_raw['stdout_ref'])
         prediction_ok = True
         try:
-            parse_predictions(stdout, public, max_stdout_bytes=OUTPUT_LIMIT)
+            if cache:
+                parse_cache_output(stdout, public, max_stdout_bytes=OUTPUT_LIMIT)
+            else:
+                parse_predictions(stdout, public, max_stdout_bytes=OUTPUT_LIMIT)
         except ResearchError:
             prediction_ok = False
         passed = (self_raw.get('exit_code') == 0 and self_raw.get('termination_reason') == 'completed'

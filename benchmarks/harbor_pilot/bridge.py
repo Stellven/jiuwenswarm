@@ -379,12 +379,18 @@ async def run_trial(config, case_id, trial_identity, *, execute=None, inventory=
             atomic(inv_path, inventory(config.output_root))
         error_type = None
         cancelled = False
+        planned_cancellation = False
         code = 3
         try:
             if folder.exists() and not (folder / "campaign.json").is_file() and not getattr(config, "reconcile_without_local_campaign", False):
                 raise ValueError("Incomplete campaign creation; no submission permitted")
             command = "resume" if folder.exists() or (recovered and getattr(config, "reconcile_without_local_campaign", False)) else "run"
-            code, _ = await execute(_args(config, command, ident, case_id))
+            code, execution_metadata = await execute(_args(config, command, ident, case_id))
+            if getattr(execute, 'protected_native_controller', False):
+                recovered = recovered or execution_metadata.get('protected_recovered', False)
+                # A planned native API cancellation is retained as an actual
+                # cancellation without raising Harbor's caller cancellation.
+                planned_cancellation = execution_metadata.get('protected_cancelled', False)
         except asyncio.CancelledError:
             cancelled = True
             code, error_type = await _contain(config, ident, execute)
@@ -397,7 +403,7 @@ async def run_trial(config, case_id, trial_identity, *, execute=None, inventory=
         atomic(folder / "bridge-pins.json", pins)
         receipt = {"schema": "ai4r-harbor-receipt:1", "case_id": case_id, "campaign_id": ident,
                    "runner_exit_code": code, **observation(folder), "recovered": recovered,
-                   "cancellation_requested": cancelled, "custody": "live", "inventory_ref": "host-inventory.json",
+                   "cancellation_requested": cancelled or planned_cancellation, "custody": "live", "inventory_ref": "host-inventory.json",
                    "error_type": error_type, "observed_at": now(), "scientific_assessment": "not_performed"}
         atomic(folder / "pilot-receipt.json", receipt)
         if receipt["terminal_confirmed"] and receipt["collection_state"] in {"complete", "not_applicable"}:

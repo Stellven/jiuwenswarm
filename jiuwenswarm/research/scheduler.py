@@ -342,6 +342,13 @@ class Scheduler:
             processing_began=stamp();processing_clock=time.monotonic()
             try:
                 self.runner.prepare_node_check_plan(parent_ref)
+                if protected.get('dispatch_control_root') and node['cc']['cc_name'] == 'research.benchmark':
+                    from .protected_barrier import before_dispatch
+                    builder = next((item for item in plan['nodes'] if item['cc']['cc_name'] == 'research.builder'), None)
+                    original = self._committed_node(run_id, builder['node_id'], plan) if builder else None
+                    await before_dispatch(self.store, run_id, node_id,
+                        list(original['gates'][0][1]['accepted_refs']) if original and len(original['gates']) == 1 else [],
+                        protected['dispatch_control_root'], plan['limits']['time_s']-(time.monotonic()-started))
                 dispatch_scope={'run_id':run_id,'node_id':node_id,'node_contract_ref':parent_ref,'run_plan_ref':plan_ref,
                     'predecessors':list(node['predecessors']),
                     'predecessor_commits':self.store.predecessor_snapshot(run_id,node['predecessors']),
@@ -349,6 +356,16 @@ class Scheduler:
                 result=await self.runner.run(work_ref,check_plan_ref,bundle_id=bundle,
                     verifier_contract_refs=VerifierBindings(self.factory,parent_ref,work_ref,assignments),dispatch=dispatch_scope)
             except BaseException as error:
+                from .protected_barrier import DependencyDenied
+                if isinstance(error, DependencyDenied):
+                    self.runner.gate.block_unstarted_node(parent_ref,
+                        self.runner.prepare_node_check_plan(parent_ref), error.evidence_ref)
+                    self.runner.capture_start_failure(parent_ref, started_at=processing_began,
+                        elapsed_s=time.monotonic()-processing_clock, error=error, phase='planned',
+                        run_plan_ref=plan_ref, cc=node['cc'], check_pins=node['check_pins'])
+                    states[node_id]='failed'
+                    self.store.set_node_state(run_id,node_id,'failed',attempt_id=node_id+'-a1',reason=error.code)
+                    raise
                 timing=self.runner.dispatch_timing(parent_ref)
                 began=timing['started_at'] if timing else processing_began
                 clock=timing['started_monotonic_s'] if timing else processing_clock

@@ -60,7 +60,14 @@ class BuilderAgentHost(BuilderTestService):
         pins = parse_requirements(self.store.read_blob(inputs['lock']['requirements_ref']))
         raw = self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref'])
         pi = getattr(self.adapter.scorer, 'protocol', None) == 'ai4r-pi:1'
-        if pi:
+        cache = getattr(self.adapter.scorer, 'protocol', None) == 'ai4r-cache-study:1'
+        if cache:
+            from .cache_protocol import parse_cache_dataset, inspect_cache_bundle
+            if _input_ref(binding.contract, 'validation_resource') != self.adapter.scorer.profile['public_dataset_ref']:
+                raise ResearchError('auth', 'Cache task differs from frozen host profile')
+            parse_cache_dataset(raw)
+            checked = inspect_cache_bundle(bundle, pins)
+        elif pi:
             if _input_ref(binding.contract, 'validation_resource') != self.adapter.scorer.profile['public_dataset_ref']:
                 raise ResearchError('auth', 'Pi task resource differs from frozen host profile')
             validate_pi_request(raw)
@@ -135,6 +142,9 @@ class BuilderAgentHost(BuilderTestService):
                 if pi:
                     # Development validates shape; Benchmark owns correctness.
                     parse_pi_output(stdout,validate_pi_request(self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref'])))
+                elif getattr(self.adapter.scorer, 'protocol', None) == 'ai4r-cache-study:1':
+                    from .cache_protocol import parse_cache_output, parse_cache_dataset
+                    parse_cache_output(stdout, parse_cache_dataset(self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref'])))
                 else:
                     from .trusted_scoring import parse_predictions,parse_public_dataset
                     parse_predictions(stdout,parse_public_dataset(self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref'])))

@@ -7,7 +7,7 @@ from ..science import metric_payload
 from ..trusted_scoring import BUILD_SCHEMA, scored_empirical_row, failed_empirical_row
 from ..contracts import validate
 from ..state import json_bytes
-from ..metric_contract import validate_metric_declarations, validate_empirical_metric_ids
+from ..metric_contract import validate_metric_declarations, validate_empirical_metric_ids, protocol_for_resource
 from ._common import captured, produced
 
 
@@ -17,7 +17,12 @@ async def execute(ctx, inputs):
     blueprint, manifest = inputs['hypothesis_blueprint'], inputs['poc_manifest']
     ready, lock = inputs['build_receipt'], inputs['environment_lock']
     validate('urn:ai4r:prediction-build-receipt:'+ready['schema_version'] if ready['schema_version'] in {'3.0.0','4.0.0'} else BUILD_SCHEMA, ready)
-    validate_metric_declarations(blueprint['metrics'])
+    protocol = protocol_for_resource(inputs['validation_resource'], ctx.store.read_blob)
+    if protocol == 'ai4r-cache-study:1':
+        from ..trusted_cache import scored_empirical_row, failed_empirical_row
+    else:
+        from ..trusted_scoring import scored_empirical_row, failed_empirical_row
+    validate_metric_declarations(blueprint['metrics'], protocol)
     if (ready['readiness'] != 'READY' or (ready['schema_version'] not in {'3.0.0','4.0.0'} and (ready['trial_executed'] or ready['packages_installed']))
             or ready['manifest_ref'] != ctx.input_ref('poc_manifest')
             or ready['archive_ref'] != manifest['archive_ref'] or ready['archive_ref'] != ctx.input_ref('poc_artifact_bundle')
@@ -59,7 +64,7 @@ async def execute(ctx, inputs):
                     score_refs.append(raw['trusted_scoring_ref'])
                 row = (scored_empirical_row(raw, ctx.read_json(raw['trusted_scoring_ref']))
                        if 'trusted_scoring_ref' in raw else failed_empirical_row(raw))
-                validate_empirical_metric_ids(row)
+                validate_empirical_metric_ids(row, protocol)
                 rows.append(row)
                 if role == 'baseline' and (raw['exit_code'] != 0 or raw.get('termination_reason') != 'completed'
                                            or row['status'] != 'measured'):

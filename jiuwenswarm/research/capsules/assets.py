@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-18', benchmark='m1-10-agent-pi', evaluation='m1-5', delivery='m1-5')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-9-cache', builder='m1-20-cache', benchmark='m1-11-cache', evaluation='m1-5', delivery='m1-7-cache')
 
 
 def source_metadata():
@@ -54,19 +54,28 @@ def build_research_assets(store, *, verify_catalog=True):
         metric_closure = {}
         if stage in {'hypothesis', 'builder', 'benchmark'}:
             from ..metric_contract import PROTOCOL_FILE, metric_protocol
+            from ..cache_protocol import PROTOCOL as CACHE_PROTOCOL
+            cache_protocol_file = 'metric-protocols/cache-study-v1.json'
             body['metric_contract.py'] = (root / 'metric_contract.py').read_bytes()
             body[PROTOCOL_FILE] = (root.parent / 'research_contracts' / PROTOCOL_FILE).read_bytes()
+            body[cache_protocol_file] = (root.parent / 'research_contracts' / cache_protocol_file).read_bytes()
+            body['cache_protocol.py'] = (root / 'cache_protocol.py').read_bytes()
             metric_closure = {name: store.put_blob(raw, media_type='application/json' if name.endswith('.json') else 'text/x-python')
-                              for name, raw in body.items() if name in {'metric_contract.py', PROTOCOL_FILE}}
+                              for name, raw in body.items() if name in {'metric_contract.py', PROTOCOL_FILE, cache_protocol_file, 'cache_protocol.py'}}
             metric_closure['schemas/metric-protocol.schema.json'] = store.put_blob(
                 (root.parent / 'research_contracts/schemas/metric-protocol.schema.json').read_bytes(), media_type='application/json')
             metric_closure['schemas/classification-scoring-receipt.schema.json'] = store.put_blob(
                 (root.parent / 'research_contracts/schemas/classification-scoring-receipt.schema.json').read_bytes(), media_type='application/json')
+            metric_closure['schemas/cache-scoring-receipt.schema.json'] = store.put_blob(
+                (root.parent / 'research_contracts/schemas/cache-scoring-receipt.schema.json').read_bytes(), media_type='application/json')
             description = (' Fixed measurement protocol: ' + json.dumps(metric_protocol(), separators=(',', ':')) +
-                '. Use these exact metric IDs, units, definitions, directions and physical bounds. '
+                '. Cache study protocol: ' + json.dumps(metric_protocol(CACHE_PROTOCOL), separators=(',', ':')) +
+                '. Select the protocol from the captured validation resource schema; never combine families. Use these exact metric IDs, units, definitions, directions and physical bounds. '
                 'Aggregation and Brief target_id remain separately registered. No aliases or silent renaming.')
         if stage in {'builder', 'benchmark'}:
             body['trusted_scoring.py'] = (root / 'trusted_scoring.py').read_bytes()
+            body['cache_protocol.py'] = (root / 'cache_protocol.py').read_bytes()
+            body['trusted_cache.py'] = (root / 'trusted_cache.py').read_bytes()
             if stage == 'builder':
                 body['prediction_bundle.py'] = (root / 'checks/prediction_bundle.py').read_bytes()
         if stage == 'benchmark':
@@ -124,14 +133,14 @@ def build_research_assets(store, *, verify_catalog=True):
                         ' The separately registered Pi task uses approximate_pi(digits), returning exactly the truncated decimal prefix; its harness emits closed digits/decimal JSON. Private reference answers remain in root custody.')
             closure = dict(checker_closure, **metric_closure)
             for name in ('checks/builder_agent.py', 'checks/prediction_bundle.py', 'pi_protocol.py',
-                         'trusted_pi.py', 'trusted_scoring.py', 'environment.py', 'process_evidence.py'):
+                         'trusted_pi.py', 'trusted_scoring.py', 'cache_protocol.py', 'environment.py', 'process_evidence.py'):
                 closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
             closure['schemas/prediction-build-receipt.v4.schema.json'] = store.put_blob((root.parent / 'research_contracts/schemas/prediction-build-receipt.v4.schema.json').read_bytes(), media_type='application/json')
             stage_runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.builder_agent', 'files': closure}), media_type='application/json')
         if stage == 'benchmark':
             declaration['needs']['resources'] = [row for row in declaration['needs']['resources'] if row['resource_key'] != 'gpu_device']
             declaration['needs']['network'] = {'mode': 'none', 'direction': 'none', 'allowlist': []}
-            identity['summary'] = 'Schema-routed benchmark: classification remains the default; registered Pi requests use protected Pi scoring and baseline-first jobs'
+            identity['summary'] = 'Registered classification, cache and Pi benchmark protocols with independent protected scoring and baseline-first jobs'
             for port in declaration['ports']['inputs']:
                 if port['name'] == 'build_receipt':
                     port['schema_ref'] = 'urn:ai4r:prediction-build-receipt:4.0.0'
@@ -148,7 +157,7 @@ def build_research_assets(store, *, verify_catalog=True):
             closure = dict(checker_closure, **metric_closure)
             for name in ('checks/benchmark_dispatch.py', 'checks/blind_benchmark.py', 'checks/pi_benchmark.py',
                          'capsules/benchmark_dispatch.py', 'capsules/benchmark.py', 'capsules/pi_benchmark.py',
-                         'trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py', 'process_evidence.py'):
+                         'trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py', 'trusted_cache.py', 'cache_protocol.py', 'process_evidence.py'):
                 closure[name] = store.put_blob((root / name).read_bytes(), media_type='text/x-python')
             for name in ('classification-scoring-receipt.schema.json', 'prediction-build-receipt.v2.schema.json', 'prediction-build-receipt.v3.schema.json', 'prediction-build-receipt.v4.schema.json', 'pi-benchmark-payload.schema.json'):
                 closure['schemas/' + name] = store.put_blob((root.parent / 'research_contracts/schemas' / name).read_bytes(), media_type='application/json')
@@ -193,10 +202,20 @@ def build_research_assets(store, *, verify_catalog=True):
             for port in declaration['ports']['outputs']:
                 port['description'] += ' M1 may execute ordinary non-root processes within the app container. Network and namespaces are shared with the app; per-job cgroup isolation is not claimed. The frozen runtime and protected execution records identify the selected enforcement mode.'
         if metric_closure:
-            if stage == 'builder':
-                description = ' Classification tasks only:' + description + ' The separately frozen Pi task instead uses its exact declared precision and elapsed-time protocol.'
+            description += ' The separately frozen Pi task uses its exact declared precision and elapsed-time protocol.'
             for port in declaration['ports']['outputs']:
                 port['description'] += description
+        if stage in {'hypothesis', 'builder', 'benchmark'}:
+            cache_description = (' For captured ai4r-cache-study:1 data.json, the cache protocol applies: '
+                'poc_patch.simulate_cache(data) and run_benchmark.py compute observations at runtime for all supplied '
+                'traces. The one-job harness reads /resources/validation/data.json and emits exactly source_id, '
+                'unit=requests and results mapping each trace ID to hits, misses and unbounded_misses. These are '
+                'observations, not authoritative scores. Root independently recomputes LRU and unbounded counts; '
+                'baseline miss_ratio uses unbounded misses divided by all requests and treatment miss_ratio uses '
+                'bounded misses divided by all requests. Exact source identity and original stdout are retained. '
+                'All original baseline-first repeats, frozen rule, evidence, limits and negative delivery obligations apply.')
+            for port in declaration['ports']['outputs']:
+                port['description'] += cache_description
         body_refs = {name: store.put_blob(raw, media_type='application/json' if name.endswith('.json') else 'text/plain') for name, raw in body.items()}
         identity['carrier'] = {'ref': carrier_name, 'sha256': body_refs[carrier_name]['sha256']}
         identity['body'] = [{'path': name, 'sha256': ref['sha256']} for name, ref in body_refs.items() if name != '_common.py']
@@ -226,7 +245,7 @@ def build_research_assets(store, *, verify_catalog=True):
                 summary = {
                     'bounded_development': 'Protected development tests join submitted snapshot, public inputs, bounded native action records and compile/unit/smoke evidence; no scientific acceptance authority',
                     'build_receipt_ready': 'Version 4 receipt joins the protected action journal, exact submitted snapshot, bounded model/tool/job counts and passing development checks',
-                    'output_log_format': 'Static Pi output contract plus protected public smoke parsing; no scientific score accepted from generated code',
+                    'output_log_format': 'Registered output contract plus protected public smoke parsing; no scientific score accepted from generated code',
                 }.get(check_id, summary)
             checks.append({'check_id': check_id, 'target_port': target_port, 'rule_summary': summary,
                            'runner_ref': stage_runner_ref, 'reads': ['output'] if check_id.endswith('_schema') else ['output', 'inputs', 'runtime_records'], 'blocking': True})
@@ -254,17 +273,17 @@ def build_research_assets(store, *, verify_catalog=True):
                 elif criterion['criterion_id'] == 'no_embedded_results':
                     criterion['question'] = 'Does the visible code compute the declared protocol output at runtime without embedded answers, self-scoring, or unsupported scientific success claims?'
                 if criterion['criterion_id'] == 'harness_orders_baseline_first':
-                    criterion['question'] = ('Does the visible harness emit one closed protocol result (classification predictions or Pi digits/decimal) per default '
+                    criterion['question'] = ('Does the visible harness emit one closed protocol result (classification predictions, cache trace observations, or Pi digits/decimal) per default '
                         'invocation, with consistent data/seed settings and no baseline calls, repeat experiments '
                         'or averaging? Host Benchmark owns baseline-first scheduling; hidden baseline/data '
                         'fidelity and actual execution remain host checks.')
         if stage == 'benchmark':
             pi_questions = {
                 'no_interpretation': 'Does this payload report measured facts and correctness checks without unsupported scientific recommendations or success claims?',
-                'side_has_value_or_reason': 'For classification, does each metric side contain a value or reason? For Pi, do case runs retain explicit null timing and false correctness when unmeasured or failed?',
-                'run_order_baseline_first': 'For classification, are all baseline runs first? For Pi, do five fresh baseline runs precede five treatment runs separately within each measured precision case?',
+                'side_has_value_or_reason': 'For classification and cache, does each metric side contain a value or reason? For Pi, do case runs retain explicit null timing and false correctness when unmeasured or failed?',
+                'run_order_baseline_first': 'For classification and cache, are all baseline runs first? For Pi, do five fresh baseline runs precede five treatment runs separately within each measured precision case?',
                 'repeats_match_aggregate': 'Do repeats, raw elapsed values, medians and spread agree, with five repeats per measured Pi side and one per additional correctness case?',
-                'delta_direction_consistent': 'For classification, is delta treatment minus baseline? For Pi, is speedup baseline median divided by treatment median at the primary 100000-place case, including values below one for slower candidates?',
+                'delta_direction_consistent': 'For classification and cache, is delta treatment minus baseline? For Pi, is speedup baseline median divided by treatment median at the primary 100000-place case, including values below one for slower candidates?',
             }
             for criterion in criteria:
                 if criterion['criterion_id'] in pi_questions:
@@ -308,17 +327,17 @@ def build_pi_benchmark_asset(store, *, base=None, verify_catalog=True):
     """Explicit separate Pi release; default M1 consumer contracts stay intact."""
     base=base or build_research_assets(store,verify_catalog=verify_catalog)['benchmark']
     declaration=copy.deepcopy(store.read_record(base['declaration_ref']))
-    declaration['identity']['version_label']='pi-m1-4'
+    declaration['identity']['version_label']='pi-m1-5-cache'
     declaration['identity']['summary']='Frozen Pi benchmark: independent root reference, baseline-first fresh processes and protected timing'
     for port in declaration['ports']['outputs']:
         port['description'] = 'Pi benchmark output under the frozen host precision profile; baseline-first fresh processes, protected elapsed time, exact prefix correctness and retained execution evidence. This output does not use classification metrics.'
         if port['name']=='benchmark_payload':port['schema_ref']='urn:ai4r:pi-benchmark-payload:1.0.0'
     bundle=copy.deepcopy(store.read_record(base['bundle_ref']))
-    bundle.update(id='research.benchmark.checks:pi-m1-4',target_cc_version_range='pi-m1-4')
+    bundle.update(id='research.benchmark.checks:pi-m1-5-cache',target_cc_version_range='pi-m1-5-cache')
     # Bundle IDs must be distinct when both versions are installed together.
     bundle['bundle_id']='research.benchmark.pi.checks'
     profile=copy.deepcopy(store.read_record(base['profile_ref']))
-    profile.update(id='research.benchmark.profile:pi-m1-4',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-4')
+    profile.update(id='research.benchmark.profile:pi-m1-5-cache',profile_id='research.benchmark.pi.profile',target_cc_version_range='pi-m1-5-cache')
     from ..checks.schema_context import frozen_output_instructions
     instructions=files('jiuwenswarm.research').joinpath('resources/capsules/verifier_implementation.txt').read_bytes()
     profile['instruction_ref']=store.put_blob(frozen_output_instructions(instructions,declaration),media_type='text/plain')
@@ -338,7 +357,7 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
     handlers = {'search': search.execute, 'hypothesis': hypothesis.execute, 'builder': builder_agent.execute,
                 'benchmark': benchmark_dispatch.execute, 'evaluation': evaluation.execute, 'delivery': delivery.execute}
     selected=list(assets.items())
-    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-4'
+    if 'benchmark' in assets and any(row['name']=='research.benchmark' and row['version']=='pi-m1-5-cache'
            and row['standing']=='active' for row in library.entries()):
         selected.append(('benchmark',build_pi_benchmark_asset(store,base=assets['benchmark'])))
     for stage, asset in selected:

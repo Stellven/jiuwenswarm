@@ -166,6 +166,10 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
         if stage in {'intent','requirements'}:
             runner_bytes=json_bytes({'implementation':code_path,'files':{code_path:store.put_blob(runner_bytes),
                 'research/target_comparisons.py':store.put_blob(package.joinpath('research/target_comparisons.py').read_bytes())}})
+        if stage == 'verifier':
+            verifier_paths = ('research/checks/verifier.py', 'research/gate.py')
+            runner_bytes = json_bytes({'implementation': code_path, 'files': {
+                path: store.put_blob(package.joinpath(path).read_bytes()) for path in verifier_paths}})
         runner_ref=store.put_blob(runner_bytes)
         if stage == 'planner':
             paths = ['research/planning.py', 'research/binding.py', 'research/unified_planning.py',

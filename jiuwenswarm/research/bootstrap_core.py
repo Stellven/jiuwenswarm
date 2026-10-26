@@ -314,6 +314,9 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             if run_context['profile_id'] not in (None,profiles.profile_id):raise ResearchError('evaluation_profile','Protected binding differs from the approved evaluation profile')
             run_context['profile_id']=profiles.profile_id
         if finite is not None:run_context['finite_e1_binding_ref']=finite.binding_ref
+        if options.get('dispatch_control_root') is not None:
+            from .protected_barrier import validate_control_root
+            run_context['dispatch_control_root'] = str(validate_control_root(options['dispatch_control_root']))
         service.configure_workspace(principal.account_id,workspace_id,**run_context)
         result.compiler,result.planner,result.scheduler=compiler,planner,scheduler
     except (ResearchError,OSError,ValueError) as exc:

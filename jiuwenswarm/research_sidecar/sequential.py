@@ -520,6 +520,8 @@ class SequentialRunner:
                 atomic(manifest_path, manifest, exclusive=True)
             if manifest.get('execution_terminal') is not True:
                 raise ValueError('artifact export does not confirm terminal execution; dispatch remains paused')
+            from .control_hooks import rendezvous
+            await rendezvous('during_collection', row)
             files = manifest['artifacts']; names = set(); total = 0
             if not isinstance(files, list) or len(files) > limits['archive_member_limit']:
                 raise ValueError('artifact archive member count exceeded')
@@ -622,6 +624,12 @@ class SequentialRunner:
                         row['execution_state'] = 'unknown'; self.save(row)
                         self.state('paused', row['run_id'], 'request delivery unknown; no resubmission'); return 3
                     self.observe_status(row, response)
+                    from .control_hooks import rendezvous
+                    await rendezvous('after_submit', row)
+                    # A protected supervisor can acknowledge cancellation while
+                    # this observer is held. Retain its durable native fields.
+                    if os.environ.get('AI4R_RUNNER_CONTROL'):
+                        row.update(read_json(self.folder / 'runs' / row['run_id'] / 'run_record.json'))
                 if row['execution_state'] in {'preparation_failed', 'blocked', 'not_submitted', 'timed_out'} and not row['app_run_id']:
                     failures = True; continue
                 if not row['app_run_id']:
