@@ -50,6 +50,9 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     or a client payload. No callable or graph arrives through submit.
     """
     options=dict(protected_options or {});actor=operator_actor or principal
+    requirements_version=options.get('requirements_version','m1-8')
+    if not isinstance(requirements_version,str) or requirements_version not in {'m1-8','m1-9'}:
+        raise ResearchError('configuration_override','Unsupported explicit Requirements release')
     screening_version=options.get('screening_version','m1-4')
     if not isinstance(screening_version,str) or screening_version not in {'m1-4','m1-5'}:
         raise ResearchError('configuration_override','Unsupported explicit Screening release')
@@ -62,13 +65,15 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     from .capsules.assets import load_research_catalog
     research_catalog=load_research_catalog()
     from .compiler import prepare_compiler_assets
-    compiler_assets=await prepare_compiler_assets(store)
+    compiler_assets=await prepare_compiler_assets(store,requirements_version=requirements_version)
     from .capsules.assets import build_research_assets
     research_assets=build_research_assets(store,screening_version=screening_version)
     evidence_aware_review=options.get('evidence_aware_review') is True
     if evidence_aware_review and options.get('finite_e1_binding_ref') is not None:
         raise ResearchError('evidence_pilot_assets','Evidence-aware pilot releases are unavailable to the finite E1 shortcut')
     bootstrap_pins=tuple(v['declaration_sha256'] for v in catalog['capsules'].values())+tuple(v['declaration_ref']['sha256'] for v in research_catalog['stages'].values())
+    if requirements_version != 'm1-8':
+        bootstrap_pins+=(compiler_assets['requirements']['declaration_ref']['sha256'],)
     if screening_version != 'm1-4':
         bootstrap_pins+=(research_assets['screening']['declaration_ref']['sha256'],)
     paper_assets={}
@@ -173,7 +178,7 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             library.select_development_builtins([*selected_compiler_assets,*selected_assets.values()],memory_mb=memory_ceiling)
         if finite is None:
             result.installed=await register_compiler_capsules(registry,checks,library,store,actor,
-                activate=initialize,initialize=initialize,memory_mb=memory_ceiling,prepared_assets=compiler_assets)
+                activate=initialize,initialize=initialize,memory_mb=memory_ceiling,prepared_assets=compiler_assets,requirements_version=requirements_version)
         else:
             # Pure immutable body preparation does not require Compiler work/resources.
             asset=compiler_assets['verifier']

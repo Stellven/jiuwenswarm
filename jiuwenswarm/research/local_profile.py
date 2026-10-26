@@ -97,7 +97,11 @@ def _screening_static_template(store, screening_version):
 
 def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
                           public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False,
-                          requested_model='gpt-6.1-sol', evidence_aware_review=False, screening_version='m1-4'):
+                          requested_model='gpt-6.1-sol', evidence_aware_review=False, screening_version='m1-4', requirements_version='m1-8'):
+    if not isinstance(requirements_version,str) or requirements_version not in {'m1-8','m1-9'}:
+        raise ResearchError('local_profile_conflict','Unsupported explicit Requirements release')
+    if legacy_checking_refresh and requirements_version != 'm1-8':
+        raise ResearchError('local_profile_conflict','Checking-only refresh cannot change the Requirements release; use a fresh profile')
     if not isinstance(screening_version,str) or screening_version not in {'m1-4','m1-5'}:
         raise ResearchError('local_profile_conflict','Unsupported explicit Screening release')
     if legacy_checking_refresh and screening_version != 'm1-4':
@@ -120,6 +124,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
             raise ResearchError('local_profile_conflict', 'Local bootstrap locator is invalid')
         validate('Ref', envelope['binding_ref'])
         binding = store.read_record(envelope['binding_ref'])
+        if binding['protected_options'].get('requirements_version','m1-8') != requirements_version:
+            raise ResearchError('local_profile_conflict','Frozen Requirements release changed; use a fresh profile directory')
         if binding['protected_options'].get('screening_version','m1-4') != screening_version:
             raise ResearchError('local_profile_conflict','Frozen Screening release changed; use a fresh profile directory')
         if (store.read_record(binding['deployment_ref']).get('requested_model') != requested_model
@@ -271,7 +277,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'document_extraction_timeout_s': 30, 'max_upload_bytes': 20 * 1024 * 1024,
         'run_inputs': science['run_inputs'] if science else {}, 'host_records': science['host_records'] if science else {},
         'development_builtin_catalog':development_builtin_catalog, 'integrated_workflows':True,
-        'screening_version':screening_version}
+        'screening_version':screening_version,'requirements_version':requirements_version}
     if evidence_aware_review:
         options['evidence_aware_review'] = True
     if science is not None:
