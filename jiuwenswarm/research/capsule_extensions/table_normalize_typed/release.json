@@ -1,0 +1,28 @@
+{
+  "files": {
+    "table_normalize_typed/__init__.py": "c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d",
+    "table_normalize_typed/checks.py": "40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817",
+    "table_normalize_typed/release.py": "f103cbbf0531665dfd93101d0526fc65cad632145e27b28232c6ba6cf2eb3749",
+    "table_normalize_typed/worker.py": "b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a"
+  },
+  "module": "table_normalize_typed",
+  "name": "utility.table_normalize_typed",
+  "shared_dependencies": [
+    {
+      "path": "table_normalize/worker.py",
+      "sha256": "1793760181576dbe635d615f2d5cea67aed62f4a1662b180c2a705197d079314"
+    },
+    {
+      "path": "table_normalize/checks.py",
+      "sha256": "1c5e16d40b3e7393bbbba4e0a6b3a2a3fc78555872feb41b6a551881e9481111"
+    },
+    {
+      "path": "typed_values.py",
+      "sha256": "c8b944346b62ae1d2cb4cd00b3afa95a9b15f4de4d5503ef8de9c9267a71e4c2"
+    }
+  ],
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "files": {
+    "calculate_typed/__init__.py": "c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d",
+    "calculate_typed/checks.py": "3fceb91ecde13cf1b5d1d75f963e812c3408ff74ea7b063fba193287a14dcf78",
+    "calculate_typed/release.py": "4098db0694362bd45c85859616d35d7e31ee8c776a3a4bd3737020e9838fc0ca",
+    "calculate_typed/worker.py": "3dd995c203a4d633f8cfe7583e5e69a8cbcae84fb7d1d291c3cbcc568f1dfe7d"
+  },
+  "module": "calculate_typed",
+  "name": "utility.calculate_typed",
+  "shared_dependencies": [
+    {
+      "path": "calculate/worker.py",
+      "sha256": "22e37d0e3045d46c8b689ab56d699c09f08d0f6bdb045f93fd997b202256ae49"
+    },
+    {
+      "path": "calculate/checks.py",
+      "sha256": "8caa2d4c6ecc7c291894060688c599cd6656fb73ec0a598684240845598a5348"
+    },
+    {
+      "path": "typed_values.py",
+      "sha256": "c8b944346b62ae1d2cb4cd00b3afa95a9b15f4de4d5503ef8de9c9267a71e4c2"
+    }
+  ],
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}

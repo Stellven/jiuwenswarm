@@ -1,0 +1,28 @@
+{
+  "files": {
+    "markdown_report_typed/__init__.py": "c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d",
+    "markdown_report_typed/checks.py": "26e91abd5168e770ad45e827947436a50520b402e52533ce6f84fa254beeef38",
+    "markdown_report_typed/release.py": "133032ea046d1ce075b92d81c4a8aacd59709df1a614c3c03e08ea8018712040",
+    "markdown_report_typed/worker.py": "f4f1c8a7ac21c2791f99c00ac86459c97f783a66330780555f33be6ba2743489"
+  },
+  "module": "markdown_report_typed",
+  "name": "utility.markdown_report_typed",
+  "shared_dependencies": [
+    {
+      "path": "markdown_report/worker.py",
+      "sha256": "0d38def6eaa1cc647144ba70e6f8e3bbcc297bbc4360012a07ba5e397d31f455"
+    },
+    {
+      "path": "markdown_report/checks.py",
+      "sha256": "f14fe7246b4c07168d0777b3c122d0a1379e35d0b27630ace7a661ca985c205a"
+    },
+    {
+      "path": "typed_values.py",
+      "sha256": "c8b944346b62ae1d2cb4cd00b3afa95a9b15f4de4d5503ef8de9c9267a71e4c2"
+    }
+  ],
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}
