@@ -1,0 +1,54 @@
+{
+  "body_refs": {
+    "_common.py": {
+      "id": "blob:1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2",
+      "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+    },
+    "ranking_weighted.py": {
+      "id": "blob:7037598bda51769918c978c0b2c530dfe52e8ceaa026eca66a2ca737e7a91497",
+      "sha256": "7037598bda51769918c978c0b2c530dfe52e8ceaa026eca66a2ca737e7a91497"
+    },
+    "screening_weighted.py": {
+      "id": "blob:20e963b9ebf88e955cb3e07e40aa516a08c95a84f982605738a985de6bfa2cd2",
+      "sha256": "20e963b9ebf88e955cb3e07e40aa516a08c95a84f982605738a985de6bfa2cd2"
+    },
+    "screening_weighted_prompt.txt": {
+      "id": "blob:d6f81a2531b2e362fcce024d4a77b4b3f808eae00cc4d2a7e674597b55634b8e",
+      "sha256": "d6f81a2531b2e362fcce024d4a77b4b3f808eae00cc4d2a7e674597b55634b8e"
+    }
+  },
+  "bundle_ref": {
+    "id": "blob:98d37e0c9c732df4d4c9a8741b7c058215b9388254550053f46e9f13c9ebabbc",
+    "sha256": "98d37e0c9c732df4d4c9a8741b7c058215b9388254550053f46e9f13c9ebabbc"
+  },
+  "declaration_ref": {
+    "id": "blob:9c0cb56c9d30d78c74684eee0c02fef30977625c68fa1f17f9d66dff1dfdcb92",
+    "sha256": "9c0cb56c9d30d78c74684eee0c02fef30977625c68fa1f17f9d66dff1dfdcb92"
+  },
+  "implementation_refs": [
+    {
+      "id": "blob:20e963b9ebf88e955cb3e07e40aa516a08c95a84f982605738a985de6bfa2cd2",
+      "sha256": "20e963b9ebf88e955cb3e07e40aa516a08c95a84f982605738a985de6bfa2cd2"
+    },
+    {
+      "id": "blob:7037598bda51769918c978c0b2c530dfe52e8ceaa026eca66a2ca737e7a91497",
+      "sha256": "7037598bda51769918c978c0b2c530dfe52e8ceaa026eca66a2ca737e7a91497"
+    },
+    {
+      "id": "blob:d6f81a2531b2e362fcce024d4a77b4b3f808eae00cc4d2a7e674597b55634b8e",
+      "sha256": "d6f81a2531b2e362fcce024d4a77b4b3f808eae00cc4d2a7e674597b55634b8e"
+    }
+  ],
+  "profile_ref": {
+    "id": "blob:df166b3424455edafe588db87925da9f15bd515b52c5bf2b817235e799ad41d5",
+    "sha256": "df166b3424455edafe588db87925da9f15bd515b52c5bf2b817235e799ad41d5"
+  },
+  "runner_ref": {
+    "id": "blob:1e2af6d78ea8d382b4f053f549ede08833c29d094c593c7de5f848bc0fdb7b0d",
+    "sha256": "1e2af6d78ea8d382b4f053f549ede08833c29d094c593c7de5f848bc0fdb7b0d"
+  },
+  "source_receipt": {
+    "path": "reference/capsules/screening.md",
+    "sha256": "93999f90516eae1465b6979a861411ea3631f639e542b343d9a7cb08a86daedd"
+  }
+}

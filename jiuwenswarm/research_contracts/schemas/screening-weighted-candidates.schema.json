@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:screening-weighted-candidates:1.0.0",
+  "title": "Weighted screening candidate set",
+  "description": "Up to 32 ideas. Each idea carries the supplied exact numeric assessments (rational strings) and the structured facts that hard constraints are checked against. Nothing here is estimated by a model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "ideas"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"const": "weighted_candidate_set"},
+    "ideas": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "#/$defs/idea"}}
+  },
+  "$defs": {
+    "rational": {"type": "string", "pattern": "^(-?[0-9]+([.][0-9]+)?|-?[0-9]+/[0-9]+)$", "maxLength": 40},
+    "idea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idea_id", "title", "summary", "citation_ids", "assessments", "facts"],
+      "properties": {
+        "idea_id": {"type": "string", "minLength": 1, "maxLength": 200},
+        "title": {"type": "string", "minLength": 1, "maxLength": 600},
+        "summary": {"type": "string", "maxLength": 4000},
+        "citation_ids": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"type": "string", "minLength": 1, "maxLength": 200}},
+        "assessments": {"type": "object", "minProperties": 1, "maxProperties": 16, "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,39}$"}, "additionalProperties": {"$ref": "#/$defs/rational"}},
+        "facts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["license", "runtime_minutes", "requires_gpu", "dependencies"],
+          "properties": {
+            "license": {"type": "string", "minLength": 1, "maxLength": 100},
+            "runtime_minutes": {"$ref": "#/$defs/rational"},
+            "requires_gpu": {"type": "boolean"},
+            "dependencies": {"type": "array", "maxItems": 64, "items": {"type": "string", "minLength": 1, "maxLength": 200}}
+          }
+        }
+      }
+    }
+  }
+}
