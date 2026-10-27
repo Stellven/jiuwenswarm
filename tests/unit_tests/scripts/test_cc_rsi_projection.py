@@ -192,3 +192,146 @@ def test_broker_contract_uses_verified_human_and_exact_receipt_only(monkeypatch,
     else:
         assert broker.InstalledHumanOperatorClient().execute('admit', 'unit-node', digest, authorization)['actor'] == 'unit:human'
         assert set(sent[0]) == {'protocol', 'action', 'node_id', 'candidate_hash', 'authorization'}
+
+
+# --- Improvement-loop lineage (Interface C ``loop`` -> public run lineage) ---
+
+def _legacy_run():
+    return {'id': 'unit-run', 'target_id': 'unit-target', 'stage': 'Complete', 'status': 'ERROR_NO_REPLAY',
+            'blockers': ['Retained UnitError; this attempt cannot be replayed.'], 'activity': [],
+            'budget': {'elapsed_seconds': None, 'limit_seconds': 3600, 'setup_calls': 0, 'diagnosis_calls': None,
+                       'proposal_calls': None, 'generation_call_limit': 2, 'cost': None, 'currency': None}}
+
+
+def _visible(role, iteration, passed, rows, wall=1.0, failure=None):
+    return {'schema': 'ai4r-rsi-whole-capsule-visible-result:2', 'role': role, 'iteration': iteration,
+            'subject_sha256': 'c' * 64, 'passed_count': passed, 'case_count': len(rows), 'protected_wall_s': wall,
+            'trial_wall_s': [], 'executions': len(rows), 'failure': failure,
+            'rows': [{'fixture_id': ident, 'fixture_set': fixture_set, 'task_success': ok, 'protected_wall_s': 0.1,
+                      'output_bytes': 1, 'checks': {}, 'receipt': {}} for ident, fixture_set, ok in rows]}
+
+
+def _score(parent, candidate, ratio, above, improved, feedback):
+    return {'correctness': {'parent': parent, 'candidate': candidate}, 'latency_ratio': ratio,
+            'noise_floor_ratio': 0.05, 'above_noise': above, 'improved': improved, 'regressed': candidate < parent,
+            'summary': f'{candidate:.2f} vs {parent:.2f}', 'feedback': feedback}
+
+
+def _loop_result(bodies):
+    first, second = (hashlib.sha256(body.encode()).hexdigest() for body in bodies)
+    cases = [('p1', 'public', True), ('p2', 'public', True), ('h1', 'held_out', True)]
+    return {'status': 'COMPLETED_UNQUALIFIED', 'model_calls': 7, 'candidate_ref': {'id': 'second', 'sha256': second},
+            'loop': {'schema': 'ai4r-rsi-capsule-loop:1', 'max_iterations': 3, 'completed_iterations': 3,
+                     'stop_reason': 'max_iterations',
+                     'model_backend': {'kind': 'fake', 'model': 'scripted', 'pinned_sha256': 'd' * 64},
+                     'parent_visible': _visible('parent', 0, 3, cases, wall=2.0), 'noise': None,
+                     'best': {'iteration': 2, 'candidate_ref': {'id': 'second', 'sha256': second}, 'score': {}},
+                     'iterations': [
+                         {'iteration': 1, 'diagnosis_ref': 'd1', 'proposal_ref': 'p1', 'candidate_ref': {'id': 'first', 'sha256': first},
+                          'candidate_sha256': first, 'rationale': 'Cache parsing', 'kept': False, 'model_calls': 2, 'elapsed_s': 3.5,
+                          'visible': _visible('candidate', 1, 2, [cases[0], ('p2', 'public', False), cases[2]]),
+                          'score': _score(1.0, 2 / 3, 0.9, True, False, 'p2 failed: expected 4 got 5')},
+                         {'iteration': 2, 'diagnosis_ref': 'd2', 'proposal_ref': 'p2', 'candidate_ref': {'id': 'second', 'sha256': second},
+                          'candidate_sha256': second, 'rationale': 'Skip copy', 'kept': True, 'model_calls': 2, 'elapsed_s': 3.0,
+                          'visible': _visible('candidate', 2, 3, cases, wall=1.2),
+                          'score': _score(1.0, 1.0, 0.6, True, True, 'all cases passed')},
+                         {'iteration': 3, 'diagnosis_ref': 'd3', 'proposal_ref': 'p3', 'candidate_ref': None,
+                          'candidate_sha256': None, 'rationale': None, 'kept': False, 'model_calls': 3, 'elapsed_s': 1.0,
+                          'visible': None, 'score': None}]}}
+
+
+def _loop_publication():
+    value = scoped_publication()
+    parent = value['snapshot']['nodes'][0]
+    bodies = ['# first\nreturn 2\n', '# second\nreturn 1\n']
+    result = _loop_result(bodies)
+    node_ids = {}
+    for index, body in enumerate(bodies):
+        digest = hashlib.sha256(body.encode()).hexdigest()
+        node = copy.deepcopy(parent)
+        node.update(id=f'candidate:unit-run:{digest}', parent_id=parent['id'], run_id='unit-run', hash=digest,
+                    label=f'iteration {index + 1}', security_status='SECURITY_DEFERRED',
+                    admit={'allowed': False, 'blocker': 'deferred'}, activate={'allowed': False, 'blocker': 'deferred'})
+        value['snapshot']['nodes'].append(node)
+        value['candidates'].append({'node_id': node['id'], 'candidate_hash': digest, 'path': 'unit.py',
+            'parent_code': value['candidates'][0]['candidate_code'], 'candidate_code': body, 'rationale': None, 'blocker': None})
+        node_ids[digest] = node['id']
+    run = _legacy_run()
+    run['lineage'] = projection.project_loop(result, node_ids=node_ids, parent_node_id=parent['id'])
+    value['snapshot']['runs'] = [run]
+    return value, node_ids
+
+
+def test_legacy_single_attempt_record_projects_byte_identically():
+    value = scoped_publication(); value['snapshot']['runs'] = [_legacy_run()]
+    before = json.dumps(value, sort_keys=True)
+    assert json.dumps(projection.validate_publication(copy.deepcopy(value), workspace_id='unit-workspace'), sort_keys=True) == before
+    service = projection.CcRsiProjection(); service._read = lambda: copy.deepcopy(value)
+    run = service.snapshot({})['runs'][0]
+    assert run == value['snapshot']['runs'][0] and 'lineage' not in run
+    assert projection.project_loop({'status': 'ERROR_NO_REPLAY', 'model_calls': 0}) is None
+
+
+def test_loop_record_projects_every_iteration_with_best_and_failed_candidates():
+    value, node_ids = _loop_publication()
+    lineage = projection.validate_publication(value, workspace_id='unit-workspace')['snapshot']['runs'][0]['lineage']
+    assert (lineage['max_iterations'], lineage['completed_iterations'], lineage['stop_reason']) == (3, 3, 'max_iterations')
+    assert lineage['model_backend'] == {'kind': 'fake', 'model': 'scripted', 'pinned_sha256': 'd' * 64}
+    assert lineage['model_calls'] == 7 and lineage['best_iteration'] == 2
+    assert lineage['parent'] == {'status': 'passed', 'passed_count': 3, 'case_count': 3, 'protected_wall_s': 2.0, 'failure': None}
+    first, second, third = lineage['iterations']
+    assert lineage['best_node_id'] == second['node_id'] == node_ids[second['candidate_ref']['sha256']]
+    assert [row['best'] for row in lineage['iterations']] == [False, True, False]
+    assert first['status'] == 'failed' and first['kept'] is False and first['node_id'] is not None
+    assert first['failing_cases'] == [{'id': 'p2', 'fixture_set': 'public'}]
+    assert first['feedback'] == 'p2 failed: expected 4 got 5' and first['rationale'] == 'Cache parsing'
+    assert (second['correctness_parent'], second['correctness_candidate'], second['latency_ratio']) == (1.0, 1.0, 0.6)
+    assert second['above_noise'] is True and second['improved'] is True and second['failing_cases'] == []
+    assert third['status'] == 'not_evaluated' and third['candidate_ref'] is None and third['node_id'] is None
+    assert third['latency_ratio'] is None and third['improved'] is None and third['model_calls'] == 3
+    service = projection.CcRsiProjection(); service._read = lambda: copy.deepcopy(value)
+    assert service.snapshot({})['runs'][0]['lineage'] == lineage
+    assert service.candidate({'node_id': first['node_id'], 'candidate_hash': first['candidate_ref']['sha256']})['candidate_code'].startswith('# first')
+
+
+def test_missing_loop_fields_project_as_unknown_never_zero_or_success():
+    result = {'loop': {'schema': 'ai4r-rsi-capsule-loop:1', 'stop_reason': 'gave_up', 'model_backend': {'kind': 'mystery'},
+                       'iterations': [{'iteration': 1, 'candidate_ref': 'ref-only', 'candidate_sha256': 'e' * 64,
+                                       'score': {'correctness': {}, 'latency_ratio': float('nan')},
+                                       'visible': {'rows': 'not-rows', 'failure': {'exception_type': 'Boom'}}}]}}
+    lineage = projection.project_loop(result)
+    assert lineage['max_iterations'] is lineage['completed_iterations'] is lineage['stop_reason'] is None
+    assert lineage['model_backend'] == {'kind': None, 'model': None, 'pinned_sha256': None}
+    assert lineage['model_calls'] is None and lineage['best_iteration'] is None and lineage['best_node_id'] is None
+    assert lineage['parent']['status'] == 'not_evaluated' and lineage['parent']['passed_count'] is None
+    row = lineage['iterations'][0]
+    assert row['candidate_ref'] == {'id': 'ref-only', 'sha256': 'e' * 64} and row['node_id'] is None
+    assert row['status'] == 'evaluation_failed' and row['failure'] == {'exception_type': 'Boom', 'message': None}
+    for key in ('kept', 'passed_count', 'case_count', 'correctness_parent', 'correctness_candidate', 'latency_ratio',
+                'noise_floor_ratio', 'above_noise', 'improved', 'regressed', 'summary', 'feedback', 'rationale',
+                'failing_cases', 'model_calls', 'elapsed_s'):
+        assert row[key] is None, key
+    assert row['best'] is False
+    long = projection.project_loop({'loop': {'schema': 'ai4r-rsi-capsule-loop:1', 'iterations': [
+        {'iteration': 1, 'score': {'feedback': 'x' * 10000}}]}})['iterations'][0]['feedback']
+    assert len(long) == 4096 and long.endswith('[truncated]')
+    with pytest.raises(projection.ProjectionError):
+        projection.project_loop({'loop': {'schema': 'other', 'iterations': []}})
+
+
+@pytest.mark.parametrize('fault', ['two-best', 'foreign-node', 'extra-field', 'missing-parent', 'bad-ratio'])
+def test_forged_or_inconsistent_lineage_fails_closed(fault):
+    value, _ = _loop_publication()
+    lineage = value['snapshot']['runs'][0]['lineage']
+    if fault == 'two-best':
+        lineage['iterations'][0]['best'] = True
+    elif fault == 'foreign-node':
+        lineage['iterations'][0]['node_id'] = lineage['iterations'][1]['node_id']
+    elif fault == 'extra-field':
+        lineage['iterations'][0]['hidden_case_output'] = 'leak'
+    elif fault == 'missing-parent':
+        lineage['parent_node_id'] = 'not-a-node'
+    else:
+        lineage['iterations'][0]['latency_ratio'] = float('inf')
+    with pytest.raises(projection.ProjectionError):
+        projection.validate_publication(value, workspace_id='unit-workspace')

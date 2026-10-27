@@ -64,6 +64,268 @@ def _ref(value):
     _hash(value["sha256"])
 
 
+# ---------------------------------------------------------------------------
+# Improvement-loop lineage (Interface C ``loop`` -> closed public run lineage).
+#
+# A run row may carry an optional ``lineage`` block. Legacy rows (historical
+# Screening, R1/R2 failure records) have no such key and are validated and
+# served exactly as before; the UI labels them "single attempt (legacy)".
+# Every value is copied from the session result or left ``None`` (unknown);
+# nothing is defaulted to 0, success or "kept".
+# ---------------------------------------------------------------------------
+LOOP_SCHEMA = 'ai4r-rsi-capsule-loop:1'
+LINEAGE_SCHEMA = 'ai4r-cc-rsi-lineage:1'
+STOP_REASONS = frozenset({'max_iterations', 'no_progress', 'budget', 'deadline', 'error'})
+BACKEND_KINDS = frozenset({'host-codex', 'fake', 'openai-compatible', 'anthropic'})
+ITERATION_STATUSES = frozenset({'passed', 'failed', 'evaluation_failed', 'not_evaluated', 'unknown'})
+MAX_ITERATIONS = 64
+MAX_CASES = 256
+LINEAGE_FIELDS = ('schema max_iterations completed_iterations stop_reason model_backend model_calls '
+                  'parent_node_id best_iteration best_node_id parent iterations')
+ITERATION_FIELDS = ('iteration node_id candidate_ref status kept best passed_count case_count '
+                    'correctness_parent correctness_candidate latency_ratio noise_floor_ratio above_noise '
+                    'improved regressed summary feedback rationale failing_cases failure model_calls elapsed_s')
+TEXT_LIMITS = {'summary': 1024, 'feedback': 4096, 'rationale': 4096}
+
+
+def _measure(value):
+    """Finite non-negative measured number, else unknown."""
+    if type(value) in (int, float) and math.isfinite(value) and 0 <= value <= 1e12:
+        return value
+    return None
+
+
+def _count(value):
+    return value if type(value) is int and 0 <= value <= 1_000_000 else None
+
+
+def _flag(value):
+    return value if type(value) is bool else None
+
+
+def _clip(value, limit):
+    if not isinstance(value, str):
+        return None
+    if len(value) <= limit:
+        return value
+    marker = ' …[truncated]'
+    return value[:limit - len(marker)] + marker
+
+
+def _digest(value):
+    return value if isinstance(value, str) and HASH.fullmatch(value) else None
+
+
+def _source_ref(ref, sha=None):
+    """Interface C allows a ref dict {id, sha256} or a str id plus candidate_sha256."""
+    if isinstance(ref, dict):
+        ident, digest = ref.get('id'), _digest(ref.get('sha256'))
+    else:
+        ident, digest = ref, _digest(sha)
+    if isinstance(ident, str) and 0 < len(ident) <= 4096 and digest is not None:
+        if sha is not None and _digest(sha) not in (None, digest):
+            raise ProjectionError('Iteration candidate hash differs from its source ref')
+        return {'id': ident, 'sha256': digest}
+    return None
+
+
+def _visible_summary(visible):
+    if not isinstance(visible, dict):
+        return None, None, 'not_evaluated', None, None
+    passed, total = _count(visible.get('passed_count')), _count(visible.get('case_count'))
+    failure = visible.get('failure')
+    projected_failure = None
+    if isinstance(failure, dict):
+        projected_failure = {'exception_type': _clip(failure.get('exception_type'), 128),
+                             'message': _clip(failure.get('message'), 1024)}
+    if projected_failure is not None:
+        status = 'evaluation_failed'
+    elif passed is None or total is None or passed > total:
+        status = 'unknown'
+    else:
+        status = 'passed' if passed == total else 'failed'
+    cases = None
+    rows = visible.get('rows')
+    if isinstance(rows, list):
+        cases = []
+        for row in rows[:MAX_CASES]:
+            if isinstance(row, dict) and row.get('task_success') is False and isinstance(row.get('fixture_id'), str):
+                fixture_set = row.get('fixture_set')
+                cases.append({'id': _clip(row['fixture_id'], 256),
+                              'fixture_set': fixture_set if fixture_set in ('public', 'held_out') else None})
+    return passed, total, status, cases, projected_failure
+
+
+def _project_iteration(row, *, best_iteration, node_ids):
+    if not isinstance(row, dict) or _count(row.get('iteration')) is None:
+        raise ProjectionError('Loop iteration identity is required')
+    score = row.get('score') if isinstance(row.get('score'), dict) else {}
+    correctness = score.get('correctness') if isinstance(score.get('correctness'), dict) else {}
+    ref = _source_ref(row.get('candidate_ref'), row.get('candidate_sha256'))
+    passed, total, status, cases, failure = _visible_summary(row.get('visible'))
+    node_id = node_ids.get(ref['sha256']) if ref is not None else None
+    return {'iteration': row['iteration'], 'node_id': node_id, 'candidate_ref': ref, 'status': status,
+            'kept': _flag(row.get('kept')), 'best': best_iteration is not None and row['iteration'] == best_iteration,
+            'passed_count': passed, 'case_count': total,
+            'correctness_parent': _measure(correctness.get('parent')),
+            'correctness_candidate': _measure(correctness.get('candidate')),
+            'latency_ratio': _measure(score.get('latency_ratio')),
+            'noise_floor_ratio': _measure(score.get('noise_floor_ratio')),
+            'above_noise': _flag(score.get('above_noise')), 'improved': _flag(score.get('improved')),
+            'regressed': _flag(score.get('regressed')),
+            'summary': _clip(score.get('summary'), TEXT_LIMITS['summary']),
+            'feedback': _clip(score.get('feedback'), TEXT_LIMITS['feedback']),
+            'rationale': _clip(row.get('rationale'), TEXT_LIMITS['rationale']),
+            'failing_cases': cases, 'failure': failure,
+            'model_calls': _count(row.get('model_calls')), 'elapsed_s': _measure(row.get('elapsed_s'))}
+
+
+def project_loop(result, *, node_ids=None, parent_node_id=None):
+    """Project an Interface C session result's ``loop`` block for publication.
+
+    Returns ``None`` for a legacy single-attempt result (no ``loop`` block), so
+    the caller leaves the run row byte-identical. ``node_ids`` maps a published
+    candidate sha256 to the node id the publisher created for it; an iteration
+    whose candidate was not captured keeps ``node_id: None`` but still shows
+    its score, feedback and source ref. Missing measurements stay ``None``.
+    """
+    if not isinstance(result, dict) or result.get('loop') is None:
+        return None
+    loop = result['loop']
+    if not isinstance(loop, dict) or loop.get('schema') != LOOP_SCHEMA:
+        raise ProjectionError('Unsupported improvement loop schema')
+    node_ids = dict(node_ids or {})
+    rows = loop.get('iterations')
+    if not isinstance(rows, list) or len(rows) > MAX_ITERATIONS:
+        raise ProjectionError('Loop iterations exceed their finite contract')
+    best = loop.get('best') if isinstance(loop.get('best'), dict) else None
+    best_iteration = _count(best.get('iteration')) if best else None
+    iterations = [_project_iteration(row, best_iteration=best_iteration, node_ids=node_ids) for row in rows]
+    best_row = next((row for row in iterations if row['best']), None)
+    if best is not None and best_row is not None:
+        best_ref = _source_ref(best.get('candidate_ref'))
+        if best_ref is not None and best_row['candidate_ref'] is not None and best_ref['sha256'] != best_row['candidate_ref']['sha256']:
+            raise ProjectionError('Best candidate differs from its iteration')
+    backend = loop.get('model_backend')
+    if isinstance(backend, dict):
+        backend = {'kind': backend.get('kind') if backend.get('kind') in BACKEND_KINDS else None,
+                   'model': _clip(backend.get('model'), 256), 'pinned_sha256': _digest(backend.get('pinned_sha256'))}
+    else:
+        backend = None
+    calls = _count(result.get('model_calls'))
+    if calls is None and iterations and all(row['model_calls'] is not None for row in iterations):
+        calls = sum(row['model_calls'] for row in iterations)
+    parent_passed, parent_total, parent_status, _, parent_failure = _visible_summary(loop.get('parent_visible'))
+    parent_visible = loop.get('parent_visible') if isinstance(loop.get('parent_visible'), dict) else {}
+    stop = loop.get('stop_reason')
+    value = {'schema': LINEAGE_SCHEMA, 'max_iterations': _count(loop.get('max_iterations')),
+             'completed_iterations': _count(loop.get('completed_iterations')),
+             'stop_reason': stop if stop in STOP_REASONS else None, 'model_backend': backend,
+             'model_calls': calls, 'parent_node_id': parent_node_id,
+             'best_iteration': best_row['iteration'] if best_row else None,
+             'best_node_id': best_row['node_id'] if best_row else None,
+             'parent': {'status': parent_status, 'passed_count': parent_passed, 'case_count': parent_total,
+                        'protected_wall_s': _measure(parent_visible.get('protected_wall_s')), 'failure': parent_failure},
+             'iterations': iterations}
+    _lineage(value)
+    return value
+
+
+def _nullable_number(value):
+    if value is not None and (type(value) not in (int, float) or not math.isfinite(value) or value < 0 or value > 1e12):
+        raise ProjectionError('Invalid measured lineage value')
+
+
+def _nullable_count(value):
+    if value is not None and (type(value) is not int or value < 0):
+        raise ProjectionError('Lineage count must be a measured integer')
+
+
+def _nullable_flag(value):
+    if value is not None and type(value) is not bool:
+        raise ProjectionError('Lineage flag must be measured')
+
+
+def _failure(value):
+    if value is not None:
+        _fields(value, 'exception_type message')
+        _text(value['exception_type'], nullable=True, limit=128)
+        _text(value['message'], nullable=True, limit=1024)
+
+
+def _lineage(value, *, run=None, nodes=None):
+    """Closed public lineage block; node references are checked when nodes are known."""
+    _fields(value, LINEAGE_FIELDS)
+    if value['schema'] != LINEAGE_SCHEMA:
+        raise ProjectionError('Unsupported public lineage schema')
+    for key in ('max_iterations', 'completed_iterations', 'model_calls', 'best_iteration'):
+        _nullable_count(value[key])
+    if value['stop_reason'] is not None and value['stop_reason'] not in STOP_REASONS:
+        raise ProjectionError('Unknown loop stop reason')
+    backend = value['model_backend']
+    if backend is not None:
+        _fields(backend, 'kind model pinned_sha256')
+        if backend['kind'] is not None and backend['kind'] not in BACKEND_KINDS:
+            raise ProjectionError('Unknown model backend kind')
+        _text(backend['model'], nullable=True, limit=256)
+        _hash(backend['pinned_sha256'], nullable=True)
+    for key in ('parent_node_id', 'best_node_id'):
+        _text(value[key], nullable=True)
+    parent = value['parent']
+    _fields(parent, 'status passed_count case_count protected_wall_s failure')
+    if parent['status'] not in ITERATION_STATUSES:
+        raise ProjectionError('Unknown parent evaluation status')
+    _nullable_count(parent['passed_count']); _nullable_count(parent['case_count'])
+    _nullable_number(parent['protected_wall_s']); _failure(parent['failure'])
+    seen, best = set(), []
+    for row in _rows(value['iterations'], MAX_ITERATIONS):
+        _fields(row, ITERATION_FIELDS)
+        if type(row['iteration']) is not int or row['iteration'] < 0 or row['iteration'] in seen:
+            raise ProjectionError('Distinct iteration numbers are required')
+        seen.add(row['iteration'])
+        _text(row['node_id'], nullable=True)
+        if row['candidate_ref'] is not None:
+            _ref(row['candidate_ref'])
+        elif row['node_id'] is not None:
+            raise ProjectionError('Iteration node requires its exact candidate ref')
+        if row['status'] not in ITERATION_STATUSES:
+            raise ProjectionError('Unknown iteration status')
+        if type(row['best']) is not bool:
+            raise ProjectionError('Best flag must be explicit')
+        if row['best']:
+            best.append(row)
+        for key in ('kept', 'above_noise', 'improved', 'regressed'):
+            _nullable_flag(row[key])
+        for key in ('passed_count', 'case_count', 'model_calls'):
+            _nullable_count(row[key])
+        for key in ('correctness_parent', 'correctness_candidate', 'latency_ratio', 'noise_floor_ratio', 'elapsed_s'):
+            _nullable_number(row[key])
+        for key, limit in TEXT_LIMITS.items():
+            _text(row[key], nullable=True, limit=limit)
+        if row['failing_cases'] is not None:
+            for case in _rows(row['failing_cases'], MAX_CASES):
+                _fields(case, 'id fixture_set')
+                _text(case['id'], limit=256)
+                if case['fixture_set'] not in (None, 'public', 'held_out'):
+                    raise ProjectionError('Unknown fixture set')
+        _failure(row['failure'])
+        if nodes is not None and row['node_id'] is not None:
+            node = nodes.get(row['node_id'])
+            if (node is None or node['hash'] != row['candidate_ref']['sha256']
+                    or node['run_id'] != run['id'] or node['target_id'] != run['target_id']):
+                raise ProjectionError('Iteration candidate node differs')
+    if len(best) > 1 or (value['best_iteration'] is None) != (not best) or (
+            best and (best[0]['iteration'] != value['best_iteration'] or best[0]['node_id'] != value['best_node_id'])):
+        raise ProjectionError('Exactly the declared best iteration may carry the best flag')
+    if value['best_iteration'] is None and value['best_node_id'] is not None:
+        raise ProjectionError('Best node requires a best iteration')
+    if nodes is not None and value['parent_node_id'] is not None:
+        parent_node = nodes.get(value['parent_node_id'])
+        if parent_node is None or parent_node['target_id'] != run['target_id']:
+            raise ProjectionError('Loop parent node differs')
+    return value
+
+
 def validate_publication(value, *, workspace_id=None):
     """Reject accidental private/raw fields instead of recursively forwarding JSON."""
     scoped = isinstance(value, dict) and 'workspace_id' in value
@@ -95,7 +357,8 @@ def validate_publication(value, *, workspace_id=None):
         targets[row["id"]] = row
     runs = {}
     for row in _rows(view["runs"], 256):
-        _fields(row, "id target_id stage status blockers budget activity")
+        # ``lineage`` is optional: legacy single-attempt rows stay exactly as published.
+        _fields(row, "id target_id stage status blockers budget activity" + (" lineage" if isinstance(row, dict) and "lineage" in row else ""))
         for key in ("id", "target_id", "stage", "status"):
             _text(row[key])
         if row["target_id"] not in targets or row["id"] in runs:
@@ -164,6 +427,9 @@ def validate_publication(value, *, workspace_id=None):
             if current["id"] in seen:
                 raise ProjectionError("Capsule lineage is cyclic")
             seen.add(current["id"])
+    for row in runs.values():
+        if "lineage" in row:
+            _lineage(row["lineage"], run=row, nodes=nodes)
     captured = set()
     for row in _rows(value["candidates"], 512):
         _fields(row, "node_id candidate_hash path parent_code candidate_code rationale blocker")
