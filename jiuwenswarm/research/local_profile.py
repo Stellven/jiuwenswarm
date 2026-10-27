@@ -98,7 +98,7 @@ def _screening_static_template(store, screening_version):
 def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
                           public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False,
                           requested_model='gpt-6.1-sol', evidence_aware_review=False, screening_version='m1-4', requirements_version='m1-8', intent_version='m1-6'):
-    if not isinstance(intent_version,str) or intent_version not in {'m1-6','m1-7'}:
+    if not isinstance(intent_version,str) or intent_version not in {'m1-6','m1-7','m1-8'}:
         raise ResearchError('local_profile_conflict','Unsupported explicit Intent release')
     if legacy_checking_refresh and intent_version != 'm1-6':
         raise ResearchError('local_profile_conflict','Checking-only refresh cannot change the Intent release; use a fresh profile')
@@ -276,7 +276,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'compiler_template_ref': capture('compiler-template', {'id': GOVERNANCE_PROFILE_NAME + '.compiler', 'subnodes': ['intent', 'requirements']}),
         'planner_template_ref': capture('planner-template', {'id': PROFILE_NAME + '.planner', 'plan_contract': 'plan-proposal:field-contract:3', 'selection': 'admitted_typed_dag'}),
         # Preserve the existing 180s host headroom as Intent grows by 300s.
-        'compiler_limits': {'time_s': 900 if intent_version == 'm1-7' else 600, 'model_calls': 4, 'memory_mb': 16384},
+        'compiler_limits': {'time_s': 900 if intent_version in {'m1-7', 'm1-8'} else 600, 'model_calls': 4, 'memory_mb': 16384},
         'planner_limits': {'time_s': 600, 'model_calls': 3, 'memory_mb': 16384},
         'resource_inventory_ref': inventory, 'search_bounds_ref': bounds,
         'authority_ceiling': {'network': 'allowlist', 'network_allowlist': ['approved_package_index'],

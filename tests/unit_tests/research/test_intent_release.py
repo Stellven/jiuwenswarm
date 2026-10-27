@@ -120,7 +120,7 @@ async def test_core_composes_exact_profile_selection_without_dispatch(tmp_path, 
         assert core.compiler.node_limits['time_s'] == (900 if intent_version == 'm1-7' else 600)
 
 
-@pytest.mark.parametrize('version', ['latest', 'm1-8', None, []])
+@pytest.mark.parametrize('version', ['latest', 'm1-9', None, []])
 @pytest.mark.asyncio
 async def test_unknown_or_checking_only_selection_rejected(tmp_path, version):
     with pytest.raises(ResearchError, match='Unsupported explicit Intent'):

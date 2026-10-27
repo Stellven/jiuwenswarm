@@ -116,7 +116,7 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
     standing operations stay separate; this is never reachable from submit.
     """
     import hashlib
-    if not isinstance(intent_version,str) or intent_version not in {'m1-6','m1-7'}:
+    if not isinstance(intent_version,str) or intent_version not in {'m1-6','m1-7','m1-8'}:
         raise ResearchError('prepared_catalog_invalid','Unknown explicit Intent release')
     if not isinstance(requirements_version,str) or requirements_version not in {'m1-8','m1-9'}:
         raise ResearchError('prepared_catalog_invalid','Unknown explicit Requirements release')
@@ -196,6 +196,9 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
     if prepared_assets is None and intent_version=='m1-7':
         from .intent_release import prepare_intent_release
         prepared['intent']=await prepare_intent_release(store,base=prepared['intent'])
+    if prepared_assets is None and intent_version=='m1-8':
+        from .intent_release import prepare_intent_m1_8_release
+        prepared['intent']=await prepare_intent_m1_8_release(store,base=prepared['intent'])
     if prepared_assets is None and requirements_version=='m1-9':
         from .requirements_release import prepare_requirements_release
         prepared['requirements']=await prepare_requirements_release(store,base=prepared['requirements'])
@@ -208,6 +211,13 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
                 expected=await prepare_intent_release(store)
                 if supplied!=expected:
                     raise ResearchError('prepared_catalog_invalid','Intent m1-7 candidate differs from exact explicit release')
+                prepared[stage]=expected
+                continue
+            if stage=='intent' and intent_version=='m1-8':
+                from .intent_release import prepare_intent_m1_8_release
+                expected=await prepare_intent_m1_8_release(store)
+                if supplied!=expected:
+                    raise ResearchError('prepared_catalog_invalid','Intent m1-8 candidate differs from exact explicit release')
                 prepared[stage]=expected
                 continue
             if stage=='requirements' and requirements_version=='m1-9':
@@ -312,6 +322,8 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
             library.set_standing(cc,declaration['identity']['version_label'],'active',actor,reason='Explicit operator installation of the bounded M1 catalog')
         if stage in handlers:
             handler=handlers[stage]
+            if stage=='intent' and intent_version=='m1-8':
+                from .capsules.intent_m1_8 import execute as handler
             if stage=='requirements' and requirements_version=='m1-9':
                 from .capsules.requirements_m1_9 import execute as handler
             registry.register(cc,declaration['identity']['version_label'],handler,declaration_sha256=declaration_ref['sha256'],

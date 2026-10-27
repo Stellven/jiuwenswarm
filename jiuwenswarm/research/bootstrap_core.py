@@ -51,7 +51,7 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     """
     options=dict(protected_options or {});actor=operator_actor or principal
     intent_version=options.get('intent_version','m1-6')
-    if not isinstance(intent_version,str) or intent_version not in {'m1-6','m1-7'}:
+    if not isinstance(intent_version,str) or intent_version not in {'m1-6','m1-7','m1-8'}:
         raise ResearchError('configuration_override','Unsupported explicit Intent release')
     requirements_version=options.get('requirements_version','m1-8')
     if not isinstance(requirements_version,str) or requirements_version not in {'m1-8','m1-9'}:
