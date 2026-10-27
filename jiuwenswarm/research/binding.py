@@ -509,6 +509,13 @@ def declaration_authority_ceiling(declaration, parent, *, role):
     calls = declaration['budget']['per_call'].get('tool_calls')
     if named and (type(calls) is not int or calls <= 0 or any(name not in parent['tools'] for name in named)):
         raise ResearchError('authority_unavailable', 'Required named declared host tool lacks its explicit original budget/parent grant')
+    if type(calls) is int and calls > 0:
+        # Same derivation as local_science: an admitted agent-mode Builder declaration
+        # is the grant for its own protected action operation, bounded by the parent
+        # ceiling and the declaration's tool-call budget. Nothing else is implied.
+        from .builder_mode import builder_mode
+        if declaration['identity']['name'] == 'research.builder' and builder_mode(declaration) == 'agent':
+            named = [*named, 'builder_action']
     permitted['tools'] = [value for value in parent['tools'] if value in named] if type(calls) is int and calls > 0 else []
     writable = [row['resource_key'] for row in declaration['needs']['resources'] if row['mode'] == 'write']
     permitted['write_roots'] = []

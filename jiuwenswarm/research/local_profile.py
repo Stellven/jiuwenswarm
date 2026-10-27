@@ -280,7 +280,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'planner_limits': {'time_s': 600, 'model_calls': 3, 'memory_mb': 16384},
         'resource_inventory_ref': inventory, 'search_bounds_ref': bounds,
         'authority_ceiling': {'network': 'allowlist', 'network_allowlist': ['approved_package_index'],
-                              'resource_reads': science['resource_reads'] if science else [], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch']},
+                              'resource_reads': science['resource_reads'] if science else [], 'write_roots': ['/workspace/poc'], 'tools': ['deepsearch', 'codesearch', 'builder_action']},
         'document_extraction_timeout_s': 30, 'max_upload_bytes': 20 * 1024 * 1024,
         'run_inputs': science['run_inputs'] if science else {}, 'host_records': science['host_records'] if science else {},
         'development_builtin_catalog':development_builtin_catalog, 'integrated_workflows':True,
