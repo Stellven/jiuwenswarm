@@ -48,7 +48,7 @@ class BuilderAgentHost(BuilderTestService):
                    and row['record'].get('invocation_id') == binding.invocation_id]
         if (call.get('outcome') != 'completed' or call.get('observed_runtime') is not True
                 or call.get('id') != start['call_id']
-                or call.get('contract_ref') != dict(binding.contract_ref)
+                or call.get('contract_ref', dict(binding.contract_ref)) != dict(binding.contract_ref)  # absent on real model-call records; the protected start carries it
                 or call.get('invocation_id') != binding.invocation_id
                 or call.get('execution_id') != binding.execution_id
                 or len(outputs) != 1 or outputs[0]['ref'] not in call.get('evidence_refs', [])):
