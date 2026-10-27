@@ -2,12 +2,15 @@
 
 This is public local interoperability, not protected worker qualification.
 """
+import atexit
 import copy
 import hashlib
+import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 
 import pytest
 
@@ -30,6 +33,7 @@ def installed_runtime(tmp_path_factory):
     import jiuwenswarm.research.capsule_extensions.table_normalize.worker
     import jiuwenswarm.research.capsule_extensions.table_normalize.checks
     runtime = tmp_path_factory.mktemp('actual-capsule-runtime')
+    runtime.chmod(0o755)  # Staged runtimes are worker-listable, like Root's.
     package = runtime / 'source/jiuwenswarm'; package.mkdir(parents=True)
     shutil.copyfile(ROOT / 'jiuwenswarm/__init__.py', package / '__init__.py')
     source_root = ROOT / 'jiuwenswarm'
@@ -57,6 +61,25 @@ def installed_runtime(tmp_path_factory):
     return runtime, manifest
 
 
+WORKER_UID = WORKER_GID = 12003
+
+
+def worker_identity():
+    """Subprocess identity for the production bootstrap's 12003 requirement.
+
+    Returns (subprocess kwargs, traversable base directory or None).
+    """
+    if os.name != 'posix' or (os.getuid() == WORKER_UID and os.getgid() == WORKER_GID):
+        return {}, None
+    if os.geteuid() != 0:
+        pytest.skip('capsule bootstrap requires the UID/GID 12003 worker identity '
+                    '(run as UID 12003, or as root so the child can switch to it)')
+    base = Path(tempfile.mkdtemp(prefix='capsule-worker-identity-'))
+    base.chmod(0o711)  # Root-owned, searchable by the worker; never writable.
+    atexit.register(shutil.rmtree, base, True)
+    return {'user': WORKER_UID, 'group': WORKER_GID, 'extra_groups': []}, base
+
+
 @pytest.mark.parametrize('name', ['utility.calculate', 'utility.table_normalize'])
 @pytest.mark.parametrize('corrupt', [False, True, 'mutate_nested', 'replace_input'])
 def test_fixed_runtime_program_executes_real_production_carrier_with_real_dependencies(installed_runtime, tmp_path, name, corrupt):
@@ -75,10 +98,16 @@ def test_fixed_runtime_program_executes_real_production_carrier_with_real_depend
         body = body.replace(before, after)
     assets = capsule_job_assets(name, runtime_root=runtime, manifest=manifest,
         candidate=body, inputs={'packet': fixture['packet']})
-    resources = tmp_path / 'resources'; resources.mkdir()
+    # The production bootstrap requires the UID/GID 12003 worker identity on
+    # POSIX. As Root the child is started under it, from a traversable copy.
+    identity, base = worker_identity()
+    resources = (base or tmp_path) / 'resources'; resources.mkdir()
     # Resource-path translation only, matching existing helper interoperability
     # tests. Generated production bootstrap is otherwise executed unmodified.
     shutil.copytree(runtime, resources / 'capsule-runtime')
+    # copytree keeps the private 0700 pytest temp-root mode; the worker must
+    # list the whole frozen tree to verify its inventory.
+    (resources / 'capsule-runtime').chmod(0o755)
     for filename, raw in assets['files'].items():
         (resources / filename).write_bytes(raw)
     # This ordinary Windows subprocess does not claim Linux seccomp/UID
@@ -94,7 +123,7 @@ def test_fixed_runtime_program_executes_real_production_carrier_with_real_depend
     program = (b"import socket\ndef denied_socketpair(*a,**k):\n raise RuntimeError('test denies socketpair')\nsocket.socketpair=denied_socketpair\n" + program)
     (resources / 'worker.py').write_bytes(program)
     completed = subprocess.run([sys.executable, '-I', '-S', '-B', str(resources / 'worker.py')],
-        capture_output=True, timeout=30)
+        capture_output=True, timeout=30, **identity)
     if corrupt in ('mutate_nested', 'replace_input'):
         assert completed.returncode != 0
         assert b'capsule input mutation refused' in completed.stderr
@@ -127,7 +156,9 @@ def test_frozen_inventory_rejects_changed_missing_and_unexpected_files(installed
 def test_manifest_rejects_traversal_collisions_shadow_packages_and_unknown_targets(installed_runtime):
     _, manifest = installed_runtime
     for path in ('../escape.py', 'source/../escape.py', 'source\\body.py', 'accounts/token.json',
-                 'source/fixtures/data.json', 'source/__pycache__/module.pyc'):
+                 'source/fixtures/data.json', 'source/__pycache__/module.pyc',
+                 # Held-out/public case data never enters the sandbox runtime.
+                 'source/jiuwenswarm/research/capsule_extensions/calculate/fixtures/held_out.json'):
         changed = copy.deepcopy(manifest); changed['files'][0]['path'] = path
         with pytest.raises(ValueError): validate_runtime_manifest(changed)
     changed = copy.deepcopy(manifest)
@@ -146,3 +177,16 @@ def test_child_program_and_check_owner_do_not_accept_arbitrary_targets_or_unboun
     with pytest.raises(ValueError): capsule_worker_program('utility.calculate', iterations=True, **pins)
     with pytest.raises(ValueError): check_capsule_output('utility.calculate', inputs={'packet': {}}, output=b'x' * (2 * 1024 * 1024 + 1))
     with pytest.raises(ValueError): check_capsule_output('utility.calculate', inputs={'packet': {}}, output=b'{"a":1,"a":2}')
+
+
+def test_runtime_closure_is_derived_and_names_the_missing_staged_source(installed_runtime, tmp_path):
+    from jiuwenswarm.research_rsi.targets.capsule_runtime import require_runtime_closure, runtime_closure
+    runtime, manifest = installed_runtime
+    closure = require_runtime_closure(runtime, manifest)
+    assert closure['complete'] and closure['mode'] == 'import_time' and closure['module_count'] >= 4
+    staged = tmp_path / 'partial'; shutil.copytree(runtime, staged)
+    (staged / 'source/jiuwenswarm/research/capsule_extensions/packet.py').unlink()
+    with pytest.raises(ValueError, match='missing source/jiuwenswarm/research/capsule_extensions/packet.py required by'):
+        capture_runtime_manifest(staged, build_id='partial', dependency_environment={'distributions': []})
+    rows = [row for row in manifest['files'] if not row['path'].endswith('capsule_extensions/packet.py')]
+    assert not runtime_closure(runtime, rows)['complete']

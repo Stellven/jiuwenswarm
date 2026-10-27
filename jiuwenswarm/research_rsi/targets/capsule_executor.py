@@ -20,10 +20,18 @@ import types
 from ..records import encoded
 from .capsules import public_fixtures, registered_capsule
 from .capsule_runtime import (BOOTSTRAP_SCHEMA, MAX_OUTPUT_BYTES, capsule_job_assets,
-    check_capsule_output, verify_runtime)
+    check_capsule_output, require_runtime_closure, verify_runtime)
+from ..capsule_doctor import (WORKER_GID, WORKER_UID, _searchable, require_worker_traversal,
+    static_traversal, traversal_components, worker_traversal)
 
 V18_EXECUTOR_SHA256 = '25c77a8c6830e32e83a6b77334d82e12350912fe33b312df8d5b1aad26bc4715'
 GRANT_SCHEMA = 'ai4r-rsi-whole-capsule-development-grant:2'
+LOOP_GRANT_SCHEMA = 'ai4r-rsi-whole-capsule-development-grant:3'
+MAX_LOOP_EXECUTIONS = 100000
+VISIBLE_RESULT_V1 = 'ai4r-rsi-whole-capsule-visible-result:1'
+VISIBLE_RESULT_V2 = 'ai4r-rsi-whole-capsule-visible-result:2'
+PROTECTED_SCOPE = 'public_m1_development_only'
+LOCAL_SCOPE = 'local_unprotected'
 BINDING_SCHEMA = 'ai4r-rsi-whole-capsule-candidate-binding:1'
 
 
@@ -43,11 +51,62 @@ def pin(value):
     return value
 
 
+def evaluation_fixtures(name):
+    """The ordered case list a loop grant pins; parent and candidate share it.
+
+    The objective owner supplies it (``capsules.evaluation_fixtures`` or
+    ``capsule_objective.evaluation_fixtures``: public, public_extended and
+    held_out cases with their ``fixture_set``/``fixture_group`` labels, which
+    are carried through unchanged). Without an objective owner the public
+    cases alone are evaluated. Fixture data is read by Root/evaluator code
+    only; it is never part of the sandbox runtime package.
+    """
+    from . import capsules
+    source = getattr(capsules, 'evaluation_fixtures', None)
+    if source is None:
+        try:
+            from . import capsule_objective
+        except ImportError:
+            capsule_objective = None
+        source = getattr(capsule_objective, 'evaluation_fixtures', None)
+    if source is None:
+        return [dict(row, fixture_set='public', fixture_group='public') for row in public_fixtures(name)]
+    rows = [dict(row) for row in source(name)]
+    need(rows and all(isinstance(row, dict) and {'id', 'packet', 'expected_task_output', 'fixture_set'} <= set(row)
+                      and row['fixture_set'] in ('public', 'held_out') for row in rows)
+         and len({row['id'] for row in rows}) == len(rows), 'EXACT_LABELED_EVALUATION_FIXTURES_REQUIRED')
+    for row in rows:
+        row.setdefault('fixture_group', row['fixture_set'])
+    return rows
+
+
+def loop_execution_budget(case_count, *, max_iterations, trials, parent_trials=None):
+    """Executions a loop needs: parent trials (>= 3 for noise calibration)
+    plus ``trials`` candidate trials for each of ``max_iterations`` iterations."""
+    need(all(type(x) is int and x > 0 for x in (case_count, max_iterations, trials)), 'FINITE_LOOP_BUDGET_INPUTS_REQUIRED')
+    parent = max(3, trials) if parent_trials is None else parent_trials
+    return case_count * (parent + trials * max_iterations)
+
+
+def grant_fixtures(grant):
+    """The exact case inventory a grant pins (v2: public only, v3: evaluation)."""
+    if grant['schema'] == LOOP_GRANT_SCHEMA:
+        return evaluation_fixtures(grant['capsule_name'])
+    return [dict(row, fixture_set='public') for row in public_fixtures(grant['capsule_name'])]
+
+
+def _fixture_digest(grant, fixtures):
+    if grant['schema'] == LOOP_GRANT_SCHEMA:
+        return digest(encoded(fixtures))
+    # v2 grants pin the historical public inventory bytes exactly.
+    return digest(encoded([{k: v for k, v in row.items() if k != 'fixture_set'} for row in fixtures]))
+
+
 def validate_grant(grant, manifest):
     fields = {'schema', 'bootstrap_schema', 'run_id', 'capsule_name', 'runtime_manifest_sha256', 'parent_sha256',
         'fixture_sha256', 'fixture_count', 'roles', 'max_executions', 'iterations', 'limits',
         'worker', 'expires_unix_s', 'scope', 'production_admission'}
-    need(isinstance(grant, dict) and set(grant) == fields and grant['schema'] == GRANT_SCHEMA,
+    need(isinstance(grant, dict) and set(grant) == fields and grant['schema'] in (GRANT_SCHEMA, LOOP_GRANT_SCHEMA),
          'CLOSED_ROOT_DEVELOPMENT_GRANT_REQUIRED')
     need(grant['bootstrap_schema'] == BOOTSTRAP_SCHEMA, 'EXACT_VERSIONED_CAPSULE_BOOTSTRAP_REQUIRED')
     target = registered_capsule(grant['capsule_name'])
@@ -55,12 +114,19 @@ def validate_grant(grant, manifest):
          and grant['production_admission'] == 'UNKNOWN', 'FINITE_PUBLIC_DEVELOPMENT_SCOPE_REQUIRED')
     need(isinstance(grant['run_id'], str) and re.fullmatch('[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}', grant['run_id']),
          'BOUNDED_DEVELOPMENT_RUN_ID_REQUIRED')
-    fixtures = public_fixtures(grant['capsule_name'])
-    need(grant['fixture_sha256'] == digest(encoded(fixtures)) and type(grant['fixture_count']) is int
+    fixtures = grant_fixtures(grant)
+    need(grant['fixture_sha256'] == _fixture_digest(grant, fixtures) and type(grant['fixture_count']) is int
          and grant['fixture_count'] == len(fixtures), 'EXACT_PUBLIC_FIXTURE_INVENTORY_REQUIRED')
-    need(grant['roles'] in (['parent'], ['parent', 'candidate'])
-         and type(grant['max_executions']) is int
-         and grant['max_executions'] == len(fixtures) * len(grant['roles']), 'EXACT_ROLE_EXECUTION_BUDGET_REQUIRED')
+    if grant['schema'] == LOOP_GRANT_SCHEMA:
+        # Iterative loop grant: any number of parent/candidate evaluations,
+        # bounded only by a finite execution budget of at least one pair.
+        need(grant['roles'] == ['parent', 'candidate'] and type(grant['max_executions']) is int
+             and len(fixtures) * 2 <= grant['max_executions'] <= MAX_LOOP_EXECUTIONS,
+             'FINITE_LOOP_EXECUTION_BUDGET_REQUIRED')
+    else:
+        need(grant['roles'] in (['parent'], ['parent', 'candidate'])
+             and type(grant['max_executions']) is int
+             and grant['max_executions'] == len(fixtures) * len(grant['roles']), 'EXACT_ROLE_EXECUTION_BUDGET_REQUIRED')
     need(type(grant['iterations']) is int and 1 <= grant['iterations'] <= 10000, 'FROZEN_BOUNDED_ITERATIONS_REQUIRED')
     need(grant['runtime_manifest_sha256'] == digest(encoded(manifest)), 'EXACT_REVIEWED_RUNTIME_REQUIRED')
     carrier = 'source/jiuwenswarm/' + target.carrier_path
@@ -125,16 +191,53 @@ class BoundedCapture:
                 pass
         return kept
 
+    PROBE_FRAME_LIMIT = 4096
+
     def pipe(self, reader, *, probe=False):
+        """Bounded frame reader over one child pipe.
+
+        Reads are chunked (never ``StreamReader.readline``, whose 64 KiB
+        limit raises on a long first line). ``readline`` returns the first
+        newline-terminated frame, retaining any coalesced subsequent bytes for
+        later reads; a frame that grows past the probe bound without a newline,
+        or a partial frame at EOF, is returned as ordinary output bytes. Only
+        a complete, bounded probe frame bypasses the output fence; every other
+        byte is counted exactly once against the shared limit.
+        """
         fence = self
+        maximum = self.PROBE_FRAME_LIMIT + len(self.PREFIX) + 1
         class Pipe:
+            def __init__(self):
+                self.pending = bytearray(); self.eof = False
+            async def _fill(self):
+                if self.eof:
+                    return False
+                chunk = await reader.read(65536)
+                if not chunk:
+                    self.eof = True
+                    return False
+                self.pending.extend(chunk)
+                return True
             async def readline(self):
-                frame = await reader.readline()
-                if probe and frame.startswith(fence.PREFIX) and len(frame) <= 4096 + len(fence.PREFIX) + 1:
+                while True:
+                    boundary = self.pending.find(b'\n')
+                    if 0 <= boundary < maximum:
+                        frame = bytes(self.pending[:boundary + 1]); del self.pending[:boundary + 1]
+                        break
+                    if boundary >= maximum or len(self.pending) >= maximum or not await self._fill():
+                        # Not a bounded frame (or EOF): plain output bytes.
+                        frame = bytes(self.pending); self.pending.clear()
+                        return await fence.take(reader, frame) if frame else b''
+                if probe and frame.startswith(fence.PREFIX):
                     return frame
                 return await fence.take(reader, frame)
             async def read(self, size=65536):
                 need(type(size) is int and 0 < size <= 65536, 'FINITE_CAPTURE_READ_REQUIRED')
+                if self.pending:
+                    chunk = bytes(self.pending[:size]); del self.pending[:size]
+                    return await fence.take(reader, chunk)
+                if self.eof:
+                    return b''
                 return await fence.take(reader, await reader.read(size))
         return Pipe()
 
@@ -182,6 +285,43 @@ def bounded_executor(base, *, output_limit=MAX_OUTPUT_BYTES):
     return Executor
 
 
+def ensure_worker_traversal(evidence_root, target, *, uid=WORKER_UID, gid=WORKER_GID, owner=0):
+    """Make every Root-owned directory from the evidence root to ``target``'s
+    parent searchable (at least 0711) for the worker; verify the rest.
+
+    Only directories inside the evidence root and owned by ``owner`` are ever
+    changed; group/other read and write bits are never added. Ancestors above
+    the evidence root and foreign-owned directories are verified only, and the
+    first blocking one is reported. Derived from configured paths, for any
+    layout (no special-cased directory names).
+    """
+    evidence_root, target = Path(evidence_root), Path(target)
+    need(target == evidence_root or target.is_relative_to(evidence_root), 'TRAVERSAL_TARGET_OUTSIDE_EVIDENCE_ROOT')
+    gids = {gid}
+    changed = []
+    leaf = target.lstat()
+    need(not stat.S_ISLNK(leaf.st_mode), 'REAL_TRAVERSAL_TARGET_REQUIRED')
+    components = traversal_components(target)
+    if not stat.S_ISDIR(leaf.st_mode):
+        components = components[:-1]
+        # A job asset file must be readable by the worker (0444 assets).
+        readable = (0o400 if leaf.st_uid == uid else 0o040 if leaf.st_gid in gids else 0o004)
+        need(stat.S_ISREG(leaf.st_mode) and leaf.st_mode & readable, 'WORKER_READABLE_JOB_FILE_REQUIRED: ' + str(target))
+    for component in components:
+        meta = component.lstat()
+        need(stat.S_ISDIR(meta.st_mode) and not stat.S_ISLNK(meta.st_mode), 'REAL_TRAVERSAL_DIRECTORY_REQUIRED')
+        if _searchable(meta, uid, gids):
+            continue
+        need(component == evidence_root or component.is_relative_to(evidence_root),
+             'WORKER_TRAVERSAL_BLOCKED_ABOVE_EVIDENCE_ROOT: ' + str(component))
+        need(meta.st_uid == owner, 'WORKER_TRAVERSAL_BLOCKED_BY_FOREIGN_OWNER: ' + str(component))
+        component.chmod(stat.S_IMODE(meta.st_mode) | 0o111)
+        changed.append(str(component))
+    blocking = static_traversal([target], uid=uid, gid=gid)
+    need(blocking is None, 'WORKER_TRAVERSAL_BLOCKED: ' + json.dumps(blocking, sort_keys=True))
+    return changed
+
+
 def _root_custody(path, *, directory=False):
     path = Path(path)
     need(path.is_absolute() and '..' not in path.parts and not any(p.is_symlink() for p in (path, *path.parents)), 'ROOT_REAL_PATH_REQUIRED')
@@ -198,7 +338,326 @@ def _require_root():
     need(os.name == 'posix' and os.geteuid() == 0, 'ROOT_CAPSULE_DISPATCHER_REQUIRED')
 
 
-class WholeCapsuleDispatcher:
+_FAILURE_LINE = re.compile(rb'^([A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception|Exit|Interrupt|Warning)):?\s?(.*)$')
+
+
+def failure_summary(stderr, receipt):
+    """Closed failure facts for a captured failed job (never re-raised)."""
+    exception_type, message = None, ''
+    for line in reversed(stderr.strip().splitlines()[-64:]):
+        match = _FAILURE_LINE.match(line.strip())
+        if match:
+            exception_type = match.group(1).decode('ascii', 'replace').rpartition('.')[2]
+            message = match.group(2).decode('utf8', 'replace')
+            break
+    if exception_type is None:
+        exception_type = {'output_limit_exceeded': 'OutputLimitExceeded', 'timeout': 'TimeoutError',
+                          'resource_limit_exceeded': 'ResourceLimitExceeded'}.get(
+            receipt.get('termination_reason'), 'CapsuleJobFailed')
+        message = 'termination_reason=%s exit_code=%s' % (receipt.get('termination_reason'), receipt.get('exit_code'))
+    return {'exception_type': exception_type[:128], 'message': message[:4096]}
+
+
+TASK_OUTPUT_CAP_BYTES = 16 * 1024
+
+
+def task_output_key(name, packet, output):
+    """The packet data key the capsule writes, from its registration when
+    declared, else derived as the single data key the output adds/changes."""
+    declared = getattr(registered_capsule(name), 'task_output_key', None)
+    if declared:
+        return declared
+    before, after = packet.get('data', {}), output.get('data', {})
+    changed = [key for key in after if key not in before or after[key] != before[key]]
+    return changed[0] if len(changed) == 1 else None
+
+
+def bounded_task_output(name, packet, stdout, *, cap=TASK_OUTPUT_CAP_BYTES):
+    """``{'value', 'truncated', 'bytes'}``: parsed task output when its
+    canonical JSON fits ``cap``, else the first ``cap`` bytes of that JSON text;
+    ``value`` is None when the job produced no parseable packet."""
+    try:
+        output = json.loads(stdout)
+        key = task_output_key(name, packet, output)
+        value = output['data'][key] if key is not None else None
+    except (ValueError, TypeError, KeyError, AttributeError, UnicodeError):
+        return {'value': None, 'truncated': False, 'bytes': 0}
+    raw = encoded(value)
+    if len(raw) <= cap:
+        return {'value': value, 'truncated': False, 'bytes': len(raw)}
+    return {'value': raw[:cap].decode('utf8', 'ignore'), 'truncated': True, 'bytes': len(raw)}
+
+
+def sealed_check(checked):
+    """Held-out check facts reduced to pass/fail per check id (no details)."""
+    if checked is None:
+        return None
+    return {**{key: checked[key] for key in ('capsule_name', 'task_success', 'checks_sha256', 'output_bytes', 'scope')
+               if key in checked},
+            'checks': [{'check_id': row.get('check_id'), 'outcome': row.get('outcome')} for row in checked.get('checks', [])]}
+
+
+def visible_row_v2(row, *, fixture_set, fixture_group=None):
+    """Interface A row: the v1 evidence row plus the v2 summary fields."""
+    checked = row.get('independent_check') or {}
+    return {**row, 'fixture_set': fixture_set, 'fixture_group': fixture_group or fixture_set,
+            'checks': checked.get('checks', [])}
+
+
+def visible_result_v2(result):
+    """Read a v1 or v2 visible result as Interface A v2 (v1 is never rewritten)."""
+    need(isinstance(result, dict) and result.get('schema') in (VISIBLE_RESULT_V1, VISIBLE_RESULT_V2),
+         'KNOWN_VISIBLE_RESULT_SCHEMA_REQUIRED')
+    if result['schema'] == VISIBLE_RESULT_V2:
+        return result
+    rows = [visible_row_v2(row, fixture_set='public') for row in result['rows']]
+    subject = rows[0]['candidate_ref']['sha256'] if rows else None
+    failed = next((row for row in rows if not row['task_success']), None)
+    return {**result, 'schema': VISIBLE_RESULT_V2, 'iteration': 0, 'subject_sha256': subject,
+            'case_count': len(public_fixtures(result['capsule_name'])), 'held_out_case_count': 0,
+            'trial_wall_s': [result['protected_wall_s']], 'rows': rows, 'trial_rows': [],
+            'failure': None if failed is None else {'exception_type': 'CapsuleJobFailed',
+                'message': 'fixture %s failed (historical v1 result)' % failed['fixture_id']},
+            'upgraded_from': VISIBLE_RESULT_V1}
+
+
+class _EvaluationLedger:
+    """Grant-bounded parent/candidate evaluation bookkeeping shared by dispatchers.
+
+    Grant v2 keeps its historical single parent+candidate semantics and v1
+    result bytes. Grant v3 (``LOOP_GRANT_SCHEMA``) and the local dispatcher
+    serve any number of iteration-keyed evaluations bounded only by
+    ``max_executions`` and return Interface A v2 results.
+    """
+    scope = PROTECTED_SCOPE
+    result_schema_v1 = True
+    task_output_cap = TASK_OUTPUT_CAP_BYTES
+
+    def _load_grant(self, grant_path, grant_sha256, manifest):
+        grant_raw = Path(grant_path).read_bytes()
+        need(len(grant_raw) <= 65536 and digest(grant_raw) == grant_sha256, 'ROOT_REVIEWED_GRANT_BYTES_REQUIRED')
+        self.grant = validate_grant(json.loads(grant_raw), manifest)
+        need(grant_raw == encoded(self.grant), 'CANONICAL_ROOT_GRANT_REQUIRED')
+        need(time.time() < self.grant['expires_unix_s'], 'ROOT_DEVELOPMENT_GRANT_EXPIRED')
+        self.loop = self.grant['schema'] == LOOP_GRANT_SCHEMA or not self.result_schema_v1
+        self.fixtures = grant_fixtures(self.grant) if self.loop else public_fixtures(self.grant['capsule_name'])
+        self.issued = {}; self.completed = {}; self.evaluations = []; self.executions = 0; self.halted = False
+        self.deadline = time.monotonic() + self.grant['limits']['wall_s']
+
+    def plan(self):
+        return {'schema': 'ai4r-rsi-whole-capsule-dispatch-plan:1', 'grant_sha256': digest(encoded(self.grant)),
+            'bootstrap_schema': BOOTSTRAP_SCHEMA,
+            'capsule_name': self.grant['capsule_name'], 'fixture_count': len(self.fixtures),
+            'maximum_executions': self.grant['max_executions'], 'roles': self.grant['roles'],
+            'runtime_manifest_sha256': digest(encoded(self.manifest)), 'executor_abi': self.abi,
+            'model_calls': 0, 'scope': self.scope, 'operational_qualification': False}
+
+    def _live(self):
+        need(time.time() < self.grant['expires_unix_s'] and time.monotonic() < self.deadline, 'DEVELOPMENT_DEADLINE_EXPIRED')
+
+    sealing = False  # True while a held-out job's bytes are being captured.
+
+    def _sealed_store(self):
+        """Root-only store for held-out inputs, fixtures and job output.
+
+        Rows and start records keep exact ``{id, sha256}`` pins to these bytes,
+        but the public capture store (whose closure is transferred to the
+        model-side controller) cannot resolve them, so held-out packets,
+        expected outputs and actual outputs never leave the evaluator.
+        """
+        store = getattr(self, '_sealed', None)
+        if store is None:
+            from jiuwenswarm.research_rsi.records import RecordStore
+            path = self.root / 'sealed-captures'
+            path.mkdir(mode=0o700, exist_ok=True)
+            store = self._sealed = RecordStore(path)
+        return store
+
+    def _store_for(self, fixture):
+        return self._sealed_store() if fixture.get('fixture_set') == 'held_out' else self.captures
+
+    def _read(self, ref):
+        try:
+            return self.captures.read(ref)
+        except FileNotFoundError:
+            return self._sealed_store().read(ref)
+
+    def _capture(self, raw):
+        return (self._sealed_store() if self.sealing else self.captures).put_bytes(raw)
+
+    def close(self):
+        store = getattr(self, '_sealed', None)
+        if store is not None:
+            store.close(); self._sealed = None
+
+    def _authorize_subject(self, role, body, candidate_ref, binding):
+        need(isinstance(body, bytes) and 0 < len(body) <= 256 * 1024 and digest(body) == pin(candidate_ref)['sha256'],
+             'EXACT_BOUNDED_CANDIDATE_BYTES_REQUIRED')
+        if role == 'parent':
+            need(body == self.parent and binding is None, 'EXACT_BASELINE_PARENT_REQUIRED')
+        else:
+            need('parent' in self.completed, 'BASELINE_MUST_COMPLETE_FIRST')
+            validate_candidate_binding(binding, self.grant, candidate_ref)
+
+    def _claim(self, name, value):
+        with (self.root / 'claims' / name).open('xb') as stream:
+            stream.write(encoded(value)); stream.flush(); os.fsync(stream.fileno())
+
+    async def evaluate(self, role, *, body, candidate_ref, binding=None, iteration=None, trials=1):
+        if not self.loop:
+            need(iteration is None and trials == 1, 'ITERATIVE_EVALUATION_REQUIRES_LOOP_GRANT')
+            return await self._evaluate_v1(role, body=body, candidate_ref=candidate_ref, binding=binding)
+        return await self._evaluate_loop(role, body=body, candidate_ref=candidate_ref, binding=binding,
+                                         iteration=0 if iteration is None else iteration, trials=trials)
+
+    async def _evaluate_v1(self, role, *, body, candidate_ref, binding):
+        need(not self.halted, 'DISPATCHER_HALTED_AFTER_FAILED_OR_UNKNOWN_EXECUTION')
+        need(role in self.grant['roles'] and role not in self.completed, 'ROLE_NOT_GRANTED_OR_ALREADY_COMPLETED')
+        self._authorize_subject(role, body, candidate_ref, binding)
+        self._live()
+        self.captures.put_ref(candidate_ref, body)
+        binding_ref = self.captures.put(binding) if binding is not None else None
+        self._claim(digest(encoded([self.grant['run_id'], role])) + '.json',
+            {'grant_ref': self.grant_ref, 'role': role, 'candidate_ref': candidate_ref, 'binding_ref': binding_ref})
+        rows = []
+        for index, fixture in enumerate(self.fixtures):
+            self._live()
+            need(self.executions < self.grant['max_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
+            ident = 'capsule-' + digest(encoded([self.grant['run_id'], role, fixture['id']]))[:48]
+            self.halted = True  # Unknown/in-flight effects cannot authorize another job.
+            row = await self._run_case(role=role, fixture=fixture, body=body, candidate_ref=candidate_ref,
+                binding_ref=binding_ref, ident=ident, index=index)
+            rows.append(row)
+            if not row['task_success']:
+                break
+            self.halted = False
+        result = {'schema': VISIBLE_RESULT_V1, 'capsule_name': self.grant['capsule_name'],
+            'grant_ref': self.grant_ref, 'binding_ref': binding_ref, 'runtime_manifest_ref': self.runtime_manifest_ref,
+            'role': role, 'executions': len(rows), 'passed_count': sum(row['task_success'] for row in rows),
+            'passed': all(row['task_success'] for row in rows), 'protected_wall_s': sum(row['protected_wall_s'] for row in rows),
+            'rows': rows, 'model_calls': 0, 'security': 'UNQUALIFIED', 'hidden_evaluation': 'NOT_RUN',
+            'admission_ref': None, 'activation_ref': None, 'scope': self.scope}
+        result_ref = self.captures.put(result)
+        self.completed[role] = result_ref
+        return {**result, 'result_ref': result_ref}
+
+    async def _evaluate_loop(self, role, *, body, candidate_ref, binding, iteration, trials):
+        need(not self.halted, 'DISPATCHER_HALTED_AFTER_UNKNOWN_EXECUTION')
+        need(role in self.grant['roles'], 'ROLE_NOT_GRANTED')
+        need(type(iteration) is int and 0 <= iteration <= 100000 and type(trials) is int and 1 <= trials <= 32,
+             'FINITE_ITERATION_AND_TRIALS_REQUIRED')
+        self._authorize_subject(role, body, candidate_ref, binding)
+        self._live()
+        planned = len(self.fixtures) * trials
+        need(self.executions + planned <= self.grant['max_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
+        self.captures.put_ref(candidate_ref, body)
+        binding_ref = self.captures.put(binding) if binding is not None else None
+        key = [self.grant['run_id'], role, iteration, candidate_ref['sha256']]
+        self._claim(digest(encoded(key)) + '.json', {'grant_ref': self.grant_ref, 'role': role, 'iteration': iteration,
+            'trials': trials, 'candidate_ref': candidate_ref, 'binding_ref': binding_ref})
+        trial_rows = []
+        for trial in range(trials):
+            rows = []
+            for index, fixture in enumerate(self.fixtures):
+                self._live()
+                ident = 'capsule-' + digest(encoded([*key, trial, fixture['id']]))[:48]
+                self.halted = True  # Only an observed terminal outcome re-authorizes.
+                row = await self._run_case(role=role, fixture=fixture, body=body, candidate_ref=candidate_ref,
+                    binding_ref=binding_ref, ident=ident, index=index)
+                self.halted = False
+                extra = {'role': role, 'iteration': iteration, 'trial': trial, 'check_ref': row.pop('evidence_ref')}
+                if fixture['fixture_set'] != 'held_out':
+                    # Public cases only: bounded actual task output for diffs.
+                    # Held-out rows never carry it.
+                    extra['actual_task_output'] = bounded_task_output(self.grant['capsule_name'], fixture['packet'],
+                        self._read(row['receipt']['stdout_ref']), cap=self.task_output_cap)
+                if fixture['fixture_set'] == 'held_out':
+                    row['independent_check'] = sealed_check(row['independent_check'])
+                visible = visible_row_v2({**row, **extra}, fixture_set=fixture['fixture_set'],
+                                         fixture_group=fixture.get('fixture_group'))
+                # The Interface A row itself is the persisted evidence record.
+                rows.append({**visible, 'evidence_ref': self.captures.put(visible)})
+            trial_rows.append(rows)
+        rows = trial_rows[0]
+        failed = next((row for row in rows if not row['task_success']), None)
+        failure = None
+        if failed is not None:
+            receipt = failed['receipt']
+            if failed['fixture_set'] == 'held_out' and receipt['termination_reason'] == 'completed' and receipt['exit_code'] == 0:
+                failure = {'exception_type': 'IndependentCheckFailed', 'message': 'held-out case failed'}
+            elif receipt['termination_reason'] == 'completed' and receipt['exit_code'] == 0:
+                # The candidate ran to completion; the independent checker
+                # (outside the candidate interpreter) rejected its packet.
+                rejected = [row for row in failed['checks'] if row.get('outcome') != 'PASS']
+                failure = {'exception_type': 'IndependentCheckFailed', 'message': json.dumps(
+                    [{key: row.get(key) for key in ('check_id', 'outcome', 'detail', 'message') if key in row}
+                     for row in rejected] or 'output packet rejected', sort_keys=True, default=str)[:4096]}
+            else:
+                if failed['fixture_set'] == 'held_out':
+                    # Held-out error text may echo the hidden case: type only.
+                    failure = {'exception_type': failure_summary(self._read(receipt['stderr_ref']), receipt)['exception_type'],
+                               'message': 'held-out case failed'}
+                else:
+                    stderr = self._read(receipt['stderr_ref']) if receipt.get('stderr_ref') else b''
+                    failure = failure_summary(stderr, receipt)
+            # Closed Interface A shape {exception_type, message}; the case id
+            # (an opaque label for held-out cases) is part of the message.
+            failure['message'] = ('[%s] ' % failed['fixture_id'] + failure['message'])[:4096]
+        passed = sum(row['task_success'] for row in rows)
+        result = {'schema': VISIBLE_RESULT_V2, 'capsule_name': self.grant['capsule_name'],
+            'grant_ref': self.grant_ref, 'binding_ref': binding_ref, 'runtime_manifest_ref': self.runtime_manifest_ref,
+            'role': role, 'iteration': iteration, 'subject_sha256': candidate_ref['sha256'],
+            'executions': sum(len(item) for item in trial_rows), 'passed_count': passed, 'case_count': len(rows),
+            'held_out_case_count': sum(row['fixture_set'] == 'held_out' for row in rows),
+            'passed': passed == len(rows), 'protected_wall_s': sum(row['protected_wall_s'] for row in rows),
+            'trial_wall_s': [sum(row['protected_wall_s'] for row in item) for item in trial_rows],
+            'rows': rows, 'trial_rows': trial_rows[1:], 'failure': failure,
+            'model_calls': 0, 'security': 'UNQUALIFIED', 'hidden_evaluation': 'NOT_RUN',
+            'admission_ref': None, 'activation_ref': None, 'scope': self.scope}
+        result_ref = self.captures.put(result)
+        self.completed.setdefault(role, result_ref)
+        self.evaluations.append(result_ref)
+        return {**result, 'result_ref': result_ref}
+
+    def _finish_case(self, *, role, fixture, assets, receipt, stdout, start_ref, candidate_ref, input_ref, program_ref):
+        """Independent check of captured output; returns the persisted evidence row."""
+        wall = receipt.get('wall_time_s')
+        need(type(wall) in (float, int) and math.isfinite(wall) and wall >= 0, 'PROTECTED_RECEIPT_CLOCK_REQUIRED')
+        successful = (receipt['termination_reason'] == 'completed' and receipt['exit_code'] == 0
+            and receipt['observed_runtime'] is True and not receipt['observed_limits']['admin_output_truncated'])
+        checked = None
+        if successful:
+            try:
+                checked = check_capsule_output(self.grant['capsule_name'], inputs={'packet': fixture['packet']},
+                    output=stdout, expected_checks_sha256=assets['checks_sha256'])
+            except (ValueError, TypeError, KeyError, UnicodeError):
+                successful = False
+            else:
+                successful = checked['task_success']
+        evidence = {'schema': 'ai4r-rsi-whole-capsule-visible-check:1', 'start_ref': start_ref,
+            'receipt': receipt, 'independent_check': checked, 'fixture_id': fixture['id'],
+            'task_success': successful, 'group_empty': True, 'output_bytes': len(stdout),
+            'protected_wall_s': wall, 'batch_iterations': self.grant['iterations'],
+            'bootstrap_schema': BOOTSTRAP_SCHEMA,
+            'candidate_ref': candidate_ref, 'input_ref': input_ref, 'program_ref': program_ref,
+            'runtime_manifest_sha256': assets['runtime_manifest_sha256'], 'checks_sha256': assets['checks_sha256']}
+        evidence_ref = self._store_for(fixture).put(evidence)  # Held-out: sealed.
+        return {**evidence, 'evidence_ref': evidence_ref}
+
+    def _start_record(self, *, ident, role, fixture, binding_ref, candidate_ref, assets, input_ref, program_ref, test_ref):
+        start = {'schema': 'ai4r-rsi-whole-capsule-execution-start:1', 'job_id': ident,
+            'grant_ref': self.grant_ref, 'binding_ref': binding_ref, 'runtime_manifest_ref': self.runtime_manifest_ref,
+            'grant_sha256': digest(encoded(self.grant)), 'runtime_manifest_sha256': assets['runtime_manifest_sha256'],
+            'bootstrap_schema': BOOTSTRAP_SCHEMA,
+            'candidate_ref': candidate_ref, 'input_ref': input_ref, 'program_ref': program_ref,
+            'test_ref': test_ref, 'fixture_id': fixture['id'], 'role': role, 'recorded_unix_ns': time.time_ns()}
+        if self.scope != PROTECTED_SCOPE:
+            start['scope'] = self.scope
+        self._claim(ident + '.json', start)
+        return self.captures.put(start)
+
+
+class WholeCapsuleDispatcher(_EvaluationLedger):
     """Exactly granted baseline/candidate public jobs, with durable no-replay claims."""
     def __init__(self, *, root, runtime_root, manifest, grant_path, grant_sha256, cgroup_root, captures):
         _require_root()
@@ -207,16 +666,16 @@ class WholeCapsuleDispatcher:
         self.abi = executor_abi(RestrictedExecutor, ExecutionJob, ReadonlyMount)
         grant_path = _root_custody(grant_path)
         need(grant_path.stat().st_size <= 65536, 'BOUNDED_ROOT_GRANT_REQUIRED')
-        grant_raw = grant_path.read_bytes()
-        need(len(grant_raw) <= 65536 and digest(grant_raw) == grant_sha256, 'ROOT_REVIEWED_GRANT_BYTES_REQUIRED')
-        self.grant = validate_grant(json.loads(grant_raw), manifest)
-        need(grant_raw == encoded(self.grant), 'CANONICAL_ROOT_GRANT_REQUIRED')
-        need(time.time() < self.grant['expires_unix_s'], 'ROOT_DEVELOPMENT_GRANT_EXPIRED')
+        self._load_grant(grant_path, grant_sha256, manifest)
         self.runtime_root = _root_custody(runtime_root, directory=True)
         self.manifest = verify_runtime(self.runtime_root, manifest)
-        for path in self.runtime_root.rglob('*'):
+        self.runtime_closure = require_runtime_closure(self.runtime_root, self.manifest)
+        for path in (self.runtime_root, *self.runtime_root.rglob('*')):
             _root_custody(path, directory=path.is_dir())
-            need(path.stat().st_mode & (0o001 if path.is_dir() else 0o004), 'WORKER_READABLE_RUNTIME_REQUIRED')
+            # The worker inventories the whole runtime: directories must be
+            # listable (r+x), not merely searchable, or files silently vanish.
+            need(path.stat().st_mode & 0o005 == 0o005 if path.is_dir() else path.stat().st_mode & 0o004,
+                 'WORKER_READABLE_RUNTIME_REQUIRED: ' + str(path))
         self.root = _root_custody(root, directory=True)
         need(type(captures) is RecordStore, 'ROOT_CAPTURE_RECORD_STORE_REQUIRED')
         _root_custody(captures.root, directory=True)
@@ -224,20 +683,19 @@ class WholeCapsuleDispatcher:
         self.grant_ref = captures.put(self.grant)
         self.runtime_manifest_ref = captures.put(self.manifest)
         self.job_type, self.mount_type = ExecutionJob, ReadonlyMount
-        self.fixtures = public_fixtures(self.grant['capsule_name'])
         self.parent = (self.runtime_root / 'source/jiuwenswarm' / registered_capsule(self.grant['capsule_name']).carrier_path).read_bytes()
         need(digest(self.parent) == self.grant['parent_sha256'], 'FROZEN_PARENT_BYTES_DIFFER')
         self.parent_ref = captures.put_bytes(self.parent)
-        self.issued = {}; self.completed = {}; self.executions = 0; self.halted = False
-        self.deadline = time.monotonic() + self.grant['limits']['wall_s']
         for name in ('assets', 'work', 'claims'):
             (self.root / name).mkdir(mode=0o711, exist_ok=True)
             _root_custody(self.root / name, directory=True)
-            if name in ('assets', 'work'):
-                # Setup may precreate these Root-owned public job parents as
-                # 0700. The dropped sandbox owner must traverse them; captures
-                # and individual private job directories retain their modes.
-                (self.root / name).chmod(0o711)
+        # Every Root-owned directory from the evidence root down to the public
+        # job parents becomes worker-searchable (precreated 0700 included);
+        # ancestors above the evidence root are verified, never changed.
+        # The actual worker identity then resolves each bind source path.
+        for name in ('assets', 'work'):
+            ensure_worker_traversal(self.root, self.root / name)
+        self.traversal = require_worker_traversal([self.root / 'assets', self.root / 'work'], trees=[self.runtime_root])
         def authorize(job):
             need(self.issued.get(job.job_id) == job, 'UNISSUED_WHOLE_CAPSULE_JOB'); return job
         def verify(mount):
@@ -250,111 +708,59 @@ class WholeCapsuleDispatcher:
                      'EXACT_CAPSULE_JOB_ASSET_REQUIRED')
         self.executor = bounded_executor(RestrictedExecutor)(workspace_root=self.root / 'work',
             cgroup_root=self.cgroup_root, authorize_job=authorize,
-            capture=lambda raw, **_: captures.put_bytes(raw), executor_uid=12003, executor_gid=12003,
+            capture=lambda raw, **_: self._capture(raw), executor_uid=WORKER_UID, executor_gid=WORKER_GID,
             allowed_asset_roots=[self.root / 'assets', self.runtime_root], verify_mount=verify)
         need(not self.executor.prerequisites(), 'ACTUAL_KERNEL_CONFINEMENT_PREREQUISITES_UNAVAILABLE')
 
-    def plan(self):
-        return {'schema': 'ai4r-rsi-whole-capsule-dispatch-plan:1', 'grant_sha256': digest(encoded(self.grant)),
-            'bootstrap_schema': BOOTSTRAP_SCHEMA,
-            'capsule_name': self.grant['capsule_name'], 'fixture_count': len(self.fixtures),
-            'maximum_executions': self.grant['max_executions'], 'roles': self.grant['roles'],
-            'runtime_manifest_sha256': digest(encoded(self.manifest)), 'executor_abi': self.abi,
-            'model_calls': 0, 'scope': 'public_m1_development_only', 'operational_qualification': False}
+    async def _run_case(self, *, role, fixture, body, candidate_ref, binding_ref, ident, index):
+        need(self.executions < self.grant['max_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
+        assets = capsule_job_assets(self.grant['capsule_name'], runtime_root=self.runtime_root,
+            manifest=self.manifest, candidate=body, inputs={'packet': fixture['packet']}, iterations=self.grant['iterations'])
+        asset_root = self.root / 'assets' / ident; asset_root.mkdir(mode=0o755)
+        work = self.root / 'work' / ident; work.mkdir(mode=0o700); os.chown(work, WORKER_UID, WORKER_GID)
+        mounts = [self.mount_type(self.runtime_root, '/resources/capsule-runtime',
+            {'id': 'capsule-runtime:' + assets['runtime_manifest_sha256'], 'sha256': assets['runtime_manifest_sha256']})]
+        for name, raw in assets['files'].items():
+            path = asset_root / name; path.write_bytes(raw); path.chmod(0o444)
+            mounts.append(self.mount_type(path, '/resources/' + name, {'id': name, 'sha256': digest(raw)}))
+        for path in (asset_root / 'worker.py', work):
+            ensure_worker_traversal(self.root, path)
+        store = self._store_for(fixture)
+        input_ref = store.put_bytes(assets['files']['input.json'])
+        program_ref = self.captures.put_bytes(assets['files']['worker.py'])
+        test_ref = store.put({k: v for k, v in fixture.items() if k != 'fixture_set'}
+                             if not self.loop else fixture)
+        worker, limits = self.grant['worker'], self.grant['limits']
+        job = self.job_type(job_id=ident, invocation_id=ident, contract_ref=worker['contract_ref'],
+            run_id=self.grant['run_id'], node_id='unqualified-whole-capsule-development', attempt_id=role,
+            sequence=1, role='treatment', repeat_index=index, seed=0, argv=assets['argv'], cwd=work,
+            timeout_s=limits['timeout_s'], memory_mb=limits['memory_mb'], pids_max=limits['pids_max'],
+            baseline_ref=self.parent_ref, validation_ref=test_ref, environment_ref=worker['environment_ref'],
+            subject_ref=candidate_ref, hardware_ref=worker['hardware_ref'], readonly_mounts=tuple(mounts))
+        start_ref = self._start_record(ident=ident, role=role, fixture=fixture, binding_ref=binding_ref,
+            candidate_ref=candidate_ref, assets=assets, input_ref=input_ref, program_ref=program_ref, test_ref=test_ref)
+        self.executions += 1; self.issued[ident] = job
+        self.sealing = store is not self.captures
+        try:
+            receipt = await self.executor.run(job)
+        finally:
+            self.sealing = False
+        group = self.cgroup_root / ident
+        events = dict(line.split() for line in (group / 'cgroup.events').read_text().splitlines())
+        need(events.get('populated') == '0' and not (group / 'cgroup.procs').read_text().strip(), 'EXECUTION_GROUP_NOT_EMPTY')
+        stdout = store.read(receipt['stdout_ref'])
+        return self._finish_case(role=role, fixture=fixture, assets=assets, receipt=receipt, stdout=stdout,
+            start_ref=start_ref, candidate_ref=candidate_ref, input_ref=input_ref, program_ref=program_ref)
 
-    async def evaluate(self, role, *, body, candidate_ref, binding=None):
-        need(not self.halted, 'DISPATCHER_HALTED_AFTER_FAILED_OR_UNKNOWN_EXECUTION')
-        need(role in self.grant['roles'] and role not in self.completed, 'ROLE_NOT_GRANTED_OR_ALREADY_COMPLETED')
-        need(isinstance(body, bytes) and 0 < len(body) <= 256 * 1024 and digest(body) == pin(candidate_ref)['sha256'],
-             'EXACT_BOUNDED_CANDIDATE_BYTES_REQUIRED')
-        if role == 'parent':
-            need(body == self.parent and binding is None, 'EXACT_BASELINE_PARENT_REQUIRED')
-        else:
-            need('parent' in self.completed, 'BASELINE_MUST_COMPLETE_FIRST')
-            validate_candidate_binding(binding, self.grant, candidate_ref)
-        need(time.time() < self.grant['expires_unix_s'] and time.monotonic() < self.deadline, 'DEVELOPMENT_DEADLINE_EXPIRED')
-        self.captures.put_ref(candidate_ref, body)
-        binding_ref = self.captures.put(binding) if binding is not None else None
-        role_claim = self.root / 'claims' / (digest(encoded([self.grant['run_id'], role])) + '.json')
-        with role_claim.open('xb') as stream:
-            stream.write(encoded({'grant_ref': self.grant_ref, 'role': role, 'candidate_ref': candidate_ref, 'binding_ref': binding_ref}))
-            stream.flush(); os.fsync(stream.fileno())
-        rows = []
-        for index, fixture in enumerate(self.fixtures):
-            need(time.monotonic() < self.deadline and time.time() < self.grant['expires_unix_s'], 'DEVELOPMENT_DEADLINE_EXPIRED')
-            need(self.executions < self.grant['max_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
-            assets = capsule_job_assets(self.grant['capsule_name'], runtime_root=self.runtime_root,
-                manifest=self.manifest, candidate=body, inputs={'packet': fixture['packet']}, iterations=self.grant['iterations'])
-            ident = 'capsule-' + digest(encoded([self.grant['run_id'], role, fixture['id']]))[:48]
-            asset_root = self.root / 'assets' / ident; asset_root.mkdir(mode=0o755)
-            work = self.root / 'work' / ident; work.mkdir(mode=0o700); os.chown(work, 12003, 12003)
-            mounts = [self.mount_type(self.runtime_root, '/resources/capsule-runtime',
-                {'id': 'capsule-runtime:' + assets['runtime_manifest_sha256'], 'sha256': assets['runtime_manifest_sha256']})]
-            for name, raw in assets['files'].items():
-                path = asset_root / name; path.write_bytes(raw); path.chmod(0o444)
-                mounts.append(self.mount_type(path, '/resources/' + name, {'id': name, 'sha256': digest(raw)}))
-            input_ref = self.captures.put_bytes(assets['files']['input.json'])
-            program_ref = self.captures.put_bytes(assets['files']['worker.py'])
-            test_ref = self.captures.put(fixture)
-            worker, limits = self.grant['worker'], self.grant['limits']
-            job = self.job_type(job_id=ident, invocation_id=ident, contract_ref=worker['contract_ref'],
-                run_id=self.grant['run_id'], node_id='unqualified-whole-capsule-development', attempt_id=role,
-                sequence=1, role='treatment', repeat_index=index, seed=0, argv=assets['argv'], cwd=work,
-                timeout_s=limits['timeout_s'], memory_mb=limits['memory_mb'], pids_max=limits['pids_max'],
-                baseline_ref=self.parent_ref, validation_ref=test_ref, environment_ref=worker['environment_ref'],
-                subject_ref=candidate_ref, hardware_ref=worker['hardware_ref'], readonly_mounts=tuple(mounts))
-            start = {'schema': 'ai4r-rsi-whole-capsule-execution-start:1', 'job_id': ident,
-                'grant_ref': self.grant_ref, 'binding_ref': binding_ref, 'runtime_manifest_ref': self.runtime_manifest_ref,
-                'grant_sha256': digest(encoded(self.grant)), 'runtime_manifest_sha256': assets['runtime_manifest_sha256'],
-                'bootstrap_schema': BOOTSTRAP_SCHEMA,
-                'candidate_ref': candidate_ref, 'input_ref': input_ref, 'program_ref': program_ref,
-                'test_ref': test_ref, 'fixture_id': fixture['id'], 'role': role, 'recorded_unix_ns': time.time_ns()}
-            claim = self.root / 'claims' / (ident + '.json')
-            with claim.open('xb') as stream:
-                stream.write(encoded(start)); stream.flush(); os.fsync(stream.fileno())
-            start_ref = self.captures.put(start)
-            self.executions += 1; self.issued[ident] = job
-            self.halted = True  # Unknown/in-flight effects cannot authorize another job.
-            try:
-                receipt = await self.executor.run(job)
-            except BaseException:
-                self.halted = True
-                raise
-            group = self.cgroup_root / ident
-            events = dict(line.split() for line in (group / 'cgroup.events').read_text().splitlines())
-            need(events.get('populated') == '0' and not (group / 'cgroup.procs').read_text().strip(), 'EXECUTION_GROUP_NOT_EMPTY')
-            wall = receipt.get('wall_time_s')
-            need(type(wall) in (float, int) and math.isfinite(wall) and wall >= 0, 'PROTECTED_RECEIPT_CLOCK_REQUIRED')
-            stdout = self.captures.read(receipt['stdout_ref'])
-            successful = (receipt['termination_reason'] == 'completed' and receipt['exit_code'] == 0
-                and receipt['observed_runtime'] is True and not receipt['observed_limits']['admin_output_truncated'])
-            checked = None
-            if successful:
-                try:
-                    checked = check_capsule_output(self.grant['capsule_name'], inputs={'packet': fixture['packet']},
-                        output=stdout, expected_checks_sha256=assets['checks_sha256'])
-                except (ValueError, TypeError, KeyError, UnicodeError):
-                    successful = False
-                else:
-                    successful = checked['task_success']
-            evidence = {'schema': 'ai4r-rsi-whole-capsule-visible-check:1', 'start_ref': start_ref,
-                'receipt': receipt, 'independent_check': checked, 'fixture_id': fixture['id'],
-                'task_success': successful, 'group_empty': True, 'output_bytes': len(stdout),
-                'protected_wall_s': wall, 'batch_iterations': self.grant['iterations'],
-                'bootstrap_schema': BOOTSTRAP_SCHEMA,
-                'candidate_ref': candidate_ref, 'input_ref': input_ref, 'program_ref': program_ref,
-                'runtime_manifest_sha256': assets['runtime_manifest_sha256'], 'checks_sha256': assets['checks_sha256']}
-            evidence_ref = self.captures.put(evidence)
-            rows.append({**evidence, 'evidence_ref': evidence_ref})
-            if not successful:
-                break
-            self.halted = False
-        result = {'schema': 'ai4r-rsi-whole-capsule-visible-result:1', 'capsule_name': self.grant['capsule_name'],
-            'grant_ref': self.grant_ref, 'binding_ref': binding_ref, 'runtime_manifest_ref': self.runtime_manifest_ref,
-            'role': role, 'executions': len(rows), 'passed_count': sum(row['task_success'] for row in rows),
-            'passed': all(row['task_success'] for row in rows), 'protected_wall_s': sum(row['protected_wall_s'] for row in rows),
-            'rows': rows, 'model_calls': 0, 'security': 'UNQUALIFIED', 'hidden_evaluation': 'NOT_RUN',
-            'admission_ref': None, 'activation_ref': None, 'scope': 'public_m1_development_only'}
-        result_ref = self.captures.put(result)
-        self.completed[role] = result_ref
-        return {**result, 'result_ref': result_ref}
+
+def make_dispatcher(kind, **options):
+    """Explicitly configured dispatcher; never autodetected.
+
+    ``kind`` must be ``"v18-bwrap"`` (protected production path) or
+    ``"local"`` (plain subprocess, results tagged ``local_unprotected``).
+    """
+    need(kind in ('v18-bwrap', 'local'), 'EXPLICIT_DISPATCHER_KIND_REQUIRED')
+    if kind == 'v18-bwrap':
+        return WholeCapsuleDispatcher(**options)
+    from .capsule_local_dispatcher import LocalDispatcher
+    return LocalDispatcher(**options)

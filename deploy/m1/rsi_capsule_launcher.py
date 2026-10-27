@@ -78,10 +78,60 @@ def docker(value, *args):
         env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','HOME':'/root','PYTHONDONTWRITEBYTECODE':'1'}).stdout
 
 
+DOCTOR_SOURCE = 'jiuwenswarm/research_rsi/capsule_doctor.py'
+
+
+def pinned_doctor(cfg):
+    """Load the configuration's own pinned diagnostics module stand-alone.
+
+    It is stdlib-only, so nothing from the package is imported before the
+    package closure itself has been proven complete.
+    """
+    pins = cfg.get('source_pins')
+    need(isinstance(pins, dict) and DOCTOR_SOURCE in pins, 'PINNED_SOURCE_CLOSURE_REQUIRED: ' + DOCTOR_SOURCE)
+    path = protected(Path(cfg['source_root']) / DOCTOR_SOURCE)
+    raw = path.read_bytes()
+    need(sha(raw) == pins[DOCTOR_SOURCE], 'SOURCE_PIN_DIFFERS: ' + DOCTOR_SOURCE)
+    spec = importlib.util.spec_from_loader('capsule_pinned_doctor', loader=None)
+    module = importlib.util.module_from_spec(spec)
+    module.__file__ = str(path)
+    exec(compile(raw, str(path), 'exec'), module.__dict__)
+    return module
+
+
+def package_preflight(value, cfg):
+    """Derived source closure and worker traversal, before any claim.
+
+    Every module the controller/evaluator can import (static walk of
+    ``jiuwenswarm.research_rsi``, ``jiuwenswarm.research``, the runner and the
+    frozen composition) and every package-relative resource they read must be
+    in the pinned package; the unprivileged worker must be able to reach the
+    evidence root's ancestry and list the whole frozen runtime. Failures name
+    the exact missing path or first blocking component.
+    """
+    doctor = pinned_doctor(cfg)
+    closure = doctor.require_source_closure(cfg['source_root'], cfg['source_pins'],
+        entry_files=[value['runner']['path'], cfg['composition_path']])
+    evaluator = cfg['evaluator']
+    root = Path(evaluator['root'])
+    # The evaluator corrects Root-owned directories inside its evidence root;
+    # everything above it must already be searchable by the worker identity.
+    traversal = doctor.require_worker_traversal([root.parent], trees=[evaluator['runtime_root']])
+    for name in ('', 'assets', 'work'):
+        path = root / name if name else root
+        if path.exists():
+            meta = path.lstat()
+            need(stat.S_ISDIR(meta.st_mode) and meta.st_uid == 0 and not meta.st_mode & 0o022,
+                 'WORKER_TRAVERSAL_UNCORRECTABLE: ' + str(path))
+    return {'source_closure': {key: closure[key] for key in ('complete', 'module_count', 'resource_count', 'modules_sha256')},
+            'worker_traversal': traversal['mode'], 'dispatcher': evaluator.get('dispatcher', 'v18-bwrap')}
+
+
 def preflight(value, cfg):
     grant = cfg['session']['grant']
     need(type(grant['expires_unix_s']) is int and grant['expires_unix_s'] > time.time(), 'CAPSULE_GRANT_EXPIRED')
     need(not Path(cfg['claim_path']).exists(), 'CAPSULE_ALREADY_CLAIMED_NO_REPLAY')
+    package = package_preflight(value, cfg)
     need(not docker(value, 'ps','-q').strip(), 'OWNED_RUNTIME_NOT_IDLE')
     for group in (Path(value['cgroup_root']), *Path(value['cgroup_root']).rglob('*')):
         if group.is_dir():
@@ -99,7 +149,7 @@ def preflight(value, cfg):
          and reply['configuration_sha256'] == value['configuration']['sha256'] and reply['model_calls'] == 0,
          'EXACT_WORKER_PREFLIGHT_DIFFERS')
     return {'schema':'ai4r-rsi-capsule-launch-preflight:1','ready':True,'run_id':value['id'],
-            'configuration_sha256':value['configuration']['sha256']}
+            'configuration_sha256':value['configuration']['sha256'], **package}
 
 
 def worker_command(value, cfg):

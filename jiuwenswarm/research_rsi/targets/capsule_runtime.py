@@ -101,6 +101,9 @@ def capture_runtime_manifest(root, *, build_id, dependency_environment, python=N
         'dependency_environment': dependency_environment, 'files': inventory_runtime(root),
         'target_modules': dict(TARGET_MODULES), 'candidate_scope': 'actual_worker_source_only',
         'source_admission': 'UNKNOWN', 'scope': 'public_m1_development_only'}
+    # Derived closure first: every import-time edge/resource of the finite
+    # targets must be staged, reported with the exact missing path.
+    require_runtime_closure(root, value)
     validate_runtime_manifest(value)
     return value
 
@@ -155,6 +158,39 @@ def verify_runtime(root, manifest):
     return manifest
 
 
+def runtime_closure(root, files):
+    """Derive the worker runtime's import/resource closure from its own bytes.
+
+    Entry points are every finite target module and its sibling ``checks``
+    module; their transitive import-time imports and ``__file__``/``files()``
+    resources must be present under ``source/``. No list is hand-maintained.
+    """
+    from ..capsule_doctor import source_closure
+    root = Path(root)
+    sources = {row['path'].removeprefix('source/'): row['sha256'] for row in files if row['path'].startswith('source/')}
+    def read(name):
+        raw = (root / 'source' / name).read_bytes()
+        if _digest(raw) != sources[name]:
+            raise ValueError('Runtime source differs from its frozen inventory: ' + name)
+        return raw
+    entries = sorted({*TARGET_MODULES.values(), *(module.rpartition('.')[0] + '.checks' for module in TARGET_MODULES.values())})
+    # The worker imports the target package and executes one entrypoint, so
+    # import-time edges are required; function-level imports of the shared
+    # research modules are reported as deferred (they belong to authority
+    # owners, not to the pure packet carriers).
+    return source_closure(sources, read, entry_modules=entries, entry_packages=(), eager_only=True)
+
+
+def require_runtime_closure(root, manifest):
+    """Fail before any job with the first exact missing runtime source path."""
+    result = runtime_closure(root, manifest['files'])
+    if not result['complete']:
+        first = result['missing'][0]
+        raise ValueError('Runtime source closure incomplete: missing source/' + first['path']
+                         + ' required by ' + first['required_by'] + f' ({len(result["missing"])} missing)')
+    return result
+
+
 def _child_main(config):
     """Self-contained installed child bootstrap; generated candidate runs only here."""
     import hashlib
@@ -179,11 +215,21 @@ def _child_main(config):
         raw = path.read_bytes()
         need(len(raw) <= maximum and digest(raw) == expected, 'pinned asset differs')
         return raw
-    if os.name == 'posix':
+    # Production configuration carries no profile keys: the protected V18
+    # worker identity and /resources mount layout are mandatory. Only the
+    # explicitly selected local_unprotected profile names its own layout and
+    # is tagged as such by its dispatcher; it never claims confinement.
+    local = config.get('execution_profile') == 'local_unprotected'
+    need(set(config) - {'execution_profile', 'resource_root', 'runtime_root'} == {
+        'bootstrap_schema', 'capsule_name', 'manifest_sha256', 'candidate_sha256', 'input_sha256',
+        'iterations', 'output_limit_bytes'} and (local or set(config).isdisjoint(
+        {'execution_profile', 'resource_root', 'runtime_root'})), 'closed capsule bootstrap configuration required')
+    if os.name == 'posix' and not local:
         need(os.getuid() == 12003 and os.getgid() == 12003, 'unprivileged capsule worker identity required')
     need(sys.flags.isolated == 1 and sys.flags.no_site == 1, 'isolated no-site Python bootstrap required')
-    root = Path('/resources/capsule-runtime')
-    manifest = json.loads(pinned('/resources/capsule-runtime-manifest.json', config['manifest_sha256'], 16 * 1024 * 1024))
+    resources = Path(config['resource_root'] if local else '/resources/')
+    root = Path(config['runtime_root'] if local else '/resources/capsule-runtime')
+    manifest = json.loads(pinned(resources / 'capsule-runtime-manifest.json', config['manifest_sha256'], 16 * 1024 * 1024))
     need(manifest['schema'] == 'ai4r-rsi-capsule-runtime:1', 'unknown runtime schema')
     need(manifest['target_modules'] == {
         'utility.calculate': 'jiuwenswarm.research.capsule_extensions.calculate.worker',
@@ -212,8 +258,8 @@ def _child_main(config):
         raw = path.read_bytes()
         actual[name] = {'path': name, 'sha256': digest(raw), 'size_bytes': len(raw)}
     need(actual == expected, 'complete runtime inventory differs')
-    candidate = pinned('/resources/body.py', config['candidate_sha256'], 256 * 1024)
-    source_input = pinned('/resources/input.json', config['input_sha256'], 1024 * 1024)
+    candidate = pinned(resources / 'body.py', config['candidate_sha256'], 256 * 1024)
+    source_input = pinned(resources / 'input.json', config['input_sha256'], 1024 * 1024)
     need(config['bootstrap_schema'] == 'ai4r-rsi-capsule-bootstrap:2', 'unknown capsule bootstrap')
     packet = json.loads(source_input)
     need(isinstance(packet, dict) and set(packet) == {'packet'}, 'exact capsule packet input required')
@@ -246,10 +292,10 @@ def _child_main(config):
     importlib.import_module(module_name.rpartition('.')[0])
     module = types.ModuleType(module_name)
     module.__package__ = module_name.rpartition('.')[0]
-    module.__file__ = '/resources/body.py'
+    module.__file__ = str(resources / 'body.py')
     module.__spec__ = importlib.util.spec_from_loader(module_name, loader=None)
     sys.modules[module_name] = module
-    exec(compile(candidate, '/resources/body.py', 'exec'), module.__dict__)
+    exec(compile(candidate, str(resources / 'body.py'), 'exec'), module.__dict__)
     require_original()
     raw = None
     for _ in range(config['iterations']):
@@ -275,8 +321,18 @@ def _child_main(config):
     sys.stdout.buffer.write(raw)
 
 
-def capsule_worker_program(name, *, manifest_sha256, candidate_sha256, input_sha256, iterations=1, process_policy=POLICY):
-    """Return fixed child bytes. No source supplied by a proposal executes here."""
+EXECUTION_PROFILES = ('v18-bwrap', 'local_unprotected')
+
+
+def capsule_worker_program(name, *, manifest_sha256, candidate_sha256, input_sha256, iterations=1, process_policy=POLICY,
+                           execution_profile='v18-bwrap', resource_root=None, runtime_root=None):
+    """Return fixed child bytes. No source supplied by a proposal executes here.
+
+    ``execution_profile='v18-bwrap'`` (default) yields the protected program
+    for the /resources mount layout and UID/GID 12003. ``local_unprotected``
+    is selected only by explicit configuration: it names real host paths,
+    carries no identity requirement and must be dispatched without a policy.
+    """
     if name not in TARGET_MODULES:
         raise ValueError('Unknown finite whole-capsule target')
     for pin in (manifest_sha256, candidate_sha256, input_sha256):
@@ -287,11 +343,23 @@ def capsule_worker_program(name, *, manifest_sha256, candidate_sha256, input_sha
     config = {'bootstrap_schema': BOOTSTRAP_SCHEMA, 'capsule_name': name, 'manifest_sha256': manifest_sha256,
         'candidate_sha256': candidate_sha256, 'input_sha256': input_sha256,
         'iterations': iterations, 'output_limit_bytes': MAX_OUTPUT_BYTES}
+    if execution_profile not in EXECUTION_PROFILES:
+        raise ValueError('Explicit known capsule execution profile required')
+    if execution_profile == 'local_unprotected':
+        if process_policy is not None:
+            raise ValueError('The kernel helper policy requires the protected worker identity')
+        for value in (resource_root, runtime_root):
+            if not isinstance(value, str) or not Path(value).is_absolute():
+                raise ValueError('Absolute local resource/runtime roots required')
+        config.update(execution_profile=execution_profile, resource_root=resource_root, runtime_root=runtime_root)
+    elif resource_root is not None or runtime_root is not None:
+        raise ValueError('Protected programs use the fixed /resources layout')
     from ..process_policy import apply_policy
     return apply_policy((inspect.getsource(_child_main) + '\n_child_main(' + repr(config) + ')\n').encode(), process_policy)
 
 
-def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, iterations=1):
+def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, iterations=1,
+                       execution_profile='v18-bwrap', resource_root=None):
     """Broker adapter: verify immutable facts and return finite read-only assets.
 
     The caller must bind these to a separately authorized unprivileged
@@ -306,8 +374,12 @@ def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, itera
         raise ValueError('Capsule input exceeds fixed bound')
     verify_runtime(runtime_root, manifest)
     manifest_raw = encoded(manifest)
+    local = execution_profile == 'local_unprotected'
     program = capsule_worker_program(name, manifest_sha256=_digest(manifest_raw),
-        candidate_sha256=_digest(candidate), input_sha256=_digest(raw), iterations=iterations)
+        candidate_sha256=_digest(candidate), input_sha256=_digest(raw), iterations=iterations,
+        **({'process_policy': None, 'execution_profile': execution_profile, 'resource_root': str(resource_root),
+            'runtime_root': str(Path(runtime_root).resolve(strict=True))} if local else
+           {'execution_profile': execution_profile}))
     mutable_path = TARGET_MODULES[name].removeprefix('jiuwenswarm.').replace('.', '/') + '.py'
     original_path = 'source/jiuwenswarm/' + mutable_path
     return {'bootstrap_schema': BOOTSTRAP_SCHEMA, 'runtime_root': str(Path(runtime_root).resolve(strict=True)),
@@ -319,9 +391,10 @@ def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, itera
         'candidate_sha256': _digest(candidate), 'batch_iterations': iterations,
         'files': {'worker.py': program, 'body.py': candidate, 'input.json': raw,
                   'capsule-runtime-manifest.json': manifest_raw},
-        'argv': ('/usr/local/bin/python3', '-I', '-S', '/resources/worker.py'),
-        'output_limit_bytes': MAX_OUTPUT_BYTES, 'required_worker_uid': 12003,
-        'scope': 'public_m1_development_only', 'production_admission': 'UNKNOWN'}
+        'argv': (('-I', '-S', '-B', str(Path(resource_root) / 'worker.py')) if local
+                 else ('/usr/local/bin/python3', '-I', '-S', '/resources/worker.py')),
+        'output_limit_bytes': MAX_OUTPUT_BYTES, 'required_worker_uid': None if local else 12003,
+        'scope': 'local_unprotected' if local else 'public_m1_development_only', 'production_admission': 'UNKNOWN'}
 
 
 def check_capsule_output(name, *, inputs, output, expected_checks_sha256=None):

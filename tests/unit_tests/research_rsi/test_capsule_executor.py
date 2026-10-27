@@ -2,7 +2,9 @@
 import asyncio
 import copy
 import json
+import os
 from pathlib import Path
+import stat
 import time
 from types import SimpleNamespace
 
@@ -107,6 +109,11 @@ def test_dispatcher_builds_historical_jobs_checks_packets_and_refuses_replay(ins
     monkeypatch.setattr(dispatcher, '_require_root', lambda: None)
     monkeypatch.setattr(dispatcher, '_root_custody', lambda path, **kw: Path(path))
     monkeypatch.setattr(dispatcher.os, 'chown', lambda *a: None, raising=False)
+    # Worker-identity traversal is proven separately on real directories
+    # (test_capsule_dispatch_e2e); pytest's private temp root is not part of it.
+    traversed = []
+    monkeypatch.setattr(dispatcher, 'ensure_worker_traversal', lambda root, path, **kw: traversed.append(path) or [])
+    monkeypatch.setattr(dispatcher, 'require_worker_traversal', lambda paths, **kw: {'mode': 'test-double', 'blocking': None})
     value = dispatcher.WholeCapsuleDispatcher(root=root, runtime_root=runtime, manifest=manifest,
         grant_path=grant_path, grant_sha256=dispatcher.digest(grant_path.read_bytes()), cgroup_root=cgroups, captures=captures)
     assert value.plan()['maximum_executions'] == count * 2
@@ -130,9 +137,133 @@ def test_dispatcher_builds_historical_jobs_checks_packets_and_refuses_replay(ins
     assert baseline['passed_count'] == candidate['passed_count'] == count
     assert baseline['protected_wall_s'] == candidate['protected_wall_s'] == count * .25
     assert len(jobs) == count * 2 and len({job.job_id for job in jobs}) == count * 2
+    # Every job's private work directory and its asset files were brought into
+    # worker traversal custody before dispatch (general, path-derived).
+    assert {job.cwd for job in jobs} <= set(traversed)
+    assert all(root / 'assets' / job.job_id / 'worker.py' in traversed for job in jobs)
+    upgraded = dispatcher.visible_result_v2(baseline)
+    assert upgraded['schema'].endswith(':2') and upgraded['case_count'] == count and upgraded['failure'] is None
+    assert all(row['fixture_set'] == 'public' for row in upgraded['rows']) and baseline['schema'].endswith(':1')
     with pytest.raises(ValueError): asyncio.run(value.evaluate('parent', body=value.parent, candidate_ref=value.parent_ref))
     # A fresh owner cannot replay claims retained from the prior owner.
     restarted = dispatcher.WholeCapsuleDispatcher(root=root, runtime_root=runtime, manifest=manifest,
         grant_path=grant_path, grant_sha256=dispatcher.digest(grant_path.read_bytes()), cgroup_root=cgroups, captures=captures)
     with pytest.raises(FileExistsError): asyncio.run(restarted.evaluate('parent', body=restarted.parent, candidate_ref=restarted.parent_ref))
     captures.close()
+
+
+# --- Bounded coalesced-frame reader on the kernel's child pipes ---------------
+
+class ChunkReader:
+    """Arbitrary read boundaries, as a real pipe delivers them."""
+    def __init__(self, data, sizes):
+        self.data, self.sizes = bytes(data), list(sizes)
+    async def read(self, size=65536):
+        if not self.data:
+            return b''
+        step = min(size, self.sizes.pop(0) if self.sizes else size)
+        chunk, self.data = self.data[:step], self.data[step:]
+        return chunk
+    async def readline(self):
+        raise AssertionError('StreamReader.readline (64 KiB limit) must not be used')
+
+
+def drain_like_kernel(pipe):
+    async def run():
+        first = await pipe.readline()
+        rest = []
+        while chunk := await pipe.read(65536):
+            rest.append(chunk)
+        return first, b''.join(rest)
+    return asyncio.run(run())
+
+
+@pytest.mark.parametrize('sizes', [[1] * 64 + [7, 3, 65536], [65536], [5, 4096, 13, 9]])
+def test_probe_frame_coalesced_with_output_and_split_across_reads(sizes):
+    probe = dispatcher.BoundedCapture.PREFIX + b'{"probe":1}\n'
+    body = b'{"frame":2}\n{"frame":3}\n' + b'z' * 70000  # >64 KiB without newline
+    fence = dispatcher.BoundedCapture(lambda: None, 1024 * 1024)
+    first, rest = drain_like_kernel(fence.pipe(ChunkReader(probe + body, sizes), probe=True))
+    assert first == probe and rest == body
+    assert fence.used == len(body) and not fence.overflow  # probe never counted
+
+
+def test_long_first_line_and_partial_eof_are_plain_output_counted_once():
+    fence = dispatcher.BoundedCapture(lambda: None, 1024 * 1024)
+    data = b'q' * 200000  # no newline at all, then EOF
+    first, rest = drain_like_kernel(fence.pipe(ChunkReader(data, [3000] * 100), probe=True))
+    assert first + rest == data and fence.used == len(data)
+    fence = dispatcher.BoundedCapture(lambda: None, 1024)
+    first, rest = drain_like_kernel(fence.pipe(ChunkReader(b'partial-no-newline', [4, 4]), probe=True))
+    assert first + rest == b'partial-no-newline'
+    empty = dispatcher.BoundedCapture(lambda: None, 1024)
+    assert drain_like_kernel(empty.pipe(ChunkReader(b'', []), probe=True)) == (b'', b'')
+    # A forged oversize "probe" is ordinary output, never a bypass.
+    forged = dispatcher.BoundedCapture.PREFIX + b'x' * 5000 + b'\n'
+    fence = dispatcher.BoundedCapture(lambda: None, 1024 * 1024)
+    first, rest = drain_like_kernel(fence.pipe(ChunkReader(forged, [65536]), probe=True))
+    assert first + rest == forged and fence.used == len(forged)
+
+
+def test_oversize_output_kills_once_and_bounds_every_frame():
+    kills = []
+    fence = dispatcher.BoundedCapture(lambda: kills.append(1), 10000)
+    data = b''.join(b'%06d\n' % i for i in range(5000))
+    first, rest = drain_like_kernel(fence.pipe(ChunkReader(data, [777] * 100), probe=True))
+    assert len(first + rest) == 10000 == fence.used and fence.overflow and kills == [1]
+    assert (first + rest) == data[:10000]
+
+
+def test_real_linux_pipe_many_frames_through_bounded_reader():
+    import os, subprocess, sys
+    code = ("import sys,os;w=sys.stdout.buffer;w.write(b'AI4R_EXECUTOR_PROBE_V1 {}\\n'+b''.join(b'{\"f\":%d}\\n'%i for i in range(5000))+b'y'*100000);w.flush()")
+    async def run():
+        process = await asyncio.create_subprocess_exec(sys.executable, '-c', code, stdout=asyncio.subprocess.PIPE)
+        fence = dispatcher.BoundedCapture(lambda: process.kill(), 2 * 1024 * 1024)
+        pipe = fence.pipe(process.stdout, probe=True)
+        first = await pipe.readline(); parts = []
+        while chunk := await pipe.read(65536):
+            parts.append(chunk)
+        await process.wait()
+        return first, b''.join(parts), fence
+    first, rest, fence = asyncio.run(run())
+    assert first == b'AI4R_EXECUTOR_PROBE_V1 {}\n'
+    assert rest.count(b'\n') == 5000 and rest.endswith(b'y' * 100000) and fence.used == len(rest)
+
+
+# --- Evaluator traversal correction for any configured layout ----------------
+
+@pytest.mark.skipif(not hasattr(os, 'geteuid') or os.geteuid() != 0,
+                    reason='traversal correction is a Root evaluator duty (chmod/chown of Root-owned dirs)')
+def test_precreated_private_parents_are_corrected_inside_evidence_root_only():
+    import shutil, tempfile
+    base = Path(tempfile.mkdtemp(prefix='evaluator-layout-'))
+    try:
+        base.chmod(0o711)
+        evidence = base / 'any/configured/evidence'; evidence.mkdir(parents=True)
+        for path in (base / 'any', base / 'any/configured'):
+            path.chmod(0o711)
+        evidence.chmod(0o700)
+        job = evidence / 'deep/work/job'; job.mkdir(parents=True)
+        for path in (evidence / 'deep', evidence / 'deep/work'):
+            path.chmod(0o700)
+        os.chown(job, 12003, 12003); job.chmod(0o700)
+        assert dispatcher.worker_traversal([job])['blocking']['path'] == str(evidence)
+        changed = dispatcher.ensure_worker_traversal(evidence, job)
+        assert changed == [str(evidence), str(evidence / 'deep'), str(evidence / 'deep/work')]
+        assert all(stat.S_IMODE(Path(p).stat().st_mode) == 0o711 for p in changed)
+        assert stat.S_IMODE(job.stat().st_mode) == 0o700  # worker-owned job dir untouched
+        assert dispatcher.worker_traversal([job]) == {'mode': 'simulated', 'uid': 12003, 'gid': 12003, 'blocking': None}
+        asset = evidence / 'deep/assets/job/worker.py'; asset.parent.mkdir(parents=True); asset.write_text('x')
+        asset.chmod(0o600)
+        with pytest.raises(ValueError, match='WORKER_READABLE_JOB_FILE_REQUIRED'):
+            dispatcher.ensure_worker_traversal(evidence, asset)
+        asset.chmod(0o444); asset.parent.chmod(0o700)
+        assert dispatcher.ensure_worker_traversal(evidence, asset) == [str(asset.parent)]
+        # Ancestors above the evidence root are never changed, only reported.
+        (base / 'any/configured').chmod(0o700)
+        with pytest.raises(ValueError, match='BLOCKED_ABOVE_EVIDENCE_ROOT: ' + str(base / 'any/configured')):
+            dispatcher.ensure_worker_traversal(evidence, job)
+        assert stat.S_IMODE((base / 'any/configured').stat().st_mode) == 0o700
+    finally:
+        shutil.rmtree(base)

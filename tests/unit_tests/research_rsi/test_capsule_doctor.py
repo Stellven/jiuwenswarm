@@ -135,3 +135,135 @@ def test_capsule_frames_retain_coalesced_records_and_bound_each_frame(monkeypatc
         outgoing.write(b'{"too_long":true}\n');outgoing.flush()
         with pytest.raises(ValueError,match='PIPE_FRAME_TOO_LARGE'):
             runner.read_frame_deadline(incoming,time.monotonic()+1)
+
+
+# --- Derived source closure (no hand-maintained file lists) -----------------
+
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def package_files(root=ROOT):
+    return {p.relative_to(root).as_posix() for p in (root / 'jiuwenswarm').rglob('*')
+            if p.is_file() and '__pycache__' not in p.parts and 'node_modules' not in p.parts}
+
+
+def mini(tmp_path, files):
+    for name, text in files.items():
+        path = tmp_path / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_text(text)
+    pins = {name: hashlib.sha256((tmp_path / name).read_bytes()).hexdigest() for name in files}
+    return pins
+
+
+def test_complete_actual_package_closure_and_r1_overlay_missing_native_source():
+    from jiuwenswarm.research_rsi.capsule_doctor import source_closure
+    files = package_files()
+    entries = {'entry:rsi_capsule_run.py': (ROOT / 'deploy/m1/rsi_capsule_run.py').read_bytes(),
+               'entry:rsi_development_run.py': (ROOT / 'deploy/m1/rsi_development_run.py').read_bytes()}
+    read = lambda name: (ROOT / name).read_bytes()
+    complete = source_closure(files, read, entry_files=entries)
+    assert complete['complete'] and complete['missing'] == [] and complete['module_count'] > 100
+    # R1: the overlay lacked the source-relative native qualification helper.
+    partial = source_closure(files - {'jiuwenswarm/research/local_model_codex.py'}, read, entry_files=entries)
+    assert not partial['complete']
+    missing = {row['path']: row['required_by'] for row in partial['missing']}
+    assert 'jiuwenswarm/research/local_model_codex.py' in missing
+    # A research_rsi-only overlay is reported with exact paths, not accepted.
+    overlay = {name for name in files if name.startswith('jiuwenswarm/research_rsi/')} | {'jiuwenswarm/__init__.py'}
+    result = source_closure(overlay, read, entry_files=entries, entry_packages=('jiuwenswarm.research_rsi',))
+    assert not result['complete'] and any(row['path'].startswith('jiuwenswarm/research/') for row in result['missing'])
+
+
+def test_static_walk_covers_imports_and_source_relative_resources(tmp_path):
+    from jiuwenswarm.research_rsi.capsule_doctor import require_source_closure, source_closure
+    files = {
+        'jiuwenswarm/__init__.py': '',
+        'jiuwenswarm/research/__init__.py': 'from . import a\n',
+        'jiuwenswarm/research/a.py': ('from pathlib import Path\nfrom importlib.resources import files\n'
+            'import importlib\nfrom .sub import b\nfrom ..data import table\n'
+            'try:\n    import jiuwenswarm.optional_missing\nexcept ImportError:\n    pass\n'
+            'def lazy():\n    from jiuwenswarm.research.deferred import thing\n'
+            '    from jiuwenswarm.research import ghost_name\n'
+            "    root = Path(__file__).parents[1]\n    return (root / 'assets/catalog.json').read_bytes()\n"
+            "HELPER = Path(__file__).with_name('helper.py').read_text()\n"
+            "SCHEMA = files('jiuwenswarm.contracts').joinpath('schemas', 'x.json').read_text()\n"
+            "MOD = importlib.import_module('jiuwenswarm.research.dynamic')\n"
+            "def probe():\n    p = Path(__file__).parent / 'maybe'\n    return p.exists() and p.read_text()\n"),
+        'jiuwenswarm/research/sub/__init__.py': '', 'jiuwenswarm/research/sub/b.py': '',
+        'jiuwenswarm/data/__init__.py': '', 'jiuwenswarm/data/table.py': '',
+        'jiuwenswarm/research/deferred.py': 'thing = 1\n', 'jiuwenswarm/research/helper.py': '',
+        'jiuwenswarm/research/dynamic.py': '', 'jiuwenswarm/assets/catalog.json': '{}',
+        'jiuwenswarm/contracts/__init__.py': '', 'jiuwenswarm/contracts/schemas/x.json': '{}'}
+    pins = mini(tmp_path, files)
+    read = lambda name: (tmp_path / name).read_bytes()
+    full = source_closure(pins, read, entry_packages=('jiuwenswarm.research',))
+    assert full['complete'], full['missing']
+    assert {row['path'] for row in full['optional_missing']} == {'jiuwenswarm/research/maybe', 'jiuwenswarm/optional_missing.py'}
+    # A lazy name the package does not bind is reported, not silently passed.
+    assert [row['path'] for row in full['unresolved_lazy_names']] == ['jiuwenswarm/research/ghost_name.py']
+    for removed in ('jiuwenswarm/research/helper.py', 'jiuwenswarm/assets/catalog.json',
+                    'jiuwenswarm/contracts/schemas/x.json', 'jiuwenswarm/research/dynamic.py',
+                    'jiuwenswarm/data/table.py', 'jiuwenswarm/research/sub/b.py', 'jiuwenswarm/research/deferred.py'):
+        result = source_closure(set(pins) - {removed}, read, entry_packages=('jiuwenswarm.research',))
+        assert [row['path'] for row in result['missing']] == [removed], (removed, result['missing'])
+    with pytest.raises(ValueError, match='SOURCE_CLOSURE_INCOMPLETE: missing jiuwenswarm/research/helper.py required by jiuwenswarm/research/a.py:'):
+        require_source_closure(tmp_path, {k: v for k, v in pins.items() if k != 'jiuwenswarm/research/helper.py'},
+                               entry_packages=('jiuwenswarm.research',))
+    # Import-time mode (sandbox runtime): function-level edges are deferred.
+    eager = source_closure(set(pins) - {'jiuwenswarm/research/deferred.py', 'jiuwenswarm/assets/catalog.json'},
+                           read, entry_packages=('jiuwenswarm.research',), eager_only=True)
+    assert eager['complete'] and {row['path'] for row in eager['deferred_missing']} == {
+        'jiuwenswarm/research/deferred.py', 'jiuwenswarm/assets/catalog.json',
+        'jiuwenswarm/research/ghost_name.py', 'jiuwenswarm/research/maybe'}
+    changed = dict(pins, **{'jiuwenswarm/research/a.py': '0' * 64})
+    with pytest.raises(ValueError, match='SOURCE_PIN_DIFFERS'):
+        require_source_closure(tmp_path, changed, entry_packages=('jiuwenswarm.research',))
+
+
+# --- Worker-identity traversal -----------------------------------------------
+
+def test_static_traversal_reports_first_blocking_component():
+    import shutil, tempfile
+    from jiuwenswarm.research_rsi.capsule_doctor import static_traversal, static_tree_readable
+    base = Path(tempfile.mkdtemp(prefix='static-traversal-'))
+    try:
+        (base / 'evidence/work/job').mkdir(parents=True)
+        for path in (base, base / 'evidence', base / 'evidence/work/job'):
+            path.chmod(0o711)
+        (base / 'evidence/work').chmod(0o700)
+        assert static_traversal([base / 'evidence/work/job'], uid=54321, gid=54321) == {
+            'path': str(base / 'evidence/work'), 'target': str(base / 'evidence/work/job'), 'reason': 'not_searchable',
+            'mode': '0o700', 'uid': (base / 'evidence/work').stat().st_uid, 'gid': (base / 'evidence/work').stat().st_gid}
+        (base / 'evidence/work').chmod(0o711)
+        assert static_traversal([base / 'evidence/work/job'], uid=54321, gid=54321) is None
+        assert static_traversal([base / 'evidence/absent'], uid=54321, gid=54321)['reason'] == 'missing'
+        tree = base / 'tree'; (tree / 'hidden').mkdir(parents=True); (tree / 'hidden/f.py').write_text('x')
+        tree.chmod(0o755); (tree / 'hidden').chmod(0o711)
+        assert static_tree_readable(tree, uid=54321, gid=54321) == {
+            'path': str(tree / 'hidden'), 'target': str(tree), 'reason': 'not_listable'}
+    finally:
+        shutil.rmtree(base)
+
+
+@pytest.mark.skipif(not hasattr(__import__('os'), 'geteuid') or __import__('os').geteuid() != 0,
+                    reason='simulated traversal needs root to switch to the UID/GID 12003 worker identity')
+def test_simulated_worker_traversal_and_tree_listing_as_uid_12003():
+    import os, shutil, tempfile
+    from jiuwenswarm.research_rsi.capsule_doctor import worker_traversal
+    base = Path(tempfile.mkdtemp(prefix='traversal-'))
+    try:
+        base.chmod(0o711)
+        work = base / 'evidence/work'; work.mkdir(parents=True, mode=0o700)
+        (base / 'evidence').chmod(0o711)
+        report = worker_traversal([work])
+        assert report['mode'] == 'simulated' and report['blocking'] == {
+            'path': str(work), 'target': str(work), 'reason': 'not_searchable'}
+        work.chmod(0o711)
+        assert worker_traversal([work])['blocking'] is None
+        runtime = base / 'runtime'; (runtime / 'source').mkdir(parents=True)
+        (runtime / 'source/m.py').write_text('x'); runtime.chmod(0o755); (runtime / 'source').chmod(0o711)
+        assert worker_traversal([], trees=[runtime])['blocking'] == {
+            'path': str(runtime / 'source'), 'target': str(runtime), 'reason': 'not_listable'}
+        (runtime / 'source').chmod(0o755); (runtime / 'source/m.py').chmod(0o600)
+        assert worker_traversal([], trees=[runtime])['blocking']['reason'] == 'not_readable'
+    finally:
+        shutil.rmtree(base)

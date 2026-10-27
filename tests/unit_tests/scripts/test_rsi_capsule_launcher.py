@@ -54,3 +54,45 @@ def test_launcher_accepts_reviewed_original_and_compatibility_config_schemas_onl
             launcher.load(path,launcher.sha(path.read_bytes()))
     else:
         assert launcher.load(path,launcher.sha(path.read_bytes()))[1]==cfg
+
+
+def package_pins(root):
+    import hashlib
+    return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (root / 'jiuwenswarm').rglob('*')
+            if p.is_file() and '__pycache__' not in p.parts and 'node_modules' not in p.parts}
+
+
+def test_package_preflight_derives_closure_and_worker_traversal_before_any_claim(tmp_path, monkeypatch):
+    import os, shutil, tempfile
+    root = Path(__file__).parents[3]
+    monkeypatch.setattr(launcher, 'protected', lambda path, **kw: Path(path))
+    base = Path(tempfile.mkdtemp(prefix='launcher-preflight-'))
+    try:
+        base.chmod(0o711)
+        evaluator = base / 'slot/evaluator'; evaluator.mkdir(parents=True); (base / 'slot').chmod(0o711)
+        evaluator.chmod(0o700)  # Root-owned evidence root: correctable by the evaluator.
+        runtime = base / 'runtime'; (runtime / 'source').mkdir(parents=True)
+        (runtime / 'source/m.py').write_text('x'); runtime.chmod(0o755); (runtime / 'source').chmod(0o755)
+        cfg = {'source_root': str(root), 'source_pins': package_pins(root),
+               'composition_path': str(root / 'deploy/m1/rsi_development_run.py'),
+               'evaluator': {'root': str(evaluator), 'runtime_root': str(runtime)}}
+        value = {'runner': {'path': str(root / 'deploy/m1/rsi_capsule_run.py')}}
+        ready = launcher.package_preflight(value, cfg)
+        assert ready['source_closure']['complete'] and ready['source_closure']['module_count'] > 100
+        assert ready['dispatcher'] == 'v18-bwrap'
+        assert ready['worker_traversal'] == ('simulated' if os.geteuid() == 0 else 'static')
+        # R1 shape: an incomplete package names the exact missing source.
+        broken = dict(cfg, source_pins={k: v for k, v in cfg['source_pins'].items()
+                                        if k != 'jiuwenswarm/research/local_model_codex.py'})
+        with pytest.raises(ValueError, match='SOURCE_CLOSURE_INCOMPLETE: missing jiuwenswarm/research/local_model_codex.py'):
+            launcher.package_preflight(value, broken)
+        # R2 shape: an untraversable ancestor of the evidence root is reported.
+        (base / 'slot').chmod(0o700)
+        with pytest.raises(ValueError, match='WORKER_TRAVERSAL_BLOCKED: .*' + str(base / 'slot')):
+            launcher.package_preflight(value, cfg)
+        (base / 'slot').chmod(0o711); (runtime / 'source').chmod(0o711)
+        with pytest.raises(ValueError, match='not_listable'):
+            launcher.package_preflight(value, cfg)
+    finally:
+        shutil.rmtree(base)

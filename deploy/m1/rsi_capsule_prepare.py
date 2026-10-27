@@ -17,6 +17,73 @@ from deploy.m1.rsi_development_run import (encoded, need, protected, exclusive,
     prepare_work_contexts)
 
 
+LOOP_DEFAULTS = {'max_iterations': 5, 'max_no_progress': 3, 'trials': 3}
+
+
+def iteration_run_id(run_id, role, iteration):
+    """Run-context id of one loop iteration's governed work (iteration 1 is
+    the historical ``rsi-development:<id>:<role>``)."""
+    return 'rsi-development:' + run_id + ':' + role + ('' if iteration == 1 else ':' + str(iteration))
+
+
+def loop_settings(loop):
+    """Closed preparation view of ``session['loop']`` with documented defaults."""
+    need(isinstance(loop, dict) and 'model_backend' in loop, 'EXPLICIT_MODEL_BACKEND_REQUIRED')
+    settings = {**LOOP_DEFAULTS, **{key: item for key, item in loop.items() if key != 'contracts'}}
+    for key in LOOP_DEFAULTS:
+        need(type(settings[key]) is int and 1 <= settings[key] <= 100, 'FINITE_LOOP_' + key.upper() + '_REQUIRED')
+    return settings
+
+
+def prepare_iteration_work_contexts(*, core, library, runner, operator, exact, intake_ref, run_ids,
+                                    work_capsule_refs, account_id):
+    """The ordinary ContractFactory work-context preparation, for explicit ids.
+
+    Same Intent/verifier admission checks, ports, limits and authority ceiling
+    as the frozen ``prepare_work_contexts`` (whose ids are fixed to
+    ``rsi-development:<action>:<role>``); only the run-context ids differ, so
+    loop iterations k >= 2 get ``rsi-development:<id>:<role>:<k>``.
+    """
+    from jiuwenswarm.research.binding import ContractFactory
+    from jiuwenswarm.research.compiler import input_port
+    entries = {}
+    for stage in ('intent', 'verifier'):
+        declaration = core.read_record(work_capsule_refs[stage], contract_id='capsule-declaration')
+        entry = library.get(declaration['identity']['name'], declaration['identity']['version_label'])
+        need(entry['standing'] == 'active' and entry['declaration_ref'] == work_capsule_refs[stage], 'EXACT_INSTALLED_CAPSULE_REQUIRED')
+        admission = core.read_record(entry['admission_ref'], contract_id='library-admission')
+        need(admission['status'] == 'admitted', 'REAL_ADMISSION_REQUIRED')
+        entries[stage] = dict(entry, pin=admission['cc'])
+    intent, verifier = entries['intent'], entries['verifier']
+    factory = ContractFactory(core, library, verifier_pin=verifier['pin'],
+                              finalization_profile_ref=exact['protected_options']['finalization_profile_ref'])
+    declaration = core.read_record(intent['declaration_ref'], contract_id='capsule-declaration')
+    intake = core.read_record(intake_ref, contract_id='qualified-intake')
+    ports = [input_port('request', 'qualified-intake:field-contract:2', intake_ref)]
+    outputs = [{'name': row['name'], 'contract_id': row['schema_ref'],
+                'version': ContractFactory._version(row['schema_ref']), 'required': row['required']}
+               for row in declaration['ports']['outputs']]
+    contracts, contexts = {}, {}
+    for role in ('diagnosis', 'proposal'):
+        run_id = run_ids[role]
+        core.create_run(run_id, account_id=account_id, workspace_id=exact['workspace_id'], submission={'intake_ref': intake_ref})
+        parent_ref = factory.prepare_parent(run_id, role,
+            [{'subnode_id': role, 'cc': intent['pin'], 'depends_on': []}], inputs=ports, outputs=outputs,
+            objective='Unqualified development ' + role, requirement_ids=['rsi_'+role],
+            limits={'time_s': 240, 'model_calls': 2, 'memory_mb': 256},
+            policy_ref=operator.snapshot()['cc']['plan_policy_ref'], configuration_ref=exact['configuration_ref'],
+            template_ref=exact['protected_options']['compiler_template_ref'], authority_ceiling={
+                'network': 'none', 'network_allowlist': [], 'tools': [], 'write_roots': [],
+                'resource_reads': [intake_ref, intake['request_ref'], *intake['source_refs']]})
+        contract, _, _ = factory.bind_subnode(parent_ref, role, ports, role='work')
+        contexts[run_id] = {**{k: exact[k] for k in ('configuration_ref', 'model_selection_profile_ref', 'deployment_ref')},
+                            'router': operator.snapshot()['cc']['router'],
+                            'run_limits': {'time_s': 240, 'model_calls': 2, 'memory_mb': 256}}
+        runner.configure_run(run_id, **contexts[run_id])
+        contracts[role+'_contract_ref'] = contract
+    return dict(contracts, run_contexts=contexts)
+
+
 async def prepare_session(*, core, library, runner, operator, records, lease_records,
                           value, parent_body, parent_declaration, visible_context):
     from jiuwenswarm.research.contracts import Principal
@@ -25,9 +92,17 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
     from jiuwenswarm.research_rsi.capsule_session import SCHEMA, validate_session, MAX_BODY_BYTES
     from jiuwenswarm.research_rsi.targets.capsule_executor import validate_grant
     from jiuwenswarm.research_rsi.targets.capsules import registered_capsule, public_fixtures
+    from jiuwenswarm.research_rsi.targets.capsule_executor import LOOP_GRANT_SCHEMA, grant_fixtures, loop_execution_budget
     grant = value['grant']
     validate_grant(grant, value['runtime_manifest'])
     target = registered_capsule(grant['capsule_name'])
+    loop = loop_settings(value['loop']) if value.get('loop') is not None else None
+    if loop is not None:
+        # Budget derived from the loop configuration: parent trials plus
+        # candidate trials for every iteration, over the grant's case list.
+        need(grant['schema'] == LOOP_GRANT_SCHEMA and grant['max_executions'] >= loop_execution_budget(
+            len(grant_fixtures(grant)), max_iterations=loop['max_iterations'], trials=loop['trials']),
+             'LOOP_GRANT_EXECUTION_BUDGET_TOO_SMALL')
     need(grant['roles'] == ['parent', 'candidate'] and len(parent_body) <= MAX_BODY_BYTES
          and hashlib.sha256(parent_body).hexdigest() == grant['parent_sha256'], 'EXACT_MUTATION_GRANT_AND_PARENT_REQUIRED')
     need(parent_declaration['identity']['name'] == grant['capsule_name']
@@ -71,14 +146,24 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
     prepared = prepare_work_contexts(core=core, library=library, runner=runner, operator=operator,
         exact=exact, intake_ref=intake_ref, action_id=grant['run_id'],
         work_capsule_refs=value['work_capsule_refs'], account_id=value['account_id'])
-    for run_id in prepared['run_contexts']:
-        core.reserve_uploads(run_id, [row['id'] for row in uploaded])
-    for key in ('diagnosis_contract_ref', 'proposal_contract_ref'):
-        contract = core.read_record(prepared[key], contract_id='subnode-execution-contract')
-        runner._require_child_authority(prepared[key], contract)
-        runner._require_check_assets(contract)
-        need(contract['bindings'][0]['role'] == 'work' and contract['subnode_limits']['model_calls'] == 1,
-             'GENUINE_SINGLE_CALL_INTENT_WORK_REQUIRED')
+    pairs = [prepared]
+    for iteration in range(2, (loop or {}).get('max_iterations', 1) + 1):
+        # One genuine single-call diagnosis+proposal work pair per iteration.
+        pairs.append(prepare_iteration_work_contexts(core=core, library=library, runner=runner, operator=operator,
+            exact=exact, intake_ref=intake_ref, work_capsule_refs=value['work_capsule_refs'],
+            account_id=value['account_id'], run_ids={role: iteration_run_id(grant['run_id'], role, iteration)
+                                                      for role in ('diagnosis', 'proposal')}))
+    run_contexts = {}
+    for pair in pairs:
+        run_contexts.update(pair['run_contexts'])
+        for run_id in pair['run_contexts']:
+            core.reserve_uploads(run_id, [row['id'] for row in uploaded])
+        for key in ('diagnosis_contract_ref', 'proposal_contract_ref'):
+            contract = core.read_record(pair[key], contract_id='subnode-execution-contract')
+            runner._require_child_authority(pair[key], contract)
+            runner._require_check_assets(contract)
+            need(contract['bindings'][0]['role'] == 'work' and contract['subnode_limits']['model_calls'] == 1,
+                 'GENUINE_SINGLE_CALL_INTENT_WORK_REQUIRED')
     # Scope is the same exact account/profile owner, with a new finite session
     # identity. The global subscription service still enforces actual ownership.
     native_scope_ref = lease_records.put({'schema': 'ai4r-rsi-capsule-native-scope:1',
@@ -88,15 +173,23 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
         'grant_ref': grant_ref, 'intake_ref': intake_ref, 'work_contexts': prepared,
         'public_original_refs': [ref for ref, _ in originals], 'model_calls': 0,
         'security': 'UNQUALIFIED', 'production_mutation': False})
-    session = validate_session({'schema': SCHEMA, 'id': grant['run_id'], 'capsule_name': grant['capsule_name'],
+    session_value = {'schema': SCHEMA, 'id': grant['run_id'], 'capsule_name': grant['capsule_name'],
         'grant': grant, 'grant_ref': grant_ref, 'parent_body_ref': parent_ref,
         'parent_declaration_ref': parent_declaration_ref, 'visible_context_ref': visible_ref,
         'preparation_ref': preparation_ref, 'configuration_ref': exact['configuration_ref'],
         'diagnosis_contract_ref': prepared['diagnosis_contract_ref'],
         'proposal_contract_ref': prepared['proposal_contract_ref'], 'native_scope_ref': native_scope_ref,
-        'authorized_component': target.carrier_path, 'observed_symptom': value['observed_symptom']})
+        'authorized_component': target.carrier_path, 'observed_symptom': value['observed_symptom']}
+    if loop is not None:
+        session_value['loop'] = {**{key: item for key, item in value['loop'].items() if key != 'contracts'},
+            'contracts': [{key: pair[key] for key in ('diagnosis_contract_ref', 'proposal_contract_ref')}
+                          for pair in pairs[1:]]}
+        # The loop owner's own derivation must name exactly the prepared ids.
+        from jiuwenswarm.research_rsi.capsule_loop import loop_run_context_ids
+        need(loop_run_context_ids(session_value) == set(run_contexts), 'LOOP_RUN_CONTEXT_IDS_DIFFER')
+    session = validate_session(session_value)
     return {'schema': 'ai4r-rsi-capsule-prepared:1', 'session': session,
-            'run_contexts': prepared['run_contexts'], 'intake_ref': intake_ref,
+            'run_contexts': run_contexts, 'intake_ref': intake_ref,
             'uploaded_ids': [row['id'] for row in uploaded], 'model_calls': 0}
 
 
@@ -112,7 +205,9 @@ async def prepare_configuration(value):
         'account_root', 'account_id', 'preparation_claim', 'output_path', 'exact_binding_refs',
         'work_capsule_refs', 'grant', 'runtime_manifest', 'parent_body', 'parent_declaration',
         'visible_context', 'request_text', 'observed_symptom'}
-    need(set(value) == fields and value['schema'] == 'ai4r-rsi-capsule-prepare-configuration:1',
+    # ``loop`` (model backend + iteration limits) is optional: without it the
+    # historical single-attempt session is prepared unchanged.
+    need(fields <= set(value) <= fields | {'loop'} and value['schema'] == 'ai4r-rsi-capsule-prepare-configuration:1',
          'CLOSED_ROOT_PREPARATION_CONFIGURATION_REQUIRED')
     exact = value['exact_binding_refs']
     core = SQLiteRunStore(value['core_root'], recover=False, input_root=value['input_root'])

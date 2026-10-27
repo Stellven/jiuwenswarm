@@ -29,6 +29,13 @@ from tests.unit_tests.research_rsi.test_capsule_runtime import installed_runtime
 from tests.unit_tests.research_rsi.test_capsule_executor import grant_for
 
 
+try:
+    import jiuwenswarm.research_rsi.capsule_loop  # noqa: F401  (W2 loop owner)
+    loop_available = True
+except ImportError:
+    loop_available = False
+
+
 def test_prepare_appends_real_work_contexts_and_preserves_prior_records(installed_runtime, tmp_path, monkeypatch):
     # Windows lacks the production Linux O_NOFOLLOW/directory-fsync API.
     # Replace only the claim writer, preserving its exclusive no-replay action.
@@ -115,6 +122,34 @@ def test_prepare_appends_real_work_contexts_and_preserves_prior_records(installe
                 await prepare_session(core=core, library=library, runner=runner, operator=operator,
                     records=records, lease_records=leases, value=value, parent_body=body,
                     parent_declaration=declaration, visible_context=visible)
+            if loop_available:
+                # Iterative loop session: one genuine work pair per iteration and
+                # a grant budget derived from the loop configuration.
+                from tests.unit_tests.research_rsi.test_capsule_dispatch_e2e import loop_grant
+                from jiuwenswarm.research_rsi.capsule_loop import loop_run_context_ids
+                from jiuwenswarm.research_rsi.targets.capsule_executor import loop_execution_budget
+                loop = {'model_backend': {'kind': 'fake'}, 'max_iterations': 3, 'trials': 2}
+                small = loop_grant(manifest, name, budget_pairs=1); small['run_id'] = 'public-calculate-loop'
+                with pytest.raises(ValueError, match='LOOP_GRANT_EXECUTION_BUDGET_TOO_SMALL'):
+                    await prepare_session(core=core, library=library, runner=runner, operator=operator,
+                        records=records, lease_records=leases, value=dict(value, grant=small, loop=loop,
+                        preparation_claim=str(tmp_path / 'small-claim.json')), parent_body=body,
+                        parent_declaration=declaration, visible_context=visible)
+                needed = loop_execution_budget(4, max_iterations=3, trials=2)
+                assert needed == 4 * (3 + 2 * 3)
+                grant3 = dict(small, max_executions=needed, run_id='public-calculate-loop-2')
+                looped = await prepare_session(core=core, library=library, runner=runner, operator=operator,
+                    records=records, lease_records=leases, value=dict(value, grant=grant3, loop=loop,
+                    preparation_claim=str(tmp_path / 'loop-claim.json')), parent_body=body,
+                    parent_declaration=declaration, visible_context=visible)
+                session = looped['session']
+                assert len(session['loop']['contracts']) == 2 and len(looped['run_contexts']) == 6
+                assert set(looped['run_contexts']) == loop_run_context_ids(session)
+                for pair in session['loop']['contracts']:
+                    for ref in pair.values():
+                        contract = core.read_record(ref)
+                        assert contract['bindings'][0]['role'] == 'work' and contract['subnode_limits']['model_calls'] == 1
+                assert not list(core.iter_records(kinds=('model-call-start',)))
         finally:
             records.close(); leases.close(); core.close()
     asyncio.run(exercise())
