@@ -1,0 +1,1 @@
+{"baseline_mean_ms":28,"candidate_mean_ms":13.6,"candidate_p95_ms":20,"accept":true}

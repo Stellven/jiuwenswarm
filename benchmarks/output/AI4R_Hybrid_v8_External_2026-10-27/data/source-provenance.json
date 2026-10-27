@@ -1,0 +1,11 @@
+{
+  "app_image": "sha256:a677ce5f4271c9da3c567dc63679ee02c041e1e438e6a976abf03a0f7d1149c0",
+  "source_manifest_sha256": "7350cf99e28dfdd89aaec7c66c38e3beba07d87fa246f087f7b9ba5b97358a0e",
+  "source_tar_sha256": "9ae6d550736848fe3d1a739e36325e9b91c11db068bf1a79b4167d9c3fd97f89",
+  "base_commit": "a78f9dcf021b8dbbc2bf45b8d67d4a1f355f494c",
+  "source_is_dirty_overlay": true,
+  "scope": "public MR01 component comparison, not product DAG acceptance",
+  "host": "gx10-004d",
+  "pool_generation": 3,
+  "at": 1793137281.7276285
+}

@@ -1,0 +1,74 @@
+{
+  "scope": "One direct observation per public development fixture; separate from the matched campaign, not held-out.",
+  "source_sha256": "efd477427122281565e8197b1b03597ce217d7d9e4b5a4ec5fe7231b463669b3",
+  "models": {
+    "lightning": {
+      "completed": 8,
+      "correct": 8,
+      "wrong": [],
+      "tokens": 10678,
+      "seconds": 129.89887890173122
+    },
+    "gptoss": {
+      "completed": 8,
+      "correct": 8,
+      "wrong": [],
+      "tokens": 4606,
+      "seconds": 51.108675262890756
+    },
+    "gptoss20": {
+      "observations": 8,
+      "correct": 8,
+      "rows": [
+        {
+          "variant": "c01-inference",
+          "correct": true,
+          "tokens": 724,
+          "seconds": 7.458101927069947
+        },
+        {
+          "variant": "c02-retrieval",
+          "correct": true,
+          "tokens": 427,
+          "seconds": 2.7750561852008104
+        },
+        {
+          "variant": "c03-shortest-path",
+          "correct": true,
+          "tokens": 524,
+          "seconds": 4.161822723923251
+        },
+        {
+          "variant": "c04-performance",
+          "correct": true,
+          "tokens": 522,
+          "seconds": 4.011033600894734
+        },
+        {
+          "variant": "c05-database",
+          "correct": true,
+          "tokens": 466,
+          "seconds": 2.971073541091755
+        },
+        {
+          "variant": "c06-quorum",
+          "correct": true,
+          "tokens": 938,
+          "seconds": 9.185324257006869
+        },
+        {
+          "variant": "c07-reliability",
+          "correct": true,
+          "tokens": 654,
+          "seconds": 4.645390373189002
+        },
+        {
+          "variant": "c08-paired-data",
+          "correct": true,
+          "tokens": 450,
+          "seconds": 3.2014185150619596
+        }
+      ]
+    }
+  }
+}

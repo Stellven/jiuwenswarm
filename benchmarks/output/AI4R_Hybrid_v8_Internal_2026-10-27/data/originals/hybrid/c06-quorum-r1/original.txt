@@ -1,0 +1,1 @@
+{"guaranteed_intersection":false,"disjoint_example":{"read":["a","b"],"write":["c","d","e"]}}

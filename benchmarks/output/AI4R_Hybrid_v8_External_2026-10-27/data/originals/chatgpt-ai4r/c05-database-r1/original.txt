@@ -1,0 +1,1 @@
+{"retained_ids":["a","b","c"],"sum":18}

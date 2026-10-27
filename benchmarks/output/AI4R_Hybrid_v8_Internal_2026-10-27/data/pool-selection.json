@@ -1,0 +1,51 @@
+{
+  "schema": "ai4r-spark-pool-selection:3",
+  "models": [
+    {
+      "id": "gptoss20",
+      "repository": "ggml-org/gpt-oss-20b-GGUF",
+      "revision": "15dcfc7e7c608c6161507211ed43c5b590801b4b",
+      "file": "gpt-oss-20b-MXFP4.gguf",
+      "bytes": 12109566624,
+      "sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+      "context_tokens": 16384,
+      "memory_limit": "20g",
+      "port": 8012,
+      "role": "Compact local reasoning, assessor and independent verifier"
+    },
+    {
+      "id": "lightning",
+      "repository": "ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
+      "revision": "8cd082170ed313484be1cf44f256a5caa2cfdad3",
+      "file": "NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Q4_0.gguf",
+      "bytes": 18898091584,
+      "sha256": "61f87e75974e4b535dcdf9aad056541a9514f1dfa4538b463b081d19b7a00e3c",
+      "context_tokens": 16384,
+      "memory_limit": "24g",
+      "port": 8011,
+      "role": "Efficient local reasoning and technical work"
+    },
+    {
+      "id": "gptoss",
+      "repository": "ggml-org/gpt-oss-120b-GGUF",
+      "revision": "7200b74bea78b0a2964ef9f3897eefa401e890ff",
+      "file": "gpt-oss-120b-MXFP4.gguf",
+      "bytes": 63387346208,
+      "sha256": "582bd40f6886200101f4c4ed9f25f3fe80cc14c86e9e2b37746cd8904a0c622d",
+      "context_tokens": 16384,
+      "memory_limit": "67g",
+      "port": 8013,
+      "role": "Stronger local reasoning; native MXFP4 checkpoint"
+    }
+  ],
+  "sources": [
+    "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
+    "https://developers.openai.com/cookbook/articles/gpt-oss/run-vllm",
+    "https://huggingface.co/ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
+    "https://huggingface.co/ggml-org/gpt-oss-120b-GGUF",
+    "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF",
+    "https://developers.openai.com/cookbook/articles/gpt-oss/run-locally-ollama"
+  ],
+  "qualification": "Candidates selected for single-Spark memory and technical task suitability; not claimed best or benchmark-qualified before measurements. Quantizations must be reported.",
+  "selection_note": "Qwen Q4_K_M scored 4/8 on the public development qualification. Lightning and gpt-oss-120b scored 8/8 once each. Evaluate gpt-oss-20b before final qualification; no per-case dispatch rules."
+}
