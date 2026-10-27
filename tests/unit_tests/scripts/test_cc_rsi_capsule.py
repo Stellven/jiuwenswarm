@@ -247,8 +247,10 @@ def test_durable_slot_lifecycle_reprepares_new_revision_without_reusing_claims(d
     assert set(old_journal) == {'claim.json', 'launch.json', 'ack.json', 'launcher-exit.json'}
     assert d['prepared_runs'] == ['unit-calculate-dev-r1', 'unit-calculate-dev-r2']; snap()
     # The strict slot is untouched by the durable slot's revisions.
-    assert asyncio.run(d['adapter'].readiness(d['headers']))['utility.table_normalize']['run'] == {
+    strict = asyncio.run(d['adapter'].readiness(d['headers']))['utility.table_normalize']['run']
+    assert {key: value for key, value in strict.items() if key not in cap.OBSERVATION} == {
         'allowed': True, 'blocker': None, 'revision': 'b'*64, 'phase': 'READY'}
+    assert strict['age_s'] == 0 and type(strict['observed_unix_s']) is int  # Policy v2 rows carry their observation.
 
 
 def test_durable_snapshot_overlays_root_phase_and_blocked_reason(durable):
@@ -371,3 +373,152 @@ def test_broker_accepts_package_closure_proof_and_derives_durable_terminal(tmp_p
     assert not broker.process_alive(dict(owner, start_ticks=12), proc=proc, boot=boot)
     assert not broker.process_alive(dict(owner, boot_id='other'), proc=proc, boot=boot)
     assert not broker.process_alive(dict(owner, pid=8), proc=proc, boot=boot)
+
+
+# --------------------------------------------------------------------------
+# K1: readiness is observed off the request path; the closure is walked once.
+# --------------------------------------------------------------------------
+def test_slow_closure_preflight_never_blocks_readiness_and_package_change_invalidates_proof(tmp_path, prepared, monkeypatch):
+    import time
+    from jiuwenswarm.research_rsi import capsule_doctor as doctor
+    v = prepared
+    source = tmp_path / 'package'
+    files = {'jiuwenswarm/__init__.py': '', 'jiuwenswarm/research/__init__.py': 'from . import a\n',
+             'jiuwenswarm/research/a.py': 'value = 1\n'}
+    for name, text in files.items():
+        (source / name).parent.mkdir(parents=True, exist_ok=True); (source / name).write_text(text)
+    composition = source / 'composition.py'; composition.write_text('import jiuwenswarm.research\n')
+    digest = lambda name: hashlib.sha256((source / name).read_bytes()).hexdigest()
+    package = {'pins': {name: digest(name) for name in files}}
+    directory = doctor.create_proof_directory(source)
+    walks, entered, release = [], threading.Event(), threading.Event()
+    real = doctor.source_closure
+
+    def slow_walk(*args, **kwargs):  # A 20 s closure derivation, released by the test.
+        walks.append(1); entered.set(); release.wait(20)
+        return real(*args, **kwargs)
+    monkeypatch.setattr(doctor, 'source_closure', slow_walk)
+
+    def preflight(record):  # The launcher's closure part of the preflight.
+        doctor.proven_source_closure(source, package['pins'], entry_files=[composition],
+                                     entry_packages=('jiuwenswarm.research',))
+    policy = {'schema': cap.POLICY_V2, 'workspace_id': 'local', 'origin': v['authority'].origin, 'actors': ['unit:human'],
+              'gateway_key_id': 'unit:key', 'slots': [
+                  {'target_id': 'utility.calculate', 'mode': 'durable', 'slot_id': 'unit-calc'},
+                  {'target_id': 'utility.table_normalize', 'mode': 'durable', 'slot_id': 'unit-norm'}]}
+    journals = {}
+    def prepare(sequence, run_id):
+        return {'expires_unix_s': int(time.time()) + 7 * 24 * 3600, 'wall_s': 100}
+    slots = {row['target_id']: cap.DurableSlot(policy, row, v['signer'].public_bytes(), cap.RevisionLedger(tmp_path / row['slot_id']),
+        journal=lambda run_id: journals.setdefault(run_id, MemoryJournal()), preflight=preflight, launch=None,
+        prepare=prepare, readiness_refresh_s=1, readiness_stale_s=60) for row in policy['slots']}
+    engine = cap.RootCapsuleEngine(policy, v['signer'].public_bytes(), slots)
+    class Client:
+        def status(self): return engine.handle({'protocol': cap.PROTOCOL, 'operation': 'status'})
+    adapter = cap.NativeCapsuleAdapter(v['authority'], v['signer'], Client(), policy)
+
+    def timed():
+        began = time.monotonic(); rows = asyncio.run(adapter.readiness(v['headers']))
+        return time.monotonic() - began, rows
+    def until(condition):
+        deadline = time.monotonic() + 15
+        while not condition():
+            assert time.monotonic() < deadline; time.sleep(0.05)
+    stop = threading.Event()
+    try:
+        threads = engine.monitor(stop=stop, interval=0.05)
+        assert entered.wait(10)  # A background preflight is inside the slow walk.
+        elapsed, rows = timed()
+        assert elapsed < 1
+        for row in rows.values():  # Never "unavailable": an explicit Root phase and reason.
+            assert row['run']['phase'] in ('BLOCKED', 'PREPARING') and not row['run']['allowed']
+            assert row['run']['blocker'] != cap.UNAVAILABLE
+        release.set()
+        until(lambda: all(row['run']['phase'] == 'READY' for row in timed()[1].values()))
+        assert len(walks) == 1 and len(list(directory.glob('*.json'))) == 1  # One walk serves both slots.
+        # The package changes: its proof no longer applies and the next
+        # (slow) refresh re-walks, while readiness answers from the cache.
+        release.clear(); entered.clear()
+        with slots['utility.calculate'].refreshing, slots['utility.table_normalize'].refreshing:
+            (source / 'jiuwenswarm/research/a.py').write_text('value = 2\n')
+            package['pins'] = dict(package['pins'], **{'jiuwenswarm/research/a.py': digest('jiuwenswarm/research/a.py')})
+        for slot in slots.values(): slot.notify()
+        assert entered.wait(10)
+        elapsed, rows = timed()
+        assert elapsed < 1
+        for row in rows.values():
+            run = row['run']
+            assert run['phase'] == 'READY' and run['allowed'] and type(run['observed_unix_s']) is int
+            assert 0 <= run['age_s'] <= 3  # A fresh cached Root observation, with its time and age.
+        release.set()
+        until(lambda: len(list(directory.glob('*.json'))) == 2)
+        assert len(walks) == 2
+        stop.set()
+        for thread in threads: thread.join(30)
+        # A record older than the staleness bound is BLOCKED READINESS_STALE.
+        slot = slots['utility.calculate']
+        row, observed, signature = slot.observation
+        slot.observation = (row, observed - 3600, signature)
+        stale = engine.handle({'protocol': cap.PROTOCOL, 'operation': 'status'})['slots'][0]
+        assert stale['phase'] == 'BLOCKED' and stale['blocker'].startswith(cap.READINESS_STALE) and not stale['ready']
+        assert stale['age_s'] >= 3600 and cap.validate_slot_status(stale, policy, policy['slots'][0]) == stale
+    finally:
+        stop.set(); release.set()
+
+
+def test_click_is_validated_at_receipt_within_its_own_configured_window(durable):
+    d = durable; d['gate'](); d['settle']()
+    record = d['slot'].current()
+    params = {'target_id': 'utility.calculate', 'revision': record['revision'], 'client_request_id': 'unit-late'}
+    now = d['now'][0]
+    def signed(issued, window):
+        return d['v']['signer'].sign({'schema': old.ASSERTION, 'actor': 'unit:human', 'workspace_id': 'local',
+            'origin': d['v']['authority'].origin, **params, 'issued_at': issued, 'expires_at': issued + window})
+    with pytest.raises(ValueError, match='Exact current native development assertion required'):
+        d['slot'].start(params, signed(now - 40, 30), received=now)  # Expired before Root received it.
+    with pytest.raises(ValueError, match='Exact current native development assertion required'):
+        d['slot'].start(params, signed(now, 60), received=now)  # Beyond the configured window.
+    assert d['launches'] == []
+    # Received inside its own window: accepted however long Root's lock or a
+    # readiness refresh delays the rest of the start.
+    ack = d['slot'].start(params, signed(now - 29, 30), received=now - 1)
+    assert ack['run_id'] == record['run_id'] and d['launches'] == [record['run_id']]
+    wide = cap.CapsuleRevisionEngine(cap.revision_policy(d['policy'], 'utility.calculate', 'e'*64, 'unit-wide'),
+        d['v']['signer'].public_bytes(), MemoryJournal(), lambda: None, lambda: {}, assertion_window_s=90)
+    assert wide.window == 90
+    with pytest.raises(ValueError): cap.timeouts({'click_window_s': 0}, cap.BROKER_TIMEOUTS)
+    with pytest.raises(ValueError): cap.timeouts({'unknown_s': 5}, cap.BROKER_TIMEOUTS)
+    with pytest.raises(ValueError): cap.timeouts({'readiness_refresh_s': 60, 'readiness_stale_s': 30}, cap.BROKER_TIMEOUTS)
+    assert cap.timeouts({}, cap.GATEWAY_TIMEOUTS) == {'exchange_s': 45, 'click_window_s': 30}
+
+
+# --------------------------------------------------------------------------
+# K4: an interrupted preparation's step container is proven stopped first.
+# --------------------------------------------------------------------------
+def test_interrupted_or_failed_preparation_waits_for_its_step_container_before_a_successor(tmp_path, prepared):
+    v = prepared; policy = durable_policy(v['authority'].origin, 'unit-wait', strict=False)
+    running = ['PREPARATION_STEP_STILL_RUNNING: prepare']; reconciled = []; calls = []
+    def reconcile(sequence, run_id):
+        reconciled.append(run_id); return running[0]
+    def make(ledger):
+        return cap.DurableSlot(policy, policy['slots'][0], v['signer'].public_bytes(), ledger,
+            journal=lambda run_id: MemoryJournal(), preflight=lambda record: None, launch=None, reconcile=reconcile,
+            prepare=lambda sequence, run_id: calls.append(run_id) or {'expires_unix_s': 10**9, 'wall_s': 100},
+            clock=lambda: 1000, background=False)
+    ledger = cap.RevisionLedger(tmp_path / 'l')
+    ledger.append(1, 'preparing', {'run_id': 'unit-wait-r1', 'started_unix_s': 1})  # Broker died mid-step.
+    slot = make(ledger)
+    row = slot.status()
+    assert row['phase'] == 'PREPARING' and 'PREPARATION_STEP_STILL_RUNNING' in row['blocker']
+    assert calls == [] and set(ledger.entries()[1]) == {'preparing'} and reconciled == ['unit-wait-r1']
+    running[0] = None  # Its container stopped (or was stopped when overdue) and its exit was adopted.
+    assert slot.status()['run_id'] == 'unit-wait-r2' and calls == ['unit-wait-r2']
+    assert ledger.entries()[1]['failed']['message'] == 'PREPARATION_INTERRUPTED_RECONCILE_WITHOUT_REPLAY'
+    # A failed preparation (e.g. termination unproven) is reconciled before its successor too.
+    ledger2 = cap.RevisionLedger(tmp_path / 'l2'); running[0] = 'PREPARATION_STEP_STILL_RUNNING: doctor'
+    ledger2.append(1, 'preparing', {'run_id': 'unit-wait-r1', 'started_unix_s': 1})
+    ledger2.append(1, 'failed', {'run_id': 'unit-wait-r1', 'message': 'STEP_TERMINATION_UNPROVEN_RECONCILE_NO_REPLAY'})
+    slot2 = make(ledger2)
+    assert slot2.status()['phase'] == 'PREPARING' and calls == ['unit-wait-r2']
+    running[0] = None
+    assert slot2.status()['phase'] == 'READY' and calls == ['unit-wait-r2', 'unit-wait-r2']

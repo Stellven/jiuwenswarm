@@ -19,8 +19,6 @@ from pathlib import Path
 import socket
 import struct
 import sys
-import threading
-import time
 
 from jiuwenswarm.research.cc_ui_runtime import module
 
@@ -57,8 +55,9 @@ def load(path):
     need(os.name == 'posix' and os.geteuid() == 0, 'ROOT_BROKER_REQUIRED')
     value = json.loads(installation.protected_bytes(path, uid=0, mode=0o600))
     durable = isinstance(value, dict) and value.get('schema') == 'ai4r-cc-rsi-capsule-root:2'
+    # Optional ``timeouts`` (cc_rsi_capsule.BROKER_TIMEOUTS keys); absent keeps the historical bounds.
     installation._fields(value, 'schema policy gateway_public_key module base_service interpreter wrapper slots service_sha256'
-                         + (' slot_module' if durable else ''))
+                         + (' slot_module' if durable else '') + (' timeouts' if isinstance(value, dict) and 'timeouts' in value else ''))
     need(value['schema'] in ('ai4r-cc-rsi-capsule-root:1', 'ai4r-cc-rsi-capsule-root:2')
          and value['service_sha256'] == hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'ROOT_BROKER_SOURCE_DIFFERS')
     for key in ('module', 'base_service', 'wrapper') + (('slot_module',) if durable else ()): pinned(value[key])
@@ -157,6 +156,7 @@ def compose(path=CONFIG):
     cap = load_module('_ai4r_cc_runtime.cc_rsi_capsule', config['module'])
     slot_module = load_module('_ai4r_capsule_durable_slot', config['slot_module']) if durable else None
     cap.policy(config['policy']); base.dev = old; base.ROOT = ROOT
+    limits = cap.timeouts(config.get('timeouts', {}), cap.BROKER_TIMEOUTS)
     need({r['target_id'] for r in config['slots']} == {r['target_id'] for r in config['policy']['slots']}
          and len(config['slots']) == len(config['policy']['slots']), 'EXACT_PREPARED_SLOT_SET_REQUIRED')
     base.pin(config['interpreter'], executable=True)
@@ -175,7 +175,7 @@ def compose(path=CONFIG):
             import subprocess
             try:
                 result = subprocess.run(self.argv('preflight'), check=True, stdin=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45, env=base.ENV)
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=limits['preflight_s'], env=base.ENV)
             except subprocess.CalledProcessError as error:
                 raise refusal(error) from None
             need(len(result.stdout) <= old.MAX_FRAME, 'FINITE_CAPSULE_PREFLIGHT_REQUIRED')
@@ -187,7 +187,7 @@ def compose(path=CONFIG):
         slot = next(row for row in config['policy']['slots'] if row['target_id'] == item['target_id'])
         if cap.mode(slot) == 'durable':
             need(item['mode'] == 'durable', 'EXPLICIT_CAPSULE_SLOT_MODE_REQUIRED')
-            engine = durable_slot(config, item, slot, cap, base, slot_module, Launcher)
+            engine = durable_slot(config, item, slot, cap, base, slot_module, Launcher, limits=limits)
             slots[item['target_id']] = engine; durable_slots.append(engine)
             continue
         need(item.get('mode', 'strict') == 'strict', 'EXPLICIT_CAPSULE_SLOT_MODE_REQUIRED')
@@ -196,7 +196,7 @@ def compose(path=CONFIG):
             approved_plan_sha256=item['configuration']['sha256']), journal)
         slots[item['target_id']] = (journal, launcher.preflight, launcher.launch)
         journals[item['target_id']] = journal
-    engine = cap.RootCapsuleEngine(config['policy'], public_key(config), slots)
+    engine = cap.RootCapsuleEngine(config['policy'], public_key(config), slots, limits=limits)
     return config, cap, old, engine, journals
 
 
@@ -206,8 +206,9 @@ def public_key(config):
     return public
 
 
-def durable_slot(config, item, slot, cap, base, slot_module, Launcher, *, background=True):
+def durable_slot(config, item, slot, cap, base, slot_module, Launcher, *, background=True, limits=None):
     """One durable slot: ledger, per-revision journals and fixed callables."""
+    limits = cap.timeouts(limits or {}, cap.BROKER_TIMEOUTS)
     template_pin = item['template']
     template = slot_module.load_template(template_pin)
     need(template['target_id'] == slot['target_id'] and template['slot_id'] == slot['slot_id'],
@@ -220,38 +221,45 @@ def durable_slot(config, item, slot, cap, base, slot_module, Launcher, *, backgr
                          'launcher_configuration': record['launcher_configuration'], 'policy': policy,
                          'approved_plan_sha256': record['configuration']['sha256']}, journal)
 
-    def prepare(sequence, run_id):
-        current = slot_module.load_template(template_pin)  # Re-read: pins derive from current files.
+    def steps(current):
         restore = slot_module.file_pin(current['launcher']['restore'])['path']
         def docker(*args):
             import subprocess
             return subprocess.run(['/usr/bin/python3', '-B', restore, 'client', '/usr/bin/docker', '--host',
                 'unix:///run/ai4r-rsi-docker/docker.sock', *args], check=True, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, timeout=45, env=base.ENV).stdout
-        steps = slot_module.ContainerSteps(current, current['roots']['control'], docker)
-        return slot_module.prepare_revision(current, sequence, run_id, run_step=steps)
+        return slot_module.ContainerSteps(current, current['roots']['control'], docker)
+
+    def prepare(sequence, run_id):
+        current = slot_module.load_template(template_pin)  # Re-read: pins derive from current files.
+        return slot_module.prepare_revision(current, sequence, run_id, run_step=steps(current))
+
+    def reconcile(sequence, run_id):
+        # A stopped or interrupted revision's step containers (by recorded id
+        # or fixed name) must be proven stopped before a successor starts.
+        current = slot_module.load_template(template_pin)
+        return steps(current).reconcile(slot_module.revision_directories(current, run_id)['control'])
 
     return cap.DurableSlot(config['policy'], slot, public_key(config), ledger,
         journal=base.Journal, preflight=lambda record: launcher(record, None).preflight(),
         launch=lambda record, journal: launcher(record, journal).launch(), prepare=prepare,
-        terminal=durable_terminal, launch_margin_s=item['launch_margin_s'],
-        max_consecutive_failures=item['max_consecutive_failures'], background=background)
+        terminal=durable_terminal, reconcile=reconcile, launch_margin_s=item['launch_margin_s'],
+        max_consecutive_failures=item['max_consecutive_failures'], background=background,
+        readiness_refresh_s=limits['readiness_refresh_s'], readiness_stale_s=limits['readiness_stale_s'],
+        click_window_s=limits['click_window_s'])
 
 
 def monitor(engine, *, interval=MONITOR_INTERVAL_S, stop=None):
-    """Advance durable slots without UI polling (re-prepare after terminal)."""
-    while stop is None or not stop.is_set():
-        try:
-            engine.tick()
-        except Exception:
-            pass  # Recorded state is unchanged; the next tick or status retries reading it.
-        time.sleep(interval)
+    """Per-slot background threads: advance durable slots without UI polling
+    (re-prepare after terminal) and keep each slot's cached readiness fresh,
+    so a status request never runs a preflight."""
+    return engine.monitor(stop=stop, interval=interval)
 
 
 def serve(path=CONFIG):
     config, cap, old, engine, journals = compose(path)
-    if config['schema'] == 'ai4r-cc-rsi-capsule-root:2':
-        threading.Thread(target=monitor, args=(engine,), name='durable-slot-monitor', daemon=True).start()
+    limits = cap.timeouts(config.get('timeouts', {}), cap.BROKER_TIMEOUTS)
+    monitor(engine)
     endpoint = Path(cap.SOCKET)
     need(endpoint.parent.is_dir() and not os.path.lexists(endpoint), 'FRESH_CAPSULE_SOCKET_REQUIRED')
     for parent in endpoint.parents:
@@ -263,7 +271,7 @@ def serve(path=CONFIG):
         while True:
             client, _ = server.accept()
             with client:
-                client.settimeout(45)
+                client.settimeout(limits['request_s'])
                 try:
                     _, uid, _ = struct.unpack('3i', client.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
                     need(uid == 10001, 'NATIVE_GATEWAY_UID_REQUIRED')

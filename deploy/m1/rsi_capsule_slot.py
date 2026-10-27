@@ -117,8 +117,18 @@ def validate_template(value):
     need(isinstance(value['run'], dict) and set(value['run']) == {'source_root', 'runner', 'composition_path'},
          'CLOSED_DURABLE_RUN_SOURCES_REQUIRED')
     need(Path(value['run']['runner']).parent == Path(value['run']['source_root']), 'RUNNER_SOURCE_ROOT_DIFFERS')
-    need(isinstance(value['launcher'], dict) and set(value['launcher']) == {
+    # The doctor and worker containers mount only ``source_root``: a frozen
+    # composition elsewhere would surface only as a container FileNotFoundError.
+    source_root, composition_path = absolute(value['run']['source_root']), absolute(value['run']['composition_path'])
+    need(composition_path != source_root and composition_path.is_relative_to(source_root),
+         'COMPOSITION_OUTSIDE_SOURCE_ROOT: ' + str(composition_path) + ' is not under ' + str(source_root))
+    sources = value['launcher']
+    need(isinstance(sources, dict) and set(sources) - {'timeouts'} == {
         'launcher', 'restore', 'seccomp', 'publisher', 'projection'}, 'CLOSED_DURABLE_LAUNCHER_SOURCES_REQUIRED')
+    if 'timeouts' in sources:  # Optional launcher bounds; absent keeps the launcher defaults.
+        need(isinstance(sources['timeouts'], dict) and set(sources['timeouts']) <= {'runner_preflight_s', 'docker_s'}
+             and all(type(v) is int and 1 <= v <= 3600 for v in sources['timeouts'].values()),
+             'CLOSED_LAUNCHER_TIMEOUTS_REQUIRED')
     publication = value['publication']
     need(isinstance(publication, dict) and set(publication) == {'meta', 'publication_directory'}
          and publication['meta'].get('target_id') == value['target_id'], 'CLOSED_DURABLE_PUBLICATION_REQUIRED')
@@ -313,6 +323,9 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
         'result_path': str(dirs['records'] / 'capsule-result.json'),
         'source_root': run['source_root'], 'source_pins': source_pins(run['source_root']),
         'composition_path': run['composition_path'], 'composition_sha256': file_pin(run['composition_path'])['sha256']}
+    # Walk the package closure once, here in Root preparation (off any request
+    # path); the doctor, launcher and runner preflights reuse the proof.
+    warm_source_closure(run_cfg, run['runner'])
     receipt_path = dirs['control'] / 'compose-doctor.json'
     # The doctor scope excludes ``compatibility``; the placeholder is replaced
     # by the actual receipt pin in the final, otherwise identical bytes.
@@ -331,12 +344,15 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
         'meta': template['publication']['meta'], 'configuration': configuration,
         'control_directory': str(dirs['control']), 'publication_directory': template['publication']['publication_directory']})
     launcher_pin = file_pin(sources['launcher'])
-    launcher = write_exclusive(dirs['control'] / 'launcher-configuration.json', {
+    launcher_value = {
         'schema': LAUNCHER_SCHEMA, 'id': run_id, 'configuration': configuration, 'runner': file_pin(run['runner']),
         'restore': file_pin(sources['restore']), 'seccomp': file_pin(sources['seccomp']),
         'publisher': file_pin(sources['publisher']), 'publication_template': publication,
         'control_directory': str(dirs['control']), 'cgroup_root': evaluator['cgroup_root'],
-        'launcher_sha256': launcher_pin['sha256']})
+        'launcher_sha256': launcher_pin['sha256']}
+    if 'timeouts' in sources:
+        launcher_value['timeouts'] = dict(sources['timeouts'])
+    launcher = write_exclusive(dirs['control'] / 'launcher-configuration.json', launcher_value)
     return {'configuration': configuration, 'launcher_configuration': launcher, 'publication_template': publication,
             'grant_sha256': grant_pin['sha256'], 'expires_unix_s': grant['expires_unix_s'], 'wall_s': deadline,
             'max_executions': grant['max_executions'], 'max_iterations': loop['max_iterations'],
@@ -344,31 +360,141 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
             'source_pins_sha256': sha(encoded(run_cfg['source_pins'])), 'model_calls': 0}
 
 
+DOCTOR_SOURCE = 'jiuwenswarm/research_rsi/capsule_doctor.py'
+
+
+def warm_source_closure(run_cfg, runner):
+    """Persist the package's closure proofs for both entry sets in use: the
+    doctor/controller (frozen composition) and the launcher (runner plus
+    composition). Uses the configuration's own pinned walker stand-alone; a
+    package without it is left to the later preflights, which refuse it."""
+    root, pins = Path(run_cfg['source_root']), run_cfg['source_pins']
+    if DOCTOR_SOURCE not in pins:
+        return None
+    raw = custody(root / DOCTOR_SOURCE).read_bytes()
+    need(sha(raw) == pins[DOCTOR_SOURCE], 'SOURCE_PIN_DIFFERS: ' + DOCTOR_SOURCE)
+    import importlib.util
+    module = importlib.util.module_from_spec(importlib.util.spec_from_loader('capsule_slot_pinned_doctor', loader=None))
+    module.__file__ = str(root / DOCTOR_SOURCE)
+    exec(compile(raw, str(root / DOCTOR_SOURCE), 'exec'), module.__dict__)
+    module.create_proof_directory(root)
+    composition = run_cfg['composition_path']
+    return [module.proven_source_closure(root, pins, entry_files=entries)['modules_sha256']
+            for entries in ([composition], [runner, composition])]
+
+
+def _absent(error):
+    """A docker refusal that proves the named container does not exist."""
+    stderr = getattr(error, 'stderr', None) or b''
+    text = stderr.decode('utf8', 'replace') if isinstance(stderr, bytes) else str(stderr)
+    return 'No such container' in text or 'No such object' in text
+
+
 class ContainerSteps:
-    """Run fixed preparation containers through the pinned Root docker client."""
-    def __init__(self, template, control_root, docker, *, clock=time.monotonic, sleep=time.sleep):
+    """Run fixed preparation containers through the pinned Root docker client.
+
+    Every step container is recorded (``<step>-container.json``) before it
+    starts and is proven stopped before its step is reported failed: an
+    overdue step is stopped by its recorded id and waited for. After a broker
+    restart ``reconcile`` finds a claimed step's container by its recorded id
+    (or fixed name), waits while it is inside its own deadline, stops it when
+    overdue, and adopts its terminal state; only then may a successor start.
+    """
+    STEPS = ('prepare', 'doctor')
+
+    def __init__(self, template, control_root, docker, *, clock=time.monotonic, sleep=time.sleep, wall=time.time,
+                 stop_grace_s=10, stop_wait_s=60):
         self.template, self.control_root, self.docker = template, Path(control_root), docker
-        self.clock, self.sleep = clock, sleep
+        self.clock, self.sleep, self.wall = clock, sleep, wall
+        self.stop_grace_s, self.stop_wait_s = stop_grace_s, stop_wait_s
+
+    def inspect(self, ident, *, cid=None, name=None):
+        info = json.loads(self.docker('inspect', ident))[0]
+        need(info['Image'] == self.template['container']['image'] and (cid is None or info['Id'] == cid)
+             and (name is None or info.get('Name') in (name, '/' + name)), 'STEP_IDENTITY_DIFFERS')
+        return info
+
+    def stop(self, cid):
+        """Stop a step container by id and wait for its exit; raises unless proven."""
+        try:
+            self.docker('stop', '--time', str(self.stop_grace_s), cid)
+        except Exception:
+            pass  # Proven below by inspection, never assumed.
+        deadline, killed = self.clock() + self.stop_wait_s, False
+        while True:
+            info = self.inspect(cid, cid=cid)
+            if not info['State']['Running'] and info['State']['Pid'] == 0:
+                return info
+            if self.clock() >= deadline:
+                need(not killed, 'STEP_TERMINATION_UNPROVEN_RECONCILE_NO_REPLAY: ' + cid)
+                try:
+                    self.docker('kill', cid)
+                except Exception:
+                    pass
+                killed, deadline = True, self.clock() + self.stop_wait_s
+            self.sleep(1)
+
+    def record_exit(self, control, name, cid, info, **extra):
+        output = self.docker('logs', cid) if info is not None else b''
+        write_exclusive(control / (name + '-exit.json'), {'schema': STEP_SCHEMA, 'step': name, 'cid': cid,
+            'exit_code': None if info is None else info['State']['ExitCode'], 'stdout_sha256': sha(output), **extra},
+            mode=0o400)
+        write_exclusive(control / (name + '-stdout.log'), output[-65536:], mode=0o400)
 
     def __call__(self, name, argv, control):
-        need(name in ('prepare', 'doctor'), 'FIXED_PREPARATION_STEP_REQUIRED')
+        need(name in self.STEPS, 'FIXED_PREPARATION_STEP_REQUIRED')
         control = custody(control, directory=True)
         need(control.parent == self.control_root, 'REVISION_CONTROL_DIRECTORY_DIFFERS')
         # The exclusive claim precedes the container: a step is never re-run.
         write_exclusive(control / (name + '-claim.json'), {'schema': STEP_SCHEMA, 'step': name, 'argv': argv}, mode=0o400)
         cid = self.docker(*argv).decode().strip()
         need(re.fullmatch('[0-9a-f]{64}', cid), 'EXACT_STEP_CID_REQUIRED')
+        timeout = self.template['container']['step_timeout_s']
+        write_exclusive(control / (name + '-container.json'), {'schema': STEP_SCHEMA, 'step': name, 'cid': cid,
+            'name': argv[argv.index('--name') + 1], 'started_unix_s': int(self.wall()), 'timeout_s': timeout}, mode=0o400)
         self.docker('start', cid)
-        deadline = self.clock() + self.template['container']['step_timeout_s']
+        deadline = self.clock() + timeout
         while True:
-            info = json.loads(self.docker('inspect', cid))[0]
-            need(info['Id'] == cid and info['Image'] == self.template['container']['image'], 'STEP_IDENTITY_DIFFERS')
+            info = self.inspect(cid, cid=cid)
             if not info['State']['Running']: break
-            need(self.clock() < deadline, 'STEP_DEADLINE_EXPIRED_RECONCILE_NO_REPLAY')
+            if self.clock() >= deadline:
+                info = self.stop(cid)  # Proven stopped before the step is reported failed.
+                self.record_exit(control, name, cid, info, stopped='STEP_DEADLINE_EXPIRED')
+                raise ValueError('STEP_DEADLINE_EXPIRED_STOPPED_NO_REPLAY: ' + name)
             self.sleep(2)
         need(info['State']['Pid'] == 0, 'STEP_TERMINATION_UNPROVEN')
-        output = self.docker('logs', cid)
-        write_exclusive(control / (name + '-exit.json'), {'schema': STEP_SCHEMA, 'step': name, 'cid': cid,
-            'exit_code': info['State']['ExitCode'], 'stdout_sha256': sha(output)}, mode=0o400)
-        write_exclusive(control / (name + '-stdout.log'), output[-65536:], mode=0o400)
+        self.record_exit(control, name, cid, info)
         need(info['State']['ExitCode'] == 0, 'PREPARATION_STEP_FAILED_NO_REPLAY: ' + name)
+
+    def reconcile(self, control):
+        """None once every claimed step of a revision is known stopped (its exit
+        recorded or adopted); otherwise why one still runs (the caller waits)."""
+        control = Path(control)
+        if not control.is_dir():
+            return None  # Interrupted before its directories: no step was claimed.
+        control = custody(control, directory=True)
+        for name in self.STEPS:
+            claim_path = control / (name + '-claim.json')
+            if not claim_path.exists() or (control / (name + '-exit.json')).exists():
+                continue
+            claim = json.loads(custody(claim_path).read_bytes())
+            record_path = control / (name + '-container.json')
+            record = json.loads(custody(record_path).read_bytes()) if record_path.exists() else None
+            container = record['name'] if record else claim['argv'][claim['argv'].index('--name') + 1]
+            try:
+                info = self.inspect(record['cid'] if record else container,
+                                    cid=record['cid'] if record else None, name=container)
+            except Exception as error:
+                if not _absent(error):
+                    raise
+                if record is not None:
+                    self.record_exit(control, name, record['cid'], None, adopted='STEP_CONTAINER_ABSENT')
+                continue  # Without a record it was claimed but never created: nothing ran.
+            if info['State']['Running']:
+                started = record['started_unix_s'] if record else int(claim_path.stat().st_mtime)
+                if self.wall() < started + self.template['container']['step_timeout_s']:
+                    return 'PREPARATION_STEP_STILL_RUNNING: ' + name
+                info = self.stop(info['Id'])
+            need(info['State']['Pid'] == 0, 'STEP_TERMINATION_UNPROVEN')
+            self.record_exit(control, name, info['Id'], info, adopted='AFTER_INTERRUPTION')
+        return None

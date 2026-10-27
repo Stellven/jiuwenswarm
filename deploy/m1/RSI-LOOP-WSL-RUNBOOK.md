@@ -370,15 +370,15 @@ On this branch the blob hashes are:
 
 | file | sha256 |
 |------|--------|
-| `jiuwenswarm/server/rsi/cc_rsi_capsule.py` | `fb13027ddcb0d2fa44cb50d0f0ce42ac123d0776459066b7c84abc715db2cd9a` |
+| `jiuwenswarm/server/rsi/cc_rsi_capsule.py` | `44b459e3cf72cbcadc6b656f2783b14ed018a74c68f4c229f6b94385aae9c904` |
 | `jiuwenswarm/server/rsi/cc_rsi_projection.py` | `3f6b0aa28eb1c89315beb61397a1edcf6dfbc2255a877126c10bb077f7fb98cc` |
-| `deploy/m1/rsi_capsule_broker.py` | `cd42634516f8229528b1daf37b15051148aac93e01c10650d041c052bf3091cf` |
-| `deploy/m1/rsi_capsule_launcher.py` | `01a72a7e1f70b45c7f40648d4fe314231424cc1b71dc5c088e8ed3dae2797841` |
-| `deploy/m1/rsi_capsule_slot.py` | `3cbf0276d6582b0c3d37baa49eafa101df2be02b5d8079c15c1258ca08afa768` |
+| `deploy/m1/rsi_capsule_broker.py` | `01438d0a6679a7ed9df5df0615542d4a78f8a679fa549b9dd4325ea716e8f5c9` |
+| `deploy/m1/rsi_capsule_launcher.py` | `e66ec7cfe9dcc7da9c52c007c318254fcc41f41f1172c5ede2fe0a2cae3c71bc` |
+| `deploy/m1/rsi_capsule_slot.py` | `8788190c7aafe367bcafd73d2539af42400734d7186b78d4c2879e357aeb7ce7` |
 | `deploy/m1/rsi_capsule_publication.py` | `bf01fee5b079721400173567db5b59b6cc163c2a4ce9ddd66d366dc8de501ceb` |
-| `deploy/m1/rsi_capsule_run.py` (runner) | `1cbcc752b1ef7252a40f7b420f1c7f6c822324a6f1af7f8111cac93150d2ef49` |
+| `deploy/m1/rsi_capsule_run.py` (runner) | `f75be28f0d355b9ea4363023263234d6a3b857b8d4308119cae86f01f2f97e22` |
 | `deploy/m1/rsi_capsule_prepare.py` | `f237d784ed4574f9669e5b14d4e5bcea966d064b77c48d99bec65d6b925d6b28` |
-| `jiuwenswarm/research_rsi/capsule_doctor.py` | `582cc5d80eacd70ca15a85be3d6e689648a1fb3f352172da4ee55aade8647538` |
+| `jiuwenswarm/research_rsi/capsule_doctor.py` | `9e6cb1e06b0026e31d1cd3580541bda7e27ba67bbe1e27321cb1cd6d81d165fc` |
 
 A mismatch means the export converted line endings: **STOP**.
 
@@ -846,12 +846,54 @@ runs, the other slot is BLOCKED with `OWNED_RUNTIME_NOT_IDLE`. The launcher
 requires an idle RSI Docker daemon (`rsi_capsule_launcher.py:160`). That is
 expected and clears on its own.
 
-### 5.4 Readiness latency gate (known issue K1)
+### 5.4 Readiness latency check (known issue K1, fixed)
 
-Record `seconds` from the status call while both slots are READY, and time
-one direct launcher preflight:
+Since K1 was fixed, readiness is computed off the request path:
+
+* **Closure proof, once per package.** Root preparation walks the source
+  closure once and writes Root-owned, mode 0444 proofs to
+  `$RT/.ai4r-source-closure/<key>.json` (`rsi_capsule_slot.py:366`,
+  `capsule_doctor.py:626`). The key covers the walker's own source sha, the
+  pins digest, the entry program bytes and the entry roots. There is one proof
+  for the doctor/controller entry set and one for the launcher entry set.
+* **Reuse without a re-walk.** The launcher preflight
+  (`rsi_capsule_launcher.py:125`), the runner's `load_sources`
+  (`rsi_capsule_run.py:133`) and the compose doctor reuse a proof only after
+  re-verifying the actual `jiuwenswarm/` inventory and every byte against the
+  pins. Any change to the package, the entry programs or the walker selects a
+  new key and forces exactly one new walk. Read-only mounts (doctor, worker)
+  only read proofs. Without the proof directory every caller walks as before.
+* **Cached readiness.** Each slot has its own background thread
+  (`cc_rsi_capsule.py:403`, `:850`; `rsi_capsule_broker.py:252`). The thread
+  runs the unchanged full preflight (closure, traversal, idle runtime, runner
+  preflight, relay check) every `readiness_refresh_s`, and again right after
+  any state transition. A status request returns the cached row with
+  `observed_unix_s` and `age_s`, which the gateway passes on in each target's
+  `run` gate.
+* **Phases.** PREPARING, FAILED, CLAIMED and LAUNCHED are read directly from
+  the ledger and journal. A row older than `readiness_stale_s` is `BLOCKED`
+  with `READINESS_STALE: ...`. A state Root has not checked yet is `BLOCKED`
+  with `READINESS_PENDING: ...`. Neither is ever "unavailable".
+* **Click window.** A signed click is checked against its own window at Root
+  receipt, before any lock, refresh or preflight can delay it
+  (`cc_rsi_capsule.py:359`). The gateway signs only after its readiness read.
+
+The timeouts are now configuration, with the old values as defaults:
+
+| where | optional key | fields (defaults) |
+|---|---|---|
+| broker root config (section 4.4) | `timeouts` | `preflight_s` 45, `request_s` 45, `click_window_s` 30, `readiness_refresh_s` 30, `readiness_stale_s` 120 |
+| gateway config (section 4.3) | `timeouts` | `exchange_s` 45, `click_window_s` 30 |
+| slot template `launcher` (section 4.2) | `timeouts` | `runner_preflight_s` 30, `docker_s` 45 |
+
+The broker refuses unknown keys, values outside 1–3600, and
+`readiness_stale_s < readiness_refresh_s`. Keep the gateway `click_window_s`
+at or below the broker's.
+
+Measure, while both slots are READY:
 
 ```bash
+ls -l "$RT/.ai4r-source-closure/"           # two root 0444 proofs after the first preparation
 REC=$(ls "$SLOTS/$CALC_SLOT"/*.prepared.json | tail -1)
 LC=$($PY -c 'import json,sys;v=json.load(open(sys.argv[1]))["value"]["launcher_configuration"];print(v["path"],v["sha256"])' "$REC")
 time env -i PATH=/usr/sbin:/usr/bin:/sbin:/bin PYTHONDONTWRITEBYTECODE=1 HOME=/root \
@@ -860,27 +902,21 @@ time env -i PATH=/usr/sbin:/usr/bin:/sbin:/bin PYTHONDONTWRITEBYTECODE=1 HOME=/r
 ```
 
 The environment above is `base.ENV`, which the broker uses
-(`rsi_development_service.py:33-34`). The click path has fixed bounds:
-
-* the app's socket timeout is 45 s per status or start exchange
-  (`cc_rsi_capsule.py:166`)
-* status runs one full preflight per slot, sequentially, in a
-  single-threaded accept loop (`cc_rsi_capsule.py:488-489`, `:555-556`;
-  `rsi_capsule_broker.py:263-282`)
-* a signed click expires 30 s after signing (`cc_rsi_development.py:131`,
-  `:196`) and can queue behind a status request
-* the runner preflight subprocess has a 30 s timeout
-  (`rsi_capsule_launcher.py:166-168`)
+(`rsi_development_service.py:33-34`). Then record `seconds`, and each slot's
+`run.age_s`, from the status call.
 
 **Decision:**
 
-* Status for both slots under 25 s: continue.
-* Status 25–45 s, with a single-slot preflight under 20 s: regenerate the
-  policy and root configuration with only the Calculate slot (sections 4.3
-  and 4.4, new `TAG`), and run Normalize later with its own configuration.
-* A single preflight over 20 s, or a preflight failing with
-  `TimeoutExpired`: **STOP**. Report the measured numbers. This needs the
-  code change described in K1, not a configuration workaround.
+* Status under 1 s, both slots READY, and `age_s` ≤ `readiness_stale_s`:
+  continue with two slots.
+* No proofs under `$RT/.ai4r-source-closure`, or a direct preflight still
+  takes about the full walk time (18 s on the review box) on its second run:
+  the proof is not being reused. Check the custody of `$RT` and of the proof
+  directory: Root owner and no group/other write. Fix it before continuing.
+* A slot stays `BLOCKED READINESS_STALE`, or a direct preflight is over the
+  broker's `preflight_s`: **STOP**. Report the numbers and `$LOG`. You can
+  raise the bounds with the `timeouts` keys above (new `TAG`), but never to
+  hide a failing preflight.
 
 ---
 
@@ -945,7 +981,7 @@ Use App Docker (`docker build`). The installer does not need the network.
   ```bash
   docker run --rm --network none --entrypoint sha256sum <new-image> \
     /opt/venv/lib/python3.12/site-packages/jiuwenswarm/server/rsi/cc_rsi_capsule.py
-  # expected fb13027ddcb0d2fa44cb50d0f0ce42ac123d0776459066b7c84abc715db2cd9a (= $ADM/cc_rsi_capsule.py)
+  # expected 44b459e3cf72cbcadc6b656f2783b14ed018a74c68f4c229f6b94385aae9c904 (= $ADM/cc_rsi_capsule.py)
   ```
 
   Also check `cc_rsi_projection.py` = `3f6b0aa2...` and
@@ -1249,36 +1285,40 @@ never deletes anything.
 
 ## Known issues before deploy
 
-**K1: Readiness latency against fixed timeouts.** This one can block the Run
-click.
+**K1 (fixed): readiness latency against fixed timeouts.**
 
-* Every status request runs a full launcher preflight for every slot,
-  sequentially, in the broker's single-threaded accept loop
-  (`cc_rsi_capsule.py:488-489`, `:555-556`; `rsi_capsule_broker.py:263-282`).
-* Each preflight derives the source closure twice: in the launcher
-  (`rsi_capsule_launcher.py:113`) and again in the runner preflight
-  (`rsi_capsule_run.py:131`).
-* On the review box, one derivation over this branch's 3,235-file package
-  (1,101 modules) took **18.4 s** under CPython 3.13.
-* The bounds are fixed:
-  * app socket timeout 45 s (`cc_rsi_capsule.py:166`)
-  * runner preflight subprocess 30 s (`rsi_capsule_launcher.py:166-168`)
-  * broker preflight subprocess 45 s (`rsi_capsule_broker.py:176-178`)
-  * click assertion lifetime 30 s, and the click can queue behind a status
-    request (`cc_rsi_development.py:131`, `:196`)
-* With two slots on similar hardware, the app's readiness call can time out
-  ("Prepared capsule readiness is unavailable"), and clicks can expire.
-* Section 5.4 measures this and decides. The code fix belongs to the W1/W4
-  owners: cache the closure proof per pinned configuration, or run preflights
-  off the request path.
+* **Was:** every status request ran a full preflight for every slot, in
+  sequence, in the single-threaded accept loop. Each preflight walked the
+  3,235-file closure twice, at 18.4 s per walk, against fixed 45/30/30 s
+  bounds. Readiness could time out ("unavailable") and clicks could expire.
+* **Closure proof.** The closure is walked once per installed package, during
+  Root preparation. The result is persisted as a Root proof under
+  `$RT/.ai4r-source-closure/`. The launcher, the runner and the doctor reuse
+  it after re-verifying the pins: digest plus file inventory. A changed
+  package invalidates it automatically.
+* **Readiness.** Each slot has a background thread that keeps a cached
+  readiness record. Status returns that record with `observed_unix_s` and
+  `age_s`. A stale record is `BLOCKED READINESS_STALE`. The preflight
+  semantics are unchanged.
+* **Timeouts and click window.** All timeouts are configuration, with the old
+  values as defaults. The click window is validated at Root receipt.
+* Section 5.4 explains and verifies the fix. Tests:
+  `test_slow_closure_preflight_never_blocks_readiness_and_package_change_invalidates_proof`
+  and
+  `test_closure_proof_is_walked_once_per_package_and_a_changed_package_invalidates_it`.
+* **Residual:**
+  * Policy v1 (legacy strict, schema `ai4r-cc-rsi-capsule-status:1`) keeps
+    its inline status rows.
+  * A click's own start still runs the full preflight under the slot lock. It
+    now takes seconds instead of a full walk.
 
-**K2: `composition_path` is not checked to lie under `source_root`.**
-`validate_template` checks only `runner` (`rsi_capsule_slot.py:118-119`). The
-doctor step and the worker mount only `source_root`
-(`rsi_capsule_slot.py:252-260`, `rsi_capsule_launcher.py:194-196`). A
-composition outside it would surface only as a doctor or worker
-`FileNotFoundError`, and as FAILED after 3 preparations. This runbook puts it
-at `$RT/deploy/m1/rsi_development_run.py`.
+**K2 (fixed): `composition_path` must lie under `source_root`.**
+`validate_template` refuses
+`COMPOSITION_OUTSIDE_SOURCE_ROOT: <path> is not under <source_root>`
+(`rsi_capsule_slot.py:124`). The refusal comes at template load and at every
+revision preparation, before any directory or step exists. The doctor step and
+the worker mount only `source_root`. This runbook puts the composition at
+`$RT/deploy/m1/rsi_development_run.py`, which passes.
 
 **K3: Rollback forward compatibility.** The pre-branch projection in
 `ba1920af` validates run rows with an exact field set. The new publisher adds
@@ -1287,17 +1327,29 @@ at `$RT/deploy/m1/rsi_development_run.py`.
 the first loop publication, rolling back the app shows the snapshot as
 unavailable (section 9, step 7).
 
-**K4: Interrupted or overdue preparation steps are not proven stopped.**
+**K4 (fixed): interrupted or overdue preparation steps are proven stopped.**
 
-* `ContainerSteps` raises `STEP_DEADLINE_EXPIRED_RECONCILE_NO_REPLAY` without
-  stopping the container (`rsi_capsule_slot.py:362-368`).
-* After a broker restart, a `preparing` entry is reconciled as
-  `PreparationInterrupted` and a successor begins immediately
-  (`cc_rsi_capsule.py:422-431`). The old step container may still be writing
-  to the shared Core.
-* Operational mitigation (section 8.1): before restarting a broker or
-  resuming, confirm with `rsidocker ps` that no `ai4r-capsule-prepare-*` or
-  `ai4r-capsule-doctor-*` container is running.
+* **Recorded before start.** `ContainerSteps` writes each step container's
+  id, name, start time and timeout to `<step>-container.json` before starting
+  it (`rsi_capsule_slot.py:393`).
+* **Overdue step.** It is stopped by that id (`docker stop`, then `kill`) and
+  waited for. Only then is `<step>-exit.json` written and
+  `STEP_DEADLINE_EXPIRED_STOPPED_NO_REPLAY` raised. If termination cannot be
+  proven, it raises `STEP_TERMINATION_UNPROVEN_RECONCILE_NO_REPLAY` and
+  writes no exit record.
+* **Before any successor.** Before a successor of an interrupted
+  (`preparing`) or failed revision is started, the broker calls
+  `ContainerSteps.reconcile` (`rsi_capsule_slot.py:469`,
+  `rsi_capsule_broker.py:237`, `cc_rsi_capsule.py:645`, `:651`).
+  `reconcile` finds each claimed step's container by recorded id or fixed
+  name:
+  * inside its own deadline: the slot stays PREPARING ("waiting for an
+    interrupted preparation step") and the broker waits;
+  * overdue: it is stopped and waited for;
+  * once stopped: its terminal state is adopted into `<step>-exit.json`
+    (`adopted: AFTER_INTERRUPTION`, or `STEP_CONTAINER_ABSENT`).
+* The ledger records stay append-only and nothing is re-run. The section 8.1
+  `rsidocker ps` check is now a cross-check, not the only guard.
 
 ---
 

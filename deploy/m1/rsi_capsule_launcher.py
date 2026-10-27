@@ -14,6 +14,16 @@ import time
 IMAGE = 'sha256:00026931a8e236d255efca8d2e90ea49ae04989539fca4d418d318a98fa93ab2'
 SOCKET = 'unix:///run/ai4r-rsi-docker/docker.sock'
 FIELDS = set('schema id configuration runner restore seccomp publisher publication_template control_directory cgroup_root launcher_sha256'.split())
+# Optional ``timeouts`` (seconds); a missing key keeps the historical bound.
+TIMEOUTS = {'runner_preflight_s': 30, 'docker_s': 45}
+
+
+def timeouts(value):
+    """Closed per-configuration bounds, defaults are the historical values."""
+    given = value.get('timeouts', {})
+    need(isinstance(given, dict) and set(given) <= set(TIMEOUTS)
+         and all(type(v) is int and 1 <= v <= 3600 for v in given.values()), 'CLOSED_LAUNCHER_TIMEOUTS_REQUIRED')
+    return {**TIMEOUTS, **given}
 
 
 def need(value, reason):
@@ -56,10 +66,11 @@ def load(path, digest):
     need(os.name == 'posix' and os.geteuid() == 0, 'ROOT_LAUNCHER_REQUIRED')
     raw = protected(path).read_bytes(); need(sha(raw) == digest, 'LAUNCH_CONFIGURATION_DIFFERS')
     value = json.loads(raw)
-    need(set(value) == FIELDS and value['schema'] == 'ai4r-rsi-capsule-launcher:1'
+    need(set(value) in (FIELDS, FIELDS | {'timeouts'}) and value['schema'] == 'ai4r-rsi-capsule-launcher:1'
          and value['launcher_sha256'] == sha(Path(__file__).read_bytes()), 'CLOSED_PINNED_LAUNCH_CONFIGURATION_REQUIRED')
     import re
     need(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,79}', value['id']) is not None, 'FINITE_SESSION_ID_REQUIRED')
+    timeouts(value)
     for key in ('configuration','runner','restore','seccomp','publisher','publication_template'): pinned(value[key])
     cfg = json.loads(pinned(value['configuration']).read_bytes())
     need(cfg['schema'] in ('ai4r-rsi-capsule-run-configuration:1','ai4r-rsi-capsule-run-configuration:2')
@@ -74,7 +85,7 @@ def load(path, digest):
 
 def docker(value, *args):
     return subprocess.run(['/usr/bin/python3','-B',value['restore']['path'],'client','/usr/bin/docker','--host',SOCKET,*args],
-        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45,
+        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeouts(value)['docker_s'],
         env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','HOME':'/root','PYTHONDONTWRITEBYTECODE':'1'}).stdout
 
 
@@ -110,7 +121,8 @@ def package_preflight(value, cfg):
     the exact missing path or first blocking component.
     """
     doctor = pinned_doctor(cfg)
-    closure = doctor.require_source_closure(cfg['source_root'], cfg['source_pins'],
+    # Walked once per installed package; later preflights re-verify its pins.
+    closure = doctor.proven_source_closure(cfg['source_root'], cfg['source_pins'],
         entry_files=[value['runner']['path'], cfg['composition_path']])
     evaluator = cfg['evaluator']
     root = Path(evaluator['root'])
@@ -165,7 +177,7 @@ def preflight(value, cfg):
     # original. No resources/lease/model composition is opened here.
     result = subprocess.run(['/usr/bin/python3','-B',value['runner']['path'],'preflight',
         '--configuration',value['configuration']['path'],'--configuration-sha256',value['configuration']['sha256']],
-        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30,
+        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeouts(value)['runner_preflight_s'],
         env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','HOME':'/root','PYTHONDONTWRITEBYTECODE':'1',
              'PYTHONPATH':'/opt/ai4r-rsi-frozen-v18-03ed3199:/opt/ai4r-rsi-host-codex/site-packages'})
     need(len(result.stdout) <= 16384, 'FINITE_WORKER_PREFLIGHT_REQUIRED')

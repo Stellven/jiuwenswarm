@@ -126,9 +126,11 @@ def load_sources(value):
     need(actual == set(pins), 'SOURCE_CLOSURE_INVENTORY_DIFFERS')
     # Derived import/resource closure of every controller/evaluator module and
     # the frozen composition: an incomplete package names its first missing path.
+    # The walk runs once per installed package; its Root proof is reused here
+    # after re-verifying the same pins (inventory and bytes, just checked).
     composition_path = protected(value['composition_path'])
     try:
-        pinned_doctor(root, pins).require_source_closure(root, pins, entry_files=[composition_path])
+        pinned_doctor(root, pins).proven_source_closure(root, pins, entry_files=[composition_path])
     except ValueError as error:
         raise ValueError('COMPLETE_CAPSULE_PACKAGE_CLOSURE_REQUIRED: ' + str(error)[:2048]) from None
     # Load one complete, pinned package. Source-relative qualification and

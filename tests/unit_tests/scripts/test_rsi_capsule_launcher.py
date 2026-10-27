@@ -270,3 +270,145 @@ def test_durable_template_is_closed_and_general(template, change):
     with pytest.raises(Exception):
         slot.prepare_revision(value, 1, 'unit-calculate-dev-r1', run_step=t['run_step'], now=1, chown=False)
     assert t['steps'] == [] and not (t['tmp'] / 'control/unit-calculate-dev-r1').exists()
+
+
+@pytest.mark.parametrize('outside', ['sibling', 'admin', 'source-root-itself'])
+def test_frozen_composition_must_lie_inside_the_only_mounted_source_root(template, outside):
+    t = template; value = json.loads(json.dumps(t['value']))
+    composition = {'sibling': t['tmp'] / 'composition.py', 'admin': t['admin'] / 'publisher.py',
+                   'source-root-itself': t['source']}[outside]
+    if outside == 'sibling': composition.write_text('# outside the mounted source root')
+    value['run']['composition_path'] = str(composition)
+    with pytest.raises(ValueError, match='COMPOSITION_OUTSIDE_SOURCE_ROOT: ' + str(composition)):
+        slot.validate_template(value)
+    with pytest.raises(ValueError, match='COMPOSITION_OUTSIDE_SOURCE_ROOT'):
+        slot.prepare_revision(value, 1, 'unit-calculate-dev-r1', run_step=t['run_step'], now=1, chown=False)
+    assert t['steps'] == [] and not (t['tmp'] / 'control/unit-calculate-dev-r1').exists()
+    nested = dict(value, run=dict(value['run'], composition_path=str(t['source'] / 'deploy/m1/x.py')))
+    assert slot.validate_template(nested) == nested  # Anywhere under source_root is mounted.
+
+
+def test_preparation_persists_closure_proofs_and_template_launcher_timeouts(template):
+    import shutil
+    t = template; value = json.loads(json.dumps(t['value']))
+    doctor_path = t['source'] / slot.DOCTOR_SOURCE; doctor_path.parent.mkdir(parents=True)
+    shutil.copyfile(Path(__file__).parents[3] / slot.DOCTOR_SOURCE, doctor_path)
+    (t['source'] / 'jiuwenswarm/research_rsi/__init__.py').write_text('')
+    (t['source'] / 'jiuwenswarm/research_rsi/host_codex_backend.py').write_text('descriptor = None\n')
+    (t['source'] / 'jiuwenswarm/research/__init__.py').write_text('from . import mod\n')
+    value['launcher']['timeouts'] = {'runner_preflight_s': 60}
+    slot.prepare_revision(value, 1, 'unit-calculate-dev-r1', run_step=t['run_step'], now=1_800_000_000, chown=False)
+    proofs = sorted((t['source'] / '.ai4r-source-closure').glob('*.json'))
+    assert len(proofs) == 2  # Controller/doctor entry set and launcher (runner + composition) entry set.
+    control = t['tmp'] / 'control/unit-calculate-dev-r1'
+    launch = json.loads((control / 'launcher-configuration.json').read_text())
+    assert set(launch) == launcher.FIELDS | {'timeouts'} and launcher.timeouts(launch) == {'runner_preflight_s': 60, 'docker_s': 45}
+    assert launcher.timeouts({}) == {'runner_preflight_s': 30, 'docker_s': 45}  # Historical defaults.
+    with pytest.raises(ValueError, match='CLOSED_LAUNCHER_TIMEOUTS_REQUIRED'):
+        launcher.timeouts({'timeouts': {'runner_preflight_s': 0}})
+    value['launcher']['timeouts'] = {'unknown_s': 5}
+    with pytest.raises(ValueError, match='CLOSED_LAUNCHER_TIMEOUTS_REQUIRED'):
+        slot.validate_template(value)
+    # The runner's controller preflight reuses the persisted proof.
+    run = json.loads((control / 'run-configuration.json').read_text())
+    from jiuwenswarm.research_rsi import capsule_doctor
+    key = capsule_doctor.closure_proof_key(run['source_pins'], entry_files=[run['composition_path']])
+    assert capsule_doctor.read_closure_proof(t['source'], run['source_pins'], key)['complete'] is True
+
+
+class FakeDocker:
+    """Fake Root docker client: containers run until stopped (or never)."""
+    def __init__(self, image, *, exits_on_stop=True, finishes=False):
+        import subprocess
+        self.subprocess, self.image, self.calls, self.containers = subprocess, image, [], {}
+        self.exits_on_stop, self.finishes = exits_on_stop, finishes
+
+    def __call__(self, *args):
+        self.calls.append(args)
+        verb = args[0]
+        if verb == 'create':
+            cid = '%064x' % (len(self.containers) + 1)
+            self.containers[cid] = {'name': '/' + args[args.index('--name') + 1], 'running': False, 'code': None}
+            return cid.encode()
+        ident = args[-1]
+        cid = next((key for key, row in self.containers.items() if ident in (key, row['name'][1:])), None)
+        if cid is None:
+            raise self.subprocess.CalledProcessError(1, args, b'', b'Error: No such container: ' + ident.encode())
+        row = self.containers[cid]
+        if verb == 'start': row['running'] = not self.finishes; row['code'] = 0 if self.finishes else None
+        if verb in ('stop', 'kill') and self.exits_on_stop: row['running'] = False; row['code'] = 137
+        if verb == 'logs': return b'step output'
+        if verb == 'inspect':
+            return json.dumps([{'Id': cid, 'Image': self.image, 'Name': row['name'], 'State': {
+                'Running': row['running'], 'Pid': 4242 if row['running'] else 0, 'ExitCode': row['code'] or 0}}]).encode()
+        return b''
+
+
+def container_steps(tmp_path, monkeypatch, docker, *, timeout=600, wall=None):
+    monkeypatch.setattr(slot, 'custody', lambda path, owner=0, directory=False: Path(path))
+    now = [0.0]
+    def sleep(seconds): now[0] += seconds
+    template = {'container': {'image': 'sha256:' + '1'*64, 'step_timeout_s': timeout}}
+    control = tmp_path / 'control/unit-r1'; control.mkdir(parents=True)
+    steps = slot.ContainerSteps(template, tmp_path / 'control', docker, clock=lambda: now[0], sleep=sleep,
+                                wall=wall or (lambda: 1_000_000 + now[0]))
+    argv = ['create', '--name', 'ai4r-capsule-prepare-unit-r1', 'sha256:' + '1'*64, '-B', '-m', 'deploy.m1.rsi_capsule_prepare']
+    return steps, control, argv, now
+
+
+def test_overdue_preparation_step_is_stopped_by_recorded_id_before_it_is_failed(tmp_path, monkeypatch):
+    docker = FakeDocker('sha256:' + '1'*64)
+    steps, control, argv, now = container_steps(tmp_path, monkeypatch, docker, timeout=30)
+    with pytest.raises(ValueError, match='STEP_DEADLINE_EXPIRED_STOPPED_NO_REPLAY: prepare'):
+        steps('prepare', argv, control)
+    record = json.loads((control / 'prepare-container.json').read_text())
+    cid = record['cid']
+    assert record['name'] == 'ai4r-capsule-prepare-unit-r1' and record['timeout_s'] == 30
+    verbs = [call[0] for call in docker.calls]
+    assert verbs.index('stop') < len(verbs) - 1 and docker.calls[verbs.index('stop')][-1] == cid
+    assert not docker.containers[cid]['running']  # Proven stopped before the failure is reported.
+    exit_ = json.loads((control / 'prepare-exit.json').read_text())
+    assert exit_['stopped'] == 'STEP_DEADLINE_EXPIRED' and exit_['cid'] == cid and exit_['exit_code'] == 137
+    assert steps.reconcile(control) is None  # Nothing left running for a successor to race.
+
+
+def test_unstoppable_step_is_never_reported_stopped(tmp_path, monkeypatch):
+    docker = FakeDocker('sha256:' + '1'*64, exits_on_stop=False)
+    steps, control, argv, now = container_steps(tmp_path, monkeypatch, docker, timeout=30)
+    with pytest.raises(ValueError, match='STEP_TERMINATION_UNPROVEN_RECONCILE_NO_REPLAY'):
+        steps('prepare', argv, control)
+    assert [call[0] for call in docker.calls].count('kill') == 1 and not (control / 'prepare-exit.json').exists()
+    # After a restart the slot keeps waiting on it: the container is still running.
+    with pytest.raises(ValueError, match='STEP_TERMINATION_UNPROVEN_RECONCILE_NO_REPLAY'):
+        steps.reconcile(control)
+
+
+def test_restart_reconcile_waits_for_running_step_then_adopts_its_terminal_state(tmp_path, monkeypatch):
+    docker = FakeDocker('sha256:' + '1'*64)
+    wall = [1_000_000]
+    steps, control, argv, now = container_steps(tmp_path, monkeypatch, docker, timeout=600, wall=lambda: wall[0])
+    # A broker died mid-step: claim and container record exist, no exit.
+    slot.write_exclusive(control / 'prepare-claim.json', {'schema': slot.STEP_SCHEMA, 'step': 'prepare', 'argv': argv})
+    cid = docker(*argv).decode(); docker('start', cid)
+    slot.write_exclusive(control / 'prepare-container.json', {'schema': slot.STEP_SCHEMA, 'step': 'prepare', 'cid': cid,
+        'name': 'ai4r-capsule-prepare-unit-r1', 'started_unix_s': wall[0], 'timeout_s': 600})
+    assert steps.reconcile(control) == 'PREPARATION_STEP_STILL_RUNNING: prepare'
+    assert docker.containers[cid]['running'] and 'stop' not in [c[0] for c in docker.calls]  # Within its deadline: wait.
+    docker.containers[cid].update(running=False, code=3)  # It finished on its own.
+    assert steps.reconcile(control) is None
+    adopted = json.loads((control / 'prepare-exit.json').read_text())
+    assert adopted['adopted'] == 'AFTER_INTERRUPTION' and adopted['exit_code'] == 3 and adopted['cid'] == cid
+    # Overdue after a restart: stopped by its recorded id, then adopted.
+    doctor_argv = ['create', '--name', 'ai4r-capsule-doctor-unit-r1', 'sha256:' + '1'*64]
+    slot.write_exclusive(control / 'doctor-claim.json', {'schema': slot.STEP_SCHEMA, 'step': 'doctor', 'argv': doctor_argv})
+    second = docker(*doctor_argv).decode(); docker('start', second)  # Created, its record never written.
+    wall[0] += 601 + int((control / 'doctor-claim.json').stat().st_mtime) - 1_000_000
+    assert steps.reconcile(control) is None
+    assert ('stop', '--time', '10', second) in docker.calls and not docker.containers[second]['running']
+    assert json.loads((control / 'doctor-exit.json').read_text())['adopted'] == 'AFTER_INTERRUPTION'
+    # Claimed but never created (died before docker create): nothing ran.
+    other = tmp_path / 'control/unit-r2'; other.mkdir()
+    slot.write_exclusive(other / 'prepare-claim.json', {'schema': slot.STEP_SCHEMA, 'step': 'prepare',
+        'argv': ['create', '--name', 'ai4r-capsule-prepare-unit-r2']})
+    assert steps.reconcile(other) is None and not (other / 'prepare-exit.json').exists()
+    assert steps.reconcile(tmp_path / 'control/never-made') is None

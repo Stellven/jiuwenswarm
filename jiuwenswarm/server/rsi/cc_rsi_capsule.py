@@ -54,6 +54,26 @@ RUN_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]{0,79}')
 SLOT_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]{0,63}')
 LEDGER_KINDS = ('preparing', 'prepared', 'failed', 'retired', 'resumed')
 UNAVAILABLE = 'Prepared capsule readiness is unavailable'
+READINESS_STALE = 'READINESS_STALE'
+READINESS_PENDING = 'READINESS_PENDING'
+OBSERVATION = ('observed_unix_s', 'age_s')
+# Configurable bounds (seconds); the defaults are the historical fixed values.
+# ``click_window_s`` is the signed click's own validity from signing, checked
+# at Root receipt; the gateway's window must not exceed the broker's.
+GATEWAY_TIMEOUTS = {'exchange_s': 45, 'click_window_s': 30}
+BROKER_TIMEOUTS = {'preflight_s': 45, 'request_s': 45, 'click_window_s': 30,
+                   'readiness_refresh_s': 30, 'readiness_stale_s': 120}
+
+
+def timeouts(value, defaults):
+    """Closed, finite overrides of ``defaults``; a missing key keeps it."""
+    if (not isinstance(value, dict) or not set(value) <= set(defaults)
+            or any(type(item) is not int or not 1 <= item <= 3600 for item in value.values())):
+        raise ProjectionError('Closed finite capsule timeouts required')
+    result = {**defaults, **value}
+    if 'readiness_stale_s' in result and result['readiness_stale_s'] < result['readiness_refresh_s']:
+        raise ProjectionError('Readiness staleness bound must cover one refresh interval')
+    return result
 
 
 def _evaluable(target_id):
@@ -126,8 +146,16 @@ def durable_run_id(slot_id, sequence):
 
 
 def validate_slot_status(value, installed_policy, slot):
-    """Closed v2 readiness row for one installed slot (strict or durable)."""
-    _fields(value, 'target_id mode revision run_id sequence ready phase blocker security_status')
+    """Closed v2 readiness row for one installed slot (strict or durable).
+
+    A cached Root observation also carries ``observed_unix_s`` and ``age_s``
+    (both integers, or both null when Root has not observed the slot yet)."""
+    base = 'target_id mode revision run_id sequence ready phase blocker security_status'
+    _fields(value, base + (' observed_unix_s age_s' if isinstance(value, dict) and 'observed_unix_s' in value else ''))
+    if 'observed_unix_s' in value and not (
+            value['observed_unix_s'] is None is value['age_s']
+            or type(value['observed_unix_s']) is int and type(value['age_s']) is int and value['age_s'] >= 0):
+        raise ProjectionError('Closed capsule readiness observation required')
     if (value['target_id'] != slot['target_id'] or value['mode'] != mode(slot)
             or type(value['ready']) is not bool or value['security_status'] != 'SECURITY_DEFERRED'
             or value['phase'] not in PHASES or value['ready'] != (value['phase'] == 'READY')
@@ -151,6 +179,9 @@ def validate_slot_status(value, installed_policy, slot):
 
 
 class InstalledCapsuleClient(old.InstalledDevelopmentClient):
+    def __init__(self, *, timeout_s=GATEWAY_TIMEOUTS['exchange_s']):
+        self.timeout_s = timeouts({'exchange_s': timeout_s}, GATEWAY_TIMEOUTS)['exchange_s']
+
     def exchange(self, value):
         endpoint = Path(SOCKET)
         for parent in endpoint.parents:
@@ -163,7 +194,7 @@ class InstalledCapsuleClient(old.InstalledDevelopmentClient):
         raw = old.encoded(value)
         if len(raw) > old.MAX_FRAME: raise ProjectionError('Capsule request exceeds finite bound')
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
-            client.settimeout(45); client.connect(SOCKET)
+            client.settimeout(self.timeout_s); client.connect(SOCKET)
             _, uid, _ = struct.unpack('3i', client.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
             if uid != 0: raise ProjectionError('Capsule broker peer differs')
             client.sendall(raw + b'\n'); response = bytearray()
@@ -184,10 +215,11 @@ class InstalledCapsuleClient(old.InstalledDevelopmentClient):
 
 
 class NativeCapsuleAdapter:
-    def __init__(self, authority, signer, client, installed_policy):
+    def __init__(self, authority, signer, client, installed_policy, *, click_window_s=GATEWAY_TIMEOUTS['click_window_s']):
         self.policy = copy.deepcopy(policy(installed_policy))
         if self.policy['origin'] != authority.origin: raise ProjectionError('Native capsule origin differs')
         self.authority, self.signer, self.client = authority, signer, client
+        self.click_window_s = timeouts({'click_window_s': click_window_s}, GATEWAY_TIMEOUTS)['click_window_s']
         self.slots = {row['target_id']: row for row in self.policy['slots']}
 
     def owns(self, target_id): return target_id in self.slots
@@ -223,7 +255,9 @@ class NativeCapsuleAdapter:
             if row['phase'] not in ('READY', 'CLAIMED', 'LAUNCHED') or row['revision'] != params['revision']:
                 raise ProjectionError('No ready durable revision for this exact target revision')
             installed = revision_policy(self.policy, slot['target_id'], row['revision'], row['run_id'])
-        adapter = old.NativeDevelopmentAdapter(self.authority, self.signer, self.client, installed)
+        # Signed only now, after the readiness read: its window starts at the click.
+        adapter = old.NativeDevelopmentAdapter(self.authority, self.signer, self.client, installed,
+                                               assertion_window_s=self.click_window_s)
         return await adapter.execute(headers, params)
 
     def _unavailable(self, slot):
@@ -246,6 +280,8 @@ class NativeCapsuleAdapter:
         for target, row in status.items():
             gate = {'allowed': row['ready'], 'blocker': row['blocker'], 'phase': row['phase']}
             if row['revision'] is not None: gate['revision'] = row['revision']
+            for key in OBSERVATION:  # When and how long ago Root observed this row.
+                if key in row: gate[key] = row[key]
             rows[target] = {'revision': row['revision'], 'run_id': row['run_id'], 'mode': row['mode'], 'run': gate}
         return rows
 
@@ -320,7 +356,189 @@ def _blocker(error):
     return ('Development prerequisites are unavailable: ' + text)[:512]
 
 
-class DurableSlot:
+class CapsuleRevisionEngine(old.RootDevelopmentEngine):
+    """The development engine with the click validated at Root receipt.
+
+    A signed click is valid for its own window from signing
+    (``issued_at <= received < expires_at <= issued_at + window``), checked
+    against the time Root received it, before any lock, readiness refresh or
+    preflight can delay it. Everything else is the installed engine's.
+    """
+    def __init__(self, installed_policy, public_key, journal, preflight, launch, *, clock=time.time,
+                 assertion_window_s=BROKER_TIMEOUTS['click_window_s']):
+        super().__init__(installed_policy, public_key, journal, preflight, launch, clock=clock)
+        self.window = timeouts({'click_window_s': assertion_window_s}, BROKER_TIMEOUTS)['click_window_s']
+
+    def start(self, params, assertion, *, received=None):
+        from jiuwenswarm.research_rsi.signing import verify
+        old.request(params)
+        _fields(assertion, 'schema actor workspace_id origin target_id revision client_request_id issued_at expires_at signer_key_id signature')
+        now = int(self.clock()) if received is None else received
+        if (assertion['schema'] != old.ASSERTION or assertion['actor'] not in self.policy['actors']
+                or any(assertion[key] != self.policy[key] for key in ('workspace_id', 'origin', 'target_id', 'revision'))
+                or any(assertion[key] != params[key] for key in params)
+                or type(assertion['issued_at']) is not int or type(assertion['expires_at']) is not int
+                or not assertion['issued_at'] <= now < assertion['expires_at'] <= assertion['issued_at'] + self.window):
+            raise ProjectionError('Exact current native development assertion required')
+        verify(assertion, self.public_key, self.policy['gateway_key_id'])
+        with self.lock:
+            earlier = self.journal.lookup()
+            identity = {'actor': assertion['actor'], **params}
+            if earlier is not None:
+                if earlier['identity'] == identity and earlier.get('ack') is not None:
+                    return old.acknowledgement(earlier['ack'], params, self.policy['run_id'])
+                raise ProjectionError('Development run already issued; reconcile without replay')
+            self.preflight()
+            self.journal.claim(identity, assertion)
+            owner = self.launch()
+            receipt = self.journal.accept({'schema': 'ai4r-cc-rsi-development-launch:1',
+                **identity, 'run_id': self.policy['run_id'], 'owner': owner,
+                'security_status': 'SECURITY_DEFERRED'})
+            ack = {**params, 'run_id': self.policy['run_id'], 'status': 'ACCEPTED_UNQUALIFIED',
+                   'security_status': 'SECURITY_DEFERRED', 'receipt_ref': receipt}
+            self.journal.acknowledge(ack)
+            return old.acknowledgement(ack, params, self.policy['run_id'])
+
+
+class CachedReadiness:
+    """Root readiness observed off the request path.
+
+    ``refresh`` (the slot's background thread, at ``readiness_refresh_s`` and
+    right after any state transition) runs the full preflight and stores the
+    row with its observation time. ``status`` (the request path) never runs a
+    preflight once the slot is monitored: phases that need no preflight
+    (PREPARING, FAILED, CLAIMED, LAUNCHED) are read directly; READY/BLOCKED
+    come from the cached observation of the same state, with its time and age.
+    An observation older than ``readiness_stale_s`` reports BLOCKED with
+    ``READINESS_STALE``. Unmonitored slots refresh inline, as before.
+    Subclasses provide ``phase_row() -> (row, needs_preflight, signature)``,
+    ``preflight_row(row)`` and ``advance()``.
+    """
+    def init_readiness(self, *, clock, refresh_s, stale_s):
+        limits = timeouts({'readiness_refresh_s': refresh_s, 'readiness_stale_s': stale_s},
+                          {key: BROKER_TIMEOUTS[key] for key in ('readiness_refresh_s', 'readiness_stale_s')})
+        self.readiness_clock = clock
+        self.refresh_s, self.stale_s = limits['readiness_refresh_s'], limits['readiness_stale_s']
+        self.observation = None  # (row, observed_unix_s, signature)
+        self.observation_lock, self.refreshing = threading.Lock(), threading.Lock()
+        self.wake = threading.Event()
+        self.monitored = False
+
+    def advance(self):
+        return None
+
+    def notify(self):
+        """A state transition happened: refresh now rather than at the interval."""
+        self.wake.set()
+
+    def refresh(self):
+        with self.refreshing:
+            try:
+                self.advance()
+            except (ProjectionError, OSError, ValueError, TypeError, KeyError):
+                pass  # Recorded state is unchanged; the next refresh retries.
+            row, needs, signature = self.phase_row()
+            if needs:
+                row = self.preflight_row(row)
+                if self.phase_row()[2] != signature:
+                    self.notify()  # Superseded while checking; observe the new state.
+            observed = int(self.readiness_clock())
+            with self.observation_lock:
+                self.observation = (row, observed, signature)
+            return row
+
+    def due(self):
+        with self.observation_lock:
+            observation = self.observation
+        if observation is None or int(self.readiness_clock()) - observation[1] >= self.refresh_s:
+            return True
+        return self.phase_row()[2] != observation[2]
+
+    def stale_row(self, row, reason):
+        return dict(row, ready=False, phase='BLOCKED', blocker=reason[:1024])
+
+    def status(self):
+        if not self.monitored:
+            self.refresh()
+        row, needs, signature = self.phase_row()
+        now = int(self.readiness_clock())
+        if not needs:
+            return dict(row, observed_unix_s=now, age_s=0)
+        with self.observation_lock:
+            observation = self.observation
+        if observation is None:
+            self.notify()
+            return dict(self.stale_row(row, READINESS_STALE + ': Root has not observed this slot yet'),
+                        observed_unix_s=None, age_s=None)
+        cached, observed, seen = observation
+        age = max(0, now - observed)
+        if age > self.stale_s:
+            self.notify()
+            return dict(self.stale_row(cached, READINESS_STALE + ': last Root observation is %d s old (bound %d s)'
+                                       % (age, self.stale_s)), observed_unix_s=observed, age_s=age)
+        if seen != signature:
+            self.notify()
+            return dict(self.stale_row(row, READINESS_PENDING + ': Root is checking the current revision'),
+                        observed_unix_s=observed, age_s=age)
+        if age >= self.refresh_s:
+            self.notify()
+        return dict(cached, observed_unix_s=observed, age_s=age)
+
+    def monitor(self, *, stop=None, interval=5):
+        """The slot's background thread: advance state and refresh readiness."""
+        self.monitored = True
+        while stop is None or not stop.is_set():
+            try:
+                if self.due():
+                    self.refresh()
+                else:
+                    self.advance_locked()
+            except Exception:
+                pass  # The cached record ages; status reports it stale, never unavailable.
+            self.wake.wait(min(interval, self.refresh_s))
+            self.wake.clear()
+
+    def advance_locked(self):
+        try:
+            self.advance()
+        except (ProjectionError, OSError, ValueError, TypeError, KeyError):
+            pass
+
+
+class StrictSlot(CachedReadiness):
+    """Cached readiness of one finite strict slot (policy v2)."""
+    def __init__(self, engine, *, mode_fields, clock=time.time, readiness_refresh_s=BROKER_TIMEOUTS['readiness_refresh_s'],
+                 readiness_stale_s=BROKER_TIMEOUTS['readiness_stale_s']):
+        self.engine, self.mode_fields = engine, mode_fields
+        self.init_readiness(clock=clock, refresh_s=readiness_refresh_s, stale_s=readiness_stale_s)
+
+    def phase_row(self):
+        policy_ = self.engine.policy
+        claim = self.engine.journal.lookup()
+        row = {key: policy_[key] for key in ('target_id', 'revision', 'run_id')} | self.mode_fields | {
+            'security_status': 'SECURITY_DEFERRED'}
+        if claim is None:
+            return row | {'ready': False, 'phase': 'BLOCKED', 'blocker': 'Development prerequisites are unavailable'}, \
+                True, ('unclaimed',)
+        launched = claim.get('ack') is not None
+        return row | {'ready': False, 'phase': 'LAUNCHED' if launched else 'CLAIMED',
+                      'blocker': 'An issued run cannot replay'}, False, ('launched' if launched else 'claimed',)
+
+    def preflight_row(self, row):
+        try:
+            self.engine.preflight()
+        except (ProjectionError, OSError, ValueError, TypeError, KeyError):
+            return row
+        return dict(row, ready=True, phase='READY', blocker=None)
+
+    def start(self, params, assertion, *, received):
+        try:
+            return self.engine.start(params, assertion, received=received)
+        finally:
+            self.notify()
+
+
+class DurableSlot(CachedReadiness):
     """Root state machine of one durable development slot.
 
     Phases: PREPARING (successor preparation running) -> READY (unclaimed,
@@ -333,23 +551,31 @@ class DurableSlot:
     Collaborators are fixed installed callables, never caller-selected:
     ``journal(run_id)`` (per-revision durable journal), ``preflight(record)``,
     ``launch(record, journal)``, ``prepare(sequence, run_id)`` (the ordinary
-    preparation path; returns the revision's pinned payload) and
-    ``terminal(journal, record)`` (None, or ``{exit_code, reason}``).
+    preparation path; returns the revision's pinned payload),
+    ``terminal(journal, record)`` (None, or ``{exit_code, reason}``) and
+    ``reconcile(sequence, run_id)`` (None once every preparation step
+    container of that revision is proven stopped, else why one still runs).
     """
     def __init__(self, installed_policy, slot, public_key, ledger, *, journal, preflight, launch, prepare,
-                 terminal=None, clock=time.time, launch_margin_s=300, max_consecutive_failures=3, background=True):
+                 terminal=None, reconcile=None, clock=time.time, launch_margin_s=300, max_consecutive_failures=3,
+                 background=True, readiness_refresh_s=BROKER_TIMEOUTS['readiness_refresh_s'],
+                 readiness_stale_s=BROKER_TIMEOUTS['readiness_stale_s'],
+                 click_window_s=BROKER_TIMEOUTS['click_window_s']):
         if mode(slot) != 'durable': raise ProjectionError('Durable slot configuration required')
         self.policy = copy.deepcopy(installed_policy)
         self.target_id, self.slot_id = slot['target_id'], slot['slot_id']
         self.public_key, self.ledger, self.clock = public_key, ledger, clock
         self.journal, self.preflight, self.launch, self.prepare = journal, preflight, launch, prepare
         self.terminal = terminal or self.launcher_exit
+        self.reconcile, self.waiting = reconcile, None
         if type(launch_margin_s) is not int or launch_margin_s < 0 or type(max_consecutive_failures) is not int \
                 or not 1 <= max_consecutive_failures <= 100:
             raise ProjectionError('Finite durable slot limits required')
         self.margin, self.max_failures, self.background = launch_margin_s, max_consecutive_failures, background
+        self.click_window_s = timeouts({'click_window_s': click_window_s}, BROKER_TIMEOUTS)['click_window_s']
         self.lock = threading.RLock()
         self.worker = None
+        self.init_readiness(clock=clock, refresh_s=readiness_refresh_s, stale_s=readiness_stale_s)
 
     @staticmethod
     def launcher_exit(journal, record):
@@ -389,6 +615,7 @@ class DurableSlot:
     def begin(self, sequence):
         run_id = durable_run_id(self.slot_id, sequence)
         self.ledger.append(sequence, 'preparing', {'run_id': run_id, 'started_unix_s': int(self.clock())})
+        self.notify()
 
         def work():
             try:
@@ -398,6 +625,8 @@ class DurableSlot:
                     'message': str(error)[:1024], 'recorded_unix_s': int(self.clock())})
             else:
                 self.ledger.append(sequence, 'prepared', record)
+            finally:
+                self.notify()
         if self.background:
             thread = threading.Thread(target=work, name='durable-slot-prepare-' + run_id, daemon=True)
             self.worker = (sequence, thread)
@@ -408,9 +637,16 @@ class DurableSlot:
     def retire(self, sequence, record, outcome):
         self.ledger.append(sequence, 'retired', {'run_id': record['run_id'], 'revision': record['revision'],
             'recorded_unix_s': int(self.clock()), **outcome})
+        self.notify()
 
     def remaining(self, record):
         return record['expires_unix_s'] - int(self.clock())
+
+    def steps_running(self, sequence, run_id):
+        """Preparation step containers of a stopped revision must be proven
+        stopped (or their terminal state adopted) before a successor starts."""
+        self.waiting = None if self.reconcile is None else self.reconcile(sequence, run_id)
+        return self.waiting is not None
 
     def tick(self):
         """Advance retirement/preparation; never claims, launches or replays."""
@@ -422,14 +658,21 @@ class DurableSlot:
             if 'preparing' in kinds and not {'prepared', 'failed'} & set(kinds):
                 if self.alive(sequence):
                     return None
-                # Interrupted by a broker restart: the consumed preparation
-                # claim is retained and reconciled, never re-entered.
+                # Interrupted by a broker restart: its step container may still
+                # run against the shared Core; wait for (or stop, when overdue)
+                # and adopt it. The consumed preparation claim is retained and
+                # reconciled, never re-entered.
+                if self.steps_running(sequence, kinds['preparing']['run_id']):
+                    return None
                 self.ledger.append(sequence, 'failed', {'run_id': kinds['preparing']['run_id'],
                     'exception_type': 'PreparationInterrupted',
                     'message': 'PREPARATION_INTERRUPTED_RECONCILE_WITHOUT_REPLAY',
                     'recorded_unix_s': int(self.clock())})
+                self.notify()
                 rows = self.ledger.entries(); kinds = rows[sequence]
             if 'failed' in kinds and 'prepared' not in kinds:
+                if self.steps_running(sequence, kinds['failed'].get('run_id') or durable_run_id(self.slot_id, sequence)):
+                    return None
                 if self.failures(rows) < self.max_failures:
                     return self.begin(sequence + 1)
                 return None
@@ -449,6 +692,8 @@ class DurableSlot:
                 return self.begin(sequence + 1)
             return None
 
+    advance = tick
+
     # ---------------------------------------------------------------- status
     def current(self, rows=None):
         sequence, kinds = self.latest(rows)
@@ -461,58 +706,80 @@ class DurableSlot:
             raise ProjectionError('DURABLE_GRANT_HORIZON_INSUFFICIENT: the revision cannot cover a whole run')
         self.preflight(record)
 
-    def status(self):
-        with self.lock:
-            try:
-                self.tick()
-            except (ProjectionError, OSError, ValueError, TypeError, KeyError):
-                pass
-            rows = self.ledger.entries()
-            sequence, kinds = self.latest(rows)
-            row = {'target_id': self.target_id, 'mode': 'durable', 'revision': None, 'run_id': None,
-                   'sequence': None, 'ready': False, 'security_status': 'SECURITY_DEFERRED'}
-            record = self.current(rows)
-            if record is None:
-                if ('failed' in kinds and 'prepared' not in kinds and not self.alive(sequence)
-                        and self.failures(rows) >= self.max_failures):
-                    failure = kinds['failed']
-                    return row | {'phase': 'FAILED', 'blocker': ('Automatic revision preparation failed ('
-                        + str(failure.get('message'))[:300] + '); retained without replay. Root must resume preparation.')}
-                return row | {'phase': 'PREPARING', 'blocker': 'Root is preparing the next development revision'}
-            row.update(revision=record['revision'], run_id=record['run_id'], sequence=record['sequence'])
-            claim = self.journal(record['run_id']).lookup()
-            if claim is not None:
-                if claim.get('ack') is None:
-                    return row | {'phase': 'CLAIMED', 'blocker': 'An issued run cannot replay'}
-                return row | {'phase': 'LAUNCHED', 'blocker': 'Development run in progress; this revision cannot replay'}
-            try:
-                self.checked_preflight(record)
-            except Exception as error:  # Includes fixed preflight subprocess refusals.
-                return row | {'phase': 'BLOCKED', 'blocker': _blocker(error)}
-            return row | {'ready': True, 'phase': 'READY', 'blocker': None}
+    def phase_row(self):
+        """The slot's phase from retained state only (no preflight): the row,
+        whether READY/BLOCKED still needs a preflight, and a state signature."""
+        rows = self.ledger.entries()
+        sequence, kinds = self.latest(rows)
+        row = {'target_id': self.target_id, 'mode': 'durable', 'revision': None, 'run_id': None,
+               'sequence': None, 'ready': False, 'security_status': 'SECURITY_DEFERRED'}
+        signature = (sequence, tuple(sorted(kinds)))
+        record = self.current(rows)
+        if record is None:
+            if ('failed' in kinds and 'prepared' not in kinds and not self.alive(sequence)
+                    and self.failures(rows) >= self.max_failures):
+                failure = kinds['failed']
+                return row | {'phase': 'FAILED', 'blocker': ('Automatic revision preparation failed ('
+                    + str(failure.get('message'))[:300] + '); retained without replay. Root must resume preparation.')}, \
+                    False, signature
+            blocker = 'Root is preparing the next development revision'
+            if self.waiting is not None:
+                blocker = ('Root is waiting for an interrupted preparation step to stop before preparing again ('
+                           + str(self.waiting)[:300] + ')')
+            return row | {'phase': 'PREPARING', 'blocker': blocker}, False, signature
+        row.update(revision=record['revision'], run_id=record['run_id'], sequence=record['sequence'])
+        claim = self.journal(record['run_id']).lookup()
+        if claim is not None:
+            if claim.get('ack') is None:
+                return row | {'phase': 'CLAIMED', 'blocker': 'An issued run cannot replay'}, False, signature + ('claimed',)
+            return row | {'phase': 'LAUNCHED', 'blocker': 'Development run in progress; this revision cannot replay'}, \
+                False, signature + ('launched',)
+        return row | {'phase': 'BLOCKED', 'blocker': 'Root has not checked this revision yet'}, True, \
+            signature + (record['revision'],)
+
+    def preflight_row(self, row):
+        record = self.current()
+        if record is None or record['revision'] != row['revision']:
+            return row
+        try:
+            self.checked_preflight(record)
+        except Exception as error:  # Includes fixed preflight subprocess refusals.
+            return row | {'phase': 'BLOCKED', 'blocker': _blocker(error)}
+        return row | {'ready': True, 'phase': 'READY', 'blocker': None}
+
+    def refresh(self):
+        if not self.monitored:  # Inline (unmonitored): the historical locked status.
+            with self.lock:
+                return CachedReadiness.refresh(self)
+        return CachedReadiness.refresh(self)
 
     def engine(self, record):
         journal = self.journal(record['run_id'])
-        return old.RootDevelopmentEngine(revision_policy(self.policy, self.target_id, record['revision'], record['run_id']),
+        return CapsuleRevisionEngine(revision_policy(self.policy, self.target_id, record['revision'], record['run_id']),
             self.public_key, journal, lambda: self.checked_preflight(record),
-            lambda: self.launch(record, journal), clock=self.clock)
+            lambda: self.launch(record, journal), clock=self.clock, assertion_window_s=self.click_window_s)
 
-    def start(self, params, assertion):
+    def start(self, params, assertion, *, received=None):
+        # The click's own window is checked at receipt, never after a wait.
+        received = int(self.clock()) if received is None else received
         old.request(params)
-        with self.lock:
-            self.tick()
-            rows = self.ledger.entries()
-            record = self.current(rows)
-            if record is not None and params['revision'] == record['revision']:
-                return self.engine(record).start(params, assertion)
-            # A retried delivery of an already accepted click returns its
-            # retained acknowledgement; an unclaimed retired revision never runs.
-            for kinds in rows.values():
-                earlier = kinds.get('prepared')
-                if earlier is not None and earlier['revision'] == params['revision'] \
-                        and self.journal(earlier['run_id']).lookup() is not None:
-                    return self.engine(earlier).start(params, assertion)
-            raise ProjectionError('No ready durable revision for this exact target revision')
+        try:
+            with self.lock:
+                self.tick()
+                rows = self.ledger.entries()
+                record = self.current(rows)
+                if record is not None and params['revision'] == record['revision']:
+                    return self.engine(record).start(params, assertion, received=received)
+                # A retried delivery of an already accepted click returns its
+                # retained acknowledgement; an unclaimed retired revision never runs.
+                for kinds in rows.values():
+                    earlier = kinds.get('prepared')
+                    if earlier is not None and earlier['revision'] == params['revision'] \
+                            and self.journal(earlier['run_id']).lookup() is not None:
+                        return self.engine(earlier).start(params, assertion, received=received)
+                raise ProjectionError('No ready durable revision for this exact target revision')
+        finally:
+            self.notify()
 
     def resume(self):
         """Explicit Root operator resume after FAILED; appends, never resets."""
@@ -521,12 +788,20 @@ class DurableSlot:
             sequence, kinds = self.latest(rows)
             if not ('failed' in kinds and 'prepared' not in kinds and 'resumed' not in kinds):
                 raise ProjectionError('Only a failed durable preparation can be resumed')
-            return self.ledger.append(sequence, 'resumed', {'recorded_unix_s': int(self.clock())})
+            result = self.ledger.append(sequence, 'resumed', {'recorded_unix_s': int(self.clock())})
+            self.notify()
+            return result
 
 
 class RootCapsuleEngine:
-    def __init__(self, installed_policy, public_key, slots):
+    """Every installed slot. Under policy v2 each slot keeps a cached Root
+    readiness record (see ``CachedReadiness``); ``monitor`` starts one
+    background thread per slot so a status request never waits on a
+    preflight. Policy v1 keeps its historical inline status rows."""
+    def __init__(self, installed_policy, public_key, slots, *, limits=None):
         self.policy = copy.deepcopy(policy(installed_policy)); self.lock = threading.RLock()
+        self.limits = timeouts(limits or {}, BROKER_TIMEOUTS)
+        v2 = self.policy['schema'] == POLICY_V2
         self.engines = {}
         for slot in self.policy['slots']:
             item = slots[slot['target_id']]
@@ -536,45 +811,61 @@ class RootCapsuleEngine:
                 self.engines[slot['target_id']] = item
             else:
                 journal, preflight, launch = item
-                self.engines[slot['target_id']] = old.RootDevelopmentEngine(slot_policy(self.policy, slot), public_key,
-                    journal, preflight, launch)
+                engine = CapsuleRevisionEngine(slot_policy(self.policy, slot), public_key, journal, preflight, launch,
+                                               assertion_window_s=self.limits['click_window_s'])
+                self.engines[slot['target_id']] = StrictSlot(engine, mode_fields={'mode': 'strict', 'sequence': None},
+                    readiness_refresh_s=self.limits['readiness_refresh_s'],
+                    readiness_stale_s=self.limits['readiness_stale_s']) if v2 else engine
 
     def status_row(self, target):
         engine = self.engines[target]
-        if isinstance(engine, DurableSlot):
+        if isinstance(engine, CachedReadiness):
             return engine.status()
-        row = engine.status()
-        return row if self.policy['schema'] == POLICY else dict(row, mode='strict', sequence=None)
+        return engine.status()  # Policy v1: the historical closed row.
 
     def handle(self, value):
         if value.get('operation') == 'status':
             _fields(value, 'protocol operation')
             if value['protocol'] != PROTOCOL: raise ProjectionError('Capsule protocol differs')
-            # Durable slots synchronize themselves; one slot's preflight never
-            # holds another slot's start.
+            # Monitored slots answer from their cached Root observation; one
+            # slot's preflight never holds another slot's status or start.
             return {'schema': STATUS if self.policy['schema'] == POLICY else STATUS_V2,
                     'slots': [self.status_row(target) for target in self.engines]}
+        received = int(time.time())
         _fields(value, 'protocol operation params assertion')
         if value['protocol'] != PROTOCOL or value['operation'] != 'start': raise ProjectionError('Capsule protocol differs')
         old.request(value['params'])
         engine = self.engines.get(value['params']['target_id'])
         if engine is None: raise ProjectionError('No installed prepared capsule slot')
         if isinstance(engine, DurableSlot):
-            return engine.start(value['params'], value['assertion'])
+            return engine.start(value['params'], value['assertion'], received=int(engine.clock()))
         with self.lock:
-            return engine.start(value['params'], value['assertion'])
+            return engine.start(value['params'], value['assertion'], received=received)
 
     def tick(self):
         for engine in self.engines.values():
             if isinstance(engine, DurableSlot):
                 engine.tick()
 
+    def monitor(self, *, stop=None, interval=5):
+        """One background readiness/advance thread per cached slot."""
+        threads = []
+        for target, engine in self.engines.items():
+            if isinstance(engine, CachedReadiness):
+                engine.monitored = True
+                thread = threading.Thread(target=engine.monitor, kwargs={'stop': stop, 'interval': interval},
+                                          name='capsule-slot-readiness-' + target, daemon=True)
+                thread.start(); threads.append(thread)
+        return threads
+
 
 def load_native_capsules(authority, workspace_id):
     from .cc_rsi_installation import protected_bytes
     if not os.path.lexists(GATEWAY_CONFIG): return None
     value = json.loads(protected_bytes(GATEWAY_CONFIG, uid=0, mode=0o440))
-    _fields(value, 'schema policy gateway_public_key module_sha256')
+    # Optional ``timeouts``: {exchange_s, click_window_s}; defaults are historical.
+    _fields(value, 'schema policy gateway_public_key module_sha256' + (' timeouts' if 'timeouts' in value else ''))
+    limits = timeouts(value.get('timeouts', {}), GATEWAY_TIMEOUTS)
     if (value['schema'] != 'ai4r-cc-rsi-capsule-gateway:1' or os.geteuid() != 10001 or os.getegid() != 10001
             or value['module_sha256'] != hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
             or policy(value['policy'])['workspace_id'] != workspace_id
@@ -588,4 +879,5 @@ def load_native_capsules(authority, workspace_id):
     signer = Signer(Ed25519PrivateKey.from_private_bytes(secret), value['policy']['gateway_key_id'])
     if base64.urlsafe_b64encode(signer.public_bytes()).decode().rstrip('=') != value['gateway_public_key']:
         raise ProjectionError('Capsule gateway signing key differs')
-    return NativeCapsuleAdapter(authority, signer, InstalledCapsuleClient(), value['policy'])
+    return NativeCapsuleAdapter(authority, signer, InstalledCapsuleClient(timeout_s=limits['exchange_s']), value['policy'],
+                                click_window_s=limits['click_window_s'])

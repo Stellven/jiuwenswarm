@@ -228,6 +228,53 @@ def test_static_walk_covers_imports_and_source_relative_resources(tmp_path):
         require_source_closure(tmp_path, changed, entry_packages=('jiuwenswarm.research',))
 
 
+def test_closure_proof_is_walked_once_per_package_and_a_changed_package_invalidates_it(tmp_path, monkeypatch):
+    import json
+    from jiuwenswarm.research_rsi import capsule_doctor as doctor
+    files = {'jiuwenswarm/__init__.py': '', 'jiuwenswarm/research/__init__.py': 'from . import a\n',
+             'jiuwenswarm/research/a.py': 'from .b import value\n', 'jiuwenswarm/research/b.py': 'value = 1\n'}
+    pins = mini(tmp_path, files)
+    entry = tmp_path / 'composition.py'; entry.write_text('import jiuwenswarm.research\n')
+    walks = []
+    real = doctor.source_closure
+    monkeypatch.setattr(doctor, 'source_closure', lambda *a, **k: walks.append(1) or real(*a, **k))
+    prove = lambda pins_: doctor.proven_source_closure(tmp_path, pins_, entry_files=[entry],
+                                                       entry_packages=('jiuwenswarm.research',))
+    # Without Root's proof directory every preflight walks, exactly as before.
+    prove(pins); prove(pins)
+    assert len(walks) == 2 and not (tmp_path / doctor.PROOF_DIRECTORY).exists()
+    directory = doctor.create_proof_directory(tmp_path)
+    first = prove(pins)
+    assert len(walks) == 3 and first['complete'] and len(list(directory.glob('*.json'))) == 1
+    proof = json.loads(next(directory.glob('*.json')).read_text())
+    assert proof['key']['walker_sha256'] == doctor.walker_sha256() and proof['key']['pins_sha256'] == doctor.digest(
+        doctor._canonical(pins))
+    assert prove(pins) == first and prove(pins) == first and len(walks) == 3  # Reused after re-verifying the pins.
+    # Changed bytes under unchanged pins: the proof is not reused, the walk refuses.
+    (tmp_path / 'jiuwenswarm/research/b.py').write_text('value = 2\n')
+    assert doctor.read_closure_proof(tmp_path, pins, proof['key']) is None
+    with pytest.raises(ValueError, match='SOURCE_PIN_DIFFERS'):
+        prove(pins)
+    # A changed package (new pins) gets its own key: one new walk, then reuse.
+    changed = dict(pins, **{'jiuwenswarm/research/b.py': doctor.digest(b'value = 2\n')})
+    walked = len(walks); prove(changed); prove(changed)
+    assert len(walks) == walked + 1 and len(list(directory.glob('*.json'))) == 2
+    # An extra unpinned file or a changed entry program is never covered by a proof.
+    (tmp_path / 'jiuwenswarm/research/extra.py').write_text('')
+    walked = len(walks); prove(changed)
+    assert len(walks) == walked + 1
+    (tmp_path / 'jiuwenswarm/research/extra.py').unlink()
+    entry.write_text('import jiuwenswarm.research.a\n')
+    walked = len(walks); prove(changed)
+    assert len(walks) == walked + 1
+    # An incomplete package is refused with its exact path and never persisted.
+    count = len(list(directory.glob('*.json')))
+    incomplete = {k: v for k, v in changed.items() if k != 'jiuwenswarm/research/b.py'}
+    with pytest.raises(ValueError, match='SOURCE_CLOSURE_INCOMPLETE: missing jiuwenswarm/research/b.py'):
+        prove(incomplete)
+    assert len(list(directory.glob('*.json'))) == count
+
+
 # --- Worker-identity traversal -----------------------------------------------
 
 def test_static_traversal_reports_first_blocking_component():

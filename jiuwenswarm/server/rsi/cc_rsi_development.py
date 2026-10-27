@@ -30,6 +30,13 @@ GATEWAY_CONFIG = '/etc/ai4r/cc-rsi-development-gateway.json'
 GATEWAY_KEY = '/etc/ai4r/cc-rsi-development-gateway.key'
 PUBLICATION = '/run/ai4r-rsi-ui/publication.json'
 MAX_FRAME = 16384
+ASSERTION_WINDOW_S = 30  # Default validity of a signed click, from signing.
+
+
+def window(value):
+    if type(value) is not int or not 1 <= value <= 3600:
+        raise ProjectionError('Finite native click window required')
+    return value
 
 
 def encoded(value):
@@ -106,8 +113,10 @@ class InstalledDevelopmentClient:
 
 
 class NativeDevelopmentAdapter:
-    def __init__(self, authority, signer, client, installed_policy, *, projection=None, clock=time.time):
+    def __init__(self, authority, signer, client, installed_policy, *, projection=None, clock=time.time,
+                 assertion_window_s=ASSERTION_WINDOW_S):
         self.policy = copy.deepcopy(policy(installed_policy))
+        self.window = window(assertion_window_s)
         if self.policy['origin'] != authority.origin: raise ProjectionError('Native development origin differs')
         self.authority, self.signer, self.client, self.clock = authority, signer, client, clock
         self.projection = projection or CcRsiProjection(PUBLICATION, workspace_id=self.policy['workspace_id'])
@@ -128,7 +137,7 @@ class NativeDevelopmentAdapter:
         now = int(self.clock())
         assertion = self.signer.sign({'schema': ASSERTION, 'actor': principal.account_id,
             'workspace_id': self.policy['workspace_id'], 'origin': self.policy['origin'],
-            **params, 'issued_at': now, 'expires_at': now + 30})
+            **params, 'issued_at': now, 'expires_at': now + self.window})
         result = await asyncio.to_thread(self.client.start, params, assertion)
         return acknowledgement(result, params, self.policy['run_id'])
 
@@ -168,9 +177,11 @@ class RootDevelopmentEngine:
     preflight reobserves the reviewed plan without effects. journal.claim is
     durable before launch; a crash thereafter is an issued, non-replayable run.
     """
-    def __init__(self, installed_policy, public_key, journal, preflight, launch, *, clock=time.time):
+    def __init__(self, installed_policy, public_key, journal, preflight, launch, *, clock=time.time,
+                 assertion_window_s=ASSERTION_WINDOW_S):
         self.policy, self.public_key = copy.deepcopy(policy(installed_policy)), public_key
         self.journal, self.preflight, self.launch, self.clock = journal, preflight, launch, clock
+        self.window = window(assertion_window_s)
         self.lock = threading.RLock()
 
     def status(self):
@@ -193,7 +204,7 @@ class RootDevelopmentEngine:
                 or any(assertion[key] != self.policy[key] for key in ('workspace_id', 'origin', 'target_id', 'revision'))
                 or any(assertion[key] != params[key] for key in params)
                 or type(assertion['issued_at']) is not int or type(assertion['expires_at']) is not int
-                or not assertion['issued_at'] <= now < assertion['expires_at'] <= assertion['issued_at'] + 30):
+                or not assertion['issued_at'] <= now < assertion['expires_at'] <= assertion['issued_at'] + self.window):
             raise ProjectionError('Exact current native development assertion required')
         verify(assertion, self.public_key, self.policy['gateway_key_id'])
         with self.lock:

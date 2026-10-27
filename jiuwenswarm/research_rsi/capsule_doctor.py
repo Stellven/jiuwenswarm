@@ -497,6 +497,169 @@ def require_source_closure(source_root, pins, *, entry_files=(), entry_modules=(
 
 
 # ---------------------------------------------------------------------------
+# Persisted closure proof. The derived closure is a pure function of the
+# pinned inventory and bytes, the entry programs and this walker's own source,
+# so it is computed once per installed package and reused by every later
+# preflight after re-verifying those pins (no re-walk). The proof directory is
+# created by Root preparation (``create_proof_directory``); without it every
+# caller walks exactly as before. A changed package has a different key.
+# ---------------------------------------------------------------------------
+
+PROOF_SCHEMA = 'ai4r-rsi-source-closure-proof:1'
+PROOF_DIRECTORY = '.ai4r-source-closure'
+MAX_PROOF_BYTES = 1024 * 1024
+
+
+def _canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode('utf8')
+
+
+def walker_sha256():
+    """Digest of the closure walker's own source bytes (this module)."""
+    return digest(Path(__file__).read_bytes())
+
+
+def closure_proof_key(pins, *, entry_files=(), entry_modules=(), entry_packages=CONTROLLER_ENTRY_PACKAGES):
+    entries = sorted([str(Path(path)), digest(Path(path).read_bytes())] for path in entry_files)
+    return {'schema': PROOF_SCHEMA, 'walker_sha256': walker_sha256(),
+            'pins_sha256': digest(_canonical(pins)), 'entry_files': entries,
+            'entry_modules': list(entry_modules), 'entry_packages': list(entry_packages)}
+
+
+def _proof_owner(source_root):
+    meta = Path(source_root).lstat()
+    need(stat.S_ISDIR(meta.st_mode) and not stat.S_ISLNK(meta.st_mode), 'SOURCE_ROOT_DIRECTORY_REQUIRED')
+    return meta.st_uid
+
+
+def _proof_directory(source_root):
+    """The package's proof directory when it exists with the package owner's
+    custody (no symlink, no group/other write); otherwise None."""
+    directory = Path(source_root) / PROOF_DIRECTORY
+    try:
+        meta = directory.lstat()
+    except FileNotFoundError:
+        return None
+    if (not stat.S_ISDIR(meta.st_mode) or meta.st_uid != _proof_owner(source_root) or meta.st_mode & 0o022):
+        return None
+    return directory
+
+
+def create_proof_directory(source_root):
+    """Root preparation opts an installed package into persisted proofs."""
+    directory = Path(source_root) / PROOF_DIRECTORY
+    if not os.path.lexists(directory) and os.geteuid() == _proof_owner(source_root):
+        try:
+            directory.mkdir(mode=0o755)
+            os.chmod(directory, 0o755)
+        except FileExistsError:
+            pass
+    return _proof_directory(source_root)
+
+
+def inventory_sha256(source_root, pins):
+    """Digest of the actual ``jiuwenswarm/`` inventory when it equals the
+    pins exactly (names and bytes); None when anything differs."""
+    root = Path(source_root)
+    actual = {}
+    for path in sorted((root / PACKAGE).rglob('*')):
+        if path.is_symlink():
+            return None
+        if path.is_file():
+            name = path.relative_to(root).as_posix()
+            if name not in pins:
+                return None
+            actual[name] = digest(path.read_bytes())
+    if actual != pins:
+        return None
+    return digest(_canonical(sorted(actual.items())))
+
+
+def read_closure_proof(source_root, pins, key):
+    """The stored closure for exactly this key, after re-verifying the pins."""
+    directory = _proof_directory(source_root)
+    if directory is None:
+        return None
+    path = directory / (digest(_canonical(key)) + '.json')
+    try:
+        meta = path.lstat()
+    except FileNotFoundError:
+        return None
+    if (not stat.S_ISREG(meta.st_mode) or meta.st_uid != _proof_owner(source_root) or meta.st_mode & 0o022
+            or meta.st_nlink != 1 or meta.st_size > MAX_PROOF_BYTES):
+        return None
+    try:
+        proof = json.loads(path.read_bytes())
+    except ValueError:
+        return None
+    if (not isinstance(proof, dict) or proof.get('schema') != PROOF_SCHEMA or proof.get('key') != key
+            or not isinstance(proof.get('result'), dict) or proof['result'].get('complete') is not True
+            or proof['result'].get('schema') != CLOSURE_SCHEMA):
+        return None
+    if inventory_sha256(source_root, pins) != proof.get('inventory_sha256'):
+        return None
+    return proof['result']
+
+
+def write_closure_proof(source_root, key, inventory, result):
+    directory = _proof_directory(source_root)
+    if directory is None or inventory is None or os.geteuid() != _proof_owner(source_root):
+        return None
+    raw = _canonical({'schema': PROOF_SCHEMA, 'key': key, 'inventory_sha256': inventory, 'result': result})
+    path = directory / (digest(_canonical(key)) + '.json')
+    pending = directory / ('.pending-%d-%d' % (os.getpid(), id(raw)))
+    try:
+        fd = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(raw); stream.flush(); os.fchmod(stream.fileno(), 0o444); os.fsync(stream.fileno())
+        os.replace(pending, path)  # Replaces only an unusable proof of the same key.
+        handle = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+        try: os.fsync(handle)
+        finally: os.close(handle)
+    except OSError:  # Read-only mounts (doctor/worker) only reuse proofs.
+        try: os.unlink(pending)
+        except OSError: pass
+        return None
+    return path
+
+
+def proven_source_closure(source_root, pins, *, entry_files=(), entry_modules=(),
+                          entry_packages=CONTROLLER_ENTRY_PACKAGES):
+    """``require_source_closure`` with its result persisted once per package.
+
+    A proof is reused only when its key (walker source, pins digest, entry
+    program bytes, entry roots) matches and the actual package inventory and
+    bytes equal the pins; otherwise the closure is re-walked with the exact
+    same refusals, and persisted when the proof directory is writable.
+    """
+    need(isinstance(pins, dict) and pins, 'PINNED_SOURCE_CLOSURE_REQUIRED')
+    key = closure_proof_key(pins, entry_files=entry_files, entry_modules=entry_modules, entry_packages=entry_packages)
+    stored = read_closure_proof(source_root, pins, key)
+    if stored is not None:
+        return stored
+    lock = None
+    directory = _proof_directory(source_root)
+    try:
+        if directory is not None and os.geteuid() == _proof_owner(source_root):
+            try:
+                import fcntl
+                lock = os.open(directory / '.lock', os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+                fcntl.flock(lock, fcntl.LOCK_EX)  # One walk per package; waiters reuse it.
+            except OSError:
+                pass
+            stored = read_closure_proof(source_root, pins, key)
+            if stored is not None:
+                return stored
+        result = require_source_closure(source_root, pins, entry_files=entry_files, entry_modules=entry_modules,
+                                        entry_packages=entry_packages)
+        write_closure_proof(source_root, key, inventory_sha256(source_root, pins), result)
+        return result
+    finally:
+        if lock is not None:
+            os.close(lock)
+
+
+# ---------------------------------------------------------------------------
 # Worker-identity traversal. Stand-alone (stdlib only) like the closure walk:
 # the Root launcher runs it before accepting a run; the evaluator reuses it.
 # ---------------------------------------------------------------------------
@@ -797,7 +960,7 @@ def doctor(value, helper, scratch_root, *, scope_sha256):
         # Derived whole-package closure of every controller/evaluator module
         # (and the frozen composition) before composing: an incomplete
         # package fails here with its exact missing path, never mid-run.
-        closure = require_source_closure(value['source_root'], value['source_pins'],
+        closure = proven_source_closure(value['source_root'], value['source_pins'],
             entry_files=[value['composition_path']])
         result['source_closure'] = {key: closure[key] for key in (
             'schema', 'complete', 'module_count', 'resource_count', 'modules_sha256', 'entry_packages')}
