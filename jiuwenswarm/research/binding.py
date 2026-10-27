@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 
 from .contracts import ResearchError, validate
+from .run_input_types import supplied_type
 from .capability_planning import is_capability_policy, layout_issues as capability_layout_issues
 from .summary_planning import (PAPER_CC_VERSION, PAPER_PLANNER_VERSION, PAPER_DELIVERY_CC, PAPER_PLANNER_CC, is_document_summary_policy,
                                summary_layout_issues, validate_summary_documents)
@@ -137,6 +138,16 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
                     allowed={'brief','search_scope',*resource_map}
                     if finite_context is not None:allowed.update(finite_context.input_refs())
                     if key not in allowed or future is not None:fail('dependency_closure',f'{nid}: unknown accepted input key')
+                    elif own is not None:
+                        # The captured type of the supplied bytes must equal the consumer port; the planner's own
+                        # copy of the consumer type proves nothing. Untyped data fails closed, except qualified
+                        # finite inputs, whose exact refs the finite context already pins.
+                        supplied=supplied_type(key,resource_map)
+                        if supplied is None:
+                            if finite_context is None or key not in finite_context.input_refs():
+                                fail('port_type_compatibility',f'{nid}: supplied input {key} has no captured artifact type')
+                        elif supplied[0]!=own['artifact_type'] or (supplied[1] is not None and supplied[1]!=own['schema_ref']):
+                            fail('port_type_compatibility',f'{nid}: supplied input {key} is {supplied[0]}, not the {own["artifact_type"]} that port {port["name"]} consumes')
                 elif kind=='host_record':
                     if key not in HOST_KEYS or future is not None:fail('dependency_closure',f'{nid}: unknown host input key')
                     if key!=port['artifact_type']:fail('port_type_compatibility',f'{nid}: host record type differs')

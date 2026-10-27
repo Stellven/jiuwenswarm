@@ -12,6 +12,7 @@ from jiuwenswarm.research.contracts import ResearchError
 from jiuwenswarm.research.planner_catalog import capture_catalog, verify_captured_catalog
 from jiuwenswarm.research.state import SQLiteRunStore
 from jiuwenswarm.research.runner import CapsuleArtifacts
+from jiuwenswarm.research.run_input_types import typed_resource
 from jiuwenswarm.research.unified_planning import integrated_plan_policy, legacy_integrated_plan_policy
 from tests.unit_tests.research.test_budget_ceiling import installed_library
 from tests.unit_tests.research.test_capability_extensions import graph
@@ -44,6 +45,7 @@ def test_scientific_graph_can_include_an_additional_admitted_capsule():
     brief = json.loads((FIXTURES / 'lifecycle_research_brief.json').read_text())
     library = json.loads((FIXTURES / 'library_snapshot.json').read_text())
     resources = json.loads((FIXTURES / 'resource_inventory.json').read_text())
+    resources['resources'] = [typed_resource(row) for row in resources['resources']]
     extra = copy.deepcopy(source['nodes'][0])
     extra.update(node_id='support', cc=dict(extra['cc'], cc_name='utility.support'),
         objective='Supporting artifact for the research deliverable')

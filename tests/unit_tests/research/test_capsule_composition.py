@@ -158,7 +158,7 @@ async def test_admitted_adapter_and_report_capsules_compose_through_frozen_gated
         summary_ref = store.put_blob(json_bytes(paper_summary()), media_type='application/json')
         resources = json.loads(Path('tests/fixtures/research/planning/resource_inventory.json').read_text('utf-8'))
         resources['resources'] = [{'resource_key': 'paper_summary_source', 'kind': 'file', 'available': True,
-            'quantity': None, 'ref': summary_ref}]
+            'quantity': None, 'ref': summary_ref, 'artifact_type': 'paper_summary', 'schema_ref': 'urn:ai4r:paper-summary:1.0.0'}]
         resources_ref = store.put_record('resource-inventory', resources)
         snapshot_ref = library.snapshot()
         policy_ref = store.put_record('plan-policy', capability_plan_policy())
@@ -275,11 +275,14 @@ async def test_admitted_adapter_and_report_capsules_compose_through_frozen_gated
         packet_ref = store.put_blob(json_bytes(work_packet), media_type='application/json')
         utility_resources = json.loads(Path('tests/fixtures/research/planning/resource_inventory.json').read_text('utf-8'))
         utility_resources['resources'] = [{'resource_key': 'packet_source', 'kind': 'file', 'available': True,
-            'quantity': None, 'ref': packet_ref}]
+            'quantity': None, 'ref': packet_ref, 'artifact_type': 'work_packet', 'schema_ref': 'urn:ai4r:work-packet:1.0.0'}]
         utility_resources_ref = store.put_record('resource-inventory', utility_resources)
         utility_entries = {entry['cc_name']: entry for entry in store.read_record(snapshot_ref)['entries']}
         utility_names = ['utility.table_normalize', 'utility.calculate', 'utility.markdown_report']
         utility_nodes = []
+        # Parsing is part of the typed chain: only the table step makes a table_packet.
+        input_types = ['work_packet', 'table_packet', 'work_packet']
+        output_types = ['table_packet', 'work_packet', 'work_packet']
         for index, name in enumerate(utility_names):
             node_id = ['normalize', 'calculate', 'markdown'][index]
             entry = utility_entries[name]
@@ -289,12 +292,12 @@ async def test_admitted_adapter_and_report_capsules_compose_through_frozen_gated
                 requirement_ids=[item['id'] for item in brief['mandatory_requirements']],
                 deliverable_ids=[item['id'] for item in brief['deliverables']] if index == 2 else [],
                 predecessors=[] if index == 0 else [['normalize'], ['calculate']][index - 1],
-                inputs=[{'name': 'packet', 'artifact_type': 'work_packet', 'required': True,
+                inputs=[{'name': 'packet', 'artifact_type': input_types[index], 'required': True,
                     'source_kind': 'accepted_ref' if index == 0 else 'future_output',
                     'run_input_key': 'packet_source' if index == 0 else None, 'accepted_ref': None,
                     'future': None if index == 0 else {'producer_node': ['normalize', 'calculate'][index - 1],
-                        'port': 'result', 'artifact_type': 'work_packet'}}],
-                outputs=[{'name': 'result', 'artifact_type': 'work_packet', 'required': True}],
+                        'port': 'result', 'artifact_type': input_types[index]}}],
+                outputs=[{'name': 'result', 'artifact_type': output_types[index], 'required': True}],
                 limits={'time_s': 90, 'model_calls': 1, 'memory_mb': 256}, suggested_checks=[])
             utility_nodes.append(template_node)
         utility_source = expand_selectors(static, brief)

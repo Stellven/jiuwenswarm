@@ -51,3 +51,11 @@ Release `m1-3` (module `calculate_v3`) carries the clear shape error and the
 128-digit bounds. The `m1-2` release keeps its exact bytes and manifest under
 `capsule_extensions/history/v2/`; `m1-3` is a new candidate that needs its own
 qualification, admission and activation before live use.
+
+## Port types (m1-4)
+
+From `m1-4` the `packet` input is typed `table_packet`, not `work_packet`. Only a
+table produced by `utility.table_normalize` `m1-3` (or any producer that declares
+`table_packet`) can feed it. A raw file packet, or a summary converted to a packet,
+fails the plan at port type compatibility instead of crashing the worker. The
+worker and checks are the `m1-3` ones; only the declared input type changed.

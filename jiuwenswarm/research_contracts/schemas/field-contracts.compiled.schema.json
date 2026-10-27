@@ -6560,6 +6560,13 @@
               "$ref": "#/$defs/Ref"
             }
           ]
+        },
+        "artifact_type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,31}$"
+        },
+        "schema_ref": {
+          "type": "string"
         }
       },
       "required": [

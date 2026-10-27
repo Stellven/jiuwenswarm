@@ -18,3 +18,11 @@ Merge after [the foundation](capability-dag.md); qualify, admit and activate
 `utility.table_normalize` explicitly. It has no dependency on other optional
 capsule branches. Local tests cover quoted CSV, JSON ordering/types, corruption,
 malformed rows, duplicate keys, nonfinite values and low-trust preservation.
+
+## Port types (m1-3)
+
+From `m1-3` the result port is typed `table_packet` (same packet schema). The input
+stays `work_packet`, because it carries the raw file. A consumer that needs a parsed
+table, such as `utility.calculate` `m1-4`, declares `table_packet`, so the binder
+rejects a plan that sends an unparsed file straight to it. Earlier releases keep
+their declared types and stay pinned in `history/v2`.

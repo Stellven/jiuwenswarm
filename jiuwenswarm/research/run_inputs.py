@@ -7,6 +7,7 @@ import json
 from dataclasses import dataclass
 
 from .contracts import ResearchError,validate
+from .run_input_types import typed_resource
 from .state import json_bytes
 
 BUFFER_FIELDS={'schema','id','run_id','account_id','workspace_id','intake_ref','source_refs'}
@@ -83,15 +84,16 @@ def _inventory(store,base_ref,intake,buffer_ref):
     keys=[item['resource_key'] for item in base['resources']]
     require(len(keys)==len(set(keys)),'Prepared resource inventory is ambiguous')
     replacements={
-        'original_request':{'resource_key':'original_request','kind':'file','available':True,'quantity':None,'ref':intake['request_ref']},
-        'local_document_buffer':{'resource_key':'local_document_buffer','kind':'dataset','available':True,
-            'quantity':len(intake['source_refs']),'ref':buffer_ref}}
+        'original_request':typed_resource({'resource_key':'original_request','kind':'file','available':True,'quantity':None,'ref':intake['request_ref']}),
+        'local_document_buffer':typed_resource({'resource_key':'local_document_buffer','kind':'dataset','available':True,
+            'quantity':len(intake['source_refs']),'ref':buffer_ref})}
     result=copy.deepcopy(base)
     for index,item in enumerate(result['resources']):
         key=item['resource_key']
         if key in replacements:
             require(item['kind'] in {'file','dataset'},'Reserved request/document alias names an incompatible physical/host resource')
             result['resources'][index]=replacements.pop(key)
+        else:result['resources'][index]=typed_resource(item)
     result['resources'].extend(replacements.values())
     result['id']='run_inputs_'+hashlib.sha256(json_bytes([base_ref,intake['request_ref'],buffer_ref])).hexdigest()[:40]
     validate('resource-inventory',result)
