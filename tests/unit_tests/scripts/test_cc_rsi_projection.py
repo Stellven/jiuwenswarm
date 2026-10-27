@@ -68,6 +68,20 @@ def test_publication_cannot_grant_root_or_run_authority():
     with pytest.raises(projection.ProjectionError): service.run_start({'target_id': 'unit-target'})
 
 
+@pytest.mark.parametrize('phase', ['READY', 'PREPARING', 'LAUNCHED'])
+def test_published_gate_never_carries_a_root_slot_phase(phase):
+    # Slot phases (READY/BLOCKED/CLAIMED/LAUNCHED/PREPARING/FAILED) come only
+    # from Root readiness overlaid at request time; a publication is data and
+    # can never assert one, whatever revision it carries.
+    value = unit_publication()
+    value['snapshot']['targets'][0]['run'] = {'allowed': False, 'blocker': 'Root readiness required', 'phase': phase}
+    with pytest.raises(projection.ProjectionError):
+        projection.validate_publication(value)
+    value['snapshot']['targets'][0]['run'] = {'allowed': False, 'blocker': None, 'revision': 'a' * 64, 'phase': phase}
+    with pytest.raises(projection.ProjectionError):
+        projection.validate_publication(value)
+
+
 def test_missing_publication_is_explicitly_blocked_without_synthetic_records():
     view = projection.CcRsiProjection().snapshot({})
     assert view['availability'] == 'BLOCKED'

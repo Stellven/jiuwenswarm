@@ -127,9 +127,34 @@ def package_preflight(value, cfg):
             'worker_traversal': traversal['mode'], 'dispatcher': evaluator.get('dispatcher', 'v18-bwrap')}
 
 
+LOOP_GRANT = 'ai4r-rsi-whole-capsule-development-grant:3'
+LEGACY_WAIT_S = 3700
+
+
+def run_deadline_s(cfg):
+    """Whole-run ceiling of a loop session: its hard session timeout
+    (``wall_s + 2 * per_call_s + 60``, as ``run_session`` enforces) plus the
+    launcher's own start/inspect/publication slack. Legacy sessions keep the
+    historical fixed wait."""
+    session = cfg['session']
+    if not isinstance(session.get('loop'), dict):
+        return LEGACY_WAIT_S
+    wall = min(session['grant']['limits']['wall_s'], session['loop'].get('wall_s', 3600))
+    per_call = min(session['loop'].get('per_call_s', 120), wall)
+    return wall + 2 * per_call + 60 + 120
+
+
+def grant_ready(grant, cfg, now):
+    """A v3 (loop) grant must cover the whole run: it never expires mid-run.
+    Finite v2 grants keep their historical single check."""
+    need(type(grant['expires_unix_s']) is int and grant['expires_unix_s'] > now, 'CAPSULE_GRANT_EXPIRED')
+    if grant['schema'] == LOOP_GRANT:
+        need(grant['expires_unix_s'] - now >= run_deadline_s(cfg), 'CAPSULE_GRANT_HORIZON_BELOW_ONE_RUN')
+
+
 def preflight(value, cfg):
     grant = cfg['session']['grant']
-    need(type(grant['expires_unix_s']) is int and grant['expires_unix_s'] > time.time(), 'CAPSULE_GRANT_EXPIRED')
+    grant_ready(grant, cfg, time.time())
     need(not Path(cfg['claim_path']).exists(), 'CAPSULE_ALREADY_CLAIMED_NO_REPLAY')
     package = package_preflight(value, cfg)
     need(not docker(value, 'ps','-q').strip(), 'OWNED_RUNTIME_NOT_IDLE')
@@ -189,7 +214,7 @@ def run(value, cfg):
     cid = docker(value,*argv).decode().strip()
     need(len(cid) == 64 and all(c in '0123456789abcdef' for c in cid), 'EXACT_WORKER_CID_REQUIRED')
     exclusive(control/'run-container.json',{'id':value['id'],'cid':cid,'image':IMAGE})
-    docker(value,'start',cid); deadline = time.monotonic()+3700
+    docker(value,'start',cid); deadline = time.monotonic()+run_deadline_s(cfg)
     while True:
         info = json.loads(docker(value,'inspect',cid))[0]
         need(info['Id'] == cid and info['Image'] == IMAGE, 'WORKER_IDENTITY_DIFFERS')
@@ -201,23 +226,46 @@ def run(value, cfg):
         'inspection_sha256':sha(encoded(info)),'stdout_sha256':sha(output)})
     fd = os.open(control/'run-stdout.log',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
     with os.fdopen(fd,'wb') as stream: stream.write(output); stream.flush(); os.fsync(stream.fileno())
-    # Failed sessions may still contain a candidate and actual failed evidence.
-    # Publisher validates evidence; never re-execute to repair publication.
-    if Path(cfg['result_path']).is_file():
-        # The frozen host package deliberately lacks the new capsule modules.
-        # Re-establish the exact Root-pinned overlay in this process; the prior
-        # metadata preflight ran in a separate subprocess. Do not preflight an
-        # already consumed claim or recompose model resources for publication.
-        runner_spec = importlib.util.spec_from_file_location('capsule_publication_source_loader', pinned(value['runner']))
-        runner = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(runner)
-        need(sha(pinned(value['configuration']).read_bytes()) == value['configuration']['sha256'], 'COMPLETED_CONFIGURATION_DIFFERS')
-        runner.load_sources(cfg)
-        spec = importlib.util.spec_from_file_location('capsule_actual_publication',pinned(value['publisher']))
-        publisher = importlib.util.module_from_spec(spec); spec.loader.exec_module(publisher)
-        result = publisher.publish_completed(pinned(value['publication_template']))
-        exclusive(control/'publication-receipt.json',result)
+    # Every terminal state is published from retained evidence: a session or
+    # controller-terminal result, or (no result at all) the stopped worker's
+    # own exit. Never re-execute to repair publication; a publication failure
+    # is retained beside the run evidence for a later reconcile.
+    publication_failed = publish_terminal(value, cfg, control)
     need(info['State']['ExitCode'] == 0,'ACTUAL_WORKER_FAILED_NO_REPLAY')
+    need(not publication_failed, 'PUBLICATION_FAILED_RECONCILE_FROM_RETAINED_EVIDENCE')
     return {'id':value['id'],'status':'COMPLETED_UNQUALIFIED','cid':cid,'security_status':'SECURITY_DEFERRED'}
+
+
+def publish_terminal(value, cfg, control, *, load_publisher=None):
+    """Publish the known stopped worker's terminal state; True if it failed."""
+    try:
+        publisher = (load_publisher or pinned_publisher)(value, cfg)
+        template = pinned(value['publication_template'])
+        if Path(cfg['result_path']).is_file():
+            result = publisher.publish_completed(template)
+        else:
+            result = publisher.publish_worker_terminal(template)
+        exclusive(control/'publication-receipt.json', result)
+        return False
+    except Exception as error:
+        exclusive(control/'publication-failure.json', {'schema': 'ai4r-rsi-capsule-publication-failure:1',
+            'id': value['id'], 'exception_type': type(error).__name__, 'message': str(error)[:4096],
+            'reexecuted': False, 'model_calls': 0})
+        return True
+
+
+def pinned_publisher(value, cfg):
+    # The frozen host package deliberately lacks the new capsule modules.
+    # Re-establish the exact Root-pinned overlay in this process; the prior
+    # metadata preflight ran in a separate subprocess. Do not preflight an
+    # already consumed claim or recompose model resources for publication.
+    runner_spec = importlib.util.spec_from_file_location('capsule_publication_source_loader', pinned(value['runner']))
+    runner = importlib.util.module_from_spec(runner_spec); runner_spec.loader.exec_module(runner)
+    need(sha(pinned(value['configuration']).read_bytes()) == value['configuration']['sha256'], 'COMPLETED_CONFIGURATION_DIFFERS')
+    runner.load_sources(cfg)
+    spec = importlib.util.spec_from_file_location('capsule_actual_publication',pinned(value['publisher']))
+    publisher = importlib.util.module_from_spec(spec); spec.loader.exec_module(publisher)
+    return publisher
 
 
 if __name__ == '__main__':

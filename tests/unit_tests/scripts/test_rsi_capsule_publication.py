@@ -264,3 +264,335 @@ def test_startup_failure_plan_joins_actual_zero_job_proofs_and_refuses_tampered_
     failure_path.write_bytes(b'{}')
     with pytest.raises(ValueError,match='ACTUAL_STARTUP_FAILURE_BYTES_DIFFER'):
         pub.startup_failure_plan(input_path)
+
+
+# --------------------------------------------------------------------------
+# Legacy publication bytes are unchanged by the loop publisher.
+# --------------------------------------------------------------------------
+EVIDENCE=Path(__file__).parents[3]/'docs/review/evidence-20261026'
+# sha256(encoded(packet)) of these synthetic legacy scenarios as produced by
+# the pre-loop publisher (rsi-loop commit 69d2921); the loop work must not
+# change a single byte of legacy Screening/R1/R2-shaped publications.
+LEGACY_DIGESTS={
+    'baseline':'93cb4fb23297047778799fc51dae6d5686827f2038908bacda0c09bc888b8c07',
+    'session_error':'cef45c62b3f4a2684efe1049546d0c83967bd842ff6c382f77c9585f97732052',
+    'session_reuse':'cef45c62b3f4a2684efe1049546d0c83967bd842ff6c382f77c9585f97732052',
+    'controller_failure':'1abc5188286222d121fccd894fe2d86346ac7099b394b32f145cd8df33d7b803',
+    'controller_failure_zero':'1879a70e7d1299ccd09756f9c94ff0ad073e88e0f64c679e0e66c61db5b6e948',
+    'merge':'540046136b762775b501ebc7f4efcb79cfbd8e4bc8ad6413cfe54a5bd60a66c3'}
+
+
+def test_legacy_single_attempt_publications_are_byte_identical(baseline):
+    v=baseline;out={}
+    out['baseline']=pub.baseline_packet(v['meta'],v['body'],v['declaration'],v['result'],v['read'])
+    session,result=_session_result(v)
+    out['session_error']=pub.session_packet(v['meta'],session,copy.deepcopy(result),v['read'],v['read'])
+    reuse=copy.deepcopy(result);reuse['parent_visible']=None
+    out['session_reuse']=pub.session_packet(v['meta'],session,reuse,v['read'],v['read'],previous=out['baseline'])
+    failure={'schema':'ai4r-rsi-capsule-controller-failure:1','id':session['id'],
+        'exception_type':'FileNotFoundError','message':'x','status':'ERROR_NO_REPLAY'}
+    out['controller_failure']=pub.controller_failure_packet(v['meta'],session,failure,out['baseline'])
+    out['controller_failure_zero']=pub.controller_failure_packet(v['meta'],session,failure,out['baseline'],model_calls=0)
+    out['merge']=pub.merge_publication(out['baseline'],out['session_error'],'2026-10-26T23:00:00Z')
+    assert {key:pub.sha(encoded(value)) for key,value in out.items()}==LEGACY_DIGESTS
+    assert pub.session_limits(session)==(2,3600)  # Legacy sessions keep the historical two-call budget.
+
+
+def test_legacy_claim_and_no_effect_contracts_match_retained_evidence():
+    plan=json.loads((EVIDENCE/'calculate-r2-interrupted-publication-plan.json').read_text())
+    claim=plan['output']['claim']
+    result_raw=b'retained'
+    built=pub.completed_claim(claim['id'],claim['configuration_sha256'],result_raw)
+    assert set(built)==set(claim) and built['schema']==claim['schema']
+    assert {k:built[k] for k in ('id','configuration_sha256')}=={k:claim[k] for k in ('id','configuration_sha256')}
+    observation=json.loads((EVIDENCE/'calculate-startup-no-effect-observation-r1.json').read_text())
+    assert set(observation)==pub.NO_EFFECT_OBSERVATION_FIELDS
+
+
+# --------------------------------------------------------------------------
+# Iterative loop sessions: every terminal state from retained evidence.
+# --------------------------------------------------------------------------
+LOOP_GRANT='ai4r-rsi-whole-capsule-development-grant:3'
+
+
+@pytest.fixture
+def loop_world():
+    from jiuwenswarm.research_rsi.targets.capsule_executor import grant_fixtures
+    name='utility.calculate'; target=registered_capsule(name); raw={}
+    def put(value):
+        body=value if isinstance(value,bytes) else encoded(value)
+        digest=pub.sha(body); raw[digest]=body
+        return {'id':digest+'.json','sha256':digest}
+    def read(pin): return raw[pin['sha256']]
+    parent=b'# synthetic loop parent, never executed\n'; parent_ref=put(parent)
+    contract=put({'unit_contract':True}); hardware=put({'unit_hardware':True})
+    manifest={'files':[{'path':'source/jiuwenswarm/'+target.carrier_path,'sha256':parent_ref['sha256']}]}
+    manifest_ref=put(manifest)
+    grant={'schema':LOOP_GRANT,'bootstrap_schema':'ai4r-rsi-capsule-bootstrap:2','run_id':'unit-loop-r1','capsule_name':name,
+        'roles':['parent','candidate'],'scope':'public_m1_development_only','runtime_manifest_sha256':manifest_ref['sha256'],
+        'limits':{'timeout_s':20,'wall_s':1200},'worker':{'contract_ref':contract,'hardware_ref':hardware}}
+    grant_ref=put(grant); fixtures=grant_fixtures(grant)
+    def visible(role,body_ref,iteration,trials,*,fail=(),scope='public_m1_development_only'):
+        trial_rows=[]
+        for trial in range(trials):
+            rows=[]
+            for index,fixture in enumerate(fixtures):
+                ident='capsule-'+pub.sha(encoded([grant['run_id'],role,iteration,body_ref['sha256'],trial,fixture['id']]))[:48]
+                input_ref=put({'packet':fixture['packet']});program_ref=put(b'# synthetic worker')
+                start={'schema':'ai4r-rsi-whole-capsule-execution-start:1','job_id':ident,'grant_ref':grant_ref,
+                    'grant_sha256':grant_ref['sha256'],'binding_ref':None,'candidate_ref':body_ref,'role':role,'fixture_id':fixture['id'],
+                    'runtime_manifest_ref':manifest_ref,'runtime_manifest_sha256':manifest_ref['sha256'],'input_ref':input_ref,
+                    'program_ref':program_ref,'test_ref':put(fixture),'bootstrap_schema':grant['bootstrap_schema'],'recorded_unix_ns':1}
+                stdout=b'{"unit":"synthetic output"}';stdout_ref=put(stdout)
+                receipt={'job_id':ident,'invocation_id':ident,'subject_ref':body_ref,'contract_ref':contract,
+                    'hardware_ref':hardware,'identity':{'executor_uid':12003,'executor_gid':12003},
+                    'argv':['/usr/local/bin/python3','-I','-S','/resources/worker.py'],'repeat_index':index,
+                    'sequence':1,'role':'treatment','seed':0,'observed_runtime':True,'stdout_ref':stdout_ref,'stderr_ref':put(b''),
+                    'observed_limits':{'isolation_probe_ref':put({'unit':True}),'admin_output_truncated':False},
+                    'wall_time_s':0.25,'termination_reason':'completed','exit_code':0}
+                ok=fixture['id'] not in fail
+                check={'task_success':True,'capsule_name':name,'checks_sha256':'c'*64,'output_bytes':len(stdout),'checks':[]}
+                if fixture['fixture_set']=='public':
+                    check.update(input_sha256=input_ref['sha256'],output_sha256=stdout_ref['sha256'])
+                row={'schema':'ai4r-rsi-whole-capsule-visible-check:1','start_ref':put(start),'receipt':receipt,
+                    'independent_check':check if ok else {'task_success':False,'checks':[]},'fixture_id':fixture['id'],
+                    'task_success':ok,'group_empty':True,'output_bytes':len(stdout),'protected_wall_s':0.25,'batch_iterations':1,
+                    'bootstrap_schema':grant['bootstrap_schema'],'candidate_ref':body_ref,'input_ref':input_ref,'program_ref':program_ref,
+                    'runtime_manifest_sha256':manifest_ref['sha256'],'checks_sha256':'c'*64,'role':role,'iteration':iteration,
+                    'trial':trial,'check_ref':put({'check':fixture['id']}),'fixture_set':fixture['fixture_set'],
+                    'fixture_group':fixture['fixture_group'],'checks':[]}
+                rows.append(dict(row,evidence_ref=put(row)))
+            trial_rows.append(rows)
+        rows=trial_rows[0];passed=sum(r['task_success'] for r in rows)
+        result={'schema':'ai4r-rsi-whole-capsule-visible-result:2','capsule_name':name,'grant_ref':grant_ref,'binding_ref':None,
+            'runtime_manifest_ref':manifest_ref,'role':role,'iteration':iteration,'subject_sha256':body_ref['sha256'],
+            'executions':sum(len(t) for t in trial_rows),'passed_count':passed,'case_count':len(rows),
+            'held_out_case_count':sum(r['fixture_set']=='held_out' for r in rows),'passed':passed==len(rows),
+            'protected_wall_s':sum(r['protected_wall_s'] for r in rows),
+            'trial_wall_s':[sum(r['protected_wall_s'] for r in t) for t in trial_rows],'rows':rows,'trial_rows':trial_rows[1:],
+            'failure':None if passed==len(rows) else {'exception_type':'IndependentCheckFailed','message':'[x] failed'},
+            'model_calls':0,'security':'UNQUALIFIED','hidden_evaluation':'NOT_RUN','admission_ref':None,'activation_ref':None,'scope':scope}
+        return dict(result,result_ref=put(result))
+    declaration={'identity':{'name':name,'version_label':'unit'}}
+    session={'id':grant['run_id'],'capsule_name':name,'parent_body_ref':parent_ref,'parent_declaration_ref':put(declaration),
+        'grant_ref':grant_ref,'grant':grant,'authorized_component':target.carrier_path,
+        'loop':{'model_backend':{'kind':'fake'},'max_iterations':3,'max_model_calls':6}}
+    parent_raw=visible('parent',parent_ref,0,3)
+    held=[f['id'] for f in fixtures if f['fixture_set']=='held_out']
+    bodies=[b'# synthetic candidate one\n',b'# synthetic candidate two\n']
+    refs=[put(b) for b in bodies]
+    first=visible('candidate',refs[0],1,1); second=visible('candidate',refs[1],2,1,fail=held[:1])
+    def reduced(raw_result): return pub.reviewer_view(raw_result)
+    def iteration(k,ref,raw_result,kept,outcome='kept',calls=2):
+        return {'iteration':k,'candidate_ref':ref,'rationale':'Synthetic rationale %d'%k,
+            'visible':None if raw_result is None else reduced(raw_result),
+            'score':None if raw_result is None else {'correctness':{'parent':1.0,'candidate':raw_result['passed_count']/raw_result['case_count']},
+                'latency_ratio':0.9,'noise_floor_ratio':0.05,'above_noise':True,'improved':kept,'regressed':not kept,
+                'summary':'synthetic score %d'%k,'feedback':'synthetic feedback'},
+            'kept':kept,'outcome':outcome,'reason':'synthetic reason %d'%k,'model_calls':calls,'elapsed_s':1.5,'failure':None}
+    loop={'schema':'ai4r-rsi-capsule-loop:1','max_iterations':3,'completed_iterations':2,'stop_reason':'max_iterations',
+        'stop_detail':None,'model_backend':{'kind':'fake','model':'scripted','pinned_sha256':None},
+        'configuration':{'max_model_calls':6,'wall_s':1200,'max_iterations':3},'model_calls':4,
+        'iterations':[iteration(1,refs[0],first,True),iteration(2,refs[1],second,False,'not_kept')],
+        'best':{'iteration':1,'candidate_ref':refs[0],'score':None},'parent_visible':reduced(parent_raw),
+        'noise':{'method':'capsule_objective.calibrate_noise','trials':3},'limitations':[]}
+    loop['best']['score']=loop['iterations'][0]['score']
+    result={'schema':'ai4r-rsi-capsule-session-result:1','id':session['id'],'capsule_name':name,'security':'UNQUALIFIED',
+        'security_campaigns':'DEFERRED','qualification_ref':None,'package_ref':None,'admission_ref':None,'activation_ref':None,
+        'hidden_evaluation':'NOT_RUN','final_evaluation':'NOT_RUN','session_ref':put(session),'parent_visible':parent_raw,
+        'candidate_visible':first,'candidate_ref':refs[0],'model_calls':4,'status':'VISIBLE_EVALUATED_UNQUALIFIED',
+        'exception_type':None,'rationale':'Synthetic rationale 1','loop':loop}
+    meta={'workspace_id':'local','target_id':name,'target_name':'Calculate','mutable_path':target.carrier_path,
+          'published_at':'2026-10-27T10:00:00Z'}
+    served=parent_raw['executions']+first['executions']+second['executions']
+    return locals()
+
+
+def _loop_packet(w,result,*,issued=None,previous=None,exit_code=0):
+    served=sum(x['executions'] for x in [result['parent_visible'],*[r['visible'] for r in result['loop']['iterations']]] if x is not None)
+    return pub.loop_session_packet(w['meta'],w['session'],result,w['read'],w['read'],previous,served=served,
+        issued=served if issued is None else issued,evaluator={'status':'STOPPED','stop':None,'exit_code':exit_code})
+
+
+def test_loop_success_publishes_every_iteration_candidate_and_score(loop_world):
+    w=loop_world
+    packet=_loop_packet(w,w['result'])
+    nodes={n['id']:n for n in packet['snapshot']['nodes']}
+    base='base:'+w['parent_ref']['sha256']
+    assert nodes[base]['correctness']=='%d/%d checks (%d/%d public, %d/%d held-out)'%(
+        (len(w['fixtures']),)*2+(len(w['fixtures'])-len(w['held']),)*2+(len(w['held']),)*2)
+    one,two=('candidate:unit-loop-r1:'+r['sha256'] for r in w['refs'])
+    assert nodes[one]['evaluation_status']=='passed' and nodes[two]['evaluation_status']=='failed'
+    assert nodes[one]['parent_id']==nodes[two]['parent_id']==base and nodes[two]['run_id']=='unit-loop-r1'
+    assert nodes[two]['correctness'].startswith('%d/%d checks'%(len(w['fixtures'])-1,len(w['fixtures'])))
+    run=packet['snapshot']['runs'][0]
+    assert run['stage']=='Complete' and run['status']=='VISIBLE_EVALUATED_UNQUALIFIED' and run['blockers']==[]
+    assert run['budget']['generation_call_limit']==6 and run['budget']['limit_seconds']==1200  # From the loop config.
+    assert run['budget']['diagnosis_calls']==run['budget']['proposal_calls']==2 and run['budget']['elapsed_seconds']==3.0
+    lineage=run['lineage']
+    assert lineage['parent_node_id']==base and lineage['best_iteration']==1 and lineage['best_node_id']==one
+    assert [r['node_id'] for r in lineage['iterations']]==[one,two]
+    assert lineage['iterations'][1]['failing_cases']==[{'id':w['held'][0],'fixture_set':'held_out'}]
+    assert [c['candidate_code'] for c in packet['candidates'][1:]]==[b.decode() for b in w['bodies']]
+    assert all(n['admit']['allowed'] is n['activate']['allowed'] is False for n in nodes.values())
+    assert w['held'][0] in json.dumps(lineage) and 'packet' not in json.dumps(run)
+    # A later run keeps the published baseline node and every earlier row.
+    merged=pub.merge_publication(packet,packet,'2026-10-27T11:00:00Z')
+    assert len(merged['snapshot']['nodes'])==3 and merged['snapshot']['runs'][0]['lineage']==lineage
+    again=_loop_packet(w,w['result'],previous=merged)
+    assert again['snapshot']['nodes'][0]==merged['snapshot']['nodes'][0]
+
+
+def test_loop_partial_error_publishes_evaluated_iterations_and_unreported_jobs(loop_world):
+    w=loop_world;result=copy.deepcopy(w['result']);loop=result['loop']
+    loop['iterations'][1].update(visible=None,score=None,kept=False,outcome='error',
+        reason='CANDIDATE_EVALUATION_FAILED: ROOT_EVALUATION_FAILED_NO_REPLAY',
+        failure={'exception_type':'ValueError','message':'ROOT_EVALUATION_FAILED_NO_REPLAY'})
+    loop.update(stop_reason='error',stop_detail='CANDIDATE_EVALUATION_FAILED')
+    result.update(exception_type='ValueError')
+    served=w['parent_raw']['executions']+w['first']['executions']
+    packet=_loop_packet(w,result,issued=served+3,exit_code=2)
+    run=packet['snapshot']['runs'][0]
+    assert run['stage']=='Partial' and run['blockers']==['Retained ValueError; this attempt cannot be replayed.']
+    unreported=next(a for a in run['activity'] if a['id'].endswith(':unreported-jobs'))
+    assert unreported['summary'].startswith('3 protected job(s)') and 'evaluator exit 2' in unreported['summary']
+    nodes={n['id']:n for n in packet['snapshot']['nodes']}
+    two='candidate:unit-loop-r1:'+w['refs'][1]['sha256']
+    assert nodes[two]['evaluation_status']=='not_evaluated' and nodes[two]['evidence_refs']==[]
+    assert run['lineage']['stop_reason']=='error' and run['lineage']['iterations'][1]['status']=='not_evaluated'
+    assert next(c for c in packet['candidates'] if c['node_id']==two)['blocker']=='Proposal retained without a completed public evaluation.'
+
+
+def test_loop_interrupted_parent_reuses_published_baseline_without_inventing_results(loop_world):
+    w=loop_world;previous=_loop_packet(w,w['result'])
+    result=copy.deepcopy(w['result']);loop=result['loop']
+    result.update(parent_visible=None,candidate_visible=None,candidate_ref=None,model_calls=0,
+                  status='ERROR_NO_REPLAY',exception_type='ValueError')
+    loop.update(parent_visible=None,iterations=[],completed_iterations=0,best=None,stop_reason='error',model_calls=0)
+    packet=_loop_packet(w,result,issued=len(w['fixtures']),previous=previous)
+    run=packet['snapshot']['runs'][0]
+    assert run['stage']=='Failed' and 'interrupted' in run['activity'][-1]['summary']
+    assert [n['id'] for n in packet['snapshot']['nodes']]==['base:'+w['parent_ref']['sha256']]
+    assert run['budget']['diagnosis_calls']==run['budget']['proposal_calls']==0
+    assert run['lineage']['parent']['status']=='not_evaluated' and run['lineage']['iterations']==[]
+    with pytest.raises(ValueError,match='ORIGINAL_PUBLISHED_BASELINE_REQUIRED'):
+        _loop_packet(w,result,issued=len(w['fixtures']))
+
+
+def test_loop_startup_and_resultless_worker_failures_use_loop_budget(loop_world):
+    w=loop_world;previous=_loop_packet(w,w['result'])
+    failure={'schema':'ai4r-rsi-capsule-controller-failure:1','id':w['session']['id'],
+        'exception_type':'FileNotFoundError','message':'retained','status':'ERROR_NO_REPLAY'}
+    calls,wall=pub.session_limits(w['session'])
+    assert (calls,wall)==(6,1200)
+    packet=pub.controller_failure_packet(w['meta'],w['session'],failure,previous,model_calls=0,call_limit=calls,limit_seconds=wall)
+    assert packet['snapshot']['runs'][0]['budget']['generation_call_limit']==6
+    worker=pub.worker_terminal_packet(w['meta'],w['session'],{'exit_code':137},previous,
+        evaluator_state='no terminal record',call_limit=calls,limit_seconds=wall)
+    run=worker['snapshot']['runs'][0]
+    assert run['stage']=='Failed' and 'Worker exited 137 without a session result' in run['blockers'][0]
+    assert run['budget']['diagnosis_calls'] is None and run['activity'][0]['id'].endswith(':worker-terminal')
+    assert [n['id'] for n in worker['snapshot']['nodes']]==['base:'+w['parent_ref']['sha256']]
+
+
+def test_local_unprotected_or_tampered_results_are_never_published(loop_world):
+    w=loop_world
+    local=w['visible']('candidate',w['refs'][0],1,1,scope='local_unprotected')
+    with pytest.raises(ValueError,match='LOCAL_UNPROTECTED_RESULT_NOT_PUBLISHABLE'):
+        pub.require_protected_scope(local)
+    result=copy.deepcopy(w['result']);result['loop']['iterations'][0]['visible']=pub.reviewer_view(local)
+    with pytest.raises(ValueError,match='LOCAL_UNPROTECTED_RESULT_NOT_PUBLISHABLE'):
+        _loop_packet(w,result)
+    tampered=copy.deepcopy(w['first']);tampered['passed_count']-=1
+    with pytest.raises(ValueError,match='ROOT_RESULT_ORIGINAL_DIFFERS'):
+        pub.visible_summary_v2(tampered,name=w['name'],body_ref=w['refs'][0],read=w['read'])
+    result=copy.deepcopy(w['result']);result['loop']['iterations'][0]['visible']['passed_count']=0
+    with pytest.raises(ValueError,match='SESSION_VIEW_DIFFERS_FROM_ROOT_RESULT'):
+        _loop_packet(w,result)
+    with pytest.raises(ValueError,match='ROOT_GRANT_SCOPE_DIFFERS'):  # A body is joined only to its own result.
+        pub.visible_summary_v2(w['first'],name=w['name'],body_ref=w['refs'][1],read=w['read'])
+
+
+def test_loop_evidence_reconciles_completion_failure_and_start_claims(loop_world,tmp_path,monkeypatch):
+    w=loop_world;monkeypatch.setattr(pub,'protected',lambda path,*a,**k:Path(path))
+    evaluator=tmp_path/'evidence';(evaluator/'claims').mkdir(parents=True);control=tmp_path/'control';control.mkdir()
+    pin={'path':str(tmp_path/'run.json'),'sha256':'f'*64}
+    result_raw=encoded(w['result'])
+    def start_claims(count):
+        for index in range(count):
+            ident='capsule-%048x'%index
+            (evaluator/'claims'/(ident+'.json')).write_bytes(encoded({'schema':'ai4r-rsi-whole-capsule-execution-start:1','job_id':ident}))
+    start_claims(w['served'])
+    (evaluator/'claims'/('0'*64+'.json')).write_bytes(b'{}')  # Evaluation claims are not jobs.
+    completion={'schema':'ai4r-rsi-capsule-evaluator-completion:1','id':w['session']['id'],'configuration_sha256':pin['sha256'],
+        'grant_ref':w['session']['grant_ref'],'status':'STOPPED','stop':'CONTROLLER_CLOSED','executions':w['served'],
+        'plan':{'grant_sha256':w['session']['grant_ref']['sha256']},
+        'evaluations':[{'role':'parent','executions':w['parent_raw']['executions']},{'role':'candidate','executions':w['first']['executions']},
+                       {'role':'candidate','executions':w['second']['executions']}]}
+    (evaluator/'complete.json').write_bytes(encoded(completion))
+    (control/'run-stdout.log').write_bytes(b'noise\n'+encoded({'schema':'ai4r-rsi-capsule-run-terminal:1',
+        'result_sha256':pub.sha(result_raw),'evaluator_exit_code':0})+b'\n')
+    evidence=type('E',(),{'root':evaluator})()
+    cfg={'composition':{'core_root':str(tmp_path/'core'),'run_contexts':{}}}
+    assert pub.loop_evidence(cfg,pin,w['session'],w['result'],result_raw,control,evidence)[:2]==(w['served'],w['served'])
+    completion['executions']+=1;(evaluator/'complete.json').write_bytes(encoded(completion))
+    with pytest.raises(ValueError,match='ROOT_EVALUATOR_TERMINAL_DIFFERS'):
+        pub.loop_evidence(cfg,pin,w['session'],w['result'],result_raw,control,evidence)
+    # Evaluator failed mid-evaluation: its retained failure record, a nonzero
+    # exit and stop_reason == error; three issued jobs never reached the session.
+    (evaluator/'complete.json').unlink()
+    for index in range(w['served'],w['served']+3):
+        ident='capsule-%048x'%index
+        (evaluator/'claims'/(ident+'.json')).write_bytes(encoded({'schema':'ai4r-rsi-whole-capsule-execution-start:1','job_id':ident}))
+    result=copy.deepcopy(w['result']);result['loop']['stop_reason']='error'
+    result_raw=encoded(result)
+    (evaluator/'failure.json').write_bytes(encoded({'schema':'ai4r-rsi-capsule-evaluator-failure:1','id':w['session']['id'],
+        'configuration_sha256':pin['sha256'],'exception_type':'TimeoutError','message':'x','status':'ERROR_NO_REPLAY'}))
+    (control/'run-stdout.log').write_bytes(encoded({'schema':'ai4r-rsi-capsule-run-terminal:1',
+        'result_sha256':pub.sha(result_raw),'evaluator_exit_code':2})+b'\n')
+    served,issued,outcome=pub.loop_evidence(cfg,pin,w['session'],result,result_raw,control,evidence)
+    assert (served,issued,outcome)==(w['served'],w['served']+3,{'status':'ERROR_NO_REPLAY','stop':'TimeoutError','exit_code':2})
+    with pytest.raises(ValueError,match='RUN_TERMINAL_RESULT_DIFFERS'):
+        pub.loop_evidence(cfg,pin,w['session'],w['result'],encoded(w['result']),control,evidence)
+    with pytest.raises(ValueError,match='RETAINED_EVALUATOR_FAILURE_REQUIRED'):  # Not a recorded error stop.
+        pub.loop_evidence(cfg,pin,w['session'],w['result'],encoded(w['result']),tmp_path/'nowhere',evidence)
+
+
+@pytest.mark.skipif(not hasattr(__import__('os'),'geteuid') or __import__('os').geteuid()!=0,
+                    reason='publish_completed is the Root publisher entrypoint (requires euid 0)')
+def test_completed_loop_publication_joins_retained_files_and_archives_history(loop_world,tmp_path,monkeypatch):
+    w=loop_world
+    monkeypatch.setattr(pub,'protected',lambda path,*a,**k:Path(path))
+    monkeypatch.setattr(pub,'_directory',lambda path:Path(path))
+    monkeypatch.setattr(pub,'configure_projection',lambda pin:None)
+    records=tmp_path/'records';evidence=tmp_path/'evidence';control=tmp_path/'control';public=tmp_path/'public'
+    for path in (records,evidence/'captures',evidence/'claims',control,public):path.mkdir(parents=True)
+    result=dict(w['result'],result_ref=w['put'](w['result']))
+    for digest,raw in w['raw'].items():
+        (records/(digest+'.json')).write_bytes(raw);(evidence/'captures'/(digest+'.json')).write_bytes(raw)
+    cfg={'session':w['session'],'evaluator':{'root':str(evidence)},'result_path':str(records/'capsule-result.json'),
+         'composition':{'record_root':str(records),'core_root':str(tmp_path/'core'),'run_contexts':{}}}
+    cfg_raw=encoded(cfg);(tmp_path/'run.json').write_bytes(cfg_raw);pin={'path':str(tmp_path/'run.json'),'sha256':pub.sha(cfg_raw)}
+    (records/'capsule-result.json').write_bytes(encoded(result))
+    for index in range(w['served']):
+        ident='capsule-%048x'%index
+        (evidence/'claims'/(ident+'.json')).write_bytes(encoded({'schema':'ai4r-rsi-whole-capsule-execution-start:1','job_id':ident}))
+    (evidence/'complete.json').write_bytes(encoded({'schema':'ai4r-rsi-capsule-evaluator-completion:1','id':w['session']['id'],
+        'configuration_sha256':pin['sha256'],'grant_ref':w['session']['grant_ref'],'status':'STOPPED','stop':'CONTROLLER_CLOSED',
+        'executions':w['served'],'plan':{'grant_sha256':w['session']['grant_ref']['sha256']},'completed_roles':['parent','candidate']}))
+    (evidence/'owner.json').write_bytes(encoded({'schema':'ai4r-rsi-capsule-evaluator-owner:1','id':w['session']['id'],
+        'configuration_sha256':pin['sha256'],'uid':0,'gid':0,'groups':[],'pid':10,'start_ticks':20}))
+    (control/'run-exit.json').write_bytes(encoded({'cid':'f'*64,'exit_code':0}))
+    (control/'run-container.json').write_bytes(encoded({'cid':'f'*64,'id':w['session']['id']}))
+    previous=_loop_packet(w,w['result'])
+    previous_raw=encoded(previous);(public/'publication.json').write_bytes(previous_raw)
+    template={'schema':'ai4r-capsule-completed-publication:1','projection':{'path':'unit','sha256':'a'*64},'meta':w['meta'],
+              'configuration':pin,'control_directory':str(control),'publication_directory':str(public)}
+    (tmp_path/'template.json').write_bytes(encoded(template))
+    receipt=pub.publish_completed(tmp_path/'template.json',published_at='2026-10-27T12:00:00Z')
+    published=json.loads((public/'publication.json').read_bytes())
+    assert receipt['publication_sha256']==pub.sha((public/'publication.json').read_bytes()) and receipt['model_calls']==0
+    assert (public/'.capsule-history'/(pub.sha(previous_raw)+'.json')).read_bytes()==previous_raw
+    assert published['snapshot']['runs'][0]['lineage']['best_node_id']=='candidate:unit-loop-r1:'+w['refs'][0]['sha256']
+    with pytest.raises(FileExistsError):  # One completed publication claim per result; never re-entered.
+        pub.publish_completed(tmp_path/'template.json',published_at='2026-10-27T12:00:00Z')

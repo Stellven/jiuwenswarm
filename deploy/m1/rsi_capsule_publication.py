@@ -16,6 +16,11 @@ import stat
 from jiuwenswarm.research_rsi.records import encoded
 from jiuwenswarm.research_rsi.targets.capsules import public_fixtures, registered_capsule
 _validator=None
+_project_loop=None
+VISIBLE_V1='ai4r-rsi-whole-capsule-visible-result:1'
+VISIBLE_V2='ai4r-rsi-whole-capsule-visible-result:2'
+LOOP_GRANT='ai4r-rsi-whole-capsule-development-grant:3'
+PROTECTED_SCOPE='public_m1_development_only'
 
 
 def configure_projection(pin):
@@ -28,6 +33,8 @@ def configure_projection(pin):
     spec=importlib.util.spec_from_file_location('_capsule_public_projection',path)
     projection=importlib.util.module_from_spec(spec);spec.loader.exec_module(projection)
     _validator=projection.validate_publication
+    global _project_loop
+    _project_loop=getattr(projection,'project_loop',None)
 
 
 def validate_publication(value,**kwargs):
@@ -40,6 +47,18 @@ def validate_publication(value,**kwargs):
         validator=import_module('_ai4r_cc_runtime.cc_rsi_projection').validate_publication
     else:validator=_validator
     return validator(value,**kwargs)
+
+
+def project_loop(result,**kwargs):
+    """Lineage block from the same pinned projection as the validator."""
+    projector=_project_loop
+    if _validator is None:
+        from jiuwenswarm.research.cc_ui_runtime import module
+        from importlib import import_module
+        module('cc_rsi_installation')
+        projector=import_module('_ai4r_cc_runtime.cc_rsi_projection').project_loop
+    need(callable(projector),'PINNED_PROJECTION_LACKS_LOOP_LINEAGE')
+    return projector(result,**kwargs)
 
 
 def need(value, reason):
@@ -271,7 +290,7 @@ def interrupted_parent_summary(session, result, completion, root_results, root_r
     return summary
 
 
-def controller_failure_packet(meta, session, failure, previous, *, model_calls=None):
+def controller_failure_packet(meta, session, failure, previous, *, model_calls=None, call_limit=2, limit_seconds=3600):
     """Expose an actual controller failure, never synthesize session evidence."""
     need(failure['schema']=='ai4r-rsi-capsule-controller-failure:1'
          and failure['id']==session['id'] and failure['status']=='ERROR_NO_REPLAY'
@@ -296,12 +315,400 @@ def controller_failure_packet(meta, session, failure, previous, *, model_calls=N
     calls=0 if model_calls==0 else None
     view['runs'].append({'id':session['id'],'target_id':session['capsule_name'],'stage':'Failed',
         'status':'ERROR_NO_REPLAY','blockers':[message],
-        'budget':{'elapsed_seconds':None,'limit_seconds':3600,'setup_calls':0,'diagnosis_calls':calls,
-            'proposal_calls':calls,'generation_call_limit':2,'cost':None,'currency':None},
+        'budget':{'elapsed_seconds':None,'limit_seconds':limit_seconds,'setup_calls':0,'diagnosis_calls':calls,
+            'proposal_calls':calls,'generation_call_limit':call_limit,'cost':None,'currency':None},
         'activity':[{'id':session['id']+':controller-failure','at':meta['published_at'],
             'stage':'Controller','status':'ERROR_NO_REPLAY','summary':message}]})
     view['generated_at']=meta['published_at']
     return validate_publication(packet,workspace_id=meta['workspace_id'])
+
+
+# ---------------------------------------------------------------------------
+# Iterative loop sessions (Interface C ``loop``) and v2 visible results.
+#
+# Legacy single-attempt results (no ``loop``) never enter this section; their
+# publication bytes are unchanged. Every disclosed number is joined against
+# immutable Root originals; nothing is re-executed, and an unknown value stays
+# unknown (``None``).
+# ---------------------------------------------------------------------------
+def require_protected_scope(result):
+    """Interface A v2 reader for publication: protected Root results only."""
+    need(isinstance(result,dict) and result.get('schema') in (VISIBLE_V1,VISIBLE_V2),'KNOWN_VISIBLE_RESULT_SCHEMA_REQUIRED')
+    need(result.get('scope')!='local_unprotected','LOCAL_UNPROTECTED_RESULT_NOT_PUBLISHABLE')
+    need(result.get('scope')==PROTECTED_SCOPE,'PROTECTED_ROOT_RESULT_SCOPE_REQUIRED')
+    return result
+
+
+def visible_summary_v2(result, *, name, body_ref, read, grant_ref=None, role=None, iteration=None):
+    """Reconcile a v2 (loop) visible result, every trial, against Root originals."""
+    from jiuwenswarm.research_rsi.targets.capsule_executor import grant_fixtures
+    require_protected_scope(result)
+    need(result['schema']==VISIBLE_V2 and result['capsule_name']==name and result['security']=='UNQUALIFIED'
+         and result['model_calls']==0 and result['hidden_evaluation']=='NOT_RUN'
+         and result['admission_ref'] is result['activation_ref'] is None,
+         'ONLY_PUBLIC_UNQUALIFIED_CAPSULE_EVIDENCE_ALLOWED')
+    persisted=captured(read,result['result_ref'])
+    need(persisted=={k:v for k,v in result.items() if k!='result_ref'},'ROOT_RESULT_ORIGINAL_DIFFERS')
+    need(grant_ref is None or result['grant_ref']==grant_ref,'SESSION_GRANT_DIFFERS')
+    grant=captured(read,result['grant_ref'])
+    need(grant['schema']==LOOP_GRANT and grant['capsule_name']==name and result['role'] in grant['roles']
+         and (role is None or result['role']==role) and (iteration is None or result['iteration']==iteration)
+         and result['subject_sha256']==body_ref['sha256'] and grant['scope']==PROTECTED_SCOPE,'ROOT_GRANT_SCOPE_DIFFERS')
+    manifest=captured(read,result['runtime_manifest_ref'])
+    need(sha(encoded(manifest))==grant['runtime_manifest_sha256'],'RUNTIME_MANIFEST_DIFFERS')
+    fixtures=grant_fixtures(grant)
+    trials=[result['rows'],*result['trial_rows']]
+    need(type(result['executions']) is int and result['executions']==sum(len(rows) for rows in trials)
+         and all([r['fixture_id'] for r in rows]==[f['id'] for f in fixtures] for rows in trials)
+         and result['case_count']==len(fixtures)
+         and result['held_out_case_count']==sum(f['fixture_set']=='held_out' for f in fixtures),
+         'FINITE_ORDERED_EVALUATION_CASES_REQUIRED')
+    key=[grant['run_id'],result['role'],result['iteration'],body_ref['sha256']]
+    refs,jobs,walls=[],set(),[]
+    counts={'public':[0,0],'held_out':[0,0]}
+    for trial,rows in enumerate(trials):
+        elapsed=0.0
+        for index,(row,fixture) in enumerate(zip(rows,fixtures)):
+            proof=captured(read,row['evidence_ref'])
+            need(proof=={k:v for k,v in row.items() if k!='evidence_ref'},'ROOT_CHECK_ORIGINAL_DIFFERS')
+            need(row['role']==result['role'] and row['iteration']==result['iteration'] and row['trial']==trial
+                 and row['fixture_set']==fixture['fixture_set'],'EVALUATION_ROW_IDENTITY_DIFFERS')
+            start=captured(read,row['start_ref'])
+            ident='capsule-'+sha(encoded([*key,trial,fixture['id']]))[:48]
+            need(start['schema']=='ai4r-rsi-whole-capsule-execution-start:1' and 'scope' not in start
+                 and start['job_id']==ident and start['grant_ref']==result['grant_ref']
+                 and start['grant_sha256']==result['grant_ref']['sha256']
+                 and start['candidate_ref']==row['candidate_ref']==body_ref
+                 and start['role']==result['role'] and start['fixture_id']==fixture['id']
+                 and start['runtime_manifest_ref']==result['runtime_manifest_ref']
+                 and start['runtime_manifest_sha256']==row['runtime_manifest_sha256']==grant['runtime_manifest_sha256']
+                 and start['input_ref']==row['input_ref'] and start['program_ref']==row['program_ref']
+                 and start['bootstrap_schema']==row['bootstrap_schema']==grant['bootstrap_schema'],
+                 'ROOT_EXECUTION_START_DIFFERS')
+            need(captured(read,start['test_ref'])==fixture
+                 and captured(read,row['input_ref'])=={'packet':fixture['packet']},'EVALUATION_INPUT_OR_FIXTURE_DIFFERS')
+            original(read,row['program_ref']);original(read,body_ref)
+            receipt=row['receipt']
+            need(receipt['job_id']==receipt['invocation_id']==ident and ident not in jobs
+                 and receipt['subject_ref']==body_ref and receipt['contract_ref']==grant['worker']['contract_ref']
+                 and receipt['hardware_ref']==grant['worker']['hardware_ref']
+                 and receipt['identity']=={'executor_uid':12003,'executor_gid':12003}
+                 and receipt['argv']==['/usr/local/bin/python3','-I','-S','/resources/worker.py']
+                 and receipt['repeat_index']==index and receipt['sequence']==1
+                 and receipt['role']=='treatment' and receipt['seed']==0
+                 and row['group_empty'] is True and receipt['observed_runtime'] is True,
+                 'ACTUAL_V18_JOB_IDENTITY_DIFFERS')
+            for item in ('contract_ref','hardware_ref'):original(read,receipt[item])
+            stdout=original(read,receipt['stdout_ref']);original(read,receipt['stderr_ref'])
+            original(read,receipt['observed_limits']['isolation_probe_ref'])
+            wall=receipt['wall_time_s']
+            need(type(wall) in (int,float) and math.isfinite(wall) and 0<=wall<=grant['limits']['timeout_s']+30
+                 and row['protected_wall_s']==wall and row['output_bytes']==len(stdout),'PROTECTED_CLOCK_OR_OUTPUT_DIFFERS')
+            need(type(row['task_success']) is bool,'ACTUAL_CHECK_OUTCOME_REQUIRED')
+            if row['task_success']:
+                check=row['independent_check']
+                need(receipt['termination_reason']=='completed' and receipt['exit_code']==0
+                     and not receipt['observed_limits']['admin_output_truncated']
+                     and check['task_success'] is True and check['capsule_name']==name
+                     and check['checks_sha256']==row['checks_sha256'] and check['output_bytes']==len(stdout)
+                     and (fixture['fixture_set']=='held_out' or (check['input_sha256']==row['input_ref']['sha256']
+                          and check['output_sha256']==sha(stdout))),'PASS_WITHOUT_SUCCESSFUL_PROTECTED_CHECK')
+            jobs.add(ident);elapsed+=wall
+            if trial==0:
+                counts[fixture['fixture_set']][0]+=int(row['task_success']);counts[fixture['fixture_set']][1]+=1
+                if fixture['fixture_set']=='public':refs.append(row['evidence_ref'])
+        walls.append(elapsed)
+    passed=counts['public'][0]+counts['held_out'][0]
+    need(result['passed_count']==passed and result['passed'] is (passed==len(fixtures))
+         and result['protected_wall_s']==walls[0] and result['trial_wall_s']==walls
+         and (result['failure'] is None)==(passed==len(fixtures)),'CAPSULE_SUMMARY_DIFFERS_FROM_ROOT_JOBS')
+    return {'passed':passed,'total':len(fixtures),'executions':result['executions'],'wall_s':walls[0],'refs':refs,
+            'trial_wall_s':walls,'public':counts['public'],'held_out':counts['held_out']}
+
+
+def reviewer_view(raw):
+    """The loop's lineage view of an exact Root result (held-out rows reduced)."""
+    rows=[]
+    for row in raw.get('rows',[]):
+        if row.get('fixture_set')=='held_out':
+            row={k:row[k] for k in ('fixture_id','fixture_set','task_success','protected_wall_s','evidence_ref') if k in row}
+        rows.append(row)
+    return {**raw,'rows':rows}
+
+
+def root_visible(view, root_read):
+    """Exact Root bytes behind a session-carried (possibly reduced) view."""
+    require_protected_scope(view)
+    raw=dict(captured(root_read,view['result_ref']),result_ref=view['result_ref'])
+    need(view==raw or view==reviewer_view(raw),'SESSION_VIEW_DIFFERS_FROM_ROOT_RESULT')
+    return raw
+
+
+def _correctness(summary):
+    public,held=summary['public'],summary['held_out']
+    return (f"{summary['passed']}/{summary['total']} checks "
+            f"({public[0]}/{public[1]} public, {held[0]}/{held[1]} held-out)")
+
+
+def loop_baseline(meta, session, result, root_read, previous, parent):
+    """The published original baseline, or (first loop run) the measured parent."""
+    name=session['capsule_name']
+    nodes=[] if previous is None else [n for n in previous['snapshot']['nodes'] if n['target_id']==name
+           and n['parent_id'] is None and n['run_id'] is None]
+    if nodes:
+        need(len(nodes)==1 and nodes[0]['hash']==sha(parent),'ORIGINAL_PUBLISHED_PARENT_DIFFERS')
+        packet=copy.deepcopy(previous)
+        packet['snapshot']['targets']=[t for t in packet['snapshot']['targets'] if t['id']==name]
+        packet['snapshot']['nodes']=copy.deepcopy(nodes);packet['snapshot']['runs']=[]
+        packet['candidates']=[c for c in packet['candidates'] if c['node_id']==nodes[0]['id']]
+        return packet
+    raw=result['parent_visible']
+    need(raw is not None,'ORIGINAL_PUBLISHED_BASELINE_REQUIRED')
+    summary=visible_summary_v2(raw,name=name,body_ref=session['parent_body_ref'],read=root_read,
+        grant_ref=session['grant_ref'],role='parent',iteration=0)
+    target=registered_capsule(name);digest=sha(parent);node_id='base:'+digest
+    node={'id':node_id,'target_id':name,'run_id':None,'parent_id':None,'hash':digest,'label':name+' baseline',
+        'security_status':'UNQUALIFIED','evaluation_status':'passed' if summary['passed']==summary['total'] else 'failed',
+        'admission_status':'unknown','activation_status':'unknown','correctness':_correctness(summary),
+        'speed':f"{summary['wall_s']:.6f} s protected total; no improvement claim",'noise':'Not measured',
+        'evidence_refs':[raw['result_ref'],*summary['refs']],'operator_receipts':[],'admit':_denied(),'activate':_denied()}
+    packet={'workspace_id':meta['workspace_id'],'snapshot':{'schema_version':'1','revision':sha(encoded(raw['result_ref'])),
+        'generated_at':meta['published_at'],'availability':'AVAILABLE','blocker':None,
+        'targets':[{'id':name,'name':meta['target_name'],'parent_hash':digest,'active_hash':None,'run':_denied()}],
+        'runs':[],'nodes':[node]},'candidates':[{'node_id':node_id,'candidate_hash':digest,'path':target.carrier_path,
+        'parent_code':parent.decode('utf8'),'candidate_code':parent.decode('utf8'),'rationale':None,
+        'blocker':'Public baseline only; original production RSI policy grants no mutation authority.'}]}
+    return validate_publication(packet,workspace_id=meta['workspace_id'])
+
+
+def loop_limits(loop):
+    """Configured loop ceilings recorded in the session result."""
+    cfg=loop.get('configuration') if isinstance(loop.get('configuration'),dict) else {}
+    calls=cfg.get('max_model_calls');wall=cfg.get('wall_s')
+    return (calls if type(calls) is int and calls>=0 else None), (wall if type(wall) is int and wall>0 else None)
+
+
+def session_limits(session):
+    """Configured loop ceilings when only the prepared session is known."""
+    loop=session.get('loop')
+    if not isinstance(loop,dict):return 2,3600
+    iterations=loop.get('max_iterations',5)
+    calls=loop.get('max_model_calls',min(100,2*iterations) if type(iterations) is int else None)
+    wall=loop.get('wall_s',min(3600,session['grant']['limits']['wall_s']))
+    return calls,wall
+
+
+def terminal_state(result, served, issued):
+    """success | partial | interrupted | failed, from retained evidence only."""
+    loop=result['loop'];evaluated=[row for row in loop['iterations'] if row.get('visible') is not None]
+    if result['parent_visible'] is None:return 'interrupted' if issued else 'failed'
+    if loop['stop_reason']=='error' or served!=issued:return 'partial' if evaluated else 'failed'
+    return 'success'
+
+
+def loop_session_packet(meta, session, result, read, root_read, previous, *, served, issued, evaluator):
+    """Every loop iteration, candidate and score from retained evidence.
+
+    ``served``: executions of the evaluations the session validated;
+    ``issued``: protected jobs Root started (its durable start claims);
+    ``evaluator``: ``{'status','stop','exit_code'}`` of the Root evaluator.
+    Jobs Root issued that the session never received (a failed or interrupted
+    evaluation) are reported, never invented or re-run.
+    """
+    need(result['schema']=='ai4r-rsi-capsule-session-result:1' and result['id']==session['id']
+         and result['capsule_name']==session['capsule_name'] and result['security']=='UNQUALIFIED'
+         and result['security_campaigns']=='DEFERRED'
+         and all(result[k] is None for k in ('qualification_ref','package_ref','admission_ref','activation_ref')),
+         'EXACT_UNQUALIFIED_SESSION_RESULT_REQUIRED')
+    need(result['hidden_evaluation']==result['final_evaluation']=='NOT_RUN','HIDDEN_OR_FINAL_EVIDENCE_REFUSED')
+    need(captured(read,result['session_ref'])==session,'SESSION_ORIGINAL_DIFFERS')
+    loop=result['loop']
+    need(isinstance(loop,dict) and loop.get('schema')=='ai4r-rsi-capsule-loop:1' and isinstance(loop.get('iterations'),list)
+         and session['grant']['schema']==LOOP_GRANT,'EXACT_LOOP_SESSION_REQUIRED')
+    name=session['capsule_name'];parent=original(read,session['parent_body_ref'])
+    if result['parent_visible'] is not None:
+        need(result['parent_visible']['grant_ref']==session['grant_ref'],'SAME_VERSIONED_SESSION_PARENT_GRANT_REQUIRED')
+        parent_summary=visible_summary_v2(result['parent_visible'],name=name,body_ref=session['parent_body_ref'],
+            read=root_read,grant_ref=session['grant_ref'],role='parent',iteration=0)
+        need(loop['parent_visible']==reviewer_view(result['parent_visible']),'LOOP_PARENT_VIEW_DIFFERS')
+    else:
+        parent_summary=None
+        need(loop['parent_visible'] is None and not loop['iterations'],'NO_ITERATION_WITHOUT_PARENT_CONTROL')
+    packet=loop_baseline(meta,session,result,root_read,previous,parent)
+    view=packet['snapshot'];baseline=view['nodes'][0]
+    calls_limit,wall_limit=loop_limits(loop)
+    rows=loop['iterations'];known=result['model_calls'] is not None
+    budget={'elapsed_seconds':None,'limit_seconds':wall_limit,'setup_calls':0,
+        'diagnosis_calls':sum(1 for r in rows if type(r.get('model_calls')) is int and r['model_calls']>=1) if known else None,
+        'proposal_calls':sum(1 for r in rows if type(r.get('model_calls')) is int and r['model_calls']>=2) if known else None,
+        'generation_call_limit':calls_limit,'cost':None,'currency':None}
+    elapsed=[r.get('elapsed_s') for r in rows]
+    if rows and all(type(x) in (int,float) and math.isfinite(x) and x>=0 for x in elapsed):budget['elapsed_seconds']=sum(elapsed)
+    state=terminal_state(result,served,issued)
+    stage={'success':'Complete','partial':'Partial','interrupted':'Failed','failed':'Failed'}[state]
+    run={'id':session['id'],'target_id':name,'stage':stage,'status':result['status'],'blockers':[],'budget':budget,'activity':[]}
+    if result['exception_type'] is not None:
+        run['blockers']=['Retained '+result['exception_type']+'; this attempt cannot be replayed.']
+    at=meta['published_at'];activity=run['activity']
+    if parent_summary is not None:
+        activity.append({'id':session['id']+':parent','at':at,'stage':'Parent evaluation','status':'evaluated',
+            'summary':_correctness(parent_summary)+'; '+str(len(parent_summary['trial_wall_s']))+' protected trial(s).'})
+    for row in rows:
+        activity.append({'id':session['id']+':iteration:'+str(row['iteration']),'at':at,
+            'stage':'Iteration '+str(row['iteration']),'status':str(row.get('outcome') or 'unknown')[:64],
+            'summary':(str(row.get('reason') or '') or 'No recorded reason.')[:1024]})
+    if issued>served:
+        code=evaluator.get('exit_code')
+        activity.append({'id':session['id']+':unreported-jobs','at':at,'stage':'Protected evaluation','status':'ERROR_NO_REPLAY',
+            'summary':str(issued-served)+' protected job(s) Root issued were not returned to the session'
+                +(' (evaluator exit '+str(code)+')' if code not in (None,0) else '')
+                +'; original evidence retained, nothing re-executed.'})
+    activity.append({'id':session['id']+':terminal','at':at,'stage':stage,'status':result['status'],
+        'summary':'Actual '+state+' loop result (stop: '+str(loop.get('stop_reason'))+', '
+            +str(loop.get('completed_iterations'))+'/'+str(loop.get('max_iterations'))+' iterations); security campaigns deferred.'})
+    view['runs'].append(run)
+    node_ids={}
+    for row in rows:
+        ref=row.get('candidate_ref')
+        if ref is None or ref['sha256']==baseline['hash']:continue
+        visible=row.get('visible');summary=None
+        if visible is not None:
+            raw=root_visible(visible,root_read)
+            summary=visible_summary_v2(raw,name=name,body_ref=ref,read=root_read,grant_ref=session['grant_ref'],
+                role='candidate',iteration=row['iteration'])
+        if ref['sha256'] in node_ids:
+            continue  # A duplicate proposal is one node; the lineage keeps both iterations.
+        node_id='candidate:'+session['id']+':'+ref['sha256']
+        child=original(read,ref).decode('utf8');need(len(child.encode())<=256*1024,'PUBLIC_CANDIDATE_EXCEEDS_BOUND')
+        node={'id':node_id,'target_id':name,'run_id':session['id'],'parent_id':baseline['id'],'hash':ref['sha256'],
+            'label':name+' iteration '+str(row['iteration']),'security_status':'SECURITY_DEFERRED',
+            'evaluation_status':'not_evaluated' if summary is None else ('passed' if summary['passed']==summary['total'] else 'failed'),
+            'admission_status':'unadmitted','activation_status':'inactive',
+            'correctness':None if summary is None else _correctness(summary),
+            'speed':None if summary is None else f"{summary['wall_s']:.6f} s protected total; uncalibrated",
+            'noise':'Not measured' if not isinstance(loop.get('noise'),dict) else
+                'Parent timing noise calibrated over '+str(loop['noise'].get('trials'))+' trial(s)',
+            'evidence_refs':[] if summary is None else [visible['result_ref'],*summary['refs']],
+            'operator_receipts':[],'admit':_denied(),'activate':_denied()}
+        view['nodes'].append(node);node_ids[ref['sha256']]=node_id
+        packet['candidates'].append({'node_id':node_id,'candidate_hash':ref['sha256'],'path':meta['mutable_path'],
+            'parent_code':parent.decode('utf8'),'candidate_code':child,
+            'rationale':row['rationale'][:4096] if isinstance(row.get('rationale'),str) else None,
+            'blocker':_denied()['blocker'] if summary is not None else 'Proposal retained without a completed public evaluation.'})
+    run['lineage']=project_loop(result,node_ids=node_ids,parent_node_id=baseline['id'])
+    return validate_publication(packet,workspace_id=meta['workspace_id'])
+
+
+def issued_jobs(evaluator_root):
+    """Protected jobs Root durably started (its exclusive start claims)."""
+    claims=Path(evaluator_root)/'claims'
+    if not claims.exists():return 0
+    count=0
+    for path in sorted(claims.glob('capsule-*.json')):
+        item=json.loads(protected(path).read_bytes())
+        need(isinstance(item,dict) and item.get('schema')=='ai4r-rsi-whole-capsule-execution-start:1'
+             and item.get('job_id')==path.stem,'ROOT_START_CLAIM_DIFFERS')
+        count+=1
+    return count
+
+
+def run_terminal(control, result_raw):
+    """The runner's own terminal line, when the stopped worker printed one."""
+    path=Path(control)/'run-stdout.log'
+    if not path.exists():return None
+    for line in reversed(protected(path,maximum=16*1024*1024).read_bytes().splitlines()):
+        try:item=json.loads(line)
+        except (ValueError,UnicodeError):continue
+        if isinstance(item,dict) and item.get('schema')=='ai4r-rsi-capsule-run-terminal:1':
+            need(item.get('result_sha256')==sha(result_raw),'RUN_TERMINAL_RESULT_DIFFERS')
+            return item
+    return None
+
+
+def loop_evidence(cfg, pin, session, result, result_raw, control, evaluator):
+    """Reconcile Root execution counts for every loop terminal state."""
+    loop=result['loop']
+    served=sum(x['executions'] for x in [result['parent_visible'],*[r.get('visible') for r in loop['iterations']]]
+               if x is not None)
+    issued=issued_jobs(evaluator.root)
+    terminal=run_terminal(control,result_raw)
+    code=None if terminal is None else terminal.get('evaluator_exit_code')
+    if (evaluator.root/'complete.json').exists():
+        completion=_read_json(evaluator.root/'complete.json')
+        need(completion['schema']=='ai4r-rsi-capsule-evaluator-completion:1' and completion['id']==session['id']
+             and completion['configuration_sha256']==pin['sha256'] and completion['grant_ref']==session['grant_ref']
+             and completion['status']=='STOPPED' and completion['plan']['grant_sha256']==session['grant_ref']['sha256']
+             and completion['executions']==issued,'ROOT_EVALUATOR_TERMINAL_DIFFERS')
+        if 'evaluations' in completion:
+            reported=sum(row['executions'] for row in completion['evaluations'] if type(row.get('executions')) is int)
+            need(served<=reported<=issued,'ROOT_SERVED_EVALUATIONS_DIFFER')
+        outcome={'status':'STOPPED','stop':completion.get('stop'),'exit_code':code}
+    else:
+        failure=_read_json(evaluator.root/'failure.json')
+        need(failure['schema']=='ai4r-rsi-capsule-evaluator-failure:1' and failure['id']==session['id']
+             and failure['configuration_sha256']==pin['sha256'] and failure['status']=='ERROR_NO_REPLAY'
+             and loop['stop_reason']=='error' and code!=0,'RETAINED_EVALUATOR_FAILURE_REQUIRED')
+        outcome={'status':'ERROR_NO_REPLAY','stop':failure['exception_type'],'exit_code':code}
+    need(served<=issued,'ROOT_TERMINAL_EXECUTION_COUNT_DIFFERS')
+    if result['parent_visible'] is None and issued:
+        # An interrupted parent: prove zero own Core effects before model work.
+        import sqlite3
+        core=protected(cfg['composition']['core_root'],12001,directory=True)
+        ids=sorted(cfg['composition']['run_contexts'])
+        db=sqlite3.connect((core/'state/research.sqlite3').as_uri()+'?mode=ro',uri=True)
+        try:
+            marks=','.join('?'*len(ids))
+            need(all(db.execute('SELECT COUNT(*) FROM '+table+' WHERE run_id IN ('+marks+')',ids).fetchone()[0]==0
+                for table in ('model_calls','tool_calls','attempts')),'INTERRUPTED_PARENT_CORE_EFFECT_EXISTS')
+        finally:db.close()
+    return served,issued,outcome
+
+
+def worker_terminal_packet(meta, session, run_exit, previous, *, evaluator_state, call_limit, limit_seconds):
+    """A stopped worker that left no session result: retained facts only."""
+    message=('Worker exited '+str(run_exit['exit_code'])+' without a session result (evaluator: '+evaluator_state
+             +'); inspect retained evidence. This attempt cannot replay.')
+    failure={'schema':'ai4r-rsi-capsule-controller-failure:1','id':session['id'],'status':'ERROR_NO_REPLAY',
+             'exception_type':'WorkerExit'+str(run_exit['exit_code'])}
+    packet=controller_failure_packet(meta,session,failure,previous,call_limit=call_limit,limit_seconds=limit_seconds)
+    run=packet['snapshot']['runs'][0]
+    run['blockers']=[message];run['activity'][0].update(id=session['id']+':worker-terminal',stage='Worker',summary=message)
+    return validate_publication(packet,workspace_id=meta['workspace_id'])
+
+
+def completed_claim(session_id, configuration_sha256, result_raw):
+    return {'schema':'ai4r-capsule-completed-publication-claim:1','id':session_id,
+            'configuration_sha256':configuration_sha256,'result_sha256':sha(result_raw)}
+
+
+def publish_worker_terminal(template_path, *, published_at=None):
+    """Called by the fixed Root launcher when a known stopped worker left no result."""
+    need(os.name=='posix' and os.geteuid()==0,'ROOT_CAPSULE_PUBLISHER_REQUIRED')
+    template=_read_json(template_path)
+    need(set(template)=={'schema','projection','meta','configuration','control_directory','publication_directory'}
+         and template['schema']=='ai4r-capsule-completed-publication:1','CLOSED_COMPLETED_PUBLICATION_TEMPLATE_REQUIRED')
+    configure_projection(template['projection'])
+    pin=template['configuration'];raw=protected(pin['path']).read_bytes()
+    need(sha(raw)==pin['sha256'],'PUBLISHED_RUN_CONFIGURATION_DIFFERS')
+    cfg=json.loads(raw);session=cfg['session']
+    control=protected(template['control_directory'],directory=True)
+    run_exit=_read_json(control/'run-exit.json');container=_read_json(control/'run-container.json')
+    need(run_exit['cid']==container['cid'] and container['id']==session['id'] and type(run_exit['exit_code']) is int
+         and not os.path.lexists(cfg['result_path']),'KNOWN_RESULTLESS_WORKER_TERMINAL_REQUIRED')
+    root=Path(cfg['evaluator']['root'])
+    state=('stopped' if (root/'complete.json').exists() else 'failed' if (root/'failure.json').exists() else 'no terminal record')
+    calls,wall=session_limits(session)
+    meta=dict(template['meta'])
+    from datetime import datetime,timezone
+    meta['published_at']=published_at or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    directory=_directory(template['publication_directory']);fd=_lock(directory)
+    try:
+        previous=_read_json(directory/'publication.json')
+        packet=worker_terminal_packet(meta,session,run_exit,previous,evaluator_state=state,call_limit=calls,limit_seconds=wall)
+        return _replace(directory,merge_publication(previous,packet,meta['published_at']),{
+            'schema':'ai4r-capsule-worker-terminal-publication-claim:1','id':session['id'],
+            'configuration_sha256':pin['sha256'],'run_exit_sha256':sha(protected(control/'run-exit.json').read_bytes())})
+    finally:os.close(fd)
 
 
 def protected(path, owner=0, *, directory=False, maximum=4*1024*1024):
@@ -320,7 +727,12 @@ class RootEvidence:
     def __init__(self,root):
         self.root=protected(root,directory=True); self.originals={}
     def __call__(self,pin):
-        path=protected(self.root/'captures'/(pin['sha256']+'.json'))
+        path=self.root/'captures'/(pin['sha256']+'.json')
+        sealed=self.root/'sealed-captures'/(pin['sha256']+'.json')
+        # Held-out originals stay in the evaluator's Root-only sealed store;
+        # they are joined here for verification and never disclosed.
+        if not os.path.lexists(path) and os.path.lexists(sealed):path=sealed
+        path=protected(path)
         raw=path.read_bytes(); need(sha(raw)==pin['sha256'],'ROOT_PUBLICATION_CAPTURE_DIFFERS')
         self.originals[str(path)]=sha(raw); return raw
 
@@ -417,10 +829,14 @@ def publish_completed(template_path, *, published_at=None):
     need(run_exit['cid']==container['cid'] and container['id']==session['id']
          and type(run_exit['exit_code']) is int,'KNOWN_WORKER_TERMINAL_REQUIRED')
     evaluator=RootEvidence(cfg['evaluator']['root'])
-    completion=_read_json(evaluator.root/'complete.json')
-    need(completion['schema']=='ai4r-rsi-capsule-evaluator-completion:1' and completion['id']==session['id']
-         and completion['configuration_sha256']==pin['sha256'] and completion['grant_ref']==session['grant_ref']
-         and completion['status']=='STOPPED','ROOT_EVALUATOR_TERMINAL_DIFFERS')
+    # A loop session's evaluator may instead have retained its failure record
+    # (partial run); ``loop_evidence`` joins either. Legacy always completes.
+    completion=None
+    if 'loop' not in session or (evaluator.root/'complete.json').exists():
+        completion=_read_json(evaluator.root/'complete.json')
+        need(completion['schema']=='ai4r-rsi-capsule-evaluator-completion:1' and completion['id']==session['id']
+             and completion['configuration_sha256']==pin['sha256'] and completion['grant_ref']==session['grant_ref']
+             and completion['status']=='STOPPED','ROOT_EVALUATOR_TERMINAL_DIFFERS')
     owner=_read_json(evaluator.root/'owner.json')
     need(owner['schema']=='ai4r-rsi-capsule-evaluator-owner:1' and owner['id']==session['id']
          and owner['configuration_sha256']==pin['sha256'] and owner['uid']==owner['gid']==0 and owner['groups']==[]
@@ -437,7 +853,7 @@ def publish_completed(template_path, *, published_at=None):
         need(failure['configuration_sha256']==pin['sha256'] and failure['phase']==result['phase'],
              'CONTROLLER_FAILURE_CONFIGURATION_DIFFERS')
         if result['model_calls']==0:
-            need(result['phase'] in ('WAITING_FOR_EVALUATOR','COMPOSING')
+            need(result['phase'] in ('WAITING_FOR_EVALUATOR','COMPOSING') and completion is not None
                  and completion['executions']==0 and completion['completed_roles']==[],
                  'EARLY_CONTROLLER_ZERO_EFFECT_PROOF_REQUIRED')
         meta=dict(template['meta'])
@@ -446,7 +862,9 @@ def publish_completed(template_path, *, published_at=None):
         directory=_directory(template['publication_directory']);fd=_lock(directory)
         try:
             previous=_read_json(directory/'publication.json')
-            packet=controller_failure_packet(meta,session,failure,previous,model_calls=result['model_calls'])
+            calls,wall=session_limits(session)
+            packet=controller_failure_packet(meta,session,failure,previous,model_calls=result['model_calls'],
+                                             call_limit=calls,limit_seconds=wall)
             return _replace(directory,merge_publication(previous,packet,meta['published_at']),{
                 'schema':'ai4r-capsule-controller-failure-publication-claim:1','id':session['id'],
                 'configuration_sha256':pin['sha256'],'terminal_sha256':sha(result_path.read_bytes())})
@@ -458,6 +876,8 @@ def publish_completed(template_path, *, published_at=None):
             if p.exists():return protected(p,12001).read_bytes()
         raise ValueError('ACTUAL_SESSION_PUBLIC_ORIGINAL_ABSENT')
     need(captured(read,result['result_ref'])=={k:v for k,v in result.items() if k!='result_ref'},'SESSION_RESULT_CAPTURE_DIFFERS')
+    if result.get('loop') is not None:
+        return _publish_loop(template,pin,cfg,session,result,result_path,read,evaluator,control,published_at)
     expected_executions=sum(x['executions'] for x in [result['parent_visible'],result['candidate_visible']] if x is not None)
     interrupted=None
     if completion['executions']!=expected_executions:
@@ -493,9 +913,29 @@ def publish_completed(template_path, *, published_at=None):
                 'stage':'Parent evaluation','status':'ERROR_NO_REPLAY',
                 'summary':str(interrupted['executions'])+' protected parent job(s) stopped before model work; original evidence retained.'})
         output=merge_publication(previous,packet,meta['published_at'])
-        return _replace(directory,output,{'schema':'ai4r-capsule-completed-publication-claim:1',
-            'id':session['id'],'configuration_sha256':pin['sha256'],'result_sha256':sha(result_path.read_bytes())})
+        return _replace(directory,output,completed_claim(session['id'],pin['sha256'],result_path.read_bytes()))
     finally:os.close(fd)
+
+
+def _publish_loop(template,pin,cfg,session,result,result_path,read,evaluator,control,published_at):
+    result_raw=result_path.read_bytes()
+    served,issued,outcome=loop_evidence(cfg,pin,session,result,result_raw,control,evaluator)
+    meta=dict(template['meta'])
+    from datetime import datetime,timezone
+    meta['published_at']=published_at or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    directory=_directory(template['publication_directory']);fd=_lock(directory)
+    try:
+        previous=_read_json(directory/'publication.json')
+        packet=loop_session_packet(meta,session,result,read,evaluator,previous,served=served,issued=issued,evaluator=outcome)
+        output=merge_publication(previous,packet,meta['published_at'])
+        return _replace(directory,output,completed_claim(session['id'],pin['sha256'],result_raw))
+    finally:os.close(fd)
+
+
+NO_EFFECT_OBSERVATION_FIELDS=frozenset(('schema run_id configuration observed_unix_s container core native_lease_rows '
+    'relay_ledger_sha256 benchmark_ledger_sha256 evaluator_completion controller_failure run_exit '
+    'accepted_claim accepted_ack launcher_exit execution_jobs all_job_groups_empty job_group_count '
+    'model_calls tool_calls attempt_starts no_replay_authority').split())
 
 
 def startup_failure_plan(input_path):
@@ -544,11 +984,7 @@ def startup_failure_plan(input_path):
         need(set(observation_pin)=={'path','sha256'},'CLOSED_NO_EFFECT_OBSERVATION_PIN_REQUIRED')
         observation=proof(Path(observation_pin['path']))
         need(originals[observation_pin['path']]==observation_pin['sha256'],'NO_EFFECT_OBSERVATION_BYTES_DIFFER')
-        observation_fields=set(('schema run_id configuration observed_unix_s container core native_lease_rows '
-            'relay_ledger_sha256 benchmark_ledger_sha256 evaluator_completion controller_failure run_exit '
-            'accepted_claim accepted_ack launcher_exit execution_jobs all_job_groups_empty job_group_count '
-            'model_calls tool_calls attempt_starts no_replay_authority').split())
-        need(set(observation)==observation_fields and observation['schema']=='ai4r-capsule-no-effect-observation:1'
+        need(set(observation)==NO_EFFECT_OBSERVATION_FIELDS and observation['schema']=='ai4r-capsule-no-effect-observation:1'
              and observation['run_id']==session['id'] and observation['configuration']==pin,
              'EXACT_ROOT_NO_EFFECT_OBSERVATION_REQUIRED')
         actual_container=observation['container']
