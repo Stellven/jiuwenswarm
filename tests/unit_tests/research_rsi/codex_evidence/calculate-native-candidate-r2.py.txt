@@ -1,0 +1,70 @@
+import copy
+import re
+from decimal import Decimal, DecimalException, localcontext, ROUND_HALF_EVEN
+
+from ...contracts import ResearchError
+from ..packet import produced, validate_packet
+
+NUMBER = re.compile(r'[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?')
+OPS = {'count', 'sum', 'mean', 'min', 'max'}
+
+
+def calculate(packet):
+    validate_packet(packet)
+    try:
+        table, request = packet['data']['table'], packet['data']['calculation']
+        if set(request) != {'columns', 'operations', 'numeric_mode'} or set(table) != {'columns', 'rows'}:
+            raise ValueError('explicit table and calculation required')
+        columns, rows = table['columns'], table['rows']
+        selected, operations = request['columns'], request['operations']
+        if (type(columns) is not list or not 0 < len(columns) <= 128 or any(type(x) is not str for x in columns)
+                or len(set(columns)) != len(columns) or type(rows) is not list or len(rows) > 10000
+                or any(type(row) is not list or len(row) != len(columns) for row in rows)):
+            raise ValueError('bounded rectangular table required')
+        if (type(selected) is not list or not selected or len(set(selected)) != len(selected) or not set(selected) <= set(columns)
+                or type(operations) is not list or not operations or len(set(operations)) != len(operations) or not set(operations) <= OPS):
+            raise ValueError('unique known columns and operations required')
+        mode = request['numeric_mode']
+        if mode not in {'json_numbers', 'decimal_strings'}:
+            raise ValueError('explicit numeric_mode required')
+        result = {}
+        with localcontext() as context:
+            context.prec, context.rounding = 128, ROUND_HALF_EVEN
+            for column in selected:
+                values = []
+                for row in rows:
+                    value = row[columns.index(column)]
+                    if ((mode == 'json_numbers' and type(value) not in (int, float))
+                            or (mode == 'decimal_strings' and (type(value) is not str or len(value) > 100 or not NUMBER.fullmatch(value)))):
+                        raise ValueError('invalid numeric value; no implicit conversion or missing values')
+                    number = Decimal(str(value))
+                    if not number.is_finite() or len(number.as_tuple().digits) > 28 or abs(number.adjusted()) > 28:
+                        raise ValueError('finite bounded decimal value required')
+                    values.append(number)
+                if not values and set(operations) & {'mean', 'min', 'max'}:
+                    raise ValueError('empty column has no requested mean/min/max')
+                metrics = {}
+                for operation in operations:
+                    if operation == 'count': metrics[operation] = len(values)
+                    elif operation == 'sum': metrics[operation] = str(sum(values, Decimal(0)))
+                    elif operation == 'mean': metrics[operation] = str(sum(values, Decimal(0)) / len(values))
+                    elif operation == 'min': metrics[operation] = str(min(values))
+                    elif operation == 'max': metrics[operation] = str(max(values))
+                result[column] = metrics
+        return {'arithmetic': 'decimal128_half_even', 'columns': result}
+    except (ValueError, TypeError, KeyError, DecimalException) as error:
+        raise ResearchError('calculation_input', str(error)[:200]) from error
+
+
+async def execute(ctx, inputs):
+    packet = inputs['packet']
+    # Preserve the original data lookup before calculate's packet validation.
+    data = packet['data']
+    calculation_result = calculate(packet)
+    # Construct replacement data at the same point as the original expression.
+    data = dict(data, calculation_result=calculation_result)
+    # calculate has fully validated the input. Copy its envelope and data once.
+    result = copy.deepcopy(dict(packet, data=data))
+    result['limitations'] = list(dict.fromkeys(result['limitations']))
+    # Keep the frozen final validation, canonical serialization and artifact type.
+    return {'result': produced(result)}

@@ -28,6 +28,7 @@ V18_EXECUTOR_SHA256 = '25c77a8c6830e32e83a6b77334d82e12350912fe33b312df8d5b1aad2
 GRANT_SCHEMA = 'ai4r-rsi-whole-capsule-development-grant:2'
 LOOP_GRANT_SCHEMA = 'ai4r-rsi-whole-capsule-development-grant:3'
 MAX_LOOP_EXECUTIONS = 100000
+MAX_BENCHMARK_WALL_S = 14 * 24 * 3600
 VISIBLE_RESULT_V1 = 'ai4r-rsi-whole-capsule-visible-result:1'
 VISIBLE_RESULT_V2 = 'ai4r-rsi-whole-capsule-visible-result:2'
 PROTECTED_SCOPE = 'public_m1_development_only'
@@ -80,12 +81,75 @@ def evaluation_fixtures(name):
     return rows
 
 
-def loop_execution_budget(case_count, *, max_iterations, trials, parent_trials=None):
+def loop_execution_budget(case_count, *, max_iterations, trials, parent_trials=None, benchmark_jobs=0,
+                          max_benchmarks=None, benchmark=None, capsule_name=None):
     """Executions a loop needs: parent trials (>= 3 for noise calibration)
-    plus ``trials`` candidate trials for each of ``max_iterations`` iterations."""
+    plus ``trials`` candidate trials for each of ``max_iterations`` iterations,
+    plus ``benchmark_jobs`` (one ``benchmark()`` call: paired parent+candidate
+    jobs x workloads x repetitions, and semantic-edge jobs) for each
+    benchmarked candidate: at most one per iteration, or ``max_benchmarks``.
+
+    ``benchmark`` is the slot's sizing dict ``{workloads, repetitions,
+    warmups, per_job_s, wall_s}``: then ``benchmark_jobs`` is derived from it
+    (``benchmark_jobs_for_sizing``) and ``max_benchmarks`` defaults to
+    ``max_iterations + 1`` (an A/A baseline plus one per iteration)."""
+    if benchmark is not None:
+        need(benchmark_jobs == 0, 'ONE_BENCHMARK_SIZING_REQUIRED')
+        benchmark_jobs = benchmark_jobs_for_sizing(benchmark, capsule_name=capsule_name)
+        if max_benchmarks is None:
+            max_benchmarks = max_iterations + 1
     need(all(type(x) is int and x > 0 for x in (case_count, max_iterations, trials)), 'FINITE_LOOP_BUDGET_INPUTS_REQUIRED')
+    need(type(benchmark_jobs) is int and benchmark_jobs >= 0 and (max_benchmarks is None or (
+        type(max_benchmarks) is int and 0 <= max_benchmarks <= max_iterations + 1)), 'FINITE_BENCHMARK_BUDGET_INPUTS_REQUIRED')
     parent = max(3, trials) if parent_trials is None else parent_trials
-    return case_count * (parent + trials * max_iterations)
+    benchmarks = max_iterations if max_benchmarks is None else max_benchmarks
+    return case_count * (parent + trials * max_iterations) + benchmark_jobs * benchmarks
+
+
+def benchmark_jobs_for_sizing(sizing, *, capsule_name=None):
+    """Jobs one ``benchmark()`` call uses under a slot sizing dict.
+
+    With ``capsule_name`` the count is exact for that capsule's data. Without
+    it, the largest exact count of any registered benchmarked capsule with
+    ``sizing['workloads']`` timed workloads (an upper bound; never a guess
+    below what Root will need).
+    """
+    from .capsule_benchmark import benchmark_job_count, timing_batches
+    from .capsules import benchmark_spec, capsule_catalog
+    need(isinstance(sizing, dict) and {'workloads', 'repetitions'} <= set(sizing)
+         and set(sizing) <= {'workloads', 'repetitions', 'warmups', 'per_job_s', 'wall_s'}, 'CLOSED_BENCHMARK_SIZING_REQUIRED')
+    overrides = {'repetitions': sizing['repetitions']}
+    if 'warmups' in sizing:
+        overrides['warmups'] = min(sizing['warmups'], 10)
+    names = [capsule_name] if capsule_name is not None else [
+        row['capsule_name'] for row in capsule_catalog() if benchmark_spec(row['capsule_name']) is not None]
+    counts = [benchmark_job_count(name, overrides) for name in names
+              if len(timing_batches(name)) == sizing['workloads']]
+    need(counts, 'NO_BENCHMARK_MATCHES_SIZING_WORKLOADS')
+    return max(counts)
+
+
+def loop_budget_for(name, loop, *, case_count=None):
+    """``loop_execution_budget`` from a session ``loop`` configuration.
+
+    ``loop['benchmark']`` (absent/None/False: no benchmark) is the benchmark
+    configuration (``capsule_benchmark.benchmark_config`` overrides, including
+    ``max_benchmarks``); ``True`` means the capsule's spec defaults.
+    """
+    from .capsule_benchmark import benchmark_config, benchmark_job_count
+    need(isinstance(loop, dict), 'LOOP_CONFIGURATION_REQUIRED')
+    settings = loop.get('benchmark')
+    jobs, cap = 0, None
+    if isinstance(settings, dict) and 'workloads' in settings:  # Slot sizing dict.
+        cases = len(evaluation_fixtures(name)) if case_count is None else case_count
+        return loop_execution_budget(cases, max_iterations=loop['max_iterations'], trials=loop.get('trials', 1),
+                                     parent_trials=loop.get('parent_trials'), benchmark=settings, capsule_name=name)
+    if settings:
+        config = benchmark_config(name, None if settings is True else settings)
+        jobs, cap = benchmark_job_count(name, config), config['max_benchmarks']
+    cases = len(evaluation_fixtures(name)) if case_count is None else case_count
+    return loop_execution_budget(cases, max_iterations=loop['max_iterations'], trials=loop.get('trials', 1),
+                                 parent_trials=loop.get('parent_trials'), benchmark_jobs=jobs, max_benchmarks=cap)
 
 
 def grant_fixtures(grant):
@@ -133,9 +197,14 @@ def validate_grant(grant, manifest):
     need(grant['parent_sha256'] == next((row['sha256'] for row in manifest['files'] if row['path'] == carrier), None),
          'EXACT_ORIGINAL_CAPSULE_PARENT_REQUIRED')
     limits = grant['limits']
-    need(isinstance(limits, dict) and set(limits) == {'timeout_s', 'memory_mb', 'pids_max', 'wall_s'}, 'CLOSED_JOB_LIMITS_REQUIRED')
-    for name, ceiling in {'timeout_s': 300, 'memory_mb': 65536, 'pids_max': 256, 'wall_s': 3600}.items():
-        need(type(limits[name]) is int and 0 < limits[name] <= ceiling, 'FINITE_JOB_LIMIT_REQUIRED')
+    base = {'timeout_s', 'memory_mb', 'pids_max', 'wall_s'}
+    # Loop grants may add ``benchmark_wall_s``: the paired benchmark's own wall,
+    # bounded separately from the session's ``wall_s``.
+    need(isinstance(limits, dict) and (set(limits) == base or (
+        grant['schema'] == LOOP_GRANT_SCHEMA and set(limits) == base | {'benchmark_wall_s'})), 'CLOSED_JOB_LIMITS_REQUIRED')
+    for name, ceiling in {'timeout_s': 300, 'memory_mb': 65536, 'pids_max': 256, 'wall_s': 3600,
+                          'benchmark_wall_s': MAX_BENCHMARK_WALL_S}.items():
+        need(name not in limits or type(limits[name]) is int and 0 < limits[name] <= ceiling, 'FINITE_JOB_LIMIT_REQUIRED')
     need(limits['timeout_s'] <= limits['wall_s'] and type(grant['expires_unix_s']) is int,
          'FINITE_DEVELOPMENT_DEADLINE_REQUIRED')
     need(isinstance(grant['worker'], dict) and set(grant['worker']) == {'contract_ref', 'environment_ref', 'hardware_ref'},
@@ -442,7 +511,36 @@ class _EvaluationLedger:
         self.loop = self.grant['schema'] == LOOP_GRANT_SCHEMA or not self.result_schema_v1
         self.fixtures = grant_fixtures(self.grant) if self.loop else public_fixtures(self.grant['capsule_name'])
         self.issued = {}; self.completed = {}; self.evaluations = []; self.executions = 0; self.halted = False
-        self.deadline = time.monotonic() + self.grant['limits']['wall_s']
+        self.benchmarkable = {}; self.benchmarks = []
+        # Session wall plus the grant's separately bounded benchmark wall.
+        self.deadline = time.monotonic() + self.grant['limits']['wall_s'] + self.grant['limits'].get('benchmark_wall_s', 0)
+
+    benchmark_settings = None
+
+    def _set_benchmark(self, settings):
+        """Benchmark configuration (Interface E); validated before any job."""
+        self.benchmark_settings = settings
+        if settings is not None:
+            from .capsule_benchmark import benchmark_config
+            benchmark_config(self.grant['capsule_name'], settings)
+
+    def benchmark_plan(self):
+        """What one ``benchmark()`` call will execute under this grant."""
+        from .capsule_benchmark import benchmark_config, benchmark_job_count
+        config = benchmark_config(self.grant['capsule_name'], self.benchmark_settings)
+        return {'schema': 'ai4r-rsi-capsule-benchmark-plan:1', 'capsule_name': self.grant['capsule_name'],
+                'config': config, 'jobs_per_benchmark': benchmark_job_count(self.grant['capsule_name'], config),
+                'maximum_executions': self.grant['max_executions'], 'executions': self.executions, 'scope': self.scope}
+
+    async def benchmark(self, parent_body, candidate_body, *, iteration):
+        """Interface E: paired batched benchmark of an already evaluated candidate."""
+        from .capsule_benchmark_executor import run_benchmark
+        return await run_benchmark(self, parent_body, candidate_body, iteration=iteration)
+
+    async def semantic_edges(self, candidate_body, *, iteration):
+        """The supplementary semantic-edge correctness gate on its own."""
+        from .capsule_benchmark_executor import run_semantic_edges
+        return await run_semantic_edges(self, candidate_body, iteration=iteration)
 
     def plan(self):
         return {'schema': 'ai4r-rsi-whole-capsule-dispatch-plan:1', 'grant_sha256': digest(encoded(self.grant)),
@@ -555,6 +653,10 @@ class _EvaluationLedger:
         need(self.executions + planned <= self.grant['max_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
         self.captures.put_ref(candidate_ref, body)
         binding_ref = self.captures.put(binding) if binding is not None else None
+        if role == 'candidate':
+            # Root-authorized (bound) candidate: benchmark() may time it later.
+            self.benchmarkable.setdefault(candidate_ref['sha256'], {
+                'candidate_ref': candidate_ref, 'binding_ref': binding_ref, 'iteration': iteration})
         key = [self.grant['run_id'], role, iteration, candidate_ref['sha256']]
         self._claim(digest(encoded(key)) + '.json', {'grant_ref': self.grant_ref, 'role': role, 'iteration': iteration,
             'trials': trials, 'candidate_ref': candidate_ref, 'binding_ref': binding_ref})
@@ -657,22 +759,25 @@ class _EvaluationLedger:
         evidence_ref = self._store_for(fixture).put(evidence)  # Held-out: sealed.
         return {**evidence, 'evidence_ref': evidence_ref}
 
-    def _start_record(self, *, ident, role, fixture, binding_ref, candidate_ref, assets, input_ref, program_ref, test_ref):
+    def _start_record(self, *, ident, role, fixture, binding_ref, candidate_ref, assets, input_ref, program_ref, test_ref,
+                      extra=None):
         start = {'schema': 'ai4r-rsi-whole-capsule-execution-start:1', 'job_id': ident,
             'grant_ref': self.grant_ref, 'binding_ref': binding_ref, 'runtime_manifest_ref': self.runtime_manifest_ref,
             'grant_sha256': digest(encoded(self.grant)), 'runtime_manifest_sha256': assets['runtime_manifest_sha256'],
-            'bootstrap_schema': BOOTSTRAP_SCHEMA,
+            'bootstrap_schema': assets.get('bootstrap_schema', BOOTSTRAP_SCHEMA),
             'candidate_ref': candidate_ref, 'input_ref': input_ref, 'program_ref': program_ref,
             'test_ref': test_ref, 'fixture_id': fixture['id'], 'role': role, 'recorded_unix_ns': time.time_ns()}
         if self.scope != PROTECTED_SCOPE:
             start['scope'] = self.scope
+        if extra:
+            start.update(extra)
         self._claim(ident + '.json', start)
         return self.captures.put(start)
 
 
 class WholeCapsuleDispatcher(_EvaluationLedger):
     """Exactly granted baseline/candidate public jobs, with durable no-replay claims."""
-    def __init__(self, *, root, runtime_root, manifest, grant_path, grant_sha256, cgroup_root, captures):
+    def __init__(self, *, root, runtime_root, manifest, grant_path, grant_sha256, cgroup_root, captures, benchmark=None):
         _require_root()
         from jiuwenswarm.research.executor import RestrictedExecutor, ExecutionJob, ReadonlyMount
         from jiuwenswarm.research_rsi.records import RecordStore
@@ -724,11 +829,22 @@ class WholeCapsuleDispatcher(_EvaluationLedger):
             capture=lambda raw, **_: self._capture(raw), executor_uid=WORKER_UID, executor_gid=WORKER_GID,
             allowed_asset_roots=[self.root / 'assets', self.runtime_root], verify_mount=verify)
         need(not self.executor.prerequisites(), 'ACTUAL_KERNEL_CONFINEMENT_PREREQUISITES_UNAVAILABLE')
+        self._set_benchmark(benchmark)
 
     async def _run_case(self, *, role, fixture, body, candidate_ref, binding_ref, ident, index):
+        job = await self._run_job(role=role, fixture=fixture, candidate_ref=candidate_ref, binding_ref=binding_ref,
+            ident=ident, index=index, make_assets=lambda profile: capsule_job_assets(self.grant['capsule_name'],
+                runtime_root=self.runtime_root, manifest=self.manifest, candidate=body,
+                inputs={'packet': fixture['packet']}, iterations=self.grant['iterations'], **profile))
+        return self._finish_case(role=role, fixture=fixture, assets=job['assets'], receipt=job['receipt'],
+            stdout=job['stdout'], start_ref=job['start_ref'], candidate_ref=candidate_ref,
+            input_ref=job['input_ref'], program_ref=job['program_ref'])
+
+    async def _run_job(self, *, role, fixture, candidate_ref, binding_ref, ident, index, make_assets,
+                       node_id='unqualified-whole-capsule-development', start_extra=None):
+        """One protected V18 job; ``make_assets(profile_kwargs)`` builds its program."""
         need(self.executions < self.grant['max_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
-        assets = capsule_job_assets(self.grant['capsule_name'], runtime_root=self.runtime_root,
-            manifest=self.manifest, candidate=body, inputs={'packet': fixture['packet']}, iterations=self.grant['iterations'])
+        assets = make_assets({})
         asset_root = self.root / 'assets' / ident; asset_root.mkdir(mode=0o755)
         work = self.root / 'work' / ident; work.mkdir(mode=0o700); os.chown(work, WORKER_UID, WORKER_GID)
         mounts = [self.mount_type(self.runtime_root, '/resources/capsule-runtime',
@@ -745,13 +861,14 @@ class WholeCapsuleDispatcher(_EvaluationLedger):
                              if not self.loop else fixture)
         worker, limits = self.grant['worker'], self.grant['limits']
         job = self.job_type(job_id=ident, invocation_id=ident, contract_ref=worker['contract_ref'],
-            run_id=self.grant['run_id'], node_id='unqualified-whole-capsule-development', attempt_id=role,
+            run_id=self.grant['run_id'], node_id=node_id, attempt_id=role,
             sequence=1, role='treatment', repeat_index=index, seed=0, argv=assets['argv'], cwd=work,
             timeout_s=limits['timeout_s'], memory_mb=limits['memory_mb'], pids_max=limits['pids_max'],
             baseline_ref=self.parent_ref, validation_ref=test_ref, environment_ref=worker['environment_ref'],
             subject_ref=candidate_ref, hardware_ref=worker['hardware_ref'], readonly_mounts=tuple(mounts))
         start_ref = self._start_record(ident=ident, role=role, fixture=fixture, binding_ref=binding_ref,
-            candidate_ref=candidate_ref, assets=assets, input_ref=input_ref, program_ref=program_ref, test_ref=test_ref)
+            candidate_ref=candidate_ref, assets=assets, input_ref=input_ref, program_ref=program_ref, test_ref=test_ref,
+            extra=start_extra)
         self.executions += 1; self.issued[ident] = job
         self.sealing = store is not self.captures
         try:
@@ -762,8 +879,8 @@ class WholeCapsuleDispatcher(_EvaluationLedger):
         events = dict(line.split() for line in (group / 'cgroup.events').read_text().splitlines())
         need(events.get('populated') == '0' and not (group / 'cgroup.procs').read_text().strip(), 'EXECUTION_GROUP_NOT_EMPTY')
         stdout = store.read(receipt['stdout_ref'])
-        return self._finish_case(role=role, fixture=fixture, assets=assets, receipt=receipt, stdout=stdout,
-            start_ref=start_ref, candidate_ref=candidate_ref, input_ref=input_ref, program_ref=program_ref)
+        return {'assets': assets, 'receipt': receipt, 'stdout': stdout, 'start_ref': start_ref,
+                'input_ref': input_ref, 'program_ref': program_ref}
 
 
 def make_dispatcher(kind, **options):

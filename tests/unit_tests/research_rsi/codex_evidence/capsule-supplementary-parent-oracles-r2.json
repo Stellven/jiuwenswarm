@@ -1,0 +1,283 @@
+{
+  "schema": "ai4r-rsi-supplementary-precomputed-parent-oracles:2",
+  "targets": [
+    {
+      "schema": "ai4r-rsi-supplementary-parent-expectations:2",
+      "capsule_name": "utility.calculate",
+      "fixture_sha256": "2386bf39fb9b578904dd499b21b24696d9538446833503b8e46acd52413aeba0",
+      "scope": "supplementary exact parent differential only; outside frozen proof",
+      "rows": [
+        {
+          "id": "signed-zero-ties",
+          "output_sha256": "c4cec573d60a3c07bf626b85191e56ff750c421280106ad225ead657cb51c06c",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded exact packet envelope",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "FAIL",
+              "reason": "Explicit selected statistics independently recomputed from original values",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": true,
+          "input_sha256": "3f098650fd2d9d6e44c0ccd912b1844b2228532d7ea7de93df7955c9f2e1be43"
+        },
+        {
+          "id": "exponent-cancellation",
+          "output_sha256": "a05b360df36bd5b681774b316cf80fd56a15a28c3e515711b0a68b0efe59c602",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded exact packet envelope",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "PASS",
+              "reason": "Explicit selected statistics independently recomputed from original values",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": false,
+          "input_sha256": "7df44eef9fd93c62b103b55c426d921d8d6eaceabbcb10e3d6532ed0f5ba36ed"
+        },
+        {
+          "id": "leading-zero-representations",
+          "output_sha256": "dbe238e160d2c01f743ec1c22edfc513f0cc4d921b834340050884fe4684e018",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded exact packet envelope",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "PASS",
+              "reason": "Explicit selected statistics independently recomputed from original values",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": false,
+          "input_sha256": "4e4ad4c0ea218d3894f25d29597945885e7475da722e7b3cf922985012b3d211"
+        },
+        {
+          "id": "empty-count-sum",
+          "output_sha256": "7b6fd3f72bacce05ea556d7ec8f6c60182dd1cc624149a9d7a8dfc32b71d9d43",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded exact packet envelope",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "PASS",
+              "reason": "Explicit selected statistics independently recomputed from original values",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": false,
+          "input_sha256": "367567aff94a9797cf55b711d73b6e2b5a6c7c3e2aa24ca0b49955a77a6279fe"
+        },
+        {
+          "id": "empty-mean-error",
+          "error": {
+            "type": "ResearchError",
+            "code": "calculation_input",
+            "message": "calculation_input: empty column has no requested mean/min/max"
+          },
+          "input_sha256": "6cc5ff5e6cdede3c07e07e8a89be39a531de4a3f072eea49177624533ea8c4df"
+        },
+        {
+          "id": "boolean-not-number",
+          "error": {
+            "type": "ResearchError",
+            "code": "calculation_input",
+            "message": "calculation_input: invalid numeric value; no implicit conversion or missing values"
+          },
+          "input_sha256": "8d29caec334d033870675f9a4f5b71764299ba58c1e87c0c7f4bed56f9efc35f"
+        },
+        {
+          "id": "decimal-digit-bound",
+          "error": {
+            "type": "ResearchError",
+            "code": "calculation_input",
+            "message": "calculation_input: finite bounded decimal value required"
+          },
+          "input_sha256": "3dec87285f84ff9f9fb3e6d4e5c691ba6c64d7eac38de25b3f1e27ef70f5bc44"
+        },
+        {
+          "id": "decimal-adjusted-bound",
+          "error": {
+            "type": "ResearchError",
+            "code": "calculation_input",
+            "message": "calculation_input: finite bounded decimal value required"
+          },
+          "input_sha256": "2cc44da8b2deba0c405537d74ba722cd9f0d75cbfbea48c6a2760cd252d29ae8"
+        },
+        {
+          "id": "duplicate-limitations-default",
+          "output_sha256": "a329d7f93bd83eec01a7bd271f8aa5d7eb6026ae9b212af1fa06683afe6e7255",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded exact packet envelope",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "FAIL",
+              "reason": "Explicit selected statistics independently recomputed from original values",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": true,
+          "input_sha256": "5a7cf79569c64f12f15b9b3d3dd9f57c0c6e58b5ba54cb4c4777c811ed787903"
+        }
+      ]
+    },
+    {
+      "schema": "ai4r-rsi-supplementary-parent-expectations:2",
+      "capsule_name": "utility.table_normalize",
+      "fixture_sha256": "2811c17944d94e5957614283814246cde313c22010cf4f9501f90f8127edd691",
+      "scope": "supplementary exact parent differential only; outside frozen proof",
+      "rows": [
+        {
+          "id": "quoted-unicode-crlf",
+          "output_sha256": "a43a13de38f11d1041dadfe47c5dda29044b6f1753ffc35c19b23dc62654b75a",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded work packet and exact file digests",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "PASS",
+              "reason": "Every original source value and ordered column/row is preserved exactly",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": false,
+          "input_sha256": "d2113e00b1e9fb428ea6f2fe96d0f5dc053949afd63f04b96cb65388aef19726"
+        },
+        {
+          "id": "ordered-json-scalars",
+          "output_sha256": "aa3213ef0e7e2a5ea7ba5601c52a5e430c604bea5fc270205d04b77cb04f2989",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded work packet and exact file digests",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "PASS",
+              "reason": "Every original source value and ordered column/row is preserved exactly",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": false,
+          "input_sha256": "cc96dfa4308ea69071ba54d3635fc199fd93e88c829ce2574cbc58826b750c38"
+        },
+        {
+          "id": "empty-json",
+          "output_sha256": "95a55b74be93cdaf40bb06370a243561309734abbab44ae23a4944f37b07ed8a",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded work packet and exact file digests",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "PASS",
+              "reason": "Every original source value and ordered column/row is preserved exactly",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": false,
+          "input_sha256": "da59edf2c4698e5d5a7a0d7bbb257e84d0ebce9ce358c274b34d6d88331b9d9f"
+        },
+        {
+          "id": "float-overflow-error",
+          "error": {
+            "type": "ResearchError",
+            "code": "table_input",
+            "message": "table_input: only finite scalar values are supported"
+          },
+          "input_sha256": "bf38c3f94288faf3d7aefddb60ca648da4b2b1d00e5fa7f8a933d97e025d947a"
+        },
+        {
+          "id": "duplicate-json-key",
+          "error": {
+            "type": "ResearchError",
+            "code": "table_input",
+            "message": "table_input: duplicate JSON key"
+          },
+          "input_sha256": "ee54f3545afd4977b4775cbb51d47bfb0a0a3a25de2a08b7ad29239a1eda555e"
+        },
+        {
+          "id": "nested-scalar-error",
+          "error": {
+            "type": "ResearchError",
+            "code": "table_input",
+            "message": "table_input: only finite scalar values are supported"
+          },
+          "input_sha256": "be3b5a595d33792537230c9cdde7571485df02d3bb97294b72e4db9499f8c224"
+        },
+        {
+          "id": "csv-header-order-error",
+          "error": {
+            "type": "ResearchError",
+            "code": "table_input",
+            "message": "table_input: CSV header must exactly match columns"
+          },
+          "input_sha256": "d2b099348f23174ac3a48199dafadf0d526b55f5d3f5fe97f56157a2f712577a"
+        },
+        {
+          "id": "missing-file-error",
+          "error": {
+            "type": "ResearchError",
+            "code": "table_input",
+            "message": "table_input: table_input"
+          },
+          "input_sha256": "1379bbf0a11e66ffccca9075185f269b46271fbd3ae26fb4418ff31ec90e0413"
+        },
+        {
+          "id": "duplicate-limitations-default",
+          "output_sha256": "4296ca0f5c82c71a1940d2245ea0aed083251f4a231f4b019d50afbc68ad784f",
+          "original_checks": [
+            {
+              "check_id": "packet_schema",
+              "outcome": "PASS",
+              "reason": "Bounded work packet and exact file digests",
+              "evidence_refs": []
+            },
+            {
+              "check_id": "packet_integrity",
+              "outcome": "FAIL",
+              "reason": "Every original source value and ordered column/row is preserved exactly",
+              "evidence_refs": []
+            }
+          ],
+          "baseline_checker_discrepancy": true,
+          "input_sha256": "516e469892e92d8fd0de488137f6b4b1146e4b6fd4dc087d1a52bfc087aa8a32"
+        }
+      ]
+    }
+  ],
+  "scope": "supplementary differential outside frozen380; v1 original16 unchanged; no candidate imported/executed"
+}

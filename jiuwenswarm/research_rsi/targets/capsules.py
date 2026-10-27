@@ -59,6 +59,12 @@ class CapsuleTarget:
     objective: str | None = None
     fixture_sets: tuple[str, ...] = ()
     task_output_key: str | None = None
+    benchmark_workload_count: int = 0
+    semantic_edge_case_count: int = 0
+
+
+BENCHMARK_FILE = 'benchmark.json'
+SEMANTIC_EDGES_FILE = 'semantic_edges.json'
 
 
 def _manifest_paths():
@@ -86,7 +92,9 @@ def _expand(node, env):
     string join; ``{"$concat": [..]}`` list/string concatenation;
     ``{"$fmt": "..{var}.."}`` str.format over loop variables;
     ``{"$int": {"terms": {var: coef}, "add", "mod"}}`` integer arithmetic;
-    ``{"$str": T}`` str(); ``{"$literal": T}`` no expansion.
+    ``{"$str": T}`` str(); ``{"$literal": T}`` no expansion;
+    ``{"$var": name}`` a copy of a bound variable's value (any JSON type);
+    ``{"$slice": {"of", "start", "stop", "step"}}`` Python list/str slicing.
     """
     if isinstance(node, list):
         return [_expand(item, env) for item in node]
@@ -123,6 +131,18 @@ def _expand(node, env):
         return value % arg['mod'] if arg.get('mod') else value
     if op == '$str':
         return str(_expand(arg, env))
+    if op == '$var':
+        if not isinstance(arg, str) or arg not in env:
+            raise ValueError('Unbound fixture template variable')
+        return copy.deepcopy(env[arg])
+    if op == '$slice':
+        if not isinstance(arg, dict) or not {'of'} <= set(arg) <= {'of', 'start', 'stop', 'step'}:
+            raise ValueError('$slice requires of/start/stop/step')
+        value = _expand(arg['of'], env)
+        bounds = [_expand(arg.get(key), env) for key in ('start', 'stop', 'step')]
+        if not isinstance(value, (list, str)) or any(b is not None and type(b) is not int for b in bounds) or bounds[2] == 0:
+            raise ValueError('$slice requires a list/string and integer bounds')
+        return value[slice(*bounds)]
     raise ValueError('Unknown fixture template operator ' + op)
 
 
@@ -178,13 +198,35 @@ def _discover():
         all_ids = [case['id'] for key in FIXTURE_SETS for case in _raw_set(stem, key)['cases']]
         if len(set(all_ids)) != len(all_ids):
             raise ValueError('Fixture ids must be unique across all sets of a capsule')
+        extras = {key: _optional_spec(stem, file) for key, file in (('benchmark', BENCHMARK_FILE),
+                                                                    ('semantic', SEMANTIC_EDGES_FILE))}
+        for extra in extras.values():
+            if extra is not None and extra.get('capsule_name') != name:
+                raise ValueError('Capsule spec names a different capsule: ' + stem)
         found[name] = (stem, CapsuleTarget(name, f'research/capsule_extensions/{stem}/worker.py',
             f'research/capsule_extensions/{stem}/checks.py', spec['scope'],
             ('task_success', 'carrier_wall_s', 'output_bytes'), True,
             'Governed whole-capsule closure and separate development mutation declaration/grant required',
             held_out_case_count=counts['held_out'], public_extended_case_count=counts['public_extended'],
-            objective=OBJECTIVE, fixture_sets=FIXTURE_SETS, task_output_key=spec['task_output_key']))
+            objective=OBJECTIVE, fixture_sets=FIXTURE_SETS, task_output_key=spec['task_output_key'],
+            benchmark_workload_count=len((extras['benchmark'] or {}).get('workloads', ())),
+            semantic_edge_case_count=len((extras['semantic'] or {}).get('cases', ()))))
     return found
+
+
+@lru_cache(maxsize=None)
+def _optional_spec_text(stem, file):
+    path = _EXTENSIONS / stem / 'fixtures' / file
+    return path.read_text('utf-8') if path.is_file() else None
+
+
+def _optional_spec(stem, file):
+    """Fresh parsed optional per-capsule spec (benchmark / semantic edges) or None."""
+    text = _optional_spec_text(stem, file)
+    value = None if text is None else json.loads(text)
+    if value is not None and not isinstance(value, dict):
+        raise ValueError('Capsule spec must be an object: ' + stem + '/' + file)
+    return value
 
 
 _DISCOVERED = _discover()
@@ -232,6 +274,26 @@ def fixture_set(name, fixture_set):
     if fixture_set not in FIXTURE_SETS:
         raise ValueError('Unknown fixture set')
     return json.loads(_fixture_set(_STEMS[name], fixture_set))
+
+
+def benchmark_spec(name):
+    """The capsule's ``fixtures/benchmark.json`` workload spec, or None (fresh copy)."""
+    registered_capsule(name)
+    return _optional_spec(_STEMS[name], BENCHMARK_FILE) if name in _STEMS else None
+
+
+def semantic_edges_spec(name):
+    """The capsule's ``fixtures/semantic_edges.json`` spec, or None (fresh copy)."""
+    registered_capsule(name)
+    return _optional_spec(_STEMS[name], SEMANTIC_EDGES_FILE) if name in _STEMS else None
+
+
+def carrier_module(name):
+    """Dotted module name of the registered capsule's worker carrier."""
+    registered_capsule(name)
+    if name not in _STEMS:
+        raise ValueError('No packet carrier module for target')
+    return f'{_PACKAGE}.{_STEMS[name]}.worker'
 
 
 def public_fixtures(name):

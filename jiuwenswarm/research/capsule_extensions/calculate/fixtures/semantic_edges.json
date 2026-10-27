@@ -1,0 +1,364 @@
+{
+ "schema": "ai4r-rsi-capsule-semantic-edges:1",
+ "capsule_name": "utility.calculate",
+ "split": "supplementary",
+ "notes": "Supplementary differential edge cases (Codex capsule_semantic_edges v1/v2) outside the timed benchmark; judged by the same parent-relative correctness contract.",
+ "cases": [
+  {
+   "id": "signed-zero-ties",
+   "malformed": false,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       "-0.00"
+      ],
+      [
+       "0.00"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "exponent-cancellation",
+   "malformed": false,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       "1e28"
+      ],
+      [
+       "-1e28"
+      ],
+      [
+       "1e-28"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "leading-zero-representations",
+   "malformed": false,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       "001.00"
+      ],
+      [
+       "+2.00"
+      ],
+      [
+       "-3.00"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "empty-count-sum",
+   "malformed": false,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": []
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "empty-mean-error",
+   "malformed": true,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": []
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "mean"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "boolean-not-number",
+   "malformed": true,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       true
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "json_numbers"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "decimal-digit-bound",
+   "malformed": true,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       "12345678901234567890123456789"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "decimal-adjusted-bound",
+   "malformed": true,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       "1e29"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "duplicate-limitations-default",
+   "malformed": false,
+   "since_version": 2,
+   "derive": "leading-zero-representations",
+   "set": [
+    {
+     "path": [
+      "limitations"
+     ],
+     "value": [
+      "repeat",
+      "keep",
+      "repeat",
+      "keep",
+      "tail"
+     ]
+    }
+   ]
+  }
+ ]
+}

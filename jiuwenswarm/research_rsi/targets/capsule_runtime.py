@@ -333,6 +333,16 @@ def capsule_worker_program(name, *, manifest_sha256, candidate_sha256, input_sha
     is selected only by explicit configuration: it names real host paths,
     carries no identity requirement and must be dispatched without a policy.
     """
+    config = bootstrap_config(name, manifest_sha256=manifest_sha256, candidate_sha256=candidate_sha256,
+        input_sha256=input_sha256, iterations=iterations, process_policy=process_policy,
+        execution_profile=execution_profile, resource_root=resource_root, runtime_root=runtime_root)
+    from ..process_policy import apply_policy
+    return apply_policy((inspect.getsource(_child_main) + '\n_child_main(' + repr(config) + ')\n').encode(), process_policy)
+
+
+def bootstrap_config(name, *, manifest_sha256, candidate_sha256, input_sha256, iterations=1, process_policy=POLICY,
+                     execution_profile='v18-bwrap', resource_root=None, runtime_root=None):
+    """The closed ``_child_main`` configuration (shared by every guarded program)."""
     if name not in TARGET_MODULES:
         raise ValueError('Unknown finite whole-capsule target')
     for pin in (manifest_sha256, candidate_sha256, input_sha256):
@@ -354,8 +364,7 @@ def capsule_worker_program(name, *, manifest_sha256, candidate_sha256, input_sha
         config.update(execution_profile=execution_profile, resource_root=resource_root, runtime_root=runtime_root)
     elif resource_root is not None or runtime_root is not None:
         raise ValueError('Protected programs use the fixed /resources layout')
-    from ..process_policy import apply_policy
-    return apply_policy((inspect.getsource(_child_main) + '\n_child_main(' + repr(config) + ')\n').encode(), process_policy)
+    return config
 
 
 def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, iterations=1,

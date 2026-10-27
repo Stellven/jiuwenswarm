@@ -1,0 +1,91 @@
+{
+  "schema": "ai4r-rsi-verified-capsule-improvements:1",
+  "outcome": "Both frozen development performance objectives met by actual RSI-generated round2 candidates.",
+  "metric": "Relative reduction in amortized authoritative protected-process wall per fixed complete-carrier batch; fresh input/module each invocation, initialization/input guards/validation/copy/serialization included.",
+  "not_claimed": "No original single-invocation latency improvement or production/security qualification claim.",
+  "method": {
+    "same_original_baselines_and_frozen_protocols_across_rounds": true,
+    "paired_repetitions_per_workload": 11,
+    "alternating_order": "AB BA",
+    "minimum_gain": 0.1,
+    "required_global_95percent_ratio_upper_bound": 0.9,
+    "maximum_per_workload_median_regression": 0.05,
+    "round_2_protected_jobs": 380,
+    "round_2_supplementary_semantic_jobs": 18,
+    "native_model_calls_across_successful_two_target_two_round_generations": 8,
+    "source_model": "gpt-6.1-sol",
+    "candidate_executed_on_host": false,
+    "manual_candidate_worker_edits": false,
+    "frozen_checker_or_postgeneration_benchmark_changes": false
+  },
+  "targets": [
+    {
+      "capsule": "Calculate",
+      "capsule_name": "utility.calculate",
+      "time_reduction_percent": 16.78238266502111,
+      "confidence_95_percent_gain": [
+        15.82449136446561,
+        18.147827463767808
+      ],
+      "per_workload_gain_range_percent": [
+        14.566306681053243,
+        19.333242898874747
+      ],
+      "frozen_10percent_objective_met": true,
+      "protected_jobs_correct": 192,
+      "supplementary_parent_semantic_matches": 9,
+      "candidate_sha256": "0fb940f090431ba01ef940ad7e3dc54b2a14e1749e0f9a2e62d2cccd9522bb70",
+      "original_parent_sha256": "22e37d0e3045d46c8b689ab56d699c09f08d0f6bdb045f93fd997b202256ae49",
+      "frozen_protocol_sha256": "905740b653c8e3c46e0deafa80d69bfb3b6b9501a876ff65efd398eb29d5efb8",
+      "original_report_sha256": "5754859eac5cdac67e6bc426a11b56ca5ae518f259fb9a99758f93c35ba067b1",
+      "independent_review": "D:\\Codex Development Runs\\rsi-review-evidence\\2026-10-27\\calculate-paired-independent-review-r2.json",
+      "independent_review_sha256": "83e9ea13dd5099086e223b68483244d83b0dca35a2deb02b40e737550d9b9117",
+      "per_workload_uncertainty_report": "D:\\Codex Development Runs\\rsi-review-evidence\\2026-10-27\\calculate-readable-benchmark-r2.json",
+      "per_workload_uncertainty_report_sha256": "0b6dc7fb293a600c2cfc92634cad6ddfc341fa718d520a032c2e194fdf0f9ddd"
+    },
+    {
+      "capsule": "Table Normalize",
+      "capsule_name": "utility.table_normalize",
+      "time_reduction_percent": 20.74038500776636,
+      "confidence_95_percent_gain": [
+        17.23200961564175,
+        22.657912657797695
+      ],
+      "per_workload_gain_range_percent": [
+        17.073723734453594,
+        25.916459990161258
+      ],
+      "frozen_10percent_objective_met": true,
+      "protected_jobs_correct": 188,
+      "supplementary_parent_semantic_matches": 9,
+      "candidate_sha256": "db6ce0032da49dc39b0ae40a6e1588cffbfd0823577417acf339815bbbdb9ec5",
+      "original_parent_sha256": "1793760181576dbe635d615f2d5cea67aed62f4a1662b180c2a705197d079314",
+      "frozen_protocol_sha256": "7f4b746119cefa76b6f018e96a969eb1d763d7e1960bdc8beeaf121a27326ff0",
+      "original_report_sha256": "923cd4365f2efc5927fe814ce1f7bec64d2aa3a1accb6f9eed05e84ef9b86e44",
+      "independent_review": "D:\\Codex Development Runs\\rsi-review-evidence\\2026-10-27\\table_normalize-paired-independent-review-r2.json",
+      "independent_review_sha256": "51164af4b03ad94841acd4779c7416f7af2d05261b3fb52b72952f8d1020694f",
+      "per_workload_uncertainty_report": "D:\\Codex Development Runs\\rsi-review-evidence\\2026-10-27\\table_normalize-readable-benchmark-r2.json",
+      "per_workload_uncertainty_report_sha256": "50c8f89727e1ef5fbc538c0add8f41dcd95d723b141d4f498ecd1c6a4edbde58"
+    }
+  ],
+  "preserved_history": [
+    {
+      "capsule": "Calculate",
+      "round_1_time_reduction_percent": 1.4026984149533073,
+      "round_1_objective_met": false,
+      "round_2_objective_met": true
+    },
+    {
+      "capsule": "Table Normalize",
+      "round_1_time_reduction_percent": -1.4982367602199176,
+      "round_1_objective_met": false,
+      "round_2_objective_met": true
+    }
+  ],
+  "known_original_checker_discrepancies": [
+    "Calculate signed-zero max tie: parent returns first equal-value representation; original checker sorts and selects last. Exact parent behavior is retained, discrepancy explicitly recorded.",
+    "Duplicate existing limitations: original output_packet deduplicates in first occurrence order, while original integrity check expects unchanged duplicates. Exact parent behavior and original checker outcome are retained in supplementary checks."
+  ],
+  "qualification": "UNQUALIFIED development evidence; security deferred; no production admission or activation.",
+  "publication_status": "See actual authenticated UI/publication checkpoint separately; this artifact verifies source and protected benchmark evidence only."
+}
