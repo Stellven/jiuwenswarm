@@ -262,3 +262,71 @@ async def test_failure_retains_observed_provider_telemetry_even_through_timeout_
     assert final['provider_request_id']=='actually-observed-request'
     assert captured['observation']['usage']==final['usage']
     assert any(ref['id']==captured['id'] for ref in final['evidence_refs'])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('wrapper',['cause','context','asyncio_timeout'])
+async def test_failed_native_trace_survives_wrapped_cancellation(wrapper):
+    """Real bridge retention and trace validator, no provider/model effect."""
+    import asyncio
+    ledger=Ledger();blobs={};trace_refs=[];calls=[]
+    def store(value):
+        raw=json.dumps(value,sort_keys=True).encode()
+        digest=hashlib.sha256(raw).hexdigest()
+        ref={'id':'blob:'+digest,'sha256':digest};blobs[ref['id']]=raw
+        return ref
+    class InterruptedProvider:
+        async def invoke_governed_traced(self,scope,prompt,**kwargs):
+            calls.append(prompt)
+            raw_ref=store({'method':'item/agentMessage/delta','params':{'delta':'{"partial":'}})
+            event_ref=store({'schema':'ai4r-native-governed-trace-event:1','scope':scope,
+                'sequence':0,'direction':'in','method':'item/agentMessage/delta','raw_ref':raw_ref})
+            trace=store({'schema':'ai4r-native-governed-trace:1','scope':scope,
+                'status':'interrupted','event_refs':[event_ref]});trace_refs.append(trace)
+            if wrapper=='asyncio_timeout':
+                async with asyncio.timeout(.001):
+                    try:await asyncio.sleep(1)
+                    except asyncio.CancelledError as error:
+                        error.native_trace_ref=trace
+                        raise
+            original=asyncio.CancelledError();original.native_trace_ref=trace
+            if wrapper=='cause':raise TimeoutError() from original
+            try:raise original
+            except asyncio.CancelledError:raise TimeoutError()
+    bridge=GovernedBridge(persist=ledger.append,authorize=lambda _:authorized_context(),
+        revalidate=lambda _:authorized_context(),subscription_service=InterruptedProvider(),
+        read_evidence=lambda ref:blobs[ref['id']])
+    with pytest.raises(BridgeError,match='timeout'):await bridge.call({},'controlled prompt')
+    final=next(row for kind,row in ledger.records if kind=='model-call')
+    assert len(calls)==1 and trace_refs[0] in final['evidence_refs']
+    assert final['evidence_refs'].count(trace_refs[0])==1
+    assert final['outcome']=='outcome_unknown' and final['usage']['input_tokens'] is None
+    assert not any(kind=='model-call-output' for kind,_ in ledger.records)
+
+
+def test_failure_native_trace_walk_deduplicates_and_stops_on_cycles():
+    from jiuwenswarm.research.bridge import failure_native_trace_refs
+    import asyncio
+    ref={'id':'blob:original','sha256':'a'*64}
+    outer=TimeoutError();inner=asyncio.CancelledError()
+    outer.native_trace_ref=inner.native_trace_ref=ref
+    outer.__cause__=inner;inner.__context__=outer
+    assert failure_native_trace_refs(outer)==[ref]
+
+
+@pytest.mark.asyncio
+async def test_wrapped_trace_still_requires_exact_call_scope():
+    import asyncio
+    ledger=Ledger();trace_ref={'id':'blob:wrong-scope','sha256':'b'*64}
+    class FailedProvider:
+        async def invoke_governed_traced(self,scope,prompt,**kwargs):
+            error=asyncio.CancelledError();error.native_trace_ref=trace_ref
+            raise TimeoutError() from error
+    wrong={'schema':'ai4r-native-governed-trace:1','scope':{'call_id':'other-call'},
+           'status':'interrupted','event_refs':[]}
+    bridge=GovernedBridge(persist=ledger.append,authorize=lambda _:authorized_context(),
+        revalidate=lambda _:authorized_context(),subscription_service=FailedProvider(),
+        read_evidence=lambda _:json.dumps(wrong).encode())
+    with pytest.raises(BridgeError,match='AUDIT_UNAVAILABLE'):await bridge.call({},'controlled prompt')
+    final=next(row for kind,row in ledger.records if kind=='model-call')
+    assert trace_ref not in final['evidence_refs'] and final['outcome']!='completed'

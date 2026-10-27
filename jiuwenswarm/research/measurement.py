@@ -273,6 +273,15 @@ async def measure_trial(private_context, handler, inputs, output_specs, check_pl
         store.put_record('deterministic-check-result', deterministic,record_id='measurement-checks:' + uuid.uuid4().hex, scope=contract))
     if not failure and not all_mandatory_pass(plan, results):
         failure, status = 'deterministic_check_failed', 'failed'
+    if not failure:
+        # Match the ordinary producing runner: an explicit blocking uncertainty
+        # is a halt, not permission for a consistent-but-unusable artifact to advance.
+        for value in outputs.values():
+            if isinstance(value,dict) and (value.get('readiness',{}).get('status')=='needs_clarification'
+                    or any(item.get('blocking') for item in value.get('uncertainties',[]))
+                    or any(item.get('blocking') for item in value.get('unresolved_items',[]))):
+                failure,status='blocking_uncertainty','blocked'
+                break
     if not failure and review_callback is not None:
         try:
             selected=getattr(ctx,'review_ports',None)

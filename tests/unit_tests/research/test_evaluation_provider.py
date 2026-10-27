@@ -260,6 +260,14 @@ async def test_single_cc_actual_carrier_bridge_and_checks_do_not_authorize_produ
     class ControlledSubscription:
         async def invoke_governed(self,prompt,*,model,timeout_s):
             prompts.append(prompt)
+            if 'subject_declaration' in prompt:
+                source=store.read_record(provider.resources._subject(provider.assets['cases'][0])[0])
+                profile=store.read_record(source['checking_profile_ref'])
+                payload=json.loads(prompt.split('<subject_payload>\n',1)[1].rsplit('\n</subject_payload>',1)[0])
+                port=json.loads(payload['subject_output'])['id']
+                return {'text':json.dumps({'findings':[{'criterion_id':c['criterion_id'],'outcome':'PASS','reason':'Controlled output-local criterion'} for c in profile['criteria'] if c['target_port'] in (None,port)],
+                    'uncertainties':[],'limitations':[],'required_correction':None}),
+                    'identity':{'effective':None,'basis':'Controlled in-process reviewer fixture'},'usage':{},'provider_request_id':None,'observed_runtime':True}
             scores=json.loads(Path('tests/fixtures/research/pipeline/source-valid/screening_result.json').read_bytes())['scores']
             return {'text':json.dumps({'scores':scores,'opportunity_statement':'The frozen mechanism avoids repeated lookup work.'}),
                 'identity':{'effective':None,'basis':'Controlled in-process provider fixture'},'usage':{},
@@ -275,15 +283,18 @@ async def test_single_cc_actual_carrier_bridge_and_checks_do_not_authorize_produ
     bind_request_runtime(store,provider,request,'E3')
     result=await provider.single_cc(actor,request)
     assert result['status']=='completed',result['reason']
-    assert len(prompts)==1 and len(result['model_calls'])==1
-    assert result['model_calls'][0]['role']=='worker'
+    assert len(prompts)==3 and len(result['model_calls'])==3
+    assert [row['role'] for row in result['model_calls']]==['worker','verifier','verifier']
     assert result['model_calls'][0]['effective_model'] is None
     assert result['model_calls'][0]['input_tokens'] is None and result['model_calls'][0]['cost'] is None
     assert all(r['status']=='PASS' for r in result['check_results'])
     assert result['output_refs'] and result['invalid_for_product'] is True
     with pytest.raises(ResearchError):store.require_product_material(list(result['output_refs'].values()))
-    assert not list(store.iter_records(kinds=('gate-decision','acceptance-commit','verifier-assessment','evaluation-verifier-assessment')))
-    assert await provider.single_cc(actor,request)==result and len(prompts)==1
+    assert not list(store.iter_records(kinds=('gate-decision','acceptance-commit','verifier-assessment')))
+    assert len(list(store.iter_records(kinds=('evaluation-verifier-assessment',))))==2
+    gates=[r['record'] for r in store.iter_records(kinds=('evaluation-gate-record',))]
+    assert len(gates)==2 and all(r['decision']['action']=='advance' and r['decision']['accepted'] is False for r in gates)
+    assert await provider.single_cc(actor,request)==result and len(prompts)==3
     store.close()
 
 
@@ -370,3 +381,51 @@ async def test_replay_selects_one_output_but_keeps_complete_original_multioutput
     assert [r['ref'] for r in store.iter_records(kinds=('invocation-observation',))]==original_observations
     assert await replay.node_replay(actor,request)==result and len(prompts)==2
     store.close()
+
+
+def test_single_cc_results_include_original_semantic_and_mechanical_checks(tmp_path):
+    from types import SimpleNamespace
+    from jiuwenswarm.research.evaluation_provider import single_cc_check_results
+    from jiuwenswarm.research.gate import assemble_assessment
+    store=SQLiteRunStore(tmp_path)
+    try:
+        pin=store.put_blob(b'control')
+        checks=store.put_record('deterministic-check-result',{'schema_version':'1.0.0','subject_ref':pin,'check_plan_ref':pin,
+            'results':[{'check_id':'control','outcome':'PASS','reason':'Controlled exact predicate','evidence_refs':[pin]}]})
+        body={'findings':[{'criterion_id':'internal_consistency','outcome':'FAIL','reason':'Visible contradiction'}],
+            'uncertainties':[],'limitations':[],'required_correction':'Resolve the contradiction'}
+        assessment=store.put_record('verifier-assessment',assemble_assessment(body,[{'criterion_id':'internal_consistency','blocking':True}],pin,pin,pin))
+        measured=SimpleNamespace(deterministic_ref=checks,assessment_refs=[assessment],verifier_check_refs=[checks])
+        rows=single_cc_check_results(store,measured)
+        assert rows==[{'check_id':'control','status':'PASS'},
+            {'check_id':'semantic:0:internal_consistency','status':'FAIL'},
+            {'check_id':'reviewer:0:control','status':'PASS'}]
+    finally:store.close()
+
+
+def test_single_cc_recording_gate_uses_each_exact_output_assessment(tmp_path):
+    from types import SimpleNamespace
+    from jiuwenswarm.research.evaluation_authority import EvaluationMeasurementContext
+    from jiuwenswarm.research.gate import assemble_assessment
+    store=SQLiteRunStore(tmp_path)
+    try:
+        first,second=store.put_blob(b'{"id":"first"}'),store.put_blob(b'{"id":"second"}')
+        pin=store.put_blob(b'controlled checking basis')
+        checks=store.put_record('deterministic-check-result',{'schema_version':'1.0.0','subject_ref':first,'check_plan_ref':pin,
+            'results':[{'check_id':'control','outcome':'PASS','reason':'Controlled exact predicate','evidence_refs':[first]}]})
+        criteria=[{'criterion_id':'internal_consistency','blocking':True}]
+        def assessment(subject,outcome):
+            body={'findings':[{'criterion_id':'internal_consistency','outcome':outcome,'reason':'Controlled '+outcome}],
+                'uncertainties':[],'limitations':[],'required_correction':None if outcome=='PASS' else 'Correct the contradiction'}
+            return store.put_record('verifier-assessment',assemble_assessment(body,criteria,pin,subject,pin))
+        a,b=assessment(first,'PASS'),assessment(second,'FAIL')
+        measured=SimpleNamespace(deterministic_ref=checks,assessment_refs=[a,b],verifier_check_refs=[first,second],failure=None,
+            output_refs={'first':first,'second':second})
+        ctx=SimpleNamespace(store=store,check_plan_ref=pin,contract_ref=pin,grant={'role':'worker'},
+            private_plan=lambda _: {'mandatory_deterministic':['control']})
+        good=EvaluationMeasurementContext.recording_decision(ctx,measured,'first')
+        bad=EvaluationMeasurementContext.recording_decision(ctx,measured,'second')
+        assert good['action']=='advance' and good['assessment_ref']==a and good['accepted'] is False
+        assert bad['action']=='halt' and bad['assessment_ref']==b and bad['verifier_check_ref']==second
+        assert 'did not pass' in bad['reasons'][0] and bad['invalid_for_product'] is True
+    finally:store.close()

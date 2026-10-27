@@ -11,7 +11,7 @@ from ..state import json_bytes
 
 STAGES = ('search', 'screening', 'hypothesis', 'builder', 'benchmark', 'evaluation', 'delivery')
 STAGE_VERSIONS = {stage: 'm1-3' for stage in STAGES}
-STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-17', benchmark='m1-10-agent-pi', evaluation='m1-5', delivery='m1-5')
+STAGE_VERSIONS.update(search='m1-6', screening='m1-4', hypothesis='m1-8', builder='m1-18', benchmark='m1-10-agent-pi', evaluation='m1-5', delivery='m1-5')
 
 
 def source_metadata():

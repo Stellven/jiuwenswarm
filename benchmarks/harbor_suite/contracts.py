@@ -20,7 +20,15 @@ EXPECTED = {
     "pipeline01-experiment": ("pipeline", "run"),
     "pipeline02-recovery": ("pipeline", "run"),
 }
-EXTENDED = {"cc03-typed-table": ("cc", "single_cc")}
+EXTENDED = {
+    'cc03-typed-table': ("cc", "single_cc"),
+    'ccv01-intent': ("cc", "single_cc"),
+    'ccv02-plan': ("cc", "single_cc"),
+    'ccv03-screen': ("cc", "single_cc"),
+    'ccv04-build': ("cc", "single_cc"),
+    'ccv05-evaluate': ("cc", "single_cc"),
+    'ccv06-deliver': ("cc", "single_cc"),
+}
 ID = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,63}$")
 FIELDS = set("schema id module title scenario_ids milestone classification requirements domains entrypoint objective primary_metric budgets product_prerequisites evidence_requirements variants oracle_version".split())
 VARIANT_FIELDS = set("id split task inputs expected_behavior seed".split())

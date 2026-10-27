@@ -82,6 +82,23 @@ def failure_observation(error,requested_model):
     return None
 
 
+def failure_native_trace_refs(error):
+    """Recover original trace references through timeout/cancellation wrappers.
+
+    Keep every distinct attached reference for the normal scope/hash validator;
+    do not trust or discard a reference merely because it is on an inner error.
+    The bounded, cycle-safe walk follows the same links as failure telemetry.
+    """
+    pending=[error];seen=set();refs=[]
+    while pending and len(seen)<8:
+        current=pending.pop(0)
+        if current is None or id(current) in seen:continue
+        seen.add(id(current));ref=getattr(current,'native_trace_ref',None)
+        if ref is not None and ref not in refs:refs.append(ref)
+        pending.extend((getattr(current,'__cause__',None),getattr(current,'__context__',None)))
+    return refs
+
+
 class GovernedBridge:
     def __init__(self, *, persist, authorize, subscription_service, router_port=None,
                  providers=None, fixed_route_id="codex-cli-default", validate_record=None,
@@ -475,8 +492,7 @@ class GovernedBridge:
                 self._uncertain_runs.add(protected['run_id'])
             call_record["ended_at"] = None if call_record["outcome"] == "outcome_unknown" else utc_now()
         if failure is not None:
-            trace_ref=getattr(failure,'native_trace_ref',None)
-            if trace_ref is not None:
+            for trace_ref in failure_native_trace_refs(failure):
                 try:await self._join_native_trace(trace_ref,native_scope,call_record)
                 except BridgeError:
                     failure_code='AUDIT_UNAVAILABLE'

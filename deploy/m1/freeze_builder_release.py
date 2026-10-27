@@ -13,9 +13,9 @@ sys.path.insert(0, str(ROOT))
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--write', action='store_true', help='Author Builder m1-17 and its schema-routed Benchmark receipt consumer')
+    parser.add_argument('--write', action='store_true', help='Author the selected Builder release and its schema-routed Benchmark receipt consumer')
     args = parser.parse_args()
-    from jiuwenswarm.research.capsules.assets import build_research_assets, build_pi_benchmark_asset
+    from jiuwenswarm.research.capsules.assets import build_research_assets, build_pi_benchmark_asset, STAGE_VERSIONS
     from jiuwenswarm.research.contracts import validate
     from jiuwenswarm.research.state import SQLiteRunStore, json_bytes
     path = ROOT / 'jiuwenswarm/research/resources/capsules/capsule_catalog.json'
@@ -41,7 +41,9 @@ def main():
     for node in template['nodes']:
         stage = node['node_id']
         if stage in {'builder', 'benchmark'}:
-            node['cc'].update(cc_version='m1-17' if stage == 'builder' else 'm1-10-agent-pi',
+            # Resolve the generated release identity rather than carrying a stale
+            # hard-coded version into the template after a source-only repair.
+            node['cc'].update(cc_version=STAGE_VERSIONS[stage],
                               declaration_sha256=stages[stage]['declaration_ref']['sha256'])
             if stage == 'builder':
                 node['objective'] = 'Build and test the frozen intervention through bounded native development actions'

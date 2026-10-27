@@ -75,7 +75,7 @@ def test_publication_rejects_unfrozen_aliases_and_cycles(tmp_path, fault):
         store.close()
 
 
-async def prepared_fixture(tmp_path, fault=None, *, manual_model=False):
+async def prepared_fixture(tmp_path, fault=None, *, manual_model=False, objective=None):
     from tests.unit_tests.research.test_budget_ceiling import installed_library
     from jiuwenswarm.research.capsules.assets import register_research_capsules
     from jiuwenswarm.research.runner import CapsuleRunner
@@ -144,12 +144,25 @@ async def prepared_fixture(tmp_path, fault=None, *, manual_model=False):
             library_snapshot_ref=snapshot,campaign_id='unit:campaign',case_id='capsule',request_id='unit:request',
             capsule_pin=installed['screening']['pin'],input_refs=published['input_refs'],node_id='unit_cc',
             limits=limits,template_ref=policy,authority_ceiling=authority,config_id='unit:config',
-            account_model_selection_ref=selection_ref)
+            account_model_selection_ref=selection_ref,objective=objective)
         assert before == {table:store.connection.execute('SELECT COUNT(*) FROM '+table).fetchone()[0] for table in before}
         return store, result, resources
     except BaseException:
         store.close()
         raise
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('objective',[None,'Evaluate the supplied missing-baseline evidence only.'])
+async def test_preparer_binds_assignment_objective_without_rewriting_historical_source(tmp_path,objective):
+    store,value,_=await prepared_fixture(tmp_path,objective=objective)
+    try:
+        contract=store.read_record(value['source_contract_ref'])
+        parent=store.read_record(contract['node_contract_ref'])
+        assert parent['objective'] == (objective or 'Unit frozen source only')
+        assert store.get_run('unit:source')['submission']['intent'] == 'Unit frozen source only'
+        assert not list(store.iter_records(kinds=('evaluation-request','evaluation-assignment-grant','model-call-start')))
+    finally:store.close()
 
 
 @pytest.mark.asyncio

@@ -534,11 +534,17 @@ class EvaluationAuthority:
 
     def _reviewer_projection(self, scope, port, *, child_id, basis_id, child_ref=None):
         request = self._request(scope['request_ref'])
-        require(request['entry_point'] == 'E2' and port == scope['selected_output_port'],
-            'Only the approved replay output may receive a reviewer')
+        require((request['entry_point'] == 'E2' and port == scope['selected_output_port']) or request['entry_point'] == 'E3',
+            'Only an approved original output may receive a reviewer')
         source, plan, parent, _, _, extra = self._source(scope['request_ref'])
         original = extra[3]
-        require(original is not None and port in original['output_refs'], 'Selected replay output is unavailable')
+        if request['entry_point'] == 'E3':
+            from .evaluation_inspection import captured_worker_outputs
+            outputs = captured_worker_outputs(self.store, scope['request_ref'], scope['source_contract_ref'])
+        else:
+            require(original is not None, 'Selected replay output is unavailable')
+            outputs = original['output_refs']
+        require(port in outputs, 'Selected measured output is unavailable')
         # The complete original Tier1 population must pass before ANY reviewer
         # context/grant can exist. A selected output cannot waive another output.
         checks = self.captures(scope['request_ref'], 'deterministic_result')
@@ -548,7 +554,7 @@ class EvaluationAuthority:
             require(self.store.record_kind(ref) == 'evaluation-deterministic-check-result', 'Replay checks have a foreign kind')
             checked = self.store.read_record(ref, contract_id='deterministic-check-result')
             basis = private_record(self.store, checked['check_plan_ref'], 'evaluation-checking-basis')
-            if basis['mode'] == 'replay_subject' and basis['request_ref'] == scope['request_ref']:
+            if basis['mode'] == ('replay_subject' if request['entry_point'] == 'E2' else 'worker_output') and basis['request_ref'] == scope['request_ref']:
                 require(basis['source_contract_ref'] == scope['source_contract_ref']
                     and basis['mandatory_deterministic'] == plan['mandatory_deterministic'], 'Replay mandatory coverage differs')
                 matches.append(checked)
@@ -585,7 +591,7 @@ class EvaluationAuthority:
         from .compiler import input_port
         from .binding import ContractFactory
         inputs = [input_port('subject_declaration', 'capsule-declaration', source['bindings'][0]['declaration_ref']),
-            input_port('subject_output', 'opaque-bytes', original['output_refs'][port])]
+            input_port('subject_output', 'opaque-bytes', outputs[port])]
         outputs = [{'name': p['name'], 'contract_id': p['schema_ref'], 'version': ContractFactory._version(p['schema_ref']),
             'required': p['required']} for p in declaration['ports']['outputs']]
         authority = {'network': 'none', 'network_allowlist': [], 'resource_reads': [r for p in inputs for r in p['artifact_refs']],
@@ -1086,13 +1092,25 @@ class EvaluationAuthority:
         handler,pinned=self.runner.registry.resolve(decl['identity']['name'],decl['identity']['version_label'],source['bindings'][0]['declaration_ref']['sha256'])
         require(not pinned or tuple(source['bindings'][0]['implementation_refs'])==pinned,'Installed carrier bytes differ')
         await self.runner._await_start(ctx.worker_context)
-        return ctx, await measure_trial(ctx,handler,ctx.inputs,ctx.contract['outputs'],ctx.check_plan_ref,bundle['bundle_id'])
+        measured=await measure_trial(ctx,handler,ctx.inputs,ctx.contract['outputs'],ctx.check_plan_ref,bundle['bundle_id'],ctx.review)
+        for port in measured.output_refs:
+            decision=ctx.recording_decision(measured,port)
+            gate=self.store.append_record('evaluation-gate-record',{'id':identity('evaluation-gate'),'decision':decision,
+                'persisted_at':utc_now(),'invalid_for_product':True})
+            self.register_capture(None,'evaluation_gate',gate,request_ref=scope['request_ref'])
+        return ctx,measured
 
     def _review_prompt_hash(self, scope_ref, port):
         scope = self._scope(scope_ref)
         source, plan, _, _, _, extra = self._source(scope['request_ref'])
-        require(port == scope['selected_output_port'], 'Verifier prompt targets another output')
-        output = self.store.read_blob(extra[3]['output_refs'][port])
+        if self._request(scope['request_ref'])['entry_point'] == 'E3':
+            from .evaluation_inspection import captured_worker_outputs
+            outputs = captured_worker_outputs(self.store, scope['request_ref'], scope['source_contract_ref'])
+        else:
+            require(port == scope['selected_output_port'], 'Verifier prompt targets another output')
+            outputs = extra[3]['output_refs']
+        require(port in outputs, 'Verifier prompt targets an uncaptured output')
+        output = self.store.read_blob(outputs[port])
         from .gate import zip_projection
         from .contracts import contract_schema
         if contract_schema(next(p['contract_id'] for p in source['outputs'] if p['name'] == port)) == contract_schema('poc-artifact-bundle'):
@@ -1208,8 +1226,13 @@ class EvaluationMeasurementContext:
         from .evidence_review import MODE
         require(profile.get('review_mode') != MODE,
             'Evidence-aware v2 review is not wired into evaluation replay', 'entry_point_unavailable')
-        require(self.grant is None and port==self.replay_output_port and self.replay_output_refs[port]==output_ref,
-            'Only the exact selected original output may be reviewed')
+        if self.grant is None:
+            require(port==self.replay_output_port and self.replay_output_refs[port]==output_ref,
+                'Only the exact selected original output may be reviewed')
+        else:
+            from .evaluation_inspection import captured_worker_outputs
+            require(captured_worker_outputs(self.store,self.scope['request_ref'],self.scope['source_contract_ref']).get(port)==output_ref,
+                'Reviewer subject differs from this request producing worker')
         grant_ref=self.owner.prepare_assignment(self.scope_ref,'verifier',port)
         grant,contract,basis=self.owner.projection.load_execution(grant_ref)
         context=self.owner.start_assignment(grant_ref,{})
@@ -1218,7 +1241,7 @@ class EvaluationMeasurementContext:
         try:
             review={'schema_version':'2.0.0','id':identity('evaluation-review'),'subject_ref':output_ref,
                 'contract_ref':self.contract_ref,'check_plan_ref':self.check_plan_ref,'input_refs':self.contract['input_refs'],
-                'deterministic_result_ref':deterministic_ref,'criteria':self.basis['mandatory_semantic'],
+                'deterministic_result_ref':deterministic_ref,'criteria':[c['criterion_id'] for c in profile['criteria'] if c['blocking']],
                 'observations':[observation_ref],'evidence_classes':['captured_input_and_output','invocation_observation'],
                 'node_contract_ref':self.contract['node_contract_ref'],'subnode_id':self.contract['subnode_id']}
             validate('review-context',review)
@@ -1313,14 +1336,24 @@ class EvaluationMeasurementContext:
         checks=self.store.read_record(measured.deterministic_ref,contract_id='deterministic-check-result')
         eligible=all_mandatory_pass(plan,checks['results'])
         assessment=measured.assessment_refs[0] if measured.assessment_refs else None
+        selected_index=0
+        if self.grant is not None:
+            assessment=None
+            for index,pin in enumerate(measured.assessment_refs):
+                reviewed=self.store.read_record(pin,contract_id='verifier-assessment')['subject_ref']
+                if reviewed==measured.output_refs[port]:assessment=pin;selected_index=index;break
+                from .gate import zip_projection
+                try:matches=self.store.read_blob(reviewed)==zip_projection(self.store.read_blob(measured.output_refs[port]))
+                except ResearchError:matches=False
+                if matches:assessment=pin;selected_index=index;break
         verdict='FAIL'
         if eligible and assessment and not measured.failure:
             verdict=self.store.read_record(assessment,contract_id='verifier-assessment')['verdict']
         action='advance' if verdict in {'PASS','PASS_WITH_KNOWN_LIMITATIONS'} and not measured.failure else 'halt'
         return {'contract_ref':self.contract_ref,'check_plan_ref':self.check_plan_ref,'output_port':port,
             'output_refs':[measured.output_refs[port]],'deterministic_result_ref':measured.deterministic_ref,
-            'assessment_ref':assessment,'verifier_check_ref':measured.verifier_check_refs[0] if measured.verifier_check_refs else None,
-            'verdict':verdict,'action':action,'reasons':[measured.failure or 'All mandatory checks and selected semantic criteria passed'],
+            'assessment_ref':assessment,'verifier_check_ref':measured.verifier_check_refs[selected_index] if assessment and measured.verifier_check_refs else None,
+            'verdict':verdict,'action':action,'reasons':[measured.failure or ('Semantic review did not pass: '+verdict if self.grant is not None and action=='halt' else 'All mandatory checks and selected semantic criteria passed')],
             'accepted':False,'invalid_for_product':True}
 
 

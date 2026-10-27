@@ -93,12 +93,28 @@ def _current_snapshot(store, current_binding_ref):
     return ref
 
 
-def _declaration_ref(store, digest):
+def _declaration_ref(store, digest, *, preferred_ref=None):
     refs = [row["ref"] for row in store.iter_records(kinds=("capsule-declaration",))
             if row["ref"]["sha256"] == digest]
-    if len(refs) != 1:
-        _fail("Exact capsule declaration Ref is not uniquely captured")
-    return refs[0]
+    if preferred_ref is not None:
+        validate('Ref',preferred_ref)
+        if preferred_ref['sha256'] != digest:
+            _fail('Installed declaration Ref differs from the captured digest')
+        # Compiler declarations may be captured as validated JSON blobs without
+        # a record-kind index. Exact protected membership supplies that identity.
+        store.read_record(preferred_ref,contract_id='capsule-declaration')
+        if preferred_ref not in refs:refs.append(preferred_ref)
+    if not refs:
+        _fail("Exact capsule declaration Ref is not captured")
+    # Capturing the same immutable declaration under another artifact identity
+    # does not introduce another capsule version. Verify bytes before collapsing
+    # aliases, and preserve the exact installed membership Ref when supplied.
+    raws = [store.read_blob(ref) for ref in refs]
+    if any(raw != raws[0] for raw in raws[1:]):
+        _fail("Captured declaration digest aliases differ in bytes")
+    if preferred_ref is not None:
+        return preferred_ref
+    return min(refs, key=lambda ref: (ref['id'] != 'blob:' + digest, ref['id']))
 
 
 def _select_verifier_entry(snapshot, verifier_identity=None):
@@ -111,6 +127,32 @@ def _select_verifier_entry(snapshot, verifier_identity=None):
     if len(rows) != 1:
         _fail("Installed verifier is ambiguous; pass --verifier with an exact installed identity")
     return rows[0]
+
+
+def _snapshot_verifier_ref(store, snapshot_ref, verifier_row):
+    """Resolve exact membership from the protected snapshot budget capture.
+
+    Development Library membership is intentionally in memory; constructing a
+    new LibraryService cannot recover it from library_versions. Its captured
+    snapshot association retains the exact admitted verifier identity instead.
+    """
+    choices={}
+    for row in store.iter_records(kinds=('library-budget-binding',)):
+        record=row['record']
+        if record.get('library_snapshot_ref') != snapshot_ref:
+            continue
+        verifier=record.get('verifier')
+        pin={key:verifier_row[key] for key in ('cc_name','cc_version','declaration_sha256')}
+        if not verifier or verifier.get('cc') != pin:
+            _fail('Snapshot verifier membership differs from the selected identity')
+        ref=verifier['declaration_ref']
+        admission=store.read_record(verifier['admission_ref'],contract_id='library-admission')
+        if admission['status'] != 'admitted' or admission['cc'] != pin or admission['candidate_ref'] != ref:
+            _fail('Snapshot verifier declaration differs from its admitted membership')
+        choices[json_bytes(ref)]=ref
+    if len(choices) != 1:
+        _fail('Snapshot has no unique protected verifier membership')
+    return _declaration_ref(store,verifier_row['declaration_sha256'],preferred_ref=next(iter(choices.values())))
 
 
 def author_profile(*, store, config_path, bootstrap_path, output_dir, profile_id, candidates,
@@ -131,7 +173,7 @@ def author_profile(*, store, config_path, bootstrap_path, output_dir, profile_id
         pins.append({"cc_name": name, "cc_version": version,
                      "declaration_sha256": rows[0]["declaration_sha256"]})
     verifier_row = _select_verifier_entry(snapshot, verifier_identity)
-    verifier_ref = _declaration_ref(store, verifier_row["declaration_sha256"])
+    verifier_ref = _snapshot_verifier_ref(store,snapshot_ref,verifier_row)
     verifier = store.read_record(verifier_ref, contract_id="capsule-declaration")
     if verifier["identity"]["name"] != verifier_row["cc_name"] or verifier["identity"]["version_label"] != verifier_row["cc_version"]:
         _fail("Selected verifier identity differs from its immutable declaration")
@@ -484,3 +526,4 @@ def main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

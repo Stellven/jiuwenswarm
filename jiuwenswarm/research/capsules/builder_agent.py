@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 
 from ..contracts import ResearchError
 from ..environment import validate_lock

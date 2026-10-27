@@ -125,13 +125,15 @@ def capture_assignment_intake(resources, principal, *, text, upload_refs=()):
 def prepare_single_cc(resources, *, source_run_id, profile_ref, library_snapshot_ref,
                       campaign_id, case_id, request_id, capsule_pin, input_refs,
                       node_id, limits, template_ref, authority_ceiling,
-                      config_id, repeat_index=0, account_model_selection_ref=None):
+                      config_id, repeat_index=0, account_model_selection_ref=None, objective=None):
     """Capture one canonical subject and the exact native E3 runtime/slot.
 
     source_run_id is an existing operator-owned *source capture*, never the
     identity of the later private execution. It must be terminal. Inputs have
     already been published and the caller freezes returned request/criteria
-    BEFORE authorizing a worker. No ordinary run is launched here.
+    BEFORE authorizing a worker. No ordinary run is launched here. An explicit
+    objective binds the actual supplied assignment when the ownership source
+    capture has a different historical task; omission preserves the source task.
     """
     from .admitted_measurement import AdmittedResourceContext, AdmittedMeasurementResources
     from .binding import ContractFactory
@@ -169,6 +171,10 @@ def prepare_single_cc(resources, *, source_run_id, profile_ref, library_snapshot
     run = store.get_run(source_run_id, account_id=resources.principal.account_id)
     require(run['workspace_id'] == expected['workspace_id'] and run['state'] in {'halted', 'completed'},
             'Canonical source must be a terminal operator-owned workspace capture')
+    require(objective is None or isinstance(objective, str) and objective.strip(),
+            'An explicit assignment objective must be nonempty text')
+    assignment_objective = objective if objective is not None else run['submission'].get(
+        'intent', 'Frozen private capsule assignment')
     if account_model_selection_ref is not None:
         from .evaluation_model_binding import source_model_selection
         source_model_selection(store, account_model_selection_ref,
@@ -204,7 +210,7 @@ def prepare_single_cc(resources, *, source_run_id, profile_ref, library_snapshot
     store.read_blob(template_ref)
     parent_ref = factory.prepare_parent(source_run_id, node_id,
         [{'subnode_id': 'subject', 'cc': capsule_pin}], inputs=ports, outputs=outputs,
-        objective=run['submission'].get('intent', 'Frozen private capsule assignment'),
+        objective=assignment_objective,
         requirement_ids=['private-evaluation-assignment'], limits=copy.deepcopy(limits),
         policy_ref=policy_ref, configuration_ref=configuration_ref,
         template_ref=template_ref, authority_ceiling=authority)

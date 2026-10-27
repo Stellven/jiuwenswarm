@@ -276,3 +276,16 @@ async def test_only_exact_frozen_schema_aliases_are_accepted(context,produced_co
     assert (result.status=='completed') is accepted
     assert result.accepted is False
     if not accepted:assert result.failure=='output_invalid'
+
+
+@pytest.mark.asyncio
+async def test_blocking_uncertainty_halts_before_semantic_review(context):
+    from jiuwenswarm.research.measurement import measure_trial
+    context.contract['outputs'][0]['contract_id']='intent-ir'
+    value=json.loads(Path('tests/fixtures/research/compiler/intent_ir.json').read_text())
+    value['readiness']={'status':'needs_clarification','reason':'A required scope decision is unresolved'}
+    async def worker(ctx,inputs):return {'result':ProducedArtifact(value,contract_id='intent-ir')}
+    async def forbidden(*args):pytest.fail('A blocking qualified output must not spend a review call')
+    result=await measure_trial(context,worker,{},context.contract['outputs'],context.plan_ref,'controlled',forbidden)
+    assert result.status=='blocked' and result.failure=='blocking_uncertainty'
+    assert result.output_refs and not result.assessment_refs and result.accepted is False
