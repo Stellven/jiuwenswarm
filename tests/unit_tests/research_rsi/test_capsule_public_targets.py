@@ -64,3 +64,74 @@ def test_independent_original_input_checks_reject_corrupted_production_output(na
     result['data'][key] = {}
     rows = checker.check(SimpleNamespace(output_refs={}), {'packet': packet}, {'result': result})
     assert next(row for row in rows if row['check_id'] == 'packet_integrity')['outcome'] == 'FAIL'
+
+
+# Historical proofs pin these exact public packets/expected outputs; the
+# data-driven fixture definitions must reproduce them byte for byte.
+PUBLIC_BASELINE_SHA256 = {
+    'utility.calculate': '09814c84b224a12715a2ed4597c40c24b390b1f174f56d035066040a971cf8f6',
+    'utility.table_normalize': '6a6108db666c3b0e774e0180ce211fea0fbba69317cf3d2ac2e3e393e1cbb497',
+}
+
+
+@pytest.mark.parametrize('name', sorted(PUBLIC_BASELINE_SHA256))
+def test_data_driven_public_baseline_is_byte_identical_to_historical_definitions(name):
+    import hashlib
+    from jiuwenswarm.research_rsi.records import encoded
+    assert hashlib.sha256(encoded(public_fixtures(name))).hexdigest() == PUBLIC_BASELINE_SHA256[name]
+
+
+def test_catalog_targets_are_discovered_from_fixture_manifests_with_objective_metrics():
+    from pathlib import Path
+    from jiuwenswarm.research_rsi.targets import capsules
+    discovered = {path.parent.parent.name for path in capsules._manifest_paths()}
+    assert discovered == {'calculate', 'table_normalize'}
+    rows = {row['capsule_name']: row for row in capsule_catalog()}
+    for name in ('utility.calculate', 'utility.table_normalize'):
+        row, target = rows[name], registered_capsule(name)
+        assert row['objective'] == target.objective == 'correctness_then_latency_above_noise'
+        assert row['held_out_case_count'] == len(capsules.fixture_set(name, 'held_out')) >= 5
+        assert row['public_extended_case_count'] == len(capsules.fixture_set(name, 'public_extended')) >= 5
+        assert row['fixture_sets'] == ['public', 'public_extended', 'held_out']
+        assert target.metrics == ('task_success', 'carrier_wall_s', 'output_bytes')
+        assert Path(capsules.__file__).resolve().parents[2].joinpath(target.carrier_path).is_file()
+    assert rows['research.builder']['held_out_case_count'] == 0 and rows['research.builder']['objective'] is None
+    with pytest.raises(ValueError):
+        capsules.fixture_set('research.builder', 'public')
+    with pytest.raises(ValueError):
+        capsules.fixture_set('utility.calculate', 'private')
+
+
+def test_fixture_tree_is_a_runtime_forbidden_path_and_outside_release_closures():
+    from jiuwenswarm.research_rsi.targets import capsules
+    from jiuwenswarm.research_rsi.targets.capsule_runtime import _path
+    for path in capsules._manifest_paths():
+        relative = 'source/jiuwenswarm/' + path.relative_to(capsules._EXTENSIONS.parents[1]).as_posix()
+        with pytest.raises(ValueError):
+            _path(relative)
+        # Release closures and asset bodies glob only the capsule directory's own *.py files.
+        assert not list(path.parent.glob('*.py'))
+
+
+@pytest.mark.parametrize('name', ['utility.calculate', 'utility.table_normalize'])
+@pytest.mark.parametrize('fixture_set', ['public_extended', 'held_out'])
+def test_new_fixture_expected_outputs_are_accepted_by_the_independent_checker(name, fixture_set):
+    import importlib
+    import json
+    from types import SimpleNamespace
+    from jiuwenswarm.research.state import json_bytes
+    from jiuwenswarm.research_rsi.targets import capsules
+    stem = capsules._STEMS[name]
+    checker = importlib.import_module(f'jiuwenswarm.research.capsule_extensions.{stem}.checks')
+    key = registered_capsule(name).task_output_key
+    cases = capsules.fixture_set(name, fixture_set)
+    assert len({case['id'] for case in cases}) == len(cases)
+    for case in cases:
+        expected = copy.deepcopy(case['packet'])
+        expected['data'][key] = case['expected_task_output']
+        rows = checker.check(SimpleNamespace(output_refs={}), {'packet': case['packet']},
+                             {'result': json.loads(json_bytes(expected))})
+        assert [row['outcome'] for row in rows] == ['PASS', 'PASS'], case['id']
+        wrong = json.loads(json_bytes(expected)); wrong['data'][key] = {}
+        rows = checker.check(SimpleNamespace(output_refs={}), {'packet': case['packet']}, {'result': wrong})
+        assert rows[1]['outcome'] == 'FAIL', case['id']
