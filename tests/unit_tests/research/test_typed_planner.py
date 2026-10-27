@@ -135,7 +135,7 @@ async def test_worker_repair_is_bounded_recorded_and_not_an_acceptance(tmp_path,
     # separate host test above. This fixture isolates the retry boundary.
     monkeypatch.setattr('jiuwenswarm.research.planner_catalog.verify_catalog', lambda *args: None)
     inputs = {'brief': brief, 'library_snapshot': library, 'resource_inventory': resources,
-              'plan_policy': integrated_plan_policy(), 'capsule_contracts': {'fixture': True}}
+              'plan_policy': integrated_plan_policy(), 'capsule_contracts': {'schema_version': '1.0.0', 'library_snapshot_ref': None, 'capsules': []}}
     for key, value in inputs.items(): refs[key] = store.put_blob(json.dumps(value).encode())
     source.update(**{field: refs[port] for field, port in
         [('brief_ref', 'brief'), ('library_snapshot_ref', 'library_snapshot'), ('resource_inventory_ref', 'resource_inventory'), ('policy_ref', 'plan_policy')]})
@@ -143,7 +143,8 @@ async def test_worker_repair_is_bounded_recorded_and_not_an_acceptance(tmp_path,
     class ControlledNative:
         async def propose(self, payload, **kwargs):
             calls.append(copy.deepcopy(payload))
-            assert payload['capsule_contracts'] == inputs['capsule_contracts']
+            assert payload['capsule_contracts']['capsules'] == [] and payload['capsule_contracts']['view'] == 'planner-reduced'
+            assert payload['library_snapshot']['view'] == 'planner-reduced' and inputs['library_snapshot'].get('view') is None
             if mode == 'runtime': raise ResearchError('model_access_unavailable', 'Controlled authentication failure')
             if mode == 'infeasible': return 'INFEASIBLE: no available implementation'
             if mode == 'exhausted' or mode == 'repair' and len(calls) == 1: return '{broken'
@@ -166,3 +167,100 @@ async def test_worker_repair_is_bounded_recorded_and_not_an_acceptance(tmp_path,
             assert store.read_blob(attempts[0]['record']['candidate_ref']) == b'{broken'
     finally:
         store.close()
+
+
+def _schema_refs(value, found):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key == '$ref':
+                found.add(item.split('/')[2])
+            else:
+                _schema_refs(item, found)
+    elif isinstance(value, list):
+        for item in value:
+            _schema_refs(item, found)
+    return found
+
+
+def test_reduced_schema_keeps_exactly_the_reachable_definitions():
+    from jiuwenswarm.research.contracts import contract_schema
+    full = contract_schema('plan-proposal')
+    reduced = planner.reachable_schema(full)
+    body = {key: value for key, value in reduced.items() if key != '$defs'}
+    assert body == {key: value for key, value in full.items() if key != '$defs'}
+    assert 0 < len(reduced['$defs']) < len(full['$defs'])
+    assert all(reduced['$defs'][name] == full['$defs'][name] for name in reduced['$defs'])
+    reached, pending = set(), _schema_refs(body, set())
+    while pending:
+        name = pending.pop()
+        if name not in reached:
+            reached.add(name)
+            pending |= _schema_refs(full['$defs'][name], set())
+    assert reached == set(reduced['$defs'])
+
+
+@pytest.mark.asyncio
+async def test_planner_view_keeps_every_field_the_plan_checks_read(tmp_path):
+    store, _, _, library, installed, _ = await installed_library(tmp_path, scientific=True)
+    try:
+        snapshot_ref = library.snapshot()
+        snapshot = store.read_record(snapshot_ref)
+        catalog = store.read_record(capture_catalog(store, library, snapshot_ref))
+        before = (copy.deepcopy(snapshot), copy.deepcopy(catalog))
+        contracts, reduced = planner.planner_views(catalog, snapshot, integrated_plan_policy())
+        assert (snapshot, catalog) == before
+        assert len(json.dumps(contracts)) < len(json.dumps(catalog)) / 2
+        selectable = [e for e in snapshot['entries'] if e['selectable_by_planner']]
+        assert len(selectable) == len(contracts['capsules']) == len(reduced['entries'])
+        fields = ('input_ports', 'output_ports', 'effect_class', 'network_mode', 'resource_needs', 'max_limits')
+        by_pin = {tuple(c['cc'].values()): c['declaration'] for c in catalog['capsules']}
+        for entry, row, item in zip(selectable, reduced['entries'], contracts['capsules']):
+            pin = {key: entry[key] for key in ('cc_name', 'cc_version', 'declaration_sha256')}
+            assert item['cc'] == pin and {key: row[key] for key in pin} == pin
+            declaration = by_pin[tuple(pin.values())]
+            # Everything binding.plan_checks reads from a snapshot entry is still on the planner's surface,
+            # apart from check_pins, which only the host checks for existence.
+            port_keys = ('name', 'artifact_type', 'schema_ref', 'required')
+            rebuilt = dict(row, check_pins=entry['check_pins'],
+                input_ports=[{k: p[k] for k in port_keys} for p in item['ports']['inputs']],
+                output_ports=[{k: p[k] for k in port_keys} for p in item['ports']['outputs']])
+            for key in fields:
+                assert rebuilt[key] == entry[key], (pin['cc_name'], key)
+            assert 'check_pins' not in row and 'input_ports' not in row
+            assert item['purpose'] == declaration['identity']['summary']
+            assert item['needs'] == declaration['needs'] and item['limits'] == declaration['budget']['per_call']
+            assert item['guarantees']['check_ids'] == [c['id'] for c in declaration['guarantees']['checks']]
+            for side in ('inputs', 'outputs'):
+                assert [p.get('check_ids', []) for p in item['ports'][side]] == [p['check_ids'] for p in declaration['ports'][side]]
+        # Host-side checking still reads the full records.
+        verify_captured_catalog(store, catalog, snapshot, snapshot_ref)
+    finally:
+        store.close()
+
+
+def test_policy_hides_only_paper_releases_it_cannot_select():
+    pins = [{'cc_name': name, 'cc_version': version, 'declaration_sha256': 'a' * 64} for name, version in
+            (('research.paper_summary', 'paper-m1-5'), ('research.paper_summary', 'paper-m1-5-evidence-1'),
+             ('research.paper_summary_delivery', 'paper-m1-5-evidence-1'), ('research.evaluation', 'm1-5-evidence-1'))]
+    snapshot = {'schema_version': '1.0.0', 'id': 'x', 'entries': [dict(pin, selectable_by_planner=True) for pin in pins]
+                + [dict(pins[0], cc_name='research.verifier', selectable_by_planner=False)]}
+    catalog = {'schema_version': '1.0.0', 'library_snapshot_ref': None, 'capsules': []}
+    _, reduced = planner.planner_views(catalog, snapshot, integrated_plan_policy())
+    assert [(e['cc_name'], e['cc_version']) for e in reduced['entries']] == [
+        ('research.paper_summary', 'paper-m1-5'), ('research.evaluation', 'm1-5-evidence-1')]
+
+
+@pytest.mark.asyncio
+async def test_instructions_travel_once_and_other_messages_are_untouched():
+    seen = []
+
+    async def invoke(prompt, system=None):
+        seen.append((prompt, system))
+        return 'ok'
+    messages = [{'role': 'system', 'content': 'RULES'}, {'role': 'user', 'content': '{"brief_ref": 1}'}]
+    assert await planner._instructions_once(invoke)(json.dumps(messages), system='RULES') == 'ok'
+    assert json.loads(seen[0][0]) == messages[1:] and seen[0][1] == 'RULES'
+    await planner._instructions_once(invoke)('not a conversation', system='RULES')
+    assert seen[1] == ('not a conversation', 'RULES')
+    await planner._instructions_once(invoke)(json.dumps(messages))
+    assert json.loads(seen[2][0]) == messages and seen[2][1] is None
