@@ -53,7 +53,7 @@ def _classification_fixture(store):
     refs = {'blueprint': blueprint_ref, 'lock': lock_ref,
             'validation_resource': store.put_blob(json_bytes(inputs['validation_resource']))}
     declaration = {'schema_version': '1.0.0', 'id': 'research.builder:m1-15',
-        'identity': {'name': 'research.builder', 'version_label': 'm1-17'},
+        'identity': {'name': 'research.builder', 'version_label': 'm1-17', 'carrier': {'ref': 'builder_agent.py'}},
         'ports': {'inputs': [{'name': name} for name in inputs]},
         'needs': {'model': {'tool_calling': False}},
         'budget': {'per_call': {'invocations': 20, 'tool_calls': 40}}}
