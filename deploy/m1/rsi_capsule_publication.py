@@ -255,6 +255,22 @@ def session_packet(meta, session, result, read, root_read, previous=None):
     return validate_publication(packet,workspace_id=meta['workspace_id'])
 
 
+def interrupted_parent_summary(session, result, completion, root_results, root_read):
+    """Reconcile a failed Root parent result lost by the controller transport."""
+    need(result['status']=='ERROR_NO_REPLAY' and result['exception_type'] is not None
+         and result['parent_visible'] is result['candidate_visible'] is result['candidate_ref'] is None
+         and result['model_calls']==0 and completion['completed_roles']==['parent']
+         and completion['halted'] is True, 'EXACT_INTERRUPTED_PARENT_REQUIRED')
+    need(len(root_results)==1, 'EXACT_INTERRUPTED_ROOT_RESULT_REQUIRED')
+    parent=root_results[0]
+    need(parent['role']=='parent' and parent['grant_ref']==session['grant_ref']
+         and parent['passed'] is False, 'FAILED_ORIGINAL_PARENT_REQUIRED')
+    summary=visible_summary(parent,name=session['capsule_name'],body_ref=session['parent_body_ref'],
+        read=root_read,grant_ref=session['grant_ref'])
+    need(summary['executions']==completion['executions'], 'ROOT_TERMINAL_EXECUTION_COUNT_DIFFERS')
+    return summary
+
+
 def controller_failure_packet(meta, session, failure, previous, *, model_calls=None):
     """Expose an actual controller failure, never synthesize session evidence."""
     need(failure['schema']=='ai4r-rsi-capsule-controller-failure:1'
@@ -386,7 +402,7 @@ def publish_baselines(input_path,reviewed):
     finally:os.close(fd)
 
 
-def publish_completed(template_path):
+def publish_completed(template_path, *, published_at=None):
     """Called only by the fixed Root launcher after a known stopped worker."""
     need(os.name=='posix' and os.geteuid()==0,'ROOT_CAPSULE_PUBLISHER_REQUIRED')
     template=_read_json(template_path)
@@ -426,7 +442,7 @@ def publish_completed(template_path):
                  'EARLY_CONTROLLER_ZERO_EFFECT_PROOF_REQUIRED')
         meta=dict(template['meta'])
         from datetime import datetime,timezone
-        meta['published_at']=datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        meta['published_at']=published_at or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         directory=_directory(template['publication_directory']);fd=_lock(directory)
         try:
             previous=_read_json(directory/'publication.json')
@@ -443,15 +459,39 @@ def publish_completed(template_path):
         raise ValueError('ACTUAL_SESSION_PUBLIC_ORIGINAL_ABSENT')
     need(captured(read,result['result_ref'])=={k:v for k,v in result.items() if k!='result_ref'},'SESSION_RESULT_CAPTURE_DIFFERS')
     expected_executions=sum(x['executions'] for x in [result['parent_visible'],result['candidate_visible']] if x is not None)
-    need(completion['executions']==expected_executions
+    interrupted=None
+    if completion['executions']!=expected_executions:
+        roots=[]
+        for path in (evaluator.root/'captures').glob('*.json'):
+            raw=protected(path).read_bytes()
+            try:item=json.loads(raw)
+            except (ValueError,UnicodeError):continue
+            if isinstance(item,dict) and item.get('schema')=='ai4r-rsi-whole-capsule-visible-result:1':
+                need(sha(raw)==path.stem,'ROOT_CAPTURE_FILENAME_DIFFERS')
+                roots.append(dict(item,result_ref={'id':path.name,'sha256':path.stem}))
+        interrupted=interrupted_parent_summary(session,result,completion,roots,evaluator)
+        import sqlite3
+        db=sqlite3.connect((core/'state/research.sqlite3').as_uri()+'?mode=ro',uri=True)
+        try:
+            ids=list(cfg['composition']['run_contexts'])
+            need(len(ids)==2 and all(db.execute('SELECT COUNT(*) FROM '+table+' WHERE run_id IN (?,?)',ids).fetchone()[0]==0
+                for table in ('model_calls','tool_calls','attempts')), 'INTERRUPTED_PARENT_CORE_EFFECT_EXISTS')
+        finally:db.close()
+    need((interrupted is not None or completion['executions']==expected_executions)
          and completion['plan']['grant_sha256']==session['grant_ref']['sha256'], 'ROOT_TERMINAL_EXECUTION_COUNT_DIFFERS')
     meta=dict(template['meta'])
     from datetime import datetime,timezone
-    meta['published_at']=datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    meta['published_at']=published_at or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     directory=_directory(template['publication_directory']);fd=_lock(directory)
     try:
         previous=_read_json(directory/'publication.json')
         packet=session_packet(meta,session,result,read,evaluator,previous=previous)
+        if interrupted is not None:
+            run=packet['snapshot']['runs'][0]
+            run['budget'].update(diagnosis_calls=0,proposal_calls=0)
+            run['activity'].append({'id':session['id']+':interrupted-parent','at':meta['published_at'],
+                'stage':'Parent evaluation','status':'ERROR_NO_REPLAY',
+                'summary':str(interrupted['executions'])+' protected parent job(s) stopped before model work; original evidence retained.'})
         output=merge_publication(previous,packet,meta['published_at'])
         return _replace(directory,output,{'schema':'ai4r-capsule-completed-publication-claim:1',
             'id':session['id'],'configuration_sha256':pin['sha256'],'result_sha256':sha(result_path.read_bytes())})
