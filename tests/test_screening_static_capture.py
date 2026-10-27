@@ -61,7 +61,7 @@ class StaticCaptureTests(unittest.TestCase):
                 store.read_record=lambda ref,**kw: {'entries':entries} if ref==sentinel else original_read(ref,**kw)
                 self.assertEqual(store.read_blob(capture_static_template(store,Library())),raw)
                 for version in ('latest',None,[]):
-                    with self.assertRaisesRegex(ResearchError,'Unknown explicit Screening'):
+                    with self.assertRaisesRegex(ResearchError,'Unsupported explicit Screening'):
                         capture_static_template(store,Library(),screening_version=version)
             finally:store.close()
 

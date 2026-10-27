@@ -73,7 +73,7 @@ def capture(store, root, **options):
     with patch('jiuwenswarm.research.local_profile.os.geteuid', return_value=inputs.stat().st_uid, create=True), \
          patch('jiuwenswarm.research.local_profile.stat.S_IMODE', return_value=0o700), \
          patch('jiuwenswarm.research.bootstrap_gateway._protected_file', side_effect=lambda p: Path(p).read_bytes()):
-        return capture_local_profile(store, root / 'operator', input_root=inputs, **options)
+        return capture_local_profile(store, root / 'operator', input_root=inputs, **{'allow_missing_science': True, **options})
 
 
 def test_profile_freezes_selection_and_default_is_unchanged(tmp_path):
@@ -84,10 +84,12 @@ def test_profile_freezes_selection_and_default_is_unchanged(tmp_path):
         assert options['compiler_limits'] == {'time_s': 900, 'model_calls': 4, 'memory_mb': 16384}
         assert capture(store, tmp_path, intent_version='m1-7') == selected
         with pytest.raises(ResearchError, match='Frozen Intent release changed'):
-            capture(store, tmp_path)
+            capture(store, tmp_path, intent_version='m1-6')
+        # An unnamed Intent release adopts what the existing profile froze.
+        assert capture(store, tmp_path) == selected
         other = tmp_path / 'default'
         other.mkdir()
-        default = capture(store, other)
+        default = capture(store, other, intent_version='m1-6')
         default_options = store.read_record(default['binding_ref'])['protected_options']
         assert 'intent_version' not in default_options
         assert default_options['compiler_limits']['time_s'] == 600
@@ -98,6 +100,13 @@ def test_profile_freezes_selection_and_default_is_unchanged(tmp_path):
         options.pop('input_directory_ref'); default_options.pop('input_directory_ref')
         options.pop('workspace_ref'); default_options.pop('workspace_ref')
         assert options == default_options
+
+
+def test_new_profile_defaults_to_the_m1_8_intent_release(tmp_path):
+    with closing(SQLiteRunStore(tmp_path / 'state')) as store:
+        options = store.read_record(capture(store, tmp_path)['binding_ref'])['protected_options']
+        assert options['intent_version'] == 'm1-8'
+        assert options['compiler_limits']['time_s'] == 900
 
 
 @pytest.mark.asyncio

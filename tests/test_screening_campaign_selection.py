@@ -33,7 +33,7 @@ class ScreeningCampaignSelectionTests(unittest.TestCase):
                 store.close()
 
     def test_invalid_selection_and_legacy_refresh_rejected_before_custody(self):
-        for version in ('latest','m1-6',None,[]):
+        for version in ('latest','m1-7',None,[]):
             with self.assertRaisesRegex(ResearchError,'Unsupported explicit Screening'):
                 capture_local_profile(None,'unused',screening_version=version)
         with self.assertRaisesRegex(ResearchError,'Checking-only refresh'):
@@ -48,15 +48,15 @@ class ScreeningCampaignSelectionTests(unittest.TestCase):
             try:
                 with patch('jiuwenswarm.research.local_profile.os.geteuid',return_value=inputs.stat().st_uid,create=True), patch('jiuwenswarm.research.local_profile.stat.S_IMODE',return_value=0o700), patch('jiuwenswarm.research.bootstrap_gateway._protected_file',side_effect=lambda p:Path(p).read_bytes()):
                     profile=root/'operator'/'screening5'
-                    result=capture_local_profile(store,profile,input_root=inputs,screening_version='m1-5')
+                    result=capture_local_profile(store,profile,input_root=inputs,screening_version='m1-5',allow_missing_science=True)
                     binding=store.read_record(result['binding_ref'])
                     self.assertEqual(binding['protected_options']['screening_version'],'m1-5')
                     config=store.read_record(binding['configuration_ref'])
                     template=store.read_record(config['cc']['static_template_ref'])
                     self.assertEqual(next(n for n in template['nodes'] if n['node_id']=='screening')['cc']['cc_version'],'m1-5')
-                    self.assertEqual(capture_local_profile(store,profile,input_root=inputs,screening_version='m1-5'),result)
+                    self.assertEqual(capture_local_profile(store,profile,input_root=inputs,screening_version='m1-5',allow_missing_science=True),result)
                     with self.assertRaisesRegex(ResearchError,'Frozen Screening release changed'):
-                        capture_local_profile(store,profile,input_root=inputs)
+                        capture_local_profile(store,profile,input_root=inputs,allow_missing_science=True)
             finally:
                 store.close()
 

@@ -8,10 +8,11 @@ from importlib.resources import files
 from .contracts import ResearchError, validate
 
 
-def capture_static_template(store, library, *, expected_ref=None, screening_version='m1-4'):
-    if not isinstance(screening_version, str) or screening_version not in {'m1-4', 'm1-5'}:
-        raise ResearchError('static_template_pin', 'Unknown explicit Screening static release')
-    if screening_version == 'm1-4':
+def capture_static_template(store, library, *, expected_ref=None, screening_version='m1-4', delivery_version='m1-5'):
+    from .releases import implicit_release, require_release
+    require_release('screening', screening_version, 'static_template_pin')
+    require_release('delivery', delivery_version, 'static_template_pin')
+    if screening_version == implicit_release('screening') and delivery_version == implicit_release('delivery'):
         from .planning import capture_static_template as original_capture
         return original_capture(store, library, expected_ref=expected_ref)
 
@@ -25,8 +26,8 @@ def capture_static_template(store, library, *, expected_ref=None, screening_vers
         raise ResearchError('static_template_pin', 'Installed static template differs from its frozen release pin')
     validate('static-template', json.loads(historical))
 
-    from .local_profile import _screening_static_template
-    ref = _screening_static_template(store, screening_version)
+    from .local_profile import _static_template
+    ref = _static_template(store, screening_version=screening_version, delivery_version=delivery_version)
     value = json.loads(store.read_blob(ref))
     validate('static-template', value)
     snapshot = store.read_record(library.snapshot(), contract_id='library-snapshot')

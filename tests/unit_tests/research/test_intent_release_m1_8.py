@@ -68,7 +68,7 @@ async def test_registration_installs_the_m1_8_carrier_and_profile_freezes_select
         assert options['intent_version'] == 'm1-8'
         assert options['compiler_limits']['time_s'] == 900
         with pytest.raises(ResearchError, match='Frozen Intent release changed'):
-            capture(store, tmp_path)
+            capture(store, tmp_path, intent_version='m1-6')
         registry, checks = Registry(), CheckRegistry()
         library = ControlledLibraryService(store)
         actor = Principal('operator', operations=frozenset({'verifier_assets', 'library_admit', 'library_standing'}))

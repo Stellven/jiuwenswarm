@@ -17,6 +17,9 @@ from .contracts import ResearchError, validate
 from .state import json_bytes
 
 
+# Resource keys capture_local_science_resources writes into the inventory and run inputs.
+SCIENCE_RESOURCE_KEYS = ('baseline_resource', 'validation_resource', 'environment_lock')
+
 BASELINE = b'''import json
 from pathlib import Path
 data = json.loads(Path('/resources/validation/data.json').read_text())
