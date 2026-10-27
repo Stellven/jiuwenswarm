@@ -63,11 +63,15 @@ def make_session(tmp_path, name='utility.calculate', *, loop=None, max_execution
     target = registered_capsule(name)
     parent_ref = store.put_bytes(PARENT)
     ref = lambda text: store.put({'test': text})
-    grant = {'schema': session.GRANT_SCHEMA, 'bootstrap_schema': session.BOOTSTRAP_SCHEMA, 'run_id': 'loop-capsule',
+    # Iterative sessions are backed by the iterative (v3) grant; v1 sessions keep v2.
+    grant = {'schema': session.LOOP_GRANT_SCHEMA if loop is not None else session.GRANT_SCHEMA,
+             'bootstrap_schema': session.BOOTSTRAP_SCHEMA, 'run_id': 'loop-capsule',
              'capsule_name': name, 'roles': ['parent', 'candidate'], 'parent_sha256': parent_ref['sha256'],
              'runtime_manifest_sha256': 'a' * 64}
     if max_executions is not None:
         grant['max_executions'] = max_executions
+    elif loop is not None:
+        grant['max_executions'] = 10000
     value = {'schema': session.SCHEMA, 'id': grant['run_id'], 'capsule_name': name,
         'grant': grant, 'grant_ref': store.put(grant), 'parent_body_ref': parent_ref,
         'parent_declaration_ref': store.put({'identity': {'name': name, 'version_label': '1.0.0',

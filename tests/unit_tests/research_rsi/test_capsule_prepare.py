@@ -135,8 +135,11 @@ def test_prepare_appends_real_work_contexts_and_preserves_prior_records(installe
                         records=records, lease_records=leases, value=dict(value, grant=small, loop=loop,
                         preparation_claim=str(tmp_path / 'small-claim.json')), parent_body=body,
                         parent_declaration=declaration, visible_context=visible)
-                needed = loop_execution_budget(4, max_iterations=3, trials=2)
-                assert needed == 4 * (3 + 2 * 3)
+                from jiuwenswarm.research_rsi.targets.capsule_executor import grant_fixtures
+                cases = len(grant_fixtures(small))  # public + public_extended + held_out
+                assert cases > len(public_fixtures(name))
+                needed = loop_execution_budget(cases, max_iterations=3, trials=2)
+                assert needed == cases * (3 + 2 * 3)
                 grant3 = dict(small, max_executions=needed, run_id='public-calculate-loop-2')
                 looped = await prepare_session(core=core, library=library, runner=runner, operator=operator,
                     records=records, lease_records=leases, value=dict(value, grant=grant3, loop=loop,

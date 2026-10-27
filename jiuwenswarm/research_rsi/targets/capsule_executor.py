@@ -505,7 +505,10 @@ class _EvaluationLedger:
 
     async def evaluate(self, role, *, body, candidate_ref, binding=None, iteration=None, trials=1):
         if not self.loop:
-            need(iteration is None and trials == 1, 'ITERATIVE_EVALUATION_REQUIRES_LOOP_GRANT')
+            # The historical single attempt is parent = iteration 0, the one
+            # candidate = iteration 1 (as the legacy loop numbers them).
+            need(iteration in (None, 0 if role == 'parent' else 1) and trials == 1,
+                 'ITERATIVE_EVALUATION_REQUIRES_LOOP_GRANT')
             return await self._evaluate_v1(role, body=body, candidate_ref=candidate_ref, binding=binding)
         return await self._evaluate_loop(role, body=body, candidate_ref=candidate_ref, binding=binding,
                                          iteration=0 if iteration is None else iteration, trials=trials)
@@ -557,6 +560,11 @@ class _EvaluationLedger:
             'trials': trials, 'candidate_ref': candidate_ref, 'binding_ref': binding_ref})
         trial_rows = []
         for trial in range(trials):
+            if trial and any(row['receipt'].get('termination_reason') == 'timeout' for row in trial_rows[0]):
+                # Repeated trials only refine latency, which a candidate that hit
+                # the job timeout can never win; it must not cost trials x cases
+                # x timeout. The shorter trial list is reported, never invented.
+                break
             rows = []
             for index, fixture in enumerate(self.fixtures):
                 self._live()
@@ -571,6 +579,11 @@ class _EvaluationLedger:
                     # Held-out rows never carry it.
                     extra['actual_task_output'] = bounded_task_output(self.grant['capsule_name'], fixture['packet'],
                         self._read(row['receipt']['stdout_ref']), cap=self.task_output_cap)
+                    receipt = row['receipt']
+                    if not (receipt['termination_reason'] == 'completed' and receipt['exit_code'] == 0):
+                        # The objective's public failure detail ({exception_type, message}).
+                        extra['error'] = failure_summary(
+                            self._read(receipt['stderr_ref']) if receipt.get('stderr_ref') else b'', receipt)
                 if fixture['fixture_set'] == 'held_out':
                     row['independent_check'] = sealed_check(row['independent_check'])
                 visible = visible_row_v2({**row, **extra}, fixture_set=fixture['fixture_set'],

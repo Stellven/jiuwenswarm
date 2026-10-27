@@ -20,7 +20,13 @@ from jiuwenswarm.research_rsi.targets.capsules import public_fixtures, registere
 from tests.unit_tests.research_rsi.test_capsule_runtime import installed_runtime  # noqa: F401 (fixture)
 
 ROOT = Path(__file__).resolve().parents[3]
+# (name, stem, historical public baseline count); every loop grant evaluates the
+# whole tagged inventory (public, public_extended and held_out) from the objective.
 CASES = [('utility.calculate', 'calculate', 4), ('utility.table_normalize', 'table_normalize', 5)]
+
+
+def inventory(name):
+    return executor.evaluation_fixtures(name)
 
 
 def loop_grant(manifest, name, *, budget_pairs=8, timeout_s=30):
@@ -62,14 +68,22 @@ def assert_interface_a(result, *, role, iteration, count, body, captures):
     assert result['schema'] == 'ai4r-rsi-whole-capsule-visible-result:2'
     assert result['role'] == role and result['iteration'] == iteration
     assert result['subject_sha256'] == executor.digest(body)
-    assert result['case_count'] == count and len(result['rows']) == count
+    cases = inventory(result['capsule_name'])
+    assert result['case_count'] == count == len(cases) and len(result['rows']) == count
     assert type(result['protected_wall_s']) is float and result['protected_wall_s'] == sum(r['protected_wall_s'] for r in result['rows'])
     assert result['scope'] == 'local_unprotected' and result['security'] == 'UNQUALIFIED' and result['model_calls'] == 0
-    assert [row['fixture_id'] for row in result['rows']] == [f['id'] for f in public_fixtures(result['capsule_name'])]
+    assert [row['fixture_id'] for row in result['rows']] == [f['id'] for f in cases]
+    assert [(r['fixture_set'], r['fixture_group']) for r in result['rows']] == [(f['fixture_set'], f['fixture_group']) for f in cases]
+    assert result['held_out_case_count'] == sum(f['fixture_set'] == 'held_out' for f in cases) > 0
     for row in result['rows']:
-        assert row['fixture_set'] == 'public' and type(row['output_bytes']) is int and isinstance(row['checks'], list)
-        task = row['actual_task_output']
-        assert set(task) == {'value', 'truncated', 'bytes'} and type(task['truncated']) is bool
+        assert type(row['output_bytes']) is int and isinstance(row['checks'], list)
+        if row['fixture_set'] == 'held_out':
+            # Held-out rows: no output, no error text, pass/fail per check id only.
+            assert 'actual_task_output' not in row and 'error' not in row
+            assert all(set(c) == {'check_id', 'outcome'} for c in row['checks'])
+        else:
+            task = row['actual_task_output']
+            assert set(task) == {'value', 'truncated', 'bytes'} and type(task['truncated']) is bool
         receipt = row['receipt']
         assert receipt['scope'] == 'local_unprotected' and receipt['isolation'] == 'none'
         assert receipt['subject_ref']['sha256'] == executor.digest(body)
@@ -89,6 +103,8 @@ def assert_interface_a(result, *, role, iteration, count, body, captures):
 def test_parent_mutated_and_broken_candidates_through_real_worker_program(installed_runtime, tmp_path, name, stem, count):
     runtime, manifest = installed_runtime
     value, captures = make(tmp_path, runtime, manifest, loop_grant(manifest, name))
+    baseline_count, count = count, len(inventory(name))
+    groups = {f['id']: f['fixture_group'] for f in inventory(name)}
     try:
         parent = value.parent
         assert parent == (ROOT / f'jiuwenswarm/research/capsule_extensions/{stem}/worker.py').read_bytes()
@@ -96,10 +112,20 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
             candidate(value, captures, parent + b'\n# early\n', 1)
         baseline = asyncio.run(value.evaluate('parent', body=parent, candidate_ref=value.parent_ref, iteration=0))
         assert_interface_a(baseline, role='parent', iteration=0, count=count, body=parent, captures=captures)
-        assert baseline['passed_count'] == count and baseline['passed'] and baseline['failure'] is None
-        assert all(row['checks'] and all(c['outcome'] == 'PASS' for c in row['checks']) for row in baseline['rows'])
-        expected = {f['id']: f['expected_task_output'] for f in public_fixtures(name)}
-        for row in baseline['rows']:
+        # The real parent passes its whole historical public baseline; any case
+        # it fails is a harder (public_extended / held_out) case -- the headroom.
+        passing = [row for row in baseline['rows'] if row['task_success']]
+        assert [row['fixture_group'] for row in baseline['rows']].count('public') == baseline_count
+        assert all(row['task_success'] for row in baseline['rows'] if row['fixture_group'] == 'public')
+        assert all(groups[row['fixture_id']] in ('public_extended', 'held_out')
+                   for row in baseline['rows'] if not row['task_success'])
+        assert baseline['passed_count'] == len(passing) and baseline['passed'] is (len(passing) == count)
+        assert (baseline['failure'] is None) is (len(passing) == count)
+        assert all(row['checks'] and all(c['outcome'] == 'PASS' for c in row['checks']) for row in passing)
+        expected = {f['id']: f['expected_task_output'] for f in inventory(name) if f['fixture_set'] == 'public'}
+        for row in passing:
+            if row['fixture_set'] == 'held_out':
+                continue
             task = row['actual_task_output']
             if task['truncated']:  # Large public cases: bounded JSON text prefix.
                 assert task['bytes'] > executor.TASK_OUTPUT_CAP_BYTES and len(task['value'].encode()) <= executor.TASK_OUTPUT_CAP_BYTES
@@ -115,7 +141,8 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
         assert mutated != parent
         improved = candidate(value, captures, mutated, 1)
         assert_interface_a(improved, role='candidate', iteration=1, count=count, body=mutated, captures=captures)
-        assert improved['passed_count'] == count and improved['failure'] is None
+        assert [r['task_success'] for r in improved['rows']] == [r['task_success'] for r in baseline['rows']]
+        assert improved['passed_count'] == baseline['passed_count']
 
         # Iteration 2: wrong output -> every case still evaluated, checker failure captured.
         before, after = ((b'result[column] = metrics', b'result[column] = {}') if stem == 'calculate'
@@ -123,7 +150,7 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
         assert parent.count(before) == 1
         wrong = candidate(value, captures, parent.replace(before, after), 2)
         assert_interface_a(wrong, role='candidate', iteration=2, count=count, body=parent.replace(before, after), captures=captures)
-        assert wrong['passed_count'] < count and not wrong['passed']
+        assert wrong['passed_count'] < baseline['passed_count'] and not wrong['passed']
         assert wrong['failure']['exception_type'] == 'IndependentCheckFailed'
 
         # Iteration 3: a candidate that raises -> captured exception, no crash.
@@ -135,10 +162,13 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
         assert failed['failure']['exception_type'] == 'ZeroDivisionError'
         assert 'deliberately broken candidate' in failed['failure']['message']
         assert all(row['receipt']['exit_code'] != 0 and row['independent_check'] is None for row in failed['rows'])
+        # Public rows carry the objective's failure detail; held-out rows never do.
+        assert all(row['error']['exception_type'] == 'ZeroDivisionError'
+                   for row in failed['rows'] if row['fixture_set'] == 'public')
 
         # The dispatcher keeps serving after failed candidates; replays are refused.
         again = candidate(value, captures, mutated, 4)
-        assert again['passed_count'] == count
+        assert again['passed_count'] == baseline['passed_count']
         with pytest.raises(FileExistsError):
             candidate(value, captures, mutated, 4)
         # Repeated parent trials for noise calibration.
@@ -159,7 +189,7 @@ def test_execution_budget_is_checked_before_any_job(installed_runtime, tmp_path)
         executions = value.executions
         with pytest.raises(ValueError, match='ROOT_EXECUTION_BUDGET_EXHAUSTED'):
             candidate(value, captures, value.parent + b'\n# two\n', 2)
-        assert value.executions == executions == 8
+        assert value.executions == executions == 2 * len(inventory('utility.calculate'))
     finally:
         captures.close()
 
@@ -180,8 +210,12 @@ def test_output_limit_guard_and_timeout_are_enforced_and_captured(installed_runt
         assert result['failure']['exception_type'] == 'OutputLimitExceeded'
         spin = value.parent.replace(b"    packet = inputs['packet']\n", b"    packet = inputs['packet']\n    while True: pass\n", 1)
         started = time.monotonic()
-        result = candidate(value, captures, spin, 2)
-        assert time.monotonic() - started < 4 * 8
+        cases = len(inventory('utility.calculate'))
+        result = candidate(value, captures, spin, 2, trials=3)
+        # Every case is bounded by the 2 s job timeout (generous host slack)...
+        assert time.monotonic() - started < cases * 2 * 2
+        # ...and a timed-out candidate is not re-run for latency trials.
+        assert result['executions'] == cases and len(result['trial_wall_s']) == 1
         assert {row['receipt']['termination_reason'] for row in result['rows']} == {'timeout'}
         assert result['failure']['exception_type'] == 'TimeoutError'
     finally:

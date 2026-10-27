@@ -141,32 +141,65 @@ def _finite(value):
     return type(value) in (int, float) and math.isfinite(value) and value >= 0
 
 
-def _evaluation_fixtures():
-    try:
-        from .targets import capsule_objective
-    except ImportError:
-        return None
-    return getattr(capsule_objective, 'evaluation_fixtures', None)
+def _evaluation_fixtures(objective=None):
+    if objective is None:
+        try:
+            from .targets import capsule_objective as objective
+        except ImportError:
+            return None
+    return getattr(objective, 'evaluation_fixtures', None)
 
 
-def inventory_complete():
-    return callable(_evaluation_fixtures())
+def inventory_complete(objective=None):
+    return callable(_evaluation_fixtures(objective))
 
 
-def case_inventory(name):
+def case_inventory(name, objective=None):
     """fixture id -> visibility label over every evaluated case.
 
-    Uses ``capsule_objective.evaluation_fixtures`` (Interface B, W3) when that
-    module is installed; until then only the historical public set is known
-    and held-out rows are checked for label consistency only.
+    The inventory comes from the *same* Interface B objective that scores the
+    loop (``runtime.objective`` when composed, else the installed
+    ``capsule_objective``), so the case list a result is checked against is
+    the one its scores are computed over. Without an objective owner only the
+    historical public set is known and held-out rows are label-checked only.
     """
-    rows = _evaluation_fixtures()
+    rows = _evaluation_fixtures(objective)
     if callable(rows):
         return {row['id']: row['fixture_set'] for row in rows(name)}
     return {row['id']: 'public' for row in public_fixtures(name)}
 
 
-def validate_visible_v2(result, value, role, candidate_ref, *, iteration, trials):
+def baseline_ids(name, objective=None):
+    """Ids of the historical ``public`` baseline set (the parent control cases)."""
+    fixtures = getattr(objective, 'fixtures', None) if objective is not None else None
+    rows = fixtures(name, fixture_set='public') if callable(fixtures) else public_fixtures(name)
+    return [row['id'] for row in rows]
+
+
+def parent_control_passed(result, name, objective=None):
+    """Root parent control: the evaluation is complete and the parent passes
+    its historical public baseline.
+
+    Harder ``public_extended``/``held_out`` cases may fail for the parent --
+    that is the headroom the loop exists to close -- so a v2 ``failure``
+    summary of a failing *case* does not fail the control. Refusals and
+    unknown effects never produce a result (the dispatcher raises/halts).
+    """
+    if not isinstance(result, dict):
+        return False
+    if result.get('schema') == VISIBLE_V1:
+        return result.get('passed') is True
+    rows = result.get('rows')
+    if not isinstance(rows, list) or len(rows) != result.get('case_count'):
+        return False
+    outcome = {row.get('fixture_id'): row.get('task_success') for row in rows if isinstance(row, dict)}
+    baseline = [row.get('fixture_id') for row in rows if isinstance(row, dict) and row.get('fixture_group') == 'public']
+    if not any('fixture_group' in row for row in rows if isinstance(row, dict)):
+        baseline = baseline_ids(name, objective)
+    return bool(baseline) and all(outcome.get(ident) is True for ident in baseline)
+
+
+def validate_visible_v2(result, value, role, candidate_ref, *, iteration, trials, objective=None):
     """Interface A visible result; protected identities checked where carried."""
     need(isinstance(result, dict) and result.get('schema') == VISIBLE_V2 and result.get('role') == role
          and result.get('iteration') == iteration and result.get('subject_sha256') == candidate_ref['sha256'],
@@ -180,7 +213,9 @@ def validate_visible_v2(result, value, role, candidate_ref, *, iteration, trials
     need(isinstance(rows, list) and len(rows) <= result['case_count']
          and 0 <= result['passed_count'] <= result['case_count']
          and result['executions'] <= result['case_count'] * max(1, trials), 'BOUNDED_EVALUATION_ROWS_REQUIRED')
-    inventory = case_inventory(value['capsule_name'])
+    inventory = case_inventory(value['capsule_name'], objective)
+    complete = inventory_complete(objective)
+    need(not complete or result['case_count'] == len(inventory), 'EXACT_CASE_INVENTORY_COUNT_REQUIRED')
     ids = []
     for row in rows:
         need(isinstance(row, dict) and isinstance(row.get('fixture_id'), str)
@@ -188,7 +223,7 @@ def validate_visible_v2(result, value, role, candidate_ref, *, iteration, trials
              and _finite(row.get('protected_wall_s')) and isinstance(row.get('receipt'), dict),
              'EXACT_EVALUATION_ROW_REQUIRED')
         need(inventory.get(row['fixture_id'], row['fixture_set']) == row['fixture_set']
-             and (row['fixture_id'] in inventory or row['fixture_set'] == 'held_out' and not inventory_complete()),
+             and (row['fixture_id'] in inventory or row['fixture_set'] == 'held_out' and not complete),
              'UNKNOWN_OR_RELABELLED_FIXTURE_ROW')
         need(row.get('candidate_ref', candidate_ref) == candidate_ref
              and row['receipt'].get('subject_ref', candidate_ref) == candidate_ref, 'ROW_SUBJECT_DIFFERS')
@@ -213,17 +248,39 @@ def validate_visible_v2(result, value, role, candidate_ref, *, iteration, trials
     return result
 
 
-def validate_visible(result, value, role, candidate_ref, *, iteration, trials):
+def validate_visible(result, value, role, candidate_ref, *, iteration, trials, objective=None):
     if isinstance(result, dict) and result.get('schema') == VISIBLE_V1:
         from .capsule_session import validate_evaluation
         return validate_evaluation(result, value, role, candidate_ref)
-    return validate_visible_v2(result, value, role, candidate_ref, iteration=iteration, trials=trials)
+    return validate_visible_v2(result, value, role, candidate_ref, iteration=iteration, trials=trials,
+                               objective=objective)
+
+
+def _scoring_row(row, walls):
+    """A v2 row as the objective reads it: per-case trial walls for min-of-k,
+    and the bounded ``actual_task_output`` envelope unwrapped (a truncated
+    prefix is not an output and is dropped rather than diffed)."""
+    item = dict(row)
+    if walls and len(walls) > 1:
+        item['trial_wall_s'] = walls
+    task = item.get('actual_task_output')
+    if isinstance(task, dict) and set(task) == {'value', 'truncated', 'bytes'}:
+        if task['truncated'] or task['value'] is None:
+            item.pop('actual_task_output')
+        else:
+            item['actual_task_output'] = task['value']
+    return item
 
 
 def normalized(result, value, candidate_ref, iteration):
     """Interface A view of a v1 or v2 result, used for scoring/feedback only."""
     if result.get('schema') == VISIBLE_V2:
-        return result
+        walls = {}
+        for trial in [result['rows']] + [rows for rows in result.get('trial_rows') or [] if isinstance(rows, list)]:
+            for row in trial:
+                if isinstance(row, dict) and _finite(row.get('protected_wall_s')):
+                    walls.setdefault(row.get('fixture_id'), []).append(row['protected_wall_s'])
+        return {**result, 'rows': [_scoring_row(row, walls.get(row['fixture_id'])) for row in result['rows']]}
     rows = [{'fixture_id': row['fixture_id'], 'fixture_set': 'public', 'task_success': row['task_success'],
              'protected_wall_s': row['protected_wall_s'], 'output_bytes': row.get('output_bytes', 0),
              'checks': row.get('independent_check') or {}, 'receipt': row.get('receipt', {})} for row in result['rows']]
@@ -259,18 +316,20 @@ def model_view(view, label):
             'rows': rows, 'failure': view['failure']}
 
 
+HELD_OUT_REVIEW_KEYS = ('fixture_id', 'fixture_set', 'task_success', 'protected_wall_s', 'evidence_ref')
+
+
 def reviewer_visible(result):
     """Visible result for lineage rows: held-out rows carry ids/pass/fail/timing only.
 
     The exact Root bytes stay pinned by ``result_ref`` (and returned unchanged at
-    the session's top level); ``loop`` rows are what the UI projects.
+    the session's top level); ``loop`` rows are what the UI projects. This is
+    the publisher's ``reviewer_view`` contract exactly (held-out ``trial_rows``
+    stay as Root sealed them: pass/fail per check id, no outputs).
     """
-    rows = []
-    for row in result.get('rows', []):
-        if row.get('fixture_set') == 'held_out':
-            row = {key: row[key] for key in ('fixture_id', 'fixture_set', 'task_success', 'protected_wall_s',
-                                              'evidence_ref') if key in row}
-        rows.append(row)
+    rows = [{key: row[key] for key in HELD_OUT_REVIEW_KEYS if key in row}
+            if isinstance(row, dict) and row.get('fixture_set') == 'held_out' else row
+            for row in result.get('rows', [])]
     return {**result, 'rows': rows}
 
 
@@ -415,7 +474,7 @@ class CapsuleLoop:
     async def evaluate(self, role, body, ref, binding, iteration, trials):
         raw = await self.runtime.evaluate(role, body=body, candidate_ref=ref, binding=binding,
                                           iteration=iteration, trials=trials)
-        raw = validate_visible(raw, self.value, role, ref, iteration=iteration, trials=trials)
+        raw = validate_visible(raw, self.value, role, ref, iteration=iteration, trials=trials, objective=self.objective)
         self.executions += raw['executions']
         return raw, normalized(raw, self.value, ref, iteration)
 
@@ -461,7 +520,7 @@ class CapsuleLoop:
         self.raw_parent = raw
         self.slowest = self.clock() - began
         loop['parent_visible'] = reviewer_visible(raw)
-        need(all_passed(parent_view), 'PARENT_CONTROL_FAILED_NO_MODEL_CALL')
+        need(parent_control_passed(raw, value['capsule_name'], self.objective), 'PARENT_CONTROL_FAILED_NO_MODEL_CALL')
         if parent_trials >= 3 and len(parent_view.get('trial_wall_s') or []) >= 3:
             self.noise = self.objective.calibrate_noise(trial_views(parent_view))
             loop['noise'] = noise_record(self.noise, parent_view)
@@ -644,9 +703,9 @@ class CapsuleLoop:
         self.raw_visible[iteration] = raw
         entry['model'] = model_view(view, 'iteration %d' % iteration)
         entry['model_ref'] = store.put(entry['model'])
-        if view['failure'] is not None:
-            return finish('error', 'CANDIDATE_EVALUATION_FAILURE: ' + view['failure']['exception_type'],
-                          ValueError(view['failure']['message']))
+        # A captured case failure (wrong output, raised, timed out) is a scored
+        # outcome, never a loop stop: Root refusals and unknown effects raise
+        # from ``runtime.evaluate`` above instead.
 
         # -- score and select
         try:

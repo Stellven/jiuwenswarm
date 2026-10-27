@@ -16,7 +16,8 @@ from .capsule_loop import (CapsuleLoop, load_objective, loop_configuration, loop
 from .records import encoded
 from .targets.capsules import registered_capsule, public_fixtures
 from .targets.capsule_runtime import BOOTSTRAP_SCHEMA
-from .targets.capsule_executor import BINDING_SCHEMA, GRANT_SCHEMA, pin
+from .targets.capsule_executor import (BINDING_SCHEMA, GRANT_SCHEMA, LOOP_GRANT_SCHEMA,
+    MAX_LOOP_EXECUTIONS, pin)
 
 SCHEMA = 'ai4r-rsi-capsule-session:1'
 RESULT_SCHEMA = 'ai4r-rsi-capsule-session-result:1'
@@ -43,8 +44,16 @@ def validate_session(value):
     target = registered_capsule(value['capsule_name'])
     need(target.public_evaluation_available, target.adapter_blocker)
     grant = value['grant']
-    need(grant.get('schema') == GRANT_SCHEMA and grant.get('bootstrap_schema') == BOOTSTRAP_SCHEMA,
+    need(grant.get('schema') in (GRANT_SCHEMA, LOOP_GRANT_SCHEMA) and grant.get('bootstrap_schema') == BOOTSTRAP_SCHEMA,
          'GUARDED_BOOTSTRAP_GRANT_REQUIRED')
+    # An iterative session needs the iterative (v3) grant and vice versa: a v2
+    # grant authorizes exactly one parent and one candidate evaluation (its
+    # exact role budget is enforced by capsule_executor.validate_grant), so it
+    # can only back the historical single attempt.
+    need((grant['schema'] == LOOP_GRANT_SCHEMA) == ('loop' in value), 'ITERATIVE_SESSION_REQUIRES_LOOP_GRANT')
+    if grant['schema'] == LOOP_GRANT_SCHEMA:
+        need(type(grant.get('max_executions')) is int and 0 < grant['max_executions'] <= MAX_LOOP_EXECUTIONS,
+             'FINITE_LOOP_EXECUTION_BUDGET_REQUIRED')
     need(grant['run_id'] == value['id'] and grant['capsule_name'] == value['capsule_name']
          and grant['roles'] == ['parent', 'candidate']
          and grant['parent_sha256'] == value['parent_body_ref']['sha256'], 'EXACT_SESSION_GRANT_REQUIRED')

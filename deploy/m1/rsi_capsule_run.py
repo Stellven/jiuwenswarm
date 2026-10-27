@@ -27,6 +27,7 @@ PREFLIGHT_SCHEMA = 'ai4r-rsi-capsule-run-preflight:1'
 MAX_CONFIG = 8 * 1024 * 1024
 MAX_PIPE_FRAME = 4 * 1024 * 1024
 MAX_TRIALS = 20
+DISPATCHERS = ('v18-bwrap', 'local')
 COMPOSITION_SHA256 = '5ba11903f494c06cffaa56f40efae2b5cadee73711a3bc7dd2b9f7e04a6f8016'
 
 
@@ -87,22 +88,32 @@ def protected(path, *, directory=False):
     return path
 
 
+DOCTOR_SOURCE = 'jiuwenswarm/research_rsi/capsule_doctor.py'
+# The whole-package roots (see capsule_doctor.CONTROLLER_ENTRY_PACKAGES); the
+# exact module/resource closure under them is derived, never hand-listed.
+PACKAGE_ROOTS = ('jiuwenswarm/__init__.py', 'jiuwenswarm/research/__init__.py',
+                 'jiuwenswarm/research_rsi/__init__.py', DOCTOR_SOURCE)
+
+
+def pinned_doctor(root, pins):
+    """The configuration's own pinned, stdlib-only diagnostics module, loaded
+    stand-alone so nothing from the package is imported before its closure
+    is proven complete."""
+    raw = protected(root / DOCTOR_SOURCE).read_bytes()
+    need(digest(raw) == pins[DOCTOR_SOURCE], 'SOURCE_PIN_DIFFERS: ' + DOCTOR_SOURCE)
+    spec = importlib.util.spec_from_loader('capsule_run_pinned_doctor', loader=None)
+    module = importlib.util.module_from_spec(spec)
+    module.__file__ = str(root / DOCTOR_SOURCE)
+    exec(compile(raw, str(root / DOCTOR_SOURCE), 'exec'), module.__dict__)
+    return module
+
+
 def load_sources(value):
     root = protected(value['source_root'], directory=True)
     pins = value['source_pins']
     need(isinstance(pins, dict) and pins, 'PINNED_SOURCE_CLOSURE_REQUIRED')
-    required = {'jiuwenswarm/research_rsi/' + item for item in (
-        '__init__.py', 'capsule_session.py', 'capsule_loop.py', 'model_backends.py', 'host_codex_backend.py',
-        'records.py', 'diagnosis.py', 'proposer.py',
-        'profiles.py', 'process_policy.py', 'session_policy.py', 'fixed_resources.py',
-        'native_lease.py', 'capsule_doctor.py', 'targets/capsules.py', 'targets/capsule_runtime.py',
-        'targets/capsule_executor.py', 'targets/capsule_objective.py')}
-    required |= {'jiuwenswarm/' + item for item in (
-        '__init__.py', 'research/__init__.py', 'research/state.py', 'research/executor.py',
-        'research/local_model_codex.py', 'research/local_model_relay.py', 'research/local_models.py',
-        'research/private_rpc.py', 'research/resources/host_codex/model_catalog.json',
-        'research_contracts/schemas/capsule-declaration.schema.json')}
-    need(required <= set(pins), 'COMPLETE_CAPSULE_PACKAGE_CLOSURE_REQUIRED')
+    # A research_rsi-only overlay is refused before any byte is read.
+    need(set(PACKAGE_ROOTS) <= set(pins), 'COMPLETE_CAPSULE_PACKAGE_CLOSURE_REQUIRED')
     for name, expected in pins.items():
         need(isinstance(name, str) and name.startswith('jiuwenswarm/')
              and not any(part in ('', '.', '..') for part in name.split('/'))
@@ -113,6 +124,13 @@ def load_sources(value):
     actual = {path.relative_to(root).as_posix() for path in (root / 'jiuwenswarm').rglob('*')
               if path.is_file()}
     need(actual == set(pins), 'SOURCE_CLOSURE_INVENTORY_DIFFERS')
+    # Derived import/resource closure of every controller/evaluator module and
+    # the frozen composition: an incomplete package names its first missing path.
+    composition_path = protected(value['composition_path'])
+    try:
+        pinned_doctor(root, pins).require_source_closure(root, pins, entry_files=[composition_path])
+    except ValueError as error:
+        raise ValueError('COMPLETE_CAPSULE_PACKAGE_CLOSURE_REQUIRED: ' + str(error)[:2048]) from None
     # Load one complete, pinned package. Source-relative qualification and
     # schemas must observe the same bytes as imports; a research_rsi-only
     # overlay creates a split package and can pass an unrelated relay probe.
@@ -152,8 +170,10 @@ def validate_configuration(value):
         'core_root', 'input_root', 'record_root', 'native_lease_root', 'account_root', 'work_root',
         'principal', 'exact_binding_refs', 'work_capsule_refs', 'run_contexts'}, 'CLOSED_COMPOSITION_REQUIRED')
     evaluator = value['evaluator']
-    need(isinstance(evaluator, dict) and set(evaluator) == {
-        'root', 'runtime_root', 'manifest', 'metadata', 'grant_path', 'grant_sha256', 'cgroup_root'}, 'CLOSED_EVALUATOR_REQUIRED')
+    fields = {'root', 'runtime_root', 'manifest', 'metadata', 'grant_path', 'grant_sha256', 'cgroup_root'}
+    # ``dispatcher`` is optional: absent means the protected V18 path.
+    need(isinstance(evaluator, dict) and fields <= set(evaluator) <= fields | {'dispatcher'}
+         and evaluator.get('dispatcher', 'v18-bwrap') in DISPATCHERS, 'CLOSED_EVALUATOR_REQUIRED')
     for key in ('core_root', 'input_root', 'record_root', 'native_lease_root', 'account_root', 'work_root'):
         path = Path(composition[key])
         need(path.is_absolute() and '..' not in path.parts, 'ABSOLUTE_COMPOSITION_PATH_REQUIRED')
@@ -242,6 +262,10 @@ def require_compose_doctor(value):
          and proof.get('model_calls') == proof.get('tool_calls') == proof.get('execution_jobs') == 0
          and proof.get('work_claims') == 0 and proof.get('native_starts') == 0,
          'ACTUAL_SCOPED_MODEL_FREE_COMPOSE_DOCTOR_REQUIRED')
+    closure = proof.get('source_closure')
+    need(isinstance(closure, dict) and closure.get('complete') is True
+         and type(closure.get('module_count')) is int and closure['module_count'] > 0,
+         'COMPOSE_DOCTOR_COMPLETE_SOURCE_CLOSURE_REQUIRED')
     expected = value['evaluator']['manifest']['python']
     need(proof.get('python') == {'version': expected['version'],
          'executable_sha256': expected['executable_sha256']}, 'EXACT_WORKER_COMPOSE_DOCTOR_RUNTIME_REQUIRED')
@@ -270,7 +294,8 @@ def preflight(configuration_path, configuration_sha256):
     need(time.time() < session['grant']['expires_unix_s'], 'ROOT_GRANT_EXPIRED')
     verify_runtime(protected(evaluator['runtime_root'], directory=True), evaluator['manifest'])
     protected(evaluator['root'], directory=True)
-    protected(evaluator['cgroup_root'], directory=True)
+    if evaluator.get('dispatcher', 'v18-bwrap') == 'v18-bwrap':
+        protected(evaluator['cgroup_root'], directory=True)  # The local dispatcher owns no cgroup.
     claim = Path(value['claim_path'])
     protected(claim.parent, directory=True)
     need(not claim.exists() and not claim.is_symlink(), 'ROOT_CLAIM_ALREADY_EXISTS_NO_REPLAY')
@@ -325,13 +350,15 @@ def capture_closure(store, value):
 
 async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
     from jiuwenswarm.research_rsi.records import RecordStore
-    from jiuwenswarm.research_rsi.targets.capsule_executor import WholeCapsuleDispatcher
+    from jiuwenswarm.research_rsi.targets.capsule_local_dispatcher import dispatcher_for
     config = value['evaluator']; root = Path(config['root'])
     captures = RecordStore(root / 'captures')
     for key, record in config['metadata'].items():
         need(captures.put(record) == value['session']['grant']['worker'][key+'_ref'],
              'EXACT_PUBLIC_WORKER_METADATA_IDENTITY_REQUIRED')
-    dispatcher = WholeCapsuleDispatcher(root=root, runtime_root=config['runtime_root'],
+    # Explicit configuration selects the dispatcher; a missing key is the
+    # protected V18 path (never inferred from the host).
+    dispatcher = dispatcher_for(config, root=root, runtime_root=config['runtime_root'],
         manifest=config['manifest'], grant_path=config['grant_path'], grant_sha256=config['grant_sha256'],
         cgroup_root=config['cgroup_root'], captures=captures)
     plan = dispatcher.plan()
@@ -372,10 +399,13 @@ async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
             served.append({'role': role, 'iteration': iteration, 'trials': trials,
                            'result_ref': result.get('result_ref'), 'executions': result.get('executions')})
             last_iteration = iteration
-            if result.get('failure') is not None or getattr(dispatcher, 'halted', False):
+            # A candidate's captured case failures are scored outcomes; only an
+            # unknown/in-flight effect (halted dispatcher) or a failed parent
+            # control ends service.
+            if getattr(dispatcher, 'halted', False):
                 stop = 'DISPATCHER_HALTED'
                 break
-            if role == 'parent' and not evaluation_passed(result):
+            if role == 'parent' and not evaluation_passed(result, value['session']['capsule_name']):
                 stop = 'PARENT_CONTROL_FAILED'
                 break
         helper.exclusive(root / 'complete.json', {
@@ -387,11 +417,11 @@ async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
         captures.close()
 
 
-def evaluation_passed(result):
-    """Interface A v2 or historical v1 visible result passed every case."""
-    if result.get('schema') == 'ai4r-rsi-whole-capsule-visible-result:2':
-        return result.get('failure') is None and result.get('passed_count') == result.get('case_count')
-    return result.get('passed') is True
+def evaluation_passed(result, name):
+    """Parent control, exactly as the loop applies it (capsule_loop): complete
+    evaluation and the historical public baseline passed (v1: every case)."""
+    from jiuwenswarm.research_rsi.capsule_loop import parent_control_passed
+    return parent_control_passed(result, name)
 
 
 async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, effect_deadline=None, progress=None):
@@ -420,7 +450,14 @@ async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, e
             result = frame['evaluation']
             from jiuwenswarm.research_rsi.capsule_loop import validate_visible
             from jiuwenswarm.research_rsi.targets.capsule_runtime import capsule_worker_program, BOOTSTRAP_SCHEMA
-            validate_visible(result, value['session'], role, candidate_ref, iteration=iteration, trials=trials)
+            from jiuwenswarm.research_rsi.targets.capsule_executor import LOCAL_SCOPE
+            validate_visible(result, value['session'], role, candidate_ref, iteration=iteration, trials=trials,
+                             objective=getattr(runtime, 'objective', None))
+            local = (value.get('evaluator') or {}).get('dispatcher') == 'local'
+            # Local rows are accepted only from an explicitly local evaluator and
+            # are never presented as protected (publication refuses the scope).
+            need(all((row.get('receipt', {}).get('scope') == LOCAL_SCOPE) is local for row in result['rows'])
+                 and (result.get('scope') == LOCAL_SCOPE) is local, 'CONFIGURED_EVALUATION_SCOPE_REQUIRED')
             need(isinstance(result.get('result_ref'), dict)
                  and all(isinstance(row.get(key), dict) for row in result['rows']
                          for key in ('evidence_ref', 'input_ref', 'program_ref')), 'PROTECTED_ROOT_EVIDENCE_REFS_REQUIRED')
@@ -429,6 +466,11 @@ async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, e
             for row in result['rows']:
                 need(runtime.store.get(row['evidence_ref']) == {key: item for key, item in row.items() if key != 'evidence_ref'},
                      'EXACT_ROOT_ROW_CAPTURE_REQUIRED')
+                need(row['bootstrap_schema'] == BOOTSTRAP_SCHEMA, 'EXACT_GUARDED_BOOTSTRAP_PROGRAM_REQUIRED')
+                if local:
+                    # The local program names the job's own host paths, so its
+                    # hash is pinned by program_ref but not recomputable here.
+                    continue
                 expected = capsule_worker_program(value['session']['capsule_name'],
                     manifest_sha256=value['session']['grant']['runtime_manifest_sha256'],
                     candidate_sha256=candidate_ref['sha256'], input_sha256=row['input_ref']['sha256'],

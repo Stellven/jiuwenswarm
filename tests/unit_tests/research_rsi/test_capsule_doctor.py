@@ -28,8 +28,17 @@ def test_doctor_receipt_is_bound_to_whole_composition_without_hash_cycle(tmp_pat
         'actual_frozen_compose_completed':True,'originals_unchanged':True,
         'model_calls':0,'tool_calls':0,'execution_jobs':0,'work_claims':0,'native_starts':0,
         'python':{'version':[3,12,15],'executable_sha256':'f'*64}}
-    raw=json.dumps(proof).encode();(tmp_path/'doctor.json').write_bytes(raw)
-    value['compatibility']['sha256']=hashlib.sha256(raw).hexdigest()
+    def bind(item):
+        raw=json.dumps(item).encode();(tmp_path/'doctor.json').write_bytes(raw)
+        value['compatibility']['sha256']=hashlib.sha256(raw).hexdigest()
+    # A receipt without a complete derived source closure is refused.
+    for closure in (None,{'complete':False,'module_count':3}):
+        bind(dict(proof,**({} if closure is None else {'source_closure':closure})))
+        with pytest.raises(ValueError,match='COMPOSE_DOCTOR_COMPLETE_SOURCE_CLOSURE_REQUIRED'):
+            runner.require_compose_doctor(value)
+    proof['source_closure']={'schema':'ai4r-rsi-source-closure:1','complete':True,'module_count':3,
+        'resource_count':1,'modules_sha256':'c'*64,'entry_packages':['jiuwenswarm.research_rsi','jiuwenswarm.research']}
+    bind(proof)
     assert runner.compose_doctor_scope(value)==scope
     assert runner.require_compose_doctor(value)==proof
     value['source_pins']['jiuwenswarm/research/local_model_codex.py']='b'*64
