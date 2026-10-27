@@ -87,6 +87,103 @@ ITERATION_FIELDS = ('iteration node_id candidate_ref status kept best passed_cou
                     'improved regressed summary feedback rationale failing_cases failure model_calls elapsed_s')
 TEXT_LIMITS = {'summary': 1024, 'feedback': 4096, 'rationale': 4096}
 
+# Lineage v2 (merge wave): the paired batched benchmark is the latency judge.
+# A v1 block (no benchmark data in the loop) is still emitted byte-identically.
+LINEAGE_SCHEMA_V2 = 'ai4r-cc-rsi-lineage:2'
+BENCHMARK_REPORT_SCHEMA = 'ai4r-rsi-capsule-benchmark-report:1'
+LATENCY_METHODS = frozenset({'paired_batched_benchmark', 'single_job_floor'})
+IMPROVEMENT_BASES = frozenset({'correctness', 'paired_batched_benchmark'})
+BENCHMARK_GATES = ('minimum_gain', 'ci_upper_bound', 'max_workload_regression')
+BENCHMARK_FIELDS = 'report_ref relative_gain ratio_confidence_interval gates objective_met protected_jobs repetitions workloads'
+LINEAGE_V2_FIELDS = LINEAGE_FIELDS + ' benchmark_baseline'
+ITERATION_V2_FIELDS = ITERATION_FIELDS + ' latency_method benchmark improvement_basis'
+MAX_WORKLOADS = 64
+
+
+def _signed(value):
+    """Finite signed measured number (a gain may be negative), else unknown."""
+    if type(value) in (int, float) and math.isfinite(value) and -1e6 <= value <= 1e6:
+        return value
+    return None
+
+
+def _gate_passed(value):
+    """A gate is a bool or ``{..., passed: bool}``; anything else is unknown."""
+    if isinstance(value, dict):
+        value = value.get('passed')
+    return value if type(value) is bool else None
+
+
+def _interval(value):
+    if (isinstance(value, (list, tuple)) and len(value) == 2
+            and all(_measure(item) is not None for item in value) and value[0] <= value[1]):
+        return [value[0], value[1]]
+    return None
+
+
+def _workloads(value):
+    """Per-workload median ratios: ``[{id, median_ratio}]`` or ``{id: ratio}``."""
+    if isinstance(value, dict):
+        value = [{'id': key, 'median_ratio': item if not isinstance(item, dict) else item.get('median_ratio')}
+                 for key, item in value.items()]
+    if not isinstance(value, list):
+        return None
+    rows = []
+    for item in value[:MAX_WORKLOADS]:
+        if isinstance(item, dict) and isinstance(item.get('id'), str):
+            rows.append({'id': _clip(item['id'], 256), 'median_ratio': _measure(item.get('median_ratio'))})
+    return rows
+
+
+def _repetitions(report):
+    reps = _count(report.get('repetitions'))
+    if reps is None and isinstance(report.get('protocol'), dict):
+        reps = _count(report['protocol'].get('repetitions'))
+    return reps
+
+
+def project_benchmark(report):
+    """Closed public view of one ``ai4r-rsi-capsule-benchmark-report:1``."""
+    if not isinstance(report, dict):
+        return None
+    gates = report.get('gates') if isinstance(report.get('gates'), dict) else {}
+    return {'report_ref': _source_ref(report.get('report_ref')),
+            'relative_gain': _signed(report.get('relative_gain')),
+            'ratio_confidence_interval': _interval(report.get('ratio_confidence_interval')),
+            'gates': {key: _gate_passed(gates.get(key)) for key in BENCHMARK_GATES},
+            'objective_met': _flag(report.get('objective_met')),
+            'protected_jobs': _count(report.get('protected_jobs')),
+            'repetitions': _repetitions(report),
+            'workloads': _workloads(report.get('workloads', report.get('rows')))}
+
+
+def improvement_basis(score, method, benchmark, correctness_parent, correctness_candidate):
+    """Why an ``improved`` score may be claimed, or None (no claim).
+
+    A correctness gain always counts. A latency gain counts only when it was
+    judged by the paired batched benchmark and that report met its objective;
+    a ``single_job_floor`` latency is never a measured speedup.
+    """
+    if score.get('improved') is not True or score.get('regressed') is True:
+        return None
+    if (correctness_parent is not None and correctness_candidate is not None
+            and correctness_candidate > correctness_parent):
+        return 'correctness'
+    if method == 'paired_batched_benchmark' and benchmark is not None and benchmark['objective_met'] is True:
+        return 'paired_batched_benchmark'
+    return None
+
+
+def _uses_benchmark(loop):
+    """A loop result from the merge wave (benchmark-judged or explicitly floor-judged)."""
+    if 'benchmark_baseline' in loop:
+        return True
+    for row in loop.get('iterations') or []:
+        if isinstance(row, dict) and ('benchmark' in row or (
+                isinstance(row.get('score'), dict) and 'latency_method' in row['score'])):
+            return True
+    return False
+
 
 def _measure(value):
     """Finite non-negative measured number, else unknown."""
@@ -156,7 +253,7 @@ def _visible_summary(visible):
     return passed, total, status, cases, projected_failure
 
 
-def _project_iteration(row, *, best_iteration, node_ids):
+def _project_iteration(row, *, best_iteration, node_ids, version=1):
     if not isinstance(row, dict) or _count(row.get('iteration')) is None:
         raise ProjectionError('Loop iteration identity is required')
     score = row.get('score') if isinstance(row.get('score'), dict) else {}
@@ -164,6 +261,19 @@ def _project_iteration(row, *, best_iteration, node_ids):
     ref = _source_ref(row.get('candidate_ref'), row.get('candidate_sha256'))
     passed, total, status, cases, failure = _visible_summary(row.get('visible'))
     node_id = node_ids.get(ref['sha256']) if ref is not None else None
+    value = _project_iteration_v1(row, score, correctness, ref, passed, total, status, cases, failure,
+                                  node_id=node_id, best_iteration=best_iteration)
+    if version == 1:
+        return value
+    method = score.get('latency_method') if score.get('latency_method') in LATENCY_METHODS else None
+    benchmark = project_benchmark(row.get('benchmark'))
+    return dict(value, latency_method=method, benchmark=benchmark,
+                improvement_basis=improvement_basis(score, method, benchmark,
+                                                    value['correctness_parent'], value['correctness_candidate']))
+
+
+def _project_iteration_v1(row, score, correctness, ref, passed, total, status, cases, failure, *,
+                          node_id, best_iteration):
     return {'iteration': row['iteration'], 'node_id': node_id, 'candidate_ref': ref, 'status': status,
             'kept': _flag(row.get('kept')), 'best': best_iteration is not None and row['iteration'] == best_iteration,
             'passed_count': passed, 'case_count': total,
@@ -198,9 +308,11 @@ def project_loop(result, *, node_ids=None, parent_node_id=None):
     rows = loop.get('iterations')
     if not isinstance(rows, list) or len(rows) > MAX_ITERATIONS:
         raise ProjectionError('Loop iterations exceed their finite contract')
+    version = 2 if _uses_benchmark(loop) else 1
     best = loop.get('best') if isinstance(loop.get('best'), dict) else None
     best_iteration = _count(best.get('iteration')) if best else None
-    iterations = [_project_iteration(row, best_iteration=best_iteration, node_ids=node_ids) for row in rows]
+    iterations = [_project_iteration(row, best_iteration=best_iteration, node_ids=node_ids, version=version)
+                  for row in rows]
     best_row = next((row for row in iterations if row['best']), None)
     if best is not None and best_row is not None:
         best_ref = _source_ref(best.get('candidate_ref'))
@@ -227,8 +339,42 @@ def project_loop(result, *, node_ids=None, parent_node_id=None):
              'parent': {'status': parent_status, 'passed_count': parent_passed, 'case_count': parent_total,
                         'protected_wall_s': _measure(parent_visible.get('protected_wall_s')), 'failure': parent_failure},
              'iterations': iterations}
+    if version == 2:
+        value['schema'] = LINEAGE_SCHEMA_V2
+        value['benchmark_baseline'] = project_benchmark(loop.get('benchmark_baseline'))
     _lineage(value)
     return value
+
+
+def _benchmark(value):
+    if value is None:
+        return
+    _fields(value, BENCHMARK_FIELDS)
+    if value['report_ref'] is not None:
+        _ref(value['report_ref'])
+    gain = value['relative_gain']
+    if gain is not None and (type(gain) not in (int, float) or not math.isfinite(gain) or not -1e6 <= gain <= 1e6):
+        raise ProjectionError('Invalid measured benchmark gain')
+    interval = value['ratio_confidence_interval']
+    if interval is not None:
+        if not isinstance(interval, list) or len(interval) != 2:
+            raise ProjectionError('Benchmark confidence interval must be a pair')
+        for item in interval:
+            _nullable_number(item)
+            if item is None:
+                raise ProjectionError('Benchmark confidence interval must be measured')
+        if interval[0] > interval[1]:
+            raise ProjectionError('Benchmark confidence interval is inverted')
+    _fields(value['gates'], ' '.join(BENCHMARK_GATES))
+    for item in value['gates'].values():
+        _nullable_flag(item)
+    _nullable_flag(value['objective_met'])
+    _nullable_count(value['protected_jobs']); _nullable_count(value['repetitions'])
+    if value['workloads'] is not None:
+        for row in _rows(value['workloads'], MAX_WORKLOADS):
+            _fields(row, 'id median_ratio')
+            _text(row['id'], limit=256)
+            _nullable_number(row['median_ratio'])
 
 
 def _nullable_number(value):
@@ -255,9 +401,12 @@ def _failure(value):
 
 def _lineage(value, *, run=None, nodes=None):
     """Closed public lineage block; node references are checked when nodes are known."""
-    _fields(value, LINEAGE_FIELDS)
-    if value['schema'] != LINEAGE_SCHEMA:
+    v2 = isinstance(value, dict) and value.get('schema') == LINEAGE_SCHEMA_V2
+    _fields(value, LINEAGE_V2_FIELDS if v2 else LINEAGE_FIELDS)
+    if value['schema'] not in (LINEAGE_SCHEMA, LINEAGE_SCHEMA_V2):
         raise ProjectionError('Unsupported public lineage schema')
+    if v2:
+        _benchmark(value['benchmark_baseline'])
     for key in ('max_iterations', 'completed_iterations', 'model_calls', 'best_iteration'):
         _nullable_count(value[key])
     if value['stop_reason'] is not None and value['stop_reason'] not in STOP_REASONS:
@@ -279,7 +428,23 @@ def _lineage(value, *, run=None, nodes=None):
     _nullable_number(parent['protected_wall_s']); _failure(parent['failure'])
     seen, best = set(), []
     for row in _rows(value['iterations'], MAX_ITERATIONS):
-        _fields(row, ITERATION_FIELDS)
+        _fields(row, ITERATION_V2_FIELDS if v2 else ITERATION_FIELDS)
+        if v2:
+            if row['latency_method'] is not None and row['latency_method'] not in LATENCY_METHODS:
+                raise ProjectionError('Unknown latency method')
+            _benchmark(row['benchmark'])
+            basis = row['improvement_basis']
+            if basis is not None and (basis not in IMPROVEMENT_BASES or row['improved'] is not True
+                                      or row['regressed'] is True):
+                raise ProjectionError('Improvement basis requires an improved, non-regressed score')
+            if basis == 'paired_batched_benchmark' and (
+                    row['latency_method'] != 'paired_batched_benchmark' or row['benchmark'] is None
+                    or row['benchmark']['objective_met'] is not True):
+                raise ProjectionError('A measured speedup requires a met paired benchmark objective')
+            if basis == 'correctness' and not (
+                    row['correctness_parent'] is not None and row['correctness_candidate'] is not None
+                    and row['correctness_candidate'] > row['correctness_parent']):
+                raise ProjectionError('A correctness improvement requires a measured correctness gain')
         if type(row['iteration']) is not int or row['iteration'] < 0 or row['iteration'] in seen:
             raise ProjectionError('Distinct iteration numbers are required')
         seen.add(row['iteration'])

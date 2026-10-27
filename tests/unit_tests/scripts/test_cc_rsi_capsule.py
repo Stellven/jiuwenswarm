@@ -522,3 +522,28 @@ def test_interrupted_or_failed_preparation_waits_for_its_step_container_before_a
     assert slot2.status()['phase'] == 'PREPARING' and calls == ['unit-wait-r2']
     running[0] = None
     assert slot2.status()['phase'] == 'READY' and calls == ['unit-wait-r2', 'unit-wait-r2']
+
+
+def test_benchmark_revision_horizon_covers_its_benchmark_inclusive_deadline(tmp_path, prepared):
+    v = prepared; policy = durable_policy(v['authority'].origin, 'unit-bench', strict=False)
+    now = [1_000_000]; payloads = []
+    def prepare(sequence, run_id):
+        return payloads.pop(0)
+    def make():
+        return cap.DurableSlot(policy, policy['slots'][0], v['signer'].public_bytes(),
+            cap.RevisionLedger(tmp_path / ('l%d' % len(list(tmp_path.iterdir())))),
+            journal=lambda run_id: MemoryJournal(), preflight=lambda record: None, launch=None, prepare=prepare,
+            clock=lambda: now[0], launch_margin_s=300, background=False)
+    # The benchmark wall must lie inside the run deadline it is part of.
+    payloads.append({'expires_unix_s': now[0] + 10**6, 'wall_s': 6000, 'benchmark_wall_s': 6000})
+    slot_ = make(); slot_.status()
+    assert slot_.ledger.entries()[1]['failed']['message'] == 'Prepared benchmark wall must lie inside the run deadline'
+    payloads.append({'expires_unix_s': now[0] + 7000, 'wall_s': 6772, 'benchmark_wall_s': 4992})
+    slot_ = make()
+    row = slot_.status()
+    record = slot_.current()
+    assert record['benchmark_wall_s'] == 4992 and record['wall_s'] == 6772
+    # 7000 s of horizon cannot cover a 6772 s deadline plus the 300 s launch margin.
+    assert slot_.preflight_row(row | {'revision': record['revision']})['blocker'] == (
+        'Development prerequisites are unavailable: DURABLE_GRANT_HORIZON_INSUFFICIENT: the revision cannot cover a whole run '
+        '(6772 s deadline, including 4992 s paired benchmark)')

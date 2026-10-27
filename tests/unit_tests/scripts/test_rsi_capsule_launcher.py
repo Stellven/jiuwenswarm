@@ -412,3 +412,89 @@ def test_restart_reconcile_waits_for_running_step_then_adopts_its_terminal_state
         'argv': ['create', '--name', 'ai4r-capsule-prepare-unit-r2']})
     assert steps.reconcile(other) is None and not (other / 'prepare-exit.json').exists()
     assert steps.reconcile(tmp_path / 'control/never-made') is None
+
+
+# --------------------------------------------------------------------------
+# Merge wave: paired batched benchmark budget and run deadline.
+# --------------------------------------------------------------------------
+def test_benchmark_wall_extends_the_shared_run_deadline():
+    now = 1_000_000
+    loop = {'model_backend': {'kind': 'fake'}, 'per_call_s': 200,
+            'benchmark': {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 4992}}
+    cfg = loop_cfg(now, loop=loop)
+    deadline = launcher.run_deadline_s(cfg)
+    assert deadline == 1200 + 4992 + 2 * 200 + 60 + 120
+    assert deadline == slot.run_deadline_s(cfg['session']['grant'], loop)
+    short = loop_cfg(now + 1200 + 2 * 200 + 180, loop=loop)  # Covers the loop wall, not the benchmark.
+    with pytest.raises(ValueError, match='CAPSULE_GRANT_HORIZON_BELOW_ONE_RUN'):
+        launcher.grant_ready(short['session']['grant'], short, now)
+    covered = loop_cfg(now + deadline, loop=loop)
+    launcher.grant_ready(covered['session']['grant'], covered, now)
+    for broken in ({'workloads': 8}, {'wall_s': 0}, 'many'):
+        with pytest.raises(ValueError, match='MATERIALIZED_BENCHMARK_WALL_REQUIRED'):
+            launcher.run_deadline_s(loop_cfg(now, loop=dict(loop, benchmark=broken)))
+        with pytest.raises(ValueError, match='MATERIALIZED_BENCHMARK_WALL_REQUIRED'):
+            slot.run_deadline_s(cfg['session']['grant'], dict(loop, benchmark=broken))
+
+
+def _benchmark_data(t, workloads):
+    from jiuwenswarm.research_rsi.targets.capsules import registered_capsule
+    carrier = Path(registered_capsule(t['value']['target_id']).carrier_path)
+    path = t['source'] / 'jiuwenswarm' / carrier.parent / 'fixtures' / 'benchmark.json'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({'workloads': [{'id': 'w%d' % index} for index in range(workloads)]}))
+    return path
+
+
+def test_revision_materializes_benchmark_sizing_and_calls_owner_budget_with_it(template, monkeypatch):
+    from jiuwenswarm.research_rsi.targets import capsule_executor
+    t = template; value = json.loads(json.dumps(t['value'])); now = 1_800_000_000
+    _benchmark_data(t, 8)
+    calls = []
+    def owner_budget(case_count, **kwargs):
+        calls.append((case_count, kwargs)); return 4321
+    monkeypatch.setattr(capsule_executor, 'loop_execution_budget', owner_budget)
+    payload = slot.prepare_revision(value, 1, 'unit-calculate-dev-r1', run_step=t['run_step'], now=now, chown=False)
+    expected = {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6,
+                'wall_s': (3 + 1) * 8 * (11 + 2) * 2 * 6}  # Baseline + 3 iterations, both sides of every pair.
+    control = t['tmp'] / 'control/unit-calculate-dev-r1'
+    grant = json.loads((control / 'grant.json').read_text())
+    cases = len(capsule_executor.grant_fixtures(grant))
+    # The budget formula stays the owner's: called with the loop config, its value used verbatim.
+    assert calls == [(cases, {'max_iterations': 3, 'trials': 2, 'benchmark': expected})]
+    assert grant['max_executions'] == payload['max_executions'] == 4321
+    prepare = json.loads((control / 'prepare-configuration.json').read_text())
+    assert prepare['loop'] == dict(value['loop'], benchmark=expected)
+    run = json.loads((control / 'run-configuration.json').read_text())
+    assert run['session']['loop']['benchmark'] == expected
+    assert payload['benchmark_wall_s'] == expected['wall_s'] and payload['wall_s'] == launcher.run_deadline_s(run)
+    assert payload['wall_s'] == 1200 + expected['wall_s'] + 2 * 120 + 60 + 120
+    # Explicit template sizing overrides the derived one; unknown keys never pass.
+    value['loop']['benchmark'] = {'per_job_s': 2, 'repetitions': 5}
+    assert slot.benchmark_settings(value) == {'workloads': 8, 'repetitions': 5, 'warmups': 2, 'per_job_s': 2,
+                                              'wall_s': 4 * 8 * 7 * 2 * 2}
+    value['loop']['benchmark'] = {'wall_s': 900}
+    assert slot.benchmark_settings(value)['wall_s'] == 900
+    for broken, reason in (({'pairs': 11}, 'CLOSED_LOOP_BENCHMARK_REQUIRED'), ({'per_job_s': 0}, 'FINITE_BENCHMARK_PER_JOB_S_REQUIRED'),
+                           ({'workloads': 65}, 'FINITE_BENCHMARK_WORKLOADS_REQUIRED')):
+        value['loop']['benchmark'] = broken
+        with pytest.raises(ValueError, match=reason):
+            slot.benchmark_settings(value)
+    # A horizon that covers the loop but not its benchmark is refused before any step.
+    value['loop'].pop('benchmark'); value['grant']['horizon_s'] = 1200 + 2 * 120 + 180 + 1
+    with pytest.raises(ValueError, match='DURABLE_HORIZON_BELOW_ONE_RUN'):
+        slot.validate_template(value)
+
+
+def test_capsule_without_benchmark_data_keeps_the_historical_budget_and_deadline(template):
+    t = template; value = json.loads(json.dumps(t['value']))
+    assert slot.benchmark_settings(value) is None and slot.revision_loop(value) == value['loop']
+    value['loop']['benchmark'] = {'per_job_s': 4}  # Sizing without any workload count is refused, not guessed.
+    with pytest.raises(ValueError, match='BENCHMARK_WORKLOAD_COUNT_REQUIRED'):
+        slot.benchmark_settings(value)
+    value['loop']['benchmark'] = {'workloads': 3}
+    assert slot.benchmark_settings(value)['wall_s'] == 4 * 3 * 13 * 2 * 6
+    _benchmark_data(t, 0)
+    value['loop'].pop('benchmark')
+    with pytest.raises(ValueError, match='DATA_DRIVEN_BENCHMARK_WORKLOADS_REQUIRED'):
+        slot.benchmark_settings(value)

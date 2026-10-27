@@ -110,8 +110,7 @@ def validate_template(value):
          and type(grant['horizon_s']) is int and 0 < grant['horizon_s'] <= 400 * 24 * 3600, 'FINITE_DURABLE_GRANT_REQUIRED')
     need(isinstance(value['loop'], dict) and 'model_backend' in value['loop'] and 'contracts' not in value['loop'],
          'EXPLICIT_LOOP_CONFIGURATION_REQUIRED')
-    need(isinstance(grant['limits'], dict) and type(grant['limits'].get('wall_s')) is int
-         and grant['horizon_s'] > run_deadline_s(grant, value['loop']), 'DURABLE_HORIZON_BELOW_ONE_RUN')
+    need(isinstance(grant['limits'], dict) and type(grant['limits'].get('wall_s')) is int, 'FINITE_DURABLE_GRANT_REQUIRED')
     need(isinstance(value['prepare'], dict) and set(value['prepare']) == {
         'source_root', 'parent_declaration', 'request_text', 'observed_symptom'}, 'CLOSED_DURABLE_PREPARATION_REQUIRED')
     need(isinstance(value['run'], dict) and set(value['run']) == {'source_root', 'runner', 'composition_path'},
@@ -135,6 +134,8 @@ def validate_template(value):
     need(isinstance(value['container'], dict) and set(value['container']) == {'image', 'step_timeout_s'}
          and type(value['container']['step_timeout_s']) is int and 0 < value['container']['step_timeout_s'] <= 3600,
          'CLOSED_DURABLE_CONTAINER_STEPS_REQUIRED')
+    # The horizon must cover one whole run, benchmark included.
+    need(grant['horizon_s'] > run_deadline_s(grant, revision_loop(value)), 'DURABLE_HORIZON_BELOW_ONE_RUN')
     return value
 
 
@@ -188,25 +189,105 @@ def loop_settings(loop):
     return settings
 
 
-def derive_grant(template, run_id, manifest, *, now):
+# Paired batched benchmark (Interface E) sizing. Configurable per template in
+# ``loop.benchmark``; ``workloads`` defaults to the capsule's data-driven
+# ``fixtures/benchmark.json`` in the pinned run source. The other defaults are
+# Codex's frozen protocol (11 AB/BA pairs, 2 warmups) and a per-job wall
+# budget sized from its measured protected batch jobs (see the runbook).
+BENCHMARK_FIELDS = {'workloads', 'repetitions', 'warmups', 'per_job_s', 'wall_s'}
+BENCHMARK_DEFAULTS = {'repetitions': 11, 'warmups': 2, 'per_job_s': 6}
+BENCHMARK_CEILINGS = {'workloads': 64, 'repetitions': 100, 'warmups': 20, 'per_job_s': 300, 'wall_s': 14 * 24 * 3600}
+
+
+def benchmark_workload_count(template):
+    """Workloads declared by the capsule's benchmark data in the pinned run
+    source (``<carrier dir>/fixtures/benchmark.json``), or None without one."""
+    from jiuwenswarm.research_rsi.targets.capsules import registered_capsule
+    carrier = Path(registered_capsule(template['target_id']).carrier_path)
+    path = Path(template['run']['source_root']) / 'jiuwenswarm' / carrier.parent / 'fixtures' / 'benchmark.json'
+    if not path.exists():
+        return None
+    value = json.loads(custody(path).read_bytes())
+    rows = value.get('workloads') if isinstance(value, dict) else value
+    need(isinstance(rows, (list, dict)) and rows, 'DATA_DRIVEN_BENCHMARK_WORKLOADS_REQUIRED: ' + str(path))
+    return len(rows)
+
+
+def benchmark_settings(template):
+    """Closed benchmark sizing for one revision, or None when the capsule has
+    no benchmark (the loop then keeps the single-job floor and the historical
+    budget and deadline exactly)."""
+    loop = template['loop']
+    given = loop.get('benchmark')
+    need(given is None or isinstance(given, dict) and set(given) <= BENCHMARK_FIELDS, 'CLOSED_LOOP_BENCHMARK_REQUIRED')
+    given = dict(given or {})
+    if 'workloads' not in given:
+        counted = benchmark_workload_count(template)
+        if counted is None:
+            need(not given, 'BENCHMARK_WORKLOAD_COUNT_REQUIRED')
+            return None
+        given['workloads'] = counted
+    settings = {**BENCHMARK_DEFAULTS, **given}
+    for key, ceiling in BENCHMARK_CEILINGS.items():
+        if key in settings:
+            low = 0 if key == 'warmups' else 1
+            need(type(settings[key]) is int and low <= settings[key] <= ceiling, 'FINITE_BENCHMARK_' + key.upper() + '_REQUIRED')
+    if 'wall_s' not in settings:
+        settings['wall_s'] = benchmark_wall_s(settings, loop_settings(loop)['max_iterations'])
+    return settings
+
+
+def benchmark_wall_s(settings, max_iterations):
+    """Default benchmark wall: one baseline plus one candidate benchmark per
+    iteration, each ``workloads x (repetitions + warmups) x 2 sides`` jobs at
+    ``per_job_s`` seconds."""
+    jobs = settings['workloads'] * (settings['repetitions'] + settings['warmups']) * 2
+    return (max_iterations + 1) * jobs * settings['per_job_s']
+
+
+def revision_loop(template):
+    """The loop configuration a revision is prepared with: the template's own,
+    plus the materialized ``benchmark`` sizing when the capsule has one (so the
+    session, the runner and the launcher read one value)."""
+    loop = dict(template['loop'])
+    settings = benchmark_settings(template)
+    if settings is not None:
+        loop['benchmark'] = settings
+    return loop
+
+
+def execution_budget(fixtures, loop):
+    """``loop_execution_budget`` of the target owner, with the loop config.
+
+    The benchmark jobs are counted by the owner's (extended) function, never
+    re-derived here; a loop without a benchmark keeps the historical call.
+    """
+    from jiuwenswarm.research_rsi.targets.capsule_executor import loop_execution_budget
+    settings = loop_settings(loop)
+    kwargs = {'max_iterations': settings['max_iterations'], 'trials': settings['trials']}
+    if isinstance(loop.get('benchmark'), dict):
+        kwargs['benchmark'] = loop['benchmark']
+    return loop_execution_budget(len(fixtures), **kwargs)
+
+
+def derive_grant(template, run_id, manifest, *, now, loop=None):
     """Loop grant v3 bounded by its execution budget and a durable horizon."""
     from jiuwenswarm.research_rsi.records import encoded as canonical
-    from jiuwenswarm.research_rsi.targets.capsule_executor import (LOOP_GRANT_SCHEMA, grant_fixtures,
-        loop_execution_budget, validate_grant)
+    from jiuwenswarm.research_rsi.targets.capsule_executor import LOOP_GRANT_SCHEMA, grant_fixtures, validate_grant
     from jiuwenswarm.research_rsi.targets.capsule_runtime import BOOTSTRAP_SCHEMA
     from jiuwenswarm.research_rsi.targets.capsules import registered_capsule
     name = template['target_id']; target = registered_capsule(name)
     carrier = 'source/jiuwenswarm/' + target.carrier_path
     parent = next((row['sha256'] for row in manifest['files'] if row['path'] == carrier), None)
     need(parent is not None, 'EXACT_ORIGINAL_CAPSULE_PARENT_REQUIRED')
-    loop = loop_settings(template['loop'])
+    loop = revision_loop(template) if loop is None else loop
     draft = {'schema': LOOP_GRANT_SCHEMA, 'capsule_name': name}
     fixtures = grant_fixtures(draft)
     metadata = template['evaluator']['metadata']
     grant = {'schema': LOOP_GRANT_SCHEMA, 'bootstrap_schema': BOOTSTRAP_SCHEMA, 'run_id': run_id,
         'capsule_name': name, 'runtime_manifest_sha256': sha(canonical(manifest)), 'parent_sha256': parent,
         'fixture_sha256': sha(canonical(fixtures)), 'fixture_count': len(fixtures), 'roles': ['parent', 'candidate'],
-        'max_executions': loop_execution_budget(len(fixtures), max_iterations=loop['max_iterations'], trials=loop['trials']),
+        'max_executions': execution_budget(fixtures, loop),
         'iterations': template['grant']['iterations'], 'limits': dict(template['grant']['limits']),
         'worker': {key + '_ref': {'id': sha(canonical(metadata[key])) + '.json', 'sha256': sha(canonical(metadata[key]))}
                    for key in ('contract', 'environment', 'hardware')},
@@ -216,11 +297,18 @@ def derive_grant(template, run_id, manifest, *, now):
 
 
 def run_deadline_s(grant, loop):
-    """Whole-run ceiling: the session hard timeout plus launcher slack
-    (identical to ``rsi_capsule_launcher.run_deadline_s``)."""
+    """Whole-run ceiling: the session hard timeout plus the materialized
+    benchmark wall plus launcher slack (identical to
+    ``rsi_capsule_launcher.run_deadline_s``)."""
     wall = min(grant['limits']['wall_s'], loop.get('wall_s', 3600))
     per_call = min(loop.get('per_call_s', 120), wall)
-    return wall + 2 * per_call + 60 + 120
+    benchmark = loop.get('benchmark')
+    bench = 0
+    if benchmark is not None:
+        need(isinstance(benchmark, dict) and type(benchmark.get('wall_s')) is int and benchmark['wall_s'] > 0,
+             'MATERIALIZED_BENCHMARK_WALL_REQUIRED')
+        bench = benchmark['wall_s']
+    return wall + bench + 2 * per_call + 60 + 120
 
 
 def visible_context(name):
@@ -285,9 +373,10 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
     make_directories(dirs, chown=chown)
     evaluator = template['evaluator']
     manifest = json.loads(custody(evaluator['manifest_path']).read_bytes())
-    grant = derive_grant(template, run_id, manifest, now=now)
-    loop = loop_settings(template['loop'])
-    deadline = run_deadline_s(grant, template['loop'])
+    revision = revision_loop(template)
+    grant = derive_grant(template, run_id, manifest, now=now, loop=revision)
+    loop = loop_settings(revision)
+    deadline = run_deadline_s(grant, revision)
     grant_pin = write_exclusive(dirs['control'] / 'grant.json', grant)
     from jiuwenswarm.research_rsi.targets.capsules import registered_capsule
     target = registered_capsule(template['target_id'])
@@ -302,7 +391,7 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
         'work_capsule_refs': comp['work_capsule_refs'], 'grant': grant, 'runtime_manifest': manifest,
         'parent_body': parent.decode('utf8'), 'parent_declaration': template['prepare']['parent_declaration'],
         'visible_context': visible_context(template['target_id']), 'request_text': template['prepare']['request_text'],
-        'observed_symptom': template['prepare']['observed_symptom'], 'loop': dict(template['loop'])})
+        'observed_symptom': template['prepare']['observed_symptom'], 'loop': revision})
     run_step('prepare', prepare_step(template, dirs, prepare), dirs['control'])
     prepared_path = custody(dirs['prepare'] / 'prepared.json', owner=CONTROLLER[0])
     prepared_raw = prepared_path.read_bytes()
@@ -357,7 +446,8 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
             'grant_sha256': grant_pin['sha256'], 'expires_unix_s': grant['expires_unix_s'], 'wall_s': deadline,
             'max_executions': grant['max_executions'], 'max_iterations': loop['max_iterations'],
             'prepared_sha256': sha(prepared_raw), 'compose_doctor_sha256': compatibility['sha256'],
-            'source_pins_sha256': sha(encoded(run_cfg['source_pins'])), 'model_calls': 0}
+            'source_pins_sha256': sha(encoded(run_cfg['source_pins'])), 'model_calls': 0,
+            **({'benchmark_wall_s': revision['benchmark']['wall_s']} if 'benchmark' in revision else {})}
 
 
 DOCTOR_SOURCE = 'jiuwenswarm/research_rsi/capsule_doctor.py'

@@ -444,6 +444,65 @@ def root_visible(view, root_read):
     return raw
 
 
+BENCHMARK_REPORT='ai4r-rsi-capsule-benchmark-report:1'
+BENCHMARK_GATES=('minimum_gain','ci_upper_bound','max_workload_regression')
+PAIRED='paired_batched_benchmark'
+FLOOR='single_job_floor'
+
+
+def performance_text(relative_gain, interval, objective_met, repetitions, parent_wall=None, candidate_wall=None):
+    """Node ``speed``/``noise`` in Codex's ``performance-publish`` format.
+
+    The same strings Codex published for its performance runs, so its
+    history and loop-published benchmark nodes render identically.
+    """
+    need(type(relative_gain) in (int,float) and math.isfinite(relative_gain),'MEASURED_BENCHMARK_GAIN_REQUIRED')
+    need(isinstance(interval,(list,tuple)) and len(interval)==2
+         and all(type(x) in (int,float) and math.isfinite(x) for x in interval) and interval[0]<=interval[1],
+         'MEASURED_BENCHMARK_INTERVAL_REQUIRED')
+    need(type(objective_met) is bool and type(repetitions) is int and repetitions>0,'MEASURED_BENCHMARK_PROTOCOL_REQUIRED')
+    disposition='Measured improvement' if objective_met else 'No demonstrated improvement'
+    speed=f'{disposition}: {relative_gain*100:.2f}% amortized protected batch gain; original job latency separate.'
+    if parent_wall is not None and candidate_wall is not None:
+        speed+=f' Uncalibrated public job totals: parent {parent_wall:.6f} s, candidate {candidate_wall:.6f} s.'
+    lower,upper=interval
+    noise=f'95% paired ratio interval [{lower:.4f}, {upper:.4f}]; {repetitions} AB/BA pairs per workload.'
+    return speed,noise,disposition
+
+
+def _report_repetitions(report):
+    reps=report.get('repetitions')
+    if reps is None and isinstance(report.get('protocol'),dict):reps=report['protocol'].get('repetitions')
+    return reps
+
+
+def benchmark_report(report, *, name, parent_sha256, candidate_sha256, root_read):
+    """Join one Interface E report to its exact Root originals; nothing re-run.
+
+    The report's own bytes (``report_ref``) and every protected job original
+    it cites (``evidence_refs``, one per job) must be retained by Root.
+    """
+    need(isinstance(report,dict) and report.get('schema')==BENCHMARK_REPORT,'KNOWN_BENCHMARK_REPORT_SCHEMA_REQUIRED')
+    need(report.get('scope')!='local_unprotected','LOCAL_UNPROTECTED_BENCHMARK_NOT_PUBLISHABLE')
+    need(report.get('scope',PROTECTED_SCOPE)==PROTECTED_SCOPE,'PROTECTED_BENCHMARK_SCOPE_REQUIRED')
+    need(captured(root_read,report['report_ref'])=={k:v for k,v in report.items() if k!='report_ref'},
+         'ROOT_BENCHMARK_REPORT_ORIGINAL_DIFFERS')
+    need(report.get('capsule_name')==name and report.get('parent_sha256')==parent_sha256
+         and report.get('candidate_sha256')==candidate_sha256,'BENCHMARK_SESSION_SOURCE_DIFFERS')
+    gates=report.get('gates')
+    need(isinstance(gates,dict) and set(BENCHMARK_GATES)<=set(gates),'BENCHMARK_GATES_REQUIRED')
+    passed=[g.get('passed') if isinstance(g,dict) else g for g in (gates[k] for k in BENCHMARK_GATES)]
+    need(all(type(p) is bool for p in passed) and type(report.get('objective_met')) is bool
+         and (not report['objective_met'] or all(passed)),'BENCHMARK_OBJECTIVE_DIFFERS_FROM_GATES')
+    refs=report.get('evidence_refs')
+    need(isinstance(refs,list) and type(report.get('protected_jobs')) is int
+         and 0<report['protected_jobs']==len(refs),'BENCHMARK_JOB_EVIDENCE_REQUIRED')
+    for ref in refs:original(root_read,ref)
+    performance_text(report.get('relative_gain'),report.get('ratio_confidence_interval'),report['objective_met'],
+                     _report_repetitions(report))
+    return report
+
+
 def _correctness(summary):
     public,held=summary['public'],summary['held_out']
     return (f"{summary['passed']}/{summary['total']} checks "
@@ -495,7 +554,17 @@ def session_limits(session):
     iterations=loop.get('max_iterations',5)
     calls=loop.get('max_model_calls',min(100,2*iterations) if type(iterations) is int else None)
     wall=loop.get('wall_s',min(3600,session['grant']['limits']['wall_s']))
-    return calls,wall
+    return calls,wall+benchmark_wall_s(session)
+
+
+def benchmark_wall_s(session):
+    """The slot-materialized paired benchmark wall of a loop session (0 without one)."""
+    loop=session.get('loop') if isinstance(session,dict) else None
+    benchmark=loop.get('benchmark') if isinstance(loop,dict) else None
+    if benchmark is None:return 0
+    need(isinstance(benchmark,dict) and type(benchmark.get('wall_s')) is int and benchmark['wall_s']>0,
+         'MATERIALIZED_BENCHMARK_WALL_REQUIRED')
+    return benchmark['wall_s']
 
 
 def terminal_state(result, served, issued):
@@ -537,6 +606,7 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
     packet=loop_baseline(meta,session,result,root_read,previous,parent)
     view=packet['snapshot'];baseline=view['nodes'][0]
     calls_limit,wall_limit=loop_limits(loop)
+    if wall_limit is not None:wall_limit+=benchmark_wall_s(session)
     rows=loop['iterations'];known=result['model_calls'] is not None
     budget={'elapsed_seconds':None,'limit_seconds':wall_limit,'setup_calls':0,
         'diagnosis_calls':sum(1 for r in rows if type(r.get('model_calls')) is int and r['model_calls']>=1) if known else None,
@@ -567,6 +637,13 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
         'summary':'Actual '+state+' loop result (stop: '+str(loop.get('stop_reason'))+', '
             +str(loop.get('completed_iterations'))+'/'+str(loop.get('max_iterations'))+' iterations); security campaigns deferred.'})
     view['runs'].append(run)
+    if loop.get('benchmark_baseline') is not None:
+        # The loop's baseline benchmark (same parent): its own protected
+        # jobs are joined to Root originals; it is never a candidate's gain.
+        baseline_report=loop['benchmark_baseline']
+        benchmark_report(baseline_report,name=name,parent_sha256=sha(parent),
+                         candidate_sha256=baseline_report.get('candidate_sha256') if isinstance(baseline_report,dict) else None,
+                         root_read=root_read)
     node_ids={}
     for row in rows:
         ref=row.get('candidate_ref')
@@ -576,6 +653,15 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
             raw=root_visible(visible,root_read)
             summary=visible_summary_v2(raw,name=name,body_ref=ref,read=root_read,grant_ref=session['grant_ref'],
                 role='candidate',iteration=row['iteration'])
+        score=row.get('score') if isinstance(row.get('score'),dict) else {}
+        method=score.get('latency_method')
+        report=row.get('benchmark')
+        if report is not None:
+            need(summary is not None,'BENCHMARK_REQUIRES_EVALUATED_CANDIDATE')
+            benchmark_report(report,name=name,parent_sha256=sha(parent),candidate_sha256=ref['sha256'],root_read=root_read)
+            need(not report['objective_met'] or score.get('regressed') is not True,
+                 'BENCHMARK_IMPROVEMENT_REQUIRES_CORRECTNESS')
+        need(method in (None,PAIRED,FLOOR) and (method!=PAIRED or report is not None),'KNOWN_LATENCY_METHOD_REQUIRED')
         if ref['sha256'] in node_ids:
             continue  # A duplicate proposal is one node; the lineage keeps both iterations.
         node_id='candidate:'+session['id']+':'+ref['sha256']
@@ -590,6 +676,17 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
                 'Parent timing noise calibrated over '+str(loop['noise'].get('trials'))+' trial(s)',
             'evidence_refs':[] if summary is None else [visible['result_ref'],*summary['refs']],
             'operator_receipts':[],'admit':_denied(),'activate':_denied()}
+        if report is not None:
+            node['speed'],node['noise'],disposition=performance_text(report['relative_gain'],
+                report['ratio_confidence_interval'],report['objective_met'],_report_repetitions(report),
+                None if parent_summary is None else parent_summary['wall_s'],summary['wall_s'])
+            node['evidence_refs'].append(report['report_ref'])
+            activity.insert(len(activity)-1,{'id':session['id']+':performance:'+report['report_ref']['sha256'],'at':at,
+                'stage':'Performance evaluation','status':'OBJECTIVE_MET' if report['objective_met'] else 'OBJECTIVE_NOT_MET',
+                'summary':disposition+' under the frozen protected batch protocol; security remains deferred.'})
+        elif method==FLOOR and summary is not None:
+            # Judged by the single-job floor: labelled, never a measured speedup.
+            node['speed']=f"{summary['wall_s']:.6f} s protected total; single-job floor, not a measured speedup"
         view['nodes'].append(node);node_ids[ref['sha256']]=node_id
         packet['candidates'].append({'node_id':node_id,'candidate_hash':ref['sha256'],'path':meta['mutable_path'],
             'parent_code':parent.decode('utf8'),'candidate_code':child,
@@ -597,6 +694,20 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
             'blocker':_denied()['blocker'] if summary is not None else 'Proposal retained without a completed public evaluation.'})
     run['lineage']=project_loop(result,node_ids=node_ids,parent_node_id=baseline['id'])
     return validate_publication(packet,workspace_id=meta['workspace_id'])
+
+
+def served_jobs(result):
+    """Protected jobs the session received: evaluations plus benchmark reports
+    (the grant's ``max_executions`` covers both)."""
+    loop=result['loop']
+    served=sum(x['executions'] for x in [result['parent_visible'],*[r.get('visible') for r in loop['iterations']]]
+               if x is not None)
+    for report in [loop.get('benchmark_baseline'),*[r.get('benchmark') for r in loop['iterations']]]:
+        if report is not None:
+            need(isinstance(report,dict) and type(report.get('protected_jobs')) is int and report['protected_jobs']>=0,
+                 'BENCHMARK_JOB_COUNT_REQUIRED')
+            served+=report['protected_jobs']
+    return served
 
 
 def issued_jobs(evaluator_root):
@@ -628,8 +739,7 @@ def run_terminal(control, result_raw):
 def loop_evidence(cfg, pin, session, result, result_raw, control, evaluator):
     """Reconcile Root execution counts for every loop terminal state."""
     loop=result['loop']
-    served=sum(x['executions'] for x in [result['parent_visible'],*[r.get('visible') for r in loop['iterations']]]
-               if x is not None)
+    served=served_jobs(result)
     issued=issued_jobs(evaluator.root)
     terminal=run_terminal(control,result_raw)
     code=None if terminal is None else terminal.get('evaluator_exit_code')

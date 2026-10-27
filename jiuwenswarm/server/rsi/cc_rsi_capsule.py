@@ -608,6 +608,11 @@ class DurableSlot(CachedReadiness):
         for key in ('expires_unix_s', 'wall_s'):
             if type(payload.get(key)) is not int or payload[key] <= 0:
                 raise ProjectionError('Finite prepared revision horizon required')
+        # A paired-benchmark revision's run deadline (``wall_s``) already
+        # includes its benchmark wall; the horizon checks below use that sum.
+        if 'benchmark_wall_s' in payload and (type(payload['benchmark_wall_s']) is not int
+                                              or not 0 < payload['benchmark_wall_s'] < payload['wall_s']):
+            raise ProjectionError('Prepared benchmark wall must lie inside the run deadline')
         value = {'schema': REVISION, 'target_id': self.target_id, 'slot_id': self.slot_id,
                  'sequence': sequence, 'run_id': run_id, **payload}
         return dict(value, revision=hashlib.sha256(old.encoded(value)).hexdigest())
@@ -703,7 +708,10 @@ class DurableSlot(CachedReadiness):
 
     def checked_preflight(self, record):
         if self.remaining(record) < record['wall_s'] + self.margin:
-            raise ProjectionError('DURABLE_GRANT_HORIZON_INSUFFICIENT: the revision cannot cover a whole run')
+            raise ProjectionError('DURABLE_GRANT_HORIZON_INSUFFICIENT: the revision cannot cover a whole run ('
+                                  + str(record['wall_s']) + ' s deadline'
+                                  + (', including ' + str(record['benchmark_wall_s']) + ' s paired benchmark'
+                                     if 'benchmark_wall_s' in record else '') + ')')
         self.preflight(record)
 
     def phase_row(self):

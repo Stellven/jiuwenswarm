@@ -195,10 +195,14 @@ wsl.exe -d Ubuntu-24.04 -u root -- /usr/bin/python3 -B <installed>/deploy/m1/rsi
 ```
 
 **CHECK:** the first line is `FOREGROUND_HOST_HOLD_STARTED` with the current
-incarnation key. A whole loop run can take up to about 67 minutes (section
-7.3). Before each Run click, make sure the keeper has at least 90 minutes
-left. Start the next keeper about 10 minutes before the current one ends, so
-that the two overlap. Never kill a keeper you did not start.
+incarnation key. A whole loop run without the paired benchmark can take up
+to about 67 minutes; with the benchmark (merge wave, section 7.3) its hard
+deadline is about 3.2 h and a typical run is 1–2 h, longer than one keeper
+(N ≤ 7200 s). Before each Run click, make sure the keeper has at least 90
+minutes left and plan the overlapping successor keeper for the run's whole
+deadline (`wall_s` of the prepared revision). Start the next keeper about 10
+minutes before the current one ends, so that the two overlap. Never kill a
+keeper you did not start.
 
 **Relay.** `deploy/m1/rsi_host_codex.py` provides
 `serve | check | restore-runtime | prepare | smoke`. This branch does not
@@ -526,8 +530,10 @@ value = {
                 'metadata': run['evaluator']['metadata'], 'cgroup_root': env['CGJOBS'] + '/' + slot_id},
   # Per-job limits are the reviewed strict ones; only the session wall grows to the loop ceiling.
   'grant': {'limits': dict(grant['limits'], wall_s=3600), 'iterations': grant['iterations'], 'horizon_s': 7 * 24 * 3600},
+  # ``benchmark`` sizes the paired batched benchmark (merge wave). Omit a key to keep its
+  # default; ``workloads`` defaults to the capsule's fixtures/benchmark.json in $RT.
   'loop': {'model_backend': {'kind': 'host-codex'}, 'max_iterations': 5, 'max_no_progress': 3, 'trials': 3,
-           'per_call_s': 120, 'wall_s': 3600},
+           'per_call_s': 120, 'wall_s': 3600, 'benchmark': {'repetitions': 11, 'warmups': 2, 'per_job_s': 6}},
   'prepare': {'source_root': env['RT'], 'parent_declaration': prep['parent_declaration'],
               'request_text': prep['request_text'], 'observed_symptom': prep['observed_symptom']},
   'run': {'source_root': env['RT'], 'runner': env['RT'] + '/runner.py',
@@ -562,21 +568,44 @@ for s in "$CALC_SLOT" "$NORM_SLOT"; do
 import importlib.util, json, sys
 spec = importlib.util.spec_from_file_location("slot", sys.argv[1]); slot = importlib.util.module_from_spec(spec); spec.loader.exec_module(slot)
 t = slot.validate_template(json.load(open(sys.argv[2])))
-print(t["slot_id"], "deadline_s", slot.run_deadline_s(t["grant"], t["loop"]))' "$ADM/rsi_capsule_slot.py" "$ADM/slot-$s.json"
+loop = slot.revision_loop(t)
+print(t["slot_id"], "benchmark", loop.get("benchmark"), "deadline_s", slot.run_deadline_s(t["grant"], loop))' "$ADM/rsi_capsule_slot.py" "$ADM/slot-$s.json"
 done
 ```
 
-**CHECK:** each prints `deadline_s 4020`, which is wall 3600 + 2×120 + 60 +
-120 of launcher slack (`rsi_capsule_slot.py:208-213`). Both templates have
-mode 0444 and owner root.
+**CHECK:** with 8 benchmark workloads each prints
+`benchmark {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 7488}`
+and `deadline_s 11508`: loop wall 3600 + benchmark wall 7488 + 2×120 + 60 +
+120 of launcher slack (`rsi_capsule_slot.py` `run_deadline_s`, identical in
+`rsi_capsule_launcher.py`). The benchmark wall is
+`(max_iterations + 1) × workloads × (repetitions + warmups) × 2 × per_job_s`
+= 6 × 8 × 13 × 2 × 6: one baseline benchmark plus at most one per iteration,
+both sides of every AB/BA pair, warmups included. A capsule without
+`fixtures/benchmark.json` and without a template `benchmark` block prints
+`benchmark None` and the historical `deadline_s 4020`. A `benchmark` block
+without any workload count is refused (`BENCHMARK_WORKLOAD_COUNT_REQUIRED`),
+never guessed. Set `benchmark.wall_s` explicitly to override the derived
+wall. Both templates have mode 0444 and owner root.
 
 What each revision then derives on its own, never hand-edited
 (`rsi_capsule_slot.py:181-205`, `:263-344`):
 
+* the revision's loop configuration: the template `loop` plus the
+  materialized `benchmark` sizing above. It is written into the preparation
+  configuration, so `session.loop.benchmark.wall_s` is the one value the
+  runner, launcher and publisher read.
 * grant v3 `ai4r-rsi-whole-capsule-development-grant:3`, with
-  `max_executions = 19 × (3 + 3 × 5) = 342` for both capsules
-  (`capsule_executor.py:83-88`). Calculate has 4 public + 8 public_extended +
-  7 held-out cases; Normalize has 5 + 8 + 6.
+  `max_executions = loop_execution_budget(cases, max_iterations=5, trials=3,
+  benchmark=<materialized sizing>)` from the target owner
+  (`capsule_executor.py`). The slot never re-derives the formula. Without a
+  benchmark it is the historical `19 × (3 + 3 × 5) = 342` for both capsules;
+  with one it also covers every benchmark job (about 208 per benchmark at 8
+  workloads). Calculate has 4 public + 8 public_extended + 7 held-out cases;
+  Normalize has 5 + 8 + 6.
+* `wall_s` (run deadline, benchmark included) and `benchmark_wall_s` in the
+  prepared ledger record; the broker refuses a revision whose horizon cannot
+  cover that whole deadline plus the launch margin
+  (`DURABLE_GRANT_HORIZON_INSUFFICIENT ... (N s deadline, including M s paired benchmark)`).
 * `expires_unix_s = now + 604800`
 * source pins of every file under `$RT/jiuwenswarm`
 * runner, launcher, restore, seccomp, publisher and projection pins
@@ -1107,15 +1136,24 @@ Code: `capsule_loop.py:513-727`, `capsule_session.py:110-208`,
    * a duplicate body is not re-evaluated
    * otherwise the candidate gets 19 cases × 3 trials. Repeat trials are
      skipped if a case timed out.
+   * a candidate that passes correctness (non-regression) then gets the
+     **paired batched benchmark** against the parent (Interface E, 8
+     workloads × 11 AB/BA pairs + 2 warmups, both sides: about 208 protected
+     jobs, recorded as `loop.iterations[k].benchmark`); the loop also records
+     one baseline benchmark (`loop.benchmark_baseline`).
    * the candidate is scored against the parent and selected against the
-     incumbent. It is kept only if `improved and not regressed`.
+     incumbent. `score.latency_method` is `paired_batched_benchmark` when the
+     benchmark ran, else `single_job_floor`. It is kept only if correctness
+     does not regress AND (correctness rose OR the benchmark
+     `objective_met`).
    * the feedback for the next iteration carries failing ids, public diffs and
      timing deltas. Held-out cases go out only as ids and pass/fail.
 6. **Stop reasons** (`capsule_loop.py:35`, `:500-510`, `:561-567`):
    * `max_iterations`: 5 done
    * `no_progress`: 3 consecutive iterations not kept
-   * `budget`: 10 model calls, 342 executions, or no prepared contract left
-   * `deadline`: loop wall 3600 s
+   * `budget`: 10 model calls, the grant's `max_executions` (342 without a
+     benchmark), or no prepared contract left
+   * `deadline`: loop wall 3600 s plus the materialized benchmark wall
    * `error`: an unknown model effect, evaluator refusal or relay loss.
      Nothing is retried.
 7. The worker stops. The launcher records `run-exit.json` and
@@ -1132,7 +1170,7 @@ Code: `capsule_loop.py:513-727`, `capsule_session.py:110-208`,
 | phase and revision | status call (section 5.3), every minute or so. Each call runs preflights; do not loop tightly. |
 | launch journal | `$JOURNALS/<run_id>/{claim,owner,launch,ack,launcher-exit}.json`, `launcher.log` |
 | worker container | `rsidocker ps`, `rsidocker logs ai4r-capsule-<run_id>` |
-| protected job progress | `ls $EV/<run_id>/claims/capsule-*.json \| wc -l` (one start claim per job, ≤ 342) |
+| protected job progress | `ls $EV/<run_id>/claims/capsule-*.json \| wc -l` (one start claim per job, evaluation and benchmark jobs alike, ≤ the grant's `max_executions`) |
 | evaluator terminal | `$EV/<run_id>/complete.json` (status STOPPED, `stop`, `executions`, `evaluations`) or `failure.json` |
 | session result | `$NS/<run_id>/records/capsule-result.json` (`ai4r-rsi-capsule-session-result:1` with `loop`) or `controller-failure.json` plus the controller-terminal record |
 | control | `$CTL/<run_id>/run-{claim,container,exit}.json`, `run-stdout.log` (last line `ai4r-rsi-capsule-run-terminal:1` with `stop_reason` and `completed_iterations`), `publication-receipt.json` or `publication-failure.json` |
@@ -1141,12 +1179,23 @@ Expected durations, from measured protected times (baseline: Calculate 4 jobs
 2.84 s, Normalize 5 jobs 3.25 s, i.e. about 0.7 s per job plus sandbox
 overhead):
 
-* 342 jobs: roughly 5–15 min.
+* 342 evaluation jobs: roughly 5–15 min.
 * Model calls: 10 × 30–120 s (the relay timeout is 120 s per call).
-* Typical total: 15–40 min.
-* Hard ceilings: session 3600 + 240 + 60 s; launcher 4020 s
-  (`rsi_capsule_launcher.py:134-144`); evaluator alarm 3630 s
-  (`rsi_capsule_run.py:547`).
+* Paired batched benchmark, per benchmarked candidate and once for the
+  baseline: 8 workloads × (11 + 2) × 2 = 208 protected batch jobs. Estimated
+  from Codex's protected amortized medians (`performance-20261027-*`, batch
+  sizes 1000 small / 20 large) plus ~0.7 s sandbox start: **Calculate about
+  4–5 s per job, 14–18 min per benchmark; Normalize about 1.5–2 s per job,
+  5–7 min per benchmark.** Only candidates that pass correctness are
+  benchmarked.
+* Typical total without a benchmark: 15–40 min. With it: Calculate about
+  1–2 h (baseline plus 2–5 benchmarked candidates), Normalize about 45–75 min.
+* Hard ceilings: session `wall_s + benchmark.wall_s + 2 × per_call_s + 60`
+  = 3600 + 7488 + 240 + 60 s with the default sizing; launcher and slot
+  deadline 11508 s (4020 s without a benchmark); evaluator alarm grant
+  `wall_s` + 30 s (`rsi_capsule_run.py:547`). Raise `benchmark.per_job_s`
+  for slower hardware rather than letting the deadline stop a run; the
+  duration figures are estimates, the deadline is the hard bound.
 
 ### 7.4 What a successful publication looks like
 
@@ -1162,20 +1211,48 @@ The previous bytes are archived in
     failure.
   * `status` is `VISIBLE_EVALUATED_UNQUALIFIED`.
   * `budget` has diagnosis and proposal call counts, `generation_call_limit`
-    10 and `limit_seconds` 3600.
+    10 and `limit_seconds` 3600 (3600 + `benchmark.wall_s`, e.g. 11088, with
+    the paired benchmark).
   * `activity` has the parent evaluation, one row per iteration (outcome and
-    reason), and the terminal summary
+    reason), one `Performance evaluation` row per benchmarked candidate
+    (id `<run_id>:performance:<report sha>`, status `OBJECTIVE_MET` or
+    `OBJECTIVE_NOT_MET`, summary `Measured improvement under the frozen
+    protected batch protocol; security remains deferred.` or `No demonstrated
+    improvement ...`), and the terminal summary
     `stop: <reason>, k/5 iterations; security campaigns deferred`.
-* **`run.lineage`** (`ai4r-cc-rsi-lineage:1`, `cc_rsi_projection.py:183-231`):
-  `max_iterations` 5, `completed_iterations`, `stop_reason`, `model_backend`
+* **`run.lineage`** (`cc_rsi_projection.project_loop`): `max_iterations` 5,
+  `completed_iterations`, `stop_reason`, `model_backend`
   `{kind: host-codex, model: gpt-6.1-sol, pinned_sha256}`, `model_calls`,
   `parent_node_id` `base:<parent sha>`, `best_iteration`, `best_node_id`, the
-  parent summary, and one entry per iteration.
+  parent summary, and one entry per iteration. A run whose loop recorded a
+  benchmark or a `latency_method` is `ai4r-cc-rsi-lineage:2`: it adds
+  `benchmark_baseline` and, per iteration, `latency_method`,
+  `benchmark {report_ref, relative_gain, ratio_confidence_interval, gates
+  {minimum_gain, ci_upper_bound, max_workload_regression}, objective_met,
+  protected_jobs, repetitions, workloads[{id, median_ratio}]}` and
+  `improvement_basis` (`correctness`, `paired_batched_benchmark` or null).
+  The UI claims an improvement only from that basis; a `single_job_floor`
+  latency is labelled "single-job floor · not a measured speedup". Older
+  loop runs keep `ai4r-cc-rsi-lineage:1` and render as before.
 * **One node per distinct candidate**:
   * id `candidate:<run_id>:<sha>`, label `utility.calculate iteration k`,
     `parent_id` the published baseline node
   * `evaluation_status` is `passed`, `failed` or `not_evaluated`
   * `correctness` reads `p/19 checks (a/12 public, b/7 held-out)`
+  * a benchmarked candidate's `speed` and `noise` use Codex's
+    `performance-publish` text exactly, e.g.
+    `Measured improvement: 16.78% amortized protected batch gain; original job latency separate. Uncalibrated public job totals: parent 2.768465 s, candidate 2.635614 s.`
+    and `95% paired ratio interval [0.8185, 0.8418]; 11 AB/BA pairs per workload.`;
+    its `evidence_refs` end with the benchmark `report_ref`. A
+    `single_job_floor` node reads `<wall> s protected total; single-job floor,
+    not a measured speedup`; a node with neither keeps `...; uncalibrated`.
+  * every report is joined to Root originals before it is shown: its own
+    bytes (`report_ref`), one retained original per protected job
+    (`evidence_refs`, count = `protected_jobs`), parent/candidate hashes and
+    capsule, gates consistent with `objective_met`, never a
+    `local_unprotected` report. Served jobs = evaluation executions + every
+    report's `protected_jobs`; they must equal Root's issued start claims for
+    a `Complete` stage.
   * `security_status` `SECURITY_DEFERRED`, `admission_status` `unadmitted`,
     `activation_status` `inactive`, admit and activate denied
   * a matching `candidates` row holds parent and candidate code plus the
@@ -1195,14 +1272,54 @@ get a better result.
 PREPARING and then READY (r2). The Normalize slot clears its transient
 `OWNED_RUNTIME_NOT_IDLE` BLOCKED state and shows READY. Ask the user to click
 Run on Normalize. The parent is already 19/19, so the only headroom is latency.
-`improved` is true only when the latency ratio is strictly below the
-calibrated noise floor (at least 2%: `capsule_objective.py:36`). `improved:
-false` with stop `no_progress` is a legitimate, honest outcome.
+`improved` is true only when the paired batched benchmark meets its objective
+(gain ≥ 10%, CI upper ratio ≤ 0.90, no workload > 5% slower); the UI then
+shows the gain % with its CI band, and the best badge reads
+`Best candidate · iteration k · +x.xx% paired batch gain measured`. Without
+a benchmark the old single-job floor still runs but is never shown as a
+speedup. `improved: false` with stop `no_progress` is a legitimate, honest
+outcome.
 
 After each run, write `$RCPT/7-<target>.json` with: run id, revision, stop
-reason, completed iterations, model calls, issued and served jobs, best
-iteration, best correctness, publication sha, and the Core model_calls,
-tool_calls and attempts counts.
+reason, completed iterations, model calls, issued and served jobs (benchmark
+jobs included), best iteration, best correctness, best `relative_gain` and
+`ratio_confidence_interval` with its report sha, publication sha, and the
+Core model_calls, tool_calls and attempts counts.
+
+### 7.5 What changed from Codex's performance runs
+
+Codex measured Calculate 16.78% and Normalize 20.74% out of band:
+a one-shot generated session (`perf271027-*`, 2 model calls), then a
+separate protected benchmark under
+`/var/lib/ai4r-rsi-capsule-control/performance-20261027-*/<capsule>/`, then a
+reviewed `performance-publish` (`ai4r-capsule-performance-publication:1`)
+that appended gain/CI text, the report ref and a `Performance evaluation`
+activity to the already-published node. Those nodes and runs are in the live
+`publication.json` and stay there: `merge_publication` retains them, they
+have no `lineage` (legacy rows) and the projection serves their `speed` and
+`noise` strings byte-for-byte (tested against
+`docs/review/evidence-20261027-codex/`). **Do not replay them.** There is no
+`performance-publish` operation in this publisher.
+
+| Codex performance run | new loop flow |
+|---|---|
+| separate benchmark after the session | Interface E inside the loop's own grant, once per correct candidate plus one baseline |
+| `ai4r-rsi-capsule-protected-benchmark-report:1` (raw `samples`) + `validate_benchmark_report` → `ai4r-rsi-capsule-performance-comparison:1` | `ai4r-rsi-capsule-benchmark-report:1` carrying the comparison directly |
+| `comparison.relative_gain`, `.ratio_confidence_interval`, `.objective_met` | `report.relative_gain`, `.ratio_confidence_interval`, `.objective_met` (same meaning) |
+| `comparison.rows[].median_ratio` | `report.workloads[].median_ratio` |
+| frozen gates 0.10 / 0.90 / 0.05 in the protocol | `report.gates.{minimum_gain, ci_upper_bound, max_workload_regression}` |
+| `protocol.repetitions` 11, warmups 2 | `report.repetitions`; slot `benchmark.{repetitions, warmups}` |
+| report `evidence_refs` (192 = 176 timed + 16 correctness) | same, with `protected_jobs == len(evidence_refs)`, counted in grant `max_executions` and Root start claims |
+| plan input `report_ref` | `loop.iterations[k].benchmark.report_ref` |
+| node `speed`/`noise` text, activity `<run>:performance:<sha>` | identical text and activity id, written by `completed-publish` |
+| no lineage | `ai4r-cc-rsi-lineage:2` with gain, CI, gates, `improvement_basis` |
+| deadline outside any run | in the run deadline (`benchmark.wall_s`) and slot horizon |
+
+To compare a new loop result with Codex's evidence, read its
+`final-integration-index.json` `measured_results[]` (gain, ratio CI,
+`objective_met`, report sha) beside the new iteration's `benchmark` block;
+both describe the same quantity (relative reduction in amortized protected
+batch wall).
 
 ---
 
@@ -1244,7 +1361,9 @@ Rules for every case:
 | Worker exit ≠ 0 and `controller-terminal` result with phase `WAITING_FOR_EVALUATOR` or `COMPOSING` | `records/controller-failure.json`, `$EV/<run_id>/complete.json` | Startup failure with zero model calls. Published as `Failed` (`rsi_capsule_publication.py:845-868`). |
 | `PARENT_CONTROL_FAILED_NO_MODEL_CALL` (`complete.json` `stop: PARENT_CONTROL_FAILED`) | parent rows in `capsule-result.json` | A public baseline case failed in the sandbox. Fix it in the environment or source for a **new** revision. The parent evidence is published. |
 | `stop_reason: error` with `MODEL_START_AFTER_ROOT_GRANT_DEADLINE`, `NATIVE_CONTAINMENT_UNCERTAIN_NO_FURTHER_EFFECT` or relay errors | iteration `failure_ref`, relay `check` | Relay lost or uncertain. Partial publication. If unresolved: **STOP**. Never retry the call. |
-| `stop_reason: budget` | `loop.stop_detail` | Normal: 10 calls, 342 executions, or out of prepared contracts. |
+| `stop_reason: budget` | `loop.stop_detail` | Normal: 10 calls, the grant's `max_executions` (benchmark jobs included), or out of prepared contracts. |
+| `stop_reason: deadline` during a benchmark | `run-stdout.log`, `$EV/<run_id>/claims` count | The benchmark wall estimate was too low for this hardware. Report it; prepare a new revision with a larger `benchmark.per_job_s` or `benchmark.wall_s`. Never re-run the consumed one. |
+| `publication-failure.json` with `ROOT_BENCHMARK_REPORT_ORIGINAL_DIFFERS`, `BENCHMARK_JOB_EVIDENCE_REQUIRED`, `BENCHMARK_SESSION_SOURCE_DIFFERS` or `BENCHMARK_OBJECTIVE_DIFFERS_FROM_GATES` | the report under `$EV/<run_id>/captures/<sha>.json` | A benchmark report does not join its Root originals. Evidence is retained; report it, never re-benchmark to repair publication. |
 | `ROOT_EXECUTION_BUDGET_EXHAUSTED` | evaluator `failure.json` | The budget was hit inside an evaluation, so the run is Partial. The derived grant was too small for the trials actually used: report it. |
 | `publication-failure.json` (launcher exit `PUBLICATION_FAILED_RECONCILE_FROM_RETAINED_EVIDENCE`) | its `message` (for example `ROOT_TERMINAL_EXECUTION_COUNT_DIFFERS`, `ROOT_SERVED_EVALUATIONS_DIFFER`, `PINNED_PROJECTION_LACKS_LOOP_LINEAGE`, `ROOT_PUBLIC_DIRECTORY_REQUIRED`) | Evidence is intact. Reconcile with a separately reviewed publication plan from the same evidence, as R2 was reconciled (`$L` and `docs/review/evidence-20261026/calculate-r2-interrupted-publication-plan.json`). Never re-run. |
 | `Partial` run | `activity` row `unreported-jobs` | Root issued jobs the session never received (evaluator exit ≠ 0). Counts are reported, not invented. |

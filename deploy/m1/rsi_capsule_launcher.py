@@ -145,15 +145,24 @@ LEGACY_WAIT_S = 3700
 
 def run_deadline_s(cfg):
     """Whole-run ceiling of a loop session: its hard session timeout
-    (``wall_s + 2 * per_call_s + 60``, as ``run_session`` enforces) plus the
-    launcher's own start/inspect/publication slack. Legacy sessions keep the
-    historical fixed wait."""
+    (``wall_s + benchmark.wall_s + 2 * per_call_s + 60``, as ``run_session``
+    enforces) plus the launcher's own start/inspect/publication slack. The
+    benchmark wall is the slot-materialized ``session.loop.benchmark.wall_s``
+    (absent: no paired benchmark, the historical rule). Legacy sessions keep
+    the historical fixed wait."""
     session = cfg['session']
     if not isinstance(session.get('loop'), dict):
         return LEGACY_WAIT_S
-    wall = min(session['grant']['limits']['wall_s'], session['loop'].get('wall_s', 3600))
-    per_call = min(session['loop'].get('per_call_s', 120), wall)
-    return wall + 2 * per_call + 60 + 120
+    loop = session['loop']
+    wall = min(session['grant']['limits']['wall_s'], loop.get('wall_s', 3600))
+    per_call = min(loop.get('per_call_s', 120), wall)
+    benchmark = loop.get('benchmark')
+    bench = 0
+    if benchmark is not None:
+        need(isinstance(benchmark, dict) and type(benchmark.get('wall_s')) is int and benchmark['wall_s'] > 0,
+             'MATERIALIZED_BENCHMARK_WALL_REQUIRED')
+        bench = benchmark['wall_s']
+    return wall + bench + 2 * per_call + 60 + 120
 
 
 def grant_ready(grant, cfg, now):

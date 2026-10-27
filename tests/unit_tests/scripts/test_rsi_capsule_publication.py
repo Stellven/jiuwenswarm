@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import math
 from pathlib import Path
 import pytest
 from jiuwenswarm.research_rsi.records import encoded
@@ -596,3 +597,147 @@ def test_completed_loop_publication_joins_retained_files_and_archives_history(lo
     assert published['snapshot']['runs'][0]['lineage']['best_node_id']=='candidate:unit-loop-r1:'+w['refs'][0]['sha256']
     with pytest.raises(FileExistsError):  # One completed publication claim per result; never re-entered.
         pub.publish_completed(tmp_path/'template.json',published_at='2026-10-27T12:00:00Z')
+
+
+# --------------------------------------------------------------------------
+# Merge wave: the paired batched benchmark (Interface E) is the latency judge.
+# --------------------------------------------------------------------------
+def _benchmark(w, ref, *, gain, ci, met, jobs=3, gates=None, **extra):
+    """A Root-retained benchmark report for ``ref`` with one original per job."""
+    gates = gates if gates is not None else {key: met for key in pub.BENCHMARK_GATES}
+    report = {'schema': pub.BENCHMARK_REPORT, 'capsule_name': w['name'], 'parent_sha256': w['parent_ref']['sha256'],
+              'candidate_sha256': ref['sha256'], 'relative_gain': gain, 'ratio_confidence_interval': ci,
+              'gates': {key: {'passed': value} for key, value in gates.items()}, 'objective_met': met,
+              'protected_jobs': jobs, 'repetitions': 11,
+              'workloads': [{'id': 'small-numbers', 'median_ratio': 1 - gain}],
+              'evidence_refs': [w['put']({'benchmark_job': index, 'candidate': ref['sha256']}) for index in range(jobs)],
+              **extra}
+    return dict(report, report_ref=w['put'](report))
+
+
+def _benchmark_result(w):
+    result = copy.deepcopy(w['result']); loop = result['loop']
+    first, second = loop['iterations']
+    first['score'].update(latency_method='paired_batched_benchmark', improved=True, regressed=False)
+    first['benchmark'] = _benchmark(w, w['refs'][0], gain=0.16782382665021112,
+                                    ci=[0.8185217253623219, 0.8417550863553439], met=True)
+    second['score'].update(latency_method='single_job_floor')
+    loop['best']['score'] = first['score']
+    loop['benchmark_baseline'] = _benchmark(w, w['parent_ref'], gain=0.0, ci=[0.98, 1.02], met=False, jobs=2,
+                                            gates={'minimum_gain': False, 'ci_upper_bound': False, 'max_workload_regression': True})
+    return result
+
+
+def test_benchmark_iteration_publishes_codex_gain_and_interval_text(loop_world):
+    w = loop_world; result = _benchmark_result(w)
+    packet = _loop_packet(w, result)
+    nodes = {n['id']: n for n in packet['snapshot']['nodes']}
+    one, two = ('candidate:unit-loop-r1:' + r['sha256'] for r in w['refs'])
+    parent_wall = w['parent_raw']['protected_wall_s']; candidate_wall = w['first']['protected_wall_s']
+    assert nodes[one]['speed'] == ('Measured improvement: 16.78% amortized protected batch gain; original job latency separate.'
+        f' Uncalibrated public job totals: parent {parent_wall:.6f} s, candidate {candidate_wall:.6f} s.')
+    assert nodes[one]['noise'] == '95% paired ratio interval [0.8185, 0.8418]; 11 AB/BA pairs per workload.'
+    report_ref = result['loop']['iterations'][0]['benchmark']['report_ref']
+    assert nodes[one]['evidence_refs'][-1] == report_ref
+    # Single-job floor: labelled, never a measured speedup.
+    assert nodes[two]['speed'].endswith(' s protected total; single-job floor, not a measured speedup')
+    run = packet['snapshot']['runs'][0]
+    performance = [a for a in run['activity'] if a['stage'] == 'Performance evaluation']
+    assert performance == [{'id': 'unit-loop-r1:performance:' + report_ref['sha256'], 'at': w['meta']['published_at'],
+        'stage': 'Performance evaluation', 'status': 'OBJECTIVE_MET',
+        'summary': 'Measured improvement under the frozen protected batch protocol; security remains deferred.'}]
+    assert run['activity'][-1]['id'].endswith(':terminal')
+    lineage = run['lineage']
+    assert lineage['schema'] == 'ai4r-cc-rsi-lineage:2' and lineage['best_node_id'] == one
+    best = lineage['iterations'][0]
+    assert best['improvement_basis'] == 'paired_batched_benchmark' and best['benchmark']['report_ref'] == report_ref
+    assert best['benchmark']['ratio_confidence_interval'] == [0.8185217253623219, 0.8417550863553439]
+    assert lineage['iterations'][1]['latency_method'] == 'single_job_floor' and lineage['iterations'][1]['improvement_basis'] is None
+    assert lineage['benchmark_baseline']['protected_jobs'] == 2
+    # Root issued every evaluation job plus every benchmark job; both are served.
+    assert pub.served_jobs(result) == w['served'] + 3 + 2
+    assert run['stage'] == 'Complete'
+    # A run without benchmark data keeps its lineage:1 rows and node text unchanged.
+    plain = _loop_packet(w, w['result'])
+    assert plain['snapshot']['runs'][0]['lineage']['schema'] == 'ai4r-cc-rsi-lineage:1'
+    assert {n['id']: n['speed'] for n in plain['snapshot']['nodes']}[one] == f'{candidate_wall:.6f} s protected total; uncalibrated'
+
+
+def test_benchmark_budget_counts_in_published_limit(loop_world):
+    w = loop_world; session = copy.deepcopy(w['session'])
+    session['loop']['benchmark'] = {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 7488}
+    assert pub.session_limits(session) == (6, 1200 + 7488)
+    session['loop']['benchmark'] = {'workloads': 8}
+    with pytest.raises(ValueError, match='MATERIALIZED_BENCHMARK_WALL_REQUIRED'):
+        pub.session_limits(session)
+
+
+@pytest.mark.parametrize('fault', ['tampered-report', 'other-candidate', 'local-scope', 'objective-without-gates',
+                                   'missing-job-original', 'job-count', 'paired-without-report', 'regressed-objective'])
+def test_benchmark_claims_are_joined_to_root_originals_or_refused(loop_world, fault):
+    w = loop_world; result = _benchmark_result(w)
+    row = result['loop']['iterations'][0]
+    if fault == 'tampered-report':
+        row['benchmark']['relative_gain'] = 0.3
+    elif fault == 'other-candidate':
+        row['benchmark'] = _benchmark(w, w['refs'][1], gain=0.2, ci=[0.7, 0.8], met=True)
+    elif fault == 'local-scope':
+        row['benchmark'] = _benchmark(w, w['refs'][0], gain=0.2, ci=[0.7, 0.8], met=True, scope='local_unprotected')
+    elif fault == 'objective-without-gates':
+        row['benchmark'] = _benchmark(w, w['refs'][0], gain=0.2, ci=[0.7, 0.8], met=True,
+                                      gates={'minimum_gain': True, 'ci_upper_bound': False, 'max_workload_regression': True})
+    elif fault == 'missing-job-original':
+        report = {k: v for k, v in row['benchmark'].items() if k != 'report_ref'}
+        report['evidence_refs'] = report['evidence_refs'][:-1] + [{'id': 'absent.json', 'sha256': 'a' * 64}]
+        row['benchmark'] = dict(report, report_ref=w['put'](report))
+    elif fault == 'job-count':
+        report = {k: v for k, v in row['benchmark'].items() if k != 'report_ref'}
+        report['protected_jobs'] += 1
+        row['benchmark'] = dict(report, report_ref=w['put'](report))
+    elif fault == 'paired-without-report':
+        del row['benchmark']
+    else:
+        row['score'].update(regressed=True)
+    with pytest.raises((ValueError, KeyError)):
+        _loop_packet(w, result)
+
+
+CODEX_EVIDENCE = Path(__file__).parents[3] / 'docs/review/evidence-20261027-codex'
+
+
+def test_codex_performance_history_renders_unchanged_through_our_projection():
+    """Codex's live app published gain/CI on nodes via ``performance-publish``;
+    our formatter reproduces those exact strings from its measured results and
+    our projection serves its published nodes byte-identically."""
+    import re
+    index = json.loads((CODEX_EVIDENCE / 'final-integration-index.json').read_text())
+    verified = json.loads((CODEX_EVIDENCE / 'verified-capsule-improvements-r2.json').read_text())
+    published = json.loads((CODEX_EVIDENCE / 'final-authenticated-native-ws.json').read_text())['snapshot']
+    nodes = {node['hash']: node for node in published['nodes']}
+    reps = verified['method']['paired_repetitions_per_workload']
+    targets = {row['candidate_sha256']: row for row in verified['targets']}
+    assert len(index['measured_results']) == 2
+    for measured in index['measured_results']:
+        node = nodes[measured['candidate_sha256']]
+        walls = re.fullmatch(r'.* parent ([0-9.]+) s, candidate ([0-9.]+) s\.', node['speed'])
+        speed, noise, _ = pub.performance_text(measured['relative_gain'], measured['ratio_confidence_interval'],
+            measured['objective_met'], reps, float(walls[1]), float(walls[2]))
+        assert (speed, noise) == (node['speed'], node['noise'])
+        target = targets[measured['candidate_sha256']]
+        assert math.isclose(target['time_reduction_percent'], measured['relative_gain'] * 100)
+        lower, upper = measured['ratio_confidence_interval']
+        assert all(math.isclose(a, b) for a, b in zip(target['confidence_95_percent_gain'], [(1 - upper) * 100, (1 - lower) * 100]))
+    for history in verified['preserved_history']:  # Round 1: measured, not met.
+        prefix = f"No demonstrated improvement: {history['round_1_time_reduction_percent']:.2f}% amortized protected batch gain;"
+        assert history['round_1_objective_met'] is False and sum(n['speed'].startswith(prefix) for n in published['nodes']) == 1
+    spec = importlib.util.spec_from_file_location('codex_compat_projection',
+        Path(__file__).parents[3] / 'jiuwenswarm/server/rsi/cc_rsi_projection.py')
+    projection = importlib.util.module_from_spec(spec); spec.loader.exec_module(projection)
+    value = {'snapshot': copy.deepcopy(published), 'candidates': []}
+    projection.validate_publication(value)
+    service = projection.CcRsiProjection(); service._read = lambda: copy.deepcopy(value)
+    served = service.snapshot({})
+    assert [(n['id'], n['speed'], n['noise'], n['evidence_refs']) for n in served['nodes']] == [
+        (n['id'], n['speed'], n['noise'], n['evidence_refs']) for n in published['nodes']]
+    assert [r['activity'] for r in served['runs']] == [r['activity'] for r in published['runs']]
+    assert all('lineage' not in run for run in served['runs'])  # Codex rows stay legacy rows.

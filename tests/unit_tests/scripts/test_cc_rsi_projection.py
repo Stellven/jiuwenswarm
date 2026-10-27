@@ -349,3 +349,106 @@ def test_forged_or_inconsistent_lineage_fails_closed(fault):
         lineage['iterations'][0]['latency_ratio'] = float('inf')
     with pytest.raises(projection.ProjectionError):
         projection.validate_publication(value, workspace_id='unit-workspace')
+
+
+# --- Merge wave: paired batched benchmark as the latency judge (lineage:2) ---
+
+def _report(gain, ratio_ci, met, *, gates=None, jobs=192):
+    gates = gates or {key: met for key in projection.BENCHMARK_GATES}
+    return {'schema': projection.BENCHMARK_REPORT_SCHEMA, 'report_ref': {'id': 'r.json', 'sha256': 'f' * 64},
+            'capsule_name': 'unit-target', 'relative_gain': gain, 'ratio_confidence_interval': ratio_ci,
+            'gates': {key: {'threshold': 0.1, 'passed': value} for key, value in gates.items()},
+            'objective_met': met, 'protected_jobs': jobs, 'repetitions': 11,
+            'workloads': [{'id': 'small-numbers', 'median_ratio': 1 - gain}, {'id': 'large-numbers', 'median_ratio': 0.9}],
+            'evidence_refs': [{'id': 'j.json', 'sha256': 'e' * 64}] * jobs}
+
+
+def _benchmark_loop(*, method='paired_batched_benchmark'):
+    result = _loop_result(['# first\nreturn 2\n', '# second\nreturn 1\n'])
+    first, second, _ = result['loop']['iterations']
+    first['score']['latency_method'] = second['score']['latency_method'] = method
+    if method == 'paired_batched_benchmark':
+        first['benchmark'] = _report(0.014, [0.9532, 0.9988], False,
+                                     gates={'minimum_gain': False, 'ci_upper_bound': False, 'max_workload_regression': True})
+        second['benchmark'] = _report(0.1678, [0.8185, 0.8418], True)
+        result['loop']['benchmark_baseline'] = dict(_report(0.0, [0.98, 1.02], False), protected_jobs=208)
+    return result
+
+
+def _benchmark_publication():
+    value, _ = _loop_publication()
+    run = value['snapshot']['runs'][0]
+    node_ids = {row['candidate_ref']['sha256']: row['node_id'] for row in run['lineage']['iterations'] if row['node_id']}
+    run['lineage'] = projection.project_loop(_benchmark_loop(), node_ids=node_ids,
+                                             parent_node_id=value['snapshot']['nodes'][0]['id'])
+    return value
+
+
+def test_benchmark_loop_projects_gain_interval_gates_and_measured_basis():
+    lineage = projection.project_loop(_benchmark_loop(), node_ids={}, parent_node_id=None)
+    assert lineage['schema'] == projection.LINEAGE_SCHEMA_V2
+    assert lineage['benchmark_baseline']['protected_jobs'] == 208 and lineage['benchmark_baseline']['objective_met'] is False
+    first, second, third = lineage['iterations']
+    assert second['latency_method'] == 'paired_batched_benchmark' and second['improvement_basis'] == 'paired_batched_benchmark'
+    assert second['benchmark'] == {'report_ref': {'id': 'r.json', 'sha256': 'f' * 64}, 'relative_gain': 0.1678,
+        'ratio_confidence_interval': [0.8185, 0.8418], 'objective_met': True, 'protected_jobs': 192, 'repetitions': 11,
+        'gates': {'minimum_gain': True, 'ci_upper_bound': True, 'max_workload_regression': True},
+        'workloads': [{'id': 'small-numbers', 'median_ratio': 1 - 0.1678}, {'id': 'large-numbers', 'median_ratio': 0.9}]}
+    assert 'evidence_refs' not in json.dumps(lineage)  # Only the report ref is public; job originals stay with Root.
+    # The scorer did not call the 1.4% gain an improvement: no claim, failed gates shown.
+    assert first['improvement_basis'] is None and first['benchmark']['gates']['minimum_gain'] is False
+    assert third['benchmark'] is None and third['latency_method'] is None and third['improvement_basis'] is None
+    value = _benchmark_publication()
+    served = projection.validate_publication(value, workspace_id='unit-workspace')['snapshot']['runs'][0]['lineage']
+    assert served['iterations'][1]['benchmark']['relative_gain'] == 0.1678 and served['best_iteration'] == 2
+
+
+def test_negative_gain_is_measured_and_never_an_improvement():
+    result = _benchmark_loop()
+    result['loop']['iterations'][1]['benchmark'] = _report(-0.015, [0.9874, 1.0405], False,
+        gates={'minimum_gain': False, 'ci_upper_bound': False, 'max_workload_regression': True})
+    row = projection.project_loop(result)['iterations'][1]
+    assert row['benchmark']['relative_gain'] == -0.015 and row['improvement_basis'] is None
+    assert row['improved'] is True  # The scorer's flag is shown, but no improvement is claimed from it.
+
+
+def test_single_job_floor_is_labelled_and_never_a_measured_speedup():
+    lineage = projection.project_loop(_benchmark_loop(method='single_job_floor'))
+    assert lineage['schema'] == projection.LINEAGE_SCHEMA_V2 and lineage['benchmark_baseline'] is None
+    second = lineage['iterations'][1]
+    assert second['latency_method'] == 'single_job_floor' and second['above_noise'] is True and second['improved'] is True
+    assert second['improvement_basis'] is None and second['benchmark'] is None
+    gained = _benchmark_loop(method='single_job_floor')
+    gained['loop']['iterations'][1]['score']['correctness'] = {'parent': 2 / 3, 'candidate': 1.0}
+    assert projection.project_loop(gained)['iterations'][1]['improvement_basis'] == 'correctness'
+
+
+def test_loop_without_benchmark_data_keeps_lineage_v1_exactly():
+    lineage = projection.project_loop(_loop_result(['# first\nreturn 2\n', '# second\nreturn 1\n']))
+    assert lineage['schema'] == projection.LINEAGE_SCHEMA and set(lineage) == set(projection.LINEAGE_FIELDS.split())
+    assert all(set(row) == set(projection.ITERATION_FIELDS.split()) for row in lineage['iterations'])
+
+
+@pytest.mark.parametrize('fault', ['basis-without-objective', 'floor-basis', 'correctness-basis-without-gain',
+                                   'extra-benchmark-field', 'inverted-ci', 'unknown-method', 'v2-fields-on-v1'])
+def test_forged_benchmark_claims_fail_closed(fault):
+    value = _benchmark_publication()
+    projection.validate_publication(copy.deepcopy(value), workspace_id='unit-workspace')
+    run = value['snapshot']['runs'][0]
+    first, second = run['lineage']['iterations'][:2]
+    if fault == 'basis-without-objective':
+        second['benchmark']['objective_met'] = False
+    elif fault == 'floor-basis':
+        second['latency_method'] = 'single_job_floor'
+    elif fault == 'correctness-basis-without-gain':
+        second['improvement_basis'] = 'correctness'
+    elif fault == 'extra-benchmark-field':
+        second['benchmark']['evidence_refs'] = []
+    elif fault == 'inverted-ci':
+        second['benchmark']['ratio_confidence_interval'] = [0.9, 0.8]
+    elif fault == 'unknown-method':
+        first['latency_method'] = 'wall_clock_guess'
+    else:
+        run['lineage']['schema'] = projection.LINEAGE_SCHEMA
+    with pytest.raises(projection.ProjectionError):
+        projection.validate_publication(value, workspace_id='unit-workspace')
