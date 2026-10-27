@@ -187,6 +187,52 @@ working.
   exit), Failed (interrupted parent, zero Core effects proven), startup failure,
   resultless worker. Legacy Screening/R1/R2 outputs are digest-pinned.
 
+## Merge wave (2026-10-27): adopting Codex's benchmark as the latency judge
+
+Source tree for the ported pieces: `/home/claude/codex-rsi` (read-only
+snapshot of Codex's working tree; its evidence is in
+`/home/claude/codex-evidence-20261027`). Codex measured Calculate 16.78% and
+Normalize 20.74% with `targets/capsule_benchmark.py` (8 workloads, 11 paired
+AB/BA reps, batched wall per process, geomean of per-workload median ratios,
+bootstrap 95% CI, gates: gain ≥ 10%, CI upper ≤ 0.90, no workload > 5% slower).
+Our per-job min/max noise floor cannot resolve gains of that size because
+sandbox startup dominates single-job wall time. Decisions:
+
+- **Correctness contract (settles the max-tie conflict):** the authority-side
+  checker + expected outputs define correctness. Where the parent already
+  passes the checker on a case, the candidate must match the parent's output
+  bytes exactly (Codex's gate). Where the parent fails the checker, a candidate
+  that passes it is an improvement. General rule, no capsule-specific cases.
+- **Latency judge:** Codex's paired batched benchmark replaces the min/max
+  floor. `score()` keeps its signature; `latency_ratio`, `above_noise`,
+  `improved` now come from the benchmark report when present (`benchmark`
+  kwarg), and fall back to the old rule (flagged `latency_method: "single_job_floor"`)
+  only when no benchmark ran.
+- **Interface E — benchmark callback (W-M1 provides, W-M2 consumes):**
+  ```python
+  async def benchmark(parent_body: bytes, candidate_body: bytes, *, iteration: int) -> dict
+  # Root-side; runs inside the same grant/evaluator; returns Codex's report shape
+  # (schema "ai4r-rsi-capsule-benchmark-report:1"): per-workload median ratios,
+  # relative_gain, ratio_confidence_interval, gates {minimum_gain, ci_upper_bound,
+  # max_workload_regression}, objective_met, protected_jobs, evidence_refs.
+  ```
+  Workloads are data-driven (`capsule_extensions/<name>/fixtures/benchmark.json`
+  or generator spec), never `if name == ...`. Budget: the grant's
+  `max_executions` includes benchmark jobs (`loop_execution_budget` extended).
+  `LocalDispatcher` supports it too, so the model-free e2e can exercise it.
+- **Context (from Codex `capsule_context.py`):** read-only dependency source
+  excerpts (e.g. `packet.py`) are included in the proposer prompt as machine-
+  selected context (imports of the worker, bounded size). Free-text operator
+  `diagnosis_facts`/`requirements` are NOT ported; feedback stays machine-
+  generated. No hard-coded model name anywhere (backend config only).
+- **Semantic edges (`capsule_semantic_edges.py`):** ported as an extra
+  correctness gate, data-driven per capsule.
+- **Loop policy:** benchmark runs only for candidates that pass correctness;
+  `kept` requires correctness non-regression AND (correctness gain OR
+  benchmark `objective_met`). Lineage rows carry the benchmark report ref,
+  gain and CI; publication/UI show them; Codex's `performance-publish` node
+  text format is reused so its published history stays readable.
+
 ## Test & tooling conventions
 
 - Run focused suites with:
