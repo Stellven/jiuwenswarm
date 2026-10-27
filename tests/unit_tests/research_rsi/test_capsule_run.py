@@ -74,8 +74,11 @@ def test_public_capture_closure_transfers_actual_bytes_and_skips_external_worker
 
 
 @pytest.mark.parametrize('tampered_program', [False, True])
-def test_controller_imports_exact_root_rows_and_runs_once_only_governed_handles(tmp_path, tampered_program):
+def test_controller_imports_exact_root_rows_and_runs_once_only_governed_handles(tmp_path, tampered_program, monkeypatch):
     store, session, runtime, _ = fixture(tmp_path, 'utility.calculate')
+    # In-memory frames; the select()-based reader needs a real descriptor.
+    monkeypatch.setattr(run, 'read_frame_deadline', lambda stream, deadline: (
+        lambda raw: json.loads(raw) if raw else None)(stream.readline()))
     root = RecordStore(tmp_path / 'root-captures')
     try:
         session['grant'].update(iterations=1, limits={'wall_s': 60}, expires_unix_s=int(__import__('time').time())+60)
@@ -128,11 +131,147 @@ def test_controller_imports_exact_root_rows_and_runs_once_only_governed_handles(
             assert result['status'] == 'ERROR_NO_REPLAY'
             assert [request['role'] for request in requests] == ['parent']
             assert not any(handle.used for handle in handles)
+            assert 'EXACT_GUARDED_BOOTSTRAP_PROGRAM_REQUIRED' in store.get(result['failure_ref'])['message']
         else:
-            assert result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED'
+            assert result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED', store.get(result['failure_ref'])
             assert result['model_calls'] == 2
             assert [request['role'] for request in requests] == ['parent', 'candidate']
+            assert [(r['iteration'], r['trials']) for r in requests] == [(0, 1), (1, 1)]
             assert requests[1]['binding']['candidate_ref'] == changed_ref
             assert store.get(result['parent_visible']['result_ref'])['role'] == 'parent'
     finally:
         store.close(); root.close()
+
+
+class FakeRootDispatcher:
+    """Interface A Root dispatcher stand-in: real captures, no sandbox."""
+    fail_at_iteration = None
+
+    def __init__(self, *, root, runtime_root, manifest, grant_path, grant_sha256, cgroup_root, captures):
+        self.captures, self.grant = captures, FakeRootDispatcher.grant
+        self.grant_ref = FakeRootDispatcher.grant_ref
+        self.executions, self.halted, self.completed = 0, False, {}
+        self.deadline = __import__('time').monotonic() + 60
+        self.calls = []
+
+    def plan(self):
+        return {'maximum_executions': 1000, 'grant_sha256': 'g' * 64, 'bootstrap_schema': BOOTSTRAP_SCHEMA}
+
+    async def evaluate(self, role, *, body, candidate_ref, binding=None, iteration=0, trials=1):
+        from tests.unit_tests.research_rsi.test_capsule_loop import HELD_OUT, parse
+        if iteration == self.fail_at_iteration:
+            self.halted = True
+            raise ValueError('SYNTHETIC_ROOT_REFUSAL')
+        name = self.grant['capsule_name']
+        self.captures.put_ref(candidate_ref, body)
+        behaviour = parse(body)
+        rows = []
+        for fixture_set, fixtures in (('public', public_fixtures(name)), ('held_out', HELD_OUT)):
+            for row in fixtures:
+                input_ref = self.captures.put({'packet': row.get('packet', row['id'])})
+                program = capsule_worker_program(name, manifest_sha256=self.grant['runtime_manifest_sha256'],
+                    candidate_sha256=candidate_ref['sha256'], input_sha256=input_ref['sha256'],
+                    iterations=self.grant['iterations'])
+                item = {'fixture_id': row['id'], 'fixture_set': fixture_set,
+                        'task_success': row['id'] not in behaviour['fail'], 'protected_wall_s': behaviour['wall'],
+                        'output_bytes': 3, 'checks': {}, 'receipt': {'subject_ref': candidate_ref},
+                        'candidate_ref': candidate_ref, 'input_ref': input_ref,
+                        'program_ref': self.captures.put_bytes(program), 'bootstrap_schema': BOOTSTRAP_SCHEMA}
+                rows.append({**item, 'evidence_ref': self.captures.put(item)})
+        total = sum(row['protected_wall_s'] for row in rows)
+        result = {'schema': 'ai4r-rsi-whole-capsule-visible-result:2', 'role': role, 'iteration': iteration,
+            'subject_sha256': candidate_ref['sha256'], 'passed_count': sum(r['task_success'] for r in rows),
+            'case_count': len(rows), 'protected_wall_s': total,
+            'trial_wall_s': [total * (1 + 0.01 * (i % 3 - 1)) for i in range(trials)] if trials > 1 else [],
+            'rows': rows, 'executions': len(rows) * trials, 'failure': None, 'grant_ref': self.grant_ref,
+            'security': 'UNQUALIFIED', 'model_calls': 0}
+        self.executions += result['executions']
+        self.completed.setdefault(role, []).append(iteration)
+        return {**result, 'result_ref': self.captures.put(result)}
+
+
+@pytest.mark.parametrize('fail_at', [None, 2])
+def test_pipe_protocol_serves_n_evaluations_over_real_pipes(tmp_path, monkeypatch, fail_at):
+    import os, threading, time
+    from jiuwenswarm.research_rsi.targets import capsule_executor
+    from tests.unit_tests.research_rsi.test_capsule_loop import make_session, spec, diagnosis_text, proposal_text
+    loop = {'model_backend': {'kind': 'host-codex'}, 'max_iterations': 3, 'max_no_progress': 3, 'trials': 3}
+    store, session, runtime, _ = make_session(tmp_path, loop=loop, extra_contracts=2)
+    session['grant'].update(iterations=1, limits={'wall_s': 60}, expires_unix_s=int(time.time()) + 60)
+    session['grant_ref'] = store.put(session['grant'])
+    FakeRootDispatcher.grant, FakeRootDispatcher.grant_ref = session['grant'], session['grant_ref']
+    monkeypatch.setattr(FakeRootDispatcher, 'fail_at_iteration', fail_at)
+    monkeypatch.setattr(capsule_executor, 'WholeCapsuleDispatcher', FakeRootDispatcher)
+    case = public_fixtures('utility.calculate')[0]['id']
+    bodies = iter([spec(wall=0.05), spec(fail=[case]), spec(wall=0.04)])
+
+    class Handle:
+        def __init__(self):
+            self.used, self.last_model_calls, self.last_evidence, self.last_generating_model = False, None, [], 'host'
+
+        async def __call__(self, prompt):
+            self.used, self.last_model_calls = True, 1
+            self.last_evidence = [store.put({'call': prompt[:20]})]
+            if 'visible_evidence' in json.loads(prompt):
+                return diagnosis_text(prompt)
+            return proposal_text(next(bodies), 'pipe')(prompt)
+
+    def write_frame(stream, value):
+        stream.write(encoded(value) + b'\n'); stream.flush()
+
+    def exclusive(path, value):
+        with open(path, 'xb') as stream:
+            stream.write(encoded(value))
+    root = tmp_path / 'root'; root.mkdir()
+    value = {'session': session, 'composition': {},
+             'evaluator': {'root': str(root), 'metadata': {}, 'runtime_root': None, 'manifest': None,
+                           'grant_path': None, 'grant_sha256': None, 'cgroup_root': None}}
+    request_read, request_write = os.pipe(); response_read, response_write = os.pipe()
+    outcome = {}
+
+    def serve():
+        try:
+            with os.fdopen(request_read, 'rb') as incoming, os.fdopen(response_write, 'wb') as outgoing:
+                asyncio.run(run.evaluator(value, incoming, outgoing, 'c' * 64,
+                                          SimpleNamespace(write_frame=write_frame, exclusive=exclusive)))
+        except BaseException as error:
+            outcome['error'] = error
+    thread = threading.Thread(target=serve); thread.start()
+
+    async def compose(composition, evaluate):
+        runtime.evaluate = evaluate
+        runtime.resources = runtime.lease = None
+        runtime.records = SimpleNamespace(put_ref=store.put_ref, close=lambda: None)
+        runtime.lease_records = SimpleNamespace(close=lambda: None)
+        runtime.core = SimpleNamespace(close=lambda: None)
+        runtime.subscription = SimpleNamespace(transport=SimpleNamespace())
+        return runtime
+    helper = SimpleNamespace(compose=compose, DevelopmentModel=lambda *args: Handle(), write_frame=write_frame)
+    try:
+        with os.fdopen(response_read, 'rb') as incoming, os.fdopen(request_write, 'wb') as outgoing:
+            ready = run.read_frame_deadline(incoming, time.monotonic() + 10)
+            assert ready['ready'] is True and ready['plan']['maximum_executions'] == 1000
+            result = asyncio.run(run.controller(value, incoming, outgoing, helper))
+        thread.join(10)
+        loop = result['loop']
+        if fail_at is None:
+            assert 'error' not in outcome and result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED'
+            assert loop['stop_reason'] == 'max_iterations' and loop['completed_iterations'] == 3
+            assert [row['kept'] for row in loop['iterations']] == [True, False, True] and loop['best']['iteration'] == 3
+            completion = json.loads((root / 'complete.json').read_bytes())
+            assert completion['stop'] == 'CONTROLLER_CLOSED'
+            assert [(e['role'], e['iteration'], e['trials']) for e in completion['evaluations']] == [
+                ('parent', 0, 3), ('candidate', 1, 3), ('candidate', 2, 3), ('candidate', 3, 3)]
+            # every Root row and result was transferred exactly into the controller store
+            for row in loop['iterations']:
+                assert store.get(row['visible']['result_ref'])['iteration'] == row['iteration']
+            assert result['model_calls'] == 6
+        else:
+            assert isinstance(outcome['error'], ValueError) and not (root / 'complete.json').exists()
+            assert loop['stop_reason'] == 'error' and loop['completed_iterations'] == 2
+            assert loop['iterations'][1]['outcome'] == 'error'
+            assert 'SYNTHETIC_ROOT_REFUSAL' in loop['iterations'][1]['reason']
+            # earlier validated evaluations are retained; run() may still publish them
+            assert result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED' and loop['best']['iteration'] == 1
+    finally:
+        store.close()

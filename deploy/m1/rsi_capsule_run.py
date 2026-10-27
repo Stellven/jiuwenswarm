@@ -26,6 +26,7 @@ SCHEMA = 'ai4r-rsi-capsule-run-configuration:2'
 PREFLIGHT_SCHEMA = 'ai4r-rsi-capsule-run-preflight:1'
 MAX_CONFIG = 8 * 1024 * 1024
 MAX_PIPE_FRAME = 4 * 1024 * 1024
+MAX_TRIALS = 20
 COMPOSITION_SHA256 = '5ba11903f494c06cffaa56f40efae2b5cadee73711a3bc7dd2b9f7e04a6f8016'
 
 
@@ -91,9 +92,11 @@ def load_sources(value):
     pins = value['source_pins']
     need(isinstance(pins, dict) and pins, 'PINNED_SOURCE_CLOSURE_REQUIRED')
     required = {'jiuwenswarm/research_rsi/' + item for item in (
-        '__init__.py', 'capsule_session.py', 'records.py', 'diagnosis.py', 'proposer.py',
+        '__init__.py', 'capsule_session.py', 'capsule_loop.py', 'model_backends.py', 'host_codex_backend.py',
+        'records.py', 'diagnosis.py', 'proposer.py',
         'profiles.py', 'process_policy.py', 'session_policy.py', 'fixed_resources.py',
-        'native_lease.py', 'capsule_doctor.py', 'targets/capsules.py', 'targets/capsule_runtime.py', 'targets/capsule_executor.py')}
+        'native_lease.py', 'capsule_doctor.py', 'targets/capsules.py', 'targets/capsule_runtime.py',
+        'targets/capsule_executor.py', 'targets/capsule_objective.py')}
     required |= {'jiuwenswarm/' + item for item in (
         '__init__.py', 'research/__init__.py', 'research/state.py', 'research/executor.py',
         'research/local_model_codex.py', 'research/local_model_relay.py', 'research/local_models.py',
@@ -154,7 +157,7 @@ def validate_configuration(value):
     for key in ('core_root', 'input_root', 'record_root', 'native_lease_root', 'account_root', 'work_root'):
         path = Path(composition[key])
         need(path.is_absolute() and '..' not in path.parts, 'ABSOLUTE_COMPOSITION_PATH_REQUIRED')
-    from jiuwenswarm.research_rsi.capsule_session import validate_session
+    from jiuwenswarm.research_rsi.capsule_session import validate_session, loop_run_context_ids
     from jiuwenswarm.research_rsi.targets.capsule_executor import validate_grant
     session = validate_session(value['session'])
     validate_grant(session['grant'], evaluator['manifest'])
@@ -167,8 +170,8 @@ def validate_configuration(value):
              'EXACT_PUBLIC_WORKER_METADATA_PIN_REQUIRED')
     need(session['configuration_ref'] == composition['exact_binding_refs']['configuration_ref'],
          'EXACT_COMPOSITION_CONFIGURATION_REQUIRED')
-    need(set(composition['run_contexts']) == {
-        'rsi-development:' + session['id'] + ':' + role for role in ('diagnosis', 'proposal')},
+    # One diagnosis and one proposal work context per prepared loop iteration.
+    need(set(composition['run_contexts']) == loop_run_context_ids(session),
         'EXACT_OWN_SESSION_WORK_CONTEXTS_REQUIRED')
     return value
 
@@ -333,34 +336,71 @@ async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
         cgroup_root=config['cgroup_root'], captures=captures)
     plan = dispatcher.plan()
     helper.write_frame(outgoing, {'ready': True, 'plan': plan})
+    # Iteration/trial arguments are passed when the dispatcher ABI declares them;
+    # a historical single-trial dispatcher is refused any multi-trial request.
+    accepts = set(inspect.signature(dispatcher.evaluate).parameters)
+    served = []; last_iteration = -1; stop = 'CONTROLLER_CLOSED'
     try:
-        for role in ('parent', 'candidate'):
+        while True:
             request = await asyncio.to_thread(read_frame_deadline, incoming, dispatcher.deadline)
             if request is None:
                 break
-            need(isinstance(request, dict) and set(request) == {'role', 'body_base64', 'candidate_ref', 'binding'}
-                 and request['role'] == role, 'CLOSED_ORDERED_CAPSULE_EVALUATION_REQUIRED')
+            need(isinstance(request, dict) and set(request) == {
+                'role', 'body_base64', 'candidate_ref', 'binding', 'iteration', 'trials'},
+                'CLOSED_CAPSULE_EVALUATION_REQUEST_REQUIRED')
+            role, iteration, trials = request['role'], request['iteration'], request['trials']
+            need(role == ('candidate' if served else 'parent'), 'PARENT_FIRST_THEN_CANDIDATES_REQUIRED')
+            need(type(iteration) is int and iteration > last_iteration and (iteration == 0) == (role == 'parent'),
+                 'MONOTONIC_EVALUATION_ITERATION_REQUIRED')
+            need(type(trials) is int and 1 <= trials <= MAX_TRIALS and (trials == 1 or 'trials' in accepts),
+                 'FINITE_SUPPORTED_EVALUATION_TRIALS_REQUIRED')
+            need(dispatcher.executions < plan['maximum_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
             body = base64.b64decode(request['body_base64'], validate=True)
-            result = await dispatcher.evaluate(role, body=body, candidate_ref=request['candidate_ref'], binding=request['binding'])
+            extra = {key: item for key, item in (('iteration', iteration), ('trials', trials)) if key in accepts}
+            try:
+                result = await dispatcher.evaluate(role, body=body, candidate_ref=request['candidate_ref'],
+                                                   binding=request['binding'], **extra)
+            except Exception as error:
+                # The controller learns the exact refusal; the Root failure record
+                # and nonzero exit below are unchanged. No request is replayed.
+                helper.write_frame(outgoing, {'failure': {'exception_type': type(error).__name__,
+                                                          'message': str(error)[:4096]}})
+                raise
             for capture in capture_closure(captures, result):
                 helper.write_frame(outgoing, {'capture': capture})
             helper.write_frame(outgoing, {'evaluation': result})
-            if not result['passed']:
+            served.append({'role': role, 'iteration': iteration, 'trials': trials,
+                           'result_ref': result.get('result_ref'), 'executions': result.get('executions')})
+            last_iteration = iteration
+            if result.get('failure') is not None or getattr(dispatcher, 'halted', False):
+                stop = 'DISPATCHER_HALTED'
+                break
+            if role == 'parent' and not evaluation_passed(result):
+                stop = 'PARENT_CONTROL_FAILED'
                 break
         helper.exclusive(root / 'complete.json', {
             'schema': 'ai4r-rsi-capsule-evaluator-completion:1', 'id': value['session']['id'],
             'configuration_sha256': configuration_sha256, 'grant_ref': dispatcher.grant_ref,
-            'plan': plan, 'status': 'STOPPED', 'executions': dispatcher.executions,
-            'halted': dispatcher.halted, 'completed_roles': list(dispatcher.completed)})
+            'plan': plan, 'status': 'STOPPED', 'stop': stop, 'executions': dispatcher.executions,
+            'halted': dispatcher.halted, 'completed_roles': list(dispatcher.completed), 'evaluations': served})
     finally:
         captures.close()
 
 
+def evaluation_passed(result):
+    """Interface A v2 or historical v1 visible result passed every case."""
+    if result.get('schema') == 'ai4r-rsi-whole-capsule-visible-result:2':
+        return result.get('failure') is None and result.get('passed_count') == result.get('case_count')
+    return result.get('passed') is True
+
+
 async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, effect_deadline=None, progress=None):
     runtime = None
-    async def evaluate(role, *, body, candidate_ref, binding):
+    async def evaluate(role, *, body, candidate_ref, binding, iteration=0, trials=1):
+        # Interface A over the bounded pipes: one request frame, then captures
+        # and exactly one evaluation (or failure) frame. Served N times.
         helper.write_frame(outgoing, {'role': role, 'body_base64': base64.b64encode(body).decode('ascii'),
-            'candidate_ref': candidate_ref, 'binding': binding})
+            'candidate_ref': candidate_ref, 'binding': binding, 'iteration': iteration, 'trials': trials})
         deadline = time.monotonic() + value['session']['grant']['limits']['wall_s']
         while True:
             frame = await asyncio.to_thread(read_frame_deadline, incoming, deadline)
@@ -371,12 +411,19 @@ async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, e
                 raw = base64.b64decode(capture['bytes_base64'], validate=True)
                 runtime.records.put_ref(capture['ref'], raw)
                 continue
+            if set(frame) == {'failure'}:
+                failure = frame['failure']
+                need(isinstance(failure, dict) and set(failure) == {'exception_type', 'message'}, 'EXACT_ROOT_FAILURE_REQUIRED')
+                raise ValueError('ROOT_EVALUATION_FAILED_NO_REPLAY: ' + str(failure['exception_type'])[:128]
+                                 + ': ' + str(failure['message'])[:2048])
             need(set(frame) == {'evaluation'}, 'UNKNOWN_ROOT_EVALUATOR_FRAME')
             result = frame['evaluation']
-            from jiuwenswarm.research_rsi.capsule_session import validate_evaluation
+            from jiuwenswarm.research_rsi.capsule_loop import validate_visible
             from jiuwenswarm.research_rsi.targets.capsule_runtime import capsule_worker_program, BOOTSTRAP_SCHEMA
-            from jiuwenswarm.research_rsi.records import encoded
-            validate_evaluation(result, value['session'], role, candidate_ref)
+            validate_visible(result, value['session'], role, candidate_ref, iteration=iteration, trials=trials)
+            need(isinstance(result.get('result_ref'), dict)
+                 and all(isinstance(row.get(key), dict) for row in result['rows']
+                         for key in ('evidence_ref', 'input_ref', 'program_ref')), 'PROTECTED_ROOT_EVIDENCE_REFS_REQUIRED')
             need(runtime.store.get(result['result_ref']) == {key: item for key, item in result.items() if key != 'result_ref'},
                  'EXACT_ROOT_RESULT_CAPTURE_REQUIRED')
             for row in result['rows']:
@@ -503,11 +550,16 @@ def run(value, ack):
             'security':'UNQUALIFIED', 'security_campaigns':'DEFERRED'}
         helper.exclusive(value['result_path'], terminal)
         return terminal
-    need(os.waitstatus_to_exitcode(status) == 0, 'ROOT_EVALUATOR_FAILED_NO_REPLAY')
+    exit_code = os.waitstatus_to_exitcode(status)
+    # A loop that already recorded the evaluator's refusal as its error stop keeps
+    # every earlier, individually validated evaluation; otherwise no result.
+    need(exit_code == 0 or (result.get('loop') or {}).get('stop_reason') == 'error', 'ROOT_EVALUATOR_FAILED_NO_REPLAY')
     helper.exclusive(value['result_path'], result)
+    loop = result.get('loop') or {}
     return {'schema': 'ai4r-rsi-capsule-run-terminal:1', 'id': value['session']['id'],
         'status': result['status'], 'result_sha256': digest(helper.encoded(result)),
-        'result_ref': result['result_ref'], 'security': 'UNQUALIFIED'}
+        'result_ref': result['result_ref'], 'security': 'UNQUALIFIED', 'evaluator_exit_code': exit_code,
+        'stop_reason': loop.get('stop_reason'), 'completed_iterations': loop.get('completed_iterations')}
 
 
 def main(argv=None):

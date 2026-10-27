@@ -58,7 +58,7 @@ def fixture(tmp_path, name):
         'proposal_contract_ref': ref('proposal'), 'native_scope_ref': ref('scope'),
         'authorized_component': target.carrier_path, 'observed_symptom': 'Public clock observations'}
     evaluations = []
-    async def evaluate(role, *, body, candidate_ref, binding):
+    async def evaluate(role, *, body, candidate_ref, binding, iteration=0, trials=1):
         assert hashlib.sha256(body).hexdigest() == candidate_ref['sha256']
         evaluations.append((role, binding))
         rows = [{'fixture_id': row['id'], 'candidate_ref': candidate_ref, 'group_empty': True,
@@ -72,8 +72,27 @@ def fixture(tmp_path, name):
         return {**result, 'result_ref': store.put(result)}
     async def before_model():
         pass
-    runtime = SimpleNamespace(store=store, evaluate=evaluate, before_model=before_model)
+    runtime = SimpleNamespace(store=store, evaluate=evaluate, before_model=before_model, objective=PublicOnlyObjective())
     return store, value, runtime, evaluations
+
+
+class PublicOnlyObjective:
+    """Interface B test stand-in over the historical v1 public-only results."""
+    def __init__(self):
+        from tests.unit_tests.research_rsi.test_capsule_loop import StubObjective
+        self.inner = StubObjective()
+
+    def fixtures(self, name, *, fixture_set):
+        return public_fixtures(name) if fixture_set == 'public' else []
+
+    def evaluation_fixtures(self, name):
+        return [dict(row, fixture_set='public') for row in public_fixtures(name)]
+
+    def calibrate_noise(self, trials):
+        return self.inner.calibrate_noise(trials)
+
+    def score(self, parent, candidate, *, noise=None):
+        return self.inner.score(parent, candidate, noise=noise)
 
 
 @pytest.mark.parametrize('name', ['utility.calculate', 'utility.table_normalize'])
@@ -84,6 +103,10 @@ def test_two_governed_handles_actual_scope_and_durable_no_replay(tmp_path, name)
         result = asyncio.run(session.execute(value, runtime, models=handles))
         assert result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED', result
         assert result['model_calls'] == 2
+        # A v1 session (no ``loop``) is exactly the historical one-shot attempt.
+        assert result['loop']['max_iterations'] == result['loop']['completed_iterations'] == 1
+        assert result['loop']['model_backend']['kind'] == 'host-codex'
+        assert result['loop']['configuration']['source'] == 'legacy-v1-session'
         assert result['security'] == 'UNQUALIFIED' and result['admission_ref'] is None
         assert [row[0] for row in evaluations] == ['parent', 'candidate']
         assert evaluations[1][1]['mutable_path'] == registered_capsule(name).carrier_path
@@ -105,5 +128,7 @@ def test_invalid_proposal_retains_bytes_without_candidate_execution_or_retry(tmp
         assert store.read(result['proposal_capture']['child_ref']) == b'# preserved actual bytes'
         assert [role for role, _ in evaluations] == ['parent']
         assert result['candidate_visible'] is None
+        assert result['loop']['iterations'][0]['outcome'] == 'rejected'
+        assert result['loop']['stop_reason'] == 'no_progress'
     finally:
         store.close()
