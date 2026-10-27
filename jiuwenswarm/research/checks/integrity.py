@@ -108,13 +108,74 @@ def pin_matches(path_or_bytes, pinned_sha256):
     ])
 
 
+def _sha256_hex(value):
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-fA-F]{64}", value) is not None
+
+
+def snapshot_matches(snapshot, pin, files_by_path):
+    """Verify a captured resource snapshot record, then each of its files.
+
+    ``pin`` is the snapshot's reference ({"id", "sha256"}) or its bare SHA-256.
+    The pinned digest is that of the canonical record bytes, the same bytes
+    the product's store captures (state.json_bytes), not of any file. Each
+    ``snapshot["files"]`` entry then pins its content by
+    ``artifact_ref["sha256"]``; ``files_by_path`` maps path -> bytes. A listed
+    file that is not supplied cannot be assessed. A supplied file the snapshot
+    does not list is a mismatch, as is any differing digest.
+    """
+    if snapshot is None or not pin or files_by_path is None:
+        return _unknown("snapshot, pin and file bytes are required")
+    try:
+        from ..contracts import ResearchError
+        from ..state import json_bytes
+        digest = pin.get("sha256") if isinstance(pin, Mapping) else pin
+        if not _sha256_hex(digest):
+            return _unknown("pin must be a reference with, or be, a 64-character hexadecimal SHA-256")
+        if not isinstance(snapshot, Mapping) or not isinstance(snapshot.get("files"), list):
+            return _unknown("snapshot must be a record with a files list")
+        if not isinstance(files_by_path, Mapping):
+            return _unknown("files_by_path must map path to bytes")
+        listed = {}
+        for entry in snapshot["files"]:
+            ref = entry.get("artifact_ref") if isinstance(entry, Mapping) else None
+            path = entry.get("path") if isinstance(entry, Mapping) else None
+            if (not isinstance(path, str) or not isinstance(ref, Mapping) or not _sha256_hex(ref.get("sha256"))
+                    or path in listed):
+                return _unknown("each snapshot file needs a unique path and artifact_ref sha256")
+            listed[path] = ref["sha256"].lower()
+        absent = sorted(path for path in listed if path not in files_by_path)
+        if absent:
+            return _unknown("file bytes not supplied for: " + ", ".join(absent))
+        if not all(isinstance(value, (bytes, bytearray, memoryview)) for value in files_by_path.values()):
+            return _unknown("file contents must be bytes")
+        actual_record = hashlib.sha256(json_bytes(dict(snapshot))).hexdigest()
+    except (TypeError, ValueError, AttributeError, ResearchError) as exc:
+        return _unknown(str(exc))
+    evidence = []
+    if actual_record != digest.lower():
+        evidence.append({"level": "snapshot_record", "expected_sha256": digest.lower(), "actual_sha256": actual_record})
+    for path in sorted(files_by_path):
+        actual = hashlib.sha256(bytes(files_by_path[path])).hexdigest()
+        if path not in listed:
+            evidence.append({"level": "file", "path": path, "reason": "file is not listed in the snapshot",
+                             "actual_sha256": actual})
+        elif actual != listed[path]:
+            evidence.append({"level": "file", "path": path, "expected_sha256": listed[path], "actual_sha256": actual})
+    return _result(not evidence, "pin_mismatch", evidence)
+
+
 def baseline_consistent(declared_definition, replayed_predictions, labels):
     """Validate a constant prediction baseline against its reference labels.
 
     majority_class/minority_class use observed class counts in labels. Ties are
-    ambiguous. constant:<label> accepts a JSON scalar or unquoted text. Labels
-    must be the baseline's fitting population, supplied by the caller; predictions
-    may cover a different-sized replay population.
+    ambiguous, so the bare names abstain on a tie. ``majority_class:tie=lowest``
+    or ``:tie=highest`` (also for minority_class) names the tie-break: among the
+    tied labels, the lowest or highest by value order (numbers numerically,
+    strings lexicographically, False before True). Tied labels of different
+    types, or of no value order, still abstain. constant:<label> accepts a JSON
+    scalar or unquoted text. Labels must be the baseline's fitting population,
+    supplied by the caller; predictions may cover a different-sized replay
+    population.
     """
     if not declared_definition or replayed_predictions is None or labels is None:
         return _unknown("definition, predictions and reference labels are required")
@@ -123,12 +184,24 @@ def baseline_consistent(declared_definition, replayed_predictions, labels):
         if not predictions or not reference or not isinstance(declared_definition, str):
             return _unknown("nonempty predictions and reference labels are required")
         definition = declared_definition.strip()
+        name, _, option = definition.partition(":")
+        tie = None
+        if name in {"majority_class", "minority_class"} and option:
+            if option.replace(" ", "") not in {"tie=lowest", "tie=highest"}:
+                return _unknown("unsupported baseline definition")
+            tie, definition = option.replace(" ", "")[4:], name
         if definition in {"majority_class", "minority_class"}:
             counts = Counter(_canonical(label) for label in reference)
             extreme = (max if definition == "majority_class" else min)(counts.values())
             candidates = [label for label, count in counts.items() if count == extreme]
-            if len(candidates) != 1:
+            if len(candidates) != 1 and tie is None:
                 return _unknown("class count tie requires an explicit tie-break rule")
+            if len(candidates) != 1:
+                kinds = {label[0] for label in candidates}
+                if len(kinds) != 1 or kinds - {"number", "str", "bool"}:
+                    return _unknown("tied labels have no common value order")
+                candidates.sort(key=lambda label: label[1])
+                candidates = candidates[:1] if tie == "lowest" else candidates[-1:]
             expected = candidates[0]
         elif definition.startswith("constant:"):
             literal = definition.partition(":")[2].strip()

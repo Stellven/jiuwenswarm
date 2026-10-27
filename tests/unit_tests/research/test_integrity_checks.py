@@ -12,6 +12,7 @@ from jiuwenswarm.research.checks.integrity import (
     bound_feasible,
     no_stale_duplicate,
     pin_matches,
+    snapshot_matches,
     split_disjoint,
     units_consistent,
 )
@@ -213,6 +214,84 @@ class IntegrityChecksTest(unittest.TestCase):
         for interval, target in ((None, 1), ((0, 1), None), ([], 1), ((1, 0), 1),
                                  ((0, 1), float("nan")), ((0, 1), "1/0"), ((0, 1), True)):
             self.assert_unknown(bound_feasible(interval, target))
+
+    def test_baseline_tie_break_option(self):
+        labels = ["b", "a", "b", "a", "c"]
+        self.assert_unknown(baseline_consistent("majority_class", ["a"], labels))
+        self.assert_result(baseline_consistent("majority_class:tie=lowest", ["a", "a"], labels), True,
+                           "baseline_definition_conflict")
+        self.assert_result(baseline_consistent("majority_class:tie=highest", ["b"], labels), True,
+                           "baseline_definition_conflict")
+        self.assert_result(baseline_consistent("majority_class:tie=lowest", ["b"], labels), False,
+                           "baseline_definition_conflict")
+        self.assert_result(baseline_consistent("minority_class:tie=highest", ["c"], ["a", "b", "a", "b", "c", "d"]
+                                               ), False, "baseline_definition_conflict")
+        # numbers order numerically, not as text; the captured baseline is the lowest label
+        numeric = [10, 9, 10, 9]
+        self.assert_result(baseline_consistent("majority_class:tie=lowest", [9.0], numeric), True,
+                           "baseline_definition_conflict")
+        # no tie: the option changes nothing
+        self.assert_result(baseline_consistent("majority_class:tie=highest", ["x"], ["x", "x", "y"]), True,
+                           "baseline_definition_conflict")
+        for bad in ("majority_class:tie=first", "majority_class:tie=", "majority_class:other=lowest"):
+            self.assert_unknown(baseline_consistent(bad, ["a"], labels))
+        self.assert_unknown(baseline_consistent("majority_class:tie=lowest", ["a"], ["a", 1, "a", 1]))
+
+    def test_baseline_tie_break_matches_the_captured_rule(self):
+        labels = ["no", "yes", "yes", "no", "maybe"]
+        captured = max(sorted(set(labels)), key=labels.count)
+        self.assert_result(baseline_consistent("majority_class:tie=lowest", [captured] * 3, labels), True,
+                           "baseline_definition_conflict")
+
+    def snapshot(self, files):
+        from jiuwenswarm.research.state import json_bytes
+        record = {"schema_version": "1.0.0", "id": "baseline", "kind": "supplied baseline", "origin": "local",
+                  "revision": "r1", "access": "read-only", "license": "unknown", "availability": "available",
+                  "environment_ref": None,
+                  "files": [{"path": path, "artifact_ref": {"id": "blob:" + hashlib.sha256(data).hexdigest(),
+                                                           "sha256": hashlib.sha256(data).hexdigest()},
+                             "media_type": "text/plain", "audience": "researcher"} for path, data in sorted(files.items())]}
+        return record, {"id": "baseline", "sha256": hashlib.sha256(json_bytes(record)).hexdigest()}
+
+    def test_snapshot_matches_pins_the_record_not_a_file(self):
+        files = {"a.csv": b"x\n1\n", "b.txt": b"hello"}
+        record, pin = self.snapshot(files)
+        self.assert_result(snapshot_matches(record, pin, files), True, "pin_mismatch")
+        self.assert_result(snapshot_matches(record, pin["sha256"].upper(), files), True, "pin_mismatch")
+        # Hashing a file's bytes against the pin is the old wrong check: it must not pass here.
+        self.assert_result(pin_matches(files["a.csv"], pin["sha256"]), False, "pin_mismatch")
+        # key order of the stored record does not matter, the canonical bytes do
+        self.assert_result(snapshot_matches(dict(reversed(list(record.items()))), pin, files), True, "pin_mismatch")
+
+    def test_snapshot_matches_detects_record_and_file_drift(self):
+        files = {"a.csv": b"x\n1\n", "b.txt": b"hello"}
+        record, pin = self.snapshot(files)
+        edited = deepcopy(record)
+        edited["revision"] = "r2"
+        result = snapshot_matches(edited, pin, files)
+        self.assert_result(result, False, "pin_mismatch")
+        self.assertEqual(result["evidence"][0]["level"], "snapshot_record")
+        result = snapshot_matches(record, pin, dict(files, **{"a.csv": b"x\n2\n"}))
+        self.assert_result(result, False, "pin_mismatch")
+        self.assertEqual([(row["level"], row["path"]) for row in result["evidence"]], [("file", "a.csv")])
+        result = snapshot_matches(record, pin, dict(files, extra=b"?"))
+        self.assert_result(result, False, "pin_mismatch")
+        self.assertIn("not listed", result["evidence"][0]["reason"])
+        # a file entry edited together with the record still fails the pin
+        forged = deepcopy(record)
+        forged["files"][0]["artifact_ref"] = {"id": "blob:x", "sha256": hashlib.sha256(b"forged").hexdigest()}
+        self.assert_result(snapshot_matches(forged, pin, dict(files, **{"a.csv": b"forged"})), False, "pin_mismatch")
+
+    def test_snapshot_matches_not_assessable(self):
+        files = {"a.csv": b"x"}
+        record, pin = self.snapshot(files)
+        for args in [(None, pin, files), (record, None, files), (record, pin, None), (record, "abc", files),
+                     ({"files": "no"}, pin, files), (record, pin, {}), (record, pin, {"a.csv": "text"}),
+                     (dict(record, files=[{"path": "a.csv"}]), pin, files),
+                     (dict(record, files=record["files"] * 2), pin, files),
+                     (dict(record, bad=float("nan")), pin, files)]:
+            with self.subTest(args=str(args)[:60]):
+                self.assert_unknown(snapshot_matches(*args))
 
 
 if __name__ == "__main__":
