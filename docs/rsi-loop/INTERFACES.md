@@ -162,6 +162,31 @@ working.
 - Slot readiness needs a `phase` field: READY / BLOCKED / CLAIMED / LAUNCHED /
   PREPARING / FAILED, on `target.run` and the catalog `run`.
 
+## Decisions recorded after the second wave (W2b, W4)
+
+- **Parent control rule:** the parent passes control if its evaluation is
+  complete and it passes the historical `public` set. Failing `public_extended`
+  or `held_out` cases is expected — that is the improvement headroom — and must
+  not block a run before any model call. One function implements this for the
+  loop and the evaluator.
+- **`failure` on a visible result** means "at least one case failed", not
+  "evaluation refused". The loop scores such a candidate and continues; only
+  refusals and unknown effects (which raise) end the loop.
+- A session with `loop` requires a grant v3 and vice-versa; v2 keeps its exact
+  budget rule.
+- Evaluator config takes an optional `dispatcher` key (`"v18-bwrap"` |
+  `"local"`); a missing key means the protected path; local-scope rows are
+  refused unless the evaluator is configured `local`.
+- Run deadline = `wall_s + 2·per_call_s + 60`, shared by `run_session`, the
+  launcher and the publisher.
+- Slot policy v2 adds `mode: durable | strict` per slot; durable slots keep an
+  append-only revision ledger, run id `<slot_id>-r<k>`, auto re-prepare after
+  any terminal run, FAILED after 3 consecutive preparation failures (operator
+  `rsi_capsule_broker.py resume --target <id>`).
+- Publication states: Complete, Partial (stop_reason error / nonzero evaluator
+  exit), Failed (interrupted parent, zero Core effects proven), startup failure,
+  resultless worker. Legacy Screening/R1/R2 outputs are digest-pinned.
+
 ## Test & tooling conventions
 
 - Run focused suites with:
