@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 
+from ..builder_mode import builder_mode
+
 from .stages import ResearchChecks, require
 from .research import BUNDLE_FILES, inspect_bundle
 from ..contracts import validate
@@ -18,7 +20,7 @@ class TextBuilderChecks(ResearchChecks):
         require(manifest['blueprint_ref'] == ctx.input_ref('blueprint'), 'blueprint_unchanged')
         require(manifest['environment_ref'] == blueprint['environment_ref'] == ctx.input_ref('lock'), 'environment_unchanged')
         declaration = ctx.read_json(ctx.contract['bindings'][0]['declaration_ref'])
-        prediction = declaration['identity']['version_label'] in {'m1-11', 'm1-12', 'm1-13'}
+        prediction = builder_mode(declaration) in {'prediction', 'loop'}
         if prediction:
             if declaration['identity']['version_label'] == 'm1-13':
                 validate_metric_declarations(blueprint['metrics'])
@@ -71,6 +73,6 @@ class TextBuilderChecks(ResearchChecks):
         require(all(type(text) is str and text.encode('utf-8') == checked['files'][name]
             for name, text in payload['files'].items()), 'no_trial_no_install')
         declaration = ctx.read_json(ctx.contract['bindings'][0]['declaration_ref'])
-        require(declaration['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13'}
+        require(builder_mode(declaration) in {'text', 'prediction', 'loop'}
             and declaration['needs']['model']['tool_calling'] is False
             and declaration['budget']['per_call']['tool_calls'] == 0, 'no_trial_no_install')

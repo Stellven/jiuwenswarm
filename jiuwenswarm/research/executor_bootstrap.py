@@ -10,6 +10,8 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
+from .builder_mode import builder_mode
+
 from .contracts import validate
 from .executor import ExecutorBlocked, InvocationBinding, RestrictedExecutor
 from .execution_jobs import ApprovedEnvironment, ScienceExecutionAdapter, ScienceProfile, allocate_science_workspace
@@ -225,9 +227,7 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
     for mapping in record['execution_bindings']:
         declared = store.read_record(mapping['declaration_ref'], contract_id='capsule-declaration')
         if (declared['identity']['name'] == 'research.builder'
-                and declared['identity']['version_label'] in {'m1-2', 'm1-3', 'm1-4', 'm1-5', 'm1-6', 'm1-7', 'm1-8', 'm1-9', 'm1-10', 'm1-11', 'm1-12', 'm1-13', 'm1-14', 'm1-15', 'm1-16', 'm1-17'}
-                and declared['needs']['model']['tool_calling'] is False
-                and (declared['budget']['per_call']['tool_calls'] == 0 or declared['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17'})):
+                and builder_mode(declared) != 'legacy'):
             from .capsules.assets import load_research_catalog
             authored = load_research_catalog()['stages']['builder']
             if mapping['declaration_ref'] != authored['declaration_ref']:
@@ -236,10 +236,10 @@ def create_scientific_backend(*, store, authorize, environ, authorize_builder=No
             if admitted['status'] != 'admitted' or admitted['candidate_ref'] != mapping['declaration_ref']:
                 raise ExecutorBlocked('TOOL_FREE_BUILDER_ADMISSION_REQUIRED')
             executor.tool_free_builder = True
-            executor.builder_test_required = declared['identity']['carrier']['ref'] == 'builder_loop.py'
+            executor.builder_test_required = builder_mode(declared) == 'loop'
             if executor.builder_test_required and mapping['operations'] != ['builder_test']:
                 raise ExecutorBlocked('BUILDER_TEST_OPERATION_MAPPING_REQUIRED')
-            if declared['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17'}:
+            if builder_mode(declared) == 'agent':
                 executor.builder_agent_required = True
                 if mapping['operations'] != ['builder_action']:
                     raise ExecutorBlocked('BUILDER_AGENT_OPERATION_MAPPING_REQUIRED')

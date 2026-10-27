@@ -9,6 +9,8 @@ from __future__ import annotations
 import hashlib
 import json
 
+from .builder_mode import builder_mode
+
 from .contracts import ResearchError, validate
 from .state import json_bytes
 
@@ -367,9 +369,9 @@ def _host_input(store, db, run_id, ref, key, plan_ref, plan, node, template, pro
                 starts = [item for item in _rows(store, db, run_id, ('model-call-start',), node_id=name)
                     if item['record'].get('contract_ref') == observed['contract_ref']
                     and item['record'].get('invocation_id') == offered.get('invocation_id')]
-                agent_builder = selected['cc']['cc_version'] in {'m1-14','m1-15','m1-16','m1-17'}
-                loop_builder = (selected['cc']['cc_version'] == 'm1-13' and
-                    store.read_record(producing['bindings'][0]['declaration_ref'])['identity']['carrier']['ref'] == 'builder_loop.py')
+                mode = builder_mode(store.read_record(producing['bindings'][0]['declaration_ref']))
+                agent_builder = mode == 'agent'
+                loop_builder = mode == 'loop'
                 _require(producing['node_contract_ref'] == proof['parent_ref'] and producing['subnode_id'] == name
                     and producing['bindings'][0]['role'] == 'work'
                     and producing['bindings'][0]['declaration_ref']['sha256'] == selected['cc']['declaration_sha256']
@@ -377,7 +379,7 @@ def _host_input(store, db, run_id, ref, key, plan_ref, plan, node, template, pro
                          1 <= len(starts) <= 3 if loop_builder else len(starts) == 1))
                 receipt_kind = ('urn:ai4r:prediction-build-receipt:4.0.0' if agent_builder else
                     'urn:ai4r:prediction-build-receipt:3.0.0' if loop_builder
-                    else 'urn:ai4r:prediction-build-receipt:2.0.0' if selected['cc']['cc_version'] in {'m1-11', 'm1-12', 'm1-13'} else 'build-receipt')
+                    else 'urn:ai4r:prediction-build-receipt:2.0.0' if mode == 'prediction' else 'build-receipt')
                 receipt = _source(store, db, offered['ref'], receipt_kind)
                 _require(receipt['manifest_ref'] == proof['outputs'].get('manifest')
                     and receipt['archive_ref'] == proof['outputs'].get('bundle')

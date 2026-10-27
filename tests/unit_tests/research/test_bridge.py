@@ -18,6 +18,8 @@ def authorized_context():
             "call_function": "worker", "model_selection_profile_ref": ref, "deployment_ref": ref,
             "limits": {"time_s": 1, "model_calls": 1, "memory_mb": 64},
             "execution_deadline_monotonic_s": monotonic() + 1,
+            "declaration": {"identity": {"name": "research.builder", "carrier": {"ref": "builder.py"}},
+                            "needs": {"model": {"tool_calling": True}}},
             "router": {"enabled": False, "deadline_s": 30, "profile_ref": None}}
 
 

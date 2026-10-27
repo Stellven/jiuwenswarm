@@ -6,6 +6,8 @@ import copy
 import hashlib
 import json
 
+from .builder_mode import builder_mode
+
 from .builder_agent_service import BuilderAgentService
 from .builder_testing import BuilderTestService, _input_ref
 from .capsules.builder_loop import package
@@ -155,7 +157,7 @@ class BuilderAgentHost(BuilderTestService):
             if await self.authorize_binding(binding) != binding or binding.contract != contract:
                 raise ResearchError('auth','Exact live Builder invocation required')
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name']!='research.builder' or declaration['identity']['version_label']!='m1-17':
+            if builder_mode(declaration) != 'agent':
                 raise ResearchError('auth','Agent tools require the exact admitted Builder release')
             call_ref, output_ref = self._model_action(binding,action,arguments,model_ordinal)
             if binding.invocation_id not in self.sessions:

@@ -14,6 +14,8 @@ import json
 import uuid
 from pathlib import Path
 
+from .builder_mode import builder_mode
+
 from .checks.prediction_bundle import CheckError, inspect_bundle
 from .contracts import ResearchError, validate
 from .environment import parse_requirements
@@ -71,9 +73,8 @@ class BuilderTestService:
             raise ResearchError('builder_test_declaration', 'One exact Builder declaration is required')
         ref = rows[0]['declaration_ref']
         declaration = self.store.read_record(ref, contract_id=BUILDER_DECLARATION)
-        identity = declaration.get('identity', {})
-        if identity.get('name') != 'research.builder' or identity.get('version_label') != 'm1-13':
-            raise ResearchError('builder_test_declaration', 'Builder testing requires the admitted research.builder m1-13 declaration')
+        if builder_mode(declaration) != 'loop':
+            raise ResearchError('builder_test_declaration', 'Builder testing requires an admitted loop Builder declaration')
         ports = declaration.get('ports', {})
         names = {row.get('name') for row in ports.get('inputs', []) if isinstance(row, dict)}
         if not {'blueprint', 'lock', 'validation_resource'} <= names:

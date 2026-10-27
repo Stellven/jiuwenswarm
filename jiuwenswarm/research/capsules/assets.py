@@ -75,7 +75,7 @@ def build_research_assets(store, *, verify_catalog=True, screening_version='m1-4
             for name in ('trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py', 'process_evidence.py'):
                 body[name] = (root / name).read_bytes()
         if stage == 'builder':
-            for name in ('builder_agent_runtime.py', 'builder_agent_service.py', 'builder_agent_host.py',
+            for name in ('builder_agent_runtime.py', 'builder_agent_service.py', 'builder_agent_host.py', 'builder_mode.py',
                          'builder_testing.py', 'process_evidence.py', 'm1_process.py', '_m1_process_child.py', 'native.py', 'pi_protocol.py', 'trusted_pi.py', 'trusted_scoring.py'):
                 body[name] = (root / name).read_bytes()
         stage_runner_ref = runner_ref

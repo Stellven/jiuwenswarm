@@ -1,6 +1,8 @@
 """Independent candidate, model-call and protected development-execution joins."""
 import json
 
+from ..builder_mode import builder_mode
+
 from .stages import ResearchChecks, require
 from .prediction_bundle import inspect_bundle
 from ..contracts import validate
@@ -105,6 +107,6 @@ class LoopBuilderChecks(ResearchChecks):
         public = parse_public_dataset(ctx.read_blob(inputs['validation_resource']['files'][0]['artifact_ref']))
         parse_predictions(ctx.read_blob(final['runs'][1]['stdout_ref']), public, max_stdout_bytes=1024*1024)
         declaration = ctx.read_json(ctx.contract['bindings'][0]['declaration_ref'])
-        require(declaration['identity']['version_label'] == 'm1-13'
+        require(builder_mode(declaration) == 'loop'
                 and declaration['needs']['model']['tool_calling'] is False
                 and declaration['budget']['per_call']['invocations'] == 3, 'bounded_development_tests')

@@ -725,6 +725,7 @@ class EvaluationAuthority:
         remaining=min(remaining,execution['deadline']-time.monotonic())
         protected={**{k:context[k] for k in ('run_id','node_id','subnode_id','attempt_id')},'execution_id':grant['execution_id'],'invocation_id':grant['invocation_id'],
             'call_ordinal':ordinal,'call_function':execution['call_function'],'cc_name':execution['declaration']['identity']['name'],'cc_version':execution['declaration']['identity']['version_label'],
+            'declaration':copy.deepcopy(execution['declaration']),
             'contract_ref':grant['contract_ref'],'input_refs':context['input_refs'],'limits':dict(grant['limits'],time_s=remaining),
             'execution_deadline_monotonic_s':execution['deadline'],**{k:runtime[k] for k in ('configuration_ref','model_selection_profile_ref','deployment_ref')},
             'router':copy.deepcopy(self.provider.operator['cc']['router']),'model_selection_profile':selection,'approved_model_ids':selection['approved_model_ids']}

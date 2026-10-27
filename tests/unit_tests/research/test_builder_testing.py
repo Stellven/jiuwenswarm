@@ -94,7 +94,8 @@ def fixture(tmp_path):
                   for name in files], 'dependencies': []}
     manifest_ref = store.put_record('poc-manifest', manifest)
     tests_ref = store.put_blob(test_source)
-    declaration_ref = store.put_record('capsule-declaration', {'identity': {'name': 'research.builder', 'version_label': 'm1-13'},
+    declaration_ref = store.put_record('capsule-declaration', {'identity': {'name': 'research.builder', 'version_label': 'm1-13', 'carrier': {'ref': 'builder_loop.py'}},
+        'needs': {'model': {'tool_calling': False}}, 'budget': {'per_call': {'tool_calls': 0}},
         'ports': {'inputs': [{'name': name} for name in ('blueprint', 'lock', 'validation_resource')]}})
     contract = {'run_id': 'run-1', 'node_id': 'builder', 'attempt_id': 'builder-a1',
         'inputs': [{'name': 'blueprint', 'artifact_refs': [blueprint_ref]},
@@ -224,9 +225,9 @@ async def test_builder_test_rejects_wrong_admitted_builder_release_before_effect
      manifest_ref, tests_ref) = fixture(tmp_path)
     ref = contract['bindings'][0]['declaration_ref']
     declaration = store.read_record(ref)
-    declaration['identity']['version_label'] = 'm1-12'
+    declaration['identity']['carrier']['ref'] = 'builder_text.py'
     contract['bindings'][0]['declaration_ref'] = store.put_record('capsule-declaration', declaration)
-    with pytest.raises(ResearchError, match='m1-13'):
+    with pytest.raises(ResearchError, match='loop Builder'):
         await service.test(contract, inputs, binding=binding, manifest_ref=manifest_ref,
             tests_ref=tests_ref, ordinal=1)
     assert adapter.provision_calls == [] and executor.jobs == []

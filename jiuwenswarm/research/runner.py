@@ -388,6 +388,7 @@ class CapsuleRunner:
                    'invocation_id':execution['invocation_id'],'execution_id':context['execution_id'],
                    'call_ordinal':context.get('call_ordinal'),'call_function':execution['call_function'],
                    'cc_name':execution['declaration']['identity']['name'],'cc_version':execution['declaration']['identity']['version_label'],
+                   'declaration':copy.deepcopy(execution['declaration']),
                    'contract_ref':execution['contract_ref'],'input_refs':contract['input_refs'],
                    'limits':dict(binding['limits'],time_s=remaining),
                    'execution_deadline_monotonic_s':deadline,
