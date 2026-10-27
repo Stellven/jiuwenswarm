@@ -306,7 +306,7 @@ class CapsuleRunner:
         except (ValueError,UnicodeError):deployment=None
         if isinstance(deployment,dict) and deployment.get('schema')=='ai4r-fixed-subscription:1':
             if (set(deployment)!={'schema','id','route_id','requested_model','endpoint'}
-                    or deployment['route_id']!='codex-cli-default' or deployment['requested_model']!='gpt-6.1-sol'
+                    or deployment['route_id']!='codex-cli-default' or deployment['requested_model'] not in {'gpt-6.1-sol','gpt-6-luna'}
                     or deployment['endpoint']!='local-protected-IPC'):
                 raise ResearchError('deployment_binding','Unsupported fixed subscription deployment')
             value['requested_model']=deployment['requested_model']

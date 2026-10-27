@@ -123,7 +123,7 @@ class CalibrationAuthority:
         self.requested_model=(deployment.get('requested_model')
             if isinstance(deployment,dict) and deployment.get('schema')=='ai4r-fixed-subscription:1' else None)
         if self.requested_model is not None:
-            require(self.requested_model=='gpt-6.1-sol','Local fixed deployment requires the exact GPT-6.1 Sol model')
+            require(self.requested_model in {'gpt-6.1-sol','gpt-6-luna'},'Local fixed deployment requires an exact supported model')
         from importlib.resources import files
         catalog=json.loads(files('jiuwenswarm.research_assets').joinpath('catalog.json').read_text('utf-8'))
         entry=catalog['capsules']['verifier'];raw=store.read_blob(self.runtime['verifier_declaration_ref'])
