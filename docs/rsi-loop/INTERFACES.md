@@ -133,6 +133,35 @@ working.
 - Publication must handle every terminal state (success, partial, interrupted,
   startup failure) from retained evidence without re-execution.
 
+## Decisions recorded after the first wave (2026-10-27)
+
+- Every ref in session results is an `{id, sha256}` dict; there is no separate
+  `candidate_sha256`.
+- Fixture sets are `public` (unchanged 4/5 baseline), `public_extended` and
+  `held_out`; the full tagged list comes from
+  `targets/capsule_objective.evaluation_fixtures(name)`. Fixture JSON lives
+  under `capsule_extensions/<name>/fixtures/` and never enters the runtime
+  package.
+- `score()` returns extra keys (`rule`, `slower_above_noise`, `case_counts`,
+  `newly_passed`, `newly_failed`); the whole dict is passed through.
+- `loop.noise` = `{method, trials, parent_wall_s_trials, floor_ratio, objective}`.
+- Iterative grants are schema `ai4r-rsi-whole-capsule-development-grant:3`
+  with `max_executions = loop_execution_budget(...)` (cases × (parent trials +
+  trials × iterations)); v2/v1 grants and results are read unchanged.
+- Visible results are v2 with `result_ref`, per-row `evidence_ref`/`input_ref`/
+  `program_ref`/`bootstrap_schema`, and a 16 KiB-capped `actual_task_output`
+  on public rows only; `scope: "local_unprotected"` rows come from
+  `LocalDispatcher` and are never publishable as protected results.
+- Dispatcher selection is `dispatcher_for(config['evaluator'], ...)` with
+  `"local"` | `"v18-bwrap"`; a missing key means the protected path.
+- Loop work contexts are `rsi-development:<id>:<role>:<k>` for k ≥ 2, from
+  `capsule_loop.loop_run_context_ids()`.
+- Projection lineage block is `ai4r-cc-rsi-lineage:1` built by
+  `cc_rsi_projection.project_loop(result, node_ids=, parent_node_id=)`; the
+  publisher must create one node + candidates row per iteration candidate.
+- Slot readiness needs a `phase` field: READY / BLOCKED / CLAIMED / LAUNCHED /
+  PREPARING / FAILED, on `target.run` and the catalog `run`.
+
 ## Test & tooling conventions
 
 - Run focused suites with:
