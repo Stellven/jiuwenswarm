@@ -1,0 +1,50 @@
+{
+  "schema": "ai4r-spark-pool-selection:2",
+  "models": [
+    {
+      "id": "qwen",
+      "repository": "ggml-org/Qwen3.8-27B-GGUF",
+      "revision": "a316ea527fde32c12487be7574e2db5ac2ad2a7e",
+      "file": "Qwen3.8-27B-Q4_K_M.gguf",
+      "bytes": 18973870528,
+      "sha256": "c600de0300ae8a0eb3a6c0b8b5561b8b96f16bd2c863c2a66c42de29d391a747",
+      "context_tokens": 16384,
+      "memory_limit": "25g",
+      "port": 8012,
+      "role": "General text, routine work, selector and independent verifier"
+    },
+    {
+      "id": "lightning",
+      "repository": "ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
+      "revision": "8cd082170ed313484be1cf44f256a5caa2cfdad3",
+      "file": "NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Q4_0.gguf",
+      "bytes": 18898091584,
+      "sha256": "61f87e75974e4b535dcdf9aad056541a9514f1dfa4538b463b081d19b7a00e3c",
+      "context_tokens": 16384,
+      "memory_limit": "24g",
+      "port": 8011,
+      "role": "Efficient local reasoning and technical work"
+    },
+    {
+      "id": "gptoss",
+      "repository": "ggml-org/gpt-oss-120b-GGUF",
+      "revision": "7200b74bea78b0a2964ef9f3897eefa401e890ff",
+      "file": "gpt-oss-120b-MXFP4.gguf",
+      "bytes": 63387346208,
+      "sha256": "582bd40f6886200101f4c4ed9f25f3fe80cc14c86e9e2b37746cd8904a0c622d",
+      "context_tokens": 16384,
+      "memory_limit": "67g",
+      "port": 8013,
+      "role": "Stronger local reasoning; native MXFP4 checkpoint"
+    }
+  ],
+  "sources": [
+    "https://huggingface.co/Qwen/Qwen3.8-27B",
+    "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
+    "https://developers.openai.com/cookbook/articles/gpt-oss/run-vllm",
+    "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF",
+    "https://huggingface.co/ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
+    "https://huggingface.co/ggml-org/gpt-oss-120b-GGUF"
+  ],
+  "qualification": "Candidates selected for single-Spark memory and technical task suitability; not claimed best or benchmark-qualified before measurements. Quantizations must be reported."
+}

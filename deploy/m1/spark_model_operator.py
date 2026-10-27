@@ -30,6 +30,38 @@ MODELS = (
 )
 
 
+def selection_v2(generation=2):
+    if generation not in {2, 3}:
+        raise ValueError('Unknown pinned pool generation')
+    value = globals().get('SPARK_POOL_SELECTION' if generation == 2 else 'SPARK_POOL_SELECTION_V3')
+    if value is None:
+        value = json.loads(Path(__file__).with_name('spark-pool-v'+str(generation)+'.json').read_text(encoding='utf-8'))
+    if value.get('schema') != 'ai4r-spark-pool-selection:'+str(generation) or len(value.get('models', [])) != 3:
+        raise ValueError('Invalid repository Spark pool selection')
+    return value
+
+
+def configure_v2(p, data_root, docker, checked, *, share_address=None, generation=3):
+    hardware(p, docker, require_docker=False)
+    root = checked(Path(data_root))
+    if not root.is_absolute() or str(root) in {'/', '/home', '/tmp', '/var'}:
+        raise ValueError('Specify a dedicated absolute model directory')
+    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if root.stat().st_uid != os.geteuid() or root.stat().st_mode & 0o022:
+        raise ValueError('Model directory must be operator owned and not publicly writable')
+    addresses = ['127.0.0.1']
+    if share_address:
+        address = ipaddress.ip_address(share_address)
+        if not isinstance(address, ipaddress.IPv4Address) or address not in ipaddress.ip_network('100.64.0.0/10'):
+            raise ValueError('Shared inference requires an explicit Tailscale IPv4')
+        addresses.append(str(address))
+    models = [dict(row, served_model='ai4r-'+row['id']+'-'+row['revision'][:12]) for row in selection_v2(generation)['models']]
+    return {'schema': 'ai4r-spark-pool:2', 'selection_generation':generation, 'data_root': str(root), 'models': models,
+        'shared_access': {'bind_addresses': addresses, 'ports': {row['id']: row['port'] for row in models}},
+        'images': {'llama': LLAMA_IMAGE}, 'prepared': False,
+        'qualification': 'public model selection; actual worker qualification must be measured'}
+
+
 def hardware(p, docker, *, require_docker=True):
     if platform.system() != 'Linux' or platform.machine() not in {'aarch64', 'arm64'} or p['platform'] != 'linux/arm64':
         raise ValueError('The local pool must be configured on the ARM64 Spark execution host')
@@ -114,14 +146,20 @@ def fetch_weights(p, docker, checked, publish, canonical):
     """Resumable public downloads on Spark, independent of Docker/GPU loading."""
     hardware(p,docker,require_docker=False)
     pool=p.get('local_pool')
-    if not pool or pool.get('schema')!='ai4r-spark-pool:1':
+    if not pool or pool.get('schema') not in {'ai4r-spark-pool:1', 'ai4r-spark-pool:2'}:
         raise ValueError('Configure the local pool first')
     root=checked(pool['data_root'])
     selected=[]
     for model in pool['models']:
-        if ((model['id'],model['repository'],model['file']) not in MODELS
+        accepted = MODELS if pool['schema'] == 'ai4r-spark-pool:1' else tuple(
+            (row['id'], row['repository'], row['file']) for row in selection_v2(pool.get('selection_generation',2))['models'])
+        if ((model['id'],model['repository'],model['file']) not in accepted
                 or not re.fullmatch('[a-f0-9]{40}',model['revision'])):
             raise ValueError('Unknown pinned model download')
+        if pool['schema'] == 'ai4r-spark-pool:2':
+            expected = next(row for row in selection_v2(pool.get('selection_generation',2))['models'] if row['id'] == model['id'])
+            if any(model.get(key) != expected[key] for key in ('repository', 'revision', 'file', 'sha256', 'bytes')):
+                raise ValueError('Repository model selection differs from operator pin')
         repo=model['repository']; revision=model['revision']
         with urlopen('https://huggingface.co/api/models/'+repo+'/revision/'+revision+'?blobs=true',timeout=30) as response:
             metadata=json.loads(response.read(8*1024*1024))
@@ -196,7 +234,7 @@ def fetch_weights(p, docker, checked, publish, canonical):
 def prepare(p, docker, checked, publish, canonical):
     info = hardware(p, docker)
     pool = p.get('local_pool')
-    if not pool or pool.get('schema') != 'ai4r-spark-pool:1':
+    if not pool or pool.get('schema') not in {'ai4r-spark-pool:1', 'ai4r-spark-pool:2'}:
         raise ValueError('Configure the local pool before preparing it')
     if pool.get('prepared'):
         return pool
@@ -211,7 +249,9 @@ def prepare(p, docker, checked, publish, canonical):
     fetch_weights(p,docker,checked,publish,canonical)
     for name in ('models', 'cache', 'cache/huggingface', 'cache/vllm', 'cache/triton', 'cache/flashinfer', 'cache/tmp'):
         checked(root / name).mkdir(mode=0o700, parents=True, exist_ok=True)
-    for key, tag in (('llama', LLAMA_IMAGE), ('bolt', BOLT_IMAGE), ('vllm', VLLM_IMAGE)):
+    images = (('llama', LLAMA_IMAGE),) if pool['schema'] == 'ai4r-spark-pool:2' else (
+        ('llama', LLAMA_IMAGE), ('bolt', BOLT_IMAGE), ('vllm', VLLM_IMAGE))
+    for key, tag in images:
         docker(p, 'pull', '--platform', 'linux/arm64', tag, timeout=7200)
         image = json.loads(docker(p, 'image', 'inspect', tag))[0]
         if image['Architecture'] != 'arm64':
@@ -225,7 +265,7 @@ def prepare(p, docker, checked, publish, canonical):
 def endpoint_configuration(pool):
     return {'schema': 'ai4r-local-model-endpoints:1', 'models': [
         {'id': row['id'], 'base_url': 'http://ai4r-model-' + row['id'] + ':8000/v1',
-         'served_model': row['served_model'], 'context_tokens': 65536,
+         'served_model': row['served_model'], 'context_tokens': row.get('context_tokens', 65536),
          'output_tokens': 8192, 'enabled': True} for row in pool['models']]}
 
 
@@ -234,6 +274,8 @@ def preflight_start(p, docker):
     pool=p['local_pool']
     if not pool.get('prepared'):
         raise ValueError('Run local-pool prepare before starting AI4R')
+    if pool.get('schema') == 'ai4r-spark-pool:2':
+        return preflight_v2(p, docker)
     memory={key:int(value.strip().split()[0])*1024 for key,value in
         (line.split(':',1) for line in Path('/proc/meminfo').read_text().splitlines())
         if key in {'MemTotal','MemAvailable'}}
@@ -280,6 +322,8 @@ def apply_compose(p, result):
     pool = p['local_pool']
     if not pool.get('prepared'):
         raise ValueError('Run local-pool prepare before starting AI4R')
+    if pool.get('schema') == 'ai4r-spark-pool:2':
+        return apply_compose_v2(p, result)
     root = Path(pool['data_root'])
     for row in pool['models']:
         ident = row['id']
@@ -339,6 +383,75 @@ def apply_compose(p, result):
     app['environment']['JIUWENSWARM_M1_LOCAL_MODELS'] = '/run/ai4r-local-pool/models.json'
     app['volumes'].append({'type': 'volume', 'source': 'local_pool_config', 'target': '/run/ai4r-local-pool', 'read_only': True})
     app.setdefault('depends_on', {}).update({'ai4r-model-' + ident: {'condition': 'service_started'} for ident, _, _ in MODELS})
+
+
+def preflight_v2(p, docker):
+    pool = p['local_pool']
+    root = Path(pool['data_root'])
+    available = int(next(line.split()[1] for line in Path('/proc/meminfo').read_text().splitlines()
+        if line.startswith('MemAvailable:'))) * 1024
+    needed = 12 * GIB
+    new = []
+    for model in pool['models']:
+        name = p['project']+'-ai4r-model-'+model['id']+'-1'
+        rows = docker(p, 'ps', '--filter', 'name=^/'+name+'$', '--format', '{{.ID}}').decode().split()
+        if rows:
+            observed = json.loads(docker(p, 'inspect', rows[0]))[0]
+            if (observed['Image'] != pool['images']['llama']
+                    or observed['Config']['Labels'].get('ai4r.deployment') != p['deployment_id']):
+                raise ValueError('Existing model service differs from the prepared deployment')
+            continue
+        file = root/'models'/model['id']/model['file']
+        if not file.is_file() or file.is_symlink() or file.stat().st_size != model['bytes']:
+            raise ValueError('Pinned model file is missing: '+model['id'])
+        needed += model['bytes']
+        new.append(model['id'])
+    if available < needed:
+        raise ValueError('Insufficient Spark memory: available '+str(round(available/GIB,1))+
+            ' GiB; startup estimate '+str(round(needed/GIB,1))+' GiB. No other workloads stopped.')
+    return {'available_bytes': available, 'minimum_estimate_bytes': needed,
+        'new_models': new, 'peak_usage': 'not_measured'}
+
+
+def apply_compose_v2(p, result):
+    pool = p['local_pool']; root = Path(pool['data_root'])
+    for row in pool['models']:
+        ident = row['id']
+        command = ['--model', '/models/'+row['file'], '--alias', row['served_model'],
+            '--host', '0.0.0.0', '--port', '8000', '--ctx-size', str(row['context_tokens']),
+            '--parallel', '1', '--batch-size', '512', '--ubatch-size', '128',
+            '--n-gpu-layers', '999', '--jinja', '--flash-attn', 'on', '--fit', 'off',
+            '--cache-type-k', 'q8_0', '--cache-type-v', 'q8_0', '--no-warmup',
+            '--reasoning-format', 'deepseek', '--reasoning-budget', '0' if ident == 'qwen' else '2048',
+            '--temp', '0', '--no-webui']
+        service = {'image': pool['images']['llama'], 'platform': 'linux/arm64', 'init': True,
+            'restart': 'unless-stopped', 'user': f'{os.geteuid()}:{os.getegid()}', 'command': command,
+            'mem_limit': row['memory_limit'], 'pids_limit': 512, 'shm_size': '1g',
+            'cap_drop': ['ALL'], 'security_opt': ['no-new-privileges:true'], 'networks': ['private'],
+            'environment': {'HOME':'/cache', 'TMPDIR':'/cache/tmp', 'XDG_CACHE_HOME':'/cache/xdg',
+                'CUDA_CACHE_PATH':'/cache/cuda'},
+            'volumes': [{'type':'bind','source':str(root/'models'/ident),'target':'/models','read_only':True,
+                'bind':{'create_host_path':False}}, {'type':'bind','source':str(root/'cache'),
+                'target':'/cache','bind':{'create_host_path':False}}],
+            'logging': {'driver':'json-file','options':{'max-size':'10m','max-file':'2'}},
+            'healthcheck': {'test':['CMD','curl','--fail','--silent','--max-time','3','http://127.0.0.1:8000/health'],
+                'interval':'10s','timeout':'5s','start_period':'10m','retries':90},
+            'labels': {'ai4r.owner':p['project'],'ai4r.deployment':p['deployment_id'],'ai4r.component':'model-'+ident}}
+        if pool.get('gpu_access') == 'cdi':
+            service['devices'] = ['nvidia.com/gpu=all']
+        else:
+            service['deploy']={'resources':{'reservations':{'devices':[{'driver':'nvidia','count':1,'capabilities':['gpu']}]}}}
+        sharing = pool.get('shared_access')
+        if sharing:
+            service['ports']=[{'target':8000,'published':str(sharing['ports'][ident]),'host_ip':address,'protocol':'tcp'}
+                for address in sharing['bind_addresses']]
+        result['services']['ai4r-model-'+ident]=service
+    labels={'ai4r.owner':p['project'],'ai4r.deployment':p['deployment_id']}
+    result['volumes']['local_pool_config']={'name':p['project']+'_local_pool_config','labels':labels}
+    app=result['services']['ai4r']
+    app['environment']['JIUWENSWARM_M1_LOCAL_MODELS']='/run/ai4r-local-pool/models.json'
+    app['volumes'].append({'type':'volume','source':'local_pool_config','target':'/run/ai4r-local-pool','read_only':True})
+    app.setdefault('depends_on',{}).update({'ai4r-model-'+row['id']:{'condition':'service_healthy'} for row in pool['models']})
 
 
 def provision(p, docker, canonical):

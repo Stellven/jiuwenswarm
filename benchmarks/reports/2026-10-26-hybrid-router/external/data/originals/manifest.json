@@ -1,0 +1,630 @@
+{
+  "schema": "ai4r-original-public-artifacts:1",
+  "scope": "Original public requests, worker answers and frozen campaign metadata; no full diagnostic receipts.",
+  "files": [
+    {
+      "path": "chatgpt/plan.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/plan.json",
+      "sha256": "0592e643818e10efe016a37b8c715a5e9424ba8a0bc7402c1ad5e093da1049ef",
+      "bytes": 20558
+    },
+    {
+      "path": "chatgpt/plan-pin.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/plan-pin.json",
+      "sha256": "e762238a802369aca85e16582822b4d150ad81b43ce622e47e8f009097878240",
+      "bytes": 78
+    },
+    {
+      "path": "chatgpt/launched.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/launched.json",
+      "sha256": "335ec28ff3f1efaf98e23385bcfe73e926e85061ab73b3cdc417fcf264fc00ab",
+      "bytes": 336
+    },
+    {
+      "path": "chatgpt/finished.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/finished.json",
+      "sha256": "aca0ab0e7a6a67d34bf24eb9df93e12076580e649a06e4212889d9244d39fd64",
+      "bytes": 61
+    },
+    {
+      "path": "chatgpt/c01-inference-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r0/request.json",
+      "sha256": "9f59e06e58dbbb22f7a3ccb7e633d9c6a67848447bc16aea183e7763482b7f13",
+      "bytes": 662
+    },
+    {
+      "path": "chatgpt/c01-inference-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r0/original.txt",
+      "sha256": "997d3c80cf317bc1e3f6395f428da4e98a1cb2366d46aded81608c471552446e",
+      "bytes": 44
+    },
+    {
+      "path": "chatgpt/c01-inference-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r1/request.json",
+      "sha256": "090b0a3fbb4b5fc208e0c56967eae5a7a23d1615d74ba21e3f50c5c5e3c41604",
+      "bytes": 662
+    },
+    {
+      "path": "chatgpt/c01-inference-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r1/original.txt",
+      "sha256": "997d3c80cf317bc1e3f6395f428da4e98a1cb2366d46aded81608c471552446e",
+      "bytes": 44
+    },
+    {
+      "path": "chatgpt/c01-inference-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r2/request.json",
+      "sha256": "873a58d2274d0a0fb91a998e503f7e1f35c457ec31b5531fb1d7aab22311d8fe",
+      "bytes": 662
+    },
+    {
+      "path": "chatgpt/c01-inference-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r2/original.txt",
+      "sha256": "997d3c80cf317bc1e3f6395f428da4e98a1cb2366d46aded81608c471552446e",
+      "bytes": 44
+    },
+    {
+      "path": "chatgpt/c02-retrieval-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r0/request.json",
+      "sha256": "7703625de5805536aa4452a554b04e6e78978d40da2eb01817016eaee947e313",
+      "bytes": 610
+    },
+    {
+      "path": "chatgpt/c02-retrieval-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r0/original.txt",
+      "sha256": "20138c30a59ead362fefe1682e5400bbaf0be53272b3fb96e7c13ec9cfe61c15",
+      "bytes": 31
+    },
+    {
+      "path": "chatgpt/c02-retrieval-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r1/request.json",
+      "sha256": "9290ab54014c391fa2dee437185fde3df3cb49650724a7d8a03edf45afef9398",
+      "bytes": 610
+    },
+    {
+      "path": "chatgpt/c02-retrieval-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r1/original.txt",
+      "sha256": "20138c30a59ead362fefe1682e5400bbaf0be53272b3fb96e7c13ec9cfe61c15",
+      "bytes": 31
+    },
+    {
+      "path": "chatgpt/c02-retrieval-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r2/request.json",
+      "sha256": "441235fb7b6804ad4ad9ccf5bd562e10a34ea3b8fc935b32417fbe22f1f2e102",
+      "bytes": 610
+    },
+    {
+      "path": "chatgpt/c02-retrieval-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r2/original.txt",
+      "sha256": "20138c30a59ead362fefe1682e5400bbaf0be53272b3fb96e7c13ec9cfe61c15",
+      "bytes": 31
+    },
+    {
+      "path": "chatgpt/c03-shortest-path-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r0/request.json",
+      "sha256": "b82ddd996f33d22a923222d7629006a82cec67dda4d5f80ce82b462a29f53e2b",
+      "bytes": 595
+    },
+    {
+      "path": "chatgpt/c03-shortest-path-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r0/original.txt",
+      "sha256": "51451e9480644c583186bf77521360cca9c23636c632f0cfb7b7fc402195ecba",
+      "bytes": 35
+    },
+    {
+      "path": "chatgpt/c03-shortest-path-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r1/request.json",
+      "sha256": "470b06909e21370272d8db1158648e2a01d27715885728bd9bdb7b0bc12cf89f",
+      "bytes": 595
+    },
+    {
+      "path": "chatgpt/c03-shortest-path-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r1/original.txt",
+      "sha256": "51451e9480644c583186bf77521360cca9c23636c632f0cfb7b7fc402195ecba",
+      "bytes": 35
+    },
+    {
+      "path": "chatgpt/c03-shortest-path-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r2/request.json",
+      "sha256": "6714f5224745a95848bc6084ad65bcba0ffa46c0757cd2ca52569bc7f93660a1",
+      "bytes": 595
+    },
+    {
+      "path": "chatgpt/c03-shortest-path-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r2/original.txt",
+      "sha256": "51451e9480644c583186bf77521360cca9c23636c632f0cfb7b7fc402195ecba",
+      "bytes": 35
+    },
+    {
+      "path": "chatgpt/c04-performance-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r0/request.json",
+      "sha256": "3f932aaf42a54cdd44d731792e585b28b8aca913c45ead338c660d5793d9375c",
+      "bytes": 752
+    },
+    {
+      "path": "chatgpt/c04-performance-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r0/original.txt",
+      "sha256": "f1acc4636a6f53a2fbf19c3025952062f1e014e524200922108224049ed421d8",
+      "bytes": 84
+    },
+    {
+      "path": "chatgpt/c04-performance-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r1/request.json",
+      "sha256": "142883f05d7b6e681fa7b81f37c0662b1362e04bca42b773f3ee26d43a54981a",
+      "bytes": 752
+    },
+    {
+      "path": "chatgpt/c04-performance-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r1/original.txt",
+      "sha256": "f1acc4636a6f53a2fbf19c3025952062f1e014e524200922108224049ed421d8",
+      "bytes": 84
+    },
+    {
+      "path": "chatgpt/c04-performance-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r2/request.json",
+      "sha256": "6f1c5cbde6d172bbecadc6f65b22694d0a5f1af3837279e2ccf68b18ea4c4b9a",
+      "bytes": 752
+    },
+    {
+      "path": "chatgpt/c04-performance-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r2/original.txt",
+      "sha256": "f1acc4636a6f53a2fbf19c3025952062f1e014e524200922108224049ed421d8",
+      "bytes": 84
+    },
+    {
+      "path": "chatgpt/c05-database-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r0/request.json",
+      "sha256": "107a438ca6fd7efe150573f302ec1a0a8f2a524122fec34f2b474f8f6155be45",
+      "bytes": 705
+    },
+    {
+      "path": "chatgpt/c05-database-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r0/original.txt",
+      "sha256": "d79bbe2c016ca09b9dba9b35c14146c8b928a54d7c00cea503428978a594f8f5",
+      "bytes": 39
+    },
+    {
+      "path": "chatgpt/c05-database-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r1/request.json",
+      "sha256": "5e6bf69af280451eaa7d95bc930350b1a2f764b20dd51ceb991ece6ba94572af",
+      "bytes": 705
+    },
+    {
+      "path": "chatgpt/c05-database-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r1/original.txt",
+      "sha256": "d79bbe2c016ca09b9dba9b35c14146c8b928a54d7c00cea503428978a594f8f5",
+      "bytes": 39
+    },
+    {
+      "path": "chatgpt/c05-database-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r2/request.json",
+      "sha256": "bae510cef4edb1973f4187be0808422fe3d55f2cc303facb017071854c0c8b8e",
+      "bytes": 705
+    },
+    {
+      "path": "chatgpt/c05-database-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r2/original.txt",
+      "sha256": "d79bbe2c016ca09b9dba9b35c14146c8b928a54d7c00cea503428978a594f8f5",
+      "bytes": 39
+    },
+    {
+      "path": "chatgpt/c06-quorum-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r0/request.json",
+      "sha256": "d7f3c47f82366c2a370689712d94a02563ce6d86d39d8f84d953f3794d1d2687",
+      "bytes": 714
+    },
+    {
+      "path": "chatgpt/c06-quorum-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r0/original.txt",
+      "sha256": "75326e003ab7c5663269b8be52d7f7c2f358d9d4eb45f50186356d644b10b07e",
+      "bytes": 93
+    },
+    {
+      "path": "chatgpt/c06-quorum-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r1/request.json",
+      "sha256": "bd1d8653b27d383bb2afa72b9fb922be0068a49b0e429194eeb209669f45e16d",
+      "bytes": 714
+    },
+    {
+      "path": "chatgpt/c06-quorum-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r1/original.txt",
+      "sha256": "75326e003ab7c5663269b8be52d7f7c2f358d9d4eb45f50186356d644b10b07e",
+      "bytes": 93
+    },
+    {
+      "path": "chatgpt/c06-quorum-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r2/request.json",
+      "sha256": "1b15a6fb562be15d3f86cfcccd74d57174e468502116e9f64512cd8bddceef39",
+      "bytes": 714
+    },
+    {
+      "path": "chatgpt/c06-quorum-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r2/original.txt",
+      "sha256": "75326e003ab7c5663269b8be52d7f7c2f358d9d4eb45f50186356d644b10b07e",
+      "bytes": 93
+    },
+    {
+      "path": "chatgpt/c07-reliability-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r0/request.json",
+      "sha256": "ac8b28bda0573cf8d8367ef3153eee6d9a7147ceba9371f7e20cccbd5af30673",
+      "bytes": 973
+    },
+    {
+      "path": "chatgpt/c07-reliability-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r0/original.txt",
+      "sha256": "d4e72629bae23b3beb77495df861d8f68f954aa467c519758c553f169a4497c2",
+      "bytes": 44
+    },
+    {
+      "path": "chatgpt/c07-reliability-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r1/request.json",
+      "sha256": "f5b450f7db1746b270883e32d599f44a219c88ce3e3256815b7eccb71bcb3501",
+      "bytes": 973
+    },
+    {
+      "path": "chatgpt/c07-reliability-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r1/original.txt",
+      "sha256": "d4e72629bae23b3beb77495df861d8f68f954aa467c519758c553f169a4497c2",
+      "bytes": 44
+    },
+    {
+      "path": "chatgpt/c07-reliability-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r2/request.json",
+      "sha256": "939b7382061cee74dade5a53aba4f7854cd74f2a42c9839e2c563e300e33b22e",
+      "bytes": 973
+    },
+    {
+      "path": "chatgpt/c07-reliability-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r2/original.txt",
+      "sha256": "d4e72629bae23b3beb77495df861d8f68f954aa467c519758c553f169a4497c2",
+      "bytes": 44
+    },
+    {
+      "path": "chatgpt/c08-paired-data-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r0/request.json",
+      "sha256": "f36c6732f8d80eb9f4428c6abd3db59ee14d1ad27c4fa9302e26cde58e397c5f",
+      "bytes": 740
+    },
+    {
+      "path": "chatgpt/c08-paired-data-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r0/original.txt",
+      "sha256": "5d3676ac5c49b3b5990e6aa7cbe2013de448b2426c7bdce649daba3d0181b0ef",
+      "bytes": 98
+    },
+    {
+      "path": "chatgpt/c08-paired-data-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r1/request.json",
+      "sha256": "a38e2d5ece0f38a829a9c3bc3fc1573fea13827f05074ac5a6ea894f887206f1",
+      "bytes": 740
+    },
+    {
+      "path": "chatgpt/c08-paired-data-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r1/original.txt",
+      "sha256": "5d3676ac5c49b3b5990e6aa7cbe2013de448b2426c7bdce649daba3d0181b0ef",
+      "bytes": 98
+    },
+    {
+      "path": "chatgpt/c08-paired-data-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r2/request.json",
+      "sha256": "1f42d36454ab4925d2f5c00b64bb4c15508d02ed1458dd8df44864403625bd6c",
+      "bytes": 740
+    },
+    {
+      "path": "chatgpt/c08-paired-data-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r2/original.txt",
+      "sha256": "5d3676ac5c49b3b5990e6aa7cbe2013de448b2426c7bdce649daba3d0181b0ef",
+      "bytes": 98
+    },
+    {
+      "path": "v5/plan.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/plan.json",
+      "sha256": "c6786997e30d4f7b5a414cbc04dd0f8146dfb663f1c0153949227efccc4fc32b",
+      "bytes": 20580
+    },
+    {
+      "path": "v5/plan-pin.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/plan-pin.json",
+      "sha256": "0c162c145702ba1bcfeef617f79b8d48817787013d600b58fd759cba4b2fd91c",
+      "bytes": 78
+    },
+    {
+      "path": "v5/launched.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/launched.json",
+      "sha256": "e2b0385e9b1eec260a939fc7c0f1bf9509132604cab0b47f6187104b01d49d54",
+      "bytes": 336
+    },
+    {
+      "path": "v5/finished.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/finished.json",
+      "sha256": "df0a709175c210f2baea45ac1867e166e6839664ea3669e53e1d9bdce3f5df55",
+      "bytes": 61
+    },
+    {
+      "path": "v5/c01-inference-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r0/request.json",
+      "sha256": "0ba8a7b2143c4b23d358dd61057ecbb3e36c3000cb3a9d2106b9088503df248b",
+      "bytes": 621
+    },
+    {
+      "path": "v5/c01-inference-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r0/original.txt",
+      "sha256": "d42492e977e63b2b2c8d408c8babf75912ea10adf70f1df4ac68f23c9edf5a2e",
+      "bytes": 44
+    },
+    {
+      "path": "v5/c01-inference-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r1/request.json",
+      "sha256": "c4070827c6a750baaebb4c122ef7d754f2600ce4b0490bb8887e98739786d049",
+      "bytes": 621
+    },
+    {
+      "path": "v5/c01-inference-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r1/original.txt",
+      "sha256": "d42492e977e63b2b2c8d408c8babf75912ea10adf70f1df4ac68f23c9edf5a2e",
+      "bytes": 44
+    },
+    {
+      "path": "v5/c01-inference-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r2/request.json",
+      "sha256": "eef18c88713ca502390b7e755c30e56af78eebefbb17874f14d8b769ca5aef68",
+      "bytes": 621
+    },
+    {
+      "path": "v5/c01-inference-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r2/original.txt",
+      "sha256": "d42492e977e63b2b2c8d408c8babf75912ea10adf70f1df4ac68f23c9edf5a2e",
+      "bytes": 44
+    },
+    {
+      "path": "v5/c02-retrieval-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r0/request.json",
+      "sha256": "a28381eef9323639015e991efd7924e3a733cc5693c6c115be87f5f837ece06b",
+      "bytes": 569
+    },
+    {
+      "path": "v5/c02-retrieval-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r0/original.txt",
+      "sha256": "20138c30a59ead362fefe1682e5400bbaf0be53272b3fb96e7c13ec9cfe61c15",
+      "bytes": 31
+    },
+    {
+      "path": "v5/c02-retrieval-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r1/request.json",
+      "sha256": "8be7c6e7917197e315c74dfd8ab39d18b821eee2ed59e7d0ab1c9be5c3cd15e2",
+      "bytes": 569
+    },
+    {
+      "path": "v5/c02-retrieval-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r1/original.txt",
+      "sha256": "20138c30a59ead362fefe1682e5400bbaf0be53272b3fb96e7c13ec9cfe61c15",
+      "bytes": 31
+    },
+    {
+      "path": "v5/c02-retrieval-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r2/request.json",
+      "sha256": "c3c01aab118bdc9791b0e3ecf8c0cd5e7425ce6478fa04f6706252deaf72b25d",
+      "bytes": 569
+    },
+    {
+      "path": "v5/c02-retrieval-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r2/original.txt",
+      "sha256": "20138c30a59ead362fefe1682e5400bbaf0be53272b3fb96e7c13ec9cfe61c15",
+      "bytes": 31
+    },
+    {
+      "path": "v5/c03-shortest-path-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r0/request.json",
+      "sha256": "137cb7d840441b5ac0acce7d707edee12a6b4c06849b71b3e9dc440e0fbe53fe",
+      "bytes": 554
+    },
+    {
+      "path": "v5/c03-shortest-path-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r0/original.txt",
+      "sha256": "51451e9480644c583186bf77521360cca9c23636c632f0cfb7b7fc402195ecba",
+      "bytes": 35
+    },
+    {
+      "path": "v5/c03-shortest-path-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r1/request.json",
+      "sha256": "3ffd5644cf95f8a85e8943ec797cfeebba5e82d1df18693eee7bd079373c2a65",
+      "bytes": 554
+    },
+    {
+      "path": "v5/c03-shortest-path-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r1/original.txt",
+      "sha256": "51451e9480644c583186bf77521360cca9c23636c632f0cfb7b7fc402195ecba",
+      "bytes": 35
+    },
+    {
+      "path": "v5/c03-shortest-path-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r2/request.json",
+      "sha256": "5a00e9dc7eba9257598717ede244914b6312984fd4c53812060f744ae7a04164",
+      "bytes": 554
+    },
+    {
+      "path": "v5/c03-shortest-path-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r2/original.txt",
+      "sha256": "51451e9480644c583186bf77521360cca9c23636c632f0cfb7b7fc402195ecba",
+      "bytes": 35
+    },
+    {
+      "path": "v5/c04-performance-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r0/request.json",
+      "sha256": "4d6e7ed8ab872db0721e89c2a94f37a193d8d514eae852d15b51bbedce2d84e2",
+      "bytes": 711
+    },
+    {
+      "path": "v5/c04-performance-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r0/original.txt",
+      "sha256": "f1acc4636a6f53a2fbf19c3025952062f1e014e524200922108224049ed421d8",
+      "bytes": 84
+    },
+    {
+      "path": "v5/c04-performance-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r1/request.json",
+      "sha256": "0c082dca0efaa075605adef31f3ffe8f8e052c24a3911998a97a33d09ce9819e",
+      "bytes": 711
+    },
+    {
+      "path": "v5/c04-performance-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r1/original.txt",
+      "sha256": "f1acc4636a6f53a2fbf19c3025952062f1e014e524200922108224049ed421d8",
+      "bytes": 84
+    },
+    {
+      "path": "v5/c04-performance-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r2/request.json",
+      "sha256": "aa04b7c1b031f8b3c774e5da3bd6dfd4d6e22376825ad06b0e3567138bdf33c4",
+      "bytes": 711
+    },
+    {
+      "path": "v5/c04-performance-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r2/original.txt",
+      "sha256": "f1acc4636a6f53a2fbf19c3025952062f1e014e524200922108224049ed421d8",
+      "bytes": 84
+    },
+    {
+      "path": "v5/c05-database-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r0/request.json",
+      "sha256": "c1d4d9897cd1ff9a1862d3d8bd0d9a2d26ef5f107889a753a2efc2992f99d6d4",
+      "bytes": 664
+    },
+    {
+      "path": "v5/c05-database-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r0/original.txt",
+      "sha256": "d79bbe2c016ca09b9dba9b35c14146c8b928a54d7c00cea503428978a594f8f5",
+      "bytes": 39
+    },
+    {
+      "path": "v5/c05-database-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r1/request.json",
+      "sha256": "6107c71bcbca3f25e292527b1c46ad5abdad1247db4eec60e4fbd72c1671eb70",
+      "bytes": 664
+    },
+    {
+      "path": "v5/c05-database-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r1/original.txt",
+      "sha256": "d79bbe2c016ca09b9dba9b35c14146c8b928a54d7c00cea503428978a594f8f5",
+      "bytes": 39
+    },
+    {
+      "path": "v5/c05-database-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r2/request.json",
+      "sha256": "02dcf9a6722635fb5bbfcf6793b61cc94a63aee37fc71dba6e1c4fcd5d2c3e90",
+      "bytes": 664
+    },
+    {
+      "path": "v5/c05-database-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r2/original.txt",
+      "sha256": "d79bbe2c016ca09b9dba9b35c14146c8b928a54d7c00cea503428978a594f8f5",
+      "bytes": 39
+    },
+    {
+      "path": "v5/c06-quorum-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r0/request.json",
+      "sha256": "1874b6f96bdcf7a739c55031cbd82f9c66d1d7f1ebbb60f95c79c2fa556620ae",
+      "bytes": 673
+    },
+    {
+      "path": "v5/c06-quorum-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r0/original.txt",
+      "sha256": "75326e003ab7c5663269b8be52d7f7c2f358d9d4eb45f50186356d644b10b07e",
+      "bytes": 93
+    },
+    {
+      "path": "v5/c06-quorum-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r1/request.json",
+      "sha256": "3f28203d308cb2e4c72ec3cec2e9431f47dde9640965fcf5a9a308fc808c203a",
+      "bytes": 673
+    },
+    {
+      "path": "v5/c06-quorum-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r1/original.txt",
+      "sha256": "75326e003ab7c5663269b8be52d7f7c2f358d9d4eb45f50186356d644b10b07e",
+      "bytes": 93
+    },
+    {
+      "path": "v5/c06-quorum-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r2/request.json",
+      "sha256": "9663b27d33f16110eea0932c722a52de2c947f8b75f54bed5fd9a5548be74382",
+      "bytes": 673
+    },
+    {
+      "path": "v5/c06-quorum-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r2/original.txt",
+      "sha256": "75326e003ab7c5663269b8be52d7f7c2f358d9d4eb45f50186356d644b10b07e",
+      "bytes": 93
+    },
+    {
+      "path": "v5/c07-reliability-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r0/request.json",
+      "sha256": "2fd494641ac8ae8e43203577de5e23de1b74e02cc4dda76d19b77deb960946b9",
+      "bytes": 932
+    },
+    {
+      "path": "v5/c07-reliability-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r0/original.txt",
+      "sha256": "d4e72629bae23b3beb77495df861d8f68f954aa467c519758c553f169a4497c2",
+      "bytes": 44
+    },
+    {
+      "path": "v5/c07-reliability-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r1/request.json",
+      "sha256": "26129a307d1a42572ae101344cb8e46942e472fc00b75916574cc1474de64967",
+      "bytes": 932
+    },
+    {
+      "path": "v5/c07-reliability-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r1/original.txt",
+      "sha256": "d4e72629bae23b3beb77495df861d8f68f954aa467c519758c553f169a4497c2",
+      "bytes": 44
+    },
+    {
+      "path": "v5/c07-reliability-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r2/request.json",
+      "sha256": "49de379f0de422a6c6b3f3ce7169bde60fcf21b4c89c804a377a21702cc37de8",
+      "bytes": 932
+    },
+    {
+      "path": "v5/c07-reliability-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r2/original.txt",
+      "sha256": "d4e72629bae23b3beb77495df861d8f68f954aa467c519758c553f169a4497c2",
+      "bytes": 44
+    },
+    {
+      "path": "v5/c08-paired-data-r0/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r0/request.json",
+      "sha256": "aeea7cbd584c09e6dc71fafae1c7c79ab156e5a5cc76624fee018880a1b799a6",
+      "bytes": 699
+    },
+    {
+      "path": "v5/c08-paired-data-r0/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r0/original.txt",
+      "sha256": "5d3676ac5c49b3b5990e6aa7cbe2013de448b2426c7bdce649daba3d0181b0ef",
+      "bytes": 98
+    },
+    {
+      "path": "v5/c08-paired-data-r1/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r1/request.json",
+      "sha256": "7b5aa696d67330bda412ec59bdc93d6a68f8645f0cdb11b359d95116c1b6100b",
+      "bytes": 699
+    },
+    {
+      "path": "v5/c08-paired-data-r1/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r1/original.txt",
+      "sha256": "5d3676ac5c49b3b5990e6aa7cbe2013de448b2426c7bdce649daba3d0181b0ef",
+      "bytes": 98
+    },
+    {
+      "path": "v5/c08-paired-data-r2/request.json",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r2/request.json",
+      "sha256": "c05d6ebce24f294fad87a4e6de72a27cd82330f35df7cfe93533d1147bd49fb0",
+      "bytes": 699
+    },
+    {
+      "path": "v5/c08-paired-data-r2/original.txt",
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r2/original.txt",
+      "sha256": "5d3676ac5c49b3b5990e6aa7cbe2013de448b2426c7bdce649daba3d0181b0ef",
+      "bytes": 98
+    }
+  ]
+}

@@ -36,7 +36,7 @@ export function ResearchModelsSettings() {
   const apply = useCallback((value: Snapshot, preserveDraft = false) => {
     setSnapshot(value);
     if (!preserveDraft || !initialized.current || !dirtyDraft.current) {
-      setMode(value.selected_id === 'auto' ? 'auto' : 'codex');
+      setMode(['auto', 'chatgpt_ai4r'].includes(value.selected_id) ? value.selected_id : 'codex');
       setChatgptModel(value.chatgpt_model ?? '');
     }
     initialized.current = true;
@@ -102,15 +102,16 @@ export function ResearchModelsSettings() {
               disabled={disabled}
               options={[
                 { value: 'auto', label: t('researchModels.localMode') },
+                { value: 'chatgpt_ai4r', label: t('researchModels.ai4rReference') },
                 { value: 'codex', label: t('researchModels.chatgptBaseline') },
               ]}
               aria-label={t('researchModels.executionMode')}
               data-testid="settings-research-model-mode"
             />
           </SettingRow>
-          {mode === 'auto' && (
+          {(mode === 'auto' || mode === 'chatgpt_ai4r') && (
             <>
-              {(snapshot?.local_models ?? []).filter((model) => model.id === 'qwen').map((model) => (
+              {(snapshot?.local_models ?? []).filter((model) => ['gptoss20', 'lightning', 'gptoss'].includes(model.id)).map((model) => (
                 <SettingRow
                   key={model.id}
                   title={model.name}

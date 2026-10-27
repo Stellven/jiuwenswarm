@@ -1,0 +1,1 @@
+{"at": 1793050578.417657, "base_commit": "b983328d62fd8c5bfe7825bc6dd259f31e39ba85", "container": "ai4r-spark-ai4r-1", "host": "gx10-004d", "image_id": "sha256:dc0de7065dd5b8362c3c9b4fc4a9a8640bd18fc875eae06393a3dae635b5ed4d", "source_status": "image ID and controller hash identify actual source; base commit may have source overlays"}

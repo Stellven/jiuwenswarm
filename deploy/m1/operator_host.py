@@ -39,7 +39,14 @@ def spark_model_operator():
     source = globals().get('SPARK_MODEL_OPERATOR_SOURCE')
     if source is None:
         source = Path(__file__).with_name('spark_model_operator.py').read_text(encoding='utf-8')
-    namespace = {'__name__': 'ai4r_spark_model_operator'}
+    selection = globals().get('SPARK_POOL_SELECTION')
+    if selection is None:
+        selection = json.loads(Path(__file__).with_name('spark-pool-v2.json').read_text(encoding='utf-8'))
+    selection3 = globals().get('SPARK_POOL_SELECTION_V3')
+    if selection3 is None:
+        selection3 = json.loads(Path(__file__).with_name('spark-pool-v3.json').read_text(encoding='utf-8'))
+    namespace = {'__name__': 'ai4r_spark_model_operator', 'SPARK_POOL_SELECTION': selection,
+        'SPARK_POOL_SELECTION_V3':selection3}
     exec(compile(source, '<repository-spark-model-operator>', 'exec'), namespace)
     return namespace
 
@@ -507,16 +514,24 @@ def dispatch(r):
                 previous['local_model'] = selected
                 publish(root / 'deployment.json', canonical(previous), replace=True)
                 return {'configured': True, 'deployment': previous, 'activated': False}
-        if action in {'local-pool-configure', 'local-pool-prepare', 'local-pool-weights'}:
+        if action in {'local-pool-configure', 'local-pool-migrate', 'local-pool-prepare', 'local-pool-weights'}:
             with lock(root / 'execution.lock'):
                 assert_idle(p)
                 assert_app_idle(p)
                 previous = json.loads((root / 'deployment.json').read_bytes())
                 helper = spark_model_operator()
-                if action == 'local-pool-configure':
+                if action == 'local-pool-migrate':
+                    old = previous.get('local_pool')
+                    if (not old or old.get('schema') not in {'ai4r-spark-pool:1','ai4r-spark-pool:2'}
+                            or old.get('selection_generation')==3):
+                        raise ValueError('Migration requires an older pinned local pool')
+                    previous.setdefault('retired_local_pools', []).append(old)
+                    previous['local_pool'] = helper['configure_v2'](previous, r['data_root'], docker, checked,
+                        share_address=r.get('share_address'))
+                elif action == 'local-pool-configure':
                     if previous.get('local_pool'):
                         raise ValueError('Local pool is already pinned; retain it or explicitly migrate the idle deployment')
-                    previous['local_pool'] = helper['configure'](previous, r['data_root'], docker, checked,
+                    previous['local_pool'] = helper['configure_v2'](previous, r['data_root'], docker, checked,
                         share_address=r.get('share_address'))
                 elif action=='local-pool-weights':
                     previous['local_pool'] = helper['fetch_weights'](previous, docker, checked, publish, canonical)

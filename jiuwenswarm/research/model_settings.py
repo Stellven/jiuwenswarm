@@ -143,7 +143,7 @@ class ModelSettingsOwner:
                     'base_url':'','platform_id':'operator-local','platform_name':'Local endpoint',
                     'requires_api_key':False,'configured':False,'available':False})
             return {'selected_id': selected, 'choices': choices, 'applies_to': 'new_runs',
-                'routing_mode': 'automatic' if selected == 'auto' else 'manual',
+                'routing_mode': 'automatic' if selected == 'auto' else 'fixed_chatgpt_in_ai4r' if selected == 'chatgpt_ai4r' else 'manual',
                 'openrouter_ready': any(c['configured'] for c in choices),
                 'chatgpt_model': account.get('chatgpt_model'),
                 'local_endpoints_unavailable':local_error,
@@ -160,7 +160,7 @@ class ModelSettingsOwner:
         preset_id = values.get('preset_id')
         _require(isinstance(preset_id,str),'Choose an existing model ID')
         local = preset_id.startswith('local-')
-        _require(preset_id in {'auto', 'codex'} or preset_id in {p['id'] for p in PRESETS} or local, 'Unknown model choice')
+        _require(preset_id in {'auto', 'codex', 'chatgpt_ai4r'} or preset_id in {p['id'] for p in PRESETS} or local, 'Unknown model choice')
         with self.lock:
             data = self._load()
             account = data['accounts'].setdefault(account_id, {'selected_id': 'auto', 'entries': {}})
@@ -179,7 +179,7 @@ class ModelSettingsOwner:
                 self._save(data)
                 return self.status(account_id)
             if action == 'save':
-                _require(set(values) == {'preset_id', 'api_key'} and preset_id != 'codex', 'Only a preset and API key may be saved')
+                _require(set(values) == {'preset_id', 'api_key'} and preset_id not in {'codex','chatgpt_ai4r'}, 'Only a preset and API key may be saved')
                 preset = next(p for p in PRESETS if p['id'] == ('deepseek-flash' if preset_id == 'auto' else preset_id))
                 key = values['api_key']
                 _require(isinstance(key, str) and len(key) <= 8192 and not any(c in key for c in '\r\n\0'), 'Invalid API key')
@@ -200,13 +200,13 @@ class ModelSettingsOwner:
                 _require(set(values) == {'preset_id'} or (action == 'select' and preset_id == 'codex'
                     and set(values) == {'preset_id', 'chatgpt_model'}), 'Unexpected model choice fields')
                 if action == 'remove':
-                    _require(preset_id != 'codex', 'Codex is the built-in choice')
+                    _require(preset_id not in {'codex', 'chatgpt_ai4r'}, 'Built-in choices cannot be removed')
                     platform = next(p['platform_id'] for p in PRESETS if p['id'] == ('deepseek-flash' if preset_id == 'auto' else preset_id))
                     revoked = {k for k, v in data['credentials'].items() if v['account_id'] == account_id
                         and (v.get('platform_id') == platform or v.get('preset_id') == preset_id)}
                     data['credentials'] = {k: v for k, v in data['credentials'].items() if k not in revoked}
                     account['entries'] = {k: v for k, v in account['entries'].items() if v.get('credential_id') not in revoked}
-                    if account['selected_id'] not in {'auto', 'codex'} and account['selected_id'] not in account['entries']:
+                    if account['selected_id'] not in {'auto', 'codex', 'chatgpt_ai4r'} and account['selected_id'] not in account['entries']:
                         account['selected_id'] = 'codex'
                 else:
                     if preset_id == 'codex' and 'chatgpt_model' in values:
@@ -214,7 +214,7 @@ class ModelSettingsOwner:
                         _require(model is None or isinstance(model, str) and model in chatgpt_models,
                             'Choose a model from the signed-in ChatGPT model catalog')
                         account['chatgpt_model'] = model
-                    if preset_id not in {'auto', 'codex'}:
+                    if preset_id not in {'auto', 'codex', 'chatgpt_ai4r'}:
                         preset = next(p for p in PRESETS if p['id'] == preset_id)
                         credential = data['credentials'].get(account['entries'].get(preset_id, {}).get('credential_id'), {})
                         _require(credential.get('account_id') == account_id and credential.get('platform_id') == preset['platform_id'], 'Save an OpenRouter API key before selecting this model')
@@ -243,10 +243,10 @@ class ModelSettingsOwner:
                 account = self._load()['accounts'].get(account_id, {'selected_id': 'auto', 'entries': {}})
                 selected = account['selected_id']
                 selection = {'mode': 'codex' if selected == 'codex' else 'api', 'preset_id': selected}
-                if selected == 'auto':
+                if selected in {'auto', 'chatgpt_ai4r'}:
                     _require(automatic_pool is not None and automatic_pool.get('candidates'),
-                        'Start the required local Qwen executor and verifier service before starting research')
-                    selection = dict(copy.deepcopy(automatic_pool), mode='automatic', preset_id='auto')
+                        'Start the pinned local assessor and verifier service before starting research')
+                    selection = dict(copy.deepcopy(automatic_pool), mode='automatic', preset_id=selected)
                 if selected == 'codex' and account.get('chatgpt_model'):
                     model = account['chatgpt_model']
                     endpoint = {'provider_id': 'chatgpt', 'transport': 'packaged-app-server-subscription'}
@@ -255,7 +255,7 @@ class ModelSettingsOwner:
                         'endpoint_ref': endpoint_ref, 'adapter_id': 'native-chatgpt-subscription-v1', 'revision': 'manual-chatgpt:1'}
                     selection.update(chatgpt_model=model,
                         deployment_ref=self.store.put_blob(json.dumps(deployment, sort_keys=True).encode(), media_type='application/json'))
-                if selected not in {'auto', 'codex'}:
+                if selected not in {'auto', 'codex', 'chatgpt_ai4r'}:
                     entry = copy.deepcopy(account['entries'][selected])
                     if selected.startswith('local-'):
                         binding=self.local_catalog.resolve(selected,entry.get('local_binding_sha256'))
@@ -419,8 +419,16 @@ class ModelSettingsOwner:
         options = {'native_factory': self.native_factory} if self.native_factory else {}
         provider = NativeProviders(resolve_deployment=resolve_deployment, resolve_endpoint=resolve_endpoint,
             credential_environment={'AI4R_SELECTED_API_KEY': key}, **options)
+        selection_output = 256
+        if call_function == 'routing_selection' and context is not None:
+            snapshot = self.automatic_for_call(context)
+            if snapshot is None:
+                raise ProviderError('invalid_request')
+            selection_output = snapshot['routing_policy']['selection_output_tokens']
+            if type(selection_output) is not int or not 1 <= selection_output <= deployment['output_tokens']:
+                raise ProviderError('invalid_request')
         # Verifier input isolation is enforced by its own Capsule/runner. This
         # adapter's text transport is identical; no user inputs are added here.
         return await provider.invoke(selection['deployment_ref'], prompt, timeout_s=timeout_s,
-            call_function='planner' if call_function == 'planner' else 'worker',
-            **({'output_tokens': 256} if call_function == 'routing_selection' else {}))
+            call_function=call_function if selection.get('access_way') == 'local' else 'planner' if call_function == 'planner' else 'worker',
+            **({'output_tokens': selection_output} if call_function == 'routing_selection' else {}))

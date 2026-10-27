@@ -39,7 +39,9 @@ def host_source():
     # Keep future imports first; host RPC needs no separately installed module.
     marker = 'from __future__ import annotations'
     return source.replace(marker, marker + '\nLOCAL_MODEL_OPERATOR_SOURCE = ' + repr(helper)
-        + '\nSPARK_MODEL_OPERATOR_SOURCE = ' + repr(spark_helper), 1)
+        + '\nSPARK_MODEL_OPERATOR_SOURCE = ' + repr(spark_helper)
+        + '\nSPARK_POOL_SELECTION = ' + repr(json.loads((HERE/'spark-pool-v2.json').read_text(encoding='utf-8')))
+        + '\nSPARK_POOL_SELECTION_V3 = ' + repr(json.loads((HERE/'spark-pool-v3.json').read_text(encoding='utf-8'))), 1)
 
 
 def load(path):
@@ -522,11 +524,14 @@ def parser():
     c.add_argument('--catalog', required=True)
     c.add_argument('--session-file', required=True)
     c.add_argument('--socket-directory', required=True)
-    s = sub.add_parser('local-pool', help='Manage the key-free E4B/Qwen/Bolt pool on a single 128 GB Spark')
+    s = sub.add_parser('local-pool', help='Manage the key-free model pool on a single 128 GB Spark')
     pool = s.add_subparsers(dest='local_pool_command', required=True)
     c = pool.add_parser('configure', help='Pin public model revisions; no weight downloads')
     c.add_argument('--data-root', required=True)
     c.add_argument('--share-address', help='Expose shared inference on this Tailscale IPv4, plus host loopback')
+    c = pool.add_parser('migrate', help='Pin the approved local reasoning pool; retain older pool pins')
+    c.add_argument('--data-root', required=True)
+    c.add_argument('--share-address', help='Shared Tailscale IPv4 plus loopback')
     pool.add_parser('weights', help='Download and verify pinned public weights on Spark; no Docker access needed')
     pool.add_parser('prepare', help='Download pinned images/weights on Spark, after disk checks')
     sub.add_parser('stop')
@@ -604,7 +609,7 @@ def execute(args):
                 # Keep image selections made by build in the same deployment
                 # before the host adds its model pins to that deployment.
                 config['deployment'] = transport.request('configure')['deployment']
-                values = {'data_root': args.data_root, 'share_address': args.share_address} if args.local_pool_command == 'configure' else {}
+                values = {'data_root': args.data_root, 'share_address': args.share_address} if args.local_pool_command in {'configure','migrate'} else {}
                 result = transport.request('local-pool-' + args.local_pool_command, **values)
                 config['deployment'] = result.pop('deployment')
             elif args.command == 'start':

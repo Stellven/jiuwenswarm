@@ -1,0 +1,14 @@
+{
+  "measured_image": "sha256:a677ce5f4271c9da3c567dc63679ee02c041e1e438e6a976abf03a0f7d1149c0",
+  "released_image": "sha256:bc4d7d58eddfe004df5495622cb73c8664d6f7abcab0adbe933bb1e59d3f7ffe",
+  "release_manifest_sha256": "9285f5a52200aa04f593fbdbeb11a7cd81cac4cb486a3b13c498e6fd4e98b918",
+  "changed_since_measurement": [
+    "deploy/m1/SPARK-LOCAL-MODELS.md",
+    "jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json",
+    "jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json",
+    "jiuwenswarm/research/native_ports.py"
+  ],
+  "routing_and_benchmark_call_path_unchanged": true,
+  "backend_delta": "model readiness explanatory text only",
+  "at": 1793137935.6940994
+}

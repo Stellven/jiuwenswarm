@@ -1,0 +1,93 @@
+{
+  "large_models": {
+    "schema": "ai4r-local-candidate-assessment:1",
+    "scope": "eight public development fixtures once per candidate; not held-out qualification",
+    "reviewer_sha256": "37e04a79423d2d145b9e1cb4d60e0f704424b9c87b917fb3ad67b95786d98c00",
+    "models": {
+      "gptoss": {
+        "completed": 8,
+        "correct": 8,
+        "wrong": [],
+        "tokens": 4606,
+        "seconds": 51.108675262890756
+      },
+      "lightning": {
+        "completed": 8,
+        "correct": 8,
+        "wrong": [],
+        "tokens": 10678,
+        "seconds": 129.89887890173122
+      },
+      "qwen": {
+        "completed": 8,
+        "correct": 4,
+        "wrong": [
+          "c01-inference",
+          "c02-retrieval",
+          "c04-performance",
+          "c06-quorum"
+        ],
+        "tokens": 1795,
+        "seconds": 20.01402345695533
+      }
+    }
+  },
+  "gptoss20": {
+    "schema": "ai4r-candidate-development-assessment:1",
+    "candidate": "gptoss20",
+    "observations": 8,
+    "correct": 8,
+    "rows": [
+      {
+        "variant": "c01-inference",
+        "correct": true,
+        "tokens": 724,
+        "seconds": 7.458101927069947
+      },
+      {
+        "variant": "c02-retrieval",
+        "correct": true,
+        "tokens": 427,
+        "seconds": 2.7750561852008104
+      },
+      {
+        "variant": "c03-shortest-path",
+        "correct": true,
+        "tokens": 524,
+        "seconds": 4.161822723923251
+      },
+      {
+        "variant": "c04-performance",
+        "correct": true,
+        "tokens": 522,
+        "seconds": 4.011033600894734
+      },
+      {
+        "variant": "c05-database",
+        "correct": true,
+        "tokens": 466,
+        "seconds": 2.971073541091755
+      },
+      {
+        "variant": "c06-quorum",
+        "correct": true,
+        "tokens": 938,
+        "seconds": 9.185324257006869
+      },
+      {
+        "variant": "c07-reliability",
+        "correct": true,
+        "tokens": 654,
+        "seconds": 4.645390373189002
+      },
+      {
+        "variant": "c08-paired-data",
+        "correct": true,
+        "tokens": 450,
+        "seconds": 3.2014185150619596
+      }
+    ],
+    "reviewer_sha256": "37e04a79423d2d145b9e1cb4d60e0f704424b9c87b917fb3ad67b95786d98c00",
+    "scope": "eight public development fixtures once; not held-out qualification"
+  }
+}

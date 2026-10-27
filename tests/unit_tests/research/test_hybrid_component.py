@@ -16,7 +16,7 @@ async def test_component_uses_actual_bridge_claims_and_hides_inputs_from_review(
     config.write_text(json.dumps({'schema': 'ai4r-local-model-endpoints:1', 'models': [
         {'id': name, 'base_url': 'http://127.0.0.1:'+str(port)+'/v1', 'served_model': 'ai4r-'+name,
             'context_tokens': 65536, 'output_tokens': 4096, 'enabled': True}
-        for name, port in [('qwen', 8012), ('e4b', 8011), ('bolt', 8013)]]}), encoding='utf-8')
+        for name, port in [('gptoss20', 8012), ('lightning', 8011), ('gptoss', 8013)]]}), encoding='utf-8')
     monkeypatch.setenv('JIUWENSWARM_M1_LOCAL_MODELS', str(config))
     original_registry = LocalModelRegistry.__init__
     async def probe(entry): return True
@@ -30,7 +30,7 @@ async def test_component_uses_actual_bridge_claims_and_hides_inputs_from_review(
                 return SimpleNamespace(content=response['text'], tool_calls=None)
             async def invoke(self, **kwargs):
                 prompt = kwargs['messages'][0]['content']; observed.append(prompt)
-                text = ('{"operations":["lookup"],"reason":"Direct transformation"}' if model['max_tokens'] == 256
+                text = ('{"operations":["lookup"],"difficulty":"routine","candidate_id":"local:gptoss20","reason":"Direct transformation"}' if prompt.startswith('Assess the required operations')
                     else '{"verdict":"PASS"}' if prompt.startswith('Review only') else '{"answer":7}')
                 return await self._parse_response({'text': text, 'model': model['model_name'],
                     'usage': {'prompt_tokens': 10, 'completion_tokens': 5}, 'choices': [{'finish_reason': 'stop'}]})

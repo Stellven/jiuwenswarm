@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from jiuwenswarm.research.automatic_routing import AutomaticRouting, LEGACY_POLICY, PRIMARY_POLICY, HYBRID_V3_POLICY, HYBRID_V4_POLICY, POLICY
+from jiuwenswarm.research.automatic_routing import AutomaticRouting, LEGACY_POLICY, PRIMARY_POLICY, HYBRID_V3_POLICY, HYBRID_V4_POLICY, HYBRID_V5_POLICY, POLICY
 from jiuwenswarm.research.bridge import BridgeError, GovernedBridge
 from jiuwenswarm.research.contracts import ResearchError, validate
 from jiuwenswarm.research.local_pool_registry import LocalModelRegistry, local_endpoint_url
@@ -26,6 +26,8 @@ async def setup_local(tmp_path, *, calls=3, legacy=True, hybrid=False, subscript
     routing = AutomaticRouting(owner, subscription, local_registry=LocalModelRegistry(config, probe=probe))
     request = {'account_id': 'alice', 'run_id': 'budget-run', 'parent_run_id': None}
     if hybrid:
+        # Historical behavior checks remain pinned to their original policy.
+        hybrid_policy = hybrid_policy or HYBRID_V5_POLICY
         if hybrid_policy:
             candidates = [routing._pin_candidate(c) for c in await routing.available('alice')]
             owner.freeze(request, automatic_pool={'routing_policy': copy.deepcopy(hybrid_policy),
@@ -165,9 +167,9 @@ def test_difficulty_band_maps_to_the_host_owned_model():
 
 def test_combined_operations_cannot_be_downgraded_by_a_confident_reason():
     eligible = [{'id': 'local:qwen'}, {'id': 'subscription:gpt-6.1-sol'}]
-    chosen, _ = AutomaticRouting.decode('{"operations":["count","arithmetic"],"reason":"This is a very simple short task"}', eligible, policy=POLICY)
+    chosen, _ = AutomaticRouting.decode('{"operations":["count","arithmetic"],"reason":"This is a very simple short task"}', eligible, policy=HYBRID_V5_POLICY)
     assert chosen['id'] == 'subscription:gpt-6.1-sol'
-    chosen, _ = AutomaticRouting.decode('{"operations":["extract","format"],"reason":"Direct extraction"}', eligible, policy=POLICY)
+    chosen, _ = AutomaticRouting.decode('{"operations":["extract","format"],"reason":"Direct extraction"}', eligible, policy=HYBRID_V5_POLICY)
     assert chosen['id'] == 'local:qwen'
 
 

@@ -4718,17 +4718,20 @@
     }
   },
   "researchModels": {
-    "localDescription": "Use local Qwen and your ChatGPT subscription. No API key is required.",
+    "localDescription": "Use three local models and your ChatGPT subscription in the same AI4R workflow. No API key required.",
     "executionMode": "Execution mode",
-    "localModeHint": "Direct processing uses Qwen; planning, experiment protocols, code building and scientific evaluation prefer GPT-6.1-Sol. Qwen briefly assesses other tasks. At most four capsule invocations per research run use ChatGPT. Verification stays on a separate Qwen call. Without sign-in, only Qwen is available.",
-    "localMode": "AI4R · Qwen / ChatGPT routing",
-    "chatgptBaseline": "ChatGPT · comparison mode",
+    "localModeHint": "Quality-first routing across gpt-oss-20b, Nemotron Lightning, gpt-oss-120b and ChatGPT 6.1 Sol. Critical derived decisions require ChatGPT. Verification uses a separate local call.",
+    "localMode": "AI4R · automatic model routing",
+    "chatgptBaseline": "ChatGPT · manual model choice",
     "chatgptModel": "ChatGPT model",
-    "baselineHint": "Pins every capsule to your selected ChatGPT model for comparison. Automatic mode instead chooses between Qwen and GPT-6.1-Sol for each task.",
+    "baselineHint": "Manual ChatGPT choice retains its original behavior. For a controlled comparison with automatic routing, select the AI4R fixed-worker reference above.",
     "localRole": {
-      "e4b": "Shared model; excluded from the current execution policy",
-      "qwen": "Default executor, difficulty assessor and separate verifier",
-      "bolt": "Shared model; excluded from the current execution policy"
+      "e4b": "Retired from the current pool",
+      "bolt": "Retired from the current pool",
+      "qwen": "Retired from the current pool",
+      "lightning": "Efficient local reasoning executor",
+      "gptoss": "Larger local reasoning executor",
+      "gptoss20": "Compact reasoning executor, routing assessor and separate verifier"
     },
     "localReady": "Connected",
     "localUnavailable": "Unavailable",
@@ -4739,18 +4742,17 @@
       "model_not_served": "Model not loaded",
       "configuration_invalid": "Configuration needs attention"
     },
-    "localPrerequisite": "Start the required Qwen service on your Spark, then refresh. Model endpoints are configured on the server.",
+    "localPrerequisite": "Start the required local assessor and verifier service on your Spark, then refresh. Model endpoints are configured on the server.",
     "applyMode": "Use this mode",
     "frozenPool": "Applies to new research. Running work keeps its original model pool and decisions.",
-    "localError": "Could not load or save model settings. Check the app connection and local model services.",
+    "localError": "Could not save or load the local model. Check your app connection and refresh the model list. If the problem persists, contact your administrator.",
     "modeSaved": "Saved. New research will use this execution mode.",
-    "chatgptDescription": "This subscription connection serves automatic routing and the separate ChatGPT comparison mode. Automatic routing pins GPT-6.1-Sol; comparison mode uses the model selected above. No API key is required.",
+    "chatgptDescription": "This subscription serves automatic routing and the fixed-worker AI4R reference, both pinned to GPT-6.1-Sol. Manual mode uses your selected ChatGPT model. No API key is required.",
     "chatgptOption": "{{model}} (ChatGPT subscription)",
     "chatgptError": "Could not save or load the ChatGPT model. Sign in and refresh the model list.",
     "option": "{{model}} ({{platform}} API key)",
     "localOption": "{{model}} (Local endpoint)",
     "localEndpoint": "Local endpoint",
-    "localError": "Could not save or load the local model. Check your app connection and refresh the model list. If the problem persists, contact your administrator.",
     "localManaged": "Model: {{model}}. This endpoint is approved and managed by your administrator. No API key is required; save to use it for new research runs.",
     "platformKey": "{{platform}} API key",
     "claudeKeyHint": "Use an Anthropic workspace-scoped API key. Personal or service-account keys that require a separate workspace header are not supported here yet.",
@@ -4774,6 +4776,7 @@
     "saveUse": "Save and use",
     "refresh": "Refresh",
     "error": "Could not save or load the model. Check your app connection and refresh the model list. If the problem persists, contact your administrator or check the selected provider's credentials.",
-    "saved": "Saved. New research runs will use this model."
+    "saved": "Saved. New research runs will use this model.",
+    "ai4rReference": "ChatGPT 6.1 Sol · fixed worker in AI4R"
   }
 }

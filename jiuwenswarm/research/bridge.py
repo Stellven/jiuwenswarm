@@ -302,6 +302,8 @@ class GovernedBridge:
                 raise
             except Exception as error:
                 code = getattr(error, 'code', None)
+                if code == 'ENVIRONMENT_BLOCKED':
+                    raise BridgeError('ENVIRONMENT_BLOCKED') from None
                 if isinstance(error, ResearchError) and code in {'invalid_request', 'integrity_fault'}:
                     raise PlatformIntegrityError('ROUTING_SELECTION_CONTEXT_INVALID') from None
                 if isinstance(error, PlatformIntegrityError) or code in {'AUDIT_UNAVAILABLE', 'CONTAINMENT_UNCERTAIN', 'cancelled'}:
@@ -309,6 +311,9 @@ class GovernedBridge:
                 selection_call_ref = getattr(error, 'call_ref', None) or selection_call_ref
                 failure = 'INVALID_SELECTOR_REPLY' if isinstance(error, ValueError) else code or 'SELECTOR_UNAVAILABLE'
                 reason = 'Compatible baseline selected before executor dispatch; selector could not return a valid choice'
+        if (failure and prepared['snapshot']['routing_policy'].get('quality_policy')
+                and selected['id'] != 'subscription:gpt-6.1-sol'):
+            raise BridgeError('ENVIRONMENT_BLOCKED')
         decision = {
             'schema': 'ai4r-automatic-route:1', 'id': 'automatic-route:' + uuid.uuid4().hex,
             **{key: protected[key] for key in ('run_id', 'node_id', 'subnode_id', 'invocation_id', 'execution_id')},
@@ -522,7 +527,8 @@ class GovernedBridge:
                 'selected_deployment_ref':deployment_ref,'model_call_start_ref':start_ref,'input_ref':evidence_ref}
             async with asyncio.timeout_at(deadline):
                 if manual is not None:
-                    options = {'context':dispatch_context} if manual.get('platform_id')=='operator-local' else {}
+                    options = {'context':dispatch_context} if (manual.get('platform_id')=='operator-local'
+                        or manual.get('access_way')=='local') else {}
                     result = await self.manual_models.invoke(manual, prompt, timeout_s=timeout_s,
                         call_function=protected['call_function'],**options)
                 elif chatgpt is not None or choice.model_id == self.fixed_route_id:

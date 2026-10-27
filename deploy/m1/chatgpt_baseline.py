@@ -38,7 +38,7 @@ def prompt_sha256(assignment):
     return hashlib.sha256(prompt.encode()).hexdigest()
 
 
-def prepare(source, output, variants, repeats, arm='chatgpt'):
+def prepare(source, output, variants, repeats, arm='chatgpt_ai4r'):
     source = Path(source).resolve(strict=True)
     raw = source.read_bytes(); public = json.loads(raw)
     jobs = []
@@ -57,11 +57,13 @@ def prepare(source, output, variants, repeats, arm='chatgpt'):
     output.mkdir(mode=0o700)
     with (output/'controller-source.py').open('xb') as stream:
         stream.write(Path(__file__).read_bytes())
-    plan = {'schema': HYBRID_SCHEMA if arm == 'hybrid' else SCHEMA, 'arm': arm,
+    governed = arm in {'hybrid', 'chatgpt_ai4r'}
+    plan = {'schema': HYBRID_SCHEMA if governed else SCHEMA, 'arm': arm,
         'source_plan_sha256': hashlib.sha256(raw).hexdigest(),
         'controller_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'model': 'gpt-6.1-sol', 'reasoning_effort': 'medium', 'timeout_s': 90,
-        'scope': ('Qwen/ChatGPT routing component with fixed Qwen review; not product DAG acceptance' if arm == 'hybrid'
+        'scope': (('AI4R fixed ChatGPT worker with identical local review/check/gate' if arm == 'chatgpt_ai4r'
+            else 'AI4R automatic worker routing with identical local review/check/gate')+'; not product DAG acceptance' if governed
             else 'tool-free ChatGPT component baseline; not a product DAG or automatic judge'),
         'repeats': repeats, 'cost': None, 'cost_basis': 'subscription marginal price not measured', 'jobs': jobs}
     write_new(output/'plan.json', plan)
@@ -108,9 +110,10 @@ asyncio.run(main())
         folder = output/(job['variant_id']+'-r'+str(job['repeat'])); folder.mkdir()
         payload = {k: plan[k] for k in ('model', 'timeout_s')}
         payload.update(request_id=job['request_id'], assignment=job['assignment'])
-        hybrid = plan.get('arm') == 'hybrid'
+        hybrid = plan.get('arm') in {'hybrid', 'chatgpt_ai4r'}
         if hybrid:
             payload = {k: payload[k] for k in ('request_id', 'assignment')}
+            payload['arm'] = plan['arm']
         if subprocess.check_output(['docker', 'inspect', container, '--format', '{{.Image}}'], text=True).strip() != image:
             raise ValueError('App image changed during the frozen campaign')
         write_new(folder/'request.json', payload)
@@ -181,7 +184,8 @@ def main():
     p = sub.add_parser('prepare'); p.add_argument('--source-plan', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True); p.add_argument('--variant', action='append', default=[])
     p.add_argument('--repeats', type=int, choices=(1, 3), default=3)
-    p.add_argument('--arm', choices=('chatgpt', 'hybrid'), default='chatgpt')
+    p.add_argument('--arm', choices=('chatgpt_ai4r', 'hybrid', 'chatgpt'), default='chatgpt_ai4r',
+        help='AI4R fixed-worker reference (default), AI4R routed arm, or historical direct transport baseline')
     p = sub.add_parser('run'); p.add_argument('--output', type=Path, required=True)
     p.add_argument('--container', default='ai4r-spark-ai4r-1')
     args = parser.parse_args()

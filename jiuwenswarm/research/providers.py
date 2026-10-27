@@ -79,7 +79,7 @@ class NativeProviders:
         self.factory = native_factory
 
     async def _configuration(self, deployment_ref, *, timeout_s, call_function):
-        if (call_function not in {"worker", "planner"} or type(timeout_s) not in (int, float)
+        if (call_function not in {"worker", "planner", "verifier", "routing_selection"} or type(timeout_s) not in (int, float)
                 or not math.isfinite(timeout_s) or not 0 < timeout_s <= 600):
             raise ProviderError("invalid_request")
         # The protected resolver must verify the exact Ref, approved deployment
@@ -100,6 +100,8 @@ class NativeProviders:
             raise ProviderError("invalid_request")
         url = urlsplit(endpoint["base_url"])
         local = deployment.get('adapter_id') == 'native-local-openai-chat-v1'
+        if not local and call_function not in {'worker', 'planner'}:
+            raise ProviderError('invalid_request')
         if local:
             from .local_pool_registry import local_endpoint_url
             if endpoint['provider_id'] != 'local' or not local_endpoint_url(endpoint['base_url']):
@@ -134,8 +136,20 @@ class NativeProviders:
             output_tokens = deployment.get('output_tokens')
             if type(output_tokens) is not int or not 256 <= output_tokens <= 32768:
                 raise ProviderError('invalid_request')
-            model.update(max_tokens=output_tokens, temperature=1.0, top_p=0.95,
-                extra_body={'chat_template_kwargs': {'enable_thinking': False}})
+            thinking = deployment.get('reasoning_enabled', False)
+            role_policy = deployment.get('reasoning_role_policy')
+            if role_policy is not None:
+                if role_policy != 'worker_medium_assessor_verifier_none:1':
+                    raise ProviderError('invalid_request')
+                thinking = call_function in {'worker','planner'}
+            if type(thinking) is not bool or deployment.get('reasoning_effort', 'medium') not in {'low','medium','high'}:
+                raise ProviderError('invalid_request')
+            extra = {'chat_template_kwargs': {'enable_thinking': thinking}}
+            if thinking:
+                extra['reasoning_effort'] = deployment.get('reasoning_effort', 'medium')
+            elif role_policy:
+                extra['reasoning_effort'] = 'none'
+            model.update(max_tokens=output_tokens, temperature=1.0, top_p=0.95, extra_body=extra)
         return deployment, config, model
 
     async def preflight(self, deployment_ref, *, timeout_s, call_function):

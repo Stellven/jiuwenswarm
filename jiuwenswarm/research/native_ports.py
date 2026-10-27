@@ -292,17 +292,19 @@ class NativePorts:
             selected=await self.status_client.call('model_settings', {
                 'account_id':principal.account_id,'action':'get','values':{},
                 'include_chatgpt_models':False},timeout_s=30)
-            automatic=selected.get('selected_id') == 'auto'
-            api_selected=selected.get('selected_id') not in {'auto', 'codex'}
+            automatic=selected.get('selected_id') in {'auto', 'chatgpt_ai4r'}
+            api_selected=selected.get('selected_id') not in {'auto', 'codex', 'chatgpt_ai4r'}
             # Local/API execution must not wait for subscription discovery,
             # authentication or the comparison CLI to become available.
             status=await self.status_client.call('subscription_status',
                 {'include_subscription':False} if automatic or api_selected else {},timeout_s=30)
             ready=selected.get('local_ready') is True if automatic else selected.get('api_ready') is True if api_selected else status.get('state')=='ready'
+            if selected.get('selected_id') == 'chatgpt_ai4r':
+                ready = ready and status.get('state') == 'ready'
             if api_selected or automatic:
                 status=dict(status,state='ready' if ready else 'unavailable',enabled=ready)
             prerequisites.append({'name':'model','status':'ready' if ready else 'unavailable',
-                'reason':('Qwen routing, execution and independent verifier service is ready; signed-in ChatGPT may serve difficult tasks' if ready else 'Required Qwen routing, executor or verifier service is unavailable') if automatic
+                'reason':('Local routing, execution and independent verifier services are ready; signed-in ChatGPT may serve difficult tasks' if ready else 'Required local routing, executor or verifier service is unavailable') if automatic
                     else 'Selected API model has a configured private credential; provider authentication is checked at dispatch' if api_selected and ready else 'Managed subscription is ready' if ready else 'Selected model authentication or transport is unavailable'})
         except Exception:
             status={}

@@ -39,7 +39,7 @@ def local_endpoint_url(value):
         return any(address in network for network in _NETWORKS)
     except ValueError:
         return (url.hostname in {'localhost', 'host.docker.internal',
-            'ai4r-model-e4b', 'ai4r-model-qwen', 'ai4r-model-bolt'}
+            'ai4r-model-e4b', 'ai4r-model-qwen', 'ai4r-model-bolt', 'ai4r-model-lightning', 'ai4r-model-gptoss', 'ai4r-model-gptoss20'}
             or url.hostname.endswith('.ts.net'))
 
 

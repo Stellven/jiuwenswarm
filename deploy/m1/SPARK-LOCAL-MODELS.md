@@ -1,5 +1,72 @@
 # AI4R local model pool on one DGX Spark
 
+## Current pool generation 3 — 27 October 2026
+
+The active selection is `spark-pool-v3.json`: gpt-oss-20b MXFP4 (12.11 GB),
+Nemotron 3.5 Lightning 30B-A3B Q4_0 (18.90 GB), and gpt-oss-120b MXFP4
+(63.39 GB). Each service has one slot and a 16K context. Container memory
+ceilings are 20/24/67 GiB; these are limits, not measured peaks. All three
+completed the eight public MR01 development assignments correctly once.
+Qwen scored 4/8 in the same qualification and was replaced; this small,
+development-set observation does not establish general model superiority.
+
+Automatic policy `ai4r-hybrid-bounded-routing:8` uses gpt-oss-20b as assessor
+and as a separate declaration/output-only verifier. It may also execute work.
+Critical task risks require subscription GPT-6.1-Sol before dispatch. Other
+work is selected among compatible candidates under protected budgets. The
+fixed-worker reference `ai4r-chatgpt-fixed-reference:3` uses ChatGPT inside
+AI4R, with the same verifier, structural check and gate. Historical manual
+ChatGPT and direct-transport benchmark results retain their original meanings.
+
+The selector has an actual frozen ceiling of 1,024 output tokens and 30 seconds,
+inside the node's worker time envelope. Its request asks for no reasoning;
+the current llama.cpp model may still generate reasoning, which is included
+in recorded usage. Worker reasoning remains enabled. Verifier budget is
+separate and cannot be borrowed. Selector failures are recorded; a compatible
+ChatGPT fallback before worker dispatch is not counted as a successful local
+selection. No model-call replay or forced gate acceptance is allowed.
+
+Services are shared without API keys at `http://100.105.127.48:8012/v1`
+(20b), `:8011/v1` (Lightning) and `:8013/v1` (120b), subject to tailnet access.
+They also bind host loopback. They do not bind the public interface. The app
+remains the single existing UI on 5175; Windows caches stay on D and weights
+stay on Spark. Old pool weights and the v5 checkpoint remain recoverable.
+
+## Historical replacement generation 2 — 27 October 2026
+
+The current approved replacement is pinned in `spark-pool-v2.json`: Qwen3.8-27B
+Q4_K_M (18.97 GB), Nemotron 3.5 Lightning 30B-A3B Q4_0 (18.90 GB), and
+gpt-oss-120b MXFP4 (63.39 GB). These are roughly 94.3 GiB of weights total,
+not measured runtime peaks. Each has one slot and a 16K context; memory limits
+are 25/24/67 GiB. The model files are downloaded and verified on Spark only.
+The v2 services use the existing pinned ARM64 llama.cpp CUDA image, with bounded
+reasoning and batch sizes. Share addresses remain loopback and Tailscale only.
+
+Automatic v6 routing includes all three and subscription GPT-6.1-Sol. Settings
+also exposes **ChatGPT 6.1 Sol · fixed worker in AI4R**, using the same Qwen
+verifier/check/gate as automatic routing. The older manual ChatGPT model choice
+is retained separately. The original direct-ChatGPT benchmark is historical,
+not the new matched reference. Critical or uncertain work must not downgrade
+to a weaker model when the required tier or budget is unavailable.
+
+For an idle existing v1 deployment, the operator supports explicit migration:
+
+```bash
+python3 deploy/m1/ai4r.py --profile /home/user2/ai4r-data/operator.json \
+  local-pool migrate --data-root /home/user2/ai4r-data/inference-v2 \
+  --share-address 100.105.127.48
+python3 deploy/m1/ai4r.py --profile /home/user2/ai4r-data/operator.json local-pool prepare
+```
+
+Migration retains old pool pins and weights. Replacing a running app image
+still requires the existing idle-upgrade procedure; these commands do not
+bypass it. Do not prune checkpoint image tags or stop other users' services.
+The models must be observed healthy and complete actual tasks before calling
+the replacement qualified. The historical v1 setup below is retained as a
+deployment reference, not a claim that the new models are already qualified.
+
+## Historical pool v1
+
 This configures the existing AI4R app and operator, with its single web endpoint
 on **5175**. It does not create a second chat app. No commercial API key is used.
 ChatGPT sign-in remains a separate, manually selected comparison mode.
@@ -109,9 +176,9 @@ for these inference APIs. Do not publish them on a public interface.
 
 | Model | Spark-local base URL | Tailscale base URL |
 | --- | --- | --- |
-| E4B | `http://127.0.0.1:8011/v1` | `http://100.105.127.48:8011/v1` |
-| Qwen | `http://127.0.0.1:8012/v1` | `http://100.105.127.48:8012/v1` |
-| Bolt | `http://127.0.0.1:8013/v1` | `http://100.105.127.48:8013/v1` |
+| Nemotron Lightning | `http://127.0.0.1:8011/v1` | `http://100.105.127.48:8011/v1` |
+| gpt-oss-20b | `http://127.0.0.1:8012/v1` | `http://100.105.127.48:8012/v1` |
+| gpt-oss-120b | `http://127.0.0.1:8013/v1` | `http://100.105.127.48:8013/v1` |
 
 Call `GET /models` on the chosen base URL to discover its exact pinned model ID,
 then use that ID with `POST /chat/completions`. The models retain their bounded
@@ -130,8 +197,10 @@ ssh -N -o ExitOnForwardFailure=yes -L 5175:127.0.0.1:5175 YOUR_SPARK_USER@100.10
 ```
 
 Open the complete private bootstrap URL from the app log yourself at
-`http://127.0.0.1:5175`. In Settings → Model, save **AI4R local automatic** and
-refresh until E4B and Qwen are ready. No ChatGPT login is required in this mode.
+`http://127.0.0.1:5175`. In Settings → Model, save **AI4R · automatic model routing**
+and refresh until the local services are connected. Sign in with ChatGPT for
+the protected critical-task tier. The fixed-worker AI4R reference also requires
+this sign-in; it does not require a commercial API key.
 Upload a document and send a request in the existing composer. The existing
 Compiler, Planner CC, task CCs, deterministic checks, verifiers, gates and
 Delivery retain their roles. A selector never replaces that workflow.
@@ -141,7 +210,7 @@ does not require ChatGPT authentication or subscription-model discovery.
 
 The model menu shows connection status, not proof of inference quality. A real
 completed task and its captured route decisions are still necessary to establish
-end-to-end deployment. No successful Spark run is claimed by this guide.
+end-to-end deployment. Component benchmark results are not full-DAG acceptance.
 
 Sources: [Tailscale SSH](https://tailscale.com/docs/features/tailscale-ssh),
 [llama.cpp ARM64 CUDA images](https://github.com/ggml-org/llama.cpp/blob/master/docs/docker.md),

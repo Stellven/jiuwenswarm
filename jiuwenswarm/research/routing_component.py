@@ -30,7 +30,7 @@ class ComponentAuthority:
             'invocation_id': 'component-invocation:'+uuid.uuid4().hex, 'execution_id': execution,
             'call_function': function, 'cc_name': 'benchmark.bounded-json', 'cc_version': 'local-1',
             'contract_ref': self.contract_ref, 'model_selection_profile_ref': self.profile,
-            'deployment_ref': next(c['deployment_ref'] for c in self.snapshot['candidates'] if c['preset_id']=='qwen'),
+            'deployment_ref': next(c['deployment_ref'] for c in self.snapshot['candidates'] if c['id']==self.snapshot['verifier_id']),
             'router': {'enabled': False}, 'limits': {'time_s': limit, 'model_calls': 1, 'memory_mb': 1024},
             'execution_deadline_monotonic_s': time.monotonic()+limit,
             'approved_model_ids': [c['model_id'] for c in self.snapshot['candidates']]}

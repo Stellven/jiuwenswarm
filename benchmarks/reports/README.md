@@ -1,6 +1,27 @@
 # Benchmark reports
 
+## 27 October 2026 — matched AI4R reference and replacement local pool
+
+[Current measured results and evidence](2026-10-27-matched-router/README.md):
+both arms scored 24/24 exact-correct worker answers and 20/24 correct answers
+through the gate. Automatic v8 used 18.19% fewer total reported tokens than
+fixed ChatGPT inside AI4R. Verifier false blocks remain explicit. This is a
+routing-component comparison, not complete workflow acceptance.
+
 ## 26 October 2026 — Hybrid model routing
+
+[External presentation: Hybrid v5 versus all ChatGPT](2026-10-26-hybrid-router/external/benchmark-report.md)
+([illustrated HTML](2026-10-26-hybrid-router/external/benchmark-report.html))
+focuses on reported token use and worker-answer quality.
+
+[Internal presentation: verifier/gate false blocks](2026-10-26-hybrid-router/internal/benchmark-report.md)
+([illustrated HTML](2026-10-26-hybrid-router/internal/benchmark-report.html))
+details the ten correct v5 answers that were blocked.
+
+[External report and supporting-data ZIP](../output/AI4R_Hybrid_v5_External_Benchmark_2026-10-27.zip)
+contains only the external view and its relevant v5/ChatGPT data.
+
+The original full report is retained below.
 
 [Open the illustrated English HTML report](2026-10-26-hybrid-router/benchmark-report.html)
 or [read the Markdown report](2026-10-26-hybrid-router/benchmark-report.md).

@@ -1,0 +1,25 @@
+{
+  "status": "completed",
+  "gate": "advance",
+  "selected": "local:lightning",
+  "selector_usage": {
+    "cost_amount": null,
+    "currency": null,
+    "input_tokens": 1071,
+    "output_tokens": 256,
+    "unavailable_reasons": [
+      "cost_amount: not observed",
+      "currency: not observed"
+    ]
+  },
+  "worker_identity": {
+    "requested": "ai4r-lightning-8cd082170ed3",
+    "effective": "ai4r-lightning-8cd082170ed3",
+    "basis": "provider response.model"
+  },
+  "verifier_identity": {
+    "requested": "ai4r-gptoss20-15dcfc7e7c60",
+    "effective": "ai4r-gptoss20-15dcfc7e7c60",
+    "basis": "provider response.model"
+  }
+}
