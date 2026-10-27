@@ -15,6 +15,22 @@ Rule ``correctness_then_latency_above_noise``:
    below that floor, i.e. it beats the parent by more than the parent ever beat
    itself. Without calibration latency never counts as an improvement.
 
+Merge wave (docs/rsi-loop/INTERFACES.md, Interface E and the correctness
+contract):
+
+* Correctness contract. The checker is authoritative where the parent fails a
+  case (a candidate passing it is an improvement). Where the parent passes a
+  case, the candidate must also reproduce the parent's exact output bytes
+  (``receipt.stdout_ref`` digest, else the checker's ``output_sha256``); a
+  checker-accepted candidate that changes those bytes is ``regressed``.
+* Latency judge. When a paired batched benchmark report (Interface E) is passed
+  as ``benchmark=``, ``latency_ratio`` is its geomean median ratio,
+  ``above_noise`` is its ``objective_met`` (every gate passed) and ``improved``
+  is "no regression AND (correctness gain OR objective_met)"; the result says
+  ``latency_method: "paired_batched_benchmark"``. Without a report the
+  single-job min/max floor rule below applies, flagged
+  ``latency_method: "single_job_floor"``.
+
 ``feedback`` is the text the proposer sees on the next iteration: failing and
 fixed case ids (held-out ids are opaque labels; their inputs, expected outputs
 and error messages are withheld), a bounded expected-vs-actual diff for public
@@ -41,6 +57,10 @@ DIFF_PATHS = 8
 VALUE_LIMIT = 160
 TIMING_CASES = 6
 ID_LIMIT = 20
+BENCHMARK_REPORT_SCHEMA = 'ai4r-rsi-capsule-benchmark-report:1'
+CONTRACT_RULE = 'checker_authoritative_where_parent_fails_parent_bytes_exact_where_parent_passes'
+LATENCY_BENCHMARK = 'paired_batched_benchmark'
+LATENCY_FLOOR = 'single_job_floor'
 
 
 def fixtures(name: str, *, fixture_set: str) -> list[dict]:
@@ -96,6 +116,140 @@ def calibrate_noise(parent_trials: list[dict]) -> dict:
     return _noise_from_samples(samples, counts.pop())
 
 
+def _positive(value):
+    return type(value) in (int, float) and math.isfinite(value) and value > 0
+
+
+def _is_ref(value):
+    return (isinstance(value, dict) and set(value) == {'id', 'sha256'} and isinstance(value['id'], str)
+            and isinstance(value['sha256'], str) and len(value['sha256']) == 64)
+
+
+def output_identity(row):
+    """Digest of the exact bytes a case produced, or None when not carried.
+
+    The Root receipt's ``stdout_ref`` pins the captured child output; the
+    independent checker's ``output_sha256`` is the same digest when present.
+    """
+    receipt = row.get('receipt')
+    if isinstance(receipt, dict) and _is_ref(receipt.get('stdout_ref')):
+        return receipt['stdout_ref']['sha256']
+    for source in (row.get('independent_check'), row):
+        if isinstance(source, dict) and isinstance(source.get('output_sha256'), str):
+            return source['output_sha256']
+    return None
+
+
+# ------------------------------------------------------- Interface E reports
+
+def benchmark_workloads(report):
+    rows = report.get('workloads', report.get('rows'))
+    return rows if isinstance(rows, list) else None
+
+
+def benchmark_gates(report):
+    """Gate rows ``{gate, passed, threshold, value}``; a gate is a bool or a
+    dict carrying ``passed`` (and optionally ``threshold``/``value``)."""
+    out = []
+    for name, gate in report['gates'].items():
+        if type(gate) is bool:
+            out.append({'gate': name, 'passed': gate, 'threshold': None, 'value': None})
+        else:
+            out.append({'gate': name, 'passed': gate['passed'], 'threshold': gate.get('threshold'),
+                        'value': gate.get('value')})
+    return out
+
+
+def validate_benchmark_report(report, *, parent_sha256=None, candidate_sha256=None):
+    """Closed reader of an Interface E report (Codex's paired batched shape)."""
+    def need(condition, message):
+        if not condition:
+            raise ValueError(message)
+    need(isinstance(report, dict) and report.get('schema') == BENCHMARK_REPORT_SCHEMA, 'BENCHMARK_REPORT_SCHEMA_REQUIRED')
+    need(type(report.get('objective_met')) is bool, 'BENCHMARK_OBJECTIVE_MET_REQUIRED')
+    need(type(report.get('correctness_passed', True)) is bool, 'BENCHMARK_CORRECTNESS_FLAG_REQUIRED')
+    measured = report.get('correctness_passed', True)
+    if measured:
+        need(_positive(report.get('median_ratio')), 'BENCHMARK_MEDIAN_RATIO_REQUIRED')
+        if 'relative_gain' in report:
+            need(type(report['relative_gain']) in (int, float)
+                 and math.isclose(report['relative_gain'], 1 - report['median_ratio'], abs_tol=1e-9),
+                 'BENCHMARK_RELATIVE_GAIN_DIFFERS')
+        interval = report.get('ratio_confidence_interval')
+        need(isinstance(interval, list) and len(interval) == 2 and all(_positive(v) for v in interval)
+             and interval[0] <= interval[1], 'BENCHMARK_CONFIDENCE_INTERVAL_REQUIRED')
+    else:
+        # Correctness failed inside the benchmark: Root stops timing, so no ratio exists.
+        need(not report['objective_met'] and all(report.get(key) is None for key in (
+            'median_ratio', 'relative_gain', 'ratio_confidence_interval')), 'UNMEASURED_BENCHMARK_HAS_NO_RATIO')
+    rows = benchmark_workloads(report)
+    need(rows is not None and len(rows) > 0, 'BENCHMARK_WORKLOADS_REQUIRED')
+    ids = []
+    for row in rows:
+        need(isinstance(row, dict) and isinstance(row.get('id'), str)
+             and (_positive(row.get('median_ratio')) if measured else row.get('median_ratio') is None)
+             and type(row.get('regression', False)) is bool and type(row.get('withheld', False)) is bool,
+             'BENCHMARK_WORKLOAD_ROW_REQUIRED')
+        ids.append(row['id'])
+    need(len(ids) == len(set(ids)), 'DUPLICATE_BENCHMARK_WORKLOAD')
+    gates = report.get('gates')
+    need(isinstance(gates, dict) and gates and all(
+        type(gate) is bool or (isinstance(gate, dict) and type(gate.get('passed')) is bool) for gate in gates.values()),
+        'BENCHMARK_GATES_REQUIRED')
+    need(not report['objective_met'] or (all(row['passed'] for row in benchmark_gates(report))
+         and report.get('correctness_passed', True) is True), 'BENCHMARK_OBJECTIVE_CONTRADICTS_GATES')
+    need(type(report.get('protected_jobs')) is int and report['protected_jobs'] >= 0, 'BENCHMARK_PROTECTED_JOBS_REQUIRED')
+    refs = report.get('evidence_refs')
+    need(isinstance(refs, list) and all(_is_ref(ref) for ref in refs), 'BENCHMARK_EVIDENCE_REFS_REQUIRED')
+    for key, expected in (('parent_sha256', parent_sha256), ('candidate_sha256', candidate_sha256)):
+        if expected is not None and key in report:
+            need(report[key] == expected, 'BENCHMARK_SUBJECT_DIFFERS')
+    return report
+
+
+def benchmark_timings(report):
+    """Per-workload median parent/candidate seconds: explicit fields, else the
+    median of the paired ``samples`` ([parent_s, candidate_s] per repetition)."""
+    samples = report.get('samples') if isinstance(report.get('samples'), dict) else {}
+    out = []
+    for row in benchmark_workloads(report):
+        parent_s, candidate_s = row.get('parent_median_s'), row.get('candidate_median_s')
+        pairs = samples.get(row['id'])
+        if not (_positive(parent_s) and _positive(candidate_s)) and isinstance(pairs, list) and pairs and all(
+                isinstance(pair, list) and len(pair) == 2 and all(_positive(v) for v in pair) for pair in pairs):
+            parent_s, candidate_s = median(p for p, _ in pairs), median(c for _, c in pairs)
+        ratio = row.get('median_ratio')
+        out.append({'id': row['id'], 'split': row['split'] if isinstance(row.get('split'), str) else 'visible',
+                    'withheld': row.get('withheld', False) is True,
+                    'median_ratio': ratio,
+                    'relative_gain': None if ratio is None else 1 - ratio,
+                    'regression': row.get('regression', ratio is not None and ratio > 1),
+                    'parent_median_s': parent_s if _positive(parent_s) else None,
+                    'candidate_median_s': candidate_s if _positive(candidate_s) else None,
+                    'floor_s': row['floor_s'] if _positive(row.get('floor_s')) else None})
+    return out
+
+
+def benchmark_summary(report):
+    """The decision-relevant, model-visible digest of a validated report."""
+    gates = benchmark_gates(report)
+    measured = report.get('correctness_passed', True) is True
+    correctness = report.get('correctness') if isinstance(report.get('correctness'), dict) else {}
+    cases = correctness.get('cases') if isinstance(correctness.get('cases'), list) else []
+    failure = correctness.get('failure') if isinstance(correctness.get('failure'), dict) else None
+    return {'schema': report['schema'], 'correctness_passed': measured,
+            'median_ratio': report['median_ratio'] if measured else None,
+            'relative_gain': 1 - report['median_ratio'] if measured else None,
+            'ratio_confidence_interval': list(report['ratio_confidence_interval']) if measured else None,
+            'objective_met': report['objective_met'], 'gates': gates,
+            'failed_gates': [row['gate'] for row in gates if not row['passed']],
+            # Parent failed the checker on a benchmark case, candidate passed it.
+            'checker_improvements': sum(1 for case in cases if isinstance(case, dict) and case.get('improved') is True),
+            'correctness_failure': None if failure is None else {
+                key: failure.get(key) for key in ('kind', 'role', 'rule') if key in failure},
+            'workloads': benchmark_timings(report), 'protected_jobs': report['protected_jobs']}
+
+
 def _rows(result):
     rows = result.get('rows')
     if not isinstance(rows, list):
@@ -111,7 +265,7 @@ def _rows(result):
         out[ident] = {'held_out': visibility == 'held_out', 'success': row.get('task_success') is True,
                       'wall': min(walls) if all(_finite_wall(w) for w in walls) else None,
                       'output_bytes': row.get('output_bytes') if type(row.get('output_bytes')) is int else None,
-                      'error': row.get('error'), 'row': row}
+                      'identity': output_identity(row), 'error': row.get('error'), 'row': row}
     return out
 
 
@@ -203,7 +357,7 @@ def _total_wall(result, noise=None):
     return wall
 
 
-def score(parent: dict, candidate: dict, *, noise: dict | None = None) -> dict:
+def score(parent: dict, candidate: dict, *, noise: dict | None = None, benchmark: dict | None = None) -> dict:
     if not isinstance(parent, dict) or not isinstance(candidate, dict):
         raise ValueError('Parent and candidate visible results required')
     name = candidate.get('capsule_name') or parent.get('capsule_name')
@@ -218,31 +372,62 @@ def score(parent: dict, candidate: dict, *, noise: dict | None = None) -> dict:
     newly_passed = [i for i in order if i in c_passed and i not in p_passed]
     still_failing = [i for i in order if i not in c_passed and i not in p_passed]
     crashed = bool(candidate.get('failure')) and not parent.get('failure')
-    regressed = bool(newly_failed) or correctness['candidate'] < correctness['parent'] or crashed
+    # Correctness contract: where the parent passes, the parent's exact bytes
+    # are the specification; the checker alone decides only where it fails.
+    both = [i for i in order if i in p_passed and i in c_passed]
+    compared = [i for i in both if prows[i]['identity'] is not None and crows[i]['identity'] is not None]
+    changed_bytes = [i for i in compared if prows[i]['identity'] != crows[i]['identity']]
+    contract = {'rule': CONTRACT_RULE, 'parent_passed': len(p_passed), 'byte_compared': len(compared),
+                'changed_bytes': changed_bytes, 'unverified': [i for i in both if i not in compared],
+                'newly_failed': newly_failed, 'checker_fixed': newly_passed}
+    regressed = (bool(newly_failed) or bool(changed_bytes) or correctness['candidate'] < correctness['parent']
+                 or crashed)
 
     if noise is None and len(parent.get('trial_wall_s') or []) >= MIN_TRIALS:
         noise = _noise_from_samples(_trial_samples(parent), p_total)
     floor = noise.get('noise_floor_ratio') if isinstance(noise, dict) else None
     floor = floor if type(floor) is float and 0 < floor < 1 else None
 
-    latency_ratio, basis = None, None
-    same_cases = set(prows) == set(crows) and p_total == c_total and p_passed == c_passed
-    if same_cases and not crashed:
-        try:
-            p_wall, c_wall = _total_wall(parent, noise), _total_wall(candidate)
-        except ValueError:
-            p_wall = c_wall = None
-        if p_wall and c_wall is not None:
-            latency_ratio, basis = c_wall / p_wall, 'total min-of-k over identical case outcomes'
-    if latency_ratio is None:
-        common = [i for i in order if i in p_passed and i in c_passed
-                  and prows[i]['wall'] is not None and crows[i]['wall'] is not None]
-        p_sum = sum(prows[i]['wall'] for i in common)
-        if common and p_sum > 0:
-            latency_ratio = sum(crows[i]['wall'] for i in common) / p_sum
-            basis = f'per-case walls over {len(common)} cases both passed'
-    above_noise = latency_ratio is not None and floor is not None and latency_ratio < floor
-    slower_above_noise = latency_ratio is not None and floor is not None and latency_ratio > 1 / floor
+    latency_ratio, basis, bench = None, None, None
+    if benchmark is not None:
+        validate_benchmark_report(benchmark, parent_sha256=parent.get('subject_sha256'),
+                                  candidate_sha256=candidate.get('subject_sha256'))
+        bench = benchmark_summary(benchmark)
+        method = LATENCY_BENCHMARK
+        contract['benchmark_correctness_passed'] = bench['correctness_passed']
+        contract['benchmark_correctness_failure'] = bench['correctness_failure']
+        contract['benchmark_checker_improvements'] = bench['checker_improvements']
+        if bench['correctness_passed']:
+            latency_ratio = bench['median_ratio']
+            basis = (f"paired batched benchmark: geomean of {len(bench['workloads'])} per-workload median ratios, "
+                     f"{benchmark['protected_jobs']} protected jobs")
+            above_noise = bench['objective_met']
+            slower_above_noise = bench['ratio_confidence_interval'][0] > 1
+        else:
+            # The benchmark's own (parent-relative, checker-authoritative)
+            # correctness gate failed on its workloads or semantic edges.
+            regressed = True
+            basis = 'paired batched benchmark stopped on a correctness failure'
+            above_noise = slower_above_noise = False
+    else:
+        method = LATENCY_FLOOR
+        same_cases = set(prows) == set(crows) and p_total == c_total and p_passed == c_passed
+        if same_cases and not crashed:
+            try:
+                p_wall, c_wall = _total_wall(parent, noise), _total_wall(candidate)
+            except ValueError:
+                p_wall = c_wall = None
+            if p_wall and c_wall is not None:
+                latency_ratio, basis = c_wall / p_wall, 'total min-of-k over identical case outcomes'
+        if latency_ratio is None:
+            common = [i for i in order if i in p_passed and i in c_passed
+                      and prows[i]['wall'] is not None and crows[i]['wall'] is not None]
+            p_sum = sum(prows[i]['wall'] for i in common)
+            if common and p_sum > 0:
+                latency_ratio = sum(crows[i]['wall'] for i in common) / p_sum
+                basis = f'per-case walls over {len(common)} cases both passed'
+        above_noise = latency_ratio is not None and floor is not None and latency_ratio < floor
+        slower_above_noise = latency_ratio is not None and floor is not None and latency_ratio > 1 / floor
     gained = correctness['candidate'] > correctness['parent']
     improved = not regressed and (gained or (correctness['candidate'] == correctness['parent'] and above_noise))
 
@@ -255,7 +440,16 @@ def score(parent: dict, candidate: dict, *, noise: dict | None = None) -> dict:
 
     by_set = {'parent': counts(p_passed, prows), 'candidate': counts(c_passed, crows)}
     verdict = 'REGRESSED' if regressed else 'IMPROVED' if improved else 'NOT IMPROVED'
-    if latency_ratio is None:
+    if bench is not None and not bench['correctness_passed']:
+        failure = bench['correctness_failure'] or {}
+        timing = ('paired batched benchmark stopped: correctness failed (%s, rule %s)'
+                  % (failure.get('kind'), failure.get('rule')))
+    elif bench is not None:
+        low, high = bench['ratio_confidence_interval']
+        timing = (f"paired batched benchmark ratio {latency_ratio:.3f} (gain {bench['relative_gain']:+.1%}), "
+                  f"95% CI [{low:.3f}, {high:.3f}], objective "
+                  + ('met' if above_noise else 'not met (failed gates: ' + (', '.join(bench['failed_gates']) or 'correctness') + ')'))
+    elif latency_ratio is None:
         timing = 'latency not comparable'
     elif floor is None:
         timing = f'latency ratio {latency_ratio:.3f} (noise uncalibrated; not counted)'
@@ -272,6 +466,11 @@ def score(parent: dict, candidate: dict, *, noise: dict | None = None) -> dict:
     if candidate.get('failure'):
         failure = candidate['failure']
         lines.append(f"Candidate evaluation failure: {failure.get('exception_type')}: {str(failure.get('message'))[:300]}")
+    if changed_bytes:
+        public_ids, held_ids = split(changed_bytes)
+        lines.append(f'CONTRACT REGRESSIONS (parent passed; candidate output bytes differ from the parent although the '
+                     f'checker accepts them): public {_ids(public_ids)}; held-out {len(held_ids)} opaque id(s) '
+                     f'{_ids(held_ids)}. Preserve the parent output exactly where the parent passes.')
     for label, ids in (('REGRESSIONS (parent passed, candidate failed)', newly_failed),
                        ('Fixed by candidate', newly_passed), ('Still failing', still_failing)):
         public_ids, held_ids = split(ids)
@@ -334,4 +533,5 @@ def score(parent: dict, candidate: dict, *, noise: dict | None = None) -> dict:
             'above_noise': above_noise, 'improved': improved, 'regressed': regressed,
             'summary': summary, 'feedback': feedback,
             'rule': RULE, 'slower_above_noise': slower_above_noise, 'case_counts': by_set,
-            'newly_passed': newly_passed, 'newly_failed': newly_failed}
+            'newly_passed': newly_passed, 'newly_failed': newly_failed,
+            'latency_method': method, 'contract': contract, 'benchmark': bench}

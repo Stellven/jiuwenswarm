@@ -10,6 +10,7 @@ from jiuwenswarm.research_rsi import capsule_loop, capsule_session as session
 from jiuwenswarm.research_rsi.model_backends import (AnthropicBackend, FakeBackend, OpenAICompatibleBackend,
     backend_from_configuration, validate_backend_configuration)
 from jiuwenswarm.research_rsi.records import RecordStore
+from jiuwenswarm.research_rsi.targets import capsule_objective
 from jiuwenswarm.research_rsi.targets.capsules import public_fixtures, registered_capsule
 
 PARENT = b'# original public carrier\n'
@@ -48,8 +49,11 @@ class StubObjective:
                 'feedback': 'objective failing ids: ' + (', '.join(failing) or 'none')}
 
 
-def spec(fail=(), wall=0.1, tag=''):
-    return ('# spec ' + json.dumps({'fail': list(fail), 'wall': wall, 'tag': tag}) + '\n').encode()
+def spec(fail=(), wall=0.1, tag='', out=None):
+    item = {'fail': list(fail), 'wall': wall, 'tag': tag}
+    if out:
+        item['out'] = out
+    return ('# spec ' + json.dumps(item) + '\n').encode()
 
 
 def parse(body):
@@ -58,10 +62,10 @@ def parse(body):
     return {'fail': [], 'wall': 0.1}
 
 
-def make_session(tmp_path, name='utility.calculate', *, loop=None, max_executions=None, extra_contracts=0):
+def make_session(tmp_path, name='utility.calculate', *, loop=None, max_executions=None, extra_contracts=0, parent=PARENT):
     store = RecordStore(tmp_path / 'records')
     target = registered_capsule(name)
-    parent_ref = store.put_bytes(PARENT)
+    parent_ref = store.put_bytes(parent)
     ref = lambda text: store.put({'test': text})
     # Iterative sessions are backed by the iterative (v3) grant; v1 sessions keep v2.
     grant = {'schema': session.LOOP_GRANT_SCHEMA if loop is not None else session.GRANT_SCHEMA,
@@ -100,10 +104,13 @@ def make_session(tmp_path, name='utility.calculate', *, loop=None, max_execution
         for fixture_set, fixtures in (('public', public_fixtures(name)), ('held_out', HELD_OUT)):
             for row in fixtures:
                 ok = row['id'] not in behaviour['fail']
+                # Exact output bytes per case: identical unless the spec changes them.
+                stdout = (row['id'] + ':' + behaviour.get('out', {}).get(row['id'], '')).encode()
                 item = {'fixture_id': row['id'], 'fixture_set': fixture_set, 'task_success': ok,
                         'protected_wall_s': behaviour['wall'], 'output_bytes': 10,
                         'checks': {'expected': SECRET} if fixture_set == 'held_out' else {'diff': 'want 4 got 5'} if not ok else {},
-                        'receipt': {'subject_ref': candidate_ref}, 'candidate_ref': candidate_ref}
+                        'receipt': {'subject_ref': candidate_ref, 'stdout_ref': store.put_bytes(stdout)},
+                        'candidate_ref': candidate_ref}
                 rows.append({**item, 'evidence_ref': store.put(item)})
         total = sum(row['protected_wall_s'] for row in rows)
         result = {'schema': capsule_loop.VISIBLE_V2, 'role': role, 'iteration': iteration,
@@ -430,5 +437,330 @@ def test_http_backends_capture_evidence_without_network(tmp_path, monkeypatch, k
         with pytest.raises(ValueError, match='HTTP_STATUS_500'):
             asyncio.run(third('prompt'))
         assert third.last_model_calls == 1 and store.get(third.last_evidence[-1])['outcome'] == 'failed'
+    finally:
+        store.close()
+
+
+# ------------------------------------------------- Interface E (benchmark) policy
+
+BENCH_LOOP = {**LOOP, 'max_no_progress': 5}
+DEPENDENCY_EXCERPT = 'def output_packet(packet, **changes):  # validates and deep-copies the envelope again'
+
+
+class BenchObjective(StubObjective):
+    """Stub inventory, but the real Interface B rule: correctness contract and
+    benchmark-judged latency come from ``capsule_objective.score`` itself."""
+
+    def calibrate_noise(self, parent_trials):
+        return capsule_objective.calibrate_noise(parent_trials)
+
+    def score(self, parent, candidate, *, noise=None, benchmark=None):
+        return capsule_objective.score(parent, candidate, noise=noise, benchmark=benchmark)
+
+
+AA = (1.0, (0.98, 1.02), None)   # the parent A/A baseline (iteration 0)
+UNMEASURED = 'unmeasured'         # the benchmark's own correctness gate failed
+
+
+def bench_report(parent, candidate, *, ratio, ci, workloads=None, jobs=40):
+    """W-M1's report shape (Interface E, Codex's paired batched protocol):
+    gates ``{name: {threshold, passed}}`` from gain >= 10%, CI upper <= 0.90,
+    no workload > 5% slower; ``withheld`` workloads; None ratios when the
+    benchmark's parent-relative correctness fails (``ratio is None``)."""
+    workloads = workloads or {'w-small': ratio, 'w-large': ratio}
+    measured = ratio is not None
+    rows = [{'id': ident, 'split': 'evaluation' if ident.startswith('withheld') else 'visible',
+             'withheld': ident.startswith('withheld'), 'median_ratio': value,
+             'relative_gain': None if value is None else 1 - value, 'regression': measured and value > 1}
+            for ident, value in workloads.items()]
+    gates = {'minimum_gain': {'threshold': 0.10, 'passed': measured and 1 - ratio >= 0.10},
+             'ci_upper_bound': {'threshold': 0.90, 'passed': measured and ci[1] <= 0.90},
+             'max_workload_regression': {'threshold': 0.05, 'passed': measured and max(workloads.values()) <= 1.05}}
+    return {'schema': capsule_objective.BENCHMARK_REPORT_SCHEMA, 'scope': 'local_unprotected',
+            'parent_sha256': hashlib.sha256(parent).hexdigest(), 'candidate_sha256': hashlib.sha256(candidate).hexdigest(),
+            'median_ratio': ratio, 'relative_gain': None if not measured else 1 - ratio,
+            'ratio_confidence_interval': list(ci) if measured else None, 'repetitions': 11,
+            'gates': gates, 'objective_met': all(gate['passed'] for gate in gates.values()), 'correctness_passed': measured,
+            'correctness': {'passed': measured, 'cases': [{'id': 'c1', 'improved': False}],
+                            'failure': None if measured else {'kind': 'semantic_edge', 'fixture_id': 'withheld-edge-3',
+                                                              'role': 'candidate', 'rule': 'parent_bytes_exact'}},
+            'workloads': rows, 'samples': {ident: [[0.002, 0.002 * value]] * 3 for ident, value in workloads.items()}
+            if measured else {}, 'protected_jobs': jobs, 'evidence_refs': []}
+
+
+class FakeBenchmark:
+    """Scripted ``runtime.benchmark`` (Interface E): one (ratio, ci, workloads) per call."""
+
+    def __init__(self, reports, jobs=40):
+        self.reports, self.jobs, self.calls = list(reports), jobs, []
+
+    async def __call__(self, parent_body, candidate_body, *, iteration):
+        self.calls.append((iteration, hashlib.sha256(parent_body).hexdigest(), hashlib.sha256(candidate_body).hexdigest()))
+        item = self.reports.pop(0)
+        if isinstance(item, BaseException):
+            raise item
+        if item == UNMEASURED:
+            return bench_report(parent_body, candidate_body, ratio=None, ci=None,
+                                workloads={'w-small': None, 'w-large': None}, jobs=self.jobs)
+        ratio, ci, workloads = item
+        return bench_report(parent_body, candidate_body, ratio=ratio, ci=ci, workloads=workloads, jobs=self.jobs)
+
+
+def bench_session(tmp_path, monkeypatch, reports, *, loop=BENCH_LOOP, parent=PARENT, max_executions=None, jobs=40,
+                  context_bytes=None):
+    store, value, runtime, evaluations = make_session(tmp_path, loop=loop, parent=parent, max_executions=max_executions)
+    runtime.objective = BenchObjective()
+    runtime.benchmark = FakeBenchmark(reports, jobs=jobs)
+
+    def compile_context(name, body, *, max_total_bytes):
+        # Stand-in for W-M1's targets.capsule_context.dependency_context.
+        assert name == 'utility.calculate' and isinstance(body, bytes)
+        assert max_total_bytes == capsule_loop.DEFAULTS['context_bytes']
+        text = DEPENDENCY_EXCERPT + '\n' if context_bytes is None else 'x' * (max_total_bytes + 1)
+        return {'schema': 'ai4r-rsi-capsule-dependency-context:1', 'capsule_name': name, 'truncated': False,
+                'omitted': [], 'context_sha256': 'c' * 64,
+                'sources': [{'module': 'jiuwenswarm.research.capsule_extensions.packet',
+                             'path': 'jiuwenswarm/research/capsule_extensions/packet.py', 'selection': 'whole_file',
+                             'first_line': 1, 'last_line': 1, 'text': text, 'source_sha256': 'a' * 64,
+                             'excerpt_sha256': 'b' * 64, 'truncated': False, 'mutable': False}]}
+
+    def render(context):
+        return '\n\n'.join('# read-only dependency: %s\n%s' % (row['path'], row['text']) for row in context['sources'])
+    monkeypatch.setattr(capsule_loop, 'load_dependency_context', lambda: (compile_context, render))
+    return store, value, runtime, evaluations
+
+
+def test_benchmark_gates_decide_latency_keeps_and_feedback_names_failed_gates(tmp_path, monkeypatch):
+    parent_sha = hashlib.sha256(PARENT).hexdigest()
+    bodies = [spec(tag='one'), spec(tag='two'), spec(tag='three'), spec(tag='four'), spec(tag='five')]
+    shas = [hashlib.sha256(body).hexdigest() for body in bodies]
+    reports = [(0.83, (0.82, 0.84), {'w-small': 0.81, 'w-large': 0.85, 'withheld-w9': 0.84}),  # 1: gates pass
+               (0.88, (0.80, 0.95), {'w-small': 0.87, 'w-large': 0.89}),                       # 2: CI gate fails
+               (0.85, (0.83, 0.87), {'w-small': 0.70, 'w-large': 1.08}),                       # 3: workload regression
+               (0.84, (0.83, 0.85), None),                                 # 4: met, but not faster than best
+               (0.76, (0.74, 0.78), None)]                                 # 5: met and beats best (0.78 < 0.83)
+    store, value, runtime, evaluations = bench_session(tmp_path, monkeypatch, [AA] + reports,
+                                                       loop={**BENCH_LOOP, 'max_iterations': 5})
+    try:
+        backend = FakeBackend(script(*bodies))
+        result = run(value, runtime, backend)
+        loop = result['loop']
+        rows = loop['iterations']
+        assert loop['stop_reason'] == 'max_iterations' and loop['completed_iterations'] == 5
+        assert [row['kept'] for row in rows] == [True, False, False, False, True]
+        # Interface E calls: the parent A/A baseline (iteration 0) first, then parent vs candidate per iteration.
+        assert runtime.benchmark.calls == [(0, parent_sha, parent_sha)] + [(i + 1, parent_sha, shas[i]) for i in range(5)]
+        for row, (ratio, ci, _) in zip(rows, reports):
+            # The row carries the exact Interface E report (what W-M3 projects and publishes).
+            assert row['benchmark']['schema'] == capsule_objective.BENCHMARK_REPORT_SCHEMA
+            assert row['benchmark']['parent_sha256'] == parent_sha
+            assert row['benchmark']['candidate_sha256'] == row['candidate_ref']['sha256']
+            assert row['benchmark']['median_ratio'] == ratio and row['benchmark']['protected_jobs'] == 40
+            score = row['score']
+            assert score['latency_method'] == 'paired_batched_benchmark' and score['latency_ratio'] == ratio
+            assert score['above_noise'] is row['benchmark']['objective_met']
+            assert not score['regressed'] and score['contract']['changed_bytes'] == []
+            decision = row['benchmark_decision']
+            assert decision['status'] == 'ran' and decision['against'] == 'parent'
+            assert store.get(decision['record_ref']) == row['benchmark']
+        assert rows[0]['score']['improved'] is True
+        assert rows[0]['score']['correctness']['candidate'] == rows[0]['score']['correctness']['parent']
+        assert rows[1]['benchmark_decision']['failed_gates'] == ['ci_upper_bound']
+        assert rows[2]['benchmark_decision']['failed_gates'] == ['max_workload_regression']
+        # Later iterations compare against the current best as well as the parent.
+        assert rows[0]['benchmark_decision']['vs_best'] is None
+        fourth = rows[3]['benchmark_decision']
+        assert fourth['objective_met'] is True and fourth['beats_best'] is False
+        assert fourth['vs_best']['best_median_ratio'] == 0.83 and abs(fourth['vs_best']['ratio_vs_best'] - 0.84 / 0.83) < 1e-12
+        assert rows[3]['score']['improved'] is True and rows[3]['kept'] is False  # better than parent, not than best
+        assert 'does not beat the current best' in rows[3]['reason']
+        assert rows[4]['benchmark_decision']['beats_best'] is True
+        assert rows[4]['selection']['against'] == 'iteration 1'
+        # The A/A baseline: the exact report, recorded once, before any model call.
+        baseline = loop['benchmark_baseline']
+        assert baseline['parent_sha256'] == baseline['candidate_sha256'] == parent_sha and baseline['median_ratio'] == 1.0
+        status = loop['benchmark_baseline_status']
+        assert status['status'] == 'measured' and status['kind'] == 'parent_a_a'
+        assert store.get(status['record_ref']) == baseline
+        assert loop['best']['iteration'] == 5 and result['selected_iteration'] == 5
+        # Budget accounting: every benchmark job counted, baseline included.
+        assert loop['benchmark_accounting'] == {'available': True, 'latency_method': 'paired_batched_benchmark',
+                                                'calls': 6, 'protected_jobs': 240, 'jobs_per_call_estimate': 40}
+        # Machine-generated feedback: CI, failed gate, per-workload ratios, timing deltas.
+        second = store.get(rows[1]['next_feedback_ref'])
+        assert 'Failed gates: ci_upper_bound.' in second['text'] and '95% CI [0.8000, 0.9500]' in second['text']
+        assert 'w-small 0.870' in second['text']
+        assert 'timing w-small: parent 2.000 ms -> candidate 1.740 ms' in second['text']
+        assert second['last']['benchmark']['failed_gates'] == ['ci_upper_bound']
+        third = store.get(rows[2]['next_feedback_ref'])
+        assert 'gate max_workload_regression: FAIL' in third['text'] and 'w-large 1.080 (+8.0%, REGRESSION)' in third['text']
+        assert 'does not beat the best' in store.get(rows[3]['next_feedback_ref'])['text']
+        first = store.get(rows[0]['next_feedback_ref'])
+        assert 'Withheld workloads: 1' in first['text']
+        # Where time goes: parent profile before iteration 1, benchmark-derived after.
+        prompts = {(i, role): prompt for i, role, prompt in backend.prompts}
+        assert 'Single-job protected walls of parent' in prompts[(1, 'diagnosis')]
+        assert 'Paired benchmark self-noise (parent A/A): ratio CI [0.9800, 1.0200].' in prompts[(1, 'diagnosis')]
+        assert 'Amortized per-invocation medians' in prompts[(2, 'diagnosis')]
+        assert 'withheld-w9' not in ''.join(prompts.values())
+        # Machine-selected dependency excerpts (W-M1 compiler + renderer) reach diagnosis and proposal.
+        assert DEPENDENCY_EXCERPT in prompts[(1, 'proposal')] and DEPENDENCY_EXCERPT in prompts[(1, 'diagnosis')]
+        assert '# read-only dependency: jiuwenswarm/research/capsule_extensions/packet.py' in prompts[(1, 'proposal')]
+        context = store.get(rows[0]['dependency_context_ref'])
+        assert [row['path'] for row in context['sources']] == ['jiuwenswarm/research/capsule_extensions/packet.py']
+        assert context['context_sha256'] == 'c' * 64 and 'unavailable' not in context
+        assert all(store.get(row['time_profile_ref'])['schema'] == capsule_loop.TIME_PROFILE_SCHEMA for row in rows)
+        assert SECRET not in json.dumps(loop) and all(SECRET not in prompt for prompt in prompts.values())
+    finally:
+        store.close()
+
+
+def test_correctness_contract_both_branches_and_benchmark_only_after_correctness(tmp_path, monkeypatch):
+    public = public_fixtures('utility.calculate')[0]['id']
+    parent = spec(fail=['held-b'], tag='parent')   # passes the public baseline, fails one held-out case
+    changed = spec(fail=['held-b'], out={public: 'reformatted'})
+    fixed = spec(out={'held-b': 'now-correct'})
+    edge_broken = spec(out={'held-b': 'now-correct'}, tag='edge-broken')
+    store, value, runtime, evaluations = bench_session(
+        tmp_path, monkeypatch, [AA, (1.01, (0.99, 1.03), None), UNMEASURED], parent=parent,
+        loop={**BENCH_LOOP, 'max_iterations': 3})
+    try:
+        result = run(value, runtime, FakeBackend(script(changed, fixed, edge_broken)))
+        first, second, third = result['loop']['iterations']
+        # Parent passes, checker accepts, bytes differ -> regression; never benchmarked.
+        assert first['visible']['passed_count'] == result['parent_visible']['passed_count']
+        assert first['score']['regressed'] is True and first['score']['improved'] is False
+        assert first['score']['contract']['changed_bytes'] == [public] and not first['score']['newly_failed']
+        assert first['benchmark'] is None
+        assert first['benchmark_decision'] == {'schema': capsule_loop.BENCHMARK_RECORD_SCHEMA, 'status': 'not_run',
+                                               'reason': 'CORRECTNESS_REGRESSED'}
+        assert first['kept'] is False
+        feedback = store.get(first['next_feedback_ref'])
+        assert 'CONTRACT REGRESSIONS' in feedback['text'] and feedback['last']['contract_changed_bytes'] == [public]
+        assert 'Paired batched benchmark not run: CORRECTNESS_REGRESSED.' in feedback['text']
+        # Parent fails the checker, candidate passes (new bytes there) -> improvement,
+        # kept on the correctness gain although its benchmark gates fail.
+        assert second['score']['newly_passed'] == ['held-b'] and second['score']['contract']['changed_bytes'] == []
+        assert second['score']['contract']['checker_fixed'] == ['held-b']
+        assert second['benchmark_decision']['status'] == 'ran' and second['benchmark']['objective_met'] is False
+        assert second['score']['improved'] is True and second['kept'] is True
+        assert second['score']['latency_method'] == 'paired_batched_benchmark'
+        # The benchmark's own parent-relative correctness gate failing (no ratio
+        # measured) is a regression, never a latency claim.
+        assert third['benchmark']['correctness_passed'] is False and third['benchmark']['median_ratio'] is None
+        assert third['score']['regressed'] is True and third['score']['latency_ratio'] is None
+        assert third['score']['contract']['benchmark_correctness_passed'] is False
+        assert third['benchmark_decision']['beats_best'] is False and third['kept'] is False
+        stopped = store.get(third['next_feedback_ref'])['text']
+        assert 'stopped on a correctness failure' in stopped and 'semantic_edge' in stopped
+        assert 'withheld-edge-3' not in stopped
+        # A/A first; the regressed iteration-1 candidate is never benchmarked.
+        assert [call[0] for call in runtime.benchmark.calls] == [0, 2, 3]
+        assert result['loop']['best']['iteration'] == 2
+    finally:
+        store.close()
+
+
+def test_benchmark_jobs_count_against_the_execution_budget(tmp_path, monkeypatch):
+    cases = len(public_fixtures('utility.calculate')) + len(HELD_OUT)
+    passing = (0.8, (0.78, 0.82), None)
+    # Room for the parent (3 trials), the A/A baseline, one candidate (3
+    # trials) and its benchmark -- not for a second iteration.
+    store, value, runtime, evaluations = bench_session(tmp_path, monkeypatch, [AA, passing, passing],
+                                                       max_executions=cases * 6 + 100, jobs=50)
+    runtime.benchmark_jobs = 50
+    try:
+        result = run(value, runtime, FakeBackend(script(spec(tag='a'), spec(tag='b'))))
+        loop = result['loop']
+        assert loop['stop_reason'] == 'budget' and loop['completed_iterations'] == 1
+        assert loop['benchmark_accounting']['protected_jobs'] == 100 and loop['benchmark_accounting']['calls'] == 2
+        assert loop['iterations'][0]['kept'] is True and [c[0] for c in runtime.benchmark.calls] == [0, 1]
+        assert loop['benchmark_baseline_status']['status'] == 'measured'
+    finally:
+        store.close()
+    # One job short of a candidate plus its benchmark after the A/A: no model call is made.
+    store, value, runtime, evaluations = bench_session(tmp_path / 'b', monkeypatch, [AA],
+                                                       max_executions=cases * 6 + 99, jobs=50)
+    runtime.benchmark_jobs = 50
+    try:
+        backend = FakeBackend([])
+        result = run(value, runtime, backend)
+        assert result['loop']['stop_reason'] == 'budget' and result['loop']['completed_iterations'] == 0
+        assert backend.prompts == [] and [c[0] for c in runtime.benchmark.calls] == [0]
+    finally:
+        store.close()
+    # A refused A/A baseline is an unknown effect before any model call: the run stops.
+    store, value, runtime, evaluations = bench_session(tmp_path / 'd', monkeypatch, [ValueError('ROOT_REFUSED')])
+    try:
+        backend = FakeBackend([])
+        result = run(value, runtime, backend)
+        assert result['loop']['stop_reason'] == 'error' and result['model_calls'] == 0 and backend.prompts == []
+        assert 'ROOT_REFUSED' in result['loop']['stop_detail']
+    finally:
+        store.close()
+    # A refused candidate benchmark is an unknown effect: the iteration errors and the loop stops.
+    # (Its oversized dependency context is refused as unbounded: a recorded limitation, never a prompt.)
+    store, value, runtime, evaluations = bench_session(tmp_path / 'c', monkeypatch, [AA, ValueError('ROOT_REFUSED')],
+                                                       context_bytes='oversized')
+    try:
+        backend = FakeBackend(script(spec(tag='a')))
+        result = run(value, runtime, backend)
+        assert any('BOUNDED_DEPENDENCY_CONTEXT_REQUIRED' in item for item in result['limitations'])
+        assert 'read-only dependency' not in backend.prompts[1][2]
+        row = result['loop']['iterations'][0]
+        assert row['outcome'] == 'error' and row['reason'].startswith('CANDIDATE_BENCHMARK_FAILED')
+        assert result['loop']['stop_reason'] == 'error' and row['kept'] is False
+    finally:
+        store.close()
+
+
+def test_slot_benchmark_sizing_is_closed_and_extends_the_run_deadline(tmp_path):
+    sizing = {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 2000}
+    store, value, runtime, _ = make_session(tmp_path, loop={**LOOP, 'wall_s': 600, 'per_call_s': 60, 'benchmark': sizing})
+    try:
+        config = capsule_loop.loop_configuration(session.validate_session(value))
+        assert config['benchmark'] == sizing and capsule_loop.benchmark_wall_s(config) == 2000
+        # wall_s + benchmark.wall_s + 2*per_call_s + 60 (W-M3's run-deadline formula)
+        assert session.session_timeout_s(value) == 600 + 2000 + 2 * 60 + 60
+        value['loop'] = {**LOOP, 'wall_s': 600, 'per_call_s': 60}
+        assert session.session_timeout_s(value) == 600 + 2 * 60 + 60
+        for bad in ({**sizing, 'extra': 1}, {k: v for k, v in sizing.items() if k != 'wall_s'},
+                    {**sizing, 'repetitions': 0}, {**sizing, 'wall_s': 1.5}):
+            value['loop'] = {**LOOP, 'benchmark': bad}
+            with pytest.raises(ValueError, match='BENCHMARK'):
+                session.validate_session(value)
+        # W-M1's grant limits.benchmark_wall_s alone extends the deadline; with
+        # the slot sizing both must agree.
+        value['grant']['limits'] = {'wall_s': 3600, 'benchmark_wall_s': 900}
+        value['loop'] = {**LOOP, 'wall_s': 600, 'per_call_s': 60}
+        assert capsule_loop.benchmark_wall_s(capsule_loop.loop_configuration(value)) == 900
+        value['loop']['benchmark'] = sizing
+        with pytest.raises(ValueError, match='BENCHMARK_WALL_DIFFERS_FROM_GRANT'):
+            capsule_loop.loop_configuration(value)
+    finally:
+        store.close()
+
+
+def test_score_without_benchmark_is_flagged_and_reports_must_match_subjects(tmp_path):
+    store, value, runtime, _ = make_session(tmp_path, loop=LOOP)
+    try:
+        parent = asyncio.run(runtime.evaluate('parent', body=PARENT, candidate_ref=value['parent_body_ref'],
+                                              binding=None, iteration=0, trials=1))
+        body = spec(tag='x')
+        ref = store.put_bytes(body)
+        candidate = asyncio.run(runtime.evaluate('candidate', body=body, candidate_ref=ref, binding={},
+                                                 iteration=1, trials=1))
+        plain = capsule_objective.score(parent, candidate)
+        assert plain['latency_method'] == 'single_job_floor' and plain['benchmark'] is None
+        assert plain['contract']['byte_compared'] == len(parent['rows'])
+        good = bench_report(PARENT, body, ratio=0.8, ci=(0.78, 0.82))
+        judged = capsule_objective.score(parent, candidate, benchmark=good)
+        assert judged['latency_method'] == 'paired_batched_benchmark' and judged['improved'] is True
+        assert judged['benchmark']['failed_gates'] == [] and judged['latency_ratio'] == 0.8
+        with pytest.raises(ValueError, match='BENCHMARK_SUBJECT_DIFFERS'):
+            capsule_objective.score(parent, candidate,
+                                    benchmark=bench_report(PARENT, b'other', ratio=0.8, ci=(0.78, 0.82)))
+        with pytest.raises(ValueError, match='BENCHMARK_OBJECTIVE_CONTRADICTS_GATES'):
+            capsule_objective.score(parent, candidate, benchmark={**good, 'gates': {'ci_upper_bound': False}})
     finally:
         store.close()

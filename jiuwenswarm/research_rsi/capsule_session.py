@@ -11,7 +11,7 @@ import asyncio
 import hashlib
 import sqlite3
 
-from .capsule_loop import (CapsuleLoop, load_objective, loop_configuration, loop_run_context_ids,
+from .capsule_loop import (CapsuleLoop, benchmark_wall_s, load_objective, loop_configuration, loop_run_context_ids,
     new_loop_record, selected_iteration)
 from .records import encoded
 from .targets.capsules import registered_capsule, public_fixtures
@@ -202,7 +202,12 @@ async def execute(value, runtime, *, models=None):
 
 
 async def run_session(value, runtime, *, models=None):
-    # The loop stops itself before its configured deadline; this is the hard ceiling.
+    return await asyncio.wait_for(execute(value, runtime, models=models), timeout=session_timeout_s(value))
+
+
+def session_timeout_s(value):
+    """Hard ceiling: ``wall_s + benchmark.wall_s + 2*per_call_s + 60`` (the
+    shared run-deadline formula; benchmark.wall_s is 0 without a benchmark).
+    The loop stops itself before its own deadline."""
     config = loop_configuration(validate_session(value))
-    return await asyncio.wait_for(execute(value, runtime, models=models),
-                                  timeout=config['wall_s'] + 2 * config['per_call_s'] + 60)
+    return config['wall_s'] + benchmark_wall_s(config) + 2 * config['per_call_s'] + 60

@@ -364,16 +364,33 @@ async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
         manifest=config['manifest'], grant_path=config['grant_path'], grant_sha256=config['grant_sha256'],
         cgroup_root=config['cgroup_root'], captures=captures)
     plan = dispatcher.plan()
-    helper.write_frame(outgoing, {'ready': True, 'plan': plan})
+    # Interface E is served only by a dispatcher that implements it; the ready
+    # frame tells the controller so (never inferred on the controller side).
+    bench = getattr(dispatcher, 'benchmark', None)
+    bench = bench if callable(bench) else None
+    jobs = None
+    if bench is not None and callable(getattr(dispatcher, 'benchmark_plan', None)):
+        jobs = dispatcher.benchmark_plan().get('jobs_per_benchmark')  # W-M1: jobs one call executes
+    helper.write_frame(outgoing, {'ready': True, 'plan': plan, 'benchmark': {
+        'available': bench is not None, 'jobs': jobs if type(jobs) is int and jobs >= 0 else None}})
     # Iteration/trial arguments are passed when the dispatcher ABI declares them;
     # a historical single-trial dispatcher is refused any multi-trial request.
     accepts = set(inspect.signature(dispatcher.evaluate).parameters)
+    bench_accepts = set(inspect.signature(bench).parameters) if bench is not None else set()
     served = []; last_iteration = -1; stop = 'CONTROLLER_CLOSED'
+    benchmarks = []; outcomes = {}  # subject sha256 -> {fixture_id: task_success}
     try:
         while True:
             request = await asyncio.to_thread(read_frame_deadline, incoming, dispatcher.deadline)
             if request is None:
                 break
+            if isinstance(request, dict) and set(request) == {'benchmark'}:
+                await serve_benchmark(request['benchmark'], dispatcher, bench, bench_accepts, plan,
+                                             outcomes, benchmarks, last_iteration, captures, outgoing, helper)
+                if getattr(dispatcher, 'halted', False):
+                    stop = 'DISPATCHER_HALTED'
+                    break
+                continue
             need(isinstance(request, dict) and set(request) == {
                 'role', 'body_base64', 'candidate_ref', 'binding', 'iteration', 'trials'},
                 'CLOSED_CAPSULE_EVALUATION_REQUEST_REQUIRED')
@@ -400,6 +417,8 @@ async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
             helper.write_frame(outgoing, {'evaluation': result})
             served.append({'role': role, 'iteration': iteration, 'trials': trials,
                            'result_ref': result.get('result_ref'), 'executions': result.get('executions')})
+            outcomes[digest(body)] = {'role': role, 'iteration': iteration, 'cases': {row.get('fixture_id'): row.get('task_success')
+                                                              for row in result.get('rows') or [] if isinstance(row, dict)}}
             last_iteration = iteration
             # A candidate's captured case failures are scored outcomes; only an
             # unknown/in-flight effect (halted dispatcher) or a failed parent
@@ -414,9 +433,73 @@ async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
             'schema': 'ai4r-rsi-capsule-evaluator-completion:1', 'id': value['session']['id'],
             'configuration_sha256': configuration_sha256, 'grant_ref': dispatcher.grant_ref,
             'plan': plan, 'status': 'STOPPED', 'stop': stop, 'executions': dispatcher.executions,
-            'halted': dispatcher.halted, 'completed_roles': list(dispatcher.completed), 'evaluations': served})
+            'halted': dispatcher.halted, 'completed_roles': list(dispatcher.completed), 'evaluations': served,
+            'benchmarks': benchmarks})
     finally:
         captures.close()
+
+
+def run_wall_s(value):
+    """Effect wall of one run: the grant's loop wall plus the paired-benchmark
+    wall (``session.loop.benchmark.wall_s`` = grant ``limits.benchmark_wall_s``;
+    0 without a benchmark) -- the same sum the Root dispatcher's deadline uses."""
+    from jiuwenswarm.research_rsi.capsule_loop import benchmark_wall_s, loop_configuration
+    session = value['session']
+    return session['grant']['limits']['wall_s'] + benchmark_wall_s(loop_configuration(session))
+
+
+async def serve_benchmark(request, dispatcher, bench, accepts, plan, outcomes, benchmarks, last_iteration,
+                          captures, outgoing, helper):
+    """Interface E over the pipes: one ``{'benchmark': {...}}`` request, then
+    captures and exactly one ``{'benchmark': report}`` (or failure) frame.
+
+    Root authorizes only subjects it has itself evaluated in this session: the
+    benchmark parent is always the evaluated original parent; the benchmark
+    candidate is either the parent itself (the A/A baseline, ``iteration`` 0,
+    once per run) or the candidate of the iteration just evaluated
+    (``iteration`` >= 1, once per iteration) that passed every case the
+    parent passed. The dispatcher (W-M1) runs the paired batched protocol,
+    refuses an unevaluated candidate or a repeated claim, and enforces the
+    exact grant budget; this loop only pre-checks. At most ``max_iterations +
+    1`` benchmarks are served, which is what the slot sizes the grant and the
+    benchmark wall for.
+    """
+    need(bench is not None, 'ROOT_BENCHMARK_NOT_SERVED')
+    need(isinstance(request, dict) and set(request) == {'parent_body_base64', 'candidate_body_base64', 'iteration'},
+         'CLOSED_CAPSULE_BENCHMARK_REQUEST_REQUIRED')
+    iteration = request['iteration']
+    need(type(iteration) is int and last_iteration >= 0 and iteration in (0, last_iteration),
+         'BENCHMARK_FOR_LAST_EVALUATED_ITERATION_OR_BASELINE_REQUIRED')
+    need(not any(row['iteration'] == iteration for row in benchmarks), 'ONE_BENCHMARK_PER_ITERATION_AND_ONE_BASELINE')
+    parent = base64.b64decode(request['parent_body_base64'], validate=True)
+    candidate = base64.b64decode(request['candidate_body_base64'], validate=True)
+    parent_sha256, candidate_sha256 = digest(parent), digest(candidate)
+    need(parent_sha256 in outcomes and outcomes[parent_sha256]['role'] == 'parent', 'BENCHMARK_PARENT_MUST_BE_EVALUATED_PARENT')
+    if iteration == 0:
+        need(candidate_sha256 == parent_sha256, 'BASELINE_IS_PARENT_A_A')
+    else:
+        need(candidate_sha256 in outcomes and outcomes[candidate_sha256]['role'] == 'candidate'
+             and outcomes[candidate_sha256]['iteration'] == iteration, 'BENCHMARK_CANDIDATE_OF_THIS_ITERATION_REQUIRED')
+    before, after = outcomes[parent_sha256]['cases'], outcomes[candidate_sha256]['cases']
+    need(all(after.get(ident) is True for ident, passed in before.items() if passed is True),
+         'BENCHMARK_CANDIDATE_MUST_KEEP_PARENT_CORRECTNESS')
+    need(dispatcher.executions < plan['maximum_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
+    extra = {name: item for name, item in (
+        ('parent_ref', {'id': parent_sha256, 'sha256': parent_sha256}),
+        ('candidate_ref', {'id': candidate_sha256, 'sha256': candidate_sha256})) if name in accepts}
+    try:
+        report = await bench(parent, candidate, iteration=iteration, **extra)
+        need(isinstance(report, dict), 'ROOT_BENCHMARK_REPORT_REQUIRED')
+    except Exception as error:
+        helper.write_frame(outgoing, {'failure': {'exception_type': type(error).__name__, 'message': str(error)[:4096]}})
+        raise
+    for capture in capture_closure(captures, report):
+        helper.write_frame(outgoing, {'capture': capture})
+    helper.write_frame(outgoing, {'benchmark': report})
+    benchmarks.append({'iteration': iteration, 'parent_sha256': parent_sha256, 'candidate_sha256': candidate_sha256,
+                       'protected_jobs': report.get('protected_jobs'), 'objective_met': report.get('objective_met'),
+                       'report_ref': report.get('report_ref')})
+    return report
 
 
 def evaluation_passed(result, name):
@@ -426,14 +509,13 @@ def evaluation_passed(result, name):
     return parent_control_passed(result, name)
 
 
-async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, effect_deadline=None, progress=None):
+async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, effect_deadline=None, progress=None,
+                     benchmark_plan=None):
     runtime = None
-    async def evaluate(role, *, body, candidate_ref, binding, iteration=0, trials=1):
-        # Interface A over the bounded pipes: one request frame, then captures
-        # and exactly one evaluation (or failure) frame. Served N times.
-        helper.write_frame(outgoing, {'role': role, 'body_base64': base64.b64encode(body).decode('ascii'),
-            'candidate_ref': candidate_ref, 'binding': binding, 'iteration': iteration, 'trials': trials})
-        deadline = time.monotonic() + value['session']['grant']['limits']['wall_s']
+
+    async def answer(kind):
+        """Captures, then exactly one ``kind`` (or failure) frame from Root."""
+        deadline = time.monotonic() + run_wall_s(value)
         while True:
             frame = await asyncio.to_thread(read_frame_deadline, incoming, deadline)
             need(isinstance(frame, dict), 'ROOT_EVALUATOR_CLOSED_WITHOUT_RESULT')
@@ -446,40 +528,67 @@ async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, e
             if set(frame) == {'failure'}:
                 failure = frame['failure']
                 need(isinstance(failure, dict) and set(failure) == {'exception_type', 'message'}, 'EXACT_ROOT_FAILURE_REQUIRED')
-                raise ValueError('ROOT_EVALUATION_FAILED_NO_REPLAY: ' + str(failure['exception_type'])[:128]
+                raise ValueError('ROOT_' + kind.upper() + '_FAILED_NO_REPLAY: ' + str(failure['exception_type'])[:128]
                                  + ': ' + str(failure['message'])[:2048])
-            need(set(frame) == {'evaluation'}, 'UNKNOWN_ROOT_EVALUATOR_FRAME')
-            result = frame['evaluation']
-            from jiuwenswarm.research_rsi.capsule_loop import validate_visible
-            from jiuwenswarm.research_rsi.targets.capsule_runtime import capsule_worker_program, BOOTSTRAP_SCHEMA
-            from jiuwenswarm.research_rsi.targets.capsule_executor import LOCAL_SCOPE
-            validate_visible(result, value['session'], role, candidate_ref, iteration=iteration, trials=trials,
-                             objective=getattr(runtime, 'objective', None))
-            local = (value.get('evaluator') or {}).get('dispatcher') == 'local'
-            # Local rows are accepted only from an explicitly local evaluator and
-            # are never presented as protected (publication refuses the scope).
-            need(all((row.get('receipt', {}).get('scope') == LOCAL_SCOPE) is local for row in result['rows'])
-                 and (result.get('scope') == LOCAL_SCOPE) is local, 'CONFIGURED_EVALUATION_SCOPE_REQUIRED')
-            need(isinstance(result.get('result_ref'), dict)
-                 and all(isinstance(row.get(key), dict) for row in result['rows']
-                         for key in ('evidence_ref', 'input_ref', 'program_ref')), 'PROTECTED_ROOT_EVIDENCE_REFS_REQUIRED')
-            need(runtime.store.get(result['result_ref']) == {key: item for key, item in result.items() if key != 'result_ref'},
-                 'EXACT_ROOT_RESULT_CAPTURE_REQUIRED')
-            for row in result['rows']:
-                need(runtime.store.get(row['evidence_ref']) == {key: item for key, item in row.items() if key != 'evidence_ref'},
-                     'EXACT_ROOT_ROW_CAPTURE_REQUIRED')
-                need(row['bootstrap_schema'] == BOOTSTRAP_SCHEMA, 'EXACT_GUARDED_BOOTSTRAP_PROGRAM_REQUIRED')
-                if local:
-                    # The local program names the job's own host paths, so its
-                    # hash is pinned by program_ref but not recomputable here.
-                    continue
-                expected = capsule_worker_program(value['session']['capsule_name'],
-                    manifest_sha256=value['session']['grant']['runtime_manifest_sha256'],
-                    candidate_sha256=candidate_ref['sha256'], input_sha256=row['input_ref']['sha256'],
-                    iterations=value['session']['grant']['iterations'])
-                need(row['bootstrap_schema'] == BOOTSTRAP_SCHEMA and row['program_ref']['sha256'] == digest(expected),
-                     'EXACT_GUARDED_BOOTSTRAP_PROGRAM_REQUIRED')
-            return result
+            need(set(frame) == {kind}, 'UNKNOWN_ROOT_EVALUATOR_FRAME')
+            return frame[kind]
+
+    async def benchmark(parent_body, candidate_body, *, iteration):
+        # Interface E over the same pipes and grant: one request frame, then
+        # captures and exactly one report (or failure) frame.
+        helper.write_frame(outgoing, {'benchmark': {
+            'parent_body_base64': base64.b64encode(parent_body).decode('ascii'),
+            'candidate_body_base64': base64.b64encode(candidate_body).decode('ascii'), 'iteration': iteration}})
+        report = await answer('benchmark')
+        from jiuwenswarm.research_rsi.targets.capsule_objective import validate_benchmark_report
+        from jiuwenswarm.research_rsi.targets.capsule_executor import LOCAL_SCOPE, PROTECTED_SCOPE
+        validate_benchmark_report(report, parent_sha256=digest(parent_body), candidate_sha256=digest(candidate_body))
+        local = (value.get('evaluator') or {}).get('dispatcher') == 'local'
+        # Like evaluation rows: a local report is never presented as protected.
+        need(report.get('scope') == (LOCAL_SCOPE if local else PROTECTED_SCOPE), 'CONFIGURED_BENCHMARK_SCOPE_REQUIRED')
+        for ref in report['evidence_refs']:
+            runtime.store.read(ref)  # every evidence ref arrived as an exact Root capture
+        if 'report_ref' in report:
+            need(runtime.store.get(report['report_ref']) == {k: v for k, v in report.items() if k != 'report_ref'},
+                 'EXACT_ROOT_BENCHMARK_REPORT_CAPTURE_REQUIRED')
+        return report
+
+    async def evaluate(role, *, body, candidate_ref, binding, iteration=0, trials=1):
+        # Interface A over the bounded pipes: one request frame, then captures
+        # and exactly one evaluation (or failure) frame. Served N times.
+        helper.write_frame(outgoing, {'role': role, 'body_base64': base64.b64encode(body).decode('ascii'),
+            'candidate_ref': candidate_ref, 'binding': binding, 'iteration': iteration, 'trials': trials})
+        result = await answer('evaluation')
+        from jiuwenswarm.research_rsi.capsule_loop import validate_visible
+        from jiuwenswarm.research_rsi.targets.capsule_runtime import capsule_worker_program, BOOTSTRAP_SCHEMA
+        from jiuwenswarm.research_rsi.targets.capsule_executor import LOCAL_SCOPE
+        validate_visible(result, value['session'], role, candidate_ref, iteration=iteration, trials=trials,
+                         objective=getattr(runtime, 'objective', None))
+        local = (value.get('evaluator') or {}).get('dispatcher') == 'local'
+        # Local rows are accepted only from an explicitly local evaluator and
+        # are never presented as protected (publication refuses the scope).
+        need(all((row.get('receipt', {}).get('scope') == LOCAL_SCOPE) is local for row in result['rows'])
+             and (result.get('scope') == LOCAL_SCOPE) is local, 'CONFIGURED_EVALUATION_SCOPE_REQUIRED')
+        need(isinstance(result.get('result_ref'), dict)
+             and all(isinstance(row.get(key), dict) for row in result['rows']
+                     for key in ('evidence_ref', 'input_ref', 'program_ref')), 'PROTECTED_ROOT_EVIDENCE_REFS_REQUIRED')
+        need(runtime.store.get(result['result_ref']) == {key: item for key, item in result.items() if key != 'result_ref'},
+             'EXACT_ROOT_RESULT_CAPTURE_REQUIRED')
+        for row in result['rows']:
+            need(runtime.store.get(row['evidence_ref']) == {key: item for key, item in row.items() if key != 'evidence_ref'},
+                 'EXACT_ROOT_ROW_CAPTURE_REQUIRED')
+            need(row['bootstrap_schema'] == BOOTSTRAP_SCHEMA, 'EXACT_GUARDED_BOOTSTRAP_PROGRAM_REQUIRED')
+            if local:
+                # The local program names the job's own host paths, so its
+                # hash is pinned by program_ref but not recomputable here.
+                continue
+            expected = capsule_worker_program(value['session']['capsule_name'],
+                manifest_sha256=value['session']['grant']['runtime_manifest_sha256'],
+                candidate_sha256=candidate_ref['sha256'], input_sha256=row['input_ref']['sha256'],
+                iterations=value['session']['grant']['iterations'])
+            need(row['bootstrap_schema'] == BOOTSTRAP_SCHEMA and row['program_ref']['sha256'] == digest(expected),
+                 'EXACT_GUARDED_BOOTSTRAP_PROGRAM_REQUIRED')
+        return result
     try:
         composition = dict(value['composition'])
         composition.update({key: value['session'][key] for key in (
@@ -489,7 +598,7 @@ async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, e
         runtime.development_model_factory = helper.DevelopmentModel
         governed_before_model = runtime.before_model
         model_deadline = (effect_deadline if effect_deadline is not None else
-                          time.monotonic() + value['session']['grant']['limits']['wall_s'])
+                          time.monotonic() + run_wall_s(value))
         async def before_model():
             need(time.time() < value['session']['grant']['expires_unix_s']
                  and time.monotonic() < model_deadline, 'MODEL_START_AFTER_ROOT_GRANT_DEADLINE')
@@ -498,6 +607,13 @@ async def controller(value, incoming, outgoing, helper, *, evaluator_pid=None, e
                      'ROOT_EVALUATOR_EXITED_BEFORE_MODEL_START')
             await governed_before_model()
         runtime.before_model = before_model
+        # Interface E: exposed only when the Root evaluator's ready frame said
+        # its dispatcher serves benchmarks; otherwise the loop falls back to the
+        # flagged single-job floor.
+        if isinstance(benchmark_plan, dict) and benchmark_plan.get('available') is True:
+            runtime.benchmark = benchmark
+            jobs = benchmark_plan.get('jobs')
+            runtime.benchmark_jobs = jobs if type(jobs) is int and jobs >= 0 else None
         from jiuwenswarm.research_rsi.capsule_session import run_session
         if progress is not None: progress['phase'] = 'SESSION'
         return await run_session(value['session'], runtime)
@@ -521,7 +637,7 @@ def owner_record(value, ack, role):
         'pid_namespace': os.readlink('/proc/self/ns/pid'),
         'mount_namespace': os.readlink('/proc/self/ns/mnt'),
         'boot_id': Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
-        'deadline_unix_ns': time.time_ns() + int((value['session']['grant']['limits']['wall_s'] + 30) * 1e9),
+        'deadline_unix_ns': time.time_ns() + int((run_wall_s(value) + 30) * 1e9),
         'initial_uid': os.geteuid(), 'initial_gid': os.getegid(),
         'uid': os.geteuid(), 'gid': os.getegid(), 'groups': os.getgroups(),
         'controller_uid': 12001, 'controller_gid': 12001, 'controller_groups': [13000]}
@@ -533,7 +649,9 @@ def run(value, ack):
     root = Path(value['evaluator']['root'])
     helper.exclusive(root / 'controller-owner.json', owner_record(value, ack, 'controller'))
     request_read, request_write = os.pipe(); response_read, response_write = os.pipe()
-    effect_deadline = time.monotonic() + value['session']['grant']['limits']['wall_s']
+    # The paired benchmark runs inside the same evaluator and grant: every
+    # effect deadline covers its materialized wall too.
+    effect_deadline = time.monotonic() + run_wall_s(value)
     pid = os.fork()
     if pid == 0:
         try:
@@ -546,7 +664,7 @@ def run(value, ack):
             def expired(signum, frame):
                 raise TimeoutError('FINITE_CAPSULE_EVALUATOR_LIFETIME_EXPIRED')
             signal.signal(signal.SIGALRM, expired)
-            signal.alarm(value['session']['grant']['limits']['wall_s'] + 30)
+            signal.alarm(run_wall_s(value) + 30)
             os.setgroups([])
             helper.exclusive(root / 'owner.json', owner_record(value, ack, 'evaluator'))
             with os.fdopen(request_read, 'rb') as incoming, os.fdopen(response_write, 'wb') as outgoing:
@@ -568,12 +686,15 @@ def run(value, ack):
     try:
         with os.fdopen(response_read, 'rb') as incoming, os.fdopen(request_write, 'wb') as outgoing:
             ready = read_frame_deadline(incoming, time.monotonic() + 30)
-            need(isinstance(ready, dict) and set(ready) == {'ready', 'plan'} and ready['ready'] is True
+            need(isinstance(ready, dict) and set(ready) == {'ready', 'plan', 'benchmark'} and ready['ready'] is True
+                 and isinstance(ready['benchmark'], dict) and set(ready['benchmark']) == {'available', 'jobs'}
+                 and type(ready['benchmark']['available']) is bool
                  and ready['plan']['grant_sha256'] == ack['grant_sha256']
                  and ready['plan']['maximum_executions'] == ack['maximum_executions']
                  and ready['plan']['bootstrap_schema'] == ack['bootstrap_schema'], 'EXACT_ROOT_EVALUATOR_READY_REQUIRED')
             result = asyncio.run(controller(value, incoming, outgoing, helper,
-                evaluator_pid=pid, effect_deadline=effect_deadline, progress=progress))
+                evaluator_pid=pid, effect_deadline=effect_deadline, progress=progress,
+                benchmark_plan=ready['benchmark']))
     except BaseException as error:
         failure = {
             'schema': 'ai4r-rsi-capsule-controller-failure:1', 'id': value['session']['id'],
