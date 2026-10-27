@@ -99,7 +99,7 @@ def test_historical_manifests_are_hash_checked_without_bypassing_current_admissi
     with closing(SQLiteRunStore(tmp_path)) as store:
         historical = historical_candidates(store)
         assert set(historical) == {(name, 'm1-1') for name in ('utility.table_normalize',
-            'utility.calculate', 'utility.markdown_report', 'research.generalist')}
+            'utility.calculate', 'utility.markdown_report', 'research.generalist')} | {('utility.calculate', 'm1-2')}
         active = candidates(store)
         for name, version in historical:
             old_asset, _ = historical[(name, version)]

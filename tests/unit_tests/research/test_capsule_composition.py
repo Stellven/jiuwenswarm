@@ -102,7 +102,10 @@ def test_v2_utility_releases_preserve_historical_v1_byte_pins():
         'markdown_report': 'markdown_report_v2', 'generalist': 'generalist_v2'}
     for old_module, new_module in modules.items():
         historical = json.loads((root / 'history/v1' / old_module / 'release.json').read_text('utf-8'))
-        current = json.loads((root / new_module / 'release.json').read_text('utf-8'))
+        manifest = root / new_module / 'release.json'
+        if not manifest.exists():  # superseded by a later release: archived under history/v2
+            manifest = root / 'history/v2' / new_module / 'release.json'
+        current = json.loads(manifest.read_text('utf-8'))
         deps = {item['path']: item['sha256'] for item in current['shared_dependencies']}
         for path, digest in historical['files'].items():
             # Historical pins are still exact source bytes; the new release

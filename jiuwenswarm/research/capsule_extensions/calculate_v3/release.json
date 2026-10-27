@@ -1,0 +1,14 @@
+{
+  "files": {
+    "calculate_v3/__init__.py": "2a0fbd28576cc8d69c21ce3c6188efc32e17a3bea2b9e57dd71fa88757b87c64",
+    "calculate_v3/checks.py": "09420414065f9846c5bbc21de2e120f15b35a979d8701cdf6f6058fbc6f07e36",
+    "calculate_v3/release.py": "57e28c2e9c97893fa75c49c46d8cfc70354b3cb943f366606e9aeb6adef43e73",
+    "calculate_v3/worker.py": "f69d8a1b13962e428ebeeb02c5cd553bde1bddccd7b4a82062732dcfb88326db"
+  },
+  "module": "calculate_v3",
+  "name": "utility.calculate",
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}
