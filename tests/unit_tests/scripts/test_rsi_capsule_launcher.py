@@ -455,14 +455,20 @@ def test_revision_materializes_benchmark_sizing_and_calls_owner_budget_with_it(t
         calls.append((case_count, kwargs)); return 4321
     monkeypatch.setattr(capsule_executor, 'loop_execution_budget', owner_budget)
     payload = slot.prepare_revision(value, 1, 'unit-calculate-dev-r1', run_step=t['run_step'], now=now, chown=False)
+    from jiuwenswarm.research_rsi.targets.capsule_benchmark import benchmark_job_count
+    name = value['target_id']
+    jobs = benchmark_job_count(name, {'repetitions': 11, 'warmups': 2})  # M1's exact per-call count.
+    assert jobs == 8 * 11 * 2 + 8 * 2 + 9 * 2  # Timed pairs (warmups inside each job), untimed, semantic edges.
     expected = {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6,
-                'wall_s': (3 + 1) * 8 * (11 + 2) * 2 * 6}  # Baseline + 3 iterations, both sides of every pair.
+                'wall_s': (3 + 1) * jobs * 6}  # A/A baseline + 3 iterations, each one benchmark call.
     control = t['tmp'] / 'control/unit-calculate-dev-r1'
     grant = json.loads((control / 'grant.json').read_text())
     cases = len(capsule_executor.grant_fixtures(grant))
     # The budget formula stays the owner's: called with the loop config, its value used verbatim.
-    assert calls == [(cases, {'max_iterations': 3, 'trials': 2, 'benchmark': expected})]
+    assert calls == [(cases, {'max_iterations': 3, 'trials': 2, 'benchmark': expected, 'capsule_name': name})]
     assert grant['max_executions'] == payload['max_executions'] == 4321
+    # The grant carries the benchmark wall Root's dispatcher deadline adds.
+    assert grant['limits'] == dict(value['grant']['limits'], benchmark_wall_s=expected['wall_s'])
     prepare = json.loads((control / 'prepare-configuration.json').read_text())
     assert prepare['loop'] == dict(value['loop'], benchmark=expected)
     run = json.loads((control / 'run-configuration.json').read_text())
@@ -472,7 +478,7 @@ def test_revision_materializes_benchmark_sizing_and_calls_owner_budget_with_it(t
     # Explicit template sizing overrides the derived one; unknown keys never pass.
     value['loop']['benchmark'] = {'per_job_s': 2, 'repetitions': 5}
     assert slot.benchmark_settings(value) == {'workloads': 8, 'repetitions': 5, 'warmups': 2, 'per_job_s': 2,
-                                              'wall_s': 4 * 8 * 7 * 2 * 2}
+                                              'wall_s': 4 * benchmark_job_count(name, {'repetitions': 5}) * 2}
     value['loop']['benchmark'] = {'wall_s': 900}
     assert slot.benchmark_settings(value)['wall_s'] == 900
     for broken, reason in (({'pairs': 11}, 'CLOSED_LOOP_BENCHMARK_REQUIRED'), ({'per_job_s': 0}, 'FINITE_BENCHMARK_PER_JOB_S_REQUIRED'),
@@ -492,8 +498,13 @@ def test_capsule_without_benchmark_data_keeps_the_historical_budget_and_deadline
     value['loop']['benchmark'] = {'per_job_s': 4}  # Sizing without any workload count is refused, not guessed.
     with pytest.raises(ValueError, match='BENCHMARK_WORKLOAD_COUNT_REQUIRED'):
         slot.benchmark_settings(value)
+    # A workload count that differs from the capsule's real benchmark data is refused.
     value['loop']['benchmark'] = {'workloads': 3}
-    assert slot.benchmark_settings(value)['wall_s'] == 4 * 3 * 13 * 2 * 6
+    with pytest.raises(ValueError, match='NO_BENCHMARK_MATCHES_SIZING_WORKLOADS'):
+        slot.benchmark_settings(value)
+    from jiuwenswarm.research_rsi.targets.capsule_benchmark import benchmark_job_count
+    value['loop']['benchmark'] = {'workloads': 8}
+    assert slot.benchmark_settings(value)['wall_s'] == 4 * benchmark_job_count(value['target_id'], {}) * 6
     _benchmark_data(t, 0)
     value['loop'].pop('benchmark')
     with pytest.raises(ValueError, match='DATA_DRIVEN_BENCHMARK_WORKLOADS_REQUIRED'):

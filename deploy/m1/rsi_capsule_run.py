@@ -174,8 +174,11 @@ def validate_configuration(value):
     evaluator = value['evaluator']
     fields = {'root', 'runtime_root', 'manifest', 'metadata', 'grant_path', 'grant_sha256', 'cgroup_root'}
     # ``dispatcher`` is optional: absent means the protected V18 path.
-    need(isinstance(evaluator, dict) and fields <= set(evaluator) <= fields | {'dispatcher'}
-         and evaluator.get('dispatcher', 'v18-bwrap') in DISPATCHERS, 'CLOSED_EVALUATOR_REQUIRED')
+    # ``benchmark`` is optional: extra Interface E overrides (batch sizes,
+    # gates, bootstrap) on top of the session's slot-materialized sizing.
+    need(isinstance(evaluator, dict) and fields <= set(evaluator) <= fields | {'dispatcher', 'benchmark'}
+         and evaluator.get('dispatcher', 'v18-bwrap') in DISPATCHERS
+         and (evaluator.get('benchmark') is None or isinstance(evaluator['benchmark'], dict)), 'CLOSED_EVALUATOR_REQUIRED')
     for key in ('core_root', 'input_root', 'record_root', 'native_lease_root', 'account_root', 'work_root'):
         path = Path(composition[key])
         need(path.is_absolute() and '..' not in path.parts, 'ABSOLUTE_COMPOSITION_PATH_REQUIRED')
@@ -183,6 +186,8 @@ def validate_configuration(value):
     from jiuwenswarm.research_rsi.targets.capsule_executor import validate_grant
     session = validate_session(value['session'])
     validate_grant(session['grant'], evaluator['manifest'])
+    from jiuwenswarm.research_rsi.targets.capsule_executor import evaluator_benchmark_settings
+    evaluator_benchmark_settings(session, evaluator.get('benchmark'))
     metadata = evaluator['metadata']
     need(isinstance(metadata, dict) and set(metadata) == {'contract', 'environment', 'hardware'},
          'EXACT_PUBLIC_WORKER_METADATA_REQUIRED')
@@ -352,22 +357,27 @@ def capture_closure(store, value):
 
 async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
     from jiuwenswarm.research_rsi.records import RecordStore
+    from jiuwenswarm.research_rsi.targets.capsule_executor import evaluator_benchmark_settings
     from jiuwenswarm.research_rsi.targets.capsule_local_dispatcher import dispatcher_for
     config = value['evaluator']; root = Path(config['root'])
+    # Interface E is served exactly when the session carries a benchmark sizing
+    # (grant budget and benchmark wall included); never inferred from the host.
+    settings = evaluator_benchmark_settings(value['session'], config.get('benchmark'))
     captures = RecordStore(root / 'captures')
     for key, record in config['metadata'].items():
         need(captures.put(record) == value['session']['grant']['worker'][key+'_ref'],
              'EXACT_PUBLIC_WORKER_METADATA_IDENTITY_REQUIRED')
     # Explicit configuration selects the dispatcher; a missing key is the
     # protected V18 path (never inferred from the host).
-    dispatcher = dispatcher_for(config, root=root, runtime_root=config['runtime_root'],
-        manifest=config['manifest'], grant_path=config['grant_path'], grant_sha256=config['grant_sha256'],
-        cgroup_root=config['cgroup_root'], captures=captures)
+    dispatcher = dispatcher_for({key: item for key, item in config.items() if key != 'benchmark'}, root=root,
+        runtime_root=config['runtime_root'], manifest=config['manifest'], grant_path=config['grant_path'],
+        grant_sha256=config['grant_sha256'], cgroup_root=config['cgroup_root'], captures=captures,
+        **({} if settings is None else {'benchmark': settings}))
     plan = dispatcher.plan()
-    # Interface E is served only by a dispatcher that implements it; the ready
+    # Interface E is served only by a dispatcher configured for it; the ready
     # frame tells the controller so (never inferred on the controller side).
     bench = getattr(dispatcher, 'benchmark', None)
-    bench = bench if callable(bench) else None
+    bench = bench if callable(bench) and getattr(dispatcher, 'benchmark_available', False) else None
     jobs = None
     if bench is not None and callable(getattr(dispatcher, 'benchmark_plan', None)):
         jobs = dispatcher.benchmark_plan().get('jobs_per_benchmark')  # W-M1: jobs one call executes
@@ -440,12 +450,12 @@ async def evaluator(value, incoming, outgoing, configuration_sha256, helper):
 
 
 def run_wall_s(value):
-    """Effect wall of one run: the grant's loop wall plus the paired-benchmark
-    wall (``session.loop.benchmark.wall_s`` = grant ``limits.benchmark_wall_s``;
-    0 without a benchmark) -- the same sum the Root dispatcher's deadline uses."""
-    from jiuwenswarm.research_rsi.capsule_loop import benchmark_wall_s, loop_configuration
-    session = value['session']
-    return session['grant']['limits']['wall_s'] + benchmark_wall_s(loop_configuration(session))
+    """Effect wall of one run: the shared run-deadline formula
+    ``wall_s + benchmark_wall_s + 2 * per_call_s + 60`` that ``run_session``
+    enforces (``capsule_session.session_timeout_s``); the launcher and the
+    publisher add their own documented slack on top of the same value."""
+    from jiuwenswarm.research_rsi.capsule_session import session_timeout_s
+    return session_timeout_s(value['session'])
 
 
 async def serve_benchmark(request, dispatcher, bench, accepts, plan, outcomes, benchmarks, last_iteration,

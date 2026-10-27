@@ -296,3 +296,32 @@ def test_loop_budget_covers_benchmark_jobs():
     settings = {'repetitions': 5, 'semantic_edges': False, 'max_benchmarks': 2}
     assert loop_budget_for(name, {**loop, 'benchmark': settings}) == loop_execution_budget(
         cases, max_iterations=5, trials=1, benchmark_jobs=8 * 5 * 2 + 8 * 2, max_benchmarks=2)
+
+
+def test_root_benchmark_settings_come_from_the_session_sizing_and_its_grant():
+    """M4 integration: Interface E is served exactly when the session carries
+    the slot sizing; the grant pins its wall; the evaluator may only add
+    batch/gate/bootstrap overrides that keep the sized job count."""
+    from jiuwenswarm.research_rsi.targets.capsule_executor import LOOP_GRANT_SCHEMA, evaluator_benchmark_settings
+    name = 'utility.calculate'
+    sizing = {'workloads': 8, 'repetitions': 3, 'warmups': 1, 'per_job_s': 5, 'wall_s': 900}
+    session = {'capsule_name': name, 'grant': {'schema': LOOP_GRANT_SCHEMA, 'limits': {'wall_s': 600, 'benchmark_wall_s': 900}},
+               'loop': {'max_iterations': 2, 'trials': 1, 'benchmark': sizing}}
+    assert evaluator_benchmark_settings(session) == {'repetitions': 3, 'warmups': 1}
+    extra = {'batch_iterations': {'small': 50}, 'gates': {'minimum_gain': 0.05}}
+    settings = evaluator_benchmark_settings(session, extra)
+    assert settings == {**extra, 'repetitions': 3, 'warmups': 1}
+    assert benchmark_job_count(name, benchmark_config(name, settings)) == 8 * 3 * 2 + 8 * 2 + 9 * 2
+    # No sizing: nothing served, and an evaluator block alone is refused.
+    plain = {**session, 'loop': {'max_iterations': 2}}
+    assert evaluator_benchmark_settings(plain) is None
+    with pytest.raises(ValueError, match='EVALUATOR_BENCHMARK_WITHOUT_SESSION_SIZING'):
+        evaluator_benchmark_settings(plain, extra)
+    with pytest.raises(ValueError, match='CONTRADICTS_SESSION_SIZING'):
+        evaluator_benchmark_settings(session, {'repetitions': 11})
+    with pytest.raises(ValueError, match='SIZED_BY_THE_SLOT'):
+        evaluator_benchmark_settings(session, {'max_benchmarks': 9})
+    with pytest.raises(ValueError, match='GRANT_BENCHMARK_WALL_DIFFERS'):
+        evaluator_benchmark_settings({**session, 'grant': {'schema': LOOP_GRANT_SCHEMA, 'limits': {'wall_s': 600}}})
+    with pytest.raises(ValueError, match='BENCHMARK_JOBS_DIFFER_FROM_SIZING'):
+        evaluator_benchmark_settings(session, {'semantic_edges': False})

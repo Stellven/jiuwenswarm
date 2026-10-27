@@ -208,7 +208,13 @@ def benchmark_workload_count(template):
     if not path.exists():
         return None
     value = json.loads(custody(path).read_bytes())
-    rows = value.get('workloads') if isinstance(value, dict) else value
+    need(isinstance(value, dict), 'DATA_DRIVEN_BENCHMARK_WORKLOADS_REQUIRED: ' + str(path))
+    # The timed workloads, as ``capsule_benchmark`` reads the spec: its
+    # ``workloads`` index when present, else every ``timed`` row of every split.
+    rows = value.get('workloads')
+    if rows is None and isinstance(value.get('splits'), dict):
+        rows = [row for split in value['splits'].values() if isinstance(split, list)
+                for row in split if isinstance(row, dict) and row.get('timed') is True]
     need(isinstance(rows, (list, dict)) and rows, 'DATA_DRIVEN_BENCHMARK_WORKLOADS_REQUIRED: ' + str(path))
     return len(rows)
 
@@ -233,15 +239,18 @@ def benchmark_settings(template):
             low = 0 if key == 'warmups' else 1
             need(type(settings[key]) is int and low <= settings[key] <= ceiling, 'FINITE_BENCHMARK_' + key.upper() + '_REQUIRED')
     if 'wall_s' not in settings:
-        settings['wall_s'] = benchmark_wall_s(settings, loop_settings(loop)['max_iterations'])
+        settings['wall_s'] = benchmark_wall_s(settings, loop_settings(loop)['max_iterations'], template['target_id'])
     return settings
 
 
-def benchmark_wall_s(settings, max_iterations):
-    """Default benchmark wall: one baseline plus one candidate benchmark per
-    iteration, each ``workloads x (repetitions + warmups) x 2 sides`` jobs at
-    ``per_job_s`` seconds."""
-    jobs = settings['workloads'] * (settings['repetitions'] + settings['warmups']) * 2
+def benchmark_wall_s(settings, max_iterations, capsule_name):
+    """Default benchmark wall: one A/A baseline plus one candidate benchmark
+    per iteration, each exactly the owner's ``benchmark_job_count`` jobs (timed
+    workloads x repetitions x 2 sides, warmups run inside each timed job, plus
+    the untimed and semantic-edge jobs) at ``per_job_s`` seconds per job."""
+    from jiuwenswarm.research_rsi.targets.capsule_executor import benchmark_jobs_for_sizing
+    jobs = benchmark_jobs_for_sizing({key: settings[key] for key in ('workloads', 'repetitions', 'warmups')},
+                                     capsule_name=capsule_name)
     return (max_iterations + 1) * jobs * settings['per_job_s']
 
 
@@ -256,7 +265,7 @@ def revision_loop(template):
     return loop
 
 
-def execution_budget(fixtures, loop):
+def execution_budget(fixtures, loop, capsule_name):
     """``loop_execution_budget`` of the target owner, with the loop config.
 
     The benchmark jobs are counted by the owner's (extended) function, never
@@ -266,7 +275,8 @@ def execution_budget(fixtures, loop):
     settings = loop_settings(loop)
     kwargs = {'max_iterations': settings['max_iterations'], 'trials': settings['trials']}
     if isinstance(loop.get('benchmark'), dict):
-        kwargs['benchmark'] = loop['benchmark']
+        # Exact per-capsule job count (never the cross-capsule upper bound).
+        kwargs.update(benchmark=loop['benchmark'], capsule_name=capsule_name)
     return loop_execution_budget(len(fixtures), **kwargs)
 
 
@@ -287,13 +297,22 @@ def derive_grant(template, run_id, manifest, *, now, loop=None):
     grant = {'schema': LOOP_GRANT_SCHEMA, 'bootstrap_schema': BOOTSTRAP_SCHEMA, 'run_id': run_id,
         'capsule_name': name, 'runtime_manifest_sha256': sha(canonical(manifest)), 'parent_sha256': parent,
         'fixture_sha256': sha(canonical(fixtures)), 'fixture_count': len(fixtures), 'roles': ['parent', 'candidate'],
-        'max_executions': execution_budget(fixtures, loop),
-        'iterations': template['grant']['iterations'], 'limits': dict(template['grant']['limits']),
+        'max_executions': execution_budget(fixtures, loop, name),
+        'iterations': template['grant']['iterations'], 'limits': grant_limits(template, loop),
         'worker': {key + '_ref': {'id': sha(canonical(metadata[key])) + '.json', 'sha256': sha(canonical(metadata[key]))}
                    for key in ('contract', 'environment', 'hardware')},
         'expires_unix_s': int(now) + template['grant']['horizon_s'],
         'scope': 'public_m1_development_only', 'production_admission': 'UNKNOWN'}
     return validate_grant(grant, manifest)
+
+
+def grant_limits(template, loop):
+    """The template's job limits plus, with a materialized benchmark, its wall
+    as ``limits.benchmark_wall_s`` (Root's dispatcher deadline adds it)."""
+    limits = {key: item for key, item in template['grant']['limits'].items() if key != 'benchmark_wall_s'}
+    if isinstance(loop.get('benchmark'), dict):
+        limits['benchmark_wall_s'] = loop['benchmark']['wall_s']
+    return limits
 
 
 def run_deadline_s(grant, loop):

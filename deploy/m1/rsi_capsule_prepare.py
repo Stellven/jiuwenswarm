@@ -92,16 +92,19 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
     from jiuwenswarm.research_rsi.capsule_session import SCHEMA, validate_session, MAX_BODY_BYTES
     from jiuwenswarm.research_rsi.targets.capsule_executor import validate_grant
     from jiuwenswarm.research_rsi.targets.capsules import registered_capsule, public_fixtures
-    from jiuwenswarm.research_rsi.targets.capsule_executor import LOOP_GRANT_SCHEMA, grant_fixtures, loop_execution_budget
+    from jiuwenswarm.research_rsi.targets.capsule_executor import LOOP_GRANT_SCHEMA, grant_fixtures, loop_budget_for
     grant = value['grant']
     validate_grant(grant, value['runtime_manifest'])
     target = registered_capsule(grant['capsule_name'])
     loop = loop_settings(value['loop']) if value.get('loop') is not None else None
     if loop is not None:
-        # Budget derived from the loop configuration: parent trials plus
-        # candidate trials for every iteration, over the grant's case list.
-        need(grant['schema'] == LOOP_GRANT_SCHEMA and grant['max_executions'] >= loop_execution_budget(
-            len(grant_fixtures(grant)), max_iterations=loop['max_iterations'], trials=loop['trials']),
+        # Budget derived from the loop configuration by the owner's function:
+        # parent trials plus candidate trials for every iteration over the
+        # grant's case list, plus (with a slot-materialized benchmark sizing)
+        # the exact per-call benchmark jobs for the A/A baseline and every
+        # iteration -- the same call the slot sizes the grant with.
+        need(grant['schema'] == LOOP_GRANT_SCHEMA and grant['max_executions'] >= loop_budget_for(
+            grant['capsule_name'], loop, case_count=len(grant_fixtures(grant))),
              'LOOP_GRANT_EXECUTION_BUDGET_TOO_SMALL')
     need(grant['roles'] == ['parent', 'candidate'] and len(parent_body) <= MAX_BODY_BYTES
          and hashlib.sha256(parent_body).hexdigest() == grant['parent_sha256'], 'EXACT_MUTATION_GRANT_AND_PARENT_REQUIRED')

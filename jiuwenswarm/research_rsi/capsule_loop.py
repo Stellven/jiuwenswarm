@@ -137,8 +137,11 @@ def validate_loop_configuration(value, session):
               'context_bytes': _limit(value, 'context_bytes', DEFAULTS['context_bytes']),
               'max_executions': None, 'contracts': [], 'source': 'session', 'benchmark': benchmark,
               'grant_benchmark_wall_s': _grant_benchmark_wall(grant)}
-    need(benchmark is None or result['grant_benchmark_wall_s'] is None
-         or benchmark['wall_s'] == result['grant_benchmark_wall_s'], 'BENCHMARK_WALL_DIFFERS_FROM_GRANT')
+    # A slot-sized benchmark is only served under a grant that carries the same
+    # wall (Root's dispatcher deadline, the session timeout, the launcher and
+    # the publisher all add it): a sizing without it is refused.
+    need(benchmark is None or benchmark['wall_s'] == result['grant_benchmark_wall_s'],
+         'BENCHMARK_WALL_DIFFERS_FROM_GRANT')
     # Noise calibration needs at least three parent trials (Interface B).
     result['parent_trials'] = max(3, result['trials'])
     need(result['per_call_s'] <= result['wall_s'], 'CONSISTENT_LOOP_LIMITS_REQUIRED')
@@ -420,18 +423,15 @@ def validate_score(score):
 # ------------------------------------------------- machine-selected context
 
 def load_dependency_context():
-    """W-M1's ``(dependency_context, render_dependency_context)`` from
-    ``targets.capsule_context``, or None when that module is not installed.
+    """``(dependency_context, render_dependency_context)`` from
+    ``targets.capsule_context`` (installed with the targets package).
 
     ``dependency_context(name, body, *, max_total_bytes)`` parses (never
     imports) the worker's imports and returns bounded, digest-pinned,
     immutable source excerpts; ``render_dependency_context(value)`` is their
     prompt text. Selection is by the installed package, never an operator.
     """
-    try:
-        from .targets.capsule_context import dependency_context, render_dependency_context
-    except ImportError:
-        return None
+    from .targets.capsule_context import dependency_context, render_dependency_context
     return dependency_context, render_dependency_context
 
 
@@ -798,16 +798,12 @@ class CapsuleLoop:
         """Machine-selected read-only dependency excerpts for the incumbent body."""
         key = incumbent['ref']['sha256']
         if key not in self.contexts:
-            if self.dependency_compiler is None:
+            try:
+                record = bounded_dependency_context(self.dependency_compiler, self.value['capsule_name'],
+                                                    incumbent['body'], self.config['context_bytes'])
+            except Exception as error:  # a context defect never runs or blocks a candidate
                 record = {'schema': DEPENDENCY_CONTEXT_SCHEMA, 'worker_sha256': key, 'sources': [], 'text': '',
-                          'unavailable': 'targets.capsule_context.dependency_context not installed'}
-            else:
-                try:
-                    record = bounded_dependency_context(self.dependency_compiler, self.value['capsule_name'],
-                                                        incumbent['body'], self.config['context_bytes'])
-                except Exception as error:  # a context defect never runs or blocks a candidate
-                    record = {'schema': DEPENDENCY_CONTEXT_SCHEMA, 'worker_sha256': key, 'sources': [], 'text': '',
-                              'unavailable': '%s: %s' % (type(error).__name__, str(error)[:300])}
+                          'unavailable': '%s: %s' % (type(error).__name__, str(error)[:300])}
             if 'unavailable' in record:
                 note = 'Dependency context unavailable for %s: %s' % (key[:16], record['unavailable'])
                 if note not in self.loop['limitations']:

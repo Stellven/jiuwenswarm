@@ -95,9 +95,25 @@ LATENCY_METHODS = frozenset({'paired_batched_benchmark', 'single_job_floor'})
 IMPROVEMENT_BASES = frozenset({'correctness', 'paired_batched_benchmark'})
 BENCHMARK_GATES = ('minimum_gain', 'ci_upper_bound', 'max_workload_regression')
 BENCHMARK_FIELDS = 'report_ref relative_gain ratio_confidence_interval gates objective_met protected_jobs repetitions workloads'
-LINEAGE_V2_FIELDS = LINEAGE_FIELDS + ' benchmark_baseline'
-ITERATION_V2_FIELDS = ITERATION_FIELDS + ' latency_method benchmark improvement_basis'
+LINEAGE_V2_FIELDS = LINEAGE_FIELDS + ' benchmark_baseline benchmark_baseline_status'
+ITERATION_V2_FIELDS = ITERATION_FIELDS + ' latency_method benchmark improvement_basis benchmark_status'
 MAX_WORKLOADS = 64
+# ``benchmark_baseline`` is the parent A/A run (candidate = parent): the
+# benchmark's own self-noise on the host, never a candidate gain.
+BASELINE_KINDS = frozenset({'parent_a_a'})
+BASELINE_STATUSES = frozenset({'measured', 'skipped', 'failed'})
+# Per-iteration benchmark decision: ``ran`` (report present) or why not.
+BENCHMARK_STATUSES = frozenset({'ran', 'not_run', 'skipped'})
+
+
+def _benchmark_status(value, statuses, *, kind=False):
+    """``{status, reason}`` (``kind`` too for the baseline) or None when unrecorded."""
+    if not isinstance(value, dict) or value.get('status') not in statuses:
+        return None
+    out = {'status': value['status'], 'reason': _clip(value.get('reason'), 256)}
+    if kind:
+        out = {'kind': value.get('kind') if value.get('kind') in BASELINE_KINDS else None, **out}
+    return out
 
 
 def _signed(value):
@@ -269,7 +285,8 @@ def _project_iteration(row, *, best_iteration, node_ids, version=1):
     benchmark = project_benchmark(row.get('benchmark'))
     return dict(value, latency_method=method, benchmark=benchmark,
                 improvement_basis=improvement_basis(score, method, benchmark,
-                                                    value['correctness_parent'], value['correctness_candidate']))
+                                                    value['correctness_parent'], value['correctness_candidate']),
+                benchmark_status=_benchmark_status(row.get('benchmark_decision'), BENCHMARK_STATUSES))
 
 
 def _project_iteration_v1(row, score, correctness, ref, passed, total, status, cases, failure, *,
@@ -342,6 +359,8 @@ def project_loop(result, *, node_ids=None, parent_node_id=None):
     if version == 2:
         value['schema'] = LINEAGE_SCHEMA_V2
         value['benchmark_baseline'] = project_benchmark(loop.get('benchmark_baseline'))
+        value['benchmark_baseline_status'] = _benchmark_status(loop.get('benchmark_baseline_status'),
+                                                               BASELINE_STATUSES, kind=True)
     _lineage(value)
     return value
 
@@ -407,6 +426,16 @@ def _lineage(value, *, run=None, nodes=None):
         raise ProjectionError('Unsupported public lineage schema')
     if v2:
         _benchmark(value['benchmark_baseline'])
+        status = value['benchmark_baseline_status']
+        if status is not None:
+            _fields(status, 'kind status reason')
+            if status['kind'] is not None and status['kind'] not in BASELINE_KINDS:
+                raise ProjectionError('Unknown benchmark baseline kind')
+            if status['status'] not in BASELINE_STATUSES:
+                raise ProjectionError('Unknown benchmark baseline status')
+            _text(status['reason'], nullable=True, limit=256)
+        if value['benchmark_baseline'] is not None and (status is None or status['status'] != 'measured'):
+            raise ProjectionError('A published A/A baseline must be recorded as measured')
     for key in ('max_iterations', 'completed_iterations', 'model_calls', 'best_iteration'):
         _nullable_count(value[key])
     if value['stop_reason'] is not None and value['stop_reason'] not in STOP_REASONS:
@@ -433,6 +462,14 @@ def _lineage(value, *, run=None, nodes=None):
             if row['latency_method'] is not None and row['latency_method'] not in LATENCY_METHODS:
                 raise ProjectionError('Unknown latency method')
             _benchmark(row['benchmark'])
+            decision = row['benchmark_status']
+            if decision is not None:
+                _fields(decision, 'status reason')
+                if decision['status'] not in BENCHMARK_STATUSES:
+                    raise ProjectionError('Unknown iteration benchmark status')
+                _text(decision['reason'], nullable=True, limit=256)
+                if (decision['status'] == 'ran') is not (row['benchmark'] is not None):
+                    raise ProjectionError('Iteration benchmark status differs from its report')
             basis = row['improvement_basis']
             if basis is not None and (basis not in IMPROVEMENT_BASES or row['improved'] is not True
                                       or row['regressed'] is True):

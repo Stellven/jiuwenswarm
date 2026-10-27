@@ -152,6 +152,38 @@ def loop_budget_for(name, loop, *, case_count=None):
                                  parent_trials=loop.get('parent_trials'), benchmark_jobs=jobs, max_benchmarks=cap)
 
 
+def evaluator_benchmark_settings(session, configured=None):
+    """Root benchmark configuration for one run, from the session's sizing.
+
+    The session's ``loop.benchmark`` sizing (materialized by the slot, pinned
+    by the grant's ``limits.benchmark_wall_s`` and ``max_executions``) decides
+    whether Interface E is served and its ``repetitions``/``warmups``; the
+    evaluator configuration's optional ``benchmark`` block may add the other
+    ``benchmark_config`` overrides (batch sizes, gates, bootstrap) but never
+    contradict the sizing. Returns None when no benchmark is served. The
+    returned settings run exactly ``benchmark_jobs_for_sizing(sizing)`` jobs
+    per call, so Root never executes more than the grant was sized for.
+    """
+    from .capsule_benchmark import benchmark_config, benchmark_job_count
+    loop = session.get('loop') if isinstance(session, dict) else None
+    sizing = loop.get('benchmark') if isinstance(loop, dict) else None
+    if sizing is None:
+        need(configured is None, 'EVALUATOR_BENCHMARK_WITHOUT_SESSION_SIZING')
+        return None
+    grant, name = session['grant'], session['capsule_name']
+    need(grant['schema'] == LOOP_GRANT_SCHEMA and grant['limits'].get('benchmark_wall_s') == sizing.get('wall_s'),
+         'GRANT_BENCHMARK_WALL_DIFFERS_FROM_SESSION_SIZING')
+    configured = dict(configured or {})
+    need(not {'max_benchmarks'} & set(configured), 'BENCHMARK_COUNT_IS_SIZED_BY_THE_SLOT')
+    settings = dict(configured, repetitions=sizing['repetitions'], warmups=min(sizing['warmups'], 10))
+    need(all(configured.get(key, settings[key]) == settings[key] for key in ('repetitions', 'warmups')),
+         'EVALUATOR_BENCHMARK_CONTRADICTS_SESSION_SIZING')
+    config = benchmark_config(name, settings)
+    need(benchmark_job_count(name, config) == benchmark_jobs_for_sizing(sizing, capsule_name=name),
+         'BENCHMARK_JOBS_DIFFER_FROM_SIZING')
+    return settings
+
+
 def grant_fixtures(grant):
     """The exact case inventory a grant pins (v2: public only, v3: evaluation)."""
     if grant['schema'] == LOOP_GRANT_SCHEMA:
@@ -518,11 +550,21 @@ class _EvaluationLedger:
     benchmark_settings = None
 
     def _set_benchmark(self, settings):
-        """Benchmark configuration (Interface E); validated before any job."""
+        """Benchmark configuration (Interface E); validated before any job.
+
+        ``None`` means this dispatcher serves no benchmark (configuration, never
+        inferred); ``{}`` means the capsule's frozen spec defaults.
+        """
         self.benchmark_settings = settings
         if settings is not None:
             from .capsule_benchmark import benchmark_config
+            need(self.loop, 'BENCHMARK_REQUIRES_ITERATIVE_GRANT')
             benchmark_config(self.grant['capsule_name'], settings)
+
+    @property
+    def benchmark_available(self):
+        """True only when the evaluator configuration enables Interface E."""
+        return self.benchmark_settings is not None
 
     def benchmark_plan(self):
         """What one ``benchmark()`` call will execute under this grant."""
@@ -535,6 +577,7 @@ class _EvaluationLedger:
     async def benchmark(self, parent_body, candidate_body, *, iteration):
         """Interface E: paired batched benchmark of an already evaluated candidate."""
         from .capsule_benchmark_executor import run_benchmark
+        need(self.benchmark_available, 'ROOT_BENCHMARK_NOT_CONFIGURED')
         return await run_benchmark(self, parent_body, candidate_body, iteration=iteration)
 
     async def semantic_edges(self, candidate_body, *, iteration):

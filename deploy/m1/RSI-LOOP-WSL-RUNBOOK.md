@@ -307,14 +307,25 @@ $V -m pytest -o addopts= -p no:cacheprovider -p asyncio --confcutdir=tests/unit_
   tests/unit_tests/research_rsi/test_capsule_loop_e2e_local.py -q -rs
 ```
 
-**CHECK:** `2 passed`. A `skip` that names the 12003 identity means the gate
-did not run: **STOP**. What the gate proves:
+**CHECK:** `3 passed` (about 12 minutes on a 2-CPU box: the third test runs
+the real paired batched benchmark twice, 82 jobs each). A `skip` that names the
+12003 identity means the gate did not run: **STOP**. What the gate proves:
 
 * Calculate: the broken candidate is scored and not kept. The `max()` tie fix
   is kept with candidate correctness 1.0 > parent, `newly_passed` equal to the
   parent's failing ids (held-out included), and `best.iteration == 2`.
 * Table Normalize: improvement can only come from latency strictly above the
   calibrated noise floor.
+* Codex's round-2 Calculate candidate (sha `0fb940f0…`) through the real
+  `LocalDispatcher.benchmark`: Root serves the parent A/A baseline (ratio
+  near 1, objective not met) and the parent→candidate benchmark (3 AB/BA
+  pairs, batches 100/4, explicit e2e gates: gain >= 5%, CI upper <= 0.95,
+  no workload > 10% slower; production keeps the frozen 10%/0.90/5%);
+  the candidate keeps every parent output byte, `median_ratio < 1`,
+  `objective_met`, `latency_method == paired_batched_benchmark`, kept; every
+  benchmark job is a `capsule-*` start claim inside the grant budget. The
+  calculate test also proves the real `packet.py` dependency excerpt reaches
+  the prompts.
 
 ### 2.4 Optional: the frontend that W5 changed
 
@@ -573,14 +584,17 @@ print(t["slot_id"], "benchmark", loop.get("benchmark"), "deadline_s", slot.run_d
 done
 ```
 
-**CHECK:** with 8 benchmark workloads each prints
-`benchmark {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 7488}`
-and `deadline_s 11508`: loop wall 3600 + benchmark wall 7488 + 2×120 + 60 +
-120 of launcher slack (`rsi_capsule_slot.py` `run_deadline_s`, identical in
+**CHECK:** with 8 benchmark workloads Calculate prints
+`benchmark {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 7560}`
+and `deadline_s 11580`; Normalize prints `'wall_s': 7416` and `deadline_s
+11436`: loop wall 3600 + benchmark wall + 2×120 + 60 + 120 of launcher slack
+(`rsi_capsule_slot.py` `run_deadline_s`, identical in
 `rsi_capsule_launcher.py`). The benchmark wall is
-`(max_iterations + 1) × workloads × (repetitions + warmups) × 2 × per_job_s`
-= 6 × 8 × 13 × 2 × 6: one baseline benchmark plus at most one per iteration,
-both sides of every AB/BA pair, warmups included. A capsule without
+`(max_iterations + 1) × benchmark_job_count × per_job_s` = 6 × 210 × 6
+(Calculate) or 6 × 206 × 6 (Normalize): one A/A baseline plus at most one
+benchmark per iteration, each the owner's exact job count (8 workloads × 11
+pairs × 2 sides + 8 untimed × 2 + semantic edges × 2; warmups run inside
+each timed job, so `per_job_s` covers them). A capsule without
 `fixtures/benchmark.json` and without a template `benchmark` block prints
 `benchmark None` and the historical `deadline_s 4020`. A `benchmark` block
 without any workload count is refused (`BENCHMARK_WORKLOAD_COUNT_REQUIRED`),
@@ -596,12 +610,18 @@ What each revision then derives on its own, never hand-edited
   runner, launcher and publisher read.
 * grant v3 `ai4r-rsi-whole-capsule-development-grant:3`, with
   `max_executions = loop_execution_budget(cases, max_iterations=5, trials=3,
-  benchmark=<materialized sizing>)` from the target owner
-  (`capsule_executor.py`). The slot never re-derives the formula. Without a
+  benchmark=<materialized sizing>, capsule_name=<target>)` from the target
+  owner (`capsule_executor.py`; preparation re-checks it with
+  `loop_budget_for`). The slot never re-derives the formula. Without a
   benchmark it is the historical `19 × (3 + 3 × 5) = 342` for both capsules;
-  with one it also covers every benchmark job (about 208 per benchmark at 8
-  workloads). Calculate has 4 public + 8 public_extended + 7 held-out cases;
-  Normalize has 5 + 8 + 6.
+  with one it adds 6 × the exact per-call count: **1602** (Calculate, 210 jobs
+  per benchmark) and **1578** (Normalize, 206). Calculate has 4 public + 8
+  public_extended + 7 held-out cases; Normalize has 5 + 8 + 6.
+* `limits.benchmark_wall_s` in the grant, equal to the sizing's `wall_s`
+  (Root's dispatcher stops issuing jobs at `wall_s + benchmark_wall_s`; a
+  session sizing without it is refused, `BENCHMARK_WALL_DIFFERS_FROM_GRANT`).
+  The Root evaluator derives its benchmark repetitions/warmups from the same
+  sizing; no evaluator `benchmark` block is needed in production.
 * `wall_s` (run deadline, benchmark included) and `benchmark_wall_s` in the
   prepared ledger record; the broker refuses a revision whose horizon cannot
   cover that whole deadline plus the launch margin
@@ -1138,9 +1158,13 @@ Code: `capsule_loop.py:513-727`, `capsule_session.py:110-208`,
      skipped if a case timed out.
    * a candidate that passes correctness (non-regression) then gets the
      **paired batched benchmark** against the parent (Interface E, 8
-     workloads × 11 AB/BA pairs + 2 warmups, both sides: about 208 protected
-     jobs, recorded as `loop.iterations[k].benchmark`); the loop also records
-     one baseline benchmark (`loop.benchmark_baseline`).
+     workloads × 11 AB/BA pairs, both sides, warmups inside each job, plus
+     untimed and semantic-edge cases: 210 protected jobs for Calculate, 206
+     for Normalize, recorded as `loop.iterations[k].benchmark`); the loop
+     also records one parent A/A baseline (`loop.benchmark_baseline`, the
+     benchmark's self-noise, never a gain). A candidate that is not
+     benchmarked records `benchmark: null` and the reason in
+     `benchmark_decision`.
    * the candidate is scored against the parent and selected against the
      incumbent. `score.latency_method` is `paired_batched_benchmark` when the
      benchmark ran, else `single_job_floor`. It is kept only if correctness
@@ -1152,7 +1176,7 @@ Code: `capsule_loop.py:513-727`, `capsule_session.py:110-208`,
    * `max_iterations`: 5 done
    * `no_progress`: 3 consecutive iterations not kept
    * `budget`: 10 model calls, the grant's `max_executions` (342 without a
-     benchmark), or no prepared contract left
+     benchmark; 1602 / 1578 with it), or no prepared contract left
    * `deadline`: loop wall 3600 s plus the materialized benchmark wall
    * `error`: an unknown model effect, evaluator refusal or relay loss.
      Nothing is retried.
@@ -1182,7 +1206,8 @@ overhead):
 * 342 evaluation jobs: roughly 5–15 min.
 * Model calls: 10 × 30–120 s (the relay timeout is 120 s per call).
 * Paired batched benchmark, per benchmarked candidate and once for the
-  baseline: 8 workloads × (11 + 2) × 2 = 208 protected batch jobs. Estimated
+  baseline: 210 (Calculate) / 206 (Normalize) protected jobs, 176 of them
+  timed batch jobs. Estimated
   from Codex's protected amortized medians (`performance-20261027-*`, batch
   sizes 1000 small / 20 large) plus ~0.7 s sandbox start: **Calculate about
   4–5 s per job, 14–18 min per benchmark; Normalize about 1.5–2 s per job,
@@ -1191,9 +1216,12 @@ overhead):
 * Typical total without a benchmark: 15–40 min. With it: Calculate about
   1–2 h (baseline plus 2–5 benchmarked candidates), Normalize about 45–75 min.
 * Hard ceilings: session `wall_s + benchmark.wall_s + 2 × per_call_s + 60`
-  = 3600 + 7488 + 240 + 60 s with the default sizing; launcher and slot
-  deadline 11508 s (4020 s without a benchmark); evaluator alarm grant
-  `wall_s` + 30 s (`rsi_capsule_run.py:547`). Raise `benchmark.per_job_s`
+  = 3600 + 7560 + 240 + 60 = 11460 s (Calculate) with the default sizing;
+  launcher and slot deadline 11580 s (11436 s Normalize; 4020 s without a
+  benchmark); the evaluator alarm, controller and model-start deadlines use
+  the same session value (`rsi_capsule_run.run_wall_s`, alarm + 30 s close
+  grace); Root's dispatcher stops issuing jobs at `wall_s +
+  benchmark_wall_s` after its start. Raise `benchmark.per_job_s`
   for slower hardware rather than letting the deadline stop a run; the
   duration figures are estimates, the deadline is the hard bound.
 
@@ -1403,6 +1431,19 @@ never deletes anything.
 ---
 
 ## Known issues before deploy
+
+* **M4-1: e2e benchmark gates on a noisy box.** With 3 pairs and batches
+  100/4 the real benchmark of Codex's r2 Calculate candidate cleared Codex's
+  frozen gates (gain ≥ 10%, CI upper ≤ 0.90, no workload > 5% slower) in one
+  run and missed the CI gate in the next (gain 12.9%, CI [0.829, 0.913]; A/A
+  CI [0.969, 1.055]). The e2e therefore sets its own gates (5% / 0.95 / 10%).
+  Whether the production loop (11 pairs, 1000/20 batches, frozen gates) keeps
+  latency-only candidates on the WSL host is measured only by the first real
+  run; a run under load can miss the CI gate and record "objective not met".
+* **M4-2: environment-specific failures in the full suite.** The
+  cancellation/host-transport tests listed in the integration report fail on
+  boxes without the host Codex transport / Linux custodian; they are
+  unrelated to the loop.
 
 **K1 (fixed): readiness latency against fixed timeouts.**
 

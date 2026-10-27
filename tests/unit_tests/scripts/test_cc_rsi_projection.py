@@ -371,7 +371,13 @@ def _benchmark_loop(*, method='paired_batched_benchmark'):
         first['benchmark'] = _report(0.014, [0.9532, 0.9988], False,
                                      gates={'minimum_gain': False, 'ci_upper_bound': False, 'max_workload_regression': True})
         second['benchmark'] = _report(0.1678, [0.8185, 0.8418], True)
+        # As the loop records them: a decision per benchmarked candidate and
+        # the parent A/A baseline with its status.
+        first['benchmark_decision'] = second['benchmark_decision'] = {'status': 'ran', 'reason': None}
+        result['loop']['iterations'][2]['benchmark_decision'] = {'status': 'not_run', 'reason': 'CORRECTNESS_REGRESSED'}
         result['loop']['benchmark_baseline'] = dict(_report(0.0, [0.98, 1.02], False), protected_jobs=208)
+        result['loop']['benchmark_baseline_status'] = {'kind': 'parent_a_a', 'status': 'measured', 'reason': None,
+                                                       'median_ratio': 1.0}
     return result
 
 
@@ -388,7 +394,12 @@ def test_benchmark_loop_projects_gain_interval_gates_and_measured_basis():
     lineage = projection.project_loop(_benchmark_loop(), node_ids={}, parent_node_id=None)
     assert lineage['schema'] == projection.LINEAGE_SCHEMA_V2
     assert lineage['benchmark_baseline']['protected_jobs'] == 208 and lineage['benchmark_baseline']['objective_met'] is False
+    # The A/A baseline is labelled as the parent against itself (self-noise).
+    assert lineage['benchmark_baseline_status'] == {'kind': 'parent_a_a', 'status': 'measured', 'reason': None}
     first, second, third = lineage['iterations']
+    assert [row['benchmark_status'] for row in (first, second, third)] == [
+        {'status': 'ran', 'reason': None}, {'status': 'ran', 'reason': None},
+        {'status': 'not_run', 'reason': 'CORRECTNESS_REGRESSED'}]
     assert second['latency_method'] == 'paired_batched_benchmark' and second['improvement_basis'] == 'paired_batched_benchmark'
     assert second['benchmark'] == {'report_ref': {'id': 'r.json', 'sha256': 'f' * 64}, 'relative_gain': 0.1678,
         'ratio_confidence_interval': [0.8185, 0.8418], 'objective_met': True, 'protected_jobs': 192, 'repetitions': 11,
@@ -430,7 +441,8 @@ def test_loop_without_benchmark_data_keeps_lineage_v1_exactly():
 
 
 @pytest.mark.parametrize('fault', ['basis-without-objective', 'floor-basis', 'correctness-basis-without-gain',
-                                   'extra-benchmark-field', 'inverted-ci', 'unknown-method', 'v2-fields-on-v1'])
+                                   'extra-benchmark-field', 'inverted-ci', 'unknown-method', 'v2-fields-on-v1',
+                                   'baseline-not-measured', 'ran-without-report', 'unknown-benchmark-status'])
 def test_forged_benchmark_claims_fail_closed(fault):
     value = _benchmark_publication()
     projection.validate_publication(copy.deepcopy(value), workspace_id='unit-workspace')
@@ -448,6 +460,12 @@ def test_forged_benchmark_claims_fail_closed(fault):
         second['benchmark']['ratio_confidence_interval'] = [0.9, 0.8]
     elif fault == 'unknown-method':
         first['latency_method'] = 'wall_clock_guess'
+    elif fault == 'baseline-not-measured':
+        run['lineage']['benchmark_baseline_status']['status'] = 'skipped'
+    elif fault == 'ran-without-report':
+        run['lineage']['iterations'][2]['benchmark_status']['status'] = 'ran'
+    elif fault == 'unknown-benchmark-status':
+        first['benchmark_status']['status'] = 'imagined'
     else:
         run['lineage']['schema'] = projection.LINEAGE_SCHEMA
     with pytest.raises(projection.ProjectionError):

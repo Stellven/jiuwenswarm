@@ -233,6 +233,59 @@ sandbox startup dominates single-job wall time. Decisions:
   gain and CI; publication/UI show them; Codex's `performance-publish` node
   text format is reused so its published history stays readable.
 
+## Integration (M4) — as implemented
+
+- **Benchmark serving is configuration.** Root serves Interface E exactly when
+  the session carries the slot-materialized sizing `loop.benchmark =
+  {workloads, repetitions, warmups, per_job_s, wall_s}`
+  (`capsule_executor.evaluator_benchmark_settings`). The sizing fixes
+  `repetitions`/`warmups`; the run configuration's optional
+  `evaluator.benchmark` block adds the other `benchmark_config` overrides
+  (batch sizes, gates, bootstrap) and may not contradict the sizing. Root
+  refuses unless its per-call job count equals
+  `benchmark_jobs_for_sizing(sizing, capsule_name=...)`. Without a sizing the
+  ready frame says `available: false` and the loop uses the flagged
+  `single_job_floor`. A dispatcher built without settings refuses `benchmark()`.
+- **Budget.** `max_executions = loop_budget_for(name, loop)` =
+  `cases × (max(3, trials) + trials × max_iterations) + benchmark_job_count ×
+  (max_iterations + 1)`; slot and prepare both call the owner's function with
+  `capsule_name` (exact per-capsule count: Calculate 210, Normalize 206 jobs
+  per call at 11 pairs; = 8 workloads × reps × 2 + untimed × 2 + semantic
+  edges × 2; warmups run inside each timed job).
+- **Wall and deadline.** The slot's default benchmark wall is
+  `(max_iterations + 1) × benchmark_job_count × per_job_s`; the grant carries
+  it as `limits.benchmark_wall_s`, and a session sizing without the same grant
+  value is refused (`BENCHMARK_WALL_DIFFERS_FROM_GRANT`). One run deadline:
+  `wall_s + benchmark_wall_s + 2·per_call_s + 60` =
+  `capsule_session.session_timeout_s` (run_session timeout, controller frame
+  deadline, model-start deadline; evaluator alarm = that + 30 s close grace);
+  launcher and slot add 120 s slack (`run_deadline_s`). Root's dispatcher
+  stops issuing jobs at `wall_s + benchmark_wall_s` after evaluator start.
+- **A/A baseline.** `loop.benchmark_baseline` is `benchmark(parent, parent,
+  iteration=0)`: the benchmark's self-noise on the host (ratio ≈ 1, objective
+  never met), recorded once per run with `benchmark_baseline_status {kind:
+  parent_a_a, status: measured|skipped, reason}`. It is published as an
+  activity row and in lineage, never as a candidate or a gain.
+- **Keep rule.** Correctness non-regression vs the incumbent and the original
+  parent, AND (correctness gain over the incumbent, OR (equal correctness AND
+  the parent→candidate report `objective_met` AND, when the incumbent is not
+  the parent, the report's ratio CI upper < the incumbent's median ratio)).
+  Only correctness-preserving candidates are benchmarked; otherwise
+  `benchmark: None` and `benchmark_decision {status: not_run|skipped, reason}`.
+- **Lineage `ai4r-cc-rsi-lineage:2`** = `:1` plus top-level
+  `benchmark_baseline` (CcBenchmark) and `benchmark_baseline_status`, and per
+  iteration `latency_method`, `benchmark`, `improvement_basis`
+  (`correctness` | `paired_batched_benchmark` | null) and `benchmark_status
+  {status: ran|not_run|skipped, reason}`. `:1` is still emitted
+  byte-identically for loops without benchmark data.
+- **Publication.** A report without statistics (correctness failed) is
+  labelled "stopped on a correctness failure; no gain measured"; Root's
+  `complete.json` `benchmarks` rows must match every session-carried report
+  (subjects, `protected_jobs`, `report_ref`) and count toward the
+  `capsule-*` start-claim reconciliation.
+- **Context.** `targets.capsule_context` is imported directly; its excerpts
+  (packet.py first for both capsules) go to diagnosis and proposal.
+
 ## Test & tooling conventions
 
 - Run focused suites with:

@@ -718,10 +718,17 @@ def test_slot_benchmark_sizing_is_closed_and_extends_the_run_deadline(tmp_path):
     sizing = {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 2000}
     store, value, runtime, _ = make_session(tmp_path, loop={**LOOP, 'wall_s': 600, 'per_call_s': 60, 'benchmark': sizing})
     try:
+        # The sizing is served only under a grant carrying the same benchmark wall.
+        with pytest.raises(ValueError, match='BENCHMARK_WALL_DIFFERS_FROM_GRANT'):
+            session.validate_session(value)
+        value['grant']['limits'] = {**value['grant'].get('limits', {}), 'benchmark_wall_s': 2000}
+        value['grant_ref'] = store.put(value['grant'])
         config = capsule_loop.loop_configuration(session.validate_session(value))
         assert config['benchmark'] == sizing and capsule_loop.benchmark_wall_s(config) == 2000
         # wall_s + benchmark.wall_s + 2*per_call_s + 60 (W-M3's run-deadline formula)
         assert session.session_timeout_s(value) == 600 + 2000 + 2 * 60 + 60
+        del value['grant']['limits']['benchmark_wall_s']
+        value['grant_ref'] = store.put(value['grant'])
         value['loop'] = {**LOOP, 'wall_s': 600, 'per_call_s': 60}
         assert session.session_timeout_s(value) == 600 + 2 * 60 + 60
         for bad in ({**sizing, 'extra': 1}, {k: v for k, v in sizing.items() if k != 'wall_s'},

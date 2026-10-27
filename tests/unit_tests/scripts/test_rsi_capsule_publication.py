@@ -609,7 +609,7 @@ def _benchmark(w, ref, *, gain, ci, met, jobs=3, gates=None, **extra):
               'candidate_sha256': ref['sha256'], 'relative_gain': gain, 'ratio_confidence_interval': ci,
               'gates': {key: {'passed': value} for key, value in gates.items()}, 'objective_met': met,
               'protected_jobs': jobs, 'repetitions': 11,
-              'workloads': [{'id': 'small-numbers', 'median_ratio': 1 - gain}],
+              'workloads': [{'id': 'small-numbers', 'median_ratio': None if gain is None else 1 - gain}],
               'evidence_refs': [w['put']({'benchmark_job': index, 'candidate': ref['sha256']}) for index in range(jobs)],
               **extra}
     return dict(report, report_ref=w['put'](report))
@@ -624,7 +624,11 @@ def _benchmark_result(w):
     second['score'].update(latency_method='single_job_floor')
     loop['best']['score'] = first['score']
     loop['benchmark_baseline'] = _benchmark(w, w['parent_ref'], gain=0.0, ci=[0.98, 1.02], met=False, jobs=2,
-                                            gates={'minimum_gain': False, 'ci_upper_bound': False, 'max_workload_regression': True})
+                                            gates={'minimum_gain': False, 'ci_upper_bound': False, 'max_workload_regression': True},
+                                            median_ratio=1.0)
+    # As the loop records them (capsule_loop): the decision and the A/A status.
+    first['benchmark_decision'] = {'status': 'ran', 'reason': None}
+    loop['benchmark_baseline_status'] = {'kind': 'parent_a_a', 'status': 'measured', 'reason': None, 'median_ratio': 1.0}
     return result
 
 
@@ -654,6 +658,14 @@ def test_benchmark_iteration_publishes_codex_gain_and_interval_text(loop_world):
     assert best['benchmark']['ratio_confidence_interval'] == [0.8185217253623219, 0.8417550863553439]
     assert lineage['iterations'][1]['latency_method'] == 'single_job_floor' and lineage['iterations'][1]['improvement_basis'] is None
     assert lineage['benchmark_baseline']['protected_jobs'] == 2
+    assert lineage['benchmark_baseline_status'] == {'kind': 'parent_a_a', 'status': 'measured', 'reason': None}
+    # The A/A baseline is published as calibration (self-noise), never a gain.
+    baseline_ref = result['loop']['benchmark_baseline']['report_ref']
+    (aa,) = [a for a in run['activity'] if a['stage'] == 'Benchmark baseline (parent A/A)']
+    assert aa == {'id': 'unit-loop-r1:benchmark-baseline:' + baseline_ref['sha256'], 'at': w['meta']['published_at'],
+        'stage': 'Benchmark baseline (parent A/A)', 'status': 'MEASURED',
+        'summary': 'Paired benchmark self-noise on this host (parent against itself, 2 protected jobs): ratio 1.0000, '
+                   '95% interval [0.9800, 1.0200]; calibration only, never a candidate gain.'}
     # Root issued every evaluation job plus every benchmark job; both are served.
     assert pub.served_jobs(result) == w['served'] + 3 + 2
     assert run['stage'] == 'Complete'
@@ -661,6 +673,52 @@ def test_benchmark_iteration_publishes_codex_gain_and_interval_text(loop_world):
     plain = _loop_packet(w, w['result'])
     assert plain['snapshot']['runs'][0]['lineage']['schema'] == 'ai4r-cc-rsi-lineage:1'
     assert {n['id']: n['speed'] for n in plain['snapshot']['nodes']}[one] == f'{candidate_wall:.6f} s protected total; uncalibrated'
+
+
+def test_unmeasured_and_not_run_benchmarks_are_labelled_never_claimed(loop_world):
+    w = loop_world; result = _benchmark_result(w)
+    first, second = result['loop']['iterations']
+    # A report that stopped on a correctness failure carries no statistics.
+    first['score'].update(improved=False)
+    result['loop']['best'] = None
+    first['benchmark'] = _benchmark(w, w['refs'][0], gain=None, ci=None, met=False,
+                                    gates={key: False for key in pub.BENCHMARK_GATES})
+    # A candidate the loop did not benchmark: the reason, no report.
+    second['score'].update(latency_method='single_job_floor')
+    second['benchmark_decision'] = {'status': 'not_run', 'reason': 'CORRECTNESS_REGRESSED'}
+    packet = _loop_packet(w, result)
+    nodes = {n['id']: n for n in packet['snapshot']['nodes']}
+    one, two = ('candidate:unit-loop-r1:' + r['sha256'] for r in w['refs'])
+    assert nodes[one]['speed'].startswith('No demonstrated improvement: paired benchmark stopped on a correctness '
+                                          'failure; no gain measured.')
+    assert nodes[one]['noise'] == 'Not measured; 11 AB/BA pairs per workload planned.'
+    assert nodes[two]['speed'].endswith(' s protected total; paired benchmark not_run: CORRECTNESS_REGRESSED; no speed claim')
+    lineage = packet['snapshot']['runs'][0]['lineage']
+    assert lineage['iterations'][0]['improvement_basis'] is None
+    assert lineage['iterations'][0]['benchmark']['relative_gain'] is None
+    assert lineage['iterations'][1]['benchmark_status'] == {'status': 'not_run', 'reason': 'CORRECTNESS_REGRESSED'}
+    with pytest.raises(ValueError, match='UNMEASURED_BENCHMARK_CANNOT_MEET_OBJECTIVE'):
+        pub.performance_text(None, None, True, 11)
+    # A decision that says "ran" without a report is refused.
+    second['benchmark_decision'] = {'status': 'ran', 'reason': None}
+    with pytest.raises(ValueError, match='BENCHMARK_DECISION_DIFFERS_FROM_REPORT'):
+        _loop_packet(w, result)
+
+
+def test_root_benchmark_ledger_reconciles_with_session_reports(loop_world):
+    w = loop_world; result = _benchmark_result(w); loop = result['loop']
+    rows = [{'iteration': 0, 'parent_sha256': w['parent_ref']['sha256'], 'candidate_sha256': w['parent_ref']['sha256'],
+             'protected_jobs': 2, 'objective_met': False, 'report_ref': loop['benchmark_baseline']['report_ref']},
+            {'iteration': 1, 'parent_sha256': w['parent_ref']['sha256'], 'candidate_sha256': w['refs'][0]['sha256'],
+             'protected_jobs': 3, 'objective_met': True, 'report_ref': loop['iterations'][0]['benchmark']['report_ref']}]
+    assert pub.root_benchmark_jobs({'benchmarks': rows}, loop) == 5
+    for fault in ('jobs', 'missing', 'subject'):
+        broken = copy.deepcopy(rows)
+        if fault == 'jobs': broken[1]['protected_jobs'] = 2
+        elif fault == 'missing': broken.pop(0)
+        else: broken[1]['candidate_sha256'] = '0' * 64
+        with pytest.raises(ValueError, match='SESSION_BENCHMARK_DIFFERS_FROM_ROOT_LEDGER'):
+            pub.root_benchmark_jobs({'benchmarks': broken}, loop)
 
 
 def test_benchmark_budget_counts_in_published_limit(loop_world):

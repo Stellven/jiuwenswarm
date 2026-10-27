@@ -454,13 +454,22 @@ def performance_text(relative_gain, interval, objective_met, repetitions, parent
     """Node ``speed``/``noise`` in Codex's ``performance-publish`` format.
 
     The same strings Codex published for its performance runs, so its
-    history and loop-published benchmark nodes render identically.
+    history and loop-published benchmark nodes render identically. A report
+    whose correctness gate failed carries no statistics (gain, ratio and
+    interval ``None``): it is labelled as such and never claims a gain.
     """
+    need(type(objective_met) is bool and type(repetitions) is int and repetitions>0,'MEASURED_BENCHMARK_PROTOCOL_REQUIRED')
+    if relative_gain is None and interval is None:
+        need(objective_met is False,'UNMEASURED_BENCHMARK_CANNOT_MEET_OBJECTIVE')
+        disposition='No demonstrated improvement'
+        speed=f'{disposition}: paired benchmark stopped on a correctness failure; no gain measured.'
+        if parent_wall is not None and candidate_wall is not None:
+            speed+=f' Uncalibrated public job totals: parent {parent_wall:.6f} s, candidate {candidate_wall:.6f} s.'
+        return speed,f'Not measured; {repetitions} AB/BA pairs per workload planned.',disposition
     need(type(relative_gain) in (int,float) and math.isfinite(relative_gain),'MEASURED_BENCHMARK_GAIN_REQUIRED')
     need(isinstance(interval,(list,tuple)) and len(interval)==2
          and all(type(x) in (int,float) and math.isfinite(x) for x in interval) and interval[0]<=interval[1],
          'MEASURED_BENCHMARK_INTERVAL_REQUIRED')
-    need(type(objective_met) is bool and type(repetitions) is int and repetitions>0,'MEASURED_BENCHMARK_PROTOCOL_REQUIRED')
     disposition='Measured improvement' if objective_met else 'No demonstrated improvement'
     speed=f'{disposition}: {relative_gain*100:.2f}% amortized protected batch gain; original job latency separate.'
     if parent_wall is not None and candidate_wall is not None:
@@ -640,10 +649,24 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
     if loop.get('benchmark_baseline') is not None:
         # The loop's baseline benchmark (same parent): its own protected
         # jobs are joined to Root originals; it is never a candidate's gain.
+        # The A/A baseline runs the parent against itself (candidate = parent).
         baseline_report=loop['benchmark_baseline']
-        benchmark_report(baseline_report,name=name,parent_sha256=sha(parent),
-                         candidate_sha256=baseline_report.get('candidate_sha256') if isinstance(baseline_report,dict) else None,
+        benchmark_report(baseline_report,name=name,parent_sha256=sha(parent),candidate_sha256=sha(parent),
                          root_read=root_read)
+        need(baseline_report['objective_met'] is False,'A_A_BASELINE_CANNOT_MEET_OBJECTIVE')
+        ratio,interval=baseline_report.get('median_ratio'),baseline_report.get('ratio_confidence_interval')
+        activity.insert(len(activity)-1,{'id':session['id']+':benchmark-baseline:'+baseline_report['report_ref']['sha256'],
+            'at':at,'stage':'Benchmark baseline (parent A/A)','status':'MEASURED',
+            'summary':('Paired benchmark self-noise on this host (parent against itself, '
+                       +str(baseline_report['protected_jobs'])+' protected jobs): '
+                       +('not measured' if ratio is None or interval is None else
+                         f'ratio {ratio:.4f}, 95% interval [{interval[0]:.4f}, {interval[1]:.4f}]')
+                       +'; calibration only, never a candidate gain.')})
+    elif isinstance(loop.get('benchmark_baseline_status'),dict):
+        status=loop['benchmark_baseline_status']
+        activity.insert(len(activity)-1,{'id':session['id']+':benchmark-baseline','at':at,
+            'stage':'Benchmark baseline (parent A/A)','status':str(status.get('status') or 'unknown').upper()[:64],
+            'summary':('Paired benchmark A/A baseline not measured: '+str(status.get('reason') or 'no reason recorded'))[:1024]})
     node_ids={}
     for row in rows:
         ref=row.get('candidate_ref')
@@ -656,6 +679,8 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
         score=row.get('score') if isinstance(row.get('score'),dict) else {}
         method=score.get('latency_method')
         report=row.get('benchmark')
+        decision=row.get('benchmark_decision') if isinstance(row.get('benchmark_decision'),dict) else None
+        need(decision is None or (decision.get('status')=='ran')==(report is not None),'BENCHMARK_DECISION_DIFFERS_FROM_REPORT')
         if report is not None:
             need(summary is not None,'BENCHMARK_REQUIRES_EVALUATED_CANDIDATE')
             benchmark_report(report,name=name,parent_sha256=sha(parent),candidate_sha256=ref['sha256'],root_read=root_read)
@@ -684,6 +709,12 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
             activity.insert(len(activity)-1,{'id':session['id']+':performance:'+report['report_ref']['sha256'],'at':at,
                 'stage':'Performance evaluation','status':'OBJECTIVE_MET' if report['objective_met'] else 'OBJECTIVE_NOT_MET',
                 'summary':disposition+' under the frozen protected batch protocol; security remains deferred.'})
+        elif decision is not None and summary is not None:
+            # Benchmark served but not run for this candidate (correctness
+            # regressed, or no budget left): the reason, never a speed claim.
+            node['speed']=(f"{summary['wall_s']:.6f} s protected total; paired benchmark "
+                           +str(decision.get('status'))+": "+str(decision.get('reason') or 'no reason recorded')
+                           +"; no speed claim")[:1024]
         elif method==FLOOR and summary is not None:
             # Judged by the single-job floor: labelled, never a measured speedup.
             node['speed']=f"{summary['wall_s']:.6f} s protected total; single-job floor, not a measured speedup"
@@ -708,6 +739,30 @@ def served_jobs(result):
                  'BENCHMARK_JOB_COUNT_REQUIRED')
             served+=report['protected_jobs']
     return served
+
+
+def root_benchmark_jobs(completion, loop):
+    """Protected jobs of the benchmarks Root reports in ``complete.json``.
+
+    Every report the session carries (the A/A baseline at iteration 0, then
+    one per benchmarked iteration) must be one of Root's rows with the same
+    subjects, job count and report ref; Root may report more (a report the
+    session never received), never fewer.
+    """
+    rows=completion.get('benchmarks',[])
+    need(isinstance(rows,list) and all(isinstance(row,dict) and type(row.get('protected_jobs')) is int
+         and row['protected_jobs']>=0 and type(row.get('iteration')) is int for row in rows)
+         and len({row['iteration'] for row in rows})==len(rows),'ROOT_BENCHMARK_LEDGER_REQUIRED')
+    by_iteration={row['iteration']:row for row in rows}
+    carried=[(0,loop.get('benchmark_baseline'))]+[(row.get('iteration'),row.get('benchmark')) for row in loop['iterations']]
+    for iteration,report in carried:
+        if report is None:continue
+        root=by_iteration.get(iteration)
+        need(root is not None and root['protected_jobs']==report.get('protected_jobs')
+             and root.get('parent_sha256')==report.get('parent_sha256')
+             and root.get('candidate_sha256')==report.get('candidate_sha256')
+             and root.get('report_ref')==report.get('report_ref'),'SESSION_BENCHMARK_DIFFERS_FROM_ROOT_LEDGER')
+    return sum(row['protected_jobs'] for row in rows)
 
 
 def issued_jobs(evaluator_root):
@@ -751,6 +806,9 @@ def loop_evidence(cfg, pin, session, result, result_raw, control, evaluator):
              and completion['executions']==issued,'ROOT_EVALUATOR_TERMINAL_DIFFERS')
         if 'evaluations' in completion:
             reported=sum(row['executions'] for row in completion['evaluations'] if type(row.get('executions')) is int)
+            # Root's served benchmarks (A/A baseline + candidates) are part of
+            # the same ``capsule-*`` start claims and the same grant budget.
+            reported+=root_benchmark_jobs(completion,loop)
             need(served<=reported<=issued,'ROOT_SERVED_EVALUATIONS_DIFFER')
         outcome={'status':'STOPPED','stop':completion.get('stop'),'exit_code':code}
     else:

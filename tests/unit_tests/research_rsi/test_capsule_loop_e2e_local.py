@@ -28,7 +28,7 @@ from jiuwenswarm.research_rsi import capsule_session
 from jiuwenswarm.research_rsi.model_backends import FakeBackend
 from jiuwenswarm.research_rsi.records import RecordStore, encoded
 from jiuwenswarm.research_rsi.targets import capsule_executor as executor
-from jiuwenswarm.research_rsi.targets.capsule_local_dispatcher import LocalDispatcher
+from jiuwenswarm.research_rsi.targets.capsule_benchmark import benchmark_config, benchmark_job_count
 from jiuwenswarm.research_rsi.targets.capsule_objective import BENCHMARK_REPORT_SCHEMA, evaluation_fixtures
 from jiuwenswarm.research_rsi.targets.capsules import public_fixtures, registered_capsule
 from tests.unit_tests.research_rsi.test_capsule_dispatch_e2e import loop_grant
@@ -75,17 +75,24 @@ def forms(value):
     return out
 
 
-def build(tmp_path, runtime_root, manifest, name, iterations=ITERATIONS, benchmark_jobs=0):
+def build(tmp_path, runtime_root, manifest, name, iterations=ITERATIONS, benchmark=None):
     target = registered_capsule(name)
     cases = evaluation_fixtures(name)
     store = RecordStore(tmp_path / 'controller-records')
     metadata = {key: {'schema': 'unit-local-worker:1', 'kind': key} for key in ('contract', 'environment', 'hardware')}
     grant = loop_grant(manifest, name)
-    # Benchmark jobs share the grant: one incumbent-vs-candidate call per
-    # iteration plus at most one parent-vs-new-best call.
+    loop = {'model_backend': {'kind': 'fake'}, 'max_iterations': iterations,
+            # No early no-progress stop: every scripted iteration runs.
+            'max_no_progress': iterations + 1, 'trials': TRIALS}
+    if benchmark is not None:
+        # The slot-materialized sizing (Interface E): the grant carries its
+        # wall and its exact per-call jobs for the A/A baseline + each iteration.
+        loop['benchmark'] = benchmark['sizing']
+        grant['limits'] = dict(grant['limits'], benchmark_wall_s=benchmark['sizing']['wall_s'])
+        grant['expires_unix_s'] += benchmark['sizing']['wall_s']
+    # The owner's budget function, exactly as the slot and prepare call it.
     grant.update(run_id='local-loop-' + name.replace('.', '-'),
-                 max_executions=executor.loop_execution_budget(len(cases), max_iterations=iterations, trials=TRIALS)
-                 + benchmark_jobs * 2 * iterations,
+                 max_executions=executor.loop_budget_for(name, loop, case_count=len(cases)),
                  worker={key + '_ref': store.put(record) for key, record in metadata.items()})
     root = tmp_path / 'evaluator'; root.mkdir()
     grant_path = tmp_path / 'grant.json'; grant_path.write_bytes(encoded(grant))
@@ -105,27 +112,21 @@ def build(tmp_path, runtime_root, manifest, name, iterations=ITERATIONS, benchma
         'diagnosis_contract_ref': ref('diagnosis'), 'proposal_contract_ref': ref('proposal'),
         'native_scope_ref': ref('scope'), 'authorized_component': target.carrier_path,
         'observed_symptom': 'Harder public and held-out cases fail or are slow; improve the general behaviour.',
-        'loop': {'model_backend': {'kind': 'fake'}, 'max_iterations': iterations,
-                 # No early no-progress stop: every scripted iteration runs.
-                 'max_no_progress': iterations + 1, 'trials': TRIALS}}
+        'loop': loop}
     value = {'session': session, 'composition': {}, 'evaluator': {
         'root': str(root), 'runtime_root': str(runtime_root), 'manifest': manifest, 'metadata': metadata,
         'grant_path': str(grant_path), 'grant_sha256': executor.digest(grant_path.read_bytes()),
         'cgroup_root': None, 'dispatcher': 'local'}}
+    if benchmark is not None:
+        value['evaluator']['benchmark'] = benchmark['evaluator']
     return store, value, parent, cases
 
 
 def run_loop(tmp_path, monkeypatch, runtime_root, manifest, name, make_script, *, iterations=ITERATIONS, benchmark=None):
-    # Root refuses a benchmark once the grant has no job left, so the grant
-    # carries benchmark headroom whenever one is served.
+    # ``benchmark``: {'sizing': session loop.benchmark, 'evaluator': Root
+    # evaluator benchmark overrides}; Root then serves the real Interface E.
     store, value, parent, cases = build(tmp_path, runtime_root, manifest, name, iterations=iterations,
-                                        benchmark_jobs=0 if benchmark is None else 1)
-    if benchmark is not None:
-        # TODO(M4): drop this monkeypatch once W-M1's LocalDispatcher.benchmark
-        # (Interface E, the paired batched protocol) lands; the test must then
-        # pass unchanged on the real dispatcher with its real protected_jobs and
-        # evidence refs (raise benchmark_jobs above to its per-call job count).
-        monkeypatch.setattr(LocalDispatcher, 'benchmark', benchmark, raising=False)
+                                        benchmark=benchmark)
     script = make_script(parent)
     responses = []
     for index, (rationale, body) in enumerate(script, start=1):
@@ -170,6 +171,10 @@ def run_loop(tmp_path, monkeypatch, runtime_root, manifest, name, make_script, *
             assert ready['ready'] is True and ready['plan']['scope'] == 'local_unprotected'
             assert ready['plan']['maximum_executions'] == value['session']['grant']['max_executions']
             assert ready['benchmark']['available'] is (benchmark is not None)
+            if benchmark is not None:  # Root announces its exact per-call job count.
+                assert ready['benchmark']['jobs'] == benchmark_job_count(name, benchmark_config(name, {
+                    **benchmark['evaluator'], 'repetitions': benchmark['sizing']['repetitions'],
+                    'warmups': benchmark['sizing']['warmups']}))
             result = asyncio.run(run.controller(value, incoming, outgoing, helper, benchmark_plan=ready['benchmark']))
     finally:
         thread.join(120)
@@ -274,6 +279,15 @@ def test_calculate_loop_keeps_the_real_tie_fix_and_rejects_breakage_and_regressi
         # Feedback after the break carries a public expected-vs-actual diff.
         feedback = store.get(first['next_feedback_ref'])['text']
         assert 'REGRESSIONS' in feedback and 'expected' in feedback and '.count' in feedback
+        # Machine-selected read-only dependency excerpts (targets.capsule_context)
+        # of the worker's imports reach diagnosis and proposal: packet.py first.
+        header = '# read-only dependency: jiuwenswarm/research/capsule_extensions/packet.py'
+        assert all(header in prompt for _, _, prompt in backend.prompts)
+        assert 'def output_packet' in prompts_of(backend, 1, 'proposal')
+        context = store.get(first['dependency_context_ref'])
+        assert context['sources'][0]['path'] == 'jiuwenswarm/research/capsule_extensions/packet.py'
+        assert 'unavailable' not in context and context['worker_sha256'] == value['session']['parent_body_ref']['sha256']
+        assert not any('Dependency context unavailable' in item for item in loop['limitations'])
     finally:
         store.close()
 
@@ -338,33 +352,40 @@ def codex_r2_calculate(parent):
     return [('drops the redundant output_packet validation and copies', body)]
 
 
-async def gate_passing_benchmark(self, parent_body, candidate_body, *, iteration):
-    """Stub Interface E on the Root dispatcher (TODO(M4): replace with W-M1's
-    real LocalDispatcher.benchmark). It runs nothing, so it claims no protected
-    jobs and no evidence; it reports Codex's measured r2 comparison, or a
-    neutral A/A result for the parent-against-itself baseline (W-M1 shape)."""
-    a_a = parent_body == candidate_body
-    rows = ({ident: 1.0 for ident in CODEX_R2_COMPARISON['rows']} if a_a else CODEX_R2_COMPARISON['rows'])
-    ratio = 1.0 if a_a else CODEX_R2_COMPARISON['median_ratio']
-    interval = [0.99, 1.01] if a_a else list(CODEX_R2_COMPARISON['ratio_confidence_interval'])
-    gates = {'minimum_gain': {'threshold': 0.10, 'passed': 1 - ratio >= 0.10},
-             'ci_upper_bound': {'threshold': 0.90, 'passed': interval[1] <= 0.90},
-             'max_workload_regression': {'threshold': 0.05, 'passed': max(rows.values()) <= 1.05}}
-    return {'schema': BENCHMARK_REPORT_SCHEMA, 'capsule_name': self.grant['capsule_name'], 'iteration': iteration,
-            'parent_sha256': executor.digest(parent_body), 'candidate_sha256': executor.digest(candidate_body),
-            'median_ratio': ratio, 'relative_gain': 1 - ratio, 'ratio_confidence_interval': interval,
-            'workloads': [{'id': ident, 'split': 'visible', 'withheld': False, 'median_ratio': value,
-                           'relative_gain': 1 - value, 'regression': value > 1} for ident, value in rows.items()],
-            'gates': gates, 'objective_met': all(gate['passed'] for gate in gates.values()), 'correctness_passed': True,
-            'correctness': {'passed': True, 'cases': [], 'failure': None},
-            'protected_jobs': 0, 'evidence_refs': [], 'repetitions': 11, 'scope': executor.LOCAL_SCOPE}
+def prompts_of(backend, iteration, role):
+    return next(prompt for i, r, prompt in backend.prompts if (i, r) == (iteration, role))
+
+
+# Interface E for the model-free e2e: the real paired batched protocol on the
+# real LocalDispatcher with small repetitions and batches (configuration), so
+# the whole loop runs in minutes. 8 timed workloads x 3 AB/BA pairs x 2 sides,
+# + 8 untimed cases x 2 + 9 semantic edges x 2 = 82 jobs per call.
+BENCH_REPS, BENCH_WARMUPS, BENCH_PER_JOB_S = 3, 2, 10
+# Keep-decision gates, set explicitly here (gates are configuration; the
+# production spec keeps Codex's frozen gain >= 10%, CI upper <= 0.90, no
+# workload > 5% slower, at 11 pairs and 1000/20 batches). With 3 pairs and
+# 100/4 batches on a shared 2-CPU box one run cleared the frozen gates and
+# the next measured gain 12.9%, CI [0.829, 0.913] (CI gate failed) with a
+# parent A/A CI of [0.969, 1.055]. The e2e therefore judges with gain
+# >= 5%, CI upper <= 0.95, no workload > 10% slower: still a paired,
+# CI-gated measurement clear of the A/A self-noise, never a single-job wall.
+E2E_GATES = {'minimum_gain': 0.05, 'ci_upper_bound': 0.95, 'max_workload_regression': 0.10}
+
+
+def e2e_benchmark(name, iterations):
+    sizing = {'workloads': 8, 'repetitions': BENCH_REPS, 'warmups': BENCH_WARMUPS, 'per_job_s': BENCH_PER_JOB_S}
+    jobs = executor.benchmark_jobs_for_sizing(sizing, capsule_name=name)
+    sizing['wall_s'] = (iterations + 1) * jobs * BENCH_PER_JOB_S  # The slot's default wall rule.
+    return {'sizing': sizing, 'evaluator': {'batch_iterations': {'small': 100, 'large': 4},
+                                            'bootstrap_resamples': 1000, 'gates': dict(E2E_GATES)}}
 
 
 def test_codex_r2_calculate_candidate_is_kept_on_the_paired_benchmark(installed_runtime, tmp_path, monkeypatch):
     runtime_root, manifest = installed_runtime
+    name = 'utility.calculate'
+    bench = e2e_benchmark(name, 1)
     store, value, result, backend, cases, completion = run_loop(
-        tmp_path, monkeypatch, runtime_root, manifest, 'utility.calculate', codex_r2_calculate,
-        iterations=1, benchmark=gate_passing_benchmark)
+        tmp_path, monkeypatch, runtime_root, manifest, name, codex_r2_calculate, iterations=1, benchmark=bench)
     try:
         loop = result['loop']
         assert result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED', store.get(result['failure_ref'])
@@ -379,28 +400,57 @@ def test_codex_r2_calculate_candidate_is_kept_on_the_paired_benchmark(installed_
         assert score['contract']['changed_bytes'] == [] and score['contract']['unverified'] == []
         assert score['contract']['byte_compared'] == score['contract']['parent_passed'] > 0
         assert score['correctness']['candidate'] == score['correctness']['parent'] < 1.0
-        # Latency from the paired batched benchmark served over the Root pipes.
+        # The real Root report (parent -> candidate) over the pipes.
+        report = row['benchmark']
+        jobs = benchmark_job_count(name, benchmark_config(name, {**bench['evaluator'], 'repetitions': BENCH_REPS,
+                                                                 'warmups': BENCH_WARMUPS}))
+        assert jobs == 8 * BENCH_REPS * 2 + 8 * 2 + 9 * 2
+        assert report['schema'] == BENCHMARK_REPORT_SCHEMA and report['scope'] == 'local_unprotected'
+        assert report['candidate_sha256'] == CODEX_R2_CALCULATE_SHA256 and report['parent_sha256'] == parent_sha
+        assert report['correctness_passed'] is True, report['correctness']['failure']
+        assert report['semantic_edges']['passed'] is True
+        assert report['protected_jobs'] == jobs == len(report['evidence_refs']) and report['repetitions'] == BENCH_REPS
+        assert {key: gate['threshold'] for key, gate in report['gates'].items()} == E2E_GATES
+        # The same eight data-driven workloads Codex measured, in its order.
+        assert [w['id'] for w in report['workloads']] == list(CODEX_R2_COMPARISON['rows'])
+        low, high = report['ratio_confidence_interval']
+        assert 0 < low <= report['median_ratio'] <= high
+        # Codex's direction (16.78% on its box), measured here for real.
+        assert report['median_ratio'] < 1, report.get('summary')
+        assert report['objective_met'] is True, (report['median_ratio'], report['ratio_confidence_interval'],
+                                                  report['gate_results'], [(w['id'], w['median_ratio'])
+                                                                           for w in report['workloads']])
+        # Latency judged by the paired benchmark; kept on the explicit gates.
         assert score['latency_method'] == 'paired_batched_benchmark'
-        assert score['latency_ratio'] == CODEX_R2_COMPARISON['median_ratio'] and score['above_noise'] is True
+        assert score['latency_ratio'] == report['median_ratio'] and score['above_noise'] is True
         assert score['improved'] is True and row['kept'] is True and row['outcome'] == 'kept'
-        # The row carries the exact Root report (parent -> candidate) that W-M3 projects.
-        assert row['benchmark']['candidate_sha256'] == CODEX_R2_CALCULATE_SHA256
-        assert row['benchmark']['parent_sha256'] == parent_sha and row['benchmark']['objective_met'] is True
-        assert row['benchmark']['scope'] == 'local_unprotected'
         assert row['benchmark_decision']['status'] == 'ran' and row['benchmark_decision']['beats_best'] is True
-        assert completion['benchmarks'] == [  # the parent A/A baseline, then the iteration's
-            {'iteration': 0, 'parent_sha256': parent_sha, 'candidate_sha256': parent_sha, 'protected_jobs': 0,
-             'objective_met': False, 'report_ref': None},
-            {'iteration': 1, 'parent_sha256': parent_sha, 'candidate_sha256': CODEX_R2_CALCULATE_SHA256,
-             'protected_jobs': 0, 'objective_met': True, 'report_ref': None}]
-        assert [(e['role'], e['iteration']) for e in completion['evaluations']] == [('parent', 0), ('candidate', 1)]
-        assert loop['benchmark_baseline']['candidate_sha256'] == parent_sha
+        # A/A baseline: parent against itself, ratio near 1, objective never met.
+        baseline = loop['benchmark_baseline']
+        assert baseline['candidate_sha256'] == baseline['parent_sha256'] == parent_sha
+        assert baseline['correctness_passed'] is True and baseline['protected_jobs'] == jobs
+        assert baseline['objective_met'] is False and 0.85 < baseline['median_ratio'] < 1.15, baseline['median_ratio']
         assert loop['benchmark_baseline_status'] == {**loop['benchmark_baseline_status'], 'kind': 'parent_a_a',
-                                                     'status': 'measured', 'median_ratio': 1.0}
+                                                     'status': 'measured', 'median_ratio': baseline['median_ratio']}
+        # Root ledger: the A/A baseline then the iteration, every job a real
+        # ``capsule-*`` start claim, all inside the grant's budget.
+        assert completion['benchmarks'] == [
+            {'iteration': 0, 'parent_sha256': parent_sha, 'candidate_sha256': parent_sha, 'protected_jobs': jobs,
+             'objective_met': False, 'report_ref': baseline['report_ref']},
+            {'iteration': 1, 'parent_sha256': parent_sha, 'candidate_sha256': CODEX_R2_CALCULATE_SHA256,
+             'protected_jobs': jobs, 'objective_met': True, 'report_ref': report['report_ref']}]
+        assert [(e['role'], e['iteration']) for e in completion['evaluations']] == [('parent', 0), ('candidate', 1)]
+        evaluated = sum(e['executions'] for e in completion['evaluations'])
+        claims = list((tmp_path / 'evaluator' / 'claims').glob('capsule-*.json'))
+        assert completion['executions'] == evaluated + 2 * jobs == len(claims) <= value['session']['grant']['max_executions']
+        assert value['session']['grant']['max_executions'] == executor.loop_budget_for(name, value['session']['loop'])
         assert loop['benchmark_accounting']['calls'] == 2 and loop['benchmark_accounting']['available'] is True
+        assert loop['benchmark_accounting']['protected_jobs'] == 2 * jobs
         assert loop['best']['iteration'] == 1 and result['candidate_ref'] == row['candidate_ref']
         feedback = store.get(row['next_feedback_ref'])['text']
-        assert 'objective_met yes' in feedback and 'small-numbers 0.807' in feedback
+        first = report['workloads'][0]
+        assert 'objective_met yes' in feedback and '%s %.3f' % (first['id'], first['median_ratio']) in feedback
         assert 'Single-job protected walls of parent' in backend.prompts[0][2]
+        assert 'Paired benchmark self-noise (parent A/A)' in backend.prompts[0][2]
     finally:
         store.close()
