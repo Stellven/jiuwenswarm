@@ -104,18 +104,20 @@ class VerifierBindings:
         return ref
 
 
-async def prepare_compiler_assets(store,*,requirements_version='m1-8'):
+async def prepare_compiler_assets(store,*,requirements_version='m1-8',intent_version='m1-6'):
     """Verify and capture installed data without eligibility or model effects."""
-    return await register_compiler_capsules(None,None,None,store,None,prepare_only=True,requirements_version=requirements_version)
+    return await register_compiler_capsules(None,None,None,store,None,prepare_only=True,requirements_version=requirements_version,intent_version=intent_version)
 
 
-async def register_compiler_capsules(registry,check_registry,library,store,actor,*,activate=False,bootstrap=False,initialize=True,memory_mb=256,prepare_only=False,prepared_assets=None,requirements_version='m1-8'):
+async def register_compiler_capsules(registry,check_registry,library,store,actor,*,activate=False,bootstrap=False,initialize=True,memory_mb=256,prepare_only=False,prepared_assets=None,requirements_version='m1-8',intent_version='m1-6'):
     """Trusted installation from the bounded byte-pinned packaged catalog.
 
     The caller supplies an authenticated operator identity. Asset ownership and
     standing operations stay separate; this is never reachable from submit.
     """
     import hashlib
+    if not isinstance(intent_version,str) or intent_version not in {'m1-6','m1-7'}:
+        raise ResearchError('prepared_catalog_invalid','Unknown explicit Intent release')
     if not isinstance(requirements_version,str) or requirements_version not in {'m1-8','m1-9'}:
         raise ResearchError('prepared_catalog_invalid','Unknown explicit Requirements release')
     import json
@@ -191,6 +193,9 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
         bundle_ref=store.put_record('check-bundle',bundle);profile_ref=store.put_record('checking-profile',profile)
         prepared[stage]={'declaration_ref':declaration_ref,'declaration':declaration,'body_refs':body_refs,
             'bundle_ref':bundle_ref,'profile_ref':profile_ref,'bundle':bundle,'runner_ref':runner_ref,'cc':cc}
+    if prepared_assets is None and intent_version=='m1-7':
+        from .intent_release import prepare_intent_release
+        prepared['intent']=await prepare_intent_release(store,base=prepared['intent'])
     if prepared_assets is None and requirements_version=='m1-9':
         from .requirements_release import prepare_requirements_release
         prepared['requirements']=await prepare_requirements_release(store,base=prepared['requirements'])
@@ -198,6 +203,13 @@ async def register_compiler_capsules(registry,check_registry,library,store,actor
         if not isinstance(prepared_assets, dict) or set(prepared_assets) != set(catalog['capsules']):
             raise ResearchError('prepared_catalog_invalid', 'Prepared catalog must explicitly cover every packaged compiler stage')
         for stage, supplied in prepared_assets.items():
+            if stage=='intent' and intent_version=='m1-7':
+                from .intent_release import prepare_intent_release
+                expected=await prepare_intent_release(store)
+                if supplied!=expected:
+                    raise ResearchError('prepared_catalog_invalid','Intent m1-7 candidate differs from exact explicit release')
+                prepared[stage]=expected
+                continue
             if stage=='requirements' and requirements_version=='m1-9':
                 from .requirements_release import prepare_requirements_release
                 expected=await prepare_requirements_release(store)
