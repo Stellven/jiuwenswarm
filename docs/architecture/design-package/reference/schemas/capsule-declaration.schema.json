@@ -92,7 +92,10 @@
         },
         "load_mode": {
           "type": "string",
-          "minLength": 1
+          "enum": [
+            "invoked",
+            "context_injected"
+          ]
         },
         "overlays": {
           "type": "array",
@@ -148,7 +151,14 @@
             },
             "relation": {
               "type": "string",
-              "minLength": 1
+              "enum": [
+                "supersedes",
+                "specialises",
+                "rollback_of",
+                "migrated_from",
+                "composes",
+                "fuses"
+              ]
             },
             "builder": {
               "type": "string",
@@ -379,6 +389,13 @@
                   "contracts"
                 ],
                 "additionalProperties": false
+              },
+              "purpose": {
+                "type": "string",
+                "minLength": 1
+              },
+              "lockfile": {
+                "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/CodePin"
               }
             },
             "required": [
@@ -402,9 +419,64 @@
                   "floating"
                 ],
                 "not": {
-                  "required": [
-                    "pin"
+                  "anyOf": [
+                    {
+                      "required": [
+                        "pin"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "purpose"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "lockfile"
+                      ]
+                    }
                   ]
+                }
+              }
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "package"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "pin",
+                    "lockfile"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "not": {
+                        "const": "package"
+                      }
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "lockfile"
+                    ]
+                  }
                 }
               }
             ]
@@ -535,6 +607,37 @@
             "modalities"
           ],
           "additionalProperties": false
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+              },
+              "purpose": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "name",
+              "purpose"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 16
+        },
+        "human_interaction": {
+          "type": "string",
+          "enum": [
+            "none",
+            "optional",
+            "blocking"
+          ]
         }
       },
       "required": [
@@ -662,7 +765,11 @@
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "minLength": 1
+                  "enum": [
+                    "each_call",
+                    "outputs",
+                    "inputs_and_outputs"
+                  ]
                 },
                 "minItems": 1
               },
@@ -796,6 +903,68 @@
             "reason"
           ],
           "additionalProperties": false
+        },
+        "self_tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "fixture",
+                  "command"
+                ]
+              },
+              "ref": {
+                "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/CodePin"
+              },
+              "expects": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "ref",
+              "expects"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 64
+        },
+        "failure_modes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "reason_code": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "when": {
+                "type": "string",
+                "minLength": 1
+              },
+              "retriable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "reason_code",
+              "when",
+              "retriable"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 32
         }
       },
       "required": [
@@ -1221,13 +1390,23 @@
     "evolution": {
       "type": "object",
       "properties": {
-        "frozen": {
+        "rsi": {
+          "type": "string",
+          "enum": [
+            "none",
+            "propose",
+            "submit"
+          ]
+        },
+        "may_change": {
           "type": "array",
           "items": {
             "type": "string",
-            "minLength": 1
+            "pattern": "^(files:[^\\s]+|(/([^~/]|~[01])*)+)$"
           },
-          "minItems": 0
+          "minItems": 0,
+          "maxItems": 16,
+          "uniqueItems": true
         },
         "notes_for_builder": {
           "type": "array",
@@ -1239,7 +1418,7 @@
         }
       },
       "required": [
-        "frozen",
+        "rsi",
         "notes_for_builder"
       ],
       "additionalProperties": false

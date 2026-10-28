@@ -1,0 +1,7 @@
+# Forbidden top-level Python modules for POC code (PRD 3.6.2). One per line. Pinned in the Builder check bundle.
+os
+sys
+subprocess
+requests
+urllib
+shutil

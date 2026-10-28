@@ -1,0 +1,525 @@
+{
+  "kind": "Read-only source and AST inspection; no runtime execution",
+  "inspected_on": "2026-10-16",
+  "jiuwenswarm_commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+  "jiuwenswarm_files": [
+    {
+      "area": "workflow",
+      "path": "jiuwenswarm/agents/harness/team/handlers/workflow_state.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "3476a995b09010d773750f7d08d8c67802e2d982625ffb0c4cd6900a09c5273a",
+      "symbols": [
+        {
+          "name": "WorkflowProgress",
+          "line": 41
+        },
+        {
+          "name": "WorkflowPhaseState",
+          "line": 166
+        },
+        {
+          "name": "WorkflowRunState",
+          "line": 200
+        }
+      ],
+      "observation": "Workflow progress and run/phase/agent state projection.",
+      "required_adaptation": "Project frozen plan and gate outcomes; native progress is not acceptance authority."
+    },
+    {
+      "area": "workflow_transport",
+      "path": "jiuwenswarm/agents/harness/team/handlers/workflow_monitor_handler.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "f83f59d4b9187aa360b5266193528a07130a2b93eab44c51102028b1a28c9c22",
+      "symbols": [
+        {
+          "name": "WorkflowMonitorHandler",
+          "line": 27
+        }
+      ],
+      "observation": "WorkflowMonitorHandler translates TeamMonitor progress into workflow.updated events.",
+      "required_adaptation": "Map exact run/node/subnode identities and committed gate states without releasing successors from UI events."
+    },
+    {
+      "area": "agent_execution",
+      "path": "jiuwenswarm/agents/harness/team/team_manager.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "6c4fa1aca845153f3215ec2b13fa32ef7aa93480fc0e57fdc9302188eef4e472",
+      "symbols": [
+        {
+          "name": "sync_team_observability",
+          "line": 129
+        },
+        {
+          "name": "TeamManager",
+          "line": 328
+        },
+        {
+          "name": "cancel_all_team_stream_tasks_across_managers",
+          "line": 3298
+        }
+      ],
+      "observation": "Team lifecycle uses OpenJiuwen TeamAgent, runner and background-task controller.",
+      "required_adaptation": "Wrap CC execution with pins, scoped effects, budget enforcement, no hidden replay and explicit cancellation ownership."
+    },
+    {
+      "area": "agent_registration",
+      "path": "jiuwenswarm/agents/swarm/registry.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "ed6f63305dd80f8b6cd619724d463504e449cb69c56b8f209d928e750470003a",
+      "symbols": [
+        {
+          "name": "_build_swarm_context_from_seed",
+          "line": 143
+        },
+        {
+          "name": "register_swarm_providers",
+          "line": 163
+        }
+      ],
+      "observation": "Catalog-based registration of harness providers, tools, rails and subagents.",
+      "required_adaptation": "Register only admitted research bindings; provider registration cannot bypass CC admission or checking."
+    },
+    {
+      "area": "codex_transport",
+      "path": "jiuwenswarm/server/runtime/codex_subscription/transport.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "9f8725ae4b6e4f402382323b78940cb0abdfb50e728a6f39b0942fbfe650e3b5",
+      "symbols": [
+        {
+          "name": "CodexError",
+          "line": 18
+        },
+        {
+          "name": "child_environment",
+          "line": 22
+        },
+        {
+          "name": "AppServerTransport",
+          "line": 30
+        }
+      ],
+      "observation": "AppServerTransport owns a pinned Codex App Server child, isolated home and stdio transport.",
+      "required_adaptation": "Current chat slice rejects server requests and disables host tools; adapt protected Unix-domain bridge ownership, call records and Builder executor policy before research use."
+    },
+    {
+      "area": "codex_session",
+      "path": "jiuwenswarm/server/runtime/codex_subscription/service.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "ac48ab902cd7fd303edbdd8aa6e281a97d15e2b67d307f62622c07eba395378c",
+      "symbols": [
+        {
+          "name": "SubscriptionService",
+          "line": 14
+        },
+        {
+          "name": "get_service",
+          "line": 214
+        },
+        {
+          "name": "close_services",
+          "line": 222
+        }
+      ],
+      "observation": "SubscriptionService owns managed login and session-isolated text turns.",
+      "required_adaptation": "Keep operator authentication distinct from run identity; persist route/call-start before dispatch; do not borrow interactive chat state."
+    },
+    {
+      "area": "web_ui",
+      "path": "jiuwenswarm/channels/web/frontend/src/components/teamArea/SwarmflowGraphView.tsx",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "515e9dbb624ea0df29535d3c09c8f2b09f24b6f7b1e8f5b4b65b167d258d1dd3",
+      "symbols": [
+        {
+          "name": "SwarmflowGraphView",
+          "line": 608
+        }
+      ],
+      "observation": "React graph view renders workflow phases, agents and status.",
+      "required_adaptation": "Reuse native run-tree presentation with read-only committed research state; headless runs cannot wait on interactive resume controls."
+    },
+    {
+      "area": "configuration",
+      "path": "jiuwenswarm/common/config.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "cc51d5a59046d4292520974dd3cd5884898c68f55387f0fe2d0bfc14aee9ee42",
+      "symbols": [
+        {
+          "name": "resolve_env_vars",
+          "line": 62
+        },
+        {
+          "name": "get_config",
+          "line": 237
+        },
+        {
+          "name": "get_model_config",
+          "line": 3155
+        },
+        {
+          "name": "get_sandbox_runtime",
+          "line": 3342
+        }
+      ],
+      "observation": "YAML configuration loading, environment resolution, models and sandbox settings.",
+      "required_adaptation": "Expose one read-only operator configuration; validate cc settings, protected credential refs and effective limits before readiness."
+    },
+    {
+      "area": "observability",
+      "path": "jiuwenswarm/observability/store.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "1d31f1843df94d30f885f7dc02947d317ce317ec9dfca2c536f84e4683138ec2",
+      "symbols": [
+        {
+          "name": "TrajectoryStore",
+          "line": 388
+        },
+        {
+          "name": "AsyncTrajectoryReader",
+          "line": 1630
+        }
+      ],
+      "observation": "SQLite trajectory storage/readers retain OTLP payloads and scoped queries.",
+      "required_adaptation": "Reuse diagnostics as observations; authoritative run state, immutable artifacts and gate-before-release transactions require research-specific storage contracts."
+    },
+    {
+      "area": "observability_lifecycle",
+      "path": "jiuwenswarm/observability/runtime.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "2f65cfadbe7f048cec0515f231fa9e0addcaea1d526884ec12ce1890ee377afb",
+      "symbols": [
+        {
+          "name": "sync_trajectory_runtime",
+          "line": 45
+        },
+        {
+          "name": "start_trajectory_runtime",
+          "line": 69
+        },
+        {
+          "name": "shutdown_trajectory_runtime",
+          "line": 124
+        }
+      ],
+      "observation": "Trajectory sink lifecycle registers the core record consumer.",
+      "required_adaptation": "Capture raw evidence before cleanup, report missing telemetry and enforce audience-scoped export; diagnostic capture alone cannot grant a gate pass."
+    },
+    {
+      "area": "symphony_adapter",
+      "path": "jiuwenswarm/symphony/adapter.py",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "fbb4e873fc321e5861d71156c8e7829e60719b8b84d046a511e6b1b408814e09",
+      "symbols": [
+        {
+          "name": "ScanResultCapabilityProvider",
+          "line": 27
+        },
+        {
+          "name": "FingerprintArtifactCapabilityProvider",
+          "line": 45
+        },
+        {
+          "name": "orchestration_config_from_swarm",
+          "line": 140
+        }
+      ],
+      "observation": "Capability providers expose immutable scanner/fingerprint inventories via public OpenJiuwen Symphony interfaces.",
+      "required_adaptation": "Translate admitted declaration identities explicitly; fingerprints and cached graph state cannot substitute for exact CC pins and protected freeze."
+    },
+    {
+      "area": "dependency_pin",
+      "path": "pyproject.toml",
+      "commit": "7be8f531ede1faaa3978cbc950dfd69cfc78b775",
+      "sha256": "61cec255ed9af71b7b65587ed87e9e57e3ca0801e3b515819cff9bd1c7ef8510",
+      "symbols": [],
+      "observation": "OpenJiuwen agent-core is pinned to an exact Git revision.",
+      "required_adaptation": "Preserve the pin during this documentation change; verify runtime behavior before claiming compatible execution."
+    }
+  ],
+  "openjiuwen_dependency_commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+  "openjiuwen_files": [
+    {
+      "path": "openjiuwen/symphony/models/capability.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "3429ad1f8c8dbdfde58ec27a963ee9896e80131d58a060d2874c4b9682cdcc74",
+      "classes": [
+        {
+          "name": "CapabilityIO",
+          "line": 15,
+          "fields": [
+            "name",
+            "type",
+            "description",
+            "required",
+            "default",
+            "metadata"
+          ],
+          "methods": [
+            "_redact_sensitive_default"
+          ]
+        },
+        {
+          "name": "SemanticProfile",
+          "line": 46,
+          "fields": [
+            "summary",
+            "capabilities",
+            "use_cases",
+            "limitations",
+            "keywords"
+          ],
+          "methods": [
+            "_deduplicate_values"
+          ]
+        },
+        {
+          "name": "CapabilityDescriptor",
+          "line": 61,
+          "fields": [
+            "capability_id",
+            "capability_type",
+            "name",
+            "description",
+            "source",
+            "available",
+            "inputs",
+            "outputs",
+            "classification",
+            "tags",
+            "content_hash",
+            "semantic_content",
+            "metadata"
+          ],
+          "methods": [
+            "_deduplicate_tags"
+          ]
+        },
+        {
+          "name": "SourceSnapshot",
+          "line": 84,
+          "fields": [
+            "snapshot_id",
+            "source",
+            "content_hash",
+            "captured_at",
+            "capability_count",
+            "metadata"
+          ],
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/interfaces/capability.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "03f380ae13b2f484262c12ca3f74cc273234f330855b8b495101811106986621",
+      "classes": [
+        {
+          "name": "CapabilityProvider",
+          "line": 13,
+          "fields": [],
+          "methods": [
+            "capabilities",
+            "source_snapshot"
+          ]
+        },
+        {
+          "name": "AtomicCapabilityProvider",
+          "line": 28,
+          "fields": [],
+          "methods": [
+            "inventory_snapshot"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/orchestration/service.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "4647478f26b2f29a46bf138b95e3010611ced17b532a6238db8c602ea1b97ecb",
+      "classes": [
+        {
+          "name": "OrchestrationService",
+          "line": 83,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "status",
+            "read",
+            "build",
+            "apply_skill_graph_mutation",
+            "cancel_build",
+            "plan",
+            "_construct_graph_payload",
+            "_load_inventory",
+            "_sync_capabilities",
+            "_source_snapshot",
+            "_merge_build_identity",
+            "_matcher_identity",
+            "_create_matcher"
+          ]
+        },
+        {
+          "name": "_QueuedBuildProgress",
+          "line": 613,
+          "fields": [
+            "item",
+            "completion"
+          ],
+          "methods": []
+        },
+        {
+          "name": "_BuildProgressDispatcher",
+          "line": 618,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "start",
+            "enqueue",
+            "drain",
+            "emit",
+            "close",
+            "cancel",
+            "deliver",
+            "_run",
+            "_deliver"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/graph_engine.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "c8d5f8c045a411bfe8f5974d2d6d7f71e0ded8184504fcfeed2c0a1bfed7d1c7",
+      "classes": [
+        {
+          "name": "SymphonyGraphEngine",
+          "line": 27,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "status",
+            "read",
+            "add_skills",
+            "update_skills",
+            "delete_skills",
+            "build",
+            "cancel_build",
+            "plan",
+            "submit_observation",
+            "get_snapshot",
+            "flush_observations",
+            "close",
+            "_reproject_observations"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/models/_base.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "549550d7ed5a87571f720709dd057aa7c81df80470c5ee2aff0ebb75c3e0829e",
+      "classes": [
+        {
+          "name": "SymphonyModel",
+          "line": 19,
+          "fields": [],
+          "methods": [
+            "_redact_public_extensions",
+            "_redact_public_text"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/models/fingerprint.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "c1da058f793e21976cb8b63fc803fbfe077304eb9d9c29ee93a118fb0bbcb5c4",
+      "classes": [
+        {
+          "name": "CapabilityFingerprint",
+          "line": 29,
+          "fields": [
+            "version",
+            "static_data",
+            "semantic_profile",
+            "inputs",
+            "outputs",
+            "classification",
+            "tags",
+            "content_hash",
+            "semantic_content",
+            "quality",
+            "failures",
+            "evidence",
+            "suggestions"
+          ],
+          "methods": [
+            "_accept_graph_io_contracts",
+            "_deduplicate_tags",
+            "_redact_graph_extensions",
+            "_validate_quality_identity",
+            "id",
+            "type",
+            "to_dict",
+            "to_internal_dict",
+            "graph_identity_dict"
+          ]
+        },
+        {
+          "name": "FingerprintArtifact",
+          "line": 125,
+          "fields": [
+            "schema_version",
+            "generated_at",
+            "source_snapshot",
+            "fingerprints"
+          ],
+          "methods": [
+            "_serialize_public_fingerprints",
+            "_normalize_generated_at",
+            "_validate_schema_version",
+            "_validate_unique_fingerprints"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "openjiuwen/symphony/runtime.py",
+      "commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+      "sha256": "283fca5fd3d5864fdf52107f2dc9a96bc92a27608047e350a0f50c2f770ca47e",
+      "classes": [
+        {
+          "name": "EvolutionSubmitResult",
+          "line": 36,
+          "fields": [
+            "graph_receipt",
+            "new_candidates"
+          ],
+          "methods": []
+        },
+        {
+          "name": "SymphonyRuntime",
+          "line": 43,
+          "fields": [],
+          "methods": [
+            "__init__",
+            "submit_evolution",
+            "_build_graph_evolution_input",
+            "capture_graph_snapshot",
+            "close",
+            "aclose"
+          ]
+        }
+      ]
+    }
+  ],
+  "runtime_compatibility": "NOT_RUN",
+  "diagram_projection": {
+    "document": "platform/native-reuse.md",
+    "mermaid_sha256": "639a2fb31875f4386c86eeafd495a752dd7ffcd1f6928a18a725e8ebb52f77bd",
+    "svg": "platform/native-reuse.svg",
+    "svg_sha256": "435f3640570e55b260bf8996982613ce80949585210b621f930ce3e0ecdffa06",
+    "renderer": "Mermaid CLI",
+    "visual_inspection": "PASS: labels, arrows and authoritative versus diagnostic boundaries legible"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "id": "search_scope",
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+  },
+  "connectors": [
+    "local_documents",
+    "arxiv",
+    "semantic_scholar"
+  ],
+  "max_queries": 4,
+  "max_hits_per_query": 5,
+  "local_document_refs": [
+    {
+      "id": "academic_source.txt",
+      "sha256": "da0a79d39f34aad640bd62b1f23b91887ad60f36c62f5f653e9df0889e031c2d"
+    }
+  ],
+  "topic_hints": []
+}

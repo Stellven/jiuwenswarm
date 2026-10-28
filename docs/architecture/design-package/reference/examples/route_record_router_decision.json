@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "route_id": "route.run1.screening.6",
+  "invocation_id": "inv.run1.screening.1",
+  "run_id": "run1",
+  "node_id": "screening",
+  "subnode_id": "screening",
+  "router_enabled": true,
+  "decision_source": "router",
+  "router_failure": null,
+  "model_id": "codex.static.example",
+  "route_decision_ref": {
+    "id": "route_decision.json",
+    "sha256": "ace3669e82464bd6dd3be5eddbeb2995fc53916cb2e2427220caba32c2fcef54"
+  },
+  "recorded_at": "2026-10-15T10:00:00Z"
+}

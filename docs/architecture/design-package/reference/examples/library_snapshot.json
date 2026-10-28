@@ -1,0 +1,716 @@
+{
+  "schema_version": "1.0.0",
+  "id": "library_snapshot_example",
+  "captured_at": "2026-10-14T09:00:00Z",
+  "entries": [
+    {
+      "cc_name": "intent.compiler",
+      "cc_version": "example-1",
+      "declaration_sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390",
+      "selectable_by_planner": false,
+      "input_ports": [
+        {
+          "name": "request",
+          "artifact_type": "qualified_intake",
+          "schema_ref": "qualified-intake:field-contract:2",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "intent",
+          "artifact_type": "intent_ir",
+          "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [
+        {
+          "resource_key": "original_request",
+          "mode": "read",
+          "min_quantity": null
+        }
+      ],
+      "max_limits": {
+        "time_s": 60,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "intent.compiler.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "9dda0130a3be7bb8163218cda21c5d4c685e4cdc1eabc33f81419a1ae60d559f",
+        "checking_profile_id": "intent.compiler.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
+      }
+    },
+    {
+      "cc_name": "requirements.compiler",
+      "cc_version": "example-1",
+      "declaration_sha256": "81503a19783f3497ad413c5aaa7a9ae6b3387884cacf6d26047937950a38a2b1",
+      "selectable_by_planner": false,
+      "input_ports": [
+        {
+          "name": "intent",
+          "artifact_type": "intent_ir",
+          "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+          "required": true
+        },
+        {
+          "name": "intake",
+          "artifact_type": "qualified_intake",
+          "schema_ref": "qualified-intake:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "defaults",
+          "artifact_type": "default_policy",
+          "schema_ref": "default-policy:field-contract:1",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [
+        {
+          "resource_key": "original_request",
+          "mode": "read",
+          "min_quantity": null
+        }
+      ],
+      "max_limits": {
+        "time_s": 60,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "requirements.compiler.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "a7430c6ee8d407cafaa7a1ca6841e80f400663b217efc5052a504eb51022ff7b",
+        "checking_profile_id": "requirements.compiler.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "8cb1a07789a0d2faa58816bce318167493157095efa2921a486ad1f6f142397a"
+      }
+    },
+    {
+      "cc_name": "research.search",
+      "cc_version": "example-2",
+      "declaration_sha256": "1c1030012e52b46f401b3bb1e1662271a2f605db6c5e3ca4bf49cb9ab04bbe4f",
+      "selectable_by_planner": true,
+      "input_ports": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "required": true
+        },
+        {
+          "name": "search_scope",
+          "artifact_type": "search_scope",
+          "schema_ref": "search-scope:field-contract:1",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "schema_ref": "candidate-set:field-contract:2",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "allowlist",
+      "resource_needs": [
+        {
+          "resource_key": "original_request",
+          "mode": "read",
+          "min_quantity": null
+        },
+        {
+          "resource_key": "local_document_buffer",
+          "mode": "read",
+          "min_quantity": null
+        }
+      ],
+      "max_limits": {
+        "time_s": 300,
+        "model_calls": 2,
+        "memory_mb": 4096
+      },
+      "check_pins": {
+        "check_bundle_id": "research.search.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "570e64d0cd2c98dd5f62d4914d76b69beef2b6b4932edf5a0b41985d51c58c4d",
+        "checking_profile_id": "research.search.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "f1eae1a1d3e332b9e84adbf5a715cdb5d5acaacc1f1a9618cf5a5cbce6cd17a5"
+      }
+    },
+    {
+      "cc_name": "research.screening",
+      "cc_version": "example-2",
+      "declaration_sha256": "1700b85f24266459f71a205ef3011aa8dd9b5e90c760583ab81cb8e302ab8d96",
+      "selectable_by_planner": true,
+      "input_ports": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "required": true
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "schema_ref": "candidate-set:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "screening_rubric",
+          "artifact_type": "screening_rubric",
+          "schema_ref": "screening-rubric:field-contract:1",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "schema_ref": "screening-result:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "opportunity_card",
+          "artifact_type": "opportunity_card",
+          "schema_ref": "opportunity-card:field-contract:2",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [
+        {
+          "resource_key": "original_request",
+          "mode": "read",
+          "min_quantity": null
+        }
+      ],
+      "max_limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "research.screening.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "ea123ab35eaeecf23fbcdcc6d62b0a72540a10212e10e4fb066457f48885fc9d",
+        "checking_profile_id": "research.screening.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "151036ce7c88518f7237d0d1c1bf317f23abd4b54e21bb66367be6ed01043985"
+      }
+    },
+    {
+      "cc_name": "research.hypothesis",
+      "cc_version": "example-1",
+      "declaration_sha256": "f44e17b13c6170ffc681d3b999c75312d413690121d55966598bf8a5bfb79e6a",
+      "selectable_by_planner": true,
+      "input_ports": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "required": true
+        },
+        {
+          "name": "opportunity",
+          "artifact_type": "opportunity_card",
+          "schema_ref": "opportunity-card:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "schema_ref": "resource-snapshot:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "schema_ref": "resource-snapshot:field-contract:1",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "schema_ref": "hypothesis-blueprint:field-contract:2",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [],
+      "max_limits": {
+        "time_s": 180,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "research.hypothesis.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "11a0d2f6467a78799d95cfef00e0a1ac4d960849a701e7c90fa880cb5f4bd43a",
+        "checking_profile_id": "research.hypothesis.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "54ed22b0da50627d3c35aa08751d8864bc63196c0c88021bf2db3034217d01f7"
+      }
+    },
+    {
+      "cc_name": "research.builder",
+      "cc_version": "example-1",
+      "declaration_sha256": "05dcfcd0785bd5df9f96485f00b4e9df32a6a0d895538f3e8859b87ebf1b806a",
+      "selectable_by_planner": true,
+      "input_ports": [
+        {
+          "name": "blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "schema_ref": "hypothesis-blueprint:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "schema_ref": "resource-snapshot:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "schema_ref": "resource-snapshot:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "lock",
+          "artifact_type": "environment_lock",
+          "schema_ref": "environment-lock:field-contract:1",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "manifest",
+          "artifact_type": "poc_manifest",
+          "schema_ref": "poc-manifest:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "bundle",
+          "artifact_type": "poc_artifact_bundle",
+          "schema_ref": "poc-artifact-bundle:field-contract:1",
+          "required": true
+        }
+      ],
+      "effect_class": "idempotent",
+      "network_mode": "none",
+      "resource_needs": [
+        {
+          "resource_key": "poc_workspace",
+          "mode": "write",
+          "min_quantity": null
+        }
+      ],
+      "max_limits": {
+        "time_s": 600,
+        "model_calls": 1,
+        "memory_mb": 8192
+      },
+      "check_pins": {
+        "check_bundle_id": "research.builder.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "bc09a979d273cf84ad774144bf43a33864b0fc3b30284c0237e70c1e7b6fdb96",
+        "checking_profile_id": "research.builder.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "ce4766dc0292b807efd460e1a993ccf6e4ab0a4ea9baeca298c693b0bb38e224"
+      }
+    },
+    {
+      "cc_name": "research.benchmark",
+      "cc_version": "example-1",
+      "declaration_sha256": "829afaca0d5746ef4aa0746f9fda42c34dae31e3ea202d57e4a507ac7ca6da1d",
+      "selectable_by_planner": true,
+      "input_ports": [
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "schema_ref": "poc-manifest:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "poc_artifact_bundle",
+          "artifact_type": "poc_artifact_bundle",
+          "schema_ref": "poc-artifact-bundle:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "build_receipt",
+          "artifact_type": "build_receipt",
+          "schema_ref": "build-receipt:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "schema_ref": "hypothesis-blueprint:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "baseline_resource",
+          "artifact_type": "resource_snapshot",
+          "schema_ref": "resource-snapshot:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "validation_resource",
+          "artifact_type": "resource_snapshot",
+          "schema_ref": "resource-snapshot:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "schema_ref": "environment-lock:field-contract:1",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "schema_ref": "benchmark-payload:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "schema_ref": "execution-receipt:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "schema_ref": "provisioning-receipt:field-contract:1",
+          "required": true
+        }
+      ],
+      "effect_class": "compensable",
+      "network_mode": "allowlist",
+      "resource_needs": [
+        {
+          "resource_key": "poc_workspace",
+          "mode": "write",
+          "min_quantity": null
+        },
+        {
+          "resource_key": "baseline_resource",
+          "mode": "read",
+          "min_quantity": null
+        },
+        {
+          "resource_key": "gpu_device",
+          "mode": "exclusive",
+          "min_quantity": 1
+        }
+      ],
+      "max_limits": {
+        "time_s": 3600,
+        "model_calls": 0,
+        "memory_mb": 16384
+      },
+      "check_pins": {
+        "check_bundle_id": "research.benchmark.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "c14dd5a7866029f92e4cbc18d82a3465297261a05a8a470f182efd02a0dcca9b",
+        "checking_profile_id": "research.benchmark.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "a6cb864fdab8bf639e2da976a9ca2d5eb8d6306e68b38f1e5b1ae1167a1353ac"
+      }
+    },
+    {
+      "cc_name": "research.evaluation",
+      "cc_version": "example-1",
+      "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e",
+      "selectable_by_planner": true,
+      "input_ports": [
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "schema_ref": "hypothesis-blueprint:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "schema_ref": "benchmark-payload:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "evaluation_verdict",
+          "artifact_type": "evaluation_verdict",
+          "schema_ref": "evaluation-verdict:field-contract:2",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [],
+      "max_limits": {
+        "time_s": 180,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "research.evaluation.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "850f44daf116832f76122664e31905a7f5da27ddf4ef3c248c65ae7da01afc20",
+        "checking_profile_id": "research.evaluation.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
+      }
+    },
+    {
+      "cc_name": "research.delivery",
+      "cc_version": "example-1",
+      "declaration_sha256": "0102a5c6b414d0e47d3f0bee10b7e01d533019681dd2b39519b3a470bb91bae1",
+      "selectable_by_planner": true,
+      "input_ports": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "required": true
+        },
+        {
+          "name": "candidate_set",
+          "artifact_type": "candidate_set",
+          "schema_ref": "candidate-set:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "opportunity_card",
+          "artifact_type": "opportunity_card",
+          "schema_ref": "opportunity-card:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "hypothesis_blueprint",
+          "artifact_type": "hypothesis_blueprint",
+          "schema_ref": "hypothesis-blueprint:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "poc_manifest",
+          "artifact_type": "poc_manifest",
+          "schema_ref": "poc-manifest:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "benchmark_payload",
+          "artifact_type": "benchmark_payload",
+          "schema_ref": "benchmark-payload:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "evaluation_verdict",
+          "artifact_type": "evaluation_verdict",
+          "schema_ref": "evaluation-verdict:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "gate_decision_index",
+          "artifact_type": "gate_decision_index",
+          "schema_ref": "gate-decision-index:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "screening_result",
+          "artifact_type": "screening_result",
+          "schema_ref": "screening-result:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "execution_receipt",
+          "artifact_type": "execution_receipt",
+          "schema_ref": "execution-receipt:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "provisioning_receipt",
+          "artifact_type": "provisioning_receipt",
+          "schema_ref": "provisioning-receipt:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "environment_lock",
+          "artifact_type": "environment_lock",
+          "schema_ref": "environment-lock:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "run_configuration",
+          "artifact_type": "run_configuration",
+          "schema_ref": "opaque-bytes",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "delivery_manifest",
+          "artifact_type": "delivery_manifest",
+          "schema_ref": "delivery-manifest:field-contract:2",
+          "required": true
+        },
+        {
+          "name": "research_report",
+          "artifact_type": "research_report",
+          "schema_ref": "research-report:field-contract:1",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [],
+      "max_limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "research.delivery.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "525877c3742a6ee734fe994ae46a351f22d1e2be119256c0e35cee89668f656b",
+        "checking_profile_id": "research.delivery.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "80bcb4cd7f1505ccdeb5bbe4d92eb95d21777122ded8f85a56c44954f51f5d9c"
+      }
+    },
+    {
+      "cc_name": "research.verifier",
+      "cc_version": "example-1",
+      "declaration_sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f",
+      "selectable_by_planner": false,
+      "input_ports": [
+        {
+          "name": "subject_declaration",
+          "artifact_type": "capsule_declaration",
+          "schema_ref": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+          "required": true
+        },
+        {
+          "name": "subject_output",
+          "artifact_type": "subject_output",
+          "schema_ref": "opaque-bytes",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "verifier_assessment",
+          "artifact_type": "verifier_assessment",
+          "schema_ref": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [],
+      "max_limits": {
+        "time_s": 60,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "research.verifier.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "ea66b45fb986cc63031dc5248865b40162a26884919296c0a2e24440693d9e5e",
+        "checking_profile_id": "research.verifier.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "6ac06e6256ecacd83db174892b9085048e7b2a55125e0587141eabb952b448c3"
+      }
+    },
+    {
+      "cc_name": "research.planner",
+      "cc_version": "example-2",
+      "declaration_sha256": "18c319d66fda8d084a0747ab584a07ffd2a777d6d00d650ce32593ebc3e19c80",
+      "selectable_by_planner": false,
+      "input_ports": [
+        {
+          "name": "brief",
+          "artifact_type": "research_brief",
+          "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+          "required": true
+        },
+        {
+          "name": "library_snapshot",
+          "artifact_type": "library_snapshot",
+          "schema_ref": "library-snapshot:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "resource_inventory",
+          "artifact_type": "resource_inventory",
+          "schema_ref": "resource-inventory:field-contract:1",
+          "required": true
+        },
+        {
+          "name": "plan_policy",
+          "artifact_type": "plan_policy",
+          "schema_ref": "plan-policy:field-contract:1",
+          "required": true
+        }
+      ],
+      "output_ports": [
+        {
+          "name": "plan_proposal",
+          "artifact_type": "plan_proposal",
+          "schema_ref": "plan-proposal:field-contract:3",
+          "required": true
+        }
+      ],
+      "effect_class": "read_only",
+      "network_mode": "none",
+      "resource_needs": [],
+      "max_limits": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 2048
+      },
+      "check_pins": {
+        "check_bundle_id": "research.planner.checks",
+        "check_bundle_version": "1.0.0",
+        "check_bundle_sha256": "71f6dc817ff03483ad6657478cb53b1e942852ff7d3e419688221cbdd236f23d",
+        "checking_profile_id": "research.planner.profile",
+        "checking_profile_version": "1.0.0",
+        "checking_profile_sha256": "79dea396106669e12dab9922d9f0a9eff21cc09a4b8e14dd33efd8a450d1488b"
+      }
+    }
+  ]
+}

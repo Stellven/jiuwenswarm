@@ -1,94 +1,115 @@
-# AI4Research development sidecar
+# AI4Research sidecar container
 
-**Separate development tooling design · October 7, 2026.** A reusable tool runner for humans, authorized development agents and future CI jobs. It supports building, diagnosing and validating M1 and later versions without becoming part of the research workflow. This is adopted tooling intent, not an implemented service or a new M1 acceptance requirement.
+`Tier 2 · Part of: [README](../../README.md)`
 
-This page defines the architectural boundary. The accompanying PRD and [product design](../../README.md) still own AI4Research behavior. Worker agents choose commands, transport, schemas, frameworks and concrete isolation mechanisms in separately scoped native coding records.
+The sidecar is an off-hot-path, finite-job development and benchmarking tool on the server host ([D35](../../method/decisions.md#d35), [D36](../../method/decisions.md#d36)). It contains the platform benchmark runner and test runner. Their entry points, credentials, data and authority remain separate. Product agents and capability capsules cannot use sidecar tools or credentials. Product startup and research runs do not depend on the sidecar; the benchmark pilot is separate from the PRD core gate ([D40](../../method/decisions.md#d40)).
 
-## Purpose and composition
+Some benchmark experiments need target lifecycle, image preparation, fault injection or host observations. The existing host launcher may provide these through an optional privileged host-executor function and a narrow per-job contract. The launcher retains Docker credentials; the sidecar receives no Docker socket, daemon credentials or general host shell. Ordinary API campaigns need no privileged operation.
 
-Give development operators one named way to inspect a selected application container, collect a reproducible failure, and run agreed checks. Reuse tool definitions instead of inventing container access for every bug. Start with a finite local job; a continuously running service is unnecessary for M1 support.
-
-Let `D` be registered development tools, `U` user-facing research tools and `C` admitted capability capsules. Their authority domains are separate: `D ∩ U = ∅` and `D ∩ C = ∅`. Shared implementation code does not share credentials or entrypoints. A development validation tool may call the authenticated product client; that does not make it a product verifier or gate. [Verifier and gate responsibilities](../../glossary.md#composition-notation) remain unchanged.
+## Components and trust boundaries
 
 ```mermaid
 flowchart TB
-    Operator[Human or authorized development agent] --> Job[Explicit bounded job]
-    CI[Future CI executor] --> Job
-    subgraph Dev[Optional development-only Compose profile]
-        Job --> Runner[Sidecar: execute registered tools]
-        Registry[Tool definitions and effect policy] --> Runner
-        Runner --> Validate[Validation adapter]
-        Runner --> Diagnose[Container diagnostic adapter]
-        Runner --> Reports[Development evidence and job result]
+    O[Operator or authorized CI] -->|finite job| S
+    subgraph H[GB10 server host]
+      subgraph N[Private Docker network]
+        subgraph SC[Sidecar container]
+          S[Job coordinator]
+          B[Platform benchmark runner]
+          T[Test runner]
+          F[Referee scorer: separate OS identity]
+          S --> B
+          S --> T
+        end
+        A[App container]
+      end
+      X[Optional host-launcher executor function]
+      R[(Job results and evidence)]
+      L[(Protected labels and oracle)]
+      G[Separate report generator]
+      D[Docker and declared targets]
     end
-    Browser[User browser] -->|Host loopback only: 127.0.0.1:5173| AppWeb
-    subgraph App[AI4Research workflow image and container]
-        AppWeb[Built web frontend and authenticated control API: container port 5173]
-        Runtime[Workflow runtime]
-        AppWeb --> Runtime
-    end
-    Validate -->|Private Compose network: configured service DNS and port 5173| AppWeb
-    Diagnose -->|Bounded request| Host[Host executor: enforce target and effects]
-    Host -->|Registered target-bound diagnostic operation| Runtime
-    Host -->|Own temporary resources| Env[Isolated test environment]
-    Runtime -->|Permitted observations through client contract| Reports
-    Reports --> Operator
-    Reports --> CI
+    B -->|scoped benchmark token| A
+    T -->|scoped test token| A
+    S -->|job-scoped request| X
+    X -->|permitted operations| D
+    X --> R
+    B --> R
+    R --> F
+    L -->|referee only| F
+    F --> R
+    R --> G
+    G --> P[Audience-filtered reports]
 ```
 
-Boxes show responsibilities, not mandatory services. The host executor may be a small launcher. It alone holds any required container-management privilege; the sidecar receives no Docker socket or unrestricted host shell. Product startup, workflow execution and release do not depend on this development lane. [Scalable diagram](composition.svg) · [PNG](composition.png).
+The optional host executor is a finite function of the existing launcher, not a permanent service. The launcher owns privileged credentials. The runner never reads labels or scores results. A referee scorer reads protected labels and writes scores; a separate report generator creates audience-filtered reports.
 
-Package the runner as a separately invoked development container beside the existing application, with its own configuration and retained report location. It can target a selected existing instance or a launcher-owned disposable instance. Mount only declared tool inputs and report outputs; do not share private application-state volumes. Local CLI and future CI use the same job semantics.
+| Part | Responsibility and limit |
+|---|---|
+| Job coordinator | Freeze jobs, invoke runners, resume observation and request cleanup; no product writes, labels or arbitrary commands. |
+| Platform benchmark runner | Run frozen cases through E1 or approved evaluation-profile entry points; no labels or scoring. |
+| Test runner | Perform bounded client validation; no host-executor or referee role. |
+| Host launcher executor | Prepare/manage resources and return scoped observations; reject ungranted operations and foreign resources. |
+| App | Own product state, gates and volumes; expose supported client operations. |
+| Referee scorer / report generator | Separate processes: the scorer writes scores, and the generator creates reports. |
+
+## Job lifecycle and recovery
+
+A job freezes case versions, entry points, configuration, repeats, target policy, limits, retention and required evidence. Comparison eligibility follows the [benchmark contract](../../side-systems/benchmark-runner.md). Runs serialize where exclusive resources are required.
+
+| Stage | Meaning |
+|---|---|
+| Freeze and prepare | Validate job scope and evidence needs. If needed, prepare a pinned image and disposable target, stage declared visible inputs, or request an approved custodian session. Record target identity/readiness. |
+| Preflight and execute | Verify app identity/build, client contract, operations and pins. Run scheduled cases through E1 or an advertised evaluation operation; record request and run identities. Missing prerequisites block measurement. |
+| Observe and retrieve | Follow the identified run and retrieve permitted evidence. Reconcile uncertain submissions; never submit blindly. |
+| Score and report | The referee scorer reads labels and writes scores. The report generator builds public/referee reports. The runner sees no hidden labels or per-case oracle feedback. |
+| Close | Clean up only job-owned resources. Preserve evidence per retention. Never remove standing resources or auto-delete app evidence. |
+
+After interruption, the coordinator may resume **observation** by reloading the job and reconciling target/request/run identity. Recovery does not restart an app, replay a node or insert a replacement run. Repeats already authorized by the frozen schedule remain distinct planned runs. Additional attempts need campaign authorization. A disconnected run is not assumed stopped. Product failure follows [D49](../../method/decisions.md#d49) and [D50](../../method/decisions.md#d50). Sidecar/executor failure affects its job, while the app continues independently.
+
+Supported work includes whole-workflow runs, node replay, single-CC invocation with supplied binding, declared faults, checkpoint observation, external configuration adapters and delegated RSI/custodian sessions. Fault definitions belong to the approved evaluation profile. The client may select an approved fault ID. Evaluation-profile outputs are `invalid_for_product` and cannot become product results or RSI material. RSI uses an approved operation through the existing workbench/custodian session. Sidecar requests contain no hidden fixture path or label location. The RSI custodian owns hidden fixtures and referee access. The launcher starts the preconfigured session without disclosing those paths or labels to the sidecar. E6 adapters are runner-side. The sidecar invents no benchmark cases or datasets.
+
+## Host executor
+
+The standing app is observe/API-only by default. Bounded lifecycle operations on it require a separate operator grant naming the target; this grant does not transfer ownership or permit deletion. Destructive lifecycle tests and fault injection use job-owned disposable targets. Cleanup removes only job-owned resources.
+
+Fields below define authority and evidence meanings; wire schemas and commands belong in the implementation specification.
+
+| Request field | Meaning |
+|---|---|
+| `contract_version` | Contract version; unsupported versions are rejected. |
+| `job_id` | Identity that scopes requests, grants, resources and evidence. |
+| `target` | Explicit target identity, mode (standing or disposable) and job-specific endpoint/network, including expected instance/build when known. |
+| `grant` | Optional operator authorization for bounded operations on a named standing target. It is distinct from ownership and expires with the job. |
+| `environment` | Pinned environment identity. Image build requests identify pinned source, build context and dependency lock; results record the produced image digest. Pull requests identify a pinned image reference/digest. |
+| `operations` | Finite scope for build/pull, target lifecycle, approved process-fault actions on disposable targets, visible-fixture staging/export, read-only observations, or approved custodian-session invocation. Each request names its target/resource and permitted scope. |
+| `fixture_refs` | Hash-identified visible job inputs only. No label/oracle paths or hidden fixture references. RSI fixture access uses custodian-owned session operations, not a path supplied by the sidecar. |
+| `custodian_session_ref` | Optional identity of a pre-approved RSI session and its permitted operation. The custodian resolves its protected configuration. No fixture paths, labels or custodian credentials enter the request. |
+| `budget` | Wall time, CPU, memory, process count, disk and applicable model limits for the job and owned targets. Preserve host capacity for core app work; GPU-exclusive cases name an exclusive window. |
+| `retention` | Requested evidence retention and cleanup policy, bounded by operator policy. |
+| `idempotency_key` | Identity for reconciling a host operation after uncertain delivery; it does not retry product work. |
+
+| Result field | Meaning |
+|---|---|
+| `job_id`, `operation_id` | Correlate the result to its job and operation. |
+| `status` | `completed`, `failed`, `blocked` or `interrupted`, with a reason when not completed. This is the operation result, not a product verdict. |
+| `target`, `resources` | Resolved target/build identity and resource ownership/lifecycle state. Later cleanup is limited to job-owned resources. |
+| `observations` | Timestamped requested inventory, scoped logs, metrics or volume-size readings and their source. |
+| `fixture_receipts` | Hashes and destinations for visible inputs staged or exported. No hidden labels/oracles. |
+| `evidence_refs`, `cleanup` | Durable evidence references, retention information and per-resource cleanup outcome. |
+
+The launcher rejects arbitrary commands, unpinned images, foreign IDs, hidden-label paths, out-of-scope operations and exceeded enforceable limits. No job grant exposes referee or custodian private processes, logs or mounts to the runner or coordinator. RSI observations come through approved custodian exports. The launcher cannot grant its own permissions, submit app runs or decide gates. Enforce CPU, memory, process and disk ceilings while reserving core app capacity. Apply model call/token caps or reliable provider quotas. Unknown monetary cost remains unavailable. Block jobs needing an unenforceable cap. Disk observations alone cannot prevent shared disk exhaustion. Never auto-delete non-job-owned data. Launcher absence/failure does not affect app startup or release.
+
+Preflight blocks a campaign before execution if its required capacity cannot be reserved. An exclusive GPU case needs an operator-reserved evaluation window without a conflicting active or committed core workload. The launcher never pauses or preempts a core run to obtain that window. Shared hardware still needs these limits and scheduling rules even though software dependencies are separate.
+
+The host launcher retains the job's resource ledger and enforces its deadline independently of the sidecar connection. Expiry follows the pre-authorized containment and cleanup policy for job-owned targets, preserving evidence. It never automatically stops a standing app. Spec Kit defines how the finite launcher job supervises this lifecycle.
+
+Benchmark-required hardware inventory and peak-resource sampling remain required, including inventory before each test/repeat. Other logs, metrics and volume-size readings are optional diagnostics. If essential evidence is missing, the case is blocked or inconclusive. No profiling integration, CC diagnostic API or new product telemetry is added.
 
 ## Application connection and compatibility
 
-The application and sidecar are separate containers with a client boundary between them. In the standard containerized validation topology, attach both to a private Compose network. The sidecar connects to the application through its configured Compose service DNS name and the application's container port (`5173` by default); never use the sidecar's `localhost` to reach the application. The host browser continues to use `http://127.0.0.1:5173` through a host-loopback-only publication. Do not route the sidecar through that host-published address or expose the endpoint to the LAN. The Compose service name/network alias and exact configuration syntax are implementation choices, but the configured target must resolve inside the sidecar and identify one intended application instance.
+Benchmark and test processes use separate scoped app tokens. Evaluation-profile operations use a separate scope. Readiness verifies client-contract version, target identity/build and prerequisites ([client-readiness](../../reference/field-catalog.md#client-readiness)). The base app endpoint is `app:5173` on the private Compose network. Disposable jobs use their launcher-resolved endpoint and network, with identity checked before submission. The sidecar does not widen port publication, access app volumes or call private workflow modules. The client uses supported readiness, submit, observe, permitted retrieval and authorized cancellation operations ([automation](../automation.md)). A mismatch blocks measurement. Losing the sidecar does not cancel or pause an app run.
 
-The sidecar uses the same supported, authenticated client contract as a user or benchmark client for readiness, submit, observe, permitted evidence retrieval and authorized cancellation. It receives a scoped validation credential through protected configuration. It does not call private workflow modules, access the database/artifact volumes, inject run state, or bypass application gates. If the client transport uses HTTP, WebSocket upgrades or both, the application endpoint and any in-container proxy must pass the supported paths and authentication through unchanged. The UI and control API remain same-origin at the application endpoint; sidecar access does not require a second product port.
+## Scope and phase boundaries
 
-Before submitting work, the client and application must establish protocol compatibility and target identity through a supported readiness/capability response. The application reports its supported client-contract version and instance/build identity; the sidecar declares the versions and capabilities it requires. An unsupported contract, wrong target, unavailable authentication, or missing required capability blocks the job before measurement. Readiness distinguishes basic process/HTTP liveness from product prerequisites such as storage, model access and required isolation. Concrete paths, schemas and version numbers remain implementation work, but this handshake and fail-closed behavior are required compatibility obligations.
-
-For an existing application outside the sidecar's Compose network, the launcher supplies an explicit reachable endpoint and verifies it identifies the selected target. Do not assume `localhost`, guess a host-gateway address, or widen host port publication to make the connection work. If no authorized route exists, report the target as unavailable. Container diagnosis remains a separate host-executor operation: the executor binds each registered diagnostic request to the selected container identity and declared effects; the sidecar never receives daemon credentials or direct container-management access.
-
-The exact launcher/Compose arrangement, service alias, API paths, schemas, credential format, version numbers and internal adapter layout are worker-owned choices within these connection, compatibility and authority requirements.
-
-## Responsibilities and connections
-
-| Part                                 | Intent and connection                                                                                              | Authority and readiness meaning                                                                                                        |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Job entry                            | Operator supplies target, candidate identity, tool/version, parameters, purpose, allowed effects and finite budget | Establish caller scope and explicit target; reject ambiguous or unauthorized requests before execution                                 |
-| Tool registry                        | Reusable definitions describe input/output meaning, target kinds, prerequisites, effects and cancellation behavior | Register adapters deliberately; job parameters cannot invent tools or escalate permissions                                             |
-| Sidecar runner                       | Resolve a definition, validate the request, execute under limits and collect the result                            | Own development-job lifecycle only; every attempt has attributable success, failure or incompleteness                                  |
-| Product-client adapter               | Submit, observe, retrieve and optionally cancel its own test runs through supported interfaces                     | Use ordinary scoped authentication; never insert accepted outputs or bypass product gates                                              |
-| Diagnostic adapter and host executor | Inspect the selected container or execute a registered bounded diagnostic operation                                | Executor enforces target, argument/effect scope and resource ownership; unavailable access is reported, not replaced by broader access |
-| Evidence output                      | Return observations, tool identity, candidate/environment pins, timing, exit outcome and retained references       | Preserve failures and limitations; reports inform humans or CI and never become authoritative product state                            |
-
-Minimum reusable tools cover readiness inspection, scoped logs, relevant configuration/version observations with secrets removed, a registered in-container diagnostic command, and a bounded validation case. Read-only inspection is the default. A tool that writes files, rebuilds or restarts declares those effects and requires caller authority for the selected development environment. Production mutation is outside the initial scope.
-
-An in-container command can create processes or alter its environment even when called a check. Its definition identifies actual effects. Execution is bounded by target, working directory, arguments, credentials, time and resources; detailed enforcement is implementation work. Capture allowed observations without exposing application secrets, hidden RSI fixtures, private user data or unrelated host files. Protected internals are not a generic diagnostic entitlement.
-
-## Operating contract
-
-The launcher establishes the operator's identity and binds existing authorization from the assigned development task or explicitly authorized operation to the permitted environment. It does not grant new authority. The job records that scope, its selected target and the resources/runs it owns; request parameters cannot grant permissions. The runner checks each request against this scope, and the host executor independently enforces it before privileged actions. Cancellation applies only to recorded job-owned resources within that authority. Identity, credential and ownership-record mechanics remain implementation choices.
-
-The operator selects a registered tool and target. The runner checks prerequisites and permissions, resolves the exact effective request, asks the appropriate adapter to execute, and returns observations plus a truthful outcome. Results distinguish **completed**, **failed**, **blocked** and **interrupted/inconclusive**; completing a tool does not imply that the product passed a test. Validation separately states whether expected behavior was demonstrated, contradicted or not established. An expected product rejection may satisfy a case.
-
-Application run identity and development job/attempt identity are distinct. Lost transport or timeout does not prove application work stopped. Ambiguous submission or execution is not blindly retried. Cancellation stops the owned job and, where authorized, its owned test run; it never cancels unrelated research. A failure verdict does not trigger automatic repair, restart or deployment.
-
-The external launcher owns creation, retention and cleanup of temporary environments. Connecting to an existing container grants no lifecycle ownership. Cleanup touches only job-owned resources and retains evidence. A retained debugging environment has a named owner; interruption or cleanup failure is visible. Report optional capture failures as limitations; missing essential evidence makes validation inconclusive.
-
-## M1 coexistence and later seams
-
-M1 remains buildable and runnable with ordinary development commands and product clients. Register sidecar work separately from product TASKS allocation; no sidecar dependency is added to a product phase exit. Workers preserve supported client contracts and feasible diagnostic seams, but do not wait for the runner, add speculative product endpoints or make the application start it. A missing optional adapter blocks only that tooling operation. A real product boundary defect goes to its owning product task.
-
-The [existing validation-runner design](../test-runner/README.md) supplies the bounded client-validation role. Its narrower container has no diagnostic or lifecycle privilege; privileged diagnosis follows the separate host-executor path above. Scientific benchmarking, runtime semantic verification and offline RSI scoring remain product responsibilities.
-
-For CI/CD, preserve invocation from an external executor, machine-consumable outcomes, exact candidate/environment attribution and retained artifacts. Pipeline stages, triggers, release policy, deployment and hosting remain undecided and outside the sidecar. Later CI consumes this contract instead of redesigning product execution. Scheduling stays external.
-
-Beyond M1, new tools, targets or longer validation campaigns extend registered adapters and evidence contracts without inheriting broader authority. Separate jobs and owned resources permit later concurrency; detailed scheduling is deferred. Container diagnosis remains available independently of model-backed research validation.
-
-## Ready to use
-
-Judge the first implementation by using it: diagnose a real failure in an owned application container, retain enough evidence to reproduce it, and run a bounded case through the real product client. Demonstrate refusal of an unrelated target or undeclared effect, and cancellation that preserves unrelated work. Show unavailable prerequisites and partial evidence truthfully. One successful case supports only that narrow result; broader quality claims require varied use.
-
-These are architectural outcomes, not a new product release gate. Detailed acceptance cases, interfaces, tool definitions and evidence procedures belong to the sidecar's own TASK and native specification. This document establishes no live tools, CI pipeline or runtime readiness.
+This is architecture, not runtime implementation. The PRD V.10 core gate is Phase 1 Stages 0–7, the end-to-end run, Section 1.5 items, Evaluator Gate tests and Phase 1 evidence. Phase 2/3 implementation coverage and the sidecar benchmark pilot are reported separately; none blocks this gate ([D40](../../method/decisions.md#d40)). The optional host-launcher boundary is [D51](../../method/decisions.md#d51) and grants no product authority.

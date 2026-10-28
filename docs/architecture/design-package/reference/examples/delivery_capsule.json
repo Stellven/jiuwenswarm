@@ -1,0 +1,308 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.delivery",
+    "version_label": "example-1",
+    "kind": "agent",
+    "summary": "Writes the fixed-structure research report and the delivery manifest from the accepted lifecycle artifacts",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "brief",
+        "artifact_type": "research_brief",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+        "required": true,
+        "description": "Accepted Brief: objective and constraints",
+        "check_ids": []
+      },
+      {
+        "name": "candidate_set",
+        "artifact_type": "candidate_set",
+        "schema_ref": "candidate-set:field-contract:2",
+        "required": true,
+        "description": "Source of citation text for the opportunity",
+        "check_ids": []
+      },
+      {
+        "name": "opportunity_card",
+        "artifact_type": "opportunity_card",
+        "schema_ref": "opportunity-card:field-contract:2",
+        "required": true,
+        "description": "Accepted opportunity",
+        "check_ids": []
+      },
+      {
+        "name": "hypothesis_blueprint",
+        "artifact_type": "hypothesis_blueprint",
+        "schema_ref": "hypothesis-blueprint:field-contract:2",
+        "required": true,
+        "description": "Registered claim and criteria",
+        "check_ids": []
+      },
+      {
+        "name": "poc_manifest",
+        "artifact_type": "poc_manifest",
+        "schema_ref": "poc-manifest:field-contract:2",
+        "required": true,
+        "description": "POC package identity",
+        "check_ids": []
+      },
+      {
+        "name": "benchmark_payload",
+        "artifact_type": "benchmark_payload",
+        "schema_ref": "benchmark-payload:field-contract:2",
+        "required": true,
+        "description": "Measured values; the only source of report numbers",
+        "check_ids": []
+      },
+      {
+        "name": "evaluation_verdict",
+        "artifact_type": "evaluation_verdict",
+        "schema_ref": "evaluation-verdict:field-contract:2",
+        "required": true,
+        "description": "Saved scientific verdict; never contradicted",
+        "check_ids": []
+      },
+      {
+        "name": "gate_decision_index",
+        "artifact_type": "gate_decision_index",
+        "schema_ref": "gate-decision-index:field-contract:1",
+        "required": true,
+        "description": "Host-built index of the gate decisions of this run. One artifact, many decision refs",
+        "check_ids": []
+      },
+      {
+        "name": "screening_result",
+        "artifact_type": "screening_result",
+        "schema_ref": "screening-result:field-contract:2",
+        "required": true,
+        "description": "Accepted Screening result, listed in the manifest. Delivery lists it by Ref",
+        "check_ids": []
+      },
+      {
+        "name": "execution_receipt",
+        "artifact_type": "execution_receipt",
+        "schema_ref": "execution-receipt:field-contract:1",
+        "required": true,
+        "description": "Benchmark execution receipt. Its run records name the raw evidence files listed in the manifest",
+        "check_ids": []
+      },
+      {
+        "name": "provisioning_receipt",
+        "artifact_type": "provisioning_receipt",
+        "schema_ref": "provisioning-receipt:field-contract:1",
+        "required": true,
+        "description": "Benchmark provisioning receipt, listed in the manifest",
+        "check_ids": []
+      },
+      {
+        "name": "environment_lock",
+        "artifact_type": "environment_lock",
+        "schema_ref": "environment-lock:field-contract:1",
+        "required": true,
+        "description": "Prepared dependency lock, listed as an environment file",
+        "check_ids": []
+      },
+      {
+        "name": "run_configuration",
+        "artifact_type": "run_configuration",
+        "schema_ref": "opaque-bytes",
+        "required": true,
+        "description": "Frozen run configuration, listed as an environment file. Delivery lists it by Ref and does not read inside it",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "delivery_manifest",
+        "artifact_type": "delivery_manifest",
+        "schema_ref": "delivery-manifest:field-contract:2",
+        "required": true,
+        "description": "Index of every exported lifecycle artifact",
+        "check_ids": [
+          "delivery_manifest_schema"
+        ]
+      },
+      {
+        "name": "research_report",
+        "artifact_type": "research_report",
+        "schema_ref": "research-report:field-contract:1",
+        "required": true,
+        "description": "Markdown report with nine fixed sections",
+        "check_ids": [
+          "research_report_schema",
+          "required_sections",
+          "recommendation_labeling"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "delivery_manifest_schema",
+        "kind": "deterministic",
+        "target": "outputs.delivery_manifest",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "manifest fields, enums and path rules"
+      },
+      {
+        "id": "research_report_schema",
+        "kind": "deterministic",
+        "target": "outputs.research_report",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "manifest fields, enums and path rules"
+      },
+      {
+        "id": "required_sections",
+        "kind": "deterministic",
+        "target": "outputs.research_report",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "nine headings in order, each non-empty"
+      },
+      {
+        "id": "recommendation_labeling",
+        "kind": "deterministic",
+        "target": "outputs.research_report",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "recommendations only in section 8, each labeled"
+      }
+    ],
+    "acceptance": [
+      "delivery_manifest_schema",
+      "research_report_schema",
+      "required_sections",
+      "recommendation_labeling"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Hash, number and verdict agreement need run records and are host checks in the pinned check bundle"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 120,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+    ]
+  }
+}

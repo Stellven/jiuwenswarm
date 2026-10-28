@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_child_candidate",
+  "declaration_ref": {
+    "id": "ranking_child_declaration.json",
+    "sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+  },
+  "implementation_refs": [
+    {
+      "id": "ranking_child.txt",
+      "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+    }
+  ],
+  "parent_ref": {
+    "id": "ranking_parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "builder_ref": {
+    "id": "rsi_attempt_01.json",
+    "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
+  },
+  "evidence_refs": [
+    {
+      "id": "rsi_referee_evidence.json",
+      "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
+    },
+    {
+      "id": "rsi_evidence_export.json",
+      "sha256": "83202d1ac21e78924da720952c263471e1664d6258a6342ec9a66f17d74ec99d"
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

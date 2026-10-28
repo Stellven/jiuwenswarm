@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "intent_ir.json",
+    "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+  },
+  "check_plan_ref": {
+    "id": "check_plan.json",
+    "sha256": "680640007af2202ce7b07f88c3f0e66e561b9537dbba28fc51b541584285408c"
+  },
+  "results": [
+    {
+      "check_id": "intent_schema",
+      "outcome": "PASS",
+      "reason": "Synthetic structurally valid example",
+      "evidence_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        },
+        {
+          "id": "request.txt",
+          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+        }
+      ]
+    },
+    {
+      "check_id": "source_spans",
+      "outcome": "PASS",
+      "reason": "Synthetic structurally valid example",
+      "evidence_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        },
+        {
+          "id": "request.txt",
+          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+        }
+      ]
+    },
+    {
+      "check_id": "exact_identity",
+      "outcome": "PASS",
+      "reason": "Synthetic structurally valid example",
+      "evidence_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        },
+        {
+          "id": "request.txt",
+          "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+        }
+      ]
+    }
+  ]
+}

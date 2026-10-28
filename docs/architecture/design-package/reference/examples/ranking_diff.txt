@@ -1,0 +1,1 @@
+Synthetic allowed helper-only delta; no gate/referee/dependency mutation.

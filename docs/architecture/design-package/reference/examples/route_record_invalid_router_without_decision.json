@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "route_id": "route.run1.screening.1",
+  "invocation_id": "inv.run1.screening.1",
+  "run_id": "run1",
+  "node_id": "screening",
+  "subnode_id": "screening",
+  "router_enabled": true,
+  "decision_source": "router",
+  "router_failure": null,
+  "model_id": "codex.static.example",
+  "route_decision_ref": null,
+  "recorded_at": "2026-10-15T10:00:00Z"
+}

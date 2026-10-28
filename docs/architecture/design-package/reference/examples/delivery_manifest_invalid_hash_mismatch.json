@@ -1,0 +1,209 @@
+{
+  "schema_version": "2.0.0",
+  "id": "delivery_manifest",
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+  },
+  "verdict_ref": {
+    "id": "evaluation_verdict.json",
+    "sha256": "7d45f8104787b3f1905e24a650d5aca72962ddbd404c9ac2c9253f6a3bd65a59"
+  },
+  "report_ref": {
+    "id": "research_report.md",
+    "sha256": "d2d77bb2654d5b8f36f2627a22ca696c0086f42f7e8a6ef05cff9de048345545"
+  },
+  "gate_decision_refs": [
+    {
+      "id": "gate_science_node_pass.json",
+      "sha256": "d223cb641e6341d9da963a52c0e9778d9fa95d61ddf317d081757b7094d1a3f8"
+    }
+  ],
+  "artifact_refs": [
+    {
+      "id": "candidate_set.json",
+      "sha256": "f9590a5647af93ae82bf431e23785e634e44d405c5011158efef5ff4d953a3f4"
+    },
+    {
+      "id": "screening_result.json",
+      "sha256": "77b69c14d3abbce22b046d890b80b1876d13c9e8c6d5ae644cb9c89b624ddccb"
+    },
+    {
+      "id": "opportunity_card.json",
+      "sha256": "ce6543aa2ba672c37969a3cf481f135413c62acf5be1dab8a32199978926a090"
+    },
+    {
+      "id": "hypothesis_blueprint.json",
+      "sha256": "37cd36649f785f2086b85ba0965130bc2a98752541459662c5725b5eb2434e3a"
+    },
+    {
+      "id": "poc_manifest.json",
+      "sha256": "f643c018bea99a74c7701b3269df6db73253c25a96cd3039123a4be00fb0cff9"
+    },
+    {
+      "id": "benchmark_payload.json",
+      "sha256": "686494a9eca78ce2413c924600149ff21c61d7e6688e11b642add6443bfe9d77"
+    },
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "7d45f8104787b3f1905e24a650d5aca72962ddbd404c9ac2c9253f6a3bd65a59"
+    }
+  ],
+  "files": [
+    {
+      "path": "research_report.md",
+      "artifact_ref": {
+        "id": "research_report.md",
+        "sha256": "d2d77bb2654d5b8f36f2627a22ca696c0086f42f7e8a6ef05cff9de048345545"
+      },
+      "media_type": "text/markdown",
+      "role": "report",
+      "audience": "researcher"
+    },
+    {
+      "path": "lifecycle_research_brief.json",
+      "artifact_ref": {
+        "id": "lifecycle_research_brief.json",
+        "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+      },
+      "media_type": "application/json",
+      "role": "brief",
+      "audience": "researcher"
+    },
+    {
+      "path": "candidate_set.json",
+      "artifact_ref": {
+        "id": "candidate_set.json",
+        "sha256": "f9590a5647af93ae82bf431e23785e634e44d405c5011158efef5ff4d953a3f4"
+      },
+      "media_type": "application/json",
+      "role": "candidate_set",
+      "audience": "researcher"
+    },
+    {
+      "path": "screening_result.json",
+      "artifact_ref": {
+        "id": "screening_result.json",
+        "sha256": "77b69c14d3abbce22b046d890b80b1876d13c9e8c6d5ae644cb9c89b624ddccb"
+      },
+      "media_type": "application/json",
+      "role": "screening",
+      "audience": "reviewer"
+    },
+    {
+      "path": "opportunity_card.json",
+      "artifact_ref": {
+        "id": "opportunity_card.json",
+        "sha256": "ce6543aa2ba672c37969a3cf481f135413c62acf5be1dab8a32199978926a090"
+      },
+      "media_type": "application/json",
+      "role": "opportunity",
+      "audience": "researcher"
+    },
+    {
+      "path": "hypothesis_blueprint.json",
+      "artifact_ref": {
+        "id": "hypothesis_blueprint.json",
+        "sha256": "37cd36649f785f2086b85ba0965130bc2a98752541459662c5725b5eb2434e3a"
+      },
+      "media_type": "application/json",
+      "role": "hypothesis",
+      "audience": "researcher"
+    },
+    {
+      "path": "poc_manifest.json",
+      "artifact_ref": {
+        "id": "./poc_manifest.json",
+        "sha256": "5256dfa86a4212a05fec6d5db23211322e4d4e136f687a5bb69dc648d23f0e60"
+      },
+      "media_type": "application/json",
+      "role": "poc_manifest",
+      "audience": "researcher"
+    },
+    {
+      "path": "poc_artifact_bundle.zip",
+      "artifact_ref": {
+        "id": "poc_artifact_bundle.zip",
+        "sha256": "95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1"
+      },
+      "media_type": "application/zip",
+      "role": "poc_bundle",
+      "audience": "researcher"
+    },
+    {
+      "path": "environment_lock.json",
+      "artifact_ref": {
+        "id": "environment_lock.json",
+        "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+      },
+      "media_type": "application/json",
+      "role": "environment",
+      "audience": "researcher"
+    },
+    {
+      "path": "run_configuration.json",
+      "artifact_ref": {
+        "id": "run_configuration.json",
+        "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+      },
+      "media_type": "application/json",
+      "role": "environment",
+      "audience": "researcher"
+    },
+    {
+      "path": "baseline_execution.txt",
+      "artifact_ref": {
+        "id": "baseline_execution.txt",
+        "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
+      },
+      "media_type": "text/plain",
+      "role": "raw_evidence",
+      "audience": "researcher"
+    },
+    {
+      "path": "treatment_execution.txt",
+      "artifact_ref": {
+        "id": "treatment_execution.txt",
+        "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+      },
+      "media_type": "text/plain",
+      "role": "raw_evidence",
+      "audience": "researcher"
+    },
+    {
+      "path": "benchmark_payload.json",
+      "artifact_ref": {
+        "id": "benchmark_payload.json",
+        "sha256": "686494a9eca78ce2413c924600149ff21c61d7e6688e11b642add6443bfe9d77"
+      },
+      "media_type": "application/json",
+      "role": "benchmark",
+      "audience": "researcher"
+    },
+    {
+      "path": "evaluation_verdict.json",
+      "artifact_ref": {
+        "id": "evaluation_verdict.json",
+        "sha256": "7d45f8104787b3f1905e24a650d5aca72962ddbd404c9ac2c9253f6a3bd65a59"
+      },
+      "media_type": "application/json",
+      "role": "verdict",
+      "audience": "researcher"
+    },
+    {
+      "path": "gate_science_node_pass.json",
+      "artifact_ref": {
+        "id": "gate_science_node_pass.json",
+        "sha256": "d223cb641e6341d9da963a52c0e9778d9fa95d61ddf317d081757b7094d1a3f8"
+      },
+      "media_type": "application/json",
+      "role": "gate_decision",
+      "audience": "reviewer"
+    }
+  ],
+  "missing_evidence": [],
+  "ext": {
+    "example.synthetic": true,
+    "example.defect": "files entry poc_manifest.json names a hash that differs from the stored bytes. The ./ prefix keeps the reference refresh script from repairing it"
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.hypothesis",
+    "version_label": "example-1",
+    "kind": "agent",
+    "summary": "Synthetic declaration: opportunity card to frozen hypothesis blueprint",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      {
+        "path": "screening_rubric.json",
+        "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+      },
+      {
+        "path": "ranking_parent.txt",
+        "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "brief",
+        "artifact_type": "research_brief",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+        "required": true,
+        "description": "Accepted Brief",
+        "check_ids": []
+      },
+      {
+        "name": "opportunity",
+        "artifact_type": "opportunity_card",
+        "schema_ref": "opportunity-card:field-contract:2",
+        "required": true,
+        "description": "Selected opportunity",
+        "check_ids": []
+      },
+      {
+        "name": "baseline_resource",
+        "artifact_type": "resource_snapshot",
+        "schema_ref": "resource-snapshot:field-contract:1",
+        "required": true,
+        "description": "Captured baseline",
+        "check_ids": []
+      },
+      {
+        "name": "validation_resource",
+        "artifact_type": "resource_snapshot",
+        "schema_ref": "resource-snapshot:field-contract:1",
+        "required": true,
+        "description": "Captured validation data",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "blueprint",
+        "artifact_type": "hypothesis_blueprint",
+        "schema_ref": "hypothesis-blueprint:field-contract:2",
+        "required": true,
+        "description": "Frozen experiment protocol",
+        "check_ids": [
+          "blueprint_schema",
+          "rules_reference_declared_metrics",
+          "boundaries_disjoint"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "blueprint_schema",
+        "kind": "deterministic",
+        "target": "outputs.blueprint",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      },
+      {
+        "id": "rules_reference_declared_metrics",
+        "kind": "deterministic",
+        "target": "outputs.blueprint",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "internal consistency only"
+      },
+      {
+        "id": "boundaries_disjoint",
+        "kind": "deterministic",
+        "target": "outputs.blueprint",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "internal consistency only"
+      }
+    ],
+    "acceptance": [
+      "blueprint_schema",
+      "rules_reference_declared_metrics",
+      "boundaries_disjoint"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Protected member checking assignments required; no execution demonstrated"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 180,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+    ]
+  }
+}

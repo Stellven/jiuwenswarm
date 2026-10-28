@@ -262,12 +262,13 @@ Always use async/await. No blocking calls. Follow PEP 8.
 
 **发送选中内容** —— 打开面板并预填选中的代码，标注文件名：
 
-```
+````
 [File: handler.py]
 ```
 def handle_request(req):
     ...
 ```
+````
 
 在代码后补充你的问题并按 Enter。
 
@@ -286,7 +287,7 @@ def handle_request(req):
 2. 捕获周围 ±7 行代码。
 3. 面板打开并预填输入：
 
-```
+````
 Fix this error in handler.py:
 
 Error:
@@ -297,7 +298,7 @@ def handle_request(req):
     result = blocking_call(req)
     return result
 ```
-```
+````
 
 适用于 PyCharm 支持的任何语言——Python、Kotlin、Java、TypeScript、Go、Rust 等。
 

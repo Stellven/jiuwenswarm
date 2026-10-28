@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "screening.rank_opportunities",
+    "version_label": "synthetic-child-v1",
+    "kind": "tool",
+    "summary": "Synthetic helper declaration; fixed scores, sum, stable ties and Top-1",
+    "carrier": {
+      "ref": "ranking_child.txt",
+      "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+    },
+    "body": [
+      {
+        "path": "ranking_child.txt",
+        "sha256": "b1b96a5482131f134bab7ab8e13abcbcc8ff715eeb9a4b4086419502f7cc625c"
+      }
+    ],
+    "lineage": {
+      "parent": {
+        "id": "ranking_declaration.json",
+        "sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+      },
+      "co_parents": [],
+      "relation": "supersedes",
+      "builder": "rsi_workbench",
+      "build_trigger": "rsi:synthetic:1",
+      "context_capsules": [],
+      "diagnosis_inputs": [],
+      "builder_ref": {
+        "id": "rsi_attempt_01.json",
+        "sha256": "67273168eb66faab9de209ce759543f4fcada4414ba79474e92e200ac208eab1"
+      },
+      "provenance": {
+        "generating_model": null,
+        "prompt_ref": {
+          "id": "rsi_improver_policy.txt",
+          "sha256": "ee424d8b228b6415978175c4d53af1ffe8c8ea3f93e026402038e7c6b94d27aa"
+        },
+        "trajectory_ref": {
+          "id": "rsi_proposal_trace.txt",
+          "sha256": "3455519aaf3c6d33a4004327555806c1dd8ef478dd32f10d66bd5cf4d4fa82d1"
+        }
+      }
+    }
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "scores",
+        "artifact_type": "screening_result",
+        "schema_ref": "screening-result:field-contract:2",
+        "required": true,
+        "description": "Frozen incoming scores",
+        "check_ids": [
+          "structure"
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "selection",
+        "artifact_type": "screening_result",
+        "schema_ref": "screening-result:field-contract:2",
+        "required": true,
+        "description": "Fixed ranking/Top-1 selection",
+        "check_ids": [
+          "structure"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [
+      {
+        "resource_key": "original_request",
+        "mode": "read"
+      }
+    ],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "intent_schema",
+        "kind": "deterministic",
+        "target": "outputs.intent",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      }
+    ],
+    "acceptance": [
+      "intent_schema"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Semantic fidelity/usability require independently assigned runtime verification"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 60,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "propose",
+    "may_change": [
+      "files:ranking_*.txt"
+    ],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+    ]
+  }
+}

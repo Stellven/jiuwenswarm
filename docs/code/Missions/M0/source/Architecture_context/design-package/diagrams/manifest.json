@@ -1,0 +1,265 @@
+{
+  "renderer": "mermaid-cli 12.0.0",
+  "diagrams": [
+    {
+      "source": "artifact-inspection.md",
+      "title": "Ownership and flow",
+      "anchor": "ownership-and-flow",
+      "mermaid_sha256": "c8b19b4ba0596fb64beb4eba24e25c1ddb3c70a2fed552638df07a46569feda7",
+      "svg": "diagrams/artifact-inspection-1.svg",
+      "png": "diagrams/artifact-inspection-1.png",
+      "svg_sha256": "368eb769d3d8415929a02732d7800c142a9d9f9d45d6ed9ed984766720ff8fcf",
+      "png_sha256": "815c0b531f8dd09e19aae8456baa2d9dd8c47ce1b19e89f5e25602afabd537aa"
+    },
+    {
+      "source": "automation.md",
+      "title": "Local Compose topology",
+      "anchor": "local-compose-topology",
+      "mermaid_sha256": "0d79ca94afc94d5dc3a51f499f871ed78c0120005c399c53be6060146b2b5ad9",
+      "svg": "diagrams/automation-1.svg",
+      "png": "diagrams/automation-1.png",
+      "svg_sha256": "79c1af9eddb595a32992f195467b23bd03e097bd9f28d225782c8212e57c8a1f",
+      "png_sha256": "84aaa81452c2b2856553fa21fc01f7f0f6cebb1cff2cd97b9828f217ded94bb1"
+    },
+    {
+      "source": "capsules.md",
+      "title": "Exact verification boundary",
+      "anchor": "exact-verification-boundary",
+      "mermaid_sha256": "a5d8d065e5e29420331a333b543b3916fa043fc05e1196e7b14566fd9b11a1b5",
+      "svg": "diagrams/capsules-1.svg",
+      "png": "diagrams/capsules-1.png",
+      "svg_sha256": "48f7bbd0b34a7d13d43a40311821701789b0b6077947295d621d529836753175",
+      "png_sha256": "071b5fae74c15206356104ffefd4538483189a56a24e37471c1486c5fb963df6"
+    },
+    {
+      "source": "delivery-phases.md",
+      "title": "Full M1 phases",
+      "anchor": "full-m1-phases",
+      "mermaid_sha256": "f9444509ab1120c73d0e3540f880e834b014c3abee0c9aef5c228891c9514bdc",
+      "svg": "diagrams/delivery-phases-1.svg",
+      "png": "diagrams/delivery-phases-1.png",
+      "svg_sha256": "b0bb7b6b039626f3dd1ce6c3093377a597cd574c5af6a41e04ba4bcd33857773",
+      "png_sha256": "fadd7f21a03efe80dd85122ae6e44c9c248d9daf186c9c2405c5fdd2f446b7a9"
+    },
+    {
+      "source": "development-tools/sidecar/README.md",
+      "title": "Purpose and composition",
+      "anchor": "purpose-and-composition",
+      "mermaid_sha256": "c7a89e81c56a5cfe85a731632c59523919882c95f4941125d58da60ea598e172",
+      "svg": "development-tools/sidecar/composition.svg",
+      "png": "development-tools/sidecar/composition.png",
+      "svg_sha256": "b43b841b5ad040e0149eaf6d9bbf0b9cc3d14ee2814b17fd141a787ead7c63cc",
+      "png_sha256": "dcf67c4cabf0c6fae1cab189a291e1da16b46995b6e6b3d6f487d03a87acefff"
+    },
+    {
+      "source": "development-tools/test-runner/README.md",
+      "title": "AI4Research sidecar: client-validation runner",
+      "anchor": "ai4research-sidecar-client-validation-runner",
+      "mermaid_sha256": "c7190da7ac9756c54416ac66b7075345de2052410938e1e0f604d6d161b2a2b4",
+      "svg": "diagrams/development-tools-test-runner-README-1.svg",
+      "png": "diagrams/development-tools-test-runner-README-1.png",
+      "svg_sha256": "7f847432429acae581b627c4ead3d69b7390ae3f857cc9fd8bce11df67b64093",
+      "png_sha256": "d32630e56a7d440651598968054cd5425637112a2dd6a715d6f34eaa2a01f638"
+    },
+    {
+      "source": "failure-and-human.md",
+      "title": "When to call the human",
+      "anchor": "when-to-call-the-human",
+      "mermaid_sha256": "e9c956c150ac3fa7af8ee377763b4099a37b7e2e56981a6338e70d0fcbdd58d1",
+      "svg": "diagrams/failure-and-human-1.svg",
+      "png": "diagrams/failure-and-human-1.png",
+      "svg_sha256": "9886ebddae66d13a656a6d7ba58da20b2c0c6d4c2a3fa2c5691f0678394d0651",
+      "png_sha256": "2dde490ac5c550cb0d0f0c2b5e953fbb8aa6a087af5fc3c1c2f4400455f1d7bb"
+    },
+    {
+      "source": "failure-and-human.md",
+      "title": "Delivery Phase 3 clarification before acceptance",
+      "anchor": "delivery-phase-3-clarification-before-acceptance",
+      "mermaid_sha256": "7d94591d85132dd2f1fabd65f89bb61773aaa5cacce41651555c09870b41f88e",
+      "svg": "diagrams/failure-and-human-2.svg",
+      "png": "diagrams/failure-and-human-2.png",
+      "svg_sha256": "2392b119f6be9815b448fb55489295eb56e881cae42f5c95ed429a48224086f6",
+      "png_sha256": "777d94a19b6d830a8e94fdbb76e7768622dbee5d18555dd2aa13e513fc719902"
+    },
+    {
+      "source": "guard-design.md",
+      "title": "Purpose and boundary",
+      "anchor": "purpose-and-boundary",
+      "mermaid_sha256": "825593ee774c1a8717bfa1155ff1f964806bbd50de00d46f374b1da8066da384",
+      "svg": "diagrams/guard-design-1.svg",
+      "png": "diagrams/guard-design-1.png",
+      "svg_sha256": "4a3370de2d642ef73ee6b7f43f6b846346f03d0a4e67c6742ba5fe54b63333db",
+      "png_sha256": "d9e92d6d5e5492665676adf081c6757a6089c8cd6ad233e8966afc51e943c04b"
+    },
+    {
+      "source": "guard-design.md",
+      "title": "Assignments and check plans",
+      "anchor": "assignments-and-check-plans",
+      "mermaid_sha256": "cbf2697285a00e2f0da727238b11a75aeda900cc294326e26f98b7243c652010",
+      "svg": "diagrams/guard-design-2.svg",
+      "png": "diagrams/guard-design-2.png",
+      "svg_sha256": "1845e9357a7352b562f4cbb1530fa14673b5cf464c43ba59e8895ca88fa43664",
+      "png_sha256": "158476c9ba2899c9fd028d95b26dc55aeb6bd90bcf305f3bb63806fb77c8320d"
+    },
+    {
+      "source": "guard-design.md",
+      "title": "Output-led review and controlled disclosure",
+      "anchor": "output-led-review-and-controlled-disclosure",
+      "mermaid_sha256": "d53ae23eb284c664d1138a618ac67227d32cfbb00b1194c5c1091479fc9f0c34",
+      "svg": "diagrams/guard-design-3.svg",
+      "png": "diagrams/guard-design-3.png",
+      "svg_sha256": "c9e3d6398fc3ea9e8dce49654085f6cc4ff6e4543dbe12091bdb3f2baf7eba9b",
+      "png_sha256": "558a17c20e59cdbf2f5468453fb79f9560cb9f1b86b88cbbe6bb9fbbd17d20e1"
+    },
+    {
+      "source": "immediate-plan.md",
+      "title": "What to build",
+      "anchor": "what-to-build",
+      "mermaid_sha256": "54c0c38c67b6ed1bea5d412e4dbb3d88fd106bd74fdfb788f2790d38f18bee63",
+      "svg": "diagrams/immediate-plan-1.svg",
+      "png": "diagrams/immediate-plan-1.png",
+      "svg_sha256": "f09ac708d95490a5aac40ba64419fa62567831800f17c6b8e0707d86cedadac9",
+      "png_sha256": "18531d51aff29f6d2ac115fc8e49b13fb56b8517637d7a0a01c10792e212dee6"
+    },
+    {
+      "source": "intent-design.md",
+      "title": "Deterministic boundary",
+      "anchor": "deterministic-boundary",
+      "mermaid_sha256": "92f2afbd0c24ecb9db8b186baaab907dc336e7527f4b14a04a18907bd1474230",
+      "svg": "diagrams/intent-design-1.svg",
+      "svg_sha256": "e97deb6cfabe2f34f2505db65f89cc815b083cb4da466ba296af54a906dad635",
+      "png": "diagrams/intent-design-1.png",
+      "png_sha256": "1adc7d6236a8dd6112eb0521ab4f9a2db2d579c5076e9495d845413180927ca0"
+    },
+    {
+      "source": "intent-design.md",
+      "title": "Requirements CC and the second boundary",
+      "anchor": "requirements-cc-and-the-second-boundary",
+      "mermaid_sha256": "51b42262973522f1d410df5c2179efdec50fe25da40e875b90297db4432766fc",
+      "svg": "diagrams/intent-design-2.svg",
+      "png": "diagrams/intent-design-2.png",
+      "svg_sha256": "18411f1f60bd6e027b2ef44eaf5f3dfa6857bbefd4d9172113af803ab8c54352",
+      "png_sha256": "1288db63df2126acf4b5beccdc0d6e81a9aa72b59ede468cbf50d281972a01ef"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "From meaning to a governed research program",
+      "anchor": "from-meaning-to-a-governed-research-program",
+      "mermaid_sha256": "c266423761e4d15bddd1053c5dc4cf599012c97b91a47bd359080d252789f86a",
+      "svg": "diagrams/m1-design-1.svg",
+      "png": "diagrams/m1-design-1.png",
+      "svg_sha256": "30c264eaf50b7072bd24818dd3ccf0068970197964b2d096479bad53e1757fa7",
+      "png_sha256": "2c96e38bcf801010edc50fd60232a72cd10e40ad60c89ba3f2e09bdee1c346be"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Execution and model routing",
+      "anchor": "execution-and-model-routing",
+      "mermaid_sha256": "9702cf0cf1b9481e53e1f77bcc5daa3c7522bfe3b16532b9df32a7a277893858",
+      "svg": "diagrams/m1-design-2.svg",
+      "png": "diagrams/m1-design-2.png",
+      "svg_sha256": "6394ab2f9d470283b7306aed038bbf236223192cfb9a3d021cb304f86413d84c",
+      "png_sha256": "4ae0c1db771bddd3327ba7e96f25b12fafb3a17afcec0a1de222ce780e593e6f"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Where RSI connects",
+      "anchor": "where-rsi-connects",
+      "mermaid_sha256": "5e6954816b65f9e5981dddaf6a9e38ae61591e1c89414874b5cfc984f5c61749",
+      "svg": "diagrams/m1-design-3.svg",
+      "png": "diagrams/m1-design-3.png",
+      "svg_sha256": "e8f31abc283c51d4802538b056b322e04a4ac2f9a83c4b7b3089c4f6df0083c3",
+      "png_sha256": "e6fa81e0a748234d0f6c7b274d6d2358fc9e797469a539b2e768fbff187ae1e6"
+    },
+    {
+      "source": "model-routing.md",
+      "title": "Purpose and connections",
+      "anchor": "purpose-and-connections",
+      "mermaid_sha256": "436fdd2ff4d76fcd7f77d23274fb475f29401adbf6dd9be9a3fde7dc79203e31",
+      "svg": "diagrams/model-routing-1.svg",
+      "png": "diagrams/model-routing-1.png",
+      "svg_sha256": "6174f91e9a38f059d8e8edad1e257b2f619e40bb87a13693288349e4be9419b9",
+      "png_sha256": "0405adc57e14f90747129b1638e2b593b092bf28fbcedf83f0061bf6e5e6aa10"
+    },
+    {
+      "source": "phase-details.md",
+      "title": "Delivery Phase 3 integration accounting",
+      "anchor": "delivery-phase-3-integration-accounting",
+      "mermaid_sha256": "8ae6964e529af163bb6014dc1a0f0766d31ab66485ac0228afe19c996c70a399",
+      "svg": "diagrams/phase-details-1.svg",
+      "svg_sha256": "2c4bfa26f77d9627477365849a6ca886628b81e05f8cc9c6b6d4a42650832c06",
+      "png": "diagrams/phase-details-1.png",
+      "png_sha256": "f351a8bf15d74d5b56a2afeb7e0050315d09734c8c611f04833b894c73678076"
+    },
+    {
+      "source": "placement.md",
+      "title": "Deployment and boundaries",
+      "anchor": "deployment-and-boundaries",
+      "mermaid_sha256": "750448f8728d13d90c34de9524da6dde1c3639ae8ba27f33d9474d32c72bffc5",
+      "svg": "diagrams/placement-1.svg",
+      "png": "diagrams/placement-1.png",
+      "svg_sha256": "7f679a42af9c5f4a86fceacdbe462fd8e48dda332482d916e52317c03737ccd3",
+      "png_sha256": "f3e5a8129b5f0ab0b9b27f91278a48c804f809048526d9c3509598daeb02a4ea"
+    },
+    {
+      "source": "placement.md",
+      "title": "Offline RSI",
+      "anchor": "offline-rsi",
+      "mermaid_sha256": "617bc5daeb09b2564ae809412baba6ac2a94dad1a67344577b41df456ce4b9ea",
+      "svg": "diagrams/placement-2.svg",
+      "png": "diagrams/placement-2.png",
+      "svg_sha256": "adf9e12669f77cbbdd6ab444d1ab3e923a54ad7e10fdac6b0dbba6627d42640f",
+      "png_sha256": "119483025b13de7872165973cab56e9cc6584e632cdc6a8eb1114064ad63bf32"
+    },
+    {
+      "source": "README.md",
+      "title": "System picture",
+      "anchor": "system-picture",
+      "mermaid_sha256": "f133f1a4082251d7cbe082296c8eee9a176fa6ebfc84ed2deca9c76391acfe71",
+      "svg": "diagrams/README-1.svg",
+      "png": "diagrams/README-1.png",
+      "svg_sha256": "bfb2eac27821f2a27beb87335faa66d219d6c62af0634e247e1143f180947e78",
+      "png_sha256": "e664db1b0207649f978351515d5fd5f37b2fb47468e3be13e9c176571fa78797"
+    },
+    {
+      "source": "research-design.md",
+      "title": "Research path and ports",
+      "anchor": "research-path-and-ports",
+      "mermaid_sha256": "7d93008358ea10aa57009c2ddece8343a3ae082439817bccaa18276cdebf19b6",
+      "svg": "diagrams/research-design-1.svg",
+      "png": "diagrams/research-design-1.png",
+      "svg_sha256": "a0fee890eb4518f37545de7ba891919890216baf29dffce213c58b0ab68ade0e",
+      "png_sha256": "275bafa415b4f226b8321c2147525c0d38c3432b44f0a32bef2a1bb046dfb54e"
+    },
+    {
+      "source": "research-design.md",
+      "title": "Commit before successor release",
+      "anchor": "commit-before-successor-release",
+      "mermaid_sha256": "fba16b897c7d709d0e4923d5dbd2922d36ca28b419a2ad6a4f5133cc9b8e9214",
+      "svg": "diagrams/research-design-2.svg",
+      "png": "diagrams/research-design-2.png",
+      "svg_sha256": "337f888cb358bb11b856d8a152d897a8f266cf65fdc8a127d364269e0687e819",
+      "png_sha256": "7d1ea074518eed3dacb1767d46afa37f5365e4eba56f0ad8fd13c5c9c7a1800f"
+    },
+    {
+      "source": "workflow.md",
+      "title": "Establish intent before planning",
+      "anchor": "establish-intent-before-planning",
+      "mermaid_sha256": "c285bc6927e04ab8b7e084aea22c0d3810cf58aae79ec007e029b9d173b4f6d3",
+      "svg": "diagrams/workflow-1.svg",
+      "png": "diagrams/workflow-1.png",
+      "svg_sha256": "ea5c34ed38d7af1ff05d40e9fbff4c47be78038dae688368364faf36d39cf3d3",
+      "png_sha256": "6c2c5e5e430d75bdfd8c98b8f8d2795454a2169cb32c429a9dee0446a34b9534"
+    },
+    {
+      "source": "workflow.md",
+      "title": "Tasks, nodes, and verification",
+      "anchor": "tasks-nodes-and-verification",
+      "mermaid_sha256": "f566183ee6a933ee229c166e32a5f6118a638c1e4b26284df306567dec87f6b3",
+      "svg": "diagrams/workflow-2.svg",
+      "png": "diagrams/workflow-2.png",
+      "svg_sha256": "297550b1f410d0ef4d4733160626cfacb5b2a3ecce1fe825d8aa0760a6d1abee",
+      "png_sha256": "35d40d909d429654792bb3c5cab13d646153436c2ff437ccdc74c229e9ff29de"
+    }
+  ]
+}

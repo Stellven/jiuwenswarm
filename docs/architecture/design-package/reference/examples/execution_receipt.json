@@ -1,0 +1,220 @@
+{
+  "schema_version": "1.0.0",
+  "id": "execution_receipt",
+  "blueprint_ref": {
+    "id": "hypothesis_blueprint.json",
+    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+  },
+  "poc_ref": {
+    "id": "poc_manifest.json",
+    "sha256": "ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4"
+  },
+  "hardware_inventory": {
+    "hardware_id": "hw:synthetic-1",
+    "gpu_model": "Synthetic GPU",
+    "gpu_count": 1,
+    "gpu_memory_mb": 24576,
+    "driver_version": "550.00",
+    "cuda_version": "12.4",
+    "cpu_model": "Synthetic CPU",
+    "cpu_cores": 8,
+    "ram_mb": 32768,
+    "os": "Linux 6.x synthetic",
+    "captured_at": "2026-10-14T09:00:00Z"
+  },
+  "empirical_results_ref": {
+    "id": "execution_receipt_empirical_results.json",
+    "sha256": "5572476f18ecd1ecae3d393dd748333136b2d5307ddbc766f8925821afb47838"
+  },
+  "runs": [
+    {
+      "sequence": 1,
+      "role": "baseline",
+      "repeat_index": 0,
+      "seed": 42,
+      "subject_ref": {
+        "id": "baseline_resource.json",
+        "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+      },
+      "command": [
+        "python",
+        "run_benchmark.py",
+        "--role",
+        "baseline",
+        "--seed",
+        "42"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-14T09:01:00Z",
+      "wall_time_s": 1.5,
+      "timeout_s": 300,
+      "stdout_ref": {
+        "id": "baseline_execution.txt",
+        "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
+      },
+      "stderr_ref": {
+        "id": "execution_receipt_stderr.txt",
+        "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+      },
+      "hardware_ref": "hw:synthetic-1"
+    },
+    {
+      "sequence": 2,
+      "role": "baseline",
+      "repeat_index": 1,
+      "seed": 42,
+      "subject_ref": {
+        "id": "baseline_resource.json",
+        "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+      },
+      "command": [
+        "python",
+        "run_benchmark.py",
+        "--role",
+        "baseline",
+        "--seed",
+        "42"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-14T09:02:00Z",
+      "wall_time_s": 1.5,
+      "timeout_s": 300,
+      "stdout_ref": {
+        "id": "baseline_execution.txt",
+        "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
+      },
+      "stderr_ref": {
+        "id": "execution_receipt_stderr.txt",
+        "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+      },
+      "hardware_ref": "hw:synthetic-1"
+    },
+    {
+      "sequence": 3,
+      "role": "baseline",
+      "repeat_index": 2,
+      "seed": 42,
+      "subject_ref": {
+        "id": "baseline_resource.json",
+        "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+      },
+      "command": [
+        "python",
+        "run_benchmark.py",
+        "--role",
+        "baseline",
+        "--seed",
+        "42"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-14T09:03:00Z",
+      "wall_time_s": 1.5,
+      "timeout_s": 300,
+      "stdout_ref": {
+        "id": "baseline_execution.txt",
+        "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
+      },
+      "stderr_ref": {
+        "id": "execution_receipt_stderr.txt",
+        "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+      },
+      "hardware_ref": "hw:synthetic-1"
+    },
+    {
+      "sequence": 4,
+      "role": "treatment",
+      "repeat_index": 0,
+      "seed": 42,
+      "subject_ref": {
+        "id": "poc_artifact_bundle.zip",
+        "sha256": "95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1"
+      },
+      "command": [
+        "python",
+        "run_benchmark.py",
+        "--role",
+        "treatment",
+        "--seed",
+        "42"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-14T09:04:00Z",
+      "wall_time_s": 1.5,
+      "timeout_s": 300,
+      "stdout_ref": {
+        "id": "treatment_execution.txt",
+        "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+      },
+      "stderr_ref": {
+        "id": "execution_receipt_stderr.txt",
+        "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+      },
+      "hardware_ref": "hw:synthetic-1"
+    },
+    {
+      "sequence": 5,
+      "role": "treatment",
+      "repeat_index": 1,
+      "seed": 42,
+      "subject_ref": {
+        "id": "poc_artifact_bundle.zip",
+        "sha256": "95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1"
+      },
+      "command": [
+        "python",
+        "run_benchmark.py",
+        "--role",
+        "treatment",
+        "--seed",
+        "42"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-14T09:05:00Z",
+      "wall_time_s": 1.5,
+      "timeout_s": 300,
+      "stdout_ref": {
+        "id": "treatment_execution.txt",
+        "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+      },
+      "stderr_ref": {
+        "id": "execution_receipt_stderr.txt",
+        "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+      },
+      "hardware_ref": "hw:synthetic-1"
+    },
+    {
+      "sequence": 6,
+      "role": "treatment",
+      "repeat_index": 2,
+      "seed": 42,
+      "subject_ref": {
+        "id": "poc_artifact_bundle.zip",
+        "sha256": "95a3c10da5f0b0bb6c8df9c0865b1062e675992209a8bc01670da458692013c1"
+      },
+      "command": [
+        "python",
+        "run_benchmark.py",
+        "--role",
+        "treatment",
+        "--seed",
+        "42"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-10-14T09:06:00Z",
+      "wall_time_s": 1.5,
+      "timeout_s": 300,
+      "stdout_ref": {
+        "id": "treatment_execution.txt",
+        "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+      },
+      "stderr_ref": {
+        "id": "execution_receipt_stderr.txt",
+        "sha256": "a9733d008ee93bcfc0bcc5fa435c3c99c5634ecad4cede5f64c57d217f292eac"
+      },
+      "hardware_ref": "hw:synthetic-1"
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

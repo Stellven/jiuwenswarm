@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi:genesis:synthetic:1",
+  "session_id": "rsi:synthetic:1",
+  "target_ref": {
+    "id": "rsi_target_profile.json",
+    "sha256": "bc9325646c3294adb03052538badb5f24dc062297418a8f18862fbf808993a9e"
+  },
+  "hash_profile_ref": {
+    "id": "rsi_hash_profile.txt",
+    "sha256": "ee206cb900d8291ead27b92cdea4e12ec383b133698533aff3be585ee4eee99d"
+  },
+  "ext": {
+    "example.synthetic": true
+  }
+}

@@ -1,64 +1,9 @@
 {
-  "revision_date": "2026-10-13",
-  "sources": [
-    {
-      "path": "sources/capsule.schema.json",
-      "bytes": 22040,
-      "sha256": "2cb2be42e499481d5fd802487c0a01cbdba3b46a5fbd4dbbd39941a94139bccd"
-    },
-    {
-      "path": "sources/capsule-semantic-v2.10b.md",
-      "bytes": 174011,
-      "sha256": "30b02e874dda0a9acd4c06e5fadd8c855cd3024d6aaca58c7c937aed161d00b9"
-    },
-    {
-      "path": "sources/policy-m1.json",
-      "bytes": 3225,
-      "sha256": "43305e008f72d480b24269e06285225617b969944b771fd181e911b988d4c011"
-    },
-    {
-      "path": "sources/model-routing/received/model-router-design-en-2026-10-13.md",
-      "bytes": 184666,
-      "sha256": "1f6a7293cd5cac14066f99d1d826a6ef00c39688835fd00ce58697a875520368"
-    }
+  "revision_date": "2026-10-16",
+  "delivery_basis": [
+    "Maintained design package",
+    "Separately supplied PRD identified by reference/product-input.md"
   ],
-  "observed_archives": [
-    {
-      "filename": "intent-output-1.zip",
-      "sha256": "b686600e5701fe45a08189d9322c39c5e6c892246869b8a953305f8603b3cb71",
-      "status": "ACCEPTED",
-      "accepted_ir": true,
-      "note": "Raw archives are optional audit evidence outside the portable package"
-    },
-    {
-      "filename": "intent-output-2.zip",
-      "sha256": "7ccbbc5050f4fd8499fb279fde4d3d7a5166c13332ad0d0f82751dfd84193c6d",
-      "status": "COMPILING",
-      "accepted_ir": false,
-      "note": "Raw archives are optional audit evidence outside the portable package"
-    }
-  ],
-  "snapshot": "C:/Users/m50066326/huawei/architecture-checks-2026-10-07/three-tier-before",
-  "critical_contract_policy": "Field charts first; selected critical schemas; node/subnode scope revision; external PRD bodies; no runtime evidence",
-  "external_product_sources": [
-    {
-      "filename": "prd-m1-current-2026-10-06.txt",
-      "bytes": 232489,
-      "sha256": "6bd528778f0fd362eeff8bdbc76e60ae202fbe99cb879dd7fe24fd3b41762839",
-      "repository_path": "docs/product/received-prds/prd-m1-current-2026-10-06.txt"
-    },
-    {
-      "filename": "prd-m1-current-2026-10-07.txt",
-      "bytes": 254883,
-      "sha256": "10eaa9c6bd6e0c913422c2c8e5d501569c65f7bf839e0bd088c0da83ae4913dc",
-      "repository_path": "docs/product/received-prds/prd-m1-current-2026-10-07.txt"
-    },
-    {
-      "filename": "prd-m1-reviewed-2026-10-13.txt",
-      "bytes": 255245,
-      "sha256": "890c63ee4849d61e8c7ddc980891985d57c59005ca6c62be45957c59e82782de",
-      "repository_path": "docs/product/received-prds/prd-m1-reviewed-2026-10-13.txt",
-      "status": "current; PRD - AI4Research (4).txt reviewed October 13"
-    }
-  ]
+  "current_product_sha256": "6d85972cdc8cf586a3d76b80d56510d695f03bfcf7838661afc7f71c35f4b3fc",
+  "runtime_compatibility": "NOT_RUN"
 }

@@ -1,107 +1,67 @@
-# AI4Research sidecar: client-validation runner
+# Test runner (client validation in the sidecar container)
+
+`Tier 2 · Part of: [README](../../README.md)`
+
+The test runner is the client-validation role in the [sidecar container](../sidecar/README.md) ([D36](../../method/decisions.md#d36)). It is development tooling off the hot path. It submits bounded cases to the app through the product client contract, observes, assesses against declared expectations and exports a result record. Container lifecycle, router-process faults and evaluation-profile startup belong to the host launcher through the [job-scoped host contract](../sidecar/README.md#host-executor), not the test runner. The connection and compatibility rules are on the [sidecar page](../sidecar/README.md#application-connection-and-compatibility). The client contract is on the [automation page](../automation.md).
 
 ```mermaid
 flowchart TB
-    Human[Team member: validate a change] --> Launcher
-    AI[Authorized AI agent: validate assigned work] --> Launcher
-    CI[CI job or external schedule: repeat validation] --> Launcher
-    Launcher[Host launcher using Docker Compose]
-    Launcher -->|Start and clean up owned environment| App
-    Launcher -->|Start finite validation job| Runner
-    Browser[User browser] <-->|Host loopback only: 127.0.0.1:5173| AppPort[Host port 5173 to container port 5173]
-    subgraph Environment[Private Compose validation environment]
-        Runner[Test runner container]
-        App[AI4Research container: service DNS and port 5173]
-        AppPort <-->|Host publication| App
-        Inputs[(Visible case inputs)] -->|Read only| Runner
-        Runner -->|Private network and authenticated client contract| App
-        App -->|Permitted exported evidence| Runner
-        App --> State[(Private application state)]
-        Runner --> Reports[(Retained validation reports)]
-    end
-    Reports --> Review[Team or CI: inspect outcomes and failure evidence]
+ Launcher[Launcher using Docker Compose on the server host]
+ Launcher -->|start and clean up owned environment| App
+ Launcher -->|start finite job| Runner
+ subgraph Net[Private Docker network]
+ subgraph SC[Sidecar container]
+ Runner[Test runner]
+ end
+ App[App container: service app, port 5173]
+ Inputs[(Visible case inputs, read only)] --> Runner
+ Runner -->|own scoped token, client contract| App
+ Runner --> Reports[(Retained reports)]
+ end
 ```
 
-The Docker Compose arrangement gives the team a common way to run bounded validation cases. The host launcher owns container lifecycle; the sidecar owns case execution and reporting. It can also target an explicitly selected existing application through supported seams, without taking ownership of that application's lifecycle.
+*Level: container. Omits: the platform benchmark runner, how users reach the app and the operators who trigger the launcher.*
 
-## Scope and authority
+## Lifecycle
 
-Client-validation role within the [development sidecar](../sidecar/README.md), originally drafted 2026-10-06. This is optional development tooling external to the AI4Research workflow. The broader sidecar supports registered container diagnostics through a separate host executor; this client runner retains the narrower permissions below. Sidecar availability never blocks product delivery. This subtree is excluded from the product architecture reading set and automatic M1 task or Spec Kit allocation. It adds no AI4Research implementation obligations. Future implementation needs a separate tooling scope and specification.
+A person, an authorized agent, CI or an external scheduler starts a finite job through the launcher. The runner submits cases one at a time, observes, writes the report and exits. Exit does not cancel research. An explicit timeout policy may cancel the runner's own submitted run. An external supervisor enforces a hard deadline, and an incomplete result stays `inconclusive`.
 
-The existing [automation boundary](../../automation.md) supplies the product-client contract. The [sidecar connection requirements](../sidecar/README.md#application-connection-and-compatibility) define Compose networking, target selection, authentication and version compatibility. A runner container reaches an app container through configured service DNS on the private network and application port `5173` by default; it never treats its own `localhost` or the browser's host-loopback publication as the app. Before submitting, it verifies target identity, client-contract compatibility and required readiness/capabilities. Described seams are intended architecture, not proof of implemented endpoints. Missing seams are reported as dependencies. Any application interface change follows the existing product change process separately.
+A fresh run starts a dedicated app container, and the launcher removes it afterwards. A standing run targets an existing app container and the launcher starts only the runner. A debugging option may retain an environment under a named owner. Cleanup touches only job-owned resources.
 
-Docker container separation and a Compose launch path are the required compatibility foundation. Exact commands, service aliases, API paths, schemas, frameworks and thresholds remain open. The diagram shows required network and authority boundaries, not an executable deployment.
+## Commands and results
 
-## Users and triggers
+`Standard`. From the server host, a person or an authorized agent runs the test runner inside the sidecar container with `docker compose run --rm sidecar test-runner <command>`. The **test matrix** is the set of case files in the runner's case folder. Each case file names its steps, its expected outcome and its `timeout_s`.
 
-| Actor | Purpose | Role |
+When it runs: on demand, and before each merge to main. The person merging, or the merging agent, runs `test-runner matrix` on the candidate build. The merge goes ahead only on exit code 0, and the result record is kept with the merge. No case may be skipped to get a pass.
+
+| Command | What it does | Exit code |
 |---|---|---|
-| Team member | Validate a change or reproduce a failure | Select cases and invoke or stop the job |
-| Authorized AI development agent | Gather evidence for assigned work | Use the same launch path within authorized task scope |
-| CI job | Validate a candidate automatically | Invoke a bounded job in an isolated environment |
-| External scheduler such as cron | Repeat agreed validation periodically | Trigger the same job outside the container |
+| `test-runner readiness` | Calls readiness and checks target identity and client contract version | 0 ready, 2 blocked |
+| `test-runner run-case <case_id>` | Runs one case | 0 expected outcome met, 1 mismatch, 2 blocked, 3 inconclusive |
+| `test-runner matrix` | Runs every case in order | 0 only when every case met its expected outcome. Otherwise the highest code of any case |
+| `test-runner cancel <run_id>` | Cancels a run this runner submitted | 0 acknowledged, 2 blocked |
+| `test-runner report <job_id>` | Prints the retained result record of a job | 0 found, 1 not found |
 
-AI is an operator, not additional authority inside the runner. Scheduling, CI triggers and release policy stay outside the sidecar. It contains no autonomous development agent or internal cron service.
+**Control API operations the runner uses.** The readiness, submit, reconcile, status, retrieve and cancel operations of the [control API table](../../reference/field-catalog.md#control-api), each with its own scoped token. These are the only operations it calls. It never calls the evaluation-profile entry points. A `client-error` reply is a result, not an exception.
 
-## Lifecycle and ownership
+**Result record.** One record per job, written to the runner's report folder. It is a runner record, and the product never reads it.
 
-The default is one finite validation job, initially with sequential cases. Images and case definitions can persist; the runner process exists only during a job. After required readiness is established, it submits, observes, assesses, exports a report, and exits on completion or failure.
-
-| Mode | Who starts it | Who stops it |
+| Field | Type | Meaning |
 |---|---|---|
-| Fresh local environment | Human or authorized AI invokes the host launcher; Compose starts a dedicated AI4Research instance and runner | Runner exits; launcher cleans up its owned environment |
-| Existing application | Operator selects a permitted target; launcher starts only the runner | Runner exits; existing application remains running |
-| CI or scheduled job | External executor invokes the same launcher | Executor ensures cleanup after success, failure, cancellation or timeout |
-| Hung or interrupted execution | External supervisor enforces a finite deadline | Supervisor stops the runner and cleans up owned resources; incomplete evidence remains an incomplete result |
+| `job_id` | `string` | Identity of the job |
+| `trigger` | `string` | `manual`, `merge` or `agent` |
+| `candidate_id` | `string` | Build identity reported by readiness |
+| `client_contract_version` | `string` | Version the app reported |
+| `started_at` | `string` | UTC timestamp |
+| `ended_at` | `string` | UTC timestamp |
+| `cases` | `object[]` | One entry per case: `case_id`, `run_id` (null if none), `client_request_id`, `expected`, `observed`, `outcome`, `evidence_refs` |
+| `outcome` | `string` | `met`, `mismatch`, `blocked` or `inconclusive`. Per case and for the job |
+| `mock_run` | `boolean` | True when any case ran on mocks. Mock runs stay distinct from model-backed validation |
+| `limitations` | `string[]` | Evidence the runner could not capture |
+| `exit_code` | `integer` | The process exit code above |
 
-Runner exit does not itself stop AI4Research. Client shutdown also does not imply research-run cancellation. Where the client contract permits it, an explicit timeout policy may request cancellation of the runner's own submitted run. Container shutdown remains outside the runner.
-
-An explicit local debugging option may retain a test environment, with a named owner responsible for eventual cleanup. The normal CI job is temporary. Cleanup targets only resources created for that job, preserves reports, and never performs broad Docker cleanup or stops another developer's environment. Implementation must define resource ownership and cleanup mechanics.
+Submission failure, observation timeout and an application-reported stage failure are different observations. A lost connection does not establish workflow failure.
 
 ## Permissions
 
-| Capability | Proposed runner permission |
-|---|---|
-| Submit work | Scoped credential in the declared evaluation workspace |
-| Observe status and retrieve evidence | Supported authenticated client operations |
-| Cancel research work | Only its own runs where the contract and case policy authorize it |
-| Read inputs | Visible case inputs through narrow read-only access or supported import |
-| Write reports | Its own output location, retained after container removal |
-| Start, stop, restart, build or inspect containers | None; no Docker socket or daemon API credential |
-| Write authoritative state, gates, configuration or accepted outputs | None; no private application volume or database access |
-| Read hidden RSI fixtures or application secrets | None |
-| Modify source, deploy releases or execute arbitrary host commands | None |
-
-The runner should use a non-root user, no privileged mode, and only the filesystem and network access needed for validation. It needs no inbound service port. Compose connectivity does not grant application authorization; scoped credentials still govern client operations.
-
-**Can the runner start a fresh AI4Research?** The overall validation command can, through the host launcher and Compose. The runner container cannot.
-
-**Can it shut AI4Research down?** The launcher can stop the dedicated instance it created for that job. The runner cannot stop containers. Connecting to an existing instance grants no lifecycle ownership.
-
-Docker daemon control carries broad host authority, so it stays with the external executor rather than the client container. See [Docker Engine security](https://docs.docker.com/engine/security/). CI executor permissions and runner permissions are separate.
-
-## A bounded role for future CI/CD
-
-The runner's role is to accept a bounded validation case, interact through supported seams, assess observable results against declared expectations, and export evidence with a process outcome that automation can consume. CI can invoke this role without keeping a permanent runner service alive.
-
-Cases can expand as product capabilities grow. Platform benchmarking can later add repetitions and measurements under declared campaigns. Scientific benchmarking remains inside the research workflow. None of these extensions grants additional infrastructure authority.
-
-Deployment control, environment repair, general command execution, production monitoring, workflow execution and authoritative acceptance remain outside its role. The runner can report application verdicts; it cannot replace verification, bypass gates or insert accepted results. Surrounding CI/CD owns release and deployment decisions.
-
-For each proposed addition, ask whether it is needed to submit, observe, assess or export a bounded case. Scheduling belongs outside; provisioning belongs to the launcher; product behavior belongs to AI4Research. New permissions or responsibilities require an explicit tooling design decision, rather than becoming another case option.
-
-## Outcomes and failure visibility
-
-Reports distinguish an expected outcome being met, an observed mismatch, an unavailable prerequisite, and an interrupted or inconclusive job. An expected product rejection can satisfy a case. Mock runs remain visibly distinct from model-backed validation.
-
-The runner locates failures only as precisely as exposed evidence allows. Submission failure, observation timeout and application-reported stage failure are different observations. A lost connection does not establish workflow failure; ambiguous submission does not justify blindly creating another run.
-
-Retain candidate and case identities, relevant configuration, application run identity when available, observations and permitted evidence references. Exact report formats and timeout policies belong to the tooling specification.
-
-## Compose foundation and remaining choices
-
-Validation is explicitly invoked and absent from ordinary application startup. [Compose profiles](https://docs.docker.com/compose/how-tos/profiles/) support optional services; a profile or separate validation configuration remains an implementation choice. Profiles govern activation, not permissions.
-
-Required readiness precedes measurement. [Compose startup ordering](https://docs.docker.com/compose/how-tos/startup-order/) supports health-check dependencies; the supported application readiness contract determines which prerequisites matter. CI retains reports using its artifact mechanism, such as [GitHub workflow artifacts](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflow-artifacts).
-
-Before implementation, resolve supported client seams, evaluation credential scope, input import, evidence export and launcher ownership. Keep exact Compose definitions, cleanup mechanics, report schemas, CI integration and benchmark policies in the separate tooling specification. This draft introduces no live service, schedule, CI job or application interface.
+The runner submits, observes, retrieves evidence and cancels only its own runs, through its scoped credential in the declared evaluation workspace. It reads visible case inputs read only and writes only its report location. It has no Docker socket or daemon credential, no write access to state, gates, configuration or accepted outputs, no hidden RSI fixtures or secrets, and no right to modify source or deploy. It runs as a non-root user, unprivileged, with no inbound port. Compose connectivity does not grant authorization ([Docker Engine security](https://docs.docker.com/engine/security/)). The runner reports application verdicts. It cannot replace verification or insert accepted results.

@@ -271,7 +271,7 @@ Agent Team 模式下，每个团队都有自己的双层记忆：成员各自的
 | 个人记忆 | 该成员独占 | 成员自身（在会话中调用记忆工具） |
 | 团队记忆 | 所有成员只读 | Leader 在 round 结束后由提取 agent 自动写入 |
 
-完整的存储布局、提取分类（`[decision]` / `[lesson]` / `[member]` / `[context]`）、跨团队/跨成员隔离机制详见 [记忆系统 → Agent Team 团队记忆](记忆.md#进阶agent-swarm-团队记忆)。
+完整的存储布局、提取分类（`[decision]` / `[lesson]` / `[member]` / `[context]`）、跨团队/跨成员隔离机制详见 [记忆系统 → Agent Team 团队记忆](记忆.md#6-进阶agent-swarm-团队记忆)。
 
 ### 2.6 SwarmFlow 工作流的启停与恢复
 
@@ -306,7 +306,7 @@ Leader Agent 接收目标后，分析任务：
 - 需要角色：行业分析师、竞争分析师、技术分析师、市场分析师、报告撰写专家
 - 执行计划：先调研，再分析，最后撰写
 
-![leader analysis](../assets/images/leader 分析需求.png)
+![leader analysis](../assets/images/leader分析需求.png)
 
 **Leader 组建团队**
 
@@ -317,7 +317,7 @@ Leader Agent 组建团队：
 - 市场分析师：负责市场前景预测
 - 报告撰写专家：负责报告整合与撰写
 
-![leader build teams](../assets/images/leader 组建团队.png)
+![leader build teams](../assets/images/leader组建团队.png)
 
 **Teammate Agent 执行**
 Teammate Agent 接收指派任务后，开始执行
@@ -331,7 +331,7 @@ Leader Agent 整合所有结果：
 - 整合最终报告
 - 向用户交付成果
 
-![Team execute tasks](../assets/images/leader 总结结果.png)
+![Team execute tasks](../assets/images/leader总结结果.png)
 
 ### 3.4 产出结果
 
@@ -341,7 +341,7 @@ Leader Agent 整合所有结果：
 - 技术趋势总结
 - 数据图表展示
 
-![Team execute tasks](../assets/images/team 结果.png)
+![Team execute tasks](../assets/images/team结果.png)
 
 
 ---

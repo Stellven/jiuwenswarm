@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_admission",
+  "candidate_ref": {
+    "id": "candidate_package.json",
+    "sha256": "0c5e1722d506858c5d8e5e727e8c6f88d1eabb6bab8173b490597cc8c4906df7"
+  },
+  "cc": {
+    "cc_name": "screening.rank_opportunities",
+    "cc_version": "synthetic-child-v1",
+    "declaration_sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+  },
+  "parent_ref": {
+    "id": "ranking_parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "parent_admission_ref": {
+    "id": "rsi_parent_admission.json",
+    "sha256": "91677b6a7086ce0afaab67162283fad64e34658a344703e94ba708ef61b0df32"
+  },
+  "evidence_refs": [
+    {
+      "id": "rsi_referee_evidence.json",
+      "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
+    },
+    {
+      "id": "rsi_evidence_export.json",
+      "sha256": "83202d1ac21e78924da720952c263471e1664d6258a6342ec9a66f17d74ec99d"
+    }
+  ],
+  "check_pins": {
+    "check_bundle_id": "research.screening.checks",
+    "check_bundle_version": "1.0.0",
+    "check_bundle_sha256": "ea123ab35eaeecf23fbcdcc6d62b0a72540a10212e10e4fb066457f48885fc9d",
+    "checking_profile_id": "research.screening.profile",
+    "checking_profile_version": "1.0.0",
+    "checking_profile_sha256": "151036ce7c88518f7237d0d1c1bf317f23abd4b54e21bb66367be6ed01043985"
+  },
+  "memory_mb": 2048,
+  "status": "admitted",
+  "standing": "inactive",
+  "reasons": [
+    "Synthetic example of protected compatibility/security/evidence disposition; not an actual admission"
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

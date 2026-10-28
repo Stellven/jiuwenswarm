@@ -1,0 +1,403 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.planner",
+    "version_label": "example-2",
+    "kind": "agent",
+    "summary": "Synthetic teaching declaration for the Planner CC. It proposes a bounded JSON DAG of admitted CCs.",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      {
+        "path": "screening_rubric.json",
+        "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+      },
+      {
+        "path": "ranking_parent.txt",
+        "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "brief",
+        "artifact_type": "research_brief",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+        "required": true,
+        "description": "Bound typed artifact",
+        "check_ids": []
+      },
+      {
+        "name": "library_snapshot",
+        "artifact_type": "library_snapshot",
+        "schema_ref": "library-snapshot:field-contract:1",
+        "required": true,
+        "description": "Bound typed artifact",
+        "check_ids": []
+      },
+      {
+        "name": "resource_inventory",
+        "artifact_type": "resource_inventory",
+        "schema_ref": "resource-inventory:field-contract:1",
+        "required": true,
+        "description": "Pinned list of supplied and observed resources",
+        "check_ids": []
+      },
+      {
+        "name": "plan_policy",
+        "artifact_type": "plan_policy",
+        "schema_ref": "plan-policy:field-contract:1",
+        "required": true,
+        "description": "Bound typed artifact",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "plan_proposal",
+        "artifact_type": "plan_proposal",
+        "schema_ref": "plan-proposal:field-contract:3",
+        "required": true,
+        "description": "Bound typed artifact",
+        "check_ids": [
+          "plan_proposal_schema",
+          "brief_coverage",
+          "library_membership",
+          "port_type_compatibility",
+          "dependency_closure",
+          "acyclicity",
+          "delivery_leaf_coverage",
+          "mandatory_check_bundle_present",
+          "effects_within_policy",
+          "resource_feasibility",
+          "budget_ceilings",
+          "suggested_checks_known"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "plan_proposal_schema",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "brief_coverage",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "library_membership",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "port_type_compatibility",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "dependency_closure",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "acyclicity",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "delivery_leaf_coverage",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "mandatory_check_bundle_present",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "effects_within_policy",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "resource_feasibility",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "budget_ceilings",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      },
+      {
+        "id": "suggested_checks_known",
+        "kind": "deterministic",
+        "target": "outputs.plan_proposal",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent binder owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "host deterministic check on the exact proposal bytes and pinned snapshots"
+      }
+    ],
+    "acceptance": [
+      "plan_proposal_schema",
+      "brief_coverage",
+      "library_membership",
+      "port_type_compatibility",
+      "dependency_closure",
+      "acyclicity",
+      "delivery_leaf_coverage",
+      "mandatory_check_bundle_present",
+      "effects_within_policy",
+      "resource_feasibility",
+      "budget_ceilings",
+      "suggested_checks_known"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Plan quality and coverage meaning are not semantically verified. The host checks coverage by ID only."
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 120,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "The Planner receives the library snapshot as data and never reads the live library."
+    ]
+  }
+}

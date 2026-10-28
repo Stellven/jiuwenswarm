@@ -1,0 +1,559 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.screening",
+    "version_label": "example-2",
+    "kind": "agent",
+    "summary": "Scores each candidate on three fixed dimensions, filters forbidden dependencies, ranks with a pure helper and selects one opportunity",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      {
+        "path": "screening_rubric.json",
+        "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+      },
+      {
+        "path": "ranking_parent.txt",
+        "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+      },
+      {
+        "path": "screening_prompt.txt",
+        "sha256": "11336f6ccbf243bd1d7dc3b719bdb1ee77a7cc07472e61d36ccd78657aa586e2"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "brief",
+        "artifact_type": "research_brief",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+        "required": true,
+        "description": "Accepted Research Brief",
+        "check_ids": []
+      },
+      {
+        "name": "candidate_set",
+        "artifact_type": "candidate_set",
+        "schema_ref": "candidate-set:field-contract:2",
+        "required": true,
+        "description": "Accepted candidate set",
+        "check_ids": []
+      },
+      {
+        "name": "screening_rubric",
+        "artifact_type": "screening_rubric",
+        "schema_ref": "screening-rubric:field-contract:1",
+        "required": true,
+        "description": "Pinned rubric: dimensions, anchors, tie rule and forbidden dependencies",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "screening_result",
+        "artifact_type": "screening_result",
+        "schema_ref": "screening-result:field-contract:2",
+        "required": true,
+        "description": "All scores with reasons, ranking and the selected idea",
+        "check_ids": [
+          "screening_result_schema",
+          "scores_cover_candidates",
+          "score_range",
+          "score_total_sum",
+          "score_citations_in_idea",
+          "dependency_filter",
+          "disposition_consistency",
+          "ranking_deterministic",
+          "selected_is_top1"
+        ]
+      },
+      {
+        "name": "opportunity_card",
+        "artifact_type": "opportunity_card",
+        "schema_ref": "opportunity-card:field-contract:2",
+        "required": true,
+        "description": "Exactly one selected idea with scores and dispositions",
+        "check_ids": [
+          "opportunity_card_schema",
+          "selected_in_candidates",
+          "card_matches_selection",
+          "card_constraints_carried",
+          "card_dispositions_complete"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [
+      {
+        "resource_key": "original_request",
+        "mode": "read"
+      }
+    ],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "screening_result_schema",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "opportunity_card_schema",
+        "kind": "deterministic",
+        "target": "outputs.opportunity_card",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "candidate_binding",
+        "kind": "deterministic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "rubric_pinned",
+        "kind": "deterministic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "scores_cover_candidates",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "score_range",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "score_total_sum",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "score_citations_in_idea",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "dependency_filter",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "disposition_consistency",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "ranking_deterministic",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "selected_is_top1",
+        "kind": "deterministic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "selected_in_candidates",
+        "kind": "deterministic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "card_matches_selection",
+        "kind": "deterministic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "card_constraints_carried",
+        "kind": "deterministic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "card_dispositions_complete",
+        "kind": "deterministic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "reasons_address_dimension",
+        "kind": "semantic",
+        "target": "outputs.screening_result",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "pinned declaration and exact output",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent verifier owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "verifier assessment",
+        "owner": "protected profile registry",
+        "assurance": "reduced assurance: declaration and output only"
+      },
+      {
+        "id": "opportunity_statement_complete",
+        "kind": "semantic",
+        "target": "outputs.opportunity_card",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "pinned declaration and exact output",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent verifier owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "verifier assessment",
+        "owner": "protected profile registry",
+        "assurance": "reduced assurance: declaration and output only"
+      },
+      {
+        "id": "disposition_reasons_specific",
+        "kind": "semantic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "pinned declaration and exact output",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent verifier owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "verifier assessment",
+        "owner": "protected profile registry",
+        "assurance": "reduced assurance: declaration and output only"
+      }
+    ],
+    "acceptance": [
+      "screening_result_schema",
+      "opportunity_card_schema",
+      "candidate_binding",
+      "rubric_pinned",
+      "scores_cover_candidates",
+      "score_range",
+      "score_total_sum",
+      "score_citations_in_idea",
+      "dependency_filter",
+      "disposition_consistency",
+      "ranking_deterministic",
+      "selected_is_top1",
+      "selected_in_candidates",
+      "card_matches_selection",
+      "card_constraints_carried",
+      "card_dispositions_complete",
+      "reasons_address_dimension",
+      "opportunity_statement_complete",
+      "disposition_reasons_specific"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Whether the scores are right for the candidates is not established by checks or the verifier"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 120,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "propose",
+    "may_change": [
+      "files:ranking_*.txt",
+      "files:screening_prompt.txt",
+      "files:screening_rubric.json"
+    ],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "id": "call:routing-example-failed-no-code",
+  "route_attempt_id": "route-attempt:routing-example",
+  "route_decision_ref": {
+    "id": "route_decision.json",
+    "sha256": "ace3669e82464bd6dd3be5eddbeb2995fc53916cb2e2427220caba32c2fcef54"
+  },
+  "execution_id": "execution:routing-example",
+  "invocation_id": "invocation:routing-teaching-example",
+  "purpose": "task_execution",
+  "call_function": "worker",
+  "deployment_ref": {
+    "id": "model_deployment_example.json",
+    "sha256": "36f6b76b855f440a6045bf135714f4cf9079e72e44a28932ddfffa1701bf3352"
+  },
+  "model_selection_profile_ref": {
+    "id": "model_selection_profile.json",
+    "sha256": "8166771ea6ae108bd8ee6663ac88348fee4b942147b5efe3068fc79f1e2633df"
+  },
+  "provider_request_id": null,
+  "identity": {
+    "requested": "codex.static.example",
+    "effective": null,
+    "basis": "synthetic configuration; served model not observed"
+  },
+  "started_at": "2026-10-13T12:00:01Z",
+  "ended_at": "2026-10-13T12:00:09Z",
+  "outcome": "failed",
+  "provider_error_code": null,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic teaching example: no model call made"
+    ]
+  },
+  "evidence_refs": [],
+  "observed_runtime": false
+}

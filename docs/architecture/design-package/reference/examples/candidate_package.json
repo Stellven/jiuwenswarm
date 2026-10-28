@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "id": "candidate_package",
+  "target_profile_ref": {
+    "id": "rsi_target_profile.json",
+    "sha256": "bc9325646c3294adb03052538badb5f24dc062297418a8f18862fbf808993a9e"
+  },
+  "session_ref": {
+    "id": "rsi_session.json",
+    "sha256": "5abf71bdadf29c9416c839ca374d0d92aa9f7076376333fc17a48ded51a56184"
+  },
+  "session_result_ref": {
+    "id": "rsi_session_result.json",
+    "sha256": "6ca46ba896cbbf119f169a591727c1ea895c4461b0f57b45cf051c36d7a79151"
+  },
+  "provenance_ref": {
+    "id": "rsi_child_candidate.json",
+    "sha256": "9546d6778f18ec316129df8106be21bb3adb6a2f889269a42d1378ca8aded739"
+  },
+  "parent": {
+    "cc_name": "screening.rank_opportunities",
+    "cc_version": "example-1",
+    "declaration_sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+  },
+  "child": {
+    "cc_name": "screening.rank_opportunities",
+    "cc_version": "synthetic-child-v1",
+    "declaration_sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+  },
+  "parent_declaration_ref": {
+    "id": "ranking_declaration.json",
+    "sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+  },
+  "child_declaration_ref": {
+    "id": "ranking_child_declaration.json",
+    "sha256": "b88e47c43a39863b336ce0e070aff4ff8a78e712ce7e100b4889a04d235f2c81"
+  },
+  "diff_ref": {
+    "id": "ranking_diff.txt",
+    "sha256": "a0f9f98a4cdb0196308af4a1f85c4a96f6aacbff3f8c84ab73b3a69db7735611"
+  },
+  "referee_evidence_ref": {
+    "id": "rsi_referee_evidence.json",
+    "sha256": "74c1e79149e5da0329eb403375f5cf3833355db3c2a662e0f170e35b8ec897e7"
+  },
+  "mutable_paths_touched": [
+    "ranking_parent.txt"
+  ],
+  "created_at": "2026-10-14T10:05:00Z",
+  "ext": {
+    "example.synthetic": true
+  }
+}

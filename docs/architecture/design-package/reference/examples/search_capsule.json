@@ -1,0 +1,502 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.search",
+    "version_label": "example-2",
+    "kind": "agent",
+    "summary": "Runs the plan-bound queries over permitted connectors, captures exact excerpts and proposes 1 to 3 grounded ideas",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "brief",
+        "artifact_type": "research_brief",
+        "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+        "required": true,
+        "description": "Accepted Research Brief",
+        "check_ids": []
+      },
+      {
+        "name": "search_scope",
+        "artifact_type": "search_scope",
+        "schema_ref": "search-scope:field-contract:1",
+        "required": true,
+        "description": "Plan-bound bounds only: permitted connectors, local document refs, query and hit limits, optional topic hints. It holds no queries",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "candidate_set",
+        "artifact_type": "candidate_set",
+        "schema_ref": "candidate-set:field-contract:2",
+        "required": true,
+        "description": "Captured citations and 1 to 3 grounded ideas",
+        "check_ids": [
+          "candidate_set_schema",
+          "brief_binding",
+          "scope_binding",
+          "queries_within_bounds",
+          "connector_outcomes",
+          "idea_count",
+          "idea_ids_unique",
+          "idea_citations_resolve",
+          "citation_source_resolves",
+          "excerpt_matches_source",
+          "excerpt_hash",
+          "citation_query_ran",
+          "hit_limit",
+          "idea_states_mechanism",
+          "ideas_are_distinct",
+          "assumptions_and_risks_specific"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [
+      {
+        "kind": "operator",
+        "identifier": "deepsearch",
+        "floating": {
+          "purpose": "Keyword search over local documents and bounded academic connectors",
+          "role": "retrieval",
+          "contracts": [
+            "deepsearch:connectors:1"
+          ]
+        }
+      }
+    ],
+    "network": {
+      "mode": "allowlist",
+      "direction": "egress",
+      "allowlist": [
+        "export.arxiv.org",
+        "api.semanticscholar.org"
+      ]
+    },
+    "resources": [
+      {
+        "resource_key": "original_request",
+        "mode": "read"
+      },
+      {
+        "resource_key": "local_document_buffer",
+        "mode": "read"
+      }
+    ],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      },
+      {
+        "id": "external-query",
+        "resource_key": "academic_connectors",
+        "op": "network_egress",
+        "scope": "queries that Search wrote within the bounds of the bound search_scope, sent to permitted connectors only",
+        "idempotent": true,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "query text leaves the host",
+          "irreversibility": true
+        },
+        "assurance": "network allowlist enforced by the runner"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "candidate_set_schema",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "brief_binding",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "scope_binding",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "queries_within_bounds",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "connector_outcomes",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "idea_count",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "idea_ids_unique",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "idea_citations_resolve",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "citation_source_resolves",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "excerpt_matches_source",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "excerpt_hash",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "citation_query_ran",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "hit_limit",
+        "kind": "deterministic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "deterministic host check"
+      },
+      {
+        "id": "idea_states_mechanism",
+        "kind": "semantic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "pinned declaration and exact output",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent verifier owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "verifier assessment",
+        "owner": "protected profile registry",
+        "assurance": "reduced assurance: declaration and output only"
+      },
+      {
+        "id": "ideas_are_distinct",
+        "kind": "semantic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "pinned declaration and exact output",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent verifier owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "verifier assessment",
+        "owner": "protected profile registry",
+        "assurance": "reduced assurance: declaration and output only"
+      },
+      {
+        "id": "assumptions_and_risks_specific",
+        "kind": "semantic",
+        "target": "outputs.candidate_set",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "pinned declaration and exact output",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent verifier owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "verifier assessment",
+        "owner": "protected profile registry",
+        "assurance": "reduced assurance: declaration and output only"
+      }
+    ],
+    "acceptance": [
+      "candidate_set_schema",
+      "brief_binding",
+      "scope_binding",
+      "queries_within_bounds",
+      "connector_outcomes",
+      "idea_count",
+      "idea_ids_unique",
+      "idea_citations_resolve",
+      "citation_source_resolves",
+      "excerpt_matches_source",
+      "excerpt_hash",
+      "citation_query_ran",
+      "hit_limit",
+      "idea_states_mechanism",
+      "ideas_are_distinct",
+      "assumptions_and_risks_specific"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Whether each idea is supported by its cited excerpts is not established by checks or the verifier"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 300,
+      "invocations": 2,
+      "tool_calls": 20
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+    ]
+  }
+}
