@@ -1,0 +1,21 @@
+{
+ "id": "table_float",
+ "candidate": "table_normalize_float",
+ "tool": "table_normalize",
+ "defective": true,
+ "defect": "subtle: large integer precision",
+ "witness": {
+  "text": "[{\"x\":9007199254740993}]",
+  "format": "json",
+  "columns": [
+   "x"
+  ],
+  "delimiter": null
+ },
+ "answer": "9007199255172313",
+ "answer_kind": "token",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "9007199255172312",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

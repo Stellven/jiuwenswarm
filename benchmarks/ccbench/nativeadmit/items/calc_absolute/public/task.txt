@@ -1,0 +1,1 @@
+Our team uses calc_tool.py for this. Use it to compute the total of the amount column in ledger.csv and give me the number.

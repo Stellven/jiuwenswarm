@@ -1,0 +1,1 @@
+Our team uses table_tool.py to read data files. Use it to read tickets.csv and tell me how many characters long the note on ticket T-114 is, counting every character. Give me the number.

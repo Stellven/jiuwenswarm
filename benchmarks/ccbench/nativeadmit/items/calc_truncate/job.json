@@ -1,0 +1,10 @@
+{
+ "kind": "calc",
+ "tool": "calculate",
+ "tool_file": "calc_tool.py",
+ "argv": [
+  "runs.csv",
+  "latency_ms",
+  "mean"
+ ]
+}

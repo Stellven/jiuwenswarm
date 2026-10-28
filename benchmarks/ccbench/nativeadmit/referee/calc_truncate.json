@@ -1,0 +1,21 @@
+{
+ "id": "calc_truncate",
+ "candidate": "calculate_truncate",
+ "tool": "calculate",
+ "defective": true,
+ "defect": "broad: fractional means truncated",
+ "witness": {
+  "values": [
+   2,
+   3
+  ],
+  "mode": "json_numbers",
+  "operation": "mean"
+ },
+ "answer": "250.785",
+ "answer_kind": "number",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "250",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

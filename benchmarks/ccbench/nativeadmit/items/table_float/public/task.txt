@@ -1,0 +1,1 @@
+Our team uses table_tool.py to read data files. Use it to read shipments.json and give me the shipment_id of the 14th record.

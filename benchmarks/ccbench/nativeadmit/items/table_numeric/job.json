@@ -1,0 +1,14 @@
+{
+ "kind": "table",
+ "tool": "table_normalize",
+ "tool_file": "table_tool.py",
+ "argv": [
+  "customers.csv"
+ ],
+ "extract": {
+  "type": "where",
+  "key": "customer_id",
+  "val": "C-1017",
+  "field": "zip"
+ }
+}

@@ -1,0 +1,1 @@
+Our team uses calc_tool.py for this. Use it to compute the total of the refund column in refunds.csv for the Lisbon store (the store column) and give me the number.

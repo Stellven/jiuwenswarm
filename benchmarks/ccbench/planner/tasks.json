@@ -1,0 +1,1773 @@
+[
+  {
+    "id": "paper",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:paper",
+        "text": "Summarize the supplied qualified paper, preserving page citations, reported findings and limitations; deliver a Markdown report and evidence manifest.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:paper",
+          "text": "Summarize the supplied qualified paper, preserving page citations, reported findings and limitations; deliver a Markdown report and evidence manifest.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:paper",
+          "text": "Summarize the supplied qualified paper, preserving page citations, reported findings and limitations; deliver a Markdown report and evidence manifest.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:paper",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "paper_report"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:paper",
+          "requirement_ids": [
+            "requirement:paper"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:paper",
+          "requirement_ids": [
+            "requirement:paper"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.paper",
+      "resources": [
+        {
+          "resource_key": "local_document_buffer",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "local_document_buffer",
+            "sha256": "2850a9eadca11bc2a2089ddf145148eebd72ee88327e599b057fc6eea84fdc4d"
+          },
+          "artifact_type": "local_document_buffer"
+        }
+      ]
+    },
+    "supplied_inputs": {
+      "local_document_buffer": {
+        "artifact_type": "local_document_buffer",
+        "content": {
+          "schema": "ai4r-local-document-buffer:1",
+          "id": "buffer:paper",
+          "run_id": "offline:paper",
+          "account_id": "synthetic",
+          "workspace_id": "synthetic",
+          "intake_ref": {
+            "id": "qualified_intake.json",
+            "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+          },
+          "source_refs": [
+            {
+              "id": "paper:canonical-text",
+              "sha256": "d0de831ff5ecf8e9bd2633fbda78fc942e1fae41005784746187d1c837dc62f0"
+            }
+          ]
+        },
+        "source_texts": [
+          {
+            "ref": {
+              "id": "paper:canonical-text",
+              "sha256": "d0de831ff5ecf8e9bd2633fbda78fc942e1fae41005784746187d1c837dc62f0"
+            },
+            "text": "A classifier achieved accuracy 0.85 on the reported test set. No external validation was performed."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "screen",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:screen",
+        "text": "Screen the supplied candidate set with the installed fixed rubric; return ranked screening results and the selected opportunity card. Do not conduct an experiment.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:screen",
+          "text": "Screen the supplied candidate set with the installed fixed rubric; return ranked screening results and the selected opportunity card. Do not conduct an experiment.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:screen",
+          "text": "Screen the supplied candidate set with the installed fixed rubric; return ranked screening results and the selected opportunity card. Do not conduct an experiment.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:screen",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:screen",
+          "requirement_ids": [
+            "requirement:screen"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:screen",
+          "requirement_ids": [
+            "requirement:screen"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.screen",
+      "resources": [
+        {
+          "resource_key": "candidate_set",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "candidate_set",
+            "sha256": "4b1170824008cde889337e0686a2cc28568989b3929888fd19878378dc1a7cc5"
+          },
+          "artifact_type": "candidate_set"
+        },
+        {
+          "resource_key": "original_request",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "original_request",
+            "sha256": "6a9507d0ebf34f775ce5f9f3b3d4a2e805d05b1fc1a7826c5910478df9744358"
+          },
+          "artifact_type": "text"
+        }
+      ]
+    },
+    "supplied_inputs": {
+      "candidate_set": {
+        "artifact_type": "candidate_set",
+        "content": {
+          "schema_version": "2.0.0",
+          "id": "candidate_set",
+          "brief_ref": {
+            "id": "brief",
+            "sha256": "c4d549b37a0e74aca956b4227f6ac0934e8fe160ef2442344b67d867dd5497c9"
+          },
+          "scope_ref": {
+            "id": "scope",
+            "sha256": "21d5b5bbeb67f658af5773add62e28ba6d154bed42a6617f9099338acada3af0"
+          },
+          "queries": [
+            "supplied classifier candidate"
+          ],
+          "connector_outcomes": [
+            {
+              "connector": "local_documents",
+              "status": "used",
+              "reason": "Supplied source",
+              "citations_captured": 1
+            }
+          ],
+          "citations": [
+            {
+              "id": "citation:one",
+              "source_ref": {
+                "id": "source",
+                "sha256": "9ac04634856f9d4773e14dad57b78488c83d42500a6c6f057ddbd966ffc55df5"
+              },
+              "connector": "local_documents",
+              "query": "supplied classifier candidate",
+              "title": "Supplied classifier source",
+              "locator": "page 1",
+              "char_start": 0,
+              "char_end": 17,
+              "excerpt": "Classifier source",
+              "excerpt_sha256": "482195bdede61b66cf226846470d70c73a9b2f503929b9fd38485d7e462cad75"
+            }
+          ],
+          "ideas": [
+            {
+              "idea_id": "idea:001",
+              "title": "Linear classifier",
+              "summary": "Use the supplied linear classifier baseline.",
+              "citation_ids": [
+                "citation:one"
+              ],
+              "assumptions": [
+                "Supplied data remains fixed"
+              ],
+              "risks": [
+                "Generalization is unmeasured"
+              ]
+            }
+          ]
+        }
+      },
+      "original_request": {
+        "artifact_type": "text",
+        "content": "Screen the supplied candidate set with the installed fixed rubric; return ranked screening results and the selected opportunity card. Do not conduct an experiment."
+      }
+    }
+  },
+  {
+    "id": "normalize",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:normalize",
+        "text": "Normalize the supplied CSV packet file measurements.csv into ordered scalar rows without conversion or inference.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:normalize",
+          "text": "Normalize the supplied CSV packet file measurements.csv into ordered scalar rows without conversion or inference.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:normalize",
+          "text": "Normalize the supplied CSV packet file measurements.csv into ordered scalar rows without conversion or inference.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:normalize",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:normalize",
+          "requirement_ids": [
+            "requirement:normalize"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:normalize",
+          "requirement_ids": [
+            "requirement:normalize"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.normalize",
+      "resources": [
+        {
+          "resource_key": "packet",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "packet",
+            "sha256": "77db4bb37ae38b9bb0f2f4b139c0f64f25dcb1c9a28553a3f2cfe779400d2eeb"
+          },
+          "artifact_type": "work_packet"
+        }
+      ]
+    },
+    "supplied_inputs": {
+      "packet": {
+        "artifact_type": "work_packet",
+        "content": {
+          "schema_version": "1.0.0",
+          "data": {
+            "table": {
+              "columns": [
+                "accuracy"
+              ],
+              "rows": [
+                [
+                  0.8
+                ],
+                [
+                  0.9
+                ]
+              ]
+            },
+            "calculation": {
+              "columns": [
+                "accuracy"
+              ],
+              "operations": [
+                "mean"
+              ],
+              "numeric_mode": "json_numbers"
+            },
+            "table_request": {
+              "file": "measurements.csv",
+              "format": "csv",
+              "columns": [
+                "accuracy"
+              ],
+              "delimiter": ","
+            },
+            "report": {
+              "path": "report.md",
+              "title": "Supplied measurements",
+              "sections": [
+                {
+                  "heading": "Results",
+                  "text": "Two supplied measurements."
+                }
+              ],
+              "data_keys": [
+                "table"
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "measurements.csv",
+              "text": "accuracy\n0.8\n0.9\n",
+              "sha256": "61a43e25c8ef69501aea43de2d88b41418adb739f0e266b251c08e9513dba45f"
+            }
+          ],
+          "trust": "provisional",
+          "provenance": [],
+          "limitations": []
+        }
+      }
+    }
+  },
+  {
+    "id": "calculate",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:calculate",
+        "text": "Calculate the mean of column accuracy in the supplied table packet using the explicit operation request; preserve the source table and report the numeric result.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:calculate",
+          "text": "Calculate the mean of column accuracy in the supplied table packet using the explicit operation request; preserve the source table and report the numeric result.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:calculate",
+          "text": "Calculate the mean of column accuracy in the supplied table packet using the explicit operation request; preserve the source table and report the numeric result.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:calculate",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:calculate",
+          "requirement_ids": [
+            "requirement:calculate"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:calculate",
+          "requirement_ids": [
+            "requirement:calculate"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.calculate",
+      "resources": [
+        {
+          "resource_key": "packet",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "packet",
+            "sha256": "77db4bb37ae38b9bb0f2f4b139c0f64f25dcb1c9a28553a3f2cfe779400d2eeb"
+          },
+          "artifact_type": "table_packet"
+        }
+      ]
+    },
+    "supplied_inputs": {
+      "packet": {
+        "artifact_type": "table_packet",
+        "content": {
+          "schema_version": "1.0.0",
+          "data": {
+            "table": {
+              "columns": [
+                "accuracy"
+              ],
+              "rows": [
+                [
+                  0.8
+                ],
+                [
+                  0.9
+                ]
+              ]
+            },
+            "calculation": {
+              "columns": [
+                "accuracy"
+              ],
+              "operations": [
+                "mean"
+              ],
+              "numeric_mode": "json_numbers"
+            },
+            "table_request": {
+              "file": "measurements.csv",
+              "format": "csv",
+              "columns": [
+                "accuracy"
+              ],
+              "delimiter": ","
+            },
+            "report": {
+              "path": "report.md",
+              "title": "Supplied measurements",
+              "sections": [
+                {
+                  "heading": "Results",
+                  "text": "Two supplied measurements."
+                }
+              ],
+              "data_keys": [
+                "table"
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "measurements.csv",
+              "text": "accuracy\n0.8\n0.9\n",
+              "sha256": "61a43e25c8ef69501aea43de2d88b41418adb739f0e266b251c08e9513dba45f"
+            }
+          ],
+          "trust": "provisional",
+          "provenance": [],
+          "limitations": []
+        }
+      }
+    }
+  },
+  {
+    "id": "report",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:report",
+        "text": "Render the supplied explicit report sections and selected JSON data into an escaped Markdown report with a digest manifest; add no research claims.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:report",
+          "text": "Render the supplied explicit report sections and selected JSON data into an escaped Markdown report with a digest manifest; add no research claims.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:report",
+          "text": "Render the supplied explicit report sections and selected JSON data into an escaped Markdown report with a digest manifest; add no research claims.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:report",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:report",
+          "requirement_ids": [
+            "requirement:report"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:report",
+          "requirement_ids": [
+            "requirement:report"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.report",
+      "resources": [
+        {
+          "resource_key": "packet",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "packet",
+            "sha256": "77db4bb37ae38b9bb0f2f4b139c0f64f25dcb1c9a28553a3f2cfe779400d2eeb"
+          },
+          "artifact_type": "work_packet"
+        }
+      ]
+    },
+    "supplied_inputs": {
+      "packet": {
+        "artifact_type": "work_packet",
+        "content": {
+          "schema_version": "1.0.0",
+          "data": {
+            "table": {
+              "columns": [
+                "accuracy"
+              ],
+              "rows": [
+                [
+                  0.8
+                ],
+                [
+                  0.9
+                ]
+              ]
+            },
+            "calculation": {
+              "columns": [
+                "accuracy"
+              ],
+              "operations": [
+                "mean"
+              ],
+              "numeric_mode": "json_numbers"
+            },
+            "table_request": {
+              "file": "measurements.csv",
+              "format": "csv",
+              "columns": [
+                "accuracy"
+              ],
+              "delimiter": ","
+            },
+            "report": {
+              "path": "report.md",
+              "title": "Supplied measurements",
+              "sections": [
+                {
+                  "heading": "Results",
+                  "text": "Two supplied measurements."
+                }
+              ],
+              "data_keys": [
+                "table"
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "measurements.csv",
+              "text": "accuracy\n0.8\n0.9\n",
+              "sha256": "61a43e25c8ef69501aea43de2d88b41418adb739f0e266b251c08e9513dba45f"
+            }
+          ],
+          "trust": "provisional",
+          "provenance": [],
+          "limitations": []
+        }
+      }
+    }
+  },
+  {
+    "id": "gpu_training",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:gpu_training",
+        "text": "Train a new 70-billion-parameter neural network on eight GPUs using distributed backpropagation and deliver measured held-out performance. GPU training is mandatory.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:gpu_training",
+          "text": "Train a new 70-billion-parameter neural network on eight GPUs using distributed backpropagation and deliver measured held-out performance. GPU training is mandatory.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:gpu_training",
+          "text": "Train a new 70-billion-parameter neural network on eight GPUs using distributed backpropagation and deliver measured held-out performance. GPU training is mandatory.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:gpu_training",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:gpu_training",
+          "requirement_ids": [
+            "requirement:gpu_training"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:gpu_training",
+          "requirement_ids": [
+            "requirement:gpu_training"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.gpu_training",
+      "resources": []
+    },
+    "supplied_inputs": {}
+  },
+  {
+    "id": "live_web",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:live_web",
+        "text": "Use a general-purpose live web search and browser to discover papers published today and retrieve arbitrary original publisher pages outside the pinned academic connectors. Live retrieval of those pages is mandatory; supplied documents and academic-connector-only results are not substitutes.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:live_web",
+          "text": "Use a general-purpose live web search and browser to discover papers published today and retrieve arbitrary original publisher pages outside the pinned academic connectors. Live retrieval of those pages is mandatory; supplied documents and academic-connector-only results are not substitutes.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:live_web",
+          "text": "Use a general-purpose live web search and browser to discover papers published today and retrieve arbitrary original publisher pages outside the pinned academic connectors. Live retrieval of those pages is mandatory; supplied documents and academic-connector-only results are not substitutes.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:live_web",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:live_web",
+          "requirement_ids": [
+            "requirement:live_web"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:live_web",
+          "requirement_ids": [
+            "requirement:live_web"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.live_web",
+      "resources": []
+    },
+    "supplied_inputs": {}
+  },
+  {
+    "id": "human_study",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:human_study",
+        "text": "Recruit 100 human participants, obtain consent and conduct a prospective randomized user study, delivering newly collected participant measurements.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:human_study",
+          "text": "Recruit 100 human participants, obtain consent and conduct a prospective randomized user study, delivering newly collected participant measurements.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:human_study",
+          "text": "Recruit 100 human participants, obtain consent and conduct a prospective randomized user study, delivering newly collected participant measurements.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:human_study",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:human_study",
+          "requirement_ids": [
+            "requirement:human_study"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:human_study",
+          "requirement_ids": [
+            "requirement:human_study"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.human_study",
+      "resources": []
+    },
+    "supplied_inputs": {}
+  },
+  {
+    "id": "budget_time",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:budget_time",
+        "text": "Render the supplied report packet. Reserve at least 12000 seconds of aggregate node wall-time limits; this reservation is mandatory and may not be reduced. The planning policy permits at most 10800 aggregate seconds.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:budget_time",
+          "text": "Render the supplied report packet. Reserve at least 12000 seconds of aggregate node wall-time limits; this reservation is mandatory and may not be reduced. The planning policy permits at most 10800 aggregate seconds.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:budget_time",
+          "text": "Render the supplied report packet. Reserve at least 12000 seconds of aggregate node wall-time limits; this reservation is mandatory and may not be reduced. The planning policy permits at most 10800 aggregate seconds.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:budget_time",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:budget_time",
+          "requirement_ids": [
+            "requirement:budget_time"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:budget_time",
+          "requirement_ids": [
+            "requirement:budget_time"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.budget_time",
+      "resources": [
+        {
+          "resource_key": "packet",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "packet",
+            "sha256": "77db4bb37ae38b9bb0f2f4b139c0f64f25dcb1c9a28553a3f2cfe779400d2eeb"
+          },
+          "artifact_type": "work_packet"
+        }
+      ]
+    },
+    "supplied_inputs": {
+      "packet": {
+        "artifact_type": "work_packet",
+        "content": {
+          "schema_version": "1.0.0",
+          "data": {
+            "table": {
+              "columns": [
+                "accuracy"
+              ],
+              "rows": [
+                [
+                  0.8
+                ],
+                [
+                  0.9
+                ]
+              ]
+            },
+            "calculation": {
+              "columns": [
+                "accuracy"
+              ],
+              "operations": [
+                "mean"
+              ],
+              "numeric_mode": "json_numbers"
+            },
+            "table_request": {
+              "file": "measurements.csv",
+              "format": "csv",
+              "columns": [
+                "accuracy"
+              ],
+              "delimiter": ","
+            },
+            "report": {
+              "path": "report.md",
+              "title": "Supplied measurements",
+              "sections": [
+                {
+                  "heading": "Results",
+                  "text": "Two supplied measurements."
+                }
+              ],
+              "data_keys": [
+                "table"
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "measurements.csv",
+              "text": "accuracy\n0.8\n0.9\n",
+              "sha256": "61a43e25c8ef69501aea43de2d88b41418adb739f0e266b251c08e9513dba45f"
+            }
+          ],
+          "trust": "provisional",
+          "provenance": [],
+          "limitations": []
+        }
+      }
+    }
+  },
+  {
+    "id": "budget_calls",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:budget_calls",
+        "text": "Render the supplied report packet. Reserve at least 100 aggregate model calls across the planned nodes; this reservation is mandatory and may not be reduced. The planning policy permits at most 80 aggregate model calls.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:budget_calls",
+          "text": "Render the supplied report packet. Reserve at least 100 aggregate model calls across the planned nodes; this reservation is mandatory and may not be reduced. The planning policy permits at most 80 aggregate model calls.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:budget_calls",
+          "text": "Render the supplied report packet. Reserve at least 100 aggregate model calls across the planned nodes; this reservation is mandatory and may not be reduced. The planning policy permits at most 80 aggregate model calls.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:budget_calls",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:budget_calls",
+          "requirement_ids": [
+            "requirement:budget_calls"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:budget_calls",
+          "requirement_ids": [
+            "requirement:budget_calls"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.budget_calls",
+      "resources": [
+        {
+          "resource_key": "packet",
+          "kind": "file",
+          "available": true,
+          "quantity": null,
+          "ref": {
+            "id": "packet",
+            "sha256": "77db4bb37ae38b9bb0f2f4b139c0f64f25dcb1c9a28553a3f2cfe779400d2eeb"
+          },
+          "artifact_type": "work_packet"
+        }
+      ]
+    },
+    "supplied_inputs": {
+      "packet": {
+        "artifact_type": "work_packet",
+        "content": {
+          "schema_version": "1.0.0",
+          "data": {
+            "table": {
+              "columns": [
+                "accuracy"
+              ],
+              "rows": [
+                [
+                  0.8
+                ],
+                [
+                  0.9
+                ]
+              ]
+            },
+            "calculation": {
+              "columns": [
+                "accuracy"
+              ],
+              "operations": [
+                "mean"
+              ],
+              "numeric_mode": "json_numbers"
+            },
+            "table_request": {
+              "file": "measurements.csv",
+              "format": "csv",
+              "columns": [
+                "accuracy"
+              ],
+              "delimiter": ","
+            },
+            "report": {
+              "path": "report.md",
+              "title": "Supplied measurements",
+              "sections": [
+                {
+                  "heading": "Results",
+                  "text": "Two supplied measurements."
+                }
+              ],
+              "data_keys": [
+                "table"
+              ]
+            }
+          },
+          "files": [
+            {
+              "path": "measurements.csv",
+              "text": "accuracy\n0.8\n0.9\n",
+              "sha256": "61a43e25c8ef69501aea43de2d88b41418adb739f0e266b251c08e9513dba45f"
+            }
+          ],
+          "trust": "provisional",
+          "provenance": [],
+          "limitations": []
+        }
+      }
+    }
+  },
+  {
+    "id": "missing_paper",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:missing_paper",
+        "text": "Summarize the paper I intended to upload, including exact page quotations and a report. No paper or extracted text has been supplied; do not invent its contents.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:missing_paper",
+          "text": "Summarize the paper I intended to upload, including exact page quotations and a report. No paper or extracted text has been supplied; do not invent its contents.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:missing_paper",
+          "text": "Summarize the paper I intended to upload, including exact page quotations and a report. No paper or extracted text has been supplied; do not invent its contents.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:missing_paper",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "paper_report"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:missing_paper",
+          "requirement_ids": [
+            "requirement:missing_paper"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:missing_paper",
+          "requirement_ids": [
+            "requirement:missing_paper"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.missing_paper",
+      "resources": []
+    },
+    "supplied_inputs": {}
+  },
+  {
+    "id": "missing_values",
+    "brief": {
+      "schema_version": "3.0.0",
+      "intent_ref": {
+        "id": "intent_ir.json",
+        "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      },
+      "objective": {
+        "id": "objective:missing_values",
+        "text": "Calculate the mean accuracy of my experiment. No measurement values or data packet have been supplied; do not invent observations.",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "intent_ir.json",
+            "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+          }
+        ]
+      },
+      "in_scope": [
+        {
+          "id": "scope:missing_values",
+          "text": "Calculate the mean accuracy of my experiment. No measurement values or data packet have been supplied; do not invent observations.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "out_of_scope": [],
+      "mandatory_requirements": [
+        {
+          "id": "requirement:missing_values",
+          "text": "Calculate the mean accuracy of my experiment. No measurement values or data packet have been supplied; do not invent observations.",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "intent_ir.json",
+              "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+            }
+          ]
+        }
+      ],
+      "optional_preferences": [],
+      "constraints": [],
+      "target_metrics": [],
+      "deliverables": [
+        {
+          "id": "deliverable:missing_values",
+          "name": "result",
+          "description": "The requested checked result and stated limitations",
+          "artifact_type": "work_packet"
+        }
+      ],
+      "acceptance_expectations": [
+        {
+          "id": "acceptance:missing_values",
+          "requirement_ids": [
+            "requirement:missing_values"
+          ],
+          "description": "Named output fields or installed check IDs demonstrate the requested outcome."
+        }
+      ],
+      "evidence_obligations": [
+        {
+          "id": "evidence:missing_values",
+          "requirement_ids": [
+            "requirement:missing_values"
+          ],
+          "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research."
+        }
+      ],
+      "assumptions": [],
+      "unresolved_items": [],
+      "resource_refs": [],
+      "confirmation": {
+        "basis": "authorized_assumptions",
+        "source_refs": [
+          {
+            "id": "request.txt",
+            "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+          },
+          {
+            "id": "default_policy.json",
+            "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+          }
+        ]
+      },
+      "intake_ref": {
+        "id": "qualified_intake.json",
+        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      },
+      "context_refs": [],
+      "domain_lane": "scientific_research",
+      "input_bindings": []
+    },
+    "resource_inventory": {
+      "schema_version": "1.0.0",
+      "id": "inventory.missing_values",
+      "resources": []
+    },
+    "supplied_inputs": {}
+  }
+]

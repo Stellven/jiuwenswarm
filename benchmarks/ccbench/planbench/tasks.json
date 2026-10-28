@@ -1,0 +1,2218 @@
+[
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:sum_csv",
+     "requirement_ids": [
+      "requirement:sum_csv"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The sum of the revenue column",
+     "id": "deliverable:sum_csv:d1",
+     "name": "d1"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The row count of the revenue column",
+     "id": "deliverable:sum_csv:d2",
+     "name": "d2"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:sum_csv",
+     "requirement_ids": [
+      "requirement:sum_csv"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:sum_csv",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `sales`, read its CSV file sales.csv and compute the sum and the number of rows of the revenue column.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `sales` (packet with sales.csv and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"revenue\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"count\", \"sum\"]}, \"table_request\": {\"columns\": [\"region\", \"revenue\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8\", \"text\": \"region,revenue\\nnorth,10.50\\nsouth,20.25\\neast,30.00\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The sum of the revenue column\nD2: The row count of the revenue column\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:sum_csv",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `sales`, read its CSV file sales.csv and compute the sum and the number of rows of the revenue column."
+    }
+   ],
+   "objective": {
+    "id": "objective:sum_csv",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Using the supplied packet `sales`, read its CSV file sales.csv and compute the sum and the number of rows of the revenue column.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `sales` (packet with sales.csv and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"revenue\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"count\", \"sum\"]}, \"table_request\": {\"columns\": [\"region\", \"revenue\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8\", \"text\": \"region,revenue\\nnorth,10.50\\nsouth,20.25\\neast,30.00\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The sum of the revenue column\nD2: The row count of the revenue column\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The sum of the revenue column"
+   },
+   {
+    "id": "D2",
+    "text": "The row count of the revenue column"
+   }
+  ],
+  "id": "sum_csv",
+  "inputs": {
+   "sales": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "revenue"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "count",
+        "sum"
+       ]
+      },
+      "table_request": {
+       "columns": [
+        "region",
+        "revenue"
+       ],
+       "delimiter": ",",
+       "file": "sales.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "sales.csv",
+       "sha256": "4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8",
+       "text": "region,revenue\nnorth,10.50\nsouth,20.25\neast,30.00\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with sales.csv and its parse/calculation settings"
+   }
+  },
+  "request": "Using the supplied packet `sales`, read its CSV file sales.csv and compute the sum and the number of rows of the revenue column.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `sales` (packet with sales.csv and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"revenue\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"count\", \"sum\"]}, \"table_request\": {\"columns\": [\"region\", \"revenue\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8\", \"text\": \"region,revenue\\nnorth,10.50\\nsouth,20.25\\neast,30.00\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The sum of the revenue column\nD2: The row count of the revenue column\n",
+  "resource_inventory": {
+   "id": "inventory.sum_csv",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "sales",
+      "sha256": "c016a838f1e3552f7be5d1d1faae7fc59ea6fd9e0b4c35f34ad97a1a5595da79"
+     },
+     "resource_key": "sales"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:mean_report",
+     "requirement_ids": [
+      "requirement:mean_report"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The mean accuracy",
+     "id": "deliverable:mean_report:d1",
+     "name": "d1"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The report file accuracy_report.md",
+     "id": "deliverable:mean_report:d2",
+     "name": "d2"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:mean_report",
+     "requirement_ids": [
+      "requirement:mean_report"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:mean_report",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `runs`, compute the mean of the accuracy column of runs.csv and write a Markdown report file accuracy_report.md that includes that mean.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `runs` (packet with runs.csv, parse/calculation settings and report settings): {\"data\": {\"calculation\": {\"columns\": [\"accuracy\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"accuracy_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Mean accuracy over four runs.\"}], \"title\": \"Accuracy summary\"}, \"table_request\": {\"columns\": [\"run\", \"accuracy\"], \"delimiter\": \",\", \"file\": \"runs.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"runs.csv\", \"sha256\": \"693e0dd099ef2067f40885699abd3dc0be61f5bbef46f2e00556a49c4a69f60c\", \"text\": \"run,accuracy\\na,0.81\\nb,0.87\\nc,0.84\\nd,0.90\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean accuracy\nD2: The report file accuracy_report.md\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:mean_report",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `runs`, compute the mean of the accuracy column of runs.csv and write a Markdown report file accuracy_report.md that includes that mean."
+    }
+   ],
+   "objective": {
+    "id": "objective:mean_report",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Using the supplied packet `runs`, compute the mean of the accuracy column of runs.csv and write a Markdown report file accuracy_report.md that includes that mean.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `runs` (packet with runs.csv, parse/calculation settings and report settings): {\"data\": {\"calculation\": {\"columns\": [\"accuracy\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"accuracy_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Mean accuracy over four runs.\"}], \"title\": \"Accuracy summary\"}, \"table_request\": {\"columns\": [\"run\", \"accuracy\"], \"delimiter\": \",\", \"file\": \"runs.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"runs.csv\", \"sha256\": \"693e0dd099ef2067f40885699abd3dc0be61f5bbef46f2e00556a49c4a69f60c\", \"text\": \"run,accuracy\\na,0.81\\nb,0.87\\nc,0.84\\nd,0.90\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean accuracy\nD2: The report file accuracy_report.md\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The mean accuracy"
+   },
+   {
+    "id": "D2",
+    "text": "The report file accuracy_report.md"
+   }
+  ],
+  "id": "mean_report",
+  "inputs": {
+   "runs": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "accuracy"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "mean"
+       ]
+      },
+      "report": {
+       "data_keys": [
+        "calculation_result"
+       ],
+       "path": "accuracy_report.md",
+       "sections": [
+        {
+         "heading": "Result",
+         "text": "Mean accuracy over four runs."
+        }
+       ],
+       "title": "Accuracy summary"
+      },
+      "table_request": {
+       "columns": [
+        "run",
+        "accuracy"
+       ],
+       "delimiter": ",",
+       "file": "runs.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "runs.csv",
+       "sha256": "693e0dd099ef2067f40885699abd3dc0be61f5bbef46f2e00556a49c4a69f60c",
+       "text": "run,accuracy\na,0.81\nb,0.87\nc,0.84\nd,0.90\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with runs.csv, parse/calculation settings and report settings"
+   }
+  },
+  "request": "Using the supplied packet `runs`, compute the mean of the accuracy column of runs.csv and write a Markdown report file accuracy_report.md that includes that mean.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `runs` (packet with runs.csv, parse/calculation settings and report settings): {\"data\": {\"calculation\": {\"columns\": [\"accuracy\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"accuracy_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Mean accuracy over four runs.\"}], \"title\": \"Accuracy summary\"}, \"table_request\": {\"columns\": [\"run\", \"accuracy\"], \"delimiter\": \",\", \"file\": \"runs.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"runs.csv\", \"sha256\": \"693e0dd099ef2067f40885699abd3dc0be61f5bbef46f2e00556a49c4a69f60c\", \"text\": \"run,accuracy\\na,0.81\\nb,0.87\\nc,0.84\\nd,0.90\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean accuracy\nD2: The report file accuracy_report.md\n",
+  "resource_inventory": {
+   "id": "inventory.mean_report",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "runs",
+      "sha256": "ec0cb59bc850e4b9fc254d703ec8076b467c237e064901bae96d799d69f48ccf"
+     },
+     "resource_key": "runs"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:json_minmax",
+     "requirement_ids": [
+      "requirement:json_minmax"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The smallest ms value",
+     "id": "deliverable:json_minmax:d1",
+     "name": "d1"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The largest ms value",
+     "id": "deliverable:json_minmax:d2",
+     "name": "d2"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:json_minmax",
+     "requirement_ids": [
+      "requirement:json_minmax"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:json_minmax",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `latency`, read its JSON file latency.json and report the smallest and the largest ms value.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `latency` (packet with latency.json and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"ms\"], \"numeric_mode\": \"json_numbers\", \"operations\": [\"min\", \"max\"]}, \"table_request\": {\"columns\": [\"service\", \"ms\"], \"delimiter\": null, \"file\": \"latency.json\", \"format\": \"json\"}}, \"files\": [{\"path\": \"latency.json\", \"sha256\": \"78eadc11a02c122228364367823999756900968c332cb3b7560695dce34f5e75\", \"text\": \"[{\\\"service\\\": \\\"a\\\", \\\"ms\\\": 120}, {\\\"service\\\": \\\"b\\\", \\\"ms\\\": 95}, {\\\"service\\\": \\\"c\\\", \\\"ms\\\": 143}, {\\\"service\\\": \\\"d\\\", \\\"ms\\\": 101}]\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The smallest ms value\nD2: The largest ms value\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:json_minmax",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `latency`, read its JSON file latency.json and report the smallest and the largest ms value."
+    }
+   ],
+   "objective": {
+    "id": "objective:json_minmax",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Using the supplied packet `latency`, read its JSON file latency.json and report the smallest and the largest ms value.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `latency` (packet with latency.json and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"ms\"], \"numeric_mode\": \"json_numbers\", \"operations\": [\"min\", \"max\"]}, \"table_request\": {\"columns\": [\"service\", \"ms\"], \"delimiter\": null, \"file\": \"latency.json\", \"format\": \"json\"}}, \"files\": [{\"path\": \"latency.json\", \"sha256\": \"78eadc11a02c122228364367823999756900968c332cb3b7560695dce34f5e75\", \"text\": \"[{\\\"service\\\": \\\"a\\\", \\\"ms\\\": 120}, {\\\"service\\\": \\\"b\\\", \\\"ms\\\": 95}, {\\\"service\\\": \\\"c\\\", \\\"ms\\\": 143}, {\\\"service\\\": \\\"d\\\", \\\"ms\\\": 101}]\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The smallest ms value\nD2: The largest ms value\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The smallest ms value"
+   },
+   {
+    "id": "D2",
+    "text": "The largest ms value"
+   }
+  ],
+  "id": "json_minmax",
+  "inputs": {
+   "latency": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "ms"
+       ],
+       "numeric_mode": "json_numbers",
+       "operations": [
+        "min",
+        "max"
+       ]
+      },
+      "table_request": {
+       "columns": [
+        "service",
+        "ms"
+       ],
+       "delimiter": null,
+       "file": "latency.json",
+       "format": "json"
+      }
+     },
+     "files": [
+      {
+       "path": "latency.json",
+       "sha256": "78eadc11a02c122228364367823999756900968c332cb3b7560695dce34f5e75",
+       "text": "[{\"service\": \"a\", \"ms\": 120}, {\"service\": \"b\", \"ms\": 95}, {\"service\": \"c\", \"ms\": 143}, {\"service\": \"d\", \"ms\": 101}]"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with latency.json and its parse/calculation settings"
+   }
+  },
+  "request": "Using the supplied packet `latency`, read its JSON file latency.json and report the smallest and the largest ms value.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `latency` (packet with latency.json and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"ms\"], \"numeric_mode\": \"json_numbers\", \"operations\": [\"min\", \"max\"]}, \"table_request\": {\"columns\": [\"service\", \"ms\"], \"delimiter\": null, \"file\": \"latency.json\", \"format\": \"json\"}}, \"files\": [{\"path\": \"latency.json\", \"sha256\": \"78eadc11a02c122228364367823999756900968c332cb3b7560695dce34f5e75\", \"text\": \"[{\\\"service\\\": \\\"a\\\", \\\"ms\\\": 120}, {\\\"service\\\": \\\"b\\\", \\\"ms\\\": 95}, {\\\"service\\\": \\\"c\\\", \\\"ms\\\": 143}, {\\\"service\\\": \\\"d\\\", \\\"ms\\\": 101}]\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The smallest ms value\nD2: The largest ms value\n",
+  "resource_inventory": {
+   "id": "inventory.json_minmax",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "latency",
+      "sha256": "6fbd4c20ec4f0cfe2e366b3adea9fc4a0e078b560dfcf74c802a897c04d93034"
+     },
+     "resource_key": "latency"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:pick_q2",
+     "requirement_ids": [
+      "requirement:pick_q2"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The sum of units in the second quarter",
+     "id": "deliverable:pick_q2:d1",
+     "name": "d1"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:pick_q2",
+     "requirement_ids": [
+      "requirement:pick_q2"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:pick_q2",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Compute the total units sold in the second quarter, using the second-quarter packet. Each packet holds a CSV file sales.csv.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `q1_sales` (first-quarter packet with sales.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"units\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"month\", \"units\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"56a0641a679b68e3c51fdb31fbc6ce0819fba4f35b9653ef11e5027c6b00293b\", \"text\": \"month,units\\njan,10\\nfeb,20\\nmar,30\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n- `q2_sales` (second-quarter packet with sales.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"units\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"month\", \"units\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"50de95dff3088503b871079f838de7198c2d332d4ba41c632f73fbd505cf99b1\", \"text\": \"month,units\\napr,5\\nmay,15\\njun,25\\njul,35\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The sum of units in the second quarter\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:pick_q2",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Compute the total units sold in the second quarter, using the second-quarter packet. Each packet holds a CSV file sales.csv."
+    }
+   ],
+   "objective": {
+    "id": "objective:pick_q2",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Compute the total units sold in the second quarter, using the second-quarter packet. Each packet holds a CSV file sales.csv.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `q1_sales` (first-quarter packet with sales.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"units\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"month\", \"units\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"56a0641a679b68e3c51fdb31fbc6ce0819fba4f35b9653ef11e5027c6b00293b\", \"text\": \"month,units\\njan,10\\nfeb,20\\nmar,30\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n- `q2_sales` (second-quarter packet with sales.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"units\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"month\", \"units\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"50de95dff3088503b871079f838de7198c2d332d4ba41c632f73fbd505cf99b1\", \"text\": \"month,units\\napr,5\\nmay,15\\njun,25\\njul,35\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The sum of units in the second quarter\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The sum of units in the second quarter"
+   }
+  ],
+  "id": "pick_q2",
+  "inputs": {
+   "q1_sales": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "units"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "sum"
+       ]
+      },
+      "table_request": {
+       "columns": [
+        "month",
+        "units"
+       ],
+       "delimiter": ",",
+       "file": "sales.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "sales.csv",
+       "sha256": "56a0641a679b68e3c51fdb31fbc6ce0819fba4f35b9653ef11e5027c6b00293b",
+       "text": "month,units\njan,10\nfeb,20\nmar,30\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "first-quarter packet with sales.csv and settings"
+   },
+   "q2_sales": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "units"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "sum"
+       ]
+      },
+      "table_request": {
+       "columns": [
+        "month",
+        "units"
+       ],
+       "delimiter": ",",
+       "file": "sales.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "sales.csv",
+       "sha256": "50de95dff3088503b871079f838de7198c2d332d4ba41c632f73fbd505cf99b1",
+       "text": "month,units\napr,5\nmay,15\njun,25\njul,35\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "second-quarter packet with sales.csv and settings"
+   }
+  },
+  "request": "Compute the total units sold in the second quarter, using the second-quarter packet. Each packet holds a CSV file sales.csv.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `q1_sales` (first-quarter packet with sales.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"units\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"month\", \"units\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"56a0641a679b68e3c51fdb31fbc6ce0819fba4f35b9653ef11e5027c6b00293b\", \"text\": \"month,units\\njan,10\\nfeb,20\\nmar,30\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n- `q2_sales` (second-quarter packet with sales.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"units\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"month\", \"units\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"50de95dff3088503b871079f838de7198c2d332d4ba41c632f73fbd505cf99b1\", \"text\": \"month,units\\napr,5\\nmay,15\\njun,25\\njul,35\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The sum of units in the second quarter\n",
+  "resource_inventory": {
+   "id": "inventory.pick_q2",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "q1_sales",
+      "sha256": "20a3f4721e1b337059071414d1f26c6e02ac2939c87c8c70fd0e4925a930d519"
+     },
+     "resource_key": "q1_sales"
+    },
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "q2_sales",
+      "sha256": "438ae43039b72b91345869d8baace97bd75d0e874d71666768d9e58fbb4ae86e"
+     },
+     "resource_key": "q2_sales"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:summary_report",
+     "requirement_ids": [
+      "requirement:summary_report"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The Markdown report file converted/paper-summary.md",
+     "id": "deliverable:summary_report:d1",
+     "name": "d1"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:summary_report",
+     "requirement_ids": [
+      "requirement:summary_report"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:summary_report",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Render the supplied paper summary as a Markdown report file.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `paper` (structured paper summary): {\"brief_ref\": {\"id\": \"brief\", \"sha256\": \"29a8825bd242f14386ee528d76e0e8f1e38f3c8c4047d7b2d6df7493368a17d0\"}, \"citations\": [{\"citation_id\": \"C1\", \"document_id\": \"P1\", \"end\": 40, \"page\": 1, \"quote\": \"A classifier achieved accuracy 0.85\", \"start\": 0}], \"documents\": [{\"document_id\": \"P1\", \"page_count\": 4, \"source_ref\": {\"id\": \"paper-p1\", \"sha256\": \"26c5a2581927d792a0052731d46bba98574e5e9d61624baa39d019f646754eb2\"}}], \"documents_ref\": {\"id\": \"documents\", \"sha256\": \"9b16b44d0e0a5cac4f968befb0b5b5eba913f9ef3dfa1501ed728b6ead72a357\"}, \"id\": \"paper_summary\", \"schema_version\": \"1.0.0\", \"sections\": {\"contributions\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"A simple baseline.\"}, \"limitations\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"No external validation was performed.\"}, \"method\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"A linear classifier trained on the supplied split.\"}, \"problem\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"Classify small tabular records.\"}, \"results\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"Accuracy 0.85 on the reported test set.\"}}, \"title\": \"Linear classifier on a small benchmark\"}\n\nDeliverables:\nD1: The Markdown report file converted/paper-summary.md\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:summary_report",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Render the supplied paper summary as a Markdown report file."
+    }
+   ],
+   "objective": {
+    "id": "objective:summary_report",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Render the supplied paper summary as a Markdown report file.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `paper` (structured paper summary): {\"brief_ref\": {\"id\": \"brief\", \"sha256\": \"29a8825bd242f14386ee528d76e0e8f1e38f3c8c4047d7b2d6df7493368a17d0\"}, \"citations\": [{\"citation_id\": \"C1\", \"document_id\": \"P1\", \"end\": 40, \"page\": 1, \"quote\": \"A classifier achieved accuracy 0.85\", \"start\": 0}], \"documents\": [{\"document_id\": \"P1\", \"page_count\": 4, \"source_ref\": {\"id\": \"paper-p1\", \"sha256\": \"26c5a2581927d792a0052731d46bba98574e5e9d61624baa39d019f646754eb2\"}}], \"documents_ref\": {\"id\": \"documents\", \"sha256\": \"9b16b44d0e0a5cac4f968befb0b5b5eba913f9ef3dfa1501ed728b6ead72a357\"}, \"id\": \"paper_summary\", \"schema_version\": \"1.0.0\", \"sections\": {\"contributions\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"A simple baseline.\"}, \"limitations\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"No external validation was performed.\"}, \"method\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"A linear classifier trained on the supplied split.\"}, \"problem\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"Classify small tabular records.\"}, \"results\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"Accuracy 0.85 on the reported test set.\"}}, \"title\": \"Linear classifier on a small benchmark\"}\n\nDeliverables:\nD1: The Markdown report file converted/paper-summary.md\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The Markdown report file converted/paper-summary.md"
+   }
+  ],
+  "id": "summary_report",
+  "inputs": {
+   "paper": {
+    "artifact_type": "paper_summary",
+    "content": {
+     "brief_ref": {
+      "id": "brief",
+      "sha256": "29a8825bd242f14386ee528d76e0e8f1e38f3c8c4047d7b2d6df7493368a17d0"
+     },
+     "citations": [
+      {
+       "citation_id": "C1",
+       "document_id": "P1",
+       "end": 40,
+       "page": 1,
+       "quote": "A classifier achieved accuracy 0.85",
+       "start": 0
+      }
+     ],
+     "documents": [
+      {
+       "document_id": "P1",
+       "page_count": 4,
+       "source_ref": {
+        "id": "paper-p1",
+        "sha256": "26c5a2581927d792a0052731d46bba98574e5e9d61624baa39d019f646754eb2"
+       }
+      }
+     ],
+     "documents_ref": {
+      "id": "documents",
+      "sha256": "9b16b44d0e0a5cac4f968befb0b5b5eba913f9ef3dfa1501ed728b6ead72a357"
+     },
+     "id": "paper_summary",
+     "schema_version": "1.0.0",
+     "sections": {
+      "contributions": {
+       "citation_ids": [
+        "C1"
+       ],
+       "status": "supported",
+       "text": "A simple baseline."
+      },
+      "limitations": {
+       "citation_ids": [
+        "C1"
+       ],
+       "status": "supported",
+       "text": "No external validation was performed."
+      },
+      "method": {
+       "citation_ids": [
+        "C1"
+       ],
+       "status": "supported",
+       "text": "A linear classifier trained on the supplied split."
+      },
+      "problem": {
+       "citation_ids": [
+        "C1"
+       ],
+       "status": "supported",
+       "text": "Classify small tabular records."
+      },
+      "results": {
+       "citation_ids": [
+        "C1"
+       ],
+       "status": "supported",
+       "text": "Accuracy 0.85 on the reported test set."
+      }
+     },
+     "title": "Linear classifier on a small benchmark"
+    },
+    "description": "structured paper summary"
+   }
+  },
+  "request": "Render the supplied paper summary as a Markdown report file.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `paper` (structured paper summary): {\"brief_ref\": {\"id\": \"brief\", \"sha256\": \"29a8825bd242f14386ee528d76e0e8f1e38f3c8c4047d7b2d6df7493368a17d0\"}, \"citations\": [{\"citation_id\": \"C1\", \"document_id\": \"P1\", \"end\": 40, \"page\": 1, \"quote\": \"A classifier achieved accuracy 0.85\", \"start\": 0}], \"documents\": [{\"document_id\": \"P1\", \"page_count\": 4, \"source_ref\": {\"id\": \"paper-p1\", \"sha256\": \"26c5a2581927d792a0052731d46bba98574e5e9d61624baa39d019f646754eb2\"}}], \"documents_ref\": {\"id\": \"documents\", \"sha256\": \"9b16b44d0e0a5cac4f968befb0b5b5eba913f9ef3dfa1501ed728b6ead72a357\"}, \"id\": \"paper_summary\", \"schema_version\": \"1.0.0\", \"sections\": {\"contributions\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"A simple baseline.\"}, \"limitations\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"No external validation was performed.\"}, \"method\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"A linear classifier trained on the supplied split.\"}, \"problem\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"Classify small tabular records.\"}, \"results\": {\"citation_ids\": [\"C1\"], \"status\": \"supported\", \"text\": \"Accuracy 0.85 on the reported test set.\"}}, \"title\": \"Linear classifier on a small benchmark\"}\n\nDeliverables:\nD1: The Markdown report file converted/paper-summary.md\n",
+  "resource_inventory": {
+   "id": "inventory.summary_report",
+   "resources": [
+    {
+     "artifact_type": "paper_summary",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "paper",
+      "sha256": "774492c2f89f145c83ca9002df5150f3df47b089196f37b8658efc85f050dd40"
+     },
+     "resource_key": "paper"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:table_ready",
+     "requirement_ids": [
+      "requirement:table_ready"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The mean score",
+     "id": "deliverable:table_ready:d1",
+     "name": "d1"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The largest score",
+     "id": "deliverable:table_ready:d2",
+     "name": "d2"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The report file score_report.md",
+     "id": "deliverable:table_ready:d3",
+     "name": "d3"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:table_ready",
+     "requirement_ids": [
+      "requirement:table_ready"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:table_ready",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "The supplied packet `metrics` already holds a parsed table. Compute the mean and the largest value of the score column and write the Markdown report file score_report.md.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `metrics` (packet with an already parsed table, calculation settings and report settings): {\"data\": {\"calculation\": {\"columns\": [\"score\"], \"numeric_mode\": \"json_numbers\", \"operations\": [\"mean\", \"max\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"score_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Mean and best score.\"}], \"title\": \"Scores\"}, \"table\": {\"columns\": [\"run\", \"score\"], \"rows\": [[\"a\", 0.5], [\"b\", 0.75], [\"c\", 1.0]]}}, \"files\": [], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean score\nD2: The largest score\nD3: The report file score_report.md\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:table_ready",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "The supplied packet `metrics` already holds a parsed table. Compute the mean and the largest value of the score column and write the Markdown report file score_report.md."
+    }
+   ],
+   "objective": {
+    "id": "objective:table_ready",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "The supplied packet `metrics` already holds a parsed table. Compute the mean and the largest value of the score column and write the Markdown report file score_report.md.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `metrics` (packet with an already parsed table, calculation settings and report settings): {\"data\": {\"calculation\": {\"columns\": [\"score\"], \"numeric_mode\": \"json_numbers\", \"operations\": [\"mean\", \"max\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"score_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Mean and best score.\"}], \"title\": \"Scores\"}, \"table\": {\"columns\": [\"run\", \"score\"], \"rows\": [[\"a\", 0.5], [\"b\", 0.75], [\"c\", 1.0]]}}, \"files\": [], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean score\nD2: The largest score\nD3: The report file score_report.md\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The mean score"
+   },
+   {
+    "id": "D2",
+    "text": "The largest score"
+   },
+   {
+    "id": "D3",
+    "text": "The report file score_report.md"
+   }
+  ],
+  "id": "table_ready",
+  "inputs": {
+   "metrics": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "score"
+       ],
+       "numeric_mode": "json_numbers",
+       "operations": [
+        "mean",
+        "max"
+       ]
+      },
+      "report": {
+       "data_keys": [
+        "calculation_result"
+       ],
+       "path": "score_report.md",
+       "sections": [
+        {
+         "heading": "Result",
+         "text": "Mean and best score."
+        }
+       ],
+       "title": "Scores"
+      },
+      "table": {
+       "columns": [
+        "run",
+        "score"
+       ],
+       "rows": [
+        [
+         "a",
+         0.5
+        ],
+        [
+         "b",
+         0.75
+        ],
+        [
+         "c",
+         1.0
+        ]
+       ]
+      }
+     },
+     "files": [],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with an already parsed table, calculation settings and report settings"
+   }
+  },
+  "request": "The supplied packet `metrics` already holds a parsed table. Compute the mean and the largest value of the score column and write the Markdown report file score_report.md.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `metrics` (packet with an already parsed table, calculation settings and report settings): {\"data\": {\"calculation\": {\"columns\": [\"score\"], \"numeric_mode\": \"json_numbers\", \"operations\": [\"mean\", \"max\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"score_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Mean and best score.\"}], \"title\": \"Scores\"}, \"table\": {\"columns\": [\"run\", \"score\"], \"rows\": [[\"a\", 0.5], [\"b\", 0.75], [\"c\", 1.0]]}}, \"files\": [], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean score\nD2: The largest score\nD3: The report file score_report.md\n",
+  "resource_inventory": {
+   "id": "inventory.table_ready",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "metrics",
+      "sha256": "0ff93cc3d43dd19f141875c0fd04d5ec6cc505e0d5fe6780b89b4c5ffc437917"
+     },
+     "resource_key": "metrics"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:normalize_report",
+     "requirement_ids": [
+      "requirement:normalize_report"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The parsed rows of items.csv",
+     "id": "deliverable:normalize_report:d1",
+     "name": "d1"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The report file items_report.md",
+     "id": "deliverable:normalize_report:d2",
+     "name": "d2"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:normalize_report",
+     "requirement_ids": [
+      "requirement:normalize_report"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:normalize_report",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Parse items.csv from the supplied packet `inventory` into rows and write the Markdown report file items_report.md that shows the parsed table.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `inventory` (packet with items.csv, parse settings and report settings): {\"data\": {\"report\": {\"data_keys\": [\"table\"], \"path\": \"items_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Parsed inventory rows.\"}], \"title\": \"Items\"}, \"table_request\": {\"columns\": [\"item\", \"count\"], \"delimiter\": \",\", \"file\": \"items.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"items.csv\", \"sha256\": \"20ecec095e92250d6abcb0ae99f062384f16f76742042280b83c33b96e7b0bea\", \"text\": \"item,count\\nbolt,10\\nnut,25\\nwasher,40\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The parsed rows of items.csv\nD2: The report file items_report.md\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:normalize_report",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Parse items.csv from the supplied packet `inventory` into rows and write the Markdown report file items_report.md that shows the parsed table."
+    }
+   ],
+   "objective": {
+    "id": "objective:normalize_report",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Parse items.csv from the supplied packet `inventory` into rows and write the Markdown report file items_report.md that shows the parsed table.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `inventory` (packet with items.csv, parse settings and report settings): {\"data\": {\"report\": {\"data_keys\": [\"table\"], \"path\": \"items_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Parsed inventory rows.\"}], \"title\": \"Items\"}, \"table_request\": {\"columns\": [\"item\", \"count\"], \"delimiter\": \",\", \"file\": \"items.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"items.csv\", \"sha256\": \"20ecec095e92250d6abcb0ae99f062384f16f76742042280b83c33b96e7b0bea\", \"text\": \"item,count\\nbolt,10\\nnut,25\\nwasher,40\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The parsed rows of items.csv\nD2: The report file items_report.md\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The parsed rows of items.csv"
+   },
+   {
+    "id": "D2",
+    "text": "The report file items_report.md"
+   }
+  ],
+  "id": "normalize_report",
+  "inputs": {
+   "inventory": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "report": {
+       "data_keys": [
+        "table"
+       ],
+       "path": "items_report.md",
+       "sections": [
+        {
+         "heading": "Result",
+         "text": "Parsed inventory rows."
+        }
+       ],
+       "title": "Items"
+      },
+      "table_request": {
+       "columns": [
+        "item",
+        "count"
+       ],
+       "delimiter": ",",
+       "file": "items.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "items.csv",
+       "sha256": "20ecec095e92250d6abcb0ae99f062384f16f76742042280b83c33b96e7b0bea",
+       "text": "item,count\nbolt,10\nnut,25\nwasher,40\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with items.csv, parse settings and report settings"
+   }
+  },
+  "request": "Parse items.csv from the supplied packet `inventory` into rows and write the Markdown report file items_report.md that shows the parsed table.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `inventory` (packet with items.csv, parse settings and report settings): {\"data\": {\"report\": {\"data_keys\": [\"table\"], \"path\": \"items_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Parsed inventory rows.\"}], \"title\": \"Items\"}, \"table_request\": {\"columns\": [\"item\", \"count\"], \"delimiter\": \",\", \"file\": \"items.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"items.csv\", \"sha256\": \"20ecec095e92250d6abcb0ae99f062384f16f76742042280b83c33b96e7b0bea\", \"text\": \"item,count\\nbolt,10\\nnut,25\\nwasher,40\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The parsed rows of items.csv\nD2: The report file items_report.md\n",
+  "resource_inventory": {
+   "id": "inventory.normalize_report",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "inventory",
+      "sha256": "d6889094c9ee1b7a9593866b8562068189ae8616a8b58340c7fdf87f43987618"
+     },
+     "resource_key": "inventory"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:pick_fahrenheit",
+     "requirement_ids": [
+      "requirement:pick_fahrenheit"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The highest Fahrenheit reading",
+     "id": "deliverable:pick_fahrenheit:d1",
+     "name": "d1"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The lowest Fahrenheit reading",
+     "id": "deliverable:pick_fahrenheit:d2",
+     "name": "d2"
+    },
+    {
+     "artifact_type": "work_packet",
+     "description": "The report file temps_report.md",
+     "id": "deliverable:pick_fahrenheit:d3",
+     "name": "d3"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:pick_fahrenheit",
+     "requirement_ids": [
+      "requirement:pick_fahrenheit"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:pick_fahrenheit",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Find the highest and the lowest Fahrenheit reading, using the Fahrenheit packet, and write the Markdown report file temps_report.md.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `temps_c` (Celsius readings: packet with temps.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"temp\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"max\", \"min\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"temps_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Highest and lowest reading.\"}], \"title\": \"Temperatures\"}, \"table_request\": {\"columns\": [\"day\", \"temp\"], \"delimiter\": \",\", \"file\": \"temps.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"temps.csv\", \"sha256\": \"dc324b9e4a6739ea37a76f65b61917b53b4d31a2042c3cff093e592d928a94c6\", \"text\": \"day,temp\\nmon,18\\ntue,25\\nwed,21\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n- `temps_f` (Fahrenheit readings: packet with temps.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"temp\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"max\", \"min\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"temps_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Highest and lowest reading.\"}], \"title\": \"Temperatures\"}, \"table_request\": {\"columns\": [\"day\", \"temp\"], \"delimiter\": \",\", \"file\": \"temps.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"temps.csv\", \"sha256\": \"e0af1130b2554a7f4da90ebf35fe0ad4ea9bf7f15a6435667c8b4c7eb367fb8f\", \"text\": \"day,temp\\nmon,64\\ntue,77\\nwed,70\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The highest Fahrenheit reading\nD2: The lowest Fahrenheit reading\nD3: The report file temps_report.md\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:pick_fahrenheit",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Find the highest and the lowest Fahrenheit reading, using the Fahrenheit packet, and write the Markdown report file temps_report.md."
+    }
+   ],
+   "objective": {
+    "id": "objective:pick_fahrenheit",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Find the highest and the lowest Fahrenheit reading, using the Fahrenheit packet, and write the Markdown report file temps_report.md.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `temps_c` (Celsius readings: packet with temps.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"temp\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"max\", \"min\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"temps_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Highest and lowest reading.\"}], \"title\": \"Temperatures\"}, \"table_request\": {\"columns\": [\"day\", \"temp\"], \"delimiter\": \",\", \"file\": \"temps.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"temps.csv\", \"sha256\": \"dc324b9e4a6739ea37a76f65b61917b53b4d31a2042c3cff093e592d928a94c6\", \"text\": \"day,temp\\nmon,18\\ntue,25\\nwed,21\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n- `temps_f` (Fahrenheit readings: packet with temps.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"temp\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"max\", \"min\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"temps_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Highest and lowest reading.\"}], \"title\": \"Temperatures\"}, \"table_request\": {\"columns\": [\"day\", \"temp\"], \"delimiter\": \",\", \"file\": \"temps.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"temps.csv\", \"sha256\": \"e0af1130b2554a7f4da90ebf35fe0ad4ea9bf7f15a6435667c8b4c7eb367fb8f\", \"text\": \"day,temp\\nmon,64\\ntue,77\\nwed,70\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The highest Fahrenheit reading\nD2: The lowest Fahrenheit reading\nD3: The report file temps_report.md\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The highest Fahrenheit reading"
+   },
+   {
+    "id": "D2",
+    "text": "The lowest Fahrenheit reading"
+   },
+   {
+    "id": "D3",
+    "text": "The report file temps_report.md"
+   }
+  ],
+  "id": "pick_fahrenheit",
+  "inputs": {
+   "temps_c": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "temp"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "max",
+        "min"
+       ]
+      },
+      "report": {
+       "data_keys": [
+        "calculation_result"
+       ],
+       "path": "temps_report.md",
+       "sections": [
+        {
+         "heading": "Result",
+         "text": "Highest and lowest reading."
+        }
+       ],
+       "title": "Temperatures"
+      },
+      "table_request": {
+       "columns": [
+        "day",
+        "temp"
+       ],
+       "delimiter": ",",
+       "file": "temps.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "temps.csv",
+       "sha256": "dc324b9e4a6739ea37a76f65b61917b53b4d31a2042c3cff093e592d928a94c6",
+       "text": "day,temp\nmon,18\ntue,25\nwed,21\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "Celsius readings: packet with temps.csv and settings"
+   },
+   "temps_f": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "temp"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "max",
+        "min"
+       ]
+      },
+      "report": {
+       "data_keys": [
+        "calculation_result"
+       ],
+       "path": "temps_report.md",
+       "sections": [
+        {
+         "heading": "Result",
+         "text": "Highest and lowest reading."
+        }
+       ],
+       "title": "Temperatures"
+      },
+      "table_request": {
+       "columns": [
+        "day",
+        "temp"
+       ],
+       "delimiter": ",",
+       "file": "temps.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "temps.csv",
+       "sha256": "e0af1130b2554a7f4da90ebf35fe0ad4ea9bf7f15a6435667c8b4c7eb367fb8f",
+       "text": "day,temp\nmon,64\ntue,77\nwed,70\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "Fahrenheit readings: packet with temps.csv and settings"
+   }
+  },
+  "request": "Find the highest and the lowest Fahrenheit reading, using the Fahrenheit packet, and write the Markdown report file temps_report.md.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `temps_c` (Celsius readings: packet with temps.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"temp\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"max\", \"min\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"temps_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Highest and lowest reading.\"}], \"title\": \"Temperatures\"}, \"table_request\": {\"columns\": [\"day\", \"temp\"], \"delimiter\": \",\", \"file\": \"temps.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"temps.csv\", \"sha256\": \"dc324b9e4a6739ea37a76f65b61917b53b4d31a2042c3cff093e592d928a94c6\", \"text\": \"day,temp\\nmon,18\\ntue,25\\nwed,21\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n- `temps_f` (Fahrenheit readings: packet with temps.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"temp\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"max\", \"min\"]}, \"report\": {\"data_keys\": [\"calculation_result\"], \"path\": \"temps_report.md\", \"sections\": [{\"heading\": \"Result\", \"text\": \"Highest and lowest reading.\"}], \"title\": \"Temperatures\"}, \"table_request\": {\"columns\": [\"day\", \"temp\"], \"delimiter\": \",\", \"file\": \"temps.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"temps.csv\", \"sha256\": \"e0af1130b2554a7f4da90ebf35fe0ad4ea9bf7f15a6435667c8b4c7eb367fb8f\", \"text\": \"day,temp\\nmon,64\\ntue,77\\nwed,70\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The highest Fahrenheit reading\nD2: The lowest Fahrenheit reading\nD3: The report file temps_report.md\n",
+  "resource_inventory": {
+   "id": "inventory.pick_fahrenheit",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "temps_c",
+      "sha256": "f2e2f5fb26e4c5c8dc3bd569713768438f91c0a5d517eda425be0bafcfe556cf"
+     },
+     "resource_key": "temps_c"
+    },
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "temps_f",
+      "sha256": "3fe616f64bbc8acc02a59e5621494991088bdb822c0c2640e0c29f720a8fd9e3"
+     },
+     "resource_key": "temps_f"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:need_median",
+     "requirement_ids": [
+      "requirement:need_median"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The median of the score column",
+     "id": "deliverable:need_median:d1",
+     "name": "d1"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:need_median",
+     "requirement_ids": [
+      "requirement:need_median"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:need_median",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `scores`, read scores.csv and give the median of the score column.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `scores` (packet with scores.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"score\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"table_request\": {\"columns\": [\"name\", \"score\"], \"delimiter\": \",\", \"file\": \"scores.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"scores.csv\", \"sha256\": \"b8e630ec691fbaa5808641e4c93137e19462512278793cc44ebd3734faef5a99\", \"text\": \"name,score\\nann,3\\nbob,9\\ncy,4\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The median of the score column\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:need_median",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `scores`, read scores.csv and give the median of the score column."
+    }
+   ],
+   "objective": {
+    "id": "objective:need_median",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Using the supplied packet `scores`, read scores.csv and give the median of the score column.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `scores` (packet with scores.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"score\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"table_request\": {\"columns\": [\"name\", \"score\"], \"delimiter\": \",\", \"file\": \"scores.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"scores.csv\", \"sha256\": \"b8e630ec691fbaa5808641e4c93137e19462512278793cc44ebd3734faef5a99\", \"text\": \"name,score\\nann,3\\nbob,9\\ncy,4\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The median of the score column\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The median of the score column"
+   }
+  ],
+  "id": "need_median",
+  "inputs": {
+   "scores": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "score"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "mean"
+       ]
+      },
+      "table_request": {
+       "columns": [
+        "name",
+        "score"
+       ],
+       "delimiter": ",",
+       "file": "scores.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "scores.csv",
+       "sha256": "b8e630ec691fbaa5808641e4c93137e19462512278793cc44ebd3734faef5a99",
+       "text": "name,score\nann,3\nbob,9\ncy,4\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with scores.csv and settings"
+   }
+  },
+  "request": "Using the supplied packet `scores`, read scores.csv and give the median of the score column.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `scores` (packet with scores.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"score\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"table_request\": {\"columns\": [\"name\", \"score\"], \"delimiter\": \",\", \"file\": \"scores.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"scores.csv\", \"sha256\": \"b8e630ec691fbaa5808641e4c93137e19462512278793cc44ebd3734faef5a99\", \"text\": \"name,score\\nann,3\\nbob,9\\ncy,4\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The median of the score column\n",
+  "resource_inventory": {
+   "id": "inventory.need_median",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "scores",
+      "sha256": "734a6380a40f5aec1199e7bf4fc06e0178318d118b0fb70068efd8c6d91ce0c4"
+     },
+     "resource_key": "scores"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:need_chart",
+     "requirement_ids": [
+      "requirement:need_chart"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "A PNG bar chart of revenue by region",
+     "id": "deliverable:need_chart:d1",
+     "name": "d1"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:need_chart",
+     "requirement_ids": [
+      "requirement:need_chart"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:need_chart",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `sales`, produce a bar-chart image (PNG) of revenue by region.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `sales` (packet with sales.csv and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"revenue\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"region\", \"revenue\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8\", \"text\": \"region,revenue\\nnorth,10.50\\nsouth,20.25\\neast,30.00\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: A PNG bar chart of revenue by region\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:need_chart",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Using the supplied packet `sales`, produce a bar-chart image (PNG) of revenue by region."
+    }
+   ],
+   "objective": {
+    "id": "objective:need_chart",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Using the supplied packet `sales`, produce a bar-chart image (PNG) of revenue by region.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `sales` (packet with sales.csv and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"revenue\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"region\", \"revenue\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8\", \"text\": \"region,revenue\\nnorth,10.50\\nsouth,20.25\\neast,30.00\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: A PNG bar chart of revenue by region\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "A PNG bar chart of revenue by region"
+   }
+  ],
+  "id": "need_chart",
+  "inputs": {
+   "sales": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "revenue"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "sum"
+       ]
+      },
+      "table_request": {
+       "columns": [
+        "region",
+        "revenue"
+       ],
+       "delimiter": ",",
+       "file": "sales.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "sales.csv",
+       "sha256": "4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8",
+       "text": "region,revenue\nnorth,10.50\nsouth,20.25\neast,30.00\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with sales.csv and its parse/calculation settings"
+   }
+  },
+  "request": "Using the supplied packet `sales`, produce a bar-chart image (PNG) of revenue by region.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `sales` (packet with sales.csv and its parse/calculation settings): {\"data\": {\"calculation\": {\"columns\": [\"revenue\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"sum\"]}, \"table_request\": {\"columns\": [\"region\", \"revenue\"], \"delimiter\": \",\", \"file\": \"sales.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"sales.csv\", \"sha256\": \"4d0c4d1f4d3c8425107cdddfac9d103d726571ea48310efb5e1730f31afc25d8\", \"text\": \"region,revenue\\nnorth,10.50\\nsouth,20.25\\neast,30.00\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: A PNG bar chart of revenue by region\n",
+  "resource_inventory": {
+   "id": "inventory.need_chart",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "sales",
+      "sha256": "1618786aac4e5a66cfca1ccbc35f68998eab7c269f9f720fd375b205b058ee1c"
+     },
+     "resource_key": "sales"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:missing_final",
+     "requirement_ids": [
+      "requirement:missing_final"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "The mean accuracy of the final results",
+     "id": "deliverable:missing_final:d1",
+     "name": "d1"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:missing_final",
+     "requirement_ids": [
+      "requirement:missing_final"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:missing_final",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Compute the mean of the accuracy column in the packet `results_final`. Do not use the draft results.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `results_draft` (DRAFT results: packet with draft.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"accuracy\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"table_request\": {\"columns\": [\"run\", \"accuracy\"], \"delimiter\": \",\", \"file\": \"draft.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"draft.csv\", \"sha256\": \"2bdcc8cb71f1e8bee1efe031ab12a2ff7e7f210ed059b824e580b3467275b5ec\", \"text\": \"run,accuracy\\na,0.5\\nb,0.6\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean accuracy of the final results\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:missing_final",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Compute the mean of the accuracy column in the packet `results_final`. Do not use the draft results."
+    }
+   ],
+   "objective": {
+    "id": "objective:missing_final",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Compute the mean of the accuracy column in the packet `results_final`. Do not use the draft results.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `results_draft` (DRAFT results: packet with draft.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"accuracy\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"table_request\": {\"columns\": [\"run\", \"accuracy\"], \"delimiter\": \",\", \"file\": \"draft.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"draft.csv\", \"sha256\": \"2bdcc8cb71f1e8bee1efe031ab12a2ff7e7f210ed059b824e580b3467275b5ec\", \"text\": \"run,accuracy\\na,0.5\\nb,0.6\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean accuracy of the final results\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "The mean accuracy of the final results"
+   }
+  ],
+  "id": "missing_final",
+  "inputs": {
+   "results_draft": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {
+      "calculation": {
+       "columns": [
+        "accuracy"
+       ],
+       "numeric_mode": "decimal_strings",
+       "operations": [
+        "mean"
+       ]
+      },
+      "table_request": {
+       "columns": [
+        "run",
+        "accuracy"
+       ],
+       "delimiter": ",",
+       "file": "draft.csv",
+       "format": "csv"
+      }
+     },
+     "files": [
+      {
+       "path": "draft.csv",
+       "sha256": "2bdcc8cb71f1e8bee1efe031ab12a2ff7e7f210ed059b824e580b3467275b5ec",
+       "text": "run,accuracy\na,0.5\nb,0.6\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "DRAFT results: packet with draft.csv and settings"
+   }
+  },
+  "request": "Compute the mean of the accuracy column in the packet `results_final`. Do not use the draft results.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `results_draft` (DRAFT results: packet with draft.csv and settings): {\"data\": {\"calculation\": {\"columns\": [\"accuracy\"], \"numeric_mode\": \"decimal_strings\", \"operations\": [\"mean\"]}, \"table_request\": {\"columns\": [\"run\", \"accuracy\"], \"delimiter\": \",\", \"file\": \"draft.csv\", \"format\": \"csv\"}}, \"files\": [{\"path\": \"draft.csv\", \"sha256\": \"2bdcc8cb71f1e8bee1efe031ab12a2ff7e7f210ed059b824e580b3467275b5ec\", \"text\": \"run,accuracy\\na,0.5\\nb,0.6\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: The mean accuracy of the final results\n",
+  "resource_inventory": {
+   "id": "inventory.missing_final",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "results_draft",
+      "sha256": "22d80962e3aff12d4e434486a2e0bd04f954820a18578567635d211361448a49"
+     },
+     "resource_key": "results_draft"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ },
+ {
+  "brief": {
+   "acceptance_expectations": [
+    {
+     "description": "Named output fields or installed check IDs demonstrate the requested outcome.",
+     "id": "acceptance:missing_pdf",
+     "requirement_ids": [
+      "requirement:missing_pdf"
+     ]
+    }
+   ],
+   "assumptions": [],
+   "confirmation": {
+    "basis": "authorized_assumptions",
+    "source_refs": [
+     {
+      "id": "request.txt",
+      "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+     },
+     {
+      "id": "default_policy.json",
+      "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
+     }
+    ]
+   },
+   "constraints": [],
+   "context_refs": [],
+   "deliverables": [
+    {
+     "artifact_type": "work_packet",
+     "description": "A Markdown report of the paper summary with page quotations",
+     "id": "deliverable:missing_pdf:d1",
+     "name": "d1"
+    }
+   ],
+   "domain_lane": "scientific_research",
+   "evidence_obligations": [
+    {
+     "description": "Preserve supplied source provenance and expose the checked result without claiming new unperformed research.",
+     "id": "evidence:missing_pdf",
+     "requirement_ids": [
+      "requirement:missing_pdf"
+     ]
+    }
+   ],
+   "in_scope": [
+    {
+     "id": "scope:missing_pdf",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Summarize the PDF paper I attached, with exact page quotations, and give me a Markdown report. The notes packet below is not the paper.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `notes` (packet with unrelated meeting notes): {\"data\": {}, \"files\": [{\"path\": \"notes.txt\", \"sha256\": \"5a97aad62b529a30a3bd1fef15d9ed338c38f5db88f0d269bd86703607b0d8c0\", \"text\": \"Agenda: budget review.\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: A Markdown report of the paper summary with page quotations\n"
+    }
+   ],
+   "input_bindings": [],
+   "intake_ref": {
+    "id": "qualified_intake.json",
+    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+   },
+   "intent_ref": {
+    "id": "intent_ir.json",
+    "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+   },
+   "mandatory_requirements": [
+    {
+     "id": "requirement:missing_pdf",
+     "origin": "user",
+     "source_refs": [
+      {
+       "id": "intent_ir.json",
+       "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+      }
+     ],
+     "text": "Summarize the PDF paper I attached, with exact page quotations, and give me a Markdown report. The notes packet below is not the paper."
+    }
+   ],
+   "objective": {
+    "id": "objective:missing_pdf",
+    "origin": "user",
+    "source_refs": [
+     {
+      "id": "intent_ir.json",
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
+     }
+    ],
+    "text": "Summarize the PDF paper I attached, with exact page quotations, and give me a Markdown report. The notes packet below is not the paper.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `notes` (packet with unrelated meeting notes): {\"data\": {}, \"files\": [{\"path\": \"notes.txt\", \"sha256\": \"5a97aad62b529a30a3bd1fef15d9ed338c38f5db88f0d269bd86703607b0d8c0\", \"text\": \"Agenda: budget review.\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: A Markdown report of the paper summary with page quotations\n"
+   },
+   "optional_preferences": [],
+   "out_of_scope": [],
+   "resource_refs": [],
+   "schema_version": "3.0.0",
+   "target_metrics": [],
+   "unresolved_items": []
+  },
+  "deliverables": [
+   {
+    "id": "D1",
+    "text": "A Markdown report of the paper summary with page quotations"
+   }
+  ],
+  "id": "missing_pdf",
+  "inputs": {
+   "notes": {
+    "artifact_type": "work_packet",
+    "content": {
+     "data": {},
+     "files": [
+      {
+       "path": "notes.txt",
+       "sha256": "5a97aad62b529a30a3bd1fef15d9ed338c38f5db88f0d269bd86703607b0d8c0",
+       "text": "Agenda: budget review.\n"
+      }
+     ],
+     "limitations": [],
+     "provenance": [],
+     "schema_version": "1.0.0",
+     "trust": "provisional"
+    },
+    "description": "packet with unrelated meeting notes"
+   }
+  },
+  "request": "Summarize the PDF paper I attached, with exact page quotations, and give me a Markdown report. The notes packet below is not the paper.\nPlan only: do not run anything.\n\nSupplied inputs (use these keys):\n- `notes` (packet with unrelated meeting notes): {\"data\": {}, \"files\": [{\"path\": \"notes.txt\", \"sha256\": \"5a97aad62b529a30a3bd1fef15d9ed338c38f5db88f0d269bd86703607b0d8c0\", \"text\": \"Agenda: budget review.\\n\"}], \"limitations\": [], \"provenance\": [], \"schema_version\": \"1.0.0\", \"trust\": \"provisional\"}\n\nDeliverables:\nD1: A Markdown report of the paper summary with page quotations\n",
+  "resource_inventory": {
+   "id": "inventory.missing_pdf",
+   "resources": [
+    {
+     "artifact_type": "work_packet",
+     "available": true,
+     "kind": "file",
+     "quantity": null,
+     "ref": {
+      "id": "notes",
+      "sha256": "742350293c16fbae5377944bf14ddcc45bbda424be48ae9f152dad01d328459d"
+     },
+     "resource_key": "notes"
+    }
+   ],
+   "schema_version": "1.0.0"
+  }
+ }
+]

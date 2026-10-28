@@ -1,0 +1,14 @@
+{
+ "id": "table_reference",
+ "candidate": "table_normalize_reference",
+ "tool": "table_normalize",
+ "defective": false,
+ "defect": "correct",
+ "witness": null,
+ "answer": "00417",
+ "answer_kind": "token",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "00417",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

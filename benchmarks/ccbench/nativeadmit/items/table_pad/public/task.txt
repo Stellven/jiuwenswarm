@@ -1,0 +1,1 @@
+Our team uses table_tool.py to read data files. Use it to read contacts.csv and tell me how many contacts have a phone number listed. Give me the number.

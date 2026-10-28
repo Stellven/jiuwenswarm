@@ -1,0 +1,13 @@
+{
+ "kind": "table",
+ "tool": "table_normalize",
+ "tool_file": "table_tool.py",
+ "argv": [
+  "shipments.json"
+ ],
+ "extract": {
+  "type": "nth",
+  "n": 14,
+  "field": "shipment_id"
+ }
+}

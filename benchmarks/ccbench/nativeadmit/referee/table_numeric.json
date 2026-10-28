@@ -1,0 +1,21 @@
+{
+ "id": "table_numeric",
+ "candidate": "table_normalize_numeric",
+ "tool": "table_normalize",
+ "defective": true,
+ "defect": "broad: CSV numeric coercion",
+ "witness": {
+  "text": "id\n007\n",
+  "format": "csv",
+  "columns": [
+   "id"
+  ],
+  "delimiter": ","
+ },
+ "answer": "02134",
+ "answer_kind": "token",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "2134",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

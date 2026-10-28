@@ -1,0 +1,14 @@
+{
+ "id": "calc_reference",
+ "candidate": "calculate_reference",
+ "tool": "calculate",
+ "defective": false,
+ "defect": "correct",
+ "witness": null,
+ "answer": "1.6875",
+ "answer_kind": "number",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "1.6875",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

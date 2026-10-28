@@ -1,0 +1,22 @@
+{
+ "id": "table_pad",
+ "candidate": "table_normalize_pad",
+ "tool": "table_normalize",
+ "defective": true,
+ "defect": "rare: ragged rows silently padded",
+ "witness": {
+  "text": "x,y\na\n",
+  "format": "csv",
+  "columns": [
+   "x",
+   "y"
+  ],
+  "delimiter": ","
+ },
+ "answer": null,
+ "answer_kind": null,
+ "oracle_status": "error",
+ "tool_answer_on_this_data": "23",
+ "expect_no_answer": true,
+ "note": "oracle rejects the file; no tool-correct answer exists"
+}

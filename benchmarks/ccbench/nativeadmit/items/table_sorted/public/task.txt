@@ -1,0 +1,1 @@
+Our team uses table_tool.py to read data files. Use it to load orders.csv and give me the amount on the last row of the file, which is the most recent order.
