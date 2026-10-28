@@ -13,6 +13,8 @@ import shlex
 import signal
 import sqlite3
 import stat
+import subprocess
+
 from contextlib import contextmanager
 from time import monotonic
 from pathlib import Path
@@ -24,6 +26,8 @@ PROTOCOL = 'ai4r-local-model:1'
 REQUEST_KEYS = {'request_id', 'endpoint_id', 'binding_sha256', 'model', 'prompt', 'timeout_s'}
 RESULT_KEYS = {'outcome', 'http_status', 'response_text', 'provider_request_id'}
 MAX_BACKEND_RECEIPT_BYTES = 4 * 1024 * 1024
+MAX_BACKEND_STDERR_BYTES = 256 * 1024
+
 
 
 def exception_category(error):
@@ -52,10 +56,12 @@ def backend_stage(stage):
 
 class CapturedBackendReceipt(dict):
     """Internal only: original stdout never becomes another RPC envelope field."""
-    def __init__(self,value,raw,transport_error=None):
+    def __init__(self,value,raw,transport_error=None,*,stderr=b'',observation=None):
         super().__init__(value)
         self.original_bytes=raw
         self.transport_error=transport_error
+        self.stderr_bytes=stderr
+        self.transport_observation=observation
 
 
 def backend_receipt(value,raw):
@@ -176,71 +182,125 @@ class HostCodexBackend:
             raise ResearchError('invalid_request')
         with backend_stage('helper_source'):
             source=Path(__file__).with_name('local_model_codex.py').read_text(encoding='utf-8')
-        spawning=asyncio.create_task(asyncio.create_subprocess_exec(backend['host_python'],'-B','-c',source,
-            stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE,
-            start_new_session=True,limit=65536))
-        try:
-            with backend_stage('helper_spawn'):process=await asyncio.shield(spawning)
-        except asyncio.CancelledError:
-            process=await asyncio.shield(spawning)
-            try:os.killpg(process.pid,signal.SIGKILL)
-            except ProcessLookupError:pass
-            await process.communicate()
-            raise
+        # Fixed public Source metadata, never an RPC-selected file or override.
+        from .local_model_codex import packaged_model_catalog
+        catalog=packaged_model_catalog()
+        argv=[backend['host_python'],'-X','utf8','-B','-c',source]
+        if len(subprocess.list2cmdline(argv))>=32767:
+            raise ResearchError('invalid_request')
         wire=json.dumps({'model':binding['model'],'prompt':payload['prompt'],
+            'native_model_catalog':catalog,
             'timeout_s':max(.001,payload['timeout_s']-2),
             **{key:backend[key] for key in ('codex_executable','codex_sha256','account_fingerprint','working_directory')}},
             allow_nan=False).encode()
-        async def observe_stderr():
-            # Drain concurrently without publishing stderr, whose arbitrary text
-            # may contain a prompt, local paths or authentication information.
-            digest=hashlib.sha256();size=0;prefix=bytearray()
-            stream=getattr(process,'stderr',None)
-            if stream is not None:
-                while True:
-                    with backend_stage('helper_stderr'):chunk=await stream.read(65536)
-                    if not chunk:break
-                    digest.update(chunk);size+=len(chunk)
-                    if len(prefix)<65536:prefix.extend(chunk[:65536-len(prefix)])
-            stderr_class='empty' if size==0 else 'unclassified'
+        return await self._observe(argv,wire,relay_timeout_s=payload['timeout_s'],
+            helper_timeout_s=max(.001,payload['timeout_s']-2))
+
+    @staticmethod
+    async def _observe(argv,wire,*,relay_timeout_s=None,helper_timeout_s=None):
+        """Retain bounded original pipe bytes even when the carrier fails.
+
+        Killing this observer does not establish native/provider containment.
+        Diagnostics never contain exception messages or credential material.
+        Raw stderr stays exclusively in the private Root receipt directory.
+        """
+        process=None;spawning=None;readers=[];failure=None
+        streams={'stdout':bytearray(),'stderr':bytearray()}
+        stderr_digest=hashlib.sha256()
+        facts={'phase':'spawn','exception_class':None,'errno':None,'returncode':None,
+            'stdin_complete':False,'stdout_complete':False,'stderr_complete':False,
+            'stdout_bytes_observed':0,'stderr_bytes_observed':0,
+            'stdout_overflow':False,'stderr_overflow':False,'observer_joined':False,
+            'relay_timeout_s':relay_timeout_s,'helper_timeout_s':helper_timeout_s,
+            'stdin_bytes':len(wire)}
+        async def read(name,limit):
+            while True:
+                with backend_stage('helper_stdout' if name=='stdout' else 'helper_stderr'):
+                    chunk=await getattr(process,name).read(65536)
+                if not chunk:
+                    facts[name+'_complete']=True;return
+                facts[name+'_bytes_observed']+=len(chunk)
+                if name=='stderr':stderr_digest.update(chunk)
+                room=max(0,limit-len(streams[name]))
+                streams[name].extend(chunk[:room])
+                if len(chunk)>room:
+                    first_overflow=not facts[name+'_overflow']
+                    facts[name+'_overflow']=True
+                    if name=='stdout' and first_overflow and process.returncode is None:
+                        try:os.killpg(process.pid,signal.SIGKILL)
+                        except ProcessLookupError:pass
+                    # Continue draining after termination. asyncio Process.wait
+                    # can otherwise remain blocked by a full pipe transport.
+        def diagnostic():
+            raw=bytes(streams['stderr']);prefix=raw[:65536]
+            category='empty' if not facts['stderr_bytes_observed'] else 'unclassified'
             if b'WSL' in prefix and any(token in prefix for token in
                     (b'UtilAcceptVsock',b'CreateProcessEntryCommon',b'UtilConnectToInteropServer')):
-                stderr_class='wsl_interop_error'
-            elif b'Traceback (most recent call last):' in prefix:
-                stderr_class='python_traceback'
-            return {'exit_code':process.returncode,'stderr_bytes':size,
-                    'stderr_sha256':digest.hexdigest(),'stderr_class':stderr_class,
+                category='wsl_interop_error'
+            elif b'Traceback (most recent call last):' in prefix:category='python_traceback'
+            return {'exit_code':facts['returncode'],'stderr_bytes':facts['stderr_bytes_observed'],
+                    'stderr_sha256':stderr_digest.hexdigest(),'stderr_class':category,
                     'stderr_classification_prefix_bytes':len(prefix),
-                    'stderr_classification_truncated':size>65536}
-        async def observe():
+                    'stderr_classification_truncated':facts['stderr_bytes_observed']>len(prefix)}
+        try:
+            spawning=asyncio.create_task(asyncio.create_subprocess_exec(*argv,
+                stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE,
+                start_new_session=True,limit=65536))
+            with backend_stage('helper_spawn'):process=await asyncio.shield(spawning)
+            readers=[asyncio.create_task(read('stdout',MAX_BACKEND_RECEIPT_BYTES)),
+                     asyncio.create_task(read('stderr',MAX_BACKEND_STDERR_BYTES))]
+            facts['phase']='stdin_write'
             with backend_stage('helper_stdin'):
                 process.stdin.write(wire);await process.stdin.drain();process.stdin.close()
-            chunks=[];size=0
-            while True:
-                with backend_stage('helper_stdout'):chunk=await process.stdout.read(65536)
-                if not chunk:break
-                size+=len(chunk)
-                with backend_stage('helper_output_bound'):
-                    if size>4*1024*1024:raise ResearchError('DELIVERY_UNKNOWN')
-                chunks.append(chunk)
+            facts['stdin_complete']=True;facts['phase']='stdout_read'
+            await asyncio.shield(readers[0])
+            if facts['stdout_overflow']:
+                with backend_stage('helper_output_bound'):raise ResearchError('DELIVERY_UNKNOWN')
+            facts['phase']='process_wait'
             with backend_stage('helper_exit'):await process.wait()
-            return b''.join(chunks)
-        observer=asyncio.create_task(observe())
-        stderr_observer=asyncio.create_task(observe_stderr())
-        try:
-            output=await asyncio.shield(observer)
-            diagnostic=await asyncio.shield(stderr_observer)
-            diagnostic['exit_code']=process.returncode
+            await asyncio.shield(readers[1])
+            facts['phase']='decode'
             with backend_stage('helper_decode'):
-                result=backend_output(output,process.returncode,host_backend_output)
-                if isinstance(result,CapturedBackendReceipt):result.transport_diagnostic=diagnostic
-                return result
+                result=backend_output(bytes(streams['stdout']),process.returncode,host_backend_output)
+        except BaseException as error:
+            failure=error
+            # Closed class names and numeric errno only, never str(error).
+            facts['exception_class']=type(error).__name__ if type(error).__name__ in {
+                'CancelledError','TimeoutError','BrokenPipeError','ConnectionResetError',
+                'OSError','FileNotFoundError','PermissionError','ResearchError',
+                'UnicodeDecodeError','ValueError','RuntimeError'} else 'OtherError'
+            number=getattr(error,'errno',None)
+            facts['errno']=number if type(number) is int else None
         finally:
-            if process.returncode is None:
-                try:os.killpg(process.pid,signal.SIGKILL)
-                except ProcessLookupError:pass
-                await process.wait()
-            await asyncio.gather(observer,stderr_observer,return_exceptions=True)
+            if process is None and spawning is not None:
+                try:process=await asyncio.shield(spawning)
+                except BaseException:pass
+            if process is not None:
+                if process.returncode is None:
+                    try:os.killpg(process.pid,signal.SIGKILL)
+                    except ProcessLookupError:pass
+                try:
+                    await asyncio.wait_for(process.wait(),1)
+                    facts['observer_joined']=True
+                except (TimeoutError,OSError):pass
+                facts['returncode']=process.returncode
+            # Native Windows descendants can retain inherited pipe handles.
+            # Never wait forever for EOF after the local observer has exited.
+            if readers:
+                done,pending=await asyncio.wait(readers,timeout=1)
+                for task in pending:task.cancel()
+                await asyncio.gather(*readers,return_exceptions=True)
+        if failure is not None:
+            failure.backend_receipt=CapturedBackendReceipt(LocalModelRelay._unknown(),bytes(streams['stdout']),
+                'carrier_error',stderr=bytes(streams['stderr']),observation=facts)
+            failure.backend_receipt.transport_diagnostic=diagnostic()
+            raise failure
+        result.stderr_bytes=bytes(streams['stderr']);result.transport_observation=facts
+        if facts['stderr_overflow']:
+            result=CapturedBackendReceipt(LocalModelRelay._unknown(),result.original_bytes,'stderr_overflow',
+                stderr=bytes(streams['stderr']),observation=facts)
+        result.transport_diagnostic=diagnostic()
+        return result
 
 
 class BackendRouter:
@@ -256,9 +316,13 @@ class BackendRouter:
 
 
 class LocalModelRelay:
-    def __init__(self, catalog, runtime, *, backend=None):
+    def __init__(self, catalog, runtime, *, backend=None, recovery_policy_sha256=None):
         self.catalog, self.runtime = catalog, Path(runtime)
         private_path(self.runtime, directory=True)
+        if recovery_policy_sha256 is not None:
+            if (not isinstance(recovery_policy_sha256,str) or not re.fullmatch('[0-9a-f]{64}',recovery_policy_sha256)
+                    or os.name!='posix' or os.geteuid()!=0):raise ResearchError('ENVIRONMENT_BLOCKED')
+        self.recovery_policy_sha256=recovery_policy_sha256
         from .local_model_recovery import RuntimeLock
         self.runtime_lock = RuntimeLock(self.runtime)
         self.db = None
@@ -286,6 +350,119 @@ class LocalModelRelay:
             self.db.close()
             self.db = None
         self.runtime_lock.close()
+
+    def unresolved(self):
+        """Only an exact Root disposition can authorize a DIFFERENT host policy.
+
+        The original unknown response and charged claim are never changed. This
+        is not retry permission, native terminal evidence or provider recovery.
+        Generic relays retain their separate explicit operator acknowledgement;
+        that broader protocol cannot satisfy an RSI recovery policy.
+        """
+        for ident,digest,result in self.db.execute("SELECT id,digest,result FROM requests WHERE result IS NULL OR json_extract(result,'$.outcome')='outcome_unknown'"):
+            if result is None:return True
+            if self.recovery_policy_sha256 is None:
+                from .local_model_recovery import acknowledged_unknown
+                if not acknowledged_unknown(self.runtime,(ident,digest,result)):return True
+                continue
+            try:
+                self._validate_disposition(ident,digest,result)
+            except (OSError,ValueError,TypeError,KeyError,RecursionError,ResearchError):return True
+        return False
+
+    def _validate_disposition(self,ident,digest,result):
+        def need(value):
+            if not value:raise ResearchError('DELIVERY_UNKNOWN')
+        def read(path,limit):
+            private_path(path)
+            with path.open('rb') as stream:raw=stream.read(limit+1)
+            need(len(raw)<=limit)
+            return raw
+        directory=self.runtime/'reconciliations';private_path(directory,directory=True)
+        stem=hashlib.sha256(ident.encode()).hexdigest()
+        value=json.loads(read(directory/(stem+'.json'),65536))
+        fields={'schema','request_id','payload_sha256','result_sha256','diagnostic_sha256',
+            'prior_policy_sha256','successor_policy_sha256','prior_qualification_sha256',
+            'successor_qualification_sha256','actor','authorization','purpose','provider_termination',
+            'original_outcome','automatic_replay','prior_budget_preserved','recorded_at','evidence_refs'}
+        need(isinstance(value,dict) and set(value)==fields
+            and value['schema']=='ai4r-host-codex-abandonment:1'
+            and value['request_id']==ident and value['payload_sha256']==digest
+            and value['result_sha256']==hashlib.sha256(result.encode()).hexdigest()
+            and value['successor_policy_sha256']==self.recovery_policy_sha256
+            and value['prior_policy_sha256']!=value['successor_policy_sha256']
+            and value['actor']=='os:0:root' and value['purpose']=='exact_new_bounded_screening_run'
+            and value['provider_termination']=='UNPROVEN' and value['original_outcome']=='outcome_unknown'
+            and value['automatic_replay'] is False and value['prior_budget_preserved'] is True
+            and isinstance(value['authorization'],str) and 0<len(value['authorization'])<=4096
+            and isinstance(value['recorded_at'],str))
+        from datetime import datetime
+        need(datetime.fromisoformat(value['recorded_at'].replace('Z','+00:00')).tzinfo is not None)
+        for field in ('payload_sha256','result_sha256','diagnostic_sha256','prior_policy_sha256',
+                      'successor_policy_sha256','prior_qualification_sha256','successor_qualification_sha256'):
+            need(isinstance(value[field],str) and re.fullmatch('[0-9a-f]{64}',value[field]))
+        receipts=self.runtime/'backend-receipts';private_path(receipts,directory=True)
+        diagnostic=read(receipts/(stem+'.json'),16384)
+        need(hashlib.sha256(diagnostic).hexdigest()==value['diagnostic_sha256'])
+        diagnosis=json.loads(diagnostic)
+        need(diagnosis.get('request_id')==ident and diagnosis.get('payload_sha256')==digest
+            and diagnosis.get('backend_kind')=='host-codex-app-server')
+        kinds={'old_qualification','new_qualification','old_profile','local_cessation','windows_cessation',
+               'old_no_tools_proof','new_no_tools_proof','authorization'}
+        refs=value['evidence_refs'];need(isinstance(refs,list) and len(refs)==len(kinds))
+        evidence={};root=self.runtime/'recovery-evidence';private_path(root,directory=True)
+        for pin in refs:
+            need(isinstance(pin,dict) and set(pin)=={'kind','sha256'} and pin['kind'] in kinds
+                and pin['kind'] not in evidence and isinstance(pin['sha256'],str)
+                and re.fullmatch('[0-9a-f]{64}',pin['sha256']))
+            raw=read(root/(pin['sha256']+'.json'),2*1024*1024)
+            need(hashlib.sha256(raw).hexdigest()==pin['sha256'])
+            evidence[pin['kind']]=json.loads(raw)
+        need(set(evidence)==kinds)
+        for prefix in ('old','new'):
+            qualified=evidence[prefix+'_qualification'];proof=evidence[prefix+'_no_tools_proof']
+            pin=next(pin for pin in refs if pin['kind']==prefix+'_qualification')
+            need(pin['sha256']==value['prior_qualification_sha256' if prefix=='old' else 'successor_qualification_sha256']
+                and qualified.get('schema')=='ai4r-rsi-host-codex-no-tools:1'
+                and qualified.get('model')=='gpt-6.1-sol' and qualified.get('reasoning_effort')=='medium'
+                and qualified.get('tool_names')==[]
+                and all(type(qualified.get(key)) is int and qualified[key]==0
+                        for key in ('tools_count','functions_count','additional_tools_count'))
+                and proof.get('schema')=='ai4r-offline-native-tools-wire-proof:1'
+                and proof.get('helper_source_sha256')==qualified.get('helper_sha256')
+                and proof.get('native_binary_sha256')==qualified.get('binary_sha256')
+                and proof.get('real_auth_or_account_files_used') is False
+                and proof.get('real_generation_performed') is False)
+            proofpin=next(pin for pin in refs if pin['kind']==prefix+'_no_tools_proof')
+            need(qualified.get('proof_sha256')==proofpin['sha256'])
+            cases=proof.get('cases');need(isinstance(cases,list) and bool(cases))
+            for case in cases:
+                requests=case.get('http_requests');need(isinstance(requests,list) and bool(requests))
+                need(case.get('real_provider_called') is False and case.get('account_rpc_sent') is False)
+                for request in requests:
+                    need(request.get('model')=='gpt-6.1-sol' and request.get('reasoning_effort')=='medium'
+                        and request.get('tools_count')==0 and request.get('functions_count')==0
+                        and request.get('additional_tools')==[] and request.get('recursive_tool_locations')==[]
+                        and request.get('actual_system_guard_present') is True)
+        old=evidence['old_profile']
+        need(old.get('schema')=='ai4r-rsi-host-codex:1' and old.get('policy_sha256')==value['prior_policy_sha256']
+            and old.get('qualification')==evidence['old_qualification'])
+        auth=evidence['authorization']
+        need(isinstance(auth,dict) and set(auth)=={'schema','actor','request_id','prior_policy_sha256',
+            'successor_policy_sha256','purpose','authorization','recorded_at'}
+            and auth['schema']=='ai4r-host-codex-recovery-authorization:1'
+            and all(auth[key]==value[key] for key in ('actor','request_id','prior_policy_sha256',
+                'successor_policy_sha256','purpose','authorization','recorded_at')))
+        local=evidence['local_cessation'];windows=evidence['windows_cessation']
+        need(local.get('schema')=='ai4r-rsi-cloud-native-host-cessation-observation:1'
+            and local.get('matching_processes')==[] and local.get('matching_native_container_ids')==[]
+            and local.get('process_scan_errors')==[] and isinstance(local.get('owned_container_id'),str)
+            and any(event.get('Action')=='die' and event.get('Actor',{}).get('ID')==local['owned_container_id']
+                    for event in local.get('lifecycle_events',[]))
+            and windows.get('schema')=='ai4r-rsi-host-windows-scoped-process-observation:1'
+            and windows.get('status')=='OBSERVED' and type(windows.get('owned_process_count')) is int
+            and windows['owned_process_count']==0 and windows.get('processes')==[]
+            and windows.get('remote_termination_inferred') is False)
 
     def _receipt_directory(self):
         directory=self.runtime/'backend-receipts'
@@ -318,6 +495,27 @@ class LocalModelRelay:
         name=hashlib.sha256(payload['request_id'].encode()).hexdigest()+'.receipt'
         self._write_once(self._receipt_directory()/name,raw)
         return {'path':name,'sha256':hashlib.sha256(raw).hexdigest(),'size':len(raw),'encoding':source}
+
+    def _capture_stderr(self,payload,original):
+        raw=getattr(original,'stderr_bytes',None)
+        if not isinstance(raw,bytes) or not raw:return None
+        if len(raw)>MAX_BACKEND_STDERR_BYTES:raise ResearchError('AUDIT_UNAVAILABLE')
+        name=hashlib.sha256(payload['request_id'].encode()).hexdigest()+'.stderr'
+        self._write_once(self._receipt_directory()/name,raw)
+        return {'path':name,'sha256':hashlib.sha256(raw).hexdigest(),'size':len(raw)}
+
+    def _capture_error(self,payload,digest,error,original,receipt):
+        # asyncio.timeout translates cancellation, preserving it as __cause__.
+        current=error
+        for _ in range(3):
+            captured=getattr(current,'backend_receipt',None)
+            if captured is not None:
+                if original is None:original=captured
+                if receipt is None:receipt=self._capture_receipt(payload,digest,original)
+                break
+            current=getattr(current,'__cause__',None)
+            if current is None:break
+        return original,receipt
 
     @staticmethod
     def _receipt_counts(result):
@@ -367,8 +565,12 @@ class LocalModelRelay:
             'backend_kind':binding.get('backend',{}).get('kind'),'receipt':receipt,'reason':reason,
             'transport_error':getattr(original,'transport_error',None),
             'transport_diagnostic':getattr(original,'transport_diagnostic',None),
+            'transport_observation':getattr(original,'transport_observation',None),
+            'stderr_receipt':self._capture_stderr(payload,original),
+            'requested_timeout_s':payload['timeout_s'],
             'elapsed_ms':max(0,int((monotonic()-received_at)*1000)),
-            'bounds':{'backend_receipt_bytes':MAX_BACKEND_RECEIPT_BYTES,'native_response_bytes':1024*1024,'native_wire_bytes':1024*1024},
+            'bounds':{'backend_receipt_bytes':MAX_BACKEND_RECEIPT_BYTES,'backend_stderr_bytes':MAX_BACKEND_STDERR_BYTES,
+                      'native_response_bytes':1024*1024,'native_wire_frames':None},
             'counts':self._receipt_counts(original),'failure':failure}
         raw=json.dumps(value,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
         if len(raw)>16384:raise ResearchError('AUDIT_UNAVAILABLE')
@@ -461,13 +663,9 @@ class LocalModelRelay:
             return self._save(payload, dict(outcome='failed', http_status=429,
                                            response_text=None, provider_request_id=None))
         async with self.lock:
-            # An operator can acknowledge a contained historical observer loss,
-            # while its original unknown result and same-ID replay stay immutable.
-            from .local_model_recovery import acknowledged_unknown
-            unresolved = self.db.execute("SELECT id,digest,result FROM requests WHERE result IS NULL OR json_extract(result,'$.outcome')='outcome_unknown'").fetchall()
-            for claim in unresolved:
-                if claim[2] is None or not acknowledged_unknown(self.runtime, claim):
-                    raise ResearchError('DELIVERY_UNKNOWN')
+            # Every unresolved durable claim blocks all further effects, including after restart.
+            if self.unresolved():
+                raise ResearchError('DELIVERY_UNKNOWN')
             self.db.execute('INSERT INTO requests VALUES (?,?,NULL)', (payload['request_id'], digest))
             self.db.commit()
             remaining=received_at+timeout-monotonic()
@@ -518,12 +716,16 @@ class LocalModelRelay:
                 else:
                     result = self._unknown()
                 if reason=='backend_envelope_rejected' and original is result:reason='accepted'
-            except asyncio.CancelledError:
+            except asyncio.CancelledError as error:
+                try:original,receipt=self._capture_error(payload,digest,error,original,receipt)
+                except Exception:pass
                 try:self._receipt_diagnostic(payload,digest,binding,receipt,'backend_cancelled',received_at,original)
                 except Exception:pass
                 self._save(payload, self._unknown())
                 raise
             except Exception as error:
+                try:original,receipt=self._capture_error(payload,digest,error,original,receipt)
+                except Exception:pass
                 failure=(error.diagnostic if isinstance(error,BackendStageFailure) else
                          {'stage':reason,'exception_class':exception_category(error)})
                 result = self._unknown()

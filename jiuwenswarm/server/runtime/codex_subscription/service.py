@@ -16,6 +16,16 @@ from .transport import AppServerTransport, CodexError
 from .account_telemetry import safe_limits, missing_fields, READ_SCHEMA_SHA256, UPDATE_SCHEMA_SHA256
 
 
+def governed_tool_config():
+    """Packaged 0.163 native declarations disabled for governed text turns.
+
+    Measured on the actual client: the legacy startup [tools] table alone
+    leaves request_user_input, view_image, multi-agent and goal tools visible.
+    Ordinary chat stream configuration remains separate.
+    """
+    return {'features.view_image': False, 'features.multi_agent': False,
+            'features.goals': False, 'tools.experimental_request_user_input.enabled': False}
+
 _TEXT_ONLY_ITEM_TYPES = frozenset({"userMessage", "agentMessage", "reasoning", "plan"})
 
 
