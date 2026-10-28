@@ -80,6 +80,11 @@ def guard_inputs(declaration: dict, inputs, ports=None, stage=None) -> None:
                 _validate_port(port, inputs[port['name']])
         except ResearchError as error:
             raise Halt('input_guard', error.code, port['name'] + ': ' + error.message) from error
+    if stage is not None:
+        try:
+            stage.validate_inputs(inputs)
+        except ResearchError as error:
+            raise Halt('input_guard', error.code, error.message) from error
 
 
 def _canonical(artifact) -> tuple[bytes, object]:

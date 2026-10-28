@@ -98,7 +98,23 @@ Inputs are plain: `request` (text), optional `documents` (extracted text), optio
 
 **RSI.** Load another Intent release the same way as any capsule only after it has its own pinned catalog; RSI is deterministic-capsule only for now, so Intent is not an RSI target.
 
-**Other stages.** Requirements: same adapter, plus the Intent artifact as input and a Brief check (`check_brief`) that needs the default policy; small. Hypothesis, Evaluation: not started; their checks read blobs and run records (`stages.py`) and Hypothesis needs resources and a metric protocol; larger.
+## Requirements as a portable capability (`requirements.compiler`, alias `research.requirements`, release m1-9)
+
+```python
+intent = rt.invoke('research.intent', {'request': text}, worker_model=m, verifier_model=v)['outputs']['intent']
+rt.invoke('research.requirements', {'request': text, 'intent': intent}, worker_model=m, verifier_model=v)  # -> outputs['brief']
+```
+Inputs: `intent` (the Intent IR, normally from `research.intent`), `request` (the same text), optional `documents`, optional `policy` (default-policy record; omitted means the product default: `single_gpu`, no automatic retries; other values are refused as in the fixed compiler), optional `prior_plan_outcome`. Output: `brief` (Research Brief, schema 3.0.0). Same adapter, store, verifier rule and serving as Intent.
+
+**How the pipeline runs it (traced).** `compiler.py:IntentionCompiler.run` runs sub-node `requirements` only after Intent is internally accepted, with three inputs: `intent` (`intent-ir`, the accepted ref), `intake` (`qualified-intake`) and `defaults` (`default-policy`); one output `brief` (`research-brief` 3.0.0). The carrier is `capsules/requirements_m1_9.py` (prompt `requirements_m1_9.txt`, helper `_common.py`). Release: `releases.py` lists m1-8 (implicit) and m1-9 (capture default is m1-8); the portable runtime serves m1-9, the current explicit release, built by `requirements_release.py` and compared with `requirements_m1_9_catalog.json`. Checks: `checks/compiler.py:compiler_checks` runs `check_brief` for `brief_schema`, `source_identity`, `requirement_coverage`. The Requirements checking profile has the three generic criteria plus `requirement_link_completeness`.
+
+**What the adapter does.**
+- Pins: the product's `prepare_compiler_assets(requirements_version='m1-9')` on an in-memory store, on every call, plus a hash of the imported `requirements_m1_9.py`, `_common.py`, `checks/compiler.py` and `target_comparisons.py` against the pinned bytes. Any difference halts at `pin` (`asset_integrity`).
+- Inputs: request and documents become blobs and a `qualified-intake` record; the Intent and the policy become records with the product's refs. The supplied Intent must pass the product's `check_intent` (schema, spans, identity) against this request and these documents; otherwise the call halts at `input_guard` (`intent_input_invalid`) before any model call.
+- Checks run unchanged: `brief_schema`, `source_identity`, `requirement_coverage` (the Intent coverage rule, mandatory-requirement links, default-policy authority, ref allowlist).
+- Verifier: required (`semantic_required`), same as Intent. No verifier model is a `no_model` halt.
+- `not_applicable_outside_pipeline`: `accepted_intent_input` (the pipeline's Intent has passed internal acceptance and its semantic review; a supplied Intent is only re-checked mechanically), the host_* checks, and internal_acceptance, external_output, aggregate_limits.
+- Limits: no uploaded data files (`resource_refs`), text documents only.
 
 ## What stays in AI4R
 The run store and custody, the scheduler and plans, the protected executor and sandbox, the gates and the decision

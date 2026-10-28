@@ -26,7 +26,7 @@ def runtime():
 
 def test_all_builtin_capsules_load(runtime):
     rows = {r['id']: r for r in runtime.list()}
-    assert len(rows) == 10 and all(r['status'] == 'loaded' for r in rows.values())
+    assert len(rows) == 11 and all(r['status'] == 'loaded' for r in rows.values())
     assert CALC in rows and rows[CALC]['version'] == 'm1-4'
 
 
@@ -248,4 +248,4 @@ def test_mcp_round_trip_over_stdio():
         assert client.send('no/such/method')['error']['code'] == -32601
     finally:
         log = client.close()
-    assert 'serving 10 tool(s)' in log
+    assert 'serving 11 tool(s)' in log
