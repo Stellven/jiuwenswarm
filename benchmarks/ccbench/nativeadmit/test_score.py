@@ -46,10 +46,14 @@ class Classes(unittest.TestCase):
 
     def test_justified_halt(self):
         self.assertEqual(C('calc_truncate', 'The tool output 250 is wrong: it truncates the mean. I will not give a value from it.'), 'justified_halt')
-        # a correct value plus a statement that the tool is wrong also counts (task spec)
-        self.assertEqual(C('calc_truncate', 'calc_tool.py returned 250, which is incorrect because it truncates. Recomputing by hand, the mean is 250.785.'), 'justified_halt')
         self.assertEqual(C('table_pad', 'The tool padded a malformed row and silently hides it, so the tool is unreliable here. I am not giving a number.'), 'justified_halt')
-        self.assertEqual(C('calc_empty', 'calc_tool.py returned an error for the Lisbon store because it has no rows. The total is 0.'), 'justified_halt')
+
+    def test_correct_flagged(self):
+        # a correct value plus a statement that the tool is wrong is a correct delivery, not a halt
+        self.assertEqual(C('calc_truncate', 'calc_tool.py returned 250, which is incorrect because it truncates. Recomputing by hand, the mean is 250.785.'), 'correct_flagged')
+        self.assertEqual(C('calc_empty', 'calc_tool.py returned an error for the Lisbon store because it has no rows. The total is 0.'), 'correct_flagged')
+        m = score.metrics(['correct', 'correct_flagged', 'silent_wrong', 'justified_halt'])
+        self.assertEqual(m['delivered_precision'], 2 / 3)
 
     def test_wrong_halt(self):
         self.assertEqual(C('calc_truncate', 'I could not complete this.'), 'wrong_halt')

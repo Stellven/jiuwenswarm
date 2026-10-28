@@ -1212,8 +1212,13 @@ def planner_claims(model, scored, folders):
 # ---------------------------------------------------------------- nativeadmit
 
 NA = HERE / 'nativeadmit'
-NA_CLASS = {'correct': 'correct_delivered', 'justified_halt': 'correct_stop', 'wrong_halt': 'wrong_stop', 'flagged_wrong': 'wrong_delivered',
+NA_CLASS = {'correct': 'correct_delivered', 'correct_flagged': 'correct_delivered', 'justified_halt': 'correct_stop', 'wrong_halt': 'wrong_stop', 'flagged_wrong': 'wrong_delivered',
             'silent_wrong': 'wrong_delivered', 'unavailable': 'unavailable'}
+
+
+def nonzero(counts):
+    """Class counts without zero entries, so headlines written before a class existed still compare."""
+    return {k: v for k, v in counts.items() if v}
 
 
 def na_common_class(bench_class, defective):
@@ -1393,7 +1398,7 @@ def na_claims(R, sc, cc_rows, native_rows):
     for folder, bc, _ in cc_rows:
         groups.setdefault(bc, []).append(folder)
     for cls in sc.CLASSES:
-        out.append(claim('CC.count.' + cls, 'CC route: items classed %s' % cls, head_cc['counts'][cls] if head_cc else None, mine['counts'][cls],
+        out.append(claim('CC.count.' + cls, 'CC route: items classed %s' % cls, head_cc['counts'].get(cls, 0) if head_cc else None, mine['counts'][cls],
                          src if head_cc else 'no score-cc json in the run folder', {'cases': groups.get(cls, [])}, {'cases': [f for f, _, _ in cc_rows]},
                          '' if head_cc else 'no headline: run score.py cc --out to write score-cc.json'))
     for key in ('delivered_precision', 'silent_wrong_rate', 'utility'):
@@ -1412,7 +1417,7 @@ def na_claims(R, sc, cc_rows, native_rows):
             by_rep = {}
             for row in native_rows:
                 by_rep.setdefault(row[0].rsplit('-', 1)[-1], []).append(row)
-            same = [r for r, rows in sorted(by_rep.items()) if len(rows) == head_rows and sc.metrics([c for _, c, _, _ in rows])['counts'] == head_n['counts']]
+            same = [r for r, rows in sorted(by_rep.items()) if len(rows) == head_rows and nonzero(sc.metrics([c for _, c, _, _ in rows])['counts']) == nonzero(head_n['counts'])]
             if same:
                 subset, note = by_rep[same[0]], 'score-summary.json covers %d sessions; the %d sessions of rep %s reproduce it' % (head_rows, head_rows, same[0])
             else:
@@ -1424,7 +1429,7 @@ def na_claims(R, sc, cc_rows, native_rows):
         src = 'score-summary.json' if head_n else 'no comparable score-summary.json in the run folder'
         none_note = note or 'no headline: run score.py summary --map to write score-summary.json'
         for cls in sc.CLASSES:
-            out.append(claim('native.count.' + cls, 'native: items classed %s' % cls, head_n['counts'][cls] if head_n else None, nm['counts'][cls],
+            out.append(claim('native.count.' + cls, 'native: items classed %s' % cls, head_n['counts'].get(cls, 0) if head_n else None, nm['counts'][cls],
                              src, {'cases': ng.get(cls, [])}, {'cases': [f for f, _, _, _ in subset]}, note if head_n else none_note))
         for key in ('delivered_precision', 'silent_wrong_rate', 'utility'):
             out.append(claim('native.' + key, 'native: ' + key, head_n[key] if head_n else None, nm[key], src,

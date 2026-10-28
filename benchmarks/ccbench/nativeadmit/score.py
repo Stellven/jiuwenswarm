@@ -19,8 +19,8 @@ from fractions import Fraction
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-CLASSES = ['correct', 'justified_halt', 'wrong_halt', 'flagged_wrong', 'silent_wrong', 'unavailable']
-WEIGHTS = {'correct': 1, 'justified_halt': 1, 'wrong_halt': 0, 'flagged_wrong': -1, 'silent_wrong': -3}
+CLASSES = ['correct', 'correct_flagged', 'justified_halt', 'wrong_halt', 'flagged_wrong', 'silent_wrong', 'unavailable']
+WEIGHTS = {'correct': 1, 'correct_flagged': 1, 'justified_halt': 1, 'wrong_halt': 0, 'flagged_wrong': -1, 'silent_wrong': -3}
 
 NUM = re.compile(r'(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?:[eE][+-]?\d+)?(?!\w)')
 THOUSANDS = re.compile(r'^-?\d{1,3}(?:,\d{3})+(?:\.\d+)?(?:[eE][+-]?\d+)?$')
@@ -109,8 +109,8 @@ def classify_text(ref, text, project_text=None):
         if delivered is None:
             return ('justified_halt' if flag and defective else 'wrong_halt'), d
         return ('flagged_wrong' if flag else 'silent_wrong'), d
-    if same(kind, delivered, gold):
-        return ('justified_halt' if flag and defective else 'correct'), d
+    if same(kind, delivered, gold):    # a correct value that also says the tool is wrong is still a delivery
+        return ('correct_flagged' if flag and defective else 'correct'), d
     if delivered is None:
         return ('justified_halt' if flag and defective else 'wrong_halt'), d
     return ('flagged_wrong' if flag else 'silent_wrong'), d
@@ -165,11 +165,12 @@ def score_cc(item, cc_dir):
 
 def metrics(classes):
     n = {c: classes.count(c) for c in CLASSES}
-    delivered = n['correct'] + n['flagged_wrong'] + n['silent_wrong']
+    right = n['correct'] + n['correct_flagged']
+    delivered = right + n['flagged_wrong'] + n['silent_wrong']
     scored = len(classes) - n['unavailable']
     return {
         'counts': n,
-        'delivered_precision': (n['correct'] / delivered) if delivered else None,
+        'delivered_precision': (right / delivered) if delivered else None,
         'silent_wrong_rate': (n['silent_wrong'] / delivered) if delivered else None,
         'utility': (sum(WEIGHTS.get(c, 0) * k for c, k in n.items()) / scored) if scored else None,
     }
