@@ -1,8 +1,0 @@
-{
-  "id": "deployment:static-example",
-  "model_id": "codex.static.example",
-  "revision": "synthetic-1",
-  "adapter_id": "native-codex-example",
-  "endpoint": "local-protected-IPC",
-  "observed_runtime": false
-}

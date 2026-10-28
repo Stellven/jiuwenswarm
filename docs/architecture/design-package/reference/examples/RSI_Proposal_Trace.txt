@@ -1,1 +1,0 @@
-Synthetic protected trace placeholder. Model identity/configuration is pinned; elapsed time and proposal calls are unavailable, not zero.

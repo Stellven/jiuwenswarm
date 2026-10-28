@@ -1,9 +1,0 @@
-{
-  "id": "failure:timeout",
-  "run_id": "run:example",
-  "node_id": "intention.compiler",
-  "subnode_id": "intention",
-  "attempt_id": "attempt:1",
-  "reason": "Compiler timed out before producing an artifact",
-  "synthetic": true
-}

@@ -1,1 +1,0 @@
-Hash exact stored UTF-8 JSON bytes without newline or Unicode normalization; SHA-256. Protected serialization freezes bytes once before linking. Chain genesis is a separate immutable session record, not a self-reference.
