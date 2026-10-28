@@ -128,3 +128,17 @@ for the CC route's tool-use coverage. A refuse-everything arm scores 10/12 justi
   salvaged a correct number. Those score justified_halt for CC; report coverage both ways (see Scoring).
 - 12 items, one run each: no confidence claim beyond the item table.
 - Not hard-coded: `cc_route.py` reads only the declaration and the tool. Gold and labels are never consulted.
+
+## Notes: a T1 arm through the capsule MCP server (not built)
+
+Today the CC arm swaps tool files and runs `derive.py` tests offline (`cc_route.py`). A native-agent T1 arm could
+instead register `python -m jiuwenswarm.capsule_runtime.mcp` (see `jiuwenswarm/capsule_runtime/README.md`) with the
+agent's harness, so the agent calls `utility.calculate` and `utility.table_normalize` as tools and the guarantees
+(pins, input guard, verifier, receipt) apply at call time rather than by swapping files.
+- Scoring reads the tool result: `delivered` answer vs `halted` with stage and code; the receipt's `output_sha256` and
+  `check_verdict` are the evidence. A seeded defect becomes a capsule whose worker is wrong, loaded from `--extra-dir`
+  with its own `release.json`; the verifier then halts it, which is the same signal as `cc/<id>.json` "not admitted".
+- Arm separation holds: the agent sees only tool names, schemas and descriptions, never the source or `checks.py`.
+- Gaps: the shipped capsules take work packets, not the item's CSV and JSON files directly, so an adapter step
+  (`table_normalize` first) is part of the arm; and the in-process admission cases are not `derive.py`'s
+  declaration-derived tests, so the admission result differs from the study's. No bench code was changed.
