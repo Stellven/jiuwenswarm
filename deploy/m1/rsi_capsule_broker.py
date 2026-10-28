@@ -17,6 +17,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import signal
 import struct
 import sys
 
@@ -91,6 +92,43 @@ def refusal(error):
     stderr = getattr(error, 'stderr', None) or b''
     lines = [line for line in stderr.decode('utf8', 'replace').splitlines() if line.strip()]
     return ValueError((lines[-1] if lines else type(error).__name__)[-480:])
+
+
+def send_reply(client, raw):
+    """A disconnected gateway cannot terminate the durable broker owner."""
+    try:
+        client.sendall(raw)
+    except OSError:
+        return False
+    return True
+
+
+def preflight_process(argv, *, timeout, env):
+    """Bound metadata preflight and stop all of its descendants on timeout."""
+    import subprocess
+    need(timeout > 0, 'FINITE_CAPSULE_PREFLIGHT_TIMEOUT_REQUIRED')
+    process = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, env=env, start_new_session=True, close_fds=True)
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except BaseException:
+        # The process owns a fresh session: no broker or research-run process
+        # can be included in this group. Killing only the direct child leaves
+        # its metadata readers alive and can keep captured pipes open forever.
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        try:
+            process.communicate(timeout=2)
+        except subprocess.TimeoutExpired:
+            for stream in (process.stdout, process.stderr):
+                if stream is not None:
+                    stream.close()
+        raise
+    if process.returncode:
+        raise subprocess.CalledProcessError(process.returncode, argv, output=stdout, stderr=stderr)
+    return subprocess.CompletedProcess(argv, process.returncode, stdout, stderr)
 
 
 def terminal_status(status, read):
@@ -174,8 +212,7 @@ def compose(path=CONFIG):
         def preflight(self):
             import subprocess
             try:
-                result = subprocess.run(self.argv('preflight'), check=True, stdin=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=limits['preflight_s'], env=base.ENV)
+                result = preflight_process(self.argv('preflight'), timeout=limits['preflight_s'], env=base.ENV)
             except subprocess.CalledProcessError as error:
                 raise refusal(error) from None
             need(len(result.stdout) <= old.MAX_FRAME, 'FINITE_CAPSULE_PREFLIGHT_REQUIRED')
@@ -287,7 +324,7 @@ def serve(path=CONFIG):
                         reply['slots'] = [terminal_status(row, journals[row['target_id']].read)
                                           if row['target_id'] in journals else row for row in reply['slots']]
                 except Exception: reply = {'error': 'Capsule request blocked; reconcile without replay'}
-                client.sendall(old.encoded(reply)+b'\n')
+                send_reply(client, old.encoded(reply)+b'\n')
 
 
 def resume(path, target_id):
