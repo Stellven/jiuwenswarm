@@ -62,9 +62,11 @@ def extract_number(text):
     paras = [p for p in re.split(r'\n\s*\n', text.strip()) if p.strip()]
     if not paras:
         return None
-    # Sentences that report what the tool returned are not the delivered answer.
-    own = [s for s in re.split(r'(?<=[.!?])\s+', paras[0]) if not TOOL.search(s)]
-    ns = numbers(' '.join(own)) or numbers(paras[0])
+    # Sentences that report what the tool returned, or that call a value wrong, are not the delivered answer.
+    sents = re.split(r'(?<=[.!?])\s+', paras[0])
+    own = [s for s in sents if not TOOL.search(s)]
+    kept = [s for s in own if not DOUBT.search(s)]
+    ns = numbers(' '.join(kept)) or numbers(' '.join(own)) or numbers(paras[0])
     return ns[-1] if ns else None
 
 

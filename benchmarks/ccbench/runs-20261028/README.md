@@ -43,7 +43,7 @@ The comparison chain:
    - Keep the output path free of spaces.
    - Rerunning the same command resumes; finished attempts are skipped.
 5. **Read the result.** The script ends by printing `score/score-arms.md`: class counts and token cost per arm.
-   - Compare with `baseline/T1-sol-low/score-arms.md`: CC 0 wrong of 8, plain 1, careful 2.
+   - Compare with `baseline/T1-sol-low/score-arms.md`: CC 0 wrong of 8, plain 1, careful 1.
    - Scoring is model-free (`nativeadmit/score.py`).
 
 ### What the RSI arm can and cannot show

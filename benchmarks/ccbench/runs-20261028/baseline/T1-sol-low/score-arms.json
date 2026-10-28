@@ -11,12 +11,12 @@
    "unavailable": 0
   },
   "careful": {
-   "correct": 5,
+   "correct": 6,
    "correct_flagged": 1,
    "justified_halt": 0,
    "wrong_halt": 0,
    "flagged_wrong": 0,
-   "silent_wrong": 2,
+   "silent_wrong": 1,
    "unavailable": 0
   },
   "cc": {
@@ -63,13 +63,13 @@
   "careful": {
    "runs": 8,
    "counts": {
-    "correct": 6,
-    "wrong": 2,
+    "correct": 7,
+    "wrong": 1,
     "stopped": 0,
     "false_stop": 0,
     "unavailable": 0
    },
-   "correct": 6,
+   "correct": 7,
    "mean_input": 169406.375,
    "mean_output": 518.375,
    "mean_total": 169924.75,
@@ -78,8 +78,8 @@
    "runs_with_split": 8,
    "runs_missing_total": 0,
    "total_tokens": 1359398,
-   "tokens_per_correct": 226566.33333333334,
-   "tokens_per_correct_known_runs": 226566.33333333334
+   "tokens_per_correct": 194199.7142857143,
+   "tokens_per_correct_known_runs": 194199.7142857143
   },
   "cc": {
    "runs": 8,
@@ -258,9 +258,9 @@
    "session": "calc_comma-r1",
    "item": "calc_comma",
    "rep": 1,
-   "cls": "silent_wrong",
+   "cls": "correct",
    "defect": "rare: locale coercion",
-   "delivered": "4892.956",
+   "delivered": "329524",
    "gold": "329524",
    "flagged_tool": false,
    "input_tokens": 173432,

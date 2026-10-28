@@ -11,11 +11,11 @@ Written by tools/build_index.py from 287 scored rows (all-runs.csv). A "-" expec
 | A native sol rep 2 only: wrong of 12 | 1 | 1 | yes |
 | A native sol rep 3 only: wrong of 12 | 1 | 1 | yes |
 | T1 sol low plain: wrong of 8 | 1 | 1 | yes |
-| T1 sol low careful: wrong of 8 | 2 | 2 | yes |
+| T1 sol low careful: wrong of 8 | 1 | 1 | yes |
 | T1 sol low cc: wrong of 8 | 0 | 0 | yes |
 | T1 sol low ccmcp: wrong of 8 | 1 | 1 | yes |
 | T1 sol low plain: correct of 8 | 7 | 7 | yes |
-| T1 sol low careful: correct of 8 | 6 | 6 | yes |
+| T1 sol low careful: correct of 8 | 7 | 7 | yes |
 | T1 sol low cc: correct of 8 | 7 | 7 | yes |
 | heldout cc: passed of 10 | 10 | 10 | yes |
 | heldout plain: passed of 10 | 9 | 9 | yes |
