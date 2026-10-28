@@ -35,6 +35,9 @@
 #   nativetask   run_native_task plan|run|collect|init-ledger        (host only)
 #   planbench    run_arm run|score | generate_tasks | generate_skillpack | freeze
 #   cclib        verify | compare_prompts
+#   heldout      run_heldout plan|freeze|run|score        (model runs; host Python recommended: --host)
+#   contract     run_contract plan|freeze|run|score
+#   haltbench    run_haltbench plan|freeze|run|score
 set -eu
 
 die() { echo "ai4r-bench: $*" >&2; exit 2; }
@@ -54,6 +57,9 @@ scripts_of() {
         nativetask) echo "run_native_task" ;;
         planbench) echo "run_arm generate_tasks generate_skillpack freeze" ;;
         cclib) echo "verify compare_prompts" ;;
+        heldout) echo "run_heldout" ;;
+        contract) echo "run_contract" ;;
+        haltbench) echo "run_haltbench" ;;
         dossier) echo "dossier" ;;
         *) return 1 ;;
     esac
@@ -65,7 +71,7 @@ raw_args=$(printf '%s
 cmd=$1; shift
 
 if [ "$cmd" = list ]; then
-    for b in admission gatebench trapcheck planner nativeadmit nativetask planbench cclib dossier; do
+    for b in admission gatebench trapcheck planner nativeadmit nativetask planbench cclib heldout contract haltbench dossier; do
         echo "$b: $(scripts_of $b)"
     done
     exit 0
@@ -153,7 +159,7 @@ export AI4R_PRODUCT_COMMIT AI4R_PRODUCT_DIRTY
 meta=''; model_flag=''
 if [ "$cmd" != selftest ] && [ "$cmd" != dossier ]; then
     case "$cmd:$script:${1:-}" in
-        planner:run_planner_bench.py:run|planbench:run_arm.py:run|nativetask:run_native_task.py:run) model_flag=--model-run ;;
+        planner:run_planner_bench.py:run|planbench:run_arm.py:run|nativetask:run_native_task.py:run|heldout:run_heldout.py:run|contract:run_contract.py:run|haltbench:run_haltbench.py:run) model_flag=--model-run ;;
     esac
     if [ -n "$py" ]; then
         meta="$out_abs/run-meta/$(date -u +%Y%m%dT%H%M%SZ)-$cmd-${script%.py}.json"

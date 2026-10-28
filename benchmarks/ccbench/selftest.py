@@ -22,6 +22,10 @@ SUITES = {
     'nativetask': ('nativetask', 'test_run_native_task'),
     'cclib': ('.', 'cclib.test_harness'),
     'dossier': ('.', 'test_dossier'),
+    'modelbench': ('.', 'test_modelbench'),
+    'heldout': ('heldout', 'test_heldout'),
+    'contract': ('contract', 'test_contract'),
+    'haltbench': ('haltbench', 'test_haltbench'),
 }
 
 

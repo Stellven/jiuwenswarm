@@ -1,0 +1,1342 @@
+[
+ {
+  "id": "merge_intervals",
+  "function": "merge_intervals",
+  "spec": "merge_intervals(intervals) takes a list of [start, end] integer pairs (start <= end) in any order and returns the merged list sorted by start. Intervals that overlap or merely touch (one ends exactly where the next starts) are merged into one. Return a list of [start, end] lists. An empty input gives an empty list.",
+  "examples": [
+   "merge_intervals([[1, 4], [6, 8]]) == [[1, 4], [6, 8]]",
+   "merge_intervals([[1, 5], [2, 3]]) == [[1, 5]]"
+  ],
+  "gate": [
+   {
+    "args": [
+     [
+      [
+       1,
+       3
+      ],
+      [
+       2,
+       6
+      ],
+      [
+       8,
+       10
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      1,
+      6
+     ],
+     [
+      8,
+      10
+     ]
+    ]
+   },
+   {
+    "args": [
+     [
+      [
+       1,
+       2
+      ],
+      [
+       2,
+       3
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      1,
+      3
+     ]
+    ]
+   },
+   {
+    "args": [
+     []
+    ],
+    "expect": []
+   },
+   {
+    "args": [
+     [
+      [
+       5,
+       7
+      ],
+      [
+       1,
+       2
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      1,
+      2
+     ],
+     [
+      5,
+      7
+     ]
+    ]
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     [
+      [
+       1,
+       4
+      ],
+      [
+       0,
+       4
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      0,
+      4
+     ]
+    ]
+   },
+   {
+    "args": [
+     [
+      [
+       1,
+       10
+      ],
+      [
+       2,
+       3
+      ],
+      [
+       4,
+       5
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      1,
+      10
+     ]
+    ]
+   },
+   {
+    "args": [
+     [
+      [
+       1,
+       2
+      ],
+      [
+       3,
+       4
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      1,
+      2
+     ],
+     [
+      3,
+      4
+     ]
+    ]
+   },
+   {
+    "args": [
+     [
+      [
+       3,
+       3
+      ],
+      [
+       1,
+       1
+      ],
+      [
+       3,
+       5
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      1,
+      1
+     ],
+     [
+      3,
+      5
+     ]
+    ]
+   },
+   {
+    "args": [
+     [
+      [
+       -5,
+       -1
+      ],
+      [
+       -2,
+       2
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      -5,
+      2
+     ]
+    ]
+   },
+   {
+    "args": [
+     [
+      [
+       2,
+       3
+      ],
+      [
+       4,
+       5
+      ],
+      [
+       6,
+       7
+      ],
+      [
+       1,
+       10
+      ]
+     ]
+    ],
+    "expect": [
+     [
+      1,
+      10
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "compare_versions",
+  "function": "compare_versions",
+  "spec": "compare_versions(a, b) compares two dotted version strings made of non-negative integer parts, such as '1.2.10'. Parts are compared as integers from left to right. A missing trailing part counts as 0, so '1.0' equals '1.0.0'. Leading zeros do not matter. Return -1 if a < b, 0 if equal, 1 if a > b.",
+  "examples": [
+   "compare_versions('1.2', '1.3') == -1",
+   "compare_versions('2.0', '2.0') == 0"
+  ],
+  "gate": [
+   {
+    "args": [
+     "1.2.3",
+     "1.2.4"
+    ],
+    "expect": -1
+   },
+   {
+    "args": [
+     "1.0",
+     "1.0.0"
+    ],
+    "expect": 0
+   },
+   {
+    "args": [
+     "1.10",
+     "1.9"
+    ],
+    "expect": 1
+   },
+   {
+    "args": [
+     "2",
+     "1.9.9"
+    ],
+    "expect": 1
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     "1.0.0.0",
+     "1"
+    ],
+    "expect": 0
+   },
+   {
+    "args": [
+     "0.9",
+     "0.10"
+    ],
+    "expect": -1
+   },
+   {
+    "args": [
+     "1.02",
+     "1.2"
+    ],
+    "expect": 0
+   },
+   {
+    "args": [
+     "10.0",
+     "9.99.99"
+    ],
+    "expect": 1
+   },
+   {
+    "args": [
+     "1.0.1",
+     "1"
+    ],
+    "expect": 1
+   },
+   {
+    "args": [
+     "3.4",
+     "3.4.0.0.1"
+    ],
+    "expect": -1
+   }
+  ]
+ },
+ {
+  "id": "round_half_up",
+  "function": "round_half_up",
+  "spec": "round_half_up(value, ndigits) takes a decimal number written as a string (for example '-2.345') and an integer ndigits >= 0. It rounds to ndigits places with ties rounded away from zero (2.5 -> 3, -2.5 -> -3) and works on the exact decimal value, not on a binary float. It returns a string with exactly ndigits digits after the decimal point, and no decimal point when ndigits is 0. A result that is zero is never written with a minus sign.",
+  "examples": [
+   "round_half_up('1.234', 2) == '1.23'",
+   "round_half_up('0.5', 0) == '1'"
+  ],
+  "gate": [
+   {
+    "args": [
+     "2.5",
+     0
+    ],
+    "expect": "3"
+   },
+   {
+    "args": [
+     "2.345",
+     2
+    ],
+    "expect": "2.35"
+   },
+   {
+    "args": [
+     "-2.5",
+     0
+    ],
+    "expect": "-3"
+   },
+   {
+    "args": [
+     "1",
+     2
+    ],
+    "expect": "1.00"
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     "0.125",
+     2
+    ],
+    "expect": "0.13"
+   },
+   {
+    "args": [
+     "-0.125",
+     2
+    ],
+    "expect": "-0.13"
+   },
+   {
+    "args": [
+     "1.005",
+     2
+    ],
+    "expect": "1.01"
+   },
+   {
+    "args": [
+     "0.4",
+     0
+    ],
+    "expect": "0"
+   },
+   {
+    "args": [
+     "-0.4",
+     0
+    ],
+    "expect": "0"
+   },
+   {
+    "args": [
+     "999.995",
+     2
+    ],
+    "expect": "1000.00"
+   },
+   {
+    "args": [
+     "12.3456",
+     3
+    ],
+    "expect": "12.346"
+   },
+   {
+    "args": [
+     "2.675",
+     2
+    ],
+    "expect": "2.68"
+   }
+  ]
+ },
+ {
+  "id": "rle_decode",
+  "function": "rle_decode",
+  "spec": "rle_decode(s) decodes a run-length string. The input has lowercase letters a-z and decimal digits. A letter may be preceded by a decimal count of any length (the full run of digits right before it); the letter is then repeated that many times. A letter with no count is repeated once. A count of 0 produces nothing for that letter. The count applies only to the single letter after it. Return the decoded string. The input never ends with digits.",
+  "examples": [
+   "rle_decode('2a') == 'aa'",
+   "rle_decode('b2c') == 'bcc'"
+  ],
+  "gate": [
+   {
+    "args": [
+     "3a2b"
+    ],
+    "expect": "aaabb"
+   },
+   {
+    "args": [
+     "abc"
+    ],
+    "expect": "abc"
+   },
+   {
+    "args": [
+     "12x"
+    ],
+    "expect": "xxxxxxxxxxxx"
+   },
+   {
+    "args": [
+     "a3b"
+    ],
+    "expect": "abbb"
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     ""
+    ],
+    "expect": ""
+   },
+   {
+    "args": [
+     "10a1b"
+    ],
+    "expect": "aaaaaaaaaab"
+   },
+   {
+    "args": [
+     "0a2b"
+    ],
+    "expect": "bb"
+   },
+   {
+    "args": [
+     "2ab"
+    ],
+    "expect": "aab"
+   },
+   {
+    "args": [
+     "1a1b1c"
+    ],
+    "expect": "abc"
+   },
+   {
+    "args": [
+     "11z"
+    ],
+    "expect": "zzzzzzzzzzz"
+   },
+   {
+    "args": [
+     "z2y"
+    ],
+    "expect": "zyy"
+   }
+  ]
+ },
+ {
+  "id": "business_days",
+  "function": "business_days",
+  "spec": "business_days(start, end, holidays) counts business days in the half-open range [start, end): start is included, end is excluded. start and end are ISO dates 'YYYY-MM-DD'. A business day is Monday to Friday and not in holidays (a list of ISO date strings, possibly with duplicates, possibly on weekends or outside the range). If end <= start the result is 0. Return an int.",
+  "examples": [
+   "business_days('2024-01-01', '2024-01-02', []) == 1  # 2024-01-01 is a Monday",
+   "business_days('2024-01-05', '2024-01-08', []) == 1"
+  ],
+  "gate": [
+   {
+    "args": [
+     "2024-01-01",
+     "2024-01-08",
+     []
+    ],
+    "expect": 5
+   },
+   {
+    "args": [
+     "2024-01-06",
+     "2024-01-08",
+     []
+    ],
+    "expect": 0
+   },
+   {
+    "args": [
+     "2024-01-01",
+     "2024-01-08",
+     [
+      "2024-01-03"
+     ]
+    ],
+    "expect": 4
+   },
+   {
+    "args": [
+     "2024-01-08",
+     "2024-01-01",
+     []
+    ],
+    "expect": 0
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     "2024-01-01",
+     "2024-01-02",
+     []
+    ],
+    "expect": 1
+   },
+   {
+    "args": [
+     "2024-01-01",
+     "2024-02-01",
+     []
+    ],
+    "expect": 23
+   },
+   {
+    "args": [
+     "2024-01-01",
+     "2024-01-08",
+     [
+      "2024-01-06",
+      "2024-01-06"
+     ]
+    ],
+    "expect": 5
+   },
+   {
+    "args": [
+     "2024-01-01",
+     "2024-01-08",
+     [
+      "2024-01-08"
+     ]
+    ],
+    "expect": 5
+   },
+   {
+    "args": [
+     "2024-01-03",
+     "2024-01-03",
+     []
+    ],
+    "expect": 0
+   },
+   {
+    "args": [
+     "2024-02-26",
+     "2024-03-04",
+     [
+      "2024-02-29",
+      "2024-02-29"
+     ]
+    ],
+    "expect": 4
+   },
+   {
+    "args": [
+     "2023-12-29",
+     "2024-01-02",
+     []
+    ],
+    "expect": 2
+   },
+   {
+    "args": [
+     "2024-01-01",
+     "2024-01-08",
+     [
+      "2024-01-01",
+      "2024-01-02"
+     ]
+    ],
+    "expect": 3
+   }
+  ]
+ },
+ {
+  "id": "top_k_words",
+  "function": "top_k_words",
+  "spec": "top_k_words(text, k) returns the k most frequent words as a list of [word, count] lists. Lowercase the text. A word is a maximal run of the characters a-z and the apostrophe ('); every other character separates words. Strip apostrophes from both ends of each word, and drop words that become empty. Sort by count descending, then by word ascending (alphabetical). If there are fewer than k distinct words return all of them. k = 0 gives an empty list.",
+  "examples": [
+   "top_k_words('a b a', 2) == [['a', 2], ['b', 1]]",
+   "top_k_words('Hi hi.', 1) == [['hi', 2]]"
+  ],
+  "gate": [
+   {
+    "args": [
+     "a b a",
+     1
+    ],
+    "expect": [
+     [
+      "a",
+      2
+     ]
+    ]
+   },
+   {
+    "args": [
+     "The the THE cat",
+     2
+    ],
+    "expect": [
+     [
+      "the",
+      3
+     ],
+     [
+      "cat",
+      1
+     ]
+    ]
+   },
+   {
+    "args": [
+     "b a b a c",
+     3
+    ],
+    "expect": [
+     [
+      "a",
+      2
+     ],
+     [
+      "b",
+      2
+     ],
+     [
+      "c",
+      1
+     ]
+    ]
+   },
+   {
+    "args": [
+     "",
+     3
+    ],
+    "expect": []
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     "Don't stop, don't!",
+     1
+    ],
+    "expect": [
+     [
+      "don't",
+      2
+     ]
+    ]
+   },
+   {
+    "args": [
+     "'tis 'tis ok",
+     2
+    ],
+    "expect": [
+     [
+      "tis",
+      2
+     ],
+     [
+      "ok",
+      1
+     ]
+    ]
+   },
+   {
+    "args": [
+     "a-b a_b",
+     5
+    ],
+    "expect": [
+     [
+      "a",
+      2
+     ],
+     [
+      "b",
+      2
+     ]
+    ]
+   },
+   {
+    "args": [
+     "x y z",
+     0
+    ],
+    "expect": []
+   },
+   {
+    "args": [
+     "one two",
+     10
+    ],
+    "expect": [
+     [
+      "one",
+      1
+     ],
+     [
+      "two",
+      1
+     ]
+    ]
+   },
+   {
+    "args": [
+     "It's it's IT'S its",
+     2
+    ],
+    "expect": [
+     [
+      "it's",
+      3
+     ],
+     [
+      "its",
+      1
+     ]
+    ]
+   },
+   {
+    "args": [
+     "''' a",
+     1
+    ],
+    "expect": [
+     [
+      "a",
+      1
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "wrap_text",
+  "function": "wrap_text",
+  "spec": "wrap_text(text, width) splits text into lines by greedy word wrapping. Words are separated by any whitespace; collapse all whitespace so words in a line are joined by a single space and no line has leading or trailing spaces. Put as many words on a line as fit within width characters. A word longer than width goes on a line of its own and is not broken. Return a list of lines. Empty or all-whitespace text gives an empty list.",
+  "examples": [
+   "wrap_text('aa bb cc', 5) == ['aa bb', 'cc']",
+   "wrap_text('abcdefgh', 3) == ['abcdefgh']"
+  ],
+  "gate": [
+   {
+    "args": [
+     "aaa bbb ccc",
+     7
+    ],
+    "expect": [
+     "aaa bbb",
+     "ccc"
+    ]
+   },
+   {
+    "args": [
+     "hello world",
+     5
+    ],
+    "expect": [
+     "hello",
+     "world"
+    ]
+   },
+   {
+    "args": [
+     "",
+     10
+    ],
+    "expect": []
+   },
+   {
+    "args": [
+     "a  b\n c",
+     10
+    ],
+    "expect": [
+     "a b c"
+    ]
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     "aaa bbb ccc",
+     8
+    ],
+    "expect": [
+     "aaa bbb",
+     "ccc"
+    ]
+   },
+   {
+    "args": [
+     "abcdefghij kl",
+     4
+    ],
+    "expect": [
+     "abcdefghij",
+     "kl"
+    ]
+   },
+   {
+    "args": [
+     "a b c d e",
+     3
+    ],
+    "expect": [
+     "a b",
+     "c d",
+     "e"
+    ]
+   },
+   {
+    "args": [
+     "ab cd ef",
+     5
+    ],
+    "expect": [
+     "ab cd",
+     "ef"
+    ]
+   },
+   {
+    "args": [
+     "xx yy",
+     4
+    ],
+    "expect": [
+     "xx",
+     "yy"
+    ]
+   },
+   {
+    "args": [
+     "  lead and trail  ",
+     20
+    ],
+    "expect": [
+     "lead and trail"
+    ]
+   },
+   {
+    "args": [
+     "aaaa bb cc",
+     4
+    ],
+    "expect": [
+     "aaaa",
+     "bb",
+     "cc"
+    ]
+   },
+   {
+    "args": [
+     "a bb ccc dddd",
+     6
+    ],
+    "expect": [
+     "a bb",
+     "ccc",
+     "dddd"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "parse_duration",
+  "function": "parse_duration",
+  "spec": "parse_duration(s) converts a duration string to total seconds (int). The string has one or more terms, each a non-negative integer followed by one unit letter: d (86400 s), h (3600 s), m (60 s), s (1 s). Terms may appear in any order and may be separated by spaces; leading and trailing spaces are allowed. Each unit may appear at most once. Raise ValueError for anything else: an empty string, a number with no unit, an unknown unit, a repeated unit, a sign, or a fractional number.",
+  "examples": [
+   "parse_duration('2m') == 120",
+   "parse_duration('1h 1s') == 3601"
+  ],
+  "gate": [
+   {
+    "args": [
+     "1h30m"
+    ],
+    "expect": 5400
+   },
+   {
+    "args": [
+     "90s"
+    ],
+    "expect": 90
+   },
+   {
+    "args": [
+     "2d"
+    ],
+    "expect": 172800
+   },
+   {
+    "args": [
+     ""
+    ],
+    "raises": "ValueError"
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     "1d 1h 1m 1s"
+    ],
+    "expect": 90061
+   },
+   {
+    "args": [
+     "30m1h"
+    ],
+    "expect": 5400
+   },
+   {
+    "args": [
+     "1h1h"
+    ],
+    "raises": "ValueError"
+   },
+   {
+    "args": [
+     "90"
+    ],
+    "raises": "ValueError"
+   },
+   {
+    "args": [
+     "1.5h"
+    ],
+    "raises": "ValueError"
+   },
+   {
+    "args": [
+     "0s"
+    ],
+    "expect": 0
+   },
+   {
+    "args": [
+     "5x"
+    ],
+    "raises": "ValueError"
+   },
+   {
+    "args": [
+     "-1s"
+    ],
+    "raises": "ValueError"
+   },
+   {
+    "args": [
+     " 2m "
+    ],
+    "expect": 120
+   },
+   {
+    "args": [
+     "100h"
+    ],
+    "expect": 360000
+   }
+  ]
+ },
+ {
+  "id": "dedupe_records",
+  "function": "dedupe_records",
+  "spec": "dedupe_records(records, key) removes duplicate records from a list of dicts. Two records are duplicates when both have the field `key` and the values are equal (1 and '1' are different values; None equals None). For each group of duplicates the result keeps one record: the content of the LAST record of the group, placed at the position where the FIRST record of the group appeared. Records that lack the field `key` are never duplicates of anything and are all kept in place. Return a new list.",
+  "examples": [
+   "dedupe_records([{'id': 1, 'v': 'a'}, {'id': 1, 'v': 'b'}], 'id') == [{'id': 1, 'v': 'b'}]",
+   "dedupe_records([], 'id') == []"
+  ],
+  "gate": [
+   {
+    "args": [
+     [
+      {
+       "id": 1,
+       "v": "a"
+      },
+      {
+       "id": 2,
+       "v": "b"
+      },
+      {
+       "id": 1,
+       "v": "c"
+      }
+     ],
+     "id"
+    ],
+    "expect": [
+     {
+      "id": 1,
+      "v": "c"
+     },
+     {
+      "id": 2,
+      "v": "b"
+     }
+    ]
+   },
+   {
+    "args": [
+     [],
+     "id"
+    ],
+    "expect": []
+   },
+   {
+    "args": [
+     [
+      {
+       "id": 1
+      }
+     ],
+     "id"
+    ],
+    "expect": [
+     {
+      "id": 1
+     }
+    ]
+   },
+   {
+    "args": [
+     [
+      {
+       "k": "x",
+       "n": 1
+      },
+      {
+       "k": "x",
+       "n": 2
+      },
+      {
+       "k": "x",
+       "n": 3
+      }
+     ],
+     "k"
+    ],
+    "expect": [
+     {
+      "k": "x",
+      "n": 3
+     }
+    ]
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     [
+      {
+       "id": 2,
+       "v": 1
+      },
+      {
+       "id": 1,
+       "v": 2
+      },
+      {
+       "id": 2,
+       "v": 3
+      },
+      {
+       "id": 1,
+       "v": 4
+      }
+     ],
+     "id"
+    ],
+    "expect": [
+     {
+      "id": 2,
+      "v": 3
+     },
+     {
+      "id": 1,
+      "v": 4
+     }
+    ]
+   },
+   {
+    "args": [
+     [
+      {
+       "id": 1,
+       "v": "a"
+      },
+      {
+       "id": "1",
+       "v": "b"
+      }
+     ],
+     "id"
+    ],
+    "expect": [
+     {
+      "id": 1,
+      "v": "a"
+     },
+     {
+      "id": "1",
+      "v": "b"
+     }
+    ]
+   },
+   {
+    "args": [
+     [
+      {
+       "v": 1
+      },
+      {
+       "v": 2
+      },
+      {
+       "id": 1,
+       "v": 3
+      }
+     ],
+     "id"
+    ],
+    "expect": [
+     {
+      "v": 1
+     },
+     {
+      "v": 2
+     },
+     {
+      "id": 1,
+      "v": 3
+     }
+    ]
+   },
+   {
+    "args": [
+     [
+      {
+       "id": null,
+       "v": 1
+      },
+      {
+       "id": null,
+       "v": 2
+      }
+     ],
+     "id"
+    ],
+    "expect": [
+     {
+      "id": null,
+      "v": 2
+     }
+    ]
+   },
+   {
+    "args": [
+     [
+      {
+       "a": 1,
+       "b": 1
+      },
+      {
+       "a": 1,
+       "b": 2
+      },
+      {
+       "a": 2,
+       "b": 3
+      },
+      {
+       "a": 1,
+       "b": 4
+      }
+     ],
+     "a"
+    ],
+    "expect": [
+     {
+      "a": 1,
+      "b": 4
+     },
+     {
+      "a": 2,
+      "b": 3
+     }
+    ]
+   },
+   {
+    "args": [
+     [
+      {
+       "id": 1
+      },
+      {
+       "id": 1
+      }
+     ],
+     "id"
+    ],
+    "expect": [
+     {
+      "id": 1
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "brackets_balanced",
+  "function": "brackets_balanced",
+  "spec": "brackets_balanced(s) returns True when the round, square and curly brackets in s are balanced and correctly nested, otherwise False. All other characters are ignored. Text inside double quotes is a string literal: brackets in it are ignored. Inside a string literal a backslash escapes the next character (so a backslash followed by a double quote does not end the string). A string literal that is never closed makes the result False. Single quotes have no special meaning.",
+  "examples": [
+   "brackets_balanced('([])') == True",
+   "brackets_balanced('(]') == False"
+  ],
+  "gate": [
+   {
+    "args": [
+     "([]{})"
+    ],
+    "expect": true
+   },
+   {
+    "args": [
+     "(]"
+    ],
+    "expect": false
+   },
+   {
+    "args": [
+     ""
+    ],
+    "expect": true
+   },
+   {
+    "args": [
+     "(("
+    ],
+    "expect": false
+   }
+  ],
+  "score": [
+   {
+    "args": [
+     "(\"(\")"
+    ],
+    "expect": true
+   },
+   {
+    "args": [
+     "\"abc"
+    ],
+    "expect": false
+   },
+   {
+    "args": [
+     "(\"\\\")\")"
+    ],
+    "expect": true
+   },
+   {
+    "args": [
+     "a(b)c]"
+    ],
+    "expect": false
+   },
+   {
+    "args": [
+     "{[()]}("
+    ],
+    "expect": false
+   },
+   {
+    "args": [
+     ")("
+    ],
+    "expect": false
+   },
+   {
+    "args": [
+     "\")\""
+    ],
+    "expect": true
+   },
+   {
+    "args": [
+     "x = f(a[1], {k: \"}\"})"
+    ],
+    "expect": true
+   }
+  ]
+ }
+]
