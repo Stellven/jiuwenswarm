@@ -1,5 +1,5 @@
 """Run C's existing integrity checks on the stored native JiuwenSwarm trap runs. No model calls, no docker.
-Reads traps/ from AI4R_BENCH_DATA (never writes there); writes results.json under --out only.
+Reads traps/ from AI4R_BENCH_DATA (never writes there); writes results.json and results-provenance.json under --out only.
 Run: python -B -X utf8 run.py --out DIR   (product code from AI4R_CODE_ROOT, default: this repo)
 Real check functions: jiuwenswarm.research.checks.integrity (pin_matches, baseline_consistent, units_consistent,
 no_stale_duplicate, bound_feasible, split_disjoint) and checks.delivery_evidence.numbers_in. Everything else is glue
@@ -159,6 +159,12 @@ def main(argv=None):
                      'C_abstain_checks': abst, 'naive_extra_pin_failures': naive,
                      'detail': {k: v for k, v in R.items() if k != 'pin_naive_extra'}, 'glue': glue})
     (out / 'results.json').write_bytes(json.dumps(rows, indent=1, ensure_ascii=False, default=str).encode('utf-8'))
+    # results.json is a list that other readers index, so the provenance of the replay goes in a sibling file.
+    provenance = {'integrity_py': str(Path(I.__file__).resolve()), 'integrity_py_sha256': sha(I.__file__),
+                  'delivery_evidence_py_sha256': sha(sys.modules[numbers_in.__module__].__file__),
+                  'run_py_sha256': sha(__file__), 'product_commit': roots.product_commit()['commit'],
+                  'product_dirty': roots.product_commit()['dirty'], 'results_json_sha256': sha(out / 'results.json')}
+    (out / 'results-provenance.json').write_bytes(json.dumps(provenance, indent=1).encode('utf-8'))
     print('%-9s %-11s %-9s %-30s %-16s %s' % ('session', 'trap', 'delivered', 'expected', 'C stops', 'abstain | naive-extra-pin-fails'))
     for r in rows:
         print('%-9s %-11s %-9s %-30s %-16s %s | %s' % (

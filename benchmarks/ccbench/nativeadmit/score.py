@@ -133,6 +133,8 @@ def load_ref(item):
 
 def score_native(item, session):
     session = Path(session)
+    if not session.is_dir():     # a host path seen from inside the container would otherwise score as 'unavailable'
+        raise SystemExit('session folder not found: %s (in container mode, pass --host for host paths)' % session)
     ref = load_ref(item)
     fm = session / 'final-message.txt'
     text = fm.read_text(encoding='utf-8', errors='replace') if fm.exists() else None

@@ -1,6 +1,6 @@
 """Run every ccbench self-test, one bench at a time, and print one line per bench.
 
-Usage: python selftest.py [bench ...]        (default: all). Exit status is 0 only if every selected bench passes.
+Usage: python selftest.py [bench ...]        (default: all). Exit status is 0 only if every selected bench passes; tests that need the container image (openjiuwen) SKIP with the reason.
 No model call, no docker call, no write beside the source: each suite runs with a temp directory as its working
 directory (openjiuwen writes logs/ into the cwd) and its own folder on PYTHONPATH.
 """
@@ -21,6 +21,7 @@ SUITES = {
     'nativeadmit': ('nativeadmit', 'test_score'),
     'nativetask': ('nativetask', 'test_run_native_task'),
     'cclib': ('.', 'cclib.test_harness'),
+    'dossier': ('.', 'test_dossier'),
 }
 
 
@@ -33,15 +34,19 @@ def main(argv):
     failed = []
     for name in names:
         folder, module = SUITES[name]
-        path = os.pathsep.join([str((HERE / folder).resolve()), str(HERE)] + ([env['PYTHONPATH']] if env.get('PYTHONPATH') else []))
+        path = os.pathsep.join([str((HERE / folder).resolve()), str(HERE), str(HERE.parents[1])] + ([env['PYTHONPATH']] if env.get('PYTHONPATH') else []))
         with tempfile.TemporaryDirectory() as cwd:
-            run = subprocess.run([sys.executable, '-B', '-m', 'unittest', module], cwd=cwd, env=dict(env, PYTHONPATH=path),
+            run = subprocess.run([sys.executable, '-B', '-m', 'unittest', '-v', module], cwd=cwd, env=dict(env, PYTHONPATH=path),
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         text = run.stdout.decode('utf-8', 'replace')
         ran = re.search(r'^Ran (\d+) tests?', text, re.M)
-        verdict = re.search(r'^(OK|FAILED.*)$', text, re.M)
+        verdict = re.search(r'^(OK.*|FAILED.*)$', text, re.M)
         print('%-12s %-4s %s tests  %s' % (name, 'PASS' if run.returncode == 0 else 'FAIL', ran.group(1) if ran else '?',
                                            verdict.group(1) if verdict else ''), flush=True)
+        skipped = re.search(r'skipped=(\d+)', verdict.group(1)) if verdict else None
+        if skipped and run.returncode == 0:
+            for reason in sorted(set(re.findall(r"skipped '([^']*)'", text))):
+                print('%-12s SKIP %s tests  %s' % (name, skipped.group(1), reason), flush=True)
         if run.returncode:
             failed.append(name)
             sys.stdout.write(text[-3000:])

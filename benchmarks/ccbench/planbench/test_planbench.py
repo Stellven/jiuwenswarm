@@ -10,6 +10,7 @@ import json
 import re
 import shutil
 import tempfile
+import importlib.util
 import unittest
 import uuid
 from pathlib import Path
@@ -24,6 +25,9 @@ import prompts
 import run_arm
 import score
 import stubs
+
+# The CC arm's NativePlanner needs the pinned openjiuwen runtime (installed in the bench image, usually not on the host).
+needs_openjiuwen = unittest.skipUnless(importlib.util.find_spec('openjiuwen'), 'openjiuwen runtime not installed (runs in the container image)')
 
 TASKS = {t['id']: t for t in json.loads((HERE / 'tasks.json').read_text('utf-8'))}
 GOLD = json.loads((HERE / 'referee' / 'gold.json').read_text('utf-8'))
@@ -285,6 +289,7 @@ class EndToEnd(unittest.TestCase):
         inf = self.go('skill', 'infeasible', tasks)['summary']['skill']
         self.assertEqual((inf['classes']['wrong_halt'], inf['false_infeasible']['n']), (3, 2))
 
+    @needs_openjiuwen
     def test_cc_arm_gate_and_ungated_views(self):
         tasks = ['sum_csv', 'need_median']
         good = self.go('cc', 'good', tasks)
@@ -358,6 +363,7 @@ print('tokens used'); print('1,234')
         self.assertEqual(data['items'][0]['views']['skill']['class'], 'correct')
         self.assertTrue((OUT / 'runs' / label / 'skill' / 'sum_csv' / 'codex' / 'call-01' / 'prompt.txt').exists())
 
+    @needs_openjiuwen
     def test_cc_native_planner_with_a_model_that_says_infeasible(self):
         label = self.run_with('cc', 'INFEASIBLE: median is not available', 'need_median')
         rec = json.loads((OUT / 'runs' / label / 'cc' / 'need_median' / 'record.json').read_text('utf-8'))

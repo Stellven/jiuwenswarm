@@ -47,6 +47,14 @@ def main():
                      'hidden_sha256_by_seed': [digest(fixtures(tool, s)[1]) for s in range(args.seeds)]}
               for tool in TOOLS}
     (dest / 'fixtures.json').write_bytes(json.dumps(freeze, indent=2).encode('utf-8'))
+    # The held-out requests are regenerable (core.py:fixtures), so keep them beside the hashes for reviewers.
+    # Written last: no result above depends on them.
+    (dest / 'heldout').mkdir(exist_ok=True)
+    for tool in TOOLS:
+        for seed in range(args.seeds):
+            hidden = fixtures(tool, seed)[1]
+            payload = {'tool': tool, 'seed': seed, 'sha256': digest(hidden), 'requests': hidden}
+            (dest / 'heldout' / f'{tool}-seed{seed}.json').write_bytes(json.dumps(payload, indent=2).encode('utf-8'))
     lines = ['# T37 deterministic interface results', '',
              f'Scripted series: {args.seeds} paired seeds per tool, 20 candidates per seed; no model calls.', '',
              '|Tool|Policy|Accepted / offered|Regressions|Gaming (union)|Tampering|Virtual escapes|Net gain [bootstrap 95% CI]|False rejects / opportunities|',
