@@ -93,3 +93,49 @@ every arm.
 * The selftest arm gets a different prompt (two blocks) and so a slightly different first attempt.
 * One retry is a design choice, not a tuned value.
 * Specs and gold are by one author; the reference solutions were written by the same author (consistency check, not independence).
+
+## Spec-trap case set (`cases-trap.json`)
+
+A second, separate case set with its own `MANIFEST-trap.sha256`. `cases.json` and `MANIFEST.sha256` are untouched. Every
+command takes `--cases cases-trap.json` (default `cases.json`); `run` checks the matching manifest and `score` reads the
+same file. Run it with the same `--out` for `run` and `score`, and use a fresh `--out` (the case ids differ, so units never collide).
+
+Why it exists. On gpt-6-luna the only case CC won was `parse_duration`: the spec allowed terms with no space between
+them, and every other arm, including the self-test arm, read it as required. The thing to measure is: **an independent
+check catches a model's systematic misreading of a spec; a self-check shares it.** These 8 cases each carry one such rule:
+
+| case | rule a model may misread or default wrongly |
+|---|---|
+| `parse_size` | number and unit may touch (`'1KB'`) or have any spaces between |
+| `bucket_counts` | bins are half-open, but the last bin includes its upper edge |
+| `competition_rank` | ties share one rank and the next rank skips (1, 2, 2, 4) |
+| `consistent_groups` | an empty list is NOT consistent, unlike `all([])`; zero breaks the sign |
+| `is_anagram` | NFKC then `casefold()` (so `ß` is `ss`), not `lower()` |
+| `to_cents` | ties round half to even on the exact decimal, not half up |
+| `format_delta` | a value that formats as zero (`-0.0`, `-0.04`) has no sign |
+| `collapse_adjacent` | only adjacent equal items collapse; apart ones are kept |
+
+Authoring rule (`author_trap_cases.py`, `reference_trap.py`), in this order for each case:
+
+1. Write the spec first. It must be unambiguous to a careful reader; the trap is a misreading, not a trick.
+2. Write the reference implementation (`reference_trap.py`), never shown to a model.
+3. Write the tests: a `gate` of 4 (what CC runs and may quote in its retry) and a `score` of 6 to 10 (never shown to any arm).
+   Both suites test the trap rule, on different inputs. No (args, expect) pair is shared and no score input appears in the gate.
+   The spec examples shown to the model are also not test inputs. `test_heldout.py` asserts all of this, that the reference
+   passes every suite, and that one natural misreading per case fails both the gate and the score suite.
+
+What this does and does not prove. One author wrote the spec, the reference, the gate and the score suite. So the gate is
+independent of the WORKER (it was fixed before any model call and never sees the worker's reading of the spec). It is not
+independent of the case author: if the author misreads their own spec, the gate and the score suite share that misreading.
+Also, the gate and the score suite share the trap rule by design, so a retry that quotes a gate input can teach the rule.
+That is a real effect of an independent check, not leakage of a score input, but it means the result measures "an outside
+check that knows the rule" and not "a check that finds unknown bugs". Eight cases and two reps is small; read paired counts.
+
+```sh
+sh scripts/ai4r-bench heldout plan --cases cases-trap.json --out OUT
+sh scripts/ai4r-bench heldout run --host --execute --model gpt-6-luna --reps 2 --cases cases-trap.json --out OUT
+sh scripts/ai4r-bench heldout score --host --model gpt-6-luna --cases cases-trap.json --out OUT
+```
+
+`author_trap_cases.py --out DIR` regenerates `cases-trap.json`; after a deliberate change run
+`run_heldout.py freeze --cases cases-trap.json`. Do not change either file after a run.

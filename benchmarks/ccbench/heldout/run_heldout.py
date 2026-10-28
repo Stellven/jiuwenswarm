@@ -1,5 +1,6 @@
 """heldout: held-out check plus one retry carrying the failure reason (CC) against a model alone and two controls.
 
+  (every command takes --cases FILE, default cases.json; cases-trap.json uses MANIFEST-trap.sha256)
   plan    [--case ID]...                                   prompt digests, no model call
   freeze                                                   write MANIFEST.sha256 for cases.json (do this once, before any run)
   run     --execute [--case ID]... [--arm A]... [--reps N] [--model M] --out DIR
@@ -37,8 +38,31 @@ TWO_BLOCKS = ('Reply with exactly two ```python blocks and nothing else. Block 1
 VERIFY = 'Before you answer, check your function against the spec and the edge cases it implies, and fix any error you find.'
 
 
-def load_cases(ids=None):
-    cases = mb.read_json(HERE / 'cases.json')
+DEFAULT_CASES = 'cases.json'
+
+
+def cases_path(cases_file=None):
+    """The case file to use: a name beside this script, or an absolute path. Default is the frozen cases.json."""
+    p = Path(cases_file or DEFAULT_CASES)
+    return p if p.is_absolute() else HERE / p
+
+
+def manifest_name(cases_file=None):
+    """cases.json -> MANIFEST.sha256 (unchanged); cases-trap.json -> MANIFEST-trap.sha256."""
+    name = cases_path(cases_file).name
+    if name == DEFAULT_CASES:
+        return 'MANIFEST.sha256'
+    stem = name[:-5] if name.endswith('.json') else name
+    return 'MANIFEST-%s.sha256' % (stem[6:] if stem.startswith('cases-') else stem)
+
+
+def check_manifest(cases_file=None):
+    path = cases_path(cases_file)
+    return mb.verify_manifest(path.parent, manifest_name(cases_file))
+
+
+def load_cases(ids=None, cases_file=None):
+    cases = mb.read_json(cases_path(cases_file))
     if ids:
         unknown = sorted(set(ids) - {c['id'] for c in cases})
         if unknown:
@@ -132,11 +156,11 @@ def run_unit(case, arm, rep, model, unit_dir, call=None):
 def run(args):
     if not args.execute:
         raise SystemExit('Model calls need --execute. `plan` is the offline dry run.')
-    problems = mb.verify_manifest(HERE)
+    problems = check_manifest(args.cases)
     if problems:
         raise SystemExit('frozen gold check failed: ' + '; '.join(problems))
     mb.roots.require_codex()
-    cases = load_cases(args.case)
+    cases = load_cases(args.case, args.cases)
     arms = args.arm or list(ARMS)
     base = args.out / 'heldout' / args.model
     for case in cases:
@@ -205,9 +229,9 @@ def paired(rows, a='cc'):
     return out
 
 
-def score(model, out):
+def score(model, out, cases_file=None):
     base = Path(out) / 'heldout' / model
-    cases = {c['id']: c for c in load_cases()}
+    cases = {c['id']: c for c in load_cases(cases_file=cases_file)}
     rows = []
     for result in sorted(base.glob('*/*/result.json')):
         rows.append(score_unit(cases[result.parent.parent.name], result.parent))
@@ -231,33 +255,35 @@ def score(model, out):
 
 
 def plan(args):
-    for case in load_cases(args.case):
+    for case in load_cases(args.case, args.cases):
         for arm in ARMS:
             raw = first_prompt(case, arm).encode('utf-8')
             print('%-18s %-9s %6d bytes  sha256 %s' % (case['id'], arm, len(raw), hashlib.sha256(raw).hexdigest()[:16]))
-    n = len(load_cases(args.case))
+    n = len(load_cases(args.case, args.cases))
     print('\nfull collection: %d cases x 2 reps: model calls = %d first calls + at most %d retries (cc, selftest) = at most %d' % (n, 4 * n * 2, 2 * n * 2, 6 * n * 2))
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
-    p = sub.add_parser('plan'); p.add_argument('--case', action='append'); p.add_argument('--out', type=Path)
-    sub.add_parser('freeze').add_argument('--out', type=Path)
+    cases_help = 'case file beside this script (default cases.json); the manifest name is derived from it'
+    p = sub.add_parser('plan'); p.add_argument('--case', action='append'); p.add_argument('--out', type=Path); p.add_argument('--cases', default=DEFAULT_CASES, help=cases_help)
+    f = sub.add_parser('freeze'); f.add_argument('--out', type=Path); f.add_argument('--cases', default=DEFAULT_CASES, help=cases_help)
     r = sub.add_parser('run')
     r.add_argument('--model', default=mb.MODEL); r.add_argument('--reps', type=int, default=2)
     r.add_argument('--case', action='append'); r.add_argument('--arm', action='append', choices=ARMS)
-    r.add_argument('--out', type=Path, required=True); r.add_argument('--execute', action='store_true')
-    s = sub.add_parser('score'); s.add_argument('--model', default=mb.MODEL); s.add_argument('--out', type=Path, required=True)
+    r.add_argument('--out', type=Path, required=True); r.add_argument('--execute', action='store_true'); r.add_argument('--cases', default=DEFAULT_CASES, help=cases_help)
+    s = sub.add_parser('score'); s.add_argument('--model', default=mb.MODEL); s.add_argument('--out', type=Path, required=True); s.add_argument('--cases', default=DEFAULT_CASES, help=cases_help)
     args = parser.parse_args(argv)
     if args.command == 'plan':
         plan(args)
     elif args.command == 'freeze':
-        print('\n'.join(mb.write_manifest(HERE, FROZEN)))
+        path = cases_path(args.cases)
+        print('\n'.join(mb.write_manifest(path.parent, (path.name,), manifest_name(args.cases))))
     elif args.command == 'run':
         run(args)
     else:
-        score(args.model, args.out)
+        score(args.model, args.out, args.cases)
 
 
 if __name__ == '__main__':

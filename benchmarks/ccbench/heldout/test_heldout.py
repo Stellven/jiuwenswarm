@@ -8,6 +8,7 @@ from pathlib import Path
 import modelbench as mb
 import checker
 import reference
+import reference_trap
 import run_heldout as rh
 
 HERE = Path(__file__).resolve().parent
@@ -192,6 +193,138 @@ class Units(unittest.TestCase):
         self.assertEqual(s['plain']['units_missing_tokens'], 2)
         self.assertEqual(s['plain']['test_pass_rate'], 0.75)
         self.assertEqual(rh.paired(rows)['plain'], dict(pairs=2, cc_only=1, other_only=1))
+
+
+TRAP_FILE = 'cases-trap.json'
+TRAP = {c['id']: c for c in rh.load_cases(cases_file=TRAP_FILE)}
+TRAP_PRE = 'import re\nimport unicodedata\nfrom decimal import Decimal, ROUND_HALF_EVEN\n'
+
+
+def key(t):
+    return json.dumps(t, sort_keys=True)
+
+
+class TrapCases(unittest.TestCase):
+    def test_eight_cases_with_required_suite_sizes(self):
+        self.assertEqual(len(TRAP), 8)
+        for c in TRAP.values():
+            self.assertEqual(len(c['gate']), 4, c['id'])
+            self.assertTrue(6 <= len(c['score']) <= 10, c['id'])
+            self.assertTrue(c['trap'], c['id'])
+            self.assertTrue(hasattr(reference_trap, c['function']), c['id'])
+
+    def test_reference_passes_all_suites(self):
+        for c in TRAP.values():
+            code = TRAP_PRE + src(getattr(reference_trap, c['function']))
+            for suite in ('gate', 'score'):
+                out = checker.run_tests(code, c['function'], c[suite])
+                self.assertTrue(all(r['ok'] for r in out['results']) and out['results'],
+                                (c['id'], suite, [r['detail'] for r in out['results'] if not r['ok']]))
+
+    def test_gate_and_score_are_disjoint(self):
+        for c in TRAP.values():
+            gate_pairs = {key(t) for t in c['gate']}
+            score_pairs = {key(t) for t in c['score']}
+            self.assertFalse(gate_pairs & score_pairs, c['id'])
+            # stronger: no score input (args) appears in the gate, so a gate quote can never reveal a score input
+            self.assertFalse({json.dumps(t['args']) for t in c['gate']} & {json.dumps(t['args']) for t in c['score']}, c['id'])
+            self.assertEqual(len(gate_pairs), len(c['gate']), c['id'])
+            self.assertEqual(len(score_pairs), len(c['score']), c['id'])
+
+    def test_spec_examples_hold_and_are_not_test_inputs(self):
+        for c in TRAP.values():
+            ns = {}
+            exec(TRAP_PRE + src(getattr(reference_trap, c['function'])), ns)
+            used = {json.dumps(t['args']) for t in c['gate'] + c['score']}
+            for ex in c['examples']:
+                self.assertTrue(eval(ex, ns), ex)
+                call_args = eval('[' + ex[len(c['function']) + 1:].split(') ==')[0] + ']', ns)
+                self.assertNotIn(json.dumps(call_args), used, ex)
+
+    def test_naive_readings_are_caught_by_both_suites(self):
+        # for each case one natural misreading; the gate AND the score suite must each fail it
+        naive = {
+            'parse_size': "import re\ndef parse_size(s):\n    parts = s.split()\n    if len(parts) != 2 or not parts[0].isdigit() or parts[1] not in ('B', 'KB', 'MB', 'GB'):\n        raise ValueError('x')\n    return int(parts[0]) * {'B': 1, 'KB': 1024, 'MB': 1024 ** 2, 'GB': 1024 ** 3}[parts[1]]\n",
+            'bucket_counts': "def bucket_counts(values, edges):\n    n = len(edges) - 1\n    c = [0] * n\n    for v in values:\n        for i in range(n):\n            if edges[i] <= v < edges[i + 1]:\n                c[i] += 1\n    return c\n",
+            'competition_rank': "def competition_rank(scores):\n    d = sorted(set(scores), reverse=True)\n    return [d.index(s) + 1 for s in scores]\n",
+            'consistent_groups': "def consistent_groups(groups):\n    return sorted(k for k, v in groups.items() if all(x > 0 for x in v) or all(x < 0 for x in v))\n",
+            'is_anagram': "def is_anagram(a, b):\n    return sorted(a.lower().replace(' ', '')) == sorted(b.lower().replace(' ', ''))\n",
+            'to_cents': "from decimal import Decimal, ROUND_HALF_UP\ndef to_cents(amount):\n    return int((Decimal(amount) * 100).quantize(Decimal(1), rounding=ROUND_HALF_UP))\n",
+            'format_delta': "def format_delta(x):\n    t = '%.1f' % x\n    return t if t.startswith('-') else '+' + t\n",
+            'collapse_adjacent': "def collapse_adjacent(items):\n    out = []\n    for it in items:\n        if it not in out:\n            out.append(it)\n    return out\n",
+        }
+        self.assertEqual(set(naive), set(TRAP))
+        for fn, code in naive.items():
+            for suite in ('gate', 'score'):
+                out = checker.run_tests(code, fn, TRAP[fn][suite])
+                self.assertFalse(all(r['ok'] for r in out['results']), (fn, suite))
+
+    def test_gate_of_naive_reading_leaks_no_score_input_in_retry(self):
+        case = TRAP['collapse_adjacent']
+        bad = "def collapse_adjacent(items):\n    out = []\n    for it in items:\n        if it not in out:\n            out.append(it)\n    return out\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            call = fake_call([reply_for(bad), reply_for(src(reference_trap.collapse_adjacent))])
+            res = rh.run_unit(case, 'cc', 1, 'm', Path(tmp) / 'cc-r1', call=call)
+            self.assertTrue(res['retried'])
+            for t in case['score']:
+                self.assertNotIn(json.dumps(t['args']), call.calls[1][0])
+            self.assertTrue(rh.score_unit(case, Path(tmp) / 'cc-r1')['passed_all'])
+
+
+class CasesFileOption(unittest.TestCase):
+    def test_manifest_names(self):
+        self.assertEqual(rh.manifest_name(), 'MANIFEST.sha256')
+        self.assertEqual(rh.manifest_name('cases.json'), 'MANIFEST.sha256')
+        self.assertEqual(rh.manifest_name('cases-trap.json'), 'MANIFEST-trap.sha256')
+
+    def test_default_is_original_cases(self):
+        self.assertEqual(len(rh.load_cases()), 10)
+        self.assertEqual({c['id'] for c in rh.load_cases(cases_file=TRAP_FILE)} & {c['id'] for c in rh.load_cases()}, set())
+
+    def test_both_manifests_match(self):
+        self.assertEqual(rh.check_manifest(), [])
+        self.assertEqual(rh.check_manifest(TRAP_FILE), [])
+
+    def test_manifest_check_detects_change(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            for name in (TRAP_FILE, 'MANIFEST-trap.sha256'):
+                (tmp / name).write_bytes((HERE / name).read_bytes())
+            path = str(tmp / TRAP_FILE)
+            self.assertEqual(rh.check_manifest(path), [])
+            (tmp / TRAP_FILE).write_bytes((tmp / TRAP_FILE).read_bytes() + b' ')
+            problems = rh.check_manifest(path)
+            self.assertEqual(len(problems), 1)
+            self.assertIn('differs', problems[0])
+            (tmp / 'MANIFEST-trap.sha256').unlink()
+            self.assertIn('missing', rh.check_manifest(path)[0])
+
+    def test_unknown_case_id_and_cli_plan(self):
+        with self.assertRaises(SystemExit):
+            rh.load_cases(['merge_intervals'], TRAP_FILE)
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rh.main(['plan', '--cases', TRAP_FILE])
+        text = buf.getvalue()
+        self.assertIn('parse_size', text)
+        self.assertNotIn('merge_intervals', text)
+        self.assertIn('8 cases', text)
+
+    def test_score_reads_the_same_file(self):
+        case = TRAP['collapse_adjacent']
+        good = src(reference_trap.collapse_adjacent)
+        with tempfile.TemporaryDirectory() as tmp:
+            call = fake_call([reply_for(good)])
+            rh.run_unit(case, 'plain', 1, 'm', Path(tmp) / 'heldout' / 'mm' / case['id'] / 'plain-r1', call=call)
+            import contextlib
+            import io
+            with contextlib.redirect_stdout(io.StringIO()):
+                summary = rh.score('mm', tmp, TRAP_FILE)
+            self.assertEqual(summary['plain']['case_pass_rate'], 1.0)
+            with self.assertRaises(KeyError):
+                rh.score('mm', tmp)  # default file does not know this case
 
 
 if __name__ == '__main__':
