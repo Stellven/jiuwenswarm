@@ -262,7 +262,7 @@ def native_command(task, out, args, attempt, execute):
     (stage / 'task.txt').write_bytes(prompts.request_with_format(task).encode('utf-8'))
     (stage / 'inputs' / 'NOTE.txt').write_bytes(b'No input files. The supplied inputs are written in the task text.\n')
     cmd = [PYTHON, '-B', str(RUN_NATIVE), 'run' if execute else 'plan', '--task-file', str(stage / 'task.txt'), '--inputs-dir', str(stage / 'inputs'),
-           '--skill-dir', str(SKILLPACK), '--ledger', str(native_ledger(args)), '--out', str(native_out(args)), '--attempt-id', attempt, '--binary', args.binary or 'codex',
+           '--skill-dir', str(SKILLPACK), '--ledger', str(native_ledger(args)), '--out', str(native_out(args)), '--attempt-id', attempt, '--binary', args.binary or roots.codex_bin() or 'codex',
            '--model', args.model, '--wall-s', '600', '--max-calls', '80']
     if execute:
         cmd.append('--execute')
