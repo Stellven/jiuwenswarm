@@ -26,6 +26,16 @@ PYTHON = Path(sys.executable)
 RUNTIME = HERE / 'native-runtime-en'    # English overlay of benchmarks.harbor_suite.native_value (copied from the old traps/)
 ROOT = None                             # output root; main() sets it from --out
 EFFORTS = ('low', 'medium', 'high')
+# The portable capsule MCP server (jiuwenswarm/capsule_runtime/README.md) runs as a stdio child of the agent inside the
+# container. The image's own jiuwenswarm is older and has no capsule_runtime, so the packages the server imports are staged
+# from this checkout and mounted read-only at /capsule-src. Only the MCP child gets PYTHONPATH=/capsule-src; the agent
+# process keeps the image's JiuwenSwarm.
+CAPSULE_PACKAGES = ('capsule_runtime', 'research', 'research_assets', 'research_contracts', 'research_records',
+                    'research_router', 'research_rsi', 'research_sidecar')
+CAPSULE_MOUNT = '/capsule-src'
+CAPSULE_SERVER = {'name': 'capsules', 'enabled': True, 'transport': 'stdio', 'command': '/opt/venv/bin/python',
+                  'args': ['-B', '-m', 'jiuwenswarm.capsule_runtime.mcp'],
+                  'env': {'PYTHONPATH': CAPSULE_MOUNT, 'HOME': '/tmp', 'PYTHONDONTWRITEBYTECODE': '1'}}
 DEFAULT_IMAGE = 'ai4r:ccbench-native'   # rebuilt opponent; the sweep's ai4r:cc-value-medium-20261026 is gone and had no recipe
 REBUILD_HINT = (
     'Image not found. Build it with `scripts/ai4r-bench build-native --yes --out DIR` '
@@ -78,17 +88,53 @@ def spec_for(args):
         raise ValueError('inputs directory is missing')
     if args.skill_dir and not (args.skill_dir / 'SKILL.md').is_file():
         raise ValueError('skill directory requires SKILL.md')
-    return dict(variant='native-skills' if args.skill_dir else 'native', task=task,
+    spec = dict(variant='native-skills' if args.skill_dir else 'native', task=task,
                 inputs_dir='/campaign/inputs', skill_dirs=['/campaign/skill'] if args.skill_dir else [],
                 completion_directory='/campaign/broker', model=args.model, reasoning_effort=args.effort,
                 mode='agent.work.normal', max_model_calls=args.max_calls, max_tool_calls=80,
                 wall_time_s=args.wall_s)
+    servers = mcp_servers(args)
+    if servers:
+        spec['mcp_servers'] = servers      # absent for every other arm, so their specs are unchanged
+    return spec
+
+
+def mcp_servers(args):
+    """mcp.servers entries to inject into JiuwenSwarm's config for this run ([] for the plain arms).
+
+    --mcp-config FILE: JSON list of entries, or {"servers": [...]} (the shape of config.yaml mcp.servers; stdio only).
+    --capsule-mcp: the portable capsule server (CAPSULE_SERVER), staged and mounted as described above."""
+    servers = []
+    if getattr(args, 'mcp_config', None):
+        data = json.loads(Path(args.mcp_config).read_text(encoding='utf-8-sig'))
+        servers += data.get('servers') if isinstance(data, dict) else data
+    if getattr(args, 'capsule_mcp', False):
+        servers.append(json.loads(json.dumps(CAPSULE_SERVER)))
+    if any(not isinstance(s, dict) or not s.get('name') or s.get('transport') != 'stdio' or not s.get('command') for s in servers):
+        raise ValueError('mcp entries must be stdio entries with name and command')
+    if len({s['name'] for s in servers}) != len(servers):
+        raise ValueError('duplicate mcp server name')
+    if servers and getattr(args, 'skill_dir', None):
+        raise ValueError('MCP servers and --skill-dir are different arms; use one')
+    return servers
+
+
+def stage_capsule_src(target, source=None):
+    """Copy the packages the capsule server imports (no bytecode) and return their file hashes."""
+    source = Path(source or REPO / 'jiuwenswarm')
+    package = target / 'jiuwenswarm'
+    package.mkdir(parents=True)
+    shutil.copyfile(source / '__init__.py', package / '__init__.py')
+    for name in CAPSULE_PACKAGES:
+        shutil.copytree(source / name, package / name, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+    return {str(p.relative_to(target)).replace(chr(92), '/'): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(target.rglob('*')) if p.is_file()}
 
 
 def command_plan(args, attempt):
     session = ROOT / 'sessions' / attempt
     campaign = session / 'native'
-    arm = 'native-skills' if args.skill_dir else 'native'
+    arm = 'native-skills' if args.skill_dir else 'native-capsule-mcp' if getattr(args, 'capsule_mcp', False) else 'native'
     binary = args.binary or roots.codex_bin() or 'codex'
     broker = [str(PYTHON), '-B', str(Path(__file__).resolve()), '_broker',
               '--session-id', attempt, '--out', str(ROOT), '--binary', binary, '--execute']
@@ -103,6 +149,8 @@ def command_plan(args, attempt):
               f'type=bind,source={campaign / "inputs"},target=/campaign/inputs,readonly']
     if args.skill_dir:
         worker += ['--mount', f'type=bind,source={campaign / "skill"},target=/campaign/skill,readonly']
+    if getattr(args, 'capsule_mcp', False):
+        worker += ['--mount', f'type=bind,source={session / "capsule-src"},target={CAPSULE_MOUNT},readonly']
     worker += ['--entrypoint', '/opt/venv/bin/python', args.image, '-B', '-m',
                'benchmarks.harbor_suite.native_value', 'run', '--spec', '/campaign/spec.json',
                '--output', '/campaign/run']
@@ -223,13 +271,20 @@ def allow_effort(effort):
     value_host.validate_request = request
 
 
+def bridge_system():
+    """AI4R_BRIDGE_SYSTEM=1 replaces the product's 'Tools are unavailable' developer message with BRIDGE_SYSTEM for
+    every model and arm (luna obeys the old message and never calls tools). Off by default, so runs stay comparable
+    with earlier sessions; the attempt record says which one ran."""
+    return os.environ.get('AI4R_BRIDGE_SYSTEM') == '1'
+
+
 def broker_main(args):
     session = bounded(ROOT / 'sessions' / identifier(args.session_id))
     # An internal broker invocation is also single-use, including failed starts.
     (session / 'broker-started').open('x', encoding='utf-8').close()
     pin = json.loads((session / 'envelope.json').read_text('utf-8'))
     sys.path.insert(0, str(REPO))
-    from benchmarks.harbor_suite import value_host
+    from benchmarks.harbor_suite import value_host, native_value
     # Reuse exact host protocol, receipt validation and model dispatch. Only the
     # accounting interface changes from per-call charges to this run's envelope.
     value_host.Schedule = lambda _: EnvelopeCalls(session)
@@ -246,7 +301,8 @@ def broker_main(args):
     record = json.loads((session / 'plan.json').read_text('utf-8'))
     return asyncio.run(value_host.serve(argparse.Namespace(directory=session / 'native/broker',
         private=session / 'private-broker', binary=Path(args.binary), ledger=Path(pin['path']),
-        pair=pin['pair'], arm=pin['arm'], seconds=record['spec']['wall_time_s'] + 60)))
+        pair=pin['pair'], arm=pin['arm'], seconds=record['spec']['wall_time_s'] + 60,
+        system=native_value.BRIDGE_SYSTEM if bridge_system() else None)))
 
 
 def collect(session):
@@ -401,6 +457,8 @@ def parser():
         q.add_argument('--max-calls', type=int, choices=range(1, 81), default=80, metavar='1..80')
         q.add_argument('--runtime', type=Path, default=RUNTIME)
         q.add_argument('--image', default=DEFAULT_IMAGE)
+        q.add_argument('--capsule-mcp', action='store_true', help='register the portable capsule MCP server (python -m jiuwenswarm.capsule_runtime.mcp) with JiuwenSwarm; stages the capsule packages of AI4R_CODE_ROOT read-only')
+        q.add_argument('--mcp-config', type=Path, help='JSON file of extra mcp.servers entries (stdio) injected into JiuwenSwarm config for this run')
         q.add_argument('--effort', choices=EFFORTS, default='medium', help='reasoning effort; the ledger must have been created with the same --effort (one ledger per effort)')
         q.add_argument('--binary', default=None, help='qualified signed-in codex executable (default: AI4R_CODEX_BIN, then codex on PATH)')
         q.add_argument('--out', type=Path, required=True, help='all attempts, sessions and the ledger live under this directory')
@@ -460,7 +518,7 @@ def main(argv=None):
     record_path = bounded(attempts / (attempt + '.json'))
     record = dict(attempt_id=attempt, action=args.action, execute=args.execute, status='started', image=image,
                   effort=getattr(args, 'effort', None),
-                  product=roots.product_commit())    # {'commit', 'dirty'} of AI4R_CODE_ROOT
+                  product=roots.product_commit(), bridge_system=bridge_system())    # {'commit', 'dirty'} of AI4R_CODE_ROOT
     dump(record_path, record, exclusive=True)
     try:
         if args.action == 'collect':
@@ -485,10 +543,11 @@ def main(argv=None):
                 campaign.mkdir()
                 hashes = snapshot(args.inputs_dir, campaign / 'inputs')
                 skill_hashes = snapshot(args.skill_dir, campaign / 'skill') if args.skill_dir else {}
+                capsule_hashes = stage_capsule_src(session / 'capsule-src') if args.capsule_mcp else {}
                 (campaign / 'broker').mkdir()
                 dump(campaign / 'spec.json', plan['spec'], exclusive=True)
                 dump(session / 'plan.json', plan, exclusive=True)
-                dump(session / 'staging-receipt.json', dict(inputs_sha256=hashes, skill_sha256=skill_hashes, image=image,
+                dump(session / 'staging-receipt.json', dict(inputs_sha256=hashes, skill_sha256=skill_hashes, capsule_src_sha256=capsule_hashes, image=image,
                      task_sha256=hashlib.sha256(plan['spec']['task'].encode()).hexdigest()), exclusive=True)
                 code = execute(plan, session, args.binary)
         record['status'] = ('executed' if code == 0 else 'failed') if args.execute else 'dry-run'

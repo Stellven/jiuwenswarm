@@ -247,6 +247,22 @@ class SlateTests(unittest.TestCase):
         bad.write_text(json.dumps({'heldout': {'x': 1}}))
         self.assertEqual(self.go(FakeRunner(), '--arm', 'x=' + str(bad), '--only', 'T3'), 2)
 
+    def test_t1_ccmcp_arm_uses_native_inputs_and_capsule_flag(self):
+        cfg = Path(self.tmp.name) / 'ccmcp.json'
+        cfg.write_text(json.dumps({'t1': {'capsule_mcp': True, 'effort': 'low'}}))
+        r = FakeRunner()
+        self.assertEqual(self.go(r, '--arm', 'ccmcp=' + str(cfg), '--only', 'T1'), 0)
+        self.assertTrue(commands(r, 'cc_mcp_inputs.py'))
+        mine = [c for c in commands(r, 'nativetask') if 'run' in c and '--capsule-mcp' in c]
+        self.assertEqual(len(mine), 12 * 2)
+        for c in mine:
+            self.assertEqual(opt(c, '--effort'), 'low')
+            self.assertIn('/ccmcp-inputs/', opt(c, '--inputs-dir'))
+        ledgers = [c for c in commands(r, 'nativetask') if 'init-ledger' in c and '--effort' in c]
+        self.assertTrue(ledgers)
+        others = [c for c in commands(r, 'nativetask') if 'run' in c and '--capsule-mcp' not in c]
+        self.assertTrue(all('--effort' not in c for c in others))
+
     def test_arm_names_cannot_shadow_existing_arms(self):
         cfg = Path(self.tmp.name) / 'c.json'
         cfg.write_text('{}')

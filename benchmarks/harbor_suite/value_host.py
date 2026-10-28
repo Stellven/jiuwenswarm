@@ -70,7 +70,7 @@ def validate_request(value, filename):
     return value
 
 
-async def complete(request, *, binary, working, fingerprint, ledger, pair, arm, private):
+async def complete(request, *, binary, working, fingerprint, ledger, pair, arm, private, system=None):
     from jiuwenswarm.research.local_model_codex import execute_async
     from jiuwenswarm.research.local_models import native_codex_response
     ident = request['request_id']
@@ -89,7 +89,15 @@ async def complete(request, *, binary, working, fingerprint, ledger, pair, arm, 
     payload['timeout_s'] = min(payload['timeout_s'], remaining_s)
     began = time.monotonic()
     # If the process dies here the dispatched ledger entry remains unresolved.
-    original = await execute_async(payload)
+    # Optional developer message for this call only (the product default says tools are unavailable).
+    from jiuwenswarm.research import local_model_codex
+    default_system = local_model_codex.SYSTEM
+    if system:
+        local_model_codex.SYSTEM = system
+    try:
+        original = await execute_async(payload)
+    finally:
+        local_model_codex.SYSTEM = default_system
     receipt = private / (ident + '.receipt.json')
     write_once(receipt, original)
     result = {'schema': 'native-value-completion-response:1', 'request_id': ident,
@@ -133,7 +141,8 @@ async def serve(args):
                     raise ValueError('invalid broker request file')
                 request = validate_request(json.loads(path.read_text('utf-8')), path.name)
                 result = await complete(request, binary=args.binary.resolve(), working=working,
-                    fingerprint=fingerprint, ledger=ledger, pair=args.pair, arm=args.arm, private=private)
+                    fingerprint=fingerprint, ledger=ledger, pair=args.pair, arm=args.arm, private=private,
+                    system=getattr(args, 'system', None))
                 # Publish only a complete response file; polling workers never
                 # observe a partially written JSON document.
                 temporary = root / (request['request_id'] + '.response.pending')

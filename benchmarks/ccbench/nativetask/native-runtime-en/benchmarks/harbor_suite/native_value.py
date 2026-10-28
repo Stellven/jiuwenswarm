@@ -29,6 +29,14 @@ PROVIDER = "native_value_governed"
 CORE_PIN = "9e3390195a9ea15235b2b5f7412cb2aa440622cc"
 EFFORTS = ("low", "medium", "high")   # file broker only; the subscription binding path stays medium
 MODES = ("agent.work.normal", "agent.work.plan", "team.work.normal", "team.work.plan")
+# Developer message for the host Codex thread that serves these completions (file broker only). The product default,
+# "Execute the supplied governed instruction. Tools are unavailable.", is true for governed text calls but false here: the
+# conversation advertises tools that the host executes. gpt-6-luna obeyed it and answered "tools are unavailable" in prose
+# on every call; gpt-6.1-sol ignored it. Same text for every model and arm.
+BRIDGE_SYSTEM = (
+    "Execute the supplied instruction as the completion engine of a host application. "
+    "The host application, not you, executes the tools advertised in the supplied conversation, "
+    "and they are available: request them with tool_calls in the required JSON reply.")
 WIRE_INSTRUCTION = """You are the completion engine for the native JiuwenSwarm application.
 Follow the supplied conversation's instructions. The host owns and executes the
 advertised tools. Return exactly one JSON object with keys content (string) and
@@ -62,7 +70,7 @@ def load_spec(path):
     spec = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     allowed = {"variant", "task", "binding", "inputs_dir", "skill_dirs", "mode",
                "max_model_calls", "max_tool_calls", "wall_time_s", "config_template",
-               "completion_directory", "model", "reasoning_effort"}
+               "completion_directory", "model", "reasoning_effort", "mcp_servers"}
     if not isinstance(spec, dict) or set(spec) - allowed:
         raise ValueError("Unknown baseline configuration fields")
     if spec.get("variant") not in {"native", "native-skills"}:
@@ -80,6 +88,11 @@ def load_spec(path):
         spec.setdefault(key, default)
         if type(spec[key]) is not int or not 1 <= spec[key] <= maximum:
             raise ValueError("Invalid " + key)
+    servers = spec.get("mcp_servers", [])
+    if not isinstance(servers, list) or any(
+            not isinstance(s, dict) or not s.get("name") or s.get("transport") != "stdio" or not s.get("command")
+            for s in servers):
+        raise ValueError("mcp_servers must be a list of stdio entries with name and command")
     spec.setdefault("skill_dirs", [])
     if not isinstance(spec["skill_dirs"], list):
         raise ValueError("skill_dirs must be a list of individual skill directories")
@@ -300,6 +313,11 @@ def config_template(spec):
     return template
 
 
+def mcp_section(spec):
+    """Same mcp.servers entries a user would put in config.yaml; JiuwenSwarm registers and lists them itself."""
+    return {"servers": [dict(s, enabled=True) for s in spec["mcp_servers"]]}
+
+
 def configure(spec, root, model):
     import yaml
     from jiuwenswarm.common.utils import prepare_workspace, get_agent_workspace_dir, get_agent_skills_dir
@@ -326,6 +344,8 @@ def configure(spec, root, model):
     # starts a real completion and cancels it on the SDK's shorter deadline).
     config["react"]["enable_read_image_multimodal"] = False
     config["auto_recap"] = {"enabled": False}
+    if spec.get("mcp_servers"):
+        config["mcp"] = mcp_section(spec)
     config["task_memory"] = {"enabled": False}
     # Background evolution/dreaming are outside the bounded foreground job.
     config.setdefault("rsi", {})["enabled"] = False

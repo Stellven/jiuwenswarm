@@ -329,5 +329,8 @@ class DriverTests(unittest.TestCase):
         self.assertEqual(json.loads((session / 'usage.json').read_text())[0]['usage']['input_tokens'], 42)
 
 
+from test_mcp_arm import McpArmTests, ContainerCommandTest, BridgeSystemTest  # noqa: E402,F401  (picked up by selftest through this module)
+
+
 if __name__ == '__main__':
     unittest.main()

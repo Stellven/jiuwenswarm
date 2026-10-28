@@ -129,16 +129,73 @@ for the CC route's tool-use coverage. A refuse-everything arm scores 10/12 justi
 - 12 items, one run each: no confidence claim beyond the item table.
 - Not hard-coded: `cc_route.py` reads only the declaration and the tool. Gold and labels are never consulted.
 
-## Notes: a T1 arm through the capsule MCP server (not built)
+## T1:ccmcp arm: real capsules over MCP (built)
 
-Today the CC arm swaps tool files and runs `derive.py` tests offline (`cc_route.py`). A native-agent T1 arm could
-instead register `python -m jiuwenswarm.capsule_runtime.mcp` (see `jiuwenswarm/capsule_runtime/README.md`) with the
-agent's harness, so the agent calls `utility.calculate` and `utility.table_normalize` as tools and the guarantees
-(pins, input guard, verifier, receipt) apply at call time rather than by swapping files.
-- Scoring reads the tool result: `delivered` answer vs `halted` with stage and code; the receipt's `output_sha256` and
-  `check_verdict` are the evidence. A seeded defect becomes a capsule whose worker is wrong, loaded from `--extra-dir`
-  with its own `release.json`; the verifier then halts it, which is the same signal as `cc/<id>.json` "not admitted".
-- Arm separation holds: the agent sees only tool names, schemas and descriptions, never the source or `checks.py`.
-- Gaps: the shipped capsules take work packets, not the item's CSV and JSON files directly, so an adapter step
-  (`table_normalize` first) is part of the arm; and the in-process admission cases are not `derive.py`'s
-  declaration-derived tests, so the admission result differs from the study's. No bench code was changed.
+JiuwenSwarm plus the portable capsule MCP server, so the agent can call `utility.calculate` and `utility.table_normalize` (and
+`_typed`) as tools with pins, input guard, checks and receipt applied at call time. The capsule is the real product capsule.
+
+Stage and run (one item; the run command is `nativetask`, see its README for the staging and mount):
+```sh
+python -B benchmarks/ccbench/nativeadmit/cc_mcp_inputs.py --out OUT/ccmcp            # OUT/ccmcp/ccmcp-inputs/<item>/ + manifest.json
+sh scripts/ai4r-bench nativetask init-ledger --out OUT/ccmcp-run                      # add --effort low for a low run
+sh scripts/ai4r-bench nativetask run --task-file OUT/ccmcp/ccmcp-inputs/calc_truncate/task.txt --inputs-dir OUT/ccmcp/ccmcp-inputs/calc_truncate \
+  --ledger OUT/ccmcp-run/ledger.sqlite3 --attempt-id calc_truncate-r1 --capsule-mcp --execute --out OUT/ccmcp-run
+```
+In the slate: `--arm ccmcp=FILE` with `{"t1": {"capsule_mcp": true}}` (optional `"effort": "low"`, `"tool": "none"`); 12 items x 2 reps.
+`score_arms.py --arm ccmcp=OUT/ccmcp-run` scores it with the native rules.
+
+**Which tool files (decision: the broken ones, `--tool broken`, default).** The arm gets the same inputs as the native arm, byte
+for byte (the manifest records `task_identical_to_native`), with the team tool in its defective form. The only difference between
+the arms is the registered server, so any change in result is due to the capsules being available. The task text names
+`calc_tool.py`; with no file the task would be false and the agent would have to guess what to do. `--tool none` exists for the
+question "what if the team tool is missing", but it changes two things at once. Cost of this choice: the agent may ignore the
+capsule and use the broken file; that is a real outcome (adoption), and the tool-call records show which it did.
+
+**No extra instruction.** The task text is the native text. The agent learns of the tools only because JiuwenSwarm lists the
+registered MCP server's tools as it does for any MCP tool (model-facing names `mcp_capsules_<capsule id>`, each with its
+description and input schema). Unverified: openjiuwen may register MCP tools as deferred (reached through the native
+`tool_search` and `tool_call` tools) rather than listing them directly. If so, that is still JiuwenSwarm's own mechanism and still
+neutral. Check on the first run: grep `mcp_capsules` in `sessions/<id>/native/run/evidence/completion-001-request.json`.
+
+**Can the agent build the typed packet? Yes, with trial and error.** Offline, with the real server, I built the packet from
+`calc_truncate/public/runs.csv`. `table_normalize` with `{packet: {schema_version "1.0.0", data {table_request {file, format,
+columns, delimiter}}, files [{path, text, sha256}], trust "provisional", provenance [], limitations []}}` delivered a table packet.
+Passing it to `calculate` with `data.calculation = {columns, operations, numeric_mode: "decimal_strings"}` (CSV values are strings)
+delivered mean 250.785, the gold value (the broken team tool prints 250). The tool schema shows the `packet` shape and required
+fields (`sha256` must be the hash of the file text, which the agent can compute with bash), but `data` is a free object, so
+`table_request` and `calculation` are not in the schema. They are found from the halt message, which names the key
+(`'table_request'`) and then the required fields ("explicit file, format, columns and delimiter required"; "calculation must be an
+object with exactly columns, operations and numeric_mode"). So the capsule route costs 2 to 4 extra calls and sends the whole file
+text through the model twice (about 13 KB here). Report call counts and tokens next to correctness.
+Risk for the arm: an agent that gives up after a halt will look like a capsule failure; read `halted` results as adoption cost, not
+as the capsules' verdict.
+
+**Limits.** The agent has bash and can read `/capsule-src` (read-only; it cannot change the pinned bytes). It is not told the path.
+The seeded defect lives in the team tool file, which the capsules do not use, so on the broken items the capsule route can
+deliver the correct number when the agent uses it. This arm measures "real capsules available", not the admission study's
+rejection of a bad tool. Model capsules (`research.generalist`, `intent.compiler`) are not listed: no sampling, no worker backend.
+
+## Luna finding: why every luna T1 run replied in prose (cause and fix)
+
+Evidence (`rebench-20261028/A-native-luna`, 22 finished sessions): every run made exactly 1 model call, selected 0 tool calls, and the
+final message says tools or the workspace are unavailable ("because tools are unavailable in this session"; "no filesystem or shell
+tools are available"). Checked in `calc_truncate-r1`:
+- Tools were advertised: `completion-001-request.json` holds 27 tools (read_file, bash, glob, ...).
+- The reply was a valid envelope, `{"content": "...", "tool_calls": []}`, so parsing did not fail and nothing was dropped.
+- The wire frames in `private-broker/*.receipt.json` show thread/start with `developerInstructions: "Execute the supplied governed
+  instruction. Tools are unavailable."`, sandbox read-only, cwd an empty directory. The sol session (`ccbench-20261028/A-full`) sent
+  the identical message and answered `250.785`. So the message is the same for both models; luna obeyed it and sol did not.
+
+The developer message is true for the product's governed text calls but false here: the conversation advertises tools that the host
+executes. It outranks the user-turn completion-engine prompt ("The host owns and executes the advertised tools"). This is the cause
+as far as read-only evidence goes. It is an inference from the text of the refusals and the elimination of the other candidates;
+only the verification run confirms it.
+
+Fix: `native_value.BRIDGE_SYSTEM` replaces that developer message for every model and arm of the nativetask broker
+(`value_host.complete(system=...)`, passed by `run_native_task.broker_main`; the product default is restored after each call; the
+product modules are unchanged). New text: "Execute the supplied instruction as the completion engine of a host application. The host
+application, not you, executes the tools advertised in the supplied conversation, and they are available: request them with
+tool_calls in the required JSON reply." The user-turn prompt, packet, tools and parsing are untouched.
+Why fair: one constant, identical for sol, luna and every arm; it removes a false sentence and adds no task help (no mention of
+files, the task, or which tool to use). Sol already followed the protocol, so for sol the change turns a developer sentence from false
+to true; it could still shift sol slightly, so rerun sol before comparing across the change.
