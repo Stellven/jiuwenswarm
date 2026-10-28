@@ -33,7 +33,7 @@ The task text is passed unchanged.
 ## Prerequisites
 
 An operator must have an existing initialized `value_schedule` ledger **under
-this folder**, the local `ai4r:cc-value-medium-20261026` image, Docker, and a
+this folder**, the local `ai4r:ccbench-native` image, Docker, and a
 qualified signed-in host Codex executable. This driver never creates or resets a
 ledger. It rejects a ledger outside `nativetask/` because SQLite writes there.
 Supply only public files in the inputs directory; every file there is visible
@@ -53,7 +53,7 @@ See "Origin" above for the entry command. `plan` is pure (no files, processes or
 
 ## Native image
 
-Default image tag: `ai4r:cc-value-medium-20261026` (the opponent of the sweep). It is not present locally and **no build recipe or digest was stored for it** (the old attempt records carry no digest). `docker image inspect` is now run for every executed attempt and the result is written into the attempt record.
+Default image tag: `ai4r:ccbench-native`, built by `scripts/ai4r-bench build-native` (plain JiuwenSwarm, `deploy/m1/Dockerfile.app --target production`). The sweep's opponent `ai4r:cc-value-medium-20261026` is gone and **no build recipe or digest was stored for it** (the old attempt records carry no digest), so results on the two images are different opponents. `docker image inspect` is now run for every executed attempt and the result is written into the attempt record.
 
 Search done: the product repo (`deploy/`, `benchmarks/harbor_suite`, git log), `cc-sweep-20261026/nativetask`, the sweep notes and run drivers. The tag appears only as a default argument and in reports. The run drivers pin a *build identity* (`traps/run_trap.py` BUILD `19b917a8ef47...`, a sha256 over the installed package closure), not a recipe or an image digest. The sibling images on this machine (`ai4r:cc-intent-m1-7-*`, `ai4r:cc-v1-baseline`) are builds of `deploy/m1/Dockerfile.app` (target `production`: pinned python 3.12, node 22, uv, frozen lock, wheels built offline). So the opponent was most likely that Dockerfile at an October 26 commit; the exact commit is not recorded.
 

@@ -150,7 +150,7 @@ into the skill-arm request, so both arms see capability names in the prompt. Not
 * CC arm, `--cc-planner native` (default): real `NativePlanner`. Verified offline here with a stub transport: it builds the leader harness and makes one governed call, then
   the worker, `planner_checks`, verifier and gate run unchanged (`cclib` copies the worker's globals and names `NativePlanner` in them; `run_arm.py` sets that name for the run
   and restores it). What is **not** verified: a real model behind it. `--cc-planner direct` is the labelled fallback (cclib's `DirectPlanner`: same payload and instructions, no leader harness).
-* Skill arm, `--skill-transport native` (default): real native JiuwenSwarm. Needs Docker, the image `ai4r:cc-value-medium-20261026`, the English runtime overlay, a ledger and a signed-in host
+* Skill arm, `--skill-transport native` (default): real native JiuwenSwarm. Needs Docker, the image `ai4r:ccbench-native` (the nativetask default), the English runtime overlay, a ledger and a signed-in host
   codex; none exist for this task. `--skill-transport codex` is the labelled fallback: one tool-free `codex exec` turn with the same pack text in the prompt (like earlier B1 rows).
   A fallback row must never be mixed with native rows.
 * Every `run` that writes outside `planbench/` is the native driver itself (`nativetask/sessions/`, `attempts/`, ledger). Nothing else does; `.scratch/` and `runs/` are inside `planbench/`.

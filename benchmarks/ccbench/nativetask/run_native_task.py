@@ -25,9 +25,9 @@ REPO = roots.code_root()
 PYTHON = Path(sys.executable)
 RUNTIME = HERE / 'native-runtime-en'    # English overlay of benchmarks.harbor_suite.native_value (copied from the old traps/)
 ROOT = None                             # output root; main() sets it from --out
-DEFAULT_IMAGE = 'ai4r:cc-value-medium-20261026'
+DEFAULT_IMAGE = 'ai4r:ccbench-native'   # rebuilt opponent; the sweep's ai4r:cc-value-medium-20261026 is gone and had no recipe
 REBUILD_HINT = (
-    'No build recipe was stored for this tag. Build the closest equivalent with `scripts/ai4r-bench build-native --yes --out DIR` '
+    'Image not found. Build it with `scripts/ai4r-bench build-native --yes --out DIR` '
     '(tags ai4r:ccbench-native from deploy/m1/Dockerfile.app, target production) and pass --image ai4r:ccbench-native, '
     'or reuse an existing M1 image such as ai4r:cc-v1-baseline. See benchmarks/ccbench/nativetask/README.md.')
 
