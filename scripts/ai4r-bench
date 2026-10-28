@@ -206,12 +206,14 @@ if command -v id >/dev/null 2>&1; then user="--user $(id -u):$(id -g)"; fi
 common="-e HOME=/tmp/home -e AI4R_CODE_ROOT=/opt/ai4r -e AI4R_BENCH_DATA=/data -e PYTHONPATH=/opt/ai4r -e PYTHONDONTWRITEBYTECODE=1 -e PYTHONIOENCODING=utf-8 -e AI4R_PRODUCT_COMMIT -e AI4R_PRODUCT_DIRTY"
 if [ "$cmd" = selftest ]; then
     # shellcheck disable=SC2086
-    exec docker run --rm $user $mounts -w /tmp $common \n        --entrypoint /opt/venv/bin/python "$image" -B /opt/ai4r/benchmarks/ccbench/selftest.py "$@"
+    exec docker run --rm $user $mounts -w /tmp $common \
+        --entrypoint /opt/venv/bin/python "$image" -B /opt/ai4r/benchmarks/ccbench/selftest.py "$@"
 fi
 meta_write "$@"
 rc=0
 # shellcheck disable=SC2086
-docker run --rm $user $mounts -w /out $common \n    --entrypoint /opt/venv/bin/python "$image" -B "/opt/ai4r/benchmarks/ccbench/$bench_dir/$script" "$@" --out /out || rc=$?
+docker run --rm $user $mounts -w /out $common \
+    --entrypoint /opt/venv/bin/python "$image" -B "/opt/ai4r/benchmarks/ccbench/$bench_dir/$script" "$@" --out /out || rc=$?
 meta_end=$(date -u +%Y-%m-%dT%H:%M:%SZ); meta_rc=$rc
 meta_write "$@"
 exit $rc

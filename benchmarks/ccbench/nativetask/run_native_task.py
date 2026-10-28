@@ -425,7 +425,8 @@ def main(argv=None):
     attempts = bounded(ROOT / 'attempts')
     attempts.mkdir(exist_ok=True)
     record_path = bounded(attempts / (attempt + '.json'))
-    record = dict(attempt_id=attempt, action=args.action, execute=args.execute, status='started', image=image)
+    record = dict(attempt_id=attempt, action=args.action, execute=args.execute, status='started', image=image,
+                  product=roots.product_commit())    # {'commit', 'dirty'} of AI4R_CODE_ROOT
     dump(record_path, record, exclusive=True)
     try:
         if args.action == 'collect':

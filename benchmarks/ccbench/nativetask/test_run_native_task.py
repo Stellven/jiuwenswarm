@@ -31,6 +31,8 @@ class DriverTests(unittest.TestCase):
         self.popen = patch.object(driver.subprocess, 'Popen').start()
         self.run = patch.object(driver.subprocess, 'run').start()
         self.schedule = patch.object(driver, 'schedule_class').start()
+        # The attempt record's product commit is a git call; give it a fixed value instead.
+        patch.object(driver.roots, 'product_commit', return_value={'commit': 'test', 'dirty': False}).start()
         self.addCleanup(patch.stopall)
         self.output = io.StringIO()
         self.out = contextlib.redirect_stdout(self.output)
