@@ -44,7 +44,8 @@ def test_actual_source_capture_is_idempotent_and_grants_no_authority(capture_roo
     assert (capture_root / bootstrap.MARKER).read_bytes() == marker_before
     assert result['status'] == 'SOURCE_CAPTURED_NOT_READY'
     assert result['requested_model']=='gpt-6-luna'
-    assert result['screening_declaration_ref']['sha256'] == '1f8f0e2f036d7b8d629ec8241e7279e71b60f43c66ab95ce04be37d6af8602e5'
+    from jiuwenswarm.research.capsules.assets import load_research_catalog
+    assert result['screening_declaration_ref'] == load_research_catalog()['stages']['screening']['declaration_ref']
     store = SQLiteRunStore(capture_root / 'core', recover=False, input_root=capture_root / 'input')
     try:
         assert store.read_blob(result['screening_helper_ref']) == (Path(research.__file__).parent / 'capsules/ranking.py').read_bytes()
