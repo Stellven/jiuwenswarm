@@ -38,6 +38,7 @@
 #   heldout      run_heldout plan|freeze|run|score        (model runs; host Python recommended: --host)
 #   contract     run_contract plan|freeze|run|score
 #   haltbench    run_haltbench plan|freeze|run|score
+#   slate        slate luna --out DIR [--arm NAME=CONFIG ...] [--only T1,T2,...]   the luna test slate, one command (host only; see benchmarks/ccbench/LUNA-SLATE.md)
 set -eu
 
 die() { echo "ai4r-bench: $*" >&2; exit 2; }
@@ -61,17 +62,18 @@ scripts_of() {
         contract) echo "run_contract" ;;
         haltbench) echo "run_haltbench" ;;
         dossier) echo "dossier" ;;
+        slate) echo "slate" ;;
         *) return 1 ;;
     esac
 }
 
-if [ $# -lt 1 ]; then sed -n '2,37p' "$0" | sed 's/^# \{0,1\}//'; exit 2; fi
+if [ $# -lt 1 ]; then sed -n '2,41p' "$0" | sed 's/^# \{0,1\}//'; exit 2; fi
 raw_args=$(printf '%s
 ' "$@")
 cmd=$1; shift
 
 if [ "$cmd" = list ]; then
-    for b in admission gatebench trapcheck planner nativeadmit nativetask planbench cclib heldout contract haltbench dossier; do
+    for b in admission gatebench trapcheck planner nativeadmit nativetask planbench cclib heldout contract haltbench dossier slate; do
         echo "$b: $(scripts_of $b)"
     done
     exit 0
@@ -133,9 +135,10 @@ if [ "$cmd" != selftest ]; then
     script=$script.py
     bench_dir=$cmd
     if [ "$cmd" = dossier ]; then bench_dir=.; script=dossier.py; fi
+    if [ "$cmd" = slate ]; then bench_dir=.; script=slate.py; fi
     [ -n "$out" ] || die "$cmd needs --out DIR (every output is written there)"
 fi
-if [ "$cmd" = nativetask ] || [ "$cmd" = dossier ]; then host=1; fi   # nativetask starts docker; dossier reads host folders and never needs a container
+if [ "$cmd" = nativetask ] || [ "$cmd" = dossier ] || [ "$cmd" = slate ]; then host=1; fi   # nativetask starts docker; dossier reads host folders and never needs a container
 
 out_abs=''
 if [ -n "$out" ]; then
@@ -157,7 +160,7 @@ export AI4R_PRODUCT_COMMIT AI4R_PRODUCT_DIRTY
 
 # Run metadata: out/run-meta/<utc>-<bench>-<script>.json, written before the run (end and exit code null) and after it.
 meta=''; model_flag=''
-if [ "$cmd" != selftest ] && [ "$cmd" != dossier ]; then
+if [ "$cmd" != selftest ] && [ "$cmd" != dossier ] && [ "$cmd" != slate ]; then
     case "$cmd:$script:${1:-}" in
         planner:run_planner_bench.py:run|planbench:run_arm.py:run|nativetask:run_native_task.py:run|heldout:run_heldout.py:run|contract:run_contract.py:run|haltbench:run_haltbench.py:run) model_flag=--model-run ;;
     esac

@@ -4,6 +4,8 @@ AI4R_CODE_ROOT   product repo (default: the repo that contains this file)
 AI4R_BENCH_DATA  old evidence root: traps/, stored baselines, native sessions
                  (default: ~/huawei/outputs/cc-sweep-20261026)
 AI4R_CODEX_BIN   codex executable (default: `codex` on PATH)
+AI4R_T2_FIXTURES luna T2 (inputguard) fixture folder: <fixture>/{task.txt, inputs/, fault.json}
+                 (default: ~/huawei/outputs/rebench-20261028/B-theirs/fixtures)
 AI4R_PRODUCT_COMMIT / AI4R_PRODUCT_DIRTY
                  set by scripts/ai4r-bench from the host checkout (a container may have no usable git)
 """
@@ -23,6 +25,11 @@ def code_root():
 def bench_data():
     value = os.environ.get('AI4R_BENCH_DATA')
     return Path(value) if value else Path.home() / 'huawei' / 'outputs' / 'cc-sweep-20261026'
+
+
+def t2_fixtures():
+    value = os.environ.get('AI4R_T2_FIXTURES')
+    return Path(value) if value else Path.home() / 'huawei' / 'outputs' / 'rebench-20261028' / 'B-theirs' / 'fixtures'
 
 
 def need_data(*parts):

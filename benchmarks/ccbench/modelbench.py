@@ -71,6 +71,23 @@ def parse_tokens(text):
     return int(found[-1].replace(',', '')) if found else None
 
 
+def parse_usage(text):
+    """Token figures printed by the codex CLI: dict(total, input, output); a figure is None when it is not printed.
+
+    `codex exec` prints only `tokens used` then the total (checked against saved run.json files, 2026-10-28). The input
+    and output figures are read only when the text states them explicitly ("input tokens: N", "output_tokens": N);
+    they are never derived from the total.
+    """
+    text = text or ''
+
+    def last(pattern):
+        found = re.findall(pattern, text, flags=re.I)
+        return int(found[-1].replace(',', '')) if found else None
+    return dict(total=parse_tokens(text),
+                input=last(r'input[_ ]tokens\W{0,3}[:=]\s*([\d,]+)'),
+                output=last(r'output[_ ]tokens\W{0,3}[:=]\s*([\d,]+)'))
+
+
 def _invoke(command, prompt, timeout):
     start = time.monotonic()
     proc = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -85,8 +102,10 @@ def _invoke(command, prompt, timeout):
             subprocess.run(['taskkill', '/PID', str(proc.pid), '/T', '/F'], capture_output=True, timeout=10)
         proc.kill()
         stdout, stderr = proc.communicate(timeout=10)
+    usage = parse_usage(stdout + '\n' + stderr)
     return dict(elapsed_s=round(time.monotonic() - start, 2), returncode=proc.returncode, timed_out=timed_out,
-                stdout_tail=stdout[-3000:], stderr_tail=stderr[-3000:], tokens=parse_tokens(stdout + '\n' + stderr))
+                stdout_tail=stdout[-3000:], stderr_tail=stderr[-3000:], tokens=usage['total'],
+                input_tokens=usage['input'], output_tokens=usage['output'])
 
 
 def call_codex(prompt, call_dir, model=MODEL, cli=None, timeout=TIMEOUT_S, invoke=None, meta=None):
@@ -104,7 +123,7 @@ def call_codex(prompt, call_dir, model=MODEL, cli=None, timeout=TIMEOUT_S, invok
     try:
         record.update((invoke or _invoke)(command, prompt, timeout))
     except (OSError, subprocess.SubprocessError) as exc:
-        record.update(error=str(exc), elapsed_s=0.0, tokens=None, timed_out=False, returncode=None)
+        record.update(error=str(exc), elapsed_s=0.0, tokens=None, input_tokens=None, output_tokens=None, timed_out=False, returncode=None)
     finally:
         shutil.rmtree(cwd, ignore_errors=True)
     if not reply_path.exists():
@@ -114,13 +133,18 @@ def call_codex(prompt, call_dir, model=MODEL, cli=None, timeout=TIMEOUT_S, invok
     reply = raw.decode('utf-8', 'replace')
     record['ok'] = bool(reply.strip()) and not record.get('timed_out') and record.get('returncode') == 0
     write_json(call_dir / 'run.json', record)
-    return dict(reply=reply, tokens=record.get('tokens'), elapsed_s=record.get('elapsed_s', 0.0), ok=record['ok'], dir=str(call_dir))
+    return dict(reply=reply, tokens=record.get('tokens'), input_tokens=record.get('input_tokens'), output_tokens=record.get('output_tokens'), elapsed_s=record.get('elapsed_s', 0.0), ok=record['ok'], dir=str(call_dir))
 
 
 def call_cost(calls):
     """Sum a list of call dicts: calls, tokens (None when no call reported any), wall seconds."""
     tokens = [c['tokens'] for c in calls if c.get('tokens') is not None]
+    ins = [c['input_tokens'] for c in calls if c.get('input_tokens') is not None]
+    outs = [c['output_tokens'] for c in calls if c.get('output_tokens') is not None]
+    # The split is summed only when every call reported it; a partial sum would understate the unit.
     return dict(calls=len(calls), tokens=sum(tokens) if tokens else None,
+                input_tokens=sum(ins) if calls and len(ins) == len(calls) else None,
+                output_tokens=sum(outs) if calls and len(outs) == len(calls) else None,
                 calls_without_token_count=len(calls) - len(tokens), wall_s=round(sum(c.get('elapsed_s') or 0 for c in calls), 2))
 
 

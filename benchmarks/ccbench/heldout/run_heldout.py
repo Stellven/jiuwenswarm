@@ -123,7 +123,7 @@ def run_unit(case, arm, rep, model, unit_dir, call=None):
         final = code2
     (unit_dir / 'final.py').write_bytes((final or '').encode('utf-8'))
     result = dict(case=case['id'], arm=arm, rep=rep, model=model, check_status=check_status, retried=retried,
-                  trigger=trigger[:1500], calls=[{k: c[k] for k in ('dir', 'tokens', 'elapsed_s', 'ok')} for c in calls],
+                  trigger=trigger[:1500], calls=[{k: c.get(k) for k in ('dir', 'tokens', 'input_tokens', 'output_tokens', 'elapsed_s', 'ok')} for c in calls],
                   cost=mb.call_cost(calls), final_sha256=hashlib.sha256((final or '').encode('utf-8')).hexdigest(), has_code=bool(final))
     mb.write_json(unit_dir / 'result.json', result)
     return result

@@ -53,9 +53,18 @@ class ModelBenchTests(unittest.TestCase):
             self.assertFalse(res['ok'])
             self.assertEqual(res['reply'], '')
 
+    def test_parse_usage_split_only_when_printed(self):
+        self.assertEqual(mb.parse_usage('tokens used\n99,301\n'), dict(total=99301, input=None, output=None))
+        got = mb.parse_usage('input tokens: 1,200\n"output_tokens": 30\ntokens used\n1,230')
+        self.assertEqual(got, dict(total=1230, input=1200, output=30))
+
     def test_cost_and_rotation_and_blocks(self):
         self.assertEqual(mb.call_cost([dict(tokens=5, elapsed_s=1.0), dict(tokens=None, elapsed_s=2.0)]),
-                         dict(calls=2, tokens=5, calls_without_token_count=1, wall_s=3.0))
+                         dict(calls=2, tokens=5, input_tokens=None, output_tokens=None, calls_without_token_count=1, wall_s=3.0))
+        full = mb.call_cost([dict(tokens=10, input_tokens=7, output_tokens=3, elapsed_s=1), dict(tokens=4, input_tokens=3, output_tokens=1, elapsed_s=1)])
+        self.assertEqual((full['input_tokens'], full['output_tokens'], full['tokens']), (10, 4, 14))
+        part = mb.call_cost([dict(tokens=10, input_tokens=7, output_tokens=3, elapsed_s=1), dict(tokens=4, elapsed_s=1)])
+        self.assertEqual((part['input_tokens'], part['output_tokens']), (None, None))    # never a partial sum
         self.assertEqual(mb.call_cost([dict(tokens=None, elapsed_s=1)])['tokens'], None)
         self.assertEqual(mb.rotate(['a', 'b', 'c'], 1), ['a', 'b', 'c'])
         self.assertEqual(mb.rotate(['a', 'b', 'c'], 2), ['b', 'c', 'a'])

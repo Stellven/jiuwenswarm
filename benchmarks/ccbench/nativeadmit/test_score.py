@@ -114,3 +114,46 @@ class CCLiveInputs(unittest.TestCase):
             self.assertEqual((Path(tmp) / 'live' / 'calc_truncate' / 'task.txt').read_bytes(), (HERE / 'items' / 'calc_truncate' / 'public' / 'task.txt').read_bytes())
         self.assertEqual(rows['calc_truncate']['served_version'], 'calc_reference')
         self.assertEqual(rows['calc_reference']['served_version'], 'calc_reference')
+
+
+class ServedHook(unittest.TestCase):
+    def test_served_dir_replaces_reference_and_default_is_unchanged(self):
+        import cc_live_inputs
+        import cc_route
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            cc_route.main(['--out', tmp, 'calc_truncate'])
+            served = Path(tmp) / 'served'
+            served.mkdir()
+            (served / 'calc_tool.py').write_bytes(b'# an RSI-changed calc tool\n')
+            default = cc_live_inputs.build('calc_truncate', Path(tmp) / 'cc', Path(tmp) / 'a')
+            same = cc_live_inputs.build('calc_truncate', Path(tmp) / 'cc', Path(tmp) / 'b', None)
+            other = cc_live_inputs.build('calc_truncate', Path(tmp) / 'cc', Path(tmp) / 'c', served)
+            self.assertEqual(default, same)
+            self.assertNotIn('served_from', default)
+            self.assertEqual((Path(tmp) / 'c' / 'calc_tool.py').read_bytes(), b'# an RSI-changed calc tool\n')
+            self.assertEqual(other['served_from'], str(served))
+            self.assertNotEqual(other['tool_sha256'], default['tool_sha256'])
+            (served / 'calc_tool.py').unlink()
+            with self.assertRaises(SystemExit):
+                cc_live_inputs.build('calc_truncate', Path(tmp) / 'cc', Path(tmp) / 'd', served)
+
+
+class ScoreArms(unittest.TestCase):
+    def test_arm_scored_with_cost(self):
+        import json
+        import score_arms
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, text in (('calc_reference-r1', 'Answer: 1.6875'), ('calc_truncate-r1', 'The mean is 250.')):
+                s = Path(tmp) / 'sessions' / name
+                s.mkdir(parents=True)
+                (s / 'final-message.txt').write_text(text, encoding='utf-8')
+                (s / 'usage.json').write_text(json.dumps([dict(elapsed_s=2, usage=dict(input_tokens=100, output_tokens=10))]), encoding='utf-8')
+            (Path(tmp) / 'sessions' / 'notes').mkdir()
+            out = Path(tmp) / 'out'
+            with contextlib.redirect_stdout(io.StringIO()):
+                score_arms.main(['--arm', 'plain=' + tmp, '--out', str(out)])
+            result = json.loads((out / 'score-arms.json').read_text(encoding='utf-8'))
+            self.assertEqual(result['class_counts']['plain']['correct'], 1)
+            self.assertEqual(result['class_counts']['plain']['silent_wrong'], 1)
+            self.assertEqual(result['cost']['plain']['tokens_per_correct'], 220)
+            self.assertTrue((out / 'score-arms.md').is_file())

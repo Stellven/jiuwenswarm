@@ -115,7 +115,7 @@ def run_unit(case, arm, rep, model, unit_dir, call=None):
         final = calls[-1]['reply']
     (unit_dir / 'final.txt').write_bytes(final.encode('utf-8'))
     result = dict(case=case['id'], arm=arm, rep=rep, model=model, halted_by_gate=halted_by_gate, gate_reason=gate_reason[:500], gate_parsed=gate_parsed,
-                  calls=[{k: c[k] for k in ('dir', 'tokens', 'elapsed_s', 'ok')} for c in calls], cost=mb.call_cost(calls),
+                  calls=[{k: c.get(k) for k in ('dir', 'tokens', 'input_tokens', 'output_tokens', 'elapsed_s', 'ok')} for c in calls], cost=mb.call_cost(calls),
                   final_sha256=hashlib.sha256(final.encode('utf-8')).hexdigest())
     mb.write_json(unit_dir / 'result.json', result)
     return result

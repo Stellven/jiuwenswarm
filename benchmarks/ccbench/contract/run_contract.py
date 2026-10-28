@@ -82,7 +82,7 @@ def run_unit(case, arm, rep, model, unit_dir, call=None):
     (unit_dir / 'reply1.txt').write_bytes(reply1.encode('utf-8'))
     (unit_dir / 'final.txt').write_bytes(final.encode('utf-8'))
     result = dict(case=case['id'], arm=arm, rep=rep, model=model, retried=retried, first_violations=violations[:8],
-                  calls=[{k: c[k] for k in ('dir', 'tokens', 'elapsed_s', 'ok')} for c in calls], cost=mb.call_cost(calls),
+                  calls=[{k: c.get(k) for k in ('dir', 'tokens', 'input_tokens', 'output_tokens', 'elapsed_s', 'ok')} for c in calls], cost=mb.call_cost(calls),
                   final_sha256=hashlib.sha256(final.encode('utf-8')).hexdigest())
     mb.write_json(unit_dir / 'result.json', result)
     return result

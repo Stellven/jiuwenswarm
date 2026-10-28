@@ -26,6 +26,9 @@ SUITES = {
     'heldout': ('heldout', 'test_heldout'),
     'contract': ('contract', 'test_contract'),
     'haltbench': ('haltbench', 'test_haltbench'),
+    'cost': ('.', 'test_cost'),
+    'inputguard': ('inputguard', 'test_inputguard'),
+    'slate': ('.', 'test_slate'),
 }
 
 

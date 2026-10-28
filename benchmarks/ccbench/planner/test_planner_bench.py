@@ -262,6 +262,70 @@ class PlannerBenchTests(unittest.TestCase):
             self.assertEqual(1, scored['aggregate']['B']['validity_rate'])
             self.assertEqual(1, scored['aggregate']['A']['run_to_run_stability'])
 
+    def test_skill_detail_names_is_default_and_full_adds_only_file_texts(self):
+        import run_planner_bench as bench
+        task = self.tasks['report']
+        names = make_prompt(task, 'B', self.lib)
+        self.assertEqual(names, make_prompt(task, 'B', self.lib, 'names'))
+        full = make_prompt(task, 'B', self.lib, 'full')
+        extra = bench.full_skill_text(self.lib)
+        self.assertEqual(names, full.replace(extra, '', 1))
+        self.assertGreater(len(full), len(names))
+        self.assertEqual(make_prompt(task, 'A', self.lib), make_prompt(task, 'A', self.lib, 'full'))
+        files = dict(bench.skillpack_files(self.lib))
+        self.assertIn('tools/utility_calculate.py', files)
+        self.assertIn('skills/research-paper-summary/SKILL.md', files)
+        for rel, text in files.items():
+            self.assertIn('--- file: %s ---\n%s' % (rel, text.rstrip('\n')), extra)
+        self.assertNotIn('\r', extra)
+        with self.assertRaises(ValueError):
+            make_prompt(task, 'B', self.lib, 'bogus')
+
+    def test_invoke_once_records_input_output_only_when_printed(self):
+        import run_planner_bench as bench
+
+        class Proc:
+            returncode = 0
+            def __init__(self, *a, **k): pass
+            def communicate(self, prompt, timeout=None): return ('', self.err)
+        for err, want in (('tokens used\n99,301\n', (None, None)), ('input tokens: 90,000\noutput tokens: 9,301\ntokens used\n99,301\n', (90000, 9301))):
+            Proc.err = err
+            with patch.object(bench.subprocess, 'Popen', Proc):
+                rec = bench.invoke_once(['x'], 'p', {})
+            self.assertEqual(['99,301'], rec['tokens_used'])
+            self.assertEqual(want, (rec['input_tokens'], rec['output_tokens']))
+
+    def test_resume_runs_only_missing_units_and_refuses_a_changed_setup(self):
+        import run_planner_bench as bench
+        calls = []
+
+        def fake_cli(command, prompt, env):
+            calls.append(prompt)
+            Path(command[command.index('-o') + 1]).write_text('INFEASIBLE: x', encoding='utf-8')
+            return dict(elapsed_s=0.1, returncode=0, timed_out=False, stdout_tail='', stderr_tail='', tokens_used=[])
+        ids = list(self.tasks)[:2]
+
+        def go(folder, task, **kw):
+            args = dict(execute=True, repeats=1, model='gpt-6-luna', out=Path(folder), task=[task], skill_detail='full', resume=True)
+            args.update(kw)
+            with patch.object(bench, 'fresh_empty_directory', retained_scratch), patch.object(bench, 'invoke_once', side_effect=fake_cli), \
+                    patch.object(bench.roots, 'require_codex', return_value='codex'), contextlib.redirect_stdout(io.StringIO()):
+                bench.run(SimpleNamespace(**args))
+        with tempfile.TemporaryDirectory() as folder:
+            go(folder, ids[0])
+            self.assertEqual(2, len(calls))
+            self.assertIn('Full text of each skill and tool file', calls[0] + calls[1])
+            go(folder, ids[0])                      # same units: nothing runs
+            self.assertEqual(2, len(calls))
+            go(folder, ids[1])                      # a new task is added to the same run
+            self.assertEqual(4, len(calls))
+            manifest = json.loads((Path(folder) / 'runs/gpt-6-luna/manifest.json').read_text('utf-8'))
+            self.assertEqual(sorted(ids), sorted(t['id'] for t in manifest['tasks']))
+            with self.assertRaises(SystemExit):
+                go(folder, ids[1], skill_detail='names')
+            with self.assertRaises(SystemExit):
+                go(folder, ids[1], resume=False)
+
 
 if __name__ == '__main__':
     unittest.main()

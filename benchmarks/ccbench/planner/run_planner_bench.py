@@ -15,6 +15,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from library import ROOT, build_library, canonical, declared_payload, undeclared_view
 import roots
+import modelbench
 from plan_integrity import DEFECTS, score_raw
 
 MODELS = ('gpt-6-luna', 'gpt-6.1-sol')
@@ -53,13 +54,52 @@ def task_text(task):
     return canonical(task)
 
 
-def make_prompt(task, condition, library=None):
+SKILL_DETAILS = ('names', 'full')
+SKILLPACK = ROOT.parent / 'planbench' / 'skillpack'
+
+
+def skillpack_files(library=None):
+    """[(relative path, text)] of the skillpack file behind each library capability, in library order, once each.
+
+    Mapping (the one planbench/generate_skillpack.py used to write the pack): a capability `utility.calculate` is the
+    tool file `tools/utility_calculate.py`; a capability whose pack entry is a skill folder is
+    `skills/<name with . and _ turned into ->/SKILL.md` (for example `research.paper_summary` ->
+    `skills/research-paper-summary/SKILL.md`). The pack's index SKILL.md and the planning skill are not included: the
+    planner already has its own instructions. A capability with no file stops the run; it is never skipped silently.
+    """
+    names = []
+    for item in undeclared_view(library):
+        if item['name'] not in names:
+            names.append(item['name'])
+    out = []
+    for name in names:
+        tool = SKILLPACK / 'tools' / (name.replace('.', '_') + '.py')
+        skill = SKILLPACK / 'skills' / (name.replace('.', '-').replace('_', '-') + '/SKILL.md')
+        path = tool if tool.is_file() else skill
+        if not path.is_file():
+            raise SystemExit('no skillpack file for capability %s (looked for %s and %s)' % (name, tool, skill))
+        out.append((path.relative_to(SKILLPACK).as_posix(), path.read_bytes().decode('utf-8').replace('\r\n', '\n')))
+    return out
+
+
+def full_skill_text(library=None):
+    parts = ['\nFull text of each skill and tool file (the code and SKILL.md behind the listed names):']
+    for rel, text in skillpack_files(library):
+        parts.append('--- file: %s ---\n%s' % (rel, text.rstrip('\n')))
+    return '\n'.join(parts) + '\n'
+
+
+def make_prompt(task, condition, library=None, skill_detail='names'):
     lib = library or build_library()
     if condition == 'A':
         framing = lib['instructions'] + '\nDeclared planner payload:\n' + canonical(declared_payload(task, lib))
         request = 'Return exactly the pinned plan-proposal JSON, or the bounded INFEASIBLE: reply required by the planner instructions. Use suggested_checks for named output acceptance checks; retain the pinned schema.'
     elif condition == 'B':
         framing = 'You are a research planner. Choose a plan using this skill library:\n' + canonical(undeclared_view(lib))
+        if skill_detail == 'full':
+            framing += full_skill_text(lib)
+        elif skill_detail != 'names':
+            raise ValueError(skill_detail)
         request = '''Return exactly one structured JSON object {"nodes":[{"id":"unique_id","capability":"skill name","inputs":[{"name":"input name","source":"external:<supplied key> or <node>.<output>"}],"outputs":["output names"],"acceptance_criteria":["criterion naming an output port/field or check id"],"depends_on":["node ids"],"limits":{"time_s":0,"model_calls":0,"memory_mb":0},"covers":["Brief requirement, deliverable and evidence obligation IDs"]}]}. Include explicit input bindings, output names, dependencies, bounded limits and acceptance criteria for every node. Cover every mandatory Brief obligation. If required capability, input or budget is unavailable, return one line INFEASIBLE: naming the actual missing capability/input or exceeded ceiling, at most 300 characters. Invent no resources or permissions.'''
     else:
         raise ValueError(condition)
@@ -71,12 +111,12 @@ def digest(prompt):
     return dict(sha256=hashlib.sha256(raw).hexdigest(), bytes=len(raw), characters=len(prompt))
 
 
-def dry_plan(ids=None, out=None):
+def dry_plan(ids=None, out=None, skill_detail='names'):
     lib = build_library()
     records = []
     for task in load_tasks(ids):
         for cond in ('A', 'B'):
-            records.append(dict(task=task['id'], condition=cond, **digest(make_prompt(task, cond, lib))))
+            records.append(dict(task=task['id'], condition=cond, **digest(make_prompt(task, cond, lib, skill_detail))))
     print(json.dumps(records, indent=2))
     if out:
         Path(out).mkdir(parents=True, exist_ok=True)
@@ -105,7 +145,10 @@ def invoke_once(command, prompt, env):
         stdout, stderr = proc.communicate(timeout=10)
     return dict(elapsed_s=time.monotonic() - start, returncode=proc.returncode, timed_out=timed_out,
         stdout_tail=stdout[-12000:], stderr_tail=stderr[-12000:],
-        tokens_used=re.findall(r'tokens used\s*[:\r\n ]+([\d,]+)', stdout + '\n' + stderr, flags=re.I))
+        tokens_used=re.findall(r'tokens used\s*[:\r\n ]+([\d,]+)', stdout + '\n' + stderr, flags=re.I),
+        # input/output stay None unless codex prints them; the total is never split by guesswork
+        input_tokens=modelbench.parse_usage(stdout + '\n' + stderr)['input'],
+        output_tokens=modelbench.parse_usage(stdout + '\n' + stderr)['output'])
 
 
 def run(args):
@@ -116,14 +159,24 @@ def run(args):
     cli = roots.require_codex()
     outdir = Path(args.out)
     base = outdir / 'runs' / args.model
-    if base.exists():
-        raise SystemExit('Run directory already exists; preserve it or move it before starting a new batch.')
-    base.mkdir(parents=True)
+    resume = getattr(args, 'resume', False)
+    if base.exists() and not resume:
+        raise SystemExit('Run directory already exists; preserve it or move it before starting a new batch (or pass --resume to add the missing units).')
+    base.mkdir(parents=True, exist_ok=resume)
     lib = build_library()
     tasks = load_tasks(getattr(args, 'task', None))
+    skill_detail = getattr(args, 'skill_detail', 'names')
+    manifest = dict(library=lib, tasks=tasks, expected=json.loads((ROOT / 'expected.json').read_text('utf-8')), repeats=args.repeats, model=args.model, skill_detail=skill_detail)
+    if resume and (base / 'manifest.json').exists():
+        # Same library, model, repeats and skill detail, or the units would not be comparable. The manifest then lists every task that has run.
+        old = json.loads((base / 'manifest.json').read_text('utf-8'))
+        for key in ('library', 'repeats', 'model', 'skill_detail'):
+            if old.get(key, 'names' if key == 'skill_detail' else None) != manifest[key]:
+                raise SystemExit('--resume refused: %s differs from the existing run in %s' % (key, base))
+        seen = {x['id'] for x in tasks}
+        manifest['tasks'] = [x for x in load_tasks() if x['id'] in seen or x['id'] in {y['id'] for y in old['tasks']}]
     # Freeze scorer inputs, including hidden labels, outside every model CWD.
-    write_json(base / 'manifest.json', dict(library=lib, tasks=tasks,
-        expected=json.loads((ROOT / 'expected.json').read_text('utf-8')), repeats=args.repeats, model=args.model))
+    write_json(base / 'manifest.json', manifest)
     temp_root = outdir / '.tmp'
     temp_root.mkdir(exist_ok=True)
     for task in tasks:
@@ -131,12 +184,17 @@ def run(args):
             # Counterbalance the first condition to reduce order confounding.
             for cond in (('A', 'B') if repeat % 2 else ('B', 'A')):
                 out = base / task['id'] / f'{cond}-r{repeat}'
+                if resume and (out / 'run.json').exists():
+                    print(f'{args.model} {task["id"]} {cond}-r{repeat}: skip (done)', flush=True)
+                    continue
+                if out.exists():
+                    raise SystemExit('%s exists without run.json (interrupted); move it away to redo that unit' % out)
                 out.mkdir(parents=True)
-                prompt = make_prompt(task, cond, lib)
+                prompt = make_prompt(task, cond, lib, skill_detail)
                 (out / 'prompt.txt').write_bytes(prompt.encode('utf-8'))
                 raw_path = out / 'reply.txt'
                 env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', PYTHONIOENCODING='utf-8')
-                metadata = dict(task=task['id'], condition=cond, repeat=repeat, model=args.model, prompt=digest(prompt))
+                metadata = dict(task=task['id'], condition=cond, repeat=repeat, model=args.model, skill_detail=skill_detail, prompt=digest(prompt))
                 with fresh_empty_directory(temp_root) as cwd:
                     command = [cli, 'exec', '--skip-git-repo-check', '-m', args.model, '-s', 'read-only', '--ephemeral', '-C', cwd, '-o', str(raw_path), '-']
                     metadata.update(command=command, cwd_initially_empty=not any(Path(cwd).iterdir()))
@@ -218,18 +276,21 @@ def main(argv=None):
     planner = sub.add_parser('plan', help='offline dry run: prompt digests and sizes only')
     planner.add_argument('--task', action='append', metavar='ID', help='only this task id (repeatable)')
     planner.add_argument('--out', type=Path, help='also write dry-run.json here')
+    planner.add_argument('--skill-detail', choices=SKILL_DETAILS, default='names', help='arm B: names (default) or full skillpack file text')
     runner = sub.add_parser('run')
     runner.add_argument('--model', choices=MODELS, required=True)
     runner.add_argument('--repeats', type=int, default=1)
     runner.add_argument('--task', action='append', metavar='ID', help='only this task id (repeatable); default all 12')
     runner.add_argument('--out', type=Path, required=True, help='directory for runs/ and the temporary workspaces')
+    runner.add_argument('--skill-detail', choices=SKILL_DETAILS, default='names', help='arm B: names (default) or full skillpack file text')
+    runner.add_argument('--resume', action='store_true', help='keep an existing run directory and run only the units that have no run.json')
     runner.add_argument('--execute', action='store_true')
     scorer = sub.add_parser('score')
     scorer.add_argument('--model', choices=MODELS, required=True)
     scorer.add_argument('--out', type=Path, required=True, help='the --out used for run; scores/ is written here')
     args = parser.parse_args(argv)
     if args.command == 'plan':
-        dry_plan(args.task, args.out)
+        dry_plan(args.task, args.out, args.skill_detail)
     elif args.command == 'run':
         run(args)
     else:
