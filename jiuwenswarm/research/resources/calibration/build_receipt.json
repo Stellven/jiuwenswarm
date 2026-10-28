@@ -3,11 +3,11 @@
   "id": "build_receipt",
   "manifest_ref": {
     "id": "poc_manifest.json",
-    "sha256": "66639995c3502b87354e13873778bcdabb4213a8220cc116bd868b65a75e7a33"
+    "sha256": "b23de8de89118958fc96f6e956419d49d47bbec17f4d501cbaf51287dbbf48fb"
   },
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "6ea05257d6a754f3619b2d580330cf7f926719ce8c494d4fc204e8af2a3cbef9"
+    "sha256": "b8338ccbe4a2923320ace48adfe3dec233e546ba76e7984b6c70f022be3212f8"
   },
   "environment_ref": {
     "id": "environment_lock.json",

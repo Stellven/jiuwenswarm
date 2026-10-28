@@ -12,13 +12,13 @@
   "measurement_status": "unavailable",
   "contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "b3824d19c6ebeae78cc0cc2e6b8f072735615a35843e5f2e3a423beae70ad681"
+    "sha256": "63c5235d567238d64882e7e0696b468aea0317da5c82efcf0a38c0c20c95449a"
   },
   "binding_id": "binding:intent.compiler",
   "input_refs": [
     {
       "id": "qualified_intake.json",
-      "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      "sha256": "dfa38997575816bfcb25f2516a4dd3839acc9d8f857298beae093fe403f34f81"
     }
   ],
   "output_refs": [
@@ -54,7 +54,7 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "67284169a4264880031b554a2bfcf8f18da7568e4398c96180cf72e6352ed60b"
+    "sha256": "0bdc4b52c9b67244140d5aee915da724a4fd2018276340ae9a25d8485ca66451"
   },
   "body_files_sha256": "ddd8ba007139fc1e8985352fc173533bfb2ad5ff03f0a37695bc070cc885fb01",
   "decision_source": null,

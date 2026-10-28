@@ -7,7 +7,7 @@
   },
   "poc_manifest_ref": {
     "id": "poc_manifest.json",
-    "sha256": "66639995c3502b87354e13873778bcdabb4213a8220cc116bd868b65a75e7a33"
+    "sha256": "b23de8de89118958fc96f6e956419d49d47bbec17f4d501cbaf51287dbbf48fb"
   },
   "status": "succeeded",
   "python_version": "3.11.9",

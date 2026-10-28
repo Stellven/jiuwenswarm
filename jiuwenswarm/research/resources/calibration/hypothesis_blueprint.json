@@ -3,11 +3,11 @@
   "id": "hypothesis_blueprint",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "925f37d264242392bd1b5bde837db52bcc99568fb0274dd3ef6e9fa229d4fe00"
+    "sha256": "3597a66736e9fc33650a068e2c24c81f7c04bf0bd4b14ddcb5d4242e3202319a"
   },
   "opportunity_ref": {
     "id": "opportunity_card.json",
-    "sha256": "e29fbf3d7ec0aa7d802e74a7ae6d22f8743945d0e59f78236f752ce6d7b43b1e"
+    "sha256": "7f90b0273fafdaca2251831f56578ecd4eab957ecf137351cbaa723abb23befd"
   },
   "claim": "Indexing lowers retrieval latency by at least 10% with no answer-quality loss",
   "mechanism": "Avoid repeated lookup work",
@@ -19,23 +19,23 @@
   "baseline_identity": {
     "resource_ref": {
       "id": "baseline_resource.json",
-      "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
+      "sha256": "11756f9803dc69d643f18e93b67ea2873cb51d2204ebdf124fe7e12c178b8be5"
     },
     "revision": "fixture-v1",
     "entry_point": "example_baseline.txt"
   },
   "validation_resource_ref": {
     "id": "validation_resource.json",
-    "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
+    "sha256": "1a12ee3f7032e4e7d2cc9a05f4175f68fdeb74b537b71458c47801f4a850bfb4"
   },
   "resource_refs": [
     {
       "id": "baseline_resource.json",
-      "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
+      "sha256": "11756f9803dc69d643f18e93b67ea2873cb51d2204ebdf124fe7e12c178b8be5"
     },
     {
       "id": "validation_resource.json",
-      "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
+      "sha256": "1a12ee3f7032e4e7d2cc9a05f4175f68fdeb74b537b71458c47801f4a850bfb4"
     }
   ],
   "environment_ref": {

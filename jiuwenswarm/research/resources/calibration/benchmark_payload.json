@@ -3,11 +3,11 @@
   "id": "benchmark_payload",
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "6ea05257d6a754f3619b2d580330cf7f926719ce8c494d4fc204e8af2a3cbef9"
+    "sha256": "b8338ccbe4a2923320ace48adfe3dec233e546ba76e7984b6c70f022be3212f8"
   },
   "poc_ref": {
     "id": "poc_manifest.json",
-    "sha256": "66639995c3502b87354e13873778bcdabb4213a8220cc116bd868b65a75e7a33"
+    "sha256": "b23de8de89118958fc96f6e956419d49d47bbec17f4d501cbaf51287dbbf48fb"
   },
   "environment_lock_ref": {
     "id": "environment_lock.json",
@@ -16,11 +16,11 @@
   "resource_refs": [
     {
       "id": "baseline_resource.json",
-      "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
+      "sha256": "11756f9803dc69d643f18e93b67ea2873cb51d2204ebdf124fe7e12c178b8be5"
     },
     {
       "id": "validation_resource.json",
-      "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
+      "sha256": "1a12ee3f7032e4e7d2cc9a05f4175f68fdeb74b537b71458c47801f4a850bfb4"
     }
   ],
   "configuration_ref": {
@@ -29,11 +29,11 @@
   },
   "execution_receipt_ref": {
     "id": "execution_receipt.json",
-    "sha256": "dbe793434d8eea0d13223c5640e81295f80d87e5daa4a0e976be27e7c230ec1f"
+    "sha256": "a44a33eed69cc0b5527fa2901501b34055731ea3bfa1d1431170b624d7ed7e05"
   },
   "provisioning_receipt_ref": {
     "id": "provisioning_receipt.json",
-    "sha256": "3ddb175165e5ec5ee8edf7c551051aa0617e3b2ecd7d8772be14cfaea9ba8261"
+    "sha256": "640126da912a0e56789cfa4e7c22c6ddebab9fedd797467f24949affdf1f0b55"
   },
   "repeat_count": 3,
   "seed": 42,

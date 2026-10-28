@@ -124,11 +124,11 @@
   "resource_refs": [
     {
       "id": "baseline_resource.json",
-      "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
+      "sha256": "11756f9803dc69d643f18e93b67ea2873cb51d2204ebdf124fe7e12c178b8be5"
     },
     {
       "id": "validation_resource.json",
-      "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
+      "sha256": "1a12ee3f7032e4e7d2cc9a05f4175f68fdeb74b537b71458c47801f4a850bfb4"
     }
   ],
   "confirmation": {
@@ -146,7 +146,7 @@
   },
   "intake_ref": {
     "id": "qualified_intake.json",
-    "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+    "sha256": "dfa38997575816bfcb25f2516a4dd3839acc9d8f857298beae093fe403f34f81"
   },
   "context_refs": [],
   "domain_lane": "scientific_research",
@@ -156,7 +156,7 @@
       "role": "project_asset",
       "resource_ref": {
         "id": "baseline_resource.json",
-        "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
+        "sha256": "11756f9803dc69d643f18e93b67ea2873cb51d2204ebdf124fe7e12c178b8be5"
       }
     },
     {
@@ -164,7 +164,7 @@
       "role": "validation_data",
       "resource_ref": {
         "id": "validation_resource.json",
-        "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
+        "sha256": "1a12ee3f7032e4e7d2cc9a05f4175f68fdeb74b537b71458c47801f4a850bfb4"
       }
     }
   ]

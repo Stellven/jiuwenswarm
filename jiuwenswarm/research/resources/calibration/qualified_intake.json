@@ -10,21 +10,21 @@
   "resource_refs": [
     {
       "id": "baseline_resource.json",
-      "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
+      "sha256": "11756f9803dc69d643f18e93b67ea2873cb51d2204ebdf124fe7e12c178b8be5"
     },
     {
       "id": "validation_resource.json",
-      "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
+      "sha256": "1a12ee3f7032e4e7d2cc9a05f4175f68fdeb74b537b71458c47801f4a850bfb4"
     }
   ],
   "upload_refs": [
     {
       "id": "client_upload_baseline.json",
-      "sha256": "f72890baaa9b42ec8a65e5763000b49206014c7165a6a14c2b7c64d9d5e304c5"
+      "sha256": "83e688c5e1e66638962a708f181c874f51875143e6b58e6f84081fc97964caa5"
     },
     {
       "id": "client_upload_validation.json",
-      "sha256": "c652379bf3f2a9c9b83dc054bee27d9605aa9516f4ab7431cc610fefa717ee29"
+      "sha256": "15e568e91b32c92693c6f640a8e5654ab8f83580e5d5788b295027e8cd6968bd"
     }
   ],
   "rejected_inputs": [],

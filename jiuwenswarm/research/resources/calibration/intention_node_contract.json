@@ -18,7 +18,7 @@
       "artifact_refs": [
         {
           "id": "qualified_intake.json",
-          "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+          "sha256": "dfa38997575816bfcb25f2516a4dd3839acc9d8f857298beae093fe403f34f81"
         }
       ]
     }
@@ -34,7 +34,7 @@
   "input_refs": [
     {
       "id": "qualified_intake.json",
-      "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+      "sha256": "dfa38997575816bfcb25f2516a4dd3839acc9d8f857298beae093fe403f34f81"
     }
   ],
   "required_outputs": [
@@ -72,7 +72,7 @@
     "resource_reads": [
       {
         "id": "qualified_intake.json",
-        "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
+        "sha256": "dfa38997575816bfcb25f2516a4dd3839acc9d8f857298beae093fe403f34f81"
       },
       {
         "id": "default_policy.json",
@@ -93,7 +93,7 @@
       "role": "work",
       "template_ref": {
         "id": "intention_subnode_template.json",
-        "sha256": "ef2f1b633aee1a2fcba9e7ba3ebb920555586b8fdf9151a598cef8e7f36e40bd"
+        "sha256": "a549f4e94f12b84ada29425a26e835a8075d2988ff519a2bd02be1c6a352331e"
       },
       "capsule_ref": {
         "id": "capsule_declaration.json",
@@ -123,7 +123,7 @@
       "role": "work",
       "template_ref": {
         "id": "requirements_subnode_template.json",
-        "sha256": "438e5cb85219d5d48d5e4244733846aa7f366c9a84428c91a4c4b55cb681ac8c"
+        "sha256": "e5d5e77a681cb51da2eb14870bae74ae050d1156f0f01c2d4e583ca82f4f6c49"
       },
       "capsule_ref": {
         "id": "requirements_capsule.json",

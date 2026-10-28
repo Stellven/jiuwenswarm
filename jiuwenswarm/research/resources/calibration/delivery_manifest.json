@@ -3,50 +3,50 @@
   "id": "delivery_manifest",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "925f37d264242392bd1b5bde837db52bcc99568fb0274dd3ef6e9fa229d4fe00"
+    "sha256": "3597a66736e9fc33650a068e2c24c81f7c04bf0bd4b14ddcb5d4242e3202319a"
   },
   "verdict_ref": {
     "id": "evaluation_verdict.json",
-    "sha256": "ddb92be8d8bde4b065305f77232cacab0a48869c91679e8b55b20cc4cba7db3d"
+    "sha256": "13b62e53415079ae788bcc5249db06f9c617886f71c31d19c253163ffac904d5"
   },
   "report_ref": {
     "id": "research_report.md",
-    "sha256": "742a560b2ed10a781479f3d66f79b4ffbfc4323db25300a89d88e1bd4511824c"
+    "sha256": "97a6be9e4db4ee7d37fef2ee8f00bf2b587a9ecc11224f6d48938ba44758be20"
   },
   "gate_decision_refs": [
     {
       "id": "gate_science_node_pass.json",
-      "sha256": "28988c3ac9b90504e5f040fc9ae14d8cfd8ebcc927bda5a88fcb071afc3e15b6"
+      "sha256": "57659d6b7d98cb85d122a43cacdd18858e1850ba487fbeb67766d55edd895ade"
     }
   ],
   "artifact_refs": [
     {
       "id": "candidate_set.json",
-      "sha256": "da37f1abcae343d85a1df7129da5a4b0e8ddbe04292c79dd7a56c68c8595f4d1"
+      "sha256": "70cc08128c761a04ee7ce22715d256957e590f61f1f4f56efbbc9c5c41ff55a9"
     },
     {
       "id": "screening_result.json",
-      "sha256": "304048d04ff3933a6e6bb58818b25d1c42e5933a80c30bf3e48c5b99df6c1faf"
+      "sha256": "5228faae7fb705b4433326027420b1738d69ec5f4b55483cbb235dd9c0fd4d81"
     },
     {
       "id": "opportunity_card.json",
-      "sha256": "e29fbf3d7ec0aa7d802e74a7ae6d22f8743945d0e59f78236f752ce6d7b43b1e"
+      "sha256": "7f90b0273fafdaca2251831f56578ecd4eab957ecf137351cbaa723abb23befd"
     },
     {
       "id": "hypothesis_blueprint.json",
-      "sha256": "6ea05257d6a754f3619b2d580330cf7f926719ce8c494d4fc204e8af2a3cbef9"
+      "sha256": "b8338ccbe4a2923320ace48adfe3dec233e546ba76e7984b6c70f022be3212f8"
     },
     {
       "id": "poc_manifest.json",
-      "sha256": "66639995c3502b87354e13873778bcdabb4213a8220cc116bd868b65a75e7a33"
+      "sha256": "b23de8de89118958fc96f6e956419d49d47bbec17f4d501cbaf51287dbbf48fb"
     },
     {
       "id": "benchmark_payload.json",
-      "sha256": "9fcfc29bf95cec03e972fdcab2c074f7bb51aae1d502ff0148a9f55f33240cfb"
+      "sha256": "a63c597be4abc4f6fba203cf0c49297249164ab8df0d5ee7c5ddb2b5f2c5e450"
     },
     {
       "id": "evaluation_verdict.json",
-      "sha256": "ddb92be8d8bde4b065305f77232cacab0a48869c91679e8b55b20cc4cba7db3d"
+      "sha256": "13b62e53415079ae788bcc5249db06f9c617886f71c31d19c253163ffac904d5"
     }
   ],
   "files": [
@@ -54,7 +54,7 @@
       "path": "research_report.md",
       "artifact_ref": {
         "id": "research_report.md",
-        "sha256": "742a560b2ed10a781479f3d66f79b4ffbfc4323db25300a89d88e1bd4511824c"
+        "sha256": "97a6be9e4db4ee7d37fef2ee8f00bf2b587a9ecc11224f6d48938ba44758be20"
       },
       "media_type": "text/markdown",
       "role": "report",
@@ -64,7 +64,7 @@
       "path": "lifecycle_research_brief.json",
       "artifact_ref": {
         "id": "lifecycle_research_brief.json",
-        "sha256": "925f37d264242392bd1b5bde837db52bcc99568fb0274dd3ef6e9fa229d4fe00"
+        "sha256": "3597a66736e9fc33650a068e2c24c81f7c04bf0bd4b14ddcb5d4242e3202319a"
       },
       "media_type": "application/json",
       "role": "brief",
@@ -74,7 +74,7 @@
       "path": "candidate_set.json",
       "artifact_ref": {
         "id": "candidate_set.json",
-        "sha256": "da37f1abcae343d85a1df7129da5a4b0e8ddbe04292c79dd7a56c68c8595f4d1"
+        "sha256": "70cc08128c761a04ee7ce22715d256957e590f61f1f4f56efbbc9c5c41ff55a9"
       },
       "media_type": "application/json",
       "role": "candidate_set",
@@ -84,7 +84,7 @@
       "path": "screening_result.json",
       "artifact_ref": {
         "id": "screening_result.json",
-        "sha256": "304048d04ff3933a6e6bb58818b25d1c42e5933a80c30bf3e48c5b99df6c1faf"
+        "sha256": "5228faae7fb705b4433326027420b1738d69ec5f4b55483cbb235dd9c0fd4d81"
       },
       "media_type": "application/json",
       "role": "screening",
@@ -94,7 +94,7 @@
       "path": "opportunity_card.json",
       "artifact_ref": {
         "id": "opportunity_card.json",
-        "sha256": "e29fbf3d7ec0aa7d802e74a7ae6d22f8743945d0e59f78236f752ce6d7b43b1e"
+        "sha256": "7f90b0273fafdaca2251831f56578ecd4eab957ecf137351cbaa723abb23befd"
       },
       "media_type": "application/json",
       "role": "opportunity",
@@ -104,7 +104,7 @@
       "path": "hypothesis_blueprint.json",
       "artifact_ref": {
         "id": "hypothesis_blueprint.json",
-        "sha256": "6ea05257d6a754f3619b2d580330cf7f926719ce8c494d4fc204e8af2a3cbef9"
+        "sha256": "b8338ccbe4a2923320ace48adfe3dec233e546ba76e7984b6c70f022be3212f8"
       },
       "media_type": "application/json",
       "role": "hypothesis",
@@ -114,7 +114,7 @@
       "path": "poc_manifest.json",
       "artifact_ref": {
         "id": "poc_manifest.json",
-        "sha256": "66639995c3502b87354e13873778bcdabb4213a8220cc116bd868b65a75e7a33"
+        "sha256": "b23de8de89118958fc96f6e956419d49d47bbec17f4d501cbaf51287dbbf48fb"
       },
       "media_type": "application/json",
       "role": "poc_manifest",
@@ -174,7 +174,7 @@
       "path": "benchmark_payload.json",
       "artifact_ref": {
         "id": "benchmark_payload.json",
-        "sha256": "9fcfc29bf95cec03e972fdcab2c074f7bb51aae1d502ff0148a9f55f33240cfb"
+        "sha256": "a63c597be4abc4f6fba203cf0c49297249164ab8df0d5ee7c5ddb2b5f2c5e450"
       },
       "media_type": "application/json",
       "role": "benchmark",
@@ -184,7 +184,7 @@
       "path": "evaluation_verdict.json",
       "artifact_ref": {
         "id": "evaluation_verdict.json",
-        "sha256": "ddb92be8d8bde4b065305f77232cacab0a48869c91679e8b55b20cc4cba7db3d"
+        "sha256": "13b62e53415079ae788bcc5249db06f9c617886f71c31d19c253163ffac904d5"
       },
       "media_type": "application/json",
       "role": "verdict",
@@ -194,7 +194,7 @@
       "path": "gate_science_node_pass.json",
       "artifact_ref": {
         "id": "gate_science_node_pass.json",
-        "sha256": "28988c3ac9b90504e5f040fc9ae14d8cfd8ebcc927bda5a88fcb071afc3e15b6"
+        "sha256": "57659d6b7d98cb85d122a43cacdd18858e1850ba487fbeb67766d55edd895ade"
       },
       "media_type": "application/json",
       "role": "gate_decision",

@@ -12,27 +12,27 @@
   "measurement_status": "unavailable",
   "contract_ref": {
     "id": "science_subnode_contract.json",
-    "sha256": "9e19088232ce6de2c81eac3c495c920c015c0552ae63042ce0f7138bf17513d1"
+    "sha256": "d51aa87a97fb9c135d076489f87ccbd292b6f9f6b353ec61183031aba13f16e5"
   },
   "binding_id": "binding:evaluation",
   "input_refs": [
     {
       "id": "lifecycle_research_brief.json",
-      "sha256": "925f37d264242392bd1b5bde837db52bcc99568fb0274dd3ef6e9fa229d4fe00"
+      "sha256": "3597a66736e9fc33650a068e2c24c81f7c04bf0bd4b14ddcb5d4242e3202319a"
     },
     {
       "id": "hypothesis_blueprint.json",
-      "sha256": "6ea05257d6a754f3619b2d580330cf7f926719ce8c494d4fc204e8af2a3cbef9"
+      "sha256": "b8338ccbe4a2923320ace48adfe3dec233e546ba76e7984b6c70f022be3212f8"
     },
     {
       "id": "benchmark_payload.json",
-      "sha256": "9fcfc29bf95cec03e972fdcab2c074f7bb51aae1d502ff0148a9f55f33240cfb"
+      "sha256": "a63c597be4abc4f6fba203cf0c49297249164ab8df0d5ee7c5ddb2b5f2c5e450"
     }
   ],
   "output_refs": [
     {
       "id": "evaluation_verdict.json",
-      "sha256": "ddb92be8d8bde4b065305f77232cacab0a48869c91679e8b55b20cc4cba7db3d"
+      "sha256": "13b62e53415079ae788bcc5249db06f9c617886f71c31d19c253163ffac904d5"
     }
   ],
   "model_identity": {
@@ -62,7 +62,7 @@
   },
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "8225cc782d665525aa240b5b5dde0920d48fc48f0b24a6caadd227a235467f58"
+    "sha256": "7504cf3f37a39d321513df795d43d9bafc42b0f3cd2ed759c3d22185dde4ea3a"
   },
   "body_files_sha256": "ddd8ba007139fc1e8985352fc173533bfb2ad5ff03f0a37695bc070cc885fb01",
   "decision_source": null,
