@@ -152,3 +152,8 @@ report/index.html
 # Matched compact design contracts
 !docs/architecture/design-package-compact/reference/
 !docs/architecture/design-package-compact/reference/**
+# local test and coverage output
+.scratch-*/
+tests/.t48-*
+*_LOCAL.md
+docs/**/*.log

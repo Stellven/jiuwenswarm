@@ -1,7 +1,0 @@
-Using the externally supplied classification training data and unlabeled test features, choose and justify one bounded classifier intervention to improve the unchanged captured baseline. Do not assume a particular algorithm, decision boundary, class balance or successful result.
-
-Use the approved local Python environment only, with no network, GPU or external data. Preserve the original public data, baseline, held-out evaluation population, trusted host accuracy scoring and outcome rules. The predictor interface is predict(train, test): return one string class label per test row in its original order. The worker returns predictions only; it must not access held-out labels, compute its own accuracy, or change scoring.
-
-Register accuracy as a fraction, higher is better. Success means treatment accuracy > baseline accuracy; falsification means treatment accuracy <= baseline accuracy. Run the baseline first, then treatment, three repeats each, using fixed execution seed 42. This execution seed is unrelated to the external dataset's private generation seed.
-
-Deliver the actual measured comparison, scientific verdict, classifier code, raw evidence and limitations. Negative or inconclusive results are valid outcomes. Do not invent measurements or perform retries, data changes or post-result threshold changes to obtain an improvement.

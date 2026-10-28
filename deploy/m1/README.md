@@ -91,8 +91,7 @@ docker stop ai4r-web-play-app-1
 
 Preserve the Docker volumes to keep your files and account. On native Linux,
 skip the PowerShell/WSL step. First-time builds require network access and may
-take several minutes. The brief command reference is
-[`commands.txt`](../../docs/code/Missions/commands.txt).
+take several minutes.
 
 These commands run on the identified Linux Docker host from the repository root.
 On this Windows workstation the observed development entry is `wsl -d Ubuntu -u root --exec docker`.
