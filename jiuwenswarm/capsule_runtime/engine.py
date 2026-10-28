@@ -318,7 +318,7 @@ class Runtime:
                               observation={'contract_ref': ledger.get('contract_ref')})
         ledger['check_verdict'] = 'FAIL'
         if capsule.stage:
-            ctx = capsule.stage.verify_ctx(ledger['stage_call'], ctx.output_refs)
+            ctx = capsule.stage.verify_ctx(ledger['stage_call'], ctx.output_refs, ledger.get('raws'))
             inputs = ledger['native_inputs']
             ledger['not_applicable'] = capsule.stage.NOT_APPLICABLE
         try:

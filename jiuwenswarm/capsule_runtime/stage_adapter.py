@@ -8,6 +8,7 @@ profile judge the output. Nothing here reimplements a check.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import importlib
 import json
@@ -23,6 +24,8 @@ INTENT_VERSION = 'm1-8'
 INTENT_ID = 'intent.compiler'
 REQUIREMENTS_VERSION = 'm1-9'
 REQUIREMENTS_ID = 'requirements.compiler'
+EVALUATION_ID = 'research.evaluation'
+SCREENING_ID = 'research.screening'
 ALIASES = {'research.intent': INTENT_ID, 'research.requirements': REQUIREMENTS_ID}
 MAX_DOCUMENTS = 64
 # The product's default policy (local_profile.py capture): the only one the fixed compiler accepts.
@@ -85,6 +88,10 @@ class StageCtx:
 
     def __init__(self, store, model, contract, input_refs):
         self.store, self.model, self.contract, self._refs = store, model, contract, input_refs
+        self.host_records = {}  # in-memory sink for the carrier's record_host proposals (the pipeline's run store holds these)
+
+    def record_host(self, key, ref):
+        self.host_records[key] = ref
 
     def input_ref(self, port):
         if port not in self._refs:
@@ -106,6 +113,9 @@ class StageBase:
     capability_id = ''
     module = ''               # carrier module name under jiuwenswarm.research.capsules
     pinned_bodies: dict = {}  # imported module (dotted) -> its path in the declaration body
+    # imported check module (dotted) -> its path inside the pinned check closure (runner blob)
+    runner_modules = {'jiuwenswarm.research.checks.compiler': 'research/checks/compiler.py',
+                      'jiuwenswarm.research.target_comparisons': 'research/target_comparisons.py'}
 
     def __init__(self, version: str):
         self.version = version
@@ -113,11 +123,14 @@ class StageBase:
 
     # --- build and pins --------------------------------------------------
     def _prepare(self):
+        store = StageStore()
+        return store, self._assets(store)
+
+    def _assets(self, store):
+        """The product's own prepare function for this stage's release, against an in-memory store."""
         from jiuwenswarm.capsule_runtime.engine import run_sync
         from jiuwenswarm.research.compiler import prepare_compiler_assets
-        store = StageStore()
-        assets = run_sync(prepare_compiler_assets(store, **self.prepare_kwargs))
-        return store, assets[self.stage_key]
+        return run_sync(prepare_compiler_assets(store, **self.prepare_kwargs))[self.stage_key]
 
     def _module_bytes_match(self, store, asset) -> None:
         """The imported carrier, helper and check code must be the pinned bytes (the catalog hashes these files)."""
@@ -126,8 +139,7 @@ class StageBase:
             if sha256(Path(importlib.import_module(name).__file__).read_bytes()) != wanted:
                 raise ResearchError('asset_integrity', 'Imported module differs from its pinned release: ' + path)
         pinned = json.loads(store.read_blob(asset['runner_ref']).decode('utf-8'))['files']
-        for name, path in (('jiuwenswarm.research.checks.compiler', 'research/checks/compiler.py'),
-                           ('jiuwenswarm.research.target_comparisons', 'research/target_comparisons.py')):
+        for name, path in self.runner_modules.items():
             if sha256(Path(importlib.import_module(name).__file__).read_bytes()) != pinned[path]['sha256']:
                 raise ResearchError('asset_integrity', 'Imported check code differs from its pinned release: ' + path)
 
@@ -150,7 +162,7 @@ class StageBase:
         except ResearchError as error:
             capsule.status, capsule.reason, capsule.refusal_code = 'refused', error.message, error.code
             return capsule
-        execute = importlib.import_module('jiuwenswarm.research.capsules.' + self.module).execute
+        execute = self.carrier(asset)
         declaration = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')
         capsule.declaration, capsule.store, capsule.asset = declaration, store, asset
         self._asset, self._seed = asset, store
@@ -161,6 +173,10 @@ class StageBase:
         capsule.stage, capsule.input_ports = self, self.input_ports
         capsule.semantic_required = True
         return capsule
+
+    def carrier(self, asset):
+        """The carrier's execute function (a plain module function unless a stage binds more)."""
+        return importlib.import_module('jiuwenswarm.research.capsules.' + self.module).execute
 
     # --- inputs -----------------------------------------------------------
     @staticmethod
@@ -210,10 +226,14 @@ class StageBase:
         from jiuwenswarm.research.checks.compiler import compiler_checks
         return compiler_checks(ctx, inputs, outputs)
 
-    def verify_ctx(self, call, output_refs):
+    def verify_ctx(self, call, output_refs, raws=None):
+        # Outputs are content addressed like the product's, so a carrier-made ref to the same bytes equals the output ref.
+        output_refs = {name: {'id': 'blob:' + ref['sha256'], 'sha256': ref['sha256']} for name, ref in output_refs.items()}
+        for name, raw in (raws or {}).items():
+            call.store.blobs[output_refs[name]['sha256']] = raw
         contract = {'bindings': [{'declaration_ref': self._asset['declaration_ref']}], 'input_refs': call.contract['input_refs']}
         return SimpleNamespace(store=call.store, contract=contract, output_refs=output_refs, observation=None,
-                               input_ref=lambda port: call.refs[port])
+                               input_ref=lambda port: call.refs[port], read_blob=call.store.read_blob, read_json=call.store.read_record)
 
 
 class IntentStage(StageBase):
@@ -362,6 +382,190 @@ class RequirementsStage(StageBase):
         return {'identity': rebind, 'coverage': unlink}
 
 
+class EvaluationStage(StageBase):
+    """Evaluation release ``m1-5`` as a portable capability: blueprint + measured payload in, scientific verdict out."""
+
+    stage_key, capability_id, module = 'evaluation', EVALUATION_ID, 'evaluation'
+    pinned_bodies = {'jiuwenswarm.research.capsules.evaluation': 'evaluation.py',
+                     'jiuwenswarm.research.capsules._common': '_common.py'}
+    runner_modules = {'jiuwenswarm.research.checks.' + n: 'checks/' + n + '.py' for n in ('stages', 'research')} | {
+        'jiuwenswarm.research.' + n: n + '.py' for n in ('environment', 'science', 'target_comparisons')}
+    NOT_APPLICABLE = [
+        {'check': 'input_provenance', 'status': 'not_applicable_outside_pipeline',
+         'why': 'the pipeline feeds only an accepted blueprint and a payload measured by the protected benchmark; here both are supplied by the '
+                'caller and only their schemas, their mutual blueprint reference and the verdict recomputation from their numbers are checked'},
+        *NOT_APPLICABLE[1:]]
+
+    def __init__(self, version: str = 'm1-5'):
+        super().__init__(version)
+        self.input_ports = [
+            {'name': 'brief', 'required': True, 'schema_ref': 'research-brief',
+             'description': 'The governing Research Brief (schema 3.0.0).'},
+            {'name': 'hypothesis_blueprint', 'required': True, 'schema_ref': 'hypothesis-blueprint:field-contract:2',
+             'description': 'The frozen Hypothesis blueprint with its registered metrics and outcome rules.'},
+            {'name': 'benchmark_payload', 'required': True, 'schema_ref': 'benchmark-payload:field-contract:2',
+             'description': 'The measured benchmark payload. Its blueprint_ref.sha256 must be the SHA-256 of the canonical blueprint bytes.'}]
+
+    def _assets(self, store):
+        from jiuwenswarm.research.capsules.assets import build_research_assets
+        return build_research_assets(store)['evaluation']
+
+    def validate_port(self, name: str, value) -> None:
+        validate(next(p['schema_ref'] for p in self.input_ports if p['name'] == name), value)
+
+    def validate_inputs(self, inputs: dict) -> None:
+        if sha256(json_bytes(inputs['hypothesis_blueprint'])) != inputs['benchmark_payload']['blueprint_ref']['sha256']:
+            raise ResearchError('blueprint_payload_mismatch', 'The payload was not measured against this blueprint (blueprint_ref sha256 differs)')
+
+    def bind(self, inputs: dict, model, base_contract: dict):
+        store = StageStore(self._seed)
+        payload = inputs['benchmark_payload']
+        refs = {'brief': store.put_record('research-brief', inputs['brief']),
+                # The payload's own id names the blueprint, so a pipeline-made pair keeps the Ref the product check compares.
+                'hypothesis_blueprint': store.put_blob(json_bytes(inputs['hypothesis_blueprint']), record_id=payload['blueprint_ref']['id']),
+                'benchmark_payload': store.put_record('benchmark-payload:field-contract:2', payload)}
+        contract = dict(base_contract)
+        contract['inputs'] = [{'name': p['name'], 'contract_id': p['schema_ref'], 'version': '1.0.0', 'required': True,
+                               'artifact_refs': [refs[p['name']]]} for p in self.input_ports]
+        contract['outputs'] = [{'name': 'evaluation_verdict', 'contract_id': 'evaluation-verdict:field-contract:2', 'version': '1.0.0', 'required': True}]
+        contract['input_refs'] = [refs[p['name']] for p in self.input_ports]
+        return StageCtx(store, model, contract, refs), copy.deepcopy(inputs), SimpleNamespace(store=store, refs=refs, contract=contract)
+
+    def check(self, ctx, inputs, outputs):
+        """The product's own ``ResearchChecks('evaluation')`` (async), unchanged."""
+        from jiuwenswarm.capsule_runtime.engine import run_sync
+        from jiuwenswarm.research.checks.stages import ResearchChecks
+        return run_sync(ResearchChecks('evaluation')(ctx, inputs, outputs))
+
+    # --- admission ------------------------------------------------------------
+    @staticmethod
+    def fixture_inputs() -> dict:
+        """Packaged calibration records (minus the demonstration-only ``ext``), with the payload pointed at its blueprint."""
+        blueprint, payload = _calibration('hypothesis_blueprint'), _calibration('benchmark_payload')
+        payload['blueprint_ref'] = {'id': payload['blueprint_ref']['id'], 'sha256': sha256(json_bytes(blueprint))}
+        return {'brief': current_brief_fixture(), 'hypothesis_blueprint': blueprint, 'benchmark_payload': payload}
+
+    def reply_for(self, inputs: dict) -> dict:
+        _, _, call = self.bind(inputs, None, {})
+        verdict = _calibration('evaluation_verdict')
+        verdict.update(brief_ref=call.refs['brief'], blueprint_ref=call.refs['hypothesis_blueprint'], benchmark_ref=call.refs['benchmark_payload'])
+        return verdict
+
+    def admission_cases(self):
+        inputs = self.fixture_inputs()
+        return {'positive': [inputs], 'worker_halts': [], 'model_reply': json.dumps(self.reply_for(inputs))}
+
+    @staticmethod
+    def mutations():
+        def reclassify(outputs):
+            changed = json.loads(json.dumps(outputs))
+            verdict = changed['evaluation_verdict']
+            verdict['classification'] = 'PASS' if verdict['classification'] != 'PASS' else 'FAIL'
+            return changed
+
+        def rebind(outputs):
+            changed = json.loads(json.dumps(outputs))
+            changed['evaluation_verdict']['blueprint_ref'] = {'id': 'blob:' + '0' * 64, 'sha256': '0' * 64}
+            return changed
+        return {'classification': reclassify, 'identity': rebind}
+
+
+class ScreeningStage(StageBase):
+    """Screening release ``m1-4`` as a portable capability: brief + candidate ideas in, ranked selection and opportunity card out."""
+
+    stage_key, capability_id, module = 'screening', SCREENING_ID, 'screening'
+    pinned_bodies = {'jiuwenswarm.research.capsules.screening': 'screening.py',
+                     'jiuwenswarm.research.capsules._common': '_common.py',
+                     'jiuwenswarm.research.capsules.ranking': 'ranking_parent.txt'}
+    runner_modules = EvaluationStage.runner_modules
+    NOT_APPLICABLE = [
+        {'check': 'input_provenance', 'status': 'not_applicable_outside_pipeline',
+         'why': 'the pipeline feeds a candidate set made by the protected Search stage from governed connectors; here the caller supplies the ideas, '
+                'so only their schema and the screening arithmetic over them are checked'},
+        {'check': 'host_record_custody', 'status': 'not_applicable_outside_pipeline',
+         'why': 'the carrier hands the screening result to the run store as a host record; here an in-memory sink holds it and nothing is custodied'},
+        *NOT_APPLICABLE[1:]]
+
+    def __init__(self, version: str = 'm1-4'):
+        super().__init__(version)
+        self.input_ports = [
+            {'name': 'brief', 'required': True, 'schema_ref': 'research-brief', 'description': 'The governing Research Brief (schema 3.0.0).'},
+            {'name': 'candidate_set', 'required': True, 'schema_ref': 'candidate-set:field-contract:2',
+             'description': 'The candidate ideas to screen: ideas with idea_id, title, summary, citation_ids, assumptions and risks.'}]
+
+    def _assets(self, store):
+        from jiuwenswarm.research.capsules.assets import build_research_assets
+        return build_research_assets(store, screening_version=self.version)['screening']
+
+    def carrier(self, asset):
+        from jiuwenswarm.research.capsules.ranking import rank_opportunities
+        from jiuwenswarm.research.capsules.screening import ScreeningCarrier
+        return ScreeningCarrier(rank_opportunities, asset['body_refs']['ranking_parent.txt'], asset['body_refs']['screening_prompt.txt']).execute
+
+    def validate_port(self, name: str, value) -> None:
+        validate(next(p['schema_ref'] for p in self.input_ports if p['name'] == name), value)
+
+    def bind(self, inputs: dict, model, base_contract: dict):
+        store = StageStore(self._seed)
+        rubric_ref = self._asset['body_refs']['screening_rubric.json']
+        rubric = json.loads(store.read_blob(rubric_ref).decode('utf-8'))
+        refs = {'brief': store.put_record('research-brief', inputs['brief']),
+                'candidate_set': store.put_record('candidate-set:field-contract:2', inputs['candidate_set']),
+                'screening_rubric': rubric_ref}  # the pinned rubric is an input, as in the pipeline
+        schemas = {'brief': 'research-brief', 'candidate_set': 'candidate-set:field-contract:2',
+                   'screening_rubric': 'screening-rubric:field-contract:1'}
+        contract = dict(base_contract)
+        contract['inputs'] = [{'name': name, 'contract_id': schemas[name], 'version': '1.0.0', 'required': True,
+                               'artifact_refs': [ref]} for name, ref in refs.items()]
+        contract['outputs'] = [{'name': 'screening_result', 'contract_id': 'screening-result:field-contract:2', 'version': '1.0.0', 'required': True},
+                               {'name': 'opportunity_card', 'contract_id': 'opportunity-card:field-contract:2', 'version': '1.0.0', 'required': True}]
+        contract['input_refs'] = list(refs.values())
+        body = [r for name, r in self._asset['body_refs'].items() if name != '_common.py']
+        contract['bindings'] = [{'declaration_ref': self._asset['declaration_ref'], 'implementation_refs': body, 'dependency_refs': []}]
+        native = {'brief': inputs['brief'], 'candidate_set': inputs['candidate_set'], 'screening_rubric': rubric}
+        return StageCtx(store, model, contract, refs), native, SimpleNamespace(store=store, refs=refs, contract=contract)
+
+    def check(self, ctx, inputs, outputs):
+        """The product's own ``ResearchChecks('screening')`` (async), unchanged."""
+        from jiuwenswarm.capsule_runtime.engine import run_sync
+        from jiuwenswarm.research.checks.stages import ResearchChecks
+        return run_sync(ResearchChecks('screening')(ctx, inputs, outputs))
+
+    # --- admission ------------------------------------------------------------
+    @staticmethod
+    def fixture_inputs() -> dict:
+        return {'brief': current_brief_fixture(), 'candidate_set': _calibration('candidate_set')}
+
+    def reply_for(self, inputs: dict) -> dict:
+        return {'scores': _calibration('screening_result')['scores'],
+                'opportunity_statement': _calibration('opportunity_card')['opportunity_statement']}
+
+    def admission_cases(self):
+        inputs = self.fixture_inputs()
+        return {'positive': [inputs], 'worker_halts': [], 'model_reply': json.dumps(self.reply_for(inputs))}
+
+    @staticmethod
+    def mutations():
+        def rebind(outputs):
+            changed = json.loads(json.dumps(outputs))
+            changed['screening_result']['candidate_ref'] = {'id': 'blob:' + '0' * 64, 'sha256': '0' * 64}
+            return changed
+
+        def reselect(outputs):
+            changed = json.loads(json.dumps(outputs))
+            ids = [row['idea_id'] for row in changed['screening_result']['scores']]
+            current = changed['screening_result']['selected_idea_id']
+            changed['screening_result']['selected_idea_id'] = next(i for i in ids if i != current)
+            return changed
+        return {'identity': rebind, 'selection': reselect}
+
+
+def _calibration(name: str) -> dict:
+    value = json.loads((Path(__file__).parents[1] / 'research' / 'resources' / 'calibration' / (name + '.json')).read_text('utf-8'))
+    value.pop('ext', None)  # editorial extension of the demonstration fixtures, outside the closed contracts
+    return value
+
+
 def text_ref(text: str) -> dict:
     digest = hashlib.sha256(text.encode('utf-8')).hexdigest()
     return {'id': 'blob:' + digest, 'sha256': digest}
@@ -412,7 +616,7 @@ def current_brief_fixture() -> dict:
 
 def load_stage_capsules() -> dict[str, Capsule]:
     capsules = {}
-    for stage in (IntentStage(), RequirementsStage()):
+    for stage in (IntentStage(), RequirementsStage(), EvaluationStage(), ScreeningStage()):
         capsule = stage.load()
         capsules[capsule.key] = capsule
     return capsules

@@ -62,6 +62,8 @@ def run_trace(outputs: dict) -> dict | None:
 
 def run_packet_review(capsule: Capsule, outputs: dict) -> dict | None:
     """Packet review applies to science review packets; other outputs are not its subject."""
+    if capsule.stage:  # a pipeline stage output (such as a verdict) is not a science review packet, even if it shares field names
+        return None
     reports = {}
     for name, value in outputs.items():
         if isinstance(value, dict) and REVIEW_PACKET_KEYS <= set(value):

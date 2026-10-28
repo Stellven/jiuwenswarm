@@ -116,9 +116,46 @@ Inputs: `intent` (the Intent IR, normally from `research.intent`), `request` (th
 - `not_applicable_outside_pipeline`: `accepted_intent_input` (the pipeline's Intent has passed internal acceptance and its semantic review; a supplied Intent is only re-checked mechanically), the host_* checks, and internal_acceptance, external_output, aggregate_limits.
 - Limits: no uploaded data files (`resource_refs`), text documents only.
 
+## Evaluation as a portable capability (`research.evaluation`, release m1-5)
+
+Inputs: `brief` (Research Brief 3.0.0), `hypothesis_blueprint`, `benchmark_payload`. The payload's `blueprint_ref.sha256` must be the SHA-256 of the canonical blueprint bytes, otherwise the call halts at `input_guard` (`blueprint_payload_mismatch`). Output: `evaluation_verdict`.
+
+- Pipeline: `capsules/evaluation.py` (carrier), declaration and pins from `capsules/assets.py:build_research_assets` (compared with `capsule_catalog.json`), checks `checks/stages.py:ResearchChecks('evaluation')` (async, run unchanged): `evaluation_verdict_schema`, `refs_match_inputs`, `blueprint_rules_disjoint`, `rule_recomputation`, `finding_coverage`, `registered_rule_only`. The verdict is recomputed from the blueprint rules and the payload numbers by the product (`validate_scientific_verdict`).
+- Pins: the product's catalog check (it covers every research stage's bytes, so a changed byte in any stage file refuses this capsule too), plus hashes of the imported `evaluation.py`, `_common.py` and the five check modules.
+- Verifier: required (one output port, one review).
+- Not applicable outside the pipeline: `input_provenance` (the pipeline feeds an accepted blueprint and a payload measured by the protected benchmark; here the caller supplies both, so nothing says the numbers were measured), the host_* checks, internal_acceptance, external_output, aggregate_limits.
+
+## Screening as a portable capability (`research.screening`, release m1-4)
+
+Inputs: `brief`, `candidate_set` (ideas with ids, titles, summaries, citations, assumptions, risks). The pinned rubric is bound as the third input from the release bytes, as in the pipeline. Outputs: `screening_result`, `opportunity_card`.
+
+- Pipeline: `capsules/screening.py:ScreeningCarrier` (the pure `ranking.py` ranks the model's scores and picks Top-1; prompt and rubric are pinned body files), checks `ResearchChecks('screening')` (16 checks including ranking recomputation, rubric pin, citation membership, card match).
+- Host record: the carrier calls `ctx.record_host('screening_result', ref)`; here an in-memory sink takes it (`StageCtx.host_records`).
+- Output refs are content addressed (`blob:<sha256>`), as in the product, so the card's `screening_ref` equals the result's output ref.
+- Pins: catalog check plus hashes of `screening.py`, `_common.py`, `ranking.py` (equal to the pinned `ranking_parent.txt`) and the check modules. Verifier: required, one review per output port.
+- Not applicable outside the pipeline: `input_provenance` (the pipeline's candidate set comes from the protected Search stage), `host_record_custody`, the host_* checks, internal_acceptance, external_output, aggregate_limits.
+- Served releases: m1-4 only. m1-5 and m1-6 are other releases of the same stage and are not wired.
+
+## Which pipeline stages are portable
+
+All portable stages share `stage_adapter.py`: pins from the product's own catalog check plus a hash of the imported worker and check sources, the product's checks run unchanged, the semantic verifier is required, and checks that need run records or gates are listed in the receipt as `not_applicable_outside_pipeline`.
+
+| Capsule | Portable | Checks run | Not applicable outside the pipeline, and why | Verifier |
+|---|---|---|---|---|
+| `research.intent` (m1-8) | yes | intent_schema, source_spans, exact_identity (identity half) | observation half of exact_identity (needs the runner's invocation record); host_*; internal_acceptance, external_output, aggregate_limits (gates) | semantic, required |
+| `research.requirements` (m1-9) | yes | brief_schema, source_identity, requirement_coverage; plus `check_intent` on the supplied Intent | accepted_intent_input (Intent's earlier acceptance and review); host_*; gates | semantic, required |
+| `research.evaluation` (m1-5) | yes | all 6 declared checks (schema, refs, rule disjointness, recomputation, coverage, registered rules) | input_provenance (numbers not shown to be measured by the protected benchmark); host_*; gates | semantic, required |
+| `research.screening` (m1-4) | yes | all 16 declared checks (ranking, rubric pin, scores, citations, card) | input_provenance (candidate set from protected Search); host_record_custody; host_*; gates | semantic, required (2 ports) |
+| `research.hypothesis` | no | | the checks compare the blueprint with captured baseline and validation resource snapshots (files, revision, environment lock) that only the protected resource capture produces | |
+| `research.paper_summary` | no | | its source-identity and citation checks read the run-input binding and buffer custody in the run store (`run_inputs.local_document_refs`); a rewrite would not be the product check | |
+| `research.paper_summary_delivery`, `research.delivery` | no | | checks need current-run accepted summary/Brief and the advancing gate decisions (`is_accepted`, gate index) | |
+| `research.search` | no | | governed connectors and the protected search scope | |
+| `workflow.planner`, `workflow.paper_planner` | no | | checks read the library snapshot and plan policy | |
+| `research.builder`, `research.benchmark` | no | | protected executor, sandbox and execution receipts | |
+
 ## What stays in AI4R
 The run store and custody, the scheduler and plans, the protected executor and sandbox, the gates and the decision
-records, calibration, and the other pipeline-stage capsules (Requirements through Delivery). Those stages read and write host refs
+records, calibration, and the pipeline-stage capsules marked "no" in the table above. Those stages read and write host refs
 through `ctx.store`, `ctx.read_blob`, `ctx.input_ref`, `ctx.executor` and `ctx.connectors`, which this runtime does not
 provide. See the survey in the hand-off report for what each would need.
 
