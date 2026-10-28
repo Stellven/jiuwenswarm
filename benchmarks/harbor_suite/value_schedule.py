@@ -45,7 +45,9 @@ class Schedule:
         self.db.commit()
 
     @classmethod
-    def create(cls, path, *, max_calls=256, wall_s=10800, now=None):
+    def create(cls, path, *, max_calls=256, wall_s=10800, now=None, effort='medium'):
+        if effort not in ('low', 'medium', 'high'):
+            raise ValueError('effort must be low, medium or high')
         if type(max_calls) is not int or not 1 <= max_calls <= 256:
             raise ValueError('campaign ceiling is 256 calls')
         if type(wall_s) is not int or not 1 <= wall_s <= 10800:
@@ -72,7 +74,7 @@ class Schedule:
         ''')
         instant = time.time() if now is None else now
         obj.db.execute('INSERT INTO policy VALUES(?,?,?,?,?)',
-                       (max_calls, instant + wall_s, instant, 'gpt-6.1-sol', 'medium'))
+                       (max_calls, instant + wall_s, instant, 'gpt-6.1-sol', effort))
         obj.db.commit()
         return obj
 

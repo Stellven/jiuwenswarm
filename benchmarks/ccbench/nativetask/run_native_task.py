@@ -25,6 +25,7 @@ REPO = roots.code_root()
 PYTHON = Path(sys.executable)
 RUNTIME = HERE / 'native-runtime-en'    # English overlay of benchmarks.harbor_suite.native_value (copied from the old traps/)
 ROOT = None                             # output root; main() sets it from --out
+EFFORTS = ('low', 'medium', 'high')
 DEFAULT_IMAGE = 'ai4r:ccbench-native'   # rebuilt opponent; the sweep's ai4r:cc-value-medium-20261026 is gone and had no recipe
 REBUILD_HINT = (
     'Image not found. Build it with `scripts/ai4r-bench build-native --yes --out DIR` '
@@ -79,7 +80,7 @@ def spec_for(args):
         raise ValueError('skill directory requires SKILL.md')
     return dict(variant='native-skills' if args.skill_dir else 'native', task=task,
                 inputs_dir='/campaign/inputs', skill_dirs=['/campaign/skill'] if args.skill_dir else [],
-                completion_directory='/campaign/broker', model=args.model, reasoning_effort='medium',
+                completion_directory='/campaign/broker', model=args.model, reasoning_effort=args.effort,
                 mode='agent.work.normal', max_model_calls=args.max_calls, max_tool_calls=80,
                 wall_time_s=args.wall_s)
 
@@ -107,7 +108,7 @@ def command_plan(args, attempt):
                '--output', '/campaign/run']
     return dict(spec=spec_for(args), broker=broker, worker=worker,
                 ledger={'path': str(bounded(args.ledger)), 'pair': attempt, 'arm': arm,
-                        'call_bound': args.max_calls, 'model': args.model, 'effort': 'medium'})
+                        'call_bound': args.max_calls, 'model': args.model, 'effort': args.effort})
 
 
 def image_identity(image):
@@ -137,7 +138,7 @@ def reserve(plan, session):
         ledger.reserve(pin['pair'], hashlib.sha256(plan['spec']['task'].encode()).hexdigest(),
                        {pin['arm']: pin['call_bound']}, requested_model=pin['model'])
         remaining = ledger.claim_envelope(pin['pair'], pin['arm'], pin['pair'] + '-envelope',
-                                         pin['call_bound'], model=pin['model'], effort='medium')
+                                         pin['call_bound'], model=pin['model'], effort=pin['effort'])
         dump(session / 'envelope.json', dict(pin, deadline=time.time() + remaining), exclusive=True)
         if remaining < plan['spec']['wall_time_s'] + 60:
             raise ValueError('insufficient ledger wall budget; envelope retained for reconciliation')
@@ -162,7 +163,7 @@ class EnvelopeCalls:
         identifier(request_id)
         rows = list(self.calls.glob('*.claim.json'))
         if (pair != self.pin['pair'] or arm != self.pin['arm'] or
-                model != self.pin['model'] or effort != 'medium'):
+                model != self.pin['model'] or effort != self.pin.get('effort', 'medium')):
             raise ValueError('envelope identity mismatch')
         if any(not p.with_name(p.name.replace('.claim.', '.finish.')).exists() for p in rows):
             raise ValueError('unresolved completion; reconcile before another dispatch')
@@ -181,7 +182,7 @@ class EnvelopeCalls:
             raise ValueError('unclaimed completion')
         if state not in {'completed', 'failed', 'unknown', 'contained'}:
             raise ValueError('invalid completion state')
-        if state == 'completed' and (effective_model != self.pin['model'] or effective_effort != 'medium'):
+        if state == 'completed' and (effective_model != self.pin['model'] or effective_effort != self.pin.get('effort', 'medium')):
             raise ValueError('completion identity mismatch')
         dump(self.calls / (request_id + '.finish.json'), dict(state=state, evidence=evidence,
              effective_model=effective_model, effective_effort=effective_effort), exclusive=True)
@@ -191,6 +192,35 @@ class EnvelopeCalls:
 
     def close(self):
         pass
+
+
+def allow_effort(effort):
+    """Broker process only: let the host path accept low/high as well as medium.
+
+    The product's governed-Codex path pins medium in literals (local_model_codex._validate,
+    value_host.validate_request) and in local_models.CODEX_EFFORTS. This benchmark broker widens
+    that to the single effort its ledger is pinned to; the product modules on disk are unchanged.
+    The real effort still reaches Codex (thread/start config and app-server -c override)."""
+    if effort not in EFFORTS:
+        raise ValueError('effort must be one of ' + ', '.join(EFFORTS))
+    if effort == 'medium':
+        return
+    from jiuwenswarm.research import local_model_codex, local_models
+    from benchmarks.harbor_suite import value_host
+    local_models.CODEX_EFFORTS = frozenset({'medium', effort})
+    check_policy, check_request = local_model_codex._validate, value_host.validate_request
+    def validate(payload):
+        model = payload.get('model') if isinstance(payload, dict) else None
+        if isinstance(model, dict) and model.get('reasoning_effort') == effort:
+            payload = dict(payload, model=dict(model, reasoning_effort='medium'))
+        return check_policy(payload)
+    def request(value, filename):
+        if isinstance(value, dict) and value.get('reasoning_effort') == effort:
+            check_request(dict(value, reasoning_effort='medium'), filename)
+            return value
+        return check_request(value, filename)
+    local_model_codex._validate = validate
+    value_host.validate_request = request
 
 
 def broker_main(args):
@@ -203,6 +233,7 @@ def broker_main(args):
     # Reuse exact host protocol, receipt validation and model dispatch. Only the
     # accounting interface changes from per-call charges to this run's envelope.
     value_host.Schedule = lambda _: EnvelopeCalls(session)
+    allow_effort(pin['effort'])
     original_complete = value_host.complete
     host_responses = session / 'host-responses'
     host_responses.mkdir(exist_ok=False)
@@ -297,7 +328,7 @@ def reconcile(plan, session, broker_rc, worker_rc):
         ledger.finish_envelope(pin['pair'] + '-envelope',
             ('completed' if worker_rc == 0 else 'failed') if known else 'unknown',
             actual_calls=len(calls) if known else None, evidence=str(session / 'collection.json'),
-            effective_model=pin['model'] if known else None, effective_effort='medium' if known else None)
+            effective_model=pin['model'] if known else None, effective_effort=pin['effort'] if known else None)
         if known:
             ledger.finish_pair(pin['pair'])
     finally:
@@ -370,6 +401,7 @@ def parser():
         q.add_argument('--max-calls', type=int, choices=range(1, 81), default=80, metavar='1..80')
         q.add_argument('--runtime', type=Path, default=RUNTIME)
         q.add_argument('--image', default=DEFAULT_IMAGE)
+        q.add_argument('--effort', choices=EFFORTS, default='medium', help='reasoning effort; the ledger must have been created with the same --effort (one ledger per effort)')
         q.add_argument('--binary', default=None, help='qualified signed-in codex executable (default: AI4R_CODEX_BIN, then codex on PATH)')
         q.add_argument('--out', type=Path, required=True, help='all attempts, sessions and the ledger live under this directory')
         q.add_argument('--attempt-id')
@@ -383,6 +415,7 @@ def parser():
     q.add_argument('--out', type=Path, required=True)
     q.add_argument('--max-calls', type=int, default=256, help='campaign call ceiling (upstream maximum 256)')
     q.add_argument('--wall-s', type=int, default=10800, help='campaign wall-time ceiling in seconds (upstream maximum 10800)')
+    q.add_argument('--effort', choices=EFFORTS, default='medium', help='effort this ledger is pinned to; it cannot be mixed later')
     q = sub.add_parser('_broker', help=argparse.SUPPRESS)
     q.add_argument('--session-id', required=True)
     q.add_argument('--binary', required=True)
@@ -397,8 +430,8 @@ def main(argv=None):
     ROOT = Path(args.out).resolve()
     if args.action == 'init-ledger':
         path = bounded(ROOT / 'ledger.sqlite3')
-        schedule_class().create(path, max_calls=args.max_calls, wall_s=args.wall_s).close()
-        print(json.dumps(dict(ledger=str(path), max_calls=args.max_calls, wall_s=args.wall_s)))
+        schedule_class().create(path, max_calls=args.max_calls, wall_s=args.wall_s, effort=args.effort).close()
+        print(json.dumps(dict(ledger=str(path), max_calls=args.max_calls, wall_s=args.wall_s, effort=args.effort)))
         return 0
     if args.action == '_broker':
         if not args.execute:
@@ -426,6 +459,7 @@ def main(argv=None):
     attempts.mkdir(exist_ok=True)
     record_path = bounded(attempts / (attempt + '.json'))
     record = dict(attempt_id=attempt, action=args.action, execute=args.execute, status='started', image=image,
+                  effort=getattr(args, 'effort', None),
                   product=roots.product_commit())    # {'commit', 'dirty'} of AI4R_CODE_ROOT
     dump(record_path, record, exclusive=True)
     try:

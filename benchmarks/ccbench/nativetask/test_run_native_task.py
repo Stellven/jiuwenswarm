@@ -138,6 +138,75 @@ class DriverTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'budget'):
             calls.claim('attempt-1', 'native', 'b', model='gpt-6.1-sol', effort='medium')
 
+    def test_effort_default_is_medium_and_low_flows_everywhere(self):
+        default = self.plan()
+        self.assertEqual(default['spec']['reasoning_effort'], 'medium')
+        self.assertEqual(default['ledger']['effort'], 'medium')
+        args = driver.parser().parse_args(self.argv() + ['--effort', 'low'])
+        low = driver.command_plan(args, 'attempt-1')
+        self.assertEqual(low['spec']['reasoning_effort'], 'low')
+        self.assertEqual(low['ledger']['effort'], 'low')
+        session = self.session()
+        ledger = self.schedule.return_value.return_value
+        ledger.claim_envelope.return_value = 999
+        driver.reserve(low, session)
+        ledger.claim_envelope.assert_called_once_with('attempt-1', 'native', 'attempt-1-envelope',
+                                                     80, model='gpt-6.1-sol', effort='low')
+        calls = driver.EnvelopeCalls(session)
+        with self.assertRaisesRegex(ValueError, 'identity'):
+            calls.claim('attempt-1', 'native', 'a', model='gpt-6.1-sol', effort='medium')
+        calls.claim('attempt-1', 'native', 'a', model='gpt-6.1-sol', effort='low')
+        with self.assertRaisesRegex(ValueError, 'identity'):
+            calls.finish('a', 'completed', evidence='r', effective_model='gpt-6.1-sol', effective_effort='medium')
+        calls.finish('a', 'completed', evidence='r', effective_model='gpt-6.1-sol', effective_effort='low')
+
+    def test_effort_rejects_unknown_value(self):
+        with self.assertRaises(SystemExit):
+            driver.parser().parse_args(self.argv() + ['--effort', 'max'])
+
+    def test_worker_spec_accepts_low_and_rejects_others(self):
+        import importlib.util
+        path = driver.RUNTIME / 'benchmarks/harbor_suite/native_value.py'
+        spec = importlib.util.spec_from_file_location('nv_overlay', path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        base = dict(variant='native', task='t', completion_directory=str(self.root), model='gpt-6.1-sol')
+        for effort in ('low', 'medium', 'high'):
+            f = self.root / ('s-' + effort + '.json')
+            f.write_text(json.dumps(dict(base, reasoning_effort=effort)), encoding='utf-8')
+            self.assertEqual(module.load_spec(f)['reasoning_effort'], effort)
+        f = self.root / 's-bad.json'
+        f.write_text(json.dumps(dict(base, reasoning_effort='max')), encoding='utf-8')
+        with self.assertRaises(ValueError):
+            module.load_spec(f)
+
+    def test_ledger_create_pins_effort(self):
+        sys_path = driver.sys.path
+        driver.sys.path.insert(0, str(driver.REPO))
+        from benchmarks.harbor_suite.value_schedule import Schedule
+        ledger = Schedule.create(self.root / 'low.sqlite3', max_calls=5, wall_s=100, effort='low')
+        ledger.reserve('p', '0' * 64, {'native': 5}, requested_model='gpt-6.1-sol')
+        with self.assertRaisesRegex(ValueError, 'effort mismatch'):
+            ledger.claim_envelope('p', 'native', 'p-envelope', 2, model='gpt-6.1-sol', effort='medium')
+        ledger.claim_envelope('p', 'native', 'p-envelope', 2, model='gpt-6.1-sol', effort='low')
+        ledger.close()
+
+    def test_broker_widening_accepts_only_the_pinned_effort(self):
+        driver.sys.path.insert(0, str(driver.REPO))
+        from jiuwenswarm.research import local_model_codex, local_models
+        from benchmarks.harbor_suite import value_host
+        saved = (local_model_codex._validate, value_host.validate_request, local_models.CODEX_EFFORTS)
+        self.addCleanup(lambda: (setattr(local_model_codex, '_validate', saved[0]),
+                                 setattr(value_host, 'validate_request', saved[1]),
+                                 setattr(local_models, 'CODEX_EFFORTS', saved[2])))
+        driver.allow_effort('low')
+        request = {'schema': 'native-value-completion-request:1', 'request_id': 'a' * 32, 'prompt': 'p',
+                   'timeout_s': 5, 'model': 'gpt-6.1-sol', 'reasoning_effort': 'low'}
+        self.assertEqual(value_host.validate_request(request, 'a' * 32 + '.request.json')['reasoning_effort'], 'low')
+        with self.assertRaises(ValueError):
+            value_host.validate_request(dict(request, reasoning_effort='high'), 'a' * 32 + '.request.json')
+        self.assertIn('low', local_models.CODEX_EFFORTS)
+
     def test_collection_partial_and_recollection_no_stale_files(self):
         session = self.session()
         run = session / 'native/run'
@@ -222,7 +291,7 @@ class DriverTests(unittest.TestCase):
     def test_init_ledger_creates_only_under_out(self):
         self.assertEqual(driver.main(['init-ledger', '--out', str(self.root), '--max-calls', '9']), 0)
         create = self.schedule.return_value.create
-        create.assert_called_once_with(self.root / 'ledger.sqlite3', max_calls=9, wall_s=10800)
+        create.assert_called_once_with(self.root / 'ledger.sqlite3', max_calls=9, wall_s=10800, effort='medium')
         create.return_value.close.assert_called_once()
 
     def test_missing_codex_binary_fails_before_any_write(self):

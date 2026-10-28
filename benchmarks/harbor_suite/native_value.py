@@ -27,6 +27,7 @@ import uuid
 
 PROVIDER = "native_value_governed"
 CORE_PIN = "9e3390195a9ea15235b2b5f7412cb2aa440622cc"
+EFFORTS = ("low", "medium", "high")   # file broker only; the subscription binding path stays medium
 MODES = ("agent.work.normal", "agent.work.plan", "team.work.normal", "team.work.plan")
 WIRE_INSTRUCTION = """You are the completion engine for the native JiuwenSwarm application.
 Follow the supplied conversation's instructions. The host owns and executes the
@@ -91,8 +92,8 @@ def load_spec(path):
     if ("binding" in spec) == ("completion_directory" in spec):
         raise ValueError("Require exactly one existing binding or completion_directory")
     if "completion_directory" in spec:
-        if spec.get("model") not in {"gpt-6.1-sol", "gpt-6-luna"} or spec.get("reasoning_effort") != "medium":
-            raise ValueError("File broker requires explicit approved model and medium effort")
+        if spec.get("model") not in {"gpt-6.1-sol", "gpt-6-luna"} or spec.get("reasoning_effort") not in EFFORTS:
+            raise ValueError("File broker requires explicit approved model and effort (low, medium or high)")
     for skill in spec["skill_dirs"]:
         root = Path(skill)
         if not root.is_absolute() or not (root / "SKILL.md").is_file():
@@ -195,7 +196,7 @@ class CompletionScope:
             raise
 
 
-async def file_completion(directory, prompt, timeout, *, model):
+async def file_completion(directory, prompt, timeout, *, model, effort="medium"):
     """Private shared-directory transport; host alone possesses Codex credentials.
 
     The request stays durable after timeout. Never retry or delete it: the host
@@ -204,7 +205,7 @@ async def file_completion(directory, prompt, timeout, *, model):
     root = Path(directory)
     request_id = uuid.uuid4().hex
     request = {"schema": "native-value-completion-request:1", "request_id": request_id,
-               "prompt": prompt, "timeout_s": timeout, "model": model, "reasoning_effort": "medium"}
+               "prompt": prompt, "timeout_s": timeout, "model": model, "reasoning_effort": effort}
     temporary = root / (request_id + ".request.tmp")
     write(temporary, request)
     temporary.rename(root / (request_id + ".request.json"))
@@ -219,7 +220,7 @@ async def file_completion(directory, prompt, timeout, *, model):
     if response.get("status") != "completed":
         raise RuntimeError("Completion broker " + str(response.get("status")) + ": " + str(response.get("error")))
     if (response.get("identity", {}).get("effective") != model
-            or response.get("reasoning_effort") != "medium" or not isinstance(response.get("text"), str)):
+            or response.get("reasoning_effort") != effort or not isinstance(response.get("text"), str)):
         raise RuntimeError("Completion broker model/effort identity mismatch")
     return response
 
@@ -350,7 +351,8 @@ async def execute_worker(spec, root):
     if "completion_directory" in spec:
         model = spec["model"]
         async def complete(prompt, timeout):
-            return await file_completion(spec["completion_directory"], prompt, timeout, model=model)
+            return await file_completion(spec["completion_directory"], prompt, timeout, model=model,
+                                         effort=spec["reasoning_effort"])
     else:
         from jiuwenswarm.research.local_models import LocalModelClient
         binding = json.loads(Path(spec["binding"]).read_text(encoding="utf-8"))
@@ -398,7 +400,8 @@ async def execute_worker(spec, root):
                 raise RuntimeError(scope.failure)
             status = "completed" if terminal and not errors and scope.calls else "incomplete"
             return {"status": status, "native_application": "JiuWenSwarm", "variant": spec["variant"],
-                    "mode": spec["mode"], "model": model, "reasoning_effort": "medium",
+                    "mode": spec["mode"], "model": model,
+                    "reasoning_effort": spec.get("reasoning_effort", "medium"),
                     "model_calls": scope.calls, "selected_tool_calls": scope.selected_tools,
                     "terminal_observed": terminal, "errors": errors,
                     "skill_dirs": [Path(p).name for p in spec["skill_dirs"]]}
