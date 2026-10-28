@@ -35,7 +35,7 @@ class ConnectorTests(unittest.IsolatedAsyncioTestCase):
         ref = {'id': 'local', 'sha256': hashlib.sha256(data).hexdigest()}
         store = Mock(); store.read_blob.return_value = data
         connector = AcademicConnectors(store, approved={'local_documents'}, timeout_s=5)
-        scope = {'connectors': ['local_documents', 'arxiv'], 'local_document_refs': [ref], 'max_hits_per_query': 1}
+        scope = {'connectors': ['local_documents', 'arxiv'], 'max_queries': 1, 'local_document_refs': [ref], 'max_hits_per_query': 1}
         citations, outcomes = await connector.retrieve(scope, ['bounded lookup'])
         self.assertEqual(citations[0]['source_ref'], ref)
         self.assertEqual(outcomes[1]['status'], 'unavailable')
@@ -45,7 +45,7 @@ class ConnectorTests(unittest.IsolatedAsyncioTestCase):
     async def test_no_tool_after_hard_ceiling(self):
         store = Mock(); store.read_blob.return_value = b'bounded lookup'
         connector = AcademicConnectors(store, approved={'local_documents'}, timeout_s=5, tool_limit=1)
-        scope = {'connectors': ['local_documents'], 'local_document_refs': [{'id': 'a', 'sha256': 'a' * 64}], 'max_hits_per_query': 1}
+        scope = {'connectors': ['local_documents'], 'max_queries': 2, 'local_document_refs': [{'id': 'a', 'sha256': 'a' * 64}], 'max_hits_per_query': 1}
         with self.assertRaises(ResearchError):
             await connector.retrieve(scope, ['bounded lookup', 'another query'])
         self.assertEqual(connector.tool_calls, 1)

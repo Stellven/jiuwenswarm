@@ -3,6 +3,7 @@
 This fixture grants no model or acceptance authority and asserts no live target.
 """
 import asyncio
+import os
 from types import SimpleNamespace
 from urllib.parse import urlsplit
 
@@ -22,6 +23,8 @@ from jiuwenswarm.research.uploads import UploadManager
 class NativeShell:
     async def open(self, root, *, compiler=None, recover=False, initialize=True, origin='http://testserver'):
         self.root=root;self.calls=[]
+        # Native submit joins the allocated run to its local-chat intake under the protected accounts root.
+        self._accounts_env=os.environ.get('JIUWENSWARM_M1_ACCOUNTS');os.environ['JIUWENSWARM_M1_ACCOUNTS']=str(root/'accounts')
         self.store=SQLiteRunStore(root/'state',recover=recover)
         ref=self.store.put_blob(b'controlled protected configuration dependency')
         self.configuration=self.store.put_blob(json_bytes({'schema_version':'1.0.0',
@@ -72,3 +75,5 @@ class NativeShell:
             if not task.done():task.cancel()
         if pending:await asyncio.gather(*pending,return_exceptions=True)
         await self.client.aclose();self.authority.close();self.store.close()
+        if self._accounts_env is None:os.environ.pop('JIUWENSWARM_M1_ACCOUNTS',None)
+        else:os.environ['JIUWENSWARM_M1_ACCOUNTS']=self._accounts_env

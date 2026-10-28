@@ -16,14 +16,14 @@ def test_frozen_pilot_model_and_review_selection_cannot_drift(tmp_path):
     inputs = tmp_path / 'input'; inputs.mkdir()
     store = SQLiteRunStore(tmp_path / 'state', input_root=inputs)
     try:
-        options = dict(input_root=inputs, requested_model='gpt-6-luna', evidence_aware_review=True)
+        options = dict(input_root=inputs, requested_model='gpt-6-luna', evidence_aware_review=True, allow_missing_science=True)
         result = capture_local_profile(store, tmp_path / 'operator' / 'pilot', **options)
         binding = store.read_record(result['binding_ref'])
         assert store.read_record(binding['deployment_ref'])['requested_model'] == 'gpt-6-luna'
         assert binding['protected_options']['evidence_aware_review'] is True
         assert capture_local_profile(store, tmp_path / 'operator' / 'pilot', **options) == result
         with pytest.raises(ResearchError, match='Frozen model or review mode changed'):
-            capture_local_profile(store, tmp_path / 'operator' / 'pilot', input_root=inputs)
+            capture_local_profile(store, tmp_path / 'operator' / 'pilot', input_root=inputs, allow_missing_science=True)
     finally:
         store.close()
 
