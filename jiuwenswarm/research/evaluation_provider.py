@@ -574,10 +574,6 @@ class InstalledEvaluationResources:
                 self._verifier()
                 contract, checks, replay = self._subject(case)
                 self.admitted._validate(contract, checks, replay=replay is not None)
-                from .evidence_review import MODE
-                isolated_profile=self.store.read_record(self.store.read_record(checks)['profile_ref'],contract_id='checking-profile')
-                require(isolated_profile.get('review_mode') != MODE,
-                    'Evidence-aware v2 review is not wired into isolated evaluation', 'entry_point_unavailable')
                 if replay is not None:
                     check_plan = self.store.read_record(checks, contract_id='bound-check-plan')
                     review_profile = self.store.read_record(check_plan['profile_ref'], contract_id='checking-profile')
@@ -600,7 +596,7 @@ class InstalledEvaluationResources:
         contract, checks, replay = self._subject(cases[0])
         if replay is None:
             require(resolved['binding_ref']==contract, 'Externally supplied binding is not the exact canonical subject')
-            grant=self.admitted.prepare(contract,checks,semantic_review=True)
+            grant=self.admitted.prepare(contract,checks,semantic_review=False)
         else:
             check_plan = self.store.read_record(checks, contract_id='bound-check-plan')
             review_profile = self.store.read_record(check_plan['profile_ref'], contract_id='checking-profile')

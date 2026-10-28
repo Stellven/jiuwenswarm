@@ -185,30 +185,6 @@ def parent_projection(store, ref, request_ref, request, scope, source):
     return value
 
 
-def captured_worker_outputs(store, request_ref, source_contract_ref):
-    """Recover producing outputs from one durable private worker and host capture."""
-    with store._lock:
-        rows=store.connection.execute("SELECT grant_ref FROM evaluation_assignments WHERE request_ref=? AND role='worker'",(encoded(request_ref),)).fetchall()
-    require(len(rows)==1,'One original producing worker assignment is required','integrity_fault')
-    grant_ref=json.loads(rows[0]['grant_ref'])
-    grant=private(store,grant_ref,'evaluation-assignment-grant')
-    child=private(store,grant['contract_ref'],'evaluation-subnode-context')
-    require(grant['request_ref']==request_ref and grant['source_contract_ref']==source_contract_ref
-        and child['source_subject_ref']==source_contract_ref and child['role']=='worker',
-        'Producing worker has another original subject','integrity_fault')
-    outputs={}
-    for row in store.iter_records(kinds=('measurement-captured-output',)):
-        value=row['record']
-        if value.get('contract_ref')!=grant['contract_ref']:continue
-        port=value['output_port']
-        require(port not in outputs,'Duplicate producing output capture','integrity_fault')
-        outputs[port]=value['artifact_ref'];store.read_blob(value['artifact_ref'])
-    expected={p['name'] for p in child['outputs']}
-    require(outputs and set(outputs)<=expected and all(not p['required'] or p['name'] in outputs for p in child['outputs']),
-        'Producing output inventory differs from its original contract','integrity_fault')
-    return outputs
-
-
 def assignment_proof(store, grant_ref, request_ref, scope_ref, request, scope, parent, source):
     grant = private(store, grant_ref, 'evaluation-assignment-grant')
     child = private(store, grant['contract_ref'], 'evaluation-subnode-context')
@@ -236,7 +212,7 @@ def assignment_proof(store, grant_ref, request_ref, scope_ref, request, scope, p
         mandatory, runners, mode = original_plan['mandatory_deterministic'], original_plan['runner_refs'], 'worker_output'
     else:
         port = grant['output_port']
-        require((request['entry_point'] == 'E2' and port == scope['selected_output_port']) or request['entry_point'] == 'E3', 'Private reviewer is outside its approved schedule', 'integrity_fault')
+        require(request['entry_point'] == 'E2' and port == scope['selected_output_port'], 'Private reviewer is outside its approved schedule', 'integrity_fault')
         candidates = []
         for assignment in source['parent']['subnodes']:
             if assignment['role'] != 'verifier':
@@ -251,7 +227,7 @@ def assignment_proof(store, grant_ref, request_ref, scope_ref, request, scope, p
         outputs = [{'name': p['name'], 'contract_id': p['schema_ref'], 'version': ContractFactory._version(p['schema_ref']), 'required': p['required']} for p in declaration['ports']['outputs']]
         inputs = [{'name': name, 'contract_id': contract, 'version': ContractFactory._version(contract), 'required': True, 'artifact_refs': [ref]}
             for name, contract, ref in [('subject_declaration', 'capsule-declaration', original_source['bindings'][0]['declaration_ref']),
-                                        ('subject_output', 'opaque-bytes', (captured_worker_outputs(store,request_ref,scope['source_contract_ref']) if request['entry_point']=='E3' else source['outputs'])[port])]]
+                                        ('subject_output', 'opaque-bytes', source['outputs'][port])]]
         limits = narrow({'time_s': min(declaration['budget']['per_call']['wall_s'], source['profile']['time_s']),
             'model_calls': 1, 'memory_mb': admission['memory_mb']}, parent['node_limits'], request['limits'])
         require(source['profile']['model_call_limit'] == 1 and limits['model_calls'] == 1, 'Original selected reviewer limits differ', 'integrity_fault')
