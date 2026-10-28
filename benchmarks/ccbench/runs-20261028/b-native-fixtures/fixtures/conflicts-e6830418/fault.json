@@ -1,0 +1,7 @@
+{
+ "fixture": "conflicts-e6830418",
+ "session": "trap-e683041828f1409d8913613d9f12fe97",
+ "trap": "conflicts",
+ "expected_cause": "prose_requirement_conflict",
+ "old_model": "gpt-6-luna"
+}

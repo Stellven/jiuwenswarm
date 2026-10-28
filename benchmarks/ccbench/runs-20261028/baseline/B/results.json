@@ -1,0 +1,1151 @@
+[
+ {
+  "session": "trap-cb69e06d3e8f4436a5e7e7730dfa3eac",
+  "trap": "baselinedef",
+  "expected_cause": "baseline_definition_conflict",
+  "native_delivered": true,
+  "native_scientific_outcome": "PASS",
+  "C_stop_checks": [
+   "baseline"
+  ],
+  "C_stop_causes": [
+   "baseline_definition_conflict"
+  ],
+  "C_abstain_checks": [],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": false,
+    "cause_class": "baseline_definition_conflict",
+    "evidence": [
+     {
+      "prediction_index": 0,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 1,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 2,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 3,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 4,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 5,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 6,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 7,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 8,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 9,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 10,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 11,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 12,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 13,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 14,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 15,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 16,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 17,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 18,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 19,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 20,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 21,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 22,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 23,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 24,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 25,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 26,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 27,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 28,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 29,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 30,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 31,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 32,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 33,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 34,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 35,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 36,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 37,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 38,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 39,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 40,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 41,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 42,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 43,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 44,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 45,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 46,
+      "actual": "class_0"
+     },
+     {
+      "prediction_index": 47,
+      "actual": "class_0"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": true,
+    "cause_class": "unsupported_numeric_claim",
+    "evidence": [
+     {
+      "unsupported": [],
+      "checked": 8
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "constant:class_1",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0.5,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-f453cc3de88f45a3aa60a18e3eec6d91",
+  "trap": "pinmismatch",
+  "expected_cause": "environment_lock_pin_mismatch",
+  "native_delivered": true,
+  "native_scientific_outcome": "PASS",
+  "C_stop_checks": [
+   "pin"
+  ],
+  "C_stop_causes": [
+   "environment_lock_pin_mismatch"
+  ],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": false,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "487caed20e7d16a3efd5d4f7a5629dc1489e435adf4423e9aaaeb8ebb20eb448"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "class count tie requires an explicit tie-break rule"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": true,
+    "cause_class": "unsupported_numeric_claim",
+    "evidence": [
+     {
+      "unsupported": [],
+      "checked": 9
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0.5,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-b4dbc3729943449598912c5164c2c226",
+  "trap": "stale",
+  "expected_cause": "stale_or_duplicate_dataset",
+  "native_delivered": true,
+  "native_scientific_outcome": "PASS",
+  "C_stop_checks": [
+   "stale"
+  ],
+  "C_stop_causes": [
+   "stale_or_duplicate_dataset"
+  ],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "class count tie requires an explicit tie-break rule"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": false,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": [
+     {
+      "paths": [
+       "data-2025-draft.json",
+       "data.json"
+      ],
+      "role": "dataset:b305c0deb30060f303dc4372",
+      "reason": "divergent hashes lack an unambiguous supersedes chain"
+     }
+    ]
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": true,
+    "cause_class": "unsupported_numeric_claim",
+    "evidence": [
+     {
+      "unsupported": [],
+      "checked": 8
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0.5,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-154b9be60c7c42dd9b9e9c07caf7dea6",
+  "trap": "units",
+  "expected_cause": "metric_unit_conflict",
+  "native_delivered": true,
+  "native_scientific_outcome": "PASS",
+  "C_stop_checks": [
+   "units"
+  ],
+  "C_stop_causes": [
+   "metric_unit_conflict"
+  ],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "class count tie requires an explicit tie-break rule"
+     }
+    ]
+   },
+   "units": {
+    "ok": false,
+    "cause_class": "unit_conflict",
+    "evidence": [
+     {
+      "index": 1,
+      "name": "accuracy",
+      "units": [
+       "percent",
+       "fraction"
+      ]
+     }
+    ]
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": true,
+    "cause_class": "unsupported_numeric_claim",
+    "evidence": [
+     {
+      "unsupported": [],
+      "checked": 10
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "percent",
+     "value": 0.5,
+     "src": "README"
+    },
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0.5,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-f473e4817043435383258d6350147797",
+  "trap": "units",
+  "expected_cause": "metric_unit_conflict",
+  "native_delivered": false,
+  "native_scientific_outcome": null,
+  "C_stop_checks": [
+   "units"
+  ],
+  "C_stop_causes": [
+   "metric_unit_conflict"
+  ],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "no baseline replay output or definition"
+     }
+    ]
+   },
+   "units": {
+    "ok": false,
+    "cause_class": "unit_conflict",
+    "evidence": [
+     {
+      "index": 1,
+      "name": "accuracy",
+      "units": [
+       "percent",
+       "fraction"
+      ]
+     }
+    ]
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no delivered report or no scored response"
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "percent",
+     "value": 0,
+     "src": "README"
+    },
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-a02edd513ed14a248e41e43bfa775d5b",
+  "trap": "infeasible",
+  "expected_cause": "infeasible_accuracy_bound",
+  "native_delivered": true,
+  "native_scientific_outcome": "PASS",
+  "C_stop_checks": [
+   "bound"
+  ],
+  "C_stop_causes": [
+   "infeasible_accuracy_bound"
+  ],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "class count tie requires an explicit tie-break rule"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": false,
+    "cause_class": "infeasible_bound",
+    "evidence": [
+     {
+      "lower": "0",
+      "upper": "1",
+      "target": "21/20"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": true,
+    "cause_class": "unsupported_numeric_claim",
+    "evidence": [
+     {
+      "unsupported": [],
+      "checked": 9
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0.5,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-0f7386e044004e25a0cb947ddc3618ab",
+  "trap": "clean",
+  "expected_cause": null,
+  "native_delivered": true,
+  "native_scientific_outcome": "PASS",
+  "C_stop_checks": [],
+  "C_stop_causes": [],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "class count tie requires an explicit tie-break rule"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": true,
+    "cause_class": "unsupported_numeric_claim",
+    "evidence": [
+     {
+      "unsupported": [],
+      "checked": 10
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0.5,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-7fb8e0682dcc41bb95960fab8160a726",
+  "trap": "clean",
+  "expected_cause": null,
+  "native_delivered": false,
+  "native_scientific_outcome": null,
+  "C_stop_checks": [],
+  "C_stop_causes": [],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "no baseline replay output or definition"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no delivered report or no scored response"
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-cb8afcdb358245feb11f29910e3b26f8",
+  "trap": "clean",
+  "expected_cause": null,
+  "native_delivered": false,
+  "native_scientific_outcome": null,
+  "C_stop_checks": [],
+  "C_stop_causes": [],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "no baseline replay output or definition"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no delivered report or no scored response"
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-e683041828f1409d8913613d9f12fe97",
+  "trap": "conflicts",
+  "expected_cause": "prose_requirement_conflict",
+  "native_delivered": false,
+  "native_scientific_outcome": null,
+  "C_stop_checks": [],
+  "C_stop_causes": [],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "no baseline replay output or definition"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no delivered report or no scored response"
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0,
+     "src": "task"
+    }
+   ]
+  }
+ },
+ {
+  "session": "trap-1fdc5eaf6d9d4b41a82ae4698b6562d9",
+  "trap": "overreach",
+  "expected_cause": "unsupported_demands",
+  "native_delivered": false,
+  "native_scientific_outcome": null,
+  "C_stop_checks": [],
+  "C_stop_causes": [],
+  "C_abstain_checks": [
+   "baseline"
+  ],
+  "naive_extra_pin_failures": [
+   "baseline_resource",
+   "validation_resource"
+  ],
+  "detail": {
+   "pin": {
+    "ok": true,
+    "cause_class": "pin_mismatch",
+    "evidence": [
+     {
+      "expected_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf",
+      "actual_sha256": "ab4ae4b0a9419c28023c46d5b52ea05a1f0c70d81d76d23815249d1146de01bf"
+     }
+    ]
+   },
+   "baseline": {
+    "ok": null,
+    "cause_class": "not_assessable",
+    "evidence": [
+     {
+      "reason": "no baseline replay output or definition"
+     }
+    ]
+   },
+   "units": {
+    "ok": true,
+    "cause_class": "unit_conflict",
+    "evidence": []
+   },
+   "stale": {
+    "ok": true,
+    "cause_class": "stale_duplicate_dataset",
+    "evidence": []
+   },
+   "bound": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no absolute threshold stated"
+     }
+    ]
+   },
+   "split": {
+    "ok": true,
+    "cause_class": "split_overlap",
+    "evidence": []
+   },
+   "claims": {
+    "ok": null,
+    "cause_class": "not_applicable",
+    "evidence": [
+     {
+      "reason": "no delivered report or no scored response"
+     }
+    ]
+   }
+  },
+  "glue": {
+   "definition": "majority_class",
+   "unit_sources": [
+    {
+     "name": "accuracy",
+     "unit": "fraction",
+     "value": 0,
+     "src": "task"
+    }
+   ]
+  }
+ }
+]

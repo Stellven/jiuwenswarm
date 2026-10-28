@@ -1,0 +1,86 @@
+[
+ {
+  "item": "calc_absolute",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "10958.32",
+  "class": "correct",
+  "gold": "10958.32"
+ },
+ {
+  "item": "calc_comma",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": null,
+  "class": "justified_halt",
+  "gold": "329524"
+ },
+ {
+  "item": "calc_empty",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "0",
+  "class": "correct",
+  "gold": "0"
+ },
+ {
+  "item": "calc_float",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "156480913497867854",
+  "class": "correct",
+  "gold": "156480913497867854"
+ },
+ {
+  "item": "calc_reference",
+  "route": "admitted tool",
+  "delivered": "1.6875",
+  "class": "correct",
+  "gold": "1.6875"
+ },
+ {
+  "item": "calc_truncate",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "250.785",
+  "class": "correct",
+  "gold": "250.785"
+ },
+ {
+  "item": "table_float",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "9007199255172313",
+  "class": "correct",
+  "gold": "9007199255172313"
+ },
+ {
+  "item": "table_numeric",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "02134",
+  "class": "correct",
+  "gold": "02134"
+ },
+ {
+  "item": "table_pad",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": null,
+  "class": "justified_halt",
+  "gold": null
+ },
+ {
+  "item": "table_reference",
+  "route": "admitted tool",
+  "delivered": "00417",
+  "class": "correct",
+  "gold": "00417"
+ },
+ {
+  "item": "table_sorted",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "18.75",
+  "class": "correct",
+  "gold": "18.75"
+ },
+ {
+  "item": "table_strip",
+  "route": "rejected, fallback to admitted reference",
+  "delivered": "18",
+  "class": "correct",
+  "gold": "18"
+ }
+]

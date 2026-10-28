@@ -1,0 +1,7 @@
+{
+ "fixture": "clean-cb8afcdb",
+ "session": "trap-cb8afcdb358245feb11f29910e3b26f8",
+ "trap": "clean",
+ "expected_cause": null,
+ "old_model": "gpt-6-luna"
+}

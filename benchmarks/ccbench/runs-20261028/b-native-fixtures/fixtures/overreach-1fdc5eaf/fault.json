@@ -1,0 +1,7 @@
+{
+ "fixture": "overreach-1fdc5eaf",
+ "session": "trap-1fdc5eaf6d9d4b41a82ae4698b6562d9",
+ "trap": "overreach",
+ "expected_cause": "unsupported_demands",
+ "old_model": "gpt-6-luna"
+}

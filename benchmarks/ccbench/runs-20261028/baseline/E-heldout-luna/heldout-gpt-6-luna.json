@@ -1,0 +1,1183 @@
+{
+ "model": "gpt-6-luna",
+ "units": [
+  {
+   "case": "brackets_balanced",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1295,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.38
+   },
+   "details": []
+  },
+  {
+   "case": "brackets_balanced",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7051,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 6.97
+   },
+   "details": []
+  },
+  {
+   "case": "brackets_balanced",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1487,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.25
+   },
+   "details": []
+  },
+  {
+   "case": "brackets_balanced",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7130,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.03
+   },
+   "details": []
+  },
+  {
+   "case": "business_days",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 7094,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.8
+   },
+   "details": []
+  },
+  {
+   "case": "business_days",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1340,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.39
+   },
+   "details": []
+  },
+  {
+   "case": "business_days",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1693,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 10.95
+   },
+   "details": []
+  },
+  {
+   "case": "business_days",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1364,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 6.7
+   },
+   "details": []
+  },
+  {
+   "case": "compare_versions",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 7816,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.84
+   },
+   "details": []
+  },
+  {
+   "case": "compare_versions",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7006,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.25
+   },
+   "details": []
+  },
+  {
+   "case": "compare_versions",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1497,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.88
+   },
+   "details": []
+  },
+  {
+   "case": "compare_versions",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7049,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.19
+   },
+   "details": []
+  },
+  {
+   "case": "dedupe_records",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1324,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 6.81
+   },
+   "details": []
+  },
+  {
+   "case": "dedupe_records",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1338,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.12
+   },
+   "details": []
+  },
+  {
+   "case": "dedupe_records",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": true,
+   "check_status": "fail",
+   "cost": {
+    "calls": 2,
+    "tokens": 9941,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 19.46
+   },
+   "details": []
+  },
+  {
+   "case": "dedupe_records",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1661,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 11.03
+   },
+   "details": []
+  },
+  {
+   "case": "merge_intervals",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 7017,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 6.19
+   },
+   "details": []
+  },
+  {
+   "case": "merge_intervals",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 6988,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 6.89
+   },
+   "details": []
+  },
+  {
+   "case": "merge_intervals",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 19944,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.11
+   },
+   "details": []
+  },
+  {
+   "case": "merge_intervals",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7041,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.12
+   },
+   "details": []
+  },
+  {
+   "case": "parse_duration",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": false,
+   "retried": true,
+   "check_status": "fail",
+   "cost": {
+    "calls": 2,
+    "tokens": 8760,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 16.4
+   },
+   "details": []
+  },
+  {
+   "case": "parse_duration",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": false,
+   "first_passed_all": false,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1336,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.05
+   },
+   "details": [
+    "input [\"30m1h\"]: expected 5400, raised ValueError"
+   ]
+  },
+  {
+   "case": "parse_duration",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    true
+   ],
+   "passed_all": false,
+   "first_passed_all": false,
+   "retried": true,
+   "check_status": "fail",
+   "cost": {
+    "calls": 2,
+    "tokens": 9176,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 18.17
+   },
+   "details": [
+    "input [\"30m1h\"]: expected 5400, raised ValueError",
+    "input [\" 2m \"]: expected 120, raised ValueError"
+   ]
+  },
+  {
+   "case": "parse_duration",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": false,
+   "first_passed_all": false,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1461,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 11.41
+   },
+   "details": [
+    "input [\"30m1h\"]: expected 5400, raised ValueError"
+   ]
+  },
+  {
+   "case": "rle_decode",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 6999,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.55
+   },
+   "details": []
+  },
+  {
+   "case": "rle_decode",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1233,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 11.03
+   },
+   "details": []
+  },
+  {
+   "case": "rle_decode",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 7161,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 12.3
+   },
+   "details": []
+  },
+  {
+   "case": "rle_decode",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1259,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.42
+   },
+   "details": []
+  },
+  {
+   "case": "round_half_up",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1532,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 10.86
+   },
+   "details": []
+  },
+  {
+   "case": "round_half_up",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7171,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 10.03
+   },
+   "details": []
+  },
+  {
+   "case": "round_half_up",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 7668,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 10.92
+   },
+   "details": []
+  },
+  {
+   "case": "round_half_up",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7353,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 10.11
+   },
+   "details": []
+  },
+  {
+   "case": "top_k_words",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1264,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 13.33
+   },
+   "details": []
+  },
+  {
+   "case": "top_k_words",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1277,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.02
+   },
+   "details": []
+  },
+  {
+   "case": "top_k_words",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 7350,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.22
+   },
+   "details": []
+  },
+  {
+   "case": "top_k_words",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1357,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.3
+   },
+   "details": []
+  },
+  {
+   "case": "wrap_text",
+   "arm": "cc",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 1240,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 6.7
+   },
+   "details": []
+  },
+  {
+   "case": "wrap_text",
+   "arm": "plain",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 1240,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 7.73
+   },
+   "details": []
+  },
+  {
+   "case": "wrap_text",
+   "arm": "selftest",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "pass",
+   "cost": {
+    "calls": 1,
+    "tokens": 7196,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 8.05
+   },
+   "details": []
+  },
+  {
+   "case": "wrap_text",
+   "arm": "verify",
+   "rep": 1,
+   "passes": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "passed_all": true,
+   "first_passed_all": true,
+   "retried": false,
+   "check_status": "not_run",
+   "cost": {
+    "calls": 1,
+    "tokens": 7023,
+    "input_tokens": null,
+    "output_tokens": null,
+    "calls_without_token_count": 0,
+    "wall_s": 6.83
+   },
+   "details": []
+  }
+ ],
+ "aggregate": {
+  "plain": {
+   "units": 10,
+   "case_pass_rate": 0.9,
+   "test_pass_rate": 0.9864864864864865,
+   "first_attempt_pass_rate": 0.9,
+   "retry_rate": 0.0,
+   "rescued": 0,
+   "broken_by_retry": 0,
+   "calls": 10,
+   "tokens": 35980,
+   "units_missing_tokens": 0,
+   "wall_s": 79.5,
+   "same_outcome_across_reps": null
+  },
+  "verify": {
+   "units": 10,
+   "case_pass_rate": 0.9,
+   "test_pass_rate": 0.9864864864864865,
+   "first_attempt_pass_rate": 0.9,
+   "retry_rate": 0.0,
+   "rescued": 0,
+   "broken_by_retry": 0,
+   "calls": 10,
+   "tokens": 42698,
+   "units_missing_tokens": 0,
+   "wall_s": 84.1,
+   "same_outcome_across_reps": null
+  },
+  "selftest": {
+   "units": 10,
+   "case_pass_rate": 0.9,
+   "test_pass_rate": 0.972972972972973,
+   "first_attempt_pass_rate": 0.9,
+   "retry_rate": 0.2,
+   "rescued": 0,
+   "broken_by_retry": 0,
+   "calls": 12,
+   "tokens": 73113,
+   "units_missing_tokens": 0,
+   "wall_s": 113.3,
+   "same_outcome_across_reps": null
+  },
+  "cc": {
+   "units": 10,
+   "case_pass_rate": 1.0,
+   "test_pass_rate": 1.0,
+   "first_attempt_pass_rate": 0.9,
+   "retry_rate": 0.1,
+   "rescued": 1,
+   "broken_by_retry": 0,
+   "calls": 11,
+   "tokens": 44341,
+   "units_missing_tokens": 0,
+   "wall_s": 92.9,
+   "same_outcome_across_reps": null
+  }
+ },
+ "cc_vs_others": {
+  "plain": {
+   "pairs": 10,
+   "cc_only": 1,
+   "other_only": 0
+  },
+  "verify": {
+   "pairs": 10,
+   "cc_only": 1,
+   "other_only": 0
+  },
+  "selftest": {
+   "pairs": 10,
+   "cc_only": 1,
+   "other_only": 0
+  }
+ }
+}

@@ -1,0 +1,7 @@
+{
+ "fixture": "infeasible-a02edd51",
+ "session": "trap-a02edd513ed14a248e41e43bfa775d5b",
+ "trap": "infeasible",
+ "expected_cause": "infeasible_accuracy_bound",
+ "old_model": "gpt-6.1-sol"
+}

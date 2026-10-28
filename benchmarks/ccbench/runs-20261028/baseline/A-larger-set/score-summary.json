@@ -1,0 +1,542 @@
+{
+ "native": {
+  "rows": [
+   {
+    "item": "calc_absolute",
+    "arm": "native",
+    "class": "correct",
+    "defect": "broad: signs discarded",
+    "delivered": "10958.32",
+    "gold": "10958.32",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_absolute-r1"
+   },
+   {
+    "item": "calc_absolute",
+    "arm": "native",
+    "class": "correct",
+    "defect": "broad: signs discarded",
+    "delivered": "10958.32",
+    "gold": "10958.32",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_absolute-r2"
+   },
+   {
+    "item": "calc_absolute",
+    "arm": "native",
+    "class": "correct",
+    "defect": "broad: signs discarded",
+    "delivered": "10958.32",
+    "gold": "10958.32",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_absolute-r3"
+   },
+   {
+    "item": "calc_comma",
+    "arm": "native",
+    "class": "correct",
+    "defect": "rare: locale coercion",
+    "delivered": "329524",
+    "gold": "329524",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_comma-r1"
+   },
+   {
+    "item": "calc_comma",
+    "arm": "native",
+    "class": "correct",
+    "defect": "rare: locale coercion",
+    "delivered": "329524",
+    "gold": "329524",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_comma-r2"
+   },
+   {
+    "item": "calc_comma",
+    "arm": "native",
+    "class": "correct",
+    "defect": "rare: locale coercion",
+    "delivered": "329524",
+    "gold": "329524",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_comma-r3"
+   },
+   {
+    "item": "calc_empty",
+    "arm": "native",
+    "class": "correct_flagged",
+    "defect": "edge: empty rejection",
+    "delivered": "0",
+    "gold": "0",
+    "flagged_tool": true,
+    "tool_file_modified": false,
+    "attempt": "calc_empty-r1"
+   },
+   {
+    "item": "calc_empty",
+    "arm": "native",
+    "class": "correct",
+    "defect": "edge: empty rejection",
+    "delivered": "0",
+    "gold": "0",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_empty-r2"
+   },
+   {
+    "item": "calc_empty",
+    "arm": "native",
+    "class": "correct",
+    "defect": "edge: empty rejection",
+    "delivered": "0",
+    "gold": "0",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_empty-r3"
+   },
+   {
+    "item": "calc_float",
+    "arm": "native",
+    "class": "correct",
+    "defect": "subtle: binary float precision",
+    "delivered": "156480913497867854",
+    "gold": "156480913497867854",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_float-r1"
+   },
+   {
+    "item": "calc_float",
+    "arm": "native",
+    "class": "correct",
+    "defect": "subtle: binary float precision",
+    "delivered": "156480913497867854",
+    "gold": "156480913497867854",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_float-r2"
+   },
+   {
+    "item": "calc_float",
+    "arm": "native",
+    "class": "correct",
+    "defect": "subtle: binary float precision",
+    "delivered": "156480913497867854",
+    "gold": "156480913497867854",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_float-r3"
+   },
+   {
+    "item": "calc_reference",
+    "arm": "native",
+    "class": "correct",
+    "defect": "correct",
+    "delivered": "1.6875",
+    "gold": "1.6875",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_reference-r1"
+   },
+   {
+    "item": "calc_reference",
+    "arm": "native",
+    "class": "correct",
+    "defect": "correct",
+    "delivered": "1.6875",
+    "gold": "1.6875",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_reference-r2"
+   },
+   {
+    "item": "calc_reference",
+    "arm": "native",
+    "class": "correct",
+    "defect": "correct",
+    "delivered": "1.6875",
+    "gold": "1.6875",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_reference-r3"
+   },
+   {
+    "item": "calc_truncate",
+    "arm": "native",
+    "class": "correct_flagged",
+    "defect": "broad: fractional means truncated",
+    "delivered": "250.785",
+    "gold": "250.785",
+    "flagged_tool": true,
+    "tool_file_modified": false,
+    "attempt": "calc_truncate-r1"
+   },
+   {
+    "item": "calc_truncate",
+    "arm": "native",
+    "class": "correct",
+    "defect": "broad: fractional means truncated",
+    "delivered": "250.785",
+    "gold": "250.785",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "calc_truncate-r2"
+   },
+   {
+    "item": "calc_truncate",
+    "arm": "native",
+    "class": "correct_flagged",
+    "defect": "broad: fractional means truncated",
+    "delivered": "250.785",
+    "gold": "250.785",
+    "flagged_tool": true,
+    "tool_file_modified": false,
+    "attempt": "calc_truncate-r3"
+   },
+   {
+    "item": "table_float",
+    "arm": "native",
+    "class": "correct_flagged",
+    "defect": "subtle: large integer precision",
+    "delivered": "9007199255172313",
+    "gold": "9007199255172313",
+    "flagged_tool": true,
+    "tool_file_modified": false,
+    "attempt": "table_float-r1"
+   },
+   {
+    "item": "table_float",
+    "arm": "native",
+    "class": "correct_flagged",
+    "defect": "subtle: large integer precision",
+    "delivered": "9007199255172313",
+    "gold": "9007199255172313",
+    "flagged_tool": true,
+    "tool_file_modified": false,
+    "attempt": "table_float-r2"
+   },
+   {
+    "item": "table_float",
+    "arm": "native",
+    "class": "correct_flagged",
+    "defect": "subtle: large integer precision",
+    "delivered": "9007199255172313",
+    "gold": "9007199255172313",
+    "flagged_tool": true,
+    "tool_file_modified": false,
+    "attempt": "table_float-r3"
+   },
+   {
+    "item": "table_numeric",
+    "arm": "native",
+    "class": "correct",
+    "defect": "broad: CSV numeric coercion",
+    "delivered": "02134",
+    "gold": "02134",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_numeric-r1"
+   },
+   {
+    "item": "table_numeric",
+    "arm": "native",
+    "class": "correct",
+    "defect": "broad: CSV numeric coercion",
+    "delivered": "02134",
+    "gold": "02134",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_numeric-r2"
+   },
+   {
+    "item": "table_numeric",
+    "arm": "native",
+    "class": "correct",
+    "defect": "broad: CSV numeric coercion",
+    "delivered": "02134",
+    "gold": "02134",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_numeric-r3"
+   },
+   {
+    "item": "table_pad",
+    "arm": "native",
+    "class": "silent_wrong",
+    "defect": "rare: ragged rows silently padded",
+    "delivered": "23",
+    "gold": null,
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_pad-r1"
+   },
+   {
+    "item": "table_pad",
+    "arm": "native",
+    "class": "silent_wrong",
+    "defect": "rare: ragged rows silently padded",
+    "delivered": "23",
+    "gold": null,
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_pad-r2"
+   },
+   {
+    "item": "table_pad",
+    "arm": "native",
+    "class": "silent_wrong",
+    "defect": "rare: ragged rows silently padded",
+    "delivered": "24",
+    "gold": null,
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_pad-r3"
+   },
+   {
+    "item": "table_reference",
+    "arm": "native",
+    "class": "correct",
+    "defect": "correct",
+    "delivered": "00417",
+    "gold": "00417",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_reference-r1"
+   },
+   {
+    "item": "table_reference",
+    "arm": "native",
+    "class": "correct",
+    "defect": "correct",
+    "delivered": "00417",
+    "gold": "00417",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_reference-r2"
+   },
+   {
+    "item": "table_reference",
+    "arm": "native",
+    "class": "correct",
+    "defect": "correct",
+    "delivered": "00417",
+    "gold": "00417",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_reference-r3"
+   },
+   {
+    "item": "table_sorted",
+    "arm": "native",
+    "class": "correct",
+    "defect": "medium: row reordering",
+    "delivered": "18.75",
+    "gold": "18.75",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_sorted-r1"
+   },
+   {
+    "item": "table_sorted",
+    "arm": "native",
+    "class": "correct",
+    "defect": "medium: row reordering",
+    "delivered": "18.75",
+    "gold": "18.75",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_sorted-r2"
+   },
+   {
+    "item": "table_sorted",
+    "arm": "native",
+    "class": "correct",
+    "defect": "medium: row reordering",
+    "delivered": "18.75",
+    "gold": "18.75",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_sorted-r3"
+   },
+   {
+    "item": "table_strip",
+    "arm": "native",
+    "class": "correct",
+    "defect": "subtle: whitespace loss",
+    "delivered": "18",
+    "gold": "18",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_strip-r1"
+   },
+   {
+    "item": "table_strip",
+    "arm": "native",
+    "class": "correct",
+    "defect": "subtle: whitespace loss",
+    "delivered": "18",
+    "gold": "18",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_strip-r2"
+   },
+   {
+    "item": "table_strip",
+    "arm": "native",
+    "class": "correct",
+    "defect": "subtle: whitespace loss",
+    "delivered": "18",
+    "gold": "18",
+    "flagged_tool": false,
+    "tool_file_modified": false,
+    "attempt": "table_strip-r3"
+   }
+  ],
+  "metrics": {
+   "counts": {
+    "correct": 27,
+    "correct_flagged": 6,
+    "justified_halt": 0,
+    "wrong_halt": 0,
+    "flagged_wrong": 0,
+    "silent_wrong": 3,
+    "unavailable": 0
+   },
+   "delivered_precision": 0.9166666666666666,
+   "silent_wrong_rate": 0.08333333333333333,
+   "utility": 0.6666666666666666
+  }
+ },
+ "CC": {
+  "rows": [
+   {
+    "item": "calc_absolute",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "broad: signs discarded",
+    "admitted": false,
+    "delivered": null,
+    "gold": "10958.32"
+   },
+   {
+    "item": "calc_comma",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "rare: locale coercion",
+    "admitted": false,
+    "delivered": null,
+    "gold": "329524"
+   },
+   {
+    "item": "calc_empty",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "edge: empty rejection",
+    "admitted": false,
+    "delivered": null,
+    "gold": "0"
+   },
+   {
+    "item": "calc_float",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "subtle: binary float precision",
+    "admitted": false,
+    "delivered": null,
+    "gold": "156480913497867854"
+   },
+   {
+    "item": "calc_reference",
+    "arm": "CC",
+    "class": "correct",
+    "defect": "correct",
+    "admitted": true,
+    "delivered": "1.6875",
+    "gold": "1.6875"
+   },
+   {
+    "item": "calc_truncate",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "broad: fractional means truncated",
+    "admitted": false,
+    "delivered": null,
+    "gold": "250.785"
+   },
+   {
+    "item": "table_float",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "subtle: large integer precision",
+    "admitted": false,
+    "delivered": null,
+    "gold": "9007199255172313"
+   },
+   {
+    "item": "table_numeric",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "broad: CSV numeric coercion",
+    "admitted": false,
+    "delivered": null,
+    "gold": "02134"
+   },
+   {
+    "item": "table_pad",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "rare: ragged rows silently padded",
+    "admitted": false,
+    "delivered": null,
+    "gold": null
+   },
+   {
+    "item": "table_reference",
+    "arm": "CC",
+    "class": "correct",
+    "defect": "correct",
+    "admitted": true,
+    "delivered": "00417",
+    "gold": "00417"
+   },
+   {
+    "item": "table_sorted",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "medium: row reordering",
+    "admitted": false,
+    "delivered": null,
+    "gold": "18.75"
+   },
+   {
+    "item": "table_strip",
+    "arm": "CC",
+    "class": "justified_halt",
+    "defect": "subtle: whitespace loss",
+    "admitted": false,
+    "delivered": null,
+    "gold": "18"
+   }
+  ],
+  "metrics": {
+   "counts": {
+    "correct": 2,
+    "correct_flagged": 0,
+    "justified_halt": 10,
+    "wrong_halt": 0,
+    "flagged_wrong": 0,
+    "silent_wrong": 0,
+    "unavailable": 0
+   },
+   "delivered_precision": 1.0,
+   "silent_wrong_rate": 0.0,
+   "utility": 1.0
+  }
+ }
+}

@@ -1,0 +1,393 @@
+{
+  "CC": {
+    "defects_admitted": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "defects_rejected": {
+      "mean": 14,
+      "bootstrap_95_ci": [
+        14,
+        14
+      ]
+    },
+    "false_rejections": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "failures_delivered_through_detection": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "failures_strictly_before_detection": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "restricted_lag_20": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "conditional_observed_lag_mean": null,
+    "detected_during_use_candidate_repeats": 0,
+    "per_repeat": [
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      },
+      {
+        "defects_admitted": 0,
+        "defects_rejected": 14,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 0,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 0
+      }
+    ]
+  },
+  "CC_THIN": {
+    "defects_admitted": {
+      "mean": 14,
+      "bootstrap_95_ci": [
+        14,
+        14
+      ]
+    },
+    "defects_rejected": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "false_rejections": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "failures_delivered_through_detection": {
+      "mean": 7,
+      "bootstrap_95_ci": [
+        6.6,
+        7.4
+      ]
+    },
+    "failures_strictly_before_detection": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "restricted_lag_20": {
+      "mean": 12.9,
+      "bootstrap_95_ci": [
+        12.5,
+        13.3
+      ]
+    },
+    "conditional_observed_lag_mean": 5.8,
+    "detected_during_use_candidate_repeats": 70,
+    "per_repeat": [
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.5
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12.571428571428571
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 6,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.285714285714286
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.5
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12.857142857142858
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.857142857142858
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 8,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12.357142857142858
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 6,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.214285714285714
+      },
+      {
+        "defects_admitted": 14,
+        "defects_rejected": 0,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 8,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 11.857142857142858
+      }
+    ]
+  },
+  "SKILL": {
+    "defects_admitted": {
+      "mean": 7,
+      "bootstrap_95_ci": [
+        6.6,
+        7.4
+      ]
+    },
+    "defects_rejected": {
+      "mean": 7,
+      "bootstrap_95_ci": [
+        6.6,
+        7.4
+      ]
+    },
+    "false_rejections": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "failures_delivered_through_detection": {
+      "mean": 7,
+      "bootstrap_95_ci": [
+        6.6,
+        7.4
+      ]
+    },
+    "failures_strictly_before_detection": {
+      "mean": 0,
+      "bootstrap_95_ci": [
+        0,
+        0
+      ]
+    },
+    "restricted_lag_20": {
+      "mean": 12.9,
+      "bootstrap_95_ci": [
+        12.5,
+        13.3
+      ]
+    },
+    "conditional_observed_lag_mean": 5.8,
+    "detected_during_use_candidate_repeats": 70,
+    "per_repeat": [
+      {
+        "defects_admitted": 7,
+        "defects_rejected": 7,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.5
+      },
+      {
+        "defects_admitted": 7,
+        "defects_rejected": 7,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12.571428571428571
+      },
+      {
+        "defects_admitted": 8,
+        "defects_rejected": 6,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 6,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.285714285714286
+      },
+      {
+        "defects_admitted": 7,
+        "defects_rejected": 7,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.5
+      },
+      {
+        "defects_admitted": 7,
+        "defects_rejected": 7,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12.857142857142858
+      },
+      {
+        "defects_admitted": 7,
+        "defects_rejected": 7,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.857142857142858
+      },
+      {
+        "defects_admitted": 7,
+        "defects_rejected": 7,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 7,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12
+      },
+      {
+        "defects_admitted": 6,
+        "defects_rejected": 8,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 8,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 12.357142857142858
+      },
+      {
+        "defects_admitted": 8,
+        "defects_rejected": 6,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 6,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 13.214285714285714
+      },
+      {
+        "defects_admitted": 6,
+        "defects_rejected": 8,
+        "false_rejections": 0,
+        "failures_delivered_through_detection": 8,
+        "failures_strictly_before_detection": 0,
+        "restricted_lag_20": 11.857142857142858
+      }
+    ]
+  },
+  "paired_skill_minus_cc_defects_admitted": {
+    "mean": 7,
+    "bootstrap_95_ci": [
+      6.6,
+      7.4
+    ]
+  }
+}

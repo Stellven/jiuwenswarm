@@ -1,0 +1,7 @@
+{
+ "fixture": "units-154b9be6",
+ "session": "trap-154b9be60c7c42dd9b9e9c07caf7dea6",
+ "trap": "units",
+ "expected_cause": "metric_unit_conflict",
+ "old_model": "gpt-6.1-sol"
+}

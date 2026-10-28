@@ -1,0 +1,7 @@
+{
+ "fixture": "pinmismatch-f453cc3d",
+ "session": "trap-f453cc3de88f45a3aa60a18e3eec6d91",
+ "trap": "pinmismatch",
+ "expected_cause": "environment_lock_pin_mismatch",
+ "old_model": "gpt-6.1-sol"
+}

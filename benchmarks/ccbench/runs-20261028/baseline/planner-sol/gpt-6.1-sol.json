@@ -1,0 +1,838 @@
+{
+  "model": "gpt-6.1-sol",
+  "plans": [
+    {
+      "task": "budget_calls",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\budget_calls\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "budget_calls",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\budget_calls\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "budget_time",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\budget_time\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "budget_time",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\budget_time\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "calculate",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\calculate\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 2,
+        "acceptance_total": 2,
+        "capability_set": [
+          "utility.calculate"
+        ],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "calculate",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\calculate\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 4,
+        "acceptance_total": 4,
+        "capability_set": [
+          "utility.calculate"
+        ],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "gpu_training",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\gpu_training\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "gpu_training",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\gpu_training\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "human_study",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\human_study\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "human_study",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\human_study\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "live_web",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\live_web\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "live_web",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\live_web\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "missing_paper",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\missing_paper\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "missing_paper",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\missing_paper\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "missing_values",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\missing_values\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "missing_values",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": false,
+      "raw_reply": "runs\\gpt-6.1-sol\\missing_values\\B-r1\\reply.txt",
+      "score": {
+        "valid": false,
+        "defects": [
+          {
+            "defect": "uncovered_obligation",
+            "detail": "Unparseable/malformed plan: Expecting value: line 1 column 1 (char 0)"
+          }
+        ],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 1,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": false,
+        "parse_error": "Expecting value: line 1 column 1 (char 0)"
+      }
+    },
+    {
+      "task": "normalize",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\normalize\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 2,
+        "acceptance_total": 2,
+        "capability_set": [
+          "utility.table_normalize_typed"
+        ],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "normalize",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\normalize\\B-r1\\reply.txt",
+      "score": {
+        "valid": false,
+        "defects": [
+          {
+            "defect": "acceptance_not_machine_checkable",
+            "detail": "normalize_csv: Only normalization is performed; the supplied calculation and report instructions are not executed."
+          }
+        ],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 1,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 4,
+        "acceptance_total": 5,
+        "capability_set": [
+          "utility.table_normalize_typed"
+        ],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "paper",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\paper\\A-r1\\reply.txt",
+      "score": {
+        "valid": false,
+        "defects": [
+          {
+            "defect": "over_budget",
+            "detail": "Aggregate memory_mb"
+          }
+        ],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 1,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 8,
+        "acceptance_total": 8,
+        "capability_set": [
+          "research.paper_summary",
+          "research.paper_summary_delivery"
+        ],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": [
+          {
+            "check_id": "delivery_leaf_coverage",
+            "outcome": "FAIL",
+            "reason": "Paper summary Capsule version differs from the protected workflow; Paper summary Capsule version differs from the protected workflow",
+            "evidence_refs": []
+          }
+        ]
+      }
+    },
+    {
+      "task": "paper",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\paper\\B-r1\\reply.txt",
+      "score": {
+        "valid": false,
+        "defects": [
+          {
+            "defect": "feasible_task_declared_infeasible",
+            "detail": "research.paper_summary_delivery requires gate_decision_index, which is neither supplied nor produced by any listed skill. The supplied text also lacks page citations or coordinates needed for a page-grounded summary."
+          }
+        ],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 1,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": false
+      }
+    },
+    {
+      "task": "report",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\report\\A-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 2,
+        "acceptance_total": 2,
+        "capability_set": [
+          "utility.markdown_report"
+        ],
+        "infeasible_handling_correct": true,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "report",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\report\\B-r1\\reply.txt",
+      "score": {
+        "valid": true,
+        "defects": [],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 0,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 6,
+        "acceptance_total": 6,
+        "capability_set": [
+          "utility.markdown_report"
+        ],
+        "infeasible_handling_correct": true
+      }
+    },
+    {
+      "task": "screen",
+      "condition": "A",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\screen\\A-r1\\reply.txt",
+      "score": {
+        "valid": false,
+        "defects": [
+          {
+            "defect": "feasible_task_declared_infeasible",
+            "detail": "research.screening outputs screening_result and opportunity_card, but no selectable capsule converts either into the Brief's required work_packet deliverable; the available scientific delivery path requires an experiment, which the Brief prohibits."
+          }
+        ],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 1,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": false,
+        "product_gate_failures": []
+      }
+    },
+    {
+      "task": "screen",
+      "condition": "B",
+      "repeat": 1,
+      "expected_feasible": true,
+      "raw_reply": "runs\\gpt-6.1-sol\\screen\\B-r1\\reply.txt",
+      "score": {
+        "valid": false,
+        "defects": [
+          {
+            "defect": "feasible_task_declared_infeasible",
+            "detail": "Required input screening_rubric for research.screening is unavailable in the supplied inputs and resource inventory; the installed fixed rubric cannot be invented."
+          }
+        ],
+        "counts": {
+          "unknown_capability": 0,
+          "unknown_or_missing_port": 0,
+          "type_incompatible_binding": 0,
+          "unsatisfied_required_input": 0,
+          "cycle_or_unordered_dependency": 0,
+          "uncovered_obligation": 0,
+          "missing_acceptance_criterion": 0,
+          "acceptance_not_machine_checkable": 0,
+          "over_budget": 0,
+          "effect_or_authority_violation": 0,
+          "infeasible_task_planned_anyway": 0,
+          "feasible_task_declared_infeasible": 1,
+          "invented_input_or_resource": 0
+        },
+        "machine_checkable": 0,
+        "acceptance_total": 0,
+        "capability_set": [],
+        "infeasible_handling_correct": false
+      }
+    }
+  ],
+  "aggregate": {
+    "A": {
+      "plans": 12,
+      "validity_rate": 0.8333333333333334,
+      "defects_per_plan": {
+        "unknown_capability": 0.0,
+        "unknown_or_missing_port": 0.0,
+        "type_incompatible_binding": 0.0,
+        "unsatisfied_required_input": 0.0,
+        "cycle_or_unordered_dependency": 0.0,
+        "uncovered_obligation": 0.0,
+        "missing_acceptance_criterion": 0.0,
+        "acceptance_not_machine_checkable": 0.0,
+        "over_budget": 0.08333333333333333,
+        "effect_or_authority_violation": 0.0,
+        "infeasible_task_planned_anyway": 0.0,
+        "feasible_task_declared_infeasible": 0.08333333333333333,
+        "invented_input_or_resource": 0.0
+      },
+      "infeasible_handling_accuracy": 1.0,
+      "overall_feasibility_decision_accuracy": 0.9166666666666666,
+      "acceptance_machine_checkable_fraction": 1.0,
+      "run_to_run_stability": null
+    },
+    "B": {
+      "plans": 12,
+      "validity_rate": 0.6666666666666666,
+      "defects_per_plan": {
+        "unknown_capability": 0.0,
+        "unknown_or_missing_port": 0.0,
+        "type_incompatible_binding": 0.0,
+        "unsatisfied_required_input": 0.0,
+        "cycle_or_unordered_dependency": 0.0,
+        "uncovered_obligation": 0.08333333333333333,
+        "missing_acceptance_criterion": 0.0,
+        "acceptance_not_machine_checkable": 0.08333333333333333,
+        "over_budget": 0.0,
+        "effect_or_authority_violation": 0.0,
+        "infeasible_task_planned_anyway": 0.0,
+        "feasible_task_declared_infeasible": 0.16666666666666666,
+        "invented_input_or_resource": 0.0
+      },
+      "infeasible_handling_accuracy": 0.8571428571428571,
+      "overall_feasibility_decision_accuracy": 0.75,
+      "acceptance_machine_checkable_fraction": 0.9333333333333333,
+      "run_to_run_stability": null
+    }
+  }
+}

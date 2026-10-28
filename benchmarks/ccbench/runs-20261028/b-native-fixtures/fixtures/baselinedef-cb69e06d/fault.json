@@ -1,0 +1,7 @@
+{
+ "fixture": "baselinedef-cb69e06d",
+ "session": "trap-cb69e06d3e8f4436a5e7e7730dfa3eac",
+ "trap": "baselinedef",
+ "expected_cause": "baseline_definition_conflict",
+ "old_model": "gpt-6.1-sol"
+}
