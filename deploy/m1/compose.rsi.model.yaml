@@ -1,0 +1,9 @@
+# Opt-in isolated subscription profile. Only the controller owns this account.
+# Use the exact profile from the protected rsi_model.py model.json manifest.
+services:
+  rsi-workbench:
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_MODEL_ACCOUNT_ROOT:?Supply the independently prepared UID12001 mode700 model profile}
+        target: /var/lib/ai4r-rsi/controller/accounts
+        bind: {create_host_path: false}

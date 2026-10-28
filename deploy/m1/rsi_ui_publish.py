@@ -27,13 +27,20 @@ from jiuwenswarm.research_records.original_bytes import OriginalBytes
 # files from the installed jiuwenswarm package, under a private module namespace.
 _package = importlib.util.find_spec('jiuwenswarm')
 _root = Path(next(iter(_package.submodule_search_locations)))
-_pure = types.ModuleType('_ai4r_cc_ui_publish')
-_pure.__path__ = [str(_root / 'server/rsi')]
-sys.modules[_pure.__name__] = _pure
-_spec = importlib.util.spec_from_file_location(_pure.__name__ + '.cc_rsi_projection', _root / 'server/rsi/cc_rsi_projection.py')
-_projection = importlib.util.module_from_spec(_spec)
-sys.modules[_spec.name] = _projection
-_spec.loader.exec_module(_projection)
+# Reusing the fixed namespace preserves exception/class identity when several
+# independent Root publishers are loaded in one process.
+_name = '_ai4r_cc_ui_publish'
+if _name not in sys.modules:
+    _pure = types.ModuleType(_name)
+    _pure.__path__ = [str(_root / 'server/rsi')]
+    sys.modules[_name] = _pure
+_projection_name = _name + '.cc_rsi_projection'
+if _projection_name not in sys.modules:
+    _spec = importlib.util.spec_from_file_location(_projection_name, _root / 'server/rsi/cc_rsi_projection.py')
+    _projection = importlib.util.module_from_spec(_spec)
+    sys.modules[_spec.name] = _projection
+    _spec.loader.exec_module(_projection)
+_projection = sys.modules[_projection_name]
 MAX_PUBLIC_BYTES = _projection.MAX_PUBLIC_BYTES
 validate_publication = _projection.validate_publication
 

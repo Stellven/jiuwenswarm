@@ -1,0 +1,16 @@
+# Explicitly combine with a separately prepared app compose deployment.
+# This grants observation/qualification reads, never admission or activation.
+services:
+  app:
+    group_add: ['13000']
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_ROOT:?Supply protected root qualification installation}
+        target: /run/ai4r-rsi-security
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_IPC:?Supply root-owned GID13000 mode0710 producer socket directory}
+        target: /run/ai4r-rsi-security-ipc
+        read_only: true
+        bind: {create_host_path: false}

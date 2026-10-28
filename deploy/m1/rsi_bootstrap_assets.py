@@ -104,7 +104,7 @@ def _capture():
         _need(store.read_blob(screening['body_refs']['ranking_parent.txt']) == helper.read_bytes())
         captured = capture_local_profile(store, root / 'operator-template',
             input_root=root / 'input', development_builtin_catalog=False,
-            requested_model='gpt-6-luna')
+            requested_model='gpt-6-luna', allow_missing_science=True)
         binding = store.read_record(captured['binding_ref'])
         _need(binding['protected_options']['development_builtin_catalog'] is False)
         _need(binding['protected_options'].get('calibration_runtime_ref') is not None)

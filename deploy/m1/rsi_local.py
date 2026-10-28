@@ -176,7 +176,11 @@ def safe_path(value):
             re.match(r'^/(?:mnt|media)/[a-zA-Z](?:/|$)', text, re.I)):
         raise ValueError('Use an absolute protected Linux path, never a Windows drive or WSL drive mount')
     path = Path(text)
-    if str(path) != text.rstrip('/') or any(p.is_symlink() for p in (path, *path.parents)):
+    try:
+        symlink = any(p.is_symlink() for p in (path, *path.parents))
+    except OSError as error:
+        raise ValueError('Protected path ancestry is unavailable') from error
+    if str(path) != text.rstrip('/') or symlink:
         raise ValueError('Canonical paths without symlinks are required')
     return path
 

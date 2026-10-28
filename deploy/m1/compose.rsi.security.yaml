@@ -1,0 +1,39 @@
+# Explicit opt-in authority data and finite current-producer observation only.
+# Prepare root-owned 0750:GID13000 installation directory, files0640, with
+# typed original qualification closure. No key/account/hidden-fixture mount.
+services:
+  rsi-workbench:
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_ROOT:?Supply protected root qualification installation}
+        target: /run/ai4r-rsi-security
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_IPC:?Supply root-owned GID13000 mode0710 producer socket directory}
+        target: /run/ai4r-rsi-security-ipc
+        read_only: true
+        bind: {create_host_path: false}
+  rsi-custodian:
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_ROOT:?Supply protected root qualification installation}
+        target: /run/ai4r-rsi-security
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_IPC:?Supply root-owned GID13000 mode0710 producer socket directory}
+        target: /run/ai4r-rsi-security-ipc
+        read_only: true
+        bind: {create_host_path: false}
+  rsi-worker-broker:
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_ROOT:?Supply protected root qualification installation}
+        target: /run/ai4r-rsi-security
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_SECURITY_IPC:?Supply root-owned GID13000 mode0710 producer socket directory}
+        target: /run/ai4r-rsi-security-ipc
+        bind: {create_host_path: false}
