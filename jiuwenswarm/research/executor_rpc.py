@@ -598,7 +598,8 @@ async def serve():
     handlers['run_admission_self_test'] = run_admission
     def record_fault(operation, payload, fault):
         # Protected diagnostic: class, code and in-package frame only. The RPC
-        # reply stays masked; collection reads this record to name the cause.
+        # reply stays masked; the runner copies this record into the protected
+        # stop receipt, and run status shows it, so the cause is never lost.
         scope = {}
         try:
             contract = store.read_record(payload['contract_ref'])

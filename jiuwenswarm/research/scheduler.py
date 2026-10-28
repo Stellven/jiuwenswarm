@@ -388,7 +388,10 @@ class Scheduler:
                         or any(failed[key]!=observation[key] for key in ('run_id','node_id','attempt_id','node_contract_ref'))
                         or stopped.get('reason_code') not in {'integrity_fault','security_fault','AUDIT_UNAVAILABLE','CONTAINMENT_UNCERTAIN','run_budget_exhausted'}):
                     raise ResearchError('protected_stop','Protected stop receipt does not join the exact completed invocation')
-                raise ResearchError('protected_stop','An actual protected integrity/security/persistence/run-budget failure halts the whole run')
+                fault=stopped.get('executor_fault')
+                cause=(' Executor cause: %s %s at %s in %s.'%(fault.get('exception_class'),fault.get('code') or '',fault.get('frame'),fault.get('operation'))
+                       if isinstance(fault,dict) else '')
+                raise ResearchError('protected_stop','An actual protected integrity/security/persistence/run-budget failure halts the whole run.'+cause)
             if observation['failure_reason_code'] in {'integrity_fault','security_fault','AUDIT_UNAVAILABLE'}:
                 raise ResearchError('protected_stop','A protected integrity/security/persistence fault halts the whole run')
             return {'node_id':node_id,'outcome':states[node_id],'decision_ref':decision_ref}

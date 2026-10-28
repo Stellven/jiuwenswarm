@@ -24,7 +24,7 @@ def main():
         stages = json.loads(json_bytes(build_research_assets(store, verify_catalog=False)))
         pi = json.loads(json_bytes(build_pi_benchmark_asset(store, base=stages['benchmark'], verify_catalog=False)))
     for stage in stages:
-        if stage not in {'builder', 'benchmark'} and stages[stage] != prior['stages'][stage]:
+        if stage not in {'hypothesis', 'builder', 'benchmark'} and stages[stage] != prior['stages'][stage]:
             raise SystemExit('Refusing unrelated scientific release change: ' + stage)
     if args.write:
         prior['stages'] = stages
@@ -40,7 +40,7 @@ def main():
     template.update(id='static_template_m1_builder_development_v1', template_name='m1_blind_builder_development_v1')
     for node in template['nodes']:
         stage = node['node_id']
-        if stage in {'builder', 'benchmark'}:
+        if stage in {'hypothesis', 'builder', 'benchmark'}:
             # Resolve the generated release identity rather than carrying a stale
             # hard-coded version into the template after a source-only repair.
             node['cc'].update(cc_version=STAGE_VERSIONS[stage],

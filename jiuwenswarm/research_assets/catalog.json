@@ -92,6 +92,6 @@
     "interface_revision": "M1-IF-002@r2",
     "meaning": "Bounded native Builder actions and protected compile/unit/smoke checks; independent reviews, gates and schema-routed Benchmark retained.",
     "path": "planner/static-template.json",
-    "sha256": "47f7639bb1d5854cffe7d1c144443a7d6c3e85481002ed2bc38d3f7922960fc3"
+    "sha256": "c2dc8324a32b83b55cbe837df0aac239f042c93401d399a5ceb358c3cb63cf72"
   }
 }

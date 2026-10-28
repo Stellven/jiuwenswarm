@@ -901,10 +901,20 @@ class CapsuleRunner:
                         or used>=frozen['run_limits']['model_calls']):
                     reason,failed_ref='run_budget_exhausted',observation_ref
         if reason is None:return None
+        # The executor masks its own fault from the RPC reply. Its protected
+        # fault record is the only place the real cause survives, so carry it
+        # into the stop receipt instead of leaving a bare integrity_fault.
+        fault=None
+        if reason=='integrity_fault':
+            rows=[row['record'] for row in self.store.iter_records(run_id=contract['run_id'],kinds=('executor-rpc-fault',))
+                  if row['record'].get('node_id')==contract['node_id'] and row['record'].get('attempt_id')==contract['attempt_id']]
+            if rows:
+                last=rows[-1]
+                fault={key:last.get(key) for key in ('operation','exception_class','code','frame')}
         return self.store.append_record('protected-invocation-stop',{'schema':'ai4r-protected-invocation-stop:1',
             'id':'protected-stop:'+uuid.uuid4().hex,**{key:contract[key] for key in ('run_id','node_id','attempt_id')},
             'contract_ref':contract_ref,'worker_observation_ref':observation_ref,'failure_observation_ref':failed_ref,
-            'reason_code':reason,'recorded_at':utc_now()})
+            'reason_code':reason,'executor_fault':fault,'recorded_at':utc_now()})
 
     def _complete_execution(self,execution,stop=None):
         raw_ref=execution['observation_ref'];raw=self.store.read_record(raw_ref,contract_id='invocation-observation')
