@@ -100,3 +100,17 @@ class CCRoute(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+
+
+class CCLiveInputs(unittest.TestCase):
+    def test_rejected_tool_is_replaced_by_admitted_version(self):
+        import cc_live_inputs
+        import cc_route
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            cc_route.main(['--out', tmp, 'calc_truncate', 'calc_reference'])
+            rows = {r['item']: r for r in (cc_live_inputs.build(i, Path(tmp) / 'cc', Path(tmp) / 'live' / i) for i in ('calc_truncate', 'calc_reference'))}
+            ref_tool = (HERE / 'items' / 'calc_reference' / 'public' / 'calc_tool.py').read_bytes()
+            self.assertEqual((Path(tmp) / 'live' / 'calc_truncate' / 'calc_tool.py').read_bytes(), ref_tool)
+            self.assertEqual((Path(tmp) / 'live' / 'calc_truncate' / 'task.txt').read_bytes(), (HERE / 'items' / 'calc_truncate' / 'public' / 'task.txt').read_bytes())
+        self.assertEqual(rows['calc_truncate']['served_version'], 'calc_reference')
+        self.assertEqual(rows['calc_reference']['served_version'], 'calc_reference')
