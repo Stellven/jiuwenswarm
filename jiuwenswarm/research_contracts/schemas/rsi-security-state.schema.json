@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-state:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-state:1"
+    },
+    "canaries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uid": {
+            "const": 0
+          },
+          "gid": {
+            "const": 0
+          },
+          "mode": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "content_ref": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "required": [
+          "name",
+          "path",
+          "uid",
+          "gid",
+          "mode",
+          "sha256",
+          "content_ref"
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 32
+    },
+    "peer_accepts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "peer": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "family": {
+              "enum": [
+                "unix",
+                "inet"
+              ]
+            },
+            "address": {
+              "type": "string",
+              "minLength": 1
+            },
+            "port": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                }
+              ]
+            },
+            "uid": {
+              "const": 0
+            },
+            "pid": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "inode": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "family",
+            "address",
+            "port",
+            "uid",
+            "pid",
+            "inode"
+          ]
+        }
+      ]
+    },
+    "ledger": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "used": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "cap": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            },
+            "lifetime": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lifetime_cap": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 90
+            },
+            "final_sealed": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "halted": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "kind": {
+                    "enum": [
+                      "loop",
+                      "final"
+                    ]
+                  },
+                  "state": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "fingerprint": {
+                    "anyOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    ]
+                  },
+                  "result_sha256": {
+                    "anyOf": [
+                      {
+                        "type": "null"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "kind",
+                  "state",
+                  "fingerprint",
+                  "result_sha256"
+                ]
+              },
+              "minItems": 0,
+              "maxItems": 10000
+            }
+          },
+          "required": [
+            "used",
+            "cap",
+            "lifetime",
+            "lifetime_cap",
+            "final_sealed",
+            "halted",
+            "actions"
+          ]
+        }
+      ]
+    },
+    "library": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "admissions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              },
+              "minItems": 0,
+              "maxItems": 10000
+            },
+            "standings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "declaration_ref": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "standing": {
+                    "enum": [
+                      "inactive",
+                      "active",
+                      "suspended",
+                      "revoked"
+                    ]
+                  }
+                },
+                "required": [
+                  "declaration_ref",
+                  "standing"
+                ]
+              },
+              "minItems": 0,
+              "maxItems": 10000
+            },
+            "activations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              },
+              "minItems": 0,
+              "maxItems": 10000
+            },
+            "qualification_ref": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/Ref"
+                }
+              ]
+            }
+          },
+          "required": [
+            "admissions",
+            "standings",
+            "activations",
+            "qualification_ref"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "canaries",
+    "peer_accepts",
+    "peer",
+    "ledger",
+    "library"
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ]
+    }
+  }
+}

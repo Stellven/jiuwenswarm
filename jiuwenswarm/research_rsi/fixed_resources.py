@@ -21,9 +21,8 @@ from .worker import PublicBytes,WorkerClient,ref
 class CombinedRecords:
     def __init__(self,records,core=None,public=None,publisher=None):self.records,self.core,self.public,self.publisher=records,core,public,publisher
     def read(self,pin):
-        if pin['id']==pin['sha256']+'.json':
-            try:return self.records.read(pin)
-            except FileNotFoundError:pass
+        try:return self.records.read(pin)
+        except FileNotFoundError:pass
         if self.core is not None:
             try:return self.core.read_blob(pin)
             except Exception:pass
@@ -42,6 +41,14 @@ class CombinedRecords:
     def record_proposer_start(self,session,value):
         pin=self.records.record_proposer_start(session,value)
         if self.publisher is not None:self.publisher.put_ref(pin,self.records.read(pin))
+        return pin
+    def record_candidate_binding(self,value):
+        pin=self.records.record_candidate_binding(value)
+        if self.publisher is not None:
+            from .candidate_bindings import binding_id
+            raw=self.records.read(pin)
+            self.publisher.put_ref(pin,raw)
+            self.publisher.put_ref({'id':binding_id(value['session_ref'],value['candidate_ref']),'sha256':pin['sha256']},raw)
         return pin
     def __getattr__(self,name):return getattr(self.records,name)
 
@@ -76,14 +83,31 @@ async def native_profile_ready(subscription,native_lease):
     return True
 
 
+async def require_native_profile_ready(subscription,native_lease):
+    """The normal start path must not ignore a refusal during a lease race."""
+    if await native_profile_ready(subscription,native_lease) is not True:
+        from .native_lease import ProfileInUse
+        raise ProfileInUse('PROFILE_IN_USE: the separately owned native profile is unavailable')
+
+
+def qualification_or_unavailable(store,qualification_ref,**owners):
+    """Malformed installation blocks effects without discarding offline history."""
+    from .qualification import configured_qualification
+    from jiuwenswarm.research.contracts import ResearchError
+    try:return configured_qualification(store,qualification_ref,**owners)
+    except (ValueError,KeyError,TypeError,OSError,ResearchError):return None
+
+
 class CoreProposer:
     """Actual normal runner model contexts over an immutable per-attempt list."""
     def __init__(self,resources,contract_refs,store,*,native_lease=None,session_id=None,qualification=None,session_ref=None):
         self.resources,self.refs,self.store=resources,list(contract_refs),store
         self.position=0;self.last_evidence=[];self.last_model_calls=None;self.native_lease=native_lease;self.session_id=session_id
         self.qualification,self.session_ref=qualification,session_ref
+        self.last_generating_model=None;self.last_unavailable_reasons=[]
     async def __call__(self,prompt):
         self.last_evidence=[];self.last_model_calls=None
+        self.last_generating_model=None;self.last_unavailable_reasons=[]
         from .qualification import require_qualification
         require_qualification(self.qualification,'proposal',session_ref=self.session_ref)
         if self.position>=len(self.refs):raise ValueError('No further captured proposer invocation is authorized')
@@ -101,6 +125,16 @@ class CoreProposer:
             self.last_evidence=[e['ref'] for e in entries]
             observations=[e['record'] for e in entries if e['kind']=='invocation-observation']
             self.last_model_calls=observations[-1]['model_calls'] if observations else None
+            calls=[e['record'] for e in entries if e['kind']=='model-call' and e['record'].get('outcome')=='completed']
+            if len(calls)==1:
+                identity=calls[0].get('identity')
+                observed=identity.get('effective') if isinstance(identity,dict) else None
+                if isinstance(observed,str) and observed:self.last_generating_model=observed
+                usage=calls[0].get('usage')
+                if not isinstance(usage,dict) or any(usage.get(key) is None for key in ('input_tokens','output_tokens','cost')):
+                    self.last_unavailable_reasons.append('Model usage measurement unavailable or partial; consult exact governed call evidence')
+            if self.last_generating_model is None:
+                self.last_unavailable_reasons.append('Effective generating model unavailable from an unambiguous completed governed call')
             if lease_ref is not None:
                 from .native_lease import native_completion_proof
                 known,proof=native_completion_proof(self.resources.store,starts)
@@ -145,16 +179,30 @@ class FixtureEvaluator:
     async def one(self,candidate,row,phase,operation,repeat,*,timing=False):
         reservation=self.worker.requests.put({'schema':'ai4r-rsi-worker-reservation:1','session_ref':self.session_ref,
             'candidate_ref':candidate,'phase':phase,'operation':operation,'fixture_id':row['id']})
+        if self.store.put_bytes(self.worker.requests.read(reservation))!=reservation:raise ValueError('Private reservation capture changed')
         response=await self.worker.run(candidate,self.store.get(row['input_ref']),phase=phase,reservation_ref=reservation,repeat_index=repeat,timing=timing)
-        receipt=response['receipt'];self.last_evidence.append(self.store.put({'schema':'ai4r-rsi-fixture-capture:1',
-            'session_ref':self.session_ref,'candidate_ref':candidate,'fixture_id':row['id'],'phase':phase,'receipt':receipt}))
+        from .session_policy import validate_private
+        validate_private('urn:ai4r:private:rsi-worker-response:2',response)
+        receipt=response['receipt'];request=response['request']
+        if (request['session_ref']!=self.session_ref or request['candidate_ref']!=candidate
+                or request['input_ref']['sha256']!=row['input_ref']['sha256'] or request['reservation_ref']!=reservation
+                or request['phase']!=phase or request['repeat_index']!=repeat):raise ValueError('Private worker input/scope differs')
         for item in response.get('captures',[]):
             if self.store.put_bytes(self.worker.requests.read(item['ref']))!=item['ref']:raise ValueError('Private fixture capture identity differs')
+        if self.store.put_bytes(self.worker.requests.read(request['input_ref']))!=request['input_ref']:raise ValueError('Private input capture changed')
+        capture={'schema':'ai4r-rsi-fixture-capture:2','session_ref':self.session_ref,'candidate_ref':candidate,
+            'fixture_id':row['id'],'phase':phase,'receipt':receipt,'timing':timing,
+            'batch_iterations':response['batch_iterations'],'program_sha256':response['program_sha256'],
+            'worker_profile_ref':request['profile_ref'],'input_ref':request['input_ref'],
+            'reservation_ref':reservation,'repeat_index':repeat}
+        validate_private('urn:ai4r:private:rsi-fixture-capture:2',capture)
+        self.last_evidence.append(self.store.put(capture))
         if receipt['termination_reason']!='completed' or receipt['exit_code']!=0:raise ValueError('Worker evaluation did not complete under confinement')
         value=json.loads(self.store.read(receipt['stdout_ref']))
         return int(value==self.store.get(row['expected_ref'])),receipt['wall_time_s']
     async def scores(self,candidate,phase,operation):
-        self.last_evidence=[];scores=[]
+        if not getattr(self,'_collecting',False):self.last_evidence=[]
+        scores=[]
         for row in self.manifest['partitions'][phase]:
             values=[]
             for repeat in range(self.repeats):
@@ -170,6 +218,10 @@ class FixtureEvaluator:
         scores=await self.scores(candidate,'platform','mandatory:'+uuid.uuid4().hex)
         return bool(scores) and all(all(value==1 for value in row) for row in scores)
     async def paired(self,parent,child,split,repeats,configuration_ref):
+        self.last_evidence=[];self._collecting=True
+        try:return await self._paired(parent,child,split,repeats,configuration_ref)
+        finally:self._collecting=False
+    async def _paired(self,parent,child,split,repeats,configuration_ref):
         if repeats!=self.repeats or configuration_ref!=self.target['configuration_ref']:raise ValueError('Final context differs from frozen target')
         p=await self.scores(parent,split,'final-parent');c=await self.scores(child,split,'final-child')
         capture={'parent':p,'child':c,'independent':self.manifest['independent'],'violations':[]}
@@ -177,8 +229,10 @@ class FixtureEvaluator:
         # inferred from correctness; equal means need the complete procedure.
         expected={'parent':[Fraction(sum(row),repeats) for row in p],
                   'child':[Fraction(sum(row),repeats) for row in c]}
-        # Every final referee pair requires seven actual times, including a
-        # correctness gain. Timing can qualify only an equal-quality child.
+        # Timing can qualify only equal fixture means without regressions.
+        # Do not spend extra execution budget after a correctness comparison
+        # has already ruled out that qualification path.
+        if expected['parent']!=expected['child']:return capture
         times={'parent':[],'child':[]};stable=True
         for round_index in range(12):
             order=(('parent',parent),('child',child)) if round_index%2==0 else (('child',child),('parent',parent))
@@ -202,28 +256,32 @@ async def assemble_jobs(config,records):
     from jiuwenswarm.research.operator_config import OperatorConfiguration
     from jiuwenswarm.research.contracts import Principal,validate
     from jiuwenswarm.research.isolated_resources import build_isolated_resources
-    from jiuwenswarm.server.runtime.codex_subscription.service import SubscriptionService
     from .controller import Controller
     from .custodian_client import CustodianClient
     from .assessment import GuardedAssessment
     from .proposer import GuardedProposer
     from .profiles import freeze_profile,Limits
     from .mutation import child_declaration
-    from .opportunity import decide
+    from .opportunity import produce_opportunity
     binding=records.get(config['resource_binding_ref'])
     fields={'isolation_root','core_root','account_root','forbidden_roots','principal','exact_binding_refs','run_contexts','custodian','worker','parent_directory','work_root','approved_session_refs','public_root','public_record_refs','native_containment_ref'}
-    qualified_binding=binding.get('schema')=='ai4r-rsi-workbench-resources:2'
-    closed(binding,fields|({'security_qualification_ref'} if qualified_binding else set()),'ai4r-rsi-workbench-resources:2' if qualified_binding else 'ai4r-rsi-workbench-resources:1')
+    preparation_binding=binding.get('schema')=='ai4r-rsi-workbench-resources:4'
+    clearance_binding=binding.get('schema') in {'ai4r-rsi-workbench-resources:3','ai4r-rsi-workbench-resources:4'}
+    qualified_binding=binding.get('schema') in {'ai4r-rsi-workbench-resources:2','ai4r-rsi-workbench-resources:3','ai4r-rsi-workbench-resources:4'}
+    closed(binding,fields|({'security_qualification_ref'} if qualified_binding else set())|({'clearance_policy_ref'} if clearance_binding else set())|({'approved_preparation_refs'} if preparation_binding else set()),
+        'ai4r-rsi-workbench-resources:4' if preparation_binding else 'ai4r-rsi-workbench-resources:3' if clearance_binding else 'ai4r-rsi-workbench-resources:2' if qualified_binding else 'ai4r-rsi-workbench-resources:1')
     root=owned_directory(binding['isolation_root'],12001)
     for key in ('core_root','account_root','work_root'):
         path=owned_directory(binding[key],12001)
         if not path.is_relative_to(root):raise ValueError('Workbench resource escapes isolated root')
     core=SQLiteRunStore(binding['core_root'],recover=False)
-    from .qualification import captured_qualification
-    qualification=captured_qualification(core,binding.get('security_qualification_ref'))
+    from .qualification import require_key_pin
     from jiuwenswarm.research_records.original_bytes import OriginalBytes
     publication=OriginalBytes(shared_directory(binding['public_root'],12001),writable=True)
     store=CombinedRecords(records,core,publisher=publication)
+    from .candidate_bindings import CandidateResolver
+    qualification=qualification_or_unavailable(store,binding.get('security_qualification_ref'),kind_reader=core.record_kind,
+        candidate_resolver=CandidateResolver(read=store.read,locate=records.candidate_binding_ref))
     for pin in binding['public_record_refs']:publication.put_ref(pin,store.read(pin))
     from .native_lease import NativeEffectLease
     scope_ref=records.put({'schema':'ai4r-rsi-native-profile-scope:1','isolation_root':str(root),'account_root':binding['account_root']})
@@ -231,6 +289,9 @@ async def assemble_jobs(config,records):
     if binding['native_containment_ref'] is not None:native_lease.release_from_receipt(binding['native_containment_ref'],store.read)
     exact=binding['exact_binding_refs'];configuration=core.read_record(exact['configuration_ref'])
     operator=OperatorConfiguration.from_mapping(configuration.get('operator',configuration),resolve_profile=core.read_record)
+    key_pin=operator.snapshot()['rsi']
+    try:require_key_pin(qualification,base64.urlsafe_b64decode(key_pin['custodian_public_key']+'='*(-len(key_pin['custodian_public_key'])%4)) if key_pin['custodian_public_key'] else None,key_pin['custodian_key_id'])
+    except (ValueError,KeyError,TypeError):qualification=None
     actor=binding['principal']
     if set(actor)!={'account_id','workspace_ids','operations','audiences'}:raise ValueError('Unknown captured actor field')
     principal=Principal(actor['account_id'],frozenset(actor['workspace_ids']),frozenset(actor['operations']),frozenset(actor['audiences']))
@@ -251,7 +312,8 @@ async def assemble_jobs(config,records):
     async def unavailable_readiness(_):raise ValueError('Use the separately qualified finite job readiness')
     executor=OwnExecutor()
     if await executor.prerequisites():raise ValueError('Actual isolated worker peer/profile/confinement is unavailable')
-    subscription=SubscriptionService(Path(binding['account_root']))
+    from .spark_backend import subscription_for_deployment
+    subscription=subscription_for_deployment(Path(binding['account_root']),core.read_record(exact['deployment_ref']))
     subscription.set_account_observer(core.append_record)
     # An uncertain native owner cannot be replaced even by a status bootstrap.
     # Keep the finite port available for history closure/inspection only; the
@@ -265,28 +327,46 @@ async def assemble_jobs(config,records):
     custody_requests=RecordStore(shared_directory(custody['requests_root'],12001),file_mode=0o640)
     public=PublicBytes(custody['public_roots']);store.public=public
     async def factory(job,*,recovery=False):
-        closed(job,{'session_ref','opportunity_ref','visible_context_ref','proposer_contract_refs','worker_profile_ref','fixture_identity','target_kind'},'ai4r-rsi-session-job:1')
+        current=job.get('schema')=='ai4r-rsi-session-job:2'
+        if current:
+            from .session_policy import validate_private
+            validate_private('urn:ai4r:private:rsi-session-job:2',job)
+        else:
+            closed(job,{'session_ref','opportunity_ref','visible_context_ref','proposer_contract_refs','worker_profile_ref','fixture_identity','target_kind'},'ai4r-rsi-session-job:1')
+        if not recovery and (not current or not preparation_binding):raise ValueError('New sessions require canonical opportunity preparation and current protected bindings')
         if not recovery:native_lease.assert_available()
-        if job['session_ref'] not in binding['approved_session_refs'] or job['target_kind'] not in {'ranking-v1','screening-text-v1'}:raise ValueError('Job is outside the frozen target registry')
+        if job['session_ref'] not in binding['approved_session_refs']:raise ValueError('Job is outside the frozen target registry')
         if not recovery:
+            from .clearance import SessionClearance
+            SessionClearance(store,binding.get('clearance_policy_ref')).require(store.get(job['session_ref'])['session_id'])
             from .qualification import require_qualification
             require_qualification(qualification,'session_start',session_ref=job['session_ref'],worker_profile_ref=job['worker_profile_ref'])
-            await native_profile_ready(subscription,native_lease)
+            await require_native_profile_ready(subscription,native_lease)
         if job['target_kind']=='screening-text-v1':
+            if not recovery:raise ValueError('Conditional text target is deferred')
             from .text_resources import assemble_text_job
             return await assemble_text_job(job,resources=resources,store=store,binding=binding,custody=custody,
                 custody_requests=custody_requests,native_lease=native_lease,publication=publication,
                 trial_runtime=factory.trial_port,principal=principal,recovery=recovery,qualification=qualification)
-        if job['worker_profile_ref']!=worker_binding['profile_ref']:raise ValueError('Ranking worker profile differs')
+        from .targets import registered_helper
+        adapter=registered_helper(job['target_kind'])
+        if job['worker_profile_ref']!=worker_binding['profile_ref']:raise ValueError('Helper worker profile differs')
         session=store.get(job['session_ref']);validate('rsi-session',session)
         if session['started_by']!=principal.account_id:raise ValueError('Session actor differs from captured authorization')
         limits=Limits.from_mapping(session['limits'])
         if len(job['proposer_contract_refs'])!=limits.max_attempts:raise ValueError('Bounded per-attempt proposer contracts are missing')
+        if current and job['diagnosis_contract_ref'] in job['proposer_contract_refs']:raise ValueError('Diagnosis and proposal contracts must have distinct once-only identities')
         target=store.get(session['target_profile_ref']);parent=store.get(session['parent_declaration_ref']);freeze_profile(target,parent,validate)
         from .worker import validate_profile
         worker_profile=validate_profile(store.get(job['worker_profile_ref']))
+        if not recovery and worker_profile['schema']!='ai4r-rsi-worker-profile:3':raise ValueError('New sessions require the isolated single-process worker policy')
+        if worker_profile['target_kind']!=job['target_kind']:raise ValueError('Registered helper differs from the frozen worker profile')
         if worker_profile['session_ref']!=job['session_ref'] or worker_profile['target_ref']!=session['target_profile_ref'] or worker_profile['parent_ref']!=target['parent_ref']:raise ValueError('Worker profile differs from the frozen session target')
         if session['pass_count_repeats']!=1 or worker_profile['memory_mb']>target['limits']['memory_mb'] or worker_profile['timeout_s']>min(target['limits']['time_s'],limits.per_call_s):raise ValueError('Deterministic target repetition or resource scope was widened')
+        from .session_policy import FinalBudget
+        final_budget=FinalBudget.for_session(session,store,worker_profile=worker_profile) if not recovery else None
+        budget_ref=store.get(session['chain_root_ref']).get('final_budget_ref')
+        if budget_ref is not None:publication.put_ref(budget_ref,store.read(budget_ref))
         for pin in (job['session_ref'],session['target_profile_ref'],session['parent_declaration_ref'],session['chain_root_ref'],session['hash_profile_ref'],target['parent_ref']):
             publication.put_ref(pin,store.read(pin))
         parent_hashes={row['sha256'] for row in parent['identity']['body']}
@@ -296,14 +376,10 @@ async def assemble_jobs(config,records):
         admission=core.read_record(entry['admission_ref'],contract_id='library-admission')
         if entry['declaration_ref']!=session['parent_declaration_ref'] or admission['status']!='admitted':raise ValueError('Selected immutable admitted parent is unavailable')
         if worker_profile['memory_mb']>admission['memory_mb']:raise ValueError('Worker memory exceeds the frozen parent admission')
-        opportunity=store.get(job['opportunity_ref']);closed(opportunity,{'attribution','symptom_reproduced','mandatory_passed','headroom','headroom_minimum','diagnosis','resource_ready','evidence_refs','parent_visible_time_s'},'ai4r-rsi-opportunity:1')
-        if not opportunity['evidence_refs']:raise ValueError('Measured opportunity has no actual evidence')
-        for pin in opportunity['evidence_refs']:store.read(pin)
-        decision=decide(**{k:opportunity[k] for k in ('attribution','symptom_reproduced','mandatory_passed','headroom','headroom_minimum','diagnosis','resource_ready')})
-        if decision.get('decision')!='START':raise ValueError('Target lacks an eligible measured implementation opportunity')
-        decision['parent_visible_time_s']=opportunity['parent_visible_time_s']
+        opportunity_state={}
         worker=WorkerClient(socket_path=worker_binding['socket_path'],session_id=worker_binding['session_id'],capability=worker_binding['capability'],
-            requests=requests,profile_ref=job['worker_profile_ref'],session_ref=job['session_ref'])
+            requests=requests,profile_ref=job['worker_profile_ref'],session_ref=job['session_ref'],
+            timeout_s=final_budget.invocation_wall_s if final_budget else 300,target_kind=job['target_kind'],process_policy=worker_profile.get('process_policy'))
         visible=store.get(job['visible_context_ref'])
         if set(visible)!={'context','mandatory_fixtures','required_test_refs'} or visible['required_test_refs']!=target['required_test_refs'] or not visible['mandatory_fixtures']:raise ValueError('Visible required tests are incomplete')
         parent_directory=owned_directory(binding['parent_directory'],12001)
@@ -318,10 +394,9 @@ async def assemble_jobs(config,records):
             if p.is_symlink() or p.stat().st_nlink!=1 or hashlib.sha256(p.read_bytes()).hexdigest()!=expected_files[name]:raise ValueError('Parent snapshot differs from the frozen implementation closure')
         async def mandatory(snapshot,declaration):
             child=store.put_bytes((Path(snapshot['path'])/target['mutable_paths'][0]).read_bytes());pins=[];durations=[];passed=True
-            from .targets.ranking import rank_opportunities
             for index,fixture in enumerate(visible['mandatory_fixtures']):
                 if set(fixture)!={'input_ref','test_ref'} or fixture['test_ref'] not in target['required_test_refs']:raise ValueError('Unknown mandatory test binding')
-                inputs=store.get(fixture['input_ref']);expected=rank_opportunities(inputs['scores'])
+                inputs=store.get(fixture['input_ref']);expected=adapter.reference(inputs)
                 reserve=requests.put({'session_ref':job['session_ref'],'candidate_ref':child,'phase':'development','operation':'mandatory:'+uuid.uuid4().hex})
                 # Candidate bytes are copied to the explicitly shared public
                 # controller request store; no hidden fixture enters it.
@@ -335,14 +410,18 @@ async def assemble_jobs(config,records):
             if set(encoded(f['test_ref']) for f in visible['mandatory_fixtures'])!=set(encoded(p) for p in target['required_test_refs']):raise ValueError('Some required parent tests were not executed')
             return {'passed':passed,'evidence_refs':pins,'visible_selection_time_s':sum(durations)}
         async def declaration(snapshot,child,diff):
+            if proposer.last_prompt_ref is None:raise ValueError('Exact captured proposer prompt is unavailable')
             hashes={row['path']:row['sha256'] for row in parent['identity']['body']};hashes[target['mutable_paths'][0]]=child['sha256']
             label=parent['identity']['version_label']+'.'+uuid.uuid4().hex[:8]
             value=child_declaration(parent,body_hashes=hashes,version_label=label,carrier=parent['identity']['carrier'],
                 lineage={'parent':session['parent_declaration_ref'],'co_parents':[],'relation':'supersedes','builder':'rsi_workbench',
-                    'build_trigger':session['session_id'],'context_capsules':[],'diagnosis_inputs':opportunity['evidence_refs'],
+                    'build_trigger':session['session_id'],'context_capsules':[],'diagnosis_inputs':opportunity_state['record']['evidence_refs'],
                     'builder_ref':store.proposer_starts(session['session_id'])[-1],
-                    'provenance':{'generating_model':None,'prompt_ref':session['improver_ref'],'trajectory_ref':store.proposer_starts(session['session_id'])[-1]}},validate=validate)
+                    'provenance':{'generating_model':proposer.last_generating_model,'prompt_ref':proposer.last_prompt_ref,
+                        'trajectory_ref':store.proposer_starts(session['session_id'])[-1]}},validate=validate)
             pin=store.put(value)
+            from .candidate_bindings import bind_candidate
+            bind_candidate(store,session_ref=job['session_ref'],candidate_ref=child,declaration_ref=pin)
             return value,{'cc_name':value['identity']['name'],'cc_version':label,'declaration_sha256':pin['sha256']}
         client=CustodianClient(custody_requests,socket_path=custody['socket_path'],peer_uid=custody['peer_uid'],session_id=session['session_id'],timeout=limits.wall_s)
         proposer=GuardedProposer(CoreProposer(resources,job['proposer_contract_refs'],store,native_lease=native_lease,session_id=session['session_id'],qualification=qualification,session_ref=job['session_ref']),configuration_ref=session['configuration_ref'],improver_ref=session['improver_ref'],limits=limits,store=store)
@@ -356,7 +435,7 @@ async def assemble_jobs(config,records):
             native_lease.assert_available()
             return {'contained':True,'session_id':sid}
         controller=Controller(store=store,ledger=client,oracle=client,proposer=proposer,assess=assess,signer=client,validate=validate,
-            recovery_containment=recovery_containment,qualification=qualification)
+            recovery_containment=recovery_containment,qualification=qualification,clearance_policy_ref=binding.get('clearance_policy_ref'))
         async def final(best):
             value=store.get(best['child_declaration_ref'])
             value['identity']['lineage']['builder_ref']=best['attempt_ref']
@@ -365,10 +444,31 @@ async def assemble_jobs(config,records):
             best['child_declaration_ref']=store.put(value)
             best['child']={**best['child'],'declaration_sha256':best['child_declaration_ref']['sha256']}
             decision,pin=await client.final(dict(attempt_ref=best['attempt_ref'],target_ref=session['target_profile_ref'],parent_ref=target['parent_ref'],child_ref=best['child_ref'],
-                configuration_ref=session['configuration_ref'],repeats=session['pass_count_repeats'],qualification=session['qualification'],mandatory_passed=True,integrity_passed=True))
+                configuration_ref=session['configuration_ref'],repeats=session['pass_count_repeats'],qualification=session['qualification']))
             if store.put(custody_requests.get(pin))!=pin:raise ValueError('Transferred public final record changed')
             return decision,pin
-        return controller,dict(session=session,session_ref=job['session_ref'],opportunity=decision,fixture_identity=job['fixture_identity'],visible_context=visible['context'],parent_body_ref=target['parent_ref'],finalize=final)
+        async def qualify():
+            model=CoreProposer(resources,[job['diagnosis_contract_ref']],store,native_lease=native_lease,
+                session_id=session['session_id'],qualification=qualification,session_ref=job['session_ref'])
+            result=await produce_opportunity(store,profile_ref=session['target_profile_ref'],parent=session['parent'],
+                preparation_ref=job['preparation_ref'],approved_preparation_refs=binding['approved_preparation_refs'],
+                expected_worker_profile_ref=job['worker_profile_ref'],
+                model=model,opportunity_id='opportunity:'+uuid.uuid4().hex,selected_by=session['started_by'],limits=limits)
+            store.record_opportunity(session['session_id'],job['session_ref'],result['ref'],diagnosis_capture_ref=result['diagnosis_capture_ref'])
+            opportunity_state.update(result)
+            return result
+        return controller,dict(session=session,session_ref=job['session_ref'],opportunity=None,fixture_identity=job['fixture_identity'],
+            visible_context=visible['context'],parent_body_ref=target['parent_ref'],finalize=final,qualify=qualify if current and not recovery else None)
+    async def readiness(job,*,job_ref=None):
+        # This hook reuses the running owners. Calling factory(job) would do
+        # publication/clearance writes and native status startup, so is forbidden.
+        from .runtime_readiness import RuntimeReadiness
+        session=store.get(job['session_ref'])
+        client=CustodianClient(custody_requests,socket_path=custody['socket_path'],peer_uid=custody['peer_uid'],
+            session_id=session['session_id'],timeout=30)
+        inspector=RuntimeReadiness(store,resources,native_lease,worker_probe,client,binding=binding)
+        return await inspector.inspect(job,job_ref=job_ref)
+    factory.readiness=readiness
     # Optional fixed Target2 port: a separate input publication and UID grant,
     # never the public proposer OriginalBytes root or ordinary jobs socket.
     factory.trial_port=None
@@ -398,12 +498,15 @@ async def assemble_custodian(config,records):
         'ai4r-rsi-custodian-resources:3' if qualified_binding else 'ai4r-rsi-custodian-resources:2' if text_mode else 'ai4r-rsi-custodian-resources:1')
     private=owned_directory(binding['fixture_root'],12002);public=PublicBytes(binding['public_roots'])
     store=CombinedRecords(records,public=public)
-    from .qualification import captured_qualification
-    qualification=captured_qualification(store,binding.get('security_qualification_ref'))
+    from .qualification import require_key_pin
+    from .candidate_bindings import public_candidate_resolver
+    qualification=qualification_or_unavailable(store,binding.get('security_qualification_ref'),candidate_resolver=public_candidate_resolver(public))
     manifest=store.get(config['fixture_manifest_ref'])
     key_path=Path(config['signing_key_file'])
     if key_path.is_symlink() or key_path.stat().st_uid!=12002 or stat.S_IMODE(key_path.stat().st_mode)!=0o600:raise ValueError('Independent signing key is not private')
     signer=Signer(Ed25519PrivateKey.from_private_bytes(key_path.read_bytes()),config['signer_key_id'])
+    try:require_key_pin(qualification,signer.public_bytes(),config['signer_key_id'])
+    except (ValueError,KeyError,TypeError):qualification=None
     from jiuwenswarm.research_records.original_bytes import OriginalBytes
     inbox=shared_directory(binding['candidate_inbox'],12002)
     publication=OriginalBytes(inbox,writable=True)
@@ -435,16 +538,32 @@ async def assemble_custodian(config,records):
                 or worker_profile['parent_ref']!=target['parent_ref'] or worker_profile['memory_mb']>target['limits']['memory_mb']
                 or worker_profile['timeout_s']>min(target['limits']['time_s'],session['limits']['per_call_s'])):
                 raise ValueError('Hidden worker profile differs from the exact frozen evaluation scope')
+            from .session_policy import FinalBudget
+            final_budget=FinalBudget.for_session(session,store,worker_profile=worker_profile,manifest=manifest)
             worker=WorkerClient(socket_path=worker_binding['socket_path'],session_id=worker_binding['session_id'],capability=worker_binding['capability'],requests=worker_records,
-                profile_ref=worker_binding['profile_ref'],session_ref=session_ref,hidden=True)
+                profile_ref=worker_binding['profile_ref'],session_ref=session_ref,hidden=True,timeout_s=final_budget.invocation_wall_s,
+                target_kind=worker_profile['target_kind'],batch_iterations=target['scoring']['batch_iterations'],process_policy=worker_profile.get('process_policy'))
             evaluator=FixtureEvaluator(manifest=manifest,store=store,worker=worker,session_ref=session_ref,target=target,repeats=session['pass_count_repeats'])
-        calibration=store.get(manifest['calibration_ref']);verify(calibration,signer.public_bytes(),config['signer_key_id'])
-        # Excluding only the calibration link avoids an impossible circular
-        # content hash while binding every other frozen target/fixture field.
-        target_context=hashlib.sha256(encoded({key:value for key,value in target.items() if key!='calibration_ref'})).hexdigest()
-        fixture_context=hashlib.sha256(encoded({key:value for key,value in manifest.items() if key!='calibration_ref'})).hexdigest()
-        calibration_fields={'target_context_sha256','fixture_context_sha256','known_bad_rejected','known_good_qualified','measurable_headroom','evidence_refs','signer_key_id','signature'}
-        if set(calibration)!=calibration_fields or calibration.get('target_context_sha256')!=target_context or calibration.get('fixture_context_sha256')!=fixture_context or calibration.get('known_bad_rejected',0)<10 or calibration.get('known_good_qualified',0)<3 or not calibration.get('measurable_headroom') or not calibration.get('evidence_refs'):raise ValueError('Actual frozen planted-child calibration/headroom unavailable')
+        calibration=store.get(manifest['calibration_ref'])
+        if calibration.get('schema')=='ai4r-rsi-calibration:2':
+            from .targets.ranking_preparation import verify_calibration2
+            actual=verify_calibration2(calibration,target=target,manifest=manifest,store=store,
+                public_key=signer.public_bytes(),key_id=config['signer_key_id'])
+            if calibration['pass_count_repeats']!=session['pass_count_repeats']:raise ValueError('Operational repeats differ from measured calibration')
+            calibrated_worker=validate_profile(store.get(actual['worker_profile_ref']))
+            comparison_fields=('target_kind','parent_ref','environment_ref','hardware_ref','memory_mb','pids_max','timeout_s','process_policy')
+            if (calibrated_worker['schema']!=worker_profile['schema'] or worker_profile['schema']!='ai4r-rsi-worker-profile:3'
+                    or any(calibrated_worker.get(key)!=worker_profile.get(key) for key in comparison_fields)):
+                raise ValueError('Current worker differs from the measured calibration environment/resources')
+        else:
+            # Historical verification keeps its original signature/context
+            # interpretation. It cannot satisfy new operational Target1 intake.
+            verify(calibration,signer.public_bytes(),config['signer_key_id'])
+            target_context=hashlib.sha256(encoded({key:value for key,value in target.items() if key!='calibration_ref'})).hexdigest()
+            fixture_context=hashlib.sha256(encoded({key:value for key,value in manifest.items() if key!='calibration_ref'})).hexdigest()
+            calibration_fields={'target_context_sha256','fixture_context_sha256','known_bad_rejected','known_good_qualified','measurable_headroom','evidence_refs','signer_key_id','signature'}
+            if set(calibration)!=calibration_fields or calibration.get('target_context_sha256')!=target_context or calibration.get('fixture_context_sha256')!=fixture_context or calibration.get('known_bad_rejected',0)<10 or calibration.get('known_good_qualified',0)<3 or not calibration.get('measurable_headroom') or not calibration.get('evidence_refs'):raise ValueError('Actual frozen planted-child calibration/headroom unavailable')
+            if isinstance(evaluator,FixtureEvaluator):raise ValueError('New helper sessions require independently measured calibration2')
         if target['calibration_ref']!=manifest['calibration_ref']:raise ValueError('Target calibration differs from the custody aggregate')
         for pin in calibration['evidence_refs']:store.read(pin)
         identity=ledger.register(manifest['fixture_identity'],{name:[row['id'] for row in rows] for name,rows in manifest['partitions'].items()},known_bad=calibration['known_bad_rejected'],known_good=calibration['known_good_qualified'])
@@ -467,10 +586,16 @@ async def assemble_custodian(config,records):
             if any(comparison.get(k)!=v for k,v in expected.items()):raise ValueError('Final comparison differs from custody grant')
             if hasattr(runtimes[sid],'comparison'):
                 runtimes[sid].comparison={k:comparison[k] for k in ('attempt_ref','target_ref','parent_ref','child_ref','configuration_ref','repeats','qualification')}
-            passed=await runtimes[sid].mandatory(comparison['parent_ref']) and await runtimes[sid].mandatory(comparison['child_ref'])
-            if not passed:raise ValueError('Independent mandatory parent tests failed before final comparison')
-            comparison=dict(comparison,mandatory_passed=True,integrity_passed=True)
-            return await Referee(ledger,store,signer,runtimes[sid].paired,validate).final(sid,**comparison)
+            async def prerequisites(**subject):
+                from .final_checks import verify_final_integrity
+                from .mutation import SecurityViolation
+                try:integrity=verify_final_integrity(session=session,store=store,validate=validate,**subject)
+                except ValueError:raise SecurityViolation('Frozen final integrity prerequisite failed; inspect protected evidence') from None
+                passed=(await runtimes[sid].mandatory(subject['parent_ref'])
+                    and await runtimes[sid].mandatory(subject['child_ref']))
+                return {'mandatory_passed':passed,'integrity_passed':integrity}
+            return await Referee(ledger,store,signer,runtimes[sid].paired,validate,
+                prerequisite_check=prerequisites).final(sid,**comparison)
     def package_publisher(result_ref):
         from .package import build_candidate,publish_candidate,write_candidate
         public_reader=PublicBytes([*binding['public_roots'],inbox])
@@ -498,6 +623,10 @@ async def assemble_custodian(config,records):
         # controller containment callback cancels those owned tasks after this
         # custody ledger has been halted; no hidden worker proof substitutes.
     service=CustodianService(requests,ledger,SessionOracle(),SessionReferee(),signer,validate,config['authorized_sessions'],session_grants=grant_map,public_store=store,package_publisher=package_publisher,contain_session=contain_session,qualification=qualification)
+    from .runtime_readiness import CustodianRuntimeReadiness
+    service.readiness_inspector=CustodianRuntimeReadiness(store,ledger,sessions,runtimes,manifest,
+        manifest_ref=config['fixture_manifest_ref'],public_key=signer.public_bytes(),key_id=config['signer_key_id'],
+        expected_qualification_ref=binding.get('security_qualification_ref'))
     return service,ledger
 
 

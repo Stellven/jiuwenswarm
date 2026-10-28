@@ -23,6 +23,12 @@ class CustodianClient:
     async def halt(self,session):
         if session!=self.sid:raise ValueError('cross-session custody denied')
         return await self._call('custodian_halt',{})
+    async def readiness(self,session_ref):
+        # Existing immutable session identity is the entire request. A health
+        # query does not create a request blob or open a custody session.
+        reply=await request(self.path,self.uid,'custodian_readiness',session_ref,timeout=min(self.timeout,30))
+        if reply['status']!='ok':raise ValueError('Current read-only custody inspection unavailable')
+        return reply['result']
     async def final(self,comparison):
         value=await self._call('custodian_final',{'comparison':comparison})
         if set(value)!={'decision','evidence_ref','evidence'} or self.requests.put(value['evidence'])!=value['evidence_ref']:raise ValueError('Final aggregate transfer differs from its exact Ref')

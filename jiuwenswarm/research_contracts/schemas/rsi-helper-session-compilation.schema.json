@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-helper-session-compilation:1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "status", "request_ref", "session_ref", "worker_profile_ref", "genesis_ref", "final_budget_ref"],
+  "properties": {"schema": {"const": "ai4r-rsi-helper-session-compilation:1"}, "status": {"const": "COMPILED_NOT_STARTED"},
+    "request_ref": {"$ref": "#/$defs/Ref"}, "session_ref": {"$ref": "#/$defs/Ref"}, "worker_profile_ref": {"$ref": "#/$defs/Ref"},
+    "genesis_ref": {"$ref": "#/$defs/Ref"}, "final_budget_ref": {"$ref": "#/$defs/Ref"}},
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+}

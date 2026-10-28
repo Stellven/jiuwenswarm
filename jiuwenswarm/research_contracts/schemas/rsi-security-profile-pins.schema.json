@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-profile-pins:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-profile-pins:1"
+    },
+    "installed_build_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "procedure_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "assertion_manifest_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "source_manifest_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ref": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "required": [
+          "path",
+          "ref"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "worker_profile_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "attack_pins_ref": {
+      "$ref": "#/$defs/Ref"
+    }
+  },
+  "required": [
+    "schema",
+    "installed_build_ref",
+    "procedure_ref",
+    "assertion_manifest_ref",
+    "source_manifest_ref",
+    "source_refs",
+    "worker_profile_refs",
+    "attack_pins_ref"
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ]
+    }
+  }
+}

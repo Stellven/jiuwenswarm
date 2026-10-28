@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-preparation-service:1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "record_root", "approved_request_refs", "approved_plan_refs", "approved_preparation_refs", "public_roots", "public_original_refs", "worker", "signing_key_file", "signer_key_id"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-preparation-service:1"},
+    "record_root": {"$ref": "#/$defs/Path"}, "signing_key_file": {"$ref": "#/$defs/Path"},
+    "signer_key_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.:-]{0,63}$"},
+    "approved_request_refs": {"$ref": "#/$defs/Refs"},
+    "approved_plan_refs": {"$ref": "#/$defs/Refs"},
+    "approved_preparation_refs": {"$ref": "#/$defs/Refs"},
+    "public_original_refs": {"$ref": "#/$defs/Refs"},
+    "public_roots": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/Path"}},
+    "worker": {"type": "object", "additionalProperties": false,
+      "required": ["socket_path", "session_id", "capability", "requests_root", "profile_refs"],
+      "properties": {"socket_path": {"$ref": "#/$defs/Path"}, "requests_root": {"$ref": "#/$defs/Path"},
+        "session_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "capability": {"type": "string", "minLength": 43, "maxLength": 256},
+        "profile_refs": {"$ref": "#/$defs/Refs"}}}
+  },
+  "$defs": {
+    "Path": {"type": "string", "pattern": "^/[^\\\\\u0000-\u001f]*$", "minLength": 2},
+    "Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "Refs": {"type": "array", "maxItems": 512, "uniqueItems": true, "items": {"$ref": "#/$defs/Ref"}}
+  }
+}

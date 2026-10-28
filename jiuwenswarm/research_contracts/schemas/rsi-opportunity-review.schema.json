@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-opportunity-review:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-opportunity-review:1"
+    },
+    "target_profile_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "parent": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/CcPin"
+    },
+    "configuration_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "worker_profile_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "prepared_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "headroom_minimum": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "approved_evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+      },
+      "minItems": 1,
+      "maxItems": 100000
+    },
+    "approved_reference_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+      },
+      "minItems": 0,
+      "maxItems": 16
+    }
+  },
+  "required": [
+    "schema",
+    "target_profile_ref",
+    "parent",
+    "configuration_ref",
+    "worker_profile_ref",
+    "reviewer",
+    "prepared_by",
+    "headroom_minimum",
+    "approved_evidence_refs",
+    "approved_reference_refs"
+  ]
+}

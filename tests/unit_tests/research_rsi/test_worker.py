@@ -44,8 +44,17 @@ async def test_actual_worker_client_scopes_timing_to_custodian_final_phases(tmp_
     from jiuwenswarm.research_rsi.records import RecordStore
     from jiuwenswarm.research_rsi.worker import WorkerClient
     store=RecordStore(tmp_path/'requests');client=object.__new__(WorkerClient)
-    client.requests=store;client.profile_ref=REF;client.session_ref=REF;client.hidden=hidden;calls=[]
-    async def rpc(operation,value,**kwargs):calls.append((operation,value));return {'captures':[]}
+    client.requests=store;client.profile_ref=REF;client.session_ref=REF;client.hidden=hidden;client.timeout_s=2;client.target_kind='ranking-v1';client.batch_iterations=2;calls=[]
+    async def rpc(operation,value,**kwargs):
+        import base64,hashlib
+        from jiuwenswarm.research_rsi.worker import timing_program
+        assert kwargs['timeout_s']==2
+        calls.append((operation,value))
+        pins=[store.put_bytes(data) for data in (b'{}',b'',b'{"unit":"scope-only capture double"}')]
+        receipt={'stdout_ref':pins[0],'stderr_ref':pins[1],'observed_limits':{'isolation_probe_ref':pins[2]}}
+        return {'schema':'ai4r-rsi-worker-response:2','request':value,'receipt':receipt,
+            'captures':[{'ref':pin,'bytes_base64':base64.b64encode(store.read(pin)).decode()} for pin in pins],
+            'program_sha256':hashlib.sha256(timing_program(2)).hexdigest(),'batch_iterations':2}
     client.rpc=SimpleNamespace(call=rpc)
     allowed=hidden and phase in {'hidden_final','platform'}
     if allowed:
@@ -58,6 +67,27 @@ async def test_actual_worker_client_scopes_timing_to_custodian_final_phases(tmp_
 
 
 @pytest.mark.asyncio
+async def test_worker_rpc_timeout_requests_containment_without_replay(tmp_path):
+    import asyncio
+    from types import SimpleNamespace
+    from jiuwenswarm.research_rsi.records import RecordStore
+    from jiuwenswarm.research_rsi.worker import WorkerClient
+    store=RecordStore(tmp_path);client=object.__new__(WorkerClient);calls=[]
+    client.requests=store;client.profile_ref=REF;client.session_ref=REF;client.hidden=True;client.timeout_s=1;client.target_kind='ranking-v1';client.batch_iterations=2
+    async def rpc(operation,value,**kwargs):
+        calls.append(operation)
+        if operation=='run_helper':raise asyncio.TimeoutError
+        assert operation=='cancel_session' and value=={'session_ref':REF}
+        return {'contained':True,'session_ref':REF}
+    client.rpc=SimpleNamespace(call=rpc)
+    try:
+        with pytest.raises(asyncio.TimeoutError):
+            await client.run(REF,{'scores':[]},phase='hidden_loop',reservation_ref=REF)
+        assert calls==['run_helper','cancel_session']
+    finally:store.close()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('phase',['hidden_final','platform','hidden_loop','development'])
 @pytest.mark.parametrize('hidden',[True,False])
 async def test_actual_private_broker_phase_gate_precedes_any_candidate_effect(tmp_path,phase,hidden):
@@ -66,7 +96,7 @@ async def test_actual_private_broker_phase_gate_precedes_any_candidate_effect(tm
     from jiuwenswarm.research_rsi.records import encoded
     from jiuwenswarm.research_rsi.worker import WorkerBroker
     broker=object.__new__(WorkerBroker);broker.qualification=ControlledQualification();broker.root=tmp_path;broker.hidden=hidden
-    broker.profiles={encoded(REF):{'session_ref':REF,'target_ref':REF}};broker.cancelled=set();broker.claims=set();broker.lock=asyncio.Lock()
+    broker.profiles={encoded(REF):{'session_ref':REF,'target_ref':REF,'target_kind':'ranking-v1'}};broker.cancelled=set();broker.claims=set();broker.lock=asyncio.Lock()
     reservation={'session_ref':REF,'candidate_ref':REF,'phase':phase,'operation':'timing:0:parent'}
     broker.inputs=SimpleNamespace(get=lambda ref:reservation)
     reached=[]

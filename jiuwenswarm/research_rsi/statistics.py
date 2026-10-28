@@ -48,6 +48,8 @@ def qualify(parent,child,*,repeats=1,independent=True,mandatory_passed=True,inte
     if not mandatory_passed or not integrity_passed:return {**out,'outcome':'INVALID','reason':'mandatory or integrity prerequisite failed'}
     if losses:return {**out,'reason':'protected fixture regression'}
     if exact_gain>=Fraction(str(min_pass_gain)) and stats['p_value'] is not None and stats['p_value']<=alpha:return {**out,'outcome':'QUALIFIED','qualified_by':'pass_gain','reason':'paired mean-score gain'}
+    if exact_gain>0 and (stats['p_value'] is None or stats['p_value']>alpha):
+        return {**out,'outcome':'INCONCLUSIVE','reason':'positive gain lacks sufficient independent paired evidence'}
     if p!=c:return out
     if parent_times is None or child_times is None:return {**out,'outcome':'INCONCLUSIVE','reason':'equal passes without qualified timing capture'}
     if warmups!=5 or len(parent_times)!=7 or len(child_times)!=7:return {**out,'outcome':'INCONCLUSIVE','reason':'five warmups and seven alternating paired rounds required'}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-calibration-material-provenance:1",
+  "description": "Minimized public calibration source provenance; hashes commit to the private plan without disclosing its refs, data or authority.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "purpose", "generator_source_sha256", "materializer_source_sha256", "plan_sha256", "source_sha256", "session_ref", "target_ref", "parent_declaration_ref", "generating_model"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-calibration-material-provenance:1"},
+    "purpose": {"const": "PLANTED_CALIBRATION_CONTROL"},
+    "generator_source_sha256": {"$ref": "#/$defs/Digest"}, "materializer_source_sha256": {"$ref": "#/$defs/Digest"},
+    "plan_sha256": {"$ref": "#/$defs/Digest"}, "source_sha256": {"$ref": "#/$defs/Digest"},
+    "session_ref": {"$ref": "#/$defs/Ref"}, "target_ref": {"$ref": "#/$defs/Ref"},
+    "parent_declaration_ref": {"$ref": "#/$defs/Ref"}, "generating_model": {"type": "null"}
+  },
+  "$defs": {
+    "Digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/Digest"}}}
+  }
+}

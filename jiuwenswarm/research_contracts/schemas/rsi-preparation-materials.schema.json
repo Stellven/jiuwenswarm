@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-preparation-materials:1",
+  "type": "object", "additionalProperties": false, "required": ["schema", "materials"],
+  "properties": {"schema": {"const": "ai4r-rsi-preparation-materials:1"},
+    "materials": {"type": "array", "minItems": 1, "maxItems": 256, "items": {"type": "object", "additionalProperties": false, "required": ["ref", "bytes_base64"],
+      "properties": {"ref": {"$ref": "#/$defs/Ref"}, "bytes_base64": {"type": "string", "minLength": 0, "maxLength": 6000000, "pattern": "^(?:[A-Za-z0-9+/]+={0,2})?$"}}}}},
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+}

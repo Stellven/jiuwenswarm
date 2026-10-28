@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-runtime-observation:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "runtime_build_ref", "environment_ref", "worker_profile_refs", "container_id", "image_id", "image_digest", "pid_namespace", "mount_namespace", "boot_id", "kernel_release", "platform", "init_start_ticks", "read_only_rootfs"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-runtime-observation:1"},
+    "runtime_build_ref": {"$ref": "#/$defs/Ref"},
+    "environment_ref": {"$ref": "#/$defs/Ref"},
+    "worker_profile_refs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/Ref"}},
+    "container_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "image_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "image_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "pid_namespace": {"type": "string", "pattern": "^pid:\\[[0-9]+\\]$"},
+    "mount_namespace": {"type": "string", "pattern": "^mnt:\\[[0-9]+\\]$"},
+    "boot_id": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"},
+    "kernel_release": {"type": "string", "minLength": 1},
+    "platform": {"enum": ["linux/amd64", "linux/arm64"]},
+    "init_start_ticks": {"type": "integer", "minimum": 1},
+    "read_only_rootfs": {"const": true}
+  },
+  "$defs": {
+    "Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}
+  }
+}

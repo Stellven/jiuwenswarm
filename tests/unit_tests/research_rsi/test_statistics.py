@@ -8,7 +8,17 @@ def test_exact_independent_fixture_binomial_and_regression():
     assert result['qualified_by'] == 'pass_gain'
     assert result['statistics']['pass_rate_gain'] == .25
     assert qualify([1]*20, [0]+[1]*19)['outcome'] == 'NO_IMPROVEMENT'
-    assert qualify([0]+[1]*19, [1]*20)['outcome'] == 'NO_IMPROVEMENT'
+    assert qualify([0]+[1]*19, [1]*20)['outcome'] == 'INCONCLUSIVE'
+
+
+def test_positive_gain_without_significance_is_inconclusive_and_timing_cannot_rescue_it():
+    result=qualify([0]*4+[1]*16,[1]*20,parent_times=[10]*7,
+        child_times=[1]*7,warmups=5,calibrated_noise=0)
+    assert result['outcome']=='INCONCLUSIVE' and result['qualified_by']=='none'
+    assert result['statistics']['p_value']==1/16
+    assert result['statistics']['timing'] is None
+    # A supported gain below a stricter meaningful-delta policy is no improvement.
+    assert qualify([0]*5+[1]*15,[1]*20,min_pass_gain=.5)['outcome']=='NO_IMPROVEMENT'
 
 
 def test_mean_of_three_lower_mean_is_regression():

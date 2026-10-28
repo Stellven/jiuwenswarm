@@ -16,12 +16,33 @@ def utc():return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 async def resolved(value):return await value if inspect.isawaitable(value) else value
 
 
+class OpportunityStopped(Exception):
+    def __init__(self,outcome,reason):self.outcome,self.reason=outcome,reason
+
+
 class Controller:
-    def __init__(self,*,store,ledger,oracle,proposer,assess,signer,validate,clock=time.monotonic,recovery_containment=None,qualification=None):
+    def __init__(self,*,store,ledger,oracle,proposer,assess,signer,validate,clock=time.monotonic,recovery_containment=None,qualification=None,clearance_policy_ref=None):
         self.store,self.ledger,self.oracle,self.proposer,self.assess,self.signer,self.validate=store,ledger,oracle,proposer,assess,signer,validate
         self.clock=clock;self.cancelled=False;self.recovery_containment=recovery_containment;self.containment_uncertain=False
         self.qualification=qualification
+        self.clearance_policy_ref=clearance_policy_ref
     def cancel(self):self.cancelled=True
+    def _phase(self,session,session_ref,phase,*,incumbent_ref,queries_used,terminal_result_ref=None):
+        prior=self.store.latest_phase(session['session_id'])
+        return self.store.advance_phase(session['session_id'],session_ref,phase,
+            expected_revision=prior['record']['revision'] if prior else 0,
+            incumbent_ref=incumbent_ref,attempts_used=len(self.store.attempts(session['session_id'])),
+            queries_used=queries_used,terminal_result_ref=terminal_result_ref)
+    def _close_phase(self,session,session_ref,result,pin):
+        prior=self.store.latest_phase(session['session_id'])
+        # Historical sessions without a journal are closed without fabricating
+        # phase observations that were never made during their execution.
+        if prior is None:return
+        if prior['record']['phase']=='CLOSED':
+            if prior['record']['terminal_result_ref']!=pin:raise ValueError('Closed phase changed original terminal evidence')
+            return
+        self._phase(session,session_ref,'CLOSED',incumbent_ref=prior['record']['incumbent_ref'],
+            queries_used=result['queries_used'],terminal_result_ref=pin)
     def _history_context(self,session,session_ref,parent_body_ref):
         session_bytes_ref=self.store.put_bytes(self.store.read(session_ref))
         return self.store.put({'record_kind':'rsi-session-history-context:1','session_ref':session_ref,
@@ -36,6 +57,7 @@ class Controller:
         # failure can lose it. Re-publication of these same bytes has no effects.
         pin=self.store.complete_terminal(session['session_id'],session_ref,context_ref,signed)
         if self.store.put(signed)!=pin:raise ValueError('Terminal publication changed exact bytes')
+        self._close_phase(session,session_ref,signed,pin)
         return signed,pin
     async def _terminal(self,session,session_ref,context_ref,result):
         population=self._population(session_ref,context_ref,self.store.proposer_starts(session['session_id']),
@@ -127,6 +149,7 @@ class Controller:
             if original['queries_used']!=state['used']:raise ValueError('Custody count changed after the original terminal was staged')
             if signed is not None:
                 if self.store.put(signed)!=history['signed_ref']:raise ValueError('Original terminal publication changed bytes')
+                self._close_phase(session,session_ref,signed,history['signed_ref'])
                 return signed,history['signed_ref']
             if original['outcome']=='QUALIFIED':raise ExposureError('Original qualified terminal signing/publication response is unresolved; recovery cannot replay package effects')
             return await self._sign_staged(session,session_ref,context_ref,original)
@@ -158,9 +181,9 @@ class Controller:
         if self.containment_uncertain:result['limitations'].append('Actual native/effect containment remains uncertain; no successful stop is acknowledged')
         return await self._terminal(session,session_ref,context_ref,result)
 
-    async def run(self,session,*,opportunity,fixture_identity,visible_context,parent_body_ref,finalize=None,session_ref=None):
+    async def run(self,session,*,opportunity,fixture_identity,visible_context,parent_body_ref,finalize=None,session_ref=None,qualify=None):
         self.validate('rsi-session',session)
-        if opportunity.get('decision')!='START':raise ValueError('qualified opportunity required before START')
+        if qualify is None and (not isinstance(opportunity,dict) or opportunity.get('decision')!='START'):raise ValueError('qualified opportunity required before START')
         limits=Limits.from_mapping(session['limits']);sid=session['session_id']
         genesis=self.store.get(session['chain_root_ref'])
         if genesis.get('session_id')!=sid or genesis.get('target_ref')!=session['target_profile_ref'] or genesis.get('hash_profile_ref')!=session['hash_profile_ref'] or genesis.get('interface_revision')!='M1-IF-009@r2':
@@ -168,22 +191,45 @@ class Controller:
         self.store.read(session['hash_profile_ref'])
         session_ref=session_ref or self.store.put(session)
         if self.store.get(session_ref)!=session:raise ValueError('Session bytes differ from the protected grant')
+        from .clearance import SessionClearance
+        SessionClearance(self.store,self.clearance_policy_ref).require(sid)
+        from .session_policy import FinalBudget
+        budget=FinalBudget.for_session(session,self.store) if finalize is not None else None
         from .qualification import require_qualification
         require_qualification(self.qualification,'session_start',session_ref=session_ref)
         # A protected session ID is single execution. Re-entering it never repeats an unknown query.
+        if self.store.latest_phase(sid) is not None:raise ExposureError('session already entered preflight; reconcile retained history without replay')
         await resolved(self.ledger.open_session(sid,fixture_identity,session_cap=limits.session_query_limit,lifetime_cap=limits.lifetime_query_limit))
         state=await resolved(self.ledger.state(sid))
         if state['used'] or state.get('halted') or self.store.attempts(sid) or self.store.proposer_starts(sid):raise ExposureError('session already started; inspect protected receipts instead of replay')
         context_ref=self._history_context(session,session_ref,parent_body_ref)
         self.store.begin_session_history(sid,session_ref,context_ref)
         deadline=self.clock()+limits.wall_s;no_progress=0;best=None;best_score=None;feedback=None;reason='attempt cap reached';outcome=None
-        best_time=opportunity.get('parent_visible_time_s')
+        search_deadline=deadline-(budget.final_reserve_s+budget.evidence_wall_s if budget else 0)
+        best_time=(opportunity or {}).get('parent_visible_time_s')
         try:
-            feedback=await asyncio.wait_for(self.oracle.score(sid,'baseline',parent_body_ref),max(.001,deadline-self.clock()))
+            self._phase(session,session_ref,'PREFLIGHT',incumbent_ref=parent_body_ref,queries_used=0)
+            if self.cancelled:raise asyncio.CancelledError
+            if qualify is not None:
+                prepared=await asyncio.wait_for(qualify(),min(limits.per_call_s,max(0,search_deadline-self.clock())))
+                opportunity=prepared['record'];self.validate('rsi-opportunity',opportunity)
+                if opportunity['target_profile_ref']!=session['target_profile_ref'] or opportunity['parent']!=session['parent']:
+                    raise ValueError('Canonical opportunity differs from the frozen session')
+                best_time=prepared['parent_visible_time_s']
+                if opportunity['decision']!='START':
+                    disposition='BLOCKED' if prepared['readiness']=='BLOCKED' else 'INCONCLUSIVE' if opportunity['decision']=='NEEDS_REVIEW' else 'NO_IMPROVEMENT'
+                    raise OpportunityStopped(disposition,opportunity['reason'])
+                visible_context={'approved_visible_context':visible_context,
+                    'diagnosis':self.store.get(opportunity['diagnosis_ref'])}
+            if self.cancelled:raise asyncio.CancelledError
+            self._phase(session,session_ref,'BASELINE',incumbent_ref=parent_body_ref,queries_used=0)
+            feedback=await asyncio.wait_for(self.oracle.score(sid,'baseline',parent_body_ref),max(0,search_deadline-self.clock()))
             baseline=feedback['passed'];best_score=baseline
+            self._phase(session,session_ref,'SEARCH',incumbent_ref=parent_body_ref,
+                queries_used=(await resolved(self.ledger.state(sid)))['used'])
             for sequence in range(1,limits.max_attempts+1):
                 if self.cancelled:outcome='CANCELLED';reason='operator cancellation';break
-                if self.clock()>=deadline:reason='session wall limit reached';break
+                if self.clock()>=search_deadline:reason='search wall budget exhausted; final reserve protected';break
                 if no_progress>=limits.max_no_progress:reason='consecutive no-progress cap reached';break
                 if feedback['queries_left']<=0:reason='hidden-loop query budget exhausted';break
                 require_qualification(self.qualification,'proposal',session_ref=session_ref)
@@ -195,9 +241,16 @@ class Controller:
                     'previous_ref':prior[-1] if prior else None,'recorded_at':utc(),
                     'configuration_ref':session['configuration_ref'],'improver_ref':session['improver_ref']})
                 try:
-                    proposal=await asyncio.wait_for(self.proposer.propose(visible_context,feedback),min(limits.per_call_s,max(0,deadline-self.clock())))
+                    from .proposer import proposal_context
+                    target=self.store.get(session['target_profile_ref'])
+                    self.validate('rsi-target-profile',target)
+                    if not isinstance(target.get('mutable_paths'),list) or len(target['mutable_paths'])!=1:
+                        raise ValueError('One frozen mutable path required before proposal')
+                    context=proposal_context(visible_context,body=self.store.read(best['child_ref'] if best else parent_body_ref),
+                        history=[self.store.get(pin) for pin in prior],mutable_path=target['mutable_paths'][0])
+                    proposal=await asyncio.wait_for(self.proposer.propose(context,feedback),min(limits.per_call_s,max(0,search_deadline-self.clock())))
                     rationale=proposal['rationale'];assessment_started=True
-                    assessed=await asyncio.wait_for(self.assess(proposal),max(0,deadline-self.clock()))
+                    assessed=await asyncio.wait_for(self.assess(proposal),max(0,search_deadline-self.clock()))
                     child=assessed.get('child_ref');diff=assessed.get('diff_ref');visible=assessed.get('evidence_refs',[])
                     if not assessed.get('mandatory_passed'):
                         stop='mandatory parent tests rejected candidate';no_progress+=1
@@ -206,7 +259,7 @@ class Controller:
                             raise ValueError('eligible proposal lacks actual differing child/diff')
                         self.store.read(child);self.store.read(diff)
                         attempt_status='proposed'
-                        next_feedback=await asyncio.wait_for(self.oracle.score(sid,'attempt:'+str(sequence),child),max(.001,deadline-self.clock()))
+                        next_feedback=await asyncio.wait_for(self.oracle.score(sid,'attempt:'+str(sequence),child),max(0,search_deadline-self.clock()))
                         child_time=assessed.get('visible_selection_time_s')
                         timing_improves=next_feedback['passed']==best_score and all(type(x) in (int,float) and math.isfinite(x) and x>0 for x in (child_time,best_time)) and child_time<best_time
                         if next_feedback['passed']>best_score or timing_improves:
@@ -214,7 +267,9 @@ class Controller:
                         else:no_progress+=1
                         feedback=next_feedback
                 except SecurityViolation as exc:
-                    violations=[str(exc)];stop='security violation';outcome='SECURITY_HALTED';await resolved(self.ledger.halt(sid))
+                    violations=[str(exc)];stop='security violation';outcome='SECURITY_HALTED'
+                    self.store.record_security_halt(sid,session_ref,session['started_by'],str(exc))
+                    await resolved(self.ledger.halt(sid))
                 except ExposureError:
                     stop='candidate evaluation interrupted, exhausted or unknown';outcome='ERROR';no_progress+=1
                 except (ValueError,asyncio.TimeoutError) as exc:
@@ -239,12 +294,22 @@ class Controller:
                         'child_ref':child,'diff_ref':diff,'rationale':rationale,'visible_evidence_refs':visible,
                         'queries_used':(await resolved(self.ledger.state(sid)))['used'],'violations':violations,'stop_reason':stop,
                         'configuration_ref':session['configuration_ref'],'observation_refs':list(getattr(self.proposer,'last_evidence',[])),
-                        'time_s':self.clock()-start,'model_calls':getattr(self.proposer,'last_model_calls',None),'unavailable_reasons':[] if getattr(self.proposer,'last_model_calls',None) is not None else ['model_calls unavailable until protected bridge receipt capture'],
+                        'time_s':self.clock()-start,'model_calls':getattr(self.proposer,'last_model_calls',None),
+                        'unavailable_reasons':(list(getattr(self.proposer,'last_unavailable_reasons',[]))+
+                            ([] if getattr(self.proposer,'last_model_calls',None) is not None else ['model_calls unavailable until protected bridge receipt capture']))[:20],
                         'hash_profile_ref':session['hash_profile_ref'],'chain_root_ref':session['chain_root_ref']}
                     self.validate('rsi-attempt',record)
                     ref=self.store.append_attempt(sid,record)
                     if selected_this_attempt:best={**best,'attempt_ref':ref}
+                    self._phase(session,session_ref,'SEARCH',incumbent_ref=best['child_ref'] if best else parent_body_ref,
+                        queries_used=record['queries_used'])
                 if outcome is not None:reason=stop or 'session stopped';break
+        except OpportunityStopped as stopped:
+            outcome=stopped.outcome;reason=stopped.reason
+        except SecurityViolation as exc:
+            self.store.record_security_halt(sid,session_ref,session['started_by'],str(exc))
+            await resolved(self.ledger.halt(sid))
+            outcome='SECURITY_HALTED';reason='security violation during session preflight or baseline'
         except ExposureError:
             outcome='ERROR';reason='evaluation interrupted, exhausted or unknown; no automatic replay'
         except (ValueError,asyncio.TimeoutError):
@@ -252,11 +317,23 @@ class Controller:
         except asyncio.CancelledError:
             outcome='CANCELLED';reason='controller cancelled after durable exposure capture'
         decision={'qualified_by':'none','statistics':None};referee_ref=None;final_attempt=None
+        if outcome is None and self.cancelled:outcome='CANCELLED';reason='operator cancellation before final comparison'
+        if outcome is None and best is not None and budget is not None and deadline-self.clock()<budget.final_reserve_s:
+            outcome='UNEVALUATED_CANDIDATE';reason='Reserved final execution budget unavailable; no final effect started'
         if outcome is None and best is not None and finalize is not None:
             final_attempt=best['attempt_ref']
             try:
-                decision,referee_ref=await asyncio.wait_for(finalize(best),max(.001,deadline-self.clock()))
-                outcome=decision['outcome'];reason=decision['reason']
+                self._phase(session,session_ref,'FINALIZING',incumbent_ref=best['child_ref'],
+                    queries_used=(await resolved(self.ledger.state(sid)))['used'])
+                if deadline-self.clock()<budget.final_reserve_s:
+                    outcome='UNEVALUATED_CANDIDATE';reason='Final phase persistence consumed dispatch margin; no final effect started';final_attempt=None
+                else:
+                    decision,referee_ref=await asyncio.wait_for(finalize(best),budget.final_reserve_s)
+                    outcome=decision['outcome'];reason=decision['reason']
+            except SecurityViolation as exc:
+                self.store.record_security_halt(sid,session_ref,session['started_by'],str(exc))
+                await resolved(self.ledger.halt(sid))
+                outcome='SECURITY_HALTED';reason='integrity security violation during final prerequisites';final_attempt=None
             except (ExposureError,ValueError,asyncio.TimeoutError):
                 outcome='ERROR';reason='final comparison failed, expired or has unknown effects; no automatic replay';final_attempt=None
             except asyncio.CancelledError:
@@ -287,7 +364,7 @@ class Controller:
             'attempt_refs':attempts,'final_attempt_ref':final_attempt,'referee_evidence_ref':referee_ref,
             'qualified_by':decision['qualified_by'],'statistics':decision['statistics'],'attempts_used':len(attempts),
             'queries_used':(await resolved(self.ledger.state(sid)))['used'],'stop_reason':reason,
-            'limitations':[] if referee_ref else ['no_evidence_no_hidden_query: final comparison absent; no package permitted; actual loop exposure retained'],
+            'limitations':list(decision.get('limitations',[])) if referee_ref else ['no_evidence_no_hidden_query: final comparison absent; no package permitted; actual loop exposure retained'],
             'recorded_at':utc()}
         if self.containment_uncertain:result['limitations'].append('Actual native/effect containment remains uncertain; terminal ERROR history grants no successful stop or new execution')
         return await self._terminal(session,session_ref,context_ref,result)

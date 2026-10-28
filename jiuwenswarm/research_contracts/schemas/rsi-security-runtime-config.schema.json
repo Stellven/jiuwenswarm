@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-runtime-config:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "campaign_root",
+    "custodian_public_key",
+    "custodian_key_id",
+    "case_bindings",
+    "environment_ref",
+    "originals"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-runtime-config:1"
+    },
+    "campaign_root": {
+      "const": "/var/lib/ai4r-rsi-validation-campaign"
+    },
+    "custodian_public_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$"
+    },
+    "custodian_key_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.:-]{0,63}$"
+    },
+    "case_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "RSIV-1",
+        "RSIV-2",
+        "RSIV-3",
+        "RSIV-4",
+        "RSIV-5",
+        "RSIV-6",
+        "RSIV-7",
+        "RSIV-8",
+        "RSIV-9",
+        "RSIV-10",
+        "RSIV-11",
+        "RSIV-12",
+        "RSIV-13"
+      ],
+      "properties": {
+        "RSIV-1": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-2": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-3": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-4": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-5": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-6": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-7": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-8": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-9": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-10": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-11": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-12": {
+          "$ref": "#/$defs/Binding"
+        },
+        "RSIV-13": {
+          "$ref": "#/$defs/Binding"
+        }
+      }
+    },
+    "environment_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "originals": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2048,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "kind"
+        ],
+        "properties": {
+          "ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "kind": {
+            "enum": [
+              null,
+              "capsule-declaration",
+              "rsi-session",
+              "rsi-target-profile",
+              "rsi-worker-profile"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "OptionalRef": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "Binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_ref",
+        "worker_profile_ref"
+      ],
+      "properties": {
+        "session_ref": {
+          "$ref": "#/$defs/Ref"
+        },
+        "worker_profile_ref": {
+          "$ref": "#/$defs/Ref"
+        }
+      }
+    }
+  }
+}

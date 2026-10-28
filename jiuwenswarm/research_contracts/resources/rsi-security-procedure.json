@@ -1,0 +1,58 @@
+{
+  "schema": "ai4r-rsi-security-procedure:1",
+  "check_id": "M1-008/V15",
+  "required_dependency_mode": "real_boundary",
+  "case_ids": [
+    "RSIV-1",
+    "RSIV-2",
+    "RSIV-3",
+    "RSIV-4",
+    "RSIV-5",
+    "RSIV-6",
+    "RSIV-7",
+    "RSIV-8",
+    "RSIV-9",
+    "RSIV-10",
+    "RSIV-11",
+    "RSIV-12",
+    "RSIV-13"
+  ],
+  "case_test_ids": {
+    "RSIV-1": "ai4r.rsi.security::RSIV-1",
+    "RSIV-2": "ai4r.rsi.security::RSIV-2",
+    "RSIV-3": "ai4r.rsi.security::RSIV-3",
+    "RSIV-4": "ai4r.rsi.security::RSIV-4",
+    "RSIV-5": "ai4r.rsi.security::RSIV-5",
+    "RSIV-6": "ai4r.rsi.security::RSIV-6",
+    "RSIV-7": "ai4r.rsi.security::RSIV-7",
+    "RSIV-8": "ai4r.rsi.security::RSIV-8",
+    "RSIV-9": "ai4r.rsi.security::RSIV-9",
+    "RSIV-10": "ai4r.rsi.security::RSIV-10",
+    "RSIV-11": "ai4r.rsi.security::RSIV-11",
+    "RSIV-12": "ai4r.rsi.security::RSIV-12",
+    "RSIV-13": "ai4r.rsi.security::RSIV-13"
+  },
+  "case_modes": {
+    "RSIV-1": "kernel",
+    "RSIV-2": "kernel",
+    "RSIV-3": "kernel",
+    "RSIV-4": "policy",
+    "RSIV-5": "kernel",
+    "RSIV-6": "policy",
+    "RSIV-7": "kernel",
+    "RSIV-8": "kernel",
+    "RSIV-9": "kernel",
+    "RSIV-10": "kernel",
+    "RSIV-11": "policy",
+    "RSIV-12": "policy",
+    "RSIV-13": "policy"
+  },
+  "process_policy": "single_process_seccomp_v1",
+  "policy_methods": {
+    "RSIV-4": "checked_changes",
+    "RSIV-6": "GuardedProposer.propose",
+    "RSIV-11": "verify_signature",
+    "RSIV-12": "ExposureLedger.reserve",
+    "RSIV-13": "LibraryService.set_standing"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-effect-start:1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "case_claim_ref", "session_ref", "worker_profile_ref", "attack_id", "attack_source_ref", "recorded_at"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-security-effect-start:1"},
+    "case_claim_ref": {"$ref": "#/$defs/Ref"}, "session_ref": {"$ref": "#/$defs/Ref"},
+    "worker_profile_ref": {"$ref": "#/$defs/Ref"}, "attack_source_ref": {"$ref": "#/$defs/Ref"},
+    "attack_id": {"type": "string", "minLength": 1},
+    "recorded_at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"}
+  },
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-policy-denial:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-policy-denial:1"
+    },
+    "method": {
+      "enum": [
+        "checked_changes",
+        "GuardedProposer.propose",
+        "verify_signature",
+        "ExposureLedger.reserve",
+        "LibraryService.set_standing"
+      ]
+    },
+    "input_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "before_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "after_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "exception_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "exception_code": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "method",
+    "input_ref",
+    "before_ref",
+    "after_ref",
+    "exception_type",
+    "exception_code"
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ]
+    }
+  }
+}

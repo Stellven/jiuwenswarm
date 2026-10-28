@@ -25,11 +25,15 @@ def test_proposer_releases_only_known_calls_and_never_publishes_account_frames(t
             invocation='controlled-invocation';call='controlled-call'
             core.append_record('model-call-start',{'id':call+':start','contract_ref':pin,'invocation_id':invocation,'call_id':call})
             raw=core.append_record('model-provider-observation',{'id':'provider','invocation_id':invocation,'call_id':call,'identity':{'effective':'double'},'usage':None})
-            call_ref=core.append_record('model-call',{'id':call,'invocation_id':invocation,'outcome':self.outcome,'evidence_refs':[raw]})
+            call_ref=core.append_record('model-call',{'id':call,'invocation_id':invocation,'outcome':self.outcome,
+                'identity':{'requested':'requested-alias','effective':'observed-model','basis':'controlled provider observation'},
+                'usage':{'input_tokens':None,'output_tokens':None,'cost':None},'evidence_refs':[raw]})
             core.append_record('invocation-observation',{'id':'observation','contract_ref':pin,'model_calls':1,'output_refs':[],'trace_refs':[call_ref]})
             return 'controlled proposal response'
     model=ModelDouble();proposer=CoreProposer(model,[contract],combined,native_lease=lease,session_id='unit',qualification=ControlledQualification())
     assert asyncio.run(proposer('public proposer input'))=='controlled proposal response'
+    assert proposer.last_generating_model=='observed-model'
+    assert proposer.last_unavailable_reasons and 'usage' in proposer.last_unavailable_reasons[0]
     lease.assert_available()
     assert sentinel['id'] not in public.index()
     assert not any(b'must remain private' in p.read_bytes() for p in public.root.glob('*.bytes'))

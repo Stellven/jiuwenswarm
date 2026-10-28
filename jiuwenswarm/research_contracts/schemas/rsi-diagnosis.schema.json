@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-diagnosis:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-diagnosis:1"
+    },
+    "observed_symptom": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "supporting_visible_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+      },
+      "minItems": 1,
+      "maxItems": 16
+    },
+    "suspected_mechanism": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "alternative_causes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "authorized_component": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "proposed_change_direction": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "expected_effect": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "visible_falsification_checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "minItems": 0,
+      "maxItems": 8
+    }
+  },
+  "required": [
+    "schema",
+    "observed_symptom",
+    "supporting_visible_evidence",
+    "suspected_mechanism",
+    "alternative_causes",
+    "authorized_component",
+    "proposed_change_direction",
+    "expected_effect",
+    "visible_falsification_checks",
+    "uncertainties"
+  ]
+}

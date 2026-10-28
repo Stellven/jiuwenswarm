@@ -291,6 +291,23 @@ async def attach_native_research(web_channel,runtime_ports=None):
     finally:pending.unlink(missing_ok=True)
     attachment=NativeResearchAttachment(service,store,accounts,authority,bootstrap_url,composition,diagnostics,runtime_ports)
     web_channel.research_profile=True;web_channel.research_service=service;web_channel.research_authority=authority
+    web_channel.research_cc_workspace=workspace
     web_channel.research_refusal_reason='operator_configuration_unavailable' if operator is None else None
     web_channel.research_preferences=preferences;web_channel.research_composition=attachment
+    # A fixed Root-sealed installation is the only operator opt-in. Missing or
+    # invalid authority preserves authenticated inspection with actions denied.
+    try:
+        from .cc_ui_runtime import attach_native_operator
+        attach_native_operator(web_channel,authority)
+    except (ResearchError,OSError,ValueError,TypeError,KeyError):
+        web_channel.research_cc_operator=None
+        diagnostics.append({'status':'blocked','code':'cc_operator_installation_unavailable',
+            'detail':'Protected human CC operator installation is unavailable; inspection remains enabled'})
+    try:
+        from .cc_ui_runtime import attach_native_development
+        attach_native_development(web_channel,authority,workspace)
+    except (ResearchError,OSError,ValueError,TypeError,KeyError):
+        web_channel.research_cc_development=None
+        diagnostics.append({'status':'blocked','code':'cc_development_installation_unavailable',
+            'detail':'Fixed development run installation is unavailable; inspection remains enabled'})
     return attachment

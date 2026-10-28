@@ -16,7 +16,10 @@ def setup(tmp_path,status='proposed'):
     attempt=store.put({'schema_version':'2.0.0','attempt_status':status,'session_id':'s','target_ref':target,'parent_ref':pin,'child_ref':pin,'configuration_ref':pin})
     async def capture(*_):return {'parent':[[1,0,0]]*20,'child':[[1,1,0]]*10+[[1,0,0]]*10,'independent':True,
         'pairs':[{'parent_passed':999}], 'violations':[], 'parent_times':[2]*7, 'child_times':[1]*7, 'warmups':5}
-    referee=Referee(ledger,store,Signer.generate('unit:custodian'),capture,lambda *_:None)
+    async def controlled_prerequisites(**_):
+        return {'mandatory_passed':True,'integrity_passed':True}
+    referee=Referee(ledger,store,Signer.generate('unit:custodian'),capture,lambda *_:None,
+        prerequisite_check=controlled_prerequisites)
     options=dict(attempt_ref=attempt,target_ref=target,parent_ref=pin,child_ref=pin,configuration_ref=pin,repeats=3,
         qualification={'min_pass_rate_gain':.05,'alpha':.05,'min_timing_gain':.1,'noise_multiplier':3},mandatory_passed=True,integrity_passed=True)
     return referee,ledger,store,options
@@ -38,11 +41,50 @@ def test_rejected_attempt_cannot_reserve_final_or_be_scored(tmp_path):
     assert ledger.state('s')['final_sealed']==0
 
 
-def test_missing_required_pair_times_is_retained_private_and_never_signed(tmp_path):
+@pytest.mark.parametrize('equal',[False,True])
+def test_absent_timing_does_not_erase_correctness_and_final_is_not_reexecuted(tmp_path,equal):
     referee,ledger,store,options=setup(tmp_path)
-    async def missing(*_):return {'parent':[[1,0,0]]*20,'child':[[1,1,0]]*20,'independent':True,'violations':[]}
+    calls=[]
+    async def missing(*_):
+        calls.append('final')
+        return {'parent':[[1,0,0]]*20,'child':[[1,0,0]]*20 if equal else [[1,1,0]]*20,
+            'independent':True,'violations':[]}
     referee.paired_evaluate=missing
-    with pytest.raises(ValueError,match='timing'):asyncio.run(referee.final('s',**options))
+    decision,pin=asyncio.run(referee.final('s',**options))
+    assert decision['outcome']==('INCONCLUSIVE' if equal else 'QUALIFIED')
+    assert decision['qualified_by']==('none' if equal else 'pass_gain')
+    assert decision['limitations'] and decision['statistics']['timing'] is None
+    pair=store.get(pin)['pairs'][0]
+    assert pair['parent_time_s']==pair['child_time_s']==[]
     assert ledger.state('s')['final_sealed']==1
-    with pytest.raises(ValueError):asyncio.run(referee.final('s',**options))
+    assert asyncio.run(referee.final('s',**options))==(decision,pin)
+    assert calls==['final']
+    ledger.close();store.close()
+
+
+@pytest.mark.parametrize('prerequisite',['missing','mandatory','integrity','malformed'])
+def test_caller_pass_flags_cannot_bypass_independent_final_prerequisites(tmp_path,prerequisite):
+    referee,ledger,store,options=setup(tmp_path);calls=[]
+    async def forbidden(*_):calls.append('hidden');pytest.fail('Failed prerequisite reached hidden final fixtures')
+    async def check(**_):
+        return {'mandatory_passed':'yes','integrity_passed':True} if prerequisite=='malformed' else {
+            'mandatory_passed':prerequisite!='mandatory','integrity_passed':prerequisite!='integrity'}
+    referee.paired_evaluate=forbidden
+    referee.prerequisite_check=None if prerequisite=='missing' else check
+    try:
+        with pytest.raises(ValueError,match='prerequisite'):
+            asyncio.run(referee.final('s',**options))
+        assert calls==[]
+    finally:ledger.close();store.close()
+
+
+def test_partial_or_unreliable_timing_is_not_published_as_a_comparable_pair(tmp_path):
+    referee,ledger,store,options=setup(tmp_path)
+    async def partial(*_):return {'parent':[[1,0,0]]*20,'child':[[1,1,0]]*20,
+        'independent':True,'parent_times':[2]*7,'child_times':[1]*6,'warmups':5}
+    referee.paired_evaluate=partial
+    decision,pin=asyncio.run(referee.final('s',**options))
+    assert decision['qualified_by']=='pass_gain'
+    assert store.get(pin)['pairs'][0]['parent_time_s']==[]
+    assert store.get(pin)['pairs'][0]['child_time_s']==[]
     ledger.close();store.close()
