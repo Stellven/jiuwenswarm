@@ -12,7 +12,7 @@ from pathlib import Path
 import sqlite3
 import time
 
-ARMS = {'native', 'native-skills', 'cc'}
+ARMS = {'native', 'native-skills', 'cc', 'native-capsule-mcp'}   # native-capsule-mcp: plain JiuwenSwarm plus the capsule MCP server
 MODELS = {'gpt-6.1-sol', 'gpt-6-luna'}
 EXTERNAL_RUN_CALL_CEILING = 80
 
