@@ -86,6 +86,8 @@ BUILTIN_CASES = {
 def cases_for(capsule: Capsule, override=None):
     if override is not None:
         return override
+    if capsule.stage:
+        return capsule.stage.admission_cases()
     found = BUILTIN_CASES.get(capsule.module)
     if found is None:
         return None
@@ -148,9 +150,10 @@ async def admit_capsule(runtime: Runtime, capsule: Capsule, *, model=None, contr
         contract = {**(contract or {}), 'objective': 'admission self-test'}
 
     async def run(inputs):
-        return await runtime.ainvoke(capsule.key, inputs, worker_model=model, contract=contract, require_admission=False)
+        return await runtime.ainvoke(capsule.key, inputs, worker_model=model, contract=contract, require_admission=False,
+                                     _admitting=True)
 
-    ports = capsule.declaration['ports']['inputs']
+    ports = capsule.ports_in()
     required = [p['name'] for p in ports if p['required']]
     positives = plan.get('positive') or []
     if not positives:
@@ -180,15 +183,15 @@ async def admit_capsule(runtime: Runtime, capsule: Capsule, *, model=None, contr
     def altering(change):
         return lambda outputs: {n: change(v) if isinstance(v, dict) and 'data' in v else v for n, v in outputs.items()}
 
-    mutations = {'data': altering(_tamper), 'trust': altering(_flip_trust)}
+    mutations = capsule.stage.mutations() if capsule.stage else {'data': altering(_tamper), 'trust': altering(_flip_trust)}
     for index, (inputs, outputs) in enumerate(delivered):
-        if not any(isinstance(v, dict) and 'data' in v for v in outputs.values()):
+        if not capsule.stage and not any(isinstance(v, dict) and 'data' in v for v in outputs.values()):
             record('verifier_bites[%d]' % index, False, 'no packet output to alter; verifier not exercised')
             continue
         rejected = {}
         for label, mutate in mutations.items():
             outcome = await runtime.ainvoke(capsule.key, inputs, worker_model=model, contract=contract,
-                                            require_admission=False, _mutate_outputs=mutate)
+                                            require_admission=False, _mutate_outputs=mutate, _admitting=True)
             rejected[label] = outcome['status'] == 'halted' and outcome['halt']['stage'] == 'verifier'
         ok = all(rejected.values()) if not needs_model else any(rejected.values())
         record('verifier_bites[%d]' % index, ok, json.dumps(rejected))

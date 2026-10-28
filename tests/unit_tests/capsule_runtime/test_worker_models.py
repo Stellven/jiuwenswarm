@@ -160,7 +160,7 @@ def test_mcp_sampling_backs_ctx_model():
     client = Client(sampling=True).start()
     try:
         names = [t['name'] for t in client.call('tools/list')['result']['tools']]
-        assert GEN in names and len(names) == 9
+        assert GEN in names and len(names) == 10
         reply, body = call_generalist(client)
         assert reply['isError'] is False and body['status'] == 'delivered'
         (call,) = body['receipt']['model_calls']

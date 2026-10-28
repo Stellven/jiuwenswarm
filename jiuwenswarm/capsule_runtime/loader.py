@@ -75,6 +75,12 @@ class Capsule:
     wall_s: float = 30.0
     store: object = None          # MemoryStore holding the declaration, profile and check bundle
     asset: dict = field(default_factory=dict)
+    stage: object = None          # StageAdapter for a pipeline stage capsule (Intent); None for extension capsules
+    input_ports: list | None = None   # portable input ports when they differ from the product declaration
+    semantic_required: bool = False   # delivered only when the semantic verifier passed
+
+    def ports_in(self) -> list:
+        return self.input_ports if self.input_ports is not None else self.declaration['ports']['inputs']
 
 
 def verify_pins(root: Path, module: str) -> tuple[dict, str]:

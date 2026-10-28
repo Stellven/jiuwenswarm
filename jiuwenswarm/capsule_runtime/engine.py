@@ -60,8 +60,8 @@ def _validate_port(port: dict, value) -> None:
         validate_packet(value)
 
 
-def guard_inputs(declaration: dict, inputs) -> None:
-    ports = declaration['ports']['inputs']
+def guard_inputs(declaration: dict, inputs, ports=None, stage=None) -> None:
+    ports = ports if ports is not None else declaration['ports']['inputs']
     if not isinstance(inputs, dict):
         raise Halt('input_guard', 'inputs_type', 'Inputs must be an object keyed by input port name')
     names = {p['name'] for p in ports}
@@ -74,7 +74,10 @@ def guard_inputs(declaration: dict, inputs) -> None:
                 raise Halt('input_guard', 'missing_input', 'Required input port missing: ' + port['name'])
             continue
         try:
-            _validate_port(port, inputs[port['name']])
+            if stage is not None:
+                stage.validate_port(port['name'], inputs[port['name']])
+            else:
+                _validate_port(port, inputs[port['name']])
         except ResearchError as error:
             raise Halt('input_guard', error.code, port['name'] + ': ' + error.message) from error
 
@@ -144,16 +147,22 @@ def stage_lines(capsule: Capsule) -> list[str]:
 class Runtime:
     """One process-local view: loaded capsules plus what has been admitted."""
 
-    def __init__(self, extra_dirs=(), *, include_builtin: bool = True, worker_model=None):
+    aliases: dict = {}
+
+    def __init__(self, extra_dirs=(), *, include_builtin: bool = True, worker_model=None, include_stages: bool | None = None):
         """worker_model: server-configured default backend for ctx.model (callable(prompt, system=None) -> text)."""
         self.worker_model = worker_model
         self.extra_dirs = tuple(extra_dirs)
         self.capsules: dict[str, Capsule] = discover(self.extra_dirs, include_builtin=include_builtin)
         self.admitted: dict[str, dict] = {}
+        if include_stages if include_stages is not None else include_builtin:
+            from .stage_adapter import ALIASES, load_stage_capsules
+            self.capsules.update(load_stage_capsules())
+            self.aliases = dict(ALIASES)
 
     # --- lookup -------------------------------------------------------
     def get(self, capability_id: str) -> Capsule:
-        capsule = self.capsules.get(capability_id)
+        capsule = self.capsules.get(self.aliases.get(capability_id, capability_id))
         if capsule is None:
             raise KeyError('Unknown capability: ' + capability_id)
         return capsule
@@ -172,7 +181,7 @@ class Runtime:
                 'release_hash': c.release_hash, 'module': c.module}
         if d:
             info.update(summary=d['identity']['summary'], kind=d['identity']['kind'],
-                        ports=d['ports'], limits=d['budget']['per_call'],
+                        ports={**d['ports'], 'inputs': c.ports_in()}, limits=d['budget']['per_call'],
                         effect_class=d['changes']['effect_class'], effects=d['changes']['effects'],
                         needs_model=bool(d['needs']['injects']), network=d['needs']['network']['mode'],
                         checks=[x['id'] for x in d['guarantees']['checks']],
@@ -200,11 +209,12 @@ class Runtime:
 
     async def ainvoke(self, capability_id: str, inputs, *, model=None, contract=None,
                       require_admission: bool = True, verifier_model=None, require_semantic: bool = False,
-                      worker_model=None, _mutate_outputs=None) -> dict:
+                      worker_model=None, _mutate_outputs=None, _admitting: bool = False) -> dict:
         """worker_model (alias: model): async callable(prompt, system=None) -> text that backs ctx.model.
         verifier_model: callable(prompt) -> text (sync or async), used only by capsules whose
         declaration carries semantic review. require_semantic halts when such a capsule has no model."""
         started = now()
+        capability_id = self.aliases.get(capability_id, capability_id)
         capsule = self.capsules.get(capability_id)
         if capsule is None:
             return self._halted(None, capability_id, started, Halt('input_guard', 'unknown_capability',
@@ -214,9 +224,10 @@ class Runtime:
             await self._pins(capsule, require_admission, ledger)
             plan = semantic.verifier_plan(capsule)
             ledger['plan'] = plan
+            require_semantic = require_semantic or (capsule.semantic_required and not _admitting)
             if require_semantic and verifier_model is None:
                 raise Halt('semantic_verifier', 'no_model', 'require_semantic=True but no verifier model is configured')
-            guard_inputs(capsule.declaration, inputs)
+            guard_inputs(capsule.declaration, inputs, capsule.input_ports, capsule.stage)
             ledger['input_sha256'] = sha256(json_bytes(inputs))
             outputs, produced = await self._work(capsule, inputs, worker_model or model or self.worker_model, contract, ledger)
             if _mutate_outputs is not None:  # admission only: prove the verifier rejects altered outputs
@@ -232,7 +243,10 @@ class Runtime:
         if capsule.status != 'loaded':
             raise Halt('pin', capsule.refusal_code or 'refused', capsule.reason or 'Capsule refused at load')
         try:
-            _, release_hash = verify_pins(capsule.root, capsule.module)
+            if capsule.stage:
+                release_hash = capsule.stage.verify_pins()
+            else:
+                _, release_hash = verify_pins(capsule.root, capsule.module)
         except ResearchError as error:
             raise Halt('pin', error.code, error.message) from error
         if release_hash != capsule.release_hash:
@@ -249,7 +263,7 @@ class Runtime:
                        'start the server with --worker-cmd or --worker-openai-base-url/--worker-model, or use an MCP client '
                        'that supports sampling')
         merged = _contract_for(capsule, contract)
-        if needs_model and not (contract or {}).get('objective'):
+        if needs_model and not capsule.stage and not (contract or {}).get('objective'):
             raise Halt('worker', 'contract_required', 'This capsule needs a task contract with an objective')
         contract_ref = {'id': 'contract:' + sha256(json_bytes(merged))[:24], 'sha256': sha256(json_bytes(merged))}
         ledger['contract'], ledger['contract_ref'] = merged, contract_ref
@@ -257,11 +271,16 @@ class Runtime:
         # sees an empty mapping, which is what a worker sees before it has produced.
         gate = ModelGate(model, call_limit(declaration)) if needs_model else None
         ledger['worker_gate'] = gate
-        ctx = SimpleNamespace(output_refs={}, model=gate, contract=merged, limits=merged['limits'],
-                              contract_ref=contract_ref, observation={'contract_ref': contract_ref},
-                              capability_id=capsule.capability_id)
+        native = inputs
+        if capsule.stage:
+            ctx, native, call = capsule.stage.bind(inputs, gate, merged)
+            ledger['stage_call'], ledger['native_inputs'] = call, native
+        else:
+            ctx = SimpleNamespace(output_refs={}, model=gate, contract=merged, limits=merged['limits'],
+                                  contract_ref=contract_ref, observation={'contract_ref': contract_ref},
+                                  capability_id=capsule.capability_id)
         try:
-            produced = await _run_worker(capsule, ctx, copy.deepcopy(inputs), capsule.wall_s)
+            produced = await _run_worker(capsule, ctx, copy.deepcopy(native), capsule.wall_s)
         except asyncio.TimeoutError:
             raise Halt('worker', 'timeout', 'Worker exceeded the declared wall time of %ss' % capsule.wall_s) from None
         except Halt:
@@ -293,6 +312,10 @@ class Runtime:
                               contract_ref=ledger.get('contract_ref'),
                               observation={'contract_ref': ledger.get('contract_ref')})
         ledger['check_verdict'] = 'FAIL'
+        if capsule.stage:
+            ctx = capsule.stage.verify_ctx(ledger['stage_call'], ctx.output_refs)
+            inputs = ledger['native_inputs']
+            ledger['not_applicable'] = capsule.stage.NOT_APPLICABLE
         try:
             rows = capsule.check(ctx, copy.deepcopy(inputs), copy.deepcopy(outputs))
         except Exception as error:
@@ -375,6 +398,7 @@ class Runtime:
                                         'effects': capsule.declaration['changes']['effects']}
                    if capsule and capsule.declaration else None,
                    'verifiers': ledger.get('verifiers', {}),
+                   **({'not_applicable_outside_pipeline': ledger['not_applicable']} if ledger.get('not_applicable') else {}),
                    'worker_model': ledger['worker_gate'].summary() if ledger.get('worker_gate') else None,
                    'model_calls': ledger['worker_gate'].calls if ledger.get('worker_gate') else [],
                    'verifier_independent': self._independent(ledger),

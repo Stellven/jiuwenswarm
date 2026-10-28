@@ -33,6 +33,8 @@ OBJECTIVE = 'task_objective'
 
 
 def _port_schema(port: dict) -> dict:
+    if port.get('schema'):
+        return {**port['schema'], 'description': port['description']}
     try:
         schema = dict(contract_schema(port['schema_ref']))
         schema.pop('$schema', None)
@@ -52,7 +54,7 @@ def needs_model(capsule) -> bool:
 def tool_for(runtime: Runtime, key: str) -> dict:
     capsule = runtime.get(key)
     d = capsule.declaration
-    inputs = d['ports']['inputs']
+    inputs = capsule.ports_in()
     effects = d['changes']['effects']
     guarantees = [
         'Source files are hash-pinned (release ' + capsule.release_hash[:12] + ') and rechecked on every call.',
@@ -69,7 +71,7 @@ def tool_for(runtime: Runtime, key: str) -> dict:
         text += '\n\nNot guaranteed:\n- ' + '\n- '.join(unanchored)
     properties = {p['name']: _port_schema(p) for p in inputs}
     required = [p['name'] for p in inputs if p['required']]
-    if needs_model(capsule):
+    if needs_model(capsule) and not capsule.stage:
         properties[OBJECTIVE] = {'type': 'string', 'description': 'What the model should accomplish with the packet (the frozen task objective).'}
         required.append(OBJECTIVE)
         text += '\n\nUses a model for its work step (a backend configured on the server, else your client\'s sampling).'
@@ -186,7 +188,7 @@ class Server:
         arguments = dict(params.get('arguments') or {})
         capsule = self.runtime.get(name)
         contract = None
-        if needs_model(capsule):
+        if needs_model(capsule) and not capsule.stage:
             objective = arguments.pop(OBJECTIVE, None)
             if isinstance(objective, str) and objective.strip():
                 contract = {'objective': objective}

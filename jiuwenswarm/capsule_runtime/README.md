@@ -72,9 +72,37 @@ each delivered output (a data change and a trust change; deterministic capsules 
 admitted against a canned reply, which tests the guards and verifier, not the model. Admission is process-local and is
 not the AI4R library admission.
 
+## Intent as a portable capability (`intent.compiler`, alias `research.intent`, release m1-8)
+
+```python
+rt = Runtime(); rt.admit('research.intent')
+rt.invoke('research.intent', {'request': 'text', 'documents': [{'name': 'a.txt', 'text': '...'}]},
+          worker_model=model, verifier_model=verifier)   # delivered only if the verifier passes
+```
+Inputs are plain: `request` (text), optional `documents` (extracted text), optional `prior_plan_outcome`. Output: `intent` (the Intent IR). The model and verifier are the usual backends (CLI flags, MCP sampling for the worker). Intent has no `task_objective` argument. It is listed in `tools/list` with its input schema. Code: `stage_adapter.py`.
+
+**How the pipeline runs Intent (traced).**
+- Pipeline: `research/compiler.py:38-` (`IntentionCompiler.run`) binds sub-node `intent` with one input `request` (`qualified-intake:field-contract:2`, record made by `intake.py:qualify_intake`) and one output `intent` (`urn:jiuwenswarm:m1-design:intent-ir:1.0.0`). `runner.py:_decode_inputs` (~690) turns the record into the dict the carrier gets; `InvocationContext` (`runner.py:166-201`) gives `input_ref/read_blob/read_json/model`.
+- Carrier: `capsules/intent_m1_8.py:8-20` builds the payload from the intake and blobs and calls `capsules/_common.py:ask` (reads `ctx.contract` inputs/outputs for the prompt).
+- Declaration and release: not `capsules/assets.py` (that builds the seven science stages). Intent comes from `compiler.py:107-260` `prepare_compiler_assets` (declaration `research_assets/compiler/intent.declaration.json`, catalog sha256 pins in `research_assets/catalog.json`) plus `intent_release.py:46-` `prepare_intent_m1_8_release`, which must equal `intent_m1_8_catalog.json` byte for byte. Wall time 420 s, one model call. `releases.py:24`: implicit m1-6, capture default m1-8.
+- Checks on the output: `compiler.py:~320` registers `checks/compiler.py:compiler_checks` for `intent_schema`, `source_spans`, `exact_identity` (`check_intent`, `:20-33`). Stage checks in `checks/stages.py` (ResearchChecks) do not cover Intent. Node level: host_contract/identity/limits/authority, internal_acceptance, external_output, aggregate_limits (`runner.py:802-816`, `binding.py:792`).
+- Semantic verifier: yes. The Intent checking profile (`compiler.py:~150`) has criteria declared_output_conformance, internal_consistency, limitations_consistency, uncertainty_consistency, instructions from `verifier.txt`.
+
+**What the adapter does.**
+- Pins: `prepare_compiler_assets(..., intent_version='m1-8')` runs against an in-memory store, so the same catalog hash checks apply. The runtime repeats them on every call and also hashes the imported `intent_m1_8.py` and `_common.py`. Any difference halts at `pin` (`asset_integrity`).
+- Store: `StageStore` is content addressed with the product's refs (`blob:<sha256>`). The request becomes a blob, documents become source blobs, and a `qualified-intake` record is validated by the product contract. The profile/workspace/directory refs are marker blobs; Intent never reads them.
+- Checks that run outside the pipeline: `intent_schema`, `source_spans`, and the identity part of `exact_identity`, by calling the product's `compiler_checks` unchanged. The output port is also validated against `intent-ir` by the worker gate.
+- Verifier: the product's `SemanticVerifier` with the pinned Intent profile, plus the mechanical predicates, through the usual semantic stage. Intent is `semantic_required`: no verifier model means a `no_model` halt, never a delivery.
+- Reported `not_applicable_outside_pipeline` in the receipt (never PASS): the observation half of `exact_identity` (needs the runner's invocation record), the host_* checks, and internal_acceptance/external_output/aggregate_limits (run records and gates). The runtime enforces its own wall time and model-call limit instead.
+- Limits: no `resource_refs` (uploaded data files) are accepted; documents are text only.
+
+**RSI.** Load another Intent release the same way as any capsule only after it has its own pinned catalog; RSI is deterministic-capsule only for now, so Intent is not an RSI target.
+
+**Other stages.** Requirements: same adapter, plus the Intent artifact as input and a Brief check (`check_brief`) that needs the default policy; small. Hypothesis, Evaluation: not started; their checks read blobs and run records (`stages.py`) and Hypothesis needs resources and a metric protocol; larger.
+
 ## What stays in AI4R
 The run store and custody, the scheduler and plans, the protected executor and sandbox, the gates and the decision
-records, calibration, and the pipeline-stage capsules (Intent through Delivery). Those stages read and write host refs
+records, calibration, and the other pipeline-stage capsules (Requirements through Delivery). Those stages read and write host refs
 through `ctx.store`, `ctx.read_blob`, `ctx.input_ref`, `ctx.executor` and `ctx.connectors`, which this runtime does not
 provide. See the survey in the hand-off report for what each would need.
 
