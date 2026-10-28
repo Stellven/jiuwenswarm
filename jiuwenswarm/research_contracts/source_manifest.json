@@ -30,7 +30,7 @@
     },
     {
       "path": "reference/schemas/capsule-declaration.schema.json",
-      "sha256": "e41e1d9d4e800be37262ebcccdd8174961c29f72d0ac5a53ae6aab331df6e71e"
+      "sha256": "3fbdc91a0daed6b3c379b632dd9513ce7e47f200e21e56d1a94d006e6dc1b257"
     },
     {
       "path": "reference/schemas/common.schema.json",
@@ -54,7 +54,7 @@
     },
     {
       "path": "reference/schemas/subnode-execution-contract.schema.json",
-      "sha256": "fa5f8efb7d9a43e6795f503e21a1a6ff8ddb98e998b7c87f7ac09161f69d5eae"
+      "sha256": "2eadef2b29db3a8a3d5cf5255e1e09d84b5acdc1ee88bf46079f7521fa3e48e6"
     },
     {
       "path": "reference/schemas/verifier-assessment.schema.json",
@@ -62,7 +62,7 @@
     },
     {
       "path": "reference/schemas/research-brief-v3.schema.json",
-      "sha256": "1a55206facbd9594b2d3839208049a823d8b684310b4acb3dbc77aeb978ac317"
+      "sha256": "0008cd26c2a57af4bcbbbd75cfc66ce769bb9e2589d216191b861d7ee1c38fb3"
     }
   ],
   "amendments": [

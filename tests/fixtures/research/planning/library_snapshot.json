@@ -6,7 +6,7 @@
     {
       "cc_name": "intent.compiler",
       "cc_version": "example-1",
-      "declaration_sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390",
+      "declaration_sha256": "1a514f81ad5c6fc8c0209430e30d37de6c175e10e11316adabcc6e2f11dd6c03",
       "selectable_by_planner": false,
       "input_ports": [
         {
@@ -44,13 +44,13 @@
         "check_bundle_sha256": "9dda0130a3be7bb8163218cda21c5d4c685e4cdc1eabc33f81419a1ae60d559f",
         "checking_profile_id": "intent.compiler.profile",
         "checking_profile_version": "1.0.0",
-        "checking_profile_sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
+        "checking_profile_sha256": "32233642e533fe1c3cf01fa793d52c0fad65de023a4fc4850c5c60962677d943"
       }
     },
     {
       "cc_name": "requirements.compiler",
       "cc_version": "example-1",
-      "declaration_sha256": "81503a19783f3497ad413c5aaa7a9ae6b3387884cacf6d26047937950a38a2b1",
+      "declaration_sha256": "d36d9751e1458364cb7d9a327b24832e4d25f4c513bf0608143ab437339c7597",
       "selectable_by_planner": false,
       "input_ports": [
         {
@@ -100,7 +100,7 @@
         "check_bundle_sha256": "a7430c6ee8d407cafaa7a1ca6841e80f400663b217efc5052a504eb51022ff7b",
         "checking_profile_id": "requirements.compiler.profile",
         "checking_profile_version": "1.0.0",
-        "checking_profile_sha256": "8cb1a07789a0d2faa58816bce318167493157095efa2921a486ad1f6f142397a"
+        "checking_profile_sha256": "e9a2e6562405d52fd42eeb8a55d406b1b85d2808e731bbaf3ec74083d088816f"
       }
     },
     {
@@ -449,7 +449,7 @@
     {
       "cc_name": "research.evaluation",
       "cc_version": "example-1",
-      "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e",
+      "declaration_sha256": "4ffd4d7854671d23796d6699970b5f06a9638dfbc31433c197bd8e051c01d864",
       "selectable_by_planner": true,
       "input_ports": [
         {
@@ -493,7 +493,7 @@
         "check_bundle_sha256": "850f44daf116832f76122664e31905a7f5da27ddf4ef3c248c65ae7da01afc20",
         "checking_profile_id": "research.evaluation.profile",
         "checking_profile_version": "1.0.0",
-        "checking_profile_sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
+        "checking_profile_sha256": "191d039e6a751baae79bb97335bf5d8088d3cf00181335bdcbb0482bc50d9283"
       }
     },
     {
@@ -615,7 +615,7 @@
     {
       "cc_name": "research.verifier",
       "cc_version": "example-1",
-      "declaration_sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f",
+      "declaration_sha256": "23959dbe3b1cac882b9af568cfdb052a6dba476022282de4e2d2bd0fc659fda1",
       "selectable_by_planner": false,
       "input_ports": [
         {

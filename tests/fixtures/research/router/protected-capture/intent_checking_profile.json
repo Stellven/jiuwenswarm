@@ -37,7 +37,7 @@
   ],
   "instruction_ref": {
     "id": "verifier_implementation.txt",
-    "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+    "sha256": "6432480a05ea2be3d5790f7a09563417149792438481e11c7e007c934a01e3c9"
   },
   "model_call_limit": 1,
   "time_s": 180,

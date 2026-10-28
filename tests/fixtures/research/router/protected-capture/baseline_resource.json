@@ -9,7 +9,7 @@
       "path": "example_baseline.txt",
       "artifact_ref": {
         "id": "example_baseline.txt",
-        "sha256": "bfa814fe7c937e0351c2f4b8ba85527b0e55e37eb4efa84997628623b6423f6d"
+        "sha256": "ce8f53ef8a3d46025f3c725e97b77553bff3a973b5f0e440d92e22d28534e7e3"
       },
       "media_type": "text/plain",
       "audience": "authorized researcher"
@@ -20,7 +20,7 @@
   "availability": "available",
   "environment_ref": {
     "id": "environment_lock.json",
-    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+    "sha256": "28f223d79c9dd33b40417aa1799cf85fc355b086f93eba287387e269de64d0fd"
   },
   "ext": {
     "example.synthetic": true

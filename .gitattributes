@@ -54,19 +54,19 @@ jiuwenswarm/research/**/*.txt text eol=lf
 jiuwenswarm/research/**/*.json text eol=lf
 jiuwenswarm/research_assets/** text eol=lf
 jiuwenswarm/research_contracts/**/*.json text eol=lf
-# Legacy frozen review profiles were authored with CRLF instruction bytes.
-jiuwenswarm/research/resources/capsules/verifier_implementation.txt text eol=crlf
+# Pinned bytes are LF on every host (Linux/DGX checkouts are LF).
+jiuwenswarm/research/resources/capsules/verifier_implementation.txt text eol=lf
 
-# Incoming V3 compiler releases pin CRLF bytes; reproduce them on every host.
-jiuwenswarm/research_assets/compiler/intent.declaration.json text eol=crlf
-jiuwenswarm/research_assets/compiler/requirements.declaration.json text eol=crlf
-jiuwenswarm/research_assets/compiler/verifier.declaration.json text eol=crlf
-jiuwenswarm/research_assets/compiler/requirements.txt text eol=crlf
+# Compiler releases pin LF bytes on every host.
+jiuwenswarm/research_assets/compiler/intent.declaration.json text eol=lf
+jiuwenswarm/research_assets/compiler/requirements.declaration.json text eol=lf
+jiuwenswarm/research_assets/compiler/verifier.declaration.json text eol=lf
+jiuwenswarm/research_assets/compiler/requirements.txt text eol=lf
 
-# Upstream target-comparison and Hypothesis closures also pin CRLF bytes.
-jiuwenswarm/research/target_comparisons.py text eol=crlf
-jiuwenswarm/research/capsules/hypothesis.py text eol=crlf
-jiuwenswarm/research/checks/builder_text.py text eol=crlf
+# Target-comparison, Hypothesis and Builder closures pin LF bytes.
+jiuwenswarm/research/target_comparisons.py text eol=lf
+jiuwenswarm/research/capsules/hypothesis.py text eol=lf
+jiuwenswarm/research/checks/builder_text.py text eol=lf
 
 # Preserve received benchmark source and its intentional Markdown line breaks.
 "docs/code/Missions/docs/source/BENCHMARK_REQUIREMENTS (3).md" -text whitespace=-blank-at-eol,-blank-at-eof
@@ -84,6 +84,16 @@ tests/fixtures/research/pipeline/source-valid/research_report.md text eol=lf
 # Frozen development banks retain a source hash of their independent grader.
 benchmarks/harbor_suite/value_core_complex.py text eol=lf
 
-# Additive Requirements m1-9 release pins its authored CRLF bytes on every host.
-jiuwenswarm/research/capsules/requirements_m1_9.py text eol=crlf
-jiuwenswarm/research_assets/compiler/requirements_m1_9.txt text eol=crlf
+# Additive Requirements m1-9 release pins its LF bytes on every host.
+jiuwenswarm/research/capsules/requirements_m1_9.py text eol=lf
+jiuwenswarm/research_assets/compiler/requirements_m1_9.txt text eol=lf
+
+# Pinned research roots hash exact LF bytes; Windows checkouts must not convert them.
+jiuwenswarm/research/resources/** text eol=lf
+jiuwenswarm/research_contracts/** text eol=lf
+tests/fixtures/research/** text eol=lf
+# Binary members of the pinned roots stay byte-exact.
+jiuwenswarm/research/resources/**/*.zip -text
+jiuwenswarm/research_assets/**/*.zip -text
+tests/fixtures/research/**/*.zip -text
+deploy/m1/seccomp/*.json text eol=lf

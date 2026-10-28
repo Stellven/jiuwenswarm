@@ -3,15 +3,15 @@
   "id": "evaluation_verdict",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+    "sha256": "925f37d264242392bd1b5bde837db52bcc99568fb0274dd3ef6e9fa229d4fe00"
   },
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+    "sha256": "6ea05257d6a754f3619b2d580330cf7f926719ce8c494d4fc204e8af2a3cbef9"
   },
   "benchmark_ref": {
     "id": "benchmark_payload.json",
-    "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
+    "sha256": "9fcfc29bf95cec03e972fdcab2c074f7bb51aae1d502ff0148a9f55f33240cfb"
   },
   "classification": "FAIL",
   "aggregation_rule": "m1_conjunctive_v1",

@@ -24,8 +24,8 @@
         ],
         "rule_summary": "Enforce the source-defined intent_schema invariant on exact bound artifacts and observed records",
         "runner_ref": {
-          "id": "blob:29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be",
-          "sha256": "29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be"
+          "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+          "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
         },
         "target_port": "intent"
       },
@@ -39,8 +39,8 @@
         ],
         "rule_summary": "Enforce the source-defined source_spans invariant on exact bound artifacts and observed records",
         "runner_ref": {
-          "id": "blob:29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be",
-          "sha256": "29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be"
+          "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+          "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
         },
         "target_port": "intent"
       },
@@ -54,8 +54,8 @@
         ],
         "rule_summary": "Enforce the source-defined exact_identity invariant on exact bound artifacts and observed records",
         "runner_ref": {
-          "id": "blob:29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be",
-          "sha256": "29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be"
+          "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+          "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
         },
         "target_port": "intent"
       }
@@ -68,8 +68,8 @@
     "version": "1.0.0"
   },
   "bundle_ref": {
-    "id": "blob:7c9ade82c602e876e28554827c8b1aa459d43f45d3768b810050a437da21f9c7",
-    "sha256": "7c9ade82c602e876e28554827c8b1aa459d43f45d3768b810050a437da21f9c7"
+    "id": "blob:50a7d75518cd02a0c7d4e199505fd5147022d0c2453fd7023514032f75171ea5",
+    "sha256": "50a7d75518cd02a0c7d4e199505fd5147022d0c2453fd7023514032f75171ea5"
   },
   "cc": "intent.compiler",
   "declaration": {
@@ -239,7 +239,7 @@
     "sha256": "1cb6e68cc9702399a39cc588a915f724e476a0abc683969a1cfc8a27731f1e78"
   },
   "runner_ref": {
-    "id": "blob:29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be",
-    "sha256": "29294e9d4535e7574c11778e249d43d155142be16e41ed9d602488d8974883be"
+    "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+    "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
   }
 }

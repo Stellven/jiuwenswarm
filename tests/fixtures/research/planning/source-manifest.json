@@ -4,17 +4,17 @@
     {
       "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/static_template.json",
       "fixture": "static_template.json",
-      "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+      "sha256": "59e8fb8cf72976335a8d81801a9e54630bd2a781d8aa5691ea8848521b21f944"
     },
     {
       "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/library_snapshot.json",
       "fixture": "library_snapshot.json",
-      "sha256": "aaf40eb39a40beb50939b6f4cd456f4be980eb5ccc781b45f9bf53647783f416"
+      "sha256": "0f6e09e5086e2f8d1516744ef510dc332298e121a600a440eb9f5d3b69be2150"
     },
     {
       "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/resource_inventory.json",
       "fixture": "resource_inventory.json",
-      "sha256": "7b94381959b83f94f00eb07e31c9e4207c1e86b06c78f9adecdc3336db696fe9"
+      "sha256": "d75bab78c3b02667a8ba248f69a43073eb529e20a67fc4bc566f70103e82aa6d"
     },
     {
       "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/plan_policy.json",
@@ -24,7 +24,7 @@
     {
       "source": "docs/code/Missions/M1/source/Architecture_Design/reference/examples/lifecycle_research_brief.json",
       "fixture": "lifecycle_research_brief.json",
-      "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+      "sha256": "925f37d264242392bd1b5bde837db52bcc99568fb0274dd3ef6e9fa229d4fe00"
     }
   ]
 }

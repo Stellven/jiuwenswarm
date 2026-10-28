@@ -36,7 +36,7 @@ class RequirementsReleaseTests(unittest.TestCase):
                 old=asyncio.run(prepare_compiler_assets(store))
                 selected=asyncio.run(prepare_compiler_assets(store,requirements_version='m1-9'))
                 new=selected['requirements'];base=old['requirements']
-                self.assertEqual(base['declaration_ref']['sha256'],'84b40893e3a9ad514ea06bcc7311a66b1f4f8318313985b3171adffdd90d3604')
+                self.assertEqual(base['declaration_ref']['sha256'],'dbebf7805ce253ca8cf1c44a291c50d032b2339d6a447ddd2559c416095e8475')
                 self.assertEqual(new['declaration']['identity']['version_label'],'m1-9')
                 self.assertEqual(new['runner_ref'],base['runner_ref'])
                 self.assertEqual(new['bundle']['checks'],base['bundle']['checks'])

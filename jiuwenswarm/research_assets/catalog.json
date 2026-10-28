@@ -16,7 +16,7 @@
         }
       ],
       "declaration_path": "compiler/intent.declaration.json",
-      "declaration_sha256": "8ba03613c616c32a8fdaf80729ffbb68cad7d9160d8d539275dd1a933ccdf216"
+      "declaration_sha256": "6fd9f35c4d20b3e5224e6bf6d2a5d195cf8537d547dc25c0f6382752da79f06a"
     },
     "planner": {
       "body": [
@@ -60,7 +60,7 @@
         },
         {
           "path": "research_assets/compiler/requirements.txt",
-          "sha256": "84e87546a59222368949dd78e570b3a5a3157c452634c58e70970841d221a065"
+          "sha256": "cca0df5edf354c18b07e80c89b62622ec3e82142f3f739e9e3b54e2b753f61fc"
         },
         {
           "path": "research/capsules/_common.py",
@@ -68,7 +68,7 @@
         }
       ],
       "declaration_path": "compiler/requirements.declaration.json",
-      "declaration_sha256": "84b40893e3a9ad514ea06bcc7311a66b1f4f8318313985b3171adffdd90d3604"
+      "declaration_sha256": "dbebf7805ce253ca8cf1c44a291c50d032b2339d6a447ddd2559c416095e8475"
     },
     "verifier": {
       "body": [
@@ -82,16 +82,16 @@
         }
       ],
       "declaration_path": "compiler/verifier.declaration.json",
-      "declaration_sha256": "c77ce64a119ef4a54100ea17b59422a5971afe95db8ccf822929320b7bbafbf7"
+      "declaration_sha256": "eb456abf1c4c137e7ffd80a95ef6c2311d285a7d993ea303095995c0195fea93"
     }
   },
   "schema_version": "1.0.0",
   "source_snapshot": "M1/source/Architecture_Design",
   "static_template": {
-    "authoring_source_sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5",
+    "authoring_source_sha256": "59e8fb8cf72976335a8d81801a9e54630bd2a781d8aa5691ea8848521b21f944",
     "interface_revision": "M1-IF-002@r2",
     "meaning": "Bounded native Builder actions and protected compile/unit/smoke checks; independent reviews, gates and schema-routed Benchmark retained.",
     "path": "planner/static-template.json",
-    "sha256": "afae32602371d77c897367312079d2a1c36f8c0788203db1dbb8a73abe66f66e"
+    "sha256": "47f7639bb1d5854cffe7d1c144443a7d6c3e85481002ed2bc38d3f7922960fc3"
   }
 }

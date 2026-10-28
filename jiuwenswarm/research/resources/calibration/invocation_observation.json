@@ -7,24 +7,24 @@
   "subnode_id": "intention",
   "cc_name": "intent.compiler",
   "cc_version": "example-1",
-  "declaration_sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390",
+  "declaration_sha256": "1a514f81ad5c6fc8c0209430e30d37de6c175e10e11316adabcc6e2f11dd6c03",
   "route_id": null,
   "measurement_status": "unavailable",
   "contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "2f84bff9563b1554d9142590e82af59bfb5704d8d37671b64b94264ddf35c157"
+    "sha256": "b3824d19c6ebeae78cc0cc2e6b8f072735615a35843e5f2e3a423beae70ad681"
   },
   "binding_id": "binding:intent.compiler",
   "input_refs": [
     {
       "id": "qualified_intake.json",
-      "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
+      "sha256": "5b8c9a08c8fc61cbeed619ae087994e294682f7d182eb890082c1289e3192eb9"
     }
   ],
   "output_refs": [
     {
       "id": "intent_ir.json",
-      "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+      "sha256": "ca6bc658f1ae8cb92c382a5aa737e2bd776f4ca4d091ade75045ad186e789095"
     }
   ],
   "model_identity": {
@@ -54,7 +54,7 @@
   },
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
+    "sha256": "67284169a4264880031b554a2bfcf8f18da7568e4398c96180cf72e6352ed60b"
   },
   "body_files_sha256": "ddd8ba007139fc1e8985352fc173533bfb2ad5ff03f0a37695bc070cc885fb01",
   "decision_source": null,

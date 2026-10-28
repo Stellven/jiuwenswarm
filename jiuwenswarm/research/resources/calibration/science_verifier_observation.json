@@ -7,28 +7,28 @@
   "subnode_id": "evaluation.verifier",
   "cc_name": "research.verifier",
   "cc_version": "example-1",
-  "declaration_sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f",
+  "declaration_sha256": "23959dbe3b1cac882b9af568cfdb052a6dba476022282de4e2d2bd0fc659fda1",
   "route_id": null,
   "measurement_status": "unavailable",
   "contract_ref": {
     "id": "science_verifier_subnode_contract.json",
-    "sha256": "ad3561aa00fbed41d33e94a81fc3a4a78d785ff16c7a690a9a3e580fc8403d3d"
+    "sha256": "933e0855635847bca5e43ccb954bbcefeb79a6e0f86a327813a348e71f0628c4"
   },
   "binding_id": "binding:evaluation.verifier",
   "input_refs": [
     {
       "id": "scientific_evaluation_capsule.json",
-      "sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
+      "sha256": "4ffd4d7854671d23796d6699970b5f06a9638dfbc31433c197bd8e051c01d864"
     },
     {
       "id": "evaluation_verdict.json",
-      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+      "sha256": "ddb92be8d8bde4b065305f77232cacab0a48869c91679e8b55b20cc4cba7db3d"
     }
   ],
   "output_refs": [
     {
       "id": "science_assessment.json",
-      "sha256": "1d479f1dc62d756a0eeda5c6233c36e45f13518c2d19d98abd2b24d58a8aa5d8"
+      "sha256": "db2eaf6bec7671a9dc3c1ba597e1bdfc254ebaab73cf8bd39aae8bbd5f1e7758"
     }
   ],
   "model_identity": {
@@ -58,7 +58,7 @@
   },
   "node_contract_ref": {
     "id": "science_node_contract.json",
-    "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
+    "sha256": "8225cc782d665525aa240b5b5dde0920d48fc48f0b24a6caadd227a235467f58"
   },
   "body_files_sha256": "66b5848b3c067f334e199497e79dec5b26a5b2838138ca969c375b1676f807b3",
   "decision_source": null,

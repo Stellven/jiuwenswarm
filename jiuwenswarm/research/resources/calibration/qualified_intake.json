@@ -10,35 +10,35 @@
   "resource_refs": [
     {
       "id": "baseline_resource.json",
-      "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+      "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
     },
     {
       "id": "validation_resource.json",
-      "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+      "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
     }
   ],
   "upload_refs": [
     {
       "id": "client_upload_baseline.json",
-      "sha256": "844076cc2fa32682b455d50c94b4a4443d3fe38987707456a75d57834be7907d"
+      "sha256": "f72890baaa9b42ec8a65e5763000b49206014c7165a6a14c2b7c64d9d5e304c5"
     },
     {
       "id": "client_upload_validation.json",
-      "sha256": "c956ba86951d0273e4cc77d81eac27538f48ef39ec828c7da85cc379d5c4eaea"
+      "sha256": "c652379bf3f2a9c9b83dc054bee27d9605aa9516f4ab7431cc610fefa717ee29"
     }
   ],
   "rejected_inputs": [],
   "user_id": "user:example",
   "profile_ref": {
     "id": "local_profile.json",
-    "sha256": "c000f23e9d5e6fdeeca31b63a2bcd0897eae47d61bc352604544ea96c296a57c"
+    "sha256": "6e6b1b2c5438fc19200acb2a7a15556f05ad6d6a5498b1d5abd357b737393f9d"
   },
   "workspace_ref": {
     "id": "workspace.json",
-    "sha256": "ef1126beeb8d8b872b0d756e148b7ce2fab7cfa6627c1991e64dafd8bd304eca"
+    "sha256": "24ffa80121c589403423c75f2f1e72ccc870ee98df57694311885eb0d02993bb"
   },
   "input_directory_ref": {
     "id": "qualified_input_directory.json",
-    "sha256": "85172dc64bf4fe8cae3dd3b4a0bd54b4ced83c9303a5c4b4a747c8feeea9b33d"
+    "sha256": "00e29c5a31b498a04b561ea93a38a2d163d0ba6bb4670e78e1afcf73a1818584"
   }
 }

@@ -18,7 +18,7 @@ from jiuwenswarm.research.runner import CapsuleRunner, Registry
 from jiuwenswarm.research.state import SQLiteRunStore, json_bytes
 from tests.unit_tests.research.controlled_assets import ControlledLibraryService
 
-OLD_SHA = '8ba03613c616c32a8fdaf80729ffbb68cad7d9160d8d539275dd1a933ccdf216'
+OLD_SHA = '6fd9f35c4d20b3e5224e6bf6d2a5d195cf8537d547dc25c0f6382752da79f06a'
 NEW_SHA = 'f3eb92f0173d8d6ea71fe12fa3421bb1181367c67ff09d5cb832e0e0c75e792b'
 
 
