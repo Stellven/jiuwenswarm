@@ -1,0 +1,229 @@
+{
+  "schema": "ai4r-rsi-capsule-fixture-set:1",
+  "fixture_set": "public",
+  "notes": "Synthetic representative fixtures frozen from selected calculate_typed and independently checked; no real models or performance claims.",
+  "defaults": {
+    "data": {
+      "unrelated": {
+        "preserve": [
+          "exact",
+          7,
+          null
+        ]
+      }
+    },
+    "files": [
+      [
+        "input.txt",
+        "retained input"
+      ]
+    ]
+  },
+  "cases": [
+    {
+      "id": "json-numbers",
+      "data": {
+        "table": {
+          "columns": [
+            "v",
+            "ignored"
+          ],
+          "rows": [
+            [
+              1,
+              "x"
+            ],
+            [
+              2,
+              "y"
+            ],
+            [
+              3,
+              "z"
+            ]
+          ]
+        },
+        "calculation": {
+          "columns": [
+            "v"
+          ],
+          "operations": [
+            "count",
+            "sum",
+            "mean",
+            "min",
+            "max"
+          ],
+          "numeric_mode": "json_numbers"
+        }
+      },
+      "expected_task_output": {
+        "arithmetic": "decimal128_half_even",
+        "columns": {
+          "v": {
+            "count": 3,
+            "max": "3",
+            "mean": "2",
+            "min": "1",
+            "sum": "6"
+          }
+        }
+      }
+    },
+    {
+      "id": "decimal-order",
+      "data": {
+        "table": {
+          "columns": [
+            "a",
+            "b"
+          ],
+          "rows": [
+            [
+              "001",
+              "-2.50"
+            ],
+            [
+              "2.0",
+              "3.50"
+            ],
+            [
+              "3e0",
+              "1.00"
+            ]
+          ]
+        },
+        "calculation": {
+          "columns": [
+            "b",
+            "a"
+          ],
+          "operations": [
+            "sum",
+            "count"
+          ],
+          "numeric_mode": "decimal_strings"
+        }
+      },
+      "expected_task_output": {
+        "arithmetic": "decimal128_half_even",
+        "columns": {
+          "a": {
+            "count": 3,
+            "sum": "6.0"
+          },
+          "b": {
+            "count": 3,
+            "sum": "2.00"
+          }
+        }
+      }
+    },
+    {
+      "id": "empty",
+      "data": {
+        "table": {
+          "columns": [
+            "v"
+          ],
+          "rows": []
+        },
+        "calculation": {
+          "columns": [
+            "v"
+          ],
+          "operations": [
+            "count",
+            "sum"
+          ],
+          "numeric_mode": "json_numbers"
+        }
+      },
+      "expected_task_output": {
+        "arithmetic": "decimal128_half_even",
+        "columns": {
+          "v": {
+            "count": 0,
+            "sum": "0"
+          }
+        }
+      }
+    },
+    {
+      "id": "wide-public",
+      "data": {
+        "table": {
+          "columns": {
+            "$list": {
+              "n": 12,
+              "var": "i",
+              "item": {
+                "$fmt": "c{i}"
+              }
+            }
+          },
+          "rows": {
+            "$list": {
+              "n": 2000,
+              "var": "i",
+              "item": {
+                "$list": {
+                  "n": 12,
+                  "var": "j",
+                  "item": {
+                    "$int": {
+                      "terms": {
+                        "i": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "calculation": {
+          "columns": [
+            "c11",
+            "c0",
+            "c6"
+          ],
+          "operations": [
+            "count",
+            "sum",
+            "mean",
+            "min",
+            "max"
+          ],
+          "numeric_mode": "json_numbers"
+        }
+      },
+      "expected_task_output": {
+        "arithmetic": "decimal128_half_even",
+        "columns": {
+          "c0": {
+            "count": 2000,
+            "max": "1999",
+            "mean": "999.5",
+            "min": "0",
+            "sum": "1999000"
+          },
+          "c11": {
+            "count": 2000,
+            "max": "1999",
+            "mean": "999.5",
+            "min": "0",
+            "sum": "1999000"
+          },
+          "c6": {
+            "count": 2000,
+            "max": "1999",
+            "mean": "999.5",
+            "min": "0",
+            "sum": "1999000"
+          }
+        }
+      }
+    }
+  ]
+}

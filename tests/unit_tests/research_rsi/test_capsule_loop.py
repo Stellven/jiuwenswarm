@@ -172,6 +172,10 @@ def test_loop_keeps_best_feeds_back_failures_and_timings(tmp_path):
         assert [row['outcome'] for row in loop['iterations']] == ['not_kept', 'not_kept', 'kept', 'not_kept']
         assert loop['iterations'][0]['score']['regressed'] and loop['iterations'][3]['selection']['score']['regressed']
         assert loop['best']['iteration'] == 3
+        assert result['selection']['role'] == 'candidate'
+        assert result['selection']['iteration'] == 3
+        assert result['selection']['body_ref'] == loop['best']['candidate_ref']
+        assert store.get(result['selection_ref']) == result['selection']
         # top-level publication fields point at the best kept candidate
         assert result['candidate_ref'] == loop['best']['candidate_ref'] == loop['iterations'][2]['candidate_ref']
         assert store.read(result['candidate_ref']) == spec(wall=0.05, tag='faster')
@@ -234,6 +238,10 @@ def test_no_progress_stop_and_duplicates_are_not_reevaluated(tmp_path):
         assert [row['outcome'] for row in loop['iterations']] == ['not_kept', 'duplicate']
         assert [e['role'] for e in evaluations] == ['parent', 'candidate']
         assert loop['best'] is None and result['candidate_ref'] == loop['iterations'][0]['candidate_ref']
+        assert result['selection'] == {'schema': 'ai4r-rsi-capsule-selection:1',
+            'role': 'parent', 'body_ref': value['parent_body_ref'], 'iteration': 0, 'reason': 'no_child_improved'}
+        assert store.get(result['selection_ref']) == result['selection']
+        assert store.read(result['selection']['body_ref']) == PARENT
         assert result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED' and result['model_calls'] == 4
     finally:
         store.close()

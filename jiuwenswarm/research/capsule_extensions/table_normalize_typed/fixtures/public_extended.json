@@ -1,0 +1,687 @@
+{
+ "schema": "ai4r-rsi-capsule-fixture-set:1",
+ "fixture_set": "public_extended",
+ "notes": "Synthetic representative fixtures frozen from selected table_normalize_typed and independently checked; canonical Normalize templates preserve exactly the same expanded inputs and expected outputs.",
+ "defaults": {
+  "data": {
+   "unrelated": {
+    "keep": true
+   }
+  },
+  "files": [
+   [
+    "notes.txt",
+    "retained <untrusted> content"
+   ]
+  ]
+ },
+ "cases": [
+  {
+   "id": "csv-large-untouched-payload",
+   "note": "5000-row CSV inside a packet that also carries a large unrelated payload which must be preserved exactly",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      "k",
+      "v",
+      "w"
+     ],
+     "delimiter": ","
+    },
+    "context": {
+     "$list": {
+      "n": 30000,
+      "var": "i",
+      "item": [
+       {
+        "$int": {
+         "terms": {
+          "i": 1
+         },
+         "add": 0
+        }
+       },
+       null,
+       true
+      ]
+     }
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     {
+      "$concat": [
+       "k,v,w\n",
+       {
+        "$join": {
+         "sep": "",
+         "items": {
+          "$list": {
+           "n": 5000,
+           "var": "r",
+           "item": {
+            "$concat": [
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 1
+                },
+                "add": 0
+               }
+              }
+             },
+             ",v",
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 3
+                },
+                "add": 0,
+                "mod": 1000
+               }
+              }
+             },
+             ",",
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 1
+                },
+                "add": 0,
+                "mod": 5
+               }
+              }
+             },
+             "\n"
+            ]
+           }
+          }
+         }
+        }
+       }
+      ]
+     }
+    ]
+   ],
+   "expected_task_output": {
+    "columns": [
+     "k",
+     "v",
+     "w"
+    ],
+    "rows": {
+     "$list": {
+      "n": 5000,
+      "var": "r",
+      "item": [
+       {
+        "$str": {
+         "$int": {
+          "terms": {
+           "r": 1
+          },
+          "add": 0
+         }
+        }
+       },
+       {
+        "$concat": [
+         "v",
+         {
+          "$str": {
+           "$int": {
+            "terms": {
+             "r": 3
+            },
+            "add": 0,
+            "mod": 1000
+           }
+          }
+         }
+        ]
+       },
+       {
+        "$str": {
+         "$int": {
+          "terms": {
+           "r": 1
+          },
+          "add": 0,
+          "mod": 5
+         }
+        }
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "csv-doubled-quotes-crlf",
+   "note": "Doubled quotes, CRLF inside quoted fields, empty quoted field",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      "a",
+      "b"
+     ],
+     "delimiter": ","
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "a,b\r\n\"say \"\"hi\"\"\",\"x\r\ny\"\r\n\"\",plain\r\n"
+    ]
+   ],
+   "expected_task_output": {
+    "columns": [
+     "a",
+     "b"
+    ],
+    "rows": [
+     [
+      "say \"hi\"",
+      "x\r\ny"
+     ],
+     [
+      "",
+      "plain"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "tab-unicode-header",
+   "note": "Tab delimiter, non-Latin header, trailing empty fields",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      "ключ",
+      "值",
+      "emoji"
+     ],
+     "delimiter": "\t"
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "ключ\t值\temoji\nα\tβ\t🙂\n\t\t\n"
+    ]
+   ],
+   "expected_task_output": {
+    "columns": [
+     "ключ",
+     "值",
+     "emoji"
+    ],
+    "rows": [
+     [
+      "α",
+      "β",
+      "🙂"
+     ],
+     [
+      "",
+      "",
+      ""
+     ]
+    ]
+   }
+  },
+  {
+   "id": "json-escapes-numbers",
+   "note": "JSON escapes, surrogate pairs, big ints, tiny floats, signed zero",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "json",
+     "columns": [
+      "big",
+      "k",
+      "n",
+      "tiny",
+      "t"
+     ],
+     "delimiter": null
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "[{\"t\":false,\"tiny\":1e-300,\"n\":-0.0,\"k\":\"\\u00e9\\ud83d\\ude00\\\"\\\\\",\"big\":100000000000000000000000000000}]"
+    ]
+   ],
+   "expected_task_output": {
+    "columns": [
+     "big",
+     "k",
+     "n",
+     "tiny",
+     "t"
+    ],
+    "rows": [
+     [
+      100000000000000000000000000000,
+      "é😀\"\\",
+      -0.0,
+      1e-300,
+      false
+     ]
+    ]
+   }
+  },
+  {
+   "id": "csv-whitespace-empty-fields",
+   "note": "Whitespace is data; empty fields preserved",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      " a ",
+      " b ",
+      "c"
+     ],
+     "delimiter": ","
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     " a , b ,c\n  x  ,,\n\"\",, \n"
+    ]
+   ],
+   "expected_task_output": {
+    "columns": [
+     " a ",
+     " b ",
+     "c"
+    ],
+    "rows": [
+     [
+      "  x  ",
+      "",
+      ""
+     ],
+     [
+      "",
+      "",
+      " "
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pipe-quoted-multiline",
+   "note": "Delimiter and newlines inside quoted fields",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      "k",
+      "v"
+     ],
+     "delimiter": "|"
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "k|v\n\"a|b\"|\"line1\nline2\"\nplain|\"q\"\"uote\"\n"
+    ]
+   ],
+   "expected_task_output": {
+    "columns": [
+     "k",
+     "v"
+    ],
+    "rows": [
+     [
+      "a|b",
+      "line1\nline2"
+     ],
+     [
+      "plain",
+      "q\"uote"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "json-wide-records",
+   "note": "200 records x 64 keys, columns requested in reverse key order",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "json",
+     "columns": {
+      "$list": {
+       "n": 64,
+       "var": "k",
+       "item": {
+        "$concat": [
+         "c",
+         {
+          "$str": {
+           "$int": {
+            "terms": {
+             "k": -1
+            },
+            "add": 63
+           }
+          }
+         }
+        ]
+       }
+      }
+     },
+     "delimiter": null
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     {
+      "$concat": [
+       "[",
+       {
+        "$join": {
+         "sep": ",",
+         "items": {
+          "$list": {
+           "n": 200,
+           "var": "r",
+           "item": {
+            "$concat": [
+             "{",
+             {
+              "$join": {
+               "sep": ",",
+               "items": {
+                "$list": {
+                 "n": 64,
+                 "var": "k",
+                 "item": {
+                  "$concat": [
+                   "\"c",
+                   {
+                    "$str": {
+                     "$int": {
+                      "terms": {
+                       "k": 1
+                      },
+                      "add": 0
+                     }
+                    }
+                   },
+                   "\":\"v",
+                   {
+                    "$str": {
+                     "$int": {
+                      "terms": {
+                       "r": 1
+                      },
+                      "add": 0
+                     }
+                    }
+                   },
+                   "-",
+                   {
+                    "$str": {
+                     "$int": {
+                      "terms": {
+                       "k": 1
+                      },
+                      "add": 0
+                     }
+                    }
+                   },
+                   "\""
+                  ]
+                 }
+                }
+               }
+              }
+             },
+             "}"
+            ]
+           }
+          }
+         }
+        }
+       },
+       "]"
+      ]
+     }
+    ]
+   ],
+   "expected_task_output": {
+    "columns": {
+     "$list": {
+      "n": 64,
+      "var": "k",
+      "item": {
+       "$concat": [
+        "c",
+        {
+         "$str": {
+          "$int": {
+           "terms": {
+            "k": -1
+           },
+           "add": 63
+          }
+         }
+        }
+       ]
+      }
+     }
+    },
+    "rows": {
+     "$list": {
+      "n": 200,
+      "var": "r",
+      "item": {
+       "$list": {
+        "n": 64,
+        "var": "k",
+        "item": {
+         "$concat": [
+          "v",
+          {
+           "$str": {
+            "$int": {
+             "terms": {
+              "r": 1
+             },
+             "add": 0
+            }
+           }
+          },
+          "-",
+          {
+           "$str": {
+            "$int": {
+             "terms": {
+              "k": -1
+             },
+             "add": 63
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "large-max-csv",
+   "note": "Near the 256 KiB file limit: 9000 rows x 4 columns",
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      "id",
+      "name",
+      "flag",
+      "score"
+     ],
+     "delimiter": ","
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     {
+      "$concat": [
+       "id,name,flag,score\n",
+       {
+        "$join": {
+         "sep": "",
+         "items": {
+          "$list": {
+           "n": 9000,
+           "var": "r",
+           "item": {
+            "$concat": [
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 1
+                },
+                "add": 0
+               }
+              }
+             },
+             ",name-",
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 7
+                },
+                "add": 0,
+                "mod": 1000
+               }
+              }
+             },
+             ",",
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 1
+                },
+                "add": 0,
+                "mod": 2
+               }
+              }
+             },
+             ",",
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 31
+                },
+                "add": 0,
+                "mod": 10007
+               }
+              }
+             },
+             "\n"
+            ]
+           }
+          }
+         }
+        }
+       }
+      ]
+     }
+    ]
+   ],
+   "expected_task_output": {
+    "columns": [
+     "id",
+     "name",
+     "flag",
+     "score"
+    ],
+    "rows": {
+     "$list": {
+      "n": 9000,
+      "var": "r",
+      "item": [
+       {
+        "$str": {
+         "$int": {
+          "terms": {
+           "r": 1
+          },
+          "add": 0
+         }
+        }
+       },
+       {
+        "$concat": [
+         "name-",
+         {
+          "$str": {
+           "$int": {
+            "terms": {
+             "r": 7
+            },
+            "add": 0,
+            "mod": 1000
+           }
+          }
+         }
+        ]
+       },
+       {
+        "$str": {
+         "$int": {
+          "terms": {
+           "r": 1
+          },
+          "add": 0,
+          "mod": 2
+         }
+        }
+       },
+       {
+        "$str": {
+         "$int": {
+          "terms": {
+           "r": 31
+          },
+          "add": 0,
+          "mod": 10007
+         }
+        }
+       }
+      ]
+     }
+    }
+   }
+  }
+ ]
+}

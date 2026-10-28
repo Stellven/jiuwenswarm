@@ -61,6 +61,7 @@ class _Session:
     def __init__(self, ledger, candidate_body, authorized, iteration, kind):
         self.ledger, self.body, self.authorized, self.iteration = ledger, candidate_body, authorized, iteration
         self.name = ledger.grant['capsule_name']
+        self.binding = ledger.manifest.get('target_bindings', {}).get(self.name)
         self.sha = authorized['candidate_ref']['sha256']
         self.withheld = set(withheld_splits(self.name)) if kind == 'benchmark' else set()
         self.refs, self.cases, self.failure = [], [], None
@@ -150,8 +151,8 @@ class _Session:
             parent = self.parent[key]
             if key not in self.parent_checker and not fixture['malformed'] and parent['completed']:
                 self.parent_checker[key] = parent['error'] is None and checker_passes(
-                    self.name, fixture['packet'], parent['output'])
-            verdict = judge(self.name, fixture, parent, observed, parent_checker_passed=self.parent_checker.get(key))
+                    self.name, fixture['packet'], parent['output'], binding=self.binding)
+            verdict = judge(self.name, fixture, parent, observed, parent_checker_passed=self.parent_checker.get(key), binding=self.binding)
             if repeat == 0:
                 self.cases.append({'id': fixture['id'], 'split': fixture['split'], 'kind': kind,
                                    'withheld': self.sealed(fixture), 'rule': verdict['rule'], 'passed': verdict['passed'],
@@ -265,14 +266,16 @@ async def run_benchmark(ledger, parent_body, candidate_body, *, iteration):
         'repetitions': config['repetitions'],
         'gates': {key: {'threshold': config['gates'][key], 'passed': gate_results[key]} for key in config['gates']},
         'gate_results': gate_results,
-        'correctness_passed': complete, 'objective_met': bool(complete and comparison['objective_met']),
+        'correctness_passed': complete,
+        'self_comparison': parent_body == candidate_body, 'improvement_claimed': False,
+        'objective_met': bool(parent_body != candidate_body and complete and comparison['objective_met']),
         'correctness': {'contract': CORRECTNESS_CONTRACT, 'passed': complete, 'cases': session.cases,
                         'failure': session.failure},
         'semantic_edges': _semantic_summary(session, semantic_fixtures, config['semantic_edges'], config['semantic_version']),
         'protected_jobs': ledger.executions - session.started, 'planned_jobs': planned,
         'evidence_refs': session.refs, 'model_calls': 0, 'security': 'UNQUALIFIED',
         'admission_ref': None, 'activation_ref': None, 'qualification': protocol.get('qualification')}
-    report['summary'] = _summary(report)
+    report['summary'] = ('A/A noise baseline; no improvement claimed. ' if report['self_comparison'] else '') + _summary(report)
     report_ref = ledger.captures.put(report)
     ledger.benchmarks.append(report_ref)
     return {**report, 'report_ref': report_ref}

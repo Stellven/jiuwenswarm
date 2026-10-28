@@ -1,12 +1,14 @@
 """Real upload/intake/ContractFactory metadata, with controlled Library admission only."""
 import asyncio
+import copy
+import importlib
 from pathlib import Path
 import pytest
 from types import SimpleNamespace
 
 from deploy.m1.rsi_capsule_prepare import prepare_session
 from jiuwenswarm.research_rsi.records import RecordStore
-from jiuwenswarm.research_rsi.targets.capsules import registered_capsule, public_fixtures
+from jiuwenswarm.research_rsi.targets.capsules import registered_capsule, public_fixtures, release_binding, _SourceStore
 from jiuwenswarm.research.runner import CapsuleRunner
 from tests.unit_tests.research.controlled_assets import ControlledLibraryService
 from jiuwenswarm.research.contracts import Principal
@@ -14,6 +16,13 @@ from jiuwenswarm.research.compiler import register_compiler_capsules
 from jiuwenswarm.research.state import SQLiteRunStore
 from jiuwenswarm.research.runner import Registry
 from jiuwenswarm.research.checks import CheckRegistry
+
+def selected_declaration(name):
+    source_store = _SourceStore()
+    module = registered_capsule(name).release_module
+    asset = importlib.import_module('jiuwenswarm.research.capsule_extensions.' + module + '.release').prepare(source_store)
+    return source_store.read_record(asset['declaration_ref'])
+
 
 async def installed_library(path):
     store = SQLiteRunStore(path)
@@ -72,9 +81,7 @@ def test_prepare_appends_real_work_contexts_and_preserves_prior_records(installe
             name = 'utility.calculate'; target = registered_capsule(name)
             grant = grant_for(manifest, name)
             body = (runtime / 'source/jiuwenswarm' / target.carrier_path).read_bytes()
-            declaration = {'identity': {'name': name, 'version_label': '1.0.0',
-                'carrier': {'ref': target.carrier_path.removeprefix('research/')},
-                'body': [{'path': target.carrier_path.removeprefix('research/'), 'sha256': grant['parent_sha256']}]}}
+            declaration = selected_declaration(name)
             visible = {'schema': 'ai4r-rsi-whole-capsule-public-context:1', 'capsule_name': name,
                 'mutable_path': target.carrier_path, 'fixtures': public_fixtures(name),
                 'metrics': list(target.metrics), 'labels': 'PUBLIC'}
@@ -83,9 +90,23 @@ def test_prepare_appends_real_work_contexts_and_preserves_prior_records(installe
                 'request_text': 'Improve the public calculate carrier only.',
                 'work_capsule_refs': {key: installed[key]['declaration_ref'] for key in ('intent', 'verifier')},
                 'account_root': str(tmp_path / 'accounts'), 'observed_symptom': 'Public time only'}
+            for field in ('version', 'hash'):
+                wrong = copy.deepcopy(declaration)
+                if field == 'version':
+                    wrong['identity']['version_label'] = 'historical-version'
+                else:
+                    wrong['identity']['summary'] += ' altered'
+                with pytest.raises(ValueError, match='EXACT_SELECTED_RELEASE_DECLARATION_REQUIRED'):
+                    await prepare_session(core=core, library=library, runner=runner, operator=operator,
+                        records=records, lease_records=leases, value=value, parent_body=body,
+                        parent_declaration=wrong, visible_context=visible)
+                assert not Path(value['preparation_claim']).exists()
+                assert not list(core.iter_records(kinds=('model-call-start',)))
             result = await prepare_session(core=core, library=library, runner=runner, operator=operator,
                 records=records, lease_records=leases, value=value, parent_body=body,
                 parent_declaration=declaration, visible_context=visible)
+            assert result['session']['release_binding'] == manifest['target_bindings'][name]
+            assert result['session']['parent_declaration_ref']['sha256'] == release_binding(name)['declaration_sha256']
             assert result['model_calls'] == 0
             assert len(result['run_contexts']) == 2
             assert core.read_record(prior) == {'retained': True}
@@ -98,10 +119,7 @@ def test_prepare_appends_real_work_contexts_and_preserves_prior_records(installe
             second_grant = grant_for(manifest, second_name)
             second_grant['run_id'] = 'public-normalize-r2'
             second_body = (runtime / 'source/jiuwenswarm' / second_target.carrier_path).read_bytes()
-            second_declaration = {'identity': {'name': second_name, 'version_label': '1.0.0',
-                'carrier': {'ref': second_target.carrier_path.removeprefix('research/')},
-                'body': [{'path': second_target.carrier_path.removeprefix('research/'),
-                          'sha256': second_grant['parent_sha256']}]}}
+            second_declaration = selected_declaration(second_name)
             second_visible = {'schema': 'ai4r-rsi-whole-capsule-public-context:1', 'capsule_name': second_name,
                 'mutable_path': second_target.carrier_path, 'fixtures': public_fixtures(second_name),
                 'metrics': list(second_target.metrics), 'labels': 'PUBLIC'}
@@ -156,3 +174,33 @@ def test_prepare_appends_real_work_contexts_and_preserves_prior_records(installe
         finally:
             records.close(); leases.close(); core.close()
     asyncio.run(exercise())
+
+
+def test_selected_session_refuses_wrong_binding_or_declaration_before_claim(tmp_path):
+    from tests.unit_tests.research_rsi.test_capsule_session import fixture
+    from jiuwenswarm.research_rsi import capsule_session
+    from jiuwenswarm.research_rsi.records import encoded
+    store, value, runtime, evaluations = fixture(tmp_path, 'utility.calculate')
+    try:
+        target = registered_capsule(value['capsule_name'])
+        body = (Path(__file__).resolve().parents[3] / 'jiuwenswarm' / target.carrier_path).read_bytes()
+        value['parent_body_ref'] = store.put_bytes(body)
+        value['parent_declaration_ref'] = store.put(selected_declaration(value['capsule_name']))
+        value['grant']['parent_sha256'] = value['parent_body_ref']['sha256']
+        value['grant_ref'] = store.put(value['grant'])
+        value['release_binding'] = release_binding(value['capsule_name'])
+        assert capsule_session.validate_session(value) is value
+        wrong = copy.deepcopy(value)
+        wrong['release_binding']['version_label'] = 'wrong'
+        with pytest.raises(ValueError, match='EXACT_SELECTED_RELEASE_BINDING_REQUIRED'):
+            asyncio.run(capsule_session.execute(wrong, runtime, models=[]))
+        wrong = copy.deepcopy(value)
+        declaration = selected_declaration(value['capsule_name'])
+        declaration['identity']['version_label'] = 'wrong'
+        wrong['parent_declaration_ref'] = store.put(declaration)
+        with pytest.raises(ValueError, match='SELECTED_RELEASE_PARENT_REFS_DIFFER'):
+            asyncio.run(capsule_session.execute(wrong, runtime, models=[]))
+        assert evaluations == []
+        assert store.db.execute("SELECT name FROM sqlite_master WHERE name='capsule_session_claims'").fetchone() is None
+    finally:
+        store.close()

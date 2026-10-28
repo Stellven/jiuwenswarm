@@ -1,0 +1,1 @@
+{"repetitions":3,"warmups":1,"bootstrap_resamples":1000,"batch_iterations":{"small":20,"large":2}}

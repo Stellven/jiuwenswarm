@@ -112,8 +112,19 @@ def _patched_calculate_execute():
     return module.execute
 
 
-def test_real_parent_and_a_real_fix_move_the_objective_end_to_end():
+def test_historical_parent_and_a_real_fix_move_the_objective_end_to_end(monkeypatch):
     name = 'utility.calculate'
+    # Preserve the historical max-tie regression under its own checker; the
+    # selected m1-4 parent already fixes it and has no correctness headroom.
+    from dataclasses import replace
+    original_target = capsules.registered_capsule
+    legacy_worker = importlib.import_module(capsules._PACKAGE + '.calculate.worker').execute
+    legacy_check = importlib.import_module(capsules._PACKAGE + '.calculate.checks').check
+    target = replace(original_target(name), check_ids=('packet_schema', 'packet_integrity'))
+    monkeypatch.setattr(capsules, 'registered_capsule', lambda key: target if key == name else original_target(key))
+    original_carrier = capsules._carrier
+    monkeypatch.setattr(capsules, '_carrier', lambda key: (legacy_worker, legacy_check, target.task_output_key)
+                        if key == name else original_carrier(key))
     parents = [asyncio.run(capsules.evaluate_in_process(name)) for _ in range(3)]
     noise = calibrate_noise(parents)
     candidate = asyncio.run(capsules.evaluate_in_process(name, role='candidate', execute=_patched_calculate_execute()))
@@ -123,7 +134,7 @@ def test_real_parent_and_a_real_fix_move_the_objective_end_to_end():
     assert any(ident.startswith('h') for ident in result['newly_passed'])
     back = score(candidate, parents[0], noise=noise)
     assert back['regressed'] and not back['improved']
-    assert 'expected "1.00", actual "1.0"' in back['feedback']
+    assert 'max-tie-trailing-zeros' in back['feedback']
     held = {row['id']: row for row in fixtures(name, fixture_set='held_out')}
     for ident, row in held.items():
         assert repr(row['expected_task_output']['columns'])[:40] not in back['feedback']
@@ -199,7 +210,7 @@ def test_feedback_withholds_held_out_details_and_diffs_public_failures():
     public = {row['id']: row for row in fixtures(name, fixture_set='public_extended')}
     held = fixtures(name, fixture_set='held_out')[0]
     actual = copy.deepcopy(public['max-tie-trailing-zeros']['expected_task_output'])
-    actual['columns']['price']['max'] = '1.0'
+    actual['columns']['price']['max'] = '1.00'
     secret = repr(held['expected_task_output'])
     parent_rows = [('max-tie-trailing-zeros', 'public', True, 0.1, 10), (held['id'], 'held_out', True, 0.1, 10),
                    ('json-numbers', 'public', True, 0.1, 10)]
@@ -211,7 +222,7 @@ def test_feedback_withholds_held_out_details_and_diffs_public_failures():
                        {'error': {'exception_type': 'ValueError', 'message': 'public reason'}})]
     result = score(visible(parent_rows, name=name), visible(candidate_rows, name=name))
     feedback = result['feedback']
-    assert 'calculation_result.columns.price.max: expected "1.00", actual "1.0"' in feedback
+    assert 'calculation_result.columns.price.max: expected "1.0", actual "1.00"' in feedback
     assert 'json-numbers: raised ValueError: public reason' in feedback
     assert 'SECRET' not in feedback and 'leak' not in feedback and secret[:30] not in feedback
     assert held['id'] in feedback and 'withheld' in feedback

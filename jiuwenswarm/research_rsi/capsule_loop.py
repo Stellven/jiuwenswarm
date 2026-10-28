@@ -20,7 +20,7 @@ original parent is benchmarked (paired, batched, CI-gated) against the
 original parent, and ``kept`` requires correctness non-regression AND
 (correctness gain OR the benchmark's ``objective_met`` while also beating the
 current best: CI upper bound below the best's parent-relative median ratio).
-The final best is re-measured once against the parent as
+The parent is measured against itself once before proposals as
 ``loop.benchmark_baseline`` (Interface E ``iteration=0``). Feedback, the "where time goes"
 summary and the read-only dependency excerpts given to the model are machine
 generated; there is no operator free-text channel.
@@ -1159,6 +1159,24 @@ def new_loop_record(config, backend_description):
             'benchmark_baseline_status': None,
             'benchmark_accounting': {'available': False, 'latency_method': None, 'calls': 0, 'protected_jobs': 0,
                                      'jobs_per_call_estimate': None}}
+
+
+def selected_subject(loop, parent_ref):
+    """The automatically retained subject, independent of diagnostic candidates.
+
+    Historical result.candidate_ref may describe a rejected attempt for publication.
+    Consumers choosing a development child must use this explicit selection instead.
+    Selection carries no admission or activation authority.
+    """
+    best = loop.get('best')
+    if best is None:
+        return {'schema': 'ai4r-rsi-capsule-selection:1', 'role': 'parent',
+                'body_ref': parent_ref, 'iteration': 0, 'reason': 'no_child_improved'}
+    row = next(row for row in loop['iterations'] if row['iteration'] == best['iteration'])
+    need(row['kept'] and row['candidate_ref'] == best['candidate_ref'], 'BEST_MUST_BE_KEPT_CHILD')
+    return {'schema': 'ai4r-rsi-capsule-selection:1', 'role': 'candidate',
+            'body_ref': best['candidate_ref'], 'iteration': best['iteration'],
+            'reason': 'best_evaluated_child'}
 
 
 def selected_iteration(loop):

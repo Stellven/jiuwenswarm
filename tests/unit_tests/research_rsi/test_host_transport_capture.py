@@ -29,8 +29,10 @@ async def test_actual_carrier_keeps_nonzero_original_stdout_and_stderr():
 
 @pytest.mark.asyncio
 async def test_spawn_error_attaches_closed_observation_without_exception_text(tmp_path):
-    with pytest.raises(FileNotFoundError) as caught:
+    with pytest.raises(relay.BackendStageFailure) as caught:
         await relay.HostCodexBackend._observe([str(tmp_path / 'missing-carrier')], b'public')
+    assert isinstance(caught.value.__cause__, FileNotFoundError)
+    assert caught.value.diagnostic == {'stage': 'helper_spawn', 'exception_class': 'FileNotFoundError'}
     receipt = caught.value.backend_receipt
     assert receipt.original_bytes == b'' and receipt.stderr_bytes == b''
     assert receipt.transport_observation['phase'] == 'spawn'
@@ -57,10 +59,13 @@ async def test_stderr_overflow_is_drained_bounded_and_never_claimed_valid():
 async def test_stdout_overflow_retains_explicit_incomplete_original_prefix():
     code = ('import sys; sys.stdin.buffer.read(); '
             'sys.stdout.buffer.write(b"y"*4500000); sys.stdout.buffer.flush()')
-    with pytest.raises(ResearchError) as caught:
+    with pytest.raises(relay.BackendStageFailure) as caught:
         await relay.HostCodexBackend._observe([sys.executable, '-c', code], b'public')
     receipt = caught.value.backend_receipt
     assert receipt['outcome'] == 'outcome_unknown'
+    assert isinstance(caught.value.__cause__, ResearchError)
+    assert caught.value.diagnostic == {'stage': 'helper_output_bound', 'exception_class': 'ResearchError'}
+    assert receipt.transport_observation['exception_class'] == 'ResearchError'
     assert len(receipt.original_bytes) == relay.MAX_BACKEND_RECEIPT_BYTES
     assert receipt.transport_observation['stdout_overflow']
     assert receipt.transport_observation['observer_joined']

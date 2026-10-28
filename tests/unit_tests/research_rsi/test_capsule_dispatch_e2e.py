@@ -17,7 +17,7 @@ from jiuwenswarm.research_rsi.records import RecordStore, encoded
 from jiuwenswarm.research_rsi.targets import capsule_executor as executor
 from jiuwenswarm.research_rsi.targets.capsule_local_dispatcher import LocalDispatcher, dispatcher_for
 from jiuwenswarm.research_rsi.targets.capsules import public_fixtures, registered_capsule
-from tests.unit_tests.research_rsi.test_capsule_runtime import installed_runtime  # noqa: F401 (fixture)
+from tests.unit_tests.research_rsi.test_capsule_runtime import installed_runtime, implementation_body  # noqa: F401 (fixture)
 
 ROOT = Path(__file__).resolve().parents[3]
 # (name, stem, historical public baseline count); every loop grant evaluates the
@@ -107,7 +107,8 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
     groups = {f['id']: f['fixture_group'] for f in inventory(name)}
     try:
         parent = value.parent
-        assert parent == (ROOT / f'jiuwenswarm/research/capsule_extensions/{stem}/worker.py').read_bytes()
+        assert parent == (ROOT / 'jiuwenswarm' / registered_capsule(name).carrier_path).read_bytes()
+        proposal = implementation_body(name)
         with pytest.raises(ValueError, match='BASELINE_MUST_COMPLETE_FIRST'):
             candidate(value, captures, parent + b'\n# early\n', 1)
         baseline = asyncio.run(value.evaluate('parent', body=parent, candidate_ref=value.parent_ref, iteration=0))
@@ -119,7 +120,7 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
         assert all(row['task_success'] for row in baseline['rows'] if row['fixture_group'] == 'public')
         assert all(groups[row['fixture_id']] in ('public_extended', 'held_out')
                    for row in baseline['rows'] if not row['task_success'])
-        assert baseline['passed_count'] == len(passing) and baseline['passed'] is (len(passing) == count)
+        assert baseline['passed_count'] == count == len(passing) and baseline['passed'] is (len(passing) == count)
         assert (baseline['failure'] is None) is (len(passing) == count)
         assert all(row['checks'] and all(c['outcome'] == 'PASS' for c in row['checks']) for row in passing)
         expected = {f['id']: f['expected_task_output'] for f in inventory(name) if f['fixture_set'] == 'public'}
@@ -136,7 +137,7 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
         assert baseline['executions'] == count and value.executions == count
 
         # Iteration 1: a semantics-preserving mutation of the real body.
-        mutated = parent.replace(b"    packet = inputs['packet']\n",
+        mutated = proposal.replace(b"    packet = inputs['packet']\n",
                                  b"    packet = inputs['packet']\n    _unused_local_mutation = len(packet)\n", 1)
         assert mutated != parent
         improved = candidate(value, captures, mutated, 1)
@@ -147,14 +148,14 @@ def test_parent_mutated_and_broken_candidates_through_real_worker_program(instal
         # Iteration 2: wrong output -> every case still evaluated, checker failure captured.
         before, after = ((b'result[column] = metrics', b'result[column] = {}') if stem == 'calculate'
                          else (b"return {'columns': columns, 'rows': rows}", b"return {'columns': columns, 'rows': rows[1:]}"))
-        assert parent.count(before) == 1
-        wrong = candidate(value, captures, parent.replace(before, after), 2)
-        assert_interface_a(wrong, role='candidate', iteration=2, count=count, body=parent.replace(before, after), captures=captures)
+        assert proposal.count(before) == 1
+        wrong = candidate(value, captures, proposal.replace(before, after), 2)
+        assert_interface_a(wrong, role='candidate', iteration=2, count=count, body=proposal.replace(before, after), captures=captures)
         assert wrong['passed_count'] < baseline['passed_count'] and not wrong['passed']
         assert wrong['failure']['exception_type'] == 'IndependentCheckFailed'
 
         # Iteration 3: a candidate that raises -> captured exception, no crash.
-        broken = parent.replace(b"    packet = inputs['packet']\n",
+        broken = proposal.replace(b"    packet = inputs['packet']\n",
                                 b"    packet = inputs['packet']\n    raise ZeroDivisionError('deliberately broken candidate')\n", 1)
         failed = candidate(value, captures, broken, 3)
         assert_interface_a(failed, role='candidate', iteration=3, count=count, body=broken, captures=captures)
@@ -208,7 +209,7 @@ def test_output_limit_guard_and_timeout_are_enforced_and_captured(installed_runt
             assert limits['admin_output_truncated'] and limits['admin_output_captured_bytes'] == limits['admin_output_limit_bytes']
             assert row['output_bytes'] <= executor.MAX_OUTPUT_BYTES
         assert result['failure']['exception_type'] == 'OutputLimitExceeded'
-        spin = value.parent.replace(b"    packet = inputs['packet']\n", b"    packet = inputs['packet']\n    while True: pass\n", 1)
+        spin = implementation_body(value.grant['capsule_name']).replace(b"    packet = inputs['packet']\n", b"    packet = inputs['packet']\n    while True: pass\n", 1)
         started = time.monotonic()
         cases = len(inventory('utility.calculate'))
         result = candidate(value, captures, spin, 2, trials=3)

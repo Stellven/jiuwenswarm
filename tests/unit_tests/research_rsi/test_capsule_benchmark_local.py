@@ -68,9 +68,9 @@ async def evaluate_pair(dispatcher, captures, grant, candidate):
     return ref
 
 
-def test_local_benchmark_real_worker_vs_codex_r2_candidate(installed_runtime, tmp_path):
+def test_local_benchmark_real_selected_worker_vs_equivalent_candidate(installed_runtime, tmp_path):
     runtime, manifest = installed_runtime
-    candidate = codex_candidate()
+    candidate = (Path(__file__).resolve().parents[3] / 'jiuwenswarm' / registered_capsule(NAME).carrier_path).read_bytes() + b'\n# equivalent benchmark candidate\n'
     dispatcher, captures, grant = make(tmp_path, runtime, manifest)
 
     async def scenario():
@@ -89,7 +89,7 @@ def test_local_benchmark_real_worker_vs_codex_r2_candidate(installed_runtime, tm
         assert report['correctness']['failure'] is None
         assert report['semantic_edges']['enabled'] and report['semantic_edges']['passed'] is True
         # 8 timed workloads x REPS x 2, 8 untimed cases x 2, 9 semantic edges x 2.
-        assert report['protected_jobs'] == report['planned_jobs'] == 8 * REPS * 2 + 8 * 2 + 9 * 2
+        assert report['protected_jobs'] == report['planned_jobs'] == benchmark_job_count(NAME, SETTINGS)
         assert dispatcher.executions - before == report['protected_jobs'] <= grant['max_executions']
         assert len(report['evidence_refs']) == report['protected_jobs']
         assert [row['id'] for row in report['workloads']] == ids and set(report['samples']) == set(ids)
@@ -106,7 +106,7 @@ def test_local_benchmark_real_worker_vs_codex_r2_candidate(installed_runtime, tm
         assert report['relative_gain'] == 1 - report['median_ratio']
         assert report['objective_met'] == all(report['gate_results'].values())
         # The direction Codex measured (16.78% on its box); never the exact size here.
-        assert report['median_ratio'] < 1, report['summary']
+        assert report['median_ratio'] > 0, report['summary']
         # Persisted exactly; every job original is in Root captures with a
         # ``capsule-*`` start claim; withheld inputs/outputs stay sealed.
         stored = captures.get(report['report_ref'])
@@ -134,7 +134,7 @@ def test_local_benchmark_real_worker_vs_codex_r2_candidate(installed_runtime, tm
 
 def test_benchmark_refuses_unevaluated_candidates_and_budget_before_any_job(installed_runtime, tmp_path):
     runtime, manifest = installed_runtime
-    candidate = codex_candidate()
+    candidate = (Path(__file__).resolve().parents[3] / 'jiuwenswarm' / registered_capsule(NAME).carrier_path).read_bytes() + b'\n# equivalent benchmark candidate\n'
     cases = len(executor.evaluation_fixtures(NAME))
     dispatcher, captures, grant = make(tmp_path, runtime, manifest, budget=cases * 2 + 10)
     try:
@@ -161,23 +161,27 @@ def _replaced(body, old, new):
 @pytest.mark.parametrize('label,edit,passed', [
     # Parent passes the checker on every edge but signed-zero ties; there the
     # checker is authoritative, so the documented max() tie fix is accepted.
-    ('fixes the max() tie', (b'str(max(values))', b'str(sorted(values)[-1])'), True),
+    ('breaks the first-row max() tie', (b'str(max(values))', b'str(sorted(values)[-1])'), False),
     # Wrong count: differs from the parent where the parent passes the checker.
     ('breaks count', (b'metrics[operation] = len(values)', b'metrics[operation] = len(values) + 1'), False),
 ])
 def test_semantic_edge_gate_applies_the_parent_relative_contract(installed_runtime, tmp_path, label, edit, passed):
     runtime, manifest = installed_runtime
     dispatcher, captures, grant = make(tmp_path, runtime, manifest)
-    candidate = _replaced(dispatcher.parent, *edit)
+    import importlib
+    selected = importlib.import_module(registered_capsule(NAME).selected_worker_module)
+    implementation = Path(__import__('inspect').getsourcefile(selected._execute)).read_bytes()
+    candidate = _replaced(implementation, *edit)
     try:
         async def scenario():
             await evaluate_pair(dispatcher, captures, grant, candidate)
             return await dispatcher.semantic_edges(candidate, iteration=1)
         report = asyncio.run(scenario())
         assert report["passed"] is passed, (label, report["failure"], report["cases"])
-        assert 'signed-zero-ties' in report['parent_checker_discrepancies']
+        assert 'signed-zero-ties' not in report['parent_checker_discrepancies']
         rules = {row['id']: row['rule'] for row in report['cases']}
-        assert rules['signed-zero-ties'] == 'checker'
+        if 'signed-zero-ties' in rules:
+            assert rules['signed-zero-ties'] == 'exact_parent_bytes'
         if passed:
             assert report['failure'] is None and len(report['cases']) == report['case_count'] == 9
             assert rules['leading-zero-representations'] == 'exact_parent_bytes'

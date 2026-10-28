@@ -12,9 +12,9 @@ import hashlib
 import sqlite3
 
 from .capsule_loop import (CapsuleLoop, benchmark_wall_s, load_objective, loop_configuration, loop_run_context_ids,
-    new_loop_record, selected_iteration)
+    new_loop_record, selected_iteration, selected_subject)
 from .records import encoded
-from .targets.capsules import registered_capsule, public_fixtures
+from .targets.capsules import registered_capsule, public_fixtures, release_binding
 from .targets.capsule_runtime import BOOTSTRAP_SCHEMA
 from .targets.capsule_executor import (BINDING_SCHEMA, GRANT_SCHEMA, LOOP_GRANT_SCHEMA,
     MAX_LOOP_EXECUTIONS, pin)
@@ -39,10 +39,17 @@ def validate_session(value):
         'native_scope_ref', 'authorized_component', 'observed_symptom'}
     # ``loop`` is optional only for historical v1 sessions; when present it
     # must name its model backend (see capsule_loop.validate_loop_configuration).
-    need(isinstance(value, dict) and fields <= set(value) <= fields | {'loop'} and value['schema'] == SCHEMA,
+    need(isinstance(value, dict) and fields <= set(value) <= fields | {'loop', 'release_binding'} and value['schema'] == SCHEMA,
          'CLOSED_CAPSULE_SESSION_REQUIRED')
     target = registered_capsule(value['capsule_name'])
     need(target.public_evaluation_available, target.adapter_blocker)
+    if 'release_binding' in value:
+        binding = value['release_binding']
+        need(encoded(binding) == encoded(release_binding(value['capsule_name'])),
+             'EXACT_SELECTED_RELEASE_BINDING_REQUIRED')
+        need(value['parent_declaration_ref']['sha256'] == binding['declaration_sha256']
+             and value['parent_body_ref']['sha256'] == dict(binding['dependency_pins']).get(binding['carrier_path']),
+             'SELECTED_RELEASE_PARENT_REFS_DIFFER')
     grant = value['grant']
     need(grant.get('schema') in (GRANT_SCHEMA, LOOP_GRANT_SCHEMA) and grant.get('bootstrap_schema') == BOOTSTRAP_SCHEMA,
          'GUARDED_BOOTSTRAP_GRANT_REQUIRED')
@@ -131,6 +138,11 @@ async def execute(value, runtime, *, models=None):
          and declaration['identity']['carrier']['ref'] == target.carrier_path.removeprefix('research/')
          and any(row['path'] == target.carrier_path.removeprefix('research/') and row['sha256'] == value['parent_body_ref']['sha256']
                  for row in declaration['identity']['body']), 'DECLARED_PARENT_BODY_DIFFERS')
+    if 'release_binding' in value:
+        binding = value['release_binding']
+        need(declaration['identity']['version_label'] == binding['version_label']
+             and hashlib.sha256(encoded(declaration)).hexdigest() == binding['declaration_sha256'],
+             'EXACT_SELECTED_RELEASE_DECLARATION_REQUIRED')
     kind = config['model_backend']['kind']
     if models is None:
         backend = backend_from_configuration(config['model_backend'])
@@ -196,6 +208,9 @@ async def execute(value, runtime, *, models=None):
                 'stop_reason': loop['stop_reason']})
         result['limitations'] = ['Public synthetic fixtures only; no measured improvement inferred beyond the recorded scores.',
             'Security campaigns and qualification deferred; no production mutation authority.'] + loop['limitations']
+        if 'loop' in value:
+            result['selection'] = selected_subject(loop, value['parent_body_ref'])
+            result['selection_ref'] = store.put(result['selection'])
         result['loop_ref'] = store.put(loop)
         result['result_ref'] = store.put(result)
     return result

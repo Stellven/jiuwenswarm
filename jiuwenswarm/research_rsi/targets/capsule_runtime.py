@@ -1,4 +1,4 @@
-"""Frozen whole-package runtime adapter for two real packet capsule carriers.
+"""Frozen whole-package runtime adapter for registered selected packet releases.
 
 This module only validates/captures source facts and constructs child programs.
 It never imports or executes a proposed carrier in an authority owner. Runtime
@@ -19,15 +19,18 @@ from types import MappingProxyType
 from ..records import encoded
 from ..process_policy import POLICY
 
-SCHEMA = 'ai4r-rsi-capsule-runtime:1'
+LEGACY_SCHEMA = 'ai4r-rsi-capsule-runtime:1'
+SCHEMA = 'ai4r-rsi-capsule-runtime:2'
 BOOTSTRAP_SCHEMA = 'ai4r-rsi-capsule-bootstrap:2'
 MAX_FILES = 30000
 MAX_RUNTIME_BYTES = 512 * 1024 * 1024
 MAX_OUTPUT_BYTES = 2 * 1024 * 1024
-TARGET_MODULES = MappingProxyType({
-    'utility.calculate': 'jiuwenswarm.research.capsule_extensions.calculate.worker',
-    'utility.table_normalize': 'jiuwenswarm.research.capsule_extensions.table_normalize.worker',
-})
+from .capsules import runtime_target_bindings, registered_capsule, release_binding
+
+TARGET_MODULES = MappingProxyType({name: row['selected_worker_module']
+    for name, row in runtime_target_bindings().items()})
+LEGACY_TARGET_MODULES = {'utility.calculate': 'jiuwenswarm.research.capsule_extensions.calculate.worker',
+    'utility.table_normalize': 'jiuwenswarm.research.capsule_extensions.table_normalize.worker'}
 
 
 def _digest(raw):
@@ -99,7 +102,7 @@ def capture_runtime_manifest(root, *, build_id, dependency_environment, python=N
         raise ValueError('Reviewed installed dependency environment facts required')
     value = {'schema': SCHEMA, 'build_id': build_id, 'python': python or python_identity(),
         'dependency_environment': dependency_environment, 'files': inventory_runtime(root),
-        'target_modules': dict(TARGET_MODULES), 'candidate_scope': 'actual_worker_source_only',
+        'target_modules': dict(TARGET_MODULES), 'target_bindings': runtime_target_bindings(), 'candidate_scope': 'actual_worker_source_only',
         'source_admission': 'UNKNOWN', 'scope': 'public_m1_development_only'}
     # Derived closure first: every import-time edge/resource of the finite
     # targets must be staged, reported with the exact missing path.
@@ -111,8 +114,10 @@ def capture_runtime_manifest(root, *, build_id, dependency_environment, python=N
 def validate_runtime_manifest(value):
     fields = {'schema', 'build_id', 'python', 'dependency_environment', 'files', 'target_modules',
         'candidate_scope', 'source_admission', 'scope'}
-    if (not isinstance(value, dict) or set(value) != fields or value['schema'] != SCHEMA
-            or value['target_modules'] != TARGET_MODULES or value['candidate_scope'] != 'actual_worker_source_only'
+    if isinstance(value, dict) and value.get('schema') == SCHEMA:
+        fields.add('target_bindings')
+    if (not isinstance(value, dict) or set(value) != fields or value['schema'] not in (SCHEMA, LEGACY_SCHEMA)
+            or value['target_modules'] != (TARGET_MODULES if value['schema'] == SCHEMA else LEGACY_TARGET_MODULES) or value['candidate_scope'] != 'actual_worker_source_only'
             or value['source_admission'] != 'UNKNOWN' or value['scope'] != 'public_m1_development_only'):
         raise ValueError('Unknown finite capsule runtime manifest')
     py = value['python']
@@ -134,12 +139,27 @@ def validate_runtime_manifest(value):
                 or not isinstance(row['sha256'], str) or not re.fullmatch('[0-9a-f]{64}', row['sha256'])):
             raise ValueError('Runtime collision or invalid file identity')
         names.add(name.casefold()); total += row['size_bytes']
-    required = {'source/' + module.replace('.', '/') + '.py' for module in TARGET_MODULES.values()}
+    modules = value['target_modules']
+    if value['schema'] == SCHEMA:
+        # Normalize JSON tuples/lists before exact source-derived comparison.
+        if encoded(value['target_bindings']) != encoded(runtime_target_bindings()):
+            raise ValueError('Frozen selected release binding differs')
+    required = {'source/' + module.replace('.', '/') + '.py' for module in modules.values()}
     required |= {path.removesuffix('worker.py') + 'checks.py' for path in required}
     required |= {'source/jiuwenswarm/research/capsule_extensions/packet.py',
         'source/jiuwenswarm/research/runner.py', 'source/jiuwenswarm/research/state.py',
         'source/jiuwenswarm/research/contracts/validators.py',
         'source/jiuwenswarm/research_contracts/schemas/work-packet.schema.json'}
+    if value['schema'] == SCHEMA:
+        for binding in value['target_bindings'].values():
+            release_manifest = Path(__file__).resolve().parents[2] / 'research/capsule_extensions' / binding['release_module'] / 'release.json'
+            if _digest(release_manifest.read_bytes()) != binding['release_manifest_sha256']:
+                raise ValueError('Selected release manifest changed')
+            for path, pin in binding['dependency_pins']:
+                source = 'source/jiuwenswarm/' + path
+                if not any(row['path'] == source and row['sha256'] == pin for row in files):
+                    raise ValueError('Frozen release dependency missing or changed: ' + source)
+                required.add(source)
     if not required <= names or total > MAX_RUNTIME_BYTES:
         raise ValueError('Real capsule/runtime contract dependency source is missing')
     if any(name.startswith('dependencies/jiuwenswarm/') or name == 'dependencies/jiuwenswarm.py' for name in names):
@@ -158,7 +178,7 @@ def verify_runtime(root, manifest):
     return manifest
 
 
-def runtime_closure(root, files):
+def runtime_closure(root, files, target_bindings=None):
     """Derive the worker runtime's import/resource closure from its own bytes.
 
     Entry points are every finite target module and its sibling ``checks``
@@ -173,7 +193,8 @@ def runtime_closure(root, files):
         if _digest(raw) != sources[name]:
             raise ValueError('Runtime source differs from its frozen inventory: ' + name)
         return raw
-    entries = sorted({*TARGET_MODULES.values(), *(module.rpartition('.')[0] + '.checks' for module in TARGET_MODULES.values())})
+    bindings = target_bindings or runtime_target_bindings()
+    entries = sorted({module for row in bindings.values() for module in (row['selected_worker_module'], row['checks_module'])})
     # The worker imports the target package and executes one entrypoint, so
     # import-time edges are required; function-level imports of the shared
     # research modules are reported as deferred (they belong to authority
@@ -183,7 +204,10 @@ def runtime_closure(root, files):
 
 def require_runtime_closure(root, manifest):
     """Fail before any job with the first exact missing runtime source path."""
-    result = runtime_closure(root, manifest['files'])
+    bindings = manifest.get('target_bindings') or {name: {'selected_worker_module': module,
+        'checks_module': module.rpartition('.')[0] + '.checks'}
+        for name, module in manifest['target_modules'].items()}
+    result = runtime_closure(root, manifest['files'], bindings)
     if not result['complete']:
         first = result['missing'][0]
         raise ValueError('Runtime source closure incomplete: missing source/' + first['path']
@@ -230,10 +254,11 @@ def _child_main(config):
     resources = Path(config['resource_root'] if local else '/resources/')
     root = Path(config['runtime_root'] if local else '/resources/capsule-runtime')
     manifest = json.loads(pinned(resources / 'capsule-runtime-manifest.json', config['manifest_sha256'], 16 * 1024 * 1024))
-    need(manifest['schema'] == 'ai4r-rsi-capsule-runtime:1', 'unknown runtime schema')
-    need(manifest['target_modules'] == {
-        'utility.calculate': 'jiuwenswarm.research.capsule_extensions.calculate.worker',
-        'utility.table_normalize': 'jiuwenswarm.research.capsule_extensions.table_normalize.worker'}, 'finite module inventory differs')
+    need(manifest['schema'] in ('ai4r-rsi-capsule-runtime:1', 'ai4r-rsi-capsule-runtime:2'), 'unknown runtime schema')
+    need(config['capsule_name'] in manifest['target_modules'], 'captured target required')
+    if manifest['schema'] == 'ai4r-rsi-capsule-runtime:2':
+        binding = manifest['target_bindings'][config['capsule_name']]
+        need(binding['selected_worker_module'] == manifest['target_modules'][config['capsule_name']], 'captured carrier differs')
     py = manifest['python']
     need(py == {'implementation': sys.implementation.name, 'cache_tag': sys.implementation.cache_tag,
         'version': list(sys.version_info[:3]), 'machine': platform.machine(),
@@ -262,7 +287,8 @@ def _child_main(config):
     source_input = pinned(resources / 'input.json', config['input_sha256'], 1024 * 1024)
     need(config['bootstrap_schema'] == 'ai4r-rsi-capsule-bootstrap:2', 'unknown capsule bootstrap')
     packet = json.loads(source_input)
-    need(isinstance(packet, dict) and set(packet) == {'packet'}, 'exact capsule packet input required')
+    input_name = binding['input_name'] if manifest['schema'] == 'ai4r-rsi-capsule-runtime:2' else 'packet'
+    need(isinstance(packet, dict) and set(packet) == {input_name}, 'exact declared capsule input required')
     # Capture an immutable, exact-type snapshot before importing candidate code.
     # Keep the comparator and its primitives local to this trusted bootstrap;
     # candidate JSON output/checkers cannot attest input preservation.
@@ -376,7 +402,8 @@ def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, itera
     """
     if name not in TARGET_MODULES or not isinstance(candidate, bytes) or not 0 < len(candidate) <= 256 * 1024:
         raise ValueError('Finite capsule candidate body required')
-    if not isinstance(inputs, dict) or set(inputs) != {'packet'}:
+    input_name = manifest.get('target_bindings', {}).get(name, {}).get('input_name', 'packet')
+    if not isinstance(inputs, dict) or set(inputs) != {input_name}:
         raise ValueError('Exact capsule packet wrapper required')
     raw = encoded(inputs)
     if len(raw) > 1024 * 1024:
@@ -389,7 +416,7 @@ def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, itera
         **({'process_policy': None, 'execution_profile': execution_profile, 'resource_root': str(resource_root),
             'runtime_root': str(Path(runtime_root).resolve(strict=True))} if local else
            {'execution_profile': execution_profile}))
-    mutable_path = TARGET_MODULES[name].removeprefix('jiuwenswarm.').replace('.', '/') + '.py'
+    mutable_path = manifest['target_modules'][name].removeprefix('jiuwenswarm.').replace('.', '/') + '.py'
     original_path = 'source/jiuwenswarm/' + mutable_path
     return {'bootstrap_schema': BOOTSTRAP_SCHEMA, 'runtime_root': str(Path(runtime_root).resolve(strict=True)),
         'runtime_manifest_sha256': _digest(manifest_raw),
@@ -406,14 +433,14 @@ def capsule_job_assets(name, *, runtime_root, manifest, candidate, inputs, itera
         'scope': 'local_unprotected' if local else 'public_m1_development_only', 'production_admission': 'UNKNOWN'}
 
 
-def check_capsule_output(name, *, inputs, output, expected_checks_sha256=None):
+def check_capsule_output(name, *, inputs, output, expected_checks_sha256=None, binding=None):
     """Independent adapter for captured child bytes; never import candidate code.
 
     The broker authenticates receipt/source/runtime pins before calling this
     installed check owner. Time comes from that receipt, never candidate output.
     """
     from types import SimpleNamespace
-    if name not in TARGET_MODULES or not isinstance(inputs, dict) or set(inputs) != {'packet'}:
+    if name not in TARGET_MODULES or not isinstance(inputs, dict) or set(inputs) != {registered_capsule(name).input_name}:
         raise ValueError('Finite capsule and exact original packet wrapper required')
     if not isinstance(output, bytes) or not 0 < len(output) <= MAX_OUTPUT_BYTES:
         raise ValueError('Captured capsule output exceeds fixed bound')
@@ -426,15 +453,21 @@ def check_capsule_output(name, *, inputs, output, expected_checks_sha256=None):
         return value
     result = json.loads(output, object_pairs_hook=pairs,
         parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Nonfinite capsule output')))
-    if name == 'utility.calculate':
-        from jiuwenswarm.research.capsule_extensions.calculate.checks import check
-    else:
-        from jiuwenswarm.research.capsule_extensions.table_normalize.checks import check
-    checks_sha256 = _digest(Path(inspect.getsourcefile(check)).read_bytes())
+    import importlib
+    current = release_binding(name)
+    if binding is not None and encoded(binding) != encoded(current):
+        raise ValueError('Installed selected release differs from frozen checking binding')
+    binding = binding or current
+    root = Path(__file__).resolve().parents[2]
+    for path, pin in binding['dependency_pins']:
+        if _digest((root / path).read_bytes()) != pin:
+            raise ValueError('Installed independent checking dependency differs: ' + path)
+    check = importlib.import_module(binding['checks_module']).check
+    checks_sha256 = _digest((root / binding['checks_path']).read_bytes())
     if expected_checks_sha256 is not None and expected_checks_sha256 != checks_sha256:
         raise ValueError('Installed independent checker differs from frozen checking source')
     rows = check(SimpleNamespace(output_refs={}), inputs, {'result': result})
-    passed = (len(rows) == 2 and {row['check_id'] for row in rows} == {'packet_schema', 'packet_integrity'}
+    passed = (len(rows) == len(binding['check_ids']) and {row['check_id'] for row in rows} == set(binding['check_ids'])
               and all(row['outcome'] == 'PASS' for row in rows))
     return {'capsule_name': name, 'task_success': passed, 'checks': rows,
         'checks_sha256': checks_sha256,

@@ -1,0 +1,60 @@
+{
+  "schema": "ai4r-rsi-capsule-fixture-set:1",
+  "fixture_set": "public_extended",
+  "notes": "Frozen selected m1-2 worker output independently checked when fixture created; synthetic model-free reports.",
+  "cases": [
+    {
+      "id": "structured-data-and-source-file",
+      "data": {
+        "report": {
+          "path": "reports/result.md",
+          "title": "Structured results",
+          "sections": [
+            {
+              "heading": "Method",
+              "text": "Line one\nLine two"
+            }
+          ],
+          "data_keys": [
+            "measurements"
+          ]
+        },
+        "measurements": {
+          "values": [
+            1,
+            2.5,
+            null
+          ],
+          "flag": false
+        }
+      },
+      "files": [
+        [
+          "source.txt",
+          "retain exactly\n"
+        ]
+      ],
+      "expected_task_output": {
+        "data_keys": [
+          "measurements"
+        ],
+        "input_files": [
+          {
+            "path": "source.txt",
+            "sha256": "f34ab3f3ba8274df29d562480b550fbb8908408d1141043b4af205fe24804ce6"
+          }
+        ],
+        "path": "reports/result.md",
+        "provenance": [
+          {
+            "id": "public:synthetic-input",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ],
+        "sha256": "0f1114e1a2c8599e771ea33ab9b098fd0fa4521f8cff9b3eded3106ffda2eac0",
+        "size_bytes": 237,
+        "trust": "low"
+      }
+    }
+  ]
+}

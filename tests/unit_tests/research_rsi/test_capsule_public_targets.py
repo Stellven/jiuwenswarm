@@ -10,21 +10,25 @@ from jiuwenswarm.research_rsi.targets.capsules import (
 )
 
 
-@pytest.mark.parametrize('name,count', [('utility.calculate', 4), ('utility.table_normalize', 5)])
+@pytest.mark.parametrize('name,count', [('utility.calculate', 4), ('utility.table_normalize', 5), ('utility.markdown_report', 1), ('utility.summary_to_packet', 1)])
 def test_actual_carrier_and_independent_checks_preserve_complete_public_packets(name, count):
     result = asyncio.run(evaluate_public_capsule(name))
     assert result['task_count'] == result['task_successes'] == count
     assert all(row['input_unmodified'] and row['packet_preserved'] for row in result['rows'])
     assert all(row['carrier_wall_s'] >= 0 and row['output_bytes'] > 0 for row in result['rows'])
     assert all(len(row['output_sha256']) == 64 for row in result['rows'])
-    assert len(result['source_sha256']) == 3
+    assert result['source_sha256'] == dict(registered_capsule(name).dependency_pins)
     assert result['governed_execution'] is False and result['improvement_claimed'] is False
     assert result['library_admission'] == 'UNKNOWN' and result['operational_rsi_available'] is False
 
 
 def test_catalog_is_finite_and_truthful_about_source_declarations_and_builder():
     rows = {row['capsule_name']: row for row in capsule_catalog()}
-    assert set(rows) == {'utility.calculate', 'utility.table_normalize', 'research.builder'}
+    assert {'utility.calculate', 'utility.table_normalize', 'research.builder'} <= set(rows)
+    from jiuwenswarm.research_rsi.targets import capsules
+    supported = {name for name, row in rows.items() if row['public_evaluation_available']}
+    assert supported == set(capsules._STEMS)
+    assert all(row['adapter_blocker'] for row in rows.values() if not row['public_evaluation_available'])
     for name in ('utility.calculate', 'utility.table_normalize'):
         assert rows[name]['source_evolution_rsi'] == 'none'
         assert rows[name]['source_evolution_may_change'] == []
@@ -85,7 +89,8 @@ def test_catalog_targets_are_discovered_from_fixture_manifests_with_objective_me
     from pathlib import Path
     from jiuwenswarm.research_rsi.targets import capsules
     discovered = {path.parent.parent.name for path in capsules._manifest_paths()}
-    assert discovered == {'calculate', 'table_normalize'}
+    assert discovered == set(capsules._STEMS.values())
+    assert {'calculate', 'table_normalize', 'markdown_report'} <= discovered
     rows = {row['capsule_name']: row for row in capsule_catalog()}
     for name in ('utility.calculate', 'utility.table_normalize'):
         row, target = rows[name], registered_capsule(name)
@@ -121,8 +126,7 @@ def test_new_fixture_expected_outputs_are_accepted_by_the_independent_checker(na
     from types import SimpleNamespace
     from jiuwenswarm.research.state import json_bytes
     from jiuwenswarm.research_rsi.targets import capsules
-    stem = capsules._STEMS[name]
-    checker = importlib.import_module(f'jiuwenswarm.research.capsule_extensions.{stem}.checks')
+    checker = importlib.import_module(registered_capsule(name).checks_module)
     key = registered_capsule(name).task_output_key
     cases = capsules.fixture_set(name, fixture_set)
     assert len({case['id'] for case in cases}) == len(cases)

@@ -91,7 +91,7 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
     from jiuwenswarm.research.intake import extract_document, qualify_intake
     from jiuwenswarm.research_rsi.capsule_session import SCHEMA, validate_session, MAX_BODY_BYTES
     from jiuwenswarm.research_rsi.targets.capsule_executor import validate_grant
-    from jiuwenswarm.research_rsi.targets.capsules import registered_capsule, public_fixtures
+    from jiuwenswarm.research_rsi.targets.capsules import registered_capsule, public_fixtures, release_binding
     from jiuwenswarm.research_rsi.targets.capsule_executor import LOOP_GRANT_SCHEMA, grant_fixtures, loop_budget_for
     grant = value['grant']
     validate_grant(grant, value['runtime_manifest'])
@@ -112,6 +112,14 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
          and parent_declaration['identity']['carrier']['ref'] == target.carrier_path.removeprefix('research/')
          and any(row['path'] == target.carrier_path.removeprefix('research/') and row['sha256'] == grant['parent_sha256']
                  for row in parent_declaration['identity']['body']), 'ORIGINAL_DECLARATION_BODY_DIFFERS')
+    selected_release = None
+    if value['runtime_manifest'].get('schema') == 'ai4r-rsi-capsule-runtime:2':
+        selected_release = value['runtime_manifest']['target_bindings'][grant['capsule_name']]
+        need(encoded(selected_release) == encoded(release_binding(grant['capsule_name'])),
+             'FROZEN_RELEASE_BINDING_DIFFERS')
+        need(parent_declaration['identity']['version_label'] == selected_release['version_label']
+             and hashlib.sha256(encoded(parent_declaration)).hexdigest() == selected_release['declaration_sha256'],
+             'EXACT_SELECTED_RELEASE_DECLARATION_REQUIRED')
     need(visible_context == {'schema': 'ai4r-rsi-whole-capsule-public-context:1',
         'capsule_name': grant['capsule_name'], 'mutable_path': target.carrier_path,
         'fixtures': public_fixtures(grant['capsule_name']),
@@ -183,6 +191,8 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
         'diagnosis_contract_ref': prepared['diagnosis_contract_ref'],
         'proposal_contract_ref': prepared['proposal_contract_ref'], 'native_scope_ref': native_scope_ref,
         'authorized_component': target.carrier_path, 'observed_symptom': value['observed_symptom']}
+    if selected_release is not None:
+        session_value['release_binding'] = selected_release
     if loop is not None:
         session_value['loop'] = {**{key: item for key, item in value['loop'].items() if key != 'contracts'},
             'contracts': [{key: pair[key] for key in ('diagnosis_contract_ref', 'proposal_contract_ref')}

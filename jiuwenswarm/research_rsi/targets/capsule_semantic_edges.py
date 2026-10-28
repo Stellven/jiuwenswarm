@@ -18,15 +18,17 @@ from types import SimpleNamespace
 
 from ..records import encoded
 from .capsule_benchmark import _drive, _error, build_cases, need
-from .capsules import _carrier, semantic_edges_spec
+from .capsules import _carrier, registered_capsule, semantic_edges_spec
 
 SPEC_SCHEMA = 'ai4r-rsi-capsule-semantic-edges:1'
 
 
 def _spec(name):
     spec = semantic_edges_spec(name)
+    need(spec is None or spec.get('input_name', 'packet') == registered_capsule(name).input_name,
+         'SEMANTIC_INPUT_DIFFERS_FROM_SELECTED_DECLARATION')
     need(spec is not None, 'NO_SEMANTIC_EDGE_SPEC_FOR_TARGET')
-    need(set(spec) <= {'schema', 'capsule_name', 'split', 'notes', 'cases'} and spec.get('schema') == SPEC_SCHEMA
+    need(set(spec) <= {'schema', 'capsule_name', 'split', 'notes', 'cases', 'input_name'} and spec.get('schema') == SPEC_SCHEMA
          and spec.get('capsule_name') == name and isinstance(spec.get('cases'), list) and spec['cases'],
          'CLOSED_SEMANTIC_EDGE_SPEC_REQUIRED')
     return spec
@@ -41,7 +43,8 @@ def semantic_edge_fixtures(name, version=None):
     spec = _spec(name)
     version = latest_version(name) if version is None else version
     need(type(version) is int and 1 <= version <= latest_version(name), 'KNOWN_SEMANTIC_EDGE_VERSION_REQUIRED')
-    return build_cases(spec['cases'], split=spec.get('split', 'supplementary'), version=version)
+    return build_cases(spec['cases'], split=spec.get('split', 'supplementary'), version=version,
+                       input_name=registered_capsule(name).input_name)
 
 
 def semantic_protocol(name, version=None):
@@ -60,11 +63,11 @@ def semantic_parent_expectations(name, version=None):
     for fixture in semantic_edge_fixtures(name, version):
         packet = fixture['packet']; before = copy.deepcopy(packet)
         try:
-            raw = _drive(execute, packet)
+            raw = _drive(execute, packet, input_name=registered_capsule(name).input_name)
         except Exception as error:
             row = {'id': fixture['id'], 'error': _error(error)}
         else:
-            checks = check(SimpleNamespace(output_refs={}), {'packet': before}, {'result': json.loads(raw)})
+            checks = check(SimpleNamespace(output_refs={}), {registered_capsule(name).input_name: before}, {'result': json.loads(raw)})
             row = {'id': fixture['id'], 'output_sha256': hashlib.sha256(raw).hexdigest(), 'original_checks': checks,
                    'baseline_checker_discrepancy': any(value['outcome'] != 'PASS' for value in checks)}
         need(packet == before, 'INSTALLED_PARENT_MUTATED_INPUT')

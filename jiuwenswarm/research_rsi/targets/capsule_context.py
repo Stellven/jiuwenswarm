@@ -26,7 +26,8 @@ from .capsules import _PACKAGE, carrier_module, registered_capsule
 SCHEMA = 'ai4r-rsi-capsule-dependency-context:1'
 MAX_FILE_BYTES = 16 * 1024
 MAX_TOTAL_BYTES = 48 * 1024
-MAX_DEPTH = 2
+MAX_MODULES = 64
+MAX_SOURCE_BYTES = 512 * 1024
 
 
 def _source_root(source_root):
@@ -70,29 +71,32 @@ def _definition(tree, lines, symbol):
     return None
 
 
-def _owner(root, module, symbol, hops=2):
-    """The module that defines ``symbol`` (following up to ``hops`` re-exports)."""
-    path = _module_file(root, module)
-    if path is None:
+def _owner(root, module, symbol, *, read_source, seen=None):
+    """Resolve parsed re-exports under the same bounded source inventory."""
+    seen = set() if seen is None else seen
+    if module in seen:
         return None
-    source = path.read_text('utf-8')
-    tree = ast.parse(source)
+    seen.add(module)
+    captured = read_source(module)
+    if captured is None:
+        return None
+    path, raw, source, tree = captured
     if _definition(tree, source.splitlines(keepends=True), symbol) is not None:
         return module
-    if hops:
-        for node in tree.body:
-            if isinstance(node, ast.ImportFrom) and any(alias.name == symbol and alias.asname in (None, symbol)
-                                                        for alias in node.names):
-                current = module + ('.__init__' if path.name == '__init__.py' else '')
-                for target, _ in _resolve(current, node):
-                    found = _owner(root, target, symbol, hops - 1)
-                    if found is not None:
-                        return found
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and any(alias.name == symbol and alias.asname in (None, symbol)
+                                                    for alias in node.names):
+            current = module + ('.__init__' if path.name == '__init__.py' else '')
+            for target, _ in _resolve(current, node):
+                found = _owner(root, target, symbol, read_source=read_source, seen=seen)
+                if found is not None:
+                    return found
     return None
 
 
 def dependency_context(name, body, *, source_root=None, max_file_bytes=MAX_FILE_BYTES,
-                       max_total_bytes=MAX_TOTAL_BYTES):
+                       max_total_bytes=MAX_TOTAL_BYTES, max_modules=MAX_MODULES,
+                       max_source_bytes=MAX_SOURCE_BYTES):
     """Bounded read-only excerpts of what the worker ``body`` imports.
 
     Returns ``{schema, capsule_name, mutable_path, sources, total_bytes,
@@ -114,10 +118,46 @@ def dependency_context(name, body, *, source_root=None, max_file_bytes=MAX_FILE_
     except SyntaxError as error:
         value['parse_error'] = 'SyntaxError: %s (line %s)' % (error.msg, error.lineno)
         return value
+    if any(type(limit) is not int or limit <= 0 for limit in
+           (max_file_bytes, max_total_bytes, max_modules, max_source_bytes)):
+        raise ValueError('Positive finite dependency context budgets required')
+    cache = {}; source_bytes = 0
+    def omit(module, reason=None):
+        label = module + (':' + reason if reason else '')
+        if label not in value['omitted']:
+            value['omitted'].append(label)
+        if reason:
+            value['truncated'] = True
+    def read_source(module):
+        nonlocal source_bytes
+        if module in cache:
+            return cache[module]
+        path = _module_file(root, module)
+        if path is None:
+            return None
+        if len(cache) >= max_modules:
+            omit(module, 'module_limit')
+            return None
+        if path.stat().st_size > max_source_bytes - source_bytes:
+            omit(module, 'source_byte_limit')
+            return None
+        raw = path.read_bytes()
+        if len(raw) > max_source_bytes - source_bytes:
+            omit(module, 'source_byte_limit')
+            return None
+        source_bytes += len(raw)
+        source = raw.decode('utf-8')
+        try:
+            parsed = ast.parse(source)
+        except SyntaxError:
+            omit(module, 'parse_error')
+            return None
+        cache[module] = (path, raw, source, parsed)
+        return cache[module]
     seen, symbols, order = set(), {}, []
-    queue = [(worker, tree, 0)]
+    queue = [(worker, tree)]
     while queue:
-        current, node_tree, depth = queue.pop(0)
+        current, node_tree = queue.pop(0)
         for node in ast.walk(node_tree):
             if not isinstance(node, (ast.Import, ast.ImportFrom)):
                 continue
@@ -132,11 +172,14 @@ def dependency_context(name, body, *, source_root=None, max_file_bytes=MAX_FILE_
                             continue
                         if path.name == '__init__.py' and item != module:
                             continue
-                        if path.name == '__init__.py' and not path.read_text('utf-8').strip():
+                        captured = read_source(item)
+                        if captured is None:
+                            continue
+                        path, raw, source, parsed = captured
+                        if path.name == '__init__.py' and not source.strip():
                             continue
                         seen.add(item); order.append(('whole', item, path))
-                        if depth + 1 < MAX_DEPTH:
-                            queue.append((item, ast.parse(path.read_text('utf-8')), depth + 1))
+                        queue.append((item, parsed))
                 elif module == research or module.startswith(research + '.'):
                     if names:
                         bucket = symbols.setdefault(module, [])
@@ -148,7 +191,7 @@ def dependency_context(name, body, *, source_root=None, max_file_bytes=MAX_FILE_
             continue
         for symbol in names:
             # Follow re-exports (``from .errors import X`` in a package __init__).
-            owner = _owner(root, module, symbol)
+            owner = _owner(root, module, symbol, read_source=read_source)
             if owner is None:
                 value['omitted'].append(module + '.' + symbol)
                 continue
@@ -163,14 +206,15 @@ def dependency_context(name, body, *, source_root=None, max_file_bytes=MAX_FILE_
         if path is None:
             value['omitted'].append(module)
             continue
-        raw = path.read_bytes()
-        source = raw.decode('utf-8')
+        captured = read_source(module)
+        if captured is None:
+            continue
+        path, raw, source, parsed = captured
         lines = source.splitlines(keepends=True)
         pieces = []
         if kind == 'whole':
             pieces.append(('whole_file', 1, len(lines), source))
         else:
-            parsed = ast.parse(source)
             for symbol in extra:
                 pieces.append((symbol, *_definition(parsed, lines, symbol)))
         for selection, first, last, excerpt in pieces:

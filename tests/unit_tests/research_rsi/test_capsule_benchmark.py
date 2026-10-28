@@ -28,6 +28,11 @@ NAMES = ['utility.calculate', 'utility.table_normalize']
 STEM = {'utility.calculate': 'calculate', 'utility.table_normalize': 'table_normalize'}
 
 
+def registered_edge_count(name):
+    from jiuwenswarm.research_rsi.targets.capsule_semantic_edges import semantic_edge_fixtures
+    return len(semantic_edge_fixtures(name))
+
+
 def evidence(name):
     return json.loads((EVIDENCE / name).read_text('utf-8'))
 
@@ -38,27 +43,27 @@ def frozen_target(name):
 
 
 @pytest.mark.parametrize('name', NAMES)
-def test_data_driven_workloads_reproduce_codex_frozen_manifest(name):
-    """benchmark.json + the generic generator == Codex's frozen protocol and parent pins."""
-    frozen = frozen_target(name)
+def test_current_selected_release_workloads_are_checker_compatible(name):
+    """Current correctness is recaptured; historical performance stays historical."""
     protocol = benchmark_protocol(name)
-    assert protocol == frozen['protocol']
-    verified = next(row for row in evidence('verified-capsule-improvements-r2.json')['targets'] if row['capsule_name'] == name)
-    assert hashlib.sha256(encoded(protocol)).hexdigest() == verified['frozen_protocol_sha256']
+    target = capsules.registered_capsule(name)
+    assert target.release_module and target.version_label
     for split in ('visible', 'evaluation'):
         cases = benchmark_fixtures(name, split)
-        assert hashlib.sha256(encoded(cases)).hexdigest() == frozen['protocol']['splits'][split]['sha256']
-        mine = [{k: v for k, v in row.items() if k != 'checker_passed'} for row in parent_expectations(name, split)]
-        assert mine == frozen['expectations'][split]
-    # 8 timed workloads per capsule (4 visible + 4 withheld), Codex's batch classes.
-    timing = timing_batches(name)
-    assert len(timing) == 8 and set(timing.values()) == {'small', 'large'}
-    assert [ident for ident, batch in timing.items() if batch == 'small'] == [
-        ident for ident in timing if ident.startswith('small')]
-    # Source pins in the manifest are the installed parent/checker/packet.
-    root = Path(capsules.__file__).resolve().parents[2]
-    for path, sha in frozen['source_sha256'].items():
-        assert hashlib.sha256((root / path).read_bytes()).hexdigest() == sha
+        assert hashlib.sha256(encoded(cases)).hexdigest() == protocol['splits'][split]['sha256']
+        expected = parent_expectations(name, split)
+        assert len(expected) == len(cases)
+        for case, row in zip(cases, expected):
+            if case['malformed']:
+                assert 'error' in row, case['id']
+            else:
+                assert row.get('checker_passed') is True, case['id']
+    assert len(timing_batches(name)) == 8
+    # Historical records remain readable and bind their original protocol;
+    # they are never used as current selected-parent correctness evidence.
+    frozen = frozen_target(name)
+    verified = next(row for row in evidence('verified-capsule-improvements-r2.json')['targets'] if row['capsule_name'] == name)
+    assert hashlib.sha256(encoded(frozen['protocol'])).hexdigest() == verified['frozen_protocol_sha256']
 
 
 @pytest.mark.parametrize('name', NAMES)
@@ -69,7 +74,7 @@ def test_statistics_reproduce_codex_round2_comparison(name):
     readable = evidence(f'{stem}-readable-benchmark-r2.json')
     assert hashlib.sha256((EVIDENCE / f'{stem}-paired-report-r2.json').read_bytes()).hexdigest() == readable['original_report_sha256']
     expected = readable['frozen_comparison']
-    protocol = benchmark_protocol(name)
+    protocol = frozen_target(name)['protocol']
     assert paired['protocol_sha256'] == hashlib.sha256(encoded(protocol)).hexdigest()
     assert compare_protocol_samples(protocol, paired['samples'], correctness_passed=True) == expected
     # The Interface E statistics with default gates give the same numbers.
@@ -137,7 +142,8 @@ def test_execution_plan_is_paired_alternating_and_matches_codex_job_counts(name,
     config = benchmark_config(name)
     plan = execution_plan(name, config)
     assert len(plan) == paired  # Codex's protected job counts (192 / 188)
-    assert benchmark_job_count(name) == paired + 2 * 9
+    from jiuwenswarm.research_rsi.targets.capsule_semantic_edges import semantic_edge_fixtures
+    assert benchmark_job_count(name) == paired + 2 * len(semantic_edge_fixtures(name))
     assert benchmark_job_count(name, {'semantic_edges': False}) == paired
     timed = [job for job in plan if job['timed']]
     for job in timed:
@@ -215,11 +221,14 @@ def test_correctness_contract_parent_relative_and_checker_authoritative():
     tie_parent = observation(completed=True, input_unmodified=True, output=tie_raw)
     fixed = json.loads(tie_raw)
     fixed['data'][key]['columns']['v']['max'] = '0.00'
+    # The selected checker now agrees with the selected parent on signed ties.
+    # Use the checker-invalid variant as a deficient parent to exercise repair.
     fixed_raw = json.dumps(fixed, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
-    assert bench.checker_passes(name, tie['packet'], fixed_raw) and not bench.checker_passes(name, tie['packet'], tie_raw)
-    improved = judge(name, tie, tie_parent, observation(completed=True, input_unmodified=True, output=fixed_raw))
+    assert bench.checker_passes(name, tie['packet'], tie_raw) and not bench.checker_passes(name, tie['packet'], fixed_raw)
+    deficient_parent = observation(completed=True, input_unmodified=True, output=fixed_raw)
+    improved = judge(name, tie, deficient_parent, observation(completed=True, input_unmodified=True, output=tie_raw))
     assert improved['passed'] and improved['rule'] == 'checker' and improved['improved'] is True
-    kept = judge(name, tie, tie_parent, observation(completed=True, input_unmodified=True, output=tie_raw))
+    kept = judge(name, tie, deficient_parent, observation(completed=True, input_unmodified=True, output=fixed_raw))
     assert kept['passed'] and kept['improved'] is False
     other = json.loads(tie_raw); other['data'][key]['columns']['v']['count'] = 3
     assert not judge(name, tie, tie_parent, observation(completed=True, input_unmodified=True,
@@ -283,12 +292,12 @@ def test_loop_budget_covers_benchmark_jobs():
     loop = {'max_iterations': 5, 'trials': 1}
     assert loop_budget_for(name, loop) == loop_execution_budget(cases, max_iterations=5, trials=1)
     assert loop_budget_for(name, {**loop, 'benchmark': True}) == loop_execution_budget(
-        cases, max_iterations=5, trials=1, benchmark_jobs=192 + 18)
+        cases, max_iterations=5, trials=1, benchmark_jobs=benchmark_job_count(name))
     # The slot's sizing dict (M3): exact with the capsule name; without it the
     # largest exact count of benchmarked capsules of that workload count.
     sizing = {'workloads': 8, 'repetitions': 11, 'warmups': 2, 'per_job_s': 6, 'wall_s': 9000}
     exact = loop_execution_budget(cases, max_iterations=5, trials=1, benchmark=sizing, capsule_name=name)
-    assert exact == loop_execution_budget(cases, max_iterations=5, trials=1, benchmark_jobs=210, max_benchmarks=6)
+    assert exact == loop_execution_budget(cases, max_iterations=5, trials=1, benchmark_jobs=benchmark_job_count(name), max_benchmarks=6)
     assert loop_execution_budget(cases, max_iterations=5, trials=1, benchmark=sizing) == exact  # 210 >= 206
     assert loop_budget_for(name, {**loop, 'benchmark': sizing}) == exact
     with pytest.raises(ValueError):
@@ -311,7 +320,7 @@ def test_root_benchmark_settings_come_from_the_session_sizing_and_its_grant():
     extra = {'batch_iterations': {'small': 50}, 'gates': {'minimum_gain': 0.05}}
     settings = evaluator_benchmark_settings(session, extra)
     assert settings == {**extra, 'repetitions': 3, 'warmups': 1}
-    assert benchmark_job_count(name, benchmark_config(name, settings)) == 8 * 3 * 2 + 8 * 2 + 9 * 2
+    assert benchmark_job_count(name, benchmark_config(name, settings)) == 8 * 3 * 2 + 8 * 2 + 2 * registered_edge_count(name)
     # No sizing: nothing served, and an evaluator block alone is refused.
     plain = {**session, 'loop': {'max_iterations': 2}}
     assert evaluator_benchmark_settings(plain) is None

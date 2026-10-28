@@ -1,0 +1,440 @@
+{
+  "schema": "ai4r-rsi-capsule-benchmark-workloads:1",
+  "capsule_name": "utility.table_normalize_typed",
+  "notes": "Representative table_normalize_typed execution using compatible specialist workloads; selected independent checker authoritative; new baseline only.",
+  "protocol": {
+    "timing_scope": "authoritative protected process wall divided by fixed full-execution batch size; includes startup, imports, packet validation, copy, serialization and input guard; checker excluded",
+    "process_scope": "original single-invocation protected latency remains separately reported; no claim of pure execute latency reduction",
+    "batch_iterations": {
+      "small": 1000,
+      "large": 20
+    },
+    "invocation_state": "fresh JSON packet and fresh candidate module namespace each invocation; candidate compiled once inside protected wall; immutable dependency imports shared",
+    "candidate_review": "reject cross-invocation result memoization, persistent state in dependencies/builtins and mutations of frozen dependencies; unchanged independent runtime isolation still applies",
+    "repetitions": 11,
+    "warmups": 2,
+    "paired_order": "alternating AB BA",
+    "aggregate": "equal-weight geometric mean of per-workload median candidate/parent ratios",
+    "minimum_relative_gain": 0.1,
+    "confidence": 0.95,
+    "bootstrap_resamples": 5000,
+    "regression_limit": 0.05,
+    "correctness": "all valid exact output bytes plus original immutable checks; all malformed exact parent error type, code and message; input unchanged",
+    "claim_requires": "amortized protected full-execution batch gain >= minimum; paired bootstrap upper ratio <= 0.90; every workload protected wall median ratio <= 1.05; all correctness cases pass",
+    "qualification": "local development evidence only; security deferred; no admission or activation"
+  },
+  "statistics": {
+    "bootstrap_seed": 20261026
+  },
+  "withheld_splits": [
+    "evaluation"
+  ],
+  "workloads": [
+    "small-json",
+    "large-json",
+    "wide-json",
+    "large-csv",
+    "small-csv",
+    "large-json-order",
+    "wide-json-order",
+    "quoted-csv"
+  ],
+  "table_defaults": {
+    "column_name": "field_{k}",
+    "cell": {
+      "row_coef": 7,
+      "col_coef": 1,
+      "col_index": "reversed",
+      "mod": 199,
+      "offset": 0,
+      "divisor": null
+    }
+  },
+  "workload_packet": {
+    "data": {
+      "table_request": {
+        "file": "source.txt",
+        "format": {
+          "$var": "format"
+        },
+        "columns": {
+          "$var": "columns"
+        },
+        "delimiter": {
+          "$var": "delimiter"
+        }
+      },
+      "unrelated": {
+        "exact": [
+          null,
+          true,
+          "α"
+        ]
+      }
+    },
+    "files": [
+      [
+        "source.txt",
+        {
+          "$var": "table"
+        }
+      ],
+      [
+        "notes.txt",
+        "preserve all files"
+      ]
+    ]
+  },
+  "splits": {
+    "visible": [
+      {
+        "id": "small-json",
+        "timed": true,
+        "batch": "small",
+        "table": {
+          "height": 12,
+          "width": 4,
+          "encoding": {
+            "kind": "records_json",
+            "key_order": "reversed"
+          },
+          "patches": [
+            {
+              "rows": [
+                0
+              ],
+              "column": 0,
+              "value": null
+            },
+            {
+              "rows": [
+                1
+              ],
+              "column": -1,
+              "value": true
+            }
+          ]
+        },
+        "vars": {
+          "format": "json",
+          "delimiter": null
+        }
+      },
+      {
+        "id": "large-json",
+        "timed": true,
+        "batch": "large",
+        "table": {
+          "height": 4000,
+          "width": 4,
+          "encoding": {
+            "kind": "records_json",
+            "key_order": "reversed"
+          },
+          "patches": [
+            {
+              "rows": [
+                0
+              ],
+              "column": 0,
+              "value": null
+            },
+            {
+              "rows": [
+                1
+              ],
+              "column": -1,
+              "value": true
+            }
+          ]
+        },
+        "vars": {
+          "format": "json",
+          "delimiter": null
+        }
+      },
+      {
+        "id": "wide-json",
+        "timed": true,
+        "batch": "large",
+        "table": {
+          "height": 500,
+          "width": 32,
+          "encoding": {
+            "kind": "records_json",
+            "key_order": "reversed"
+          },
+          "patches": [
+            {
+              "rows": [
+                0
+              ],
+              "column": 0,
+              "value": null
+            },
+            {
+              "rows": [
+                1
+              ],
+              "column": -1,
+              "value": true
+            }
+          ]
+        },
+        "vars": {
+          "format": "json",
+          "delimiter": null
+        }
+      },
+      {
+        "id": "large-csv",
+        "timed": true,
+        "batch": "large",
+        "table": {
+          "height": 7000,
+          "width": 4,
+          "encoding": {
+            "kind": "csv",
+            "delimiter": ",",
+            "lineterminator": "\r\n"
+          }
+        },
+        "vars": {
+          "format": "csv",
+          "delimiter": ","
+        }
+      },
+      {
+        "id": "duplicate-key",
+        "data": {
+          "table_request": {
+            "file": "source.txt",
+            "format": "json",
+            "columns": [
+              "field_0"
+            ],
+            "delimiter": null
+          }
+        },
+        "files": [
+          [
+            "source.txt",
+            "[{\"field_0\":1,\"field_0\":2}]"
+          ]
+        ],
+        "malformed": true
+      },
+      {
+        "id": "wrong-keys",
+        "data": {
+          "table_request": {
+            "file": "source.txt",
+            "format": "json",
+            "columns": [
+              "field_0"
+            ],
+            "delimiter": null
+          }
+        },
+        "files": [
+          [
+            "source.txt",
+            "[{\"other\":1}]"
+          ]
+        ],
+        "malformed": true
+      },
+      {
+        "id": "empty-json",
+        "data": {
+          "table_request": {
+            "file": "source.txt",
+            "format": "json",
+            "columns": [
+              "field_0"
+            ],
+            "delimiter": null
+          }
+        },
+        "files": [
+          [
+            "source.txt",
+            "[]"
+          ]
+        ]
+      }
+    ],
+    "evaluation": [
+      {
+        "id": "small-csv",
+        "timed": true,
+        "batch": "small",
+        "table": {
+          "height": 19,
+          "width": 5,
+          "encoding": {
+            "kind": "csv",
+            "delimiter": ",",
+            "lineterminator": "\r\n"
+          }
+        },
+        "vars": {
+          "format": "csv",
+          "delimiter": ","
+        }
+      },
+      {
+        "id": "large-json-order",
+        "timed": true,
+        "batch": "large",
+        "table": {
+          "height": 3100,
+          "width": 5,
+          "encoding": {
+            "kind": "records_json",
+            "key_order": "reversed"
+          },
+          "patches": [
+            {
+              "rows": [
+                0
+              ],
+              "column": 0,
+              "value": null
+            },
+            {
+              "rows": [
+                1
+              ],
+              "column": -1,
+              "value": true
+            }
+          ]
+        },
+        "vars": {
+          "format": "json",
+          "delimiter": null
+        }
+      },
+      {
+        "id": "wide-json-order",
+        "timed": true,
+        "batch": "large",
+        "table": {
+          "height": 350,
+          "width": 48,
+          "encoding": {
+            "kind": "records_json",
+            "key_order": "reversed"
+          },
+          "patches": [
+            {
+              "rows": [
+                0
+              ],
+              "column": 0,
+              "value": null
+            },
+            {
+              "rows": [
+                1
+              ],
+              "column": -1,
+              "value": true
+            }
+          ]
+        },
+        "vars": {
+          "format": "json",
+          "delimiter": null
+        }
+      },
+      {
+        "id": "quoted-csv",
+        "timed": true,
+        "batch": "large",
+        "table": {
+          "height": 3100,
+          "width": 5,
+          "encoding": {
+            "kind": "csv",
+            "delimiter": ",",
+            "lineterminator": "\r\n"
+          },
+          "patches": [
+            {
+              "rows": {
+                "step": 10
+              },
+              "column": -1,
+              "value": "α,\"quoted\"\nline"
+            }
+          ]
+        },
+        "vars": {
+          "format": "csv",
+          "delimiter": ","
+        }
+      },
+      {
+        "id": "nested-value",
+        "data": {
+          "table_request": {
+            "file": "source.txt",
+            "format": "json",
+            "columns": [
+              "field_0"
+            ],
+            "delimiter": null
+          }
+        },
+        "files": [
+          [
+            "source.txt",
+            "[{\"field_0\":[]}]"
+          ]
+        ],
+        "malformed": true
+      },
+      {
+        "id": "nonfinite",
+        "data": {
+          "table_request": {
+            "file": "source.txt",
+            "format": "json",
+            "columns": [
+              "field_0"
+            ],
+            "delimiter": null
+          }
+        },
+        "files": [
+          [
+            "source.txt",
+            "[{\"field_0\":NaN}]"
+          ]
+        ],
+        "malformed": true
+      },
+      {
+        "id": "empty-json",
+        "data": {
+          "table_request": {
+            "file": "source.txt",
+            "format": "json",
+            "columns": [
+              "field_0"
+            ],
+            "delimiter": null
+          }
+        },
+        "files": [
+          [
+            "source.txt",
+            "[]"
+          ]
+        ]
+      }
+    ]
+  }
+}

@@ -14,13 +14,27 @@ import tempfile
 
 import pytest
 
-from jiuwenswarm.research_rsi.targets.capsules import public_fixtures
+from jiuwenswarm.research_rsi.targets.capsules import public_fixtures, registered_capsule, runtime_target_bindings
 from jiuwenswarm.research_rsi.targets.capsule_runtime import (
     capture_runtime_manifest, capsule_job_assets, capsule_worker_program,
     check_capsule_output, inventory_runtime, validate_runtime_manifest, verify_runtime,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def implementation_body(name):
+    """Inline the selected delegate into its authorized wrapper (test proposals only)."""
+    import importlib
+    import inspect
+    module = importlib.import_module(registered_capsule(name).selected_worker_module)
+    seen = set()
+    while hasattr(module, '_execute'):
+        if module.__name__ in seen:
+            raise ValueError('Cyclic worker delegation')
+        seen.add(module.__name__)
+        module = importlib.import_module(module._execute.__module__)
+    return Path(inspect.getsourcefile(module.execute)).read_bytes()
 
 
 @pytest.fixture(scope='module')
@@ -32,6 +46,10 @@ def installed_runtime(tmp_path_factory):
     import jiuwenswarm.research.capsule_extensions.calculate.checks
     import jiuwenswarm.research.capsule_extensions.table_normalize.worker
     import jiuwenswarm.research.capsule_extensions.table_normalize.checks
+    import importlib
+    for binding in runtime_target_bindings().values():
+        importlib.import_module(binding['selected_worker_module'])
+        importlib.import_module(binding['checks_module'])
     runtime = tmp_path_factory.mktemp('actual-capsule-runtime')
     runtime.chmod(0o755)  # Staged runtimes are worker-listable, like Root's.
     package = runtime / 'source/jiuwenswarm'; package.mkdir(parents=True)
@@ -86,7 +104,7 @@ def test_fixed_runtime_program_executes_real_production_carrier_with_real_depend
     runtime, manifest = installed_runtime
     fixture = public_fixtures(name)[-1]  # Both serialize substantially above 8 KiB.
     stem = 'calculate' if name.endswith('calculate') else 'table_normalize'
-    body = (ROOT / f'jiuwenswarm/research/capsule_extensions/{stem}/worker.py').read_bytes()
+    body = implementation_body(name)
     if corrupt in ('mutate_nested', 'replace_input'):
         injection = (b"    packet['data']['mutation'] = True\n" if corrupt == 'mutate_nested'
                      else b"    inputs['packet'] = dict(packet, unexpected=True)\n")
@@ -135,7 +153,7 @@ def test_fixed_runtime_program_executes_real_production_carrier_with_real_depend
     assert checked['task_success'] is (not corrupt)
     assert checked['output_bytes'] > 8192
     assert checked['output_bytes'] < assets['output_limit_bytes'] == 2 * 1024 * 1024
-    assert assets['mutable_path'] == f'research/capsule_extensions/{stem}/worker.py'
+    assert assets['mutable_path'] == registered_capsule(name).carrier_path
     assert assets['production_admission'] == 'UNKNOWN'
 
 

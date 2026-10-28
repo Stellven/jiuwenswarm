@@ -1,0 +1,189 @@
+{
+  "schema": "ai4r-rsi-capsule-benchmark-workloads:1",
+  "capsule_name": "utility.markdown_report_typed",
+  "notes": "Representative markdown_report_typed execution using compatible specialist workloads; selected independent checker authoritative; new baseline only.",
+  "protocol": {
+    "timing_scope": "authoritative protected process wall divided by fixed full-execution batch size; includes startup, imports, packet validation, copy, serialization and input guard; checker excluded",
+    "process_scope": "original single-invocation protected latency remains separately reported; no claim of pure execute latency reduction",
+    "batch_iterations": {
+      "small": 1000,
+      "large": 20
+    },
+    "invocation_state": "fresh JSON packet and fresh candidate module namespace each invocation; candidate compiled once inside protected wall; immutable dependency imports shared",
+    "candidate_review": "reject cross-invocation result memoization, persistent state in dependencies/builtins and mutations of frozen dependencies; unchanged independent runtime isolation still applies",
+    "repetitions": 11,
+    "warmups": 2,
+    "paired_order": "alternating AB BA",
+    "aggregate": "equal-weight geometric mean of per-workload median candidate/parent ratios",
+    "minimum_relative_gain": 0.1,
+    "confidence": 0.95,
+    "bootstrap_resamples": 5000,
+    "regression_limit": 0.05,
+    "correctness": "all valid exact output bytes plus original immutable checks; all malformed exact parent error type, code and message; input unchanged",
+    "claim_requires": "amortized protected full-execution batch gain >= minimum; paired bootstrap upper ratio <= 0.90; every workload protected wall median ratio <= 1.05; all correctness cases pass",
+    "qualification": "local development evidence only; security deferred; no admission or activation"
+  },
+  "withheld_splits": [
+    "evaluation"
+  ],
+  "splits": {
+    "visible": [
+      {
+        "id": "short-escaped-report",
+        "timed": true,
+        "batch": "small",
+        "data": {
+          "report": {
+            "path": "reports/result.md",
+            "title": "Research <alpha> & beta",
+            "sections": [
+              {
+                "heading": "A *heading*",
+                "text": "Greek α, 日本語, emoji 🧪; [link](https://example.invalid) & <tag>."
+              }
+            ],
+            "data_keys": []
+          }
+        }
+      },
+      {
+        "id": "large-unicode-report",
+        "timed": true,
+        "batch": "large",
+        "data": {
+          "report": {
+            "path": "reports/result.md",
+            "title": "Long report",
+            "sections": [
+              {
+                "heading": "Evidence",
+                "text": {
+                  "$join": {
+                    "sep": "",
+                    "items": {
+                      "$list": {
+                        "n": 1000,
+                        "var": "i",
+                        "item": "α <tag> *emphasis* [link] & scientific text\n"
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "data_keys": []
+          }
+        }
+      },
+      {
+        "id": "bad-title-newline",
+        "malformed": true,
+        "data": {
+          "report": {
+            "path": "reports/result.md",
+            "title": "Title\nInjected heading",
+            "sections": [],
+            "data_keys": []
+          }
+        }
+      }
+    ],
+    "evaluation": [
+      {
+        "id": "structured-data-report",
+        "timed": true,
+        "batch": "small",
+        "data": {
+          "report": {
+            "path": "reports/result.md",
+            "title": "Structured results",
+            "sections": [
+              {
+                "heading": "Method",
+                "text": "Line one\nLine two"
+              }
+            ],
+            "data_keys": [
+              "measurements"
+            ]
+          },
+          "measurements": {
+            "values": [
+              1,
+              2.5,
+              null
+            ],
+            "flag": false
+          }
+        },
+        "files": [
+          [
+            "source.txt",
+            "retain exactly\n"
+          ]
+        ]
+      },
+      {
+        "id": "large-selected-array",
+        "timed": true,
+        "batch": "large",
+        "data": {
+          "report": {
+            "path": "reports/result.md",
+            "title": "Selected measurements",
+            "sections": [],
+            "data_keys": [
+              "measurements"
+            ]
+          },
+          "measurements": {
+            "$list": {
+              "n": 1000,
+              "var": "i",
+              "item": {
+                "index": {
+                  "$int": {
+                    "terms": {
+                      "i": 1
+                    }
+                  }
+                },
+                "value": {
+                  "$int": {
+                    "terms": {
+                      "i": 3
+                    },
+                    "mod": 257
+                  }
+                },
+                "label": {
+                  "$fmt": "item {i}"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "bad-data-key",
+        "malformed": true,
+        "data": {
+          "report": {
+            "path": "reports/result.md",
+            "title": "Missing field",
+            "sections": [],
+            "data_keys": [
+              "absent"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "workloads": [
+    "short-escaped-report",
+    "large-unicode-report",
+    "structured-data-report",
+    "large-selected-array"
+  ]
+}

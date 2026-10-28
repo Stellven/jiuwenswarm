@@ -18,7 +18,7 @@ import time
 import types
 
 from ..records import encoded
-from .capsules import public_fixtures, registered_capsule
+from .capsules import public_fixtures, registered_capsule, fixture_inputs
 from .capsule_runtime import (BOOTSTRAP_SCHEMA, MAX_OUTPUT_BYTES, capsule_job_assets,
     check_capsule_output, require_runtime_closure, verify_runtime)
 from ..capsule_doctor import (WORKER_GID, WORKER_UID, _searchable, require_worker_traversal,
@@ -786,8 +786,9 @@ class _EvaluationLedger:
         checked = None
         if successful:
             try:
-                checked = check_capsule_output(self.grant['capsule_name'], inputs={'packet': fixture['packet']},
-                    output=stdout, expected_checks_sha256=assets['checks_sha256'])
+                checked = check_capsule_output(self.grant['capsule_name'], inputs=fixture_inputs(self.grant['capsule_name'], fixture),
+                    output=stdout, expected_checks_sha256=assets['checks_sha256'],
+                    binding=self.manifest.get('target_bindings', {}).get(self.grant['capsule_name']))
             except (ValueError, TypeError, KeyError, UnicodeError):
                 successful = False
             else:
@@ -878,7 +879,7 @@ class WholeCapsuleDispatcher(_EvaluationLedger):
         job = await self._run_job(role=role, fixture=fixture, candidate_ref=candidate_ref, binding_ref=binding_ref,
             ident=ident, index=index, make_assets=lambda profile: capsule_job_assets(self.grant['capsule_name'],
                 runtime_root=self.runtime_root, manifest=self.manifest, candidate=body,
-                inputs={'packet': fixture['packet']}, iterations=self.grant['iterations'], **profile))
+                inputs=fixture_inputs(self.grant['capsule_name'], fixture), iterations=self.grant['iterations'], **profile))
         return self._finish_case(role=role, fixture=fixture, assets=job['assets'], receipt=job['receipt'],
             stdout=job['stdout'], start_ref=job['start_ref'], candidate_ref=candidate_ref,
             input_ref=job['input_ref'], program_ref=job['program_ref'])

@@ -7,8 +7,8 @@ Calculate/Normalize gains) with two changes:
   ``capsule_extensions/<stem>/fixtures/benchmark.json`` (found by the catalog):
   generated synthetic tables, cases derived from an earlier case by setting
   packet paths, and literal packets. One generic generator serves every
-  capsule; no capsule name is branched on. The shipped specs reproduce Codex's
-  frozen fixtures byte-for-byte, so its frozen protocol hashes still match.
+  capsule; no capsule name is branched on. Current specs follow each selected release's contract. Historical frozen
+  records retain their original protocols and are replayed independently.
 * **Correctness contract.** The authority-side checker decides correctness.
   Where the parent passes the checker on a case the candidate must reproduce
   the parent's output bytes exactly; where the parent fails it, a candidate
@@ -53,7 +53,7 @@ CORRECTNESS_CONTRACT = ('checker authoritative; exact parent output bytes where 
 _CASE_KEYS = {'id', 'timed', 'batch', 'table', 'vars', 'malformed', 'derive', 'set', 'data', 'files',
               'since_version', 'note'}
 _SPEC_KEYS = {'schema', 'capsule_name', 'notes', 'protocol', 'statistics', 'withheld_splits',
-              'table_defaults', 'workload_packet', 'splits', 'workloads'}
+              'table_defaults', 'workload_packet', 'splits', 'workloads', 'input_name'}
 _MAX_CELLS = 2_000_000
 
 
@@ -66,6 +66,7 @@ def need(condition, message):
 
 def _spec(name):
     spec = benchmark_spec(name)
+    need(spec is None or spec.get('input_name', 'packet') == registered_capsule(name).input_name, 'BENCHMARK_INPUT_DIFFERS_FROM_SELECTED_DECLARATION')
     need(spec is not None, 'NO_BENCHMARK_SPEC_FOR_TARGET')
     need(set(spec) <= _SPEC_KEYS and {'schema', 'capsule_name', 'protocol', 'splits'} <= set(spec)
          and spec['schema'] == SPEC_SCHEMA and spec['capsule_name'] == name
@@ -151,7 +152,7 @@ def _set_path(packet, path, value):
     node[path[-1]] = copy.deepcopy(value)
 
 
-def build_cases(rows, *, split, table_defaults=None, workload_packet=None, version=None):
+def build_cases(rows, *, split, table_defaults=None, workload_packet=None, version=None, input_name='packet'):
     """Generic case builder shared by benchmark and semantic-edge specs.
 
     Each row is exactly one of: a generated workload (``table`` + the spec's
@@ -170,6 +171,7 @@ def build_cases(rows, *, split, table_defaults=None, workload_packet=None, versi
         need(len(kinds) == 1, 'EXACTLY_ONE_CASE_KIND_REQUIRED')
         env = dict(row.get('vars', {}))
         if kinds == ['table']:
+            need(input_name == 'packet', 'TABLE_GENERATOR_REQUIRES_PACKET_INPUT')
             need(isinstance(workload_packet, dict) and set(workload_packet) <= {'data', 'files'},
                  'WORKLOAD_PACKET_TEMPLATE_REQUIRED')
             env.update(_table({**(table_defaults or {}), **row['table']}))
@@ -185,7 +187,8 @@ def build_cases(rows, *, split, table_defaults=None, workload_packet=None, versi
         else:
             data = _expand(row['data'], env)
             files = [tuple(_expand(pair, env)) for pair in row.get('files', ())]
-            packet = _packet(data, files)
+            need(input_name == 'packet' or not files, 'NONPACKET_FIXTURE_FILES_MUST_BE_IN_DECLARED_INPUT')
+            packet = _packet(data, files) if input_name == 'packet' else data
         built[row['id']] = packet
         cases.append({'id': row['id'], 'split': split, 'packet': packet, 'malformed': row.get('malformed', False) is True})
     return cases
@@ -195,7 +198,7 @@ def build_cases(rows, *, split, table_defaults=None, workload_packet=None, versi
 def _fixtures_text(name):
     spec = _spec(name)
     value = {split: build_cases(rows, split=split, table_defaults=spec.get('table_defaults'),
-                                workload_packet=spec.get('workload_packet'))
+                                workload_packet=spec.get('workload_packet'), input_name=spec.get('input_name', 'packet'))
              for split, rows in spec['splits'].items()}
     return json.dumps(value, ensure_ascii=False)
 
@@ -347,8 +350,8 @@ def benchmark_job_count(name, config=None):
 
 # -------------------------------------------------------- parent / correctness
 
-def _drive(execute, packet):
-    invocation = execute(None, {'packet': packet})
+def _drive(execute, packet, *, input_name='packet'):
+    invocation = execute(None, {input_name: packet})
     try:
         invocation.send(None)
     except StopIteration as completed:
@@ -374,26 +377,28 @@ def parent_expectations(name, split, *, fixtures=None):
     for fixture in fixtures if fixtures is not None else benchmark_fixtures(name, split):
         packet = fixture['packet']; before = copy.deepcopy(packet)
         try:
-            raw = _drive(execute, packet)
+            raw = _drive(execute, packet, input_name=registered_capsule(name).input_name)
         except Exception as error:  # A parent error is recorded, not raised.
             row = {'id': fixture['id'], 'error': _error(error)}
         else:
-            checked = check(SimpleNamespace(output_refs={}), {'packet': before}, {'result': json.loads(raw)})
+            checked = check(SimpleNamespace(output_refs={}), {registered_capsule(name).input_name: before}, {'result': json.loads(raw)})
             row = {'id': fixture['id'], 'output_sha256': hashlib.sha256(raw).hexdigest(),
-                   'checker_passed': len(checked) == 2 and all(r['outcome'] == 'PASS' for r in checked)}
+                   'checker_passed': (len(checked) == len(registered_capsule(name).check_ids)
+                                      and {r['check_id'] for r in checked} == set(registered_capsule(name).check_ids)
+                                      and all(r['outcome'] == 'PASS' for r in checked))}
         need(packet == before, 'INSTALLED_PARENT_MUTATED_INPUT')
         rows.append({**row, 'input_sha256': hashlib.sha256(encoded(before)).hexdigest()})
     return rows
 
 
-def checker_passes(name, packet, output, *, expected_checks_sha256=None):
+def checker_passes(name, packet, output, *, expected_checks_sha256=None, binding=None):
     """The installed independent checker's verdict on captured output bytes."""
     from .capsule_runtime import check_capsule_output
     if not isinstance(output, bytes):
         return False
     try:
-        return check_capsule_output(name, inputs={'packet': packet}, output=output,
-                                    expected_checks_sha256=expected_checks_sha256)['task_success'] is True
+        return check_capsule_output(name, inputs={registered_capsule(name).input_name: packet}, output=output,
+                                    expected_checks_sha256=expected_checks_sha256, **({'binding': binding} if binding is not None else {}))['task_success'] is True
     except (ValueError, TypeError, KeyError, UnicodeError):
         return False
 
@@ -404,7 +409,7 @@ def observation(*, completed, input_unmodified=False, output=None, error=None, d
             'output': output, 'error': error, 'detail': detail}
 
 
-def judge(name, fixture, parent, candidate, *, parent_checker_passed=None, expected_checks_sha256=None):
+def judge(name, fixture, parent, candidate, *, parent_checker_passed=None, expected_checks_sha256=None, binding=None):
     """Correctness of one candidate observation against the paired parent one.
 
     Returns ``{passed, rule, reason}``; ``rule`` is ``exact_parent_bytes``,
@@ -426,7 +431,7 @@ def judge(name, fixture, parent, candidate, *, parent_checker_passed=None, expec
                        'malformed input must raise')
     if parent_checker_passed is None:
         parent_checker_passed = parent['error'] is None and checker_passes(
-            name, fixture['packet'], parent['output'], expected_checks_sha256=expected_checks_sha256)
+            name, fixture['packet'], parent['output'], expected_checks_sha256=expected_checks_sha256, binding=binding)
     if parent_checker_passed:
         same = candidate['error'] is None and candidate['output'] == parent['output']
         return verdict(same, 'exact_parent_bytes', 'output bytes differ from the parent (parent passes the checker)'
@@ -434,7 +439,7 @@ def judge(name, fixture, parent, candidate, *, parent_checker_passed=None, expec
     # The parent fails the checker here: the checker is authoritative. Passing
     # it is an improvement; reproducing the parent exactly is no regression.
     if candidate['error'] is None and checker_passes(name, fixture['packet'], candidate['output'],
-                                                     expected_checks_sha256=expected_checks_sha256):
+                                                     expected_checks_sha256=expected_checks_sha256, binding=binding):
         return {**verdict(True, 'checker'), 'improved': True}
     unchanged = (candidate['output'], candidate['error']) == (parent['output'], parent['error'])
     return {**verdict(unchanged, 'checker', 'fails the independent checker and differs from the parent'),

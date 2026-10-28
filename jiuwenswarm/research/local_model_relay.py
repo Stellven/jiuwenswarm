@@ -265,11 +265,13 @@ class HostCodexBackend:
         except BaseException as error:
             failure=error
             # Closed class names and numeric errno only, never str(error).
-            facts['exception_class']=type(error).__name__ if type(error).__name__ in {
+            observed = (error.__cause__ if isinstance(error, BackendStageFailure)
+                        and error.__cause__ is not None else error)
+            facts['exception_class']=type(observed).__name__ if type(observed).__name__ in {
                 'CancelledError','TimeoutError','BrokenPipeError','ConnectionResetError',
                 'OSError','FileNotFoundError','PermissionError','ResearchError',
                 'UnicodeDecodeError','ValueError','RuntimeError'} else 'OtherError'
-            number=getattr(error,'errno',None)
+            number=getattr(observed,'errno',None)
             facts['errno']=number if type(number) is int else None
         finally:
             if process is None and spawning is not None:

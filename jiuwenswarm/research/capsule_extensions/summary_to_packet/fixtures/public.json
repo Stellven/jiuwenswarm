@@ -1,0 +1,150 @@
+{
+  "schema": "ai4r-rsi-capsule-fixture-set:1",
+  "fixture_set": "public",
+  "cases": [
+    {
+      "id": "basic-summary-preservation",
+      "data": {
+        "schema_version": "1.0.0",
+        "id": "paper_summary",
+        "brief_ref": {
+          "id": "synthetic:brief",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "documents_ref": {
+          "id": "synthetic:documents",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "title": "Synthetic summary envelope",
+        "documents": [
+          {
+            "document_id": "P1",
+            "source_ref": {
+              "id": "synthetic:paper:1",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+            },
+            "page_count": 2
+          }
+        ],
+        "sections": {
+          "problem": {
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated.",
+            "citation_ids": [
+              "C1"
+            ]
+          },
+          "method": {
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated.",
+            "citation_ids": [
+              "C1"
+            ]
+          },
+          "results": {
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated.",
+            "citation_ids": [
+              "C1"
+            ]
+          },
+          "contributions": {
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated.",
+            "citation_ids": [
+              "C1"
+            ]
+          },
+          "limitations": {
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated.",
+            "citation_ids": [
+              "C1"
+            ]
+          }
+        },
+        "citations": [
+          {
+            "citation_id": "C1",
+            "document_id": "P1",
+            "page": 1,
+            "start": 0,
+            "end": 9,
+            "quote": "Synthetic"
+          }
+        ]
+      },
+      "expected_task_output": {
+        "brief_ref": {
+          "id": "synthetic:brief",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "citations": [
+          {
+            "citation_id": "C1",
+            "document_id": "P1",
+            "end": 9,
+            "page": 1,
+            "quote": "Synthetic",
+            "start": 0
+          }
+        ],
+        "documents": [
+          {
+            "document_id": "P1",
+            "page_count": 2,
+            "source_ref": {
+              "id": "synthetic:paper:1",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+            }
+          }
+        ],
+        "documents_ref": {
+          "id": "synthetic:documents",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "id": "paper_summary",
+        "schema_version": "1.0.0",
+        "sections": {
+          "contributions": {
+            "citation_ids": [
+              "C1"
+            ],
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated."
+          },
+          "limitations": {
+            "citation_ids": [
+              "C1"
+            ],
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated."
+          },
+          "method": {
+            "citation_ids": [
+              "C1"
+            ],
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated."
+          },
+          "problem": {
+            "citation_ids": [
+              "C1"
+            ],
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated."
+          },
+          "results": {
+            "citation_ids": [
+              "C1"
+            ],
+            "status": "supported",
+            "text": "Synthetic benchmark content; no scientific claim is validated."
+          }
+        },
+        "title": "Synthetic summary envelope"
+      }
+    }
+  ],
+  "notes": "Synthetic paper-summary envelope inputs; actual selected deterministic converter and checker verified, no claim assurance implied."
+}

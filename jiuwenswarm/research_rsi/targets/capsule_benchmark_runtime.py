@@ -113,9 +113,10 @@ def benchmark_worker_program(name, *, manifest_sha256, candidate_sha256, input_s
 def benchmark_job_assets(name, *, runtime_root, manifest, candidate, packet, iterations, warmups,
                          execution_profile='v18-bwrap', resource_root=None):
     """``capsule_job_assets`` with the guarded batched benchmark program as worker."""
+    from .capsules import registered_capsule
     local = execution_profile == 'local_unprotected'
     assets = capsule_job_assets(name, runtime_root=runtime_root, manifest=manifest, candidate=candidate,
-        inputs={'packet': packet}, iterations=iterations,
+        inputs={registered_capsule(name).input_name: packet}, iterations=iterations,
         **({'execution_profile': execution_profile, 'resource_root': resource_root} if local else {}))
     assets['files']['worker.py'] = benchmark_worker_program(name,
         manifest_sha256=assets['runtime_manifest_sha256'], candidate_sha256=assets['candidate_sha256'],

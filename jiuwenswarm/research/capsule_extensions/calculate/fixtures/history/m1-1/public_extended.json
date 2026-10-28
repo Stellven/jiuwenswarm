@@ -1,0 +1,827 @@
+{
+ "schema": "ai4r-rsi-capsule-fixture-set:1",
+ "fixture_set": "public_extended",
+ "notes": "Harder public cases (edge cases, ties, unicode, near-limit tables). Expected outputs follow the independent checker.",
+ "defaults": {
+  "data": {
+   "unrelated": {
+    "preserve": [
+     "exact",
+     7,
+     null
+    ]
+   }
+  },
+  "files": [
+   [
+    "input.txt",
+    "retained input"
+   ]
+  ]
+ },
+ "cases": [
+  {
+   "id": "max-tie-trailing-zeros",
+   "note": "Equal maxima with different representations: ordering-stable result required",
+   "data": {
+    "table": {
+     "columns": [
+      "price",
+      "qty"
+     ],
+     "rows": [
+      [
+       "1.0",
+       "2"
+      ],
+      [
+       "0.5",
+       "3"
+      ],
+      [
+       "1.00",
+       "2.0"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "price",
+      "qty"
+     ],
+     "operations": [
+      "min",
+      "max",
+      "count"
+     ],
+     "numeric_mode": "decimal_strings"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "price": {
+      "min": "0.5",
+      "max": "1.00",
+      "count": 3
+     },
+     "qty": {
+      "min": "2",
+      "max": "3",
+      "count": 3
+     }
+    }
+   }
+  },
+  {
+   "id": "exponent-equivalents",
+   "note": "Exponent and signed forms of equal values",
+   "data": {
+    "table": {
+     "columns": [
+      "x"
+     ],
+     "rows": [
+      [
+       "1e1"
+      ],
+      [
+       "10"
+      ],
+      [
+       "+10.0"
+      ],
+      [
+       "-0"
+      ],
+      [
+       "0"
+      ],
+      [
+       "2.5E-1"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "x"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "x": {
+      "count": 6,
+      "sum": "30.25",
+      "mean": "5.0416666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666667",
+      "min": "-0",
+      "max": "10.0"
+     }
+    }
+   }
+  },
+  {
+   "id": "signed-zero-json",
+   "note": "Signed zero and int/float equal values",
+   "data": {
+    "table": {
+     "columns": [
+      "z",
+      "w"
+     ],
+     "rows": [
+      [
+       0,
+       1
+      ],
+      [
+       -0.0,
+       1.0
+      ],
+      [
+       0.0,
+       -1
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "z",
+      "w"
+     ],
+     "operations": [
+      "min",
+      "max",
+      "sum"
+     ],
+     "numeric_mode": "json_numbers"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "z": {
+      "min": "0",
+      "max": "0.0",
+      "sum": "0.0"
+     },
+     "w": {
+      "min": "-1",
+      "max": "1.0",
+      "sum": "1.0"
+     }
+    }
+   }
+  },
+  {
+   "id": "repeating-mean-precision",
+   "note": "Non-terminating mean at 128-digit precision",
+   "data": {
+    "table": {
+     "columns": [
+      "r"
+     ],
+     "rows": [
+      [
+       "1"
+      ],
+      [
+       "2"
+      ],
+      [
+       "2"
+      ],
+      [
+       "0.0001"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "r"
+     ],
+     "operations": [
+      "mean",
+      "sum"
+     ],
+     "numeric_mode": "decimal_strings"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "r": {
+      "mean": "1.250025",
+      "sum": "5.0001"
+     }
+    }
+   }
+  },
+  {
+   "id": "unicode-columns",
+   "note": "Unicode column names",
+   "data": {
+    "table": {
+     "columns": [
+      "金额",
+      "naïve",
+      "🙂 score"
+     ],
+     "rows": [
+      [
+       1,
+       2.5,
+       -3
+      ],
+      [
+       4,
+       0.5,
+       3
+      ],
+      [
+       7,
+       1,
+       0
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "🙂 score",
+      "金额",
+      "naïve"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "json_numbers"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "🙂 score": {
+      "count": 3,
+      "sum": "0",
+      "mean": "0",
+      "min": "-3",
+      "max": "3"
+     },
+     "金额": {
+      "count": 3,
+      "sum": "12",
+      "mean": "4",
+      "min": "1",
+      "max": "7"
+     },
+     "naïve": {
+      "count": 3,
+      "sum": "4.0",
+      "mean": "1.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "min": "0.5",
+      "max": "2.5"
+     }
+    }
+   }
+  },
+  {
+   "id": "float-repr",
+   "note": "Float repr round-trip and exponent output",
+   "data": {
+    "table": {
+     "columns": [
+      "f"
+     ],
+     "rows": [
+      [
+       0.1
+      ],
+      [
+       0.2
+      ],
+      [
+       1e-07
+      ],
+      [
+       1e+16
+      ],
+      [
+       -3.5
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "f"
+     ],
+     "operations": [
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "json_numbers"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "f": {
+      "sum": "9999999999999996.8000001",
+      "mean": "1999999999999999.36000002",
+      "min": "-3.5",
+      "max": "1E+16"
+     }
+    }
+   }
+  },
+  {
+   "id": "wide-long-reversed",
+   "note": "Near-limit 6000x40 table, every column selected in reverse order",
+   "data": {
+    "table": {
+     "columns": {
+      "$list": {
+       "n": 40,
+       "var": "i",
+       "item": {
+        "$fmt": "c{i}"
+       }
+      }
+     },
+     "rows": {
+      "$list": {
+       "n": 6000,
+       "var": "r",
+       "item": {
+        "$list": {
+         "n": 40,
+         "var": "j",
+         "item": {
+          "$int": {
+           "terms": {
+            "r": 7,
+            "j": 1
+           },
+           "add": 0,
+           "mod": 1000
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "calculation": {
+     "columns": {
+      "$list": {
+       "n": 40,
+       "var": "i",
+       "item": {
+        "$concat": [
+         "c",
+         {
+          "$str": {
+           "$int": {
+            "terms": {
+             "i": -1
+            },
+            "add": 39
+           }
+          }
+         }
+        ]
+       }
+      }
+     },
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "json_numbers"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "c39": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c38": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c37": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c36": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c35": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c34": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c33": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c32": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c31": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c30": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c29": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c28": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c27": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c26": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c25": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c24": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c23": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c22": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c21": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c20": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c19": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c18": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c17": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c16": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c15": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c14": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c13": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c12": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c11": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c10": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c9": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c8": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c7": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c6": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c5": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c4": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c3": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c2": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c1": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     },
+     "c0": {
+      "count": 6000,
+      "sum": "2997000",
+      "mean": "499.5",
+      "min": "0",
+      "max": "999"
+     }
+    }
+   }
+  },
+  {
+   "id": "large-decimal-ties",
+   "note": "Large decimal-string table whose extremes repeat in two representations",
+   "data": {
+    "table": {
+     "columns": {
+      "$list": {
+       "n": 8,
+       "var": "i",
+       "item": {
+        "$fmt": "d{i}"
+       }
+      }
+     },
+     "rows": {
+      "$concat": [
+       {
+        "$list": {
+         "n": 1200,
+         "var": "r",
+         "item": {
+          "$list": {
+           "n": 8,
+           "var": "j",
+           "item": {
+            "$concat": [
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 13,
+                 "j": 1
+                },
+                "add": 0,
+                "mod": 500
+               }
+              }
+             },
+             ".5"
+            ]
+           }
+          }
+         }
+        }
+       },
+       {
+        "$list": {
+         "n": 1200,
+         "var": "r",
+         "item": {
+          "$list": {
+           "n": 8,
+           "var": "j",
+           "item": {
+            "$concat": [
+             {
+              "$str": {
+               "$int": {
+                "terms": {
+                 "r": 17,
+                 "j": 3
+                },
+                "add": 0,
+                "mod": 500
+               }
+              }
+             },
+             ".50"
+            ]
+           }
+          }
+         }
+        }
+       }
+      ]
+     }
+    },
+    "calculation": {
+     "columns": [
+      "d7",
+      "d0",
+      "d3"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    }
+   },
+   "expected_task_output": {
+    "arithmetic": "decimal128_half_even",
+    "columns": {
+     "d7": {
+      "count": 2400,
+      "sum": "597300.00",
+      "mean": "248.875",
+      "min": "0.5",
+      "max": "499.50"
+     },
+     "d0": {
+      "count": 2400,
+      "sum": "597200.00",
+      "mean": "248.83333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+      "min": "0.5",
+      "max": "499.50"
+     },
+     "d3": {
+      "count": 2400,
+      "sum": "597600.00",
+      "mean": "249.00",
+      "min": "0.5",
+      "max": "499.50"
+     }
+    }
+   }
+  }
+ ]
+}

@@ -5,8 +5,8 @@ registry. Public synthetic fixtures are not held-out evidence or admission.
 
 Packet capsule targets are discovered from data: an installed
 ``research/capsule_extensions/<stem>/fixtures/manifest.json`` registers the
-capsule ``<stem>`` (its ``worker.py`` carrier and ``checks.py`` checker) and
-names its fixture sets. No capsule name is special-cased here.
+capsule's fixture adapter. The product catalog selects its exact release,
+declared worker carrier, independent checker and frozen dependencies. No capsule name is special-cased here.
 
 Fixture sets and their consumers:
 
@@ -61,6 +61,17 @@ class CapsuleTarget:
     task_output_key: str | None = None
     benchmark_workload_count: int = 0
     semantic_edge_case_count: int = 0
+    release_module: str | None = None
+    version_label: str | None = None
+    selected_worker_module: str | None = None
+    checks_module: str | None = None
+    check_ids: tuple[str, ...] = ()
+    release_manifest_sha256: str | None = None
+    dependency_pins: tuple[tuple[str, str], ...] = ()
+    checks_sha256: str | None = None
+    declaration_sha256: str | None = None
+    input_name: str = 'packet'
+    required_services: tuple[str, ...] = ()
 
 
 BENCHMARK_FILE = 'benchmark.json'
@@ -76,8 +87,13 @@ def _manifest(stem):
     path = _EXTENSIONS / stem / 'fixtures' / 'manifest.json'
     spec = json.loads(path.read_text('utf-8'))
     keys = {'schema', 'capsule_name', 'task_output_key', 'scope', 'sets'}
+    for optional in ('release_module', 'input_name'):
+        if optional in spec:
+            keys.add(optional)
     if (not isinstance(spec, dict) or set(spec) != keys or spec['schema'] != FIXTURE_SCHEMA
             or not stem.isidentifier() or not isinstance(spec['capsule_name'], str)
+            or not isinstance(spec.get('input_name', 'packet'), str)
+            or not spec.get('input_name', 'packet').isidentifier()
             or not isinstance(spec['task_output_key'], str) or not isinstance(spec['scope'], str)
             or not isinstance(spec['sets'], dict) or set(spec['sets']) != set(FIXTURE_SETS)
             or any(not isinstance(v, str) or '/' in v or not v.endswith('.json') for v in spec['sets'].values())):
@@ -180,10 +196,96 @@ def _fixture_set(stem, fixture_set):
         data = _expand(case['data'], {})
         data.update({k: _expand(v, {}) for k, v in defaults.get('data', {}).items() if k not in data})
         files = [tuple(_expand(pair, {})) for pair in [*case.get('files', []), *defaults.get('files', [])]]
-        cases.append({'id': case['id'], 'packet': _packet(data, files, raw.get('envelope')),
+        input_name = _manifest(stem).get('input_name', 'packet')
+        if input_name != 'packet' and files:
+            raise ValueError('Raw declared-input fixtures must embed their own source data')
+        cases.append({'id': case['id'], 'packet': (_packet(data, files, raw.get('envelope'))
+                     if input_name == 'packet' else data),
             'expected_task_output': _expand(case['expected_task_output'], {})})
     # Serialized once; every call returns fresh, independent objects.
     return json.dumps(cases, ensure_ascii=False)
+
+
+class _SourceStore:
+    """Content addressed, memory-only asset preparation; no Core/library effects."""
+    def __init__(self):
+        self.records = {}
+    def put_blob(self, raw, **kwargs):
+        return {'id': 'blob:' + hashlib.sha256(raw).hexdigest(), 'sha256': hashlib.sha256(raw).hexdigest()}
+    def put_record(self, contract_id, value):
+        ref = self.put_blob(encoded(value))
+        self.records[ref['id']] = value
+        return ref
+    def read_record(self, ref, **kwargs):
+        return self.records[ref['id']]
+
+
+@lru_cache(maxsize=None)
+def _release_binding(name):
+    """Resolve the product-selected release and validate its complete source pins."""
+    matches = []
+    for path in sorted(_EXTENSIONS.glob('*/release.json')):
+        spec = json.loads(path.read_text('utf-8'))
+        if spec.get('name') == name:
+            matches.append((path, spec))
+    if len(matches) != 1:
+        raise ValueError('Exactly one selected release required: ' + name)
+    path, spec = matches[0]
+    module = spec['module']
+    if not isinstance(module, str) or not module.isidentifier() or path.parent.name != module:
+        raise ValueError('Invalid selected release module')
+    required = {source.relative_to(_EXTENSIONS).as_posix() for source in path.parent.glob('*.py')}
+    if 'shared_runtime' not in spec:
+        required |= {'assets.py', 'packet.py'}
+    if set(spec['files']) != required:
+        raise ValueError('Incomplete selected release source closure')
+    pins = dict(spec['files'])
+    pins.update({row['path']: row['sha256'] for row in spec.get('shared_dependencies', [])})
+    if 'shared_runtime' in spec:
+        pins[spec['shared_runtime']['path']] = spec['shared_runtime']['sha256']
+    for relative, digest in pins.items():
+        source = (_EXTENSIONS / relative).resolve()
+        if not source.is_relative_to(_EXTENSIONS.resolve()) or hashlib.sha256(source.read_bytes()).hexdigest() != digest:
+            raise ValueError('Selected release source pin differs: ' + relative)
+    store = _SourceStore()
+    release = importlib.import_module(f'{_PACKAGE}.{module}.release')
+    asset = release.prepare(store)
+    declaration = store.read_record(asset['declaration_ref'])
+    for body_path, ref in asset['body_refs'].items():
+        relative = body_path.removeprefix('capsule_extensions/')
+        if pins.get(relative) != ref['sha256']:
+            raise ValueError('Selected declaration body/dependency differs from release manifest: ' + body_path)
+    identity = declaration['identity']
+    if identity['name'] != name:
+        raise ValueError('Selected declaration identity differs')
+    carrier = 'research/' + identity['carrier']['ref']
+    worker_module = 'jiuwenswarm.' + carrier.removesuffix('.py').replace('/', '.')
+    checks_module = f'{_PACKAGE}.{module}.checks'
+    checks_path = checks_module.removeprefix('jiuwenswarm.').replace('.', '/') + '.py'
+    inputs = declaration['ports']['inputs']
+    input_name = inputs[0]['name'] if len(inputs) == 1 else None
+    return {'release_module': module, 'version_label': identity['version_label'], 'input_name': input_name,
+        'required_services': tuple(sorted(row['service_key'] for row in declaration['needs']['injects'])),
+        'carrier_path': carrier, 'checks_path': checks_path, 'selected_worker_module': worker_module,
+        'checks_module': checks_module, 'check_ids': tuple(declaration['guarantees']['acceptance']),
+        'release_manifest_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+        'declaration_sha256': asset['declaration_ref']['sha256'],
+        'dependency_pins': tuple(sorted(('research/capsule_extensions/' + key, digest) for key, digest in pins.items())),
+        'checks_sha256': hashlib.sha256((_EXTENSIONS / module / 'checks.py').read_bytes()).hexdigest()}
+
+
+def release_binding(name):
+    # Callers receive detached facts; mutating a captured manifest cannot
+    # change the authoritative installed-release cache used to validate it.
+    binding = _release_binding(name)
+    path = _EXTENSIONS / binding['release_module'] / 'release.json'
+    if hashlib.sha256(path.read_bytes()).hexdigest() != binding['release_manifest_sha256']:
+        raise ValueError('Selected release manifest changed')
+    return copy.deepcopy(binding)
+
+
+def runtime_target_bindings():
+    return {name: release_binding(name) for name, target in _TARGETS.items() if target.public_evaluation_available}
 
 
 def _discover():
@@ -203,14 +305,32 @@ def _discover():
         for extra in extras.values():
             if extra is not None and extra.get('capsule_name') != name:
                 raise ValueError('Capsule spec names a different capsule: ' + stem)
-        found[name] = (stem, CapsuleTarget(name, f'research/capsule_extensions/{stem}/worker.py',
-            f'research/capsule_extensions/{stem}/checks.py', spec['scope'],
-            ('task_success', 'carrier_wall_s', 'output_bytes'), True,
-            'Governed whole-capsule closure and separate development mutation declaration/grant required',
+        binding = release_binding(name)
+        fixture_current = (spec.get('release_module', binding['release_module']) == binding['release_module']
+                           and spec.get('input_name', 'packet') == binding['input_name'])
+        found[name] = (stem, CapsuleTarget(name, binding['carrier_path'],
+            binding['checks_path'], spec['scope'],
+            ('task_success', 'carrier_wall_s', 'output_bytes'), fixture_current,
+            ('Governed whole-capsule closure and separate development mutation declaration/grant required'
+             if fixture_current else 'Fixture manifest is stale for the selected release; regenerate through its checker'),
             held_out_case_count=counts['held_out'], public_extended_case_count=counts['public_extended'],
             objective=OBJECTIVE, fixture_sets=FIXTURE_SETS, task_output_key=spec['task_output_key'],
             benchmark_workload_count=len((extras['benchmark'] or {}).get('workloads', ())),
-            semantic_edge_case_count=len((extras['semantic'] or {}).get('cases', ()))))
+            semantic_edge_case_count=len((extras['semantic'] or {}).get('cases', ())),
+            **{key: binding[key] for key in ('release_module', 'version_label', 'selected_worker_module',
+                'checks_module', 'check_ids', 'release_manifest_sha256', 'dependency_pins', 'checks_sha256', 'declaration_sha256', 'input_name', 'required_services')}))
+    for path in sorted(_EXTENSIONS.glob('*/release.json')):
+        spec = json.loads(path.read_text('utf-8'))
+        name = spec['name']
+        if name not in found:
+            b = release_binding(name)
+            found[name] = (None, CapsuleTarget(name, b['carrier_path'], b['checks_path'],
+                'selected release without a packet fixture adapter', ('task_success',), False,
+                ('Selected release requires governed invocation context and declared services: ' + ', '.join(b['required_services'])
+                 + '; model-free execution is unavailable' if b['required_services']
+                 else 'Selected release has no compatible RSI fixture manifest'),
+                **{key: b[key] for key in ('release_module', 'version_label', 'selected_worker_module',
+                    'checks_module', 'check_ids', 'release_manifest_sha256', 'dependency_pins', 'checks_sha256', 'declaration_sha256', 'input_name', 'required_services')}))
     return found
 
 
@@ -230,7 +350,7 @@ def _optional_spec(stem, file):
 
 
 _DISCOVERED = _discover()
-_STEMS = MappingProxyType({name: stem for name, (stem, _) in _DISCOVERED.items()})
+_STEMS = MappingProxyType({name: stem for name, (stem, _) in _DISCOVERED.items() if stem is not None})
 _TARGETS = MappingProxyType({name: target for name, (_, target) in _DISCOVERED.items()} | {
     'research.builder': CapsuleTarget('research.builder', 'research/capsules/builder_agent.py',
         'research/checks/builder_agent.py', 'full native agent and artifact build loop',
@@ -253,6 +373,7 @@ def capsule_catalog():
     for target in _TARGETS.values():
         row = asdict(target)
         row['fixture_sets'] = list(target.fixture_sets)
+        row['check_ids'] = list(target.check_ids)
         carrier, checks = root / target.carrier_path, root / target.checks_path
         available = carrier.is_file() and checks.is_file()
         row.update(source_available=available, library_admission='UNKNOWN',
@@ -293,7 +414,15 @@ def carrier_module(name):
     registered_capsule(name)
     if name not in _STEMS:
         raise ValueError('No packet carrier module for target')
-    return f'{_PACKAGE}.{_STEMS[name]}.worker'
+    return registered_capsule(name).selected_worker_module
+
+
+def fixture_inputs(name, fixture):
+    """Bind a fixture's source value to the selected declaration's input port."""
+    target = registered_capsule(name)
+    if not isinstance(target.input_name, str) or not target.input_name.isidentifier():
+        raise ValueError('One declared input port is required for this fixture adapter')
+    return {target.input_name: fixture['packet']}
 
 
 def public_fixtures(name):
@@ -307,15 +436,14 @@ def _carrier(name):
     target = registered_capsule(name)
     if not target.public_evaluation_available:
         raise ValueError(target.adapter_blocker)
-    stem = _STEMS[name]
-    execute = importlib.import_module(f'{_PACKAGE}.{stem}.worker').execute
-    check = importlib.import_module(f'{_PACKAGE}.{stem}.checks').check
+    execute = importlib.import_module(target.selected_worker_module).execute
+    check = importlib.import_module(target.checks_module).check
     return execute, check, target.task_output_key
 
 
-def _checked(check, before, output):
-    checks = check(SimpleNamespace(output_refs={}), {'packet': before}, {'result': output})
-    exact = (len(checks) == 2 and {r['check_id'] for r in checks} == {'packet_schema', 'packet_integrity'}
+def _checked(check, before, output, check_ids, *, input_name='packet'):
+    checks = check(SimpleNamespace(output_refs={}), {input_name: before}, {'result': output})
+    exact = (len(checks) == len(check_ids) and {r['check_id'] for r in checks} == set(check_ids)
              and all(r['outcome'] == 'PASS' for r in checks))
     return checks, exact
 
@@ -331,24 +459,26 @@ async def evaluate_public_capsule(name):
     execute, check, output_key = _carrier(name)
     root = Path(__file__).resolve().parents[2]
     identity = {path: hashlib.sha256((root / path).read_bytes()).hexdigest()
-                for path in (target.carrier_path, target.checks_path, 'research/capsule_extensions/packet.py')}
+                for path, _ in target.dependency_pins}
     rows = []
     for fixture in public_fixtures(name):
         packet = fixture['packet']; before = copy.deepcopy(packet)
         started = perf_counter()
-        artifact = (await execute(None, {'packet': packet}))['result']
+        artifact = (await execute(None, fixture_inputs(name, {'packet': packet})))['result']
         elapsed = perf_counter() - started
         raw = artifact.data
         if not isinstance(raw, bytes):
             raise ValueError('Actual capsule must produce serialized packet bytes')
         output = json.loads(raw)
-        checks, exact_checks = _checked(check, before, output)
-        expected_packet = copy.deepcopy(before)
+        checks, exact_checks = _checked(check, before, output, registered_capsule(name).check_ids,
+                                        input_name=registered_capsule(name).input_name)
+        expected_packet = copy.deepcopy(output)
         expected_packet['data'][output_key] = fixture['expected_task_output']
-        preserved = packet == before and output == expected_packet
+        preserved = packet == before and exact_checks
+        task_matches = encoded(output.get('data', {}).get(output_key)) == encoded(fixture['expected_task_output'])
         rows.append({'fixture_id': fixture['id'], 'input_sha256': hashlib.sha256(encoded(before)).hexdigest(),
             'expected_sha256': hashlib.sha256(encoded(expected_packet)).hexdigest(),
-            'task_success': bool(exact_checks and preserved), 'input_unmodified': packet == before,
+            'task_success': bool(exact_checks and preserved and task_matches), 'input_unmodified': packet == before,
             'packet_preserved': preserved, 'checks': checks, 'carrier_wall_s': elapsed,
             'output_bytes': len(raw), 'output_sha256': hashlib.sha256(raw).hexdigest()})
     return {'schema': 'ai4r-rsi-public-capsule-evaluation:1', 'capsule_name': name,
@@ -376,7 +506,7 @@ async def evaluate_in_process(name, *, role='parent', execute=None, fixture_sets
     rows, totals, failure = [], [], None
     if cases:  # Untimed warm-up so lazy imports are not charged to the first case.
         try:
-            await execute(None, {'packet': copy.deepcopy(cases[0][1]['packet'])})
+            await execute(None, fixture_inputs(name, {'packet': copy.deepcopy(cases[0][1]['packet'])}))
         except Exception:
             pass
     for trial in range(trials):
@@ -386,7 +516,7 @@ async def evaluate_in_process(name, *, role='parent', execute=None, fixture_sets
             started = perf_counter()
             raw, error = None, None
             try:
-                raw = (await execute(None, {'packet': packet}))['result'].data
+                raw = (await execute(None, fixture_inputs(name, {'packet': packet})))['result'].data
             except Exception as exc:  # A failing candidate is a scored outcome.
                 error = {'exception_type': type(exc).__name__, 'message': str(exc)[:300]}
             elapsed = perf_counter() - started
@@ -398,7 +528,8 @@ async def evaluate_in_process(name, *, role='parent', execute=None, fixture_sets
             if isinstance(raw, bytes):
                 try:
                     output = json.loads(raw)
-                    checks, ok = _checked(check, before, output)
+                    checks, ok = _checked(check, before, output, registered_capsule(name).check_ids,
+                                        input_name=registered_capsule(name).input_name)
                 except ValueError as exc:
                     error = error or {'exception_type': type(exc).__name__, 'message': str(exc)[:300]}
             row = {'fixture_id': fixture['id'], 'fixture_set': 'held_out' if key == 'held_out' else 'public',

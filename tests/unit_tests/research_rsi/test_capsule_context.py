@@ -42,21 +42,26 @@ def test_context_is_the_workers_imports_with_exact_pinned_excerpts(name):
 
 def test_context_follows_the_candidate_body_and_is_bounded():
     name = 'utility.calculate'
-    body = worker(name).replace(b'from ..packet import output_packet, produced, validate_packet\n', b'')
+    body = b'from jiuwenswarm.research.contracts import ResearchError\n'
     paths = {row['path'] for row in dependency_context(name, body)['sources']}
-    # Without the packet import neither packet.py nor what only it imports is shown.
+    # This candidate replaces the delegated implementation and imports only ResearchError.
     assert paths == {'jiuwenswarm/research/contracts/types.py'}
     small = dependency_context(name, worker(name), max_file_bytes=200, max_total_bytes=600)
     assert small['truncated'] is True and small['total_bytes'] <= 600 and small['omitted']
+    limited = dependency_context(name, worker(name), max_modules=1)
+    assert limited['truncated'] and any(':module_limit' in item for item in limited['omitted'])
+    byte_limited = dependency_context(name, worker(name), max_source_bytes=1)
+    assert byte_limited['truncated'] and any(':source_byte_limit' in item for item in byte_limited['omitted'])
     broken = dependency_context(name, b'def broken(:\n')
     assert broken['sources'] == [] and broken['parse_error'].startswith('SyntaxError')
 
 
 def test_context_reads_an_explicit_source_root_without_importing(tmp_path):
     name = 'utility.calculate'
-    for relative in ('jiuwenswarm/research/capsule_extensions/packet.py', 'jiuwenswarm/research/runner.py',
+    release_paths = {'jiuwenswarm/' + path for path, _ in registered_capsule(name).dependency_pins}
+    for relative in sorted(release_paths | {'jiuwenswarm/research/runner.py',
                      'jiuwenswarm/research/state.py', 'jiuwenswarm/research/contracts/__init__.py',
-                     'jiuwenswarm/research/contracts/types.py', 'jiuwenswarm/research/contracts/validators.py'):
+                     'jiuwenswarm/research/contracts/types.py', 'jiuwenswarm/research/contracts/validators.py'}):
         target = tmp_path / relative; target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((ROOT / relative).read_bytes())
     runner = tmp_path / 'jiuwenswarm/research/runner.py'
@@ -67,3 +72,16 @@ def test_context_reads_an_explicit_source_root_without_importing(tmp_path):
     assert pins(value)['jiuwenswarm/research/runner.py'] != pins(here)['jiuwenswarm/research/runner.py']
     assert pins(value)['jiuwenswarm/research/capsule_extensions/packet.py'] == pins(here)[
         'jiuwenswarm/research/capsule_extensions/packet.py']
+
+    # An arbitrary declared delegate chain is traversed by source budgets,
+    # rather than losing symbols after a fixed number of wrapper releases.
+    package = registered_capsule(name).selected_worker_module.rpartition('.')[0]
+    directory = tmp_path.joinpath(*package.split('.'))
+    for index in range(6):
+        source = (f'from .context_delegate_{index + 1} import execute\n' if index < 5
+                  else 'from ..packet import produced as execute\n')
+        (directory / f'context_delegate_{index}.py').write_text(source)
+    delegated = dependency_context(name, b'from .context_delegate_0 import execute\n', source_root=tmp_path)
+    assert ('jiuwenswarm/research/runner.py', 'ProducedArtifact') in {
+        (row['path'], row['selection']) for row in delegated['sources']}
+    assert not delegated['omitted']

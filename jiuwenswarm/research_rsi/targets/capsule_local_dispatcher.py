@@ -25,7 +25,7 @@ import time
 
 from .capsule_executor import (LOCAL_SCOPE, BoundedCapture, _EvaluationLedger, digest, need)
 from .capsule_runtime import (MAX_OUTPUT_BYTES, capsule_job_assets, require_runtime_closure, verify_runtime)
-from .capsules import registered_capsule
+from .capsules import registered_capsule, fixture_inputs
 from ..records import encoded
 
 RECEIPT_SCHEMA = 'ai4r-rsi-local-capsule-receipt:1'
@@ -78,7 +78,7 @@ class LocalDispatcher(_EvaluationLedger):
         job = await self._run_job(role=role, fixture=fixture, candidate_ref=candidate_ref, binding_ref=binding_ref,
             ident=ident, index=index, make_assets=lambda profile: capsule_job_assets(self.grant['capsule_name'],
                 runtime_root=self.runtime_root, manifest=self.manifest, candidate=body,
-                inputs={'packet': fixture['packet']}, iterations=self.grant['iterations'], **profile))
+                inputs=fixture_inputs(self.grant['capsule_name'], fixture), iterations=self.grant['iterations'], **profile))
         return self._finish_case(role=role, fixture=fixture, assets=job['assets'], receipt=job['receipt'],
             stdout=job['stdout'], start_ref=job['start_ref'], candidate_ref=candidate_ref,
             input_ref=job['input_ref'], program_ref=job['program_ref'])

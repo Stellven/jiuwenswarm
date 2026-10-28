@@ -2,7 +2,7 @@
  "schema": "ai4r-rsi-capsule-semantic-edges:1",
  "capsule_name": "utility.calculate",
  "split": "supplementary",
- "notes": "Supplementary differential edge cases (Codex capsule_semantic_edges v1/v2) outside the timed benchmark; judged by the same parent-relative correctness contract.",
+ "notes": "Supplementary differential edge cases (Codex capsule_semantic_edges v1/v2) outside the timed benchmark; judged by the same parent-relative correctness contract. Current selected m1-4 uses decimal128; valid decimal28-crossing cases retained, decimal128 invalid boundaries added in version 3.",
  "cases": [
   {
    "id": "signed-zero-ties",
@@ -258,7 +258,7 @@
   },
   {
    "id": "decimal-digit-bound",
-   "malformed": true,
+   "malformed": false,
    "data": {
     "table": {
      "columns": [
@@ -296,11 +296,12 @@
      "notes.txt",
      "retain"
     ]
-   ]
+   ],
+   "note": "Accepted by selected m1-4 decimal128 contract; historical decimal28 bound no longer applies."
   },
   {
    "id": "decimal-adjusted-bound",
-   "malformed": true,
+   "malformed": false,
    "data": {
     "table": {
      "columns": [
@@ -338,7 +339,8 @@
      "notes.txt",
      "retain"
     ]
-   ]
+   ],
+   "note": "Accepted by selected m1-4 decimal128 contract; historical decimal28 bound no longer applies."
   },
   {
    "id": "duplicate-limitations-default",
@@ -359,6 +361,94 @@
      ]
     }
    ]
+  },
+  {
+   "id": "decimal128-digit-bound",
+   "malformed": true,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ],
+   "note": "Exceeds selected decimal128 bound and must raise.",
+   "since_version": 3
+  },
+  {
+   "id": "decimal128-adjusted-bound",
+   "malformed": true,
+   "data": {
+    "table": {
+     "columns": [
+      "v"
+     ],
+     "rows": [
+      [
+       "1e129"
+      ]
+     ]
+    },
+    "calculation": {
+     "columns": [
+      "v"
+     ],
+     "operations": [
+      "count",
+      "sum",
+      "mean",
+      "min",
+      "max"
+     ],
+     "numeric_mode": "decimal_strings"
+    },
+    "unrelated": {
+     "exact": [
+      "α",
+      null,
+      false
+     ]
+    }
+   },
+   "files": [
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ],
+   "note": "Exceeds selected decimal128 bound and must raise.",
+   "since_version": 3
   }
  ]
 }

@@ -293,3 +293,13 @@ sandbox startup dominates single-job wall time. Decisions:
 - Baseline on this box before any change: `tests/unit_tests/research_rsi` 648 passed / 23 failed. The 23 are environment-specific (UID 12003 worker identity, Linux custodian, bwrap). Make them pass where the environment can be prepared (e.g. create the 12003 user) or mark them with a precise `skipif` that names the missing capability — never delete or loosen them.
 - Fake models for tests live in `model_backends.py` (`FakeBackend(scripted_responses)`); they must drive the *real* loop code.
 - Commit on your worktree branch with descriptive messages. Do not touch files outside your ownership column; if you must, stop and say so in your report.
+
+## M1plus backend integration (2026-10-28)
+
+The integration branch resolves each target from the partner catalog's selected release. A runtime-v2 capture pins its declaration, carrier, checker criteria and transitive declared source dependencies. The declared worker is the mutable candidate carrier, including when that worker delegates to an immutable dependency. Preparing a session must match the selected declaration hash and version before claiming the session; existing historical records are not rewritten.
+
+An iterative result includes `selection` and its immutable `selection_ref`. The selection has schema `ai4r-rsi-capsule-selection:1`, a `role` (`parent` or `candidate`), `body_ref`, `iteration`, and `reason`. It retains the best evaluated child or the original parent if no child improves it. Consumers choosing a child must use this field: the historical top-level `candidate_ref` can describe a rejected attempt retained for diagnosis and publication.
+
+Experiments run within the prepared session's finite iteration, execution, model-query and wall-time budgets. Diagnosis and proposal consume prior measured feedback. Independent checkers enforce correctness and passing-parent output bytes; paired benchmark gates decide latency gains. A parent A/A run measures noise before proposals and never counts as an improvement. Selection stores a development result and does not activate it in the live product.
+
+The current scope is backend integration and model-free benchmark execution. UI changes are deferred. See [BENCHMARKS.md](BENCHMARKS.md) for the catalog runner and actual coverage semantics.
